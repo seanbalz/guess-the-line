@@ -93,6 +93,15 @@
       "edit_count": 0,
       "source": "user voice prediction",
       "note": "Initial verbal correction before submission; provisional pending schedule verification."
+    },
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Denver Broncos @ Los Angeles Chargers",
+      "favorite": "Denver Broncos",
+      "spread": -3.5,
+      "edit_count": 0,
+      "source": "user voice prediction",
+      "note": "Provisional Game 11 pick; matchup pending schedule verification."
     }
   ]
 }
