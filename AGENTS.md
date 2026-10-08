@@ -1,3 +1,6 @@
+# New priority — Guess the Total and free account acquisition (2026-10-08)
+Read docs/GUESS_TOTAL_IMPLEMENTATION.md, docs/ACCOUNT_ACCESS_REGISTER.md, and docs/ODDS_PROVIDER_EVALUATION.md. Build Guess the Total as an independent hidden-market prediction game with separate accuracy scoring, W-L-T and dashboard; preserve Guess the Spread and record-based Betting Challenge. Use free sources only, verify reuse rights, and never publish private league picks in static frontend assets. Account checklist is **not** evidence of connection. Do not request passwords.
+
 # New confirmed constraints — 2026-10-08
 Use FREE odds/data sources only unless the user explicitly revises the budget. Read docs/DESIGN_EXPLORATION.md before branding work. All existing colors/fonts are provisional. Produce five *visual* alternatives for each category (logo, app icon, typography, palette, UI, iconography, motion) and request user selection before finalizing. Do not claim text descriptions are finished designs.
 
