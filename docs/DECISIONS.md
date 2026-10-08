@@ -20,3 +20,5 @@
 - 2026-10-08: Link Guess the Line to Betting Challenge with a comparative edge board: user's original predicted spread, verified market consensus, and independently sourced professional model; rank largest gaps and closest guesses; record potential betting edges and eventual W-L-P outcomes. Keep totals projections separate, preserve predictions, and never invent live odds or professional projections.
 
 - 2026-10-08: For Guess the Line, add separate per-matchup closest-to-actual-spread W-L-T record for head-to-head and three-player formats alongside existing accuracy points; compare absolute errors, record ties fairly, show weekly and season totals. Keep separate from Betting Challenge W-L-P.
+
+- 2026-10-08: User supersedes Thursday-noon scoring freeze: provide a continuously updated provisional score dashboard after picks are submitted, with historical point movement as consensus spreads change; lock the official benchmark at actual TNF kickoff. Preserve timestamped source snapshots and a locked immutable scoring reference. Live polling/hosting not yet confirmed.
