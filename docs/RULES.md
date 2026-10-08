@@ -17,3 +17,6 @@ Betting Challenge: distinct virtual betting game running throughout the week; se
 
 ## Betting Challenge record-only clarification (2026-10-08)
 This is a record-based picks contest, not a virtual bankroll game. Record each selected market, side, line, odds and timestamp; grade W-L-P based on final game outcomes. Pushes excluded from win percentage. No profit/loss or stake requirement. Guess the Line remains a separate game.
+
+## Record-based Betting Challenge pick limits
+Default: one selection per NFL game per player, choosing either a point spread or a game total (over/under). Each league may configure a different per-game selection limit. The default mode does not include moneyline picks. Grade selections by W-L-P and win percentage, not profit.
