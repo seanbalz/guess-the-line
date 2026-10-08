@@ -1,3 +1,6 @@
+# New confirmed constraints — 2026-10-08
+Use FREE odds/data sources only unless the user explicitly revises the budget. Read docs/DESIGN_EXPLORATION.md before branding work. All existing colors/fonts are provisional. Produce five *visual* alternatives for each category (logo, app icon, typography, palette, UI, iconography, motion) and request user selection before finalizing. Do not claim text descriptions are finished designs.
+
 # Guess the Lines — Multi-Agent Delivery Handoff
 Updated: 2026-10-08. Source of truth: this private GitHub repository.
 
