@@ -1,3 +1,6 @@
+# New confirmed constraints — 2026-10-08
+Use FREE odds/data sources only unless the user explicitly revises the budget. Read docs/DESIGN_EXPLORATION.md before branding work. All existing colors/fonts are provisional. Produce five *visual* alternatives for each category (logo, app icon, typography, palette, UI, iconography, motion) and request user selection before finalizing. Do not claim text descriptions are finished designs.
+
 # Mandatory brand system
 Before creating or modifying ANY UI, document, notification, visual, or app asset, read docs/BRAND_GUIDE.md and design/tokens.json. Use GTL tokens consistently across web, iOS, docs and generated assets. Third-party brand marks are references only, not assets to copy. Brand QA is a required PR check.
 
