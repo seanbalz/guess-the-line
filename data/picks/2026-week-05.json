@@ -84,6 +84,15 @@
       "edit_count": 0,
       "source": "user voice prediction",
       "note": "Provisional Game 9 pick; matchup pending schedule verification."
+    },
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Chicago Bears @ Green Bay Packers",
+      "favorite": "Green Bay Packers",
+      "spread": -2.5,
+      "edit_count": 0,
+      "source": "user voice prediction",
+      "note": "Initial verbal correction before submission; provisional pending schedule verification."
     }
   ]
 }
