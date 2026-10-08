@@ -1,3 +1,6 @@
+# Mandatory brand system
+Before creating or modifying ANY UI, document, notification, visual, or app asset, read docs/BRAND_GUIDE.md and design/tokens.json. Use GTL tokens consistently across web, iOS, docs and generated assets. Third-party brand marks are references only, not assets to copy. Brand QA is a required PR check.
+
 # Guess the Line — AI Agent Handoff
 Read README.md, docs/RULES.md, docs/DECISIONS.md, and data/games/sean-troy-luke.json before changes. Preserve prior decisions and never claim integrations or tests work without verification. Ask one pointed question at a time. Use verified NFL schedule and bookmaker quotes only; never invent lines.
 Core competition: Sean Balsiger (commissioner), Troy Jun, Luke Jun; fixed Triple Threat roster, with additional independent games permitted. Other modes: Duel (2), Free-for-All (4+). Game types: Classic spread guessing, Showdown picks, virtual $100 Bankroll, Gauntlet, Decathlon (proposals until implemented).
