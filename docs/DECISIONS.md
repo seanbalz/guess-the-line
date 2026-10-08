@@ -16,3 +16,5 @@
 - 2026-10-08: Betting Challenge is based on win-loss record, not profit or bankroll. Remove virtual $100 bankroll as default. Track wins, losses, pushes and win percentage for spread, total and moneyline picks.
 
 - 2026-10-08: Record-based Betting Challenge default is one pick per game per player, either spread or over/under; leagues can override the per-game pick limit. Moneyline is not part of this default mode.
+
+- 2026-10-08: Link Guess the Line to Betting Challenge with a comparative edge board: user's original predicted spread, verified market consensus, and independently sourced professional model; rank largest gaps and closest guesses; record potential betting edges and eventual W-L-P outcomes. Keep totals projections separate, preserve predictions, and never invent live odds or professional projections.
