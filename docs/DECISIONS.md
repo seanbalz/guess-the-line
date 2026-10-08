@@ -14,3 +14,5 @@
 - 2026-10-08: User clarified Guess the Line and Betting Challenge are two separate games with separate records. Guess the Line predictions are editable until submission deadline; prior one-edit-per-pick rule superseded for Guess the Line. Betting Challenge supports virtual spread, moneyline, and over/under picks throughout the week.
 
 - 2026-10-08: Betting Challenge is based on win-loss record, not profit or bankroll. Remove virtual $100 bankroll as default. Track wins, losses, pushes and win percentage for spread, total and moneyline picks.
+
+- 2026-10-08: Record-based Betting Challenge default is one pick per game per player, either spread or over/under; leagues can override the per-game pick limit. Moneyline is not part of this default mode.
