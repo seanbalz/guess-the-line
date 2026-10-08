@@ -120,6 +120,15 @@
       "edit_count": 0,
       "source": "user voice prediction",
       "note": "Current Guess the Line prediction Rams -7.5; previously changed from -9.5. No one-edit limit applies in this game; revision history in Git commits."
+    },
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Buffalo Bills @ Kansas City Chiefs",
+      "favorite": "Kansas City Chiefs",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "user voice prediction",
+      "note": "Provisional Game 14 pick; matchup pending schedule verification."
     }
   ],
   "mode": "guess_the_line",
