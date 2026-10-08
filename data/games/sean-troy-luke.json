@@ -1,0 +1,15 @@
+{
+  "id": "sean-troy-luke",
+  "name": "Sean, Troy & Luke",
+  "mode": "triple-threat",
+  "roster_type": "fixed",
+  "roster": [
+    "Sean Balsiger",
+    "Troy Jun",
+    "Luke Jun"
+  ],
+  "staff": {
+    "commissioner": "Sean Balsiger",
+    "managers": []
+  }
+}
