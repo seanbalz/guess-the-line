@@ -3,7 +3,7 @@
 10 points exact spread; subtract 1 point per half-point off, floor 0. Weekly highest wins; tie breakers cumulative error then exact matches.
 ## Other proposed modes
 Showdown: one or more spread/total selections per game, win +1, push 0, loss -1.
-Bankroll: virtual $100 starting purse; wager $1–$25 per game on spreads, totals, or moneyline with recorded verified vig.
+Betting Challenge (record-based): choose spreads, totals (over/under), or moneylines using actual recorded lines and odds. Each settled selection counts as a win, loss, or push; rank by win percentage with number of wins as a tiebreaker. No bankroll, stake, or profit/loss scoring.
 Gauntlet: 3 lives, lose one per losing spread pick; correct picks tiebreak.
 Decathlon: combined rank points across Classic, Showdown, Bankroll.
 ## Competition formats
@@ -14,3 +14,6 @@ These rules are product decisions; implementations must be tested before claimin
 ## Clarified separate games (October 8, 2026)
 Guess the Line: players predict hidden benchmark spreads; predictions may be revised until the established submission deadline. No one-edit limit applies to this mode. Score prediction accuracy against the frozen benchmark.
 Betting Challenge: distinct virtual betting game running throughout the week; select actual quoted spreads, moneylines, and totals (over/under), store selected line, odds, timestamp and stake; grade results and track W-L-push and virtual P/L. Betting selections do not modify Guess the Line predictions. Rules for bet locking, bankroll, and stakes require separate confirmation.
+
+## Betting Challenge record-only clarification (2026-10-08)
+This is a record-based picks contest, not a virtual bankroll game. Record each selected market, side, line, odds and timestamp; grade W-L-P based on final game outcomes. Pushes excluded from win percentage. No profit/loss or stake requirement. Guess the Line remains a separate game.
