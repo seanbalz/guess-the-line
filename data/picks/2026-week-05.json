@@ -2,7 +2,7 @@
   "season": 2026,
   "week": 5,
   "game_id": "sean-troy-luke",
-  "status": "schedule_reconciled_pending_one_pick",
+  "status": "schedule_reconciled_all_picks_recorded",
   "picks": [
     {
       "player": "Sean Balsiger",
@@ -179,12 +179,21 @@
       "schedule_status": "verified",
       "eligible_for_scoring": true,
       "note": "Week 5 replacement pick, Lions -3."
+    },
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Buffalo Bills @ Los Angeles Rams",
+      "favorite": "Los Angeles Rams",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "user voice prediction",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true,
+      "note": "Week 5 replacement pick, Rams -3."
     }
   ],
   "mode": "guess_the_line",
   "edit_policy": "Predictions may be revised until the established submission deadline; no one-edit limit.",
   "schedule_source": "https://www.nfl.com/news/nfl-how-to-watch-week-5-2026-schedule-london-game-details-and-more",
-  "pending_matchups": [
-    "Buffalo Bills @ Los Angeles Rams"
-  ]
+  "pending_matchups": []
 }
