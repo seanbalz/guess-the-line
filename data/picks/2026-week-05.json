@@ -12,6 +12,15 @@
       "edit_count": 0,
       "source": "user screenshot correction",
       "note": "Corrects assistant's mistaken -7.5 transcription; not a player edit. Matchup and schedule must be verified before scoring."
+    },
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Philadelphia Eagles @ Jacksonville Jaguars",
+      "favorite": "Jacksonville Jaguars",
+      "spread": -3.5,
+      "edit_count": 0,
+      "source": "user voice prediction",
+      "note": "Provisional Game 2 prediction; matchup and schedule pending verification."
     }
   ]
 }
