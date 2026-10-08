@@ -1,0 +1,105 @@
+{
+  "season": 2026,
+  "week": 5,
+  "kind": "provisional_verified_public_snapshot",
+  "source": "eDraft",
+  "source_url": "https://edraft.com/nfl/odds/week-5",
+  "source_published_at": "2026-10-08T03:33:00-04:00",
+  "retrieved_date": "2026-10-08",
+  "method": "Median active full-game sportsbook spreads as described by source; unrounded fractional spreads used for provisional scoring",
+  "official": false,
+  "total_points": 95.8,
+  "max_points": 150,
+  "games": [
+    {
+      "matchup": "Tampa Bay Buccaneers @ Dallas Cowboys",
+      "predicted_home_spread": -9.5,
+      "consensus_home_spread": -8.5,
+      "points": 8
+    },
+    {
+      "matchup": "Philadelphia Eagles @ Jacksonville Jaguars",
+      "predicted_home_spread": -3.5,
+      "consensus_home_spread": -7.3,
+      "points": 2.4000000000000004
+    },
+    {
+      "matchup": "Cincinnati Bengals @ Miami Dolphins",
+      "predicted_home_spread": 7,
+      "consensus_home_spread": 6.5,
+      "points": 9
+    },
+    {
+      "matchup": "Las Vegas Raiders @ New England Patriots",
+      "predicted_home_spread": -4,
+      "consensus_home_spread": -3.5,
+      "points": 9
+    },
+    {
+      "matchup": "Minnesota Vikings @ New Orleans Saints",
+      "predicted_home_spread": -2.5,
+      "consensus_home_spread": 1.5,
+      "points": 2
+    },
+    {
+      "matchup": "Cleveland Browns @ New York Jets",
+      "predicted_home_spread": 1.5,
+      "consensus_home_spread": -2,
+      "points": 3
+    },
+    {
+      "matchup": "Indianapolis Colts @ Pittsburgh Steelers",
+      "predicted_home_spread": -3,
+      "consensus_home_spread": -2.5,
+      "points": 9
+    },
+    {
+      "matchup": "Houston Texans @ Tennessee Titans",
+      "predicted_home_spread": 3,
+      "consensus_home_spread": 7.5,
+      "points": 1
+    },
+    {
+      "matchup": "New York Giants @ Washington Commanders",
+      "predicted_home_spread": -2.5,
+      "consensus_home_spread": -3.5,
+      "points": 8
+    },
+    {
+      "matchup": "Chicago Bears @ Green Bay Packers",
+      "predicted_home_spread": -2.5,
+      "consensus_home_spread": 1.8,
+      "points": 1.4000000000000004
+    },
+    {
+      "matchup": "Denver Broncos @ Los Angeles Chargers",
+      "predicted_home_spread": 3.5,
+      "consensus_home_spread": 3.5,
+      "points": 10
+    },
+    {
+      "matchup": "San Francisco 49ers @ Seattle Seahawks",
+      "predicted_home_spread": -2.5,
+      "consensus_home_spread": -3,
+      "points": 9
+    },
+    {
+      "matchup": "Baltimore Ravens @ Atlanta Falcons",
+      "predicted_home_spread": -3,
+      "consensus_home_spread": -3.5,
+      "points": 9
+    },
+    {
+      "matchup": "Detroit Lions @ Arizona Cardinals",
+      "predicted_home_spread": 3,
+      "consensus_home_spread": 5.5,
+      "points": 5
+    },
+    {
+      "matchup": "Buffalo Bills @ Los Angeles Rams",
+      "predicted_home_spread": -3,
+      "consensus_home_spread": -3,
+      "points": 10
+    }
+  ]
+}
