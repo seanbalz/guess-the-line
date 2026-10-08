@@ -129,6 +129,15 @@
       "edit_count": 0,
       "source": "user voice prediction",
       "note": "Provisional Game 14 pick; matchup pending schedule verification."
+    },
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Baltimore Ravens @ Atlanta Falcons",
+      "favorite": "Atlanta Falcons",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "user voice prediction",
+      "note": "Provisional Game 15 pick; matchup pending schedule verification."
     }
   ],
   "mode": "guess_the_line",
