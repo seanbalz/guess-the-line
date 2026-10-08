@@ -117,9 +117,11 @@
       "matchup": "Arizona Cardinals @ Los Angeles Rams",
       "favorite": "Los Angeles Rams",
       "spread": -7.5,
-      "edit_count": 1,
+      "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Player's one permitted edit: Rams -9.5 changed to Rams -7.5; provisional matchup pending schedule verification."
+      "note": "Current Guess the Line prediction Rams -7.5; previously changed from -9.5. No one-edit limit applies in this game; revision history in Git commits."
     }
-  ]
+  ],
+  "mode": "guess_the_line",
+  "edit_policy": "Predictions may be revised until the established submission deadline; no one-edit limit."
 }
