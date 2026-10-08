@@ -1,0 +1,13 @@
+# Decision log
+- Fixed initial game: Sean Balsiger, Troy Jun, Luke Jun. Commissioner Sean; no backup manager.
+- Multiple independent competitions and scoring modes, including Duel, Triple Threat, Free-for-All.
+- Six requested sources: Action Network consensus, ESPN, DraftKings, FanDuel, Circa, Pinnacle. Cross-check sources; consensus is second gate. >=85% within +/-5 of normalized median, with stronger independent-source requirements.
+- Thursday 12 PM Pacific benchmark; kickoff cutoff normally 5:15 PM Pacific; 15-minute extension-request grace to 5:30 PM when kickoff 5:15.
+- One edit PER PICK before kickoff (supersedes older unlimited-edits wording and erroneous one edit per week).
+- Other players' guesses visible once a player's entire ballot is submitted; no premature benchmark/score reveal.
+- Missed deadline case by case; player voting by default; commissioner Sean can override; default approved forfeit zero; extenuating circumstances extensions.
+- Notify slate availability, incomplete-player reminder two hours before kickoff, commissioner kickoff summary. No 30-minute reminder.
+- Immediate movement alerts at 1.5 and 3 points, via independently optional push, text, email.
+- Mobile-friendly website and native iPhone app desired.
+- 2026 Week 5 Game 1 Sean entered Dallas Cowboys -9.5 vs Tampa Bay. Earlier -7.5 was assistant transcription error; correcting does not consume an edit.
+- Many features remain unimplemented. Do not imply this GitHub repo already contains deployed app or live integrations.
