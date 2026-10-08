@@ -1,0 +1,17 @@
+{
+  "season": 2026,
+  "week": 5,
+  "game_id": "sean-troy-luke",
+  "status": "provisional_conversation_record",
+  "picks": [
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Tampa Bay Buccaneers @ Dallas Cowboys",
+      "favorite": "Dallas Cowboys",
+      "spread": -9.5,
+      "edit_count": 0,
+      "source": "user screenshot correction",
+      "note": "Corrects assistant's mistaken -7.5 transcription; not a player edit. Matchup and schedule must be verified before scoring."
+    }
+  ]
+}
