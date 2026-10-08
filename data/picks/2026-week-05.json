@@ -39,6 +39,15 @@
       "edit_count": 0,
       "source": "user voice prediction",
       "note": "Provisional Game 4 pick; matchup pending schedule verification."
+    },
+    {
+      "player": "Sean Balsiger",
+      "matchup": "Minnesota Vikings @ New Orleans Saints",
+      "favorite": "New Orleans Saints",
+      "spread": -2.5,
+      "edit_count": 0,
+      "source": "user voice prediction",
+      "note": "User clarified Saints -2.5 before initial save; provisional pending schedule verification."
     }
   ]
 }
