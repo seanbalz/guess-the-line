@@ -2,7 +2,7 @@
   "season": 2026,
   "week": 5,
   "game_id": "sean-troy-luke",
-  "status": "provisional_conversation_record",
+  "status": "schedule_reconciled_pending_two_picks",
   "picks": [
     {
       "player": "Sean Balsiger",
@@ -11,7 +11,9 @@
       "spread": -9.5,
       "edit_count": 0,
       "source": "user screenshot correction",
-      "note": "Corrects assistant's mistaken -7.5 transcription; not a player edit. Matchup and schedule must be verified before scoring."
+      "note": "Corrects assistant's mistaken -7.5 transcription; not a player edit. Matchup and schedule must be verified before scoring.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -20,7 +22,9 @@
       "spread": -3.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 2 prediction; matchup and schedule pending verification."
+      "note": "Provisional Game 2 prediction; matchup and schedule pending verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -29,7 +33,9 @@
       "spread": -7,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 3 pick; matchup pending schedule verification."
+      "note": "Provisional Game 3 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -38,7 +44,9 @@
       "spread": -4,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 4 pick; matchup pending schedule verification."
+      "note": "Provisional Game 4 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -47,7 +55,9 @@
       "spread": -2.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "User clarified Saints -2.5 before initial save; provisional pending schedule verification."
+      "note": "User clarified Saints -2.5 before initial save; provisional pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -56,7 +66,9 @@
       "spread": -1.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 6 pick; schedule pending independent verification."
+      "note": "Provisional Game 6 pick; schedule pending independent verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -65,7 +77,9 @@
       "spread": -3,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 7 pick; matchup pending schedule verification."
+      "note": "Provisional Game 7 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -74,7 +88,9 @@
       "spread": -3,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 8 pick; matchup pending schedule verification."
+      "note": "Provisional Game 8 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -83,7 +99,9 @@
       "spread": -2.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 9 pick; matchup pending schedule verification."
+      "note": "Provisional Game 9 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -92,7 +110,9 @@
       "spread": -2.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Initial verbal correction before submission; provisional pending schedule verification."
+      "note": "Initial verbal correction before submission; provisional pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -101,7 +121,9 @@
       "spread": -3.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 11 pick; matchup pending schedule verification."
+      "note": "Provisional Game 11 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -110,7 +132,9 @@
       "spread": -2.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 12 pick; matchup pending schedule verification."
+      "note": "Provisional Game 12 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     },
     {
       "player": "Sean Balsiger",
@@ -119,7 +143,9 @@
       "spread": -7.5,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Current Guess the Line prediction Rams -7.5; previously changed from -9.5. No one-edit limit applies in this game; revision history in Git commits."
+      "note": "Current Guess the Line prediction Rams -7.5; previously changed from -9.5. No one-edit limit applies in this game; revision history in Git commits. Incorrect Week 5 matchup; preserved as originally submitted and excluded from scoring.",
+      "schedule_status": "invalid_matchup_archived",
+      "eligible_for_scoring": false
     },
     {
       "player": "Sean Balsiger",
@@ -128,7 +154,9 @@
       "spread": -3,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 14 pick; matchup pending schedule verification."
+      "note": "Provisional Game 14 pick; matchup pending schedule verification. Incorrect Week 5 matchup; preserved as originally submitted and excluded from scoring.",
+      "schedule_status": "invalid_matchup_archived",
+      "eligible_for_scoring": false
     },
     {
       "player": "Sean Balsiger",
@@ -137,9 +165,16 @@
       "spread": -3,
       "edit_count": 0,
       "source": "user voice prediction",
-      "note": "Provisional Game 15 pick; matchup pending schedule verification."
+      "note": "Provisional Game 15 pick; matchup pending schedule verification.",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
     }
   ],
   "mode": "guess_the_line",
-  "edit_policy": "Predictions may be revised until the established submission deadline; no one-edit limit."
+  "edit_policy": "Predictions may be revised until the established submission deadline; no one-edit limit.",
+  "schedule_source": "https://www.nfl.com/news/nfl-how-to-watch-week-5-2026-schedule-london-game-details-and-more",
+  "pending_matchups": [
+    "Detroit Lions @ Arizona Cardinals",
+    "Buffalo Bills @ Los Angeles Rams"
+  ]
 }
