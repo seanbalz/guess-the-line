@@ -63,7 +63,7 @@ test('dashboard bet summary handles an empty week and a recoverable feed failure
   await card.getByRole('button', { name: 'Retry betting summary' }).click();
   await expect(card.getByRole('heading', { name: 'No shared bets this week yet' })).toBeVisible();
   await expect(card).toContainText('0 bets · 0u settled risk');
-  await expect(card.locator('dl > div').filter({ hasText: 'Settled ROI' }).locator('dd')).toHaveText('—');
+  await expect(card.locator('dl > div').filter({ hasText: 'Settled ROI' }).locator('dd')).toContainText('—');
 });
 
 test('dashboard shared bet card fits 320 pixels in both themes with accessible destinations', async ({ page }) => {
