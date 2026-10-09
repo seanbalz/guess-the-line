@@ -1,7 +1,11 @@
 name: Tests
 on:
   push:
+    branches: [main]
   pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 permissions:
   contents: read
 jobs:
@@ -9,12 +13,51 @@ jobs:
     name: Typecheck and test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - name: Check the diff for whitespace errors and conflict markers
+        shell: bash
+        env:
+          # The PR's base tip, or the previous main tip for a push; HEAD is the PR merge commit or the pushed tip.
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "::notice::No base commit for this ${{ github.event_name }} event; skipping git diff --check"
+            exit 0
+          fi
+          if ! git fetch --no-tags --depth=1 origin "$BASE_SHA"; then
+            echo "::warning::Base commit $BASE_SHA is not reachable (force push?); skipping git diff --check"
+            exit 0
+          fi
+          git diff --check "$BASE_SHA" HEAD || { echo "::error::git diff --check found trailing whitespace, blank lines at EOF or conflict markers (listed above)"; exit 1; }
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Install disposable database test runtime
+        run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
       - run: npm run typecheck
-      - run: npm test
+      - name: Run the test suites
+        shell: bash
+        run: |
+          mkdir -p .local
+          npm test 2>&1 | tee .local/npm-test.log
+      - name: Assert that node:test skipped nothing
+        shell: bash
+        run: |
+          log=.local/npm-test.log
+          # node --test prints a TAP summary when stdout is not a TTY; accept the spec reporter's too.
+          summary="$(grep -E '^(#|ℹ) (tests|suites|pass|fail|cancelled|skipped|todo) [0-9]+$' "$log" || true)"
+          if [ -z "$summary" ]; then
+            echo "::error::node:test summary not found in $log; the skipped count cannot be verified"
+            exit 1
+          fi
+          printf '%s\n' "$summary"
+          { echo '### node:test'; echo '```'; printf '%s\n' "$summary"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          skipped="$(printf '%s\n' "$summary" | awk '$2 == "skipped" { print $3 }')"
+          if [ "${skipped:-unknown}" != "0" ]; then
+            echo "::error::node:test skipped ${skipped:-an unknown number of} test(s); the SQL suites need the disposable PGlite runtime in .local/sql-check"
+            grep -n '# SKIP' "$log" || true
+            exit 1
+          fi
       - run: npm run score -- --week 6
