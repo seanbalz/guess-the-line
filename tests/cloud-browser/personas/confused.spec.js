@@ -1,6 +1,6 @@
 // Persona (g): confused user. Opens the app after the deadline, before a week is published,
 // with one market submitted and the other sat out, and with no groups. Are the states explained?
-import { test, expect, pgliteAvailable } from './harness.mjs';
+import { test, expect, pgliteAvailable, futureDeadline } from './harness.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -44,6 +44,31 @@ test('confused: before the week is published (no slate)', async ({ page, persona
   await persona.shot('picks-no-week');
   persona.finding({ screen: 'picks-no-week', severity: 2, experience: `Opening Picks before a week is published shows only a red error banner: "${error.trim()}". It is styled as a failure, not a state; a player will retry, reload and assume the app is broken.`, fix: 'Return the empty week as data (games: []) and render "Week 6 has not been published yet" in the normal muted style, without the error banner.' });
   expect(error).toContain('schedule is not available');
+  expect(await persona.noOverflow()).toBe(true);
+});
+
+test('confused: week published but not open yet (D-24)', async ({ page, persona }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await persona.start({ games: 3, deadline: futureDeadline() });
+  await persona.signIn();
+  await expect(page.locator('.picks-due')).toContainText('opens');
+  const card = await page.locator('.picks-due').innerText();
+  const tab = await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).innerText();
+  await persona.shot('feed-not-open');
+  await persona.axe('feed-not-open');
+  await expect(page.locator('.picks-due').getByRole('button', { name: 'Make picks' })).toHaveCount(0);
+  persona.finding({ screen: 'feed-not-open', severity: 3, experience: `Before the Monday open the card reads "${card.replace(/\n/g, ' · ')}" with no button, while the tab beside it says "${tab}". "Opens Mon, Oct 19, 12:00 AM PT" is a date without a weekday-relative hint ("in 9 days") and "Then due …" is easy to misread as the open time. Counts like "Spread 0/3" are shown for a ballot nobody can touch yet.`, fix: 'Say "Week 6 opens Monday (in 9 days). Picks due Thu Oct 22, 5:15 PM PT." and drop the 0/3 counts and the tab badge until the week opens.', evidence: { card, tab } });
+  await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
+  const first = page.locator('.week-pick').first();
+  await expect(first).toBeVisible();
+  await expect(page.locator('.week-not-open')).toBeVisible();
+  const notice = await page.locator('.week-not-open').innerText();
+  const chipsDisabled = await first.locator('.chip').first().isDisabled();
+  expect(chipsDisabled).toBe(true);
+  await expect(page.locator('.save-bar')).toHaveCount(0);
+  await persona.shot('picks-not-open');
+  await persona.axe('picks-not-open');
+  persona.finding({ screen: 'picks-not-open', severity: 3, experience: `The Picks tab before the open shows the notice "${notice}" and then every game with greyed-out chips at 40% opacity, exactly like the closed-week screen. The notice is a status line above 3 cards of dead controls; the schedule itself (kickoffs, records) is the useful content and it is the least prominent.`, fix: 'Before the open, render the slate as a read-only schedule list (matchup, kickoff, records) with the open time as the headline, and no chips.' });
   expect(await persona.noOverflow()).toBe(true);
 });
 

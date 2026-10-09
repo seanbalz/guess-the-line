@@ -13,6 +13,13 @@ import { providerPersonalError } from '../../../cloud/personal.mjs';
 import { providerLobbyError } from '../../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../../cloud/community.mjs';
 import { providerWeeklyError } from '../../../cloud/weekly.mjs';
+import { pacificDate, pacificToUtc, weekOpenAt } from '../../../shared/nfl-schedule.mjs';
+
+const DAY = 86_400_000;
+/** D-24: a week opens Monday 00:00 PT, so an open fixture week must be the current Pacific week. Deadline 11:59 PM PT today. */
+export const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
+/** A published week whose Monday is still ahead: Thursday ~5:15 PM PT in the week after next. */
+export const futureDeadline = () => new Date(Date.parse(weekOpenAt(Date.now() + 10 * DAY)) + 3 * DAY + 17.25 * 3_600_000).toISOString();
 
 let PGlite;
 try { ({ PGlite } = await import('../../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip in each spec. */ }
@@ -23,7 +30,7 @@ export const MIGRATIONS = ['20261008164249_gtl_private_cloud_state.sql', '202610
   '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
   '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
   '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
-  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql'];
+  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql'];
 export const SUPABASE = 'https://gtl-frontend-check.supabase.co';
 export const PREVIEWS = '.local/previews/personas';
 export const FINDINGS = '.local/personas/findings.json';
@@ -33,7 +40,7 @@ const AXE_SEVERITY = { critical: 1, serious: 2, moderate: 3, minor: 4 };
 const cleared = new Set();
 
 /** Builds the database and world for one persona run. */
-async function buildWorld({ games = 14, deadline = '2099-10-09T00:15:00Z', slate = true, profile = true, members = ['Troy Fixture', 'Luke Fixture'] } = {}) {
+async function buildWorld({ games = 14, deadline = openDeadline(), slate = true, profile = true, members = ['Troy Fixture', 'Luke Fixture'] } = {}) {
   const db = new PGlite();
   await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
   await db.exec(fs.readFileSync(`supabase/migrations/${MIGRATIONS[0]}`, 'utf8'));
