@@ -16,7 +16,7 @@ Owner: Sean Balsiger · Version 1 · October 8, 2026.
 
 ## Open decisions, one at a time
 
-1. **Current — schedule and actual-kickoff evidence.** Verify a permitted free source for schedule changes, cancellations and actual kickoff. Decide the pre-kickoff placement behavior during source outages without silently moving a deadline or inventing a start time.
+1. **Current — schedule and actual-kickoff evidence.** Decide whether an audited commissioner schedule update may use a verifiable official league notice during an automated schedule-feed outage; do not let that update grade results. Independently verify a permitted free source for schedule changes, cancellations and actual kickoff before implementing placement locks, carryovers or voids. The documented [The Odds API events endpoint](https://the-odds-api.com/liveapi/guides/v4/) supplies event IDs and `commence_time`; it has not been verified as actual-kickoff or cancellation evidence for this game.
 
 ## Delivery register
 
@@ -25,7 +25,8 @@ Owner: Sean Balsiger · Version 1 · October 8, 2026.
 | BET-07 rules and open decisions | Partially confirmed | Sean for open choices; Codex records them | Answers above | Decision log and this task list agree; no open choice is presented as confirmed. |
 | Quote selector and button flow | Not implemented | Codex | Free named-book data and source rights | Mobile and desktop flows show the best point line, honest age, exact receipt and kickoff guard. A separate virtual selector preserves the existing five-minute quote gates used by other modes. |
 | Virtual picks, audit and qualification | Not implemented | Codex | Account identity, schedule and final policy | One spread plus one total per game, editable until kickoff; immutable revisions and qualification examples verified without duplicate credit. |
-| Automatic settlement and ROI | Blocked | Codex | Permitted automatic NFL final-score feed, event mapping and corrections | Verified results settle saved odds once; W-L-P, pending/void, units and ROI pass arithmetic and correction checks. |
+| Schedule, status and kickoff evidence | Blocked | Codex | Permitted free source, verified event mapping, actual-kickoff evidence and Q19 outage policy | Revised kickoff and cancellation receipts are auditable; a changed provider event ID or time never silently remaps a pick or moves its deadline. |
+| Automatic settlement and ROI | Blocked | Codex | Permitted automatic NFL final-score feed, event mapping and corrections | Initial verified finals grade saved terms; each verified corrected final regrades with an append-only before/after audit. W-L-P, pending/void, units and ROI pass arithmetic and correction checks. |
 | Void notices and release | Blocked | Codex | Notification consent/delivery and remaining rules | In-app notice persists; opt-in push/email delivery is verified; private authenticated device acceptance and hosted release are evidenced. |
 
 No target date is committed. The existing free-only data budget remains in force. Product decisions above do not establish source rights, connected feeds, working controls, notifications or a live deployment.
