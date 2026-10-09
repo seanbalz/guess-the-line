@@ -52,7 +52,7 @@ const test = base.extend({
         save: async () => { throw new Error('No placements in this fixture.'); },
         admin: async actor => actor === COMMISSIONER,
         schedule: async () => finalsCsv,
-        settle: async (season, week, payload) => { report.settleCalls.push({ season, week, payload }); report.settled = true; return { settledAt: iso(now), settled: 2, corrected: 0, unchanged: 0, picksSettled: 3, games: [{ gameId: 'TB-DAL', status: 'final', version: 1, changed: true, picksSettled: 2, previous: null }, { gameId: 'PHI-JAX', status: 'final', version: 1, changed: true, picksSettled: 1, previous: null }], picks: [], players: [] }; },
+        settle: async (season, week, payload) => { report.settleCalls.push({ season, week, payload }); report.settled = true; return { settledAt: iso(now), settled: 2, corrected: 0, unchanged: 0, picksSettled: 3, skipped: ['MIA-NYJ'], games: [{ gameId: 'TB-DAL', status: 'final', version: 1, changed: true, picksSettled: 2, previous: null }, { gameId: 'PHI-JAX', status: 'final', version: 1, changed: true, picksSettled: 1, previous: null }], picks: [], players: [] }; },
       },
     });
     page.on('pageerror', error => report.errors.push(error.message));
@@ -116,7 +116,7 @@ test('pending picks show no results and the line that settlement happens after f
 test('the commissioner settles a week on demand from the screen; members never see the control', async ({ page, virtual }) => {
   virtual.settled = false; await openVirtualUnits(page);
   await page.getByRole('button', { name: 'Settle finals', exact: true }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Settled Week 5' })).toContainText('Settled Week 5 from 2 published finals: 2 new, 0 corrected, 0 unchanged, 3 picks graded · 1 game still without a final.');
+  await expect(page.getByRole('status').filter({ hasText: 'Settled Week 5' })).toContainText('Settled Week 5 from 2 published finals: 2 new, 0 corrected, 0 unchanged, 3 picks graded · 1 game still without a final · 1 game not on this week\'s slate.');
   expect(virtual.settleCalls).toHaveLength(1);
   expect(virtual.settleCalls[0].season).toBe(2026); expect(virtual.settleCalls[0].week).toBe(5);
   expect(virtual.settleCalls[0].payload.games).toEqual([{ gameId: 'TB-DAL', status: 'final', home: 31, away: 14 }, { gameId: 'PHI-JAX', status: 'final', home: 24, away: 21 }]);

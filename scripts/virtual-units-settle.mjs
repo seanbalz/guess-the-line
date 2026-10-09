@@ -2,12 +2,15 @@
 // Usage:
 //   node scripts/virtual-units-settle.mjs --season 2026 --week 5 [--file games.csv]
 //     prints the p_results payload for public.gtl_settle_virtual_units (dry run, no write)
+//   --file reads a local copy instead of downloading; the payload then records its
+//     provenance as that file name with no URL, because the ledger is append-only.
 //   SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=... \
 //   node scripts/virtual-units-settle.mjs --season 2026 --week 5 --apply
 //     settles that week through the service-only RPC and prints the summary
 // The service-role key comes from the environment only and is never written to disk.
 // This is the same code path a later scheduled job would call (cloud/virtual-settlement.mjs).
 import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
 import { parseArgs } from 'node:util';
 import { NFLVERSE_SCHEDULE_URL } from '../shared/nfl-schedule.mjs';
 import { buildSettlementResults, createVirtualSettlementAdapter, settleVirtualUnitsWeek } from '../cloud/virtual-settlement.mjs';
@@ -15,10 +18,11 @@ import { buildSettlementResults, createVirtualSettlementAdapter, settleVirtualUn
 const { values } = parseArgs({ options: { season: { type: 'string' }, week: { type: 'string' }, file: { type: 'string' }, apply: { type: 'boolean', default: false } } });
 const season = Number(values.season), week = Number(values.week);
 if (!Number.isInteger(season) || !Number.isInteger(week)) throw new Error('Pass --season and --week.');
+const provenance = values.file ? { source: `local file ${basename(values.file).slice(0, 100)}`, sourceUrl: null } : {};
 
 if (!values.apply) {
   const text = values.file ? readFileSync(values.file, 'utf8') : await (await fetch(NFLVERSE_SCHEDULE_URL)).text();
-  const { payload, finals, pending } = buildSettlementResults(text, season, week, { observedAt: new Date().toISOString() });
+  const { payload, finals, pending } = buildSettlementResults(text, season, week, { observedAt: new Date().toISOString(), ...provenance });
   console.log(JSON.stringify(payload, null, 2));
   console.error(`${season} Week ${week}: ${finals.length} finals, ${pending.length} still pending${pending.length ? ` (${pending.join(', ')})` : ''}. Dry run; nothing was settled.`);
 } else {
@@ -26,7 +30,7 @@ if (!values.apply) {
   if (!url || !serviceRoleKey) throw new Error('Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment to apply.');
   const adapter = createVirtualSettlementAdapter({ url, serviceRoleKey });
   const service = values.file ? { ...adapter, schedule: async () => readFileSync(values.file, 'utf8') } : adapter;
-  const result = await settleVirtualUnitsWeek({ season, week, service });
+  const result = await settleVirtualUnitsWeek({ season, week, service, ...provenance });
   console.log(JSON.stringify(result, null, 2));
-  console.error(`${season} Week ${week}: ${result.finals} finals read, ${result.settled} settled, ${result.corrected} corrected, ${result.unchanged} unchanged, ${result.picksSettled} picks graded.`);
+  console.error(`${season} Week ${week}: ${result.finals} finals read, ${result.settled} settled, ${result.corrected} corrected, ${result.unchanged} unchanged, ${result.picksSettled} picks graded${result.skipped.length ? `, ${result.skipped.length} not on the slate (${result.skipped.join(', ')})` : ''}.`);
 }

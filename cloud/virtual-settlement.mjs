@@ -6,7 +6,7 @@
 // carries no game status, so a postponement or cancellation is never inferred
 // from it (D-18: an unconfirmed report must not settle or void a pick). Those
 // two void statuses stay an explicit input for a later verified-source path.
-import { NFLVERSE_SCHEDULE_URL, appCode } from '../shared/nfl-schedule.mjs';
+import { NFLVERSE_SCHEDULE_URL, TEAM_NAMES, appCode } from '../shared/nfl-schedule.mjs';
 
 export const SETTLEMENT_SOURCE = 'nflverse nfldata games.csv final scores';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -45,7 +45,7 @@ export function buildSettlementResults(csvText, season, week, { observedAt, acto
   const games = [], pending = [], seen = new Set();
   for (const row of rows) {
     const awayCode = appCode(row.away_team), homeCode = appCode(row.home_team);
-    if (!/^[A-Z]{2,3}$/.test(awayCode) || !/^[A-Z]{2,3}$/.test(homeCode)) throw new Error(`Unknown team code ${row.away_team} or ${row.home_team}.`);
+    if (!TEAM_NAMES[awayCode] || !TEAM_NAMES[homeCode]) throw new Error(`Unknown team code ${row.away_team} or ${row.home_team}.`);
     const gameId = `${awayCode}-${homeCode}`;
     if (seen.has(gameId)) throw new Error(`Duplicate game ${gameId} in the schedule file.`);
     seen.add(gameId);
@@ -78,12 +78,16 @@ export function validateSettlementPayload(payload) {
 }
 
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-/** The commissioner-facing summary: counts and per-game versions, never user ids. */
+/**
+ * The commissioner-facing summary: counts, per-game versions and the file rows
+ * the RPC skipped because they are not on the published slate; never user ids.
+ */
 export function summarizeSettlement(result) {
-  if (!record(result) || !Array.isArray(result.games) || !['settled', 'corrected', 'unchanged', 'picksSettled'].every(key => Number.isInteger(result[key]) && result[key] >= 0)) throw new Error('Invalid settlement result.');
+  if (!record(result) || !Array.isArray(result.games) || !['settled', 'corrected', 'unchanged', 'picksSettled'].every(key => Number.isInteger(result[key]) && result[key] >= 0)
+    || (result.skipped !== undefined && !(Array.isArray(result.skipped) && result.skipped.every(gameId => typeof gameId === 'string')))) throw new Error('Invalid settlement result.');
   return {
     settledAt: typeof result.settledAt === 'string' ? result.settledAt : null,
-    settled: result.settled, corrected: result.corrected, unchanged: result.unchanged, picksSettled: result.picksSettled,
+    settled: result.settled, corrected: result.corrected, unchanged: result.unchanged, picksSettled: result.picksSettled, skipped: result.skipped ?? [],
     games: result.games.map(game => {
       if (!record(game) || typeof game.gameId !== 'string' || !STATUSES.has(game.status) || !Number.isInteger(game.version) || typeof game.changed !== 'boolean') throw new Error('Invalid settlement result.');
       return { gameId: game.gameId, status: game.status, version: game.version, changed: game.changed, picksSettled: Number.isInteger(game.picksSettled) ? game.picksSettled : 0,
@@ -97,13 +101,16 @@ export function summarizeSettlement(result) {
  * build the finals payload and hand it to the service-only RPC. This is the
  * function a later scheduled job (pg_cron + pg_net dispatch, like gtl-week-open)
  * or the commissioner route calls; it performs no retries and keeps the RPC's
- * refusal codes so the caller can map them.
+ * refusal codes so the caller can map them. `source`/`sourceUrl` override the
+ * recorded provenance when the file did not come from the public URL (the
+ * script's --file path); the ledger is append-only, so provenance must be right
+ * the first time.
  */
-export async function settleVirtualUnitsWeek({ season, week, service, actorId = null, clock = Date.now }) {
+export async function settleVirtualUnitsWeek({ season, week, service, actorId = null, clock = Date.now, source, sourceUrl }) {
   if (!scope(season, week)) throw new Error('Invalid settlement scope.');
   if (typeof service?.schedule !== 'function' || typeof service?.settle !== 'function') throw new Error('The settlement service is not configured.');
   const csv = await service.schedule();
-  const { payload, finals, pending } = buildSettlementResults(csv, season, week, { observedAt: new Date(clock()).toISOString(), actorId });
+  const { payload, finals, pending } = buildSettlementResults(csv, season, week, { observedAt: new Date(clock()).toISOString(), actorId, source, sourceUrl });
   const result = summarizeSettlement(await service.settle(season, week, validateSettlementPayload(payload)));
   return { season, week, source: payload.source, sourceUrl: payload.sourceUrl, observedAt: payload.observedAt, finals: finals.length, pending, ...result };
 }
@@ -126,7 +133,7 @@ export function createVirtualSettlementAdapter({ url, serviceRoleKey, fetchImpl 
         let code;
         try { code = (await response.json()).message; } catch { /* No raw provider error escapes. */ }
         const error = new Error('Settlement request failed.');
-        error.code = typeof code === 'string' && /^GTL_SETTLEMENT_(WEEK|GAME|INPUT|EARLY)$/.test(code) ? code : 'UNAVAILABLE';
+        error.code = typeof code === 'string' && /^GTL_SETTLEMENT_(WEEK|INPUT|EARLY)$/.test(code) ? code : 'UNAVAILABLE';
         throw error;
       }
       return response.json();

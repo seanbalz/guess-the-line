@@ -14,11 +14,11 @@ const ERRORS = {
   GTL_VIRTUAL_CLOSED: [400, 'This matchup has started. Virtual picks and edits are closed.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your virtual picks changed on another device. Refresh before saving again.'],
   GTL_VIRTUAL_QUOTE: [409, 'That saved quote is no longer available. Review the latest offered line before confirming.'],
-  // D-26 settlement (commissioner route and script). A refused call settles nothing.
+  // D-26 settlement (commissioner route and script). A refused call settles nothing;
+  // a file row for a game that is not on the slate is skipped and reported, not refused.
   GTL_VIRTUAL_FORBIDDEN: [403, 'Only the commissioner can settle Virtual Units.'],
   GTL_SETTLEMENT_INPUT: [400, 'Send the season and week to settle. The finals payload was rejected and nothing was settled.'],
   GTL_SETTLEMENT_WEEK: [404, 'No published slate exists for that season and week. Nothing was settled.'],
-  GTL_SETTLEMENT_GAME: [422, 'The finals file lists a game that is not on that week\'s slate. Nothing was settled.'],
   GTL_SETTLEMENT_EARLY: [409, 'A final arrived before that game\'s scheduled kickoff. Nothing was settled.'],
 };
 export const providerVirtualError = message => ERRORS[message] ? new VirtualUnitsError(...ERRORS[message]) : new Error('Virtual units data is unavailable.');

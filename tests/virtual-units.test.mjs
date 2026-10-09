@@ -80,7 +80,7 @@ test('settlement route builds finals from the public file for the commissioner a
   const body = await response.json();
   assert.deepEqual(calls[1], ['settle', 2099, 5, { source: 'nflverse nfldata games.csv final scores', sourceUrl: 'https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv', observedAt: '2099-10-12T08:00:00.000Z', actorId: user.id, games: [{ gameId: 'NYJ-BUF', status: 'final', home: 27, away: 20 }] }]);
   assert.deepEqual(body, { season: 2099, week: 5, source: 'nflverse nfldata games.csv final scores', sourceUrl: 'https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv', observedAt: '2099-10-12T08:00:00.000Z', finals: 1, pending: ['SEA-DEN'],
-    settledAt: '2099-10-12T08:00:00.000Z', settled: 1, corrected: 0, unchanged: 0, picksSettled: 2, games: [{ gameId: 'NYJ-BUF', status: 'final', version: 1, changed: true, picksSettled: 2, previous: null }] });
+    settledAt: '2099-10-12T08:00:00.000Z', settled: 1, corrected: 0, unchanged: 0, picksSettled: 2, skipped: [], games: [{ gameId: 'NYJ-BUF', status: 'final', version: 1, changed: true, picksSettled: 2, previous: null }] });
   assert.equal(JSON.stringify(body).includes(user.id), false);
 });
 
@@ -94,7 +94,7 @@ test('settlement route validates the body, rejects query parameters and other me
   assert.equal((await makeSettle().post(undefined, '', 'GET')).status, 405);
   assert.equal((await makeSettle().post({ season: 2099, week: 7 })).status, 422, 'a week missing from the file settles nothing');
   assert.equal((await makeSettle({ scheduleError: new Error('offline') }).post({ season: 2099, week: 5 })).status, 503);
-  for (const [code, status] of [['GTL_SETTLEMENT_WEEK', 404], ['GTL_SETTLEMENT_GAME', 422], ['GTL_SETTLEMENT_EARLY', 409], ['GTL_SETTLEMENT_INPUT', 400]]) {
+  for (const [code, status] of [['GTL_SETTLEMENT_WEEK', 404], ['GTL_SETTLEMENT_EARLY', 409], ['GTL_SETTLEMENT_INPUT', 400]]) {
     const error = providerVirtualError(code); error.code = code;
     const response = await makeSettle({ settleError: error }).post({ season: 2099, week: 5 });
     assert.equal(response.status, status);

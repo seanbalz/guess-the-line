@@ -61,7 +61,9 @@ export default function VirtualUnits({ leagueId, onDirty }) {
     setBusy(true); setError(''); setNotice('');
     try {
       const result = await cloudApi('virtual-units/settle', { season: data.season, week: data.week });
-      setNotice(`Settled Week ${result.week} from ${result.finals} published final${result.finals === 1 ? '' : 's'}: ${result.settled} new, ${result.corrected} corrected, ${result.unchanged} unchanged, ${result.picksSettled} pick${result.picksSettled === 1 ? '' : 's'} graded${result.pending?.length ? ` · ${result.pending.length} game${result.pending.length === 1 ? '' : 's'} still without a final` : ''}.`);
+      const games = count => `${count} game${count === 1 ? '' : 's'}`;
+      const notes = [result.pending?.length ? `${games(result.pending.length)} still without a final` : '', result.skipped?.length ? `${games(result.skipped.length)} not on this week's slate` : ''].filter(Boolean);
+      setNotice(`Settled Week ${result.week} from ${result.finals} published final${result.finals === 1 ? '' : 's'}: ${result.settled} new, ${result.corrected} corrected, ${result.unchanged} unchanged, ${result.picksSettled} pick${result.picksSettled === 1 ? '' : 's'} graded${notes.map(note => ` · ${note}`).join('')}.`);
       await load();
     } catch (failure) { setError(failure.message); }
     finally { setBusy(false); }

@@ -24,7 +24,7 @@ test('builder emits finals only, pending rows stay pending, codes are mapped and
   assert.equal(Object.hasOwn(buildSettlementResults(csv, 2026, 6).payload, 'observedAt'), false);
   assert.equal(Object.hasOwn(buildSettlementResults(csv, 2026, 6).payload, 'actorId'), false);
   assert.deepEqual(buildSettlementResults(csv, 2026, 6).payload.games, [{ gameId: 'SEA-DEN', status: 'final', home: 27, away: 20 }]);
-  assert.ok(built.payload.games.every(game => !('postponed' in game)), 'postponement and cancellation are never inferred from the file');
+  assert.ok(built.payload.games.every(game => game.status === 'final'), 'postponement and cancellation are never inferred from the file');
   validateSettlementPayload(built.payload);
 });
 
@@ -39,6 +39,7 @@ test('builder refuses a bad file instead of settling part of a week', () => {
   assert.throws(() => buildSettlementResults([HEADER, '2026_05_TB_DAL,2026,REG,5,2026-10-08,Thursday,20:15,TB,14,DAL,-3,Home,17,45'].join('\n'), 2026, 5), /Invalid final score/);
   assert.throws(() => buildSettlementResults([HEADER, '2026_05_TB_DAL,2026,REG,5,2026-10-08,Thursday,20:15,TB,14,DAL,201,Home,17,45'].join('\n'), 2026, 5), /Invalid final score/);
   assert.throws(() => buildSettlementResults([HEADER, '2026_05_XX_DAL,2026,REG,5,2026-10-08,Thursday,20:15,T1,14,DAL,20,Home,6,34'].join('\n'), 2026, 5), /Unknown team code T1/);
+  assert.throws(() => buildSettlementResults([HEADER, '2026_05_XYZ_DAL,2026,REG,5,2026-10-08,Thursday,20:15,XYZ,14,DAL,20,Home,6,34'].join('\n'), 2026, 5), /Unknown team code XYZ/, 'codes are checked against the team table, not just their shape');
   assert.throws(() => buildSettlementResults(csv, 2026, 5, { actorId: 'not-a-uuid' }), /Invalid actor/);
   assert.throws(() => buildSettlementResults(csv, 2026, 5, { observedAt: 'yesterday' }), /Invalid observed time/);
 });
@@ -54,7 +55,7 @@ test('payload validation mirrors the SQL refusals', () => {
   }
 });
 
-const rpcResult = { season: 2026, week: 5, settledAt: '2026-10-13T08:00:01.000Z', source: SETTLEMENT_SOURCE, settled: 2, corrected: 1, unchanged: 0, picksSettled: 4,
+const rpcResult = { season: 2026, week: 5, settledAt: '2026-10-13T08:00:01.000Z', source: SETTLEMENT_SOURCE, settled: 2, corrected: 1, unchanged: 0, picksSettled: 4, skipped: ['MIA-NYJ'],
   games: [{ gameId: 'TB-DAL', status: 'final', version: 2, changed: true, picksSettled: 2, previous: { version: 1, status: 'final', home: 30, away: 14, settledAt: 'x' } }, { gameId: 'PHI-JAX', status: 'final', version: 1, changed: true, picksSettled: 2, previous: null }, { gameId: 'SF-SEA', status: 'final', version: 1, changed: true, picksSettled: 0, previous: null }],
   picks: [{ userId: UUID, gameId: 'TB-DAL', market: 'spread', outcome: 'win', netUnits: 0.9091 }], players: [{ userId: UUID, picksSettled: 4, netUnitsDelta: 1 }] };
 
@@ -66,7 +67,7 @@ test('settleVirtualUnitsWeek downloads the file, builds finals, calls the RPC on
   assert.deepEqual(calls[0][2], { source: SETTLEMENT_SOURCE, sourceUrl: NFLVERSE_SCHEDULE_URL, observedAt: '2026-10-13T08:00:00.000Z', actorId: UUID, games: [
     { gameId: 'TB-DAL', status: 'final', home: 31, away: 14 }, { gameId: 'PHI-JAX', status: 'final', home: 24, away: 21 }, { gameId: 'SF-SEA', status: 'final', home: 0, away: 0 }] });
   assert.deepEqual(result, { season: 2026, week: 5, source: SETTLEMENT_SOURCE, sourceUrl: NFLVERSE_SCHEDULE_URL, observedAt: '2026-10-13T08:00:00.000Z', finals: 3, pending: ['BUF-LAR'],
-    settledAt: '2026-10-13T08:00:01.000Z', settled: 2, corrected: 1, unchanged: 0, picksSettled: 4,
+    settledAt: '2026-10-13T08:00:01.000Z', settled: 2, corrected: 1, unchanged: 0, picksSettled: 4, skipped: ['MIA-NYJ'],
     games: [{ gameId: 'TB-DAL', status: 'final', version: 2, changed: true, picksSettled: 2, previous: { version: 1, status: 'final', home: 30, away: 14 } },
       { gameId: 'PHI-JAX', status: 'final', version: 1, changed: true, picksSettled: 2, previous: null }, { gameId: 'SF-SEA', status: 'final', version: 1, changed: true, picksSettled: 0, previous: null }] });
   assert.equal(JSON.stringify(result).includes(UUID), false, 'the commissioner-facing summary carries no account ids');
@@ -78,8 +79,21 @@ test('settleVirtualUnitsWeek downloads the file, builds finals, calls the RPC on
   await assert.rejects(() => settleVirtualUnitsWeek({ season: 2026, week: 5, service: refused }), error => error.code === 'GTL_SETTLEMENT_EARLY');
   await assert.rejects(() => settleVirtualUnitsWeek({ season: 2026, week: 5, service: { schedule: async () => csv, settle: async () => ({ settled: 'two' }) } }), /Invalid settlement result/);
   assert.throws(() => summarizeSettlement({ ...rpcResult, games: [{ gameId: 'TB-DAL', status: 'final', version: '1', changed: true }] }), /Invalid settlement result/);
+  assert.throws(() => summarizeSettlement({ ...rpcResult, skipped: [1] }), /Invalid settlement result/);
+  assert.deepEqual(summarizeSettlement({ ...rpcResult, skipped: undefined }).skipped, [], 'a result without the skipped list reads as none skipped');
   await assert.rejects(() => settleVirtualUnitsWeek({ season: 2026, week: 5, service: {} }), /not configured/);
   await assert.rejects(() => settleVirtualUnitsWeek({ season: 2026, week: 0, service }), /Invalid settlement scope/);
+});
+
+test('a local file settles with its own provenance, never the public URL', async () => {
+  const calls = [];
+  const service = { schedule: async () => csv, settle: async (season, week, payload) => { calls.push(payload); return rpcResult; } };
+  const result = await settleVirtualUnitsWeek({ season: 2026, week: 5, service, clock: () => Date.parse('2026-10-13T08:00:00Z'), source: 'local file games.csv', sourceUrl: null });
+  assert.deepEqual([calls[0].source, calls[0].sourceUrl, Object.hasOwn(calls[0], 'actorId')], ['local file games.csv', null, false]);
+  assert.deepEqual([result.source, result.sourceUrl], ['local file games.csv', null]);
+  validateSettlementPayload(calls[0]);
+  const fromUrl = await settleVirtualUnitsWeek({ season: 2026, week: 5, service, clock: () => Date.parse('2026-10-13T08:00:00Z') });
+  assert.deepEqual([fromUrl.source, fromUrl.sourceUrl, calls[1].source, calls[1].sourceUrl], [SETTLEMENT_SOURCE, NFLVERSE_SCHEDULE_URL, SETTLEMENT_SOURCE, NFLVERSE_SCHEDULE_URL], 'the public download keeps the public provenance');
 });
 
 test('adapter reaches only the public schedule file and the settlement RPC, and scrubs provider errors', async () => {
