@@ -56,7 +56,8 @@ begin
   return jsonb_build_object('season',p_season,'week',p_week,'mode',p_mode,'satOut',true,'replayed',not inserted);
 end $$;
 
--- Same signature as the D-21 reader. Removed members hide nothing; opt-outs satisfy
+-- Same signature and every field as the D-21 reader plus D-22's interests and
+-- interestCounts (20261009130000). Removed members hide nothing; opt-outs satisfy
 -- the picks gate, clear that mode's picks-due entry and mark standings as sat out.
 create or replace function public.gtl_read_community(p_user uuid,p_before timestamptz default null,p_limit integer default 30,p_now timestamptz default null)
 returns jsonb language plpgsql stable security invoker set search_path='' as $$
@@ -69,6 +70,11 @@ begin
   game_count:=coalesce(jsonb_array_length(sig->'games'),0);
   select jsonb_build_object(
     'viewer',p_user,
+    -- D-22: the viewer's coming-soon league notifications and member counts per league.
+    'interests',coalesce((select jsonb_agg(i.league order by i.league) from public.gtl_league_interest i where i.user_id=p_user and i.notify),'[]'),
+    'interestCounts',(select jsonb_object_agg(l.league,(select count(*) from public.gtl_league_interest i
+        where i.league=l.league and i.notify and public.gtl_community_member(i.user_id)) order by l.league)
+      from (values('nba'),('mlb'),('nhl'),('cfb'),('cbb')) l(league)),
     'admin',public.gtl_community_admin(p_user),
     'members',coalesce((select jsonb_agg(jsonb_build_object('id',p.user_id,'displayName',p.display_name,
         'removed',exists(select 1 from public.gtl_community_removals r where r.user_id=p.user_id)) order by p.display_name,p.user_id)

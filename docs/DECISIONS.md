@@ -9,6 +9,13 @@ Sean confirmed the data rule for everything a player enters:
 - **Sitting out is final.** It forfeits that mode's score for that week, which is recorded as *sat out* and never as zero, clears that mode's picks-due notice, reveals the other players' picks for that mode, and closes that mode's ballot for the week: no draft or submission can follow it. It is per mode, so sitting out Total does not touch Spread. It is refused after the deadline and once that mode's ballot is submitted.
 - **Group game screens follow the same gate.** The league engine treats an opt-out exactly like a submitted ballot for the reveal, with no change to scoring references.
 
+## D-22 — coming-soon leagues and team marks (October 9, 2026)
+
+The product owner confirmed two changes:
+
+1. **Coming-soon leagues.** NFL stays the only live league. The Community home has a league switcher: NFL (live, selected by default) plus NBA, MLB, NHL, College Football and College Basketball, each marked "Coming soon". Choosing a coming-soon league shows only that league's card. It does not open anything live. The Feed tab has a "Coming soon" section with one card per upcoming league. Each card shows the league name, the league's typical season window (not dates for a specific season) and a "Notify me" toggle. Interest is saved per account in `gtl_league_interest`. Each card also shows how many members want to be notified. These leagues have no games, picks, schedules or odds. The visuals are original: text badges and generic icons, no league logos. See [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#coming-soon-leagues--d-22).
+2. **Team marks.** The 13 official team marks that were reviewed as public domain stay. The other 19 teams get original Guess The Line color badges, which are being built in a parallel branch. Rights checks on the official marks for those 19 teams are still pending: commons.wikimedia.org is blocked in the cloud session, so they could not be checked there.
+
 ## D-21 — social community, feed and button entry (October 9, 2026)
 
 Sean confirmed that Guess The Line works as a social leaderboard game:
