@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useId, useState } from 'react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import tokens from '../../design/tokens.json';
+import { themeVariables } from './themeTokens';
 
 const storageKey = 'gtl.theme';
 const valid = value => ['dark', 'light', 'system'].includes(value);
@@ -8,8 +9,7 @@ function readPreference() { try { const value = localStorage.getItem(storageKey)
 function applyTheme(preference) {
   const resolved = preference === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : preference;
   const root = document.documentElement;
-  for (const [key, value] of Object.entries({ ...tokens.colors, ...tokens.themes[resolved] })) root.style.setProperty(`--${key}`, value);
-  root.style.setProperty('--touch-target', tokens.touchTargetMin);
+  for (const [name, value] of Object.entries(themeVariables(tokens, resolved))) root.style.setProperty(name, value);
   root.style.colorScheme = resolved;
   root.dataset.theme = resolved;
   root.dataset.themePreference = preference;
