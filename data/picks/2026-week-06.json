@@ -3,13 +3,76 @@
   "season": 2026,
   "week": 6,
   "league": "sean-troy-luke",
-  "status": "awaiting_verified_schedule",
-  "schedule_source": null,
+  "status": "schedule_recorded_pending_official_verification",
+  "schedule_source": "Web search 2026-10-09 summarizing https://www.nfl.com/schedules/2026/by-week/week-6, https://www.cbssports.com/nfl/schedule/2026/regular/6/, https://www.espn.com/nfl/schedule/_/week/6/year/2026/seasontype/2 and https://www.foxsports.com/nfl/schedule?seasonType=reg&week=6; pages not opened directly (blocked by session network policy). Byes: Cincinnati Bengals, Detroit Lions, Miami Dolphins, Minnesota Vikings.",
+  "schedule_notes": [
+    "Kickoff times are scheduled times converted from ET to America/Los_Angeles (PDT, UTC-7).",
+    "Arizona Cardinals @ Los Angeles Rams: sources disagree (4:05 PM ET vs 8:05 PM ET); kickoff_at left null until verified.",
+    "Los Angeles Chargers @ Kansas City Chiefs: sources disagree (4:25 PM ET vs 8:25 PM ET); kickoff_at left null until verified.",
+    "Houston Texans @ Jacksonville Jaguars is the London game; listed as 'Texans vs. Jaguars' with Jacksonville presumed home; venue reported as Wembley by most sources, Tottenham by one. Confirm home designation before spreads are entered, because spreads are home-referenced."
+  ],
   "lock": {
-    "kickoff_at": null,
+    "kickoff_at": "2026-10-15T17:15:00-07:00",
     "status": "unverified",
-    "source": null
+    "source": "Scheduled TNF kickoff Seattle Seahawks @ Denver Broncos, 8:15 PM ET (Prime Video). Set status to verified only after actual kickoff time is confirmed."
   },
-  "games": [],
+  "games": [
+    {
+      "matchup": "Seattle Seahawks @ Denver Broncos",
+      "kickoff_at": "2026-10-15T17:15:00-07:00"
+    },
+    {
+      "matchup": "Houston Texans @ Jacksonville Jaguars",
+      "kickoff_at": "2026-10-18T06:30:00-07:00"
+    },
+    {
+      "matchup": "Chicago Bears @ Atlanta Falcons",
+      "kickoff_at": "2026-10-18T10:00:00-07:00"
+    },
+    {
+      "matchup": "Baltimore Ravens @ Cleveland Browns",
+      "kickoff_at": "2026-10-18T10:00:00-07:00"
+    },
+    {
+      "matchup": "Tennessee Titans @ Indianapolis Colts",
+      "kickoff_at": "2026-10-18T10:00:00-07:00"
+    },
+    {
+      "matchup": "New Orleans Saints @ New York Giants",
+      "kickoff_at": "2026-10-18T10:00:00-07:00"
+    },
+    {
+      "matchup": "New York Jets @ New England Patriots",
+      "kickoff_at": "2026-10-18T10:00:00-07:00"
+    },
+    {
+      "matchup": "Carolina Panthers @ Philadelphia Eagles",
+      "kickoff_at": "2026-10-18T10:00:00-07:00"
+    },
+    {
+      "matchup": "Pittsburgh Steelers @ Tampa Bay Buccaneers",
+      "kickoff_at": "2026-10-18T10:00:00-07:00"
+    },
+    {
+      "matchup": "Arizona Cardinals @ Los Angeles Rams",
+      "kickoff_at": null
+    },
+    {
+      "matchup": "Buffalo Bills @ Las Vegas Raiders",
+      "kickoff_at": "2026-10-18T13:25:00-07:00"
+    },
+    {
+      "matchup": "Los Angeles Chargers @ Kansas City Chiefs",
+      "kickoff_at": null
+    },
+    {
+      "matchup": "Dallas Cowboys @ Green Bay Packers",
+      "kickoff_at": "2026-10-18T17:20:00-07:00"
+    },
+    {
+      "matchup": "Washington Commanders @ San Francisco 49ers",
+      "kickoff_at": "2026-10-19T17:15:00-07:00"
+    }
+  ],
   "revisions": []
 }

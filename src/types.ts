@@ -45,6 +45,7 @@ export interface WeekFile {
   league: string;
   status: string;
   schedule_source: string | null;
+  schedule_notes?: string[];
   /** Actual Thursday Night Football kickoff; locks every pick and freezes the benchmark. */
   lock: { kickoff_at: string | null; status: "verified" | "unverified"; source: string | null };
   games: GameEntry[];
