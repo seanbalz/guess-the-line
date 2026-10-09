@@ -1,15 +1,19 @@
 name: Dashboard checks
 on:
   push:
+    branches: [main]
   pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 permissions:
   contents: read
 jobs:
   dashboard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -18,9 +22,11 @@ jobs:
         run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
       - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - name: Install Chromium for Playwright
+        uses: ./.github/actions/playwright-chromium
       - run: npm run test:browser
-      - run: npm run test:cloud-browser
+      - name: Cloud browser suite (the persona specs run in the personas job)
+        run: npx playwright test --config playwright.cloud.config.js tests/cloud-browser/*.spec.js
       - name: Build and inspect the authenticated frontend
         env:
           VITE_SUPABASE_URL: https://gtl-frontend-check.supabase.co
@@ -29,18 +35,63 @@ jobs:
           npm run build:cloud
           node scripts/check-cloud-boundary.mjs --bundle-only
           node scripts/release-manifest.mjs
+      - name: Restore the pinned public model data
+        id: model-data
+        uses: actions/cache@v6
+        with:
+          path: .local/model-data
+          key: model-data-${{ hashFiles('model/sources.json') }}
+      - name: Fetch the pinned public model data (cache miss)
+        if: steps.model-data.outputs.cache-hit != 'true'
+        run: python3 model/pipeline.py fetch
       - name: Check preserved snapshots and model integrity
+        shell: bash
         run: |
           python3 scripts/snapshots.py check
           python3 -m unittest discover -s tests -v
-          python3 -m unittest discover -s model -v
+          python3 -m unittest discover -s model -v 2>&1 | tee .local/model-tests.log
+          { echo '### model/test_pipeline.py'; grep -E '^(Ran [0-9]+ tests?|OK|FAILED)' .local/model-tests.log | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+          if grep -qE '^(OK|FAILED) \(.*skipped=' .local/model-tests.log; then
+            echo "::error::model tests were skipped: .local/model-data/fivethirtyeight-nfl-games.csv is missing, so the pinned research run was not verified"
+            grep -n 'skipped' .local/model-tests.log || true
+            exit 1
+          fi
       - name: Save browser evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dashboard-browser-evidence
           path: |
             test-results/
+            .local/cloud-browser-results/
+          include-hidden-files: true
+          retention-days: 7
+  personas:
+    name: Persona suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install disposable database test runtime
+        run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - name: Install Chromium for Playwright
+        uses: ./.github/actions/playwright-chromium
+      - name: Persona static checks (contrast, tap targets, reduced motion)
+        run: node scripts/persona-static-checks.mjs
+      - name: Persona browser suite
+        run: npx playwright test --config playwright.cloud.config.js tests/cloud-browser/personas
+      - name: Save persona evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: persona-evidence
+          path: |
+            .local/personas/
+            .local/previews/personas/
             .local/cloud-browser-results/
           include-hidden-files: true
           retention-days: 7
