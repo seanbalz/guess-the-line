@@ -10,6 +10,12 @@ Sean confirmed that each NFL week's pick window opens by itself and closes at th
 - **Fallback.** The commissioner's manual panel stays as "Preview / publish early (fallback)" and shows the scheduler status.
 - **Notice.** The picks-due notice starts at the open; before then Home and the Picks tab show "Week N opens Mon <date> 12:00 AM PT" with entry disabled.
 - **Delivery.** Migration `20261009150000_gtl_auto_open_week.sql`, function `gtl-week-open`, and an administrator-run cron registration recorded in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md). Nothing is enabled by default and nothing was deployed from the cloud session.
+## D-22 — coming-soon leagues and team marks (October 9, 2026)
+
+The product owner confirmed two changes:
+
+1. **Coming-soon leagues.** NFL stays the only live league. The Community home has a league switcher: NFL (live, selected by default) plus NBA, MLB, NHL, College Football and College Basketball, each marked "Coming soon". Choosing a coming-soon league shows only that league's card. It does not open anything live. The Feed tab has a "Coming soon" section with one card per upcoming league. Each card shows the league name, the league's typical season window (not dates for a specific season) and a "Notify me" toggle. Interest is saved per account in `gtl_league_interest`. Each card also shows how many members want to be notified. These leagues have no games, picks, schedules or odds. The visuals are original: text badges and generic icons, no league logos. See [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#coming-soon-leagues--d-22).
+2. **Team marks.** The 13 official team marks that were reviewed as public domain stay. The other 19 teams get original Guess The Line color badges, which are being built in a parallel branch. Rights checks on the official marks for those 19 teams are still pending: commons.wikimedia.org is blocked in the cloud session, so they could not be checked there.
 
 ## D-21 — social community, feed and button entry (October 9, 2026)
 

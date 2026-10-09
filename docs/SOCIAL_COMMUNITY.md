@@ -104,4 +104,21 @@ The script downloads the public nflverse schedule file, counts finals only (regu
 6. Frontend deploy only after the feed screen PR merges: `npm run build:cloud`, then `npm run cloudflare`.
 7. Record the release (commit, migration, function version) in a new `docs/RELEASE_*.md`.
 
+## Coming soon leagues — D-22
+
+| Part | Status |
+|---|---|
+| League switcher on the Community home: NFL (live, selected) plus NBA, MLB, NHL, College Football, College Basketball as "Coming soon" | Built; browser-tested at 390px and 1280px. Choosing a coming-soon league shows only its card |
+| "Coming soon" section on the Feed tab: one card per league with a typical season window and a "Notify me" toggle | Built. The toggle changes only after the server confirms |
+| Saved interest (`gtl_league_interest`, migration `20261009130000_gtl_league_interest.sql`) | Built and tested. Account-level; counts include current members only |
+| Games, picks, schedules or odds for these leagues | None. Season windows are typical timing, not dates for a specific season. No league logos are used |
+
+| Route | Body | Result |
+|---|---|---|
+| `/community/interest` | `{ league: "nba" \| "mlb" \| "nhl" \| "cfb" \| "cbb", notify: true/false }` | league, notify, count |
+
+`/community/read` also returns `interests` (the viewer's leagues with Notify me on) and `interestCounts` (members per league).
+
+Deploy: `npx supabase db push` applies `20261009130000_gtl_league_interest.sql`, then `npx supabase functions deploy gtl-api` and the frontend deploy as above. Nobody is notified automatically yet. The saved interest records who asked.
+
 Nothing in this document has been deployed from the cloud session.

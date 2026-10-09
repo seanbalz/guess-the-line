@@ -14,7 +14,8 @@ const DAY = 86_400_000;
 const migrations = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
   '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
   '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
-  '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql', '20261009150000_gtl_auto_open_week.sql'];
+  '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
+  '20261009130000_gtl_league_interest.sql', '20261009150000_gtl_auto_open_week.sql'];
 // D-24: a week opens Monday 00:00 PT, so the fixture week must be the current Pacific
 // week to be open. Its TNF deadline is 11:59 PM PT today; the not-open fixture uses a
 // Thursday ~5:15 PM PT deadline in a week whose Monday is still ahead.
@@ -102,6 +103,48 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     await expect(page.locator('.picks-due')).toContainText('Spread 1/2');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/previews/community-${width}.png`, fullPage: true });
+
+    // D-22: NFL is live; five leagues are "Coming soon" with a Notify me toggle and nothing playable.
+    const switcher = page.getByRole('group', { name: 'League' });
+    await expect(switcher.getByRole('button')).toHaveCount(6);
+    await expect(switcher.getByRole('button', { name: /^NFL\s*Live$/ })).toHaveAttribute('aria-pressed', 'true');
+    for (const league of ['NBA', 'MLB', 'NHL', 'College Football', 'College Basketball']) {
+      await expect(switcher.getByRole('button', { name: new RegExp(`^${league}\\s*Coming soon$`) })).toHaveAttribute('aria-pressed', 'false');
+    }
+    const soon = page.locator('.coming-soon');
+    await expect(soon.getByRole('heading', { name: 'Coming soon', exact: true })).toBeVisible();
+    await expect(soon.locator('.coming-soon-card')).toHaveCount(5);
+    await expect(soon.locator('[data-league="nhl"]')).toContainText('Typical season window: Regular season typically runs early October to mid-April.');
+    await expect(soon.locator('img')).toHaveCount(0);
+    const nba = soon.locator('[data-league="nba"]');
+    await expect(nba.getByRole('button', { name: /Notify me/ })).toHaveAttribute('aria-pressed', 'false');
+    await expect(nba).toContainText('0 members waiting');
+    await nba.getByRole('button', { name: /Notify me/ }).click();
+    await expect(nba.getByRole('button', { name: /Notify me/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(nba).toContainText('1 member waiting');
+    expect((await db.query('select league,notify from public.gtl_league_interest where user_id=$1', [id(1)])).rows).toEqual([{ league: 'nba', notify: true }]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: `.local/previews/coming-soon-${width}.png`, fullPage: true });
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+    await expect(page.locator('.coming-soon [data-league="nba"]').getByRole('button', { name: /Notify me/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.coming-soon [data-league="mlb"]').getByRole('button', { name: /Notify me/ })).toHaveAttribute('aria-pressed', 'false');
+
+    // Selecting a coming-soon league shows only its card: no feed, picks, games or odds.
+    const url = page.url();
+    await page.getByRole('group', { name: 'League' }).getByRole('button', { name: /^College Football/ }).click();
+    expect(page.url()).toBe(url);
+    await expect(page.locator('.coming-soon-card')).toHaveCount(1);
+    await expect(page.locator('[data-league="cfb"]')).toContainText('Typical season window: Season typically runs late August to early January.');
+    await expect(page.locator('.feed-post')).toHaveCount(0);
+    await expect(page.locator('.picks-due')).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Community sections' })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.getByRole('button', { name: 'Back to NFL' }).click();
+    await expect(page.getByRole('group', { name: 'League' }).getByRole('button', { name: /^NFL/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.feed-post').first()).toBeVisible();
+
     await page.getByRole('button', { name: /Groups & games/ }).click();
     await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
     await page.getByRole('button', { name: '← Community' }).click();

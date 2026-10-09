@@ -19,6 +19,7 @@ const MIGRATIONS = [
   '20261008200926_gtl_twelve_hour_odds_refresh.sql',
   '20261009005145_gtl_social_bet_tracker.sql',
   '20261009120000_gtl_community_feed.sql',
+  '20261009130000_gtl_league_interest.sql',
   '20261009150000_gtl_auto_open_week.sql',
 ];
 const SEAN = 30, TROY = 1, BEN = 2, NEW = 3;
@@ -220,5 +221,42 @@ test('community feed migration: one community, automatic posts, gated picks, lik
     assert.deepEqual([feed.week.week, feed.picksDue.state, feed.picksDue.opensAt], [7, 'not_open', weekOpenAt(deadline)]);
     await ballot(TROY, 'guess_total', null, 40);
     assert.equal((await db.query("select count(*)::int n from public.gtl_weekly_ballots where user_id=$1 and week=$2", [id(TROY), slate.week])).rows[0].n, 2, 'the already-open week still saves');
+  });
+
+  await t.test('coming-soon league interest (D-22): service-only, idempotent toggles, counts exclude removed members', async () => {
+    assert.equal((await db.query("select relrowsecurity from pg_class where oid='public.gtl_league_interest'::regclass")).rows[0].relrowsecurity, true);
+    for (const role of ['anon', 'authenticated']) {
+      await assert.rejects(() => as(role, 'select * from public.gtl_league_interest'), /permission denied/);
+      await assert.rejects(() => as(role, "select public.gtl_set_league_interest($1,'nba',true)", [id(TROY)]), /permission denied/);
+    }
+    assert.equal((await db.query("select prosecdef from pg_proc where proname='gtl_set_league_interest'")).rows[0].prosecdef, false);
+    const interest = (body, n) => handleCommunity({ route: '/community/interest', body, user: user(n), service });
+    const before = await read(TROY);
+    assert.deepEqual(before.interests, []);
+    assert.deepEqual(before.interestCounts, { nba: 0, mlb: 0, nhl: 0, cfb: 0, cbb: 0 });
+    assert.deepEqual(await interest({ league: 'nba', notify: true }, TROY), { league: 'nba', notify: true, count: 1 });
+    assert.deepEqual(await interest({ league: 'nba', notify: true }, TROY), { league: 'nba', notify: true, count: 1 }, 'repeat is idempotent');
+    assert.deepEqual(await interest({ league: 'nba', notify: true }, BEN), { league: 'nba', notify: true, count: 2 });
+    await interest({ league: 'cfb', notify: true }, TROY);
+    await interest({ league: 'nhl', notify: false }, TROY);
+    const feed = await read(TROY);
+    assert.deepEqual(feed.interests, ['nba', 'cfb'], 'notify=false rows are not interests; order follows the league list');
+    assert.deepEqual(feed.interestCounts, { nba: 2, mlb: 0, nhl: 0, cfb: 1, cbb: 0 });
+    assert.deepEqual((await read(BEN)).interests, ['nba'], 'interests are per viewer');
+    assert.deepEqual(await interest({ league: 'nba', notify: false }, TROY), { league: 'nba', notify: false, count: 1 });
+    assert.deepEqual(await interest({ league: 'nba', notify: false }, TROY), { league: 'nba', notify: false, count: 1 });
+    assert.deepEqual((await read(TROY)).interests, ['cfb']);
+    assert.equal((await db.query("select count(*)::int n from public.gtl_league_interest where user_id=$1 and league='nba'", [id(TROY)])).rows[0].n, 1, 'one row per member and league');
+    for (const body of [{ league: 'nfl', notify: true }, { league: 'NBA', notify: true }, { league: 'nba', notify: 'yes' }, { league: 'nba' }, { league: 'nba', notify: true, extra: 1 }]) {
+      await assert.rejects(() => interest(body, TROY), error => error.status === 400);
+    }
+    await assert.rejects(() => service.rpc('gtl_set_league_interest', { p_user: id(TROY), p_league: 'xfl', p_notify: true }), error => error.status === 400, 'the database rejects an invalid league too');
+    await assert.rejects(() => service.rpc('gtl_set_league_interest', { p_user: id(TROY), p_league: 'nba', p_notify: null }), error => error.status === 400);
+    await assert.rejects(() => interest({ league: 'nba', notify: true }, NEW), error => error.status === 403, 'no profile, no community');
+    await handleCommunity({ route: '/community/member', body: { userId: id(BEN), member: false }, user: user(SEAN), service });
+    await assert.rejects(() => interest({ league: 'mlb', notify: true }, BEN), error => error.status === 403, 'removed members cannot toggle');
+    assert.equal((await read(TROY)).interestCounts.nba, 0, 'removed members are not counted');
+    await handleCommunity({ route: '/community/member', body: { userId: id(BEN), member: true }, user: user(SEAN), service });
+    assert.equal((await read(TROY)).interestCounts.nba, 1, 'restored members count again');
   });
 });

@@ -15,7 +15,7 @@ const iso = value => new Date(value).toISOString();
 const token = 'a'.repeat(64); // Synthetic fixture, never a deployed credential.
 const MIGRATIONS = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
   '20261008185738_gtl_manual_odds_collection.sql', '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261009005145_gtl_social_bet_tracker.sql',
-  '20261009120000_gtl_community_feed.sql', '20261009150000_gtl_auto_open_week.sql'];
+  '20261009120000_gtl_community_feed.sql', '20261009130000_gtl_league_interest.sql', '20261009150000_gtl_auto_open_week.sql'];
 
 /** One nflverse row at a UTC instant, written in the file's Eastern wall-clock columns. */
 function row(season, week, instant, away, home) {

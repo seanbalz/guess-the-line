@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, Bell, CalendarPlus, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
+import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
 import ChipPicker from './ChipPicker';
@@ -14,6 +14,49 @@ const team = code => TEAM_NAMES[code] || code;
 const shortName = code => team(code).split(' ').at(-1);
 // D-24: "Mon, Oct 12, 12:00 AM" — the week's Monday 00:00 Pacific open.
 const opensText = (week, opensAt) => `Week ${week} opens ${date(opensAt, { weekday: 'short' })} PT`;
+
+// D-22: NFL is the only live league; the rest are "Coming soon" with no games, picks, schedules or odds.
+// Windows are typical season timing, not dates for a specific season.
+const LEAGUES = [
+  { key: 'nfl', label: 'NFL', live: true },
+  { key: 'nba', label: 'NBA', name: 'NBA', window: 'Regular season typically runs late October to mid-April.' },
+  { key: 'mlb', label: 'MLB', name: 'MLB', window: 'Regular season typically runs late March to late September.' },
+  { key: 'nhl', label: 'NHL', name: 'NHL', window: 'Regular season typically runs early October to mid-April.' },
+  { key: 'cfb', label: 'CFB', name: 'College Football', window: 'Season typically runs late August to early January.' },
+  { key: 'cbb', label: 'CBB', name: 'College Basketball', window: 'Season typically runs early November to early April.' },
+];
+const COMING_SOON = LEAGUES.filter(l => !l.live);
+
+function LeagueSwitcher({ league, onSelect }) {
+  return <div className="league-switcher" role="group" aria-label="League">
+    {LEAGUES.map(l => <button key={l.key} className={`league-chip ${league === l.key ? 'selected' : ''}`} aria-pressed={league === l.key} onClick={() => onSelect(l.key)}>
+      <span className="league-chip-name">{l.name || l.label}</span>
+      <span className={`league-chip-state ${l.live ? 'live' : 'soon'}`}>{l.live ? 'Live' : 'Coming soon'}</span>
+    </button>)}
+  </div>;
+}
+
+function ComingSoonCard({ league, feed, busy, onNotify }) {
+  const on = !!feed?.interests?.includes(league.key), count = feed?.interestCounts?.[league.key] ?? 0;
+  return <article className="panel coming-soon-card" data-league={league.key} aria-label={`${league.name} coming soon`}>
+    <div className="coming-soon-head"><span className="league-badge" aria-hidden="true">{league.label}</span>
+      <div><h3>{league.name}</h3><p className="coming-soon-tag"><CalendarClock size={15} aria-hidden="true"/>Coming soon</p></div></div>
+    <p className="muted small">Typical season window: {league.window}</p>
+    <div className="coming-soon-actions">
+      <button className={on ? 'primary' : 'secondary'} aria-pressed={on} disabled={busy || !feed} onClick={() => onNotify(league.key, !on)}>
+        {on ? <BellRing size={16} aria-hidden="true"/> : <BellOff size={16} aria-hidden="true"/>}Notify me<span className="sr-only"> when {league.name} opens</span></button>
+      <span className="muted small">{on ? "On · we'll post here when it opens" : 'Off'} · {count} {count === 1 ? 'member' : 'members'} waiting</span>
+    </div>
+  </article>;
+}
+
+function ComingSoon({ feed, busy, onNotify }) {
+  return <section className="coming-soon" aria-labelledby="coming-soon-title">
+    <div className="section-title"><h2 id="coming-soon-title">Coming soon</h2></div>
+    <p className="muted small">NFL is the only live league. These leagues have no games, picks or odds yet.</p>
+    <div className="coming-soon-grid">{COMING_SOON.map(l => <ComingSoonCard key={l.key} league={l} feed={feed} busy={busy} onNotify={onNotify}/>)}</div>
+  </section>;
+}
 
 function PicksDue({ due, onPick }) {
   if (!due || ['none', 'done'].includes(due.state)) return null;
@@ -174,7 +217,7 @@ function WeekPicks({ onSaved }) {
 }
 
 export default function CommunityHome({ onGroups, onSignOut, displayName, onUnavailable }) {
-  const [tab, setTab] = useState('feed'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
+  const [tab, setTab] = useState('feed'), [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const load = useCallback(async () => { const result = await communityApi('read', {}); setFeed(result); setOlder([]); return result; }, []);
   // Until the community service is deployed (or during an outage), fall back to the groups screen.
@@ -183,6 +226,13 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
   async function act(fn) { setBusy(true); setError(''); try { return await fn(); } catch (e) { setError(e.message); return false; } finally { setBusy(false); } }
   const like = (postId, value) => act(async () => { await communityApi('like', { postId, like: value }); await load(); });
   const comment = (postId, body, requestId) => act(async () => { await communityApi('comment', { postId, body, requestId }); await load(); return true; });
+  // The toggle changes only after the server confirms the saved value.
+  const notify = (key, value) => act(async () => {
+    const result = await communityApi('interest', { league: key, notify: value });
+    setFeed(f => f && { ...f, interests: result.notify ? [...new Set([...f.interests, key])] : f.interests.filter(k => k !== key),
+      interestCounts: { ...f.interestCounts, [key]: result.count } });
+  });
+  const soon = COMING_SOON.find(l => l.key === league);
   const more = () => act(async () => {
     const posts = [...feed.posts, ...older]; const result = await communityApi('read', { before: posts.at(-1).createdAt });
     setOlder(o => [...o, ...result.posts]);
@@ -194,6 +244,12 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
     <header className="hub-header"><Brand/><div className="hub-account"><span>{displayName}</span></div></header>
     <main className="hub-main" id="main"><ThemeSelector/>
       <div className="hub-heading"><div><p className="eyebrow">CALL THE NUMBER. OWN THE BOARD.</p><h1>Community</h1><p>Everyone's calls, scores and bets in one place.</p></div><Users size={28} aria-hidden="true"/></div>
+      <LeagueSwitcher league={league} onSelect={setLeague}/>
+      {soon ? <>
+        {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
+        <ComingSoonCard league={soon} feed={feed} busy={busy} onNotify={notify}/>
+        <button className="secondary back-to-nfl" onClick={() => setLeague('nfl')}>Back to NFL</button>
+      </> : <>
       <nav className="community-tabs" aria-label="Community sections">
         {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : ''}`]].map(([key, label]) =>
           <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => setTab(key)}>{label}</button>)}
@@ -210,6 +266,8 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
           {!posts.length && <p className="panel">No activity yet.</p>}
           {feed.posts.length >= 30 && <button className="secondary" disabled={busy} onClick={more}>Older activity</button>}
         </section>
+        <ComingSoon feed={feed} busy={busy} onNotify={notify}/>
+      </>}
       </>}
       <div className="hub-bottom"><span>Signed in as {displayName}. Everything here is shared with every member.</span>
         <button className="text-button" disabled={busy} onClick={() => act(load)}><RefreshCw size={16}/>Refresh</button>
