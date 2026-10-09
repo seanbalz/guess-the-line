@@ -14,6 +14,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Check the diff for whitespace errors and conflict markers
+        shell: bash
+        env:
+          # The PR's base tip, or the previous main tip for a push; HEAD is the PR merge commit or the pushed tip.
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "::notice::No base commit for this ${{ github.event_name }} event; skipping git diff --check"
+            exit 0
+          fi
+          if ! git fetch --no-tags --depth=1 origin "$BASE_SHA"; then
+            echo "::warning::Base commit $BASE_SHA is not reachable (force push?); skipping git diff --check"
+            exit 0
+          fi
+          git diff --check "$BASE_SHA" HEAD || { echo "::error::git diff --check found trailing whitespace, blank lines at EOF or conflict markers (listed above)"; exit 1; }
       - uses: actions/setup-node@v7
         with:
           node-version: 22
