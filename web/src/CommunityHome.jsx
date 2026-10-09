@@ -4,6 +4,7 @@ import Brand from './Brand';
 import ThemeSelector from './Theme';
 import ChipPicker from './ChipPicker';
 import TeamFacts from './TeamFacts';
+import SitOutWeek from './SitOutWeek';
 import { cloudApi, communityApi, date } from './api';
 import { TEAM_NAMES } from '../../shared/nfl-schedule.mjs';
 import './community.css';
@@ -72,17 +73,18 @@ function Leaderboard({ feed }) {
   const rows = feed.members.map(m => {
     const get = mode => feed.standings.find(s => s.userId === m.id && s.mode === mode);
     const spread = get('guess_spread'), total = get('guess_total');
-    return { id: m.id, spread, total, season: (spread?.seasonPoints || 0) + (total?.seasonPoints || 0) };
+    return { id: m.id, removed: m.removed, spread, total, season: (spread?.seasonPoints || 0) + (total?.seasonPoints || 0) };
   }).sort((a, b) => b.season - a.season || name(a.id).localeCompare(name(b.id)));
-  const cell = (s, key) => (s ? show(s[key]) : '—');
+  // D-23: a sat-out week reads "Sat out", never 0.
+  const cell = (s, key) => (!s ? '—' : key === 'weekPoints' && s.satOut ? 'Sat out' : show(s[key]));
   return <section className="panel community-leaderboard" aria-label="Leaderboard">
     <div className="section-title"><h2>Leaderboard · {feed.week ? `${feed.week.season} season` : 'season'}</h2></div>
     <div className="table-scroll"><table><caption className="sr-only">Spread and Total points by member</caption>
       <thead><tr><th scope="col">Player</th><th scope="col">Spread wk</th><th scope="col">Spread season</th><th scope="col">Total wk</th><th scope="col">Total season</th></tr></thead>
-      <tbody>{rows.map(r => <tr key={r.id} className={r.id === feed.viewer ? 'me' : ''}><th scope="row">{name(r.id)}</th>
+      <tbody>{rows.map(r => <tr key={r.id} className={r.id === feed.viewer ? 'me' : ''}><th scope="row">{name(r.id)}{r.removed && <small className="muted"> · Removed</small>}</th>
         <td className="mono">{cell(r.spread, 'weekPoints')}</td><td className="mono">{cell(r.spread, 'seasonPoints')}</td>
         <td className="mono">{cell(r.total, 'weekPoints')}</td><td className="mono">{cell(r.total, 'seasonPoints')}</td></tr>)}</tbody></table></div>
-    <p className="muted small">Points are fixed when each pick is saved against that moment's consensus. — means no submitted ballot. Challenge and Units records stay in each group.</p>
+    <p className="muted small">Points are fixed when each pick is saved against that moment's consensus. — means no submitted ballot; Sat out means a final weekly opt-out. Removed members keep their records. Challenge and Units records stay in each group.</p>
   </section>;
 }
 
@@ -159,15 +161,17 @@ function PublishWeek({ week, onDone }) {
   </section>;
 }
 
-function WeekPicks({ onSaved }) {
+function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
   const [data, setData] = useState(null), [mode, setMode] = useState('guess_spread'), [picks, setPicks] = useState({});
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const request = useRef(null);
   const load = useCallback(async () => { const result = await cloudApi('personal'); setData(result); return result; }, []);
   useEffect(() => { load().catch(e => setError(e.message)); }, [load]);
-  useEffect(() => { if (data) setPicks(Object.fromEntries(data.games.map(g => [g.id, data.ballots[mode]?.picks?.[g.id] ?? '']))); }, [data, mode]);
+  const picksFor = (d, m) => Object.fromEntries(d.games.map(g => [g.id, d.ballots[m]?.picks?.[g.id] ?? '']));
+  useEffect(() => { if (data) setPicks(picksFor(data, mode)); }, [data, mode]);
   if (!data) return error ? <div className="error-banner" role="alert">{error}</div> : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
   const ballot = data.ballots[mode], submitted = !!ballot?.submittedAt, closed = Date.parse(data.now) >= Date.parse(data.deadline);
+  const satOut = optOuts.includes(mode);
   const filled = Object.values(picks).filter(v => v !== '').length;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
   async function save(submit) {
@@ -184,9 +188,9 @@ function WeekPicks({ onSaved }) {
   }
   return <section className="week-picks">
     <div className="personal-actions" role="group" aria-label="Market">{Object.entries(MODE).map(([m, label]) =>
-      <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy || (dirty && mode !== m)} onClick={() => setMode(m)}>
-        {label}{data.ballots[m]?.submittedAt ? ' ✓' : ''}</button>)}</div>
-    <p className="muted">Week {data.week} · {filled}/{data.games.length} picked · {closed ? 'Closed' : `Due ${date(data.deadline)} PT`}{submitted ? ' · Submitted, editable until the deadline' : ''}</p>
+      <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy || (dirty && mode !== m)} onClick={() => { setMode(m); setPicks(picksFor(data, m)); }}>
+        {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
+    <p className="muted">Week {data.week} · {satOut ? "Sat out · others' picks visible" : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline)} PT`}${submitted ? ' · Submitted, editable until the deadline' : ''}`}</p>
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
     {notice && <p className="auth-notice" role="status">{notice}</p>}
     <div className="week-pick-list">{data.games.map(g => <article className="panel week-pick" key={g.id}>
@@ -194,9 +198,10 @@ function WeekPicks({ onSaved }) {
       <p className="muted small">{date(g.kickoff)} PT</p>
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
       <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
-        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || closed} onChange={value => setPicks(p => ({ ...p, [g.id]: value }))}/>
+        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || closed || satOut} onChange={value => setPicks(p => ({ ...p, [g.id]: value }))}/>
     </article>)}</div>
-    {!closed && <div className="save-bar"><strong>{filled}/{data.games.length} ready</strong>
+    {!closed && !satOut && <div className="save-bar"><strong>{filled}/{data.games.length} ready</strong>
+      {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} disabled={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
       {!submitted && <button className="secondary" disabled={busy || !dirty} onClick={() => save(false)}>Save draft</button>}
       <button className="primary" disabled={busy || filled !== data.games.length || (submitted && !dirty)} onClick={() => save(true)}>{submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
   </section>;
@@ -243,7 +248,7 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
       </nav>
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
       {notice && <p className="auth-notice" role="status">{notice}</p>}
-      {tab === 'picks' ? <WeekPicks onSaved={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
+      {tab === 'picks' ? <WeekPicks optOuts={feed?.optOuts || []} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         <PicksDue due={feed.picksDue} onPick={() => setTab('picks')}/>
         <Leaderboard feed={feed}/>
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}

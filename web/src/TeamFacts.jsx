@@ -1,6 +1,7 @@
 import React from 'react';
 import records from '../../shared/team-records-2026.json';
 import { matchupFacts } from '../../shared/team-records.mjs';
+import './teamFacts.css';
 
 /** Plain records only (D-21): overall plus the away team's road and the home team's home record. */
 export const isNeutral = (week, awayCode, homeCode) => (records.neutral_games || []).includes(`${week}:${awayCode}-${homeCode}`);

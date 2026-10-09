@@ -72,6 +72,7 @@ export function createStore(file = path.join(root, '.local/state.json'), clock =
     socialAction,
     view,
     saveBallot: (...args) => save('saveBallot', ...args),
+    sitOut: (...args) => save('sitOut', ...args),
     saveBet: (...args) => save('saveBet', ...args),
     export: id => engine().export(id),
   };

@@ -3,6 +3,7 @@ import { seed } from '../../server/store.mjs';
 import { createEngine } from '../../server/engine.mjs';
 import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
+import { picker, pickSpread, pickTotal, expectPick, MINUS } from '../chip-entry.mjs';
 
 // Synthetic authenticated group fixtures only; no hosted data or odds requests.
 const accountId = '11111111-1111-4111-8111-111111111111';
@@ -68,29 +69,33 @@ async function openBallot(page, mode = 'guess_spread') {
   if (mode === 'guess_total') await page.getByRole('button', { name: 'Guess the Total', exact: true }).click();
 }
 
-for (const [width, theme] of [[320, 'dark'], [390, 'light']]) test(`missing Total entry keeps real typing and keyboard progress intact at ${width}px ${theme}`, async ({ page, entry }) => {
+for (const [width, theme] of [[320, 'dark'], [390, 'light']]) test(`missing Total entry keeps chip selection and keyboard progress intact at ${width}px ${theme}`, async ({ page, entry }) => {
   await page.setViewportSize({ width, height: 844 });
   if (theme === 'light') await page.addInitScript(() => localStorage.setItem('gtl.theme', 'light'));
   await openBallot(page, 'guess_total');
   await expect(page.getByRole('heading', { name: 'Where would you set the total?' })).toBeVisible();
   await expect(page.locator('.ballot-header')).toContainText('Guess the sportsbook’s total');
   await page.getByLabel('Filter predictions').selectOption('missing');
-  const first = page.getByLabel('TB at DAL combined points');
-  await first.pressSequentially('44.5'); await expect(first).toHaveValue('44.5'); await expect(first).toBeFocused();
-  await page.keyboard.press('Tab'); await expect(page.getByRole('button', { name: 'Increase DAL prediction' })).toBeFocused();
+  const first = picker(page, 'TB at DAL combined points');
+  await expect(first.locator('.number-chip')).toHaveText(['39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49']);
+  await first.getByRole('button', { name: '44', exact: true }).click(); await expect(first.getByRole('button', { name: '44', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await first.getByRole('button', { name: 'Raise by half a point' }).click(); await expectPick(page, 'TB at DAL combined points', '44.5 total points');
+  await expect(first.getByRole('button', { name: 'Raise by half a point' })).toBeFocused();
   await page.keyboard.press('Tab'); await expect(page.getByRole('button', { name: 'Next game', exact: true }).first()).toBeFocused();
-  await page.keyboard.press('Enter'); await expect(page.getByLabel('PHI at JAX combined points')).toBeFocused();
+  await page.keyboard.press('Enter'); await expect(picker(page, 'PHI at JAX combined points').locator('.number-chip').first()).toBeFocused();
   await expect(first).toHaveCount(0);
-  await page.getByLabel('PHI at JAX combined points').pressSequentially('45.5');
+  await pickTotal(page, 'PHI at JAX combined points', '45.5');
   await page.getByRole('button', { name: 'Next game', exact: true }).first().click();
-  await expect(page.getByLabel('CIN at MIA combined points')).toBeFocused();
-  await page.getByLabel('CIN at MIA combined points').pressSequentially('0');
+  await expect(picker(page, 'CIN at MIA combined points').locator('.number-chip').first()).toBeFocused();
+  await pickTotal(page, 'CIN at MIA combined points', '0');
+  await expect(picker(page, 'CIN at MIA combined points').locator('.number-chip')).toHaveText(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
+  await picker(page, 'CIN at MIA combined points').getByRole('button', { name: 'Lower by half a point' }).click(); await expectPick(page, 'CIN at MIA combined points', '0 total points');
   await page.getByRole('button', { name: 'Next game', exact: true }).click();
-  await expect(page.locator('.prediction-input input')).toHaveCount(0);
+  await expect(page.getByRole('group', { name: /combined points$/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Review & submit', exact: true })).toBeFocused();
   await expect(page.locator('.prediction-entry')).toContainText('Every matchup has a valid prediction');
   await page.getByRole('button', { name: 'Show all matchups', exact: true }).click();
-  for (const [index, value] of ['44.5', '45.5', '0'].entries()) await expect(page.locator('.prediction-input input').nth(index)).toHaveValue(value);
+  await expect(page.locator('.prediction-entry-controls .chip-summary')).toHaveText(['44.5 total points', '45.5 total points', '0 total points']);
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   const review = page.getByRole('dialog', { name: 'Submit your total ballot?' });
   await expect(review).toContainText('your guess of the sportsbook’s total');
@@ -100,36 +105,50 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light']]) test(`missing Tota
   await page.screenshot({ path: `.local/previews/prediction-completion-total-${width}-${theme}.png`, fullPage: false });
 });
 
-test('favorite follows stepper sign across pick-em and keeps the selected side while typing', async ({ page, entry }) => {
+test('favorite chips set the sign, Pick’em zeroes the spread, and the range stays inside 0.5–20 without any invalid state', async ({ page, entry }) => {
   await openBallot(page);
-  const favorite = page.getByLabel('TB at DAL favorite'), input = page.getByLabel('TB at DAL home spread');
-  await favorite.selectOption('home'); await expect(input).toHaveValue('-0.5');
-  await page.getByRole('button', { name: 'Increase DAL prediction' }).click(); await expect(favorite).toHaveValue('pickem');
-  await page.getByRole('button', { name: 'Increase DAL prediction' }).click(); await expect(favorite).toHaveValue('away');
-  await input.fill(''); await input.pressSequentially('3.5'); await expect(input).toHaveValue('3.5'); await expect(favorite).toHaveValue('away');
-  await favorite.selectOption('home'); await input.fill(''); await input.pressSequentially('7.5'); await expect(input).toHaveValue('-7.5');
+  const group = picker(page, 'TB at DAL home spread'), chip = name => group.getByRole('button', { name, exact: true });
+  await expect(group.locator('.number-chip')).toHaveCount(0);
+  await chip('DAL').click(); await expect(group.locator('.number-chip')).toHaveCount(19);
+  await expect(group.getByRole('button', { name: 'Raise by half a point' })).toBeDisabled();
+  await expect(group.locator('.number-chip').first()).toHaveText(`${MINUS}1`); await expect(group.locator('.number-chip').last()).toHaveText(`${MINUS}10`);
+  await chip(`${MINUS}1`).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −1');
+  await group.getByRole('button', { name: 'Lower by half a point' }).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −0.5');
+  await group.getByRole('button', { name: 'Lower by half a point' }).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −0.5');
+  await chip("Pick'em").click(); await expect(group.locator('.chip-summary')).toHaveText("Pick'em"); await expect(group.locator('.number-chip')).toHaveCount(0);
+  await expect(page.locator('.picks-table tbody tr').first().getByText('Unsaved', { exact: true })).toBeVisible();
+  await chip('TB').click(); await expect(chip('TB')).toHaveAttribute('aria-pressed', 'true'); await expect(group.locator('.number-chip')).toHaveCount(19);
+  await expect(page.locator('.picks-table tbody tr').first().getByText('Not entered', { exact: true })).toBeVisible();
+  await chip(`${MINUS}3.5`).click(); await expectPick(page, 'TB at DAL home spread', 'TB −3.5');
+  await chip('DAL').click(); await expectPick(page, 'TB at DAL home spread', 'DAL −3.5');
+  await chip('More').click(); await expect(group.locator('.number-chip').first()).toHaveText(`${MINUS}10.5`); await expect(group.locator('.number-chip').last()).toHaveText(`${MINUS}20`);
+  await chip(`${MINUS}20`).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −20');
+  await group.getByRole('button', { name: 'Raise by half a point' }).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −20');
+  await expect(page.locator('.form-error')).toHaveCount(0);
+  await expect(page.locator('.prediction-entry-controls input, .prediction-entry-controls select')).toHaveCount(0);
   expect(entry.attempts).toHaveLength(0);
 });
 
 test('saved favorite and restored tab edits retain the visible sign during further entry', async ({ page, entry }) => {
   entry.state.ballots[accountId] = { guess_spread: { picks: { 'TB-DAL': -3.5 }, submittedAt: null } };
   await openBallot(page);
-  const input = page.getByLabel('TB at DAL home spread');
-  await expect(input).toHaveValue('-3.5'); await input.fill('7.5'); await expect(input).toHaveValue('-7.5');
-  await page.getByLabel('TB at DAL favorite').selectOption('away'); await expect(input).toHaveValue('7.5');
+  const group = picker(page, 'TB at DAL home spread'), chip = name => group.getByRole('button', { name, exact: true });
+  await expectPick(page, 'TB at DAL home spread', 'DAL −3.5'); await expect(chip(`${MINUS}3.5`)).toHaveAttribute('aria-pressed', 'true');
+  await chip(`${MINUS}7.5`).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −7.5');
+  await chip('TB').click(); await expectPick(page, 'TB at DAL home spread', 'TB −7.5');
   page.on('dialog', dialog => dialog.accept()); await page.reload();
   const menu = page.getByRole('button', { name: 'Open navigation', exact: true }); if (await menu.isVisible()) await menu.click();
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
   await page.getByRole('button', { name: 'Restore tab draft', exact: true }).click();
-  await expect(input).toHaveValue('7.5'); await input.fill('4.5'); await expect(input).toHaveValue('4.5');
-  await expect(page.getByLabel('TB at DAL favorite')).toHaveValue('away');
+  await expectPick(page, 'TB at DAL home spread', 'TB −7.5'); await chip(`${MINUS}4.5`).click(); await expectPick(page, 'TB at DAL home spread', 'TB −4.5');
+  await expect(chip('TB')).toHaveAttribute('aria-pressed', 'true');
   expect(entry.state.ballots[accountId].guess_spread.picks['TB-DAL']).toBe(-3.5);
   expect(entry.attempts).toHaveLength(0);
 });
 
 test('quote failure keeps the full review and offers an in-place retry without conflicting refresh instructions', async ({ page, entry }) => {
   entry.failure = 'GTL_SUBMISSION_REFRESH_LIMIT'; await page.setViewportSize({ width: 320, height: 844 }); await openBallot(page);
-  for (const [index, value] of ['-3.5', '2', '-1'].entries()) await page.locator('.prediction-input input').nth(index).fill(value);
+  for (const [index, value] of ['-3.5', '2', '-1'].entries()) await pickSpread(page, `${entry.state.games[index].awayCode} at ${entry.state.games[index].homeCode} home spread`, value);
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   const review = page.getByRole('dialog', { name: 'Submit your spread ballot?' });
   await review.getByRole('button', { name: 'Submit & reveal analysis', exact: true }).click();

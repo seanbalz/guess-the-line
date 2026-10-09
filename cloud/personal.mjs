@@ -18,6 +18,7 @@ const ERRORS = {
   GTL_MATCHING_BALLOT_REQUIRED: [403, 'Submit the matching Spread or Total ballot before recording a market selection.'],
   GTL_BALLOT_LOCKED: [409, 'This ballot is submitted and permanently locked.'],
   GTL_PREDICTION_CLOSED: [409, 'The prediction deadline has passed.'],
+  GTL_COMMUNITY_SAT_OUT: [409, 'You sat out this week for that market. Its picks are closed.'],
   GTL_BALLOT_INCOMPLETE: [400, 'Complete every prediction before submitting.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your weekly ballot changed in another group or on another device. Refresh and review before saving.'],
 };

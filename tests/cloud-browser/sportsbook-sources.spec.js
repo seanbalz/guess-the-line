@@ -5,6 +5,7 @@ import { applyMarketView } from '../../cloud/market-view.mjs';
 import { applySportsbookSources } from '../../cloud/sportsbook-sources.mjs';
 import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
+import { pickSpread, expectPick, spreadText } from '../chip-entry.mjs';
 
 // Authenticated frontend integration with synthetic, in-memory source evidence.
 // No hosted account, real provider request, or production write is used here.
@@ -156,15 +157,15 @@ test('unsubmitted Total cannot receive or render the Spread sportsbook projectio
 
 for (const code of ['GTL_SUBMISSION_REFRESH_UNAVAILABLE', 'GTL_SUBMISSION_QUOTES_REQUIRED', 'GTL_SUBMISSION_REFRESH_LIMIT', 'GTL_SUBMISSION_REFRESH_COOLDOWN', 'GTL_SUBMISSION_REFRESH_DAILY_LIMIT', 'GTL_SUBMISSION_REFRESH_BUDGET']) test(`failed group submission ${code} preserves full draft and review; manual retry reveals`, async ({ page, sources }) => {
   sources.failure = code; await page.setViewportSize({ width: 390, height: 844 }); await openGame(page); await navigate(page, 'My picks');
-  const values = ['-3.5', '2', '-1']; const inputs = page.locator('.prediction-input input');
-  for (const [index, input] of (await inputs.all()).entries()) await input.fill(values[index]);
+  const values = ['-3.5', '2', '-1'], games = sources.state.games;
+  for (const [index, game] of games.entries()) await pickSpread(page, `${game.awayCode} at ${game.homeCode} home spread`, values[index]);
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   const review = page.getByRole('dialog', { name: 'Submit your spread ballot?' });
   const submit = review.getByRole('button', { name: 'Submit & reveal analysis', exact: true });
   await submit.click(); await expect(review.getByRole('alert')).toContainText('Your guesses were not submitted');
   await expect(review).toBeVisible(); await expect(review.getByRole('listitem')).toHaveCount(3);
   await expect(page.locator('.sportsbook-sources')).toHaveCount(0);
-  for (const [index, input] of (await inputs.all()).entries()) await expect(input).toHaveValue(values[index]);
+  for (const [index, game] of games.entries()) await expectPick(page, `${game.awayCode} at ${game.homeCode} home spread`, spreadText(game.awayCode, game.homeCode, values[index]));
   expect(sources.state.ballots).toEqual({}); expect(sources.committed).toBe(0); expect(sources.revision).toBe(0);
   const tabDraft = await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.tab-draft.v1.')).map(key => JSON.parse(sessionStorage.getItem(key))));
   expect(tabDraft).toHaveLength(1); expect(Object.values(tabDraft[0].draft)).toEqual(values);
