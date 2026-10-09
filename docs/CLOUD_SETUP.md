@@ -342,7 +342,7 @@ true simultaneous PostgreSQL sessions and a second physical device remain untest
 
 Outside model forecasts, public ticket/money/count data, sharp-action evidence,
 automatic movement alerts, official freeze/results and betting suggestions are
-separate unfinished items in the private project tracker.
+separate unfinished items in the project tracker (`planning/project-tracker.json`).
 
 First manual collection succeeded at **19:15:22 UTC / 12:15 PM PT**: all 15 events,
 **90 market/book quotes** (15 games × 2 markets × 3 books), status available,
@@ -401,7 +401,7 @@ No authentication protection was reduced by this release.
 
 Outside models, public ticket/money/count data, sharp-action signals, betting
 suggestions, scheduled quote collection and automatic alerts remain open in the
-private tracker. The new provider series has one snapshot; a movement chart
+project tracker. The new provider series has one snapshot; a movement chart
 requires another real recorded observation. This release does not invent one.
 
 
@@ -489,7 +489,7 @@ objects are in `net`. No destructive extension reinstall was attempted.
 Outside projections, public ticket/handle/count data, sharp-action signals,
 validated suggestions and automatic alerts remain separate open work. Source
 rights and the confirmed model-development direction are documented in
-`docs/ODDS_PROVIDER_EVALUATION.md` and the private project tracker.
+`docs/ODDS_PROVIDER_EVALUATION.md` and the project tracker.
 
 ## Selected identity, dashboard controls and Total parity — October 8, 2026
 
