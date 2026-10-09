@@ -176,11 +176,13 @@ export const test = base.extend({
         }
         return results;
       },
-      /** Measures interactive targets smaller than 44x44 CSS px on the current screen (WCAG 2.5.5 AAA target, brand guide minimum). */
+      /** Measures interactive targets smaller than 44x44 CSS px on the current screen (WCAG 2.5.5 AAA target, brand guide minimum).
+       *  A radio or checkbox inside (or named by) a <label> is activated by a press anywhere on that label, so the label's box is its
+       *  target (WCAG 2.5.8 counts the label as part of the target); the native 20×20 control itself is not enlarged. */
       async smallTargets(screen, { min = 44, severity = 3 } = {}) {
         const small = await page.evaluate(min => [...document.querySelectorAll('button,a[href],input,select,summary,[role=button]')]
           .filter(el => el.getClientRects().length && !el.closest('[inert]') && !el.classList.contains('skip-link'))
-          .map(el => { const r = el.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), text: (el.getAttribute('aria-label') || el.textContent || el.value || '').trim().slice(0, 40), tag: el.tagName.toLowerCase(), cls: el.className?.toString().split(' ').slice(0, 2).join('.') }; })
+          .map(el => { const label = (el.type === 'radio' || el.type === 'checkbox') && (el.closest('label') || el.labels?.[0]) || null; const r = (label || el).getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), text: (el.getAttribute('aria-label') || el.textContent || el.value || '').trim().slice(0, 40), tag: el.tagName.toLowerCase(), cls: el.className?.toString().split(' ').slice(0, 2).join('.'), ...(label ? { via: 'label' } : {}) }; })
           .filter(r => r.w < min || r.h < min), min);
         if (small.length) persona.finding({ screen, severity, wcag: '2.5.5 (AAA) / brand 44px minimum', experience: `${small.length} interactive target(s) under ${min}px: ${small.slice(0, 6).map(s => `"${s.text}" ${s.w}×${s.h} (${s.tag}.${s.cls})`).join('; ')}${small.length > 6 ? '; …' : ''}`,
           fix: 'Give these controls min-height/min-width 44px or enlarge their padding so a thumb or tremor-affected pointer lands on them.', evidence: small });
