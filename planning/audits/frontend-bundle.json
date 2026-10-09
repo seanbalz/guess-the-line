@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-10-09T01:46:58.330Z",
+  "scope": "Generated production assets only; local gzip estimates, not network timing, Core Web Vitals, or physical-device performance.",
+  "before": {
+    "manifestEntries": 1,
+    "signIn": {
+      "javascriptBytes": 744252,
+      "javascriptGzipBytes": 212530,
+      "cssBytes": 150249,
+      "assets": [
+        {
+          "file": "assets/index-Dd9RFe1Y.css",
+          "bytes": 150249,
+          "gzipBytes": 25478,
+          "sha256": "467468f519e4f80fb17a85696c9099157fe9c625f18d222410ae142dacee0a93"
+        },
+        {
+          "file": "assets/index-pNz9Jurw.js",
+          "bytes": 744252,
+          "gzipBytes": 212530,
+          "sha256": "5b58ebe5b1e6a1e3d7124f1d0b73afc2639e26554b63e85aeede7a2aaedf4c5d"
+        }
+      ]
+    },
+    "lobby": {
+      "javascriptBytes": 744252,
+      "javascriptGzipBytes": 212530,
+      "cssBytes": 150249,
+      "assets": [
+        {
+          "file": "assets/index-Dd9RFe1Y.css",
+          "bytes": 150249,
+          "gzipBytes": 25478,
+          "sha256": "467468f519e4f80fb17a85696c9099157fe9c625f18d222410ae142dacee0a93"
+        },
+        {
+          "file": "assets/index-pNz9Jurw.js",
+          "bytes": 744252,
+          "gzipBytes": 212530,
+          "sha256": "5b58ebe5b1e6a1e3d7124f1d0b73afc2639e26554b63e85aeede7a2aaedf4c5d"
+        }
+      ]
+    },
+    "league": {
+      "javascriptBytes": 744252,
+      "javascriptGzipBytes": 212530,
+      "cssBytes": 150249,
+      "assets": [
+        {
+          "file": "assets/index-Dd9RFe1Y.css",
+          "bytes": 150249,
+          "gzipBytes": 25478,
+          "sha256": "467468f519e4f80fb17a85696c9099157fe9c625f18d222410ae142dacee0a93"
+        },
+        {
+          "file": "assets/index-pNz9Jurw.js",
+          "bytes": 744252,
+          "gzipBytes": 212530,
+          "sha256": "5b58ebe5b1e6a1e3d7124f1d0b73afc2639e26554b63e85aeede7a2aaedf4c5d"
+        }
+      ]
+    },
+    "allScreens": {
+      "javascriptBytes": 744252,
+      "javascriptGzipBytes": 212530,
+      "cssBytes": 150249,
+      "assets": [
+        {
+          "file": "assets/index-Dd9RFe1Y.css",
+          "bytes": 150249,
+          "gzipBytes": 25478,
+          "sha256": "467468f519e4f80fb17a85696c9099157fe9c625f18d222410ae142dacee0a93"
+        },
+        {
+          "file": "assets/index-pNz9Jurw.js",
+          "bytes": 744252,
+          "gzipBytes": 212530,
+          "sha256": "5b58ebe5b1e6a1e3d7124f1d0b73afc2639e26554b63e85aeede7a2aaedf4c5d"
+        }
+      ]
+    }
+  },
+  "after": {
+    "manifestEntries": 13,
+    "signIn": {
+      "javascriptBytes": 466992,
+      "javascriptGzipBytes": 135645,
+      "cssBytes": 80489,
+      "assets": [
+        {
+          "file": "assets/index-0gnDumVO.css",
+          "bytes": 80489,
+          "gzipBytes": 14738,
+          "sha256": "31eb3b3ce2e8e6dde1779309640bb465c10c5f0dd5011feb9300da1f9a064795"
+        },
+        {
+          "file": "assets/index-DfZHi8RC.js",
+          "bytes": 466992,
+          "gzipBytes": 135645,
+          "sha256": "556333d4845bbf4f175cce045f8b45167a1b409db46417c967477f4166236fda"
+        }
+      ]
+    },
+    "lobby": {
+      "javascriptBytes": 488052,
+      "javascriptGzipBytes": 143216,
+      "cssBytes": 80489,
+      "assets": [
+        {
+          "file": "assets/GameHub-DFSAj94v.js",
+          "bytes": 16702,
+          "gzipBytes": 5340,
+          "sha256": "e52c24ec4007b998c37bfdf1fddb120eb101e25e9ee170f652ecd25fde7e5d6d"
+        },
+        {
+          "file": "assets/api-WlQ-PRTb.js",
+          "bytes": 4130,
+          "gzipBytes": 2030,
+          "sha256": "b4c4aa5631c004c90642e57d21dc65c9519352180c4f621c8c1ed51aa330a201"
+        },
+        {
+          "file": "assets/copy-D6jH9RW1.js",
+          "bytes": 228,
+          "gzipBytes": 201,
+          "sha256": "85a0c49361bb637462718a804e50ca0260c974287aefaf3f97c99b83c5e1fb25"
+        },
+        {
+          "file": "assets/index-0gnDumVO.css",
+          "bytes": 80489,
+          "gzipBytes": 14738,
+          "sha256": "31eb3b3ce2e8e6dde1779309640bb465c10c5f0dd5011feb9300da1f9a064795"
+        },
+        {
+          "file": "assets/index-DfZHi8RC.js",
+          "bytes": 466992,
+          "gzipBytes": 135645,
+          "sha256": "556333d4845bbf4f175cce045f8b45167a1b409db46417c967477f4166236fda"
+        }
+      ]
+    },
+    "league": {
+      "javascriptBytes": 687082,
+      "javascriptGzipBytes": 200503,
+      "cssBytes": 128758,
+      "assets": [
+        {
+          "file": "assets/App-BqEqjgC9.css",
+          "bytes": 45671,
+          "gzipBytes": 7914,
+          "sha256": "e011b53102af563943fd6e668932716b0a9412cc4b5e0cf76e21b43a3926f65b"
+        },
+        {
+          "file": "assets/App-CEyIc_3T.js",
+          "bytes": 193857,
+          "gzipBytes": 55562,
+          "sha256": "c3f65499f17041dbc1a47343fdcb08b4be1dfdb051460eb1920ca0d32d80ba83"
+        },
+        {
+          "file": "assets/GameHub-DFSAj94v.js",
+          "bytes": 16702,
+          "gzipBytes": 5340,
+          "sha256": "e52c24ec4007b998c37bfdf1fddb120eb101e25e9ee170f652ecd25fde7e5d6d"
+        },
+        {
+          "file": "assets/TeamIdentity-CQI2euWF.js",
+          "bytes": 4230,
+          "gzipBytes": 1262,
+          "sha256": "8b6d96ca140dd7d42bff52e0f159b58dcc23a7e653b210bb93b38120ca87845d"
+        },
+        {
+          "file": "assets/TeamIdentity-mCSsA_XJ.css",
+          "bytes": 2598,
+          "gzipBytes": 856,
+          "sha256": "2de3fa96bfa4d0eca38d7170a9e8d9437325b242bb640ecd5c88ccda1f89abcf"
+        },
+        {
+          "file": "assets/api-WlQ-PRTb.js",
+          "bytes": 4130,
+          "gzipBytes": 2030,
+          "sha256": "b4c4aa5631c004c90642e57d21dc65c9519352180c4f621c8c1ed51aa330a201"
+        },
+        {
+          "file": "assets/copy-D6jH9RW1.js",
+          "bytes": 228,
+          "gzipBytes": 201,
+          "sha256": "85a0c49361bb637462718a804e50ca0260c974287aefaf3f97c99b83c5e1fb25"
+        },
+        {
+          "file": "assets/index-0gnDumVO.css",
+          "bytes": 80489,
+          "gzipBytes": 14738,
+          "sha256": "31eb3b3ce2e8e6dde1779309640bb465c10c5f0dd5011feb9300da1f9a064795"
+        },
+        {
+          "file": "assets/index-DfZHi8RC.js",
+          "bytes": 466992,
+          "gzipBytes": 135645,
+          "sha256": "556333d4845bbf4f175cce045f8b45167a1b409db46417c967477f4166236fda"
+        },
+        {
+          "file": "assets/trending-up-CUW3jNXd.js",
+          "bytes": 943,
+          "gzipBytes": 463,
+          "sha256": "d84cea35f867a2aa3f15fcffccb6e97c742148d8e662741331969200baef4750"
+        }
+      ]
+    },
+    "allScreens": {
+      "javascriptBytes": 763559,
+      "javascriptGzipBytes": 224545,
+      "cssBytes": 151618,
+      "assets": [
+        {
+          "file": "assets/App-BqEqjgC9.css",
+          "bytes": 45671,
+          "gzipBytes": 7914,
+          "sha256": "e011b53102af563943fd6e668932716b0a9412cc4b5e0cf76e21b43a3926f65b"
+        },
+        {
+          "file": "assets/App-CEyIc_3T.js",
+          "bytes": 193857,
+          "gzipBytes": 55562,
+          "sha256": "c3f65499f17041dbc1a47343fdcb08b4be1dfdb051460eb1920ca0d32d80ba83"
+        },
+        {
+          "file": "assets/BrandLab-uijqG91H.js",
+          "bytes": 9179,
+          "gzipBytes": 3498,
+          "sha256": "0b542c371c805d13707a88a07a10a05ba903d74dbf8ef110434f9644283fd5dd"
+        },
+        {
+          "file": "assets/GameHub-DFSAj94v.js",
+          "bytes": 16702,
+          "gzipBytes": 5340,
+          "sha256": "e52c24ec4007b998c37bfdf1fddb120eb101e25e9ee170f652ecd25fde7e5d6d"
+        },
+        {
+          "file": "assets/PersonalWorkspace-ChtuIQjv.css",
+          "bytes": 3559,
+          "gzipBytes": 1024,
+          "sha256": "1e23d8f503f54be4c53a98b31916859ceffcec5e5656f01b5d4d9e6137ae7a22"
+        },
+        {
+          "file": "assets/PersonalWorkspace-CrZK9VXG.js",
+          "bytes": 29269,
+          "gzipBytes": 9011,
+          "sha256": "8bd168473cf5eefa0a26e604e72764a3654ed3b334f70ae4af3ed0ad8ac84f53"
+        },
+        {
+          "file": "assets/SocialBetTracker-IGo0k3un.css",
+          "bytes": 19301,
+          "gzipBytes": 3962,
+          "sha256": "dd24db3a93486414ada485566a00592695a95e9401487f2edd0aabaacc93712f"
+        },
+        {
+          "file": "assets/SocialBetTracker-X3QvC_vw.js",
+          "bytes": 37798,
+          "gzipBytes": 11337,
+          "sha256": "7ff5780bcc2bf66ec75e03f6f90935dc892abd2931a47c2e6ada4b284af0067f"
+        },
+        {
+          "file": "assets/TeamIdentity-CQI2euWF.js",
+          "bytes": 4230,
+          "gzipBytes": 1262,
+          "sha256": "8b6d96ca140dd7d42bff52e0f159b58dcc23a7e653b210bb93b38120ca87845d"
+        },
+        {
+          "file": "assets/TeamIdentity-mCSsA_XJ.css",
+          "bytes": 2598,
+          "gzipBytes": 856,
+          "sha256": "2de3fa96bfa4d0eca38d7170a9e8d9437325b242bb640ecd5c88ccda1f89abcf"
+        },
+        {
+          "file": "assets/activity-Dnap3moM.js",
+          "bytes": 231,
+          "gzipBytes": 196,
+          "sha256": "a0f5e557b35314069a7067f72aafcf5218db2993653b59cc4d10ff64a86fbcfd"
+        },
+        {
+          "file": "assets/api-WlQ-PRTb.js",
+          "bytes": 4130,
+          "gzipBytes": 2030,
+          "sha256": "b4c4aa5631c004c90642e57d21dc65c9519352180c4f621c8c1ed51aa330a201"
+        },
+        {
+          "file": "assets/copy-D6jH9RW1.js",
+          "bytes": 228,
+          "gzipBytes": 201,
+          "sha256": "85a0c49361bb637462718a804e50ca0260c974287aefaf3f97c99b83c5e1fb25"
+        },
+        {
+          "file": "assets/index-0gnDumVO.css",
+          "bytes": 80489,
+          "gzipBytes": 14738,
+          "sha256": "31eb3b3ce2e8e6dde1779309640bb465c10c5f0dd5011feb9300da1f9a064795"
+        },
+        {
+          "file": "assets/index-DfZHi8RC.js",
+          "bytes": 466992,
+          "gzipBytes": 135645,
+          "sha256": "556333d4845bbf4f175cce045f8b45167a1b409db46417c967477f4166236fda"
+        },
+        {
+          "file": "assets/trending-up-CUW3jNXd.js",
+          "bytes": 943,
+          "gzipBytes": 463,
+          "sha256": "d84cea35f867a2aa3f15fcffccb6e97c742148d8e662741331969200baef4750"
+        }
+      ]
+    }
+  },
+  "signInJavaScriptReductionPercent": 37.25,
+  "signInJavaScriptGzipReductionPercent": 36.18
+}

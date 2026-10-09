@@ -1,13 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, LoaderCircle, LockKeyhole, TriangleAlert } from 'lucide-react';
 import { configurationError, passwordRecoveryRequested, supabase } from './auth';
 import ThemeSelector from './Theme';
 import Brand from './Brand';
 import { clearTabDrafts } from './predictionDraft';
+import { clearSoloDrafts } from './soloDraft';
 import { pendingInvitation } from './invitations';
 
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null);
+  const lastAccount = useRef(null);
+  function accountChanged(nextSession) {
+    const next = nextSession?.user?.id || null;
+    if (lastAccount.current && lastAccount.current !== next) { clearTabDrafts(); clearSoloDrafts(); }
+    lastAccount.current = next;
+  }
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [forgotten, setForgotten] = useState(false);
@@ -24,11 +31,13 @@ export default function AuthGate({ children }) {
     if (!supabase) { setLoading(false); return; }
     let active = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === 'SIGNED_OUT') clearTabDrafts();
+      if (event === 'SIGNED_OUT') { clearTabDrafts(); clearSoloDrafts(); }
+      accountChanged(nextSession);
       if (active) { if (event === 'PASSWORD_RECOVERY') setRecovering(true); setSession(nextSession); setLoading(false); }
     });
     supabase.auth.getSession().then(({ data, error: sessionError }) => {
       if (!active) return;
+      accountChanged(data.session);
       setSession(data.session);
       if (sessionError) setError('Your saved sign-in could not be restored. Please sign in again.');
       setLoading(false);
@@ -94,7 +103,7 @@ export default function AuthGate({ children }) {
   async function signOut() {
     const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
     if (signOutError) throw new Error('We could not sign you out. Please try again.');
-    clearTabDrafts();
+    clearTabDrafts(); clearSoloDrafts();
     setPassword(''); setError(''); setNotice('');
   }
 

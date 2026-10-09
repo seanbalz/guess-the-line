@@ -14,3 +14,4 @@ playwright-report/
 .dev.vars
 .dev.vars.*
 supabase/.temp/
+.local-*
