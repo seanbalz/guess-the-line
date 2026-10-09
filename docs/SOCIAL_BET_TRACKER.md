@@ -2,10 +2,14 @@
 
 Owner: Sean Balsiger · Version 1 · October 8, 2026 · Decision D-19
 
-**Status: implemented locally; not deployed.** Bet Tracker and Unit Betting now
-read the same saved bet records. The main Dashboard includes a **Your betting week** card with the signed-in player’s included record, known risk, pending bets, settled ROI coverage, and recent shared tickets. Its buttons open Bet Tracker and the same Unit Betting week. Cloud routes and a service-only SQL migration
-are present for review and local testing. No live account import or production
-migration, Edge release, or frontend publication is established by this work.
+**Status: deployed; supplied tickets imported and verified.** Bet Tracker and
+Unit Betting read the same hosted records. The main Dashboard includes a **Your
+betting week** card with the signed-in player's included record, known risk,
+pending bets, settled ROI coverage, and recent shared tickets. Its buttons open
+Bet Tracker and the same Unit Betting week. The frontend and API release is
+documented in [the release record](RELEASE_2026_10_08.md); the sixteen supplied
+tickets are now mapped to live accounts, as recorded in the
+[audited import](SOCIAL_BET_IMPORT_2026_10_08.md).
 
 ## Confirmed behavior
 
@@ -60,9 +64,13 @@ Novig screenshot preserves $50 risked, $218.62 total payout, $168.62 potential
 profit and effective combined +337.24 odds. Both parlay unit stakes remain unknown
 because their dollar-to-unit conversion is unconfirmed. No outcome is inferred.
 
-This intake seeds only the default loopback preview, with local fixture identities.
-It is not bundled into static assets or mapped into live accounts. Dates not
-established by the images remain blank; the Week 5 association follows this chat.
+The original intake seeded the default loopback owner preview with fixture
+identities. A subsequent authorized import mapped its sixteen tickets to verified
+Sean/Troy accounts through active Triple Threat memberships, with fresh import
+audits and stable request receipts. It is not bundled into static assets. Dates
+not established by the images remain blank; the Week 5 association follows this
+chat. Production and the local cloud preview on port 4173 share the hosted records;
+the separate owner preview on port 8794 is not an account-sync source.
 
 ## Architecture and verification
 
@@ -80,4 +88,10 @@ coverage is in `tests/browser/social.spec.js`, `tests/browser/social-dashboard.s
 Run `node --test tests/social-*.test.mjs` for the targeted suite. Local SQL tests
 use PGlite and explicitly skip if unavailable; none proves hosted deployment.
 
-Validation recorded October 8, 2026: `npm test` passed 368 checks with zero skips; local browser regression passed 29 tests; fixture-backed cloud browser regression passed 79 tests. Local and cloud builds passed, and the cloud bundle scan found no private source data or server credentials. The build retains its existing large-chunk warning. Final read-only visual QA confirmed all 16 supplied tickets, dark/light layouts at 320px and 1440px, unknown parlay units preserved in correction, and personal history retaining its player filter. No hosted release or live-account import was performed.
+Initial local validation recorded October 8, 2026: `npm test` passed 368 checks with zero skips; local browser regression passed 29 tests; fixture-backed cloud browser regression passed 79 tests. Local and cloud builds passed, and the cloud bundle scan found no private source data or server credentials. The build retains its existing large-chunk warning. Final read-only visual QA confirmed the supplied tickets, dark/light layouts at 320px and 1440px, unknown parlay units preserved in correction, and personal history retaining its player filter. At that point, no hosted release or live-account import had been performed.
+
+That paragraph records the initial local validation. The subsequent
+[production release](RELEASE_2026_10_08.md) and
+[verified ticket import](SOCIAL_BET_IMPORT_2026_10_08.md) supersede its delivery
+status. Five additional import tests pass; hosted readback and an exact replay
+confirm sixteen saved tickets without duplicates or changes to existing ballots.
