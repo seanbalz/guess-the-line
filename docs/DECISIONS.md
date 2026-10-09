@@ -1,5 +1,17 @@
 # Decision log
 
+## D-21 — social community, feed and button entry (October 9, 2026)
+
+Sean confirmed that Guess The Line works as a social leaderboard game:
+
+- **One community.** Every signed-up account joins one community with one feed and one overall leaderboard. Existing private groups remain as leaderboard filters with their own standings and preserved history. New sign-ups join automatically; the commissioner can remove an account.
+- **Sharing.** All user data is shared with every community member: scores, records, standings, Challenge selections, virtual units, Bet Tracker activity and submitted ballots. The one exception is Guess the Spread / Guess the Total picks. A player sees others' picks for a market only after submitting their own full ballot for that market. Before then they see who has submitted, not the numbers.
+- **Home feed.** Home is an activity feed with a combined leaderboard strip (Spread points, Total points, Challenge W-L-P, Units ROI) and a pinned picks-due card. Automatic posts cover ballot submissions, revealed picks, score changes, Bet Tracker bets and results, and weekly winners. Members can like and comment. Each game is a tab off Home, and secondary pages live inside those tabs.
+- **Required picks.** Every account owes a full Guess the Spread and a full Guess the Total ballot each week. The in-app notice ("Week N picks due · Spread x/N · Total y/N") appears on Home and as tab badges when the slate is published, and becomes urgent 2 hours before TNF kickoff. Betting Challenge, Virtual Units and Bet Tracker stay optional.
+- **Button entry.** Tap the favorite team or Pick'em, then tap a number chip from 1 to 10 in half points. A More chip covers 10.5–20, and −/+ 0.5 buttons fine-tune. Typing is removed. Totals use the same chip pattern around a central value with a ±10 range.
+- **Team facts.** Each game shows one line per team with no tips or analysis: overall W-L(-T) plus the away team's road record and the home team's home record. Records are computed from 2026 final scores in the free public nflverse schedule file, refreshed after each week's finals, and labelled "as of Week N".
+- **Delivery.** The work ships as reviewable PRs that must pass CI. Sean, or a machine with the Cloudflare and Supabase logins, applies the migrations and deploys using a written checklist. Nothing is deployed from the cloud session.
+
 ## D-20 — Week 6 scoring engine under D-16 (October 9, 2026)
 
 Sean confirmed a commissioner-run TypeScript engine for Guess the Spread and Guess the Total: separate points out of 10 per game and separate closest-pick W-L-T for Sean, Troy and Luke, with tests. Picks are commissioner-entered in `data/picks/2026-week-06.json` as append-only revisions, editable any number of times until actual Thursday Night Football kickoff. Consensus comes from manually recorded, timestamped named-book quotes in `data/snapshots/` behind a 3-book median gate. After the October 9 branch consolidation, Sean confirmed that D-16 submission-time scoring governs both modes from Week 6 on: each pick is scored against the verified consensus that was fresh when its current value was saved, a same-value save does not refresh it, and later market moves never rescore it. This replaces the engine's original common kickoff-freeze benchmark. The deployed app remains the system of record; the engine is a local audit and fallback tool. This entry was briefly numbered D-19 on `main`; D-19 is the social Bet Tracker. See the [scoring engine guide](SCORING_ENGINE.md).
