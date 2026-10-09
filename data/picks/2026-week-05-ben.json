@@ -19,7 +19,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Tampa bay buccs -3",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": 3,
+      "consensus_home_spread": -8.5,
+      "points": 0
     },
     {
       "player": "Ben",
@@ -30,7 +33,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Jags -3",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -3,
+      "consensus_home_spread": -7.5,
+      "points": 1.0
     },
     {
       "player": "Ben",
@@ -41,7 +47,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Bengals -14",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": 14,
+      "consensus_home_spread": 6.5,
+      "points": 0
     },
     {
       "player": "Ben",
@@ -52,7 +61,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Pats -6",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -6,
+      "consensus_home_spread": -3.5,
+      "points": 5.0
     },
     {
       "player": "Ben",
@@ -63,7 +75,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Vikings -6",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": 6,
+      "consensus_home_spread": 1.5,
+      "points": 1.0
     },
     {
       "player": "Ben",
@@ -74,7 +89,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Pittsburgh -6",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -6,
+      "consensus_home_spread": -2.5,
+      "points": 3.0
     },
     {
       "player": "Ben",
@@ -85,7 +103,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Jets -6",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -6,
+      "consensus_home_spread": -1.5,
+      "points": 1.0
     },
     {
       "player": "Ben",
@@ -96,7 +117,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Titans -3",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -3,
+      "consensus_home_spread": 7.5,
+      "points": 0
     },
     {
       "player": "Ben",
@@ -107,7 +131,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Commies -9",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -9,
+      "consensus_home_spread": -3.5,
+      "points": 0
     },
     {
       "player": "Ben",
@@ -118,7 +145,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Bears -3",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": 3,
+      "consensus_home_spread": 1.5,
+      "points": 7.0
     },
     {
       "player": "Ben",
@@ -129,7 +159,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Broncos -18",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": 18,
+      "consensus_home_spread": 3.5,
+      "points": 0
     },
     {
       "player": "Ben",
@@ -140,7 +173,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Hawks -3",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -3,
+      "consensus_home_spread": -3,
+      "points": 10
     },
     {
       "player": "Ben",
@@ -151,7 +187,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Falcons -11",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -11,
+      "consensus_home_spread": -3.5,
+      "points": 0
     },
     {
       "player": "Ben",
@@ -162,7 +201,10 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Lions -10",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": 10,
+      "consensus_home_spread": 5.5,
+      "points": 1.0
     },
     {
       "player": "Ben",
@@ -173,7 +215,17 @@
       "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
       "as_given": "Rams -4",
       "schedule_status": "verified",
-      "eligible_for_scoring": true
+      "eligible_for_scoring": true,
+      "predicted_home_spread": -4,
+      "consensus_home_spread": -3.3,
+      "points": 8.6
     }
-  ]
+  ],
+  "scoring": {
+    "status": "provisional_commissioner_ruled",
+    "ruling": "D-25: Sean ruled on 2026-10-09 that Ben's on-time Week 5 picks score against the eDraft consensus snapshot (page updated 2026-10-08 10:03 ET / 07:03 PT, captured 15:02:12Z), the same reference used for Sean's provisional 96.4, because no D-16 snapshot exists for 12:00 PM PT.",
+    "snapshot": "data/snapshots/2026-week-05-20261008T150212589Z.json",
+    "total_points": 37.6,
+    "max_points": 150
+  }
 }
