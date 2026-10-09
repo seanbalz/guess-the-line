@@ -15,10 +15,14 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   // D-23: a final weekly opt-out closes this mode's ballot and reveals others' picks.
   const satOut = data.satOut === true || data.statuses?.[data.mode]?.satOut === true;
   const scope = draftScope(data, accountId), total = data.mode === 'guess_total', submitted = !!data.submittedAt, timestamped = submissionTimeScoring(data);
-  // The browser clock closes the ballot at the deadline even before the next server read confirms it.
+  // The browser clock closes the ballot when the deadline passes during this session, before the
+  // next server read confirms it. The server stays authoritative when it already reported the ballot
+  // open past the nominal deadline (a commissioner extension), so the clock only arms while the last
+  // server time was still before the deadline.
   const [deadlineTick, setDeadlineTick] = useState(0), clock = useRef({ source: data.now, at: Date.parse(data.now), started: Date.now() });
   if (clock.current.source !== data.now) clock.current = { source: data.now, at: Date.parse(data.now), started: Date.now() };
-  const deadlinePassed = () => Number.isFinite(clock.current.at) && clock.current.at + Date.now() - clock.current.started >= Date.parse(data.league.deadline);
+  const deadlineArmed = () => Number.isFinite(clock.current.at) && clock.current.at < Date.parse(data.league.deadline);
+  const deadlinePassed = () => deadlineArmed() && clock.current.at + Date.now() - clock.current.started >= Date.parse(data.league.deadline);
   const closed = !!data.locked || satOut || deadlinePassed();
   const [draft, setDraft] = useState(() => draftFromGames(data.games)), [search, setSearch] = useState(''), [filter, setFilter] = useState('all');
   const [dirty, setDirty] = useState(false), [review, setReview] = useState(false), [saving, setSaving] = useState(false), [fieldConflicts, setFieldConflicts] = useState({});

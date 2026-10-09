@@ -77,7 +77,7 @@ for(const width of [390,320])test(`mobile ${width}px navigation, ballots and no 
  await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 test('reduced motion, keyboard focus, failure and recovery',async({page})=>{
- await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/');await page.keyboard.press('Tab');await expect(page.getByRole('link',{name:'Skip to main content'})).toBeFocused();
+ await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/');await expect(page.getByRole('heading',{name:'The weekly huddle.'})).toBeVisible();await page.keyboard.press('Tab');await expect(page.getByRole('link',{name:'Skip to main content'})).toBeFocused();
  await expect(page.locator('.score-number')).toContainText('—');
  await page.route('**/api/state?**',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Test outage: local service unavailable.'})}));
  await page.getByLabel('Local player view').selectOption('luke');await expect(page.getByRole('alert')).toContainText('Test outage');await expect(page.locator('.score-number')).toHaveCount(0);

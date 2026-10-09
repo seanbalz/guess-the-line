@@ -4,6 +4,7 @@ import AuthGate from './AuthGate.jsx';
 import DeferredScreen from './DeferredScreen.jsx';
 import { cloudRequested } from './auth';
 import { ThemeProvider } from './Theme';
+import './installPrompt.js';
 import './styles.css';
 const App = lazy(() => import('./App.jsx'));
 const GameHub = lazy(() => import('./GameHub.jsx'));

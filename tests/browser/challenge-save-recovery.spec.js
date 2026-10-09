@@ -46,5 +46,5 @@ test('lost Challenge acknowledgement requires readback and never records twice',
   await expect(dialog).toHaveCount(0);
   await expect(page.locator('.recorded-bet').first()).toContainText('Synthetic review source');
   expect(attempts).toBe(1);
-  expect(Object.keys(state.bets.sean)).toHaveLength(1);
+  expect(engine.view('sean', 'betting_challenge').games.filter(game => game.bet)).toHaveLength(1);
 });
