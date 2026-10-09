@@ -1,0 +1,47 @@
+name: Playwright Chromium
+description: >-
+  Restore Chromium from the Actions cache, keyed on the playwright-core version locked in
+  package-lock.json. On a cache miss the download from cdn.playwright.dev is retried three
+  times with backoff and saved immediately, so a later test failure never discards it. The
+  apt dependencies are installed on every run, as `playwright install --with-deps` did.
+runs:
+  using: composite
+  steps:
+    - name: Read the locked playwright-core version
+      id: playwright
+      shell: bash
+      run: |
+        version="$(node -p "require('./package-lock.json').packages['node_modules/playwright-core'].version")"
+        echo "playwright-core $version"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+    - name: Restore cached Chromium
+      id: cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+    - name: Download Chromium (cache miss, up to 3 attempts)
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        for attempt in 1 2 3; do
+          if npx playwright install chromium; then
+            exit 0
+          fi
+          if [ "$attempt" -lt 3 ]; then
+            delay=$((attempt * 20))
+            echo "::warning::Chromium download failed (attempt $attempt of 3); retrying in ${delay}s"
+            sleep "$delay"
+          fi
+        done
+        echo "::error::Chromium download failed after 3 attempts"
+        exit 1
+    - name: Save Chromium to the cache
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ steps.cache.outputs.cache-primary-key }}
+    - name: Install Chromium system dependencies
+      shell: bash
+      run: npx playwright install-deps chromium

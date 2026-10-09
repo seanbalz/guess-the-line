@@ -18,7 +18,8 @@ jobs:
         run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
       - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - name: Install Chromium for Playwright
+        uses: ./.github/actions/playwright-chromium
       - run: npm run test:browser
       - run: npm run test:cloud-browser
       - name: Build and inspect the authenticated frontend
