@@ -53,9 +53,23 @@ function bestOffers(game, snapshot) {
   }));
 }
 
+function consensus(game, snapshot, market) {
+  const quotes = latestQuotes(snapshot, game, market);
+  if (!quotes.length) return null;
+  const values = quotes.map(quote => Number(quote.value)).sort((a, b) => a - b);
+  const middle = Math.floor(values.length / 2);
+  const value = values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+  return {
+    value,
+    source: 'Latest retained named-book median',
+    books: quotes.length,
+    observedAt: new Date(Math.min(...quotes.map(quote => Date.parse(quote.observedAt)))).toISOString(),
+  };
+}
+
 function decorate(payload, snapshot) {
   const now = Date.now();
-  const games = (payload.games || []).map(game => ({ ...game, pacificDate: new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', month:'short', day:'numeric' }).format(new Date(game.kickoff)), offers: bestOffers(game, snapshot) }));
+  const games = (payload.games || []).map(game => ({ ...game, pacificDate: new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', month:'short', day:'numeric' }).format(new Date(game.kickoff)), offers: bestOffers(game, snapshot), consensus: { spread: consensus(game, snapshot, 'spread'), total: consensus(game, snapshot, 'total') } }));
   return { ...payload, games, source: 'The Odds API saved named-book quotes', sourceUrl: 'https://the-odds-api.com/liveapi/guides/v4/', quoteCutoff: null, now: new Date(now).toISOString(), automaticResults: false };
 }
 
