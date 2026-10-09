@@ -1,0 +1,142 @@
+{
+  "date": "2026-10-08",
+  "repository": "/Users/seanbalsiger/betting-repo",
+  "status": "Local implementation handoff verified; hosted and named acceptance dependencies remain",
+  "deployed": false,
+  "coverage": {
+    "initialOutstandingItems": 56,
+    "reportedItems": 56,
+    "workerReports": [
+      "planning/worker-reports/accounts-and-personal-play.json",
+      "planning/worker-reports/data-scoring-and-models.json",
+      "planning/worker-reports/experience-and-notifications.json",
+      "planning/worker-reports/operations-and-rules.json"
+    ]
+  },
+  "checks": [
+    {
+      "name": "Node unit and disposable PostgreSQL integration",
+      "command": "npm test",
+      "passed": 263,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": ".local/workers-final-unit-tests.log"
+    },
+    {
+      "name": "Local dashboard browser",
+      "command": "npm run test:browser",
+      "passed": 15,
+      "failed": 0,
+      "evidence": ".local/workers-final-local-browser.log"
+    },
+    {
+      "name": "Existing cloud-style browser including Solo",
+      "passed": 57,
+      "failedAfterTargetedRecheck": 0,
+      "evidence": [
+        ".local/d16-cloud-browser.log",
+        ".local/d16-cloud-browser-recheck.log"
+      ],
+      "detail": "54 passed in aggregate; 3 obsolete-D16 expectation failures corrected and all3 passed targeted rerun. Mocks intercept network; local SQL where fixture supports it, not hosted readback."
+    },
+    {
+      "name": "Personal browser final source delta",
+      "passed": 1,
+      "failed": 0,
+      "detail": "Same-selected Journal tab preserves unsaved fields. Full5-case personal run also passed before this bounded fix.",
+      "evidence": "planning/worker-reports/accounts-and-personal-play.json"
+    },
+    {
+      "name": "Historical snapshot arithmetic",
+      "command": "python3 scripts/snapshots.py check",
+      "result": "PASS: 3 snapshots, 15 games, 96.4 / 150; historical arithmetic only"
+    },
+    {
+      "name": "Historical snapshot regression",
+      "command": "python3 -m unittest discover -s tests -v",
+      "passed": 9,
+      "failed": 0,
+      "evidence": ".local/workers-snapshot-tests.log"
+    },
+    {
+      "name": "Model integrity and abstention",
+      "command": "python3 -m unittest discover -s model -v",
+      "passed": 7,
+      "failed": 0,
+      "evidence": ".local/workers-model-tests.log"
+    },
+    {
+      "name": "Final boundary probe change",
+      "command": "node --test tests/cloud-boundary.test.mjs",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "detail": "Adds safe anonymous D16 helper probe alongside results/personal endpoints; entirely mocked, not hosted.",
+      "evidence": ".local/workers-boundary-final.log"
+    },
+    {
+      "name": "Commissioner reviewed-result browser flow",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "planning/worker-reports/experience-and-notifications.json",
+      "detail": "Actual local PGlite SQL via createCloudHandler; confirmation, keyboard and320px layout, lost-response idempotency, version correction/conflict, failed-refresh receipt, unavailable-read gate and member controls privacy. Additional screenshot-only rerun is recorded in worker report."
+    },
+    {
+      "name": "Authenticated frontend build and private-data scan",
+      "command": "npm run build:cloud; node scripts/check-cloud-boundary.mjs --bundle-only",
+      "result": "Passed",
+      "evidence": [
+        ".local/workers-final-cloud-build.log",
+        ".local/workers-final-bundle-scan.log"
+      ],
+      "configuration": "Example publishable test configuration. Production requires its intended public configuration and a new build/scan/manifest.",
+      "knownLimitation": "Vite reports a695kB main JavaScript chunk before gzip; physical-phone performance remains OPS-05. Concurrent dashboard chart work is not certified by the earlier bounded browser pass."
+    },
+    {
+      "name": "Release fingerprint",
+      "command": "node scripts/release-manifest.mjs",
+      "result": "Captured; source hash unchanged before/after final cloud build",
+      "evidence": ".local/release-manifest.json",
+      "sourceSha256": "a95f1f19cced1c5f4165e179197e464b1c6249059b85465bc4782a5c87ee68f3",
+      "frontendSha256": "f203d84aca7931ab4666fcb6121e04e0a9ee70899031a3ee2575644144e68efc",
+      "deployed": false
+    },
+    {
+      "name": "Whitespace/error marker check",
+      "command": "git diff --check",
+      "result": "Passed"
+    },
+    {
+      "name": "Final commissioner mobile screenshot and layout recheck",
+      "passed": 1,
+      "failed": 0,
+      "evidence": [
+        ".local/previews/final-result-confirmation-320.png",
+        ".local/previews/final-result-actions-320.png",
+        ".local/previews/final-result-saved-320.png"
+      ],
+      "detail": "Final viewport images inspected; test server stopped."
+    }
+  ],
+  "productionBoundary": "No push, hosted migrations, deployment, private player-entry edits, player messages or paid service changes by this dispatch. Existing Pages531d14b5/APIv13 remain the previously documented release. Read-only health/schedule/advisor evidence is dated in the operations runbook.",
+  "remaining": [
+    "Matched hosted schema/API/frontend release and authenticated acceptance",
+    "Physical second-device concurrency, mobile performance and delivery",
+    "Best Bets/friends numerical rules and sharing acceptance, global leaderboard audience, final visual choices",
+    "Notification channel preference and verified provider/delivery setup",
+    "Current licensed independent models, public betting activity and validated point-in-time datasets",
+    "Whole hosted recovery/retention and tested rollback",
+    "Five-minute submission reference source coverage with unchanged12-hour collection"
+  ],
+  "concurrentWork": "Other user-directed chats continue new dashboard chart work and independent scoring review in this shared checkout. These results cover the named local tests at this handoff, not unreviewed changes added afterward. No task was stopped or overwritten.",
+  "releaseManifest": {
+    "format": "guess-the-line-release-manifest-v1",
+    "createdAt": "2026-10-08T23:25:23.120Z",
+    "deployed": false,
+    "gitHead": "5ac31974578077420aa06d85a1c465d04eb2490b",
+    "dirtyWorkingTree": true,
+    "sourceSha256": "a95f1f19cced1c5f4165e179197e464b1c6249059b85465bc4782a5c87ee68f3",
+    "frontendSha256": "f203d84aca7931ab4666fcb6121e04e0a9ee70899031a3ee2575644144e68efc"
+  }
+}

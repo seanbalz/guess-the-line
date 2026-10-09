@@ -1,0 +1,7 @@
+.gtl-brand{display:flex;align-items:center;min-width:0;min-height:56px;color:var(--text)}
+.gtl-field-icon{width:64px;height:64px;display:grid;place-items:center;flex-shrink:0;border-radius:24%;background:var(--primary);color:var(--primaryText);box-shadow:0 8px 18px color-mix(in srgb,var(--primaryText) 18%,transparent)}
+.gtl-field-icon>.gtl-yardline-mark{display:block;width:90%;height:auto;color:inherit}
+.gtl-brand-compact .gtl-field-icon{width:56px;height:56px}
+.sidebar>.gtl-brand{margin-bottom:28px}
+.auth-card>.gtl-brand{margin-bottom:28px}
+.hub-header>.gtl-brand{margin:0}

@@ -1,0 +1,419 @@
+{
+  "version": 1,
+  "source": "User-supplied picks and two images in the October 8, 2026 conversation",
+  "visibility": "Local source intake; user authorized shared visibility. No cloud account mapping or upload has been performed.",
+  "unitBasis": "One unit risk for each Troy single. Dollar stakes on screenshots are retained in notes; no unconfirmed unit conversion.",
+  "entries": [
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "e5f1e3e1-6ad1-4e09-8496-b328a057ee7f",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "TB-DAL",
+          "market": "spread",
+          "side": "home",
+          "line": -6.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "9f6135a1-27de-4f16-af8c-1a6ec3a691d3",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "PHI-JAX",
+          "market": "spread",
+          "side": "away",
+          "line": 7.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "0642cb88-9d6b-4813-afbf-382ff677f87b",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "CLE-NYJ",
+          "market": "spread",
+          "side": "away",
+          "line": 3.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "a2cfec12-ae1b-464f-9965-bcd9dd5c7cf1",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "CIN-MIA",
+          "market": "spread",
+          "side": "away",
+          "line": -6.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "1a10434c-3f3f-4c88-8f2f-723fb2091afd",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "LV-NE",
+          "market": "spread",
+          "side": "away",
+          "line": 3.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "3b192cde-ee9b-4980-9d50-90aa758b837a",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "MIN-NO",
+          "market": "spread",
+          "side": "home",
+          "line": 3
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "efbc0383-e2f7-4ee2-8048-b27c0b4aba11",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "HOU-TEN",
+          "market": "spread",
+          "side": "away",
+          "line": -6.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "2709cb6f-57b5-4b7e-b23c-bd9c06f3970b",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "NYG-WAS",
+          "market": "spread",
+          "side": "away",
+          "line": 4
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "48a20ba2-9f21-4875-841b-973cc9e8425b",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "IND-PIT",
+          "market": "spread",
+          "side": "away",
+          "line": 3
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "753cf742-3eb8-4e54-a906-da6a6949581f",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "CHI-GB",
+          "market": "spread",
+          "side": "away",
+          "line": -1.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "6428ab06-1551-4a1c-ae73-bca3500b252b",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "DEN-LAC",
+          "market": "spread",
+          "side": "home",
+          "line": 3.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "6620962c-1a1c-4c1d-a41a-f14d09e380e3",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "DET-ARI",
+          "market": "spread",
+          "side": "away",
+          "line": -6
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "204bc5be-f0aa-445c-9148-28972697f5bd",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "SF-SEA",
+          "market": "spread",
+          "side": "away",
+          "line": 3
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "troy",
+      "requestId": "b0c06c6e-2880-4180-877b-c8a4ab505cf5",
+      "kind": "single",
+      "legs": [
+        {
+          "gameId": "BAL-ATL",
+          "market": "spread",
+          "side": "home",
+          "line": -2.5
+        }
+      ],
+      "odds": null,
+      "stakeUnits": 1,
+      "source": "User-supplied Troy picks; book unknown",
+      "notes": "Imported locally from Sean’s report. One unit risked. Actual accepted price and placement time unconfirmed; published comparison quotes are not ticket odds."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "sean",
+      "requestId": "c4ade629-6ca4-469a-8474-c2130c352d82",
+      "kind": "parlay",
+      "legs": [
+        {
+          "gameId": "TB-DAL",
+          "market": "prop",
+          "side": "Dak Prescott over 273.5 passing yards",
+          "line": 273.5,
+          "selection": "Dak Prescott over 273.5 passing yards"
+        },
+        {
+          "gameId": "TB-DAL",
+          "market": "prop",
+          "side": "Bucky Irving under 53.5 rushing yards",
+          "line": 53.5,
+          "selection": "Bucky Irving under 53.5 rushing yards"
+        },
+        {
+          "gameId": "TB-DAL",
+          "market": "prop",
+          "side": "Cade Otton 4+ receptions",
+          "line": 4,
+          "selection": "Cade Otton 4+ receptions"
+        },
+        {
+          "gameId": "TB-DAL",
+          "market": "prop",
+          "side": "CeeDee Lamb 7+ receptions",
+          "line": 7,
+          "selection": "CeeDee Lamb 7+ receptions"
+        },
+        {
+          "gameId": "TB-DAL",
+          "market": "prop",
+          "side": "Jalon Daniels over 185.5 passing yards",
+          "line": 185.5,
+          "selection": "Jalon Daniels over 185.5 passing yards"
+        }
+      ],
+      "odds": 2100,
+      "stakeUnits": null,
+      "source": "User screenshot Photo 1; sportsbook unknown",
+      "notes": "Photo shows +1400 boosted to +2100 (+50%). Stake and calendar date not shown. Header is TB at DAL; the Jalon Daniels leg is transcribed exactly, with participant/matchup unverified. Week 5 association follows this conversation; no result assumed."
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "origin": "tracked",
+      "countsForRecord": true,
+      "placedAt": null,
+      "quotedAt": null,
+      "owner": "sean",
+      "requestId": "c8847755-39be-4791-a859-994276913d11",
+      "kind": "parlay",
+      "legs": [
+        {
+          "gameId": "TB-DAL",
+          "market": "spread",
+          "side": "home",
+          "line": -6.5
+        },
+        {
+          "gameId": "TB-DAL",
+          "market": "prop",
+          "side": "George Pickens anytime touchdown",
+          "line": 1,
+          "selection": "George Pickens anytime touchdown"
+        },
+        {
+          "gameId": "TB-DAL",
+          "market": "prop",
+          "side": "George Pickens 5+ receptions",
+          "line": 5,
+          "selection": "George Pickens 5+ receptions"
+        }
+      ],
+      "odds": 337.24,
+      "stakeUnits": null,
+      "source": "Novig matched ticket; user screenshot Photo 2",
+      "notes": "Photo shows $50 risked and $218.62 total payout ($168.62 potential profit); effective combined +337.24 (display rounded 4.37x). Dollar-to-unit conversion unconfirmed. Placed 4:55 PM, Today 5:15 PM; calendar date/timezone unavailable. Week 5 association follows conversation."
+    }
+  ]
+}

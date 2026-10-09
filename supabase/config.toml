@@ -1,0 +1,8 @@
+project_id = "guess-the-line"
+
+[functions.gtl-api]
+verify_jwt = true
+
+[functions.gtl-odds-refresh]
+# Short-lived per-run capability is verified by the service-only claim RPC.
+verify_jwt = false

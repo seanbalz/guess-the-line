@@ -1,0 +1,73 @@
+import { test, expect } from '@playwright/test';
+
+test('social parlay creation, shared visibility, tail review, records and weekly inclusion', async ({ page }) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Bet Tracker', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Bet Tracker', exact: true })).toBeVisible();
+  await expect(page.locator('.social-alert')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Add bet', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: 'Parlay', exact: true }).click();
+  const legs = dialog.locator('.social-leg-editor');
+  for (const [index, matchup, side, line] of [[0, 'PHI-JAX', 'away', '7.5'], [1, 'CIN-MIA', 'away', '-6.5']]) {
+    await legs.nth(index).getByLabel('Matchup').selectOption(matchup);
+    await legs.nth(index).getByLabel(/^Team/).selectOption(side);
+    await legs.nth(index).getByLabel('Exact signed spread').fill(line);
+  }
+  await dialog.getByLabel('American odds', { exact: false }).fill('210');
+  await dialog.getByLabel('Units risked').fill('1');
+  await dialog.getByLabel('Sportsbook / quote source').fill('Browser fixture only');
+  await dialog.getByRole('button', { name: 'Save tracked bet' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.social-bet-card')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Unit Betting', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Your weekly bet card' })).toBeVisible();
+  await expect(page.locator('.social-bet-card')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Bet Tracker', exact: true }).click();
+  await page.getByLabel('Local player view').selectOption('troy');
+  await expect(page.locator('.social-bet-card')).toHaveCount(1);
+  await page.locator('.social-bet-card').getByRole('button', { name: /Follow/ }).click();
+  await expect(page.locator('.social-bet-card').getByRole('button', { name: /Unfollow/ })).toBeVisible();
+  await page.locator('.social-bet-card').getByRole('button', { name: /Tail/ }).click();
+  await expect(dialog.getByLabel('American odds', { exact: false })).toHaveValue('');
+  await dialog.getByLabel('American odds', { exact: false }).fill('200');
+  await dialog.getByLabel('Sportsbook / quote source').fill('Troy fixture own quote');
+  const stamp = await page.evaluate(() => { const date = new Date('2026-10-08T15:50:00Z'); return new Date(date.valueOf() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); });
+  await dialog.getByLabel('Quote observed', { exact: false }).fill(stamp);
+  await dialog.getByLabel('Bet placed', { exact: false }).fill(stamp);
+  await dialog.getByRole('checkbox').last().check();
+  await dialog.getByRole('button', { name: /Save my tailed bet/ }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.social-bet-card')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Unit Betting', exact: true }).click();
+  await expect(page.locator('.social-bet-card')).toHaveCount(1);
+  const card = page.locator('.social-bet-card');
+  await card.getByText('Details & history', { exact: true }).click();
+  await card.getByRole('button', { name: /Report result/ }).click();
+  await dialog.getByLabel('Outcome').selectOption('win');
+  await dialog.getByLabel('Result source / note').fill('Browser fixture reported win');
+  await dialog.getByRole('button', { name: /Save reported result/ }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.social-metrics')).toContainText('200%');
+  await card.getByRole('button', { name: /Exclude from records/ }).click();
+  await expect(page.locator('.social-data-note')).toContainText('1 excluded');
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Bet history' })).toBeVisible();
+  await expect(page.locator('.social-alert')).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/social-desktop.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('bet tracker is readable on narrow mobile and retains filter controls', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/'); await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+  await page.getByRole('button', { name: 'Bet Tracker', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Bet Tracker', exact: true })).toBeVisible();
+  await expect(page.locator('.social-loading')).toHaveCount(0);
+  await page.getByText('Filter bets & record settings', { exact: true }).click();
+  await page.getByLabel(/^Bet type/).selectOption('parlay');
+  await expect(page.locator('.social-loading')).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.screenshot({ path: 'test-results/social-mobile.png', fullPage: true });
+});

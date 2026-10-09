@@ -67,3 +67,13 @@ For EACH category, generate five visual or typographic examples (not just labels
 
 ## Free-data acceptance
 Inventory public/free odds feeds and their licensing, rate limits, source attribution, historical availability, sportsbook coverage, and refresh cadence. Prototype with verified snapshots; never invent current odds or claim continuous updates before a deployed poller exists.
+
+## Recorded selections — October 8
+
+Sean explicitly selected Primary logo option 01 **Yardline G** and App icon option 01 **Field monogram**. Those two identity choices are approved. Other categories remain proposals. The functional Customize dashboard controls offer five layouts of the existing authorized data, section visibility, reduced/subtle motion and in-page notices; this does not approve a final palette/type system or activate push/email/SMS. Design Lab saves comparison preferences per browser and identifies the applied identity.
+
+### Icon-only refinement
+Sean supplied the selected Field monogram screenshot and requested icon-only
+product branding, with no site-name text beside the mark. D-14 applies that
+rounded lime tile and dark original glyph across the sidebar, sign-in and lobby.
+The browser title and accessible name stay Guess The Line.

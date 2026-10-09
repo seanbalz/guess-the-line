@@ -1,0 +1,45 @@
+.visual-dashboard[data-layout] {display:flex;flex-direction:column}
+.visual-dashboard .dashboard-preferences {order:-5}
+.visual-dashboard .dashboard-notices {order:-4}
+.dashboard-notices {padding:16px 20px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--muted);font-size:14px;line-height:1.6}
+.dashboard-notices h2 {font-size:16px;color:var(--text);margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.dashboard-notices p+p {margin-top:8px}
+.dashboard-notices small {display:block;margin-top:8px}
+.visual-dashboard .visual-chart-grid:has(> :only-child) {grid-template-columns:1fr}
+.visual-dashboard[data-layout="matchups"] .visual-actions,
+.visual-dashboard[data-layout="markets"] .visual-actions {order:-3}
+.visual-dashboard[data-layout="matchups"] .visual-chart-grid,
+.visual-dashboard[data-layout="markets"] .visual-chart-grid,
+.visual-dashboard[data-layout="analytics"] .visual-chart-grid {order:-2}
+.visual-dashboard[data-layout="matchups"] .visual-chart-grid,
+.visual-dashboard[data-layout="markets"] .visual-chart-grid,
+.visual-dashboard[data-layout="analytics"] .visual-chart-grid {grid-template-columns:1fr}
+.visual-dashboard[data-layout="matchups"] .gap-game-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-bottom:20px}
+.visual-dashboard[data-layout="matchups"] .gap-game {border:1px solid var(--border);padding:0 16px;border-radius:12px}
+.visual-dashboard[data-layout="markets"] .gap-game>summary {display:grid;grid-template-columns:minmax(190px,1fr) minmax(100px,.8fr) minmax(0,1fr);gap:20px;align-items:center}
+.visual-dashboard[data-layout="markets"] .gap-bars {margin:0;gap:4px}
+.visual-dashboard[data-layout="social"] .accuracy-bars {grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding-bottom:20px}
+.visual-dashboard[data-layout="social"] .accuracy-player {border:1px solid var(--border);padding:0 16px;border-radius:12px}
+.visual-dashboard[data-layout="social"] .accuracy-row {flex-direction:column;align-items:flex-start}
+.visual-dashboard[data-layout="analytics"] .visual-history {order:-1}
+.visual-dashboard[data-dashboard-motion="subtle"] .accuracy-track i,
+.visual-dashboard[data-dashboard-motion="subtle"] .gap-track i {transition:width 220ms ease}
+.visual-dashboard[data-dashboard-motion="subtle"] details[open]>.visual-drilldown {animation:dashboard-reveal 150ms ease}
+.visual-dashboard[data-dashboard-motion="subtle"] .market-update-notice {animation:dashboard-reveal 220ms ease}
+.visual-dashboard[data-dashboard-motion="reduced"] *,
+.visual-dashboard[data-dashboard-motion="reduced"] *::before,
+.visual-dashboard[data-dashboard-motion="reduced"] *::after {animation:none!important;transition:none!important}
+@keyframes dashboard-reveal {from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:720px){
+ .visual-dashboard[data-layout="matchups"] .gap-game-list,
+ .visual-dashboard[data-layout="social"] .accuracy-bars {grid-template-columns:1fr}
+ .visual-dashboard[data-layout="markets"] .gap-game>summary {grid-template-columns:1fr;gap:8px}
+}
+@media(prefers-reduced-motion:reduce){.visual-dashboard *, .visual-dashboard *::before,.visual-dashboard *::after{animation:none!important;transition:none!important}}
+
+.market-row-values{display:grid;gap:8px;font-size:13px;color:var(--muted)}.market-row-values>span{display:flex;justify-content:space-between;gap:12px}.market-row-values strong{font-family:var(--font-mono);color:var(--text)}
+
+.dashboard-detail-comparison > summary {display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:48px;padding:16px 20px;cursor:pointer;list-style:none;font-size:16px;color:var(--text)}
+.dashboard-detail-comparison > summary::-webkit-details-marker {display:none}
+.dashboard-detail-comparison > summary:focus-visible {outline:2px solid var(--cyan);outline-offset:3px}
+.dashboard-detail-comparison > .player-distributions {border:0;margin:0;border-top:1px solid var(--border);border-radius:0}

@@ -1,0 +1,334 @@
+{
+  "worker": "experience_and_notifications",
+  "date": "2026-10-08",
+  "scope": "Local implementation, source-bounded audit and browser verification. No deployment, remote migration, provider connection, delivery or message was performed.",
+  "latestRules": "Read updated AGENTS.md and docs/SUBMISSION_TIME_SCORING.md after root confirmed concurrent D-16. Submitted Spread/Total guesses are editable until engine deadline; changed guesses get new references. Challenge remains immutable.",
+  "integration": {
+    "App": "Handed App.jsx to root. Imports PredictionEntry, ChallengeQuoteReview, InstallApp and entryExperience.css. Mobile focus trap, dialog review refocus, data.locked entry gate, manual drafts and quote receipt paths coexist with external scoring UI.",
+    "comparison": "PlayerComparisonModel exposes both basis and timestamped, plus per-row scoringReference, to match external scoring worker component. D16 distributions use own saved refs, not current consensus. Missing refs are excluded with explicit sample counts.",
+    "decisionAnalysis": "DataConnections and SubmissionComparison render DecisionAnalysis.jsx from authenticated projection game.decisionAnalysis.savedGuess/reference/personalForecast/model. Requires matching revealed market access. Root owns personal forecast adapter in handler.",
+    "notifications": "server/notifications/policy.mjs is a pure planner only; it is not wired to a sender, persistent preferences, queue or scheduler.",
+    "install": "Manifest + 180/192/512 PNGs derive from selected original app-icon.svg. Install guide and user-initiated deferred browser prompt; no service worker, app-managed cache or subscription.",
+    "results": "ResultReviewControls.jsx and resultReview.css completed and handed to root. Root App integration supplies data and onReviewed refresh. Only server-provided original-commissioner resultReview enables entry. Acknowledged saves remain successful even if App refresh fails."
+  },
+  "verification": [
+    {
+      "command": "node --test tests/experience.test.mjs",
+      "result": "8/8 passed after final D16 compatibility fixes"
+    },
+    {
+      "command": "npx playwright test tests/browser/dashboard.spec.js tests/browser/experience.spec.js",
+      "result": "11 passed before concurrent D16 policy edits; historical compatibility evidence only, not final D16 acceptance"
+    },
+    {
+      "command": "npx playwright test --config playwright.cloud.config.js --grep 'install manifest|fresh named-book receipt|browser install offer'",
+      "result": "3 relevant cases passed during final five-case D16 run; remaining comparison mismatch was repaired and reverified separately"
+    },
+    {
+      "command": "npx playwright test --config playwright.cloud.config.js --grep 'D16 player distributions|personal decision analysis'",
+      "result": "2 passed after compatibility repair; correct individual-reference labels and source display, personal forecast separate from saved guess, hidden other market protected"
+    },
+    {
+      "command": "npm run build",
+      "result": "Final assembled build passed after D16 compatibility fixes; existing bundle-size warning remains."
+    },
+    {
+      "command": "npx playwright test tests/browser/experience.spec.js",
+      "result": "5/5 passed after final D16 integration: 320px entry/sign retention, recovery/offline, overlapping conflict resolution, immutable Challenge confirmation, mobile focus/escape."
+    },
+    {
+      "command": "npx playwright test --config .local/playwright-results.config.mjs tests/cloud-browser/results.spec.js --max-failures=1",
+      "result": "6/6 passed against actual local PGlite migrations and createCloudHandler after mobile geometry/focus fixes: explicit final review, lost-response idempotency, append-only correction audit, concurrency refresh and acknowledgement, successful save with refresh failure, service unavailable and member privacy. Browser build passed; existing bundle warning remains."
+    }
+  ],
+  "screenshots": [
+    ".local/previews/entry-card-320.png",
+    "test-results/experience-entry-320.png",
+    "test-results/experience-quote-review.png",
+    ".local/previews/install-guide-320.png",
+    ".local/previews/player-distributions-390.png",
+    ".local/previews/final-result-confirmation-320.png",
+    ".local/previews/final-result-actions-320.png",
+    ".local/previews/final-result-saved-320.png"
+  ],
+  "sources": [
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable",
+      "checked": "2026-10-08",
+      "use": "Manifest and secure-context installation requirements; service worker is optional for installability."
+    },
+    {
+      "url": "https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/",
+      "checked": "2026-10-08",
+      "use": "Home Screen web-app context; installation is separate from explicit push permission and delivery."
+    },
+    {
+      "url": "https://webkit.org/blog/17333/webkit-features-in-safari-26-0/",
+      "checked": "2026-10-08",
+      "use": "Current Open as Web App Home Screen guidance."
+    }
+  ],
+  "items": [
+    {
+      "id": "UX-02",
+      "disposition": "Ready locally",
+      "delivered": "Phone matchup cards, explicit favorite selector, signed half-point numeric input, next missing game, progress, missing filter. Typing an unsigned amount after selecting home preserves the home-favorite sign. No horizontal entry-form scrolling at 320px.",
+      "evidence": [
+        "web/src/PredictionEntry.jsx",
+        "web/src/entryExperience.css",
+        "tests/browser/experience.spec.js"
+      ],
+      "tests": [
+        "320px full-slate favorite entry passed; 44px controls and 16px numeric type asserted"
+      ],
+      "remainingBlocker": "Final release and physical-phone acceptance have not run.",
+      "nextAction": "Review final integrated browser suite, then validate full slate on actual phone.",
+      "localOnly": true
+    },
+    {
+      "id": "UX-03",
+      "disposition": "Partially completed locally",
+      "delivered": "44px entry targets, mobile interactive type, labeled fields, offline/live state, modal focus return/refocus, mobile navigation Tab trap and Escape/inert background, safe-area spacing.",
+      "evidence": [
+        "web/src/entryExperience.css",
+        "web/src/App.jsx",
+        "tests/browser/experience.spec.js"
+      ],
+      "tests": [
+        "320/390 browser QA, keyboard navigation and reduced-motion existing browser case"
+      ],
+      "remainingBlocker": "Actual iPhone, assistive-technology and complete contrast/zoom audit not performed.",
+      "nextAction": "Perform device/screen-reader/contrast/zoom acceptance without calling emulation physical-device evidence.",
+      "localOnly": true
+    },
+    {
+      "id": "UX-04",
+      "disposition": "Ready locally; account/device acceptance pending",
+      "delivered": "Retained explicit manual save. Saving/Saved/Offline/Conflict states; save time; tab-only 24h recovery requiring Restore; account+season+week+market scope; three-way merge exposes overlapping edits; explicit use-saved/keep-edit resolution; successful save/signout clears recovery. Engine locked field, not submittedAt, controls editability under D16.",
+      "evidence": [
+        "web/src/predictionDraft.js",
+        "web/src/PredictionEntry.jsx",
+        "web/src/AuthGate.jsx",
+        "tests/experience.test.mjs",
+        "tests/browser/experience.spec.js"
+      ],
+      "tests": [
+        "reload recovery, offline/save retry, and conflict resolution browser checks; pure merge/scope tests"
+      ],
+      "remainingBlocker": "Real second-device concurrency/connection interruption not verified.",
+      "nextAction": "Run final cloud/device acceptance; preserve tab recovery as unsaved data, not cloud draft.",
+      "localOnly": true
+    },
+    {
+      "id": "UX-05",
+      "disposition": "Ready locally",
+      "delivered": "Explicit Challenge review shows exact side, market, line, odds, source, quote time, deadline, not-recorded state and immutable consequence. Back preserves fields, stale/changed receipt blocks confirm, duplicate-click refs guard sends. Ballot review adapts D16 via external scoring worker; changed guesses remain reviewed before save.",
+      "evidence": [
+        "web/src/ChallengeQuoteReview.jsx",
+        "web/src/challengeReview.js",
+        "web/src/PredictionEntry.jsx"
+      ],
+      "tests": [
+        "manual invalid-price/cancel/final-confirm browser test",
+        "named-book receipt exact millisecond timestamp + explicit body test"
+      ],
+      "remainingBlocker": "Hosted receipt migration/deployment and live authenticated readback not performed.",
+      "nextAction": "Run final integrated D16 + immutable Challenge acceptance before publishing.",
+      "localOnly": true
+    },
+    {
+      "id": "UX-06",
+      "disposition": "Waiting for user selections",
+      "delivered": "Audited approved Yardline G + Field monogram. Existing type/palette/UI/iconography/motion still provisional. Used semantic tokens and exact approved icon geometry without choosing final categories.",
+      "evidence": [
+        "docs/BRAND_GUIDE.md",
+        "docs/DESIGN_EXPLORATION.md",
+        "design/tokens.json",
+        "web/public/app-icon.svg"
+      ],
+      "tests": [],
+      "remainingBlocker": "User choices for remaining visual categories required.",
+      "nextAction": "Ask the next concrete visual selection when needed; do not infer approval from functional controls.",
+      "localOnly": true
+    },
+    {
+      "id": "UX-11",
+      "disposition": "Waiting for eligible sources",
+      "delivered": "Preserved approved 13-mark subset and abbreviation fallbacks; remaining-source file documents 19 candidates requiring applicable reuse evidence. No new artwork downloaded or eligibility invented.",
+      "evidence": [
+        "web/src/teamLogoRegistry.js",
+        "web/public/team-logos/remaining-sources.json",
+        "docs/TEAM_LOGO_SOURCES.md"
+      ],
+      "tests": [],
+      "remainingBlocker": "Eligible free source/permission for remaining 19 team marks.",
+      "nextAction": "Activate additional marks only after file-specific reuse evidence is established.",
+      "localOnly": true
+    },
+    {
+      "id": "UX-14",
+      "disposition": "Integration delegated to root",
+      "delivered": "Preserved working My picks/Compare/navigation and focus behavior; account worker delivered PersonalWorkspace. Root owns attaching actual Journal/Favorites/Forecasts/Guesses routes. No dead links or proposed-only destinations added.",
+      "evidence": [
+        "web/src/App.jsx",
+        "web/src/PersonalWorkspace.jsx",
+        "docs/PLAY_WORKSPACE_UX.md"
+      ],
+      "tests": [],
+      "remainingBlocker": "Root integration/route QA; broader research navigation migration must reflect real available features.",
+      "nextAction": "Integrate working personal routes with preserved market/weekly/account scope; record final acceptance in root report.",
+      "localOnly": true
+    },
+    {
+      "id": "UX-15",
+      "disposition": "Ready locally",
+      "delivered": "Per-player error distributions, exact/within1/within3/over3 bins, average/median, sample sizes, opponent selector and game-level differences. Under D16 each player uses own recorded scoringReference; references/times visible, missing refs excluded. Legacy-only historical comparison chart is labeled retrospective and suppressed under D16.",
+      "evidence": [
+        "web/src/PlayerComparison.jsx",
+        "web/src/playerComparisonModel.js",
+        "web/src/PlayerComparisonHistory.jsx",
+        "web/src/VisualDashboard.jsx"
+      ],
+      "tests": [
+        "D16 own-reference/missing-data unit test",
+        "D16 distribution/provenance/browser test passed"
+      ],
+      "remainingBlocker": "Root final integrated/release verification; individual-reference historical score trend needs matching historical anchored evidence before display.",
+      "nextAction": "Release distributions with current D16 provenance; do not use shared-reference retrospective values as anchored scores.",
+      "localOnly": true
+    },
+    {
+      "id": "PICK-01",
+      "disposition": "Sourced quote-to-review ready locally; model suggestions unavailable",
+      "delivered": "Consumes fresh game.quoteReceipts for named-book prefill, preserves exact quote timestamp/side/line/odds, posts selected quoteReceipt after explicit review. Any user field change drops provider receipt and returns to manual semantics. Data worker server resolves receipt; no automated wager. DecisionAnalysis renders personal outcome forecast separately, without fabricated independent model/probability/EV.",
+      "evidence": [
+        "web/src/ChallengeQuoteReview.jsx",
+        "web/src/DecisionAnalysis.jsx",
+        "web/src/DataConnections.jsx",
+        "cloud/decision-analysis.mjs"
+      ],
+      "tests": [
+        "receipt prefill/review/body browser test passed",
+        "personal forecast matching-market privacy browser test passed"
+      ],
+      "remainingBlocker": "Independent prospective validated model remains unavailable; remote receipt migration/deployment not performed.",
+      "nextAction": "Root verify server receipt acceptance in integrated release; label quote source flow separately from model suggestions.",
+      "localOnly": true
+    },
+    {
+      "id": "NOT-01",
+      "disposition": "Pure preference foundation ready; channel decision/access pending",
+      "delivered": "All channels/event types default off; explicit opt-in normalization, valid timezone and quiet hours. Existing in-page notice toggles remain separate. No stored server notification preference or consent assumed.",
+      "evidence": [
+        "server/notifications/policy.mjs",
+        "tests/experience.test.mjs"
+      ],
+      "tests": [
+        "default-off and timezone quiet-hours tests passed"
+      ],
+      "remainingBlocker": "Initial channel priority and approved delivery path; authenticated preference persistence not implemented.",
+      "nextAction": "Choose initial channel, then connect preference UI/storage and record explicit user opt-ins.",
+      "localOnly": true
+    },
+    {
+      "id": "NOT-02",
+      "disposition": "Installability ready locally; phone push blocked",
+      "delivered": "Standalone manifest, selected identity PNG icons, Apple touch icon, install guide, deferred supported-browser offer captured at app load and invoked only on button click. Zero app-managed caches/service workers/push subscriptions. Online connection required disclosed.",
+      "evidence": [
+        "web/public/manifest.webmanifest",
+        "web/public/app-icon-180.png",
+        "web/public/app-icon-192.png",
+        "web/public/app-icon-512.png",
+        "web/index.html",
+        "web/src/InstallApp.jsx"
+      ],
+      "tests": [
+        "manifest/asset/privacy guide check passed",
+        "deferred user-initiated install prompt check passed"
+      ],
+      "remainingBlocker": "Channel choice; push subscription backend/sender; actual phone/desktop install and delivery acceptance.",
+      "nextAction": "Verify Home Screen install after release; separately implement selected opt-in push path and actual receipt tests.",
+      "localOnly": true
+    },
+    {
+      "id": "NOT-03",
+      "disposition": "Pure event planning ready; operational scheduler blocked",
+      "delivered": "Plans slate-ready, exactly two-hour incomplete reminders and actual-kickoff commissioner events. Reschedules alter keys and invalidate stale schedule plans; expired reminders are suppressed. Movement threshold crossing accepts an explicit verified baseline and dedupes 1.5/3 thresholds; it does not pick a baseline or promise immediate 12h-feed alerts.",
+      "evidence": [
+        "server/notifications/policy.mjs",
+        "tests/experience.test.mjs"
+      ],
+      "tests": [
+        "2h/actual-start/reschedule/expiry/movement threshold tests passed"
+      ],
+      "remainingBlocker": "Movement baseline/cooldown decision, confirmed timing/data and initial channel; no persisted event scheduler/outbox connected.",
+      "nextAction": "Resolve baseline/delivery inputs, then wire deduplicated event planner and test actual scheduled runs.",
+      "localOnly": true
+    },
+    {
+      "id": "NOT-04",
+      "disposition": "Pure privacy/consent gate ready; delivery unverified",
+      "delivered": "Pure gate suppresses revoked membership, missing opt-ins, duplicate keys, completed ballots, wrong commissioner recipients and unrevealed-market movement. Lock-screen preview is generic and excludes lines/opponent picks. No sender or durable queue claimed.",
+      "evidence": [
+        "server/notifications/policy.mjs",
+        "tests/experience.test.mjs"
+      ],
+      "tests": [
+        "consent, reveal, revoked membership, duplicate prevention and generic preview tests passed"
+      ],
+      "remainingBlocker": "Persisted delivery queue/receipts, channel-specific revocation/unsubscribe/retry and actual devices.",
+      "nextAction": "Implement with the chosen channel and verify end-to-end retry/revocation/opt-out.",
+      "localOnly": true
+    },
+    {
+      "id": "NOT-05",
+      "disposition": "Waiting for verified mail path",
+      "delivered": "Audited as separate from auth confirmation; no game reminder emails or recipients activated.",
+      "evidence": [
+        "planning/project-tracker.json",
+        "docs/ACCOUNT_ACCESS_REGISTER.md"
+      ],
+      "tests": [],
+      "remainingBlocker": "Free verified sender/delivery, explicit event/channel opt-in, templates and unsubscribe.",
+      "nextAction": "After sender and channel decision, implement opt-in templates and verify receipt/unsubscribe separately from account mail.",
+      "localOnly": true
+    },
+    {
+      "id": "NOT-06",
+      "disposition": "Deferred per scope/budget",
+      "delivered": "No paid SMS or native distribution activated. Standalone Home Screen install is handled in NOT-02.",
+      "evidence": [
+        "planning/project-tracker.json",
+        "docs/ACCOUNT_ACCESS_REGISTER.md"
+      ],
+      "tests": [],
+      "remainingBlocker": "Permitted free SMS/native route or explicit budget/scope revision.",
+      "nextAction": "Retain deferred until input changes; do not imply native/push/SMS distribution exists.",
+      "localOnly": true
+    },
+    {
+      "id": "SCORE-02",
+      "disposition": "Commissioner ordinary-final UI ready locally",
+      "delivered": "Canonical matchup selector, after-kickoff gate, integer final scores, named HTTPS source, explicit device-local observation time converted to ISO, reason and ordinary-final assertion. Keyboard-trapped review dialog shows exact scores/source/time/version and consequences. Stable request UUID across ambiguous retries; changed body receives a new UUID. Corrections require expected version and preserve prior audit. Stale conflicts retain entered values and require current read plus explicit acknowledgement. Service-unavailable reads disable entry. A confirmed write remains saved when refresh fails; no automatic void/cancel/pending decision. Always labeled commissioner-reported, not independently verified.",
+      "evidence": [
+        "web/src/ResultReviewControls.jsx",
+        "web/src/resultReview.css",
+        "tests/cloud-browser/results.spec.js",
+        "cloud/results.mjs",
+        "supabase/migrations/20261008225607_gtl_reviewed_final_results.sql"
+      ],
+      "tests": [
+        "6/6 actual local SQL/browser cases passed",
+        "320px viewport: no horizontal overflow, 16px score inputs, >=44px controls and <=100px confirmation actions",
+        "Dialog starts at heading/top; Tab and Shift+Tab wrap, Escape restores form focus",
+        "Lost response replay stores one version; next correction appends prior score",
+        "Correction conflict requires refresh and explicit new version acceptance",
+        "No commissioner controls projected to an ordinary member"
+      ],
+      "remainingBlocker": "No hosted migration, deployment, real final-source verification or physical-device acceptance performed. Automatic result feed and cancellation/void policy are separate work.",
+      "nextAction": "Root finish assembled build/source scan and release evidence; only apply hosted migration or deploy under applicable authorization.",
+      "localOnly": true
+    }
+  ],
+  "finalReadiness": "Worker implementation and targeted verification complete, including final commissioner result controls. Root owns final assembled build/source scan, master tracker reconciliation and any separately authorized publication. No worker dev server remains after tests."
+}

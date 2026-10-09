@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-08",
+  "sources": [
+    {
+      "id": "fivethirtyeight-nfl-game-history",
+      "status": "approved_historical_prototype",
+      "publisher": "FiveThirtyEight / ABC News Internet Ventures",
+      "repository": "https://github.com/fivethirtyeight/nfl-elo-game",
+      "commit": "fbec1afa38ece5befe24fb21be8ddba8eb160fe6",
+      "url": "https://raw.githubusercontent.com/fivethirtyeight/nfl-elo-game/fbec1afa38ece5befe24fb21be8ddba8eb160fe6/data/nfl_games.csv",
+      "sha256": "af16cf3c5848393057fad07feea278f0a85ab7b57ddbfe42ed96b5c80e7d519d",
+      "bytes": 1238252,
+      "license": "MIT",
+      "licenseUrl": "https://github.com/fivethirtyeight/nfl-elo-game/blob/fbec1afa38ece5befe24fb21be8ddba8eb160fe6/LICENSE",
+      "permissionEvidence": "Publisher repository supplies historical scores and explicitly invites alternative-model evaluation; repository MIT license retained in NOTICE.txt.",
+      "fieldsUsed": ["date", "season", "neutral", "team1", "team2", "score1", "score2"],
+      "fieldsExcluded": ["elo1", "elo2", "elo_prob1", "result1"],
+      "lastCompletedGame": "2021-02-07",
+      "use": "Historical baseline only; no current-season forecasts from this stale data."
+    },
+    {
+      "id": "ftn-charting-via-nflverse",
+      "status": "licensed_candidate_not_ingested",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://nflreadr.nflverse.com/reference/load_ftn_charting.html",
+      "use": "Owner-authorized charting features from 2022 onward; complete outcome labels, available-at history and consistent current coverage not established for this model."
+    },
+    {
+      "id": "nflverse-nfldata-games",
+      "status": "permission_not_established_not_ingested",
+      "url": "https://github.com/nflverse/nfldata",
+      "use": "No root license found in reviewed repository; nflreadr reserves upstream owner terms. A different repository's data license is not transferred to this file."
+    },
+    {
+      "id": "the-odds-api-scores",
+      "status": "documented_future_collection_candidate_not_called",
+      "url": "https://the-odds-api.com/liveapi/guides/v4/#get-scores",
+      "licenseUrl": "https://the-odds-api.com/terms-and-conditions.html",
+      "use": "Provider terms permit derived models and retention. Recent completed-score window does not backfill missing 2021-2026 seasons. No key read, quota spent or results job created by the model prototype."
+    },
+    {
+      "id": "nfelo-outside-projections",
+      "status": "permission_not_established_not_ingested",
+      "url": "https://github.com/greerreNFL/nfelo",
+      "use": "No verified free multiuser forecast-display permission. Outside model adapter must remain unavailable."
+    }
+  ]
+}

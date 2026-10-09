@@ -1,0 +1,13 @@
+.prediction-review .modal-heading{margin-bottom:12px}
+.prediction-review .callout{margin:0 0 12px;padding:12px;align-items:flex-start;gap:8px}
+.prediction-review .callout p,.prediction-review .review-description,.prediction-review .form-error{font-size:14px;line-height:20px}
+.prediction-review .review-description{color:var(--muted);margin:0 0 12px}
+.prediction-review .review-picks{margin:12px 0;max-height:32vh}
+.prediction-review .review-picks>div{padding:8px 12px;min-height:44px;align-items:center}
+.prediction-review-details{border-top:1px solid var(--border);margin:0 0 12px}
+.prediction-review-details>summary{min-height:44px;padding:10px 0;cursor:pointer;font-size:16px;line-height:24px;color:var(--muted)}
+.prediction-review-details>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.prediction-review-details p{font-size:14px;line-height:20px;color:var(--muted);margin:0 0 12px}
+.prediction-review .review-actions{gap:8px}
+.prediction-review .review-actions button{min-height:44px}
+.prediction-review .form-error{margin:8px 0 12px}
