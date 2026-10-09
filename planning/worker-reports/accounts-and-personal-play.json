@@ -1,0 +1,254 @@
+{
+  "worker": "accounts-and-personal-play",
+  "generatedAt": "2026-10-08T23:19:39.752649+00:00",
+  "repository": "/Users/seanbalsiger/betting-repo",
+  "scope": "Local implementation and verification only",
+  "state": "handoff_ready",
+  "currentDecision": "D16 individual submission-time scoring confirmed; adapted Solo to current contract",
+  "filesOwned": [
+    "cloud/personal.mjs",
+    "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+    "web/src/PersonalWorkspace.jsx",
+    "web/src/personalWorkspace.css",
+    "cloud/handler.mjs (personal routing and quoteReceipt allowance; handed back to root)",
+    "web/src/GameHub.jsx",
+    "web/src/AuthGate.jsx",
+    "shared/journal-performance.mjs",
+    "tests/personal-workspace.test.mjs",
+    "tests/journal-performance.test.mjs",
+    "tests/cloud-browser/personal.spec.js"
+  ],
+  "items": [
+    {
+      "id": "ACC-03",
+      "disposition": "operational_verification_blocked",
+      "summary": "Inspected repository account/mail contract; no new live sender setup or delivery observation. Existing invitation remains explicit link-only. No email or invitation was sent.",
+      "changedFiles": [],
+      "tests": [],
+      "nextBlockingDependency": "Approved free sender configuration and authorized real non-admin confirmation/recovery delivery test. Repository register is historical evidence, not current remote inspection.",
+      "hostedVerified": false
+    },
+    {
+      "id": "ACC-04",
+      "disposition": "partial_local",
+      "summary": "AuthGate now clears private tab drafts on successful sign-out and SIGNED_OUT transitions from every exit, including Solo/Hub. Existing recovery UI retained. Accepted-member removal and role administration remain unimplemented.",
+      "changedFiles": [
+        "web/src/AuthGate.jsx"
+      ],
+      "tests": [
+        "Vite production builds and personal sign-in/route browser coverage passed; no live recovery email test."
+      ],
+      "nextBlockingDependency": "Real recovery delivery plus explicit removal/role/retention contract; do not mutate fixed Triple Threat roster.",
+      "hostedVerified": false
+    },
+    {
+      "id": "ACC-05",
+      "disposition": "partial_local",
+      "summary": "Solo can navigate all existing canonical season/week slates without creating a group, and reads/saves the same weekly ballots later reused by groups. This does not fabricate future schedules or change group rosters.",
+      "changedFiles": [
+        "cloud/personal.mjs",
+        "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+        "web/src/PersonalWorkspace.jsx",
+        "web/src/personalWorkspace.css",
+        "web/src/GameHub.jsx"
+      ],
+      "tests": [
+        "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs: 14 passed, 0 failed, 0 skipped",
+        "npx playwright test --config .local/playwright-personal.config.mjs personal.spec.js: 5 passed (isolated port 5199/output to avoid concurrent 5198 run); compiled cloud UI with actual local PGlite RPCs via createCloudHandler"
+      ],
+      "nextBlockingDependency": "Validated future-week schedule imports and end-to-end multiweek group navigation remain. Apply reviewed local migrations together, deploy authorized API/frontend release, then authenticated two-account and second-device acceptance. No hosted writes or deployment occurred in this worker.",
+      "hostedVerified": false
+    },
+    {
+      "id": "ACC-06",
+      "disposition": "operational_verification_blocked",
+      "summary": "Existing signup/profile/My games retained and Solo entry added after saved profile. Local tests use synthetic Auth identity and real disposable SQL, not real non-admin email signup.",
+      "changedFiles": [
+        "web/src/GameHub.jsx",
+        "web/src/AuthGate.jsx"
+      ],
+      "tests": [
+        "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs: 14 passed, 0 failed, 0 skipped",
+        "npx playwright test --config .local/playwright-personal.config.mjs personal.spec.js: 5 passed (isolated port 5199/output to avoid concurrent 5198 run); compiled cloud UI with actual local PGlite RPCs via createCloudHandler"
+      ],
+      "nextBlockingDependency": "Fresh real non-admin confirmation, profile/create/join flow and second-device verification; no mail send authority exercised.",
+      "hostedVerified": false
+    },
+    {
+      "id": "PLAY-04",
+      "disposition": "locally_implemented_and_verified",
+      "summary": "Account-private Solo home works with zero league memberships. Shared weekly Spread/Total drafts and submissions obey current D16: predeadline edits capture only changed references, preserve first submission/audit, and no-op saves never re-anchor. Independent reveal and missing/stale reference labels remain.",
+      "changedFiles": [
+        "cloud/personal.mjs",
+        "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+        "web/src/PersonalWorkspace.jsx",
+        "web/src/personalWorkspace.css",
+        "cloud/handler.mjs",
+        "web/src/GameHub.jsx"
+      ],
+      "tests": [
+        "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs: 14 passed, 0 failed, 0 skipped",
+        "npx playwright test --config .local/playwright-personal.config.mjs personal.spec.js: 5 passed (isolated port 5199/output to avoid concurrent 5198 run); compiled cloud UI with actual local PGlite RPCs via createCloudHandler"
+      ],
+      "nextBlockingDependency": "Apply reviewed local migrations together, deploy authorized API/frontend release, then authenticated two-account and second-device acceptance. No hosted writes or deployment occurred in this worker. The personal ballot branch depends on the shared gtl_submission_reference helper from 20261008225401_gtl_submission_time_scoring.sql.",
+      "hostedVerified": false
+    },
+    {
+      "id": "BET-01",
+      "disposition": "locally_implemented_and_verified",
+      "summary": "Private NFL spread/total research and user-reported placed-bet journal with observed/placed/recorded timestamps, notes, optional exact stake/actual return, revisioned corrections, archive/restore and history. No wager is placed. Matching submitted-market gate preserved. Notes-only corrections preserve timestamp seconds/milliseconds; corrections preserve original retrospective classification.",
+      "changedFiles": [
+        "cloud/personal.mjs",
+        "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+        "web/src/PersonalWorkspace.jsx",
+        "web/src/personalWorkspace.css",
+        "shared/journal-performance.mjs"
+      ],
+      "tests": [
+        "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs: 14 passed, 0 failed, 0 skipped",
+        "npx playwright test --config .local/playwright-personal.config.mjs personal.spec.js: 5 passed (isolated port 5199/output to avoid concurrent 5198 run); compiled cloud UI with actual local PGlite RPCs via createCloudHandler"
+      ],
+      "nextBlockingDependency": "Apply reviewed local migrations together, deploy authorized API/frontend release, then authenticated two-account and second-device acceptance. No hosted writes or deployment occurred in this worker.",
+      "hostedVerified": false
+    },
+    {
+      "id": "BET-02",
+      "disposition": "decision_blocked",
+      "summary": "No private journal/favorite/forecast is implicitly shared. Existing groups and invitations are retained; a new friends/head-to-head bet contest was not invented.",
+      "changedFiles": [],
+      "tests": [],
+      "nextBlockingDependency": "Choose explicit sharing audience, participant acceptance, immutable shared projection and versioned contest rules; membership alone must not publish personal records.",
+      "hostedVerified": false
+    },
+    {
+      "id": "BET-03",
+      "disposition": "decision_blocked",
+      "summary": "Best Bets remains a separate optional contest under D15. D16 is now confirmed and implemented for Spread/Total, not an unanswered blocker. No numerical Best Bets weights were invented.",
+      "changedFiles": [],
+      "tests": [],
+      "nextBlockingDependency": "Confirm subset bounds, confidence range/budget, win/loss/push/void weighting, deadlines, reveal, ties and correction/acceptance rules sequentially.",
+      "hostedVerified": false
+    },
+    {
+      "id": "BET-04",
+      "disposition": "locally_implemented_and_verified",
+      "summary": "Persistent account Favorites and bounded private notes use neutral slate previews, never provider calls, hidden prices or automatic entry. Atomic owner revision and exact-payload retry receipts prevent lost-response duplicates and silent overwrite; remove retains audit history.",
+      "changedFiles": [
+        "cloud/personal.mjs",
+        "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+        "web/src/PersonalWorkspace.jsx",
+        "web/src/personalWorkspace.css"
+      ],
+      "tests": [
+        "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs: 14 passed, 0 failed, 0 skipped",
+        "npx playwright test --config .local/playwright-personal.config.mjs personal.spec.js: 5 passed (isolated port 5199/output to avoid concurrent 5198 run); compiled cloud UI with actual local PGlite RPCs via createCloudHandler"
+      ],
+      "nextBlockingDependency": "Apply reviewed local migrations together, deploy authorized API/frontend release, then authenticated two-account and second-device acceptance. No hosted writes or deployment occurred in this worker.",
+      "hostedVerified": false
+    },
+    {
+      "id": "BET-05",
+      "disposition": "locally_implemented_and_verified",
+      "summary": "Manual pending/win/loss/push/void results, win rate W/(W+L) with sample count and null empty state, and exact actual-return net/ROI. USD/CAD/EUR/GBP/AUD grouped separately. ROI uses complete settled W/L/push records; voids, pending and incomplete monetary records excluded. Research and archived records excluded from actual-bet performance. No odds-implied payout, FX or sportsbook-confirmed settlement claim.",
+      "changedFiles": [
+        "cloud/personal.mjs",
+        "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+        "web/src/PersonalWorkspace.jsx",
+        "web/src/personalWorkspace.css",
+        "shared/journal-performance.mjs",
+        "tests/journal-performance.test.mjs"
+      ],
+      "tests": [
+        "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs: 14 passed, 0 failed, 0 skipped",
+        "npx playwright test --config .local/playwright-personal.config.mjs personal.spec.js: 5 passed (isolated port 5199/output to avoid concurrent 5198 run); compiled cloud UI with actual local PGlite RPCs via createCloudHandler"
+      ],
+      "nextBlockingDependency": "Apply reviewed local migrations together, deploy authorized API/frontend release, then authenticated two-account and second-device acceptance. No hosted writes or deployment occurred in this worker. Automatic sportsbook settlement remains outside this manual record implementation.",
+      "hostedVerified": false
+    },
+    {
+      "id": "BET-06",
+      "disposition": "partial_local",
+      "summary": "Journal review retains original rationale/quote and pins own sportsbook guess, saved scoring reference and private outcome forecast at recording time. Later forecast changes/corrections preserve the original context. Outcome and correction history are shown separately; retrospective knowledge and manual source caveats explicit. No model snapshot is invented.",
+      "changedFiles": [
+        "cloud/personal.mjs",
+        "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+        "web/src/PersonalWorkspace.jsx",
+        "web/src/personalWorkspace.css"
+      ],
+      "tests": [
+        "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs: 14 passed, 0 failed, 0 skipped",
+        "npx playwright test --config .local/playwright-personal.config.mjs personal.spec.js: 5 passed (isolated port 5199/output to avoid concurrent 5198 run); compiled cloud UI with actual local PGlite RPCs via createCloudHandler"
+      ],
+      "nextBlockingDependency": "Current verified model/independent forecast inputs and source evidence remain missing. Rich outcome-versus-process aggregate charts require sufficient verified results; current local original-context/history review is usable. Apply reviewed local migrations together, deploy authorized API/frontend release, then authenticated two-account and second-device acceptance. No hosted writes or deployment occurred in this worker.",
+      "hostedVerified": false
+    }
+  ],
+  "verification": {
+    "unitSql": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "runtime": "PGlite disposable local PostgreSQL; no hosted data"
+    },
+    "browser": {
+      "passed": 5,
+      "failed": 0,
+      "runtime": "Chrome via Playwright; intercepted Auth with actual local PGlite/API RPC transactions",
+      "ports": "Final verification isolated to5199; canonical config remains5198",
+      "covered": [
+        "zero-group account",
+        "320px dark/light with explicit enabled-button contrast >=4.5",
+        "Favorites/notes persist across reload",
+        "lost response exact-key retry produces one audit",
+        "D16 full submission and independent market reveal",
+        "manual stake/return outcome/correction/archive/restore/history",
+        "seconds/milliseconds timestamps preserved on correction",
+        "private forecast leaves competition guesses untouched",
+        "dirty navigation cancel retains unsaved guesses",
+        "same-selected Journal tab retains unsaved rationale and monetary fields"
+      ],
+      "followUp": "After final handoff audit found same-selected Journal tab could silently close an edit, fixed tab click to no-op. Existing journal case now asserts unsaved rationale and 10.10 stake survive same-tab click. Targeted isolated rerun passed1/1 after final source change (5.8s), with current root Results integration compiling."
+    },
+    "build": "Vite cloud-test build passed during final browser run; ordinary production build passed earlier; existing >500kB chunk warning remains",
+    "other": [
+      "git diff --check passed",
+      "node --check cloud/personal.mjs and shared/journal-performance.mjs passed"
+    ],
+    "visuals": [
+      ".local/personal-solo-320-dark.png",
+      ".local/personal-solo-320-light.png (inspected; theme transition awaited)"
+    ]
+  },
+  "security": {
+    "ownerIdentity": "Verified Auth actor only; client owner/role/verification fields rejected",
+    "database": "RLS enabled, browser table/RPC privileges revoked, invoker functions; service-only owner checks; events/receipts append-only grants",
+    "money": "Integer minor units, no inferred values, maximum1000000000 minor units per amount, bounded2000 records per owner/week",
+    "data": "No original private picks/snapshot edits, no remote migrations, real account changes, invitations, email, spending or deployment"
+  },
+  "limitations": [
+    "PGlite concurrent calls verify serialized conflict/receipt behavior, not hosted network load or multi-connection PostgreSQL stress.",
+    "Real SMTP/recovery and second physical device were not inspected or exercised.",
+    "Journal history UI returns the latest100 events and explicitly labels older retained events; full-history export not added.",
+    "Journal list is paginated25 rows; performance uses all active selected-week accounting records, up to2000.",
+    "New personal migration and later D16 scoring helper must ship together before exposing personal ballot writes.",
+    "External concurrent D16 team edited Solo copy; final tests use the latest contract, not the earlier permanent lock expectation."
+  ],
+  "references": [
+    "https://supabase.com/changelog.md",
+    "https://supabase.com/docs/guides/database/postgres/row-level-security",
+    "https://supabase.com/docs/guides/database/functions"
+  ],
+  "integrationAudit": {
+    "scope": "Read-only review of root handler forecast/result integration and personal API after source handoff",
+    "findings": [
+      "No material cross-owner or hidden-market leak found: forecast REST query binds authenticated user plus season/week; scalar projection rechecks owner/game/market/revision/time behind submitted-market gate.",
+      "Reviewed results are read only after active membership; source documents are scoped to week/season; failures clear current results and label result service unavailable instead of presenting obsolete correction state.",
+      "Same-selected Journal tab dirty-state loss identified, fixed and tested."
+    ],
+    "unverified": [
+      "Remote grants/advisors and hosted RPC execution",
+      "True parallel multi-connection PostgreSQL load",
+      "Actual account mail delivery and second physical device"
+    ]
+  }
+}

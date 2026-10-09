@@ -1,0 +1,156 @@
+{
+  "worker": "/root",
+  "date": "2026-10-08",
+  "scope": "Local operational tools, D16-aware rule reconciliation, private forecast/results integration, read-only production inspection and aggregate verification",
+  "items": [
+    {
+      "id": "GOV-03",
+      "disposition": "Completed",
+      "summary": "Reconciled current rule precedence and historical local-viewer limitations against latest cloud evidence; incorporated concurrent user-confirmed D16 submission/edit-time scoring and retained historical archives without treating them as current rules.",
+      "files": [
+        "docs/RULES.md",
+        "docs/DECISIONS.md",
+        "AGENTS.md",
+        "README.md",
+        "docs/AGENT_HANDOFF.md",
+        "docs/BET_TRACKING_ARCHITECTURE.md",
+        "docs/PLAY_WORKSPACE_UX.md",
+        "docs/PLAY_MODES_PLAN.md",
+        "docs/DECISION_WORKSPACE.md"
+      ],
+      "tests": [
+        "Manual comparison against D-01 through D-16; D-16 confirmed in concurrent user task and durable docs"
+      ],
+      "remaining": null,
+      "verification": "local documentation"
+    },
+    {
+      "id": "GOV-04",
+      "disposition": "Blocked",
+      "summary": "Configured deadline, immutable Challenge selections and reviewed case-by-case vote/commissioner process retained. D16 now permits predeadline changed Spread/Total guesses with fresh saved references. No automatic forfeit, extension or guessed start applied.",
+      "files": [
+        "docs/RULES.md"
+      ],
+      "remaining": "Authoritative actual-start evidence and explicit exception outcome/lock treatment before applying a case; runtime adjudication UI/API remains unimplemented.",
+      "verification": "rules review only"
+    },
+    {
+      "id": "OPS-01",
+      "disposition": "Blocked",
+      "summary": "Existing local conflict and persistence coverage retained; new account worker is adding private record CAS/retry tests. Physical second-device and truly concurrent hosted transaction proof is not substituted by embedded SQL.",
+      "files": [
+        "docs/OPERATIONS_RUNBOOK.md"
+      ],
+      "remaining": "Real second-device session and deliberate intended record or designated test account for authenticated simultaneous saves.",
+      "verification": "live end-to-end requirement still open"
+    },
+    {
+      "id": "OPS-02",
+      "disposition": "Open",
+      "summary": "Private versioned local-state backup, tamper verification and non-overwriting isolated restore preserve D16 reference evidence. Serialized backup and restored-state sizes are bounded before output, and backup/restore readback verifies integrity. No existing local state.json was present; synthetic full-state restore tests passed.",
+      "files": [
+        "scripts/local-recovery.mjs",
+        "tests/local-recovery.test.mjs",
+        "docs/OPERATIONS_RUNBOOK.md"
+      ],
+      "tests": [
+        "node --test tests/local-recovery.test.mjs tests/release-manifest.test.mjs: 10 passed, 0 failed, 0 skipped",
+        "npm test: combined 263 passed, 0 failed, 0 skipped"
+      ],
+      "remaining": "Whole hosted database/Auth/service recovery, private cloud retention requirements and isolated hosted restore are not implemented or verified.",
+      "verification": "local implementation tested"
+    },
+    {
+      "id": "OPS-03",
+      "disposition": "Open",
+      "summary": "Exact source, migration, configuration and compiled artifact fingerprints plus authenticated build/private-data scan added to CI. Configuration mutation tests prove API gateway/deployment changes alter the source fingerprint. No production publication; fresh gh run list returned zero runs.",
+      "files": [
+        "scripts/release-manifest.mjs",
+        ".github/workflows/dashboard-checks.yml",
+        "docs/OPERATIONS_RUNBOOK.md",
+        "tests/release-manifest.test.mjs",
+        "tests/cloud-boundary.test.mjs"
+      ],
+      "tests": [
+        "gh run list --repo seanbalz/guess-the-lines-repo --limit 5 returned []",
+        "Release-config fingerprint and mocked boundary denial tests passed as part of combined263/263 suite.",
+        "Final cloud build passed using example publishable configuration; compiled private-data scan passed; source unchanged during build and fingerprint captured in ignored .local/release-manifest.json."
+      ],
+      "remaining": "Authorized publication, actual remote CI run and tested hosted rollback against matching API/schema versions.",
+      "verification": "local tooling; remote absence verified"
+    },
+    {
+      "id": "OPS-04",
+      "disposition": "Open",
+      "summary": "Read-only health evidence recorded: ACTIVE_HEALTHY project, active 12-hour schedule and successful manual dispatcher. Results read failures now suppress obsolete Challenge grades and disclose pending status; notification delivery monitoring remains unfinished.",
+      "files": [
+        "docs/OPERATIONS_RUNBOOK.md"
+      ],
+      "remaining": "Observed scheduled boundary, implemented notification delivery monitoring and hosted user-facing recovery checks.",
+      "verification": "live read-only inspection 2026-10-08T22:44Z"
+    },
+    {
+      "id": "OPS-05",
+      "disposition": "Blocked",
+      "summary": "Worker phone layout/browser improvements are separate from a physical device performance audit.",
+      "files": [
+        "docs/OPERATIONS_RUNBOOK.md"
+      ],
+      "remaining": "Target phone available for measured real-device load/interaction and cross-device state consistency.",
+      "verification": "no physical-device performance claim"
+    },
+    {
+      "id": "OPS-06",
+      "disposition": "Open",
+      "summary": "Current user authorized assigning all outstanding work to workers. Bounded local implementation and integration order established and executed. This authorization does not itself settle the first production release scope, rollout or hosted acceptance.",
+      "files": [
+        "planning/project-tracker.json",
+        "docs/OPERATIONS_RUNBOOK.md"
+      ],
+      "remaining": "Agree the concrete production release scope and operational acceptance after this local candidate has passed checks.",
+      "verification": "execution coordination; no launch timetable promised"
+    },
+    {
+      "id": "OPS-07",
+      "disposition": "Open",
+      "summary": "Durable private JSON/HTML tracker retained and updated with actual worker ownership, outcomes and next dependencies.",
+      "files": [
+        "planning/project-tracker.json",
+        "planning/project-tracker.html"
+      ],
+      "remaining": "If phone access is wanted, specify authenticated tracker audience/location before adding an admin view.",
+      "verification": "existing local artifact"
+    },
+    {
+      "id": "OPS-08",
+      "disposition": "Open",
+      "summary": "2026-10-08 22:44 UTC readback: Week 5 schedule enabled, cron active, only 20:21 dispatcher run succeeded; next clock boundary has not elapsed. Same pg_net and leaked-password warnings remain. No production modifications.",
+      "files": [
+        "docs/OPERATIONS_RUNBOOK.md"
+      ],
+      "remaining": "Observe next scheduled boundary and address platform-owned advisory through supported free controls.",
+      "verification": "fresh authenticated read-only inspection"
+    }
+  ],
+  "integrationVerification": {
+    "unitSQL": {
+      "passed": 263,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".local/workers-final-unit-tests.log"
+    },
+    "localBrowser": {
+      "passed": 15,
+      "log": ".local/workers-final-local-browser.log"
+    },
+    "model": {
+      "passed": 7,
+      "log": ".local/workers-model-tests.log"
+    },
+    "historicalSnapshot": {
+      "passed": 9,
+      "log": ".local/workers-snapshot-tests.log"
+    },
+    "evidence": "planning/worker-verification.json"
+  }
+}

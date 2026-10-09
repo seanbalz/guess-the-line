@@ -1,0 +1,517 @@
+{
+  "format": "guess-the-line-production-release-v1",
+  "owner": "Sean Balsiger",
+  "recordedAt": "2026-10-09T01:31:19.682551+00:00",
+  "deployed": true,
+  "productionUrl": "https://guess-the-line.pages.dev/",
+  "localCloudPreviewUrl": "http://127.0.0.1:4173/",
+  "pages": {
+    "deploymentId": "2106725d-7129-495b-8b5b-a1d8d6077994",
+    "url": "https://2106725d.guess-the-line.pages.dev",
+    "environment": "Production",
+    "branch": "main",
+    "uploadedContent": "compiled frontend only"
+  },
+  "supabase": {
+    "projectId": "onmrgvcehkflfaizvedl",
+    "api": {
+      "name": "gtl-api",
+      "version": 14,
+      "status": "ACTIVE",
+      "verifyJwt": true,
+      "matchingSourceFiles": 24,
+      "ezbrSha256": "e42c9ce9a75387b3209b43011e8e8ecfb85cf3ec97845985cb3d068f894f3471"
+    },
+    "collector": {
+      "name": "gtl-odds-refresh",
+      "version": 1,
+      "changed": false
+    },
+    "migrations": [
+      {
+        "localFile": "supabase/migrations/20261008224444_gtl_personal_workspace.sql",
+        "hostedVersion": "20261009012049",
+        "sha256": "a7b2b61b2493a5c3ecb8c743e27ad1cff4b959c816b817bd645c036acaaee841"
+      },
+      {
+        "localFile": "supabase/migrations/20261008224735_gtl_reviewed_quote_selections.sql",
+        "hostedVersion": "20261009012050",
+        "sha256": "15bb1f6a95f94b83926a1f161fc85e24b24614df2741328a9ba26445b8bd48d0"
+      },
+      {
+        "localFile": "supabase/migrations/20261008225401_gtl_submission_time_scoring.sql",
+        "hostedVersion": "20261009012051",
+        "sha256": "aac3ba29501e3621ce1ff575f11d21c69d44fc4301d74fd25a4bd97cf34d0cd5"
+      },
+      {
+        "localFile": "supabase/migrations/20261008225607_gtl_reviewed_final_results.sql",
+        "hostedVersion": "20261009012052",
+        "sha256": "6a016cae0465e332ba36f9a8f61854c937f0231ed515b5accc5101a811d67bff"
+      },
+      {
+        "localFile": "supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql",
+        "hostedVersion": "20261009012053",
+        "sha256": "c02b91879a43d65ee9e498c0de4664479f063e70d6297101c93b8cfa11375323"
+      },
+      {
+        "localFile": "supabase/migrations/20261009005145_gtl_social_bet_tracker.sql",
+        "hostedVersion": "20261009012054",
+        "sha256": "846b5af806348fc02685d77e83be9824a87d0b1034bb26dcac6ca5c2ac5120d3"
+      }
+    ]
+  },
+  "source": {
+    "applicationCommit": "30d331eb1d8f51d34990d64fefb0f9df97b55efa",
+    "buildHeadBeforeCommit": "5ac31974578077420aa06d85a1c465d04eb2490b",
+    "runtimeMatchesApplicationCommit": true,
+    "sourceSha256": "c22703067368a6b783f2a95a304423d88c137675d7f06b4ba4d4d65db73c80bc",
+    "frontendSha256": "37c4d4e1de690182757fe32a958ad3602ce6f3458c7e4b97da86490ceafe24d7",
+    "artifactCount": 25
+  },
+  "verification": {
+    "nodeSql": {
+      "passed": 368,
+      "failed": 0,
+      "skipped": 0
+    },
+    "localBrowser": {
+      "passed": 29
+    },
+    "cloudFixtureBrowser": {
+      "passed": 79
+    },
+    "liveBoundary": {
+      "passed": 130
+    },
+    "assetHashComparisons": {
+      "passed": 48,
+      "mismatches": 0,
+      "perOrigin": 24,
+      "evidence": {
+        "checkedAt": "2026-10-09T01:25:43.097Z",
+        "results": [
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "app-icon-180.png",
+            "status": 200,
+            "sha256": "bbd18c1a21368dcf7c7d0b83855656742c02715a8797fea810a7321926f2000d",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "app-icon-192.png",
+            "status": 200,
+            "sha256": "3c8472b9bdd168d55fb84a26040a6abf4a95c71961ccc918b93a7db097e1a42f",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "app-icon-512.png",
+            "status": 200,
+            "sha256": "e1ad398b6b2ade373e612d9c6f06260019c50ee2c10df72bc6f6a53fc2b4858b",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "app-icon.svg",
+            "status": 200,
+            "sha256": "3824a65d49e6dddf0e457197f5d009ac927a0ddac4955d33af0901b49f21685e",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "assets/index-Dd9RFe1Y.css",
+            "status": 200,
+            "sha256": "467468f519e4f80fb17a85696c9099157fe9c625f18d222410ae142dacee0a93",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "assets/index-pNz9Jurw.js",
+            "status": 200,
+            "sha256": "5b58ebe5b1e6a1e3d7124f1d0b73afc2639e26554b63e85aeede7a2aaedf4c5d",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "favicon.svg",
+            "status": 200,
+            "sha256": "3824a65d49e6dddf0e457197f5d009ac927a0ddac4955d33af0901b49f21685e",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "index.html",
+            "status": 200,
+            "sha256": "76b8d4aa35ccf688292a7a2b7acbca0cff8eb9946240fdc7e474e5d7c70cda72",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "manifest.webmanifest",
+            "status": 200,
+            "sha256": "76abacea2bae23b1b56ad8525b008d24b6f128b0dc24e8a612c058e82cfcf714",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/chi.svg",
+            "status": 200,
+            "sha256": "199a573e4b11fb7fbd37557c98598f1426304e60ad60742aaf4586f93c22f5a8",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/cin.svg",
+            "status": 200,
+            "sha256": "ea9dd831e4b669839eaf2379ae6ea2f14e11ba744075e70e010f8720db1f1593",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/dal.svg",
+            "status": 200,
+            "sha256": "ec3d0499cd11ba6cf60cca8a37bc188f64794cfce9f51544d1526971a75e7bb2",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/gb.svg",
+            "status": 200,
+            "sha256": "8c15f9d8e337f5d2244b85a5ead37b9a76a03e68c40bb7a7026a52578d5f95a8",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/ind.svg",
+            "status": 200,
+            "sha256": "0b2f28f6f9b98f299c7a9939f111090bb8a0ae748a3ba046649ce9ef64712324",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/kc.svg",
+            "status": 200,
+            "sha256": "37babd334452218aff6c59474c1e7faae63678df2e9c30af7222899be2ed088a",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/lac.svg",
+            "status": 200,
+            "sha256": "ac4f7ca053eccdc815090bdf1b3448f00027176474845fee4d2df3c156dfeb52",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/lar.png",
+            "status": 200,
+            "sha256": "3607621c4e06d10eff663cc8ebb62fca84a06fb12da4414d3a9c734179d7eb7a",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/no.svg",
+            "status": 200,
+            "sha256": "d60da303f4cbb557e5973aa0ac30c71de0505927b5da3f5180acc5dd33e63be4",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/nyg.svg",
+            "status": 200,
+            "sha256": "6abe4c098c4f0747e794597fc19944d45217805c9b2a2118c9b432d0468666be",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/pit.svg",
+            "status": 200,
+            "sha256": "d5bf31a941253c691cf1961bc4c0afcfb2c1f21f91a337827259dd5fe9b4a27f",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/remaining-sources.json",
+            "status": 200,
+            "sha256": "49bfc4084bd8d86f12bdbf5b6f9922ebdd62cff9b4dbee9d20f8aec59189e78b",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/sf.svg",
+            "status": 200,
+            "sha256": "d3ae8fd9ca796f940e6215df987a2949bdc5825a23f589105afee71bef3c7d9d",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/sources.json",
+            "status": 200,
+            "sha256": "35bea615dd4c0223ecddb1a2ad58e1f1b206f4d4e0b88a60704de850570aaaa8",
+            "matches": true
+          },
+          {
+            "origin": "https://guess-the-line.pages.dev",
+            "path": "team-logos/was.svg",
+            "status": 200,
+            "sha256": "b8aea1084019477c8a2d839e200f9ef83f54e1ff5c655a42b435d59b44c7eece",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "app-icon-180.png",
+            "status": 200,
+            "sha256": "bbd18c1a21368dcf7c7d0b83855656742c02715a8797fea810a7321926f2000d",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "app-icon-192.png",
+            "status": 200,
+            "sha256": "3c8472b9bdd168d55fb84a26040a6abf4a95c71961ccc918b93a7db097e1a42f",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "app-icon-512.png",
+            "status": 200,
+            "sha256": "e1ad398b6b2ade373e612d9c6f06260019c50ee2c10df72bc6f6a53fc2b4858b",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "app-icon.svg",
+            "status": 200,
+            "sha256": "3824a65d49e6dddf0e457197f5d009ac927a0ddac4955d33af0901b49f21685e",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "assets/index-Dd9RFe1Y.css",
+            "status": 200,
+            "sha256": "467468f519e4f80fb17a85696c9099157fe9c625f18d222410ae142dacee0a93",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "assets/index-pNz9Jurw.js",
+            "status": 200,
+            "sha256": "5b58ebe5b1e6a1e3d7124f1d0b73afc2639e26554b63e85aeede7a2aaedf4c5d",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "favicon.svg",
+            "status": 200,
+            "sha256": "3824a65d49e6dddf0e457197f5d009ac927a0ddac4955d33af0901b49f21685e",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "index.html",
+            "status": 200,
+            "sha256": "76b8d4aa35ccf688292a7a2b7acbca0cff8eb9946240fdc7e474e5d7c70cda72",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "manifest.webmanifest",
+            "status": 200,
+            "sha256": "76abacea2bae23b1b56ad8525b008d24b6f128b0dc24e8a612c058e82cfcf714",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/chi.svg",
+            "status": 200,
+            "sha256": "199a573e4b11fb7fbd37557c98598f1426304e60ad60742aaf4586f93c22f5a8",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/cin.svg",
+            "status": 200,
+            "sha256": "ea9dd831e4b669839eaf2379ae6ea2f14e11ba744075e70e010f8720db1f1593",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/dal.svg",
+            "status": 200,
+            "sha256": "ec3d0499cd11ba6cf60cca8a37bc188f64794cfce9f51544d1526971a75e7bb2",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/gb.svg",
+            "status": 200,
+            "sha256": "8c15f9d8e337f5d2244b85a5ead37b9a76a03e68c40bb7a7026a52578d5f95a8",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/ind.svg",
+            "status": 200,
+            "sha256": "0b2f28f6f9b98f299c7a9939f111090bb8a0ae748a3ba046649ce9ef64712324",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/kc.svg",
+            "status": 200,
+            "sha256": "37babd334452218aff6c59474c1e7faae63678df2e9c30af7222899be2ed088a",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/lac.svg",
+            "status": 200,
+            "sha256": "ac4f7ca053eccdc815090bdf1b3448f00027176474845fee4d2df3c156dfeb52",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/lar.png",
+            "status": 200,
+            "sha256": "3607621c4e06d10eff663cc8ebb62fca84a06fb12da4414d3a9c734179d7eb7a",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/no.svg",
+            "status": 200,
+            "sha256": "d60da303f4cbb557e5973aa0ac30c71de0505927b5da3f5180acc5dd33e63be4",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/nyg.svg",
+            "status": 200,
+            "sha256": "6abe4c098c4f0747e794597fc19944d45217805c9b2a2118c9b432d0468666be",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/pit.svg",
+            "status": 200,
+            "sha256": "d5bf31a941253c691cf1961bc4c0afcfb2c1f21f91a337827259dd5fe9b4a27f",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/remaining-sources.json",
+            "status": 200,
+            "sha256": "49bfc4084bd8d86f12bdbf5b6f9922ebdd62cff9b4dbee9d20f8aec59189e78b",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/sf.svg",
+            "status": 200,
+            "sha256": "d3ae8fd9ca796f940e6215df987a2949bdc5825a23f589105afee71bef3c7d9d",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/sources.json",
+            "status": 200,
+            "sha256": "35bea615dd4c0223ecddb1a2ad58e1f1b206f4d4e0b88a60704de850570aaaa8",
+            "matches": true
+          },
+          {
+            "origin": "http://127.0.0.1:4173",
+            "path": "team-logos/was.svg",
+            "status": 200,
+            "sha256": "b8aea1084019477c8a2d839e200f9ef83f54e1ff5c655a42b435d59b44c7eece",
+            "matches": true
+          }
+        ]
+      }
+    },
+    "databaseAccess": {
+      "rlsTables": 32,
+      "browserAccessibleTables": 0,
+      "browserCallableGtlFunctions": 0
+    },
+    "apiSourceReadbackMatched": true,
+    "privateDataBuildScanPassed": true,
+    "historicalSnapshots": {
+      "passed": 3,
+      "games": 15,
+      "latestHistoricalPoints": 96.4,
+      "possiblePoints": 150
+    },
+    "authenticatedProductionReadback": [
+      "dashboard",
+      "Spread 15/15 saved; Dallas -9.5; closed deadline",
+      "Total 15/15 saved; closed deadline",
+      "separate missing saved references and stale latest consensus",
+      "Bet Tracker empty hosted record",
+      "Unit Betting empty hosted record"
+    ],
+    "localCloudPreview": "configured sign-in screen verified; no session copied; same served assets"
+  },
+  "preservedDataFingerprints": [
+    {
+      "collection": "weekly_ballots",
+      "rows": 8,
+      "beforeAndAfterMd5": "7a62ca6cbb8e6b1e5d46fa5049e83174"
+    },
+    {
+      "collection": "weekly_selections",
+      "rows": 0,
+      "beforeAndAfterMd5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "collection": "leagues",
+      "rows": 3,
+      "beforeAndAfterMd5": "006c1ef3572d832d950ec8e163f49abe"
+    },
+    {
+      "collection": "prediction_archives",
+      "rows": 2,
+      "beforeAndAfterMd5": "29035f8d4f4b922831adb3403a77641d"
+    },
+    {
+      "collection": "weekly_versions",
+      "rows": 4,
+      "beforeAndAfterMd5": "9cc6cb5d974be9cf6b0dd4b3b18f7de5"
+    }
+  ],
+  "unchanged": [
+    "saved predictions and archives",
+    "historical missing references; no backfill",
+    "Week 5 deadline",
+    "12-hour collector",
+    "15-minute cooldown and four-attempt daily cap",
+    "no provider request during deployment"
+  ],
+  "remaining": [
+    "physical-device and second-device authenticated saves",
+    "hosted simultaneous-write acceptance",
+    "actual fresh submission acceptance requires eligible evidence and an open deadline",
+    "outside forecasts, public betting feeds and delivery integrations",
+    "virtual-units competition implementation",
+    "fixture tickets are not real-account cloud records"
+  ],
+  "localEvidence": [
+    {
+      "path": ".local/deploy-release-node-tests.log",
+      "sha256": "98565a0bed8a62ad102d1edd87aff66fe637edddc26952381760178979235356"
+    },
+    {
+      "path": ".local/deploy-release-local-browser-final.log",
+      "sha256": "8e157db254e775b86f33299a000f8450c7953e5daa15daba927b4fd47282bd32"
+    },
+    {
+      "path": ".local/deploy-release-cloud-browser-final.log",
+      "sha256": "2443ab7e609f06674650763698fdb90ffc698b93b812857b0667e56cc774cae6"
+    },
+    {
+      "path": ".local/deploy-release-boundary.log",
+      "sha256": "2160b036202c1e0cc7691f4dc08fd15bedebd13e28eb1326c2c107ea8917309e"
+    }
+  ],
+  "releaseNotes": "docs/RELEASE_2026_10_08.md"
+}

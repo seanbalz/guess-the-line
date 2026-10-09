@@ -1,0 +1,3 @@
+import { defineConfig } from '@playwright/test';
+import fs from 'node:fs';
+export default defineConfig({testDir:'tests/browser',workers:1,fullyParallel:false,timeout:30000,use:{baseURL:'http://127.0.0.1:8790',viewport:{width:1440,height:1000},launchOptions:{...(fs.existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')?{executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}:{})},screenshot:'only-on-failure',trace:'retain-on-failure'},webServer:{command:'node scripts/test-server.mjs',url:'http://127.0.0.1:8790',reuseExistingServer:false},reporter:'list'});

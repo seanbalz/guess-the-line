@@ -1,0 +1,225 @@
+{
+  "format": "gtl-social-intake-release-v1",
+  "verifiedAt": "2026-10-09T01:46:05.446Z",
+  "status": "imported-and-verified",
+  "project": "onmrgvcehkflfaizvedl",
+  "season": 2026,
+  "week": 5,
+  "authorization": "Sean explicitly required the supplied bets to be committed, deployed, and synced.",
+  "operator": {
+    "alias": "sean",
+    "id": "add23055-ab25-4bca-8012-00473fbdf01c"
+  },
+  "ownerMappingSource": "Active sean-troy-luke memberships joined to profiles and Auth users; display names are not identity keys.",
+  "source": {
+    "path": "data/bets/2026-week-05-social-intake.json",
+    "canonicalSha256": "c7720d577215ba6f9331db711952fd3bc7382fbfab651dd0dd9e303a4661f3c1",
+    "fileSha256": "1609358b3188c5e699c702815a0733fce4f39e6bfea2636047096bd463291f27"
+  },
+  "preparedSqlSha256": "fed90649a2fc650b68f5a4544e75345bf08eb8f042ce52844483ad325cc1e110",
+  "sourceApplicationCommit": "30d331eb1d8f51d34990d64fefb0f9df97b55efa",
+  "frontendDeployment": "2106725d-7129-495b-8b5b-a1d8d6077994",
+  "apiVersion": 14,
+  "productionUrl": "https://guess-the-line.pages.dev/",
+  "localCloudPreviewUrl": "http://127.0.0.1:4173/",
+  "revision": {
+    "before": 0,
+    "after": 16
+  },
+  "records": {
+    "entries": 16,
+    "auditEvents": 16,
+    "receipts": 16,
+    "commits": 16,
+    "allIncluded": true,
+    "allPending": true,
+    "fixtureIdentities": 0
+  },
+  "accounts": [
+    {
+      "alias": "sean",
+      "accountId": "add23055-ab25-4bca-8012-00473fbdf01c",
+      "entries": 2,
+      "kinds": [
+        "parlay"
+      ],
+      "summary": {
+        "bets": 2,
+        "wins": 0,
+        "losses": 0,
+        "pushes": 0,
+        "voids": 0,
+        "pending": 2,
+        "record": "0-0-0",
+        "winRatePercent": null,
+        "stakeUnits": 0,
+        "settledStakeUnits": 0,
+        "netUnits": null,
+        "roiPercent": null,
+        "roiSampleCount": 0,
+        "incompleteCount": 2,
+        "excludedCount": 0,
+        "roiExcludedCount": 2,
+        "qualificationBets": 2,
+        "qualificationUnits": 0,
+        "qualified": false,
+        "weeklyQualifications": [
+          {
+            "ownerId": "add23055-ab25-4bca-8012-00473fbdf01c",
+            "season": 2026,
+            "week": 5,
+            "bets": 2,
+            "units": 0,
+            "qualified": false
+          }
+        ]
+      }
+    },
+    {
+      "alias": "troy",
+      "accountId": "5b2bf303-bfba-4fe9-ac72-c40c8c10150d",
+      "entries": 14,
+      "kinds": [
+        "single"
+      ],
+      "summary": {
+        "bets": 14,
+        "wins": 0,
+        "losses": 0,
+        "pushes": 0,
+        "voids": 0,
+        "pending": 14,
+        "record": "0-0-0",
+        "winRatePercent": null,
+        "stakeUnits": 14,
+        "settledStakeUnits": 0,
+        "netUnits": null,
+        "roiPercent": null,
+        "roiSampleCount": 0,
+        "incompleteCount": 14,
+        "excludedCount": 0,
+        "roiExcludedCount": 14,
+        "qualificationBets": 14,
+        "qualificationUnits": 14,
+        "qualified": true,
+        "weeklyQualifications": [
+          {
+            "ownerId": "5b2bf303-bfba-4fe9-ac72-c40c8c10150d",
+            "season": 2026,
+            "week": 5,
+            "bets": 14,
+            "units": 14,
+            "qualified": true
+          }
+        ]
+      }
+    }
+  ],
+  "requestIds": [
+    {
+      "owner": "troy",
+      "requestId": "e5f1e3e1-6ad1-4e09-8496-b328a057ee7f",
+      "entryId": "ece6ae50-a528-43c0-9c47-b35a469c8ba9"
+    },
+    {
+      "owner": "troy",
+      "requestId": "9f6135a1-27de-4f16-af8c-1a6ec3a691d3",
+      "entryId": "af5fcc02-a791-4704-accf-c59e9b9463ce"
+    },
+    {
+      "owner": "troy",
+      "requestId": "0642cb88-9d6b-4813-afbf-382ff677f87b",
+      "entryId": "5c8d94c0-d283-4596-addd-d8eac781e36f"
+    },
+    {
+      "owner": "troy",
+      "requestId": "a2cfec12-ae1b-464f-9965-bcd9dd5c7cf1",
+      "entryId": "442aeec3-5066-4e7b-a653-22d370ae9cd0"
+    },
+    {
+      "owner": "troy",
+      "requestId": "1a10434c-3f3f-4c88-8f2f-723fb2091afd",
+      "entryId": "d9074148-6bbe-4513-98ff-cee6362c7079"
+    },
+    {
+      "owner": "troy",
+      "requestId": "3b192cde-ee9b-4980-9d50-90aa758b837a",
+      "entryId": "4aaf9272-b29c-402f-84e0-ded5f04ed759"
+    },
+    {
+      "owner": "troy",
+      "requestId": "efbc0383-e2f7-4ee2-8048-b27c0b4aba11",
+      "entryId": "22cae4d5-24a4-4a4d-ab58-d9e9b62a6266"
+    },
+    {
+      "owner": "troy",
+      "requestId": "2709cb6f-57b5-4b7e-b23c-bd9c06f3970b",
+      "entryId": "e54f9e3a-02b4-41ab-8231-107e2093de57"
+    },
+    {
+      "owner": "troy",
+      "requestId": "48a20ba2-9f21-4875-841b-973cc9e8425b",
+      "entryId": "b85a29a6-2c6e-44ab-8314-a0b9a216867f"
+    },
+    {
+      "owner": "troy",
+      "requestId": "753cf742-3eb8-4e54-a906-da6a6949581f",
+      "entryId": "e6a54a36-d162-4024-811f-3758189726b2"
+    },
+    {
+      "owner": "troy",
+      "requestId": "6428ab06-1551-4a1c-ae73-bca3500b252b",
+      "entryId": "a7399a5b-cb2e-4a76-9957-5cd3a15903a9"
+    },
+    {
+      "owner": "troy",
+      "requestId": "6620962c-1a1c-4c1d-a41a-f14d09e380e3",
+      "entryId": "4dbb1295-7ef9-4231-ba0a-73b749eaf984"
+    },
+    {
+      "owner": "troy",
+      "requestId": "204bc5be-f0aa-445c-9148-28972697f5bd",
+      "entryId": "08ce392c-a380-4ebc-b78b-41b6059d1bc7"
+    },
+    {
+      "owner": "troy",
+      "requestId": "b0c06c6e-2880-4180-877b-c8a4ab505cf5",
+      "entryId": "6f75d263-3c95-4f7f-a9cc-aa6eba93a632"
+    },
+    {
+      "owner": "sean",
+      "requestId": "c4ade629-6ca4-469a-8474-c2130c352d82",
+      "entryId": "1d112fce-6e73-45ef-b8a6-638898169b0a"
+    },
+    {
+      "owner": "sean",
+      "requestId": "c8847755-39be-4791-a859-994276913d11",
+      "entryId": "13f3f332-64ce-43e6-bd75-f7866f7899eb"
+    }
+  ],
+  "verification": {
+    "plannerSqlTestsPassed": 5,
+    "exactTermsAndAuditMatch": true,
+    "replayAddedRecords": 0,
+    "replayChangedState": false,
+    "profileReadAudiences": 4,
+    "entriesPerAudience": 16,
+    "preservedDataFingerprints": {
+      "ballots": "8d028d858f15e3aa94c5fa8073dcfa55",
+      "leagues": "12597a0d2c2a11207b812a12d1735f45",
+      "archives": "1f026555340a710a5425957a79da811a"
+    },
+    "frontendAssetsMatchingPerOrigin": 24,
+    "originsChecked": 2,
+    "authenticatedProductionUi": "pending final UI verification"
+  },
+  "boundaries": {
+    "unknownTroyPrices": 14,
+    "unknownParlayUnitStakes": 2,
+    "placementAndQuoteDates": "unconfirmed",
+    "results": "pending; no outcome inferred",
+    "questionableScreenshotLeg": "Jalon Daniels transcription preserved and explicitly unverified",
+    "newPermissionsOrSchema": false,
+    "rawSourceInPublicBundle": false
+  }
+}

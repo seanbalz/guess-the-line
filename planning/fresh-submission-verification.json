@@ -1,0 +1,115 @@
+{
+  "id": "D-17-fresh-submission-and-sources",
+  "owner": "Sean Balsiger",
+  "recordedAt": "2026-10-08T23:35:36.961502+00:00",
+  "state": "LOCAL_VERIFIED",
+  "deployment": "NOT_PERFORMED_BY_THIS_TASK",
+  "scope": "Fresh reference submission/edit gate, member-scoped shared collection, durable sportsbook receipts and saved/latest source display.",
+  "checks": [
+    {
+      "kind": "node_and_sql_full",
+      "passed": 335,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".local/fresh-odds-final-unit.log"
+    },
+    {
+      "kind": "affected_after_final_api_fallback",
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "overlapsFullSuite": true,
+      "log": ".local/fresh-odds-final-read-failure.log"
+    },
+    {
+      "kind": "authenticated_browser_and_sportsbook_sources",
+      "passed": 11,
+      "environment": "synthetic local mocks"
+    },
+    {
+      "kind": "affected_local_dashboard_browser",
+      "passed": 6,
+      "environment": "strict local store with temporary synthetic evidence"
+    },
+    {
+      "kind": "cloud_frontend_build",
+      "status": "passed",
+      "log": ".local/fresh-odds-final-build.log",
+      "limitation": "Existing large-chunk advisory"
+    },
+    {
+      "kind": "compiled_private_data_scan",
+      "status": "passed",
+      "log": ".local/fresh-odds-final-boundary.log"
+    },
+    {
+      "kind": "whitespace_diff",
+      "status": "passed"
+    },
+    {
+      "kind": "independent_read_only_review",
+      "status": "no remaining blocking finding"
+    }
+  ],
+  "limitations": [
+    "No hosted deployment or verification",
+    "Local PGlite SQL tests and handler mocks validate separate layers; no combined real PostgreSQL concurrency evidence",
+    "Current shared four-attempt daily cap and fifteen-minute cooldown can block five-minute-fresh submissions",
+    "Local Node workspace has no live odds refresh connector"
+  ],
+  "sources": {
+    "included": [
+      "DraftKings",
+      "FanDuel",
+      "BetMGM"
+    ],
+    "provider": "The Odds API",
+    "unavailable": {
+      "Caesars": "Current provider requires paid tier; no paid access authorized",
+      "Action Network": "No verified permitted feed and redistribution/display agreement"
+    }
+  },
+  "remaining": [
+    {
+      "item": "Consolidate pending migrations/API/frontend and deploy",
+      "state": "OPEN",
+      "owner": "Sean Balsiger / release session",
+      "dependency": "Reviewed release authorization",
+      "exit": "Authenticated production readback and access checks"
+    },
+    {
+      "item": "Refresh frequency or wider source window",
+      "state": "OPEN_QUESTION",
+      "owner": "Sean Balsiger",
+      "dependency": "Choose a policy within the free budget",
+      "exit": "Explicit rule and matching implementation"
+    },
+    {
+      "item": "Action Network data",
+      "state": "BLOCKED",
+      "owner": "Sean Balsiger",
+      "dependency": "Permitted source and display/retention rights",
+      "exit": "Verified authorized adapter and separate consensus provenance"
+    }
+  ],
+  "sourceSha256": {
+    "cloud/handler.mjs": "f7a46a7942e6fad3e4436058585176190b205eefc146279fbcf1d226ab4b9e44",
+    "cloud/personal.mjs": "ef4853b36812f19b0659e65f2e06fadef666ca20dcdcf30dfbf2275888319715",
+    "cloud/submission-odds.mjs": "e50b41f4ce3d0d47ed3ff4918b3deffee72357e08bb2b1ceb5bc89206b3a7c8e",
+    "cloud/submission-collection.mjs": "d9411680bd8a024b863dbb4a3a11a4491af1126455ed92c6c86680df79a178d2",
+    "cloud/sportsbook-sources.mjs": "af6f44a19752ac3ad5916d23ceaa0f39ae4a96e7acdfb398b92cfe0756b383bd",
+    "server/engine.mjs": "0317ab42c7d27398956a76b08bc96d3ef2dcf0ff45ef47d56d75a5f576827620",
+    "server/store.mjs": "b33921c00740ea2f743ff3e2534792118c4c8610e73412585963bff02f4a2330",
+    "server/index.mjs": "3fe367959500e03d846050942e366516c60d0bc4102c58e59e24a95f9d5eefca",
+    "web/src/SportsbookSources.jsx": "58b3ddbe90460198f0bbcff1c6543014e5a6f8937e7f1b241c90573d9eb5cd55",
+    "web/src/sportsbookSources.css": "9ce12ee20542e571ebb19d4af4570c73c326509046f5da53dc3728b2cc8c0833",
+    "web/src/ScoringReference.jsx": "ed1fedc858c8021929686e9c2a71c002117a7b32c1ef326f7a7a75f2f608098d",
+    "web/src/PredictionEntry.jsx": "23c0384efe4697acd6ac8b729d57586bbb7cd7269b903c6181807927356e124d",
+    "web/src/PersonalWorkspace.jsx": "29ca5e4e1fe538deec928ae5a0136a7839c277c1555999c96b42734f4237cd20",
+    "web/src/api.js": "8f5317efb4b35853fc9ed4c6ba961c7d1d5abcc19e9fd59e97d2add8824b007f",
+    "web/src/App.jsx": "ca47dd84111fb68391bc56f9932ba04bd42318ce1663121731ef6f7ebac0d81c",
+    "supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql": "c02b91879a43d65ee9e498c0de4664479f063e70d6297101c93b8cfa11375323",
+    "scripts/check-cloud-boundary.mjs": "873ed1f51b1cbe8d1f3fe2cba209157699752ad64b1582d97bafb5c8d5eb7d81"
+  },
+  "notes": "No Git commit, push, hosted write, provider call or external thread/player message performed by this feature task. Other sessions may publish separately."
+}

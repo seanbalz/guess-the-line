@@ -1,10 +1,40 @@
+# Current status and precedence — October 8, 2026
+
+**Latest verified release (October 8, 2026):** Pages `531d14b5` / authenticated
+API v13 adds provisional Spread and Total comparisons in every matching group,
+optional dashboard matchup filtering, and 13 transparent team marks. Troy and
+Luke are linked to Triple Threat. Read `docs/CLOUD_SETUP.md` and the private
+`planning/project-tracker.json` v15 for evidence and remaining work. Earlier
+release counts below are historical. Global standings, timestamped scoring
+reference changes, Solo stake/ROI tracking and Best Bets remain unfinished;
+D-16's scoring-reference question was subsequently answered in the voice session:
+use individual submission-time references, re-anchor changed guesses on edits
+before the existing deadline, and show current consensus separately. The local
+implementation and verification record is `docs/SUBMISSION_TIME_SCORING.md`;
+this decision is not proof of a hosted deployment. Older permanent-lock and common
+reference descriptions below are historical where they conflict with D-16.
+
+Latest verified release: selected Yardline G / Field monogram identity, exact
+Guess The Line site name, five dashboard layouts, section/motion/in-page notice
+controls, and independent provisional Over/Under analysis are live. Both Sean
+and Steven have submitted fifteen Spread and Total guesses. Scheduled twelve-hour
+odds collection is enabled; actual first clock-boundary execution and official
+freeze remain unverified. A historical GTL model prototype is measured but does
+not beat its simple baseline and lacks current data. Thirteen team marks are deployed; the remaining nineteen require eligible sources. See `docs/MODEL_VALIDATION.md`,
+`docs/VISUAL_POLISH.md` and the tracker for the exact remaining work.
+
+Read docs/CLOUD_SETUP.md and planning/project-tracker.json for the current release evidence before relying on the original handoff below. Authenticated hosting, Sean’s private read and profile/game/invitation writes are verified; ordinary player signup delivery, connected data and a second physical device remain outstanding. D-02 locks submitted ballots and reveals analysis independently by market. D-05/D-06 require the same weekly guesses and Challenge selections in every group, with independent membership and standings. Functional Light/Dark/System is authorized using provisional tokens; final branding remains open. Implementation and deployment status of these additions are recorded separately in the tracker. Older edit-until-deadline, group-specific selection and no-hosting claims are historical, not current authority.
+
 # New priority — Guess the Total and free account acquisition (2026-10-08)
 Read docs/GUESS_TOTAL_IMPLEMENTATION.md, docs/ACCOUNT_ACCESS_REGISTER.md, and docs/ODDS_PROVIDER_EVALUATION.md. Build Guess the Total as an independent hidden-market prediction game with separate accuracy scoring, W-L-T and dashboard; preserve Guess the Spread and record-based Betting Challenge. Use free sources only, verify reuse rights, and never publish private league picks in static frontend assets. Account checklist is **not** evidence of connection. Do not request passwords.
 
 # New confirmed constraints — 2026-10-08
 Use FREE odds/data sources only unless the user explicitly revises the budget. Read docs/DESIGN_EXPLORATION.md before branding work. All existing colors/fonts are provisional. Produce five *visual* alternatives for each category (logo, app icon, typography, palette, UI, iconography, motion) and request user selection before finalizing. Do not claim text descriptions are finished designs.
 
-# Guess the Lines — Multi-Agent Delivery Handoff
+# Archived multi-agent delivery handoff
+
+Historical proposal: current rules are consolidated in docs/RULES.md and current worker assignments live in planning/project-tracker.json. This archived plan does not grant publishing authority or require new PRs for the ongoing shared dirty checkout.
+
 Updated: 2026-10-08. Source of truth: this private GitHub repository.
 
 ## Mission
@@ -50,7 +80,7 @@ P4: iOS app, production odds integration, staging and production deployment, obs
 - No claim of production readiness without live end-to-end validation.
 
 ## Known current state / caveats
-The repository currently has rules, decision logs and 2026 Week 5 Sean picks. Past conversation referenced a local starter ZIP, but full application import/deployment has not been verified. Earlier 95.8/150 provisional score and third-party consensus quotes were reported conversationally; do NOT treat as validated persisted feed snapshots. Week 5 has 15 eligible Sean picks plus 2 archived invalid-matchup picks. Other players' picks and a production odds feed are not yet confirmed.
+The repository has rules, decision logs, 2026 Week 5 Sean picks, and three saved provisional snapshots (95.8, 95.8, 96.4). The local viewer reads those files through a validated loopback-only API; both dashboard routes share one implementation. Stored arithmetic, prediction identity and deltas reconcile; market quotes and the schedule have not been independently reverified. See `docs/WEEK_5_SNAPSHOT_LINK.md` for the linked chat and coverage, and README.md for run/update commands. This is not a production feed, authenticated app, or official freeze implementation. Past conversation referenced a local starter ZIP, but full application import/deployment has not been verified. Week 5 has 15 eligible Sean picks plus 2 archived invalid-matchup picks. Other players' picks and a production odds feed are not yet confirmed.
 
 ## Nudge protocol
 Ask Sean only decision-blocking, specific questions, one at a time, with recommended default and impact. Continue all independent work while awaiting response. Initial blocker: choose data provider/budget if a licensed odds API is required. Avoid minor implementation preference questions. Every progress update must identify completed commit/PR, passing tests, remaining blocker, and next milestone.

@@ -1,0 +1,40 @@
+import { test, expect } from '@playwright/test';
+async function openBallot(page, player='luke') { await page.goto('/'); await page.getByLabel('Local player view').selectOption(player); if(await page.getByRole('button',{name:'Open navigation',exact:true}).isVisible())await page.getByRole('button',{name:'Open navigation',exact:true}).click(); await page.getByRole('button',{name:'My picks',exact:true}).click(); }
+test('320px full-slate favorite entry has numeric keyboard, touch targets and no form scrolling',async({page})=>{
+ await page.setViewportSize({width:320,height:844});await openBallot(page);
+ await page.getByLabel('TB at DAL favorite').selectOption('away');await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('0.5');
+ await page.getByLabel('TB at DAL home spread').fill('3.5');await page.getByLabel('TB at DAL favorite').selectOption('home');await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-3.5');await page.getByLabel('TB at DAL home spread').fill('7.5');await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-7.5');await page.locator('.picks-table tbody tr').first().screenshot({path:'.local/previews/entry-card-320.png'});
+ await page.getByRole('button',{name:'Next game',exact:true}).first().click();await expect(page.locator('.prediction-input input').nth(1)).toBeFocused();
+ for(const input of await page.locator('.prediction-input input').all())await input.fill('-3.5');
+ await expect(page.locator('.ballot-count')).toContainText('15');await expect(page.getByRole('button',{name:'Review & submit',exact:true})).toBeEnabled();
+ const metrics=await page.locator('.prediction-entry').evaluate(node=>({width:node.clientWidth,scroll:node.scrollWidth,inputs:[...node.querySelectorAll('input[type=number]')].map(el=>({font:parseFloat(getComputedStyle(el).fontSize),height:el.getBoundingClientRect().height,mode:el.inputMode})),buttons:[...node.querySelectorAll('.prediction-input button')].map(el=>({width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}))}));
+ expect(metrics.scroll).toBeLessThanOrEqual(metrics.width);expect(metrics.inputs.every(item=>item.font>=16&&item.height>=44&&item.mode==='decimal')).toBeTruthy();expect(metrics.buttons.every(item=>item.width>=44&&item.height>=44)).toBeTruthy();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();await page.screenshot({path:'test-results/experience-entry-320.png',fullPage:true});
+ await page.getByLabel('Filter predictions').selectOption('missing');await expect(page.locator('.prediction-input input')).toHaveCount(0);
+});
+test('manual draft survives reload only as an explicit tab recovery and reports offline',async({page,context})=>{
+ await openBallot(page);await page.getByLabel('TB at DAL home spread').fill('-4.5');await expect(page.getByText('You have unsaved changes',{exact:true})).toBeVisible();
+ await page.reload();await page.getByLabel('Local player view').selectOption('luke');await page.getByRole('button',{name:'My picks',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Unsaved predictions found in this tab'})).toBeVisible();await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('');await page.getByRole('button',{name:'Restore tab draft'}).click();await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-4.5');
+ await context.setOffline(true);await expect(page.getByText('Offline · changes are not saved',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Save draft',exact:true})).toBeDisabled();await context.setOffline(false);
+ await page.getByRole('button',{name:'Save draft',exact:true}).click();await expect(page.getByRole('status')).toContainText('saved');await expect(page.getByText('Saved',{exact:true})).toBeVisible();expect(await page.evaluate(()=>Object.keys(sessionStorage).some(key=>key.startsWith('gtl.tab-draft.v1.')))).toBeFalsy();
+});
+test('a conflicting saved guess requires explicit per-game resolution before retry',async({page})=>{
+ await openBallot(page,'troy');await page.getByLabel('TB at DAL home spread').fill('-4');
+ await page.route('**/api/ballot?**',route=>route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({error:'Saved data changed on another device.'})}));
+ await page.getByRole('button',{name:'Save draft',exact:true}).click();await expect(page.getByText('Conflict · review saved changes',{exact:true})).toBeVisible();
+ await page.route('**/api/state?**',async route=>{const response=await route.fetch();const body=await response.json();body.games[0].prediction=-7;await route.fulfill({json:body});});
+ await page.getByRole('button',{name:'Refresh saved data',exact:true}).click();await expect(page.getByText('Changed on another device',{exact:true})).toBeVisible();await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-4');await expect(page.getByRole('button',{name:'Save draft',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Use saved',exact:true}).click();await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-7');await expect(page.getByRole('button',{name:'Save draft',exact:true})).toBeEnabled();
+});
+test('Challenge quote review preserves edits, blocks bad odds and submits only on confirmation',async({page})=>{
+ let saves=0;await page.route('**/api/bet?**',route=>{saves++;return route.continue();});await openBallot(page,'sean');await page.getByRole('button',{name:'Betting Challenge',exact:true}).click();await page.getByRole('button',{name:'Record selection',exact:true}).first().click();
+ await page.getByLabel('Selected team’s spread').fill('-3.5');await page.getByLabel('American odds').fill('0');await page.getByLabel('Quote source').fill('Review fixture source');const local=await page.evaluate(()=>{const d=new Date('2026-10-08T15:59:00Z');return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)});await page.getByLabel('Quote timestamp',{exact:false}).fill(local);
+ await page.getByRole('button',{name:'Review selection',exact:true}).click();await expect(page.getByRole('dialog').getByRole('alert')).toContainText('American odds');expect(saves).toBe(0);
+ await page.getByLabel('American odds').fill('-110');await page.getByRole('button',{name:'Review selection',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('Not recorded until confirmation');expect(saves).toBe(0);await page.getByRole('button',{name:'Edit quote',exact:true}).click();await expect(page.getByLabel('Selected team’s spread')).toHaveValue('-3.5');
+ await page.getByRole('button',{name:'Review selection',exact:true}).click();await page.screenshot({path:'test-results/experience-quote-review.png',fullPage:true});await page.getByRole('button',{name:'Confirm immutable selection',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);expect(saves).toBe(1);
+});
+test('mobile navigation traps focus, closes on Escape and dialog restores focus',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.goto('/');const menu=page.locator('[aria-label="Open navigation"]');await menu.click();await expect(menu).toHaveAttribute('aria-expanded','true');await page.keyboard.press('Shift+Tab');expect(await page.evaluate(()=>document.activeElement.closest('#game-navigation')!==null)).toBeTruthy();await page.keyboard.press('Escape');await expect(menu).toBeFocused();await expect(menu).toHaveAttribute('aria-expanded','false');
+ const help=page.getByRole('button',{name:'Rules & scoring'});await help.click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(help).toBeFocused();
+});

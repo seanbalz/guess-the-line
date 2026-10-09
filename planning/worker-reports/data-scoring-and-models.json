@@ -1,0 +1,534 @@
+{
+  "worker": "data-scoring-and-models",
+  "owner": "Codex data/scoring worker",
+  "updated": "2026-10-08",
+  "version": 3,
+  "scope": "21 assigned data/scoring/model/forecast/receipt items; existing working tree preserved",
+  "executionBoundary": {
+    "productionWrites": false,
+    "deployments": false,
+    "providerCredentialReads": false,
+    "quotaSpent": 0,
+    "newBackgroundJobs": false,
+    "privateBallotsOrSnapshotsRewritten": false
+  },
+  "tests": [
+    {
+      "command": "node --test tests/quote-receipt.test.mjs tests/decision-analysis.test.mjs tests/results.test.mjs tests/score-history.test.mjs tests/quote-selection-sql.test.mjs tests/market-view.test.mjs tests/provisional-analysis-view.test.mjs tests/domain.test.mjs tests/engine.test.mjs tests/cloud-api.test.mjs",
+      "passed": 70,
+      "failed": 0,
+      "skipped": 0,
+      "runtime": "Local Node plus disposable PGlite; includes handler-to-SQL receipt write/readback",
+      "stage": "Prior owned-lane regression run before final reviewed-results integration and concurrent D-16 edits; root owns final full-suite verification."
+    },
+    {
+      "command": "python3 -m unittest discover -s model -p test_*.py -v",
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "command": "git diff --check; node --check cloud/market-view.mjs; node --check server/results.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "node --test tests/reviewed-results-sql.test.mjs",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "runtime": "Actual disposable PGlite SQL plus current cloud handler HTTP POST/GET, native engine grading, corrections and outage recovery",
+      "stage": "Current resumed source verified October 8, 2026"
+    },
+    {
+      "command": "node --test tests/personal-workspace.test.mjs tests/journal-performance.test.mjs",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "runtime": "Independent read-only review verification of sibling-owned implementation with disposable local SQL"
+    },
+    {
+      "command": "node --test tests/cloud-boundary.test.mjs",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "runtime": "Mocked fetch only; verifies reviewed-result probes, rejects missing RPC as evidence and rejects leaked correction ledger data. No production request."
+    },
+    {
+      "command": "node --test tests/local-recovery.test.mjs tests/release-manifest.test.mjs",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "runtime": "Synthetic temporary directories only; D16 score/evidence/audit round trip, UTF-8 output boundary, compact-envelope restore expansion, and gateway/deployment config fingerprint changes."
+    }
+  ],
+  "sourceChecks": [
+    {
+      "url": "https://the-odds-api.com/liveapi/guides/v4/#get-scores",
+      "checked": "2026-10-08",
+      "finding": "Score schema provides same event IDs, completed flag and last_update. Recent completed window is 1-3 days; it does not supply actual-start evidence or missing 2021-2026 historical seasons."
+    },
+    {
+      "url": "https://the-odds-api.com/terms-and-conditions.html",
+      "checked": "2026-10-08",
+      "finding": "Terms dated 2026-08-31 permit app display, retention, derived analytics and training; standalone raw-feed redistribution is restricted."
+    },
+    {
+      "url": "https://www.actionnetwork.com/terms",
+      "checked": "2026-10-08",
+      "finding": "Sections 1-2 restrict copying, display and derivative use without written permission; public visibility does not clear a GTL feed."
+    },
+    {
+      "url": "https://www.actionnetwork.com/nfl/picks",
+      "checked": "2026-10-08",
+      "finding": "Verified publisher directory for outbound reference, not imported recommendations."
+    },
+    {
+      "url": "https://www.actionnetwork.com/nfl/injury-report",
+      "checked": "2026-10-08",
+      "finding": "Verified publisher directory for outbound reference, not connected current availability."
+    },
+    {
+      "url": "https://www.nfl.com/stats/team-stats/",
+      "checked": "2026-10-08",
+      "finding": "Official current team-statistics directory; outbound reference only."
+    },
+    {
+      "url": "https://github.com/greerreNFL/nfelo",
+      "checked": "2026-10-08",
+      "finding": "Reviewed root listing and README do not establish forecast redistribution permission."
+    },
+    {
+      "url": "https://nflreadr.nflverse.com/",
+      "checked": "2026-10-08",
+      "finding": "Reviewed data-access context; exact upstream dataset rights and publication vintages remain necessary."
+    },
+    {
+      "url": "https://github.com/nflverse/nfldata",
+      "checked": "2026-10-08",
+      "finding": "Current root listing reviewed; no current-model grant or source-vintage evidence established."
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/functions",
+      "checked": "2026-10-08",
+      "finding": "Used invoker function, empty search path and explicit service-only grants."
+    }
+  ],
+  "items": [
+    {
+      "id": "DATA-02",
+      "disposition": "partial_local",
+      "implemented": "Fresh paired named-book quote receipts and exact snapshot/event mapping are projected and persisted for confirmed Challenge selections. Current D-16 scoring is separately owned and does not mutate these immutable selection receipts.",
+      "files": [
+        "cloud/market-view.mjs",
+        "cloud/quote-receipt.mjs",
+        "supabase/migrations/20261008224735_gtl_reviewed_quote_selections.sql"
+      ],
+      "tests": [
+        "tests/quote-receipt.test.mjs",
+        "tests/quote-selection-sql.test.mjs"
+      ],
+      "remainingDependencies": [
+        "External D-16 scoring integration and reference qualification",
+        "Release and authenticated production checks"
+      ],
+      "nextAction": "Preserve receipts and immutable snapshots; coordinate actual saved scoring-reference projections with D-16 owner.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-03",
+      "disposition": "partial_local",
+      "implemented": "Results adapter rejects provider event, team or scheduled-kickoff mismatch, marks reschedules for review, and explicitly never interprets commence_time as actual kickoff. Invalid kickoff rejects new selections.",
+      "files": [
+        "server/results.mjs",
+        "server/domain.mjs"
+      ],
+      "tests": [
+        "tests/results.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Independent actual-start evidence",
+        "Operational reviewed schedule/reschedule path"
+      ],
+      "nextAction": "Use a permitted current result collection and reconcile changed event schedules before settlement or freeze.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-05",
+      "disposition": "partial_local",
+      "implemented": "Corrected pure official-freeze helper from six-hour quote tolerance to the documented five-minute gate, rejected empty/duplicate slates and retained original frozen state. D-09 SQL already had five-minute enforcement.",
+      "files": [
+        "server/domain.mjs"
+      ],
+      "tests": [
+        "tests/results.test.mjs",
+        "tests/domain.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Any separately authorized legacy freeze operation still needs actual-start evidence",
+        "D-16 operational submission-reference verification"
+      ],
+      "nextAction": "Treat kickoff benchmark freezing as the preserved legacy path; new per-guess scores follow confirmed D-16.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-06",
+      "disposition": "partial_local",
+      "implemented": "Added sampled movement from first to latest recorded median with 1.5/3-point threshold flags, original capture times, twelve-hour cadence, and explicit immediate=false. It makes no sharp-bettor claim.",
+      "files": [
+        "cloud/market-view.mjs"
+      ],
+      "tests": [
+        "tests/quote-receipt.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Opt-in delivery integration",
+        "Hosted verification"
+      ],
+      "nextAction": "Use observed sample changes for opt-in notices; latency remains up to the collection interval plus any delivery delay.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-07",
+      "disposition": "blocked_source_permission",
+      "implemented": "Refreshed primary Action Network terms and provider V4 capabilities. No permitted free split/count feed was established; no copies, estimates or fabricated zero values added.",
+      "files": [],
+      "tests": [],
+      "remainingDependencies": [
+        "Written free display/retention grant for an exact ticket/handle/count sample"
+      ],
+      "nextAction": "Obtain a permission-cleared feed with reported metric/sample/timestamps; percentages cannot reconstruct absolute counts.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-08",
+      "disposition": "blocked_source_methodology",
+      "implemented": "Kept recorded line movement distinct from sharp evidence. New sampled-movement payload explicitly states bettor identity and inter-sample movement are unknown.",
+      "files": [
+        "cloud/market-view.mjs"
+      ],
+      "tests": [
+        "tests/quote-receipt.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Permitted explicit sharp classification or separately validated inference methodology"
+      ],
+      "nextAction": "Do not classify professional action from a price change or ticket/handle disagreement alone.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-11",
+      "disposition": "outbound_reference_fallback",
+      "implemented": "Verified Action NFL picks and injury directory URLs. UI worker integrated attributed outbound-only links after both market submissions in DataConnections; source inspected locally. No recommendation text, endorsement or feed connection copied.",
+      "files": [
+        "web/src/DataConnections.jsx"
+      ],
+      "tests": [],
+      "remainingDependencies": [
+        "Release and authenticated visibility verification",
+        "Written permission for any future mirrored callout"
+      ],
+      "nextAction": "Use publisher links after both market reveal gates; publisher retains author, date, rationale and coverage context.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-12",
+      "disposition": "partial_reference_only",
+      "implemented": "Verified official NFL team-statistics directory; UI worker integrated the outbound-only link after both market submissions. Source inspected locally. Result adapters do not constitute a licensed current statistics feed.",
+      "files": [
+        "server/results.mjs",
+        "web/src/DataConnections.jsx"
+      ],
+      "tests": [
+        "tests/results.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Exact current input license and available-at/coverage evidence",
+        "Release and authenticated visibility verification"
+      ],
+      "nextAction": "Keep unsupported current statistics unavailable until a permission-cleared dataset and historical vintages are available.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "DATA-13",
+      "disposition": "local_implementation_pending_release",
+      "implemented": "Timestamped analysis uses only genuinely saved source evidence; confirmed D-16 projections use player-specific saved references from the concurrent scoring owner. Challenge comparisons retain quote/collection/selection/server-entry times and compare only later saved same-event/book/market/side observations. Manual legacy entries have no invented provider receipt; no future backfill.",
+      "files": [
+        "cloud/market-view.mjs",
+        "cloud/quote-receipt.mjs",
+        "supabase/migrations/20261008224735_gtl_reviewed_quote_selections.sql"
+      ],
+      "tests": [
+        "tests/quote-receipt.test.mjs",
+        "tests/quote-selection-sql.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Final integration review of concurrent D-16 UI",
+        "Release and authenticated current/historical missing-data checks"
+      ],
+      "nextAction": "Coordinate scoringPolicy=submission-time projection with D-16 owner; later same-book quote analysis remains independent.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "SCORE-01",
+      "disposition": "partial_local",
+      "implemented": "Preserved independently gated Total provisional scoring and added comparable historical reference projections, including ties and missing inputs. No official Total policy inferred.",
+      "files": [
+        "cloud/score-history.mjs",
+        "cloud/total-analysis-view.mjs"
+      ],
+      "tests": [
+        "tests/score-history.test.mjs",
+        "tests/provisional-analysis-view.test.mjs"
+      ],
+      "remainingDependencies": [
+        "External D-16 Total saved-reference integration",
+        "Release and current eligible references"
+      ],
+      "nextAction": "Verify Total scores against each saved individual reference under confirmed D-16; do not reintroduce common-reference official policy.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "SCORE-02",
+      "disposition": "local_api_sql_review_flow_verified",
+      "implemented": "Original-commissioner-only POST /results/review is wired by root through strict validation into an append-only SQL result/correction ledger. GET /state hydrates ordinary finals before native Challenge W-L-P grading. Actual handler-to-SQL tests verify current-slate mapping, required source URL/observation/reason, exact request replay, version conflict, immutable prior results and ballot/selection preservation. Participant responses exclude review metadata. Failed reads clear temporary grades and recover the same current version when service returns. Reports are explicitly commissioner-reported, not independently verified; no provider collection or actual-start inference. Boundary checker now probes both result tables, both RPCs and unauthenticated/invalid-auth review routes with nonexistent actors and invalid write bodies; mocked checks pass, hosted run intentionally not performed before migration.",
+      "files": [
+        "cloud/results.mjs",
+        "server/results.mjs",
+        "server/domain.mjs",
+        "supabase/migrations/20261008225607_gtl_reviewed_final_results.sql",
+        "cloud/handler.mjs",
+        "scripts/check-cloud-boundary.mjs"
+      ],
+      "tests": [
+        "tests/reviewed-results-sql.test.mjs",
+        "tests/results.test.mjs",
+        "tests/cloud-boundary.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Authorized hosted release and production commissioner/member readback",
+        "Actual reviewer-entered current final results; none fabricated",
+        "Exceptional cancellation/suspension rules before awarding voids"
+      ],
+      "nextAction": "Release SQL before API through the normal authorized release path, then verify authenticated commissioner submission/member readback with an actual sourced ordinary final. No paid or automatic result feed is required for this manual review path.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "SCORE-03",
+      "disposition": "partial_local",
+      "implemented": "Added retrospective points/error/exacts and separate closest-pick W-L-T for current saved guesses against each complete shared historical reference, gated by submitted market. Output is retrospective_comparison and official=false; unsubmitted opponents and partial/future collections are excluded. UI worker integrated PlayerComparisonHistory locally and current PlayerComparison suppresses it when the player-specific D-16 comparison is active.",
+      "files": [
+        "cloud/score-history.mjs",
+        "cloud/market-view.mjs",
+        "web/src/PlayerComparisonHistory.jsx",
+        "web/src/PlayerComparison.jsx"
+      ],
+      "tests": [
+        "tests/score-history.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Additional real weeks",
+        "Final concurrent D-16 saved-reference history and season-total evidence",
+        "Hosted release and readback"
+      ],
+      "nextAction": "Historical common-reference comparisons are distinct from each player D-16 scoring references. Do not label revised guesses immutable or claim historical scores were displayed then.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "SCORE-08",
+      "disposition": "blocked_user_decision",
+      "implemented": "No global audience, opted-in display-name consent or cross-group exposure inferred. Existing group-limited projections remain the boundary.",
+      "files": [],
+      "tests": [],
+      "remainingDependencies": [
+        "Global audience and eligibility decision",
+        "D-16-aware ranking/comparability integration"
+      ],
+      "nextAction": "Obtain explicit global audience/eligibility terms; D-16 itself is confirmed.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "SCORE-09",
+      "disposition": "confirmed_by_concurrent_user_task",
+      "implemented": "Root verified current explicit user decision, now recorded in latest AGENTS and docs/SUBMISSION_TIME_SCORING.md. Individual saved submission-time references and changed-only re-anchoring before deadline supersede permanent locks/common-reference scoring. Separate scoring agents own migration and UI.",
+      "files": [
+        "cloud/market-view.mjs",
+        "cloud/quote-receipt.mjs"
+      ],
+      "tests": [
+        "tests/quote-receipt.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Concurrent scoring worker integration and evidence"
+      ],
+      "nextAction": "Use D-16 document and scoring-owner tests; do not treat the decision as unanswered.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "MODEL-01",
+      "disposition": "blocked_inputs_and_validation",
+      "implemented": "Reverified prototype readiness and seven integrity tests. Current readiness remains blocked: latest licensed source game 2021-02-07, no 2026 outcomes; held-out regression still does not beat rolling baseline. Current nfelo repository inspection did not establish redistribution permission.",
+      "files": [
+        "model/pipeline.py",
+        "model/sources.json"
+      ],
+      "tests": [
+        "python3 -m unittest discover -s model -p test_*.py -v"
+      ],
+      "remainingDependencies": [
+        "Licensed current historical outcome coverage",
+        "Untouched validation that passes predeclared gate",
+        "Outside model display/retention rights"
+      ],
+      "nextAction": "Keep current model outputs unavailable; refresh inputs and evaluate a versioned prospective candidate without using blind player guesses.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "MODEL-02",
+      "disposition": "local_contract_integrated_abstaining",
+      "implemented": "Added explanation projection distinguishing saved sportsbook-number guess, named dated market, owner-only personal outcome forecast and eligible independent model. Root wired account forecast reads into the handler; UI worker integrated DecisionAnalysis. Source inspected locally. Signed direction and conflict abstention are implemented; eligible model feed remains absent, so model probability/EV remain null.",
+      "files": [
+        "cloud/decision-analysis.mjs",
+        "cloud/market-view.mjs",
+        "cloud/handler.mjs",
+        "web/src/DecisionAnalysis.jsx"
+      ],
+      "tests": [
+        "tests/decision-analysis.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Eligible current model inputs",
+        "Root final integrated suite and hosted owner-isolation readback"
+      ],
+      "nextAction": "Use only permission-cleared prospective model records and explicit saved-guess-vs-fair-forecast labels.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "MODEL-03",
+      "disposition": "blocked_calibration",
+      "implemented": "Projection unconditionally withholds cover probability and EV; gap alone never becomes betting value. Actual offered prices are now preserved in reviewed receipts.",
+      "files": [
+        "cloud/decision-analysis.mjs",
+        "cloud/quote-receipt.mjs"
+      ],
+      "tests": [
+        "tests/decision-analysis.test.mjs",
+        "tests/quote-receipt.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Market-specific calibrated probability validation",
+        "Historical offered prices and push handling evidence"
+      ],
+      "nextAction": "Calibrate on actual point-in-time priced selections and report uncertainty before any value calculation.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "MODEL-04",
+      "disposition": "blocked_point_in_time_dataset",
+      "implemented": "Re-ran seven existing model integrity tests successfully; strengthened adapters against future source/publication timestamps and historical price backfill. No new claimed backtest, ROI or profitability result.",
+      "files": [
+        "cloud/decision-analysis.mjs",
+        "cloud/quote-receipt.mjs"
+      ],
+      "tests": [
+        "tests/decision-analysis.test.mjs",
+        "tests/quote-receipt.test.mjs",
+        "model/test_pipeline.py"
+      ],
+      "remainingDependencies": [
+        "Licensed historical offered odds and original publication vintages",
+        "New untouched outcome evaluation seasons"
+      ],
+      "nextAction": "Collect the exact archived data before historical suggestion evaluation; current archive cannot justify prospective recommendations.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "MODEL-05",
+      "disposition": "local_guards_tested",
+      "implemented": "Added whitelist-only model projection, per-market receipt guards and mandatory both-market access for cross-market model dependencies. Future/stale/unlicensed/ambiguous model rows and another owner forecasts fail closed; score-pair fields never leave the projection.",
+      "files": [
+        "cloud/decision-analysis.mjs",
+        "cloud/market-view.mjs"
+      ],
+      "tests": [
+        "tests/decision-analysis.test.mjs",
+        "tests/quote-receipt.test.mjs",
+        "tests/quote-selection-sql.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Apply same helper to any newly connected exports/notifications/feeds",
+        "Hosted adversarial verification"
+      ],
+      "nextAction": "Retain independent reveal gates for every future surface; no currently connected model is claimed.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "PRED-01",
+      "disposition": "local_validator_and_accounts_integration",
+      "implemented": "Strict optional forecast validator separates signed home spread / total outcome forecasts from sportsbook guesses. Account worker integrated owner-only revision/audit storage and UI; root integrated forecast reads into group analysis. Independent current personal SQL/privacy suite passes; no ballot or shared score is changed by forecast storage.",
+      "files": [
+        "server/personal-forecast.mjs",
+        "cloud/decision-analysis.mjs"
+      ],
+      "tests": [
+        "tests/decision-analysis.test.mjs",
+        "tests/personal-workspace.test.mjs",
+        "tests/journal-performance.test.mjs"
+      ],
+      "remainingDependencies": [
+        "Root integrated suite and UI review",
+        "Release and authenticated owner/revision checks"
+      ],
+      "nextAction": "Use account worker report for final persistence/UI status; no global or group sharing is authorized.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    },
+    {
+      "id": "PICK-01",
+      "disposition": "local_api_sql_receipt_flow_verified",
+      "implemented": "Fresh named-book quote -> UI review payload -> cloud allowlist -> native SQL source resolution -> canonical immutable weekly selection -> authoritative API readback is implemented. New snapshot, wrong side/price/event, stale quote and hidden market are rejected; originals and canonical weekly lock are preserved.",
+      "files": [
+        "cloud/quote-receipt.mjs",
+        "cloud/market-view.mjs",
+        "cloud/weekly.mjs",
+        "supabase/migrations/20261008224735_gtl_reviewed_quote_selections.sql",
+        "cloud/handler.mjs"
+      ],
+      "tests": [
+        "tests/quote-receipt.test.mjs",
+        "tests/quote-selection-sql.test.mjs"
+      ],
+      "remainingDependencies": [
+        "UI worker final browser review",
+        "Release with SQL before API/UI",
+        "Authenticated production readback"
+      ],
+      "nextAction": "Deploy only through normal authorized release path; receipt says provider observation, tradability not confirmed, and never places a wager.",
+      "liveStatus": "Not deployed or verified live by this worker."
+    }
+  ],
+  "concurrentDecisionUpdate": {
+    "decision": "D-16 confirmed in concurrent user-authorized task",
+    "source": "docs/SUBMISSION_TIME_SCORING.md and latest AGENTS.md, reread during this worker",
+    "effect": "Individual saved submission-time scoring and changed-guess re-anchoring supersede former locks/common-reference competition scoring. External scoring agents own that integration. New shared-reference history remains retrospective analysis of current saved guesses, never competition points."
+  },
+  "independentPersonalWorkspaceReview": {
+    "scope": "Read-only review of cloud/personal.mjs, shared/journal-performance.mjs, personal workspace migration and UI; sibling owns implementation.",
+    "findingsFixedByAccountsWorker": [
+      "Notes-only corrections preserve original quote and placement timestamp precision when the displayed input was not changed.",
+      "Corrections preserve the original entry retrospective flag rather than reclassifying a pregame entry after kickoff."
+    ],
+    "verification": "Both fixes verified in current source; current personal/journal local tests pass 14/14 with no skips.",
+    "reviewConclusion": "No additional material owner-isolation, append-only audit, shared-ballot, integer-cent precision or ROI denominator defect found in the inspected implementation.",
+    "limits": "No live account, hosted database, external wager or independent outcome verification performed."
+  },
+  "opsReviewFollowup": {
+    "findings": "Recovery omitted consensusHistory; serialized envelope could exceed reader cap; source manifest omitted Supabase and Wrangler configurations.",
+    "status": "All three implemented and locally verified at parent request.",
+    "files": [
+      "scripts/local-recovery.mjs",
+      "scripts/release-manifest.mjs",
+      "tests/local-recovery.test.mjs",
+      "tests/release-manifest.test.mjs",
+      "docs/OPERATIONS_RUNBOOK.md"
+    ],
+    "limits": "No owner-state backup/restore or production operation performed; parent owns aggregate verification and final source/artifact manifest."
+  }
+}
