@@ -3,6 +3,9 @@
 .picks-due{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-left:4px solid var(--pending)}
 .picks-due.urgent{border-left-color:var(--loss)}
 .picks-due.closed{border-left-color:var(--tie)}
+.picks-due.not_open{border-left-color:var(--cyan)}
+.week-not-open{margin:8px 0}
+.scheduler-status{margin:4px 0 8px}
 .picks-due>div{flex:1;min-width:200px}
 .picks-due,.community-leaderboard,.publish-week{margin-top:12px}
 .community-leaderboard table{width:100%;border-collapse:collapse}

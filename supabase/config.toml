@@ -6,3 +6,7 @@ verify_jwt = true
 [functions.gtl-odds-refresh]
 # Short-lived per-run capability is verified by the service-only claim RPC.
 verify_jwt = false
+
+[functions.gtl-week-open]
+# D-24 Monday 00:00 Pacific week opening; same one-run capability pattern.
+verify_jwt = false

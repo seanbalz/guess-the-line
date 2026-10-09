@@ -4,6 +4,17 @@
 
 Ben signed up and gave Sean his 15 Week 5 spread picks on Thursday, October 8 at 12:00 PM PT, before the 5:15 PM PT deadline. Sean ruled they count as on-time and are recorded in `data/picks/2026-week-05-ben.json`. Because no D-16 consensus snapshot exists for 12:00 PM PT, Sean ruled that Ben's Week 5 picks score against the eDraft snapshot updated 10:03 ET (`data/snapshots/2026-week-05-20261008T150212589Z.json`), the same reference as Sean's provisional 96.4, labelled a commissioner-ruled reference. This is a one-week ruling, not a change to D-16.
 
+## D-24 — automatic weekly pick window (October 9, 2026)
+
+Sean confirmed that each NFL week's pick window opens by itself and closes at the existing deadline:
+
+- **Open.** Guess the Spread and Guess the Total picks for a week open at **12:00 AM America/Los_Angeles on the Monday of game week** — the Monday at or before the week's first kickoff, three days before a Thursday night game. Nobody can save a draft or submit before the open; the database refuses the write (`GTL_PREDICTION_NOT_OPEN`, shown as "Week N picks open Monday 12:00 AM PT.").
+- **Close.** The window closes at that week's Thursday Night Football kickoff, the existing deadline. Deadline, edit-until-deadline and D-16 submission-time scoring rules are unchanged.
+- **Automatic publish.** A hosted scheduler (pg_cron → `gtl-week-open` Edge function, the same one-run capability pattern as the twelve-hour odds collector) publishes the week whose first game is the next one after now, through the same `gtl_publish_week` RPC as the commissioner's Publish Week, acting as the authorized commissioner. An identical republish is a no-op. Monday 00:00 Pacific is registered as two UTC cron jobs, `0 7 * * 1` (PDT) and `0 8 * * 1` (PST); the worker itself refuses to open a week before its Monday, so the off-season-time job is a recorded no-op and nothing ever opens early.
+- **Fallback.** The commissioner's manual panel stays as "Preview / publish early (fallback)" and shows the scheduler status.
+- **Notice.** The picks-due notice starts at the open; before then Home and the Picks tab show "Week N opens Mon <date> 12:00 AM PT" with entry disabled.
+- **Delivery.** Migration `20261009150000_gtl_auto_open_week.sql`, function `gtl-week-open`, and an administrator-run cron registration recorded in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md). Nothing is enabled by default and nothing was deployed from the cloud session.
+
 ## D-23 — user data is never deleted, moved or hidden (October 9, 2026)
 
 Sean confirmed the data rule for everything a player enters:

@@ -2,12 +2,12 @@
 // already withheld by the database until the viewer submits the same ballot or sits
 // out that week's mode (D-23). Nothing else is hidden, including removed members' data.
 import { UUID_PATTERN } from './lobby.mjs';
-import { buildSlate } from '../shared/nfl-schedule.mjs';
+import { buildSlate, weekOpenAt } from '../shared/nfl-schedule.mjs';
 
 export class CommunityError extends Error {
   constructor(status, message) { super(message); this.name = 'CommunityError'; this.status = status; }
 }
-export const COMMUNITY_METHODS = Object.fromEntries(['read', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out'].map(action => [`/community/${action}`, ['POST']]));
+export const COMMUNITY_METHODS = Object.fromEntries(['read', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open'].map(action => [`/community/${action}`, ['POST']]));
 const ERRORS = {
   GTL_COMMUNITY_INVALID: [400, 'Check the post and try again.'],
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -49,14 +49,17 @@ function normalize(raw) {
   return { viewer: String(raw.viewer), admin: raw.admin === true, members, week, optOuts, due, submissions, standings, posts, interests, interestCounts };
 }
 
-/** Picks due for the viewer: "urgent" inside two hours of the deadline, "closed" after it. A sat-out mode is never due. */
+/**
+ * Picks due for the viewer: "not_open" before the week's Monday 00:00 PT open (D-24),
+ * "urgent" inside two hours of the deadline, "closed" after it. A sat-out mode is never due (D-23).
+ */
 export function picksDue(feed, now) {
   if (!feed.week) return { state: 'none', modes: [] };
-  const deadline = Date.parse(feed.week.deadline);
+  const deadline = Date.parse(feed.week.deadline), opensAt = weekOpenAt(deadline);
   const open = feed.due.filter(d => !d.submitted && !d.satOut);
   if (!open.length) return { state: 'done', modes: [] };
-  const state = now >= deadline ? 'closed' : deadline - now <= 2 * 3_600_000 ? 'urgent' : 'due';
-  return { state, deadline: feed.week.deadline, week: feed.week.week, modes: open };
+  const state = now < Date.parse(opensAt) ? 'not_open' : now >= deadline ? 'closed' : deadline - now <= 2 * 3_600_000 ? 'urgent' : 'due';
+  return { state, opensAt, deadline: feed.week.deadline, week: feed.week.week, modes: open };
 }
 
 export async function handleCommunity({ route, body = {}, user, service, clock = Date.now }) {
@@ -70,6 +73,16 @@ export async function handleCommunity({ route, body = {}, user, service, clock =
     const now = clock();
     const feed = normalize(await service.rpc('gtl_read_community', { p_user: user.id, p_before: body.before ?? null, p_limit: body.limit ?? 30, p_now: new Date(now).toISOString() }));
     return { ...feed, picksDue: picksDue(feed, now) };
+  }
+  if (route === '/community/week-open') {
+    // D-24 scheduler status for the commissioner's Publish panel; reference only, never a credential.
+    fields(body, []);
+    const raw = await service.rpc('gtl_read_week_open_schedule', { p_user: user.id });
+    if (!record(raw)) throw new Error('Invalid week open status.');
+    const week = record(raw.currentWeek) ? { season: raw.currentWeek.season, week: raw.currentWeek.week, openAt: raw.currentWeek.openAt, deadline: raw.currentWeek.deadline } : null;
+    return { configured: raw.configured === true, enabled: raw.enabled === true, season: raw.season ?? null, timeZone: 'America/Los_Angeles', localTime: '00:00', weekday: 'Monday',
+      utcCrons: Array.isArray(raw.utcCrons) ? raw.utcCrons.map(String) : [], lastRunAt: raw.lastRunAt ?? null, lastFinishedAt: raw.lastFinishedAt ?? null,
+      lastStatus: raw.lastStatus ?? null, lastReason: raw.lastReason ?? null, currentWeek: week };
   }
   if (route === '/community/like') {
     fields(body, ['postId', 'like']);
