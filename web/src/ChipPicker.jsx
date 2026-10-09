@@ -25,7 +25,9 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
     if (size) setSpread(side, size);
   }
   const center = v === null ? 44 : Math.round(v);
-  const totalChips = Array.from({ length: 11 }, (_, i) => Math.max(0, center - 5 + i));
+  // Eleven distinct whole numbers around the center, shifted (not clamped) at the 0–200 edges.
+  const start = Math.min(190, Math.max(0, center - 5));
+  const totalChips = Array.from({ length: 11 }, (_, i) => start + i);
   const step = delta => {
     if (spread) { const next = Math.min(20, Math.max(0.5, (size || 0) + delta)); if (fav && fav !== 'pickem') setSpread(fav, next); return; }
     onChange(Math.min(200, Math.max(0, (v ?? 44) + delta)));

@@ -13,7 +13,7 @@ function handler(calls) {
   return createCloudHandler({
     authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
     storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden,
-    community: { rpc: async (name, args) => { calls.push([name, args]); return feed; } },
+    community: { rpc: async (name, args) => { calls.push([name, args]); return name === 'gtl_sit_out_week' ? { satOut: true, replayed: false } : feed; } },
     clock: () => Date.parse('2026-10-15T23:00:00Z'),
   });
 }
@@ -26,7 +26,22 @@ test('community read is isolated from league services, passes request time and n
   assert.equal(calls[0][0], 'gtl_read_community');
   assert.equal(calls[0][1].p_now, '2026-10-15T23:00:00.000Z');
   assert.equal(body.posts[0].picks, null, 'hidden picks are stripped even if the provider returned them');
-  assert.deepEqual(body.picksDue, { state: 'urgent', deadline: '2026-10-16T00:15:00Z', week: 6, modes: [{ mode: 'guess_total', submitted: false, filled: 3, games: 14 }] });
+  assert.deepEqual(body.picksDue, { state: 'urgent', deadline: '2026-10-16T00:15:00Z', week: 6, modes: [{ mode: 'guess_total', submitted: false, satOut: false, filled: 3, games: 14 }] });
+  assert.deepEqual(body.optOuts, []);
+  assert.deepEqual(body.members, [{ id: USER, displayName: 'Ben', removed: false }]);
+});
+
+test('D-23 sit-out route validates strictly, passes the request time and returns the final opt-out', async () => {
+  const calls = [];
+  const send = (body, auth = 'Bearer token') => handler(calls)(new Request('https://fixture.invalid/community/sit-out', { method: 'POST', headers: { ...(auth ? { authorization: auth } : {}), 'content-type': 'application/json' }, body: JSON.stringify(body) }));
+  for (const body of [{}, { season: 2026, week: 6 }, { season: 2026, week: 6, mode: 'betting_challenge' }, { season: '2026', week: 6, mode: 'guess_total' }, { season: 2026, week: 0, mode: 'guess_total' },
+    { season: 2026, week: 6, mode: 'guess_total', userId: USER }]) assert.equal((await send(body)).status, 400, JSON.stringify(body));
+  assert.equal((await send({ season: 2026, week: 6, mode: 'guess_total' }, null)).status, 401);
+  assert.equal(calls.length, 0, 'invalid requests never reach the database');
+  const response = await send({ season: 2026, week: 6, mode: 'guess_total' });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { season: 2026, week: 6, mode: 'guess_total', satOut: true, replayed: false });
+  assert.deepEqual(calls, [['gtl_sit_out_week', { p_user: USER, p_season: 2026, p_week: 6, p_mode: 'guess_total', p_now: '2026-10-15T23:00:00.000Z' }]]);
 });
 
 test('community routes reject unknown fields and unauthenticated requests', async () => {
@@ -42,4 +57,8 @@ test('picks-due states', () => {
   assert.equal(picksDue({ ...feed, due: feed.due.map(d => ({ ...d, submitted: true })) }, 0).state, 'done');
   assert.equal(picksDue(feed, at('2026-10-14T00:00:00Z')).state, 'due');
   assert.equal(picksDue(feed, at('2026-10-16T00:15:00Z')).state, 'closed');
+  const satOut = { ...feed, due: feed.due.map(d => (d.mode === 'guess_total' ? { ...d, satOut: true } : d)) };
+  assert.equal(picksDue(satOut, at('2026-10-14T00:00:00Z')).state, 'done', 'a sat-out mode is never due');
+  const both = { ...feed, due: feed.due.map(d => ({ ...d, submitted: false, satOut: d.mode === 'guess_total' })) };
+  assert.deepEqual(picksDue(both, at('2026-10-14T00:00:00Z')).modes.map(d => d.mode), ['guess_spread']);
 });

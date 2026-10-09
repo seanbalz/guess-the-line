@@ -26,3 +26,8 @@
 .week-pick h3{font-size:16px}
 .week-picks .save-bar{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:12px;background:var(--surface);border-top:1px solid var(--border)}
 .week-picks .save-bar strong{margin-right:auto}
+.sit-out-dialog{max-width:520px}
+.sit-out-dialog .review-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+.sit-out-dialog .review-actions button{flex:1;min-height:44px}
+.sit-out-dialog .form-error{color:var(--loss);margin:8px 0}
+.sit-out-dialog p{margin-top:12px}

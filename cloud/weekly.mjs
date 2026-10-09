@@ -7,6 +7,7 @@ const ERRORS = {
   GTL_WEEKLY_CONFLICT: [409, 'Your weekly entries changed on another device or in another group. Refresh before saving again.'],
   GTL_BALLOT_LOCKED: [400, 'This ballot is submitted and permanently locked. Competition guesses cannot be changed.'],
   GTL_PREDICTION_CLOSED: [400, 'The prediction deadline has passed. Commissioner adjudication is required.'],
+  GTL_COMMUNITY_SAT_OUT: [409, 'You sat out this week for that market. Its picks are closed.'],
   GTL_BALLOT_INVALID: [400, 'Invalid ballot.'],
   GTL_BALLOT_INCOMPLETE: [400, 'Complete all predictions before submitting.'],
   GTL_SELECTION_INVALID: [400, 'Invalid selection.'],
