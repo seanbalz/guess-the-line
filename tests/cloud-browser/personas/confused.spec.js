@@ -1,6 +1,6 @@
 // Persona (g): confused user. Opens the app after the deadline, before a week is published,
 // with one market submitted and the other sat out, and with no groups. Are the states explained?
-import { test, expect, pgliteAvailable, futureDeadline } from './harness.mjs';
+import { test, expect, pgliteAvailable, futureDeadline, id } from './harness.mjs';
 import { weekOpenAt } from '../../../shared/nfl-schedule.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
@@ -150,6 +150,24 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   const market = page.getByRole('group', { name: 'Market' });
   await expect(market.getByRole('button', { name: 'Total', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(market.getByRole('button', { name: 'Spread ✓', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.submit-receipt')).toHaveCount(0);
+  // Bigger change (#25, with the #15 and #30 remainder): the submitted market carries the receipt, which names what was submitted
+  // and when, says Total is still due and opens it. A plain market switch keeps focus on the market button; only an in-session
+  // submit moves focus into the receipt (power.spec.js).
+  await market.getByRole('button', { name: 'Spread ✓', exact: true }).click();
+  const receipt = page.getByRole('region', { name: 'Spread submitted · 3 picks' });
+  await expect(receipt).toBeVisible();
+  const submittedAt = (await persona.db.query("select ballot->>'submittedAt' as submitted_at from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'", [id(1)])).rows[0].submitted_at;
+  await expect(receipt).toContainText(`Submitted ${pacific(submittedAt)} PT`);
+  await expect(receipt).toContainText('Total: 0/3 still due');
+  await expect(receipt.getByRole('button', { name: "See everyone's Spread picks" })).toBeVisible();
+  await expect(receipt.getByRole('button', { name: "See everyone's Total picks" })).toHaveCount(0);
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Spread ✓' });
+  await persona.shot('picks-receipt-half-done');
+  await persona.axe('picks-receipt-half-done');
+  await receipt.getByRole('button', { name: 'Make Total picks' }).click();
+  await expect(market.getByRole('button', { name: 'Total', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.submit-receipt')).toHaveCount(0);
   await persona.shot('picks-half-done');
   await expect(page.locator('.week-pick').first().locator('.number-chip').first()).toBeVisible();
   // D-23: sitting out Total is final. The control, the dialog and the states afterwards.
@@ -171,6 +189,11 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   const satOutHeader = await page.locator('.week-picks > p.muted').innerText();
   const othersVisible = await page.locator('.week-picks').innerText();
   persona.finding({ screen: 'picks-sat-out', severity: 3, experience: `After sitting out, the Picks header reads "${satOutHeader}" and the chips grey out, but the ${persona.state.games.length} game cards still show the full chip rows (disabled) and ${/Troy|Luke/.test(othersVisible) ? 'other players\' picks appear' : 'no other player\'s picks appear on this screen'}; the promise "others' picks visible" points to the feed, not here.`, fix: 'Replace the disabled chip rows with the revealed picks table (or a link to the feed posts) on a sat-out market.' });
+  // On the submitted market the receipt now says Total was sat out (final, D-23), with nothing else due and no "Make Total picks".
+  await market.getByRole('button', { name: 'Spread ✓', exact: true }).click();
+  await expect(receipt).toContainText('Total: sat out (final). Nothing else is due this week.');
+  await expect(receipt.getByRole('button', { name: 'Make Total picks' })).toHaveCount(0);
+  await persona.shot('picks-receipt-sat-out');
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Feed', exact: true }).click();
   await expect(page.locator('.picks-due')).toHaveCount(0);
   await expect(page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Picks', exact: true })).toBeVisible();
