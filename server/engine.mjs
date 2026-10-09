@@ -87,6 +87,10 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
   }
 
   const ballot = (id, mode) => state.ballots[id]?.[mode] || { picks: {}, submittedAt: null };
+  // D-23: a final weekly opt-out ("Sit out this week") forfeits that mode's score and
+  // satisfies the reveal gate exactly like a submitted ballot. Cloud reads supply
+  // state.optOuts from gtl_weekly_optouts; the local workspace stores it in state.
+  const satOut = (id, mode) => Array.isArray(state.optOuts?.[id]) && state.optOuts[id].includes(mode);
   function lockReason(id, mode) {
     if (!['guess_spread', 'guess_total'].includes(mode)) return null;
     return clock() >= Date.parse(state.league.deadline) ? 'deadline' : null;
@@ -98,7 +102,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     if (!MODES.includes(mode)) throw new Error('Unknown game mode.');
 
     const own = ballot(id, mode);
-    const revealed = !!own.submittedAt;
+    const revealed = !!own.submittedAt || satOut(id, mode);
     const spreadRevealed = !!ballot(id, 'guess_spread').submittedAt;
     const predictionMode = ['guess_spread', 'guess_total'].includes(mode);
     const marketHistory = predictionMode ? [...(mode === 'guess_spread' ? state.history : []), ...(state.consensusHistory || []).filter(row => row.mode === mode)]
@@ -118,6 +122,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     const statuses = Object.fromEntries(['guess_spread', 'guess_total'].map(m => [m, {
       filled: Object.keys(ballot(id, m).picks).length,
       submittedAt: ballot(id, m).submittedAt,
+      satOut: satOut(id, m),
       locked: !!lockReason(id, m),
       lockReason: lockReason(id, m),
     }]));
@@ -153,6 +158,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
         ...p,
         filled: Object.keys(b.picks).length,
         submitted: !!b.submittedAt,
+        satOut: satOut(p.id, mode),
         points: all ? round(values.reduce((a, b) => a + b, 0)) : null,
         exact: all ? values.filter(v => v === 10).length : null,
         scoredGames: values.filter(v => v !== null).length,
@@ -192,6 +198,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       statuses,
       submittedAt: own.submittedAt,
       updatedAt: own.updatedAt || null,
+      satOut: satOut(id, mode),
       revealed,
       standings,
       history: priced && mode === 'guess_spread' && id === 'sean' ? state.history.map(({ games, ...s }) => s) : [],
@@ -240,6 +247,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     if (!['guess_spread', 'guess_total'].includes(mode)) throw new Error('Unknown prediction game.');
     const before = ballot(id, mode), now = clock();
     if (now >= Date.parse(state.league.deadline)) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
+    if (satOut(id, mode)) throw new Error('You sat out this week for that market. Its picks are closed.');
     if (!picks || typeof picks !== 'object' || Array.isArray(picks)) throw new Error('Invalid ballot.');
     const valid = Object.fromEntries(Object.entries(picks).map(([key, value]) => {
       if (!state.games.some(g => g.id === key)) throw new Error('Unknown matchup.');
@@ -271,6 +279,23 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     return view(id, mode);
   }
 
+  // Final for the week and mode: no draft or submission may follow, nothing is scored as zero.
+  function sitOut(id, mode) {
+    player(id);
+    if (!['guess_spread', 'guess_total'].includes(mode)) throw new Error('Unknown prediction game.');
+    const now = clock();
+    if (now >= Date.parse(state.league.deadline)) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
+    if (ballot(id, mode).submittedAt) throw new Error('This ballot is already submitted. Sitting out is not possible.');
+    if (!satOut(id, mode)) {
+      const next = structuredClone(state);
+      next.optOuts ||= {};
+      next.optOuts[id] = [...(next.optOuts[id] || []), mode];
+      next.audit.push({ id: uuid(), player: id, mode, type: 'week_sat_out', timestamp: new Date(now).toISOString(), before: ballot(id, mode).picks, after: {} });
+      state = next;
+    }
+    return view(id, mode);
+  }
+
   function saveBet(id, body) {
     player(id);
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('Invalid selection.');
@@ -294,6 +319,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
   return {
     view,
     saveBallot,
+    sitOut,
     saveBet,
     export(id) {
       player(id);

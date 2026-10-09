@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import './teamIdentity.css';
-import { approvedTeamLogos as approvedLogos } from './teamLogoRegistry.js';
+import { resolveTeamMark, teamAliases as aliases } from './teamLogoRegistry.js';
 
-// The registry contains reviewed, local transparent team marks.
-// Its file-specific source records live in docs/TEAM_LOGO_SOURCES.md.
+// Reviewed official marks take precedence; teams without one use an original
+// Guess The Line badge. Records live in docs/TEAM_LOGO_SOURCES.md.
 
 const sizes = { small: 24, medium: 32, large: 48 };
-const aliases = { JAC: 'JAX', LA: 'LAR', WSH: 'WAS' };
 
 function IdentityMark({ code, name, size, asset, decorative }) {
   const [failed, setFailed] = useState(false);
@@ -17,19 +16,18 @@ function IdentityMark({ code, name, size, asset, decorative }) {
     role={decorative ? undefined : 'img'}
     aria-label={decorative ? undefined : name}
     aria-hidden={decorative || undefined}
-    data-logo-status={hasLogo ? 'approved' : 'fallback'}
+    data-logo-status={hasLogo ? asset.rightsStatus : 'fallback'}
   >
     {hasLogo ? <img src={asset.src} width={size} height={size} alt="" decoding="async" draggable="false" onError={() => setFailed(true)}/> : <span aria-hidden="true">{code}</span>}
   </span>;
 }
 
-/** Compact team identity, ready for a reviewed set of transparent team logos. */
+/** Compact team identity: official reviewed mark, else original GTL badge, else abbreviation on image failure. */
 export function TeamIdentity({ code, name, size = 'medium', decorative = false }) {
   const label = typeof code === 'string' && /^[a-z]{2,4}$/i.test(code.trim()) ? code.trim().toUpperCase() : '—';
   const canonical = aliases[label] || label;
   const dimension = sizes[size] || (typeof size === 'number' && Number.isFinite(size) ? Math.min(64, Math.max(24, size)) : sizes.medium);
-  const candidate = approvedLogos[canonical];
-  const asset = candidate?.rightsStatus === 'approved' && candidate?.transparent === true && candidate?.rightsReference && /^\/team-logos\/[a-z0-9-]+\.(svg|png|webp)$/.test(candidate.src) ? candidate : null;
+  const asset = label === '—' ? null : resolveTeamMark(canonical);
   const accessibleName = typeof name === 'string' && name.trim() ? name.trim() : label === '—' ? 'Team unavailable' : label;
   return <IdentityMark key={`${canonical}:${asset?.src || 'fallback'}`} code={label} name={accessibleName} size={dimension} asset={asset} decorative={decorative}/>;
 }

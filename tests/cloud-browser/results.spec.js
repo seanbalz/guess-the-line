@@ -81,7 +81,8 @@ async function fillFinal(page, report, patch = {}) {
   const body = { ...report.defaultBody, ...patch }, controls = panel(page);
   await controls.getByLabel(/^Away ·/).fill(String(body.away)); await controls.getByLabel(/^Home ·/).fill(String(body.home));
   await controls.getByLabel('Final-score source name').fill(body.source); await controls.getByLabel('Final-score source URL · HTTPS').fill(body.sourceURL);
-  const localTime = await page.evaluate(value => { const d = new Date(value), two = value => String(value).padStart(2, '0'); return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}T${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`; }, body.observedAt);
+  const localTime = await page.evaluate(value => { const d = new Date(value), two = value => String(value).padStart(2, '0'); // Chromium normalizes a datetime-local value by dropping ":00" seconds, and Playwright's fill rejects a value the input rewrites.
+    return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}T${two(d.getHours())}:${two(d.getMinutes())}${d.getSeconds() ? `:${two(d.getSeconds())}` : ''}`; }, body.observedAt);
   await controls.getByLabel(/^Final observed ·/).fill(localTime); await controls.getByLabel('Review or correction reason').fill(body.reason);
   await controls.getByRole('checkbox').check();
 }
