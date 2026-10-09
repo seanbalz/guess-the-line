@@ -50,7 +50,7 @@ test('D-18 virtual units save: the hosted function fails with 42883, the follow-
   const pick = (list, gameId, market) => list.find(row => row.game_id === gameId && row.market === market);
   const definition = name => db.query(`select pg_get_functiondef('${name}'::regprocedure) value`).then(result => result.rows[0].value);
   const privilege = (role, name) => db.query(`select has_function_privilege('${role}','${name}','execute') value`).then(result => result.rows[0].value);
-  const rejects = async (fn, code, message) => { let error; try { await fn(); } catch (caught) { error = caught; } assert.ok(error, 'expected the call to be refused'); assert.equal(error.code, code, error.message); assert.match(error.message, message); return error; };
+  const rejects = async (fn, code, message, label = 'the call') => { let error; try { await fn(); } catch (caught) { error = caught; } assert.ok(error, `expected ${label} to be refused`); assert.equal(error.code, code, `${label}: ${error.message}`); assert.match(error.message, message, label); return error; };
   const valid = body(G[1], 'spread', 'home', -3.5, -110, 1);
   const readBefore = await definition(READ);
 
@@ -72,12 +72,12 @@ test('D-18 virtual units save: the hosted function fails with 42883, the follow-
 
   await db.exec(fs.readFileSync(`supabase/migrations/${FIX}`, 'utf8'));
 
-  await t.test('the follow-up re-creates the function verbatim except the three numeric checks, keeps the grants and leaves the reader alone', async () => {
+  await t.test('the follow-up re-creates the function verbatim except the one check line, keeps the grants and leaves the reader alone', async () => {
     const original = fs.readFileSync(`supabase/migrations/${ORIGINAL}`, 'utf8'), fix = fs.readFileSync(`supabase/migrations/${FIX}`, 'utf8');
     const fn = (source, head) => { const start = source.indexOf(head); assert.ok(start >= 0, head); return source.slice(start + head.length, source.indexOf('\nend $$;', start)); };
     const expected = fn(original, 'create function public.gtl_save_virtual_units_pick(')
-      .replace('if not isfinite(line) or not isfinite(odds) or not isfinite(units) or not isfinite(quoted)', 'if not public.gtl_numeric_is_finite(line) or not public.gtl_numeric_is_finite(odds) or not public.gtl_numeric_is_finite(units) or not isfinite(quoted)');
-    assert.equal(fn(fix, 'create or replace function public.gtl_save_virtual_units_pick('), expected, 'signature and body are byte-for-byte the original apart from the numeric finiteness checks');
+      .replace('if not isfinite(line) or not isfinite(odds) or not isfinite(units) or not isfinite(quoted)', "if not public.gtl_numeric_is_finite(line) or not public.gtl_numeric_is_finite(odds) or not public.gtl_numeric_is_finite(units) or not isfinite(quoted) or quoted is null or p_body->>'source' is null");
+    assert.equal(fn(fix, 'create or replace function public.gtl_save_virtual_units_pick('), expected, 'signature and body are byte-for-byte the original apart from the one check line: the three helper calls and the null checks on quotedAt and source');
     assert.equal(fix.includes('function public.gtl_read_virtual_units'), false, 'the follow-up neither creates nor replaces the reader');
     assert.equal(await definition(READ), readBefore, 'gtl_read_virtual_units is unchanged from the settlement migration');
     const [save_, helper] = await Promise.all([
@@ -114,7 +114,7 @@ test('D-18 virtual units save: the hosted function fails with 42883, the follow-
     assert.equal((await rows(SEAN)).length, 2);
   });
 
-  await t.test('(c) non-finite terms are refused with GTL_VIRTUAL_INVALID; the helper agrees; every other validation is intact', async () => {
+  await t.test('(c) non-finite, missing and null terms are refused with GTL_VIRTUAL_INVALID; the helper agrees; every other validation is intact', async () => {
     // JSON cannot carry NaN or Infinity as numbers (cloud/virtual-units.mjs validateBody() also refuses them before the
     // RPC, and JSON.stringify turns them into null), so the only way a non-finite numeric reaches the function is a
     // direct service-role RPC whose body carries the value as a string: numeric input accepts 'NaN', 'Infinity',
@@ -124,11 +124,16 @@ test('D-18 virtual units save: the hosted function fails with 42883, the follow-
       { quotedAt: 'infinity' }, { quotedAt: '-infinity' }]) {
       await rejects(() => save(SEAN, rev, body(G[2], 'spread', 'away', 2.5, -110, 1, extra)), 'P0001', /GTL_VIRTUAL_INVALID/);
     }
-    // A missing line, odds or units is not finite either: it is refused instead of saving a null term.
-    for (const key of ['line', 'odds', 'units']) {
+    // A missing or null term is refused instead of saving a null term. For line, odds and units the helper returns false
+    // for null; for quotedAt and source the check line tests null explicitly, because `not isfinite(null::timestamptz)`,
+    // `null>=kickoff`, `null>stamp`, `length(btrim(null))<2` and `length(null)>120` are all NULL, a NULL or-chain is NULL,
+    // and PL/pgSQL treats a NULL `if` condition as false (without them the re-created function saved {"quotedAt":null} / {"source":null}).
+    for (const key of ['line', 'odds', 'units', 'quotedAt', 'source']) {
       const { [key]: _omitted, ...partial } = body(G[2], 'spread', 'away', 2.5, -110, 1);
-      await rejects(() => save(SEAN, rev, partial), 'P0001', /GTL_VIRTUAL_INVALID/);
+      await rejects(() => save(SEAN, rev, partial), 'P0001', /GTL_VIRTUAL_INVALID/, `missing ${key}`);
+      await rejects(() => save(SEAN, rev, { ...partial, [key]: null }), 'P0001', /GTL_VIRTUAL_INVALID/, `null ${key}`);
     }
+    assert.deepEqual((await db.query("select (not isfinite(null::timestamptz)) is null a,(length(btrim(null::text))<2) is null b,(length(null::text)>120) is null c")).rows[0], { a: true, b: true, c: true }, 'why the explicit null checks are load-bearing');
     const helper = await db.query("select public.gtl_numeric_is_finite('NaN') a,public.gtl_numeric_is_finite('Infinity') b,public.gtl_numeric_is_finite('-Infinity') c,public.gtl_numeric_is_finite('inf') d,public.gtl_numeric_is_finite(null) e,public.gtl_numeric_is_finite(1.5) f,public.gtl_numeric_is_finite(-110) g,public.gtl_numeric_is_finite(0) h,public.gtl_numeric_is_finite(1e300::numeric) i");
     assert.deepEqual(helper.rows[0], { a: false, b: false, c: false, d: false, e: false, f: true, g: true, h: true, i: true });
     // Without the finiteness check an infinite or NaN stake passes the stake rules: Infinity*2 = trunc(Infinity*2) and neither value is <= 0.

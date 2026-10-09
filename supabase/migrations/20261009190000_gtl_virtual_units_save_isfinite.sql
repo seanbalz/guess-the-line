@@ -9,19 +9,30 @@
 --
 -- Hosted migration history is append-only, so the original file is untouched and
 -- this file re-creates the function with the identical signature, body and
--- grants, changing only the three numeric finiteness checks. They now use the
--- small immutable helper below: 'NaN'::numeric equals itself and sorts above
--- every other numeric, and 'Infinity'::numeric / '-Infinity'::numeric exist since
--- PostgreSQL 14, so a numeric is finite when it is none of the three. A null (the
--- body omitted the key, since the text-to-numeric cast above the check already
--- refuses anything else) is not finite either, so a missing line, odds or units
--- is refused as GTL_VIRTUAL_INVALID instead of passing null through the
--- remaining comparisons. The timestamptz check isfinite(quoted) is valid and
--- stays as it was. Every other validation (revision, body keys, game, market and
--- side, kickoff, half-point lines, integer odds in 100..10000, positive half-unit
--- stakes, quote time, source length) is byte-for-byte the original.
--- gtl_read_virtual_units, which 20261009170000_gtl_virtual_units_settlement.sql
--- re-created, is not touched.
+-- grants, changing only the first line of the validation check:
+--
+-- 1. The three numeric finiteness checks use the small immutable helper below:
+--    'NaN'::numeric equals itself and sorts above every other numeric, and
+--    'Infinity'::numeric / '-Infinity'::numeric exist since PostgreSQL 14, so a
+--    numeric is finite when it is none of the three. A null (the body omitted the
+--    key or sent JSON null; the text-to-numeric cast above the check already
+--    refuses anything else) is not finite either, so a missing line, odds or
+--    units is refused as GTL_VIRTUAL_INVALID.
+-- 2. `quoted is null or p_body->>'source' is null` is added beside the (valid,
+--    unchanged) timestamptz check isfinite(quoted). Without it a missing or null
+--    quotedAt or source saved null terms: not isfinite(null), null>=kickoff,
+--    null>stamp, length(btrim(null))<2 and length(null)>120 are all NULL, a NULL
+--    or-chain is NULL, and PL/pgSQL treats a NULL if-condition as false. D-17/D-18
+--    make a saved named-book quote (source and quotedAt) mandatory for a pick, so
+--    both are refused as GTL_VIRTUAL_INVALID like the numeric terms.
+--
+-- Only a direct service-role RPC can reach either case: cloud/virtual-units.mjs
+-- validateBody() refuses non-finite numbers and a missing source or quotedAt
+-- before calling the function. Every other validation (revision, body keys,
+-- game, market and side, kickoff, half-point lines, integer odds in 100..10000,
+-- positive half-unit stakes, quote time, source length) is byte-for-byte the
+-- original. gtl_read_virtual_units, which
+-- 20261009170000_gtl_virtual_units_settlement.sql re-created, is not touched.
 
 create or replace function public.gtl_numeric_is_finite(p_value numeric) returns boolean
 language sql immutable set search_path='' as $$
@@ -43,7 +54,7 @@ begin
   stamp:=clock_timestamp();
   if stamp >= (g->>'kickoff')::timestamptz then raise exception 'GTL_VIRTUAL_CLOSED'; end if;
   begin line:=(p_body->>'line')::numeric; odds:=(p_body->>'odds')::numeric; units:=(p_body->>'units')::numeric; quoted:=(p_body->>'quotedAt')::timestamptz; exception when others then raise exception 'GTL_VIRTUAL_INVALID'; end;
-  if not public.gtl_numeric_is_finite(line) or not public.gtl_numeric_is_finite(odds) or not public.gtl_numeric_is_finite(units) or not isfinite(quoted) or line*2<>trunc(line*2)
+  if not public.gtl_numeric_is_finite(line) or not public.gtl_numeric_is_finite(odds) or not public.gtl_numeric_is_finite(units) or not isfinite(quoted) or quoted is null or p_body->>'source' is null or line*2<>trunc(line*2)
     or (v_market='spread' and (line < -100 or line > 100)) or (v_market='total' and (line < 0 or line > 200))
     or odds<>trunc(odds) or abs(odds)<100 or abs(odds)>10000 or units<=0 or units*2<>trunc(units*2)
     or quoted>=((g->>'kickoff')::timestamptz) or quoted>stamp or length(btrim(p_body->>'source'))<2 or length(p_body->>'source')>120
