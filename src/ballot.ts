@@ -8,6 +8,11 @@ export interface EffectivePick {
   /** Home-referenced spread or total, depending on market. */
   value: number;
   submitted_at: string;
+  /**
+   * D-16: when the current value was first saved. A revision that repeats the
+   * same value is a no-op and cannot refresh the scoring reference.
+   */
+  anchored_at: string;
   revision_count: number;
 }
 
@@ -43,29 +48,33 @@ export function validateWeek(week: WeekFile, roster: string[]): void {
 }
 
 /**
- * Unlimited revisions are allowed until the lock (actual TNF kickoff). The latest
- * revision submitted strictly before the lock is effective; later ones are rejected.
+ * Unlimited revisions are allowed until the submission deadline (actual TNF kickoff).
+ * The latest revision submitted strictly before the deadline is effective; later ones
+ * are rejected and kept for audit.
  */
 export function effectivePicks(week: WeekFile): BallotResult {
   const lockAt = week.lock.kickoff_at ? Date.parse(week.lock.kickoff_at) : Infinity;
-  const latest = new Map<string, { rev: PickRevision; count: number }>();
+  const byKey = new Map<string, { rev: PickRevision; value: number; anchored_at: string; count: number }>();
   const rejected_late: PickRevision[] = [];
-  for (const rev of week.revisions) {
+  const ordered = [...week.revisions].sort((a, b) => Date.parse(a.submitted_at) - Date.parse(b.submitted_at));
+  for (const rev of ordered) {
     if (Date.parse(rev.submitted_at) >= lockAt) {
       rejected_late.push(rev);
       continue;
     }
     const key = pickKey(rev.player, rev.matchup, rev.market_type);
-    const prev = latest.get(key);
-    const newer = !prev || Date.parse(rev.submitted_at) >= Date.parse(prev.rev.submitted_at);
-    latest.set(key, { rev: newer ? rev : prev!.rev, count: (prev?.count ?? 0) + 1 });
+    const value = rev.market_type === "spread" ? toHomeSpread(rev) : rev.predicted_total!;
+    const prev = byKey.get(key);
+    const anchored_at = prev && prev.value === value ? prev.anchored_at : rev.submitted_at;
+    byKey.set(key, { rev, value, anchored_at, count: (prev?.count ?? 0) + 1 });
   }
-  const picks = [...latest.values()].map(({ rev, count }) => ({
+  const picks = [...byKey.values()].map(({ rev, value, anchored_at, count }) => ({
     player: rev.player,
     matchup: rev.matchup,
     market_type: rev.market_type,
-    value: rev.market_type === "spread" ? toHomeSpread(rev) : rev.predicted_total!,
+    value,
     submitted_at: rev.submitted_at,
+    anchored_at,
     revision_count: count,
   }));
   return { picks, rejected_late };

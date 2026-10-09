@@ -1,8 +1,8 @@
 # Decision log
 
-## D-19 — Week 6 scoring engine scope (October 9, 2026)
+## D-20 — Week 6 scoring engine under D-16 (October 9, 2026)
 
-Sean confirmed the Week 6 delivery: Guess the Spread and Guess the Total scoring, standings and closest-pick W-L-T for Sean, Troy and Luke, built in TypeScript with tests. Picks are commissioner-entered in `data/picks/2026-week-06.json` (append-only revisions). Benchmarks come from manually recorded, timestamped named-book quotes in `data/snapshots/` behind the same gate an odds provider will use later. Guess the Spread and Guess the Total picks may be revised any number of times until actual Thursday Night Football kickoff; every revision is kept and the last one before kickoff counts. This supersedes the "one edit per pick" wording below for both Guess modes. Login, database, public dashboard, notifications, iOS, live odds and the D-18 virtual units game remain unimplemented. See the [scoring engine guide](SCORING_ENGINE.md).
+Sean confirmed a commissioner-run TypeScript engine for Guess the Spread and Guess the Total: separate points out of 10 per game and separate closest-pick W-L-T for Sean, Troy and Luke, with tests. Picks are commissioner-entered in `data/picks/2026-week-06.json` as append-only revisions, editable any number of times until actual Thursday Night Football kickoff. Consensus comes from manually recorded, timestamped named-book quotes in `data/snapshots/` behind a 3-book median gate. After the October 9 branch consolidation, Sean confirmed that D-16 submission-time scoring governs both modes from Week 6 on: each pick is scored against the verified consensus that was fresh when its current value was saved, a same-value save does not refresh it, and later market moves never rescore it. This replaces the engine's original common kickoff-freeze benchmark. The deployed app remains the system of record; the engine is a local audit and fallback tool. This entry was briefly numbered D-19 on `main`; D-19 is the social Bet Tracker. See the [scoring engine guide](SCORING_ENGINE.md).
 
 ## D-18 remaining mechanics — confirmed October 8, 2026
 

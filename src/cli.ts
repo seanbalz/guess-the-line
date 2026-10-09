@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import type { Benchmark } from "./benchmark.js";
 import { scoreMode, type ModeResult } from "./week.js";
 import type { League, MarketType, SnapshotFile, WeekFile } from "./types.js";
 
@@ -27,18 +28,19 @@ const LABEL: Record<MarketType, string> = { spread: "GUESS THE SPREAD", total: "
 
 export function render(r: ModeResult): string {
   const lines = [`${LABEL[r.market_type]} — ${r.state} (max ${r.max_points})`];
-  lines.push("Rank  Player              Points  Scored  NotSub  CumErr  Exact  W-L-T");
+  lines.push("Rank  Player              Points  Scored  NotSub  NoRef  CumErr  Exact  W-L-T");
   for (const s of r.standings) {
     lines.push(
-      `${String(s.rank).padEnd(6)}${s.player.padEnd(20)}${String(s.points).padStart(6)}  ${String(s.scored_games).padStart(6)}  ${String(s.not_submitted).padStart(6)}  ${String(s.cumulative_error).padStart(6)}  ${String(s.exact).padStart(5)}  ${s.wins}-${s.losses}-${s.ties}`,
+      `${String(s.rank).padEnd(6)}${s.player.padEnd(20)}${String(s.points).padStart(6)}  ${String(s.scored_games).padStart(6)}  ${String(s.not_submitted).padStart(6)}  ${String(s.no_reference).padStart(5)}  ${String(s.cumulative_error).padStart(6)}  ${String(s.exact).padStart(5)}  ${s.wins}-${s.losses}-${s.ties}`,
     );
   }
+  const ref = (b: Benchmark | null) =>
+    !b ? "" : b.status === "verified" ? `${b.value} [${b.snapshot_id}${b.stale ? ", STALE" : ""}]` : `UNVERIFIED (${b.reason})`;
   for (const g of r.games) {
-    const b = g.benchmark;
-    const bench = b.status === "verified" ? `${b.value} [${b.snapshot_id}${b.stale ? ", STALE" : ""}]` : `UNVERIFIED (${b.reason})`;
-    lines.push(`\n${g.matchup} — benchmark ${bench} — closest ${g.closest_status}`);
+    lines.push(`\n${g.matchup} — current consensus ${ref(g.current_consensus)} — closest ${g.closest_status}`);
     for (const p of g.players) {
-      lines.push(`  ${p.player.padEnd(20)}${p.status.padEnd(20)}pick ${fmt(p.predicted).padEnd(7)}err ${fmt(p.error).padEnd(6)}pts ${fmt(p.points).padEnd(6)}${p.closest ?? ""}`);
+      const anchor = p.anchored_at ? `saved ${p.anchored_at} ref ${ref(p.reference)}` : "";
+      lines.push(`  ${p.player.padEnd(20)}${p.status.padEnd(15)}pick ${fmt(p.predicted).padEnd(7)}err ${fmt(p.error).padEnd(6)}pts ${fmt(p.points).padEnd(6)}${(p.closest ?? "").padEnd(3)}${anchor}`);
     }
   }
   if (r.rejected_late.length) lines.push(`\n${r.rejected_late.length} revision(s) at/after lock rejected (kept for audit).`);
