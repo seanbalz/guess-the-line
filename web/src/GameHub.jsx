@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Check, Copy, Flag, LoaderCircle, Plus, RefreshCw, ShieldCheck, TriangleAlert, Users, X } from 'lucide-react';
 import App from './App';
 import PersonalWorkspace from './PersonalWorkspace';
+import CommunityHome from './CommunityHome';
 import SocialBetTracker from './SocialBetTracker';
 import ThemeSelector from './Theme';
 import Brand from './Brand';
@@ -132,6 +133,9 @@ export default function GameHub({ session, onSignOut }) {
   const [creating, setCreating] = useState(false), [editingProfile, setEditingProfile] = useState(false), [inviting, setInviting] = useState(null);
   const [token, setToken] = useState(pendingInvitation);
   const [socialDirty, setSocialDirty] = useState(false);
+  // D-21: the community feed is home; groups and games are one step away.
+  const [groupsOpen, setGroupsOpen] = useState(false), [communityOnline, setCommunityOnline] = useState(true);
+  const communityUnavailable = useCallback(() => { setCommunityOnline(false); setGroupsOpen(true); }, []);
   const load = useCallback(async signal => { const result = await cloudApi('lobby', undefined, { signal }); setLobby(result); return result; }, []);
   useEffect(() => { const controller = new AbortController(); load(controller.signal).catch(failure => { if (failure.name !== 'AbortError') setError(failure.message); }); return () => controller.abort(); }, [load]);
   function choose(id) { setSelected(id); try { id ? sessionStorage.setItem(selectionKey, id) : sessionStorage.removeItem(selectionKey); } catch { /* Selection still works in this tab. */ } }
@@ -149,6 +153,7 @@ export default function GameHub({ session, onSignOut }) {
   const profileReady = Boolean(lobby?.profile?.displayName?.trim());
   const current = lobby?.leagues.find(league => league.id === selected);
   const onProfileSaved = async () => { await load(); setEditingProfile(false); setNotice('Your display name has been saved.'); };
+  if (!selected && !token && profileReady && !groupsOpen && !editingProfile) return <CommunityHome displayName={lobby.profile.displayName} onGroups={() => setGroupsOpen(true)} onUnavailable={communityUnavailable} onSignOut={signOut}/>;
   if (selected === 'solo' && profileReady && !token) return <PersonalWorkspace onBack={() => choose('')} onSignOut={onSignOut}/>;
   if (['social', 'units'].includes(selected) && profileReady && !token) return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>
@@ -156,13 +161,13 @@ export default function GameHub({ session, onSignOut }) {
     <main className="hub-main" id="main"><ThemeSelector/><SocialBetTracker key={selected} player={session.user.id} initialView={selected === 'units' ? 'units' : 'feed'} onDirty={setSocialDirty}/></main>
   </div>;
   return <>
-    {current && !token ? <App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => choose('')} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/>
+    {current && !token ? <App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => { setGroupsOpen(true); choose(''); }} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/>
       : <div className="hub-shell">
         <a className="skip-link" href="#main">Skip to main content</a>
         <header className="hub-header"><Brand /><div className="hub-account"><span>{lobby?.profile?.displayName || session.user.email}</span><button className="secondary" onClick={signOut} disabled={busy}>Sign out</button></div></header>
         <main className="hub-main" id="main">
           <ThemeSelector/>
-          <div className="hub-heading"><div><p className="eyebrow">YOUR PEOPLE. YOUR PREDICTIONS.</p><h1>My games</h1><p>One weekly spread ballot, one total ballot, and one set of Challenge selections, reused across all your groups. Compete with different people using the same calls.</p></div><button className="primary" disabled={!profileReady || busy} onClick={() => setCreating(true)}><Plus size={18}/>New game</button></div>
+          <div className="hub-heading"><div>{profileReady && communityOnline && <button className="text-button" onClick={() => setGroupsOpen(false)}>← Community</button>}<p className="eyebrow">YOUR PEOPLE. YOUR PREDICTIONS.</p><h1>My games</h1><p>One weekly spread ballot, one total ballot, and one set of Challenge selections, reused across all your groups. Compete with different people using the same calls.</p></div><button className="primary" disabled={!profileReady || busy} onClick={() => setCreating(true)}><Plus size={18}/>New game</button></div>
           <ErrorMessage>{error}</ErrorMessage>
           {error && <button className="secondary" onClick={reload} disabled={busy}><RefreshCw size={16}/>Try again</button>}
           {notice && <p className="auth-notice" role="status">{notice}</p>}

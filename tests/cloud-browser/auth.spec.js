@@ -41,6 +41,8 @@ const test = base.extend({
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/logout') return reply(200, {});
       if (url.pathname === '/auth/v1/user') return reply(200, user);
+      // D-21 community routes are not part of these fixtures; answer as an undeployed function.
+      if (url.pathname.includes('/gtl-api/community/')) return reply(404, { error: 'Not found.' });
       if (!url.pathname.startsWith('/functions/v1/gtl-api/')) {
         league.browserErrors.push(`Unexpected mocked endpoint: ${url.pathname}`);
         return reply(404, { error: 'Unexpected test endpoint' });

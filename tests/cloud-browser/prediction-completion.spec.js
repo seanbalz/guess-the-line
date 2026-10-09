@@ -29,6 +29,8 @@ const test = base.extend({
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/user') return reply(200, user);
+      // D-21 community routes are not part of these fixtures; answer as an undeployed function.
+      if (url.pathname.includes('/gtl-api/community/')) return reply(404, { error: 'Not found.' });
       if (url.pathname === '/auth/v1/logout') return reply(200, {});
       const endpoint = url.pathname.replace('/functions/v1/gtl-api/', '');
       expect(request.headers().authorization).toBe(`Bearer ${token}`);

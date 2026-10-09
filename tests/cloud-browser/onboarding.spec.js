@@ -78,6 +78,8 @@ const test = base.extend({
       if (url.pathname === '/auth/v1/recover') { hub.resets++; return reply(200, {}); }
       if (url.pathname === '/auth/v1/resend') { hub.resends++; return reply(200, {}); }
       if (url.pathname === '/auth/v1/user') { if (request.method() === 'PUT') hub.passwordUpdates++; return reply(200, user); }
+      // D-21 community routes are not part of these fixtures; answer as an undeployed function.
+      if (url.pathname.includes('/gtl-api/community/')) return reply(404, { error: 'Not found.' });
       const endpoint = url.pathname.replace('/functions/v1/gtl-api/', '');
       const body = request.method() === 'POST' ? request.postDataJSON() : null;
       const entry = { endpoint, query: url.search, body, referer: request.headers().referer };
