@@ -134,7 +134,9 @@
 }
 
 @media (max-width: 640px) {
-  .team-matchup { gap: 8px; }
+  /* Columns never shrink below the "Away"/"Home" labels, so "at" cannot overlap them. */
+  .team-matchup { gap: 8px; grid-template-columns: minmax(auto, 1fr) auto minmax(auto, 1fr); }
+  .team-matchup .team-matchup__name small { white-space: nowrap; }
   .team-matchup:not(.team-matchup--compact) { align-items: start; }
   .team-matchup:not(.team-matchup--compact) .team-matchup__at { padding-top: 40px; }
   .team-matchup:not(.team-matchup--compact) .team-matchup__side {
