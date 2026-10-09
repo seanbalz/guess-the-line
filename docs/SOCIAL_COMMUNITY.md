@@ -14,7 +14,10 @@ Owner: Sean Balsiger · Version 1 · Updated 2026-10-09 · Decision D-21
 | Picks due for the viewer: Spread and Total | `due`, then `urgent` within 2 hours of the deadline, then `closed`, or `done` |
 | Publish Week (commissioner) | `/community/publish-preview` shows the nflverse slate for review; `/community/publish` adds the slate, schedule template, a "Week N is open" post and moves the 12-hour odds collector. Identical republish is a no-op; a different slate for a published week is refused |
 | Team records (overall, home, road) | `shared/team-records.mjs` and `shared/team-records-2026.json` from nflverse finals |
-| Home feed screen, leaderboard strip, game tabs, button entry, records under games | Not built yet (next PR) |
+| Community home (feed, picks-due card, leaderboard, likes, comments, Publish Week panel) | Built; browser-tested at 390px and 1280px |
+| Picks tab: button entry (favorite team or Pick'em, then half-point chips 1–10, More for 10.5–20, −/+ 0.5) and team records under each game | Built; saves through the league-free weekly ballot |
+| Group game screens (`PredictionEntry`) | Still use the earlier dropdown, stepper and typed entry; converting them to chips is a follow-up |
+| Challenge and Units in the leaderboard strip | Not included; those records stay inside each group |
 | Score-change and weekly-winner posts | Not built yet; they need the scoring engine's results |
 
 Practice ballots never post. Removed members, and their posts, comments and submissions, disappear from everyone's feed. Restoring a member brings them back. Removals and restorations are written to `gtl_access_audit`. The commissioner is the active commissioner of the founding `sean-troy-luke` league.
@@ -46,7 +49,7 @@ The script downloads the public nflverse schedule file, counts finals only (regu
 2. `npx supabase db push` to apply `20261009120000_gtl_community_feed.sql`. It backfills one "joined" post per existing profile.
 3. `npx supabase functions deploy gtl-api` to ship the `/community/*` routes.
 4. Check: signed in, `POST /functions/v1/gtl-api/community/read` with `{}` returns your feed. Signed out, it returns 401.
-5. Publish Week 6: until the screen ships, `POST /community/publish-preview` and then `/community/publish` with `{"season":2026,"week":6}` while signed in as Sean. Members then submit through the league-free weekly ballot (`/personal/ballot`).
+5. Publish Week 6: in the app, Community → Publish a week → Review schedule → Publish Week 6. (Before the frontend deploy, the same can be done with `POST /community/publish-preview` and then `/community/publish` with `{"season":2026,"week":6}` while signed in as Sean.) Members then submit through the league-free weekly ballot (`/personal/ballot`).
 6. Frontend deploy only after the feed screen PR merges: `npm run build:cloud`, then `npm run cloudflare`.
 7. Record the release (commit, migration, function version) in a new `docs/RELEASE_*.md`.
 
