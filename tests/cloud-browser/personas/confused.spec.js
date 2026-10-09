@@ -1,11 +1,17 @@
 // Persona (g): confused user. Opens the app after the deadline, before a week is published,
 // with one market submitted and the other sat out, and with no groups. Are the states explained?
-import { test, expect, pgliteAvailable, futureDeadline } from './harness.mjs';
+import { test, expect, pgliteAvailable, futureDeadline, id } from './harness.mjs';
 import { weekOpenAt } from '../../../shared/nfl-schedule.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
 const DAY = 86_400_000;
+/** Another member submits a full ballot through the real save RPC (the handler's commit for /personal/ballot), as from their own device. */
+async function submitAs(persona, userId, mode, picks) {
+  const { season, week } = persona.state.league;
+  const body = { season, week, mode, weeklyRevision: 0, picks, submit: true, requestId: crypto.randomUUID(), revision: 0 };
+  await persona.db.transaction(async tx => { await tx.exec('set local role service_role'); await tx.query('select public.gtl_mutate_personal(p_user=>$1,p_action=>$2,p_body=>$3)', [userId, 'personal/ballot', body]); });
+}
 const pacific = (iso, options = {}) => new Date(iso).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', ...options });
 
 test('confused: after the deadline', async ({ page, persona }) => {
@@ -132,8 +138,10 @@ test('confused: week published but not open yet (D-24)', async ({ page, persona 
 test('confused: one market submitted, the other sat out', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await persona.start({ games: 3 });
-  // The player submitted Spread from another device and never touched Total.
+  // The player submitted Spread from another device and never touched Total. Troy submitted Total (D-23 hides his numbers from Ben
+  // until Ben submits Total or sits out); Luke submitted nothing.
   await persona.saveBallot('guess_spread', { 'TB-DAL': -3, 'PHI-JAX': 2.5, 'CIN-MIA': -1 }, true);
+  await submitAs(persona, id(2), 'guess_total', { 'TB-DAL': 44, 'PHI-JAX': 47.5, 'CIN-MIA': 41 });
   await persona.signIn();
   // Quick win 10 (#15): the submitted market stays on the card with a check and the other is marked still due.
   await expect(page.locator('.picks-due')).toContainText('Spread ✓ submitted · Total 0/3 still due');
@@ -144,6 +152,8 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   await expect(post).toBeVisible();
   const picks = await post.locator('.post-picks').innerText();
   persona.finding({ screen: 'feed-half-done', severity: 3, experience: `The feed post for the submission lists the picks as "${picks.replace(/\n/g, ' / ')}" using team codes ("TB @ DAL") and "Cowboys −3", while the Picks tab uses full names and the leaderboard uses the player's name only. The card reads "${card.replace(/\n/g, ' · ')}".`, fix: 'Use one team naming scheme across feed, picks and leaderboard (code + nickname).', evidence: { picks } });
+  const troyTotal = page.locator('.feed-post').filter({ hasText: 'Troy Fixture submitted Week 5 Total picks' });
+  await expect(troyTotal).toContainText('Submit your Week 5 Total picks to see these.');
   // "Make picks" opens the first market still due: Total, with Spread shown as submitted.
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
   await expect(page.locator('.week-pick').first()).toBeVisible();
@@ -151,31 +161,68 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   await expect(market.getByRole('button', { name: 'Total', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(market.getByRole('button', { name: 'Spread ✓', exact: true })).toHaveAttribute('aria-pressed', 'false');
   await persona.shot('picks-half-done');
-  await expect(page.locator('.week-pick').first().locator('.number-chip').first()).toBeVisible();
-  // D-23: sitting out Total is final. The control, the dialog and the states afterwards.
-  const sitOut = page.getByRole('button', { name: 'Sit out this week' });
+  const cards = page.locator('.week-pick');
+  await expect(cards.first().locator('.number-chip').first()).toBeVisible();
+  // One Total pick saved as a draft before the opt-out: D-23 keeps it, and the sat-out screen still shows it (as not scored).
+  await cards.first().getByRole('button', { name: '44', exact: true }).click();
+  await page.locator('.save-bar').getByRole('button', { name: 'Save draft' }).click();
+  await expect(page.locator('.save-bar .save-notice')).toHaveText('Draft saved.');
+  // D-23: sitting out Total is final. Bigger change #40 (docs/PERSONA_AUDIT_2026_10_09.md): the trigger is a text link below the
+  // ballot, after Save draft and Submit, with a one-line "final" hint; it is not in the save bar. The dialog, its copy, its initial
+  // focus and Escape are unchanged.
+  const sitOut = page.locator('.sit-out-row').getByRole('button', { name: 'Sit out this week' });
   await expect(sitOut).toBeVisible();
+  await expect(page.locator('.save-bar').getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
+  await expect(page.locator('.sit-out-row')).toHaveText("Not playing Week 5 Total? Sit out this week · Final: it forfeits this week's Total score (recorded as sat out, not zero).");
   await sitOut.click();
   const dialog = page.getByRole('dialog', { name: 'Sit out Week 5 Total?' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Keep my ballot' })).toBeFocused();
-  const dialogText = await dialog.innerText();
+  await expect(dialog).toContainText("This is final for Week 5 Total. You forfeit this week's Total score, which is recorded as sat out, not zero. You cannot submit Total picks for this week afterwards.");
+  await expect(dialog).toContainText('Spread is not affected.');
   await persona.shot('sit-out-dialog', { fullPage: false });
   await persona.axe('sit-out-dialog');
-  persona.finding({ screen: 'sit-out-dialog', severity: 4, experience: `The sit-out dialog is explicit: "${dialogText.split('\n').find(line => line.startsWith('This is final'))}" Focus starts on "Keep my ballot" and Escape cancels. Good. The trigger itself, "Sit out this week" in the save bar, gives no hint that it is final until the dialog opens.`, fix: 'Keep the dialog; label the trigger "Sit out this week (final)" or move it out of the save bar.' });
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(sitOut).toBeFocused();
+  await sitOut.click();
+  await expect(dialog).toBeVisible();
   await dialog.getByRole('button', { name: 'Sit out Total' }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.locator('.week-picks > p.muted')).toContainText("Sat out · others' picks visible");
   await expect(page.locator('.save-bar')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
+  // Bigger change #41: the sat-out market shows the other members' revealed Total picks where the chip rows were, as read-only
+  // chips: Troy's submitted numbers, Luke as not submitted, and the viewer's own kept draft marked not scored. No chip picker.
+  await expect(page.locator('.week-sat-out')).toHaveText("You sat out Week 5 Total. This week's Total score is recorded as sat out, not zero. The other members' Total picks show below once they submit.");
+  // The link that had focus is gone, so focus moves to that note rather than stranding on <body> (2.4.3).
+  expect(await persona.focused()).toMatchObject({ tag: 'p', name: 'You sat out Week 5 Total. This week\'s To' });
+  await expect(cards.first().locator('.chip-picker')).toHaveCount(0);
+  const revealed = cards.first().locator('.revealed-picks');
+  await expect(revealed).toHaveAttribute('aria-label', 'Tampa Bay Buccaneers at Dallas Cowboys Total picks');
+  await expect(revealed.locator('li')).toHaveText(['You · draft (not scored)44', 'Troy Fixture44', 'Luke FixtureNot submitted yet']);
+  await expect(revealed.locator('.revealed-chip')).toHaveClass([/chip number-chip selected revealed-chip/, /chip number-chip selected revealed-chip/]);
+  await expect(cards.nth(1).locator('.revealed-picks li')).toHaveText(['Troy Fixture47.5', 'Luke FixtureNot submitted yet']);
+  await expect(cards.nth(2).locator('.revealed-chip')).toHaveText(['41']);
+  await expect(page.locator('.week-pick button.chip')).toHaveCount(0);
   await persona.shot('picks-sat-out');
-  const satOutHeader = await page.locator('.week-picks > p.muted').innerText();
-  const othersVisible = await page.locator('.week-picks').innerText();
-  persona.finding({ screen: 'picks-sat-out', severity: 3, experience: `After sitting out, the Picks header reads "${satOutHeader}" and the chips grey out, but the ${persona.state.games.length} game cards still show the full chip rows (disabled) and ${/Troy|Luke/.test(othersVisible) ? 'other players\' picks appear' : 'no other player\'s picks appear on this screen'}; the promise "others' picks visible" points to the feed, not here.`, fix: 'Replace the disabled chip rows with the revealed picks table (or a link to the feed posts) on a sat-out market.' });
+  await persona.axe('picks-sat-out');
+  // Nothing of that on the other market: Spread is the viewer's own submitted ballot, with its chips and no revealed list.
+  await market.getByRole('button', { name: 'Spread ✓', exact: true }).click();
+  await expect(page.locator('.revealed-picks')).toHaveCount(0);
+  await expect(page.locator('.week-sat-out')).toHaveCount(0);
+  await expect(cards.first().locator('.chip-picker')).toHaveCount(1);
+  await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3');
+  await market.getByRole('button', { name: 'Total · Sat out', exact: true }).click();
+  await expect(page.locator('.revealed-picks')).toHaveCount(3);
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Feed', exact: true }).click();
   await expect(page.locator('.picks-due')).toHaveCount(0);
   await expect(page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Picks', exact: true })).toBeVisible();
   const totalCell = await page.locator('.community-leaderboard tr.me td').nth(2).innerText();
   expect(totalCell).toBe('Sat out');
+  // The D-23 reveal reaches the feed too: Troy's Total post now carries his numbers.
+  await expect(troyTotal.locator('.post-picks')).toContainText('44');
+  await expect(troyTotal).not.toContainText('Submit your Week 5 Total picks to see these.');
   await persona.shot('feed-sat-out');
   persona.finding({ screen: 'feed-sat-out', severity: 4, experience: 'After sitting out Total the picks-due card disappears entirely and the leaderboard shows "Sat out" in the Total week column with a footnote. Nothing on the feed records that the player sat out (no post), so the act is invisible to everyone else until the leaderboard is read.', fix: 'Post "Ben sat out Week 5 Total" to the feed like a submission, so the reveal to others is explained.' });
   expect(await persona.noOverflow()).toBe(true);

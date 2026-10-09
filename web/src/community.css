@@ -51,6 +51,16 @@
 .sit-out-dialog .review-actions button{flex:1;min-height:44px}
 .sit-out-dialog .form-error{color:var(--loss);margin:8px 0}
 .sit-out-dialog p{margin-top:12px}
+/* Persona audit #40: the final opt-out is a text link in its own row below the ballot, after the save bar, never a button beside Save draft. */
+.sit-out-row{margin:16px 0 0;font-size:16px;line-height:24px}
+.sit-out-row .sit-out-link{display:inline-flex;min-height:44px;padding:0 4px;font-size:16px;color:var(--text);text-decoration:underline;text-underline-offset:3px;vertical-align:middle}
+/* Persona audit #41: on a sat-out market the other members' revealed picks replace the chip rows, as read-only chips with the chip look. */
+.week-sat-out{margin:8px 0}
+.revealed-picks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.revealed-picks li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.revealed-name{flex:1 1 160px;font-weight:600}
+.revealed-value{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px}
+.revealed-chip{display:inline-flex;align-items:center}
 /* Persona audit quick wins (docs/PERSONA_AUDIT_2026_10_09.md): home order, quiet week states, chip helper, error banners beside the control, forced colours. */
 /* Busy controls are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…"; they look like disabled ones. */
 .community-home [aria-disabled="true"]{cursor:not-allowed;opacity:.4}
