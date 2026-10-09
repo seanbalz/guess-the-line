@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { seed } from '../server/store.mjs';
 import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
+import { weekOpenAt } from '../shared/nfl-schedule.mjs';
 
 // Optional disposable PostgreSQL runtime; never connects to the hosted project.
 // Install: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
@@ -20,6 +21,7 @@ const MIGRATIONS = [
   '20261009120000_gtl_community_feed.sql',
   '20261009130000_gtl_league_interest.sql',
   '20261009140000_gtl_d23_data_rule.sql',
+  '20261009150000_gtl_auto_open_week.sql',
 ];
 const SEAN = 30, TROY = 1, BEN = 2, NEW = 3;
 
@@ -228,6 +230,14 @@ test('community feed migration: one community, automatic posts, gated picks, lik
     assert.deepEqual([feed.week.week, feed.week.games], [6, 2]);
     assert.equal(feed.picksDue.state, 'due');
     assert.deepEqual(feed.due.map(d => d.filled), [0, 0]);
+    // D-24: the published week is not due until Monday 00:00 PT (07:00 UTC in October).
+    const early = await read(BEN, Date.parse('2026-10-12T06:59:59Z'));
+    assert.deepEqual([early.picksDue.state, early.picksDue.opensAt, early.picksDue.week, early.picksDue.modes.length], ['not_open', '2026-10-12T07:00:00.000Z', 6, 2]);
+    assert.equal((await read(BEN, Date.parse('2026-10-12T07:00:00Z'))).picksDue.state, 'due');
+    assert.equal(new Date((await as('service_role', 'select public.gtl_week_open_at(2026,6) t')).rows[0].t).toISOString(), '2026-10-12T07:00:00.000Z', 'SQL agrees with the handler');
+    const status = await handleCommunity({ route: '/community/week-open', body: {}, user: user(SEAN), service });
+    assert.deepEqual([status.configured, status.enabled, status.lastStatus, status.currentWeek.week, new Date(status.currentWeek.openAt).toISOString()], [false, false, null, 6, '2026-10-12T07:00:00.000Z']);
+    await assert.rejects(() => handleCommunity({ route: '/community/week-open', body: {}, user: user(TROY), service }), error => error.status === 403);
     const post = feed.posts.find(p => p.kind === 'week_published');
     assert.deepEqual([post.week, post.games], [6, 2]);
     const template = (await db.query("select games from public.gtl_schedule_templates where id='nfl-2026-week-06'")).rows[0].games;
@@ -241,6 +251,21 @@ test('community feed migration: one community, automatic posts, gated picks, lik
     const older = await read(TROY, undefined, { before: page.posts[1].createdAt, limit: 100 });
     assert(older.posts.every(p => Date.parse(p.createdAt) < Date.parse(page.posts[1].createdAt)));
     assert.equal(older.posts.length + 2 <= all.length, true);
+  });
+
+  await t.test('a published week refuses every ballot save before its Monday 00:00 PT open', async () => {
+    // Real clock: a Week 7 slate whose TNF is Thursday ~5:15 PM PT in a week that has not started.
+    const DAY = 86_400_000, now = Date.now(), monday = Date.parse(weekOpenAt(now + 10 * DAY)), deadline = monday + 3 * DAY + 17.25 * 3_600_000;
+    assert(monday > now);
+    await db.query("insert into public.gtl_weekly_slates(season,week,signature) values(2026,7,jsonb_build_object('season',2026,'week',7,'deadline',$1::double precision,'games',jsonb_build_array(jsonb_build_object('id','KC-BUF','away','KC','home','BUF','kickoff',$1::double precision))))", [deadline / 1000]);
+    await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,2026,7)', [id(TROY)]);
+    await assert.rejects(() => db.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,7,'guess_spread','{\"picks\":{}}')", [id(TROY)]), /GTL_PREDICTION_NOT_OPEN/, 'a draft');
+    await assert.rejects(() => db.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,7,'guess_total',$2)", [id(TROY), { picks: { 'KC-BUF': 44 }, submittedAt: new Date().toISOString() }]), /GTL_PREDICTION_NOT_OPEN/, 'a submission, before any odds-reference check');
+    assert.equal((await db.query('select count(*)::int n from public.gtl_weekly_ballots where week=7')).rows[0].n, 0);
+    const feed = await read(TROY, now);
+    assert.deepEqual([feed.week.week, feed.picksDue.state, feed.picksDue.opensAt], [7, 'not_open', weekOpenAt(deadline)]);
+    await ballot(TROY, 'guess_total', null, 40);
+    assert.equal((await db.query("select count(*)::int n from public.gtl_weekly_ballots where user_id=$1 and week=$2", [id(TROY), slate.week])).rows[0].n, 2, 'the already-open week still saves');
   });
 
   await t.test('coming-soon league interest (D-22): service-only, idempotent toggles, counts exclude removed members', async () => {

@@ -6,13 +6,15 @@ import ChipPicker from './ChipPicker';
 import TeamFacts from './TeamFacts';
 import SitOutWeek from './SitOutWeek';
 import { cloudApi, communityApi, date } from './api';
-import { TEAM_NAMES } from '../../shared/nfl-schedule.mjs';
+import { TEAM_NAMES, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import './community.css';
 
 const MODE = { guess_spread: 'Spread', guess_total: 'Total' };
 const show = n => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
 const team = code => TEAM_NAMES[code] || code;
 const shortName = code => team(code).split(' ').at(-1);
+// D-24: "Mon, Oct 12, 12:00 AM" — the week's Monday 00:00 Pacific open.
+const opensText = (week, opensAt) => `Week ${week} opens ${date(opensAt, { weekday: 'short' })} PT`;
 
 // D-22: NFL is the only live league; the rest are "Coming soon" with no games, picks, schedules or odds.
 // Windows are typical season timing, not dates for a specific season.
@@ -59,12 +61,12 @@ function ComingSoon({ feed, busy, onNotify }) {
 
 function PicksDue({ due, onPick }) {
   if (!due || ['none', 'done'].includes(due.state)) return null;
-  const closed = due.state === 'closed';
+  const closed = due.state === 'closed', notOpen = due.state === 'not_open';
   return <section className={`panel picks-due ${due.state}`} role={due.state === 'urgent' ? 'alert' : 'status'}>
     <Bell size={22} aria-hidden="true"/>
-    <div><h2>{closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2>
-      <p>{due.modes.map(m => `${MODE[m.mode]} ${m.filled}/${m.games}`).join(' · ')} · {closed ? 'Deadline passed' : `Due ${date(due.deadline)} PT`}</p></div>
-    {!closed && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
+    <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2>
+      <p>{due.modes.map(m => `${MODE[m.mode]} ${m.filled}/${m.games}`).join(' · ')} · {closed ? 'Deadline passed' : notOpen ? `Then due ${date(due.deadline)} PT` : `Due ${date(due.deadline)} PT`}</p></div>
+    {!closed && !notOpen && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
   </section>;
 }
 
@@ -136,6 +138,15 @@ function Post({ post, name, onLike, onComment, busy }) {
   </article>;
 }
 
+function SchedulerStatus() {
+  const [status, setStatus] = useState(null), [failed, setFailed] = useState(false);
+  useEffect(() => { communityApi('week-open').then(setStatus).catch(() => setFailed(true)); }, []);
+  if (failed) return <p className="muted small scheduler-status">Automatic opening status unavailable.</p>;
+  if (!status) return null;
+  const last = status.lastRunAt ? `Last run ${date(status.lastRunAt)} PT · ${status.lastStatus}${status.lastReason ? ` (${status.lastReason.replaceAll('_', ' ')})` : ''}` : 'No runs yet';
+  return <p className="muted small scheduler-status" role="status">Automatic opening: <strong>{status.enabled ? 'enabled' : status.configured ? 'disabled' : 'not configured'}</strong> · Mondays 12:00 AM PT · {last}</p>;
+}
+
 function PublishWeek({ week, onDone }) {
   const [season, setSeason] = useState(week?.season || new Date().getFullYear()), [number, setNumber] = useState((week?.week || 0) + 1);
   const [preview, setPreview] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
@@ -147,8 +158,9 @@ function PublishWeek({ week, onDone }) {
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   }
   return <section className="panel publish-week" aria-label="Publish week">
-    <div className="section-title"><h2><CalendarPlus size={18}/>Publish a week</h2></div>
-    <p className="muted small">Commissioner only. Loads the public NFL schedule for review; nothing changes until you publish.</p>
+    <div className="section-title"><h2><CalendarPlus size={18}/>Preview / publish early (fallback)</h2></div>
+    <p className="muted small">Commissioner only. Weeks open automatically Monday 12:00 AM PT; use this to review the public NFL schedule or publish early if the scheduler fails. Nothing changes until you publish.</p>
+    <SchedulerStatus/>
     <div className="publish-fields"><label>Season<input type="number" value={season} min={2000} max={2200} onChange={e => { setSeason(e.target.value); setPreview(null); }} disabled={busy}/></label>
       <label>Week<input type="number" value={number} min={1} max={25} onChange={e => { setNumber(e.target.value); setPreview(null); }} disabled={busy}/></label>
       <button className="secondary" disabled={busy} onClick={() => run('publish-preview')}>Review schedule</button></div>
@@ -174,6 +186,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
   if (!data) return error ? <div className="error-banner" role="alert">{error}</div> : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
   const picks = picksOf(data, mode, draft);
   const ballot = data.ballots[mode], submitted = !!ballot?.submittedAt, closed = Date.parse(data.now) >= Date.parse(data.deadline);
+  const opensAt = weekOpenAt(data.deadline), notOpen = Date.parse(data.now) < Date.parse(opensAt);
   const satOut = optOuts.includes(mode);
   const filled = Object.values(picks).filter(v => v !== '').length;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
@@ -194,6 +207,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
       <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy || (dirty && mode !== m)} onClick={() => setMode(m)}>
         {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
     <p className="muted">Week {data.week} · {satOut ? "Sat out · others' picks visible" : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline)} PT`}${submitted ? ' · Submitted, editable until the deadline' : ''}`}</p>
+    {notOpen && <p className="auth-notice week-not-open" role="status">{opensText(data.week, opensAt)}. Nobody can pick before then.</p>}
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
     {notice && <p className="auth-notice" role="status">{notice}</p>}
     <div className="week-pick-list">{data.games.map(g => <article className="panel week-pick" key={g.id}>
@@ -201,9 +215,9 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
       <p className="muted small">{date(g.kickoff)} PT</p>
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
       <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
-        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || closed || satOut} onChange={value => setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } }))}/>
+        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || closed || notOpen || satOut} onChange={value => setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } }))}/>
     </article>)}</div>
-    {!closed && !satOut && <div className="save-bar"><strong>{filled}/{data.games.length} ready</strong>
+    {!closed && !notOpen && !satOut && <div className="save-bar"><strong>{filled}/{data.games.length} ready</strong>
       {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} disabled={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
       {!submitted && <button className="secondary" disabled={busy || !dirty} onClick={() => save(false)}>Save draft</button>}
       <button className="primary" disabled={busy || filled !== data.games.length || (submitted && !dirty)} onClick={() => save(true)}>{submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
@@ -232,7 +246,7 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
     setOlder(o => [...o, ...result.posts]);
   });
   const posts = feed ? [...feed.posts, ...older] : [];
-  const due = feed?.picksDue && feed.picksDue.state !== 'none' && feed.picksDue.state !== 'done' ? feed.picksDue.modes.length : 0;
+  const due = feed?.picksDue && ['due', 'urgent'].includes(feed.picksDue.state) ? feed.picksDue.modes.length : 0;
   return <div className="hub-shell community-home">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{displayName}</span></div></header>

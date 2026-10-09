@@ -18,12 +18,13 @@ const ERRORS = {
   GTL_MATCHING_BALLOT_REQUIRED: [403, 'Submit the matching Spread or Total ballot before recording a market selection.'],
   GTL_BALLOT_LOCKED: [409, 'This ballot is submitted and permanently locked.'],
   GTL_PREDICTION_CLOSED: [409, 'The prediction deadline has passed.'],
+  GTL_PREDICTION_NOT_OPEN: [409, 'This week’s picks open Monday 12:00 AM PT.'],
   GTL_COMMUNITY_SAT_OUT: [409, 'You sat out this week for that market. Its picks are closed.'],
   GTL_BALLOT_INCOMPLETE: [400, 'Complete every prediction before submitting.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your weekly ballot changed in another group or on another device. Refresh and review before saving.'],
 };
-export class PersonalError extends Error { constructor(status, message) { super(message); this.status = status; } }
-export const providerPersonalError = message => ERRORS[message] ? new PersonalError(...ERRORS[message]) : new Error('Personal workspace unavailable.');
+export class PersonalError extends Error { constructor(status, message, code) { super(message); this.status = status; if (code) this.code = code; } }
+export const providerPersonalError = message => ERRORS[message] ? new PersonalError(...ERRORS[message], message) : new Error('Personal workspace unavailable.');
 const invalid = () => { throw providerPersonalError('GTL_PERSONAL_INVALID'); };
 const fields = (body, allowed) => { if (!body || Array.isArray(body) || Object.keys(body).some(key => !allowed.includes(key))) invalid(); };
 const text = (value, max, min = 0) => typeof value === 'string' && value.trim().length >= min && value.length <= max && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(value);
@@ -86,5 +87,11 @@ export async function handlePersonal({ route, body = {}, user, service, clock = 
   if (['/journal/correct', '/journal/archive'].includes(route) && (!UUID_PATTERN.test(body.entryId || '') || !text(body.reason, 300, 3))) invalid();
   if (route === '/journal/archive' && typeof body.archived !== 'boolean') invalid();
   const commit = () => service.rpc('gtl_mutate_personal', { ...actor, p_action: route.slice(1), p_body: payload });
-  return route === '/personal/ballot' && submitBallot ? submitBallot(payload, commit) : commit();
+  if (route !== '/personal/ballot') return commit();
+  try { return await (submitBallot ? submitBallot(payload, commit) : commit()); }
+  catch (error) {
+    // D-24: name the week so the message matches the picks-due notice.
+    if (error?.code === 'GTL_PREDICTION_NOT_OPEN') throw new PersonalError(error.status, `Week ${payload.week} picks open Monday 12:00 AM PT.`, error.code);
+    throw error;
+  }
 }
