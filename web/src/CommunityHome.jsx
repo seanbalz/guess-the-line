@@ -162,14 +162,17 @@ function PublishWeek({ week, onDone }) {
 }
 
 function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
-  const [data, setData] = useState(null), [mode, setMode] = useState('guess_spread'), [picks, setPicks] = useState({});
+  const [data, setData] = useState(null), [mode, setMode] = useState('guess_spread'), [draft, setDraft] = useState(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const request = useRef(null);
   const load = useCallback(async () => { const result = await cloudApi('personal'); setData(result); return result; }, []);
   useEffect(() => { load().catch(e => setError(e.message)); }, [load]);
   const picksFor = (d, m) => Object.fromEntries(d.games.map(g => [g.id, d.ballots[m]?.picks?.[g.id] ?? '']));
-  useEffect(() => { if (data) setPicks(picksFor(data, mode)); }, [data, mode]);
+  // Picks derive from the loaded week and the market in the same render, never one render late: a draft counts only for the data and mode it was entered against,
+  // so a market switch or a reload can never show one market's values in the other's chips.
+  const picksOf = (d, m, dr) => (dr && dr.data === d && dr.mode === m ? dr.picks : picksFor(d, m));
   if (!data) return error ? <div className="error-banner" role="alert">{error}</div> : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
+  const picks = picksOf(data, mode, draft);
   const ballot = data.ballots[mode], submitted = !!ballot?.submittedAt, closed = Date.parse(data.now) >= Date.parse(data.deadline);
   const satOut = optOuts.includes(mode);
   const filled = Object.values(picks).filter(v => v !== '').length;
@@ -188,7 +191,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
   }
   return <section className="week-picks">
     <div className="personal-actions" role="group" aria-label="Market">{Object.entries(MODE).map(([m, label]) =>
-      <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy || (dirty && mode !== m)} onClick={() => { setMode(m); setPicks(picksFor(data, m)); }}>
+      <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy || (dirty && mode !== m)} onClick={() => setMode(m)}>
         {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
     <p className="muted">Week {data.week} · {satOut ? "Sat out · others' picks visible" : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline)} PT`}${submitted ? ' · Submitted, editable until the deadline' : ''}`}</p>
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
@@ -198,7 +201,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
       <p className="muted small">{date(g.kickoff)} PT</p>
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
       <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
-        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || closed || satOut} onChange={value => setPicks(p => ({ ...p, [g.id]: value }))}/>
+        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || closed || satOut} onChange={value => setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } }))}/>
     </article>)}</div>
     {!closed && !satOut && <div className="save-bar"><strong>{filled}/{data.games.length} ready</strong>
       {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} disabled={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
