@@ -6,9 +6,9 @@ The team-logo follow-up expanded coverage to 15 transparent local team marks,
 with individual source versions and checksums in [TEAM_LOGO_SOURCES.md](TEAM_LOGO_SOURCES.md).
 The registry now lives in `web/src/teamLogoRegistry.js` and is imported by
 `TeamIdentity`. Buffalo and the New York Jets now use individually verified
-Commons assets. The remaining 17 teams retain abbreviation fallbacks pending
-applicable reuse evidence or the user's answer about changing the current
-repository restriction. This is partial actual-logo coverage. Isolated
+Commons assets. The other 17 teams show original Guess The Line badges under
+D-22 (October 9, 2026); official-mark rights checks for them remain pending.
+This is partial actual-logo coverage. Isolated
 Light/Dark, 320px/390px/1440px, transparency, image failure and accessible-name
 checks passed. These two additions are local; production release verification
 is recorded separately in CLOUD_SETUP.
