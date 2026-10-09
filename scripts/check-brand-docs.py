@@ -15,8 +15,10 @@ README = (ROOT / "README.md").read_text()
 
 assert TOKENS["name"].casefold() == "guess the line", "Unexpected brand token name"
 assert "GUESS THE LINE" in GUIDE, "Brand guide is missing"
-assert "Owner: Sean Balsiger" in PLAN and "Version 1" in PLAN
+assert re.search(r"Owner: Sean Balsiger · Version [1-9]\d* ·", PLAN)
 assert "play-money" in PLAN and "not implemented or deployed" in PLAN
+assert "## Confirmed play rules" in PLAN and "## Recommended defaults for remaining choices" in PLAN
+assert "recommendations, not confirmed D-18 rules" in PLAN
 assert "do not impose a quote-age cutoff" in PLAN.lower()
 assert "source" in PLAN.lower() and "age" in PLAN.lower()
 assert "D-18" in DECISIONS and "D-18" in RULES and "D-18" in README
