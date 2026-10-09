@@ -14,6 +14,7 @@ import { MODES } from '../server/domain.mjs';
 import { handleOddsCollection, ODDS_METHODS, OddsCollectionError, providerCollectionError } from './odds-collection.mjs';
 import { weeklyView, WeeklyError, providerWeeklyError } from './weekly.mjs';
 import { handleLobby, LOBBY_METHODS, LobbyError, normalizeEmail, providerLobbyError } from './lobby.mjs';
+import { handleVirtualUnits, VIRTUAL_METHODS, VirtualUnitsError, providerVirtualError } from './virtual-units.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const CORS = {
@@ -86,7 +87,7 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, results, odds, oddsProvider, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, results, odds, oddsProvider, virtual, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   async function submitWithFreshOdds(user, intent, commit) {
     if (!odds?.rpc) throw new SubmissionOddsError();
     return runSubmissionWithFreshOdds({
@@ -148,12 +149,12 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
     try {
       const url = new URL(request.url);
       const route = url.pathname.replace(/^\/(?:functions\/v1\/)?gtl-api(?=\/)/, '');
-      const methods = { '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'], ...LOBBY_METHODS, ...PERSONAL_METHODS, ...SOCIAL_METHODS, ...RESULTS_METHODS, ...ODDS_METHODS, ...BENCHMARK_METHODS };
+      const methods = { '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'], ...LOBBY_METHODS, ...PERSONAL_METHODS, ...SOCIAL_METHODS, ...RESULTS_METHODS, ...ODDS_METHODS, ...BENCHMARK_METHODS, ...VIRTUAL_METHODS };
       if (!Object.hasOwn(methods, route)) return json({ error: 'Not found.' }, 404);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
       if (!methods[route].includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: [...methods[route], 'OPTIONS'].join(', ') });
       const gameRoute = ['/state', '/export', '/ballot', '/bet'].includes(route);
-      const allowedQueries = [...(gameRoute || ['/invites', '/invite/revoke', '/benchmark/freeze'].includes(route) ? ['league'] : []), ...(['/state', '/ballot'].includes(route) ? ['mode'] : [])];
+      const allowedQueries = [...(gameRoute || ['/invites', '/invite/revoke', '/benchmark/freeze', '/virtual-units', '/virtual-pick'].includes(route) ? ['league'] : []), ...(['/state', '/ballot'].includes(route) ? ['mode'] : [])];
       for (const key of url.searchParams.keys()) {
         if (!allowedQueries.includes(key) || url.searchParams.getAll(key).length !== 1) fail(400, 'Unexpected query parameter. Player identity comes from sign-in.');
       }
@@ -192,6 +193,11 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
         const commissioner = await storage.membership(user.id, 'sean-troy-luke');
         if (!commissioner || commissioner.active !== true || commissioner.player_id !== 'sean' || commissioner.role !== 'commissioner') throw providerBenchmarkError('GTL_ODDS_FORBIDDEN');
         return json(await handleBenchmarkFreeze({ body, user, leagueId, service: odds }));
+      }
+      if (Object.hasOwn(VIRTUAL_METHODS, route)) {
+        const member = await storage.membership(user.id, leagueId);
+        if (!member || member.active !== true) throw providerVirtualError('GTL_FORBIDDEN');
+        return json(await handleVirtualUnits({ route, body, user, leagueId, service: virtual, weekly, odds, clock }));
       }
       if (!gameRoute) return json(await handleLobby({ route, method: request.method, body, user, leagueId, service: lobby, siteUrl }));
       if (request.method === 'POST') {
@@ -233,7 +239,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       const freshEngine = createEngine(refreshed.state, { clock, uuid });
       return json(await marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId));
     } catch (error) {
-      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
+      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
       // Provider payloads and internal errors may contain secrets or private state.
       return json({ error: 'The saved data service is temporarily unavailable. Please try again.' }, 503);
     }
@@ -337,6 +343,18 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
       saveSelection: (userId, leagueId, revision, selection) => weeklyRpc('gtl_save_weekly_selection', {
         p_user: userId, p_league: leagueId, p_revision: revision, p_selection: selection,
       }),
+    },
+    virtual: {
+      async read(userId, leagueId) {
+        const response = await request('/rest/v1/rpc/gtl_read_virtual_units', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_league: leagueId }) });
+        if (!response.ok) { let message; try { message = (await response.json())?.message; } catch {} throw providerVirtualError(message); }
+        return response.json();
+      },
+      async save(userId, leagueId, revision, body) {
+        const response = await request('/rest/v1/rpc/gtl_save_virtual_units_pick', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_league: leagueId, p_revision: revision, p_body: body }) });
+        if (!response.ok) { let message; try { message = (await response.json())?.message; } catch {} throw providerVirtualError(message); }
+        return response.json();
+      },
     },
     results: {
       async review(userId, body) {
