@@ -19,6 +19,7 @@
     "cloudflare": "node scripts/cloudflare.mjs",
     "check:cloud": "node scripts/check-cloud-boundary.mjs",
     "test:cloud-browser": "playwright test --config playwright.cloud.config.js",
+    "test:personas": "node scripts/persona-static-checks.mjs && playwright test --config playwright.cloud.config.js tests/cloud-browser/personas",
     "test:engine": "vitest run",
     "typecheck": "tsc --noEmit",
     "score": "tsx src/cli.ts"
@@ -30,6 +31,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "^1.55.0",
     "@types/node": "^22.10.0",
     "@vitejs/plugin-react": "^5.0.0",
