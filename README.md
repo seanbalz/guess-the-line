@@ -1,15 +1,19 @@
-# Guess the Line
+# Guess The Line
 
-**Latest verified release (October 8, 2026):** Pages `531d14b5` / authenticated
-API v13 adds provisional Spread and Total comparisons in every matching group,
-optional dashboard matchup filtering, and 13 transparent team marks. Troy and
-Luke are linked to Triple Threat. Read `docs/CLOUD_SETUP.md` and the private
-`planning/project-tracker.json` v15 for evidence and remaining work. Earlier
-release counts below are historical. **D-16 is now confirmed:** Spread and Total
-use individual submission/edit-time scoring references and show current consensus
-separately. Local implementation and validation are complete; this is not a new
-cloud release. See [the implementation record](docs/SUBMISSION_TIME_SCORING.md).
-Global standings, Solo stake/ROI tracking and Best Bets remain separate work.
+**Latest verified release (October 8, 2026):** Pages `2106725d` and authenticated
+API v14 are deployed at [Guess The Line](https://guess-the-line.pages.dev), with
+JWT verification enabled. The release includes individual submission/edit-time
+scoring, fresh-reference checks, sportsbook source details, Solo, reviewed quote
+selections and final results, and the shared Bet Tracker with **Your betting
+week**. Six migrations were applied. See the [release record](docs/RELEASE_2026_10_08.md)
+and [cloud setup](docs/CLOUD_SETUP.md) for evidence and remaining work.
+
+Release checks passed: **368 Node, 29 local browser, 79 cloud-style browser and
+130 live access-denial checks**. These are separate checks, not proof of every
+real-device workflow. The local cloud preview at `http://127.0.0.1:4173` serves the
+exact production assets and uses the same hosted account data; the local owner
+preview remains a separate store. Earlier evidence below is historical. Global
+standings, Best Bets and the complete D-18 virtual-pick flow remain separate work.
 
 
 Private NFL prediction project for Sean, Troy and Luke. This checkout's remote is
@@ -116,7 +120,7 @@ cloud backend are deployed; Sean’s signed-in read and profile/game/invitation 
 See [dashboard setup, rules, verification and remaining work](docs/DASHBOARD_APP.md).
 
 
-Current cloud release: **Guess The Line** uses the selected Yardline G identity and Field monogram icon. The Dashboard has independent **Spread / Over/Under** views with expandable accuracy/gap bars and recorded line charts. Total analysis is explicitly provisional before an official Total policy and freeze. **Customize dashboard** provides five layouts, section visibility, motion and in-page notices, saved on this device. Hosted collection runs every twelve hours for the validated current slate; it does not automatically freeze the official kickoff benchmark or create future-week slates. Weekly Spread, Total and Challenge selections are shared
+Current cloud release: **Guess The Line** uses the selected Yardline G identity and Field monogram icon. The Dashboard has independent **Spread / Over/Under** views with expandable accuracy/gap bars and recorded line charts. Spread and Total points use each guess's saved submission/edit-time reference; the latest collected consensus appears separately, and historical missing references stay unscored. **Customize dashboard** provides five layouts, section visibility, motion and in-page notices, saved on this device. Hosted collection runs every twelve hours for the validated current slate; it does not automatically freeze a historical kickoff benchmark or create future-week slates. Weekly Spread, Total and Challenge selections are shared
 across every group on the same signed-in account. Sean’s original 15 spreads are
 preserved. Light/Dark/System is under **Settings & setup → Appearance** and on
 My games/sign-in; theme preference stays on each device. The intended recipient
@@ -131,4 +135,4 @@ separate work; see [visual polish](docs/VISUAL_POLISH.md).
 
 ## Shared Bet Tracker and weekly unit records
 
-The main Dashboard now includes **Your betting week**, with current-week records, risk, pending bets, ROI coverage and links into the shared tracker. The local app also has **Bet Tracker** and **Unit Betting** menu entries for shared singles, parlays, following, reviewed tails, player comparisons and ROI history. New tickets count by default; owners can exclude them with a visible audit. Private Solo entries and hidden prediction ballots remain separate. See [Social Bet Tracker](docs/SOCIAL_BET_TRACKER.md) for accounting, supplied Week 5 intake, local tests, cloud migration and the remaining D-18 virtual-game work. This implementation has not been deployed by the social-tracker task.
+The main Dashboard includes **Your betting week**, with current-week records, risk, pending bets, ROI coverage and links into the shared tracker. **Bet Tracker** and **Unit Betting** provide shared singles, parlays, following, reviewed tails, player comparisons and ROI history. New tickets count by default; owners can exclude them with a visible audit. Private Solo entries and hidden prediction ballots remain separate. These features are included in the [current production release](docs/RELEASE_2026_10_08.md). See [Social Bet Tracker](docs/SOCIAL_BET_TRACKER.md) for accounting, the separate local Week 5 intake, historical feature tests and the remaining D-18 virtual-game work. Deployment does not establish a live-account import of that local intake.

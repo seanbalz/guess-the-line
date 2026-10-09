@@ -1,6 +1,9 @@
 # Submission-time scoring — D-16
 
-Owner: Sean Balsiger. Decision recorded October 8, 2026. Local implementation and verification complete. Not deployed.
+Owner: Sean Balsiger. Decision recorded October 8, 2026. Deployed in Pages
+`2106725d` / API v14 with JWT verification enabled. See the
+[October 8 release record](RELEASE_2026_10_08.md). The feature's earlier local
+verification evidence is preserved below.
 
 Source: the available realtime transcript and current repository evidence. The
 user described feedback from Troy, Luke and Steven; their iMessage conversations
@@ -25,13 +28,13 @@ The twelve-hour collector remains unchanged. D-17 adds a shared refresh when a s
 
 ## Verification and delivery
 
-The local implementation includes the server engine, atomic weekly-ballot SQL
+The deployed implementation includes the server engine, atomic weekly-ballot SQL
 capture, scoring/market projections, saved-reference entry and comparison screens,
 and per-player reference charts. The CLI-created migration is
-`supabase/migrations/20261008225401_gtl_submission_time_scoring.sql`. It has not
-been applied to the hosted database.
+`supabase/migrations/20261008225401_gtl_submission_time_scoring.sql`. It was
+applied to the hosted database in the six-migration October 8 release.
 
-Verified locally:
+Earlier feature verification, performed locally before deployment:
 
 - 232 backend/database checks passed with zero skipped checks in
   `.local/d16-verified-unit-test.log`. The database checks execute SQL in local
@@ -56,14 +59,18 @@ Verified locally:
 The source validation review also corrected future-dated persisted scoring
 references and rejected malformed provider/event/paired-outcome evidence in the
 current-consensus display. Missing evidence never becomes a fabricated zero.
-Hosted migration, deployment and authenticated production readback remain
-outstanding. D-17 adds a local submission refresh and rejection path; the source
-coverage and free quota limits remain operational constraints.
+The subsequent release applied the hosted migration and deployed the API and
+frontend. D-17's shared submission refresh and rejection path is included. Source
+coverage and free quota limits remain operational constraints; successful real
+submission, physical-phone and second-device acceptance must not be inferred
+from deployment or synthetic browser tests.
 
-Release checks must include anonymous/authenticated denial of the new
+The release boundary includes anonymous/authenticated denial of the
 `gtl_submission_reference(jsonb,jsonb,text,timestamptz)` helper as well as the
-weekly read/write RPCs. Local SQL privilege checks passed; hosted checks must
-follow the hosted migration and must not be inferred from these local tests.
+weekly read/write RPCs. Local SQL privilege checks passed; the subsequent release
+also passed 130 live access-denial checks. The release record separately records
+368 Node, 29 local browser and 79 cloud-style browser checks; do not add earlier
+feature runs to those totals or treat denial checks as a real scoring submission.
 
 The root unit log ending 228/229 (`.local/d16-final-unit-test.log`) is an earlier
 intermediate run with an incomplete quote fixture. The corrected aggregate result

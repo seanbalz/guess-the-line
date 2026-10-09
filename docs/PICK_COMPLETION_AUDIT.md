@@ -7,6 +7,17 @@ Owner: Sean Balsiger · Prepared by Codex · Version 3 · October 8, 2026
 was simplified. Remaining gaps are listed below. No hosted change, provider-credit
 use or new collection policy was made by this audit.**
 
+**Subsequent release — October 8, 2026:** the audited entry/review improvements
+were included in Pages `2106725d` / API v14, with JWT verification enabled and
+six hosted migrations applied. The integrated release passed 368 Node checks,
+29 local browser checks, 79 cloud-style browser checks and 130 live access-denial
+checks. Its inspected 32 private tables have RLS, zero browser-role grants and
+zero browser-callable GTL database functions. The local cloud preview on port 4173
+serves the exact production assets. See [the release record](RELEASE_2026_10_08.md).
+This later release does not change the historical audit counts, apply the proposed
+collection-policy change, or close the recovery, real-device and comprehension
+gaps below. Historical deployment statements describe the time of this audit.
+
 The approved audit focuses on completing Spread and Total guesses without
 confusion or lost work, and understanding when a qualifying scoring quote is
 available. The goal is a simple path for a first-time player that remains fast

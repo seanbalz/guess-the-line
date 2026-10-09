@@ -1,7 +1,9 @@
 # Fresh submissions and sportsbook sources — D-17
 
-Owner: Sean Balsiger. Decision: October 8, 2026. Implementation is local;
-the migration, API and dashboard have not been deployed by this task.
+Owner: Sean Balsiger. Decision: October 8, 2026. Deployed in Pages `2106725d` /
+API v14 with JWT verification enabled. The hosted migration was applied in the
+subsequent six-migration release; see [the release record](RELEASE_2026_10_08.md).
+Earlier feature-task verification remains identified as local evidence below.
 
 ## Approved behavior
 
@@ -75,7 +77,7 @@ Action account alone would not establish those rights. No scraping, manual copy
 import or provider outreach was performed.
 [Action terms, sections 1–2](https://www.actionnetwork.com/terms).
 
-## Limits and remaining delivery work
+## Limits and remaining acceptance work
 
 Scheduled, commissioner and submission-triggered collection share one database
 lease, **four collection attempts per UTC day**, a **15-minute cooldown**, a
@@ -91,13 +93,19 @@ runs. Supporting arbitrary submission times may require a separate decision on
 collection frequency or shared submission windows; this implementation does not
 silently relax existing limits.
 
-Deploy all earlier pending migrations in order, then
-`supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql`, the updated
-API, and the dashboard as one reviewed release. Verify authenticated group and
-solo submission, source display, denied direct table/RPC access and production
-quota/lease behavior after deployment. Do not infer hosted concurrency or live
-operation from PGlite or mocked browser checks. Existing application changes from
-other sessions remain uncommitted and need release consolidation.
+The reviewed release applied the earlier dependencies and
+`supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql`, then deployed
+the API and dashboard. Its 130 live access-denial checks passed; the inspected
+32-table inventory had RLS enabled, zero browser-role grants and zero
+browser-callable GTL database functions. Release validation also passed 368 Node,
+29 local browser and 79 cloud-style browser checks. These are separate from the
+earlier feature evidence below.
+
+Authenticated group/Solo submission acceptance and production quota/lease
+behavior still require their own evidence. Do not infer a successful real save,
+hosted concurrency, fresh provider quotes or second-device behavior from a
+deployment, denial probe, PGlite or mocked browser check. Deployment does not
+establish publication of the working-tree changes to GitHub.
 
 ## Implementation evidence
 

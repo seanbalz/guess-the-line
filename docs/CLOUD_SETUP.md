@@ -1,14 +1,16 @@
-# Guess the Line — shared access setup
+# Guess The Line — shared access setup
 
 Owner: Sean Balsiger · Updated October 8, 2026 · Provisional GTL brand system
 
-**Subsequent local work — D-16:** the voice session confirmed submission-time
-Spread/Total scoring and new references for changed guesses on edit. The earlier
-pending-decision statements in this release history are historical. The new
-migration and application changes are verified locally; no hosted apply or
-deployment has been performed by this task. See
-[SUBMISSION_TIME_SCORING.md](SUBMISSION_TIME_SCORING.md). The verified hosted
-resources below still describe the preceding release.
+**Current release — Pages `2106725d` / API v14:** the frontend and authenticated
+API are deployed with JWT verification enabled. Six migrations add Solo,
+reviewed quote selections, submission-time scoring, reviewed final results,
+fresh-submission odds and social Bet Tracker. The release passed 368 Node checks,
+29 local browser checks, 79 cloud-style browser checks and 130 live access-denial
+checks. Local port 4173 serves the exact production assets. See the
+[October 8 release record](RELEASE_2026_10_08.md) for release evidence and limits.
+Earlier pending-decision, local-only and release statements below are historical;
+they do not override this current delivery status or close unrelated roadmap work.
 
 ## Verified resources
 
@@ -17,37 +19,52 @@ resources below still describe the preceding release.
   `us-east-1`. Its dashboard links to `seanbalz/guess-the-lines-repo`.
 - Migration `20261008164249_gtl_private_cloud_state.sql` applied; original
   15-game spread ballot and three snapshots imported without overwriting source
-  files. Dallas remains -9.5. Cloud revision starts at 0. Sean's game email was
+  files. Dallas remains -9.5. The initial cloud revision was 0. Sean's game email was
   confirmed and its verified Auth identity explicitly linked to the active
   `sean` commissioner membership. Troy and Luke are now linked to their reserved player slots.
-- `gtl-api` Edge Function version 13 deployed, with platform JWT verification
-  enabled. Anonymous raw-table reads and missing/invalid-session API calls
-  returned 401. Sean's Auth confirmation/sign-in event and roster mapping are
-  verified. The live dashboard subsequently showed Sean signed in with all 15
-  spread picks and the unofficial 96.4/150 historical score. Live profile, game creation and invitation writes are now verified.
-  Steven's real 15-pick submission is now verified; second-device verification remains unverified.
+- `gtl-api` Edge Function version 14 deployed, with platform JWT verification
+  enabled. The release passed 130 live access-denial checks. Earlier anonymous
+  raw-table reads and missing/invalid-session API calls returned 401. Sean's
+  previously verified Auth confirmation/sign-in event and roster mapping are
+  verified. Earlier release checks showed Sean signed in with all 15 spread
+  picks and the unofficial 96.4/150 historical score; that is not a new D-16
+  score. Profile, game creation, invitation writes and Steven's real 15-pick
+  submission were previously verified. Current signed-in production readback
+  showed the saved Spread/Total ballots, separate saved/current sportsbook
+  references and shared betting views. Second-device verification remains open.
 - Cloudflare personal account `83bd659d712e968e7a61efa14107465a` has verified
   browser and deployment access. The site is live at
   [guess-the-line.pages.dev](https://guess-the-line.pages.dev), deployment
-  `531d14b5` (13 transparent team marks, cross-group provisional Spread/Total analysis, and optional dashboard matchup filters). Only the compiled frontend was uploaded.
+  `2106725d`, including submission-time scoring, fresh-source handling, Solo,
+  reviewed selections/results and the shared betting dashboard. Only the compiled frontend was uploaded.
   The machine's previously stored CLI login belongs to a different account;
   `scripts/cloudflare.mjs` isolates this project's login and fixes the target
   account. It does not change the existing login.
+- The following six release migrations were applied, in order:
+  `20261008224444_gtl_personal_workspace.sql`,
+  `20261008224735_gtl_reviewed_quote_selections.sql`,
+  `20261008225401_gtl_submission_time_scoring.sql`,
+  `20261008225607_gtl_reviewed_final_results.sql`,
+  `20261008232055_gtl_fresh_submission_odds.sql`, and
+  `20261009005145_gtl_social_bet_tracker.sql`.
 
 ## Architecture and access
 
 Cloudflare Pages serves only `.local/cloud-dist/`. The browser uses Supabase
-Auth, then calls `gtl-api` with its user session. The function checks that session
-with Supabase Auth, looks up an active account-to-roster membership, and returns
-only the permitted player/mode view. Browser-supplied player IDs are rejected.
+Auth, then calls `gtl-api` with its user session. Group routes check that session
+and active account-to-roster membership before returning the permitted player/mode
+view. Solo records are account-private; deliberately shared Bet Tracker records
+are available to signed-in players without requiring group membership.
+Browser-supplied player IDs cannot select another account's private view.
 
 `gtl_leagues` stores the private league state and revision. `gtl_memberships`
 maps verified Auth user IDs to approved roster spots. Canonical weekly ballots and
 selections are keyed by the Auth user, season and week, with one shared revision.
-All 19 private tables have RLS and no grants to `anon` or `authenticated`;
-the server alone reads them. Supabase's
-19 informational `rls_enabled_no_policy` advisories describe this intentional
-deny-by-default setup, not public access. See the
+All 32 inspected private tables have RLS. The release inventory found zero direct
+browser-role table grants and zero browser-callable GTL database functions; the
+server alone accesses these private resources. Informational
+`rls_enabled_no_policy` advisories describe this intentional deny-by-default setup,
+not public access. See the
 [linter explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
 No service credential is stored in frontend configuration. Edge Functions use
 their platform-provided server environment.
@@ -74,22 +91,24 @@ npm run test:browser
 npm run test:cloud-browser
 ```
 
-The cloud preview runs on `http://127.0.0.1:4173`. Local preview storage and cloud
-storage are separate; saving in the local player preview does not sync to cloud.
+The cloud preview at `http://127.0.0.1:4173` serves the exact production assets and
+uses the same hosted account data when signed into the same account. This is
+separate from the local owner preview: its JSON storage does not sync to cloud.
+Theme/layout preferences remain device-local and unsaved drafts remain tab-local.
 The import script writes owner-only recovery files under `.local/`, imports
 existing local state if present, and never overwrites an existing cloud league.
 It is a one-time migration aid, not continuous synchronization.
 
-## Remaining release steps
+## Remaining acceptance work
 
 1. Sean's real sign-in and authenticated dashboard read are verified. Do not
    create a duplicate account or ask for a password in chat.
 2. Profile/game/invitation writes and Steven's real submitted spread ballot are
    verified. A second physical device and simultaneous hosted-database saves
    remain unverified. Do not fill real ballots with test guesses.
-3. Steven’s confirmed account has joined. General confirmation/recovery delivery
-   remains unverified; review current settings before onboarding Troy and Luke,
-   then explicitly assign their fixed roster memberships.
+3. Steven’s confirmed account has joined, and Troy and Luke are linked to their
+   fixed roster memberships. General confirmation/recovery delivery still needs
+   acceptance checks for future player onboarding.
 
 The personal Cloudflare authorization is complete, with account/profile read,
 Pages write, and background access. Existing machine credentials were untouched.
@@ -117,7 +136,7 @@ The Free plan can pause after inactivity and does not include automatic backups;
 use player exports and private owner backups. See
 [plan details](https://supabase.com/pricing). No paid service was activated.
 
-## Validation evidence
+## Historical validation and release evidence
 
 October 8: 43 Node engine/API tests passed, six existing browser workflows
 passed, and three new mocked cloud browser tests passed. Both frontend builds
