@@ -19,7 +19,8 @@ test('confused: after the deadline', async ({ page, persona }) => {
   const card = await page.locator('.picks-due').innerText();
   const tab = page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ });
   await expect(tab).toHaveText('Picks (closed)');
-  await expect(page.locator('.picks-due')).toContainText('Deadline passed · Week 6 opens Mon, Oct 12, 12:00 AM PT');
+  // Review of PR #34: after the deadline the card says whether each ballot was submitted, never a count that looks as if it scores.
+  await expect(page.locator('.picks-due')).toContainText('Spread not submitted · Total not submitted · Deadline passed · Week 6 opens Mon, Oct 12, 12:00 AM PT');
   persona.finding({ screen: 'feed-closed', severity: 3, experience: `After the deadline the card says "${card.replace(/\n/g, ' · ')}" and the tab says "Picks (closed)". Nothing yet says what missing both ballots means for the score (no points this week, not zero? a forfeit?).`, fix: 'Add one line to the card: "You did not submit Spread or Total, so you score 0 this week."', evidence: { card } });
   await tab.click();
   const first = page.locator('.week-pick').first();
@@ -33,6 +34,42 @@ test('confused: after the deadline', async ({ page, persona }) => {
   persona.finding({ screen: 'picks-closed', severity: 3, experience: `The closed ballot shows "${header}", a closed-week note with the next open, and ${chipsDisabled ? 'greyed-out chips' : 'live chips'} for every game with ${saveBar ? 'the save bar' : 'no save bar'}. The disabled chips at 40% opacity still look like a loading state, and there is no link to the feed to see what others picked, and no scores.`, fix: 'Replace the chip list with a closed-week summary: your picks (or "no picks"), others\' picks once revealed, and a pointer to the leaderboard.' });
   expect(chipsDisabled).toBe(true);
   expect(saveBar).toBe(0);
+  expect(await persona.noOverflow()).toBe(true);
+});
+
+test('confused: after the deadline with an unsubmitted draft and a submitted ballot', async ({ page, persona }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await persona.start({ games: 3 });
+  // While the week was open the player drafted two Spread picks without submitting them and submitted all three Total picks, both
+  // through the real save (the D-17 guard refuses a closed week and a hand-made submitted row). The week then closes the way the
+  // "after the deadline" fixture is closed: the slate's deadline moves into the past (the feed and the Picks tab both read it).
+  await persona.saveBallot('guess_spread', { 'TB-DAL': -3, 'PHI-JAX': 2.5 }, false);
+  await persona.saveBallot('guess_total', { 'TB-DAL': 44, 'PHI-JAX': 47.5, 'CIN-MIA': 41 }, true);
+  const { season, week } = persona.state.league, closedAt = '2026-10-09T00:15:00Z';
+  await persona.db.query("update public.gtl_weekly_slates set signature=jsonb_set(signature,'{deadline}',to_jsonb($3::numeric)) where season=$1 and week=$2", [season, week, String(Date.parse(closedAt) / 1000)]);
+  await persona.db.query("update public.gtl_leagues set state=jsonb_set(state,'{league,deadline}',to_jsonb($1::text))", [closedAt]);
+  await persona.signIn();
+  // Review of PR #34 (#13): only a submitted ballot scores (D-21). The card and the closed-week note on each market say which it was,
+  // so a draft that was never submitted is not mistaken for picks that count.
+  await expect(page.locator('.picks-due')).toContainText('Spread draft (not submitted) · Total ✓ submitted · Deadline passed · Week 6 opens Mon, Oct 12, 12:00 AM PT');
+  await persona.shot('feed-closed-draft');
+  await persona.axe('feed-closed-draft');
+  await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
+  const first = page.locator('.week-pick').first();
+  await expect(first).toBeVisible();
+  const market = page.getByRole('group', { name: 'Market' });
+  await expect(market.getByRole('button', { name: 'Spread', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.week-closed')).toHaveText('Week 5 Spread picks are closed. Your Spread draft was never submitted, so it does not score this week. Week 6 opens Mon, Oct 12, 12:00 AM PT.');
+  await expect(page.locator('.week-picks > p.muted')).toHaveText('Week 5 · 2/3 picked · Closed');
+  await expect(first.locator('.chip-summary')).toHaveText('Cowboys −3');
+  await persona.shot('picks-closed-draft');
+  await persona.axe('picks-closed-draft');
+  await market.getByRole('button', { name: 'Total ✓', exact: true }).click();
+  await expect(page.locator('.week-closed')).toHaveText('Week 5 Total picks are closed. Your submitted Total picks stay below. Week 6 opens Mon, Oct 12, 12:00 AM PT.');
+  await expect(page.locator('.week-picks > p.muted')).toHaveText('Week 5 · 3/3 picked · Closed · Submitted');
+  await expect(first.locator('.chip-summary')).toHaveText('44 total points');
+  await expect(page.locator('.save-bar')).toHaveCount(0);
+  await persona.shot('picks-closed-submitted');
   expect(await persona.noOverflow()).toBe(true);
 });
 

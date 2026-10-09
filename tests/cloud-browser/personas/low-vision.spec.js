@@ -37,6 +37,8 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   await expect(selectedChip.locator('svg.chip-check')).toHaveCount(1);
   await expect(first.getByRole('button', { name: '−4', exact: true }).locator('svg')).toHaveCount(0);
   await expect(first.locator('.chip-call strong')).toHaveText('Cowboys by 3');
+  // Review of PR #34: the team chip's check sits outside the name's text flow, so the chosen name is not clipped at 200%.
+  expect(await first.locator('.team-chip.selected').evaluate(chip => ({ text: chip.textContent, fits: chip.scrollWidth <= chip.clientWidth }))).toEqual({ text: 'Cowboys', fits: true });
   await persona.shot('picks-200-selected');
   // Quick win 8 (#11): the number row is a labelled group and every chip is described by it.
   const tree = await first.ariaSnapshot();

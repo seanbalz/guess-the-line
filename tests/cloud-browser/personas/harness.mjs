@@ -119,7 +119,8 @@ export const test = base.extend({
           const endpoint = url.pathname.replace(/^.*\/gtl-api\//, '');
           net.requests.push({ endpoint, method: req.method(), body: req.method() === 'POST' ? req.postDataJSON() : null });
           if (net.delay) await new Promise(r => setTimeout(r, net.delay));
-          if (net.offline) return route.abort('internetdisconnected');
+          // net.offline: true cuts every API call; a predicate on the endpoint cuts only some (the feed while the lobby still loads).
+          if (net.offline === true || (typeof net.offline === 'function' && net.offline(endpoint))) return route.abort('internetdisconnected');
           const injected = net.fail?.(endpoint, req);
           if (injected) return reply(injected.status, injected.body);
           const response = await persona.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));

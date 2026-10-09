@@ -18,7 +18,8 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   // Skip link: first Tab must land on it, it must be visible, and Enter must move focus into main.
   await page.keyboard.press('Tab');
   const skip = await persona.focused();
-  expect(skip.name).toBe('Skip to main content');
+  // Review of PR #34 (2.4.4): the link names its target. With a picks-due card it reads "Skip to picks due" and lands on the card.
+  expect(skip.name).toBe('Skip to picks due');
   persona.finding({ screen: 'feed', severity: skip.visible ? 4 : 2, wcag: '2.4.1', experience: skip.visible ? 'The skip link is the first tab stop and becomes visible on focus. Good.' : 'The skip link takes focus but is not visible.', fix: skip.visible ? 'Keep it.' : 'Show the link on focus.' });
   await page.keyboard.press('Enter');
   // Quick win 11 (#17, #18): the skip link targets the picks-due card (tabindex -1), so the next Tab is "Make picks"; main carries tabindex -1 too.
@@ -37,7 +38,7 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
     const f = await persona.focused();
     if (f.tag === 'body') break;
     const key = `${f.tag}:${f.name}`;
-    if (seen.has(key) && steps > 10 && f.name === 'Skip to main content') { trapped = true; break; }
+    if (seen.has(key) && steps > 10 && f.name.startsWith('Skip to')) { trapped = true; break; }
     seen.add(key);
   }
   persona.finding({ screen: 'feed', severity: trapped ? 1 : 4, wcag: '2.1.2', experience: trapped ? 'Focus cycled back to the skip link without ever leaving the page: a keyboard trap.' : `Tabbing through the home screen reaches ${steps} stops (with ${persona.state.games.length} games and three members) and then leaves the document. No trap.`, fix: trapped ? 'Remove the focus loop.' : 'Keep it; reduce the stop count with roving tabindex in chip rows and the league switcher.' });
@@ -59,6 +60,14 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
   const atFloor = await first.locator('.chip-summary').innerText();
   persona.finding({ screen: 'picks', severity: 4, experience: `Pressing "Lower by half a point" repeatedly stops at "${atFloor}" (floor 0.5) while the button stays enabled and the live region repeats the same value. Pick'em (0) is reachable only through the middle team chip.`, fix: 'Disable the stepper at the floor/ceiling or let the floor step into Pick\'em.' });
+  // Review of PR #34 (2.4.3): the pressed save-bar button goes aria-disabled, not disabled, so focus stays on it while it reads
+  // "Saving…" and after the save, when it has nothing left to save. No control in the bar is natively disabled.
+  await persona.tabTo(f => f.name === 'Save draft');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Save draft', disabled: false });
+  await expect(page.locator('.save-bar [data-action="draft"]')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.locator('.save-bar button:disabled')).toHaveCount(0);
   // Chip spacing: 8px gaps between 44px chips; chips are 56px wide minimum.
   const chipBox = await first.locator('.number-chip').first().boundingBox();
   const gap = await first.locator('.chip-numbers').evaluate(el => getComputedStyle(el).gap);

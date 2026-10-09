@@ -31,6 +31,8 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
     await card.getByRole('button', { name: team[1], exact: true }).click();
   }
   await expect(page.locator('.save-bar strong')).toHaveText('5/14 ready');
+  // Review of PR #34 (D-21): with the check outside the text flow, none of the five chosen team names is clipped at 390px.
+  expect(await page.locator('.team-chip.selected').evaluateAll(chips => chips.filter(chip => chip.scrollWidth > chip.clientWidth).map(chip => chip.textContent))).toEqual([]);
   await persona.shot('picks-5-of-14');
   await persona.axe('picks-5-of-14');
   const barBox = await page.locator('.save-bar').boundingBox();

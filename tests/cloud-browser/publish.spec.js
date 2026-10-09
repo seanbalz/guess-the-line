@@ -38,7 +38,7 @@ for (const width of [390, 1280]) test(`commissioner publishes Week 6 from the pu
     await signIn(page, 'sean');
     await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
     await expect(page.locator('.picks-due')).toContainText('Week 5 picks closed');
-    await expect(page.locator('.picks-due')).toContainText('Spread 0/2 · Total 0/2 · Deadline passed · Week 6 opens Mon, Oct 12, 12:00 AM PT');
+    await expect(page.locator('.picks-due')).toContainText('Spread not submitted · Total not submitted · Deadline passed · Week 6 opens Mon, Oct 12, 12:00 AM PT');
     await expect(page.getByRole('button', { name: 'Picks (closed)', exact: true })).toBeVisible();
     const panel = page.getByRole('region', { name: 'Publish week' });
     await expect(panel.getByRole('heading', { name: 'Preview / publish early (fallback)' })).toBeVisible();
