@@ -25,7 +25,8 @@ export function createScheduledRefreshAdapter({ url, serviceRoleKey, fetchImpl =
   } };
 }
 
-async function body(request, timeoutMs) {
+/** Reads a machine request body of exactly `{ runId }`; any other shape, size or delay fails with code INPUT. */
+export async function readRunBody(request, timeoutMs) {
   if (request.headers.get('content-type')?.split(';')[0].trim() !== 'application/json') throw new RefreshError('INPUT');
   const reader = request.body?.getReader(); if (!reader) throw new RefreshError('INPUT');
   const chunks = []; let length = 0; let timeout;
@@ -54,7 +55,7 @@ export function createScheduledRefreshHandler({ service, provider, bodyTimeoutMs
       if (new URL(request.url).search) return json({ error: 'Invalid refresh request.' }, 400);
       const match = /^Bearer ([0-9a-f]{64})$/.exec(request.headers.get('authorization') || '');
       if (!match) return json({ error: 'Unauthorized.' }, 401);
-      const { runId } = await body(request, bodyTimeoutMs);
+      const { runId } = await readRunBody(request, bodyTimeoutMs);
       const job = await service.rpc('gtl_claim_odds_refresh', { p_token: match[1], p_run: runId });
       if (job.replay) return json(safe(job));
       let reason = null;
