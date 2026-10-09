@@ -70,6 +70,32 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   if (spreadPressed === 'true') persona.finding({ screen: 'picks-half-done', severity: 2, experience: '"Make picks" on the card that says only Total is due opens the Spread ballot (already submitted, button labelled "Spread ✓") instead of the Total ballot. The player has to notice the ✓ and tap "Total".', fix: 'Open the first market that is still due; show "Submitted · editable" as a badge on the Spread tab.' });
   await page.getByRole('group', { name: 'Market' }).getByRole('button', { name: 'Total' }).click();
   await expect(page.locator('.week-pick').first().locator('.number-chip').first()).toBeVisible();
+  // D-23: sitting out Total is final. The control, the dialog and the states afterwards.
+  const sitOut = page.getByRole('button', { name: 'Sit out this week' });
+  await expect(sitOut).toBeVisible();
+  await sitOut.click();
+  const dialog = page.getByRole('dialog', { name: 'Sit out Week 5 Total?' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Keep my ballot' })).toBeFocused();
+  const dialogText = await dialog.innerText();
+  await persona.shot('sit-out-dialog', { fullPage: false });
+  await persona.axe('sit-out-dialog');
+  persona.finding({ screen: 'sit-out-dialog', severity: 4, experience: `The sit-out dialog is explicit: "${dialogText.split('\n').find(line => line.startsWith('This is final'))}" Focus starts on "Keep my ballot" and Escape cancels. Good. The trigger itself, "Sit out this week" in the save bar, gives no hint that it is final until the dialog opens.`, fix: 'Keep the dialog; label the trigger "Sit out this week (final)" or move it out of the save bar.' });
+  await dialog.getByRole('button', { name: 'Sit out Total' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.week-picks > p.muted')).toContainText("Sat out · others' picks visible");
+  await expect(page.locator('.save-bar')).toHaveCount(0);
+  await persona.shot('picks-sat-out');
+  const satOutHeader = await page.locator('.week-picks > p.muted').innerText();
+  const othersVisible = await page.locator('.week-picks').innerText();
+  persona.finding({ screen: 'picks-sat-out', severity: 3, experience: `After sitting out, the Picks header reads "${satOutHeader}" and the chips grey out, but the ${persona.state.games.length} game cards still show the full chip rows (disabled) and ${/Troy|Luke/.test(othersVisible) ? 'other players\' picks appear' : 'no other player\'s picks appear on this screen'}; the promise "others' picks visible" points to the feed, not here.`, fix: 'Replace the disabled chip rows with the revealed picks table (or a link to the feed posts) on a sat-out market.' });
+  await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Feed', exact: true }).click();
+  await expect(page.locator('.picks-due')).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Picks', exact: true })).toBeVisible();
+  const totalCell = await page.locator('.community-leaderboard tr.me td').nth(2).innerText();
+  expect(totalCell).toBe('Sat out');
+  await persona.shot('feed-sat-out');
+  persona.finding({ screen: 'feed-sat-out', severity: 4, experience: 'After sitting out Total the picks-due card disappears entirely and the leaderboard shows "Sat out" in the Total week column with a footnote. Nothing on the feed records that the player sat out (no post), so the act is invisible to everyone else until the leaderboard is read.', fix: 'Post "Ben sat out Week 5 Total" to the feed like a submission, so the reveal to others is explained.' });
   expect(await persona.noOverflow()).toBe(true);
 });
 

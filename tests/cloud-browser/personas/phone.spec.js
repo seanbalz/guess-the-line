@@ -67,7 +67,7 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible({ timeout: 15000 });
   await expect(page.locator('.picks-due')).toContainText('Spread 2/14', { timeout: 15000 });
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
-  await expect(cards.first().locator('output')).toHaveText('Cowboys −3', { timeout: 15000 });
+  await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3', { timeout: 15000 });
   await expect(page.locator('.save-bar strong')).toHaveText('2/14 ready');
 
   // Interruption 3: the phone's back button. The app has no history entries, so back leaves the site.

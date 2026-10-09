@@ -50,10 +50,10 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await page.keyboard.press('Enter');
   await persona.tabTo(f => f.name === 'Lower by half a point');
   await page.keyboard.press('Enter');
-  await expect(first.locator('output')).toHaveText('Cowboys −2.5');
+  await expect(first.locator('.chip-summary')).toHaveText('Cowboys −2.5');
   // The − button stays enabled at the floor and the + button at the ceiling; repeated presses do nothing silently.
   for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
-  const atFloor = await first.locator('output').innerText();
+  const atFloor = await first.locator('.chip-summary').innerText();
   persona.finding({ screen: 'picks', severity: 4, experience: `Pressing "Lower by half a point" repeatedly stops at "${atFloor}" (floor 0.5) while the button stays enabled and the live region repeats the same value. Pick'em (0) is reachable only through the middle team chip.`, fix: 'Disable the stepper at the floor/ceiling or let the floor step into Pick\'em.' });
   // Chip spacing: 8px gaps between 44px chips; chips are 56px wide minimum.
   const chipBox = await first.locator('.number-chip').first().boundingBox();
@@ -95,7 +95,17 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   const toPicks = await persona.tabTo(f => f.name === 'My picks');
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Trust your read.' })).toBeVisible();
-  persona.finding({ screen: 'game-dashboard', severity: 3, experience: `Inside a group game the Community chip entry is not used: "My picks" (${toPicks} Tabs from the top) opens the older dropdown-and-typed-number form (PredictionEntry). A keyboard user therefore learns two different entry patterns for the same ballot.`, fix: 'Reuse ChipPicker inside PredictionEntry (noted as a follow-up in SOCIAL_COMMUNITY.md).' });
+  // Since main 5a96c80 (PR #19) the group ballot uses ChipPicker too, with a "Next game" link per row and a helper
+  // sentence that the Community Picks tab still lacks.
+  const helper = await page.locator('.ballot-header').innerText();
+  expect(helper).toContain('Tap the favorite or Pick');
+  persona.finding({ screen: 'game-picks', severity: 3, experience: `Inside a group game "My picks" (${toPicks} Tabs from the top) now opens the same chip entry as the Community tab, with per-row "Next game" links and a helper sentence ("${helper.split('\n').find(line => line.startsWith('Tap'))}"). That sentence exists only here; the Community Picks tab, where most players enter picks, has no equivalent.`, fix: 'Show the same helper sentence (dismissible) above the Community Picks list.' });
+  // Regression check: at 1024px the matchup column is so narrow that full team names break mid-word.
+  const names = await page.locator('.prediction-matchup .team-matchup__name strong').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(), line = parseFloat(getComputedStyle(node).lineHeight) || 20; return { text: node.textContent, width: Math.round(r.width), lines: Math.round(r.height / line) }; }));
+  const broken = names.filter(n => n.lines > n.text.split(' ').length + 1);
+  if (broken.length) persona.finding({ screen: 'game-picks', severity: 2, wcag: '1.4.10 (reflow)', experience: `Regression on main (chip entry in PredictionEntry): at 1024px the matchup column is ${broken[0].width}px wide and full team names wrap letter by letter ("${broken[0].text}" over ${broken[0].lines} lines; ${broken.length} of ${names.length} names). The row is three times taller than its chips and the kickoff/records lines sit under a column of single syllables.`, fix: 'Give the matchup column a min-width (or use the compact code names at <1200px) and let the chip cell take the remaining width.', evidence: broken.slice(0, 4) });
+  const sitOut = page.getByRole('button', { name: 'Sit out this week' });
+  if (await sitOut.count()) persona.finding({ screen: 'game-picks', severity: 3, experience: '"Sit out this week" (final, forfeits the week) sits in the save bar as a secondary button directly beside "Save draft", with the same size and weight. A keyboard user tabbing to Save draft lands on Sit out first.', fix: 'Move the opt-out below the ballot as a text link ("Not playing this week? Sit out…"), keep the confirmation dialog.' });
   await persona.smallTargets('game-picks');
   await persona.shot('game-picks');
   expect(await persona.noOverflow()).toBe(true);

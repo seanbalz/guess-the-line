@@ -41,7 +41,7 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
     expect(toNumber, `reach −3 for ${home}`).toBeGreaterThan(0);
     presses += toNumber;
     await page.keyboard.press('Enter'); presses++;
-    await expect(cards.nth(i).locator('output')).toHaveText(`${home} −3`);
+    await expect(cards.nth(i).locator('.chip-summary')).toHaveText(`${home} −3`);
   }
   await expect(page.locator('.save-bar strong')).toHaveText('14/14 ready');
   const toSubmit = await persona.tabTo(f => f.name.startsWith('Submit'));

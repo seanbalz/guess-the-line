@@ -61,7 +61,7 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   expect(chips[0]).toBe('−1');
   persona.finding({ screen: 'picks-team-chosen', severity: 2, experience: `After tapping Cowboys, the number chips read ${chips.slice(0, 4).join(', ')} … The minus sign is sportsbook notation (favorite gives points) but to a newcomer "−3" looks like "Cowboys lose by 3". Nothing on the card says "Cowboys win by 3".`, fix: 'Label the chip row "Cowboys win by…" and show chips as plain numbers (1, 1.5, 2 …); keep the signed sportsbook form only in the summary line ("Cowboys −3").' });
   await first.getByRole('button', { name: '−3', exact: true }).click();
-  const summary = await first.locator('output').innerText();
+  const summary = await first.locator('.chip-summary').innerText();
   expect(summary).toBe('Cowboys −3');
   persona.finding({ screen: 'picks-team-chosen', severity: 3, experience: `The summary line under the chips reads "${summary}" in grey 14px mono. It is the only confirmation of the pick and it repeats the sportsbook sign rather than saying "Cowboys by 3".`, fix: 'Make the summary the headline: "Your call: Cowboys by 3" in body size, and keep "DAL −3" as a secondary mono token.' });
   // No "Pick'em" explanation.
@@ -84,16 +84,15 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   const totalText = await page.locator('.week-picks').innerText();
   if (!/combined|both teams|points scored/i.test(totalText)) persona.finding({ screen: 'picks-total', severity: 2, experience: 'Switching to Total shows chips 39–49 around 44 with no sentence saying this is the combined points of both teams. "44" next to "Buccaneers @ Cowboys" could be read as a score for one team.', fix: 'Add "Total = points scored by both teams combined. The line is usually 37–52." above the list, and label the chip row "Combined points".' });
   const totalChips = await page.locator('.week-pick').first().locator('.number-chip').allInnerTexts();
-  // Observed today: switching from a saved spread draft (Cowboys −3) to Total leaves eight stale "0" chips
-  // in front of 39–49 on that game only. The spread value −3 reaches the Total picker for one render, which
-  // builds chips Math.max(0, −8…2) with duplicate React keys "0"; the reset to 39–49 cannot reconcile them.
+  // Regression guard. Before main 5a96c80, switching from a saved spread draft (Cowboys −3) to Total left eight
+  // stale "0" chips in front of 39–49 on that game (duplicate React keys from Math.max(0, center − 5 + i)).
+  // ChipPicker now shifts the window instead of clamping, so the keys stay distinct and the row reconciles.
   const zeros = totalChips.filter(chip => chip === '0').length;
-  expect(zeros).toBe(8);
-  expect(totalChips.slice(zeros)).toEqual(['39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49']);
-  persona.finding({ screen: 'picks-total', severity: 1, wcag: null, experience: 'Bug: after saving a spread draft and switching to Total, the game that had a spread pick shows eight extra "0" chips before 39–49 (19 chips). The zeros are live buttons; tapping one records a total of 0 points. Games without a spread pick render correctly. Cause: WeekPicks keeps the spread values in `picks` for one render after the mode changes, so ChipPicker computes totalChips around center −3 with duplicate keys "0", and React keeps the duplicates when the row re-renders.', fix: 'In WeekPicks derive the initial picks for a mode synchronously (useMemo on [data, mode]) instead of resetting them in an effect, and in ChipPicker key the total chips by index or clamp the center to the 20–200 total range so keys are unique.', evidence: { totalChips } });
-  persona.finding({ screen: 'picks-total', severity: 3, experience: `The Total chips (${totalChips[zeros]}–${totalChips.at(-1)}) are whole numbers centered on 44 for every game regardless of matchup, so a newcomer has no idea whether 44 is high or low for this game.`, fix: 'Center the chips on the matchup\'s typical total (last season average or a neutral 45) and show the chosen value in the summary line as "Over/under 44 points".' });
+  expect(zeros).toBe(0);
+  expect(totalChips).toEqual(['39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49']);
+  persona.finding({ screen: 'picks-total', severity: 3, experience: `The Total chips (${totalChips[0]}–${totalChips.at(-1)}) are whole numbers centered on 44 for every game regardless of matchup, so a newcomer has no idea whether 44 is high or low for this game.`, fix: 'Center the chips on the matchup\'s typical total (last season average or a neutral 45) and show the chosen value in the summary line as "Over/under 44 points".' });
   await page.locator('.week-pick').first().getByRole('button', { name: '44', exact: true }).click();
-  await expect(page.locator('.week-pick').first().locator('output')).toHaveText('44 total points');
+  await expect(page.locator('.week-pick').first().locator('.chip-summary')).toHaveText('44 total points');
 
   // What is due and when?
   const status = await page.locator('.week-picks > p.muted').innerText();
