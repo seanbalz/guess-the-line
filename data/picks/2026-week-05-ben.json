@@ -1,0 +1,179 @@
+{
+  "schema": "legacy-week5-picks",
+  "season": 2026,
+  "week": 5,
+  "game_id": "sean-troy-luke",
+  "player": "Ben",
+  "mode": "guess_the_line",
+  "submitted_at": "2026-10-08T12:00:00-07:00",
+  "deadline": "2026-10-08T17:15:00-07:00",
+  "status": "on_time_commissioner_relayed",
+  "note": "Entered under Sean's 2026-10-09 decision: on-time Week 5 picks. Spreads are from the favorite's side as Ben gave them; home-referenced value = spread if favorite is home, else -spread. Scoring reference: no D-16 consensus snapshot exists for 12:00 PM PT; a commissioner ruling is needed before these score.",
+  "picks": [
+    {
+      "player": "Ben",
+      "matchup": "Tampa Bay Buccaneers @ Dallas Cowboys",
+      "favorite": "Tampa Bay Buccaneers",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Tampa bay buccs -3",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Philadelphia Eagles @ Jacksonville Jaguars",
+      "favorite": "Jacksonville Jaguars",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Jags -3",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Cincinnati Bengals @ Miami Dolphins",
+      "favorite": "Cincinnati Bengals",
+      "spread": -14,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Bengals -14",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Las Vegas Raiders @ New England Patriots",
+      "favorite": "New England Patriots",
+      "spread": -6,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Pats -6",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Minnesota Vikings @ New Orleans Saints",
+      "favorite": "Minnesota Vikings",
+      "spread": -6,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Vikings -6",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Indianapolis Colts @ Pittsburgh Steelers",
+      "favorite": "Pittsburgh Steelers",
+      "spread": -6,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Pittsburgh -6",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Cleveland Browns @ New York Jets",
+      "favorite": "New York Jets",
+      "spread": -6,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Jets -6",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Houston Texans @ Tennessee Titans",
+      "favorite": "Tennessee Titans",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Titans -3",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "New York Giants @ Washington Commanders",
+      "favorite": "Washington Commanders",
+      "spread": -9,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Commies -9",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Chicago Bears @ Green Bay Packers",
+      "favorite": "Chicago Bears",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Bears -3",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Denver Broncos @ Los Angeles Chargers",
+      "favorite": "Denver Broncos",
+      "spread": -18,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Broncos -18",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "San Francisco 49ers @ Seattle Seahawks",
+      "favorite": "Seattle Seahawks",
+      "spread": -3,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Hawks -3",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Baltimore Ravens @ Atlanta Falcons",
+      "favorite": "Atlanta Falcons",
+      "spread": -11,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Falcons -11",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Detroit Lions @ Arizona Cardinals",
+      "favorite": "Detroit Lions",
+      "spread": -10,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Lions -10",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    },
+    {
+      "player": "Ben",
+      "matchup": "Buffalo Bills @ Los Angeles Rams",
+      "favorite": "Los Angeles Rams",
+      "spread": -4,
+      "edit_count": 0,
+      "source": "Sean relayed Ben's text picks in chat on 2026-10-09; Ben made them Thursday 2026-10-08 12:00 PM PT",
+      "as_given": "Rams -4",
+      "schedule_status": "verified",
+      "eligible_for_scoring": true
+    }
+  ]
+}
