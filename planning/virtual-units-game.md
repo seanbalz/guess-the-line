@@ -1,8 +1,8 @@
 # Virtual units game — D-18 task list
 
-Status: confirmed product rules plus separately labeled recommended defaults; game not implemented or deployed. This is a separate play-money game under Picks, not a real sportsbook wager, the record-only Betting Challenge, a private actual-bet journal, Guess the Spread/Total, or Best Bets. One unit represents $100 virtual.
+Status: confirmed product rules; game implementation is in progress and is not deployed. This is a separate play-money game under Picks, not a real sportsbook wager, the record-only Betting Challenge, a private actual-bet journal, Guess the Spread/Total, or Best Bets. One unit represents $100 virtual.
 
-Owner: Sean Balsiger · Version 2 · October 8, 2026.
+Owner: Sean Balsiger · Version 3 · October 8, 2026.
 
 ## Confirmed play rules
 
@@ -14,11 +14,11 @@ Owner: Sean Balsiger · Version 2 · October 8, 2026.
 - A postponement staying on the same `America/Los_Angeles` calendar date carries the saved pick, line, odds and units to the revised kickoff. A move to a different Pacific calendar date voids the original, returns its virtual stake, retains the audit and permits a fresh pick at the rescheduled market. Store kickoff timestamps in UTC for evidence and show the Pacific date to players. During an automated schedule-feed outage, the commissioner may enter a revised kickoff only from a verifiable official league notice; save the notice link and time, actor, old/new kickoff and change history. This changes the pick deadline, not result grading. A possible cancellation or no contest leaves picks pending while status is uncertain; verified cancellation or no contest from a permitted official source voids them, returns virtual stakes and preserves original pick/unit qualification credit. Notify affected players of these voids with a persistent in-app notice and opt-in push and email once those external paths are connected and verified. An unconfirmed cancellation report does not settle or void picks.
 - Settle only from a permitted, verified automatic final-score feed. Commissioner-entered finals do not settle this game. A win earns net units from saved American odds (1 unit at −110 earns about +0.9091); a loss costs the staked units; a push returns the stake for zero net. ROI is net units divided by units risked on settled picks; pending and void picks are excluded. Track this game's own W-L-P, pending/void counts, units risked, net units and ROI by week, season and market. Whenever that automatic feed verifies a corrected final, even after weekly standings appear, regrade affected picks from their original saved terms, append a before/after audit, recalculate records, net units, ROI and standings, and notify affected players. No verified automatic feed is connected for this game yet, so picks would remain pending.
 
-## Recommended defaults for remaining choices
+## Confirmed remaining mechanics
 
-Sean asked to continue this questioning without waiting for individual replies. The answers below are **recommendations, not confirmed D-18 rules**. They give implementation a concrete path for review; a later correction from Sean supersedes the affected recommendation. Do not report these proposals as shipped behavior.
+Sean approved the recommended defaults for BET-07-Q20 through Q30. They are now confirmed product rules. Implementation and source evidence remain separate gates.
 
-| ID | Remaining question | Recommended answer |
+| ID | Confirmed rule | Implementation requirement |
 | --- | --- | --- |
 | BET-07-Q20 | What if a pick is later proven to have been placed after actual kickoff because status data lagged? | Void that invalid late pick, return its virtual stake, exclude it from ROI **and weekly qualification**, retain the placement/correction audit and notify the player. Keep valid pre-kickoff picks intact. |
 | BET-07-Q21 | What if play starts, then the game is suspended and resumes later, even on another day? | Never reopen new picks or edits after the first verified actual kickoff. Keep already valid picks pending through a verified resumption and grade the eventual final; use the confirmed cancellation/no-contest void rule only if the game is officially cancelled or declared no contest. The confirmed different-day *pre-kickoff* postponement rule does not silently govern an in-progress suspension. |
@@ -42,7 +42,7 @@ Source check: [The Odds API V4 events endpoint](https://the-odds-api.com/liveapi
 
 | Item | State | Owner | Dependency | Exit evidence |
 | --- | --- | --- | --- | --- |
-| BET-07 rules and proposed defaults | Partially confirmed | Sean for later corrections; Codex records recommendations | Confirmed answers and recommendations above | Decision log and this task list agree; no proposed default is presented as a confirmed rule. |
+| BET-07 confirmed rules | Confirmed; implementation in progress | Codex | Free named-book data, schedule and results evidence | Decision log and this task list agree; Q20–Q30 are confirmed rules, while implementation evidence is tracked separately. |
 | Quote selector and button flow | Not implemented | Codex | Free named-book data and source rights | Mobile and desktop flows show the best point line, honest age, exact receipt and kickoff guard. A separate virtual selector preserves the existing five-minute quote gates used by other modes. |
 | Virtual picks, audit and qualification | Not implemented | Codex | Account identity, schedule and final policy | One spread plus one total per game, editable until kickoff; immutable revisions and qualification examples verified without duplicate credit. |
 | Schedule, status and kickoff evidence | Blocked | Codex | Permitted free source, verified event mapping and actual-kickoff evidence | Commissioner schedule changes during feed outages require an official notice receipt and immutable audit. Revised kickoff and cancellation receipts are auditable; a changed provider event ID or time never silently remaps a pick or moves its deadline. |
