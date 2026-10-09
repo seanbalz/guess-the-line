@@ -38,6 +38,7 @@ const SAFE_VALIDATION_ERRORS = new Set([
   'Submit the matching prediction ballot before viewing or selecting this market.',
   'One selection per game. The recorded quote is immutable.',
   'Invalid selection.', 'Choose a spread or total market.',
+  'You sat out this week for that market. Its picks are closed.',
 ]);
 
 class RequestError extends Error {

@@ -168,6 +168,38 @@ test('prediction submission locks do not close independent Challenge selections 
   assert.deepEqual(engine.snapshot().ballots, initial.ballots);
 });
 
+test('D-23: a final weekly opt-out satisfies the reveal gate without picks, scores or a zero', () => {
+  const engine = createEngine(seed(), options);
+  assert.equal(engine.view('troy', 'guess_total').revealed, false);
+  const shown = engine.sitOut('troy', 'guess_total');
+  assert.equal(shown.revealed, true); assert.equal(shown.satOut, true); assert.equal(shown.submittedAt, null);
+  assert.equal(shown.statuses.guess_total.satOut, true); assert.equal(shown.statuses.guess_spread.satOut, false);
+  assert.equal(shown.score, null, 'sat out is never a zero');
+  assert(shown.games.every(g => g.prediction === null && g.points === null && g.market === null && g.opponents.length === 2), 'opponents are listed once the gate opens');
+  const troy = shown.standings.find(p => p.id === 'troy');
+  assert.deepEqual([troy.satOut, troy.submitted, troy.points], [true, false, null]);
+  assert.equal(shown.audit[0].type, 'week_sat_out');
+  assert.equal(engine.view('troy', 'guess_spread').revealed, false, 'the other mode stays independently hidden');
+  assert.equal(engine.view('luke', 'guess_total').revealed, false, 'another player\'s opt-out reveals nothing to Luke');
+  assert.throws(() => engine.saveBallot('troy', 'guess_total', fill(engine, 44.5), true), /sat out/);
+  assert.throws(() => engine.saveBallot('troy', 'guess_total', { 'TB-DAL': 44.5 }), /sat out/);
+  const before = engine.snapshot();
+  assert.deepEqual(engine.sitOut('troy', 'guess_total'), shown, 'idempotent');
+  assert.deepEqual(engine.snapshot(), before);
+  assert.throws(() => engine.sitOut('sean', 'guess_spread'), /already submitted/);
+  assert.throws(() => engine.sitOut('troy', 'betting_challenge'), /Unknown prediction game/);
+  assert.deepEqual(engine.snapshot().optOuts, { troy: ['guess_total'] });
+  assert.equal(createEngine(before, options).view('troy', 'guess_total').revealed, true, 'rehydrates from a snapshot');
+  const closed = createEngine(seed(), { ...options, clock: () => Date.parse(seed().league.deadline) });
+  assert.throws(() => closed.sitOut('troy', 'guess_total'), /deadline/);
+  // Cloud reads supply optOuts from gtl_weekly_optouts in the same state shape.
+  const cloud = seed(); cloud.optOuts = { luke: ['guess_spread'] };
+  const luke = createEngine(cloud, options).view('luke', 'guess_spread');
+  assert.equal(luke.revealed, true); assert.equal(luke.lineHistory.length, cloud.history.length);
+  assert.equal(luke.games[0].opponents.find(p => p.id === 'sean').value, -9.5, 'Sean\'s submitted spread is visible to the sat-out player');
+  assert.equal(createEngine(cloud, options).view('luke', 'guess_total').revealed, false);
+});
+
 test('line charts expose only timestamped market values after the independent spread submission gate', () => {
   const initial = seed();
   initial.history[0].privateNote = 'not part of market data';
