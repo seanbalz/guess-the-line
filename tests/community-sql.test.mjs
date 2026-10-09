@@ -1,0 +1,155 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { seed } from '../server/store.mjs';
+import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
+
+// Optional disposable PostgreSQL runtime; never connects to the hosted project.
+// Install: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+let PGlite;
+try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
+const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const MIGRATIONS = [
+  '20261008164249_gtl_private_cloud_state.sql',
+  '20261008174007_gtl_profiles_private_games_invites.sql',
+  '20261008182836_gtl_canonical_weekly_entries.sql',
+  '20261009005145_gtl_social_bet_tracker.sql',
+  '20261009120000_gtl_community_feed.sql',
+];
+const SEAN = 30, TROY = 1, BEN = 2, NEW = 3;
+
+test('community feed migration: one community, automatic posts, gated picks, likes, comments, removal', { skip: PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.' }, async t => {
+  const db = new PGlite(); t.after(() => db.close());
+  await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
+  for (const file of MIGRATIONS) {
+    await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    if (file === MIGRATIONS[0]) {
+      await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', seed()]);
+      for (const n of [SEAN, TROY, BEN, NEW]) await db.query('insert into auth.users values($1)', [id(n)]);
+      await db.query("insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,'sean-troy-luke','sean','commissioner')", [id(SEAN)]);
+    }
+    if (file === MIGRATIONS[1]) {
+      await db.query("insert into public.gtl_profiles(user_id,display_name) values($1,'Sean'),($2,'Troy')", [id(SEAN), id(TROY)]);
+    }
+  }
+  const as = (role, sql, args = []) => db.transaction(async tx => { await tx.exec(`set local role ${role}`); return tx.query(sql, args); });
+  const service = { rpc: async (name, args) => {
+    const params = Object.values(args), placeholders = params.map((_, i) => `$${i + 1}`).join(',');
+    try { return (await as('service_role', `select public.${name}(${placeholders}) value`, params)).rows[0].value; }
+    catch (error) { throw providerCommunityError(error.message); }
+  } };
+  const user = n => ({ id: id(n), emailConfirmed: true, email: 'fixture@example.invalid' });
+  const read = (n, now = Date.parse('2026-10-08T20:00:00Z'), body = {}) => handleCommunity({ route: '/community/read', body, user: user(n), service, clock: () => now });
+  const slate = (await db.query('select season,week,signature from public.gtl_weekly_slates')).rows[0];
+  const gameIds = slate.signature.games.map(g => g.id);
+  const picks = value => Object.fromEntries(gameIds.map(g => [g, value]));
+  const ballot = async (n, mode, submittedAt, value = -3, practice = false) => {
+    await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3) on conflict do nothing', [id(n), slate.season, slate.week]);
+    await db.query(`insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot,origin_practice) values($1,$2,$3,$4,$5,$6)
+      on conflict(user_id,season,week,mode) do update set ballot=excluded.ballot`, [id(n), slate.season, slate.week, mode, { picks: picks(value), submittedAt }, practice]);
+  };
+
+  await t.test('browser roles cannot reach any table or RPC; functions are invoker', async () => {
+    for (const table of ['gtl_community_removals', 'gtl_feed_posts', 'gtl_feed_likes', 'gtl_feed_comments']) {
+      assert.equal((await db.query('select relrowsecurity from pg_class where oid=$1::regclass', [`public.${table}`])).rows[0].relrowsecurity, true);
+      for (const role of ['anon', 'authenticated']) await assert.rejects(() => as(role, `select * from public.${table}`), /permission denied/);
+    }
+    for (const role of ['anon', 'authenticated']) await assert.rejects(() => as(role, 'select public.gtl_read_community($1,null,30,null)', [id(TROY)]), /permission denied/);
+    const flags = (await db.query("select prosecdef from pg_proc where proname like 'gtl_%community%' or proname like 'gtl_%feed%'")).rows;
+    assert(flags.length >= 7 && flags.every(row => row.prosecdef === false));
+  });
+
+  await t.test('existing and new profiles are members with joined posts; no profile means no access', async () => {
+    await assert.rejects(() => read(BEN), error => error.status === 403);
+    await db.query("insert into public.gtl_profiles(user_id,display_name) values($1,'Ben')", [id(BEN)]);
+    const feed = await read(BEN);
+    assert.deepEqual(feed.members.map(m => m.displayName), ['Ben', 'Sean', 'Troy']);
+    assert.equal(feed.posts.filter(p => p.kind === 'joined').length, 3);
+    assert.equal(feed.admin, false);
+    assert.equal((await read(SEAN)).admin, true);
+  });
+
+  await t.test('picks due counts both modes until submitted, then the urgent window', async () => {
+    const feed = await read(BEN);
+    assert.deepEqual(feed.due.map(d => [d.mode, d.submitted, d.filled, d.games]), [['guess_spread', false, 0, gameIds.length], ['guess_total', false, 0, gameIds.length]]);
+    assert.equal(feed.picksDue.state, 'due');
+    const deadline = Date.parse(feed.week.deadline);
+    assert.equal((await read(BEN, deadline - 3_600_000)).picksDue.state, 'urgent');
+    assert.equal((await read(BEN, deadline + 1)).picksDue.state, 'closed');
+  });
+
+  await t.test('submission posts appear once, carry picks only for viewers who submitted the same market', async () => {
+    await ballot(TROY, 'guess_spread', null);
+    assert.equal((await read(TROY)).posts.some(p => p.kind === 'ballot_submitted'), false, 'a draft does not post');
+    await ballot(TROY, 'guess_spread', '2026-10-08T18:00:00Z', -3);
+    await ballot(TROY, 'guess_spread', '2026-10-08T18:00:00Z', -4);
+    await ballot(NEW, 'guess_spread', '2026-10-08T18:30:00Z', 0, true).catch(() => {});
+    let posts = (await read(BEN)).posts.filter(p => p.kind === 'ballot_submitted');
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].picksHidden, true); assert.equal(posts[0].picks, null);
+    assert.deepEqual((await read(BEN)).submissions.map(s => [s.userId, s.mode]), [[id(TROY), 'guess_spread'], [id(SEAN), 'guess_spread']], 'Sean\'s migrated Week 5 spread ballot counts as submitted');
+    assert.deepEqual((await read(TROY)).posts.find(p => p.kind === 'ballot_submitted').picks, picks(-4), 'own picks visible');
+    await ballot(BEN, 'guess_total', '2026-10-08T19:00:00Z', 44);
+    posts = (await read(BEN)).posts.filter(p => p.kind === 'ballot_submitted' && p.mode === 'guess_spread');
+    assert.equal(posts[0].picksHidden, true, 'submitting a different market does not reveal spreads');
+    await ballot(BEN, 'guess_spread', '2026-10-08T19:05:00Z', -2.5);
+    posts = (await read(BEN)).posts.filter(p => p.kind === 'ballot_submitted' && p.actorId === id(TROY));
+    assert.deepEqual(posts[0].picks, picks(-4));
+    assert.equal((await read(BEN)).picksDue.state, 'done');
+    const sean = (await read(SEAN)).posts.find(p => p.kind === 'ballot_submitted' && p.actorId === id(BEN) && p.mode === 'guess_total');
+    assert.equal(sean.picksHidden, true, 'Sean has not submitted totals');
+    const afterDeadline = (await read(SEAN, Date.parse((await read(SEAN)).week.deadline))).posts.find(p => p.id === sean.id);
+    assert.deepEqual(afterDeadline.picks, picks(44), 'everyone sees every pick once the deadline passes');
+  });
+
+  let post;
+  await t.test('likes toggle idempotently and comments replay safely', async () => {
+    post = (await read(SEAN)).posts.find(p => p.kind === 'joined' && p.actorId === id(BEN));
+    const like = body => handleCommunity({ route: '/community/like', body, user: user(SEAN), service });
+    assert.deepEqual(await like({ postId: post.id, like: true }), { likes: 1, likedByMe: true });
+    assert.deepEqual(await like({ postId: post.id, like: true }), { likes: 1, likedByMe: true });
+    const comment = (body, n = SEAN) => handleCommunity({ route: '/community/comment', body, user: user(n), service });
+    const first = await comment({ requestId: id(900), postId: post.id, body: '  Welcome Ben  ' });
+    assert.equal((await comment({ requestId: id(900), postId: post.id, body: 'Welcome Ben' })).replayed, true);
+    await assert.rejects(() => comment({ requestId: id(900), postId: post.id, body: 'Different' }), error => error.status === 409);
+    await assert.rejects(() => comment({ requestId: id(901), postId: post.id, body: ' ' }), error => error.status === 400);
+    await assert.rejects(() => comment({ requestId: id(902), postId: post.id, body: 'x'.repeat(501) }), error => error.status === 400);
+    const seen = (await read(BEN)).posts.find(p => p.id === post.id);
+    assert.equal(seen.likes, 1); assert.equal(seen.likedByMe, false);
+    assert.deepEqual(seen.comments.map(c => [c.id, c.body]), [[first.id, 'Welcome Ben']]);
+    assert.deepEqual(await like({ postId: post.id, like: false }), { likes: 0, likedByMe: false });
+  });
+
+  await t.test('only the commissioner removes members; removed members disappear and lose access', async () => {
+    const member = (body, n) => handleCommunity({ route: '/community/member', body, user: user(n), service });
+    await assert.rejects(() => member({ userId: id(BEN), member: false }, TROY), error => error.status === 403);
+    await assert.rejects(() => member({ userId: id(SEAN), member: false }, SEAN), error => error.status === 400);
+    assert.deepEqual(await member({ userId: id(BEN), member: false }, SEAN), { userId: id(BEN), member: false });
+    await assert.rejects(() => read(BEN), error => error.status === 403);
+    const feed = await read(TROY);
+    assert.equal(feed.members.some(m => m.id === id(BEN)), false);
+    assert.equal(feed.posts.some(p => p.actorId === id(BEN)), false);
+    assert.equal(feed.submissions.some(s => s.userId === id(BEN)), false);
+    await member({ userId: id(BEN), member: true }, SEAN);
+    assert.equal((await read(TROY)).members.some(m => m.id === id(BEN)), true);
+    assert.equal((await db.query("select count(*)::int n from public.gtl_access_audit where event like 'community_%'")).rows[0].n, 2);
+  });
+
+  await t.test('Bet Tracker creates and settlements post to the feed once', async () => {
+    await db.query('insert into public.gtl_social_weeks(season,week) values($1,$2)', [slate.season, slate.week]);
+    const commit = (request, revision, action) => db.query(`insert into public.gtl_social_commits(actor_id,request_id,season,week,revision,action,payload,event)
+      values($1,$2,$3,$4,$5,$6,'{}',$7)`, [id(TROY), id(request), slate.season, slate.week, revision, action, { entryId: 'bet-1' }]);
+    await commit(700, 1, 'create'); await commit(701, 2, 'include'); await commit(702, 3, 'settle');
+    const bets = (await read(BEN)).posts.filter(p => p.kind.startsWith('bet_'));
+    assert.deepEqual(bets.map(p => [p.kind, p.entryId]).sort(), [['bet_posted', 'bet-1'], ['bet_settled', 'bet-1']]);
+  });
+
+  await t.test('pagination returns older posts before a timestamp', async () => {
+    const all = (await read(TROY, undefined, { limit: 100 })).posts;
+    const page = await read(TROY, undefined, { limit: 2 });
+    assert.equal(page.posts.length, 2);
+    const older = await read(TROY, undefined, { before: page.posts[1].createdAt, limit: 100 });
+    assert(older.posts.every(p => Date.parse(p.createdAt) < Date.parse(page.posts[1].createdAt)));
+    assert.equal(older.posts.length + 2 <= all.length, true);
+  });
+});
