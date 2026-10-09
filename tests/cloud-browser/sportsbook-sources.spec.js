@@ -103,10 +103,11 @@ async function signIn(page) {
   await page.getByLabel('Password', { exact: true }).fill('local-test-password');
   await page.locator('.auth-form').getByRole('button', { name: 'Sign in', exact: true }).click();
 }
-async function openGame(page) { await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click(); }
+async function openGame(page) { await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click(); await expect(page.locator('.sidebar')).toBeAttached(); }
 async function navigate(page, label) {
+  await expect(page.locator('.sidebar')).toBeAttached();
   const toggle = page.getByRole('button', { name: 'Open navigation', exact: true });
-  if (await toggle.isVisible()) await toggle.click();
+  if (await toggle.isVisible()) { await toggle.click(); await expect(page.locator('.sidebar')).toHaveClass(/is-open/); }
   await page.getByRole('button', { name: label, exact: true }).first().click();
 }
 

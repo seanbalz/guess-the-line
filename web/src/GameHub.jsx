@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import React, { lazy, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Check, Copy, Flag, LoaderCircle, Plus, RefreshCw, ShieldCheck, TriangleAlert, Users, X } from 'lucide-react';
-import App from './App';
-import PersonalWorkspace from './PersonalWorkspace';
-import SocialBetTracker from './SocialBetTracker';
+import DeferredScreen from './DeferredScreen';
+const App = lazy(() => import('./App.jsx'));
+const PersonalWorkspace = lazy(() => import('./PersonalWorkspace.jsx'));
+const SocialBetTracker = lazy(() => import('./SocialBetTracker.jsx'));
 import ThemeSelector from './Theme';
 import Brand from './Brand';
 import { cloudApi, date } from './api';
@@ -149,14 +150,14 @@ export default function GameHub({ session, onSignOut }) {
   const profileReady = Boolean(lobby?.profile?.displayName?.trim());
   const current = lobby?.leagues.find(league => league.id === selected);
   const onProfileSaved = async () => { await load(); setEditingProfile(false); setNotice('Your display name has been saved.'); };
-  if (selected === 'solo' && profileReady && !token) return <PersonalWorkspace onBack={() => choose('')} onSignOut={onSignOut}/>;
+  if (selected === 'solo' && profileReady && !token) return <DeferredScreen key={session.user.id} label="your Solo workspace"><PersonalWorkspace key={session.user.id} accountId={session.user.id} onBack={() => choose('')} onSignOut={onSignOut}/></DeferredScreen>;
   if (['social', 'units'].includes(selected) && profileReady && !token) return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{lobby.profile.displayName}</span><button className="secondary" onClick={() => { if (!socialDirty || window.confirm('You have unsaved changes. Leave without saving?')) { setSocialDirty(false); choose(''); } }}>My games</button></div></header>
-    <main className="hub-main" id="main"><ThemeSelector/><SocialBetTracker key={selected} player={session.user.id} initialView={selected === 'units' ? 'units' : 'feed'} onDirty={setSocialDirty}/></main>
+    <main className="hub-main" id="main"><ThemeSelector/><DeferredScreen resetKey={selected} label={selected === 'units' ? 'your betting week' : 'bet tracker'}><SocialBetTracker key={selected} player={session.user.id} initialView={selected === 'units' ? 'units' : 'feed'} onDirty={setSocialDirty}/></DeferredScreen></main>
   </div>;
   return <>
-    {current && !token ? <App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => choose('')} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/>
+    {current && !token ? <DeferredScreen resetKey={current.id} label="your league"><App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => choose('')} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/></DeferredScreen>
       : <div className="hub-shell">
         <a className="skip-link" href="#main">Skip to main content</a>
         <header className="hub-header"><Brand /><div className="hub-account"><span>{lobby?.profile?.displayName || session.user.email}</span><button className="secondary" onClick={signOut} disabled={busy}>Sign out</button></div></header>

@@ -21,6 +21,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
       - run: npm run test:cloud-browser
+      - run: npm run test:performance
+      - run: npm run test:accessibility
       - name: Build and inspect the authenticated frontend
         env:
           VITE_SUPABASE_URL: https://gtl-frontend-check.supabase.co
@@ -42,5 +44,7 @@ jobs:
           path: |
             test-results/
             .local/cloud-browser-results/
+            .local/performance-browser-results/
+            .local/accessibility-browser-results/
           include-hidden-files: true
           retention-days: 7

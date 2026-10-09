@@ -17,7 +17,9 @@
     "preview:cloud": "vite preview --mode cloud --outDir ../.local/cloud-dist --host 127.0.0.1 --port 4173",
     "cloudflare": "node scripts/cloudflare.mjs",
     "check:cloud": "node scripts/check-cloud-boundary.mjs",
-    "test:cloud-browser": "playwright test --config playwright.cloud.config.js"
+    "test:cloud-browser": "playwright test --config playwright.cloud.config.js",
+    "test:performance": "playwright test --config playwright.performance.config.js",
+    "test:accessibility": "playwright test --config playwright.accessibility.config.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3",
@@ -26,6 +28,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "^1.55.0",
     "@vitejs/plugin-react": "^5.0.0",
     "supabase": "2.120.0",

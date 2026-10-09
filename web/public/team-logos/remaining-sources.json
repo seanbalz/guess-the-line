@@ -1,7 +1,7 @@
 {
   "checkedAt": "2026-10-08",
   "downloaded": false,
-  "scope": "File-specific records; Wikipedia fair-use rationale is not permission for this app.",
+  "scope": "Historical file-specific records checked before the October 8 follow-up. These Wikipedia fair-use rationales do not grant permission. Different eligible Commons versions for BUF and NYJ are now active; see sources.json.",
   "files": [
     {
       "file": "File:Arizona Cardinals logo.svg",
@@ -136,5 +136,28 @@
       "copyrighted": "True",
       "license": "Fair use"
     }
+  ],
+  "supersededTeams": [
+    "BUF",
+    "NYJ"
+  ],
+  "remainingTeams": [
+    "ARI",
+    "ATL",
+    "BAL",
+    "CAR",
+    "CLE",
+    "DEN",
+    "DET",
+    "HOU",
+    "JAX",
+    "LV",
+    "MIA",
+    "MIN",
+    "NE",
+    "PHI",
+    "SEA",
+    "TB",
+    "TEN"
   ]
 }

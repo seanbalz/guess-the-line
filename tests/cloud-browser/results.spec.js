@@ -72,7 +72,8 @@ const writes = report => report.requests.filter(request => request.endpoint === 
 async function openSettings(page) {
   await page.goto('/'); await page.getByLabel('Email', { exact: true }).fill('commissioner@example.test'); await page.getByLabel('Password', { exact: true }).fill('test-password');
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click(); await page.getByRole('button', { name: 'Open game', exact: true }).click();
-  if (await page.getByRole('button', { name: 'Open navigation' }).isVisible()) await page.getByRole('button', { name: 'Open navigation' }).click();
+  await expect(page.locator('.sidebar')).toBeAttached();
+  const menu = page.getByRole('button', { name: 'Open navigation' }); if (await menu.isVisible()) { await menu.click(); await expect(page.locator('.sidebar')).toHaveClass(/is-open/); }
   await page.getByRole('button', { name: 'Settings & setup', exact: true }).click();
 }
 async function fillFinal(page, report, patch = {}) {
