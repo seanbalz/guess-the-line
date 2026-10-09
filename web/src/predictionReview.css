@@ -3,6 +3,7 @@
 .prediction-review .callout p,.prediction-review .review-description,.prediction-review .form-error{font-size:14px;line-height:20px}
 .prediction-review .review-description{color:var(--muted);margin:0 0 12px}
 .prediction-review .review-picks{margin:12px 0;max-height:32vh}
+.prediction-review .review-picks:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .prediction-review .review-picks>div{padding:8px 12px;min-height:44px;align-items:center}
 .prediction-review-details{border-top:1px solid var(--border);margin:0 0 12px}
 .prediction-review-details>summary{min-height:44px;padding:10px 0;cursor:pointer;font-size:16px;line-height:24px;color:var(--muted)}
@@ -11,3 +12,10 @@
 .prediction-review .review-actions{gap:8px}
 .prediction-review .review-actions button{min-height:44px}
 .prediction-review .form-error{margin:8px 0 12px}
+.draft-reconciliation{padding:20px;margin:16px 0;border-color:var(--pending)}
+.draft-reconciliation p,.draft-recovery-notice{font-size:14px;line-height:1.5;color:var(--muted);margin:12px 0}
+.expired-draft h3{margin-top:12px}.expired-draft summary{min-height:44px;padding:10px 0;cursor:pointer;color:var(--cyan);font-size:16px}
+.expired-draft dl{margin:0}.expired-draft dl>div{display:grid;grid-template-columns:minmax(100px,1fr) 2fr;gap:12px;border-top:1px solid var(--border);padding:12px 0}
+.expired-draft dt{font-weight:600}.expired-draft dd{display:grid;gap:8px;margin:0}.expired-draft dd>span{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:14px}.expired-draft strong{color:var(--text)}
+.expired-draft .recovery-retention{font-size:13px;line-height:1.5}.expired-draft button,.draft-reconciliation button{min-height:44px}
+@media(max-width:390px){.expired-draft dl>div{grid-template-columns:1fr;gap:8px}.draft-reconciliation button,.expired-draft>button{width:100%}}

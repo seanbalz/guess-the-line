@@ -3,13 +3,15 @@ import { ArrowLeft, Check, Clock3, LockKeyhole } from 'lucide-react';
 import { date, fmt, signed } from './api';
 import { validateChallengeQuote } from './challengeReview';
 
-export default function ChallengeQuoteReview({ game, data, onClose, onSave, busy, error, Modal }) {
+export default function ChallengeQuoteReview({ game, data, onClose, onSave, busy, error, Modal, saveIssue, refreshSaved }) {
   const [market, setMarket] = useState(data.marketAccess.spread ? 'spread' : 'total'), [side, setSide] = useState(data.marketAccess.spread ? 'home' : 'over');
   const [fields, setFields] = useState({ line: '', odds: '', source: '', quotedAt: '' }), [receipt, setReceipt] = useState(null), [review, setReview] = useState(null), [localError, setLocalError] = useState(''), [pending, setPending] = useState(false);
   const [tick, setTick] = useState(0), clock = useRef({ now: Date.parse(data.now), start: Date.now() }), lock = useRef(false);
   useEffect(() => { const timer = setInterval(() => setTick(value => value + 1), 30000); return () => clearInterval(timer); }, []);
   const now = () => clock.current.now + Date.now() - clock.current.start;
-  const disabled = busy || pending;
+  const uncertain = saveIssue?.uncertain === true;
+  const disabled = busy || pending || uncertain;
+  useEffect(() => { if (game.bet) onClose(); }, [game.bet, onClose]);
   const receipts = (game.quoteReceipts || []).filter(item => data.marketAccess[item.market] && Date.parse(item.expiresAt) > now());
   const staleReceipt = receipt && Date.parse(receipt.expiresAt) <= now();
   const changedReceipt = receipt && !(game.quoteReceipts || []).some(item => item.snapshotId === receipt.snapshotId && item.book === receipt.book && item.market === receipt.market && item.side === receipt.side && item.line === receipt.line && item.odds === receipt.odds && item.quotedAt === receipt.quotedAt);
@@ -35,14 +37,15 @@ export default function ChallengeQuoteReview({ game, data, onClose, onSave, busy
   }
   const sideLabel = value => value.market === 'spread' ? value.side === 'home' ? game.home : game.away : value.side === 'over' ? 'Over' : 'Under';
   const reviewError = review && (validateChallengeQuote(review, game.kickoff, now()) || (staleReceipt || changedReceipt ? 'The collected reference is stale. Return to the quote before confirming.' : null));
-  return <Modal title={review ? `Review ${game.awayCode} at ${game.homeCode}` : `${game.awayCode} at ${game.homeCode}`} className="quote-review" onClose={() => { if (!disabled) onClose(); }}>
+  return <Modal title={review ? `Review ${game.awayCode} at ${game.homeCode}` : `${game.awayCode} at ${game.homeCode}`} className="quote-review" onClose={() => { if (!busy && !pending) onClose(); }}>
+    {uncertain && <section className="callout" aria-label="Check selection save"><div><h3>Check whether this selection was recorded</h3><p>Your confirmation may have reached the server. Check saved data before another attempt. No additional selection will be sent by this check.</p><button type="button" className="secondary" disabled={busy || pending} onClick={refreshSaved}>Check saved data</button></div></section>}
     {review ? <>
       <div className="callout"><LockKeyhole size={18}/><p>This records one immutable Challenge selection. {data.selectionScope === 'weekly' && 'It is reused in every group for this week. '}It cannot be edited or replaced. No wager is placed.</p></div>
-      <dl><div><dt>Market and side</dt><dd>{review.market === 'spread' ? 'Spread' : 'Total'} · {sideLabel(review)}</dd></div><div><dt>Selected line</dt><dd className="mono">{review.market === 'total' ? fmt(review.line) : signed(review.line)}</dd></div><div><dt>American odds</dt><dd className="mono">{signed(review.odds)}</dd></div><div><dt>Named quote source</dt><dd>{review.source}</dd></div><div><dt>Quote observation</dt><dd>{date(review.quotedAt)} PT<br/>{review.quotedAt}</dd></div><div><dt>Scheduled kickoff / selection deadline</dt><dd>{date(game.kickoff)} PT</dd></div><div><dt>Save state</dt><dd>Not recorded until confirmation</dd></div></dl>
+      <dl><div><dt>Market and side</dt><dd>{review.market === 'spread' ? 'Spread' : 'Total'} · {sideLabel(review)}</dd></div><div><dt>Selected line</dt><dd className="mono">{review.market === 'total' ? fmt(review.line) : signed(review.line)}</dd></div><div><dt>American odds</dt><dd className="mono">{signed(review.odds)}</dd></div><div><dt>Named quote source</dt><dd>{review.source}</dd></div><div><dt>Quote observation</dt><dd>{date(review.quotedAt)} PT<br/>{review.quotedAt}</dd></div><div><dt>Scheduled kickoff / selection deadline</dt><dd>{date(game.kickoff)} PT</dd></div><div><dt>Save state</dt><dd>{uncertain ? 'Save outcome unknown · check saved data' : 'Not recorded until confirmation'}</dd></div></dl>
       {receipt && <p className="quote-review-source">Prefilled from {receipt.book} · collected {date(receipt.collectedAt)} PT. Provider observation is not a sportsbook execution guarantee. Confirmation checks the latest saved provider observation again and preserves its source receipt. A changed or expired quote requires another review.</p>}
       <p className="muted">Confirm these are the exact side and price you intend to record. A guess-to-market gap is not a betting recommendation.</p>
       {(localError || reviewError || error) && <p className="form-error" role="alert">{localError || reviewError || error}</p>}
-      <div className="review-actions"><button type="button" className="secondary" data-initial-focus disabled={disabled} onClick={() => { setReview(null); setLocalError(''); }}><ArrowLeft size={16}/>Edit quote</button><button type="button" className="primary" disabled={disabled || !!reviewError} onClick={confirm}>{disabled ? 'Recording…' : 'Confirm immutable selection'}<Check size={17}/></button></div>
+      <div className="review-actions"><button type="button" className="secondary" data-initial-focus disabled={disabled} onClick={() => { setReview(null); setLocalError(''); }}><ArrowLeft size={16}/>Edit quote</button><button type="button" className="primary" aria-label="Confirm immutable selection" disabled={disabled || !!reviewError} onClick={confirm}>{disabled ? 'Recording…' : 'Confirm immutable selection'}<Check size={17}/></button></div>
     </> : <>
       <p className="muted">Record the selected team’s spread or the total exactly as quoted. Review the source and price before the final confirmation. {data.selectionScope === 'weekly' && 'The selection is reused across all your groups for this week.'}</p>
       {receipts.length > 0 && <details className="collected-quote-options"><summary>Use a collected named-book quote</summary><p>Fresh saved observations only. These are not model suggestions or guaranteed executable prices.</p>{receipts.map(item => <button className="secondary" key={`${item.snapshotId}:${item.book}:${item.market}:${item.side}`} disabled={disabled} onClick={() => chooseReceipt(item)}>{item.source} · {sideLabel(item)} {item.market === 'spread' ? signed(item.line) : fmt(item.line)} ({signed(item.odds)})</button>)}</details>}

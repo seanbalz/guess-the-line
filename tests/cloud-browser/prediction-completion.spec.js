@@ -64,7 +64,8 @@ async function openBallot(page, mode = 'guess_spread') {
   await page.getByLabel('Password', { exact: true }).fill('local-test-password');
   await page.locator('.auth-form').getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('button', { name: 'Open game', exact: true }).click();
-  const menu = page.getByRole('button', { name: 'Open navigation', exact: true }); if (await menu.isVisible()) await menu.click();
+  await expect(page.locator('.sidebar')).toBeAttached();
+  const menu = page.getByRole('button', { name: 'Open navigation', exact: true }); if (await menu.isVisible()) { await menu.click(); await expect(page.locator('.sidebar')).toHaveClass(/is-open/); }
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
   if (mode === 'guess_total') await page.getByRole('button', { name: 'Guess the Total', exact: true }).click();
 }
@@ -137,7 +138,8 @@ test('saved favorite and restored tab edits retain the visible sign during furth
   await chip(`${MINUS}7.5`).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −7.5');
   await chip('TB').click(); await expectPick(page, 'TB at DAL home spread', 'TB −7.5');
   page.on('dialog', dialog => dialog.accept()); await page.reload();
-  const menu = page.getByRole('button', { name: 'Open navigation', exact: true }); if (await menu.isVisible()) await menu.click();
+  await expect(page.locator('.sidebar')).toBeAttached();
+  const menu = page.getByRole('button', { name: 'Open navigation', exact: true }); if (await menu.isVisible()) { await menu.click(); await expect(page.locator('.sidebar')).toHaveClass(/is-open/); }
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
   await page.getByRole('button', { name: 'Restore tab draft', exact: true }).click();
   await expectPick(page, 'TB at DAL home spread', 'TB −7.5'); await chip(`${MINUS}4.5`).click(); await expectPick(page, 'TB at DAL home spread', 'TB −4.5');
