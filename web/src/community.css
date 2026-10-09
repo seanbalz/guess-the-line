@@ -26,3 +26,21 @@
 .week-pick h3{font-size:16px}
 .week-picks .save-bar{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:12px;background:var(--surface);border-top:1px solid var(--border)}
 .week-picks .save-bar strong{margin-right:auto}
+.league-switcher{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+.league-chip{min-height:44px;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:16px;line-height:20px;text-align:left}
+.league-chip.selected{border-color:var(--primaryForeground,var(--primary));box-shadow:inset 0 0 0 1px var(--primaryForeground,var(--primary))}
+.league-chip-name{font-weight:600}
+.league-chip-state{font-size:12px;line-height:16px;color:var(--muted)}
+.league-chip-state.live{color:var(--win)}
+.league-chip:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.coming-soon{margin-top:24px;display:grid;gap:8px}
+.coming-soon-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))}
+.coming-soon-card{display:grid;gap:8px;align-content:start;margin-top:12px}
+.coming-soon-grid .coming-soon-card{margin-top:0}
+.coming-soon-head{display:flex;gap:12px;align-items:center}
+.coming-soon-head h3{font-size:16px;line-height:24px}
+.league-badge{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:48px;padding:0 8px;border-radius:12px;background:var(--card);border:1px solid var(--border);font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-weight:700;font-size:20px;letter-spacing:.04em}
+.coming-soon-tag{display:inline-flex;align-items:center;gap:4px;font-size:13px;line-height:18px;color:var(--pending)}
+.coming-soon-actions{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.coming-soon-actions button{min-height:44px;display:inline-flex;align-items:center;gap:6px}
+.back-to-nfl{margin-top:12px;min-height:44px}
