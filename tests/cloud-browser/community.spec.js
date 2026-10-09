@@ -112,6 +112,12 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     const saved = (await db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'", [id(1)])).rows[0].ballot;
     expect(saved.picks[state.games[0].id]).toBe(-9);
     expect(saved.submittedAt).toBeNull();
+    // Switching markets must build the Total chips from the Total ballot (empty, centered on 44), never from the saved Spread value.
+    await page.getByRole('button', { name: 'Total', exact: true }).click();
+    await expect(first.locator('.number-chip')).toHaveText(['39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49']);
+    await expect(first.locator('.chip-summary')).toHaveText('No pick yet');
+    await page.getByRole('button', { name: 'Spread', exact: true }).click();
+    await expect(first.locator('.chip-summary')).toHaveText('Cowboys −9');
 
     await page.getByRole('button', { name: 'Feed', exact: true }).click();
     await expect(page.locator('.picks-due')).toContainText('Spread 1/2');
