@@ -1,0 +1,21 @@
+{
+  "name": "guess-the-line",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Guess the Spread and Guess the Total scoring engine for private GTL leagues",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "score": "tsx src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
