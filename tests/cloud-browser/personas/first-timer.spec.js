@@ -12,22 +12,40 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await expect(page.getByRole('heading', { name: 'Your games. Any device.' })).toBeVisible();
   await persona.shot('sign-in');
   await persona.axe('sign-in');
-  const intro = await page.locator('.auth-card').innerText();
-  if (!/spread|total|pick|NFL/i.test(intro)) persona.finding({ screen: 'sign-in', severity: 3, experience: 'The sign-in card never says what the game is. A newcomer sees "Your games. Any device." and a lock icon, with no sentence about guessing NFL spreads and totals against friends.', fix: 'Add one line under the heading: "Guess the NFL spread and total each week. Closest to the number wins." Link to the rules.' });
+  // Bigger change: onboarding step (#33). One line under the heading says what the game is, in the brand voice, within 20 words.
+  const pitch = page.locator('.auth-card .auth-pitch');
+  await expect(pitch).toHaveText('Guess every NFL game’s spread and total each week. Closest to the number scores. No real-money wagers.');
+  expect((await pitch.innerText()).trim().split(/\s+/).length).toBeLessThanOrEqual(20);
+  expect((await pitch.boundingBox()).y).toBeGreaterThan((await page.getByRole('heading', { name: 'Your games. Any device.' }).boundingBox()).y);
+  // The pitch stays on the create-account screen, where a newcomer most needs it, and leaves the password screens alone.
+  await page.locator('.auth-tabs').getByRole('button', { name: 'Create account' }).click();
+  await expect(page.locator('.auth-card .auth-pitch')).toHaveCount(1);
+  await page.locator('.auth-tabs').getByRole('button', { name: 'Sign in' }).click();
+  await page.getByRole('button', { name: 'Forgot password?' }).click();
+  await expect(page.locator('.auth-card .auth-pitch')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Back to sign in' }).click();
 
   await persona.signIn();
-  await expect(page.getByRole('heading', { name: 'First, what should we call you?' })).toBeVisible();
+  // Bigger change: onboarding step (#29). The name prompt is the whole screen: no My games page behind it, no greyed-out buttons,
+  // no promo cards, and the step's heading takes focus so a screen reader hears the one required step (2.4.3).
+  const nameStep = page.getByRole('heading', { name: 'First, what should we call you?' });
+  await expect(nameStep).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toHaveCount(0);
+  await expect(page.locator('.hub-heading, .invitation-card, .hub-empty, .hub-games, .theme-selector')).toHaveCount(0);
+  await expect(page.locator('main').getByRole('button')).toHaveText(['Save display name']);
+  await expect(page.getByRole('button', { name: 'Sign out' })).toBeEnabled();
+  expect(await persona.focused()).toMatchObject({ tag: 'h1', name: 'First, what should we call you?' });
   await persona.shot('display-name');
   await persona.axe('display-name');
-  // The whole My games page renders around the name prompt with every action disabled.
-  const disabled = await page.locator('button:disabled').count();
-  if (disabled) persona.finding({ screen: 'display-name', severity: 3, experience: `Before saving a name the newcomer sees the full "My games" page with ${disabled} greyed-out buttons (New game, Create your first game) and the Solo / Bet Tracker cards. The one required step is a small form in the middle of a page that looks finished.`, fix: 'Render the name prompt alone (a focused onboarding step), then show My games / Community after it is saved.' });
   await page.getByLabel('Your display name').fill('Ben Fixture');
   await page.getByRole('button', { name: 'Save display name' }).click();
-  // Saving the name goes straight to the Community home; the "saved" confirmation never shows.
-  await persona.shot('after-name');
-  persona.finding({ screen: 'after-name', severity: 4, experience: 'Saving the display name jumps straight to the Community home. The "Your display name has been saved." confirmation is set on the My games screen, which is no longer shown, so the newcomer gets no acknowledgement that the name stuck.', fix: 'Carry the notice into the Community home (role=status) or show "Welcome, Ben" in the header on first arrival.' });
+  // Saving lands on the Community home with the confirmation visible (role=status) and focus on main, not on <body>.
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Your display name has been saved. Playing as Ben Fixture.' })).toBeVisible();
+  expect((await persona.focused()).tag).toBe('main');
+  // Focus arrives without scrolling: the brand and the player's name stay in view above the notice.
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await persona.shot('after-name');
   await expect(page.locator('.picks-due')).toBeVisible();
   await persona.shot('feed');
   await persona.axe('feed');

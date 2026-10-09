@@ -333,10 +333,14 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) 
   </section>;
 }
 
-export default function CommunityHome({ onGroups, onSignOut, displayName, onUnavailable }) {
+export default function CommunityHome({ onGroups, onSignOut, displayName, onUnavailable, welcome = '' }) {
   const [tab, setTab] = useState('feed'), [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [retryable, setRetryable] = useState(false);
+  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(welcome), [retryable, setRetryable] = useState(false);
   const main = useRef(null), refocus = useRefocus(main);
+  // Persona audit #29: arriving from the name step, the saved-name confirmation is a status on this screen and focus moves to main
+  // (2.4.3), so the newcomer sees and hears that the name stuck instead of landing on <body> with the notice left on My games.
+  // preventScroll: focusing a main taller than the viewport would otherwise scroll the brand and the player's name off the top.
+  useEffect(() => { if (welcome) main.current?.focus({ preventScroll: true }); }, [welcome]);
   const load = useCallback(async () => { const result = await communityApi('read', {}); setFeed(result); setOlder([]); return result; }, []);
   // Persona audit #7: only a 404 (the community function is not deployed) falls back to the groups screen; any other failure keeps
   // the Community shell with the error, plus a Retry when the failure was the network or the service (not a 4xx refusal).
