@@ -4,7 +4,18 @@ Status: canonical for all product UI, documents, dashboards, presentations, noti
 ## Brand position
 Competitive NFL spread prediction meets fantasy-sports game day. Tone: precise, fast, confident, playful competition; NOT a real-money sportsbook. Inspiration: DraftKings (dense live stats), FanDuel (clear market rows), Sleeper (social competition), ESPN/CBS (scoreboard hierarchy). Borrow interaction patterns only; do not copy their logos, trade dress, artwork or proprietary iconography.
 
-## Identity
+## Selected identity — October 8, 2026
+Sean selected **Primary logo 01: Yardline G** and **App icon 01: Field monogram** from the visual Identity board. Apply the exact original study geometry through `web/src/Brand.jsx` and the Field monogram favicon/app icon. The site title and visible wordmark are **Guess The Line**, with no GTL prefix in the browser title. This approval covers these two identity choices only; type, palette, icon language and broader motion remain provisional.
+
+**Later same-day display refinement:** Sean supplied the Field monogram screenshot
+and requested the icon alone, without adjacent site-name text. Product brand
+placements now use the dark Yardline G inside the rounded lime Field monogram
+tile, including its soft shadow. Keep the accessible name and browser title
+**Guess The Line**. This overrides the visible-wordmark instruction above;
+the underlying selected original geometry and other provisional categories stay
+unchanged.
+
+## Identity background
 Working wordmark: **GUESS THE LINE**. Short label: **GTL**. Tagline: **Call the number. Own the board.** Brand mark direction: custom stylized G/L monogram integrated with a yard-line / ascending line chart. Use only original vector assets. Team logos may be shown when properly licensed/authorized; otherwise use team abbreviations in custom shields. Do not substitute league or sportsbook marks as our brand.
 
 ## Palette (dark-first)
@@ -52,4 +63,7 @@ Never display a provisional score as final; use explicit PROVISIONAL or LOCKED t
 6. Design deviations require an explicit documented exception.
 
 ## Deliverables still needed
-Original GTL logo vector, app icon, component library, screenshots, native iOS asset catalog, and deployed theme are not yet complete.
+The selected original logo and app icon are implemented. The broader component library, native iOS asset catalog, and final type/palette/theme approval remain incomplete. The provisional functional theme is described below.
+
+## Provisional functional theme option — 2026-10-08
+The user requested a working Light option alongside Dark and System. This is a functional exception to waiting for final visual selection, not approval of the final brand identity. Dark remains the default. The preference is saved per browser/device, not synchronized to the game account. Light uses the existing print-paper white and print-ink navy, with pale surfaces; lime action fills retain dark text. `themes.light.primaryForeground` supplies dark green for readable accent text; cyan, win, loss, pending and tie foregrounds are darkened for contrast on light surfaces. Both themes use shared semantic tokens and respect the device choice only when System is selected. The five-option identity review remains open.

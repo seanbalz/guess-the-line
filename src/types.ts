@@ -46,7 +46,7 @@ export interface WeekFile {
   status: string;
   schedule_source: string | null;
   schedule_notes?: string[];
-  /** Actual Thursday Night Football kickoff; locks every pick and freezes the benchmark. */
+  /** Submission deadline: actual Thursday Night Football kickoff. Revisions at or after it are rejected. */
   lock: { kickoff_at: string | null; status: "verified" | "unverified"; source: string | null };
   games: GameEntry[];
   revisions: PickRevision[];

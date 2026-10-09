@@ -1,0 +1,13 @@
+{
+  "season": 2026,
+  "week": 5,
+  "player": "Sean Balsiger",
+  "picks_file": "data/picks/2026-week-05.json",
+  "repository": "https://github.com/seanbalz/guess-the-lines-repo",
+  "source_conversation": {
+    "id": "6ac75c83-f73c-83e8-8462-e6222f85091e",
+    "title": "Week 5 Score Snapshots",
+    "url": "https://chatgpt.com/c/6ac75c83-f73c-83e8-8462-e6222f85091e"
+  },
+  "stale_after_hours": 6
+}

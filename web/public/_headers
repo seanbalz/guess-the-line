@@ -1,0 +1,9 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://onmrgvcehkflfaizvedl.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+/index.html
+  Cache-Control: no-cache

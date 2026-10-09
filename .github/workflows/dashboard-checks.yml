@@ -1,0 +1,46 @@
+name: Dashboard checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install disposable database test runtime
+        run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: npm run test:cloud-browser
+      - name: Build and inspect the authenticated frontend
+        env:
+          VITE_SUPABASE_URL: https://gtl-frontend-check.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_frontend_test_only
+        run: |
+          npm run build:cloud
+          node scripts/check-cloud-boundary.mjs --bundle-only
+          node scripts/release-manifest.mjs
+      - name: Check preserved snapshots and model integrity
+        run: |
+          python3 scripts/snapshots.py check
+          python3 -m unittest discover -s tests -v
+          python3 -m unittest discover -s model -v
+      - name: Save browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-browser-evidence
+          path: |
+            test-results/
+            .local/cloud-browser-results/
+          include-hidden-files: true
+          retention-days: 7

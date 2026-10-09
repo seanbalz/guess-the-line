@@ -12,7 +12,8 @@ const snaps = [
     { matchup: G2, quotes: [...quotes("spread", [6.5, 7, 7], PRE), ...quotes("total", [41, 41, 41], PRE)] },
   ]),
 ];
-const rev = (player: string, matchup: string, market: "spread" | "total", value: number, at = "2026-10-14T09:00:00-07:00") =>
+const SAVED = "2026-10-15T16:05:00-07:00";
+const rev = (player: string, matchup: string, market: "spread" | "total", value: number, at = SAVED) =>
   market === "spread"
     ? { player, matchup, market_type: market, predicted_home_spread: value, submitted_at: at }
     : { player, matchup, market_type: market, predicted_total: value, submitted_at: at };
@@ -20,7 +21,7 @@ const rev = (player: string, matchup: string, market: "spread" | "total", value:
 describe("ballot revisions and lock", () => {
   it("unlimited revisions before lock; latest counts; late ones rejected", () => {
     const w = week([
-      rev("Ann", G1, "total", 40),
+      rev("Ann", G1, "total", 40, "2026-10-14T09:00:00-07:00"),
       rev("Ann", G1, "total", 42, "2026-10-15T10:00:00-07:00"),
       rev("Ann", G1, "total", 44, "2026-10-15T17:14:59-07:00"),
       rev("Ann", G1, "total", 60, LOCK),
@@ -31,7 +32,7 @@ describe("ballot revisions and lock", () => {
   });
 
   it("acceptance #1: total and spread on the same game are independent", () => {
-    const w = week([rev("Ann", G1, "spread", -3), rev("Ann", G1, "total", 44.5), rev("Ann", G1, "spread", -2.5, "2026-10-15T09:00:00-07:00")]);
+    const w = week([rev("Ann", G1, "spread", -3), rev("Ann", G1, "total", 44.5), rev("Ann", G1, "spread", -2.5, "2026-10-15T16:10:00-07:00")]);
     const picks = effectivePicks(w).picks;
     expect(picks.find((p) => p.market_type === "total")).toMatchObject({ value: 44.5, revision_count: 1 });
     expect(picks.find((p) => p.market_type === "spread")).toMatchObject({ value: -2.5, revision_count: 2 });
@@ -84,26 +85,56 @@ describe("week scoring", () => {
     expect(scoreMode(trio, same, snaps, "total", AFTER).standings.map((s) => s.rank)).toEqual([1, 1, 1]);
   });
 
-  it("acceptance #6: provisional before lock, recalculates on a new snapshot, freezes at kickoff", () => {
+  it("acceptance #6 (D-16): points anchor to the reference at save; later market moves never rescore", () => {
     const moved = snapshot("s2", "2026-10-15T17:00:00-07:00", [
       { matchup: G1, quotes: quotes("total", [45.5, 45.5, 45.5], "2026-10-15T17:00:00-07:00") },
     ]);
-    const late = snapshot("s3", "2026-10-15T19:00:00-07:00", [
-      { matchup: G1, quotes: quotes("total", [50, 50, 50], "2026-10-15T19:00:00-07:00") },
-    ]);
     const before = scoreMode(trio, full, snaps, "total", "2026-10-15T16:30:00-07:00");
     expect(before.state).toBe("PROVISIONAL");
-    expect(before.games[0]!.players[0]!.points).toBe(10);
-    const after = scoreMode(trio, full, [...snaps, moved, late], "total", AFTER);
-    expect(after.games[0]!.benchmark).toMatchObject({ value: 45.5, snapshot_id: "s2" });
-    expect(after.games[0]!.players[0]!.points).toBe(8);
+    expect(before.games[0]!.players[0]).toMatchObject({ points: 10, anchored_at: SAVED, reference: { snapshot_id: "s1", value: 44.5 } });
+    const after = scoreMode(trio, full, [...snaps, moved], "total", AFTER);
+    expect(after.games[0]!.current_consensus).toMatchObject({ value: 45.5, snapshot_id: "s2" });
+    expect(after.games[0]!.players[0]).toMatchObject({ points: 10, reference: { snapshot_id: "s1" } });
   });
 
-  it("missing benchmark leaves picks awaiting, never zero", () => {
-    const r = scoreMode(trio, full, [], "total", AFTER);
-    expect(r.games[0]!.players[0]).toMatchObject({ status: "awaiting_benchmark", points: null });
-    expect(r.standings.every((s) => s.points === 0 && s.scored_games === 0)).toBe(true);
+  it("an edit re-anchors to the newer reference; a same-value save does not", () => {
+    const moved = snapshot("s2", "2026-10-15T17:00:00-07:00", [
+      { matchup: G1, quotes: quotes("total", [45.5, 45.5, 45.5], "2026-10-15T17:00:00-07:00") },
+    ]);
+    const w = week([
+      rev("Ann", G1, "total", 44.5),
+      rev("Ann", G1, "total", 44.5, "2026-10-15T17:05:00-07:00"),
+      rev("Ben", G1, "total", 44.5),
+      rev("Ben", G1, "total", 45.5, "2026-10-15T17:05:00-07:00"),
+    ]);
+    const r = scoreMode(league(["Ann", "Ben"]), w, [...snaps, moved], "total", AFTER);
+    expect(r.games[0]!.players[0]).toMatchObject({ anchored_at: SAVED, reference: { snapshot_id: "s1" }, points: 10 });
+    expect(r.games[0]!.players[1]).toMatchObject({ anchored_at: "2026-10-15T17:05:00-07:00", reference: { snapshot_id: "s2" }, points: 10 });
+    expect(r.games[0]!.players.map((p) => p.closest)).toEqual(["T", "T"]);
+  });
+
+  it("closest pick compares each player's error against their own reference", () => {
+    const moved = snapshot("s2", "2026-10-15T17:00:00-07:00", [
+      { matchup: G1, quotes: quotes("total", [48, 48, 48], "2026-10-15T17:00:00-07:00") },
+    ]);
+    const w = week([rev("Ann", G1, "total", 45.5), rev("Ben", G1, "total", 47, "2026-10-15T17:05:00-07:00")]);
+    const r = scoreMode(league(["Ann", "Ben"]), w, [...snaps, moved], "total", AFTER);
+    expect(r.games[0]!.players.map((p) => [p.error, p.closest])).toEqual([[1, "T"], [1, "T"]]);
+  });
+
+  it("no fresh reference at save leaves the pick unscored, never zero", () => {
+    const early = week([rev("Ann", G1, "total", 44.5, "2026-10-14T09:00:00-07:00")]);
+    const r = scoreMode(trio, early, snaps, "total", AFTER);
+    expect(r.games[0]!.players[0]).toMatchObject({ status: "no_reference", points: null });
+    expect(r.standings.find((s) => s.player === "Ann")).toMatchObject({ points: 0, scored_games: 0, no_reference: 1 });
     expect(r.games[0]!.closest_status).toBe("pending");
+    const stale = week([rev("Ann", G1, "total", 44.5, "2026-10-15T23:00:00-07:00")], "verified");
+    expect(scoreMode(trio, { ...stale, lock: { ...stale.lock, kickoff_at: "2026-10-16T17:15:00-07:00" } }, snaps, "total", "2026-10-17T00:00:00Z").games[0]!.players[0]!.status).toBe("no_reference");
+  });
+
+  it("a report as of an earlier time ignores picks saved later", () => {
+    const r = scoreMode(trio, full, snaps, "total", "2026-10-15T16:01:00-07:00");
+    expect(r.games[0]!.players.every((p) => p.status === "not_submitted")).toBe(true);
   });
 
   it("unverified lock time keeps the week provisional", () => {

@@ -10,7 +10,7 @@ describe("CLI data loading and report", () => {
   it("loads week, league and only gtl.snapshot.v1 snapshots, and labels state", () => {
     const dir = mkdtempSync(join(tmpdir(), "gtl-"));
     for (const d of ["picks", "games", "snapshots"]) mkdirSync(join(dir, d));
-    const w = { ...week([{ player: "Ann", matchup: G1, market_type: "total", predicted_total: 44, submitted_at: "2026-10-14T09:00:00-07:00" }]), week: 6 };
+    const w = { ...week([{ player: "Ann", matchup: G1, market_type: "total", predicted_total: 44, submitted_at: "2026-10-15T16:05:00-07:00" }]), week: 6 };
     writeFileSync(join(dir, "picks", "2026-week-06.json"), JSON.stringify(w));
     writeFileSync(join(dir, "games", "fixture.json"), JSON.stringify(league(["Ann", "Ben"])));
     const at = "2026-10-15T16:00:00-07:00";
