@@ -4,7 +4,7 @@
 // and feed only; no group roster or standings row is written.
 //
 //   node scripts/import-ruled-ballot.mjs --user <Ben's hosted auth user uuid>            # dry run: counts and hashes, never the picks
-//   node scripts/import-ruled-ballot.mjs --user <uuid> --sql                             # also writes .local/ruled-ballot-import.sql (private, 0600)
+//   node scripts/import-ruled-ballot.mjs --user <uuid> --actor <commissioner uuid> --sql  # also writes .local/ruled-ballot-import.sql (private, 0600), executable as-is
 //   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/import-ruled-ballot.mjs --user <uuid> [--actor <commissioner uuid>] --execute
 //
 // Sean, or the cloud session acting on his go, runs --execute from a machine that
@@ -147,6 +147,8 @@ function parseArgs(argv) {
     else if (arg === '--sql') options.sql = true;
     else fail(`Unknown argument ${arg}. Usage: --user <uuid> [--actor <uuid>] [--sql] [--execute]`);
   }
+  // The written statement must run through execute_sql unchanged, so it never carries a placeholder actor.
+  if (options.sql && !options.actor) fail("--sql needs --actor <commissioner uuid>. Look it up first: select user_id from public.gtl_memberships where league_id='sean-troy-luke' and role='commissioner' and active;");
   return options;
 }
 

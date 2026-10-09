@@ -50,6 +50,9 @@ test('the committed picks file is byte-identical and the dry run carries counts 
   const execute = spawnSync(process.execPath, ['scripts/import-ruled-ballot.mjs', '--user', id(BEN), '--execute'], { encoding: 'utf8', env: { ...process.env, SUPABASE_URL: '', SUPABASE_SERVICE_ROLE_KEY: '' } });
   assert.equal(execute.status, 1); assert.match(execute.stderr, /SUPABASE_URL/);
   assert.equal(spawnSync(process.execPath, ['scripts/import-ruled-ballot.mjs', '--user', id(BEN), '--bogus'], { encoding: 'utf8' }).status, 1);
+  const sqlNoActor = spawnSync(process.execPath, ['scripts/import-ruled-ballot.mjs', '--user', id(BEN), '--sql'], { encoding: 'utf8' });
+  assert.equal(sqlNoActor.status, 1); assert.match(sqlNoActor.stderr, /--actor <commissioner uuid>/);
+  assert.ok(!sqlNoActor.stdout.includes('dryRun'), 'without the commissioner id nothing is written or printed: a placeholder statement never reaches execute_sql');
 });
 
 test('--execute posts the payload to the service-role RPC and resolves the commissioner from memberships', async () => {
@@ -91,7 +94,8 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
     }
   }
   const as = (role, sql, args = []) => db.transaction(async tx => { await tx.exec(`set local role ${role}`); return tx.query(sql, args); });
-  const rpc = async (name, args) => (await as('service_role', `select public.${name}(${Object.keys(args).map((k, i) => `${k}=>$${i + 1}`).join(',')}) value`, Object.values(args))).rows[0].value;
+  const call = async (tx, name, args) => (await tx.query(`select public.${name}(${Object.keys(args).map((k, i) => `${k}=>$${i + 1}`).join(',')}) value`, Object.values(args))).rows[0].value;
+  const rpc = (name, args) => db.transaction(async tx => { await tx.exec('set local role service_role'); return call(tx, name, args); });
   const service = { rpc: async (name, args) => { try { return await rpc(name, args); } catch (error) { throw providerCommunityError(error.message); } } };
   const user = n => ({ id: id(n), emailConfirmed: true, email: 'fixture@example.invalid' });
   const read = (n, now = Date.now(), body = {}) => handleCommunity({ route: '/community/read', body, user: user(n), service, clock: () => now });
@@ -156,7 +160,18 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
 
   let result;
   await t.test('the commissioner import succeeds after the deadline through the RPC with the ruled references', async () => {
-    result = await rpc(RPC, payload);
+    // One transaction around the call, so what the function leaves behind is observable after it returns:
+    // the flag is cleared, and a direct insert in that same transaction is refused again. The guard's
+    // PG_CONTEXT check, not the flag, is what scopes the bypass.
+    result = await db.transaction(async tx => {
+      await tx.exec('set local role service_role');
+      const r = await call(tx, RPC, payload);
+      assert.equal((await tx.query("select current_setting('gtl.ruled_ballot_import',true) v")).rows[0].v, '', 'the function clears its flag before returning');
+      await tx.exec('savepoint after_import');
+      await assert.rejects(() => tx.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread',$2)", [id(TROY), submittedBallot()]), /GTL_PREDICTION_CLOSED/, 'same transaction, function returned: the guard is back in force');
+      await tx.exec('rollback to savepoint after_import');
+      return r;
+    });
     assert.deepEqual([result.imported, result.replayed, result.userId, result.season, result.week, result.mode, result.games, result.references, result.revision, result.decision], [true, false, id(BEN), 2026, 5, 'guess_spread', 15, 15, 1, 'D-25']);
     assert.equal(at(result.submittedAt), at(payload.p_submitted_at));
     assert.match(result.postId, UUID); assert.match(result.payloadSha256, /^[0-9a-f]{64}$/);
@@ -190,7 +205,6 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
     assert.equal(at(row.submitted_at), at(payload.p_submitted_at));
     assert.deepEqual(row.evidence, payload.p_reference);
     assert.deepEqual(after.audit, [{ actor_id: id(SEAN), event: `ruled_ballot_import:D-25:${id(BEN)}:2026:5:guess_spread` }]);
-    assert.notEqual((await db.query("select current_setting('gtl.ruled_ballot_import',true) v")).rows[0].v, 'commissioner', 'the flag does not outlive the import');
     assert.equal(after.rulings, 0, 'the eligibility rulings table is untouched');
   });
 
@@ -238,5 +252,31 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
     assert.deepEqual(Object.keys(weekly.state.ballots), ['sean'], 'no group ballot, standings or eligibility entry for Ben');
     assert.deepEqual(Object.keys(weekly.eligibility), ['sean']);
     assert.ok(!JSON.stringify(weekly).includes(id(BEN)));
+  });
+
+  await t.test('the ruled path opens only once the normal path has closed: a week whose deadline is still ahead refuses the import', async () => {
+    const snapshot = await state();
+    const ms = v => new Date(v).getTime(), iso = v => new Date(v).toISOString();
+    // An instant inside the Week 6 window whatever the wall clock: the later of the D-24 open and an hour before the deadline.
+    const window = async tx => (await tx.query("select to_timestamp((signature->>'deadline')::double precision) as deadline, greatest(public.gtl_week_open_at(2026,6),to_timestamp((signature->>'deadline')::double precision)-interval '1 hour') as submitted, clock_timestamp() as now from public.gtl_weekly_slates where season=2026 and week=6")).rows[0];
+    // Everything happens inside one transaction that is rolled back at the end, so no Week 6 slate, ballot or post persists.
+    await assert.rejects(() => db.transaction(async tx => {
+      await tx.query("insert into public.gtl_weekly_slates(season,week,signature) select 2026,6,jsonb_set(jsonb_set(signature,'{week}','6'),'{deadline}',to_jsonb(extract(epoch from clock_timestamp()+interval '1 day'))) from public.gtl_weekly_slates where season=2026 and week=5");
+      let w = await window(tx);
+      assert.ok(ms(w.deadline) > ms(w.now) && ms(w.submitted) < ms(w.deadline) && ms(w.submitted) > at(summary.capturedAt), 'a submission instant inside a window that is still open, after the ruled reference');
+      await tx.exec('savepoint open_week; set local role service_role');
+      await assert.rejects(() => call(tx, RPC, { ...payload, p_week: 6, p_submitted_at: iso(w.submitted) }), /GTL_RULED_IMPORT_INVALID/, 'before the deadline the normal save path with a fresh D-16 reference is the only way in, whoever calls');
+      await tx.exec('rollback to savepoint open_week');
+      // The same ballot once that week has closed: the refusal above was the deadline check and nothing else.
+      await tx.query("update public.gtl_weekly_slates set signature=jsonb_set(signature,'{deadline}',to_jsonb(extract(epoch from clock_timestamp()-interval '1 minute'))) where season=2026 and week=6");
+      w = await window(tx);
+      assert.ok(ms(w.deadline) < ms(w.now) && ms(w.submitted) < ms(w.deadline));
+      await tx.exec('set local role service_role');
+      const closed = await call(tx, RPC, { ...payload, p_week: 6, p_submitted_at: iso(w.submitted) });
+      assert.deepEqual([closed.imported, closed.replayed, closed.week, closed.games], [true, false, 6, 15]);
+      throw new Error('rollback');
+    }), /^Error: rollback$/);
+    assert.deepEqual(await state(), snapshot);
+    assert.equal(await count('public.gtl_weekly_slates where week=6'), 0, 'nothing from the rehearsal persists');
   });
 });

@@ -97,8 +97,10 @@ end $$;
 -- capturedAt, observedAt, values:{gameId: ruledValue}}; every slate game needs a
 -- pick and a ruled value. Idempotent: an identical second call writes nothing and
 -- returns imported:false; a different submitted ballot for the same key fails
--- closed. Timestamps render in UTC inside the function so a replay compares equal
--- whatever the caller's session time zone.
+-- closed. The week must already have closed (clock_timestamp() at or past its
+-- deadline): before that the normal save path with a fresh D-16 reference is the
+-- only way in, whoever the caller is. Timestamps render in UTC inside the function
+-- so a replay compares equal whatever the caller's session time zone.
 create function public.gtl_import_ruled_ballot(p_actor uuid,p_user uuid,p_season integer,p_week integer,p_mode text,p_picks jsonb,p_submitted_at timestamptz,p_ruling text,p_reference jsonb)
 returns jsonb language plpgsql security invoker set search_path='' set timezone='UTC' as $$
 declare sig jsonb; deadline timestamptz; opens timestamptz; captured timestamptz; observed timestamptz; game_count integer; g text; v numeric;
@@ -127,6 +129,9 @@ begin
   deadline:=to_timestamp((sig->>'deadline')::double precision); opens:=public.gtl_week_open_at(p_season,p_week);
   -- On time means inside that week's pick window (D-24 open, existing deadline).
   if p_submitted_at>=deadline or p_submitted_at<opens then raise exception 'GTL_RULED_IMPORT_INVALID'; end if;
+  -- Only once the normal save path has closed; with the window check above this also
+  -- means the ruled submission instant is always in the past.
+  if clock_timestamp()<deadline then raise exception 'GTL_RULED_IMPORT_INVALID'; end if;
   game_count:=jsonb_array_length(sig->'games');
   if (select count(*) from jsonb_object_keys(p_picks))<>game_count or (select count(*) from jsonb_object_keys(p_reference->'values'))<>game_count then raise exception 'GTL_BALLOT_INCOMPLETE'; end if;
   for g in select x->>'id' from jsonb_array_elements(sig->'games') x order by x->>'id' loop
@@ -174,6 +179,8 @@ begin
       jsonb_build_array(jsonb_build_object('scope','community','import','commissioner_ruled','decision',decision,'approvedBy',p_actor)))
     on conflict(user_id,season,week,mode) do update set ballot=excluded.ballot,audit=public.gtl_weekly_ballots.audit||excluded.audit,
       origin_practice=false,provenance=public.gtl_weekly_ballots.provenance||excluded.provenance;
+  -- Housekeeping, not the control: the guard's PG_CONTEXT check is what scopes the
+  -- bypass. Clearing the flag keeps it from being read later in the same transaction.
   perform set_config('gtl.ruled_ballot_import','',true);
   update public.gtl_weekly_versions set revision=revision+1 where user_id=p_user and season=p_season and week=p_week;
   rev:=rev+1;
