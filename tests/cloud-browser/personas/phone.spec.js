@@ -59,9 +59,13 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   for (const [i, team] of [['Cowboys', '−3'], ['Eagles', '−2.5']].entries()) { const card = cards.nth(i); await card.getByRole('button', { name: team[0], exact: true }).click(); await card.getByRole('button', { name: team[1], exact: true }).click(); }
   const t2 = Date.now();
   await page.getByRole('button', { name: 'Save draft' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible({ timeout: 15000 });
+  // Quick win 6 (#26): the button reads "Saving…" while the request is out, and the confirmation lands in the sticky bar by the thumb.
+  await expect(page.locator('.save-bar').getByRole('button', { name: 'Saving…' })).toBeVisible();
+  const saved = page.getByRole('status').filter({ hasText: 'Draft saved.' });
+  await expect(saved).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('.save-bar .save-notice')).toHaveText('Draft saved.');
   const saveMs = Date.now() - t2;
-  persona.finding({ screen: 'picks-draft-saved', severity: 3, experience: `"Save draft" took ${(saveMs / 1000).toFixed(1)} s on the slow link. While waiting, every chip and the save bar grey out (busy) and there is no spinner or "Saving…" label; the confirmation "Draft saved." then appears at the top of the list, off-screen when the player is scrolled down to game 5.`, fix: 'Label the button "Saving…" with a spinner while busy and show the confirmation in the sticky bar or as a toast near the thumb.' });
+  persona.finding({ screen: 'picks-draft-saved', severity: 4, experience: `"Save draft" took ${(saveMs / 1000).toFixed(1)} s on the slow link. While waiting, the button reads "Saving…" with a spinner and every chip greys out (busy); the confirmation "Draft saved." then appears inside the sticky save bar, so it is on screen wherever the player is scrolled.`, fix: 'Keep it; consider leaving the chips enabled while a draft saves so the player can keep picking.' });
   await persona.shot('picks-draft-saved');
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible({ timeout: 15000 });

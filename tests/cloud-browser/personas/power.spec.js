@@ -21,7 +21,9 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
 
   // How far is "Make picks" by keyboard from the top of the home screen?
   const toMakePicks = await persona.tabTo(f => f.name === 'Make picks');
-  persona.finding({ screen: 'feed', severity: 3, experience: `From page load it takes ${toMakePicks} Tab presses to reach "Make picks" (skip link, theme select, six league chips, three tabs, then the card). The skip link jumps to <main>, which still starts with the theme select and league switcher.`, fix: 'Point the skip link at the picks-due card or tab list, and move the league switcher below the primary action.' });
+  // Quick win 11 (#17): Appearance moved to the foot of the page, so the skip link, six league chips and three tabs are all that precede the card.
+  expect(toMakePicks).toBeLessThanOrEqual(11);
+  persona.finding({ screen: 'feed', severity: 3, experience: `From page load it takes ${toMakePicks} Tab presses to reach "Make picks" (skip link, six league chips, three tabs, then the card). The skip link now lands on the picks-due card, but tabbing from the top still crosses the league switcher.`, fix: 'Collapse the league switcher to "NFL · Live · More leagues" while only NFL is live.' });
   await page.keyboard.press('Enter');
   const cards = page.locator('.week-pick');
   await expect(cards.first()).toBeVisible();

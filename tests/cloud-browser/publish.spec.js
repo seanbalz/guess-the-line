@@ -38,6 +38,8 @@ for (const width of [390, 1280]) test(`commissioner publishes Week 6 from the pu
     await signIn(page, 'sean');
     await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
     await expect(page.locator('.picks-due')).toContainText('Week 5 picks closed');
+    await expect(page.locator('.picks-due')).toContainText('Spread 0/2 · Total 0/2 · Deadline passed · Week 6 opens Mon, Oct 12, 12:00 AM PT');
+    await expect(page.getByRole('button', { name: 'Picks (closed)', exact: true })).toBeVisible();
     const panel = page.getByRole('region', { name: 'Publish week' });
     await expect(panel.getByRole('heading', { name: 'Preview / publish early (fallback)' })).toBeVisible();
     await expect(panel).toContainText('Commissioner only. Weeks open automatically Monday 12:00 AM PT');
@@ -69,7 +71,8 @@ for (const width of [390, 1280]) test(`commissioner publishes Week 6 from the pu
     const strip = page.locator('.picks-due');
     await expect(strip).toHaveClass(/not_open/);
     await expect(strip).toContainText('Week 6 opens Mon, Oct 12, 12:00 AM PT');
-    await expect(strip).toContainText('Spread 0/14 · Total 0/14 · Then due Oct 15, 5:15 PM PT');
+    await expect(strip).toContainText('In 3 days · Picks due Thu, Oct 15, 5:15 PM PT');
+    await expect(strip).not.toContainText('0/14');
     await expect(strip.getByRole('button', { name: 'Make picks' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Picks', exact: true })).toBeVisible();
     await expect(panel.locator('.publish-preview')).toHaveCount(0);

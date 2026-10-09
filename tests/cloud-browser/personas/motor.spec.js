@@ -21,8 +21,12 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   expect(skip.name).toBe('Skip to main content');
   persona.finding({ screen: 'feed', severity: skip.visible ? 4 : 2, wcag: '2.4.1', experience: skip.visible ? 'The skip link is the first tab stop and becomes visible on focus. Good.' : 'The skip link takes focus but is not visible.', fix: skip.visible ? 'Keep it.' : 'Show the link on focus.' });
   await page.keyboard.press('Enter');
-  const afterSkip = await page.evaluate(() => ({ hash: location.hash, active: document.activeElement?.id || document.activeElement?.tagName }));
-  persona.finding({ screen: 'feed', severity: 3, wcag: '2.4.1', experience: `Activating the skip link sets ${afterSkip.hash} and focus goes to "${afterSkip.active}". <main id="main"> has no tabindex on the Community screen, so the next Tab continues from the top of main: the theme select and six league chips still come before the Feed/Picks tabs and the picks-due card.`, fix: 'Give main tabindex="-1" (the game screen already does) and target the skip link at the first primary action.' });
+  // Quick win 11 (#17, #18): the skip link targets the picks-due card (tabindex -1), so the next Tab is "Make picks"; main carries tabindex -1 too.
+  const afterSkip = await page.evaluate(() => ({ hash: location.hash, active: document.activeElement?.id || document.activeElement?.tagName, mainTabIndex: document.getElementById('main')?.tabIndex }));
+  expect(afterSkip).toEqual({ hash: '#picks-due', active: 'picks-due', mainTabIndex: -1 });
+  await page.keyboard.press('Tab');
+  expect((await persona.focused()).name).toBe('Make picks');
+  await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Shift+Tab');
   await persona.smallTargets('feed');
   await persona.shot('feed');
 
@@ -99,7 +103,17 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   // sentence that the Community Picks tab still lacks.
   const helper = await page.locator('.ballot-header').innerText();
   expect(helper).toContain('Tap the favorite or Pick');
-  persona.finding({ screen: 'game-picks', severity: 3, experience: `Inside a group game "My picks" (${toPicks} Tabs from the top) now opens the same chip entry as the Community tab, with per-row "Next game" links and a helper sentence ("${helper.split('\n').find(line => line.startsWith('Tap'))}"). That sentence exists only here; the Community Picks tab, where most players enter picks, has no equivalent.`, fix: 'Show the same helper sentence (dismissible) above the Community Picks list.' });
+  // The group ballot rows carry the same labelled number row and "Your call" line as the Community tab (ChipPicker is shared):
+  // choose the home favorite by keyboard and the row label and call line appear, using the team codes this screen passes in.
+  const groupPicker = page.locator('.prediction-entry-controls').first();
+  await groupPicker.locator('.team-chip').nth(2).focus();
+  await page.keyboard.press('Enter');
+  await expect(groupPicker.locator('.chip-row-label')).toHaveText('DAL win by…');
+  await groupPicker.getByRole('button', { name: '−3', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(groupPicker.locator('.chip-call')).toHaveText('Your call: DAL by 3');
+  await expect(groupPicker.locator('.chip-summary')).toHaveText('DAL −3');
+  persona.finding({ screen: 'game-picks', severity: 4, experience: `Inside a group game "My picks" (${toPicks} Tabs from the top) opens the same chip entry as the Community tab, with per-row "Next game" links and a helper sentence ("${helper.split('\n').find(line => line.startsWith('Tap'))}"). The Community Picks tab now has its own dismissible helper; the two sentences are worded differently.`, fix: 'Share one helper sentence between the two surfaces.' });
   // Regression check: at 1024px the matchup column is so narrow that full team names break mid-word.
   const names = await page.locator('.prediction-matchup .team-matchup__name strong').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(), line = parseFloat(getComputedStyle(node).lineHeight) || 20; return { text: node.textContent, width: Math.round(r.width), lines: Math.round(r.height / line) }; }));
   const broken = names.filter(n => n.lines > n.text.split(' ').length + 1);

@@ -8,22 +8,24 @@ test('impatient: offline load, offline save, real 409 conflict, injected 409, ex
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await persona.start({ games: 3 });
 
-  // 1. The feed cannot load (offline right after sign-in).
+  // 1. The feed cannot load (503 right after sign-in). Quick win 5 (#7): the Community shell stays, with the error and a Retry;
+  //    only a 404 from an undeployed function falls back to My games.
   await page.goto('/');
   await page.getByLabel('Email', { exact: true }).fill('ben@example.test');
   await page.getByLabel('Password', { exact: true }).fill('test-password');
   persona.net.fail = endpoint => endpoint.startsWith('community/') ? { status: 503, body: { error: 'Service unavailable.' } } : null;
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
-  const alert = page.getByRole('alert');
-  const silent = (await alert.count()) === 0;
-  await persona.shot('feed-503');
-  if (silent) persona.finding({ screen: 'feed-503', severity: 2, experience: 'When the community service answers 503 (or 404, or the request never leaves the phone), the app silently shows "My games" instead of the home feed. There is no message, no "Try again", and the "← Community" link is hidden, so the player believes the product has no feed and no picks due this week.', fix: 'Show the Community shell with an error banner and a Retry button; fall back to My games only for a 404 from an undeployed function, and say so.' });
-  persona.net.fail = null;
-  await page.reload();
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  const alert = page.getByRole('alert');
+  await expect(alert).toContainText('Service unavailable.');
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toHaveCount(0);
+  await persona.shot('feed-503');
+  persona.net.fail = null;
+  await alert.getByRole('button', { name: 'Retry' }).click();
+  await expect(page.locator('.picks-due')).toBeVisible();
+  await expect(alert).toHaveCount(0);
 
-  // 2. Offline while saving a draft.
+  // 2. Offline while saving a draft. Quick win 6 (#8): a plain offline message with Retry, beside the save bar; the picks stay on screen.
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
   const first = page.locator('.week-pick').first();
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
@@ -31,25 +33,34 @@ test('impatient: offline load, offline save, real 409 conflict, injected 409, ex
   persona.net.offline = true;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
-  const offlineText = await alert.innerText();
+  await expect(alert).toContainText('No connection. Your picks are kept on this screen; reconnect and tap Retry.');
+  await expect(page.locator('.save-bar').getByRole('alert')).toHaveCount(1);
+  await expect(first.locator('.chip-summary')).toHaveText('Cowboys −3');
   await persona.shot('save-offline');
-  persona.finding({ screen: 'save-offline', severity: 2, experience: `Saving with no connection shows the raw browser error "${offlineText.trim()}" in the red banner. There is no "you are offline", no retry button, and the picks stay only in memory. The banner sits above the list, so a player scrolled to game 3 sees the chips re-enable and nothing else.`, fix: 'Map TypeError/AbortError to "No connection. Your picks are kept on this screen; tap Save again when you are back online." and add a Retry button to the banner; keep the draft in sessionStorage.' });
   persona.net.offline = false;
-  await page.getByRole('button', { name: 'Save draft' }).click();
+  await alert.getByRole('button', { name: 'Retry' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
+  await expect(alert).toHaveCount(0);
 
   // 3. A real conflict: the same account saves from another device, then this screen saves stale picks.
+  //    "Load latest" brings in the other device's ballot and keeps this screen's unsaved edit on top of it.
   await persona.saveBallot('guess_spread', { 'TB-DAL': -7 }, false);
   await first.getByRole('button', { name: '−4', exact: true }).click();
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
   const conflictText = await alert.innerText();
-  const refreshButton = await alert.getByRole('button').count();
   await persona.shot('save-409');
-  persona.finding({ screen: 'save-409', severity: 2, experience: `After the same account saved from another device, saving here fails with "${conflictText.trim()}". The banner has ${refreshButton ? 'a button' : 'no button'}; the only "Refresh" is a small text button at the very bottom of the page, and tapping it (or reloading) discards the picks on this screen. The player cannot see what changed on the other device before deciding.`, fix: 'Put "Load the latest saved picks" in the banner, merge: keep this screen\'s unsaved picks highlighted against the newly loaded ballot, and let the player resave.' });
   expect(conflictText).toMatch(/changed|Refresh/);
+  await alert.getByRole('button', { name: 'Load latest' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Latest saved picks loaded.' })).toBeVisible();
+  await expect(first.locator('.chip-summary')).toHaveText('Cowboys −4');
+  await page.getByRole('button', { name: 'Save draft' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
+  const merged = (await persona.db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'", [persona.user.id])).rows[0].ballot;
+  expect(merged.picks['TB-DAL']).toBe(-4);
+  persona.finding({ screen: 'save-409', severity: 4, experience: `After the same account saved from another device, saving here fails with "${conflictText.replace(/\n/g, ' ').trim()}" and "Load latest" merges the other device's ballot under this screen's unsaved edit. The merge is silent: nothing highlights which games changed on the other device.`, fix: 'Mark the games whose saved value changed since this screen loaded, so the player can compare before resaving.' });
 
-  // 4. The session expires between loading and saving.
+  // 4. The session expires between loading and saving: the banner says so and offers "Sign in again".
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
@@ -59,9 +70,10 @@ test('impatient: offline load, offline save, real 409 conflict, injected 409, ex
   persona.net.expireSession = true;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
-  const expiredText = await alert.innerText();
+  await expect(alert).toContainText('Your session has expired. The picks on this screen are not saved yet; sign in again to continue.');
+  await expect(alert.getByRole('button', { name: 'Sign in again' })).toBeVisible();
   await persona.shot('save-expired');
-  persona.finding({ screen: 'save-expired', severity: 2, experience: `With an expired or revoked session the save fails with "${expiredText.trim()}". The player still looks signed in ("Signed in as Ben Fixture" at the bottom), there is no sign-in form or button in the banner, and the "Sign out" control is at the end of the page. Reloading keeps the dead session, so the loop repeats.`, fix: 'On 401 from the API, show "Your session expired" with a "Sign in again" button that signs out locally and returns to the sign-in form with the email prefilled; keep the unsaved picks in sessionStorage.' });
+  persona.finding({ screen: 'save-expired', severity: 4, experience: 'With an expired or revoked session the save fails with "Your session has expired…" and a "Sign in again" button, while the footer still reads "Signed in as Ben Fixture". The unsaved picks live only on this screen until the player signs back in.', fix: 'Prefill the email on the sign-in form and keep the unsaved picks in sessionStorage so they survive the round trip.' });
   persona.net.expireSession = false;
 
   // 5. Double-tap protection on Save and Submit.
@@ -80,21 +92,24 @@ test('impatient: offline load, offline save, real 409 conflict, injected 409, ex
   await expect(alert).toBeVisible();
   const quotesText = await alert.innerText();
   await persona.shot('submit-no-quotes');
-  persona.finding({ screen: 'submit-no-quotes', severity: 2, experience: `When the market reference cannot be refreshed, Submit fails with "${quotesText.trim()}". The sentence is honest but assumes the player knows what a "market reference" is; it does not say whether the draft was saved (it was not: the three picks are only on this screen), when to retry, or that Save draft would keep them.`, fix: 'Save the draft automatically before the reference check, then say: "Your 3 picks are saved as a draft. We could not fetch fresh sportsbook lines to lock in your submission; try again in a few minutes."' });
+  persona.finding({ screen: 'submit-no-quotes', severity: 2, experience: `When the market reference cannot be refreshed, Submit fails with "${quotesText.replace(/\n/g, ' ').trim()}". The sentence is honest but assumes the player knows what a "market reference" is; it does not say whether the draft was saved (it was not: the three picks are only on this screen), when to retry, or that Save draft would keep them.`, fix: 'Save the draft automatically before the reference check, then say: "Your 3 picks are saved as a draft. We could not fetch fresh sportsbook lines to lock in your submission; try again in a few minutes."' });
   expect(quotesText).toContain('not submitted');
+  await expect(alert.getByRole('button', { name: 'Retry' })).toBeVisible();
   persona.net.quotesUnavailable = false;
 
-  // 7. Like a post while the service is briefly failing: the busy flag greys out every control on the feed.
+  // 7. Like a post while the service is briefly failing. Quick win 6 (#26): the error sits inside the post with a Retry.
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Feed', exact: true }).click();
   await expect(page.locator('.feed-post').first()).toBeVisible();
   persona.net.fail = endpoint => endpoint === 'community/like' ? { status: 500, body: { error: 'Something went wrong.' } } : null;
-  await page.locator('.feed-post').first().getByRole('button', { name: /likes/ }).click();
-  await expect(alert).toBeVisible();
-  const likeText = await alert.innerText();
-  const alertBox = await alert.boundingBox();
-  const postBox = await page.locator('.feed-post').first().boundingBox();
+  const post = page.locator('.feed-post').first();
+  await post.getByRole('button', { name: /likes/ }).click();
+  await expect(post.getByRole('alert')).toContainText('Something went wrong.');
+  await expect(alert).toHaveCount(1);
+  await expect(post.getByRole('button', { name: /likes/ })).toHaveAttribute('aria-pressed', 'false');
   await persona.shot('like-500');
-  persona.finding({ screen: 'like-500', severity: 3, experience: `A failed like shows "${likeText.trim()}" ${alertBox && postBox && alertBox.y < postBox.y - 200 ? `${Math.round(postBox.y - alertBox.y)}px above the post that was tapped` : 'near the post'}, and the heart does not change. On a phone the banner is off-screen when the post is further down the feed; the tap simply appears to do nothing.`, fix: 'Show action errors inline under the post (or as a toast) and keep the heart in an "unsaved" state with a retry.' });
   persona.net.fail = null;
+  await post.getByRole('alert').getByRole('button', { name: 'Retry' }).click();
+  await expect(post.getByRole('button', { name: /likes/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(alert).toHaveCount(0);
   expect(await persona.noOverflow()).toBe(true);
 });
