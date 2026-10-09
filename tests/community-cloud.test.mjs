@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createCloudHandler } from '../cloud/handler.mjs';
-import { picksDue } from '../cloud/community.mjs';
+import { picksDue, providerCommunityError } from '../cloud/community.mjs';
+import { NFLVERSE_SCHEDULE_URL } from '../shared/nfl-schedule.mjs';
 
 const USER = '00000000-0000-4000-8000-000000000001';
 const forbidden = new Proxy({}, { get: () => () => { throw new Error('Community routes must not touch league, ballot or lobby services.'); } });
@@ -82,6 +83,50 @@ test('commissioner week-open status route is validated and never passes a token'
   assert.deepEqual(body, { configured: true, enabled: true, season: 2026, timeZone: 'America/Los_Angeles', localTime: '00:00', weekday: 'Monday', utcCrons: ['0 7 * * 1', '0 8 * * 1'],
     lastRunAt: '2026-10-12T07:00:01Z', lastFinishedAt: null, lastStatus: 'succeeded', lastReason: null, currentWeek: { season: 2026, week: 6, openAt: '2026-10-12T07:00:00+00:00', deadline: '2026-10-16T00:15:00+00:00' } });
   assert.equal((await send({ extra: 1 })).status, 400);
+});
+
+test('commissioner publish routes build the slate from the schedule source; preview writes nothing, republish reports published:false and a conflicting slate fails closed', async () => {
+  const csv = 'game_id,season,game_type,week,gameday,weekday,gametime,away_team,away_score,home_team,home_score,location\n'
+    + '2026_06_SEA_DEN,2026,REG,6,2026-10-15,Thursday,20:15,SEA,,DEN,,Home\n2026_06_HOU_JAX,2026,REG,6,2026-10-18,Sunday,09:30,HOU,,JAX,,Neutral';
+  const calls = [], control = { admin: true, published: true, conflict: false };
+  const app = createCloudHandler({
+    authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
+    storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden,
+    community: { schedule: async () => csv, rpc: async (name, args) => {
+      calls.push([name, args]);
+      if (name === 'gtl_community_admin') return control.admin;
+      if (control.conflict) throw providerCommunityError('GTL_SLATE_CONFLICT');
+      return { season: 2026, week: 6, games: 2, published: control.published };
+    } },
+  });
+  const send = (route, body) => app(new Request(`https://fixture.invalid/community/${route}`, { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify(body) }));
+  const preview = await send('publish-preview', { season: 2026, week: 6 });
+  assert.equal(preview.status, 200);
+  const slate = await preview.json();
+  assert.deepEqual(slate.games.map(g => [g.id, g.matchup, g.kickoff, g.neutral]), [['SEA-DEN', 'Seattle Seahawks @ Denver Broncos', '2026-10-16T00:15:00.000Z', false], ['HOU-JAX', 'Houston Texans @ Jacksonville Jaguars', '2026-10-18T13:30:00.000Z', true]]);
+  assert.deepEqual([slate.season, slate.week, slate.deadline, slate.source], [2026, 6, '2026-10-16T00:15:00.000Z', NFLVERSE_SCHEDULE_URL]);
+  assert.deepEqual(calls.map(c => c[0]), ['gtl_community_admin'], 'a preview never reaches gtl_publish_week');
+  const first = await send('publish', { season: 2026, week: 6 });
+  assert.equal(first.status, 200);
+  assert.equal((await first.json()).published, true);
+  const [, args] = calls.find(c => c[0] === 'gtl_publish_week');
+  assert.deepEqual(Object.keys(args), ['p_user', 'p_season', 'p_week', 'p_games', 'p_deadline', 'p_source']);
+  assert.deepEqual([args.p_user, args.p_season, args.p_week, args.p_deadline, args.p_source], [USER, 2026, 6, '2026-10-16T00:15:00.000Z', NFLVERSE_SCHEDULE_URL]);
+  assert.deepEqual(args.p_games.map(g => Object.keys(g).sort()), Array(2).fill(['away', 'awayCode', 'home', 'homeCode', 'id', 'kickoff', 'matchup']), 'the neutral flag stays out of the stored slate');
+  control.published = false;
+  assert.deepEqual(await (await send('publish', { season: 2026, week: 6 })).json(), { ...slate, published: false }, 'an identical republish is reported as a no-op');
+  control.conflict = true;
+  const conflict = await send('publish', { season: 2026, week: 6 });
+  assert.equal(conflict.status, 409);
+  assert.deepEqual(await conflict.json(), { error: 'A different schedule is already published for that week. Nothing was changed.' });
+  control.conflict = false; control.admin = false;
+  for (const route of ['publish-preview', 'publish']) assert.equal((await send(route, { season: 2026, week: 6 })).status, 403, `${route} is commissioner-only`);
+  control.admin = true;
+  const missing = await send('publish-preview', { season: 2026, week: 7 });
+  assert.equal(missing.status, 422);
+  assert.match((await missing.json()).error, /^The public schedule could not be used: No 2026 Week 7/);
+  for (const body of [{}, { season: 2026 }, { season: 2026, week: 0 }, { season: '2026', week: 6 }, { season: 2026, week: 6, extra: 1 }]) assert.equal((await send('publish', body)).status, 400, JSON.stringify(body));
+  assert.equal(calls.filter(c => c[0] === 'gtl_publish_week').length, 3, 'only the three publish attempts reached the database');
 });
 
 test('community interest route validates strictly and normalizes interests (D-22)', async () => {
