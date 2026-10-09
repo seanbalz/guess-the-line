@@ -58,9 +58,9 @@ Settlement never changes a pick's saved side, line, odds, units or timestamps (t
 
 ### Settlement runbook — D-26
 
-Run after merge, from a machine with the Supabase login. Nothing here was applied from the cloud session.
+Step 1 was run from the cloud session on October 9 at 18:46 UTC (hosted version `20261009184601`); steps 2–4 need the `gtl-api` deploy and a published week with finals.
 
-1. **Migration, in repo order.** Apply `supabase/migrations/20261009170000_gtl_virtual_units_settlement.sql` through the Supabase MCP `apply_migration` (or the SQL editor), the same way the five October 9 files were applied; do not run `npx supabase db push` as-is (see the [release checklist](../docs/SOCIAL_COMMUNITY.md#release-checklist--october-9-2026)). Every earlier repo file must already be on the hosted project; the only new dependency is `20261008240000_gtl_virtual_units.sql`. Record the hosted version in [RELEASE_2026_10_09.md](../docs/RELEASE_2026_10_09.md).
+1. **Migration, in repo order (done: hosted `20261009184601`).** Apply `supabase/migrations/20261009170000_gtl_virtual_units_settlement.sql` through the Supabase MCP `apply_migration` (or the SQL editor), the same way the five October 9 files were applied; do not run `npx supabase db push` as-is (see the [release checklist](../docs/SOCIAL_COMMUNITY.md#release-checklist--october-9-2026)). Every earlier repo file must already be on the hosted project; the only new dependency is `20261008240000_gtl_virtual_units.sql`. Record the hosted version in [RELEASE_2026_10_09.md](../docs/RELEASE_2026_10_09.md).
 2. **API.** `npx supabase functions deploy gtl-api` from `main` ships the route and the reader fields; the frontend deploy (`npm run build:cloud` → Pages) ships the settled-state screen. Until the API deploy the hosted database carries the function but nothing calls it.
 3. **Settle a week** once its finals are published in nflverse (usually Tuesday morning Pacific after the Monday night game; the file updates within hours of a final). Either Virtual Units → Settle finals as the commissioner, or:
    ```sh
