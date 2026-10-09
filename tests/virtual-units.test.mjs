@@ -29,6 +29,7 @@ test('virtual units reads best retained book offer and saves a matching pick', a
   const body = await read.json();
   assert.equal(body.games[0].offers.spread.home.book, 'draftkings');
   assert.equal(body.games[0].offers.spread.home.line, -3.5);
+  assert.equal(body.games[0].consensus.spread.value, -3.5);
   const save = await handler(new Request('https://example.test/gtl-api/virtual-pick?league=sean-troy-luke', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify({ gameId: game.id, market: 'spread', side: 'home', line: -3.5, odds: -110, units: 1, source: 'draftkings', quotedAt: observed }) }));
   assert.equal(save.status, 200);
   assert.equal(getSaved().revision, 3);
