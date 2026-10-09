@@ -15,8 +15,9 @@ async function openGroupBallot(page) {
   await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
   await page.locator('.hub-game').filter({ hasText: 'Triple Threat' }).getByRole('button', { name: 'Open game' }).click();
   await expect(page.getByRole('heading', { name: 'The weekly huddle.' })).toBeVisible();
+  await expect(page.locator('.sidebar')).toBeAttached();
   const menu = page.getByRole('button', { name: 'Open navigation', exact: true });
-  if (await menu.isVisible()) await menu.click();
+  if (await menu.isVisible()) { await menu.click(); await expect(page.locator('.sidebar')).toHaveClass(/is-open/); }
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Trust your read.' })).toBeVisible();
 }
