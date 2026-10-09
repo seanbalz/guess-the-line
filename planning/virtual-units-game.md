@@ -1,8 +1,8 @@
 # Virtual units game — D-18 task list
 
-Status: confirmed product rules; game implementation is in progress and is not deployed. This is a separate play-money game under Picks, not a real sportsbook wager, the record-only Betting Challenge, a private actual-bet journal, Guess the Spread/Total, or Best Bets. One unit represents $100 virtual.
+Status: confirmed product rules; game implementation is in progress and is not deployed. This is a separate play-money game under Picks, not a real sportsbook wager, the record-only Betting Challenge, a private actual-bet journal, Guess the Spread/Total, or Best Bets. One unit represents $100 virtual. Settlement rules are confirmed as D-26 (October 9, 2026); see the [settlement runbook](#settlement-runbook--d-26) below.
 
-Owner: Sean Balsiger · Version 3 · October 8, 2026.
+Owner: Sean Balsiger · Version 4 · October 9, 2026.
 
 ## Confirmed play rules
 
@@ -31,6 +31,46 @@ Sean approved the recommended defaults for BET-07-Q20 through Q30. They are now 
 | BET-07-Q28 | Which week owns a pick when a game is moved? | Use the canonical NFL competition season/week from the verified schedule, not a Monday–Sunday calendar week. Keep the original voided pick's credit in its original competition week; assign a fresh rescheduled pick to the verified new competition week. |
 | BET-07-Q29 | How are otherwise equal book offers selected? | After the confirmed best-point-line and better-odds rules, prefer the most recently observed applicable quote; use a stable book-key tie-break if observation times also tie. Save the chosen source and timestamps so the button does not flicker between equivalent offers. |
 | BET-07-Q30 | Which channels carry a late-pick or corrected-result notice? | Use a persistent in-app notice, plus push and email only for players who opted into each connected channel. Preserve an event receipt and do not imply delivery until verified. |
+
+## Settlement — D-26
+
+Confirmed October 9, 2026 (see [D-26](../docs/DECISIONS.md#d-26--virtual-units-settlement-october-9-2026) and the [rules row](../docs/RULES.md)). A pick settles against the **final score** with the line and odds saved at placement:
+
+| Outcome | Rule | Units |
+| --- | --- | --- |
+| Win | Spread: the chosen side covers the saved line. Total: the final combined score is over/under the saved total as chosen. | + units × (decimal payout − 1); decimal payout = 1 + (odds > 0 ? odds / 100 : 100 / \|odds\|), the same conversion as `shared/social-bets.mjs` `socialPotentialProfit()`; the product rounded once to four places from the unrounded multiplier (1U at −110 → +0.9091U, 0.5U at −110 → +0.4545U, 2U at +120 → +2.4U); `payoutDecimal` on the result is a rounded display value that never feeds the arithmetic |
+| Loss | The chosen side does not cover / the total lands on the other side. | − staked units |
+| Push | The final lands exactly on the saved line. | 0; stake returned |
+| Void | The game is postponed, cancelled or otherwise unplayed. | 0; stake returned; excluded from record and ROI; D-18 qualification credit kept |
+
+Settlement never changes a pick's saved side, line, odds, units or timestamps (the `selection` JSON, `created_at` and `updated_at` are untouched). It writes `status` and `result` (`outcome`, `status`, `reason`, `home`, `away`, `margin`, `netUnits`, `returnedUnits`, `payoutDecimal`, `version`, `settledAt`, `observedAt`, `source`, `sourceUrl`, `previous`) and appends a `settled`, `resettled` or `voided` event with `before`/`after` to the pick's `audit`. Each game's finals are an append-only ledger (`gtl_virtual_units_settlements`, one row per version); re-running identical finals writes no ledger row and leaves every settled pick as it is, grading only picks placed or re-saved since (the save path resets a row to pending) so nothing stays pending behind a recorded result; a different final appends the next version and re-grades from the original saved terms. A `postponed` void is terminal for that placement (D-18: a fresh pick at the rescheduled market replaces it through the ordinary save path); a `cancelled` void is a ruling and is re-graded if a later verified final corrects it. The reader (`gtl_read_virtual_units`) now returns `results` (latest settlement per slate game) and `settlement` (`settledGames`, `settledPicks`, `pendingPicks`, `lastSettledAt`); record, net units and ROI count settled picks only, and `qualificationPicks`/`qualificationUnits` still count every placed pick.
+
+| Part | State |
+| --- | --- |
+| `supabase/migrations/20261009170000_gtl_virtual_units_settlement.sql` | Ledger table, service-only `public.gtl_settle_virtual_units(p_season integer, p_week integer, p_results jsonb)`, reader update. Refuses an unpublished week (`GTL_SETTLEMENT_WEEK`), a status other than `final`/`postponed`/`cancelled`, malformed scores or keys, a duplicate game id or an `observedAt` more than five minutes ahead of the database clock (`GTL_SETTLEMENT_INPUT`; a smaller lead is caller clock skew and is clamped so `observed_at` never exceeds `settled_at`) and a final before scheduled kickoff (`GTL_SETTLEMENT_EARLY`). A well-formed row for a game that is not on the published slate (the file carries every NFL game of the week; a slate may be a reviewed subset or a game may have moved weeks) is listed in `skipped` and settles nothing instead of blocking the week; a refused call settles nothing. PGlite-tested (`tests/virtual-units-settlement-sql.test.mjs`) |
+| `cloud/virtual-settlement.mjs` | `buildSettlementResults(csv, season, week)` turns the free public nflverse `games.csv` (the team-records source) into `p_results`, finals only; `settleVirtualUnitsWeek({ season, week, service })` is the one-run function a scheduled job can call; `createVirtualSettlementAdapter` is the service-role adapter. Tested without network (`tests/virtual-settlement.test.mjs`) |
+| `POST /virtual-units/settle` `{ season, week }` | Commissioner only (`gtl_community_admin`, the community routes' check; members get 403). Downloads the file, settles the week, returns `finals`, `pending`, `settled`, `corrected`, `unchanged`, `picksSettled`, `skipped` (file rows not on the slate) and per-game versions, never account ids. Handler-tested (`tests/virtual-units.test.mjs`) |
+| `scripts/virtual-units-settle.mjs` | Dry run prints the payload; `--apply` with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the environment runs the RPC. `--file <path>` reads a local copy instead of downloading and records the provenance as `local file <name>` with no URL (the ledger is append-only, so the public URL is never claimed for bytes that did not come from it). Credentials are never written to the repo |
+| `web/src/VirtualUnits.jsx` | Each settled pick shows W / L / Push / Void with net units and the final score; each game shows its final or void line; the stats count settled picks only; an empty state says results settle after finals; the commissioner has a Settle finals button. Browser-tested at 1280px and 390px (`tests/cloud-browser/virtual-units.spec.js`) |
+| Scheduled run | **Follow-up, not registered.** Same pattern as `gtl-week-open`: a pg_cron job → `gtl_dispatch_…` → pg_net → a small Edge function calling `settleVirtualUnitsWeek` with the one-run capability claim. Suggested slot: Tuesday 09:00 UTC after the Monday night final, plus a Friday run for Thursday's game. Until then settlement is on demand |
+| Postponement / cancellation source | The nflverse file has no status column, so voids are never inferred from it (D-18: an unconfirmed report must not void a pick). The RPC accepts explicit `postponed`/`cancelled` rows; a verified-source path (official league notice receipt, as for commissioner kickoff changes) is still to be decided |
+| Score-change / weekly-winner posts, corrected-result notices | Not built (D-21/D-18). The RPC's return value (`picks[]`, `players[]`) and the `resettled`/`voided` audit events are the hook |
+
+### Settlement runbook — D-26
+
+Run after merge, from a machine with the Supabase login. Nothing here was applied from the cloud session.
+
+1. **Migration, in repo order.** Apply `supabase/migrations/20261009170000_gtl_virtual_units_settlement.sql` through the Supabase MCP `apply_migration` (or the SQL editor), the same way the five October 9 files were applied; do not run `npx supabase db push` as-is (see the [release checklist](../docs/SOCIAL_COMMUNITY.md#release-checklist--october-9-2026)). Every earlier repo file must already be on the hosted project; the only new dependency is `20261008240000_gtl_virtual_units.sql`. Record the hosted version in [RELEASE_2026_10_09.md](../docs/RELEASE_2026_10_09.md).
+2. **API.** `npx supabase functions deploy gtl-api` from `main` ships the route and the reader fields; the frontend deploy (`npm run build:cloud` → Pages) ships the settled-state screen. Until the API deploy the hosted database carries the function but nothing calls it.
+3. **Settle a week** once its finals are published in nflverse (usually Tuesday morning Pacific after the Monday night game; the file updates within hours of a final). Either Virtual Units → Settle finals as the commissioner, or:
+   ```sh
+   node scripts/virtual-units-settle.mjs --season 2026 --week 6              # dry run: prints the finals payload
+   SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<from the dashboard, never committed> \
+   node scripts/virtual-units-settle.mjs --season 2026 --week 6 --apply      # settles; prints settled/corrected/unchanged
+   ```
+   Re-running is safe: identical finals end `unchanged`. A changed final ends `corrected` and re-grades. A game still without a final is listed under `pending` and its picks stay pending.
+4. **Verify.** `select game_id,version,status,home,away,picks_settled,settled_at from public.gtl_virtual_units_settlements where season=2026 and week=6 order by game_id,version;` and the Virtual Units screen's record/net/ROI for one player.
+5. **Rollback.** There is no destructive path. A wrong final is corrected by settling again with the right score (new version); nothing is deleted. Do not drop the ledger.
 
 ## Source verification before implementation
 

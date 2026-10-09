@@ -265,6 +265,12 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     if (!Array.isArray(rows) || rows.length > 1) throw new Error('Invalid storage response.');
     return rows[0] || null;
   }
+  // The free public nflverse schedule file: slates (D-21/D-24) and Virtual Units finals (D-26) read the same bytes.
+  async function publicSchedule() {
+    const response = await fetchImpl(NFLVERSE_SCHEDULE_URL, { redirect: 'error', signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error('Public schedule unavailable.');
+    return response.text();
+  }
   async function weeklyRpc(name, body) {
     const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
     if (!response.ok) {
@@ -359,6 +365,21 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
         if (!response.ok) { let message; try { message = (await response.json())?.message; } catch {} throw providerVirtualError(message); }
         return response.json();
       },
+      // D-26 settlement: the community commissioner check, the public finals file and the service-only RPC.
+      async admin(userId) {
+        const response = await request('/rest/v1/rpc/gtl_community_admin', { method: 'POST', headers, body: JSON.stringify({ p_user: userId }) });
+        if (!response.ok) throw new Error('Commissioner check unavailable.');
+        return (await response.json()) === true;
+      },
+      schedule: publicSchedule,
+      async settle(season, week, results) {
+        const response = await request('/rest/v1/rpc/gtl_settle_virtual_units', { method: 'POST', headers, body: JSON.stringify({ p_season: season, p_week: week, p_results: results }) });
+        if (!response.ok) {
+          let message; try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
+          const error = providerVirtualError(message); error.code = message; throw error;
+        }
+        return response.json();
+      },
     },
     results: {
       async review(userId, body) {
@@ -376,11 +397,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
       },
     },
     community: {
-      async schedule() {
-        const response = await fetchImpl(NFLVERSE_SCHEDULE_URL, { redirect: 'error', signal: AbortSignal.timeout(10000) });
-        if (!response.ok) throw new Error('Public schedule unavailable.');
-        return response.text();
-      },
+      schedule: publicSchedule,
       async rpc(name, body) {
         const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!response.ok) {

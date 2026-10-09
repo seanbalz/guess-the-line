@@ -49,3 +49,6 @@
 .visual-refresh small,.visual-refresh .refresh-warning{display:block;margin-top:4px}.refresh-warning{color:var(--pending);font-size:12px}
 
 .virtual-consensus{color:var(--muted);font-size:12px!important;margin-top:5px!important}
+
+/* D-26 Virtual Units settlement */
+.virtual-final{color:var(--text);font-size:12px;margin-top:4px}.virtual-settlement-note{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin:-8px 0 18px}.virtual-result{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:5px;color:var(--text)}.virtual-result.lime{color:var(--win)}.virtual-result.loss{color:var(--loss)}.virtual-result.tie{color:var(--tie)}.virtual-result.amber{color:var(--pending)}.virtual-units .heading-actions{display:flex;gap:10px;flex-wrap:wrap}
