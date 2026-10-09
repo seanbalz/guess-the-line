@@ -81,7 +81,7 @@ test('reduced motion, keyboard focus, failure and recovery',async({page})=>{
  await expect(page.locator('.score-number')).toContainText('—');
  await page.route('**/api/state?**',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Test outage: local service unavailable.'})}));
  await page.getByLabel('Local player view').selectOption('luke');await expect(page.getByRole('alert')).toContainText('Test outage');await expect(page.locator('.score-number')).toHaveCount(0);
- await page.unroute('**/api/state?**');await page.getByRole('button',{name:'Try again'}).click();await expect(page.getByRole('heading',{name:'The weekly huddle.'})).toBeVisible();
+ await page.unroute('**/api/state?**');await page.getByRole('button',{name:'Reload saved data',exact:true}).click();await expect(page.getByRole('heading',{name:'The weekly huddle.'})).toBeVisible();
 });
 test('invalid quote feedback stays inside its dialog and unsaved navigation can be cancelled',async({page})=>{
  await page.goto('/');await page.getByRole('button',{name:'My picks',exact:true}).click();

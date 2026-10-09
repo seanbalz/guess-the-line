@@ -9,7 +9,7 @@
 .social-dashboard-metrics dt {font-size:13px; color:var(--muted)}
 .social-dashboard-metrics dd {font-size:28px; font-family:var(--font-mono,'IBM Plex Mono',ui-monospace,monospace); margin:8px 0; line-height:1.2; overflow-wrap:anywhere; color:var(--text)}
 .social-dashboard-metrics small,.social-dashboard-coverage,.social-dashboard-audience {font-size:13px; line-height:1.6; color:var(--muted)}
-.social-dashboard-metrics small {display:block}
+.social-dashboard-metrics small {display:block; margin-top:8px; font-family:Inter,system-ui,sans-serif}
 .social-dashboard-recent {margin:24px 0 16px}
 .social-dashboard-recent h3,.social-dashboard-empty h3 {font-size:16px; color:var(--text)}
 .social-dashboard-recent ul {list-style:none; padding:0; margin:8px 0 0}

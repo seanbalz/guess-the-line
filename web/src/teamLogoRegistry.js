@@ -2,6 +2,7 @@
 // docs/TEAM_LOGO_SOURCES.md and public/team-logos/sources.json.
 // Approval is limited to small team identifiers, not Guess The Line branding.
 export const approvedTeamLogos = Object.freeze({
+  BUF: Object.freeze({ src: '/team-logos/buf.png', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#buf' }),
   CHI: Object.freeze({ src: '/team-logos/chi.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#chi' }),
   CIN: Object.freeze({ src: '/team-logos/cin.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#cin' }),
   DAL: Object.freeze({ src: '/team-logos/dal.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#dal' }),
@@ -10,6 +11,7 @@ export const approvedTeamLogos = Object.freeze({
   KC: Object.freeze({ src: '/team-logos/kc.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#kc' }),
   LAC: Object.freeze({ src: '/team-logos/lac.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#lac' }),
   NO: Object.freeze({ src: '/team-logos/no.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#no' }),
+  NYJ: Object.freeze({ src: '/team-logos/nyj.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#nyj' }),
   NYG: Object.freeze({ src: '/team-logos/nyg.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#nyg' }),
   PIT: Object.freeze({ src: '/team-logos/pit.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#pit' }),
   SF: Object.freeze({ src: '/team-logos/sf.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#sf' }),
