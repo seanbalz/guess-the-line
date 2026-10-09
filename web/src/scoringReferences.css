@@ -5,3 +5,26 @@
 .submission-comparison .comparison-table table{min-width:1120px;table-layout:auto}.submission-comparison .comparison-table th[scope=row]{min-width:180px;width:180px}.submission-comparison .comparison-table td{min-width:190px;vertical-align:top}.submission-comparison .comparison-table .current-consensus-box{margin:0}.submission-comparison .comparison-table th[scope=row] .team-matchup{min-width:155px}.submission-comparison .comparison-table th[scope=row] .team-matchup__side{min-width:55px}
 
 .current-consensus-box{white-space:normal}.submission-comparison .comparison-table td:last-child{width:240px}.submission-comparison .comparison-table td:last-child .current-consensus-box{min-width:190px;max-width:240px}.submission-comparison .comparison-table th[scope=col] small{white-space:normal}
+
+/* Your guess vs. the market: desktop keeps the table; phones get one stacked card per matchup. */
+.market-stale{display:block;margin-bottom:4px}
+@media(max-width:720px){
+ .market-comparison-panel .panel-heading{flex-wrap:wrap;gap:12px}.market-comparison-panel .standalone-select{max-width:100%}
+ .market-comparison{overflow:visible}.market-comparison table,.market-comparison tbody{display:block;width:100%;min-width:0;white-space:normal}.market-comparison thead{display:none}
+ .market-comparison tbody tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;grid-template-areas:"matchup matchup matchup" "guess consensus gap" "stale stale stale" "source source source";gap:12px 8px;padding:16px;border-top:1px solid var(--line)}
+ .market-comparison td{display:block;min-width:0;padding:0;border:0;font-size:16px;line-height:1.3}
+ .market-comparison .market-matchup-cell{grid-area:matchup}.market-comparison .market-guess-cell{grid-area:guess}.market-comparison .market-gap-cell{grid-area:gap}
+ .market-comparison .market-consensus-cell{display:contents}.market-comparison .market-consensus-value{grid-area:consensus;font-size:16px;line-height:1.3}
+ .market-comparison .market-stale{grid-area:stale;margin:0}.market-comparison .market-stale .badge{font-size:13px;white-space:normal}
+ .market-comparison .market-comparison-source{grid-area:source;margin:0;font-size:13px;line-height:1.45;color:var(--muted)}
+ .market-comparison [data-label]{display:grid;gap:4px;align-content:start;justify-items:start}
+ .market-comparison [data-label]::before{content:attr(data-label);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.3;color:var(--muted);letter-spacing:.02em}
+ .market-comparison .gap-pill,.market-comparison .market-gap-cell .muted{font-size:16px;line-height:1.3;padding:3px 8px;white-space:nowrap}
+ .market-comparison .matchup{display:block}
+ .market-comparison .team-matchup:not(.team-matchup--compact){display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center;width:100%}
+ .market-comparison .team-matchup:not(.team-matchup--compact) .team-matchup__side{display:contents}
+ .market-comparison .team-matchup:not(.team-matchup--compact) .team-matchup__at{grid-column:1/-1;padding:0;font-size:13px;line-height:1.3}
+ .market-comparison .team-matchup:not(.team-matchup--compact) .team-matchup__name{display:grid;gap:2px;min-width:0}
+ .market-comparison .team-matchup:not(.team-matchup--compact) .team-matchup__name small{font-size:13px;line-height:1.3;letter-spacing:.02em}
+ .market-comparison .team-matchup:not(.team-matchup--compact) .team-matchup__name strong{font-size:16px;line-height:1.3;white-space:nowrap;overflow-wrap:normal;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+}
