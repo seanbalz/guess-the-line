@@ -1,6 +1,6 @@
 # Transparent NFL team marks — source register
 
-Reviewed: October 8, 2026 · Owner: team-logo workflow agent
+Reviewed: October 8, 2026 · Updated: October 9, 2026 (D-22 original badges, PR #17) · Owner: team-logo workflow agent
 
 ## Implemented coverage
 
@@ -167,7 +167,7 @@ Added October 9, 2026 under product-owner decision **D-22** (every team shows a 
 | TB | `#D50A0A` | `#34302B` | white |
 | TEN | `#0C2340` | `#4B92DB` | white |
 
-**Follow-up:** the official-mark rights check for these 19 teams could not be repeated from the October 9 cloud session because `commons.wikimedia.org` is blocked by that environment's network policy. The October 8 findings above remain the latest record. If an eligible official mark is later verified for any of these teams, add it to `approvedTeamLogos` with its own source record; it will take precedence over the badge automatically.
+**Follow-up:** the official-mark rights check for these 19 teams could not be repeated from the October 9 cloud session because `commons.wikimedia.org` is blocked by that environment's network policy; it needs a machine with Commons access. The October 8 findings above remain the latest record. If an eligible official mark is later verified for any of these teams, add the file, its `sources.json` record and its `approvedTeamLogos` entry together (`tests/team-marks.test.mjs` checks all three against each other); `teamMarks` then prefers the official mark over the badge automatically.
 
 ## Validation
 
