@@ -20,11 +20,12 @@ const MIGRATIONS = [
   '20261009005145_gtl_social_bet_tracker.sql',
   '20261009120000_gtl_community_feed.sql',
   '20261009130000_gtl_league_interest.sql',
+  '20261009140000_gtl_d23_data_rule.sql',
   '20261009150000_gtl_auto_open_week.sql',
 ];
 const SEAN = 30, TROY = 1, BEN = 2, NEW = 3;
 
-test('community feed migration: one community, automatic posts, gated picks, likes, comments, removal', { skip: PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.' }, async t => {
+test('community feed migration: one community, automatic posts, gated picks, likes, comments, removal, D-23 sit-out', { skip: PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.' }, async t => {
   const db = new PGlite(); t.after(() => db.close());
   await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
   for (const file of MIGRATIONS) {
@@ -56,13 +57,19 @@ test('community feed migration: one community, automatic posts, gated picks, lik
   };
 
   await t.test('browser roles cannot reach any table or RPC; functions are invoker', async () => {
-    for (const table of ['gtl_community_removals', 'gtl_feed_posts', 'gtl_feed_likes', 'gtl_feed_comments']) {
+    for (const table of ['gtl_community_removals', 'gtl_feed_posts', 'gtl_feed_likes', 'gtl_feed_comments', 'gtl_weekly_optouts']) {
       assert.equal((await db.query('select relrowsecurity from pg_class where oid=$1::regclass', [`public.${table}`])).rows[0].relrowsecurity, true);
       for (const role of ['anon', 'authenticated']) await assert.rejects(() => as(role, `select * from public.${table}`), /permission denied/);
     }
-    for (const role of ['anon', 'authenticated']) await assert.rejects(() => as(role, 'select public.gtl_read_community($1,null,30,null)', [id(TROY)]), /permission denied/);
-    const flags = (await db.query("select prosecdef from pg_proc where proname like 'gtl_%community%' or proname like 'gtl_%feed%'")).rows;
-    assert(flags.length >= 7 && flags.every(row => row.prosecdef === false));
+    for (const role of ['anon', 'authenticated']) {
+      await assert.rejects(() => as(role, 'select public.gtl_read_community($1,null,30,null)', [id(TROY)]), /permission denied/);
+      await assert.rejects(() => as(role, "select public.gtl_sit_out_week($1,2026,5,'guess_total',null)", [id(TROY)]), /permission denied/);
+      await assert.rejects(() => as(role, "select public.gtl_week_revealed($1,2026,5,'guess_total',null)", [id(TROY)]), /permission denied/);
+    }
+    const flags = (await db.query("select prosecdef from pg_proc where proname like 'gtl_%community%' or proname like 'gtl_%feed%' or proname in ('gtl_sit_out_week','gtl_week_revealed','gtl_guard_optout_ballot')")).rows;
+    assert(flags.length >= 10 && flags.every(row => row.prosecdef === false));
+    const grants = (await db.query("select privilege_type from information_schema.role_table_grants where table_name='gtl_weekly_optouts' and grantee='service_role' order by 1")).rows.map(r => r.privilege_type);
+    assert.deepEqual(grants, ['INSERT', 'SELECT'], 'an opt-out is final: no update or delete grant');
   });
 
   await t.test('existing and new profiles are members with joined posts; no profile means no access', async () => {
@@ -115,7 +122,38 @@ test('community feed migration: one community, automatic posts, gated picks, lik
     const feed = await read(BEN);
     const troy = feed.standings.find(x => x.userId === id(TROY) && x.mode === 'guess_spread');
     assert.deepEqual([troy.weekPoints, troy.weekScored, troy.seasonPoints, troy.weeksSubmitted], [9, 1, 9, 1], 'Troy -4 vs reference -3.5 scores 9; unavailable references are unscored');
-    assert(feed.standings.every(x => Object.keys(x).every(k => ['userId', 'mode', 'weekPoints', 'weekScored', 'seasonPoints', 'seasonScored', 'weeksSubmitted'].includes(k))));
+    assert(feed.standings.every(x => Object.keys(x).every(k => ['userId', 'mode', 'weekPoints', 'weekScored', 'seasonPoints', 'seasonScored', 'weeksSubmitted', 'satOut'].includes(k))));
+  });
+
+  await t.test('D-23 sit-out: final weekly opt-out reveals picks, clears picks due and is marked sat out, never zero', async () => {
+    const sitOut = (n, body, now = Date.parse('2026-10-08T20:00:00Z')) => handleCommunity({ route: '/community/sit-out', body, user: user(n), service, clock: () => now });
+    const week = { season: slate.season, week: slate.week };
+    const benTotal = async n => (await read(n)).posts.find(p => p.kind === 'ballot_submitted' && p.actorId === id(BEN) && p.mode === 'guess_total');
+    assert.equal((await benTotal(SEAN)).picksHidden, true, 'Sean has not submitted or sat out totals');
+    assert.deepEqual((await read(SEAN)).optOuts, []);
+    for (const body of [{ ...week, mode: 'betting_challenge' }, { ...week, mode: 'guess_total', extra: 1 }, { season: 2026, week: 99, mode: 'guess_total' }]) {
+      await assert.rejects(() => sitOut(SEAN, body), error => error.status === 400);
+    }
+    await assert.rejects(() => sitOut(NEW, { ...week, mode: 'guess_total' }), error => error.status === 403, 'no profile means no community access');
+    await assert.rejects(() => sitOut(SEAN, { ...week, mode: 'guess_spread' }), error => error.status === 400, 'already submitted spread cannot be sat out');
+    const deadline = Date.parse((await read(TROY)).week.deadline);
+    await assert.rejects(() => sitOut(TROY, { ...week, mode: 'guess_total' }, deadline), error => error.status === 409, 'rejected after the deadline');
+    assert.deepEqual(await sitOut(SEAN, { ...week, mode: 'guess_total' }), { ...week, mode: 'guess_total', satOut: true, replayed: false });
+    assert.deepEqual(await sitOut(SEAN, { ...week, mode: 'guess_total' }), { ...week, mode: 'guess_total', satOut: true, replayed: true }, 'idempotent');
+    assert.equal((await db.query('select count(*)::int n from public.gtl_access_audit where event=$1', [`sit_out:${slate.season}:${slate.week}:guess_total`])).rows[0].n, 1);
+    const feed = await read(SEAN);
+    assert.deepEqual(feed.optOuts, ['guess_total']);
+    assert.deepEqual(feed.due.map(d => [d.mode, d.submitted, d.satOut]), [['guess_spread', true, false], ['guess_total', false, true]]);
+    assert.equal(feed.picksDue.state, 'done', 'a sat-out mode is no longer due');
+    assert.deepEqual((await benTotal(SEAN)).picks, picks(44), 'sitting out reveals the other players\' total picks');
+    assert.notEqual((await read(SEAN)).posts.find(p => p.kind === 'ballot_submitted' && p.actorId === id(TROY)).picks, null, 'spread stays revealed by submission');
+    assert.deepEqual(feed.submissions.filter(s => s.userId === id(SEAN)).map(s => [s.mode, s.satOut, s.submittedAt === null]), [['guess_spread', false, false], ['guess_total', true, true]]);
+    const sat = feed.standings.find(x => x.userId === id(SEAN) && x.mode === 'guess_total');
+    assert.deepEqual([sat.satOut, sat.weekPoints, sat.weekScored, sat.weeksSubmitted], [true, 0, 0, 0], 'recorded as sat out, not a zero score');
+    assert.equal(feed.standings.find(x => x.userId === id(SEAN) && x.mode === 'guess_spread').satOut, false);
+    await assert.rejects(() => ballot(SEAN, 'guess_total', null, 40), /GTL_COMMUNITY_SAT_OUT/, 'no draft or submission can follow a sit-out');
+    await assert.rejects(() => as('service_role', 'delete from public.gtl_weekly_optouts'), /permission denied/, 'an opt-out cannot be deleted');
+    assert.equal((await db.query('select count(*)::int n from public.gtl_weekly_optouts')).rows[0].n, 1);
   });
 
   await t.test('likes toggle idempotently and comments replay safely', async () => {
@@ -135,18 +173,25 @@ test('community feed migration: one community, automatic posts, gated picks, lik
     assert.deepEqual(await like({ postId: post.id, like: false }), { likes: 0, likedByMe: false });
   });
 
-  await t.test('only the commissioner removes members; removed members disappear and lose access', async () => {
+  await t.test('only the commissioner removes members; removal blocks access but hides nothing (D-23)', async () => {
     const member = (body, n) => handleCommunity({ route: '/community/member', body, user: user(n), service });
+    const troyPost = (await read(BEN)).posts.find(p => p.kind === 'joined' && p.actorId === id(TROY));
+    const benComment = await handleCommunity({ route: '/community/comment', body: { requestId: id(903), postId: troyPost.id, body: 'Good luck this week' }, user: user(BEN), service });
     await assert.rejects(() => member({ userId: id(BEN), member: false }, TROY), error => error.status === 403);
     await assert.rejects(() => member({ userId: id(SEAN), member: false }, SEAN), error => error.status === 400);
     assert.deepEqual(await member({ userId: id(BEN), member: false }, SEAN), { userId: id(BEN), member: false });
-    await assert.rejects(() => read(BEN), error => error.status === 403);
+    await assert.rejects(() => read(BEN), error => error.status === 403, 'the removed account cannot read the feed');
+    await assert.rejects(() => handleCommunity({ route: '/community/like', body: { postId: troyPost.id, like: true }, user: user(BEN), service }), error => error.status === 403);
+    await assert.rejects(() => handleCommunity({ route: '/community/sit-out', body: { season: slate.season, week: slate.week, mode: 'guess_total' }, user: user(BEN), service, clock: () => Date.parse('2026-10-08T20:00:00Z') }), error => error.status === 403);
     const feed = await read(TROY);
-    assert.equal(feed.members.some(m => m.id === id(BEN)), false);
-    assert.equal(feed.posts.some(p => p.actorId === id(BEN)), false);
-    assert.equal(feed.submissions.some(s => s.userId === id(BEN)), false);
+    assert.deepEqual(feed.members.filter(m => m.id === id(BEN)).map(m => [m.displayName, m.removed]), [['Ben', true]]);
+    assert.deepEqual(feed.posts.filter(p => p.actorId === id(BEN)).map(p => p.kind).sort(), ['ballot_submitted', 'ballot_submitted', 'joined'], 'removed members\' posts stay visible');
+    assert.deepEqual(feed.posts.find(p => p.id === troyPost.id).comments.filter(c => c.userId === id(BEN)).map(c => [c.id, c.body]), [[benComment.id, 'Good luck this week']]);
+    assert.deepEqual(feed.submissions.filter(s => s.userId === id(BEN)).map(s => s.mode), ['guess_spread', 'guess_total']);
+    assert.deepEqual(feed.standings.filter(s => s.userId === id(BEN)).map(s => s.mode), ['guess_spread', 'guess_total']);
+    assert.deepEqual(feed.posts.find(p => p.kind === 'ballot_submitted' && p.actorId === id(BEN) && p.mode === 'guess_spread').picks, picks(-2.5), 'Troy submitted spreads, so Ben\'s spread picks remain visible');
     await member({ userId: id(BEN), member: true }, SEAN);
-    assert.equal((await read(TROY)).members.some(m => m.id === id(BEN)), true);
+    assert.deepEqual((await read(TROY)).members.filter(m => m.id === id(BEN)).map(m => m.removed), [false]);
     assert.equal((await db.query("select count(*)::int n from public.gtl_access_audit where event like 'community_%'")).rows[0].n, 2);
   });
 

@@ -25,6 +25,7 @@ export function createServer(store = createStore()) {
           let body; try {body=JSON.parse(raw);} catch {return send(400,{error:'Invalid JSON.'});}
           if(/^\/api\/social\/(read|create|tail|settle|include|correct|follow)$/.test(url.pathname)) return send(200,await store.socialAction(player,url.pathname.split('/').at(-1),body));
           if(url.pathname==='/api/ballot') return send(200,store.saveBallot(player,mode,body.picks,body.submit===true));
+          if(url.pathname==='/api/sit-out') return send(200,store.sitOut(player,mode));
           if(url.pathname==='/api/bet') return send(200,store.saveBet(player,body));
         }
         return send(404,{error:'Unknown API route.'});

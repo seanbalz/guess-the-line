@@ -1,5 +1,9 @@
 # Decision log
 
+## D-25 — Ben's Week 5 picks and scoring reference (October 9, 2026)
+
+Ben signed up and gave Sean his 15 Week 5 spread picks on Thursday, October 8 at 12:00 PM PT, before the 5:15 PM PT deadline. Sean ruled they count as on-time and are recorded in `data/picks/2026-week-05-ben.json`. Because no D-16 consensus snapshot exists for 12:00 PM PT, Sean ruled that Ben's Week 5 picks score against the eDraft snapshot updated 10:03 ET (`data/snapshots/2026-week-05-20261008T150212589Z.json`), the same reference as Sean's provisional 96.4, labelled a commissioner-ruled reference. This is a one-week ruling, not a change to D-16.
+
 ## D-24 — automatic weekly pick window (October 9, 2026)
 
 Sean confirmed that each NFL week's pick window opens by itself and closes at the existing deadline:
@@ -10,6 +14,16 @@ Sean confirmed that each NFL week's pick window opens by itself and closes at th
 - **Fallback.** The commissioner's manual panel stays as "Preview / publish early (fallback)" and shows the scheduler status.
 - **Notice.** The picks-due notice starts at the open; before then Home and the Picks tab show "Week N opens Mon <date> 12:00 AM PT" with entry disabled.
 - **Delivery.** Migration `20261009150000_gtl_auto_open_week.sql`, function `gtl-week-open`, and an administrator-run cron registration recorded in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md). Nothing is enabled by default and nothing was deployed from the cloud session.
+
+## D-23 — user data is never deleted, moved or hidden (October 9, 2026)
+
+Sean confirmed the data rule for everything a player enters:
+
+- **Nothing is deleted, moved or hidden.** Posts, comments, likes, submitted and draft ballots, Challenge selections, virtual units, Bet Tracker entries, standings rows and member entries stay where they are and stay visible to every community member. Commissioner removal blocks the removed account from reading, posting and picking in the community; it hides nothing from anyone else, and the member list carries a `removed` flag instead of dropping the entry.
+- **The single exception is the Guess pick reveal gate.** A viewer sees other players' Guess the Spread or Guess the Total picks for a season/week/mode only after submitting their own full ballot for that mode, or after a final weekly opt-out ("Sit out this week") for that mode. After the deadline everything is visible, as before.
+- **Sitting out is final.** It forfeits that mode's score for that week, which is recorded as *sat out* and never as zero, clears that mode's picks-due notice, reveals the other players' picks for that mode, and closes that mode's ballot for the week: no draft or submission can follow it. It is per mode, so sitting out Total does not touch Spread. It is refused after the deadline and once that mode's ballot is submitted.
+- **Group game screens follow the same gate.** The league engine treats an opt-out exactly like a submitted ballot for the reveal, with no change to scoring references.
+
 ## D-22 — coming-soon leagues and team marks (October 9, 2026)
 
 The product owner confirmed two changes:

@@ -19,6 +19,7 @@ const ERRORS = {
   GTL_BALLOT_LOCKED: [409, 'This ballot is submitted and permanently locked.'],
   GTL_PREDICTION_CLOSED: [409, 'The prediction deadline has passed.'],
   GTL_PREDICTION_NOT_OPEN: [409, 'This week’s picks open Monday 12:00 AM PT.'],
+  GTL_COMMUNITY_SAT_OUT: [409, 'You sat out this week for that market. Its picks are closed.'],
   GTL_BALLOT_INCOMPLETE: [400, 'Complete every prediction before submitting.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your weekly ballot changed in another group or on another device. Refresh and review before saving.'],
 };

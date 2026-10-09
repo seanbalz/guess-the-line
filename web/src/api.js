@@ -55,6 +55,6 @@ export const signed = value => value === null || value === undefined ? '—' : v
 export const date = (value, options={}) => value ? new Date(value).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',...options}) : 'Not available';
 export const shortTeam = team => team.split(' ').at(-1);
 export async function communityApi(action, body = {}, signal) {
-  if (!['read', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'week-open'].includes(action)) throw new ApiError('Unknown community action.', 400);
+  if (!['read', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open'].includes(action)) throw new ApiError('Unknown community action.', 400);
   return cloudApi(`community/${action}`, body, { signal });
 }

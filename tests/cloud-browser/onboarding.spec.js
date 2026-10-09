@@ -3,6 +3,8 @@ import { seed } from '../../server/store.mjs';
 import { createEngine } from '../../server/engine.mjs';
 import { applyProvisionalAnalysisView } from '../../cloud/total-analysis-view.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
+import { picker, pickSpread, pickTotal, expectPick, expectPickEnabled, spreadText, totalText } from '../chip-entry.mjs';
+const MATCHUPS = [['TB', 'DAL'], ['PHI', 'JAX'], ['CIN', 'MIA']];
 
 const accountId = '11111111-1111-4111-8111-111111111111';
 const duelId = '22222222-2222-4222-8222-222222222222';
@@ -305,10 +307,11 @@ for (const [mode, width] of [['guess_spread', 320], ['guess_total', 390]]) test(
   async function picks() { await page.getByRole('button', { name: 'Open navigation', exact: true }).click(); await page.getByRole('button', { name: 'My picks', exact: true }).click(); }
   await picks();
   await page.getByRole('button', { name: label, exact: true }).click();
-  await expect(page.getByLabel(total ? 'TB at DAL combined points' : 'TB at DAL home spread')).toBeVisible();
+  await expect(picker(page, total ? 'TB at DAL combined points' : 'TB at DAL home spread')).toBeVisible();
   await expect(page.locator('.hidden-value')).toHaveCount(3);
   const values = total ? ['44.5', '48', '46'] : ['-3.5', '2', '-1'];
-  for (const [index, input] of (await page.locator('.prediction-input input').all()).entries()) await input.fill(values[index]);
+  const entryLabel = ([away, home]) => `${away} at ${home} ${total ? 'combined points' : 'home spread'}`;
+  for (const [index, matchup] of MATCHUPS.entries()) await (total ? pickTotal : pickSpread)(page, entryLabel(matchup), values[index]);
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   const review = page.getByRole('dialog', { name: `Submit your ${total ? 'total' : 'spread'} ballot?` });
   await expect(review).toBeVisible();
@@ -342,17 +345,17 @@ for (const [mode, width] of [['guess_spread', 320], ['guess_total', 390]]) test(
   await expect(page.getByRole('heading', { name: 'Your ballot comes first' })).toBeVisible();
   await expect(page.locator('.analysis-source')).toHaveCount(0);
   await page.getByRole('button', { name: 'Complete your ballot' }).click();
-  await expect(page.locator('.prediction-input input').first()).toBeEnabled();
+  await expectPickEnabled(page, `TB at DAL ${total ? 'home spread' : 'combined points'}`);
   await expect(page.locator('.hidden-value')).toHaveCount(3);
   await page.getByRole('button', { name: label, exact: true }).click();
   await expect(page.getByText('SUBMITTED · EDITABLE', { exact: true })).toBeVisible();
-  await expect(page.locator('.prediction-input input').first()).toBeEnabled();
+  await expectPickEnabled(page, entryLabel(MATCHUPS[0]));
   await expect(page.getByRole('button', { name: 'Save draft', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Review & submit', exact: true })).toHaveCount(0);
   await page.reload(); await picks();
   await page.getByRole('button', { name: label, exact: true }).click();
-  await expect(page.locator('.prediction-input input').first()).toBeEnabled();
-  await expect(page.locator('.prediction-input input').first()).toHaveValue(values[0]);
+  await expectPickEnabled(page, entryLabel(MATCHUPS[0]));
+  await expectPick(page, entryLabel(MATCHUPS[0]), total ? totalText(values[0]) : spreadText('TB', 'DAL', values[0]));
 });
 
 for (const width of [320, 390]) test(`Light and System appearance persist across account and game screens at ${width}px`, async ({ page, hub }) => {
@@ -414,15 +417,15 @@ test('one weekly draft and submitted ballot follow the player across groups whil
   await page.locator('.hub-game').filter({ hasText: 'Weekend duel' }).getByRole('button', { name: 'Open game' }).click();
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
   await expect(page.getByText('One weekly spread ballot across all groups.')).toBeVisible();
-  await page.getByLabel('TB at DAL home spread').fill('-3.5');
+  await pickSpread(page, 'TB at DAL home spread', '-3.5');
   await page.getByRole('button', { name: 'Save draft', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('saved to your account');
   await page.getByLabel('Current game').selectOption(otherId);
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
-  await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-3.5');
+  await expectPick(page, 'TB at DAL home spread', 'DAL −3.5');
   await expect(page.locator('.hidden-value')).toHaveCount(3);
-  await page.getByLabel('PHI at JAX home spread').fill('2');
-  await page.getByLabel('CIN at MIA home spread').fill('-1');
+  await pickSpread(page, 'PHI at JAX home spread', '2');
+  await pickSpread(page, 'CIN at MIA home spread', '-1');
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('shared across every group');
   await page.getByRole('button', { name: 'Submit & reveal analysis' }).click();
@@ -433,12 +436,12 @@ test('one weekly draft and submitted ballot follow the player across groups whil
   await expect(page.locator('.opponent-picks').first()).not.toContainText('Jordan');
   await page.getByLabel('Current game').selectOption(duelId);
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
-  await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-3.5');
-  await expect(page.getByLabel('TB at DAL home spread')).toBeEnabled();
+  await expectPick(page, 'TB at DAL home spread', 'DAL −3.5');
+  await expectPickEnabled(page, 'TB at DAL home spread');
   await expect(page.locator('.opponent-picks').first()).toContainText('Jordan');
   await expect(page.locator('.opponent-picks').first()).not.toContainText('Morgan');
   await page.getByRole('button', { name: 'Guess the Total', exact: true }).click();
-  await expect(page.getByLabel('TB at DAL combined points')).toBeEnabled();
+  await expectPickEnabled(page, 'TB at DAL combined points');
   await expect(page.locator('.hidden-value')).toHaveCount(3);
   expect(hub.requests.filter(request => request.endpoint === 'ballot').map(request => request.body.revision)).toEqual([0,1]);
   // A standard group must inherit the submitted matching ballot's practice history.
@@ -471,8 +474,8 @@ test('one weekly draft and submitted ballot follow the player across groups whil
   expect(hub.requests.find(request => request.endpoint === 'bet').body).toMatchObject({ revision: 2, market: 'spread', side: 'home', line: -3, odds: -110, quotedAt });
 
   await page.reload(); await page.getByRole('button', { name: 'My picks', exact: true }).click();
-  await expect(page.getByLabel('TB at DAL home spread')).toBeEnabled();
-  await expect(page.getByLabel('TB at DAL home spread')).toHaveValue('-3.5');
+  await expectPickEnabled(page, 'TB at DAL home spread');
+  await expectPick(page, 'TB at DAL home spread', 'DAL −3.5');
 });
 
 for (const [mode, width] of [['guess_spread', 320], ['guess_total', 390]]) test(`comparison reveals only submitted ${mode} picks and preserves its market-history gate at ${width}px`, async ({ page, hub }) => {
@@ -668,9 +671,9 @@ test('first Total submission immediately opens collected total analysis while Sp
   await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
   await page.getByRole('button', { name: 'Guess the Total', exact: true }).click();
-  await page.getByLabel('TB at DAL combined points').fill('44.5');
-  await page.getByLabel('PHI at JAX combined points').fill('45');
-  await page.getByLabel('CIN at MIA combined points').fill('46');
+  await pickTotal(page, 'TB at DAL combined points', '44.5');
+  await pickTotal(page, 'PHI at JAX combined points', '45');
+  await pickTotal(page, 'CIN at MIA combined points', '46');
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   await page.getByRole('button', { name: 'Submit & reveal analysis', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your total analysis', exact: true })).toBeVisible();
@@ -779,6 +782,8 @@ test('benchmark freeze needs the kickoff window, observed-time confirmation and 
 const scheduleFixture = () => ({configured:true,enabled:true,operationalStatus:'active',pauseReason:null,cadenceHours:12,timeZone:'UTC',utcTimes:['08:15','20:15'],nextRunAt:'2026-10-09T08:15:00Z',lastRunAt:'2026-10-08T20:15:00Z',lastStatus:'succeeded',lastReason:null,slateStatus:'eligible',referenceOnly:true});
 const historyPoint = (id, time, value) => ({id,quotedAt:time,capturedAt:time,timeBasis:'collection',source:'Browser fixture · book median',verified:false,status:'collected',games:{'TB-DAL':{value}}});
 for(const [width,theme] of [[320,'dark'],[390,'light']]) test(`visual dashboard has accessible real-value drilldowns and honest history at ${width}px ${theme}`,async({page,hub})=>{
+  // Pin the browser clock so the fixture's 08:15Z scheduled run stays in the future regardless of wall-clock time.
+  await page.clock.install({time:new Date('2026-10-09T00:17:00Z')});
   submittedBenchmarkGame(hub);hub.benchmarkViews[duelId]=benchmarkFixture();hub.serverNow='2026-10-09T00:17:00Z';hub.oddsSchedule=scheduleFixture();
   hub.marketOverlay={marketFeed:{status:'stale',source:'Browser fixture',collectedAt:'2026-10-08T23:59:00Z'},marketLineHistory:[historyPoint('one','2026-10-08T23:59:00Z',0)]};
   await page.setViewportSize({width,height:844});await page.goto('/');await page.getByLabel('Color theme').selectOption(theme);await signIn(page);await page.getByRole('button',{name:'Open game',exact:true}).click();
@@ -806,9 +811,9 @@ for(const [width,theme] of [[320,'dark'],[390,'light']]) test(`visual dashboard 
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.evaluate(()=>document.activeElement?.blur());
   await page.screenshot({path:`.local/previews/visual-dashboard-trend-${width}-${theme}.png`,fullPage:true,animations:'disabled'});
-  await page.locator('.visual-actions .game-option').filter({hasText:'Total'}).click();await page.getByLabel('TB at DAL combined points').fill('47');
+  await page.locator('.visual-actions .game-option').filter({hasText:'Total'}).click();await pickTotal(page,'TB at DAL combined points','47');
   const draftReads=hub.requests.filter(r=>r.endpoint==='state').length;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForTimeout(1100);
-  expect(hub.requests.filter(r=>r.endpoint==='state')).toHaveLength(draftReads);await expect(page.getByLabel('TB at DAL combined points')).toHaveValue('47');await expect(page.locator('.accuracy-bars,.gap-bars,.line-chart')).toHaveCount(0);
+  expect(hub.requests.filter(r=>r.endpoint==='state')).toHaveLength(draftReads);await expectPick(page,'TB at DAL combined points','47 total points');await expect(page.locator('.accuracy-bars,.gap-bars,.line-chart')).toHaveCount(0);
 });
 
 test('visual bars distinguish zero from missing values and never expose an opponent draft',async({page,hub})=>{
@@ -1013,9 +1018,25 @@ test('dashboard team identifiers load approved local artwork and retain names wi
   const logo = matchup.locator('img[src="/team-logos/dal.svg"]');
   await expect(logo).toHaveCount(1);
   await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('TB');
+  await expect(matchup.locator('.team-identity').nth(1)).toHaveAttribute('data-logo-status', 'approved');
+  const badge = matchup.locator('img[src="/team-logos/badges/tb.svg"]');
+  await expect(badge).toHaveCount(1);
+  await expect.poll(() => badge.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(matchup.locator('.team-identity').first()).toHaveAttribute('data-logo-status', 'original');
+  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveCount(0);
   await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
   for (const mark of await matchup.locator('.team-identity').all()) await expect(mark).toHaveAttribute('aria-hidden', 'true');
+});
+
+test('dashboard team badge keeps the abbreviation fallback when its image fails to load', async ({ page, hub }) => {
+  presentationGame(hub);
+  await page.route('**/team-logos/badges/tb.svg', route => route.abort());
+  await page.clock.install({ time: new Date(hub.serverNow) });
+  await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
+  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('TB');
+  await expect(matchup.locator('img[src="/team-logos/dal.svg"]')).toHaveCount(1);
+  await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
 });
 
 for (const width of [320, 390]) for (const theme of ['dark', 'light']) test(`dashboard controls and all layouts fit ${width}px ${theme} without hiding content`, async ({ page, hub }) => {
@@ -1182,8 +1203,8 @@ test('dashboard matchup selection filters comparisons only and persists across S
   await expect(page.locator('.accuracy-row strong')).toHaveText(['26 / 30', '28 / 30']);
   await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
-  await expect(page.locator('.picks-table input')).toHaveCount(3);
-  for (const input of await page.locator('.picks-table input').all()) await expect(input).toBeEnabled();
+  await expect(page.locator('.picks-table .chip-picker')).toHaveCount(3);
+  for (const chip of await page.locator('.picks-table .team-chip, .picks-table .number-chip').all()) await expect(chip).toBeEnabled();
   await page.getByRole('button', { name: 'Dashboard', exact: true }).click();
   await expect(page.locator('.gap-game')).toHaveCount(1);
   filter = await openDashboardGameFilter(page);
@@ -1214,7 +1235,7 @@ test('dashboard matchup filtering cannot reveal another market or shrink its req
   await expect(filter).not.toContainText('Browser presentation fixture');
   await expect(filter).not.toContainText('The Odds API');
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
-  await expect(page.locator('.picks-table input')).toHaveCount(3);
+  await expect(page.locator('.picks-table .chip-picker')).toHaveCount(3);
   await expect(page.getByRole('button', { name: 'Review & submit', exact: true })).toBeDisabled();
   await expect(page.locator('.picks-table')).toContainText('Hidden');
   expect(hub.engines[duelId].snapshot().ballots).toEqual(original);
