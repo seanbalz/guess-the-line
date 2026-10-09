@@ -4,7 +4,7 @@ Reviewed: October 8, 2026 · Owner: team-logo workflow agent
 
 ## Implemented coverage
 
-**13 of 32 teams have actual transparent marks wired into `TeamIdentity` (12 SVGs and one PNG).** These are small matchup identifiers, never Guess The Line branding. The files are unchanged from their recorded Wikimedia Commons versions. The remaining 19 teams retain the existing abbreviation fallback; the feature is partially implemented, not a complete NFL asset set. Chicago uses its recognizable wishbone C secondary mark, not the bear-head primary.
+**All 32 teams now show a team mark in `TeamIdentity` (D-22, October 9, 2026).** 13 teams use reviewed official transparent marks (12 SVGs and one PNG); these are small matchup identifiers, never Guess The Line branding, and the files are unchanged from their recorded Wikimedia Commons versions. The other 19 teams use [original Guess The Line badges](#original-badges), which are not official marks. The official mark always takes precedence when one is registered; the abbreviation fallback remains only for an image that fails to load. Chicago uses its recognizable wishbone C secondary mark, not the bear-head primary.
 
 The earlier empty-registry result in `VISUAL_POLISH.md` is superseded for this subset. `web/src/teamLogoRegistry.js` now holds the eligible entries and `web/public/team-logos/sources.json` preserves individual file versions, hashes, source URLs and source credits.
 
@@ -123,7 +123,9 @@ Uploaded by Opertinicy at en.wikipedia.
 - [The team's April 16, 2026 release](https://www.therams.com/news/rams-unveil-uniform-brand-refresh-ahead-of-2026-season) confirms the current solid-color LA monogram refresh.
 - SHA-256: `3607621c4e06d10eff663cc8ebb62fca84a06fb12da4414d3a9c734179d7eb7a`.
 
-## Remaining coverage and concrete next step
+## Remaining official-mark coverage and concrete next step
+
+The 19 teams below display original GTL badges (see [Original badges](#original-badges)); this section concerns only whether an official mark could later replace a badge.
 
 File-level records for **ARI, ATL, BAL, BUF, CAR, CLE, DEN, DET, HOU, JAX, LV, MIA, MIN, NE, NYJ, PHI, SEA, TB and TEN** currently label their artwork copyrighted and show Wikipedia-specific fair-use rationales. Those rationales do not themselves grant redistribution permission to this app. `remaining-sources.json` records the exact checked page revisions. No artwork for these teams was downloaded or activated.
 
@@ -132,6 +134,40 @@ The old Rams SVG filename in nflverse metadata is stale. The replacement above w
 For each remaining team, the next eligible input is either a file-specific public-domain/free-artwork record covering the actual mark, or the rightsholder's applicable permission for this small team-identification use. This is an asset-level gap, not a claim that all team references require a paid license. Do not silently use an unrelated historic logo, an unverified recoloring, a software library's MIT notice, or an ESPN/CDN URL as a substitute.
 
 The 2019 Jets wordmark has a public-domain record, but it was not substituted for the current visual mark: it is a wide text logo, not the requested recognizable team icon.
+
+## Original badges
+
+Added October 9, 2026 under product-owner decision **D-22** (every team shows a mark). Covers **19 teams: ARI, ATL, BAL, BUF, CAR, CLE, DEN, DET, HOU, JAX, LV, MIA, MIN, NE, NYJ, PHI, SEA, TB and TEN**. Files: `web/public/team-logos/badges/<code>.svg`; registry: `originalTeamBadges` in `web/src/teamLogoRegistry.js` (`rightsStatus: 'original'`).
+
+- **Original GTL artwork.** One hand-written SVG crest geometry shared by all 19 badges: a flat top with a centred yard-line notch, chamfered shoulders and a soft keel, echoing the GTL fallback shield. It does not trace, adapt or imitate any NFL or team logo, helmet, animal, wordmark or emblem.
+- **Content.** The team's abbreviation in bold condensed sans-serif (`'Barlow Condensed', Impact, 'Arial Narrow', sans-serif`, fitted with `textLength`), an inner field in the team's primary color and a band in its secondary color. A dark `#0B1020` outer outline plus a light `#F8FAFC` inner outline keeps the shape legible on both Midnight and Light canvases. Abbreviation text is white or `#0B1020`, whichever meets WCAG AA (at least 4.5:1) against the fill; the lowest is CAR at 4.70:1.
+- **Team colors are factual color references.** Hex values are the teams' publicly known primary/secondary colors, used only to help players recognise the matchup. Colors and abbreviations are not official marks.
+- **Not official marks; no endorsement.** The badges are not NFL or team logos and do not imply any NFL or team endorsement, sponsorship or affiliation. They are used only as small matchup identifiers beside the team name, never as GTL's app icon, advertising identity or merchandise.
+- **Self-contained.** Each file is under 2 KB, `viewBox`-based, with no scripts, event handlers, embedded images, external references or web-font loading. `tests/team-marks.test.mjs` enforces this and that the 13 official files still match the SHA-256 values in `sources.json`.
+
+| Team | Primary | Secondary | Text |
+| --- | --- | --- | --- |
+| ARI | `#97233F` | `#FFB612` | white |
+| ATL | `#A71930` | `#000000` | white |
+| BAL | `#241773` | `#9E7C0C` | white |
+| BUF | `#00338D` | `#C60C30` | white |
+| CAR | `#0085CA` | `#101820` | `#0B1020` |
+| CLE | `#311D00` | `#FF3C00` | white |
+| DEN | `#FB4F14` | `#002244` | `#0B1020` |
+| DET | `#0076B6` | `#B0B7BC` | white |
+| HOU | `#03202F` | `#A71930` | white |
+| JAX | `#006778` | `#D7A22A` | white |
+| LV | `#000000` | `#A5ACAF` | white |
+| MIA | `#008E97` | `#FC4C02` | `#0B1020` |
+| MIN | `#4F2683` | `#FFC62F` | white |
+| NE | `#002244` | `#C60C30` | white |
+| NYJ | `#125740` | `#FFFFFF` | white |
+| PHI | `#004C54` | `#A5ACAF` | white |
+| SEA | `#002244` | `#69BE28` | white |
+| TB | `#D50A0A` | `#34302B` | white |
+| TEN | `#0C2340` | `#4B92DB` | white |
+
+**Follow-up:** the official-mark rights check for these 19 teams could not be repeated from the October 9 cloud session because `commons.wikimedia.org` is blocked by that environment's network policy. The October 8 findings above remain the latest record. If an eligible official mark is later verified for any of these teams, add it to `approvedTeamLogos` with its own source record; it will take precedence over the badge automatically.
 
 ## Validation
 

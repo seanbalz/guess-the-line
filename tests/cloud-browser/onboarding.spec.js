@@ -1013,9 +1013,25 @@ test('dashboard team identifiers load approved local artwork and retain names wi
   const logo = matchup.locator('img[src="/team-logos/dal.svg"]');
   await expect(logo).toHaveCount(1);
   await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('TB');
+  await expect(matchup.locator('.team-identity').nth(1)).toHaveAttribute('data-logo-status', 'approved');
+  const badge = matchup.locator('img[src="/team-logos/badges/tb.svg"]');
+  await expect(badge).toHaveCount(1);
+  await expect.poll(() => badge.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(matchup.locator('.team-identity').first()).toHaveAttribute('data-logo-status', 'original');
+  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveCount(0);
   await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
   for (const mark of await matchup.locator('.team-identity').all()) await expect(mark).toHaveAttribute('aria-hidden', 'true');
+});
+
+test('dashboard team badge keeps the abbreviation fallback when its image fails to load', async ({ page, hub }) => {
+  presentationGame(hub);
+  await page.route('**/team-logos/badges/tb.svg', route => route.abort());
+  await page.clock.install({ time: new Date(hub.serverNow) });
+  await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
+  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('TB');
+  await expect(matchup.locator('img[src="/team-logos/dal.svg"]')).toHaveCount(1);
+  await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
 });
 
 for (const width of [320, 390]) for (const theme of ['dark', 'light']) test(`dashboard controls and all layouts fit ${width}px ${theme} without hiding content`, async ({ page, hub }) => {
