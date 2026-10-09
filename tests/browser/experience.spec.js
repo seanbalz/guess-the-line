@@ -40,3 +40,9 @@ test('mobile navigation traps focus, closes on Escape and dialog restores focus'
  await page.setViewportSize({width:390,height:844});await page.goto('/');const menu=page.locator('[aria-label="Open navigation"]');await menu.click();await expect(menu).toHaveAttribute('aria-expanded','true');await page.keyboard.press('Shift+Tab');expect(await page.evaluate(()=>document.activeElement.closest('#game-navigation')!==null)).toBeTruthy();await page.keyboard.press('Escape');await expect(menu).toBeFocused();await expect(menu).toHaveAttribute('aria-expanded','false');
  const help=page.getByRole('button',{name:'Rules & scoring'});await help.click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(help).toBeFocused();
 });
+for(const width of [320,768,1024,1440])test(`group ballot at ${width}px keeps every team name on two lines with no page scroll`,async({page})=>{
+ await page.setViewportSize({width,height:1000});await openBallot(page);await expect(page.locator('.picks-table tbody tr')).toHaveCount(15);
+ const layout=await page.evaluate(()=>({pageScroll:document.documentElement.scrollWidth<=innerWidth,names:[...document.querySelectorAll('.prediction-matchup .team-matchup__name strong')].map(el=>el.getBoundingClientRect().height/parseFloat(getComputedStyle(el).lineHeight)),chips:[...document.querySelectorAll('.picks-table .chip')].map(el=>el.getBoundingClientRect()).filter(box=>box.width).map(box=>Math.min(box.width,box.height))}));
+ expect(layout.pageScroll).toBe(true);expect(layout.names).toHaveLength(30);expect(Math.max(...layout.names)).toBeLessThanOrEqual(2.05);expect(Math.min(...layout.chips)).toBeGreaterThanOrEqual(44);
+ await page.screenshot({path:`.local/previews/group-ballot-${width}.png`,fullPage:true});
+});
