@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { pickSpread, expectPick, expectPickEnabled } from '../chip-entry.mjs';
 
 async function fixture(page) {
   const state = await (await page.request.get('/api/state?player=sean&mode=guess_spread')).json();
@@ -33,14 +34,14 @@ test('saved references remain distinct from current consensus; submitted edit re
   await expect(page.locator('.comparison-players').first()).toContainText('120');
   await expect(table.locator('tbody tr').first()).toContainText('−9');
   await page.getByRole('button',{name:'My picks',exact:true}).click();
-  const input=page.getByLabel('TB at DAL home spread');await expect(input).toBeEnabled();await input.fill('-5');
+  await expectPickEnabled(page,'TB at DAL home spread');await pickSpread(page,'TB at DAL home spread','-5');await expectPick(page,'TB at DAL home spread','DAL −5');
   await page.getByRole('button',{name:'Review & save changes',exact:true}).click();
   await expect(page.getByRole('dialog')).toContainText('changed guesses only');
   await page.getByRole('button',{name:'Save changed guesses',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Your spread analysis',exact:true})).toBeVisible();
   expect(context.body().submit).toBe(true);expect(context.body().picks['TB-DAL']).toBe(-5);expect(Object.keys(context.body().picks)).toHaveLength(15);
   await page.getByRole('button',{name:'My picks',exact:true}).click();
-  await expect(input).toHaveValue('-5');await expect(input).toBeEnabled();
+  await expectPick(page,'TB at DAL home spread','DAL −5');await expectPickEnabled(page,'TB at DAL home spread');
   await expect(page.getByRole('button',{name:'Review & save changes',exact:true})).toBeDisabled();expect(errors).toEqual([]);
 });
 
@@ -67,6 +68,6 @@ for (const width of [1440,390,320])test(`submission reference layout ${width}px 
   state.locked=true;await page.reload();
   if(width<=720)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
   await page.getByRole('button',{name:'My picks',exact:true}).click();
-  await expect(page.getByLabel('TB at DAL home spread')).toBeDisabled();await expect(page.getByText('BALLOT CLOSED',{exact:true})).toBeVisible();
+  await expectPickEnabled(page,'TB at DAL home spread',false);await expect(page.getByText('BALLOT CLOSED',{exact:true})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
