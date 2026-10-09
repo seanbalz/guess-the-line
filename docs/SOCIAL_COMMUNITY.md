@@ -23,7 +23,7 @@ Practice ballots never post. Removed members, and their posts, comments and subm
 
 | Route | Body | Result |
 |---|---|---|
-| `/community/read` | `{ before?: ISO time, limit?: 1–100 }` | members, week, due, picksDue, submissions, posts |
+| `/community/read` | `{ before?: ISO time, limit?: 1–100 }` | members, week, due, picksDue, submissions, standings, posts |
 | `/community/like` | `{ postId, like: true/false }` | likes, likedByMe |
 | `/community/comment` | `{ requestId, postId, body }` | id, replayed |
 | `/community/member` | `{ userId, member: true/false }` (commissioner only) | userId, member |

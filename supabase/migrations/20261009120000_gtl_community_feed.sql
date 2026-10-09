@@ -123,6 +123,19 @@ begin
     'submissions',case when s is null then '[]'::jsonb else coalesce((select jsonb_agg(jsonb_build_object('userId',b.user_id,'mode',b.mode,'submittedAt',b.ballot->'submittedAt') order by b.user_id,b.mode)
       from public.gtl_weekly_ballots b where b.season=s and b.week=w and coalesce(b.ballot->>'submittedAt','')<>'' and not b.origin_practice
         and public.gtl_community_member(b.user_id)),'[]') end,
+    -- Points only, never picks: each scored pick is fixed at save (D-16), so totals are safe to share.
+    'standings',case when s is null then '[]'::jsonb else coalesce((select jsonb_agg(jsonb_build_object('userId',t.user_id,'mode',t.mode,
+        'weekPoints',t.week_points,'weekScored',t.week_scored,'seasonPoints',t.season_points,'seasonScored',t.season_scored,'weeksSubmitted',t.weeks)
+        order by t.mode,t.season_points desc,t.user_id) from (
+      select b.user_id,b.mode,
+        round(coalesce(sum(pt.points) filter (where b.week=w),0),2) week_points,count(pt.points) filter (where b.week=w) week_scored,
+        round(coalesce(sum(pt.points),0),2) season_points,count(pt.points) season_scored,count(distinct b.week) weeks
+      from public.gtl_weekly_ballots b
+      left join lateral (select greatest(0,10-2*abs((e.value)::numeric-(b.ballot#>>array['scoringReferences',e.key,'value'])::numeric)) points
+        from jsonb_each(coalesce(b.ballot->'picks','{}')) e
+        where jsonb_typeof(e.value)='number' and jsonb_typeof(b.ballot#>array['scoringReferences',e.key,'value'])='number') pt on true
+      where b.season=s and coalesce(b.ballot->>'submittedAt','')<>'' and not b.origin_practice and public.gtl_community_member(b.user_id)
+      group by b.user_id,b.mode) t),'[]') end,
     'posts',coalesce((select jsonb_agg(x.post order by x.created_at desc,x.id desc) from (
       select p.id,p.created_at,jsonb_build_object('id',p.id,'actorId',p.actor_id,'kind',p.kind,'season',p.season,'week',p.week,'mode',p.mode,
         'payload',p.payload,'createdAt',p.created_at,

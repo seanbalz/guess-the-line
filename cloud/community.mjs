@@ -35,8 +35,10 @@ function normalize(raw) {
   }));
   const week = record(raw.week) ? { season: raw.week.season, week: raw.week.week, deadline: raw.week.deadline, games: raw.week.games } : null;
   const due = raw.due.filter(d => MODES.includes(d.mode)).map(d => ({ mode: d.mode, submitted: d.submitted === true, filled: Number(d.filled) || 0, games: Number(d.games) || 0 }));
+  const standings = (Array.isArray(raw.standings) ? raw.standings : []).filter(x => MODES.includes(x.mode)).map(x => ({ userId: String(x.userId), mode: x.mode,
+    weekPoints: Number(x.weekPoints) || 0, weekScored: Number(x.weekScored) || 0, seasonPoints: Number(x.seasonPoints) || 0, seasonScored: Number(x.seasonScored) || 0, weeksSubmitted: Number(x.weeksSubmitted) || 0 }));
   const submissions = raw.submissions.filter(s => MODES.includes(s.mode)).map(s => ({ userId: String(s.userId), mode: s.mode, submittedAt: s.submittedAt }));
-  return { viewer: String(raw.viewer), admin: raw.admin === true, members, week, due, submissions, posts };
+  return { viewer: String(raw.viewer), admin: raw.admin === true, members, week, due, submissions, standings, posts };
 }
 
 /** Picks due for the viewer: "urgent" inside two hours of the deadline, "closed" after it. */

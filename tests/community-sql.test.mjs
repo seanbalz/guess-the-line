@@ -106,6 +106,15 @@ test('community feed migration: one community, automatic posts, gated picks, lik
   });
 
   let post;
+  await t.test('standings share points from saved references, never picks', async () => {
+    const refs = Object.fromEntries(gameIds.map((g, i) => [g, i === 0 ? { status: 'available', value: -3.5 } : { status: 'unavailable', value: null }]));
+    await db.query(`update public.gtl_weekly_ballots set ballot=ballot||jsonb_build_object('scoringReferences',$1::jsonb) where user_id=$2 and mode='guess_spread'`, [refs, id(TROY)]);
+    const feed = await read(BEN);
+    const troy = feed.standings.find(x => x.userId === id(TROY) && x.mode === 'guess_spread');
+    assert.deepEqual([troy.weekPoints, troy.weekScored, troy.seasonPoints, troy.weeksSubmitted], [9, 1, 9, 1], 'Troy -4 vs reference -3.5 scores 9; unavailable references are unscored');
+    assert(feed.standings.every(x => Object.keys(x).every(k => ['userId', 'mode', 'weekPoints', 'weekScored', 'seasonPoints', 'seasonScored', 'weeksSubmitted'].includes(k))));
+  });
+
   await t.test('likes toggle idempotently and comments replay safely', async () => {
     post = (await read(SEAN)).posts.find(p => p.kind === 'joined' && p.actorId === id(BEN));
     const like = body => handleCommunity({ route: '/community/like', body, user: user(SEAN), service });
