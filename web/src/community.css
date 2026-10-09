@@ -75,7 +75,20 @@
 .error-banner .banner-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .community-home .error-banner button{margin-left:auto;min-height:44px;color:var(--text);text-decoration:underline;padding:0 4px}
 .community-home .error-banner .banner-actions button{margin-left:0}
+/* Persona audit #25: the receipt of a submitted ballot. It takes focus after the submit (2.4.3) and names the market, the count and the
+   time, what is still due, the feed reveal for that market only (D-23) and Edit picks (D-16); the win token marks the done state. */
+.submit-receipt{display:flex;gap:12px;align-items:flex-start;margin:12px 0;padding:16px;border-left:4px solid var(--win)}
+.submit-receipt>svg{flex:none;color:var(--win);margin-top:3px}
+.submit-receipt>div{display:grid;gap:8px;flex:1;min-width:0}
+.submit-receipt h3{font-size:20px;line-height:28px}
+.submit-receipt p{margin:0}
+.submit-receipt .receipt-due{font-weight:600}
+.receipt-actions{display:flex;flex-wrap:wrap;gap:8px}
+.receipt-actions button{min-height:44px}
+/* Focus targets that are not controls (the receipt, a feed post, the feed) show the same cyan ring as the controls do. */
+.submit-receipt:focus-visible,.feed-post:focus-visible,.community-feed:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 @media (forced-colors:active){
+  .submit-receipt{border-left-width:6px}
   .feed-actions .liked{color:Highlight}
   .community-leaderboard tr.me th{text-decoration:underline;text-underline-offset:3px}
   .picks-due{border-left-width:6px}
