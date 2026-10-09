@@ -35,11 +35,27 @@ jobs:
           npm run build:cloud
           node scripts/check-cloud-boundary.mjs --bundle-only
           node scripts/release-manifest.mjs
+      - name: Restore the pinned public model data
+        id: model-data
+        uses: actions/cache@v6
+        with:
+          path: .local/model-data
+          key: model-data-${{ hashFiles('model/sources.json') }}
+      - name: Fetch the pinned public model data (cache miss)
+        if: steps.model-data.outputs.cache-hit != 'true'
+        run: python3 model/pipeline.py fetch
       - name: Check preserved snapshots and model integrity
+        shell: bash
         run: |
           python3 scripts/snapshots.py check
           python3 -m unittest discover -s tests -v
-          python3 -m unittest discover -s model -v
+          python3 -m unittest discover -s model -v 2>&1 | tee .local/model-tests.log
+          { echo '### model/test_pipeline.py'; grep -E '^(Ran [0-9]+ tests?|OK|FAILED)' .local/model-tests.log | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+          if grep -qE '^(OK|FAILED) \(.*skipped=' .local/model-tests.log; then
+            echo "::error::model tests were skipped: .local/model-data/fivethirtyeight-nfl-games.csv is missing, so the pinned research run was not verified"
+            grep -n 'skipped' .local/model-tests.log || true
+            exit 1
+          fi
       - name: Save browser evidence
         if: always()
         uses: actions/upload-artifact@v7
