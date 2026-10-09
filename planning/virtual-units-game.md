@@ -18,6 +18,8 @@ Owner: Sean Balsiger · Version 1 · October 8, 2026.
 
 1. **Current — schedule and actual-kickoff evidence.** Decide whether an audited commissioner schedule update may use a verifiable official league notice during an automated schedule-feed outage; do not let that update grade results. Independently verify a permitted free source for schedule changes, cancellations and actual kickoff before implementing placement locks, carryovers or voids. The documented [The Odds API events endpoint](https://the-odds-api.com/liveapi/guides/v4/) supplies event IDs and `commence_time`; it has not been verified as actual-kickoff or cancellation evidence for this game.
 
+Source check: [The Odds API V4 events endpoint](https://the-odds-api.com/liveapi/guides/v4/) documents no usage-credit charge and exposes event IDs and `commence_time`, which is useful for candidate schedule changes but does not by itself prove actual kickoff or cancellation. [NFL.com has published a specific delayed-kickoff notice](https://www.nfl.com/news/2024-nfl-kickoff-game-between-ravens-chiefs-delayed-due-to-inclement-weather), making a linked notice a possible human-review receipt. [NFL.com terms](https://support.nfl.com/hc/en-us/articles/35869743904916-NFL-com-Terms-and-Conditions) restrict systematic retrieval without prior written consent, so this is not a plan to scrape NFL.com into an automated feed. Neither source has been connected or verified for BET-07.
+
 ## Delivery register
 
 | Item | State | Owner | Dependency | Exit evidence |
