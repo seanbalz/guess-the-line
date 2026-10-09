@@ -54,7 +54,7 @@
         "t": 0
       }
     },
-    "LA": {
+    "LAR": {
       "overall": {
         "w": 2,
         "l": 2,
@@ -550,5 +550,5 @@
   },
   "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
   "source_credit": "nflverse nfldata (Lee Sharpe); final scores only",
-  "retrieved_at": "2026-10-09T06:29:29.665Z"
+  "retrieved_at": "2026-10-09T06:50:21.749Z"
 }

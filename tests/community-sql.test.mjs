@@ -13,6 +13,9 @@ const MIGRATIONS = [
   '20261008164249_gtl_private_cloud_state.sql',
   '20261008174007_gtl_profiles_private_games_invites.sql',
   '20261008182836_gtl_canonical_weekly_entries.sql',
+  '20261008185738_gtl_manual_odds_collection.sql',
+  '20261008192528_gtl_scoped_spread_benchmark.sql',
+  '20261008200926_gtl_twelve_hour_odds_refresh.sql',
   '20261009005145_gtl_social_bet_tracker.sql',
   '20261009120000_gtl_community_feed.sql',
 ];
@@ -142,6 +145,38 @@ test('community feed migration: one community, automatic posts, gated picks, lik
     await commit(700, 1, 'create'); await commit(701, 2, 'include'); await commit(702, 3, 'settle');
     const bets = (await read(BEN)).posts.filter(p => p.kind.startsWith('bet_'));
     assert.deepEqual(bets.map(p => [p.kind, p.entryId]).sort(), [['bet_posted', 'bet-1'], ['bet_settled', 'bet-1']]);
+  });
+
+  await t.test('commissioner publishes a reviewed week once; it becomes the current slate with a feed post', async () => {
+    const csv = `season,game_type,week,gameday,gametime,away_team,home_team,location
+2026,REG,6,2026-10-15,20:15,SEA,DEN,Home
+2026,REG,6,2026-10-18,16:05,ARI,LA,Home`;
+    const scheduled = { ...service, schedule: async () => csv };
+    await db.query("insert into public.gtl_odds_schedule(id,endpoint,authorized_by,season,week,slate_signature) select 'nfl-12h','https://abc123.supabase.co/functions/v1/gtl-odds-refresh',$1,season,week,signature from public.gtl_weekly_slates where week=5", [id(SEAN)]);
+    const publish = (route, n, body = { season: 2026, week: 6 }) => handleCommunity({ route: `/community/${route}`, body, user: user(n), service: scheduled });
+    await assert.rejects(() => publish('publish-preview', TROY), error => error.status === 403);
+    const preview = await publish('publish-preview', SEAN);
+    assert.deepEqual(preview.games.map(g => g.id), ['SEA-DEN', 'ARI-LAR']);
+    assert.equal((await db.query('select count(*)::int n from public.gtl_weekly_slates where week=6')).rows[0].n, 0, 'preview writes nothing');
+    assert.equal((await publish('publish', SEAN)).published, true);
+    assert.equal((await publish('publish', SEAN)).published, false, 'identical republish is a no-op');
+    const sig = (await db.query('select signature from public.gtl_weekly_slates where season=2026 and week=6')).rows[0].signature;
+    const expected = (await db.query(`select public.gtl_weekly_slate(jsonb_build_object('league',jsonb_build_object('season',2026,'week',6,'deadline',$1::text),'games',$2::jsonb)) s`,
+      [preview.deadline, JSON.stringify(preview.games)])).rows[0].s;
+    assert.deepEqual(sig, expected, 'same signature shape as league slates');
+    const changed = { ...service, schedule: async () => csv.replace('20:15', '20:20') };
+    await assert.rejects(() => handleCommunity({ route: '/community/publish', body: { season: 2026, week: 6 }, user: user(SEAN), service: changed }), error => error.status === 409);
+    await assert.rejects(() => publish('publish', SEAN, { season: 2026, week: 9 }), error => error.status === 422);
+    const schedule = (await db.query("select season,week,slate_signature from public.gtl_odds_schedule")).rows[0];
+    assert.deepEqual([schedule.season, schedule.week, schedule.slate_signature], [2026, 6, sig], 'collector moved to the new week');
+    const feed = await read(BEN, Date.parse('2026-10-12T12:00:00Z'));
+    assert.deepEqual([feed.week.week, feed.week.games], [6, 2]);
+    assert.equal(feed.picksDue.state, 'due');
+    assert.deepEqual(feed.due.map(d => d.filled), [0, 0]);
+    const post = feed.posts.find(p => p.kind === 'week_published');
+    assert.deepEqual([post.week, post.games], [6, 2]);
+    const template = (await db.query("select games from public.gtl_schedule_templates where id='nfl-2026-week-06'")).rows[0].games;
+    assert.equal(template[1].matchup, 'Arizona Cardinals @ Los Angeles Rams');
   });
 
   await t.test('pagination returns older posts before a timestamp', async () => {

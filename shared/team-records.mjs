@@ -1,5 +1,6 @@
 // Plain team records from final scores only: overall W-L-T plus home and road splits.
 // No forecasts, trends or tips. Neutral-site games count toward overall only.
+import { appCode } from './nfl-schedule.mjs';
 const CSV_COLUMNS = ['game_id', 'season', 'game_type', 'week', 'away_team', 'away_score', 'home_team', 'home_score', 'location'];
 
 export function parseScheduleCsv(text) {
@@ -12,7 +13,8 @@ export function parseScheduleCsv(text) {
   }));
   return lines.filter(Boolean).map(line => {
     const cells = line.split(',');
-    return Object.fromEntries(CSV_COLUMNS.map(column => [column, cells[index[column]] ?? '']));
+    const row = Object.fromEntries(CSV_COLUMNS.map(column => [column, cells[index[column]] ?? '']));
+    return { ...row, away_team: appCode(row.away_team), home_team: appCode(row.home_team) };
   });
 }
 

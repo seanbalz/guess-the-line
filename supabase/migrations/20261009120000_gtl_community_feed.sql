@@ -9,7 +9,7 @@ create table public.gtl_community_removals (
 create table public.gtl_feed_posts (
   id uuid primary key default gen_random_uuid(),
   actor_id uuid not null references public.gtl_profiles(user_id) on delete cascade,
-  kind text not null check(kind in ('joined','ballot_submitted','bet_posted','bet_settled')),
+  kind text not null check(kind in ('joined','ballot_submitted','bet_posted','bet_settled','week_published')),
   season integer,
   week integer,
   mode text check(mode is null or mode in ('guess_spread','guess_total')),
@@ -41,6 +41,9 @@ alter table public.gtl_feed_comments enable row level security;
 revoke all on public.gtl_community_removals,public.gtl_feed_posts,public.gtl_feed_likes,public.gtl_feed_comments from public,anon,authenticated,service_role;
 grant select,insert,delete on public.gtl_community_removals,public.gtl_feed_likes to service_role;
 grant select,insert on public.gtl_feed_posts,public.gtl_feed_comments to service_role;
+-- Publishing a week adds rows only; existing slates and templates are never updated.
+grant select,insert on public.gtl_weekly_slates,public.gtl_schedule_templates to service_role;
+grant select,update(season,week,slate_signature) on public.gtl_odds_schedule to service_role;
 
 -- Automatic posts. Practice ballots never post; a post carries no pick values.
 create function public.gtl_feed_on_profile() returns trigger
@@ -181,10 +184,54 @@ begin
   return jsonb_build_object('userId',p_target,'member',p_member);
 end $$;
 
+-- Commissioner-reviewed weekly slate. Writes the same signature shape as
+-- gtl_weekly_slate() and a schedule template, so personal ballots work for every
+-- member without a league. Republishing identical games is a no-op; a different
+-- slate for an existing week fails closed.
+create function public.gtl_publish_week(p_user uuid,p_season integer,p_week integer,p_games jsonb,p_deadline timestamptz,p_source text)
+returns jsonb language plpgsql security invoker set search_path='' as $$
+declare sig jsonb; existing jsonb; template_id text;
+begin
+  if not public.gtl_community_admin(p_user) then raise exception 'GTL_COMMUNITY_FORBIDDEN'; end if;
+  if p_season is null or p_season not between 2000 and 2200 or p_week is null or p_week not between 1 and 25 or p_deadline is null
+    or p_source is null or char_length(p_source) not between 1 and 500 or jsonb_typeof(p_games) is distinct from 'array'
+    or jsonb_array_length(p_games) not between 1 and 16 then raise exception 'GTL_COMMUNITY_INVALID'; end if;
+  if exists(select 1 from jsonb_array_elements(p_games) g where jsonb_typeof(g) is distinct from 'object'
+      or coalesce(g->>'id','') !~ '^[A-Z]{2,3}-[A-Z]{2,3}$' or g->>'id'<>(g->>'awayCode')||'-'||(g->>'homeCode')
+      or coalesce(g->>'away','')='' or coalesce(g->>'home','')='' or coalesce(g->>'matchup','')<>(g->>'away')||' @ '||(g->>'home')
+      or g->>'kickoff' is null or (g->>'kickoff')::timestamptz<p_deadline)
+    or (select count(*)<>count(distinct g->>'id') from jsonb_array_elements(p_games) g)
+    or not exists(select 1 from jsonb_array_elements(p_games) g where (g->>'kickoff')::timestamptz=p_deadline) then raise exception 'GTL_COMMUNITY_INVALID'; end if;
+  sig:=jsonb_build_object('season',p_season,'week',p_week,'deadline',extract(epoch from p_deadline),
+    'games',(select jsonb_agg(jsonb_build_object('id',g->>'id','away',g->>'awayCode','home',g->>'homeCode',
+      'kickoff',extract(epoch from (g->>'kickoff')::timestamptz)) order by g->>'id') from jsonb_array_elements(p_games) g));
+  select signature into existing from public.gtl_weekly_slates where season=p_season and week=p_week;
+  if existing is not null then
+    if existing<>sig then raise exception 'GTL_SLATE_CONFLICT'; end if;
+    return jsonb_build_object('season',p_season,'week',p_week,'games',jsonb_array_length(p_games),'published',false);
+  end if;
+  insert into public.gtl_weekly_slates(season,week,signature) values(p_season,p_week,sig);
+  template_id:=format('nfl-%s-week-%s',p_season,lpad(p_week::text,2,'0'));
+  insert into public.gtl_schedule_templates(id,season,week,games,deadline,schedule_source)
+    values(template_id,p_season,p_week,(select jsonb_agg(jsonb_build_object('id',g->>'id','away',g->>'away','home',g->>'home',
+      'awayCode',g->>'awayCode','homeCode',g->>'homeCode','matchup',g->>'matchup','kickoff',g->>'kickoff') order by (g->>'kickoff')::timestamptz,g->>'id')
+      from jsonb_array_elements(p_games) g),p_deadline,p_source);
+  insert into public.gtl_feed_posts(actor_id,kind,season,week,payload,dedupe_key)
+    values(p_user,'week_published',p_season,p_week,jsonb_build_object('games',jsonb_array_length(p_games),'deadline',p_deadline),
+      format('week:%s:%s',p_season,p_week));
+  -- The twelve-hour collector follows the newest published week; its enabled flag is unchanged.
+  update public.gtl_odds_schedule set season=p_season,week=p_week,slate_signature=sig
+    where id='nfl-12h' and (season,week)<(p_season,p_week);
+  insert into public.gtl_access_audit(actor_id,event) values(p_user,format('publish_week:%s:%s',p_season,p_week));
+  return jsonb_build_object('season',p_season,'week',p_week,'games',jsonb_array_length(p_games),'published',true);
+end $$;
+
 revoke all on function public.gtl_feed_on_profile(),public.gtl_feed_on_ballot(),public.gtl_feed_on_social(),
   public.gtl_community_member(uuid),public.gtl_community_admin(uuid),public.gtl_read_community(uuid,timestamptz,integer,timestamptz),
-  public.gtl_like_feed(uuid,uuid,boolean),public.gtl_comment_feed(uuid,uuid,uuid,text),public.gtl_set_community_member(uuid,uuid,boolean)
+  public.gtl_like_feed(uuid,uuid,boolean),public.gtl_comment_feed(uuid,uuid,uuid,text),public.gtl_set_community_member(uuid,uuid,boolean),
+  public.gtl_publish_week(uuid,integer,integer,jsonb,timestamptz,text)
   from public,anon,authenticated;
 grant execute on function public.gtl_community_member(uuid),public.gtl_community_admin(uuid),public.gtl_read_community(uuid,timestamptz,integer,timestamptz),
-  public.gtl_like_feed(uuid,uuid,boolean),public.gtl_comment_feed(uuid,uuid,uuid,text),public.gtl_set_community_member(uuid,uuid,boolean)
+  public.gtl_like_feed(uuid,uuid,boolean),public.gtl_comment_feed(uuid,uuid,uuid,text),public.gtl_set_community_member(uuid,uuid,boolean),
+  public.gtl_publish_week(uuid,integer,integer,jsonb,timestamptz,text)
   to service_role;

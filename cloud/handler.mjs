@@ -1,6 +1,7 @@
 import { handlePersonal, PERSONAL_METHODS, PersonalError, providerPersonalError } from './personal.mjs';
 import { handleSocial, SOCIAL_METHODS, SocialError, providerSocialError } from './social.mjs';
 import { handleCommunity, COMMUNITY_METHODS, CommunityError, providerCommunityError } from './community.mjs';
+import { NFLVERSE_SCHEDULE_URL } from '../shared/nfl-schedule.mjs';
 import { applyDecisionAnalysisView } from './decision-analysis.mjs';
 import { RESULTS_METHODS, ResultError, providerResultError, handleResultReview, applyReviewedResults } from './results.mjs';
 import { applyMarketView } from './market-view.mjs';
@@ -374,6 +375,11 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
       },
     },
     community: {
+      async schedule() {
+        const response = await fetchImpl(NFLVERSE_SCHEDULE_URL, { redirect: 'error', signal: AbortSignal.timeout(10000) });
+        if (!response.ok) throw new Error('Public schedule unavailable.');
+        return response.text();
+      },
       async rpc(name, body) {
         const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!response.ok) {

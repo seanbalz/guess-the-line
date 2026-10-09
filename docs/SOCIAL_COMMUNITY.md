@@ -12,6 +12,7 @@ Owner: Sean Balsiger · Version 1 · Updated 2026-10-09 · Decision D-21
 | Guess picks inside feed posts | Shown only to the author, to viewers who submitted the same season/week/mode ballot, or to everyone after the deadline |
 | Who has submitted this week | Shown to everyone, without numbers |
 | Picks due for the viewer: Spread and Total | `due`, then `urgent` within 2 hours of the deadline, then `closed`, or `done` |
+| Publish Week (commissioner) | `/community/publish-preview` shows the nflverse slate for review; `/community/publish` adds the slate, schedule template, a "Week N is open" post and moves the 12-hour odds collector. Identical republish is a no-op; a different slate for a published week is refused |
 | Team records (overall, home, road) | `shared/team-records.mjs` and `data/team-records/2026.json` from nflverse finals |
 | Home feed screen, leaderboard strip, game tabs, button entry, records under games | Not built yet (next PR) |
 | Score-change and weekly-winner posts | Not built yet; they need the scoring engine's results |
@@ -26,6 +27,8 @@ Practice ballots never post. Removed members, and their posts, comments and subm
 | `/community/like` | `{ postId, like: true/false }` | likes, likedByMe |
 | `/community/comment` | `{ requestId, postId, body }` | id, replayed |
 | `/community/member` | `{ userId, member: true/false }` (commissioner only) | userId, member |
+| `/community/publish-preview` | `{ season, week }` (commissioner only) | the slate built from nflverse, with nothing saved |
+| `/community/publish` | `{ season, week }` (commissioner only) | the slate plus `published: true`, or `false` if it was already published |
 
 The handler passes the request time to the database, so the deadline reveal and the picks-due state use one clock. It also strips pick values from any post marked hidden.
 
@@ -43,7 +46,8 @@ The script downloads the public nflverse schedule file, counts finals only (regu
 2. `npx supabase db push` to apply `20261009120000_gtl_community_feed.sql`. It backfills one "joined" post per existing profile.
 3. `npx supabase functions deploy gtl-api` to ship the `/community/*` routes.
 4. Check: signed in, `POST /functions/v1/gtl-api/community/read` with `{}` returns your feed. Signed out, it returns 401.
-5. Frontend deploy only after the feed screen PR merges: `npm run build:cloud`, then `npm run cloudflare`.
-6. Record the release (commit, migration, function version) in a new `docs/RELEASE_*.md`.
+5. Publish Week 6: until the screen ships, `POST /community/publish-preview` and then `/community/publish` with `{"season":2026,"week":6}` while signed in as Sean. Members then submit through the league-free weekly ballot (`/personal/ballot`).
+6. Frontend deploy only after the feed screen PR merges: `npm run build:cloud`, then `npm run cloudflare`.
+7. Record the release (commit, migration, function version) in a new `docs/RELEASE_*.md`.
 
 Nothing in this document has been deployed from the cloud session.
