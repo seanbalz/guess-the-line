@@ -1,5 +1,9 @@
 # Decision log
 
+## D-25 — Ben's Week 5 picks and scoring reference (October 9, 2026)
+
+Ben signed up and gave Sean his 15 Week 5 spread picks on Thursday, October 8 at 12:00 PM PT, before the 5:15 PM PT deadline. Sean ruled they count as on-time and are recorded in `data/picks/2026-week-05-ben.json`. Because no D-16 consensus snapshot exists for 12:00 PM PT, Sean ruled that Ben's Week 5 picks score against the eDraft snapshot updated 10:03 ET (`data/snapshots/2026-week-05-20261008T150212589Z.json`), the same reference as Sean's provisional 96.4, labelled a commissioner-ruled reference. This is a one-week ruling, not a change to D-16.
+
 ## D-22 — coming-soon leagues and team marks (October 9, 2026)
 
 The product owner confirmed two changes:
