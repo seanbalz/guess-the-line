@@ -21,9 +21,12 @@
 .chip-picker.compact .team-chip.selected{padding:0 4px 0 18px}
 .chip-picker.compact .chip-call{font-size:14px;line-height:20px}
 @media (prefers-reduced-motion:reduce){.chip{transition:none}}
-/* Windows High Contrast and other forced palettes drop the lime fill: a selected chip keeps a thick Highlight border, the system highlight colours and its check icon. */
+/* Windows High Contrast and other forced palettes drop the lime fill: a selected chip shows its state with a 3px Highlight border and a
+   Highlight check icon while its label keeps the forced button colours like every other chip. It takes no Highlight fill: Chromium paints
+   a Canvas backplate behind HighlightText on a Highlight background, which left the chosen chip's label a solid white block. */
 @media (forced-colors:active){
-  .chip.selected{border:3px solid Highlight;padding:0 10px;background:Highlight;color:HighlightText}
+  .chip.selected{border:3px solid Highlight;padding:0 10px}
+  .chip.selected .chip-check{color:Highlight}
   .team-chip.selected{padding:0 4px 0 18px}
   .chip-picker.compact .number-chip.selected{padding:0 6px}
   .chip-picker.compact .team-chip.selected{padding:0 2px 0 16px}

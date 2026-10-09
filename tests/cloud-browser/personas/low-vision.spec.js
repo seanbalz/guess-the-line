@@ -60,15 +60,26 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   // Forced colors (Windows High Contrast): the lime fill disappears, so selection must survive.
   await page.emulateMedia({ forcedColors: 'active' });
   await persona.shot('picks-forced-colors');
-  const forced = await first.getByRole('button', { name: '−3', exact: true }).evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, border: s.borderWidth }; });
-  const unselected = await first.getByRole('button', { name: '−4', exact: true }).evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, border: s.borderWidth }; });
+  const chipStyle = chip => chip.evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, border: s.borderWidth, borderColor: s.borderColor }; });
+  const forced = await chipStyle(selectedChip);
+  const unselected = await chipStyle(first.getByRole('button', { name: '−4', exact: true }));
   const hasForcedCss = await page.evaluate(() => [...document.styleSheets].some(sheet => { try { return [...sheet.cssRules].some(rule => rule.media && /forced-colors/.test(rule.media.mediaText)); } catch { return false; } }));
-  // Quick win 7 (#10): chipPicker.css and community.css carry @media (forced-colors: active) blocks; a selected chip keeps a distinct
-  // background, a 3px border and its check icon when the lime fill is dropped.
+  // Quick win 7 (#10): chipPicker.css and community.css carry @media (forced-colors: active) blocks. A selected chip shows its state with a
+  // 3px Highlight border and a Highlight check icon; its label keeps the forced button colours of every other chip. It takes no Highlight
+  // fill: Chromium paints a Canvas backplate behind HighlightText on Highlight, which left the chosen chip's label a solid white block.
   expect(hasForcedCss).toBe(true);
-  expect(forced.bg).not.toBe(unselected.bg);
+  expect(forced.color).toBe(unselected.color);
+  expect(forced.bg).toBe(unselected.bg);
   expect(forced.border).not.toBe(unselected.border);
+  expect(forced.borderColor).not.toBe(unselected.borderColor);
   await expect(selectedChip.locator('svg.chip-check')).toHaveCount(1);
+  expect(await selectedChip.locator('svg.chip-check').evaluate(el => getComputedStyle(el).color)).toBe(forced.borderColor);
+  // The labels are painted, not backplated: the chosen "−3" and "Cowboys" text boxes carry glyphs in the chip's text colour on its background.
+  for (const chip of [selectedChip, first.locator('.team-chip.selected')]) {
+    const paint = await persona.paint(chip);
+    expect(paint.text).toBeGreaterThan(0.05);
+    expect(paint.background).toBeGreaterThan(0.3);
+  }
   await page.emulateMedia({ forcedColors: 'none' });
 
   // Groups screen and the game dashboard are also part of the journey.

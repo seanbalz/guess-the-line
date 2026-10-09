@@ -326,7 +326,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) 
       {/* Always mounted: a live region whose text changes is announced; one inserted with its text often is not. Submit is described by it. */}
       <p className="save-hint" id={hintId} role="status" aria-live="polite">{hint}</p>
       <strong>{filled}/{data.games.length} ready</strong>
-      {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} disabled={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
+      {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
       {/* Busy and nothing-to-save states are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…" and after. */}
       {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}
       <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}

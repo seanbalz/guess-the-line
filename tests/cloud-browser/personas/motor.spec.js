@@ -61,9 +61,17 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   const atFloor = await first.locator('.chip-summary').innerText();
   persona.finding({ screen: 'picks', severity: 4, experience: `Pressing "Lower by half a point" repeatedly stops at "${atFloor}" (floor 0.5) while the button stays enabled and the live region repeats the same value. Pick'em (0) is reachable only through the middle team chip.`, fix: 'Disable the stepper at the floor/ceiling or let the floor step into Pick\'em.' });
   // Review of PR #34 (2.4.3): the pressed save-bar button goes aria-disabled, not disabled, so focus stays on it while it reads
-  // "Saving…" and after the save, when it has nothing left to save. No control in the bar is natively disabled.
+  // "Saving…" and after the save, when it has nothing left to save. No control in the bar is natively disabled, "Sit out this week"
+  // included: the save request is held for a second so the bar can be inspected mid-flight.
   await persona.tabTo(f => f.name === 'Save draft');
+  persona.net.delay = 1000;
   await page.keyboard.press('Enter');
+  await expect(page.locator('.save-bar [data-action="draft"]')).toHaveText('Saving…');
+  await expect(page.locator('.save-bar button[aria-disabled="true"]')).toHaveCount(3);
+  await expect(page.locator('.save-bar button:disabled')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Sit out this week' })).toHaveAttribute('aria-disabled', 'true');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Saving…', disabled: false });
+  persona.net.delay = 0;
   await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
   expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Save draft', disabled: false });
   await expect(page.locator('.save-bar [data-action="draft"]')).toHaveAttribute('aria-disabled', 'true');
