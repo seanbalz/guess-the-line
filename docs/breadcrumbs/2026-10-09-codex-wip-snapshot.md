@@ -2,7 +2,7 @@
 
 **Session:** 170fd341-bb7e-46fe-ae86-112d0593a2b0 · **Agent:** AI Agent (Claude Code, Claude Desktop) · **Device:** Mac mini · **Repository:** seanbalz/guess-the-lines-repo · **Branch:** codex/dashboard-games-wip-2026-10-09, then claude/reconcile-codex-wip-2026-10-09
 **Objective:** Sean asked that the cloud Claude session and the local Mac mini checkout share the same information. The local checkout sat on codex/dashboard-games at 1dcab6e, 88 commits behind origin/main (f1ade03), with 54 uncommitted Codex files no other session could see. This snapshot publishes that working tree unchanged; local then fast-forwards to main.
-**Jira:** N/A · **GitHub:** snapshot branch codex/dashboard-games-wip-2026-10-09 (not to be merged as-is); reconciliation PR from claude/reconcile-codex-wip-2026-10-09 (link in the PR row below)
+**Jira:** N/A · **GitHub:** snapshot branch codex/dashboard-games-wip-2026-10-09 (not to be merged as-is); reconciliation PR seanbalz/guess-the-lines-repo#30 (https://github.com/seanbalz/guess-the-lines-repo/pull/30, draft)
 
 | Timestamp (TZ) | Commit | Message | Changes | Validation | Status |
 |---|---|---|---|---|---|
