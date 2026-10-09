@@ -782,6 +782,8 @@ test('benchmark freeze needs the kickoff window, observed-time confirmation and 
 const scheduleFixture = () => ({configured:true,enabled:true,operationalStatus:'active',pauseReason:null,cadenceHours:12,timeZone:'UTC',utcTimes:['08:15','20:15'],nextRunAt:'2026-10-09T08:15:00Z',lastRunAt:'2026-10-08T20:15:00Z',lastStatus:'succeeded',lastReason:null,slateStatus:'eligible',referenceOnly:true});
 const historyPoint = (id, time, value) => ({id,quotedAt:time,capturedAt:time,timeBasis:'collection',source:'Browser fixture · book median',verified:false,status:'collected',games:{'TB-DAL':{value}}});
 for(const [width,theme] of [[320,'dark'],[390,'light']]) test(`visual dashboard has accessible real-value drilldowns and honest history at ${width}px ${theme}`,async({page,hub})=>{
+  // Pin the browser clock so the fixture's 08:15Z scheduled run stays in the future regardless of wall-clock time.
+  await page.clock.install({time:new Date('2026-10-09T00:17:00Z')});
   submittedBenchmarkGame(hub);hub.benchmarkViews[duelId]=benchmarkFixture();hub.serverNow='2026-10-09T00:17:00Z';hub.oddsSchedule=scheduleFixture();
   hub.marketOverlay={marketFeed:{status:'stale',source:'Browser fixture',collectedAt:'2026-10-08T23:59:00Z'},marketLineHistory:[historyPoint('one','2026-10-08T23:59:00Z',0)]};
   await page.setViewportSize({width,height:844});await page.goto('/');await page.getByLabel('Color theme').selectOption(theme);await signIn(page);await page.getByRole('button',{name:'Open game',exact:true}).click();
