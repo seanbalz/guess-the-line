@@ -9,8 +9,10 @@ import { approvedTeamLogos, originalTeamBadges, teamMarks, resolveTeamMark } fro
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicDir = path.join(root, 'web/public');
 const allTeams = 'ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LAC LAR LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN WAS'.split(' ');
-const officialTeams = 'CHI CIN DAL GB IND KC LAC NO NYG PIT SF WAS LAR'.split(' ');
+const officialTeams = 'CHI CIN DAL GB IND KC LAC NO NYG PIT SF WAS LAR BUF NYJ'.split(' ');
 const badgeTeams = 'ARI ATL BAL BUF CAR CLE DEN DET HOU JAX LV MIA MIN NE NYJ PHI SEA TB TEN'.split(' ');
+// BUF and NYJ gained reviewed official marks after their badges were drawn; the badge stays registered as a fallback.
+const badgeOnlyTeams = badgeTeams.filter(code => !officialTeams.includes(code));
 const sources = JSON.parse(readFileSync(path.join(publicDir, 'team-logos/sources.json'), 'utf8'));
 
 test('all 32 NFL team codes resolve to a local team mark', () => {
@@ -49,9 +51,14 @@ test('official reviewed marks take precedence and stay byte-identical to their r
   }
 });
 
-test('the 19 remaining teams use original GTL badges with the documented rights reference', () => {
+test('the 17 teams without an official mark use original GTL badges with the documented rights reference', () => {
   assert.deepEqual(Object.keys(originalTeamBadges).sort(), [...badgeTeams].sort());
-  for (const code of badgeTeams) {
+  assert.equal(badgeOnlyTeams.length, 17);
+  for (const code of badgeTeams.filter(team => officialTeams.includes(team))) {
+    assert.equal(resolveTeamMark(code), approvedTeamLogos[code], `${code}: the official mark takes precedence over the badge`);
+    assert.equal(originalTeamBadges[code].src, `/team-logos/badges/${code.toLowerCase()}.svg`);
+  }
+  for (const code of badgeOnlyTeams) {
     assert.equal(approvedTeamLogos[code], undefined);
     const mark = resolveTeamMark(code);
     assert.deepEqual({ ...mark }, {

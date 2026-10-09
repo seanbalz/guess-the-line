@@ -21,6 +21,8 @@
     "test:cloud-browser": "playwright test --config playwright.cloud.config.js",
     "test:personas": "node scripts/persona-static-checks.mjs && playwright test --config playwright.cloud.config.js tests/cloud-browser/personas",
     "test:engine": "vitest run",
+    "test:performance": "playwright test --config playwright.performance.config.js",
+    "test:accessibility": "playwright test --config playwright.accessibility.config.js",
     "typecheck": "tsc --noEmit",
     "score": "tsx src/cli.ts"
   },
