@@ -6,7 +6,7 @@ import { buildSlate } from '../shared/nfl-schedule.mjs';
 export class CommunityError extends Error {
   constructor(status, message) { super(message); this.name = 'CommunityError'; this.status = status; }
 }
-export const COMMUNITY_METHODS = Object.fromEntries(['read', 'like', 'comment', 'member', 'publish-preview', 'publish'].map(action => [`/community/${action}`, ['POST']]));
+export const COMMUNITY_METHODS = Object.fromEntries(['read', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest'].map(action => [`/community/${action}`, ['POST']]));
 const ERRORS = {
   GTL_COMMUNITY_INVALID: [400, 'Check the post and try again.'],
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -19,6 +19,8 @@ const invalid = () => { throw providerCommunityError('GTL_COMMUNITY_INVALID'); }
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const fields = (value, allowed) => { if (!record(value) || Object.keys(value).some(key => !allowed.includes(key))) invalid(); };
 const MODES = ['guess_spread', 'guess_total'];
+// D-22: coming-soon leagues. NFL is the only live league.
+export const COMING_SOON_LEAGUES = ['nba', 'mlb', 'nhl', 'cfb', 'cbb'];
 const KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published'];
 
 function normalize(raw) {
@@ -38,7 +40,10 @@ function normalize(raw) {
   const standings = (Array.isArray(raw.standings) ? raw.standings : []).filter(x => MODES.includes(x.mode)).map(x => ({ userId: String(x.userId), mode: x.mode,
     weekPoints: Number(x.weekPoints) || 0, weekScored: Number(x.weekScored) || 0, seasonPoints: Number(x.seasonPoints) || 0, seasonScored: Number(x.seasonScored) || 0, weeksSubmitted: Number(x.weeksSubmitted) || 0 }));
   const submissions = raw.submissions.filter(s => MODES.includes(s.mode)).map(s => ({ userId: String(s.userId), mode: s.mode, submittedAt: s.submittedAt }));
-  return { viewer: String(raw.viewer), admin: raw.admin === true, members, week, due, submissions, standings, posts };
+  const interests = COMING_SOON_LEAGUES.filter(league => Array.isArray(raw.interests) && raw.interests.includes(league));
+  const counts = record(raw.interestCounts) ? raw.interestCounts : {};
+  const interestCounts = Object.fromEntries(COMING_SOON_LEAGUES.map(league => [league, Math.max(0, Number(counts[league]) || 0)]));
+  return { viewer: String(raw.viewer), admin: raw.admin === true, members, week, due, submissions, standings, posts, interests, interestCounts };
 }
 
 /** Picks due for the viewer: "urgent" inside two hours of the deadline, "closed" after it. */
@@ -90,6 +95,13 @@ export async function handleCommunity({ route, body = {}, user, service, clock =
     const result = await service.rpc('gtl_publish_week', { p_user: user.id, p_season: slate.season, p_week: slate.week,
       p_games: slate.games.map(({ neutral, ...game }) => game), p_deadline: slate.deadline, p_source: slate.source });
     return { ...slate, published: result?.published === true };
+  }
+  if (route === '/community/interest') {
+    fields(body, ['league', 'notify']);
+    if (!COMING_SOON_LEAGUES.includes(body.league) || typeof body.notify !== 'boolean') invalid();
+    const result = await service.rpc('gtl_set_league_interest', { p_user: user.id, p_league: body.league, p_notify: body.notify });
+    if (result?.league !== body.league) throw new Error('Invalid interest result.');
+    return { league: body.league, notify: result.notify === true, count: Math.max(0, Number(result.count) || 0) };
   }
   fields(body, ['userId', 'member']);
   if (!UUID_PATTERN.test(body.userId || '') || body.userId === user.id || typeof body.member !== 'boolean') invalid();

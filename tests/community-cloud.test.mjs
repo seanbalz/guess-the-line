@@ -43,3 +43,30 @@ test('picks-due states', () => {
   assert.equal(picksDue(feed, at('2026-10-14T00:00:00Z')).state, 'due');
   assert.equal(picksDue(feed, at('2026-10-16T00:15:00Z')).state, 'closed');
 });
+
+test('community interest route validates strictly and normalizes interests (D-22)', async () => {
+  const calls = [];
+  const app = createCloudHandler({
+    authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
+    storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden,
+    community: { rpc: async (name, args) => {
+      calls.push([name, args]);
+      if (name === 'gtl_set_league_interest') return { league: args.p_league, notify: args.p_notify, count: 4 };
+      return { ...feed, interests: ['nhl', 'nfl', 'nba', 7], interestCounts: { nba: 2, nhl: '1', nfl: 9, mlb: -3 } };
+    } },
+    clock: () => Date.parse('2026-10-15T23:00:00Z'),
+  });
+  const send = (path, body, auth = 'Bearer token') => app(new Request(`https://fixture.invalid${path}`, { method: 'POST', headers: { ...(auth ? { authorization: auth } : {}), 'content-type': 'application/json' }, body: JSON.stringify(body) }));
+  for (const body of [{}, { league: 'nba' }, { notify: true }, { league: 'nfl', notify: true }, { league: 'NBA', notify: true }, { league: 'nba', notify: 1 }, { league: 'nba', notify: true, extra: 1 }, ['nba', true]]) {
+    assert.equal((await send('/community/interest', body)).status, 400, JSON.stringify(body));
+  }
+  assert.equal(calls.length, 0, 'invalid bodies never reach the database');
+  assert.equal((await send('/community/interest', { league: 'nba', notify: true }, null)).status, 401);
+  const ok = await send('/community/interest', { league: 'cbb', notify: true });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(await ok.json(), { league: 'cbb', notify: true, count: 4 });
+  assert.deepEqual(calls.at(-1), ['gtl_set_league_interest', { p_user: USER, p_league: 'cbb', p_notify: true }]);
+  const read = await (await send('/community/read', {})).json();
+  assert.deepEqual(read.interests, ['nba', 'nhl'], 'unknown and live leagues are dropped');
+  assert.deepEqual(read.interestCounts, { nba: 2, mlb: 0, nhl: 1, cfb: 0, cbb: 0 });
+});
