@@ -51,3 +51,34 @@
 .sit-out-dialog .review-actions button{flex:1;min-height:44px}
 .sit-out-dialog .form-error{color:var(--loss);margin:8px 0}
 .sit-out-dialog p{margin-top:12px}
+/* Persona audit quick wins (docs/PERSONA_AUDIT_2026_10_09.md): home order, quiet week states, chip helper, error banners beside the control, forced colours. */
+/* Busy controls are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…"; they look like disabled ones. */
+.community-home [aria-disabled="true"]{cursor:not-allowed;opacity:.4}
+.community-home [aria-disabled="true"]:hover{filter:none}
+.community-home [aria-disabled="true"]:active{transform:none}
+.community-home .theme-selector{margin:32px 0 0;max-width:none}
+.week-unpublished{display:flex;gap:12px;align-items:center;margin-top:12px;padding:16px;border-left:4px solid var(--tie)}
+.week-unpublished svg{flex:none;color:var(--cyan)}
+.week-unpublished p{margin:0}
+.week-not-open{padding:16px;border-left:4px solid var(--cyan)}
+.week-not-open h3{font-size:20px;line-height:28px;margin:0 0 4px}
+.week-not-open p{margin:0;color:var(--muted)}
+.week-closed{margin:8px 0}
+.chip-help{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin:12px 0;padding:12px 16px;border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:8px;background:var(--surface);font-size:14px;line-height:1.6}
+.chip-help p{margin:0}
+.chip-help .text-button{flex:none;color:var(--text);text-decoration:underline}
+.week-picks .save-bar .error-banner,.week-picks .save-bar .save-notice,.week-picks .save-bar .save-hint{flex-basis:100%;margin:0}
+.save-hint{padding:12px 16px;border:1px solid var(--pending);border-radius:8px;font-size:14px;line-height:1.6}
+/* The hint stays mounted: one live region whose text changes is announced, while one inserted with its text often is not. Empty, it is visually hidden rather than display:none. */
+.week-picks .save-bar .save-hint:empty{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;white-space:nowrap}
+.feed-post .error-banner{margin:0}
+.error-banner .banner-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.community-home .error-banner button{margin-left:auto;min-height:44px;color:var(--text);text-decoration:underline;padding:0 4px}
+.community-home .error-banner .banner-actions button{margin-left:0}
+@media (forced-colors:active){
+  .feed-actions .liked{color:Highlight}
+  .community-leaderboard tr.me th{text-decoration:underline;text-underline-offset:3px}
+  .picks-due{border-left-width:6px}
+  .picks-due.urgent{border-left-style:double;border-left-width:10px}
+  .league-chip.selected{border:3px solid Highlight}
+}

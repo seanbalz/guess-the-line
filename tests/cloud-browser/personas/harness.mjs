@@ -119,7 +119,8 @@ export const test = base.extend({
           const endpoint = url.pathname.replace(/^.*\/gtl-api\//, '');
           net.requests.push({ endpoint, method: req.method(), body: req.method() === 'POST' ? req.postDataJSON() : null });
           if (net.delay) await new Promise(r => setTimeout(r, net.delay));
-          if (net.offline) return route.abort('internetdisconnected');
+          // net.offline: true cuts every API call; a predicate on the endpoint cuts only some (the feed while the lobby still loads).
+          if (net.offline === true || (typeof net.offline === 'function' && net.offline(endpoint))) return route.abort('internetdisconnected');
           const injected = net.fail?.(endpoint, req);
           if (injected) return reply(injected.status, injected.body);
           const response = await persona.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));
@@ -201,6 +202,28 @@ export const test = base.extend({
         return -1;
       },
       async noOverflow() { return page.evaluate(() => document.documentElement.scrollWidth <= innerWidth); },
+      /** Shares of a control's label box (its text node's rectangle, read from a screenshot) painted in the control's computed text colour and
+       *  in its background colour, matched per channel within 48. Computed styles cannot see a forced-colours backplate or fill; pixels can. */
+      async paint(locator) {
+        await locator.scrollIntoViewIfNeeded();
+        const target = await locator.evaluate(el => {
+          const style = getComputedStyle(el), range = document.createRange();
+          range.selectNode([...el.childNodes].find(node => node.nodeType === 3 && node.textContent.trim()));
+          const rect = range.getBoundingClientRect();
+          return { text: style.color, background: style.backgroundColor, clip: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } };
+        });
+        const png = (await page.screenshot({ clip: target.clip, animations: 'disabled' })).toString('base64');
+        return page.evaluate(async ({ png, text, background }) => {
+          const rgb = value => value.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number);
+          const image = new Image(); image.src = `data:image/png;base64,${png}`; await image.decode();
+          const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+          const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
+          const data = context.getImageData(0, 0, canvas.width, canvas.height).data, total = data.length / 4, shares = { text: 0, background: 0 };
+          const near = (i, [r, g, b]) => Math.abs(data[i] - r) <= 48 && Math.abs(data[i + 1] - g) <= 48 && Math.abs(data[i + 2] - b) <= 48;
+          for (let i = 0; i < data.length; i += 4) { if (near(i, rgb(text))) shares.text += 1 / total; else if (near(i, rgb(background))) shares.background += 1 / total; }
+          return shares;
+        }, { png, ...target });
+      },
       async smallText(screen, { min = 12, severity = 3 } = {}) {
         const small = await page.evaluate(min => {
           const out = new Map();

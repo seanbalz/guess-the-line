@@ -27,7 +27,7 @@ test('community read is isolated from league services, passes request time and n
   assert.equal(calls[0][0], 'gtl_read_community');
   assert.equal(calls[0][1].p_now, '2026-10-15T23:00:00.000Z');
   assert.equal(body.posts[0].picks, null, 'hidden picks are stripped even if the provider returned them');
-  assert.deepEqual(body.picksDue, { state: 'urgent', opensAt: '2026-10-12T07:00:00.000Z', deadline: '2026-10-16T00:15:00Z', week: 6, modes: [{ mode: 'guess_total', submitted: false, satOut: false, filled: 3, games: 14 }] });
+  assert.deepEqual(body.picksDue, { state: 'urgent', opensAt: '2026-10-12T07:00:00.000Z', deadline: '2026-10-16T00:15:00Z', week: 6, modes: [{ mode: 'guess_total', submitted: false, satOut: false, filled: 3, games: 14 }], now: '2026-10-15T23:00:00.000Z' });
   assert.deepEqual(body.optOuts, []);
   assert.deepEqual(body.members, [{ id: USER, displayName: 'Ben', removed: false }]);
 });

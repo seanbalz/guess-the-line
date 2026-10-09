@@ -31,14 +31,22 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   await persona.shot('picks-200');
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
   await first.getByRole('button', { name: '−3', exact: true }).click();
-  // Selected-chip state is carried by color alone (lime fill); the text is the same.
-  const selectedStyle = await first.getByRole('button', { name: '−3', exact: true }).evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, weight: s.fontWeight, border: s.borderColor }; });
-  persona.finding({ screen: 'picks-200', severity: 2, wcag: '1.4.1 (use of color)', experience: `A chosen chip changes only its fill (${selectedStyle.bg}) and text color; the glyph, weight (${selectedStyle.weight}) and border shape are identical to unselected chips. aria-pressed carries the state for screen readers, but a sighted low-vision or color-blind player must distinguish lime from navy. The output line "Cowboys −3" helps only on that card.`, fix: 'Add a check icon or a 2px inset ring to the selected chip and bold the summary line.', evidence: selectedStyle });
+  // Quick win 7 (#10): a selected chip carries a check icon as well as its fill, and the call line is a bold headline.
+  const selectedChip = first.getByRole('button', { name: '−3', exact: true });
+  await expect(selectedChip).toHaveClass(/selected/);
+  await expect(selectedChip.locator('svg.chip-check')).toHaveCount(1);
+  await expect(first.getByRole('button', { name: '−4', exact: true }).locator('svg')).toHaveCount(0);
+  await expect(first.locator('.chip-call strong')).toHaveText('Cowboys by 3');
+  // Review of PR #34: the team chip's check sits outside the name's text flow, so the chosen name is not clipped at 200%.
+  expect(await first.locator('.team-chip.selected').evaluate(chip => ({ text: chip.textContent, fits: chip.scrollWidth <= chip.clientWidth }))).toEqual({ text: 'Cowboys', fits: true });
   await persona.shot('picks-200-selected');
-  // Accessible names from the accessibility tree.
+  // Quick win 8 (#11): the number row is a labelled group and every chip is described by it.
   const tree = await first.ariaSnapshot();
-  persona.finding({ screen: 'picks-200', severity: 2, wcag: '2.4.6, 4.1.2', experience: `Screen-reader view of one game: group "Tampa Bay Buccaneers at Dallas Cowboys Spread", toggle buttons "Buccaneers", "Pick'em", "Cowboys", then toggle buttons "−1" … "−10" and "More", buttons "Lower by half a point" / "Raise by half a point", and the live (aria-live) summary "Cowboys −3". Every number chip is announced as "minus three, toggle button" with no team or meaning; in the Total ballot "44, toggle button" carries no unit. The team facts line is read as "TB 1-4 Road 1-1".`, fix: 'Give each number row an aria-label ("Cowboys win by" / "Combined points"), set aria-describedby on chips to that label, and spell out records ("Tampa Bay 1 and 4, road 1 and 1").', evidence: { tree: tree.split('\n').slice(0, 30).join('\n') } });
   expect(tree).toContain('Buccaneers at Dallas Cowboys Spread');
+  expect(tree).toContain('group "Cowboys win by"');
+  const described = await first.locator('.number-chip').evaluateAll(chips => chips.map(chip => document.getElementById(chip.getAttribute('aria-describedby'))?.textContent));
+  expect(new Set(described)).toEqual(new Set(['Cowboys win by…']));
+  persona.finding({ screen: 'picks-200', severity: 4, wcag: '2.4.6', experience: `Screen-reader view of one game: group "Tampa Bay Buccaneers at Dallas Cowboys Spread", toggle buttons "Buccaneers", "Pick'em", "Cowboys", then the group "Cowboys win by" with toggle buttons "−1" … "−10" (each described by "Cowboys win by…") and "More", the stepper buttons, and the live summary "Cowboys −3". The team facts line is still read as "TB 1-4 Road 1-1".`, fix: 'Spell out records ("Tampa Bay 1 and 4, road 1 and 1").', evidence: { tree: tree.split('\n').slice(0, 30).join('\n') } });
 
   // CSS zoom 200% on a 1280 CSS viewport: does anything overflow horizontally?
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -52,10 +60,26 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   // Forced colors (Windows High Contrast): the lime fill disappears, so selection must survive.
   await page.emulateMedia({ forcedColors: 'active' });
   await persona.shot('picks-forced-colors');
-  const forced = await first.getByRole('button', { name: '−3', exact: true }).evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, outline: s.outlineStyle }; });
-  const unselected = await first.getByRole('button', { name: '−4', exact: true }).evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, outline: s.outlineStyle }; });
+  const chipStyle = chip => chip.evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, border: s.borderWidth, borderColor: s.borderColor }; });
+  const forced = await chipStyle(selectedChip);
+  const unselected = await chipStyle(first.getByRole('button', { name: '−4', exact: true }));
   const hasForcedCss = await page.evaluate(() => [...document.styleSheets].some(sheet => { try { return [...sheet.cssRules].some(rule => rule.media && /forced-colors/.test(rule.media.mediaText)); } catch { return false; } }));
-  persona.finding({ screen: 'picks-forced-colors', severity: 2, wcag: '1.4.1, 1.4.11', experience: `Under forced colors the selected chip is ${JSON.stringify(forced)} and an unselected one ${JSON.stringify(unselected)}: ${forced.bg === unselected.bg && forced.color === unselected.color ? 'identical' : 'different only by system colors'}. ${hasForcedCss ? 'There is a forced-colors rule' : 'No stylesheet has a @media (forced-colors) rule'}, so selected chips, the "me" row in the leaderboard, the urgent border on the picks-due card and the liked heart all lose their meaning.`, fix: 'Add @media (forced-colors: active) rules: selected chips get a 3px solid border and a check icon, liked/urgent states get an icon change, and use forced-color-adjust: none only for brand marks.', evidence: { forced, unselected, hasForcedCss } });
+  // Quick win 7 (#10): chipPicker.css and community.css carry @media (forced-colors: active) blocks. A selected chip shows its state with a
+  // 3px Highlight border and a Highlight check icon; its label keeps the forced button colours of every other chip. It takes no Highlight
+  // fill: Chromium paints a Canvas backplate behind HighlightText on Highlight, which left the chosen chip's label a solid white block.
+  expect(hasForcedCss).toBe(true);
+  expect(forced.color).toBe(unselected.color);
+  expect(forced.bg).toBe(unselected.bg);
+  expect(forced.border).not.toBe(unselected.border);
+  expect(forced.borderColor).not.toBe(unselected.borderColor);
+  await expect(selectedChip.locator('svg.chip-check')).toHaveCount(1);
+  expect(await selectedChip.locator('svg.chip-check').evaluate(el => getComputedStyle(el).color)).toBe(forced.borderColor);
+  // The labels are painted, not backplated: the chosen "−3" and "Cowboys" text boxes carry glyphs in the chip's text colour on its background.
+  for (const chip of [selectedChip, first.locator('.team-chip.selected')]) {
+    const paint = await persona.paint(chip);
+    expect(paint.text).toBeGreaterThan(0.05);
+    expect(paint.background).toBeGreaterThan(0.3);
+  }
   await page.emulateMedia({ forcedColors: 'none' });
 
   // Groups screen and the game dashboard are also part of the journey.

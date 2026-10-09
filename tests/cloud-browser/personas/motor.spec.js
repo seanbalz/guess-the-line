@@ -18,11 +18,16 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   // Skip link: first Tab must land on it, it must be visible, and Enter must move focus into main.
   await page.keyboard.press('Tab');
   const skip = await persona.focused();
-  expect(skip.name).toBe('Skip to main content');
+  // Review of PR #34 (2.4.4): the link names its target. With a picks-due card it reads "Skip to picks due" and lands on the card.
+  expect(skip.name).toBe('Skip to picks due');
   persona.finding({ screen: 'feed', severity: skip.visible ? 4 : 2, wcag: '2.4.1', experience: skip.visible ? 'The skip link is the first tab stop and becomes visible on focus. Good.' : 'The skip link takes focus but is not visible.', fix: skip.visible ? 'Keep it.' : 'Show the link on focus.' });
   await page.keyboard.press('Enter');
-  const afterSkip = await page.evaluate(() => ({ hash: location.hash, active: document.activeElement?.id || document.activeElement?.tagName }));
-  persona.finding({ screen: 'feed', severity: 3, wcag: '2.4.1', experience: `Activating the skip link sets ${afterSkip.hash} and focus goes to "${afterSkip.active}". <main id="main"> has no tabindex on the Community screen, so the next Tab continues from the top of main: the theme select and six league chips still come before the Feed/Picks tabs and the picks-due card.`, fix: 'Give main tabindex="-1" (the game screen already does) and target the skip link at the first primary action.' });
+  // Quick win 11 (#17, #18): the skip link targets the picks-due card (tabindex -1), so the next Tab is "Make picks"; main carries tabindex -1 too.
+  const afterSkip = await page.evaluate(() => ({ hash: location.hash, active: document.activeElement?.id || document.activeElement?.tagName, mainTabIndex: document.getElementById('main')?.tabIndex }));
+  expect(afterSkip).toEqual({ hash: '#picks-due', active: 'picks-due', mainTabIndex: -1 });
+  await page.keyboard.press('Tab');
+  expect((await persona.focused()).name).toBe('Make picks');
+  await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Shift+Tab');
   await persona.smallTargets('feed');
   await persona.shot('feed');
 
@@ -33,7 +38,7 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
     const f = await persona.focused();
     if (f.tag === 'body') break;
     const key = `${f.tag}:${f.name}`;
-    if (seen.has(key) && steps > 10 && f.name === 'Skip to main content') { trapped = true; break; }
+    if (seen.has(key) && steps > 10 && f.name.startsWith('Skip to')) { trapped = true; break; }
     seen.add(key);
   }
   persona.finding({ screen: 'feed', severity: trapped ? 1 : 4, wcag: '2.1.2', experience: trapped ? 'Focus cycled back to the skip link without ever leaving the page: a keyboard trap.' : `Tabbing through the home screen reaches ${steps} stops (with ${persona.state.games.length} games and three members) and then leaves the document. No trap.`, fix: trapped ? 'Remove the focus loop.' : 'Keep it; reduce the stop count with roving tabindex in chip rows and the league switcher.' });
@@ -55,6 +60,22 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
   const atFloor = await first.locator('.chip-summary').innerText();
   persona.finding({ screen: 'picks', severity: 4, experience: `Pressing "Lower by half a point" repeatedly stops at "${atFloor}" (floor 0.5) while the button stays enabled and the live region repeats the same value. Pick'em (0) is reachable only through the middle team chip.`, fix: 'Disable the stepper at the floor/ceiling or let the floor step into Pick\'em.' });
+  // Review of PR #34 (2.4.3): the pressed save-bar button goes aria-disabled, not disabled, so focus stays on it while it reads
+  // "Saving…" and after the save, when it has nothing left to save. No control in the bar is natively disabled, "Sit out this week"
+  // included: the save request is held for a second so the bar can be inspected mid-flight.
+  await persona.tabTo(f => f.name === 'Save draft');
+  persona.net.delay = 1000;
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.save-bar [data-action="draft"]')).toHaveText('Saving…');
+  await expect(page.locator('.save-bar button[aria-disabled="true"]')).toHaveCount(3);
+  await expect(page.locator('.save-bar button:disabled')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Sit out this week' })).toHaveAttribute('aria-disabled', 'true');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Saving…', disabled: false });
+  persona.net.delay = 0;
+  await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Save draft', disabled: false });
+  await expect(page.locator('.save-bar [data-action="draft"]')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.locator('.save-bar button:disabled')).toHaveCount(0);
   // Chip spacing: 8px gaps between 44px chips; chips are 56px wide minimum.
   const chipBox = await first.locator('.number-chip').first().boundingBox();
   const gap = await first.locator('.chip-numbers').evaluate(el => getComputedStyle(el).gap);
@@ -99,7 +120,17 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   // sentence that the Community Picks tab still lacks.
   const helper = await page.locator('.ballot-header').innerText();
   expect(helper).toContain('Tap the favorite or Pick');
-  persona.finding({ screen: 'game-picks', severity: 3, experience: `Inside a group game "My picks" (${toPicks} Tabs from the top) now opens the same chip entry as the Community tab, with per-row "Next game" links and a helper sentence ("${helper.split('\n').find(line => line.startsWith('Tap'))}"). That sentence exists only here; the Community Picks tab, where most players enter picks, has no equivalent.`, fix: 'Show the same helper sentence (dismissible) above the Community Picks list.' });
+  // The group ballot rows carry the same labelled number row and "Your call" line as the Community tab (ChipPicker is shared):
+  // choose the home favorite by keyboard and the row label and call line appear, using the team codes this screen passes in.
+  const groupPicker = page.locator('.prediction-entry-controls').first();
+  await groupPicker.locator('.team-chip').nth(2).focus();
+  await page.keyboard.press('Enter');
+  await expect(groupPicker.locator('.chip-row-label')).toHaveText('DAL win by…');
+  await groupPicker.getByRole('button', { name: '−3', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(groupPicker.locator('.chip-call')).toHaveText('Your call: DAL by 3');
+  await expect(groupPicker.locator('.chip-summary')).toHaveText('DAL −3');
+  persona.finding({ screen: 'game-picks', severity: 4, experience: `Inside a group game "My picks" (${toPicks} Tabs from the top) opens the same chip entry as the Community tab, with per-row "Next game" links and a helper sentence ("${helper.split('\n').find(line => line.startsWith('Tap'))}"). The Community Picks tab now has its own dismissible helper; the two sentences are worded differently.`, fix: 'Share one helper sentence between the two surfaces.' });
   // Regression check: at 1024px the matchup column is so narrow that full team names break mid-word.
   const names = await page.locator('.prediction-matchup .team-matchup__name strong').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(), line = parseFloat(getComputedStyle(node).lineHeight) || 20; return { text: node.textContent, width: Math.round(r.width), lines: Math.round(r.height / line) }; }));
   const broken = names.filter(n => n.lines > n.text.split(' ').length + 1);

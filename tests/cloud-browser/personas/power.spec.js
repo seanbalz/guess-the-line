@@ -21,7 +21,9 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
 
   // How far is "Make picks" by keyboard from the top of the home screen?
   const toMakePicks = await persona.tabTo(f => f.name === 'Make picks');
-  persona.finding({ screen: 'feed', severity: 3, experience: `From page load it takes ${toMakePicks} Tab presses to reach "Make picks" (skip link, theme select, six league chips, three tabs, then the card). The skip link jumps to <main>, which still starts with the theme select and league switcher.`, fix: 'Point the skip link at the picks-due card or tab list, and move the league switcher below the primary action.' });
+  // Quick win 11 (#17): Appearance moved to the foot of the page, so the skip link, six league chips and three tabs are all that precede the card.
+  expect(toMakePicks).toBeLessThanOrEqual(11);
+  persona.finding({ screen: 'feed', severity: 3, experience: `From page load it takes ${toMakePicks} Tab presses to reach "Make picks" (skip link, six league chips, three tabs, then the card). The skip link now lands on the picks-due card, but tabbing from the top still crosses the league switcher.`, fix: 'Collapse the league switcher to "NFL · Live · More leagues" while only NFL is live.' });
   await page.keyboard.press('Enter');
   const cards = page.locator('.week-pick');
   await expect(cards.first()).toBeVisible();
@@ -60,11 +62,36 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
   await expect(page.getByRole('status').filter({ hasText: 'Spread picks submitted.' })).toBeVisible();
   await persona.shot('submitted');
   const submittedFocus = await persona.focused();
+  // Review of PR #34 (2.4.3): the pressed button stays focused through the submit; it now reads "Save changes" with nothing to save.
+  expect(submittedFocus).toMatchObject({ tag: 'button', name: 'Save changes' });
   persona.finding({ screen: 'submitted', severity: 3, experience: `After submitting, focus is on "${submittedFocus.name || submittedFocus.tag}" and the only confirmation is the one-line status "Spread picks submitted." at the top of the list. Nothing says what was captured (14 picks, time, scoring reference), how to see opponents' picks, or that the Total ballot is still due.`, fix: 'Show a receipt panel after submit: picks count, saved time, "Total still due", and buttons "Make Total picks" / "See everyone\'s Spread picks".' });
   // The Total tab is still owed; is that clear from the picks screen?
   const header = await page.locator('.week-picks > p.muted').innerText();
   expect(header).toContain('Submitted, editable until the deadline');
-  await page.getByRole('group', { name: 'Market' }).getByRole('button', { name: 'Total' }).click();
+  // Review of PR #34: on a submitted ballot an edit that leaves a game empty (Pick'em, then a team) cannot be saved, because the
+  // server needs a complete ballot. "Save changes" and the Total market button both explain instead of posting a partial ballot
+  // that would fail with a 400; the hint is the live region that describes the primary button.
+  await cards.first().getByRole('button', { name: "Pick'em", exact: true }).focus(); await page.keyboard.press('Enter');
+  await cards.first().getByRole('button', { name: 'Cowboys', exact: true }).focus(); await page.keyboard.press('Enter');
+  await expect(cards.first().locator('.chip-summary')).toHaveText('No pick yet');
+  const ballotRequests = persona.net.requests.filter(r => r.endpoint === 'personal/ballot').length;
+  const saveChanges = page.getByRole('button', { name: 'Save changes' });
+  await expect(saveChanges).toBeEnabled();
+  await saveChanges.focus(); await page.keyboard.press('Enter');
+  const hint = page.locator('.save-bar .save-hint');
+  await expect(hint).toHaveText('Pick the remaining 1 game to save your Spread changes. Your submitted Spread picks stay as they were until you do.');
+  expect(await saveChanges.getAttribute('aria-describedby')).toBe(await hint.getAttribute('id'));
+  const market = page.getByRole('group', { name: 'Market' }), totalTab = market.getByRole('button', { name: 'Total' });
+  await totalTab.focus(); await page.keyboard.press('Enter');
+  await expect(hint).toHaveText('Pick the remaining 1 game to save your Spread changes before switching to Total. Your submitted Spread picks stay as they were until you do.');
+  await expect(market.getByRole('button', { name: 'Spread ✓' })).toHaveAttribute('aria-pressed', 'true');
+  expect(persona.net.requests.filter(r => r.endpoint === 'personal/ballot').length).toBe(ballotRequests);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  // Restoring the game clears the hint; the ballot then matches what was submitted, so the switch needs no save.
+  await cards.first().getByRole('button', { name: '−3', exact: true }).focus(); await page.keyboard.press('Enter');
+  await expect(hint).toBeEmpty();
+  await totalTab.focus(); await page.keyboard.press('Enter');
+  await expect(totalTab).toHaveAttribute('aria-pressed', 'true');
   await expect(cards.first().locator('.number-chip').first()).toBeVisible();
   // Keyboard on total chips: eleven chips plus −/+; no arrows.
   const toFirstTotal = await persona.tabTo(f => f.name === '44');

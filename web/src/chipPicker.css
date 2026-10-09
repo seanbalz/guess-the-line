@@ -2,13 +2,33 @@
 .chip-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .chip{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--canvas);color:var(--text);font-weight:600;font-size:16px}
 .chip.selected{background:var(--primary);color:var(--primaryText);border-color:var(--primary)}
-.team-chip{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .chip-check{vertical-align:-2px;margin-right:4px}
+.team-chip{position:relative;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* The team chip's check sits outside the name's text flow, so a chosen chip needs no more room than an unchosen one: a name that fits at 390px still fits once selected (D-21). */
+.team-chip .chip-check{position:absolute;left:4px;top:50%;transform:translateY(-50%);margin:0}
+.team-chip.selected{padding:0 6px 0 20px}
 .number-chip{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace;font-variant-numeric:tabular-nums;min-width:56px}
 .more-chip{border-style:dashed;color:var(--muted)}
 .icon-chip{display:grid;place-items:center;padding:0}
+.chip-row-label{flex-basis:100%;font-size:13px;line-height:18px;font-weight:600;color:var(--muted)}
+.chip-call{margin:0;font-size:16px;line-height:24px;color:var(--text)}
+.chip-call strong{font-weight:700}
 .chip-summary{flex:1;text-align:center;color:var(--muted);font-size:14px}
 .chip-picker.compact{gap:6px}
 .chip-picker.compact .chip-row{gap:6px}
 .chip-picker.compact .number-chip{min-width:48px;padding:0 8px}
 .chip-picker.compact .team-chip{padding:0 6px}
+.chip-picker.compact .team-chip.selected{padding:0 4px 0 18px}
+.chip-picker.compact .chip-call{font-size:14px;line-height:20px}
 @media (prefers-reduced-motion:reduce){.chip{transition:none}}
+/* Windows High Contrast and other forced palettes drop the lime fill: a selected chip shows its state with a 3px Highlight border and a
+   Highlight check icon while its label keeps the forced button colours like every other chip. It takes no Highlight fill: Chromium paints
+   a Canvas backplate behind HighlightText on a Highlight background, which left the chosen chip's label a solid white block. */
+@media (forced-colors:active){
+  .chip.selected{border:3px solid Highlight;padding:0 10px}
+  .chip.selected .chip-check{color:Highlight}
+  .team-chip.selected{padding:0 4px 0 18px}
+  .chip-picker.compact .number-chip.selected{padding:0 6px}
+  .chip-picker.compact .team-chip.selected{padding:0 2px 0 16px}
+  .more-chip{border-style:dashed}
+}

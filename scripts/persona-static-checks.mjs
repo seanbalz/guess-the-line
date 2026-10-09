@@ -89,5 +89,6 @@ console.log(`Declared sizes under 44px on interactive selectors (chipPicker, com
 for (const s of small.slice(0, 12)) console.log(`  ${s.file} ${s.selector} ${s.property}:${s.value}px`);
 console.log(`Interactive/label text declared under 12px: ${smallType.length}`);
 console.log(`Reduced motion: global fallback in styles.css = ${globalFallback}; files with transitions/animations: ${motion.filter(m => m.animatedRules).map(m => `${m.file}(${m.animatedRules}${m.reducedMotionBlock ? ', own fallback' : ''})`).join(', ')}`);
-console.log(`Files with forced-colors rules: ${forcedColors.join(', ') || 'none'} (chipPicker.css, community.css and styles.css have none)`);
+const noForced = ['chipPicker.css', 'community.css', 'styles.css'].filter(file => !forcedColors.includes(file));
+console.log(`Files with forced-colors rules: ${forcedColors.join(', ') || 'none'}${noForced.length ? ` (${noForced.join(', ')} ${noForced.length === 1 ? 'has' : 'have'} none)` : ''}`);
 console.log('Written .local/personas/static.json');

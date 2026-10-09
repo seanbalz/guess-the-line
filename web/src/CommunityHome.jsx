@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
@@ -10,11 +10,29 @@ import { TEAM_NAMES, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import './community.css';
 
 const MODE = { guess_spread: 'Spread', guess_total: 'Total' };
+const DAY = 86_400_000;
 const show = n => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
 const team = code => TEAM_NAMES[code] || code;
 const shortName = code => team(code).split(' ').at(-1);
 // D-24: "Mon, Oct 12, 12:00 AM" — the week's Monday 00:00 Pacific open.
 const opensText = (week, opensAt) => `Week ${week} opens ${date(opensAt, { weekday: 'short' })} PT`;
+const dueText = deadline => `Picks due ${date(deadline, { weekday: 'short' })} PT`;
+// "In 3 days" until the Monday open, judged against the handler clock the feed carries (the device clock only as a fallback).
+const inDays = (opensAt, now) => { const days = Math.ceil((Date.parse(opensAt) - (now ? Date.parse(now) : Date.now())) / DAY); return days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`; };
+// The Monday open after a closed week (D-24).
+const nextOpenAt = deadline => weekOpenAt(Date.parse(deadline) + 7 * DAY);
+// Persona audit #4: the chip helper is dismissed per market, so hiding the Spread tip never hides the Total one.
+const helpKey = mode => `gtl.chipHelp.${mode}`;
+// Persona audit #8: a request that never reached the service (no status) reads as "offline" everywhere, never as "Failed to fetch".
+const plain = (e, next = 'try again') => (e.status ? e.message : `No connection. Reconnect and ${next}.`);
+
+/** Focus never strands on <body>: when a control that had focus is removed (a banner's Retry, "Got it"), the next render that
+ * can focus the named control does so (WCAG 2.4.3). Busy controls stay focusable because they are aria-disabled, not disabled. */
+function useRefocus(root) {
+  const pending = useRef(null);
+  useEffect(() => { const selector = pending.current; if (!selector) return; const el = root.current?.querySelector(selector); if (!el || el.disabled) return; pending.current = null; el.focus(); });
+  return selector => { pending.current = selector; };
+}
 
 // D-22: NFL is the only live league; the rest are "Coming soon" with no games, picks, schedules or odds.
 // Windows are typical season timing, not dates for a specific season.
@@ -59,13 +77,25 @@ function ComingSoon({ feed, busy, onNotify }) {
   </section>;
 }
 
-function PicksDue({ due, onPick }) {
+/** No published week: a quiet state on the feed and the Picks tab, never an error (persona audit #14). */
+function WeekUnpublished() {
+  return <section className="panel week-unpublished" role="status"><CalendarClock size={22} aria-hidden="true"/>
+    <p>No week is open yet. Weeks open automatically Monday 12:00 AM PT once the schedule is published; picks due will show here.</p></section>;
+}
+
+function PicksDue({ due, all = [], onPick }) {
   if (!due || ['none', 'done'].includes(due.state)) return null;
   const closed = due.state === 'closed', notOpen = due.state === 'not_open';
-  return <section className={`panel picks-due ${due.state}`} role={due.state === 'urgent' ? 'alert' : 'status'}>
+  // Persona audit #15: a submitted market stays on the card with a check; a sat-out market is never due (D-23), so it is left off.
+  const modes = all.length ? all.filter(m => !m.satOut) : due.modes;
+  const stillDue = !closed && modes.some(m => m.submitted) ? ' still due' : '';
+  // After the deadline only a submitted ballot scores (D-21), so the card says submitted / draft (not submitted) / not submitted rather than a count.
+  const counts = modes.map(m => `${MODE[m.mode]} ${m.submitted ? '✓ submitted' : closed ? (m.filled ? 'draft (not submitted)' : 'not submitted') : `${m.filled}/${m.games}${stillDue}`}`).join(' · ');
+  // #43: before the open, no counts for a ballot nobody can touch; a relative hint and the due time instead. #13: the next Monday open after a closed week.
+  const detail = notOpen ? `${inDays(due.opensAt, due.now)} · ${dueText(due.deadline)}` : closed ? `${counts} · Deadline passed · ${opensText(due.week + 1, nextOpenAt(due.deadline))}` : `${counts} · Due ${date(due.deadline)} PT`;
+  return <section id="picks-due" tabIndex={-1} className={`panel picks-due ${due.state}`} role={due.state === 'urgent' ? 'alert' : 'status'}>
     <Bell size={22} aria-hidden="true"/>
-    <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2>
-      <p>{due.modes.map(m => `${MODE[m.mode]} ${m.filled}/${m.games}`).join(' · ')} · {closed ? 'Deadline passed' : notOpen ? `Then due ${date(due.deadline)} PT` : `Due ${date(due.deadline)} PT`}</p></div>
+    <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2><p>{detail}</p></div>
     {!closed && !notOpen && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
   </section>;
 }
@@ -109,31 +139,36 @@ function PostPicks({ post }) {
   const entries = Object.entries(post.picks);
   return <ul className="post-picks mono">{entries.map(([gameId, value]) => {
     const [away, home] = gameId.split('-');
-    const text = post.mode === 'guess_total' ? `${show(value)}` : value === 0 ? "PK" : `${shortName(value < 0 ? home : away)} −${show(Math.abs(value))}`;
+    const text = post.mode === 'guess_total' ? `${show(value)}` : value === 0 ? "Even (pick'em)" : `${shortName(value < 0 ? home : away)} −${show(Math.abs(value))}`;
     return <li key={gameId}><span>{away} @ {home}</span><span>{text}</span></li>;
   })}</ul>;
 }
 
 function Post({ post, name, onLike, onComment, busy }) {
-  const [draft, setDraft] = useState(''), request = useRef(null);
+  const [draft, setDraft] = useState(''), [failure, setFailure] = useState(null), request = useRef(null), root = useRef(null), refocus = useRefocus(root);
+  // Persona audit #26: an action error sits under the control that was tapped, with a Retry, instead of at the top of the feed.
+  // Retry removes the banner it sits in, so focus returns to the control being retried.
+  async function run(action, control) { if (busy) return false; setFailure(null); const message = await action(); if (message) setFailure({ message, retry: () => { refocus(control); return run(action, control); } }); return !message; }
   async function submit(event) {
     event.preventDefault();
+    if (busy) return;
     const body = draft.trim(); if (!body) return;
     request.current ||= crypto.randomUUID();
-    if (await onComment(post.id, body, request.current)) { setDraft(''); request.current = null; }
+    if (await run(() => onComment(post.id, body, request.current), '[data-action="comment"]')) { setDraft(''); request.current = null; }
   }
-  return <article className="panel feed-post">
+  return <article ref={root} className="panel feed-post">
     <div className="feed-post-head"><PostText post={post} name={name}/><time className="muted small" dateTime={post.createdAt}>{date(post.createdAt)} PT</time></div>
     <PostPicks post={post}/>
     <div className="feed-actions">
-      <button className={`text-button ${post.likedByMe ? 'liked' : ''}`} aria-pressed={post.likedByMe} disabled={busy} onClick={() => onLike(post.id, !post.likedByMe)}><Heart size={17} fill={post.likedByMe ? 'currentColor' : 'none'}/>{post.likes}<span className="sr-only"> likes</span></button>
+      <button className={`text-button ${post.likedByMe ? 'liked' : ''}`} data-action="like" aria-pressed={post.likedByMe} aria-disabled={busy || undefined} onClick={() => run(() => onLike(post.id, !post.likedByMe), '[data-action="like"]')}><Heart size={17} fill={post.likedByMe ? 'currentColor' : 'none'}/>{post.likes}<span className="sr-only"> likes</span></button>
       <span className="muted small"><MessageCircle size={16}/>{post.comments.length}</span>
     </div>
+    {failure && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{failure.message}</span><button type="button" className="text-button" aria-disabled={busy || undefined} onClick={failure.retry}>Retry</button></div>}
     {!!post.comments.length && <ul className="feed-comments">{post.comments.map(c => <li key={c.id}><strong>{name(c.userId)}</strong> {c.body}</li>)}</ul>}
     <form className="feed-comment-form" onSubmit={submit}>
       <label className="sr-only" htmlFor={`comment-${post.id}`}>Comment</label>
-      <input id={`comment-${post.id}`} maxLength={500} placeholder="Add a comment" value={draft} disabled={busy} onChange={e => { setDraft(e.target.value); request.current = null; }}/>
-      <button className="secondary" aria-label="Post comment" disabled={busy || !draft.trim()}><Send size={16}/></button>
+      <input id={`comment-${post.id}`} maxLength={500} placeholder="Add a comment" value={draft} readOnly={busy} onChange={e => { setDraft(e.target.value); request.current = null; }}/>
+      <button className="secondary" data-action="comment" aria-label="Post comment" aria-disabled={busy || !draft.trim() || undefined}><Send size={16}/></button>
     </form>
   </article>;
 }
@@ -155,7 +190,7 @@ function PublishWeek({ week, onDone }) {
     try {
       const result = await communityApi(action, { season: Number(season), week: Number(number) });
       if (action === 'publish-preview') setPreview(result); else { setPreview(null); await onDone(result.published ? `Week ${result.week} is open.` : `Week ${result.week} was already open.`); }
-    } catch (e) { setError(e.message); } finally { setBusy(false); }
+    } catch (e) { setError(plain(e)); } finally { setBusy(false); }
   }
   return <section className="panel publish-week" aria-label="Publish week">
     <div className="section-title"><h2><CalendarPlus size={18}/>Preview / publish early (fallback)</h2></div>
@@ -173,25 +208,50 @@ function PublishWeek({ week, onDone }) {
   </section>;
 }
 
-function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
-  const [data, setData] = useState(null), [mode, setMode] = useState('guess_spread'), [draft, setDraft] = useState(null);
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
-  const request = useRef(null);
+function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) {
+  const [data, setData] = useState(null), [mode, setMode] = useState(initialMode || 'guess_spread'), [draft, setDraft] = useState(null);
+  const [busy, setBusy] = useState(false), [saving, setSaving] = useState(null), [error, setError] = useState(''), [unpublished, setUnpublished] = useState(false);
+  const [notice, setNotice] = useState(''), [failure, setFailure] = useState(null), [hint, setHint] = useState('');
+  const [dismissed, setDismissed] = useState(() => new Set(Object.keys(MODE).filter(m => { try { return localStorage.getItem(helpKey(m)) === 'off'; } catch { return false; } })));
+  const request = useRef(null), root = useRef(null), refocus = useRefocus(root), hintId = useId();
+  // The save-bar button behind the latest request ("draft" or "submit"); a banner action hands focus back to it.
+  const action = useRef('draft');
   const load = useCallback(async () => { const result = await cloudApi('personal'); setData(result); return result; }, []);
-  useEffect(() => { load().catch(e => setError(e.message)); }, [load]);
+  // Persona audit #14: no published week (the handler answers 404) is a quiet state, not an error.
+  const loadWeek = useCallback(() => { setError(''); setUnpublished(false); return load().catch(e => { if (e.status === 404) setUnpublished(true); else setError(plain(e, 'tap Retry')); }); }, [load]);
+  useEffect(() => { loadWeek(); }, [loadWeek]);
   const picksFor = (d, m) => Object.fromEntries(d.games.map(g => [g.id, d.ballots[m]?.picks?.[g.id] ?? '']));
   // Picks derive from the loaded week and the market in the same render, never one render late: a draft counts only for the data and mode it was entered against,
   // so a market switch or a reload can never show one market's values in the other's chips.
   const picksOf = (d, m, dr) => (dr && dr.data === d && dr.mode === m ? dr.picks : picksFor(d, m));
-  if (!data) return error ? <div className="error-banner" role="alert">{error}</div> : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
+  // "Got it" removes its own container, so focus moves on to the first chip.
+  function dismissHelp() { setDismissed(s => new Set([...s, mode])); refocus('.week-pick-list .chip:not(:disabled)'); try { localStorage.setItem(helpKey(mode), 'off'); } catch { /* Hidden for this visit only. */ } }
+  if (!data) return unpublished ? <WeekUnpublished/>
+    : error ? <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span><button type="button" className="text-button" onClick={loadWeek}>Retry</button></div>
+    : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
   const picks = picksOf(data, mode, draft);
   const ballot = data.ballots[mode], submitted = !!ballot?.submittedAt, closed = Date.parse(data.now) >= Date.parse(data.deadline);
   const opensAt = weekOpenAt(data.deadline), notOpen = Date.parse(data.now) < Date.parse(opensAt);
   const satOut = optOuts.includes(mode);
-  const filled = Object.values(picks).filter(v => v !== '').length;
+  const editable = !closed && !notOpen && !satOut;
+  const filled = Object.values(picks).filter(v => v !== '').length, remaining = data.games.length - filled;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
+  // Persona audit #8: every save failure names the problem and offers the next step, beside the save bar. "Sign in again" unmounts
+  // this screen and its unsaved picks, so the banner says so and puts Retry first. A D-17 submission refusal carries a code (fresh
+  // quotes unavailable, refresh busy) and is retried as it is, whatever its status; only a bare 409 is a revision conflict with
+  // another device; a 400 cannot succeed on a retry.
+  function describe(e, retry) {
+    if (!e.status) return { message: 'No connection. Your picks are kept on this screen; reconnect and tap Retry.', actions: [['Retry', retry]] };
+    if (e.status === 401) return { message: 'Your session has expired and these picks are not saved. Retry first; if that fails, note your picks, then sign in again (it clears this screen).', actions: [['Retry', retry], ['Sign in again', () => onSignOut?.()]] };
+    if (e.code) return { message: e.message, actions: [['Retry', retry]] };
+    if (e.status === 409) return { message: e.message, actions: [['Load latest', loadLatest]] };
+    if (e.status === 400) return { message: e.message, actions: [] };
+    return { message: e.message, actions: [['Retry', retry]] };
+  }
   async function save(submit) {
-    setBusy(true); setError(''); setNotice('');
+    if (busy) return false;
+    action.current = submit ? 'submit' : 'draft';
+    setBusy(true); setSaving(submit ? 'submit' : 'draft'); setFailure(null); setNotice(''); setHint('');
     const body = { season: data.season, week: data.week, mode, weeklyRevision: data.weeklyRevision, submit,
       picks: Object.fromEntries(Object.entries(picks).filter(([, v]) => v !== '').map(([k, v]) => [k, Number(v)])) };
     const serialized = JSON.stringify({ body, revision: data.revision });
@@ -200,40 +260,93 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut }) {
       await cloudApi('personal/ballot', { ...body, requestId: request.current.requestId, revision: data.revision });
       request.current = null; await load();
       setNotice(submit || submitted ? `${MODE[mode]} picks submitted.` : 'Draft saved.'); onSaved?.();
-    } catch (e) { setError(e.message); } finally { setBusy(false); }
+      return true;
+    } catch (e) { setFailure(describe(e, () => save(submit))); return false; } finally { setBusy(false); setSaving(null); }
   }
-  return <section className="week-picks">
+  // "Load latest" after a conflict: the other device's ballot comes in and this screen's unsaved edits stay on top of it.
+  async function loadLatest() {
+    if (busy) return;
+    setBusy(true); setFailure(null);
+    try {
+      const latest = await load();
+      setDraft(dr => {
+        if (!dr) return null;
+        const base = picksFor(dr.data, dr.mode), fresh = picksFor(latest, dr.mode);
+        return { data: latest, mode: dr.mode, picks: Object.fromEntries(latest.games.map(g => [g.id, dr.picks[g.id] !== base[g.id] ? dr.picks[g.id] : fresh[g.id]])) };
+      });
+      setNotice('Latest saved picks loaded. Your unsaved edits are kept on top of them; save again when ready.');
+    } catch (e) { setFailure(describe(e, loadLatest)); } finally { setBusy(false); }
+  }
+  const missing = () => `Pick the remaining ${remaining} ${remaining === 1 ? 'game' : 'games'}`;
+  // A submitted ballot has no Save draft and can only be saved complete: the saved picks stand until the edit is finished.
+  const stands = () => `Your submitted ${MODE[mode]} picks stay as they were until you do.`;
+  // Persona audit #5: switching markets saves the open draft first instead of greying the other market out. An edit that left a
+  // submitted ballot incomplete is explained and the market stays put; nothing partial is posted.
+  async function switchMode(next) {
+    if (next === mode || busy) return;
+    if (dirty && editable) {
+      if (submitted && remaining > 0) { setHint(`${missing()} to save your ${MODE[mode]} changes before switching to ${MODE[next]}. ${stands()}`); return; }
+      if (!(await save(submitted))) return;
+      setNotice(`${submitted ? `${MODE[mode]} picks submitted` : 'Draft saved'}. Now showing ${MODE[next]}.`);
+    }
+    setMode(next); setHint('');
+  }
+  // Persona audit #6: Submit stays enabled and says what is missing instead of going grey.
+  function submitOrExplain() {
+    if (remaining > 0) { setHint(submitted ? `${missing()} to save your ${MODE[mode]} changes. ${stands()}` : `${missing()} to submit ${MODE[mode]}. ${filled ? `Save draft keeps the ${filled} you have.` : 'Save draft keeps a partial ballot.'}`); return; }
+    save(true);
+  }
+  const header = satOut ? "Sat out · others' picks visible" : notOpen ? `Not open yet · ${dueText(data.deadline)}`
+    : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline)} PT`}${submitted ? (closed ? ' · Submitted' : ' · Submitted, editable until the deadline') : ''}`;
+  return <section ref={root} className="week-picks">
     <div className="personal-actions" role="group" aria-label="Market">{Object.entries(MODE).map(([m, label]) =>
-      <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy || (dirty && mode !== m)} onClick={() => setMode(m)}>
+      <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} aria-disabled={busy || undefined} onClick={() => switchMode(m)}>
         {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
-    <p className="muted">Week {data.week} · {satOut ? "Sat out · others' picks visible" : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline)} PT`}${submitted ? ' · Submitted, editable until the deadline' : ''}`}</p>
-    {notOpen && <p className="auth-notice week-not-open" role="status">{opensText(data.week, opensAt)}. Nobody can pick before then.</p>}
+    <p className="muted">Week {data.week} · {header}</p>
+    {notOpen && <section className="panel week-not-open" role="status"><h3>{opensText(data.week, opensAt)}</h3><p>Nobody can pick before then. The schedule is below; the chips appear when the week opens.</p></section>}
+    {/* Persona audit #13: only a submitted ballot scores, so a draft that was never submitted is told so. */}
+    {closed && !satOut && <p className="auth-notice week-closed" role="status">Week {data.week} {MODE[mode]} picks are closed. {submitted ? `Your submitted ${MODE[mode]} picks stay below.` : filled ? `Your ${MODE[mode]} draft was never submitted, so it does not score this week.` : `You made no ${MODE[mode]} picks this week.`} {opensText(data.week + 1, nextOpenAt(data.deadline))}.</p>}
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
-    {notice && <p className="auth-notice" role="status">{notice}</p>}
+    {notice && !editable && <p className="auth-notice" role="status">{notice}</p>}
+    {!dismissed.has(mode) && editable && <div className="chip-help" role="note"><p>{mode === 'guess_spread'
+      ? 'Tap the team you think wins (the favorite), then how many points they win by. Pick’em means an even game with no favorite. The chips use the sportsbook sign: −3 means the favorite wins by 3.'
+      : 'Total = both teams’ points combined. Tap the number you expect, then fine-tune by half a point with − and +.'}</p>
+      <button type="button" className="text-button" aria-label="Got it, hide this tip" onClick={dismissHelp}>Got it</button></div>}
     <div className="week-pick-list">{data.games.map(g => <article className="panel week-pick" key={g.id}>
       <h3>{team(g.awayCode)} @ {team(g.homeCode)}</h3>
       <p className="muted small">{date(g.kickoff)} PT</p>
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
-      <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
-        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || closed || notOpen || satOut} onChange={value => setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } }))}/>
+      {!notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
+        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
     </article>)}</div>
-    {!closed && !notOpen && !satOut && <div className="save-bar"><strong>{filled}/{data.games.length} ready</strong>
-      {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} disabled={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
-      {!submitted && <button className="secondary" disabled={busy || !dirty} onClick={() => save(false)}>Save draft</button>}
-      <button className="primary" disabled={busy || filled !== data.games.length || (submitted && !dirty)} onClick={() => save(true)}>{submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
+    {editable && <div className="save-bar">
+      {failure && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{failure.message}</span>
+        {!!failure.actions.length && <div className="banner-actions">{failure.actions.map(([label, fn]) => <button key={label} type="button" className="text-button" aria-disabled={busy || undefined} onClick={() => { refocus(`[data-action="${action.current}"]`); fn(); }}>{label}</button>)}</div>}</div>}
+      {notice && <p className="auth-notice save-notice" role="status">{notice}</p>}
+      {/* Always mounted: a live region whose text changes is announced; one inserted with its text often is not. Submit is described by it. */}
+      <p className="save-hint" id={hintId} role="status" aria-live="polite">{hint}</p>
+      <strong>{filled}/{data.games.length} ready</strong>
+      {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
+      {/* Busy and nothing-to-save states are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…" and after. */}
+      {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}
+      <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
   </section>;
 }
 
 export default function CommunityHome({ onGroups, onSignOut, displayName, onUnavailable }) {
   const [tab, setTab] = useState('feed'), [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [retryable, setRetryable] = useState(false);
+  const main = useRef(null), refocus = useRefocus(main);
   const load = useCallback(async () => { const result = await communityApi('read', {}); setFeed(result); setOlder([]); return result; }, []);
-  // Until the community service is deployed (or during an outage), fall back to the groups screen.
-  useEffect(() => { load().catch(e => { if (onUnavailable && (!e.status || [404, 503].includes(e.status))) onUnavailable(); else setError(e.message); }); }, [load, onUnavailable]);
+  // Persona audit #7: only a 404 (the community function is not deployed) falls back to the groups screen; any other failure keeps
+  // the Community shell with the error, plus a Retry when the failure was the network or the service (not a 4xx refusal).
+  useEffect(() => { load().catch(e => { if (onUnavailable && e.status === 404) onUnavailable(); else { setError(plain(e, 'tap Retry')); setRetryable(!e.status || e.status >= 500); } }); }, [load, onUnavailable]);
   const name = id => feed?.members.find(m => m.id === id)?.displayName || 'Former member';
-  async function act(fn) { setBusy(true); setError(''); try { return await fn(); } catch (e) { setError(e.message); return false; } finally { setBusy(false); } }
-  const like = (postId, value) => act(async () => { await communityApi('like', { postId, like: value }); await load(); });
-  const comment = (postId, body, requestId) => act(async () => { await communityApi('comment', { postId, body, requestId }); await load(); return true; });
+  async function act(fn) { setBusy(true); setError(''); try { return await fn(); } catch (e) { setError(plain(e)); return false; } finally { setBusy(false); } }
+  // Errors that belong beside the control (likes, comments) come back as the message instead of the shared banner.
+  async function attempt(fn) { setBusy(true); try { await fn(); return null; } catch (e) { return plain(e, 'tap Retry'); } finally { setBusy(false); } }
+  const like = (postId, value) => attempt(async () => { await communityApi('like', { postId, like: value }); await load(); });
+  const comment = (postId, body, requestId) => attempt(async () => { await communityApi('comment', { postId, body, requestId }); await load(); });
   // The toggle changes only after the server confirms the saved value.
   const notify = (key, value) => act(async () => {
     const result = await communityApi('interest', { league: key, notify: value });
@@ -247,10 +360,15 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
   });
   const posts = feed ? [...feed.posts, ...older] : [];
   const due = feed?.picksDue && ['due', 'urgent'].includes(feed.picksDue.state) ? feed.picksDue.modes.length : 0;
+  const picksClosed = feed?.picksDue?.state === 'closed';
+  // Persona audit #17: the skip link lands on the picks-due card when there is one, and says so (WCAG 2.4.4).
+  const dueCard = tab === 'feed' && !soon && feed?.picksDue && !['none', 'done'].includes(feed.picksDue.state);
+  // The feed banner's Retry removes the banner: focus goes to main once the feed is back, or to the new banner's Retry.
+  async function retryFeed() { refocus('[data-action="feed-retry"]'); if (await act(load)) { refocus(null); main.current?.focus(); } }
   return <div className="hub-shell community-home">
-    <a className="skip-link" href="#main">Skip to main content</a>
+    <a className="skip-link" href={dueCard ? '#picks-due' : '#main'}>{dueCard ? 'Skip to picks due' : 'Skip to main content'}</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{displayName}</span></div></header>
-    <main className="hub-main" id="main"><ThemeSelector/>
+    <main ref={main} className="hub-main" id="main" tabIndex={-1}>
       <div className="hub-heading"><div><p className="eyebrow">CALL THE NUMBER. OWN THE BOARD.</p><h1>Community</h1><p>Everyone's calls, scores and bets in one place.</p></div><Users size={28} aria-hidden="true"/></div>
       <LeagueSwitcher league={league} onSelect={setLeague}/>
       {soon ? <>
@@ -259,14 +377,15 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
         <button className="secondary back-to-nfl" onClick={() => setLeague('nfl')}>Back to NFL</button>
       </> : <>
       <nav className="community-tabs" aria-label="Community sections">
-        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : ''}`]].map(([key, label]) =>
+        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`]].map(([key, label]) =>
           <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => setTab(key)}>{label}</button>)}
         <button className="secondary" onClick={onGroups}>Groups & games<ArrowRight size={16}/></button>
       </nav>
-      {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
+      {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span>{!feed && retryable && <button type="button" className="text-button" data-action="feed-retry" aria-disabled={busy || undefined} onClick={() => { if (!busy) retryFeed(); }}>Retry</button>}</div>}
       {notice && <p className="auth-notice" role="status">{notice}</p>}
-      {tab === 'picks' ? <WeekPicks optOuts={feed?.optOuts || []} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
-        <PicksDue due={feed.picksDue} onPick={() => setTab('picks')}/>
+      {tab === 'picks' ? <WeekPicks optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
+        {!feed.week && <WeekUnpublished/>}
+        <PicksDue due={feed.picksDue} all={feed.due} onPick={() => setTab('picks')}/>
         <Leaderboard feed={feed}/>
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}
         <section className="community-feed" aria-label="Activity feed">
@@ -277,6 +396,8 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
         <ComingSoon feed={feed} busy={busy} onNotify={notify}/>
       </>}
       </>}
+      {/* Persona audit #17: Appearance lives with the account controls at the foot of the page, not above the title. */}
+      <ThemeSelector/>
       <div className="hub-bottom"><span>Signed in as {displayName}. Everything here is shared with every member.</span>
         <button className="text-button" disabled={busy} onClick={() => act(load)}><RefreshCw size={16}/>Refresh</button>
         <button className="secondary" disabled={busy} onClick={onSignOut}>Sign out</button></div>
