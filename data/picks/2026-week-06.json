@@ -3,13 +3,12 @@
   "season": 2026,
   "week": 6,
   "league": "sean-troy-luke",
-  "status": "schedule_recorded_pending_official_verification",
-  "schedule_source": "Web search 2026-10-09 summarizing https://www.nfl.com/schedules/2026/by-week/week-6, https://www.cbssports.com/nfl/schedule/2026/regular/6/, https://www.espn.com/nfl/schedule/_/week/6/year/2026/seasontype/2 and https://www.foxsports.com/nfl/schedule?seasonType=reg&week=6; pages not opened directly (blocked by session network policy). Byes: Cincinnati Bengals, Detroit Lions, Miami Dolphins, Minnesota Vikings.",
+  "status": "schedule_recorded_cross_checked",
+  "schedule_source": "nflverse nfldata games.csv (https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv), retrieved 2026-10-09, cross-checked against web-search summaries of NFL.com, CBS, ESPN and FOX Week 6 pages. Byes: Cincinnati Bengals, Detroit Lions, Miami Dolphins, Minnesota Vikings.",
   "schedule_notes": [
     "Kickoff times are scheduled times converted from ET to America/Los_Angeles (PDT, UTC-7).",
-    "Arizona Cardinals @ Los Angeles Rams: sources disagree (4:05 PM ET vs 8:05 PM ET); kickoff_at left null until verified.",
-    "Los Angeles Chargers @ Kansas City Chiefs: sources disagree (4:25 PM ET vs 8:25 PM ET); kickoff_at left null until verified.",
-    "Houston Texans @ Jacksonville Jaguars is the London game; listed as 'Texans vs. Jaguars' with Jacksonville presumed home; venue reported as Wembley by most sources, Tottenham by one. Confirm home designation before spreads are entered, because spreads are home-referenced."
+    "nflverse resolves the earlier disagreement: Arizona Cardinals @ Los Angeles Rams 4:05 PM ET, Los Angeles Chargers @ Kansas City Chiefs 4:25 PM ET.",
+    "Houston Texans @ Jacksonville Jaguars is the London game; nflverse lists Jacksonville as the home team at a neutral site. Spreads are recorded from Jacksonville's side."
   ],
   "lock": {
     "kickoff_at": "2026-10-15T17:15:00-07:00",
@@ -55,7 +54,7 @@
     },
     {
       "matchup": "Arizona Cardinals @ Los Angeles Rams",
-      "kickoff_at": null
+      "kickoff_at": "2026-10-18T13:05:00-07:00"
     },
     {
       "matchup": "Buffalo Bills @ Las Vegas Raiders",
@@ -63,7 +62,7 @@
     },
     {
       "matchup": "Los Angeles Chargers @ Kansas City Chiefs",
-      "kickoff_at": null
+      "kickoff_at": "2026-10-18T13:25:00-07:00"
     },
     {
       "matchup": "Dallas Cowboys @ Green Bay Packers",
