@@ -13,7 +13,7 @@ Owner: Sean Balsiger · Version 1 · Updated 2026-10-09 · Decision D-21
 | Who has submitted this week | Shown to everyone, without numbers |
 | Picks due for the viewer: Spread and Total | `due`, then `urgent` within 2 hours of the deadline, then `closed`, or `done` |
 | Publish Week (commissioner) | `/community/publish-preview` shows the nflverse slate for review; `/community/publish` adds the slate, schedule template, a "Week N is open" post and moves the 12-hour odds collector. Identical republish is a no-op; a different slate for a published week is refused |
-| Team records (overall, home, road) | `shared/team-records.mjs` and `data/team-records/2026.json` from nflverse finals |
+| Team records (overall, home, road) | `shared/team-records.mjs` and `shared/team-records-2026.json` from nflverse finals |
 | Home feed screen, leaderboard strip, game tabs, button entry, records under games | Not built yet (next PR) |
 | Score-change and weekly-winner posts | Not built yet; they need the scoring engine's results |
 
@@ -38,7 +38,7 @@ The handler passes the request time to the database, so the deadline reveal and 
 node scripts/team-records.mjs --season 2026 --through-week 5
 ```
 
-The script downloads the public nflverse schedule file, counts finals only (regular season, both scores present) and writes `data/team-records/2026.json`. Neutral-site games count toward overall records only. The nflverse repository publishes no explicit license; records are plain facts derived from final scores and are credited to nflverse (Lee Sharpe). Re-run after each week's Monday game.
+The script downloads the public nflverse schedule file, counts finals only (regular season, both scores present) and writes `shared/team-records-2026.json`. Neutral-site games count toward overall records only. The nflverse repository publishes no explicit license; records are plain facts derived from final scores and are credited to nflverse (Lee Sharpe). Re-run after each week's Monday game.
 
 ## Deploy checklist (run from the machine with the Supabase and Cloudflare logins)
 

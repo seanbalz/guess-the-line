@@ -548,7 +548,17 @@
       }
     }
   },
+  "neutral_games": [
+    "1:SF-LAR",
+    "3:BAL-DAL",
+    "4:IND-WAS",
+    "6:HOU-JAX",
+    "7:PIT-NO",
+    "9:CIN-ATL",
+    "10:NE-DET",
+    "11:MIN-SF"
+  ],
   "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
   "source_credit": "nflverse nfldata (Lee Sharpe); final scores only",
-  "retrieved_at": "2026-10-09T06:50:21.749Z"
+  "retrieved_at": "2026-10-09T06:56:51.617Z"
 }

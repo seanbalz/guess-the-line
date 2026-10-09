@@ -1,6 +1,6 @@
-// Refresh data/team-records/<season>.json from the public nflverse schedule file.
+// Refresh shared/team-records-<season>.json from the public nflverse schedule file.
 // Usage: node scripts/team-records.mjs --season 2026 --through-week 5 [--file games.csv]
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { computeTeamRecords, parseScheduleCsv } from '../shared/team-records.mjs';
 
@@ -9,13 +9,16 @@ const { values } = parseArgs({ options: { season: { type: 'string' }, 'through-w
 const season = Number(values.season), throughWeek = Number(values['through-week']);
 if (!Number.isInteger(season) || !Number.isInteger(throughWeek) || throughWeek < 0) throw new Error('Pass --season and --through-week.');
 const text = values.file ? readFileSync(values.file, 'utf8') : await (await fetch(SOURCE)).text();
-const records = computeTeamRecords(parseScheduleCsv(text), season, throughWeek);
+const rows = parseScheduleCsv(text);
+const records = computeTeamRecords(rows, season, throughWeek);
+// Neutral-site games for the whole season, keyed week:AWAY-HOME, so screens can label them.
+const neutral_games = rows.filter(r => Number(r.season) === season && r.game_type === 'REG' && r.location === 'Neutral').map(r => `${Number(r.week)}:${r.away_team}-${r.home_team}`);
 const out = {
   ...records,
+  neutral_games,
   source: SOURCE,
   source_credit: 'nflverse nfldata (Lee Sharpe); final scores only',
   retrieved_at: new Date().toISOString(),
 };
-mkdirSync('data/team-records', { recursive: true });
-writeFileSync(`data/team-records/${season}.json`, JSON.stringify(out, null, 2) + '\n');
+writeFileSync(`shared/team-records-${season}.json`, JSON.stringify(out, null, 2) + '\n');
 console.log(`${season} through Week ${throughWeek}: ${records.finals} finals, ${Object.keys(records.teams).length} teams`);

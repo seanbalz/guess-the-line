@@ -54,3 +54,7 @@ export const fmt = value => value === null || value === undefined ? '—' : Numb
 export const signed = value => value === null || value === undefined ? '—' : value === 0 ? 'PK' : value > 0 ? `+${fmt(value)}` : `−${fmt(Math.abs(value))}`;
 export const date = (value, options={}) => value ? new Date(value).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',...options}) : 'Not available';
 export const shortTeam = team => team.split(' ').at(-1);
+export async function communityApi(action, body = {}, signal) {
+  if (!['read', 'like', 'comment', 'member', 'publish-preview', 'publish'].includes(action)) throw new ApiError('Unknown community action.', 400);
+  return cloudApi(`community/${action}`, body, { signal });
+}
