@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import './chipPicker.css';
 
@@ -9,8 +9,10 @@ const show = n => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 /**
  * D-21 button entry. Spread values are home-referenced: home favored by 3 is -3.
  * Totals use whole-number chips around a center plus ±0.5 fine tuning.
+ * `ref` exposes focus() (first enabled chip) and scrollIntoView() for "Next game" navigation;
+ * `compact` tightens the chips for table rows.
  */
-export default function ChipPicker({ mode, value, onChange, away, home, disabled, label }) {
+export default function ChipPicker({ mode, value, onChange, away, home, disabled, label, compact, ref }) {
   const spread = mode === 'guess_spread';
   const has = value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value));
   const v = has ? Number(value) : null;
@@ -18,22 +20,28 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
   const [more, setMore] = useState(() => v !== null && Math.abs(v) > 10);
   const fav = spread ? (v === null ? favorite : v === 0 ? 'pickem' : v < 0 ? 'home' : 'away') : null;
   const size = v === null ? null : Math.abs(v);
+  const root = useRef(null);
+  useImperativeHandle(ref, () => ({
+    focus: () => root.current?.querySelector('button:not(:disabled)')?.focus(),
+    scrollIntoView: options => root.current?.scrollIntoView(options),
+  }), []);
+  // A value restored from a saved ballot or a tab draft may sit on the More page.
+  useEffect(() => { if (spread && size > 10) setMore(true); }, [spread, size]);
   const setSpread = (side, n) => onChange(side === 'pickem' ? 0 : (side === 'home' ? -1 : 1) * n);
   function pickFavorite(side) {
     setFavorite(side);
     if (side === 'pickem') return onChange(0);
-    if (size) setSpread(side, size);
+    if (size) return setSpread(side, size);
+    if (v === 0) onChange(''); // Leaving Pick'em: the pick is incomplete until a number is chosen.
   }
-  const center = v === null ? 44 : Math.round(v);
-  // Eleven distinct whole numbers around the center, shifted (not clamped) at the 0–200 edges.
-  const start = Math.min(190, Math.max(0, center - 5));
-  const totalChips = Array.from({ length: 11 }, (_, i) => start + i);
+  const center = v === null ? 44 : Math.round(v), low = Math.max(0, Math.min(190, center - 5));
+  const totalChips = Array.from({ length: 11 }, (_, i) => low + i); // Shifts rather than clamps at the 0–200 edges, so chips stay distinct.
   const step = delta => {
     if (spread) { const next = Math.min(20, Math.max(0.5, (size || 0) + delta)); if (fav && fav !== 'pickem') setSpread(fav, next); return; }
     onChange(Math.min(200, Math.max(0, (v ?? 44) + delta)));
   };
   const summary = !has ? 'No pick yet' : spread ? (v === 0 ? "Pick'em" : `${v < 0 ? home : away} −${show(Math.abs(v))}`) : `${show(v)} total points`;
-  return <div className="chip-picker" role="group" aria-label={label}>
+  return <div ref={root} className={`chip-picker${compact ? ' compact' : ''}`} role="group" aria-label={label}>
     {spread && <div className="chip-row chip-teams">{[['away', away], ['pickem', "Pick'em"], ['home', home]].map(([side, text]) =>
       <button type="button" key={side} className={`chip team-chip ${fav === side ? 'selected' : ''}`} aria-pressed={fav === side} disabled={disabled} onClick={() => pickFavorite(side)}>{text}</button>)}</div>}
     {(!spread || (fav && fav !== 'pickem')) && <>
@@ -46,7 +54,7 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
       </div>
       <div className="chip-row chip-fine">
         <button type="button" className="chip icon-chip" aria-label="Lower by half a point" disabled={disabled || (spread ? !size : v === null)} onClick={() => step(-0.5)}><Minus size={16}/></button>
-        <output className="chip-summary mono" aria-live="polite">{summary}</output>
+        <span className="chip-summary mono" aria-live="polite">{summary}</span>
         <button type="button" className="chip icon-chip" aria-label="Raise by half a point" disabled={disabled || (spread && !size)} onClick={() => step(0.5)}><Plus size={16}/></button>
       </div>
     </>}

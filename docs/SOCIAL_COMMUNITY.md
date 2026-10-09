@@ -17,7 +17,7 @@ Owner: Sean Balsiger · Version 2 · Updated 2026-10-09 · Decisions D-21, D-23
 | Team records (overall, home, road) | `shared/team-records.mjs` and `shared/team-records-2026.json` from nflverse finals |
 | Community home (feed, picks-due card, leaderboard, likes, comments, Publish Week panel) | Built; browser-tested at 390px and 1280px |
 | Picks tab: button entry (favorite team or Pick'em, then half-point chips 1–10, More for 10.5–20, −/+ 0.5) and team records under each game | Built; saves through the league-free weekly ballot |
-| Group game screens (`PredictionEntry`) | Still use the earlier dropdown, stepper and typed entry; converting them to chips is a follow-up |
+| Group game screens (`PredictionEntry`) | Use the same `ChipPicker` button entry and team records under each matchup; the favorite dropdown, typed number and −/+ stepper are removed. Draft recovery, per-field conflicts, search and filter, Next game focus, review and submit, closed states and the signed home-spread contract are unchanged |
 | Challenge and Units in the leaderboard strip | Not included; those records stay inside each group |
 | Score-change and weekly-winner posts | Not built yet; they need the scoring engine's results |
 
