@@ -79,7 +79,10 @@ const test = base.extend({
 async function openVirtualUnits(page) {
   await page.goto('/'); await page.getByLabel('Email', { exact: true }).fill('commissioner@example.test'); await page.getByLabel('Password', { exact: true }).fill('test-password');
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click(); await page.getByRole('button', { name: 'Open game', exact: true }).click();
-  if (await page.getByRole('button', { name: 'Open navigation' }).isVisible()) await page.getByRole('button', { name: 'Open navigation' }).click();
+  // The game shell is a lazy chunk (PR #30): wait for it to mount before deciding whether the navigation is collapsed.
+  await expect(page.getByRole('heading', { name: 'The weekly huddle.' })).toBeVisible();
+  const menu = page.getByRole('button', { name: 'Open navigation', exact: true });
+  if (await menu.isVisible()) await menu.click();
   await page.getByRole('button', { name: 'Virtual Units', exact: true }).first().click();
   await expect(page.getByRole('heading', { name: 'Virtual Units', exact: true })).toBeVisible();
 }
