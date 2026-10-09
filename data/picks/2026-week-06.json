@@ -1,0 +1,15 @@
+{
+  "schema": "gtl.week.v1",
+  "season": 2026,
+  "week": 6,
+  "league": "sean-troy-luke",
+  "status": "awaiting_verified_schedule",
+  "schedule_source": null,
+  "lock": {
+    "kickoff_at": null,
+    "status": "unverified",
+    "source": null
+  },
+  "games": [],
+  "revisions": []
+}
