@@ -21,7 +21,8 @@ jobs:
       - name: Install Chromium for Playwright
         uses: ./.github/actions/playwright-chromium
       - run: npm run test:browser
-      - run: npm run test:cloud-browser
+      - name: Cloud browser suite (the persona specs run in the personas job)
+        run: npx playwright test --config playwright.cloud.config.js tests/cloud-browser/*.spec.js
       - name: Build and inspect the authenticated frontend
         env:
           VITE_SUPABASE_URL: https://gtl-frontend-check.supabase.co
@@ -42,6 +43,35 @@ jobs:
           name: dashboard-browser-evidence
           path: |
             test-results/
+            .local/cloud-browser-results/
+          include-hidden-files: true
+          retention-days: 7
+  personas:
+    name: Persona suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install disposable database test runtime
+        run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - name: Install Chromium for Playwright
+        uses: ./.github/actions/playwright-chromium
+      - name: Persona static checks (contrast, tap targets, reduced motion)
+        run: node scripts/persona-static-checks.mjs
+      - name: Persona browser suite
+        run: npx playwright test --config playwright.cloud.config.js tests/cloud-browser/personas
+      - name: Save persona evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: persona-evidence
+          path: |
+            .local/personas/
+            .local/previews/personas/
             .local/cloud-browser-results/
           include-hidden-files: true
           retention-days: 7
