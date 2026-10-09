@@ -8,3 +8,6 @@
 
 .personal-context summary{cursor:pointer;min-height:44px;padding:12px 0;color:var(--cyan)}.personal-context dl{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,2fr);gap:12px}.personal-context dt{color:var(--muted)}.personal-context dd{margin:0;overflow-wrap:anywhere}
 .personal-workspace .secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+
+.personal-workspace>.skip-link:not(:focus){clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap;padding:0}
+.personal-review summary{cursor:pointer;min-height:44px;padding:12px 0;color:var(--cyan)}

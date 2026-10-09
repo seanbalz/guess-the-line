@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Smartphone } from 'lucide-react';
-// Capture the browser offer at app load, even if Settings is opened later.
-let pendingInstallPrompt = null;
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); pendingInstallPrompt = event; window.dispatchEvent(new Event('gtl-install-offer')); });
-  window.addEventListener('appinstalled', () => { pendingInstallPrompt = null; });
-}
+// The browser offer is captured by installPrompt.js at page load (eagerly, from main.jsx),
+// so it survives until Settings is opened even though this screen is lazy-loaded.
+import { getInstallPrompt, takeInstallPrompt } from './installPrompt';
 export default function InstallApp() {
-  const [prompt, setPrompt] = useState(pendingInstallPrompt), [message, setMessage] = useState('');
+  const [prompt, setPrompt] = useState(getInstallPrompt), [message, setMessage] = useState('');
   const [installed, setInstalled] = useState(() => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true);
   useEffect(() => {
-    const offer = () => setPrompt(pendingInstallPrompt);
+    const offer = () => setPrompt(getInstallPrompt());
     const done = () => { setInstalled(true); setPrompt(null); setMessage('The app was added to this device.'); };
     window.addEventListener('gtl-install-offer', offer); window.addEventListener('appinstalled', done);
     return () => { window.removeEventListener('gtl-install-offer', offer); window.removeEventListener('appinstalled', done); };
   }, []);
   async function install() {
     if (!prompt) return;
-    const current = prompt; pendingInstallPrompt = null; setPrompt(null);
+    const current = takeInstallPrompt() || prompt; setPrompt(null);
     try { await current.prompt(); const choice = await current.userChoice; setMessage(choice.outcome === 'accepted' ? 'Install accepted. Your browser will finish adding the app.' : 'Installation cancelled. You can keep playing in your browser.'); }
     catch { setMessage('Use your browser menu to add the app to this device.'); }
   }

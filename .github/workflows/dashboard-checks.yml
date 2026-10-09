@@ -27,6 +27,10 @@ jobs:
       - run: npm run test:browser
       - name: Cloud browser suite (the persona specs run in the personas job)
         run: npx playwright test --config playwright.cloud.config.js tests/cloud-browser/*.spec.js
+      - name: Lazy-loading performance suite
+        run: npm run test:performance
+      - name: Accessibility suite (axe on the critical paths)
+        run: npm run test:accessibility
       - name: Build and inspect the authenticated frontend
         env:
           VITE_SUPABASE_URL: https://gtl-frontend-check.supabase.co
@@ -64,6 +68,8 @@ jobs:
           path: |
             test-results/
             .local/cloud-browser-results/
+            .local/performance-browser-results/
+            .local/accessibility-browser-results/
           include-hidden-files: true
           retention-days: 7
   personas:
