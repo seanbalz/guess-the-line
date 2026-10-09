@@ -1,4 +1,9 @@
 # Decision log
+
+## D-18 — separate virtual units game (October 8, 2026)
+
+Sean confirmed a separate play-money spread/total game under Picks. One unit is $100 virtual; there is no bankroll cap. A player may place one spread and one total pick per NFL matchup, using simple side and unit buttons, and may edit either until that matchup's kickoff. The offered line comes from the best point line among retained named-book quotes, with odds breaking point-line ties; saved picks keep their original terms unless explicitly edited. **There is no quote-age cutoff for this virtual game:** an app data delay must not prevent a pre-kickoff pick on a previously saved named-book line. Show its source and age, and never claim that an aged quote is a current executable offer. Weekly qualification is three picks or 3 units, including the agreed void/replacement credit rules. Settlement uses saved American odds and only a verified automatic final-score feed, which is not connected for this game. See the [D-18 task list and remaining decisions](../planning/virtual-units-game.md). This confirms rules, not implementation or deployment.
+
 - Fixed initial game: Sean Balsiger, Troy Jun, Luke Jun. Commissioner Sean; no backup manager.
 - Multiple independent competitions and scoring modes, including Duel, Triple Threat, Free-for-All.
 - Six requested sources: Action Network consensus, ESPN, DraftKings, FanDuel, Circa, Pinnacle. Cross-check sources; consensus is second gate. >=85% within +/-5 of normalized median, with stronger independent-source requirements.

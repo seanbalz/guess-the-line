@@ -1,4 +1,9 @@
 # Rules — Guess the Line
+
+## Current separate virtual units game — D-18
+
+The virtual units game has its own play-money picks, weekly qualification and unit-based ROI. It is separate from the record-only Betting Challenge described below, which has no bankroll or profit scoring. Retained named-book quotes remain usable for new virtual picks until the specific game's kickoff without an age cutoff when data collection is delayed; show the source and age and never describe them as current executable offers. See the [confirmed D-18 rules and open task list](../planning/virtual-units-game.md). Historical or proposed modes below do not supersede D-18.
+
 ## Classic
 10 points exact spread; subtract 1 point per half-point off, floor 0. Weekly highest wins; tie breakers cumulative error then exact matches.
 ## Other proposed modes
