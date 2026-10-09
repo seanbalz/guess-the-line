@@ -88,7 +88,7 @@ The script downloads the public nflverse schedule file, counts finals only (regu
 
 One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 are **pending** and are Sean's, run from the machine with the Supabase and Cloudflare logins. Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
 
-1. **Done — hosted migrations.** The seven remaining repo files were applied through the Supabase MCP (five at midday, the D-25 and D-26 files in the afternoon), so the hosted migration history carries MCP-assigned versions, not the repo filenames:
+1. **Done — hosted migrations.** The eight remaining repo files were applied through the Supabase MCP (five at midday, the D-25 and D-26 files in the afternoon, the D-18 save-path fix in the evening), so the hosted migration history carries MCP-assigned versions, not the repo filenames:
 
    | Repo file | Hosted version |
    |---|---|
@@ -99,17 +99,18 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    | `20261009150000_gtl_auto_open_week.sql` (ballot window trigger, scheduler tables and RPCs) | `20261009110743` |
    | `20261009160000_gtl_ruled_ballot_import.sql` (D-25 ruled-import RPC and ledger, PR #32) | `20261009174341` |
    | `20261009170000_gtl_virtual_units_settlement.sql` (D-26 settlement ledger and RPC, reader fields, PR #33) | `20261009184601` |
+   | `20261009190000_gtl_virtual_units_save_isfinite.sql` (D-18 save-path fix: `isfinite(numeric)` and null quote terms, PR #40) | `20261009213204` |
 
-   The 15 earlier hosted versions are `20261008164347`, `20261008175527`, `20261008183819`, `20261008190027`, `20261008191007`, `20261008193357`, `20261008201020`, `20261008201611`, `20261008202111` and `20261009012049` through `20261009012054`; their names match the repo files in order (the first nine files, then the six October 8 files). All 22 repo files (`main` at `b5491a2`) are therefore applied, under 22 hosted versions that differ from every filename. The D-24 ballot window (`GTL_PREDICTION_NOT_OPEN`) and the D-23 opt-out trigger are enforced on the hosted database from this point, for every writer including API v14.
+   The 15 earlier hosted versions are `20261008164347`, `20261008175527`, `20261008183819`, `20261008190027`, `20261008191007`, `20261008193357`, `20261008201020`, `20261008201611`, `20261008202111` and `20261009012049` through `20261009012054`; their names match the repo files in order (the first nine files, then the six October 8 files). All 23 repo files (`main` at `7463b9b`) are therefore applied, under 23 hosted versions that differ from every filename. The D-24 ballot window (`GTL_PREDICTION_NOT_OPEN`) and the D-23 opt-out trigger are enforced on the hosted database from this point, for every writer including API v14.
 
-2. **Do not run `npx supabase db push` as-is.** The CLI matches filename versions against hosted versions, would list every repo file as pending (all 22, applied under other versions) and try to re-run them. Pick one of the two options and stay with it:
+2. **Do not run `npx supabase db push` as-is.** The CLI matches filename versions against hosted versions, would list every repo file as pending (all 23, applied under other versions) and try to re-run them. Pick one of the two options and stay with it:
    - Repair the hosted history once, then prove nothing is pending:
      ```sh
-     npx supabase migration repair --linked --status reverted 20261008164347 20261008175527 20261008183819 20261008190027 20261008191007 20261008193357 20261008201020 20261008201611 20261008202111 20261009012049 20261009012050 20261009012051 20261009012052 20261009012053 20261009012054 20261009110415 20261009110525 20261009110558 20261009110656 20261009110743 20261009174341 20261009184601
-     npx supabase migration repair --linked --status applied 20261008164249 20261008174007 20261008182836 20261008185715 20261008185738 20261008192528 20261008200926 20261008201000 20261008201526 20261008224444 20261008224735 20261008225401 20261008225607 20261008232055 20261008240000 20261009005145 20261009120000 20261009130000 20261009140000 20261009150000 20261009160000 20261009170000
+     npx supabase migration repair --linked --status reverted 20261008164347 20261008175527 20261008183819 20261008190027 20261008191007 20261008193357 20261008201020 20261008201611 20261008202111 20261009012049 20261009012050 20261009012051 20261009012052 20261009012053 20261009012054 20261009110415 20261009110525 20261009110558 20261009110656 20261009110743 20261009174341 20261009184601 20261009213204
+     npx supabase migration repair --linked --status applied 20261008164249 20261008174007 20261008182836 20261008185715 20261008185738 20261008192528 20261008200926 20261008201000 20261008201526 20261008224444 20261008224735 20261008225401 20261008225607 20261008232055 20261008240000 20261009005145 20261009120000 20261009130000 20261009140000 20261009150000 20261009160000 20261009170000 20261009190000
      npx supabase db push --linked --include-all --dry-run   # must list nothing before db push is ever used again
      ```
-   - Or keep applying each new migration file through the Supabase MCP or the SQL editor and never use `db push` for this project. The D-25 and D-26 files were applied that way on October 9 and are already in both lists above; each later file adds its hosted version to the `reverted` list and its filename to the `applied` list, so both repair counts grow by one per file.
+   - Or keep applying each new migration file through the Supabase MCP or the SQL editor and never use `db push` for this project. The D-25, D-26 and D-18 save-path files were applied that way on October 9 and are already in both lists above; each later file adds its hosted version to the `reverted` list and its filename to the `applied` list, so both repair counts grow by one per file.
 
 3. **Done — Edge function `gtl-week-open` v1** deployed with `verify_jwt = false` per `supabase/config.toml` (like `gtl-odds-refresh`; the per-run capability is checked in SQL). Bundle (`ezbr`) SHA-256 `bcf6044516ff009400b85fcb15e8fe9537318502991cd6a1977b8cc016b6a438`; source byte-identical to `main`.
 
@@ -130,11 +131,11 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    npm run check:cloud
    npm run cloudflare -- pages deploy .local/cloud-dist --project-name guess-the-line --branch main --commit-dirty=true
    ```
-   `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements` and the three Virtual Units RPCs on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)).
+   `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements`, the three Virtual Units RPCs and `gtl_numeric_is_finite` on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)).
 
 7. **Pending (Sean) — post-deploy boundary probe and release manifest.**
    ```sh
-   node scripts/check-cloud-boundary.mjs   # live anonymous denials, including the eleven new tables, the D-25 RPC and the three Virtual Units RPCs
+   node scripts/check-cloud-boundary.mjs   # live anonymous denials, including the eleven new tables, the D-25 RPC, the three Virtual Units RPCs and gtl_numeric_is_finite
    node scripts/release-manifest.mjs       # writes .local/release-manifest.json (private)
    ```
    Record the Pages deployment id, the `gtl-api` version and the manifest hashes in the PENDING rows of [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
