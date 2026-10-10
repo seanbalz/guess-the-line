@@ -12,27 +12,82 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await expect(page.getByRole('heading', { name: 'Your games. Any device.' })).toBeVisible();
   await persona.shot('sign-in');
   await persona.axe('sign-in');
-  const intro = await page.locator('.auth-card').innerText();
-  if (!/spread|total|pick|NFL/i.test(intro)) persona.finding({ screen: 'sign-in', severity: 3, experience: 'The sign-in card never says what the game is. A newcomer sees "Your games. Any device." and a lock icon, with no sentence about guessing NFL spreads and totals against friends.', fix: 'Add one line under the heading: "Guess the NFL spread and total each week. Closest to the number wins." Link to the rules.' });
+  // Bigger change: onboarding step (#33). One line under the heading says what the game is, in the brand voice, within 20 words.
+  const pitch = page.locator('.auth-card .auth-pitch');
+  await expect(pitch).toHaveText('Guess every NFL game’s spread and total each week. Closest to the number scores. No real-money wagers.');
+  expect((await pitch.innerText()).trim().split(/\s+/).length).toBeLessThanOrEqual(20);
+  expect((await pitch.boundingBox()).y).toBeGreaterThan((await page.getByRole('heading', { name: 'Your games. Any device.' }).boundingBox()).y);
+  // The pitch stays on the create-account screen, where a newcomer most needs it, and leaves the password screens alone.
+  await page.locator('.auth-tabs').getByRole('button', { name: 'Create account' }).click();
+  await expect(page.locator('.auth-card .auth-pitch')).toHaveCount(1);
+  await page.locator('.auth-tabs').getByRole('button', { name: 'Sign in' }).click();
+  await page.getByRole('button', { name: 'Forgot password?' }).click();
+  await expect(page.locator('.auth-card .auth-pitch')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Back to sign in' }).click();
 
+  // Review of the onboarding step: the neutral shell that waits for the lobby has a heading, so the error state that persists until
+  // Try again is not a page without a title; the My games chrome still never paints before the lobby answers.
+  persona.net.fail = endpoint => endpoint === 'lobby' ? { status: 500, body: { error: 'Something went wrong.' } } : null;
   await persona.signIn();
-  await expect(page.getByRole('heading', { name: 'First, what should we call you?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your games', exact: true })).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Something went wrong.');
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toHaveCount(0);
+  persona.net.fail = null;
+  await page.getByRole('button', { name: 'Try again' }).click();
+  // Bigger change: onboarding step (#29). The name prompt is the whole screen: no My games page behind it, no greyed-out buttons,
+  // no promo cards, and the step's heading takes focus so a screen reader hears the one required step (2.4.3).
+  const nameStep = page.getByRole('heading', { name: 'First, what should we call you?' });
+  await expect(nameStep).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toHaveCount(0);
+  await expect(page.locator('.hub-heading, .invitation-card, .hub-empty, .hub-games, .theme-selector')).toHaveCount(0);
+  await expect(page.locator('main').getByRole('button')).toHaveText(['Save display name']);
+  await expect(page.getByRole('button', { name: 'Sign out' })).toBeEnabled();
+  expect(await persona.focused()).toMatchObject({ tag: 'h1', name: 'First, what should we call you?' });
   await persona.shot('display-name');
   await persona.axe('display-name');
-  // The whole My games page renders around the name prompt with every action disabled.
-  const disabled = await page.locator('button:disabled').count();
-  if (disabled) persona.finding({ screen: 'display-name', severity: 3, experience: `Before saving a name the newcomer sees the full "My games" page with ${disabled} greyed-out buttons (New game, Create your first game) and the Solo / Bet Tracker cards. The one required step is a small form in the middle of a page that looks finished.`, fix: 'Render the name prompt alone (a focused onboarding step), then show My games / Community after it is saved.' });
+  // Review of the onboarding step: the shell's main carries tabIndex -1 (as the Community home does, #18), so "Skip to main content"
+  // moves focus onto main instead of dropping it on body.
+  await page.locator('.skip-link').focus();
+  expect(await persona.focused()).toMatchObject({ tag: 'a', name: 'Skip to main content' });
+  await page.keyboard.press('Enter');
+  expect(await persona.focused()).toMatchObject({ tag: 'main' });
+  // The fragment jump scrolled main under the header; back to the top so the save below starts from scrollY 0.
+  await page.evaluate(() => scrollTo(0, 0));
   await page.getByLabel('Your display name').fill('Ben Fixture');
   await page.getByRole('button', { name: 'Save display name' }).click();
-  // Saving the name goes straight to the Community home; the "saved" confirmation never shows.
-  await persona.shot('after-name');
-  persona.finding({ screen: 'after-name', severity: 4, experience: 'Saving the display name jumps straight to the Community home. The "Your display name has been saved." confirmation is set on the My games screen, which is no longer shown, so the newcomer gets no acknowledgement that the name stuck.', fix: 'Carry the notice into the Community home (role=status) or show "Welcome, Ben" in the header on first arrival.' });
+  // Saving lands on the Community home with the confirmation visible (role=status) and focus on main, not on <body>.
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  const welcome = page.locator('.community-home > .hub-main > .auth-notice');
+  await expect(welcome).toHaveText('Your display name has been saved. Playing as Ben Fixture.');
+  await expect(page.getByRole('status').filter({ hasText: 'Your display name has been saved. Playing as Ben Fixture.' })).toBeVisible();
+  // PR #34 pattern: the status is an always-mounted live region whose text changes, not a node inserted with its text.
+  await expect(welcome).toHaveAttribute('aria-live', 'polite');
+  expect((await persona.focused()).tag).toBe('main');
+  // Focus arrives without scrolling: the brand and the player's name stay in view above the notice.
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await persona.shot('after-name');
   await expect(page.locator('.picks-due')).toBeVisible();
+  // Review of the onboarding step: the welcome fires once. A later edit from Groups & games keeps its plain notice on My games, and
+  // "← Community" brings the player back with the live region empty and no focus jump.
+  await page.getByRole('button', { name: /Groups & games/ }).click();
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Edit display name' }).click();
+  await page.getByLabel('Your display name').fill('Ben Edited');
+  await page.getByRole('button', { name: 'Save display name' }).click();
+  await expect(page.getByRole('status').filter({ hasText: /display name/ })).toHaveText(['Your display name has been saved.']);
+  await page.getByRole('button', { name: '← Community' }).click();
+  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  await expect(page.locator('.hub-account')).toContainText('Ben Edited');
+  await expect(page.locator('.picks-due')).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: /display name/ })).toHaveCount(0);
+  await expect(welcome).toHaveCount(1);
+  await expect(welcome).toBeEmpty();
+  expect((await persona.focused()).tag).toBe('body');
   await persona.shot('feed');
   await persona.axe('feed');
   await persona.smallText('feed');
-  await persona.smallTargets('feed');
+  // Bigger changes (#19): the like button is at least 44px wide.
+  expect(await persona.smallTargets('feed')).toEqual([]);
   const due = await page.locator('.picks-due').innerText();
   persona.finding({ screen: 'feed', severity: 4, experience: `The picks-due card reads "${due.replace(/\n/g, ' / ')}". "Spread 0/14 · Total 0/14" is counts without a noun; a newcomer does not know that Spread and Total are two separate ballots that both must be finished.`, fix: 'Say "2 ballots due: Spread (0 of 14 games) and Total (0 of 14 games)".' });
   // Quick win 11 (#17): Appearance sits with the account controls at the foot of the page, below the title and the picks-due card.
@@ -52,7 +107,8 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await persona.shot('picks-cold');
   await persona.axe('picks-cold');
   await persona.smallText('picks-cold');
-  await persona.smallTargets('picks-cold');
+  // "Got it" is at least 44px wide too.
+  expect(await persona.smallTargets('picks-cold')).toEqual([]);
   // Quick win 2 (#4): one helper line per market explains the favorite, the points and Pick'em; it can be dismissed.
   const help = page.locator('.chip-help');
   await expect(help).toContainText('Tap the team you think wins (the favorite), then how many points they win by.');
@@ -61,9 +117,13 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   const picksText = await page.locator('.week-picks').innerText();
   expect(/favorite|favou?red|points? better|home team|what is a spread|how to/i.test(picksText)).toBe(true);
   expect(/toss-?up|even|no favorite/i.test(picksText)).toBe(true);
+  // Bigger changes (#21): team chips are sized by their name, so "Buccaneers" and "Commanders" are never cut to "Command…" at 390px;
+  // the shorter chips in the row give way and, when a row cannot hold all three, it wraps to a second line instead of clipping.
   const truncated = await page.locator('.team-chip').evaluateAll(chips => chips.filter(chip => chip.scrollWidth > chip.clientWidth).map(chip => chip.textContent));
+  expect(truncated).toEqual([]);
   const fitsBefore = new Set(await page.locator('.team-chip').evaluateAll(chips => chips.filter(chip => chip.scrollWidth <= chip.clientWidth).map(chip => chip.textContent)));
-  if (truncated.length) persona.finding({ screen: 'picks-cold', severity: 3, wcag: '1.4.10 (reflow)', experience: `Team chips clip long names with an ellipsis at 390px: ${truncated.join(', ')} ("Command…"). The chip is the control that picks the favorite, so the name a player taps is cut off.`, fix: 'Use the team abbreviation plus nickname only when it fits (e.g. "WAS" / "Commanders" on two lines), or let the chip wrap to two lines.', evidence: truncated });
+  expect(fitsBefore.has('Buccaneers') && fitsBefore.has('Commanders')).toBe(true);
+  await expect(page.locator('.team-chip', { hasText: 'Commanders' })).toHaveCSS('text-overflow', 'ellipsis'); // Still the last resort below 320px.
   const first = page.locator('.week-pick').first();
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
   await persona.shot('picks-team-chosen');
@@ -118,10 +178,15 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await expect(page.locator('.week-pick').first().locator('.chip-summary')).toHaveText('44 total points');
   await expect(page.locator('.week-pick').first().locator('.chip-call')).toHaveText('Your call: 44 combined points');
 
-  // What is due and when?
+  // What is due and when? Bigger changes (#24): the header names the weekday and says how far off the deadline is, and the sticky
+  // save bar repeats the due time beside the ready count so it is on screen wherever the player is scrolled.
   const status = await page.locator('.week-picks > p.muted').innerText();
-  expect(status).toContain('Due');
-  persona.finding({ screen: 'picks-total', severity: 3, experience: `The due line says "${status}". It is grey 14px text above the list. There is no time zone explanation beyond "PT", no day name, and no countdown.`, fix: 'Show "Due Thursday 5:15 PM PT (in 2 days)" in the sticky save bar as well as the header.' });
+  const deadline = persona.state.league.deadline, pt = { timeZone: 'America/Los_Angeles' };
+  const dueLong = new Date(deadline).toLocaleString('en-US', { ...pt, weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const dueShort = new Date(deadline).toLocaleString('en-US', { ...pt, weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  expect(status).toBe(`Week 5 · 1/14 picked · Due ${dueLong} PT (today)`);
+  await expect(page.locator('.save-bar .save-due')).toHaveText(`Due ${dueShort} PT (today)`);
+  await expect(page.locator('.save-bar strong')).toHaveText('1/14 ready');
   // Quick win 4 (#6): Submit stays enabled with one of fourteen picked and explains what is missing instead of saving.
   const submit = page.getByRole('button', { name: 'Submit Total' });
   await expect(submit).toBeEnabled();

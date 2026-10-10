@@ -17,6 +17,14 @@ const HELP = {
   teams: 'Arrow keys move between the teams; Enter or Space chooses.',
 };
 
+/** One helper sentence per market, shared by every surface that renders the chips (the Community Picks tab's dismissible
+ *  tip and the group ballot's header), so a player reads the same explanation of the favorite, the points and Pick'em wherever
+ *  they enter picks (persona audit #4, #31). */
+export const CHIP_HELP = {
+  guess_spread: 'Tap the team you think wins (the favorite), then how many points they win by. Pick’em means an even game with no favorite. The chips use the sportsbook sign: −3 means the favorite wins by 3.',
+  guess_total: 'Total = both teams’ points combined. Tap the number you expect, then fine-tune by half a point with − and +.',
+};
+
 /**
  * D-21 button entry. Spread values are home-referenced: home favored by 3 is -3.
  * Totals use whole-number chips around a center plus ±0.5 fine tuning.
