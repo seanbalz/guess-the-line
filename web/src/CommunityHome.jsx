@@ -430,12 +430,18 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   </section>;
 }
 
-export default function CommunityHome({ accountId, onGroups, onSignOut, displayName, onUnavailable }) {
+export default function CommunityHome({ accountId, onGroups, onSignOut, displayName, onUnavailable, welcome = '' }) {
   // Persona audit #3: the open tab is the URL hash (#feed, #picks), one history entry each, so Back returns to the feed and a reload lands on the same tab.
   const screen = useScreen(), tab = screen === 'picks' ? 'picks' : 'feed';
   const [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [retryable, setRetryable] = useState(false);
   const main = useRef(null), refocus = useRefocus(main);
+  // Persona audit #29: arriving from the name step, the saved-name confirmation is a status on this screen and focus moves to main
+  // (2.4.3), so the newcomer sees and hears that the name stuck instead of landing on <body> with the notice left on My games.
+  // PR #34 pattern: the status below is an always-mounted live region, empty on the first paint and filled here, so the text is
+  // announced as a change rather than inserted with its node. GameHub hands `welcome` over once, right after the first save.
+  // preventScroll: focusing a main taller than the viewport would otherwise scroll the brand and the player's name off the top.
+  useEffect(() => { if (welcome) { setNotice(welcome); main.current?.focus({ preventScroll: true }); } }, [welcome]);
   const load = useCallback(async () => { const result = await communityApi('read', {}); setFeed(result); setOlder([]); return result; }, []);
   // Persona audit #7: only a 404 (the community function is not deployed) falls back to the groups screen; any other failure keeps
   // the Community shell with the error, plus a Retry when the failure was the network or the service (not a 4xx refusal).
@@ -485,7 +491,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         <button className="secondary" onClick={onGroups}>Groups & games<ArrowRight size={16}/></button>
       </nav>
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span>{!feed && retryable && <button type="button" className="text-button" data-action="feed-retry" aria-disabled={busy || undefined} onClick={() => { if (!busy) retryFeed(); }}>Retry</button>}</div>}
-      {notice && <p className="auth-notice" role="status">{notice}</p>}
+      <p className="auth-notice" role="status" aria-live="polite">{notice}</p>
       {tab === 'picks' ? <WeekPicks accountId={accountId} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
         <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>

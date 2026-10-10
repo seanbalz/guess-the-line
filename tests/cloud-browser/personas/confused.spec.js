@@ -213,10 +213,14 @@ test('confused: no groups, and what groups are for', async ({ page, persona }) =
   await persona.shot('groups-empty');
   await persona.axe('groups-empty');
   const text = await page.locator('main').innerText();
-  persona.finding({ screen: 'groups-empty', severity: 2, experience: 'The groups screen says "My games … Your next rivalry starts here. Create a Duel with one friend or bring a group together" and offers Play Solo and Bet Tracker cards, but never says that the Community already scores every member and that groups are optional filters with separate standings. A player who just came from "Picks (2 due)" cannot tell whether they must create a game to play.', fix: 'Add a sentence under the heading: "You are already in the Community. Groups are optional: a private leaderboard with the same weekly picks." Rename the button "Groups & games" to "Groups (optional)".' });
+  // Bigger change: onboarding step (#16). One sentence under the heading says what a group is for versus the Community, and the empty
+  // screen has one primary action: Solo and Bet Tracker are secondary, and New game is secondary until the player has a game.
+  await expect(page.locator('.hub-heading')).toContainText('The Community already scores every member, so a group is optional: a private leaderboard for the people you choose, using the same weekly picks.');
   expect(text).toContain('Your next rivalry starts here');
-  const cardsBefore = await page.locator('.invitation-card').count();
-  persona.finding({ screen: 'groups-empty', severity: 3, experience: `${cardsBefore} promo cards ("Play Solo", "Bet Tracker") sit above the empty-games state and each uses a lime primary button, the same weight as "Create your first game". Three equal calls to action on an empty screen.`, fix: 'Demote Solo and Bet Tracker to secondary links until the player has a group, or move them to the Community home tabs.' });
+  await expect(page.locator('.invitation-card')).toHaveCount(2);
+  await expect(page.locator('main .primary')).toHaveText(['Create your first game']);
+  await expect(page.locator('.hub-empty .primary')).toBeEnabled();
+  for (const name of ['New game', 'Open Solo', 'Open Bet Tracker', 'My Unit Betting week']) await expect(page.getByRole('button', { name, exact: true })).toHaveClass(/secondary/);
   // The coming-soon league path from the home screen.
   await page.getByRole('button', { name: '← Community' }).click();
   await page.getByRole('group', { name: 'League' }).getByRole('button', { name: /^NBA/ }).click();
