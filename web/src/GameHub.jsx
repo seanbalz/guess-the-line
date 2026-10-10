@@ -45,12 +45,13 @@ function ProfileForm({ profile, onSaved, onCancel }) {
   </form>;
 }
 
-/** The account shell: skip link, brand, who is signed in and Sign out. The My games page adds its own heading and content. */
+/** The account shell: skip link, brand, who is signed in and Sign out. The My games page adds its own heading and content.
+ * main carries tabIndex -1 (persona audit #18, as on the Community home) so the skip link moves focus onto it. */
 function Shell({ who, busy, onSignOut, children }) {
   return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{who}</span><button className="secondary" onClick={onSignOut} disabled={busy}>Sign out</button></div></header>
-    <main className="hub-main" id="main">{children}</main>
+    <main className="hub-main" id="main" tabIndex={-1}>{children}</main>
   </div>;
 }
 
@@ -151,14 +152,14 @@ function InvitePlayers({ league, onClose }) {
 
 export default function GameHub({ session, onSignOut }) {
   const selectionKey = `gtl.selectedGame.${session.user.id}`;
-  const [lobby, setLobby] = useState(null), [error, setError] = useState(''), [notice, setNotice] = useState(''), [busy, setBusy] = useState(false);
+  const [lobby, setLobby] = useState(null), [error, setError] = useState(''), [notice, setNotice] = useState(''), [welcome, setWelcome] = useState(''), [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState(() => { try { return sessionStorage.getItem(selectionKey) || ''; } catch { return ''; } });
   const [creating, setCreating] = useState(false), [editingProfile, setEditingProfile] = useState(false), [inviting, setInviting] = useState(null);
   const [token, setToken] = useState(pendingInvitation);
   const [socialDirty, setSocialDirty] = useState(false);
   // D-21: the community feed is home; groups and games are one step away.
   const [groupsOpen, setGroupsOpen] = useState(false), [communityOnline, setCommunityOnline] = useState(true);
-  const communityUnavailable = useCallback(() => { setCommunityOnline(false); setGroupsOpen(true); }, []);
+  const communityUnavailable = useCallback(() => { setWelcome(''); setCommunityOnline(false); setGroupsOpen(true); }, []);
   const load = useCallback(async signal => { const result = await cloudApi('lobby', undefined, { signal }); setLobby(result); return result; }, []);
   useEffect(() => { const controller = new AbortController(); load(controller.signal).catch(failure => { if (failure.name !== 'AbortError') setError(failure.message); }); return () => controller.abort(); }, [load]);
   function choose(id) { setSelected(id); try { id ? sessionStorage.setItem(selectionKey, id) : sessionStorage.removeItem(selectionKey); } catch { /* Selection still works in this tab. */ } }
@@ -175,15 +176,26 @@ export default function GameHub({ session, onSignOut }) {
   }
   const profileReady = Boolean(lobby?.profile?.displayName?.trim());
   const current = lobby?.leagues.find(league => league.id === selected);
-  // Persona audit #29: the first save names the player and the Community home carries that confirmation; a later edit keeps the plain notice here.
-  const onProfileSaved = async () => { const first = !profileReady; const result = await load(); setEditingProfile(false); setNotice(first ? `Your display name has been saved. Playing as ${result.profile.displayName}.` : 'Your display name has been saved.'); };
-  const openGroups = () => { setNotice(''); setGroupsOpen(true); };
+  // Persona audit #29: the first save names the player. When it lands on the Community home, `welcome` carries that confirmation there
+  // once and is cleared as soon as the player leaves Community, so a later edit (whose plain notice stays on My games) or a "← Community"
+  // back navigation never shows it again or re-fires the focus. With a saved invitation the first save lands on My games instead.
+  const onProfileSaved = async () => {
+    const first = !profileReady; const result = await load(); setEditingProfile(false);
+    const message = first ? `Your display name has been saved. Playing as ${result.profile.displayName}.` : 'Your display name has been saved.';
+    setNotice(message); if (first && !token) setWelcome(message);
+  };
+  const openGroups = () => { setNotice(''); setWelcome(''); setGroupsOpen(true); };
+  // The shell that waits for the lobby keeps a heading of its own ("Your games", the sign-in card's phrase) so the error state that
+  // persists until Try again is not a page without a title; the My games chrome still never paints before the lobby answers.
   if (!lobby) return <Shell who={session.user.email} busy={busy} onSignOut={signOut}>
-    <ErrorMessage>{error}</ErrorMessage>
-    {error ? <button className="secondary" onClick={reload} disabled={busy}><RefreshCw size={16}/>Try again</button> : <div className="loading" role="status"><LoaderCircle className="spin"/>Loading your games…</div>}
+    <div className="onboarding-step">
+      <h1>Your games</h1>
+      <ErrorMessage>{error}</ErrorMessage>
+      {error ? <button className="secondary" onClick={reload} disabled={busy}><RefreshCw size={16}/>Try again</button> : <div className="loading" role="status"><LoaderCircle className="spin"/>Loading your games…</div>}
+    </div>
   </Shell>;
   if (!profileReady) return <Shell who={session.user.email} busy={busy} onSignOut={signOut}><NameStep profile={lobby.profile} invited={Boolean(token)} error={error} onSaved={onProfileSaved}/></Shell>;
-  if (!selected && !token && !groupsOpen && !editingProfile) return <CommunityHome displayName={lobby.profile.displayName} welcome={notice} onGroups={openGroups} onUnavailable={communityUnavailable} onSignOut={signOut}/>;
+  if (!selected && !token && !groupsOpen && !editingProfile) return <CommunityHome displayName={lobby.profile.displayName} welcome={welcome} onGroups={openGroups} onUnavailable={communityUnavailable} onSignOut={signOut}/>;
   if (selected === 'solo' && !token) return <DeferredScreen key={session.user.id} label="your Solo workspace"><PersonalWorkspace key={session.user.id} accountId={session.user.id} onBack={() => choose('')} onSignOut={onSignOut}/></DeferredScreen>;
   if (['social', 'units'].includes(selected) && !token) return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>

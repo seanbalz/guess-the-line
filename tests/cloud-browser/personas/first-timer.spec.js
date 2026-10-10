@@ -25,7 +25,15 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await expect(page.locator('.auth-card .auth-pitch')).toHaveCount(0);
   await page.getByRole('button', { name: 'Back to sign in' }).click();
 
+  // Review of the onboarding step: the neutral shell that waits for the lobby has a heading, so the error state that persists until
+  // Try again is not a page without a title; the My games chrome still never paints before the lobby answers.
+  persona.net.fail = endpoint => endpoint === 'lobby' ? { status: 500, body: { error: 'Something went wrong.' } } : null;
   await persona.signIn();
+  await expect(page.getByRole('heading', { name: 'Your games', exact: true })).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Something went wrong.');
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toHaveCount(0);
+  persona.net.fail = null;
+  await page.getByRole('button', { name: 'Try again' }).click();
   // Bigger change: onboarding step (#29). The name prompt is the whole screen: no My games page behind it, no greyed-out buttons,
   // no promo cards, and the step's heading takes focus so a screen reader hears the one required step (2.4.3).
   const nameStep = page.getByRole('heading', { name: 'First, what should we call you?' });
@@ -37,16 +45,44 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   expect(await persona.focused()).toMatchObject({ tag: 'h1', name: 'First, what should we call you?' });
   await persona.shot('display-name');
   await persona.axe('display-name');
+  // Review of the onboarding step: the shell's main carries tabIndex -1 (as the Community home does, #18), so "Skip to main content"
+  // moves focus onto main instead of dropping it on body.
+  await page.locator('.skip-link').focus();
+  expect(await persona.focused()).toMatchObject({ tag: 'a', name: 'Skip to main content' });
+  await page.keyboard.press('Enter');
+  expect(await persona.focused()).toMatchObject({ tag: 'main' });
+  // The fragment jump scrolled main under the header; back to the top so the save below starts from scrollY 0.
+  await page.evaluate(() => scrollTo(0, 0));
   await page.getByLabel('Your display name').fill('Ben Fixture');
   await page.getByRole('button', { name: 'Save display name' }).click();
   // Saving lands on the Community home with the confirmation visible (role=status) and focus on main, not on <body>.
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  const welcome = page.locator('.community-home > .hub-main > .auth-notice');
+  await expect(welcome).toHaveText('Your display name has been saved. Playing as Ben Fixture.');
   await expect(page.getByRole('status').filter({ hasText: 'Your display name has been saved. Playing as Ben Fixture.' })).toBeVisible();
+  // PR #34 pattern: the status is an always-mounted live region whose text changes, not a node inserted with its text.
+  await expect(welcome).toHaveAttribute('aria-live', 'polite');
   expect((await persona.focused()).tag).toBe('main');
   // Focus arrives without scrolling: the brand and the player's name stay in view above the notice.
   expect(await page.evaluate(() => scrollY)).toBe(0);
   await persona.shot('after-name');
   await expect(page.locator('.picks-due')).toBeVisible();
+  // Review of the onboarding step: the welcome fires once. A later edit from Groups & games keeps its plain notice on My games, and
+  // "← Community" brings the player back with the live region empty and no focus jump.
+  await page.getByRole('button', { name: /Groups & games/ }).click();
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Edit display name' }).click();
+  await page.getByLabel('Your display name').fill('Ben Edited');
+  await page.getByRole('button', { name: 'Save display name' }).click();
+  await expect(page.getByRole('status').filter({ hasText: /display name/ })).toHaveText(['Your display name has been saved.']);
+  await page.getByRole('button', { name: '← Community' }).click();
+  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  await expect(page.locator('.hub-account')).toContainText('Ben Edited');
+  await expect(page.locator('.picks-due')).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: /display name/ })).toHaveCount(0);
+  await expect(welcome).toHaveCount(1);
+  await expect(welcome).toBeEmpty();
+  expect((await persona.focused()).tag).toBe('body');
   await persona.shot('feed');
   await persona.axe('feed');
   await persona.smallText('feed');
