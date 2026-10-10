@@ -32,3 +32,11 @@
   .chip-picker.compact .team-chip.selected{padding:0 2px 0 16px}
   .more-chip{border-style:dashed}
 }
+/* Keyboard model (persona audit #9, #23). The key help is screen-reader text until a chip in the row has keyboard focus; then it
+   shows as a metadata line under the row label. The "=" field takes the same half-point values as the chips. */
+.chip-numbers:has(:focus-visible) .sr-only.chip-row-help{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;font-size:13px;line-height:18px;color:var(--muted)}
+.chip-typed-wrap{display:flex;flex-basis:100%;flex-wrap:wrap;align-items:center;gap:8px}
+.chip-typed{min-height:44px;width:96px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--canvas);color:var(--text);font-size:16px;font-variant-numeric:tabular-nums}
+.chip-typed-hint{font-size:13px;line-height:18px;color:var(--muted)}
+.chip-typed[aria-invalid="true"]{border-color:var(--loss)}
+.chip-typed[aria-invalid="true"]+.chip-typed-hint{color:var(--loss)}

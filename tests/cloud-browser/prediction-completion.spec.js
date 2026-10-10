@@ -79,7 +79,7 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light']]) test(`missing Tota
   await page.getByLabel('Filter predictions').selectOption('missing');
   const first = picker(page, 'TB at DAL combined points');
   await expect(first.locator('.number-chip')).toHaveText(['39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49']);
-  await first.getByRole('button', { name: '44', exact: true }).click(); await expect(first.getByRole('button', { name: '44', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await first.getByRole('radio', { name: '44', exact: true }).click(); await expect(first.getByRole('radio', { name: '44', exact: true })).toHaveAttribute('aria-checked', 'true');
   await first.getByRole('button', { name: 'Raise by half a point' }).click(); await expectPick(page, 'TB at DAL combined points', '44.5 total points');
   await expect(first.getByRole('button', { name: 'Raise by half a point' })).toBeFocused();
   await page.keyboard.press('Tab'); await expect(page.getByRole('button', { name: 'Next game', exact: true }).first()).toBeFocused();
@@ -108,7 +108,7 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light']]) test(`missing Tota
 
 test('favorite chips set the sign, Pick’em zeroes the spread, and the range stays inside 0.5–20 without any invalid state', async ({ page, entry }) => {
   await openBallot(page);
-  const group = picker(page, 'TB at DAL home spread'), chip = name => group.getByRole('button', { name, exact: true });
+  const group = picker(page, 'TB at DAL home spread'), chip = name => group.getByRole('button', { name, exact: true }).or(group.getByRole('radio', { name, exact: true }));
   await expect(group.locator('.number-chip')).toHaveCount(0);
   await chip('DAL').click(); await expect(group.locator('.number-chip')).toHaveCount(19);
   await expect(group.getByRole('button', { name: 'Raise by half a point' })).toBeDisabled();
@@ -133,8 +133,8 @@ test('favorite chips set the sign, Pick’em zeroes the spread, and the range st
 test('saved favorite and restored tab edits retain the visible sign during further entry', async ({ page, entry }) => {
   entry.state.ballots[accountId] = { guess_spread: { picks: { 'TB-DAL': -3.5 }, submittedAt: null } };
   await openBallot(page);
-  const group = picker(page, 'TB at DAL home spread'), chip = name => group.getByRole('button', { name, exact: true });
-  await expectPick(page, 'TB at DAL home spread', 'DAL −3.5'); await expect(chip(`${MINUS}3.5`)).toHaveAttribute('aria-pressed', 'true');
+  const group = picker(page, 'TB at DAL home spread'), chip = name => group.getByRole('button', { name, exact: true }).or(group.getByRole('radio', { name, exact: true }));
+  await expectPick(page, 'TB at DAL home spread', 'DAL −3.5'); await expect(chip(`${MINUS}3.5`)).toHaveAttribute('aria-checked', 'true');
   await chip(`${MINUS}7.5`).click(); await expectPick(page, 'TB at DAL home spread', 'DAL −7.5');
   await chip('TB').click(); await expectPick(page, 'TB at DAL home spread', 'TB −7.5');
   page.on('dialog', dialog => dialog.accept()); await page.reload();

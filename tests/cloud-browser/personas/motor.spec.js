@@ -43,23 +43,47 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   }
   persona.finding({ screen: 'feed', severity: trapped ? 1 : 4, wcag: '2.1.2', experience: trapped ? 'Focus cycled back to the skip link without ever leaving the page: a keyboard trap.' : `Tabbing through the home screen reaches ${steps} stops (with ${persona.state.games.length} games and three members) and then leaves the document. No trap.`, fix: trapped ? 'Remove the focus loop.' : 'Keep it; reduce the stop count with roving tabindex in chip rows and the league switcher.' });
 
-  // Picks by keyboard: team chip with Space, number with Enter, fine-tune with the − button.
+  // Picks by keyboard (#9): the team row is one Tab stop (End jumps to the home team, Space chooses), the number row is a
+  // radiogroup (a typed 3 checks −3), and the − / + keys step half a point like the − / + buttons.
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).focus();
   await page.keyboard.press('Enter');
   const first = page.locator('.week-pick').first();
   await expect(first).toBeVisible();
   await persona.smallTargets('picks');
-  await persona.tabTo(f => f.name === 'Cowboys');
+  await persona.tabTo(f => f.name === 'Buccaneers');
+  await page.keyboard.press('End');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Cowboys', pressed: 'false' });
   await page.keyboard.press('Space');
-  await persona.tabTo(f => f.name === '−3');
-  await page.keyboard.press('Enter');
-  await persona.tabTo(f => f.name === 'Lower by half a point');
-  await page.keyboard.press('Enter');
+  await expect(first.getByRole('button', { name: 'Cowboys', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('Tab');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: '−1' });
+  await page.keyboard.press('3');
+  await expect(first.locator('.chip-summary')).toHaveText('Cowboys −3');
+  await page.keyboard.press('-');
   await expect(first.locator('.chip-summary')).toHaveText('Cowboys −2.5');
-  // The − button stays enabled at the floor and the + button at the ceiling; repeated presses do nothing silently.
-  for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
-  const atFloor = await first.locator('.chip-summary').innerText();
-  persona.finding({ screen: 'picks', severity: 4, experience: `Pressing "Lower by half a point" repeatedly stops at "${atFloor}" (floor 0.5) while the button stays enabled and the live region repeats the same value. Pick'em (0) is reachable only through the middle team chip.`, fix: 'Disable the stepper at the floor/ceiling or let the floor step into Pick\'em.' });
+  // Every chip is still reachable without a pointer: End and Right walk onto the More page (19 chips on the first page, 20 on More: 10.5–20), Home and Left
+  // walk back, and nothing is trapped. The − / + keys share the buttons' 0.5 floor and 20 ceiling.
+  const summary = first.locator('.chip-summary');
+  await page.keyboard.press('End'); await expect(summary).toHaveText('Cowboys −10');
+  await page.keyboard.press('ArrowRight'); await expect(summary).toHaveText('Cowboys −10.5');
+  await expect(first.getByRole('radio', { name: '−10.5', exact: true })).toBeFocused();
+  await expect(first.getByRole('radio')).toHaveCount(20);
+  await page.keyboard.press('End'); await expect(summary).toHaveText('Cowboys −20');
+  await page.keyboard.press('+'); await expect(summary).toHaveText('Cowboys −20');
+  await page.keyboard.press('Home'); await page.keyboard.press('ArrowLeft'); await expect(summary).toHaveText('Cowboys −10');
+  await expect(first.getByRole('radio', { name: '−10', exact: true })).toBeFocused();
+  // More, − and + keep their 44px targets and pointer behaviour but are no longer Tab stops: one Tab leaves the row for the next game
+  // and Shift+Tab comes back to the checked chip.
+  const aux = await first.locator('.more-chip, .icon-chip').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(); return { name: node.getAttribute('aria-label') || node.textContent, tabIndex: node.tabIndex, big: r.width >= 44 && r.height >= 44 }; }));
+  expect(aux).toEqual([{ name: 'More', tabIndex: -1, big: true }, { name: 'Lower by half a point', tabIndex: -1, big: true }, { name: 'Raise by half a point', tabIndex: -1, big: true }]);
+  await page.keyboard.press('Tab');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Eagles', pressed: 'false' });
+  await page.keyboard.press('Shift+Tab');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: '−10' });
+  // Left (or −) stays enabled at the floor; repeated presses do nothing silently.
+  for (let i = 0; i < 25; i++) await page.keyboard.press('ArrowLeft');
+  const atFloor = await summary.innerText();
+  persona.finding({ screen: 'picks', severity: 4, experience: `Holding Left (or the − key and button) stops at "${atFloor}" (floor 0.5) while the live region repeats the same value. Pick'em (0) is reachable only through the middle team chip.`, fix: 'Let the floor step into Pick\'em, or announce the floor once.' });
   // Review of PR #34 (2.4.3): the pressed save-bar button goes aria-disabled, not disabled, so focus stays on it while it reads
   // "Saving…" and after the save, when it has nothing left to save. No control in the bar is natively disabled, "Sit out this week"
   // included: the save request is held for a second so the bar can be inspected mid-flight.
@@ -126,7 +150,7 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await groupPicker.locator('.team-chip').nth(2).focus();
   await page.keyboard.press('Enter');
   await expect(groupPicker.locator('.chip-row-label')).toHaveText('DAL win by…');
-  await groupPicker.getByRole('button', { name: '−3', exact: true }).focus();
+  await groupPicker.getByRole('radio', { name: '−3', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(groupPicker.locator('.chip-call')).toHaveText('Your call: DAL by 3');
   await expect(groupPicker.locator('.chip-summary')).toHaveText('DAL −3');

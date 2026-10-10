@@ -103,7 +103,7 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     const first = page.locator('.week-pick').first();
     await expect(first.locator('.team-facts')).toContainText('as of Week');
     await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
-    await first.getByRole('button', { name: '−9.5', exact: true }).click();
+    await first.getByRole('radio', { name: '−9.5', exact: true }).click();
     await expect(first.locator('.chip-summary')).toHaveText('Cowboys −9.5');
     await first.getByRole('button', { name: 'Lower by half a point' }).click();
     await expect(first.locator('.chip-summary')).toHaveText('Cowboys −9');
