@@ -235,8 +235,8 @@ function PublishWeek({ week, onDone }) {
  * Persona audit #41 (D-23): a sat-out market shows the other members' revealed picks for one game as read-only chips, where the chip
  * rows the viewer can no longer use were. The community reader already exposes the numbers inside the feed's submission posts once the
  * viewer sat out, so this reads those posts and the week's submission list rather than a new route: a member with a loaded post shows
- * the pick, one whose post sits beyond the loaded feed pages reads "Submitted · in the feed", a sat-out member "Sat out", the rest "Not
- * submitted yet". Members with picks come first. The viewer's own kept draft heads the list marked not scored: nothing is deleted.
+ * the pick, one whose post sits beyond the loaded feed pages reads "Submitted · in the feed" (the submission list carries submittedAt;
+ * the post itself may not be loaded), a sat-out member "Sat out", the rest "Not submitted yet". Members with picks come first. The viewer's own kept draft heads the list marked not scored: nothing is deleted.
  */
 function RevealedPicks({ game, mode, season, week, feed, posts, own }) {
   const spread = mode === 'guess_spread';
@@ -246,9 +246,9 @@ function RevealedPicks({ game, mode, season, week, feed, posts, own }) {
     const status = feed.submissions.find(x => x.userId === m.id && x.mode === mode);
     const post = posts.find(p => p.kind === 'ballot_submitted' && p.actorId === m.id && p.season === season && p.week === week && p.mode === mode);
     const value = post?.picks?.[game.id];
-    const picked = Number.isFinite(value);
-    return { id: m.id, name: m.displayName, removed: m.removed, value, picked, rank: picked ? 0 : status?.satOut ? 2 : status?.submitted ? 1 : 3,
-      state: status?.satOut ? 'Sat out' : status?.submitted ? 'Submitted · in the feed' : 'Not submitted yet' };
+    const picked = Number.isFinite(value), submitted = !!status?.submittedAt;
+    return { id: m.id, name: m.displayName, removed: m.removed, value, picked, rank: picked ? 0 : status?.satOut ? 2 : submitted ? 1 : 3,
+      state: status?.satOut ? 'Sat out' : submitted ? 'Submitted · in the feed' : 'Not submitted yet' };
   }).sort((a, b) => a.rank - b.rank);
   const ownValue = own === '' || own === undefined || own === null ? null : Number(own);
   return <ul className="revealed-picks" aria-label={`${team(game.awayCode)} at ${team(game.homeCode)} ${MODE[mode]} picks`}>

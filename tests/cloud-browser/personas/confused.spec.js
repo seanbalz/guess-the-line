@@ -250,6 +250,46 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   expect(await persona.noOverflow()).toBe(true);
 });
 
+test("confused: sat out, with the submitter's post beyond the feed's first page", async ({ page, persona }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await persona.start({ games: 3 });
+  const { season, week } = persona.state.league;
+  // Troy submitted Total an hour ago and thirty "joined" posts have arrived since, so his submission post is on the feed's second
+  // page; Ben sat Total out from another device (the real sit-out route) and never touched Spread.
+  await submitAs(persona, id(2), 'guess_total', { 'TB-DAL': 44, 'PHI-JAX': 47.5, 'CIN-MIA': 41 });
+  await persona.db.query("update public.gtl_feed_posts set created_at=now()-interval '1 hour' where kind='ballot_submitted' and actor_id=$1", [id(2)]);
+  await persona.db.query("insert into public.gtl_feed_posts(actor_id,kind,dedupe_key,created_at) select $1,'joined','newer-joined:'||i,now()-make_interval(secs=>i) from generate_series(1,30) i", [id(3)]);
+  await persona.api('community/sit-out', { season, week, mode: 'guess_total' });
+  await persona.signIn();
+  const nav = page.getByRole('navigation', { name: 'Community sections' });
+  const troyTotal = page.locator('.feed-post').filter({ hasText: 'Troy Fixture submitted Week 5 Total picks' });
+  await expect(page.locator('.feed-post')).toHaveCount(30);
+  await expect(troyTotal).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Older activity' })).toBeVisible();
+  await nav.getByRole('button', { name: /^Picks/ }).click();
+  const market = page.getByRole('group', { name: 'Market' });
+  await market.getByRole('button', { name: 'Total · Sat out', exact: true }).click();
+  const cards = page.locator('.week-pick');
+  await expect(cards).toHaveCount(3);
+  // Review of the #41 reveal: a member whose submission post is not on a loaded feed page is still a submitter (the week's
+  // submission list carries submittedAt), so he is listed before the member who never submitted and pointed at the feed, never
+  // called "Not submitted yet".
+  await expect(cards.first().locator('.revealed-picks li')).toHaveText(['Troy FixtureSubmitted · in the feed', 'Luke FixtureNot submitted yet']);
+  await expect(cards.nth(2).locator('.revealed-picks li')).toHaveText(['Troy FixtureSubmitted · in the feed', 'Luke FixtureNot submitted yet']);
+  await expect(page.locator('.revealed-chip')).toHaveCount(0);
+  await persona.shot('picks-sat-out-older-post');
+  // Loading the older page brings his post in (his numbers are revealed to a viewer who sat out), and the market then shows them.
+  await nav.getByRole('button', { name: 'Feed', exact: true }).click();
+  await page.getByRole('button', { name: 'Older activity' }).click();
+  await expect(troyTotal.locator('.post-picks')).toContainText('44');
+  await nav.getByRole('button', { name: /^Picks/ }).click();
+  await market.getByRole('button', { name: 'Total · Sat out', exact: true }).click();
+  await expect(cards.first().locator('.revealed-picks li')).toHaveText(['Troy Fixture44', 'Luke FixtureNot submitted yet']);
+  await expect(cards.nth(1).locator('.revealed-picks li')).toHaveText(['Troy Fixture47.5', 'Luke FixtureNot submitted yet']);
+  await expect(cards.nth(2).locator('.revealed-chip')).toHaveText(['41']);
+  expect(await persona.noOverflow()).toBe(true);
+});
+
 test('confused: no groups, and what groups are for', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await persona.start({ games: 3 });
