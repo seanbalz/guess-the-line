@@ -68,16 +68,30 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
   const atFloor = await first.locator('.chip-summary').innerText();
   persona.finding({ screen: 'picks', severity: 4, experience: `Pressing "Lower by half a point" repeatedly stops at "${atFloor}" (floor 0.5) while the button stays enabled and the live region repeats the same value. Pick'em (0) is reachable only through the middle team chip.`, fix: 'Disable the stepper at the floor/ceiling or let the floor step into Pick\'em.' });
-  // Review of PR #34 (2.4.3): the pressed save-bar button goes aria-disabled, not disabled, so focus stays on it while it reads
-  // "Saving…" and after the save, when it has nothing left to save. No control in the bar is natively disabled, "Sit out this week"
-  // included: the save request is held for a second so the bar can be inspected mid-flight.
+  // Bigger change #40 (docs/PERSONA_AUDIT_2026_10_09.md): the final opt-out is a text link below the ballot, so the tab order is
+  // Save draft, Submit, then "Sit out this week", and the link is not inside the save bar where a mis-press could land on it.
   await persona.tabTo(f => f.name === 'Save draft');
+  await page.keyboard.press('Tab');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Submit Spread' });
+  await page.keyboard.press('Tab');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Sit out this week' });
+  await expect(page.locator('.save-bar').getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
+  const sitOutLink = page.locator('.sit-out-row').getByRole('button', { name: 'Sit out this week' });
+  await expect(sitOutLink).toHaveClass(/text-button/);
+  await expect(page.locator('.sit-out-row')).toHaveText("Not playing Week 5 Spread? Sit out this week · Final: it forfeits this week's Spread score (recorded as sat out, not zero).");
+  expect(await sitOutLink.evaluate(el => el.compareDocumentPosition(document.querySelector('.save-bar [data-action="submit"]')) & Node.DOCUMENT_POSITION_PRECEDING)).toBeTruthy();
+  await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Shift+Tab');
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Save draft' });
+  // Review of PR #34 (2.4.3): the pressed save-bar button goes aria-disabled, not disabled, so focus stays on it while it reads
+  // "Saving…" and after the save, when it has nothing left to save. No control in the bar or the opt-out row is natively disabled,
+  // "Sit out this week" included: the save request is held for a second so the bar can be inspected mid-flight.
   persona.net.delay = 1000;
   await page.keyboard.press('Enter');
   await expect(page.locator('.save-bar [data-action="draft"]')).toHaveText('Saving…');
-  await expect(page.locator('.save-bar button[aria-disabled="true"]')).toHaveCount(3);
+  await expect(page.locator('.save-bar button[aria-disabled="true"]')).toHaveCount(2);
   await expect(page.locator('.save-bar button:disabled')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Sit out this week' })).toHaveAttribute('aria-disabled', 'true');
+  await expect(sitOutLink).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.locator('.sit-out-row button:disabled')).toHaveCount(0);
   expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Saving…', disabled: false });
   persona.net.delay = 0;
   await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
@@ -155,8 +169,17 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   const names = await page.locator('.prediction-matchup .team-matchup__name strong').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(), line = parseFloat(getComputedStyle(node).lineHeight) || 20; return { text: node.textContent, width: Math.round(r.width), lines: Math.round(r.height / line) }; }));
   const broken = names.filter(n => n.lines > n.text.split(' ').length + 1);
   if (broken.length) persona.finding({ screen: 'game-picks', severity: 2, wcag: '1.4.10 (reflow)', experience: `Regression on main (chip entry in PredictionEntry): at 1024px the matchup column is ${broken[0].width}px wide and full team names wrap letter by letter ("${broken[0].text}" over ${broken[0].lines} lines; ${broken.length} of ${names.length} names). The row is three times taller than its chips and the kickoff/records lines sit under a column of single syllables.`, fix: 'Give the matchup column a min-width (or use the compact code names at <1200px) and let the chip cell take the remaining width.', evidence: broken.slice(0, 4) });
+  // Bigger change #40: on the group ballot too, the final opt-out is a text link below the save bar, never a button beside Save draft.
+  // Tabbing from Save draft skips the (incomplete, so disabled) "Review & submit" and lands on the link only after the bar's buttons.
   const sitOut = page.getByRole('button', { name: 'Sit out this week' });
-  if (await sitOut.count()) persona.finding({ screen: 'game-picks', severity: 3, experience: '"Sit out this week" (final, forfeits the week) sits in the save bar as a secondary button directly beside "Save draft", with the same size and weight. A keyboard user tabbing to Save draft lands on Sit out first.', fix: 'Move the opt-out below the ballot as a text link ("Not playing this week? Sit out…"), keep the confirmation dialog.' });
+  if (await sitOut.count()) {
+    await expect(page.locator('.save-bar').getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
+    await expect(page.locator('.sit-out-row').getByRole('button', { name: 'Sit out this week' })).toHaveClass(/text-button/);
+    expect(await sitOut.evaluate(el => el.compareDocumentPosition(document.querySelector('.save-bar .primary')) & Node.DOCUMENT_POSITION_PRECEDING)).toBeTruthy();
+    await page.locator('.save-bar').getByRole('button', { name: 'Save draft', exact: true }).focus();
+    await page.keyboard.press('Tab');
+    expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Sit out this week' });
+  }
   expect(await persona.smallTargets('game-picks')).toEqual([]);
   expect(await page.locator('.mode-tabs button').evaluateAll(tabs => tabs.map(t => Math.round(t.getBoundingClientRect().height)))).toEqual([44, 44, 44]);
   // The group ballot's sticky save bar never hides the row that was just scrolled or focused into view (#24 parity).
