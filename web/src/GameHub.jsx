@@ -17,6 +17,8 @@ function Dialog({ title, onClose, children }) {
   useEffect(() => {
     const previous = document.activeElement;
     ref.current?.showModal();
+    // Persona audit #32: a dialog that names a first field (data-initial-focus) opens on it, not on the close button, as the other modals do.
+    ref.current?.querySelector('[data-initial-focus]')?.focus();
     return () => previous?.focus();
   }, []);
   return <dialog ref={ref} className="modal hub-dialog" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); onClose(); }}>
@@ -63,7 +65,7 @@ function NewGame({ onClose, onCreated }) {
     <p className="hub-help">Create a private game, then invite the people you want to play with. Your weekly predictions and Challenge selections are reused. Each group has its own players and standings.</p>
     <form className="hub-form" onSubmit={submit}>
       <ErrorMessage>{error}</ErrorMessage>
-      <label htmlFor="game-name">Game name<input id="game-name" required minLength={1} maxLength={80} placeholder="Give your rivalry a name" value={name} onChange={event => change(setName, event.target.value)} disabled={busy}/></label>
+      <label htmlFor="game-name">Game name<input id="game-name" data-initial-focus required minLength={1} maxLength={80} placeholder="Give your rivalry a name" value={name} onChange={event => change(setName, event.target.value)} disabled={busy}/></label>
       <fieldset className="format-options"><legend>Who’s playing?</legend>
         <label className={format === 'duel' ? 'selected' : ''}><input type="radio" name="format" value="duel" checked={format === 'duel'} onChange={() => change(setFormat, 'duel')} disabled={busy}/><span><strong>Duel</strong><small>You and one other player</small></span></label>
         <label className={format === 'group' ? 'selected' : ''}><input type="radio" name="format" value="group" checked={format === 'group'} onChange={() => change(setFormat, 'group')} disabled={busy}/><span><strong>Group</strong><small>Bring a group of friends</small></span></label>

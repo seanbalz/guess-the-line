@@ -160,6 +160,24 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   const market = page.getByRole('group', { name: 'Market' });
   await expect(market.getByRole('button', { name: 'Total', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(market.getByRole('button', { name: 'Spread ✓', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.submit-receipt')).toHaveCount(0);
+  // Bigger change (#25, with the #15 and #30 remainder): the submitted market carries the receipt, which names what was submitted
+  // and when, says Total is still due and opens it. A plain market switch keeps focus on the market button; only an in-session
+  // submit moves focus into the receipt (power.spec.js).
+  await market.getByRole('button', { name: 'Spread ✓', exact: true }).click();
+  const receipt = page.getByRole('region', { name: 'Spread submitted · 3 picks' });
+  await expect(receipt).toBeVisible();
+  const submittedAt = (await persona.db.query("select ballot->>'submittedAt' as submitted_at from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'", [id(1)])).rows[0].submitted_at;
+  await expect(receipt).toContainText(`Submitted ${pacific(submittedAt)} PT`);
+  await expect(receipt).toContainText('Total: 0/3 still due');
+  await expect(receipt.getByRole('button', { name: "See everyone's Spread picks" })).toBeVisible();
+  await expect(receipt.getByRole('button', { name: "See everyone's Total picks" })).toHaveCount(0);
+  expect(await persona.focused()).toMatchObject({ tag: 'button', name: 'Spread ✓' });
+  await persona.shot('picks-receipt-half-done');
+  await persona.axe('picks-receipt-half-done');
+  await receipt.getByRole('button', { name: 'Make Total picks' }).click();
+  await expect(market.getByRole('button', { name: 'Total', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.submit-receipt')).toHaveCount(0);
   await persona.shot('picks-half-done');
   const cards = page.locator('.week-pick');
   await expect(cards.first().locator('.number-chip').first()).toBeVisible();
@@ -213,6 +231,10 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   await expect(page.locator('.week-sat-out')).toHaveCount(0);
   await expect(cards.first().locator('.chip-picker')).toHaveCount(1);
   await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3');
+  // On the submitted market the receipt now says Total was sat out (final, D-23), with nothing else due and no "Make Total picks".
+  await expect(receipt).toContainText('Total: sat out (final). Nothing else is due this week.');
+  await expect(receipt.getByRole('button', { name: 'Make Total picks' })).toHaveCount(0);
+  await persona.shot('picks-receipt-sat-out');
   await market.getByRole('button', { name: 'Total · Sat out', exact: true }).click();
   await expect(page.locator('.revealed-picks')).toHaveCount(3);
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Feed', exact: true }).click();

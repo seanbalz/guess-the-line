@@ -17,7 +17,8 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   const toFeed = Date.now() - t0;
   persona.finding({ screen: 'feed-slow', severity: 4, experience: `With 400 ms added to every request the home screen took ${(toFeed / 1000).toFixed(1)} s from tapping Sign in to the picks-due card. During that time the player sees "${sawLoading ? 'Loading the feed…' : 'nothing (the loading line was too brief to see)'}" under the title; the header, theme card and league switcher render first, so the page looks finished before the feed arrives.`, fix: 'Show skeleton rows for the picks-due card, leaderboard and three posts instead of a one-line status; keep the chrome from settling before the content.' });
   await persona.shot('feed');
-  await persona.smallTargets('feed');
+  // Bigger changes (#19): the like button is at least 44px wide for a thumb.
+  expect(await persona.smallTargets('feed')).toEqual([]);
 
   // Start the ballot.
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
@@ -35,8 +36,22 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   expect(await page.locator('.team-chip.selected').evaluateAll(chips => chips.filter(chip => chip.scrollWidth > chip.clientWidth).map(chip => chip.textContent))).toEqual([]);
   await persona.shot('picks-5-of-14');
   await persona.axe('picks-5-of-14');
-  const barBox = await page.locator('.save-bar').boundingBox();
-  if (barBox) persona.finding({ screen: 'picks-5-of-14', severity: 4, experience: `The sticky save bar is ${Math.round(barBox.height)}px tall at the bottom with "5/14 ready · Save draft · Submit Spread". It covers the last chips of whichever card is scrolled under it, and the ready count gives no sense of time left.`, fix: 'Add the due time to the bar ("Due Thu 5:15 PM") and add bottom padding equal to the bar height to the list so the last card is never hidden.' });
+  // Bigger changes (#24): the sticky bar carries the due time beside the ready count ("Due Fri 11:59 PM PT (today)"), and it
+  // covers nothing that was scrolled or focused into view: scroll-padding keeps the last card, and a chip that receives
+  // focus from the keyboard, above the bar instead of under it (WCAG 2.4.11).
+  const bar = page.locator('.save-bar');
+  const deadline = persona.state.league.deadline;
+  const dueShort = new Date(deadline).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  await expect(bar.locator('.save-due')).toHaveText(`Due ${dueShort} PT (today)`);
+  const bottomOf = async locator => { const box = await locator.boundingBox(); return box.y + box.height; };
+  const lastCard = cards.last();
+  await lastCard.evaluate(el => el.scrollIntoView({ block: 'end' }));
+  expect(await bottomOf(lastCard)).toBeLessThanOrEqual((await bar.boundingBox()).y + 1);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await lastCard.locator('.team-chip').last().focus();
+  expect(await bottomOf(lastCard.locator('.team-chip').last())).toBeLessThanOrEqual((await bar.boundingBox()).y + 1);
+  const barBox = await bar.boundingBox();
+  persona.finding({ screen: 'picks-5-of-14', severity: 4, experience: `The sticky save bar is ${Math.round(barBox.height)}px tall at the bottom with the ready count, the due time and the three buttons; a card or chip scrolled or focused into view stops above it. Good.`, fix: 'Keep it.' });
 
   // Interruption 1: tapping Feed with five unsaved picks. Nothing warns; the picks are gone.
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Feed', exact: true }).click();
