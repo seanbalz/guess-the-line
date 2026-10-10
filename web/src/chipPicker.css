@@ -11,7 +11,8 @@
 .number-chip{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace;font-variant-numeric:tabular-nums;min-width:56px}
 .more-chip{border-style:dashed;color:var(--muted)}
 .icon-chip{display:grid;place-items:center;padding:0}
-.chip-row-label{flex-basis:100%;font-size:13px;line-height:18px;font-weight:600;color:var(--muted)}
+.chip-row-head{position:relative;flex-basis:100%;min-height:18px}
+.chip-row-label{font-size:13px;line-height:18px;font-weight:600;color:var(--muted)}
 .chip-call{margin:0;font-size:16px;line-height:24px;color:var(--text)}
 .chip-call strong{font-weight:700}
 .chip-summary{flex:1;text-align:center;color:var(--muted);font-size:14px}
@@ -33,9 +34,15 @@
   .chip-picker.compact .team-chip.selected{padding:0 2px 0 16px}
   .more-chip{border-style:dashed}
 }
-/* Keyboard model (persona audit #9, #23). The key help is screen-reader text until a chip in the row has keyboard focus; then it
-   shows as a metadata line under the row label. The "=" field takes the same half-point values as the chips. */
-.chip-numbers:has(:focus-visible) .sr-only.chip-row-help{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;font-size:13px;line-height:18px;color:var(--muted)}
+/* Keyboard model (persona audit #9, #23). The full key help stays screen-reader text (every chip is described by it); its one-line
+   form sits at the end of the row label's line and is toggled with visibility while a chip in the row has keyboard focus, so showing
+   it never reflows the row (a help line that pushed the chips down on focus moved them between mousedown and mouseup and lost the
+   pointer click that followed keyboard focus). It is out of flow and capped to the line's spare width (144px is kept for the label,
+   "Commanders win by…" needs 135px) with an ellipsis, so it adds nothing to the row's intrinsic width: in flow, a nowrap line widened
+   the group ballot's table cell past the viewport at 320px. The "=" field takes the same half-point values as the chips and opens
+   after them. */
+.chip-row-keys{position:absolute;top:0;right:0;max-width:calc(100% - 144px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:18px;color:var(--muted);visibility:hidden}
+.chip-numbers:has(:focus-visible) .chip-row-keys{visibility:visible}
 .chip-typed-wrap{display:flex;flex-basis:100%;flex-wrap:wrap;align-items:center;gap:8px}
 .chip-typed{min-height:44px;width:96px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--canvas);color:var(--text);font-size:16px;font-variant-numeric:tabular-nums}
 .chip-typed-hint{font-size:13px;line-height:18px;color:var(--muted)}

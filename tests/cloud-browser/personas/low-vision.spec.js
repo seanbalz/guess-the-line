@@ -54,15 +54,29 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   expect(new Set(described)).toEqual(new Set(['Cowboys win by… Arrow keys change the number by half a point; Home and End jump to the ends of the row. Type a number, 3 or 12.5, to choose it, or press = to type one.']));
   expect(await first.locator('.number-chip').evaluateAll(chips => chips.map(chip => [chip.getAttribute('role'), chip.getAttribute('aria-checked'), chip.tabIndex]))).toEqual([...Array(19)].map((_, i) => ['radio', i === 4 ? 'true' : 'false', i === 4 ? 0 : -1]));
   expect(await first.locator('.team-chip').evaluateAll(chips => chips.map(chip => [chip.getAttribute('aria-pressed'), chip.tabIndex]))).toEqual([['false', -1], ['false', -1], ['true', 0]]);
-  const help = first.locator('.chip-row-help');
-  await expect(help).toHaveCount(1);
+  // The full key help stays screen-reader text (absolute) whether or not the row has focus; its one-line form (aria-hidden, or it
+  // would double the description) sits on the row label's line and is toggled with visibility only, so showing it never moves a
+  // chip: with −3 checked and the hint showing, the −4 chip's box is where it was before the keyboard touched the row. (A selected
+  // chip is wider than an unselected one, so the comparison is made with the same selection.) A help line that reflowed the row
+  // on focus moved the chips between mousedown and mouseup and lost the pointer click that followed keyboard focus
+  // (prediction-completion.spec.js).
+  const help = first.locator('.chip-row-help'), keys = first.locator('.chip-row-keys'), minus4 = first.getByRole('radio', { name: '−4', exact: true });
+  const box = locator => locator.evaluate(el => { const r = el.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; });
+  await expect(help).toHaveCount(1); await expect(keys).toHaveCount(1);
+  await expect(keys).toHaveAttribute('aria-hidden', 'true');
   expect(await help.evaluate(el => getComputedStyle(el).position)).toBe('absolute');
+  expect(await keys.evaluate(el => getComputedStyle(el).visibility)).toBe('hidden');
+  const minus4Before = await box(minus4);
   await selectedChip.focus(); await page.keyboard.press('ArrowRight');
   await expect(first.getByRole('radio', { name: '−3.5', exact: true })).toBeFocused();
-  expect(await help.evaluate(el => getComputedStyle(el).position)).toBe('static');
-  expect(await help.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(13);
+  expect(await keys.evaluate(el => getComputedStyle(el).visibility)).toBe('visible');
+  expect(await keys.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(13);
+  expect(await help.evaluate(el => getComputedStyle(el).position)).toBe('absolute');
   await page.keyboard.press('ArrowLeft');
   await expect(selectedChip).toHaveAttribute('aria-checked', 'true');
+  await expect(selectedChip).toBeFocused();
+  expect(await keys.evaluate(el => getComputedStyle(el).visibility)).toBe('visible');
+  expect(await box(minus4)).toEqual(minus4Before);
   await persona.axe('picks-keyboard');
   persona.finding({ screen: 'picks-200', severity: 4, wcag: '2.4.6', experience: `Screen-reader view of one game: group "Tampa Bay Buccaneers at Dallas Cowboys Spread", the group "Favorite" with toggle buttons "Buccaneers", "Pick'em", "Cowboys", then the radiogroup "Cowboys win by" with radios "−1" … "−10" (each described by "Cowboys win by…" and the key help) and "More", the stepper buttons, and the live summary "Cowboys −3". The team facts line is still read as "TB 1-4 Road 1-1".`, fix: 'Spell out records ("Tampa Bay 1 and 4, road 1 and 1").', evidence: { tree: tree.split('\n').slice(0, 30).join('\n') } });
 

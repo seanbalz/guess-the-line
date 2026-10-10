@@ -16,6 +16,8 @@ const HELP = {
   total: 'Arrow keys move by a point, − and + by half a point; Home and End jump to the ends of the row. Type one digit for the nearest total ending in it (from 44, 7 gives 47), two digits for an exact total, or press = to type one.',
   teams: 'Arrow keys move between the teams; Enter or Space chooses.',
 };
+// The one-line form of the same help that shows beside the row label while the keyboard drives the row.
+const KEYS = { spread: 'Type 3 or 12.5 · arrows step half a point · = to type one', total: 'Type 7 or 47 · arrows step a point, − and + half · = to type one' };
 
 /** One helper sentence per market, shared by every surface that renders the chips (the Community Picks tab's dismissible
  *  tip and the group ballot's header), so a player reads the same explanation of the favorite, the points and Pick'em wherever
@@ -50,8 +52,13 @@ export const CHIP_HELP = {
  * - "=" opens a typed field for the same half-point values. Enter commits the same signed value the chips produce
  *   (the sign comes from the favorite row), Escape cancels, and focus returns to the row's checked chip.
  * More, − and + stay 44px pointer targets but are not Tab stops (their functions live on the row's keys), so a
- * 14-game spread ballot costs six presses a game instead of 27. The help text that documents the keys is visually
- * hidden and shown while a chip in the row has keyboard focus.
+ * 14-game spread ballot costs six presses a game instead of 27. On an empty row − and + do nothing, like the disabled
+ * stepper button (the focused chip is not a value); the arrows do select from it.
+ * The full key help is screen-reader text that describes every chip; its one-line form sits at the end of the row
+ * label's line and is shown (visibility only) while a chip in the row has keyboard focus, so revealing it never moves
+ * a chip. A help line that reflowed the row on focus moved the chips between mousedown and mouseup when a pointer
+ * click followed keyboard focus, and the click landed on the row instead of the chip. The typed field opens after the
+ * chips for the same reason: closing it on blur must not move the chip being clicked.
  */
 export default function ChipPicker({ mode, value, onChange, away, home, disabled, label, compact, ref }) {
   const spread = mode === 'guess_spread';
@@ -112,7 +119,8 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
     const { key } = event;
     if (key === '=') { event.preventDefault(); setTyped(''); setTypedError(false); typedClosed.current = false; setTyping(true); return; }
     if (/^[0-9.]$/.test(key)) { event.preventDefault(); typeAheadKey(key); return; }
-    const from = current ?? Number(event.target.dataset.value); // Nothing chosen yet: the focused chip is the reference.
+    if ((key === '-' || key === '+') && current === null) return; // Nothing chosen yet: − and + wait, like the disabled stepper button.
+    const from = current ?? Number(event.target.dataset.value); // Nothing chosen yet: the focused chip is the arrows' reference.
     const next = key === 'ArrowRight' || key === 'ArrowDown' ? (spread ? from + 0.5 : Math.floor(from) + 1)
       : key === 'ArrowLeft' || key === 'ArrowUp' ? (spread ? from - 0.5 : Math.ceil(from) - 1)
       : key === 'Home' ? chips[0] : key === 'End' ? chips[chips.length - 1]
@@ -169,19 +177,22 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
     </div>}
     {(!spread || (fav && fav !== 'pickem')) && <>
       <div className="chip-row chip-numbers" role="radiogroup" aria-label={rowLabel} onKeyDown={onNumberKey}>
-        <span className="chip-row-label" id={rowLabelId}>{spread ? `${rowLabel}…` : rowLabel}</span>
+        <div className="chip-row-head">
+          <span className="chip-row-label" id={rowLabelId}>{spread ? `${rowLabel}…` : rowLabel}</span>
+          <span className="chip-row-keys" aria-hidden="true">{spread ? KEYS.spread : KEYS.total}</span>
+        </div>
         <span className="sr-only chip-row-help" id={helpId}>{spread ? HELP.spread : HELP.total}</span>
-        {typing && <span className="chip-typed-wrap">
-          <input ref={typedField} className="chip-typed mono" type="text" inputMode="decimal" autoComplete="off" aria-label={`${rowLabel} (type a number)`} aria-describedby={typedHintId} aria-invalid={typedError || undefined}
-            value={typed} onChange={event => { setTyped(event.target.value); setTypedError(false); }} onKeyDown={onTypedKey} onBlur={() => { if (typedClosed.current) return; if (parseTyped(typed) === null) cancelTyped(false); else commitTyped(false); }}/>
-          <span id={typedHintId} className="chip-typed-hint" aria-live="polite">{typedError ? `Use half points from ${range}.` : `Half points from ${range}. Enter sets it, Escape cancels.`}</span>
-        </span>}
         {chips.map(n => {
           const selected = spread ? size === n : v === n;
           return <button type="button" key={n} role="radio" data-value={n} className={`chip number-chip ${selected ? 'selected' : ''}`} aria-checked={selected} aria-describedby={`${rowLabelId} ${helpId}`} tabIndex={n === tabbable ? 0 : -1} disabled={disabled}
             onClick={() => (spread ? setSpread(fav, n) : onChange(n))}>{selected && check}{spread ? `−${show(n)}` : show(n)}</button>;
         })}
         {spread && <button type="button" className="chip more-chip" tabIndex={-1} disabled={disabled} aria-expanded={more} onClick={() => setMore(m => !m)}>{more ? '1–10' : 'More'}</button>}
+        {typing && <span className="chip-typed-wrap">
+          <input ref={typedField} className="chip-typed mono" type="text" inputMode="decimal" autoComplete="off" aria-label={`${rowLabel} (type a number)`} aria-describedby={typedHintId} aria-invalid={typedError || undefined}
+            value={typed} onChange={event => { setTyped(event.target.value); setTypedError(false); }} onKeyDown={onTypedKey} onBlur={() => { if (typedClosed.current) return; if (parseTyped(typed) === null) cancelTyped(false); else commitTyped(false); }}/>
+          <span id={typedHintId} className="chip-typed-hint" aria-live="polite">{typedError ? `Use half points from ${range}.` : `Half points from ${range}. Enter sets it, Escape cancels.`}</span>
+        </span>}
       </div>
       {has && <p className="chip-call">Your call: <strong>{call}</strong></p>}
       <div className="chip-row chip-fine">

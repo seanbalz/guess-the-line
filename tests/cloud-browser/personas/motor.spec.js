@@ -65,6 +65,10 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await expect(first.getByRole('button', { name: 'Cowboys', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('Tab');
   expect(await persona.focused()).toMatchObject({ tag: 'button', name: '−1' });
+  // − and + do nothing until a number is chosen, like the disabled − button: the focused chip is not a value.
+  await page.keyboard.press('-'); await page.keyboard.press('+');
+  await expect(first.locator('.chip-summary')).toHaveText('No pick yet');
+  await expect(first.getByRole('radio', { checked: true })).toHaveCount(0);
   await page.keyboard.press('3');
   await expect(first.locator('.chip-summary')).toHaveText('Cowboys −3');
   await page.keyboard.press('-');

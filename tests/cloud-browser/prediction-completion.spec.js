@@ -3,7 +3,7 @@ import { seed } from '../../server/store.mjs';
 import { createEngine } from '../../server/engine.mjs';
 import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
-import { picker, pickSpread, pickTotal, expectPick, MINUS } from '../chip-entry.mjs';
+import { picker, pickSpread, pickTotal, expectPick, expectNoPick, MINUS } from '../chip-entry.mjs';
 
 // Synthetic authenticated group fixtures only; no hosted data or odds requests.
 const accountId = '11111111-1111-4111-8111-111111111111';
@@ -85,6 +85,10 @@ for (const [width, theme] of [[320, 'dark'], [390, 'light']]) test(`missing Tota
   await page.keyboard.press('Tab'); await expect(page.getByRole('button', { name: 'Next game', exact: true }).first()).toBeFocused();
   await page.keyboard.press('Enter'); await expect(picker(page, 'PHI at JAX combined points').locator('.number-chip').first()).toBeFocused();
   await expect(first).toHaveCount(0);
+  // Keyboard model (#23): − and + do nothing on an empty row, like the disabled − button. The pointer click that follows lands on the
+  // chip it was aimed at while the row shows its key hint: revealing the hint must not reflow the row (the chips once moved between
+  // mousedown and mouseup, the click fell on the row, and the pick read 44.5 from the + button instead of 45.5).
+  await page.keyboard.press('-'); await page.keyboard.press('+'); await expectNoPick(page, 'PHI at JAX combined points');
   await pickTotal(page, 'PHI at JAX combined points', '45.5');
   await page.getByRole('button', { name: 'Next game', exact: true }).first().click();
   await expect(picker(page, 'CIN at MIA combined points').locator('.number-chip').first()).toBeFocused();
