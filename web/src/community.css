@@ -85,6 +85,8 @@
 .save-hint{padding:12px 16px;border:1px solid var(--pending);border-radius:8px;font-size:14px;line-height:1.6}
 /* The hint stays mounted: one live region whose text changes is announced, while one inserted with its text often is not. Empty, it is visually hidden rather than display:none. */
 .week-picks .save-bar .save-hint:empty{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;white-space:nowrap}
+/* The home notice is an always-mounted live region (PR #34 pattern); while empty it keeps no box but stays in the accessibility tree. */
+.community-home>.hub-main>.auth-notice:empty{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;white-space:nowrap}
 .feed-post .error-banner{margin:0}
 .error-banner .banner-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .community-home .error-banner button{margin-left:auto;min-height:44px;color:var(--text);text-decoration:underline;padding:0 4px}

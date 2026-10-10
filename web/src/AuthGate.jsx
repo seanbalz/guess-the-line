@@ -114,6 +114,8 @@ export default function AuthGate({ children }) {
       <Brand />
       <span className="empty-icon"><LockKeyhole size={25}/></span>
       <h1 id="auth-title">{configurationError ? 'Online setup needs attention.' : recovering ? 'Choose a new password.' : forgotten ? 'Get back in the game.' : creating ? 'Start your next rivalry.' : 'Your games. Any device.'}</h1>
+      {/* Persona audit #33: one line that says what the game is, on the sign-in and create-account screens only. */}
+      {!configurationError && !recovering && !forgotten && <p className="auth-pitch">Guess every NFL game’s spread and total each week. Closest to the number scores. No real-money wagers.</p>}
       <p className="auth-intro">{configurationError ? 'Your games are unavailable until the app configuration is complete.' : recovering ? 'Save a new password for your game account.' : forgotten ? 'Request a password reset link for your game account.' : creating ? 'Create your own account. Start a game and invite your friends.' : 'Sign in to open your games, invitations and saved picks.'}</p>
       {configurationError ? <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{configurationError}</span></div>
         : loading ? <div className="auth-loading" role="status"><LoaderCircle className="spin" size={20}/>Checking your sign-in…</div>
