@@ -14,9 +14,9 @@ Read first, in this order: this file, `docs/PERSONA_AUDIT_2026_10_09.md`, `docs/
 
 | Copy | Location | Role | State on 2026-10-09, 09:53 PDT |
 |---|---|---|---|
-| GitHub `main` | `seanbalz/guess-the-lines-repo` | **Code truth.** Every change lands through a pull request into `main`. | `ebcdae6` at 10:15 PDT (PR #30 reconciliation merged on top of PR #31's tracker commit) |
-| Cloud Claude sessions | claude.ai/code, branches `claude/*` | Produced PRs #10–#35 on October 8–9. They have GitHub and the Supabase MCP, no Cloudflare credential, no Supabase CLI login. | Open drafts: #32 (Ben's Week 5 import), #33 (Virtual Units settlement, D-26), #34 (persona quick wins 2–11, see 7.0), #35 (these handoff documents) |
-| Local Mac mini checkout | `/Users/seanbalsiger/betting-repo` | Sean's machine. The **only** place Cloudflare Pages can be deployed from. Codex sessions work here on `codex/*` branches. Several agent sessions share this working tree at the same time. | Was on PR #30's branch at `8c2d75d` at 09:53 PDT, clean, in sync; local `main` at `f1ade03` behind origin. Re-check with `git status -sb` before relying on it |
+| GitHub `main` | `seanbalz/guess-the-lines-repo` | **Code truth.** Every change lands through a pull request into `main`. | `17c22b5` at 2026-10-10 07:04 PDT (PR #46). PRs #27–#46 merged on October 9–10; `docs/RELEASE_2026_10_09.md` v3 is the release source of truth |
+| Cloud Claude sessions | claude.ai/code, branches `claude/*` | Produced PRs #10–#46 on October 8–10. They have GitHub and the Supabase MCP, no Cloudflare credential, no Supabase CLI login. | #32–#34 and #37–#46 merged (see 7.0); open: #35 (these documents), #36 (font tokens and local MIME); claimed, not merged: keyboard model on `claude/persona-bc-keyboard` |
+| Local Mac mini checkout | `/Users/seanbalsiger/betting-repo` | Sean's machine. The **only** place Cloudflare Pages can be deployed from. Codex sessions work here on `codex/*` branches. Several agent sessions share this working tree at the same time. | Reported on `main` at `ebcdae6`, clean, October 9 evening, holding a production deploy for Sean's go; deploy target is now `17c22b5` or later. Re-check with `git status -sb` before relying on it |
 | Codex worktrees | `~/.codex/worktrees/virtual-units-*` | Separate checkouts for the D-18 virtual units branches | `codex/virtual-units-implementation`, `codex/virtual-units-rules` |
 
 Rules that follow: branch from `origin/main` (`git fetch origin && git switch -c claude/<slug> origin/main`), PR into `main`, let CI run; never commit to `main` directly; never switch branches inside the shared Mac mini checkout (use `git worktree add`); `main` is ahead of production, so target `main`.
@@ -25,9 +25,9 @@ Rules that follow: branch from `origin/main` (`git fetch origin && git switch -c
 
 | Component | Live (production) | On `main` | Who can ship it |
 |---|---|---|---|
-| Frontend (Cloudflare Pages `guess-the-line.pages.dev`) | `2106725d`, built October 8 from `30d331e` | D-21 Community home and chip entry, D-22 coming-soon leagues and 32 marks, D-23 sit-out, D-24 auto-open, PR #22 Edge board phone layout, PR #26 ballot widths, PR #25 persona harness | Sean, from the Mac mini: `npm run build:cloud && npm run check:cloud && npm run cloudflare -- pages deploy .local/cloud-dist --project-name guess-the-line --branch main --commit-dirty=true` |
-| `gtl-api` Edge Function | v14 | v15 source (community routes, sit-out, week-open status) | Supabase MCP or `npx supabase functions deploy gtl-api` |
-| Hosted database (`onmrgvcehkflfaizvedl`) | **Ahead of the app:** all 20 migrations, `gtl-week-open` v1, Monday cron jobs, `nfl-weekly` enabled; Week 6 opens automatically Monday October 12, 12:00 AM PT | same | Done through the MCP on October 9. Never run `npx supabase db push` as-is |
+| Frontend (Cloudflare Pages `guess-the-line.pages.dev`) | `2106725d`, built October 8 from `30d331e` | D-21 Community home and chip entry, D-22 coming-soon leagues and 32 marks, D-23 sit-out, D-24 auto-open, D-26 settlement screen, PR #22 Edge board phone layout, PR #26 ballot widths, PR #25 persona harness, persona quick wins (#34, #43) and bigger changes (#42 receipt, #44 onboarding, #45 drafts and URL hash, #46 sit-out) | Sean, from the Mac mini: `npm run build:cloud && npm run check:cloud && npm run cloudflare -- pages deploy .local/cloud-dist --project-name guess-the-line --branch main --commit-dirty=true` |
+| `gtl-api` Edge Function | v14 | v15 source (community routes, sit-out, week-open status, `/virtual-units/settle`, `picksDue.now`); deploy from `17c22b5` or later | Supabase MCP or `npx supabase functions deploy gtl-api` |
+| Hosted database (`onmrgvcehkflfaizvedl`) | **Ahead of the app:** all 23 migrations (D-25 import, D-26 settlement, D-18 `isfinite` fix), Ben's ruled ballot, `gtl-week-open` v1, Monday cron jobs, `nfl-weekly` enabled; Week 6 opens automatically Monday October 12, 12:00 AM PT | same | Done through the MCP on October 9. Never run `npx supabase db push` as-is; `docs/RELEASE_2026_10_09.md` v3 has the hosted versions |
 | CI | No deploy path (no Actions secrets) | `test.yml`, `dashboard-checks.yml`, `brand-qa.yml` on every PR | n/a |
 
 The optimization agent never deploys. Release steps 5–9 in `docs/SOCIAL_COMMUNITY.md#release-checklist--october-9-2026` are Sean's.
@@ -39,7 +39,7 @@ The optimization agent never deploys. Release steps 5–9 in `docs/SOCIAL_COMMUN
 | `.local/` | Mac mini only | production build, screenshots (`previews/`, `previews/personas/`), `personas/findings.json` and `axe-scans.json`, local owner `state.json`, release manifest |
 | `.env.cloud` | Mac mini only | Supabase URL + publishable key; `.env.example` is the template |
 | Preferences | per browser/device `localStorage` | `gtl.theme`, `gtl.dashboard.preferences.v1`, `gtl.dashboard.matchups.v1.<season>.<week>`; never account-synced by design (a future account-synced Favorites is a separate item, BET-04) |
-| Unsaved drafts | tab `sessionStorage` recovery (group ballots, Solo); **Community Picks tab has none** (persona #3) | 24-hour recovery; explicit Restore |
+| Unsaved drafts | tab `sessionStorage` recovery (group ballots, Solo; Community Picks tab since PR #45 through `web/src/communityDraft.js`, with the screen and market in the URL hash via `web/src/screenHash.js`) | device-local only; explicit Restore on the group screens |
 | Picks, snapshots | `data/` in git | Private; never served from the root, never placed in static assets, never edited |
 
 ### 1.4 Three ways to run it locally
@@ -99,7 +99,7 @@ Seven simulated personas exist with reusable specs: first-time player, casual ph
 AuthGate (cloud)                       main.jsx (local: straight to App)
 └─ GameHub
    ├─ CommunityHome  ← default landing after display name (D-21)
-   │   tabs: Feed | Picks (chips, due counts) | Groups & games →
+   │   tabs: Feed | Picks (chips, due counts) | Groups & games →   (URL hash #feed / #picks / #groups since PR #45)
    │   league switcher: NFL live + 5 "Coming soon"
    │   picks-due card · season leaderboard · publish panel (commissioner) · feed · coming-soon cards
    ├─ "My games" hub: Solo · Bet Tracker · invitations · game cards · New game
@@ -141,7 +141,7 @@ Three facts an optimizer must internalize:
 
 | Theme | Findings | Cost today |
 |---|---|---|
-| Silent data loss | #3 unsaved Community picks vanish on tab switch, reload, Back; #8 every save failure ends with picks only in memory | Five picks gone from one stray tap |
+| Silent data loss | #3 unsaved Community picks vanished on tab switch, reload, Back (**fixed by PR #45**); #8 remainder: a submit refused for missing fresh quotes still holds picks only in memory (open) | Five picks gone from one stray tap (was) |
 | Nobody explains the game | #4 no "favorite", "win by", "combined points" on the Community Picks tab; #22 summary line is the only confirmation; #30 "Spread 0/14 · Total 0/14" with no noun; #37 team facts in code-like mono | Wrong sign or wrong team, never noticed |
 | Dead or unexplained controls | #5 Total button disabled with an unsaved Spread draft; #6 Submit disabled until 14/14 with no explanation; #7 silent fallback to My games on a 503; #13–#16 closed / unpublished / half-done / groups states contradict each other | Abandonment, retries, reloads |
 | Input cost | #9 382 key presses for a 14-game ballot (every chip a tab stop); #23 Total chips centered on 44 for every game; #28 one column, 5510 px tall, 29 taps minimum at 1280 | Keyboard users cannot finish |
@@ -198,7 +198,7 @@ UX-14/UX-15 (reduce repeated navigation, make the next pick action clear); UX-02
 | O9 | Local Node service served `.png` as `application/octet-stream` (no MIME entry) under `nosniff`, so the Bills and Rams marks were blank in the local workspace; production was unaffected. **Fixed in PR #36.** | Local reviewers saw a missing-logo bug that was not in production |
 | O10 | The refresh model (focus, visibility, one scheduled wake, 1 s throttle) is invisible; "12-hour refresh enabled" sits in the history footer only when that section is on. | Players cannot tell how current "current consensus" is |
 
-Baseline numbers from the audit to beat: 382 key presses per 14-game Spread ballot; 29 taps minimum at 1280; 12 Tab presses from load to "Make picks"; 5510 px Picks page height at 1280; 2.0 s to the picks-due card at +400 ms per request; 16 dashboard targets under 44px; 0 axe violations (keep).
+Baseline numbers from the audit to beat, as re-measured after PR #34 on `main` at `b5491a2` (62 findings: 0 / 7 / 29 / 26; 12 specs green; 34 axe scans clean): 384 key presses per 14-game Spread ballot (claimed on `claude/persona-bc-keyboard`); 29 taps minimum at 1280; 5510 px Picks page height at 1280; 2.0 s to the picks-due card at +400 ms per request; 8px leaderboard headers at 200% zoom; 16 declared interactive sizes under 44px and 39 text declarations under 12px before PR #43; 0 axe violations (keep). Re-run `npm run test:personas` on `17c22b5` or later before quoting any of these; PRs #42–#46 landed after that baseline.
 
 ---
 
@@ -219,12 +219,12 @@ Baseline numbers from the audit to beat: 382 key presses per 14-game Spread ball
 
 | Outcome | Metric | Baseline | Target | Measured by |
 |---|---|---|---|---|
-| A returning player knows what to do within one screen | Blocks above the first due-market action on the Dashboard and Community home | 6 / 4 | ≤ 2 | screenshot + DOM order assertion |
-| No silent loss of picks | Scenarios (tab switch, reload, Back, offline save, 409, expired session, no fresh quotes) that lose unsaved picks | 7 of 7 on Community Picks | 0 | `impatient.spec.js`, `phone.spec.js` |
+| A returning player knows what to do within one screen | Blocks above the first due-market action on the Dashboard and Community home | 6 / 4 (Community: 3 after PR #34 moved Appearance) | ≤ 2 | screenshot + DOM order assertion |
+| No silent loss of picks | Scenarios (tab switch, reload, Back, offline save, 409, expired session, no fresh quotes) that lose unsaved picks | 1 of 7 after PRs #34 and #45 (no-fresh-quotes submit) | 0 | `impatient.spec.js`, `phone.spec.js` |
 | Every failure has a next step | Error banners without an action button | most | 0 | persona specs |
-| Keyboard cost of a ballot | Key presses for 14 games | 382 | ≤ 100 | `power.spec.js` |
+| Keyboard cost of a ballot | Key presses for 14 games | 384 (claimed on `claude/persona-bc-keyboard`; do not start) | ≤ 100 | `power.spec.js` |
 | Touch cost of a ballot | Taps for 14 Spread games | 29 | ≤ 29 and ≥ 960px two-column | `power.spec.js` |
-| Reach the ballot | Tab presses from load to "Make picks" | 12 | ≤ 4 (skip link lands on the due card) | `first-timer.spec.js` |
+| Reach the ballot | Tab presses from load to "Make picks" | 12 before PR #34; skip link now lands on the picks-due card | ≤ 4 | `first-timer.spec.js` |
 | Understand the chips cold | Helper line present on every pick surface; chip row labelled for screen readers | Community: none | present | `first-timer`, `low-vision` |
 | State clarity | Closed, not-open, unpublished, half-done, sat-out states distinct and actionable | contradictory | each has one headline and one action | `confused.spec.js` |
 | Targets and type | Interactive rules under 44px / under 16px mobile | 16 + 16 / 39 | 0 / 0 | `scripts/persona-static-checks.mjs` |
@@ -240,25 +240,32 @@ Add a metric only when a spec can assert it; the persona harness exists so that 
 
 P0 = silent data loss or wrong-pick risk; P1 = comprehension and reach; P2 = cost and polish. Each item names its rule boundary.
 
-### 7.0 Already in flight — check these PRs before starting any item
+### 7.0 Already on `main` or claimed — check before starting any item
 
-| PR | State at 10:15 PDT | Covers | Leaves open |
+`main` at `17c22b5` (2026-10-10) already contains the following; `docs/breadcrumbs/2026-10-09-persona-bigger-changes.md` is the claim table the cloud session keeps for the rest.
+
+| PR | State | Covers | Leaves open |
 |---|---|---|---|
-| [#34 Persona audit quick wins 2–11](https://github.com/seanbalz/guess-the-lines-repo/pull/34) | draft, from a cloud session | Community Picks tab and shared `ChipPicker`: helper line per market, "Cowboys win by…" row label, "Your call" line, "Even (pick'em)", Total enabled with auto-saved draft on switch, enabled Submit with explanation, 503/offline/409/401 banners with Retry / Load latest / Sign in again, inline like/comment errors, "Saving…" labels, check icon on selected chips and `forced-colors` rules, chip row `group` labels, closed / unpublished / not-open states, "Make picks" opens the first due market, Appearance moved to the foot, `main` `tabIndex={-1}`, skip link to the picks-due card | Draft persistence and history (#3), keyboard model (#9, #23), type scale and density (#20, #28, #12), submission receipt (#25), sit-out placement and reveal (#40–#42), onboarding (#29, #33, #16), group-ballot targets (#31), league switcher collapse and coming-soon inline (#17 remainder, #36), spelled-out records (#11 remainder) |
-| [#33 Virtual Units settlement (D-26)](https://github.com/seanbalz/guess-the-lines-repo/pull/33) | draft, same cloud session | Settlement rules, ledger, commissioner "Settle finals" on the Virtual Units screen | Notes a hosted bug in `gtl_save_virtual_units_pick` (`isfinite(numeric)`) that needs its own migration before D-18 saves work |
-| [#36 Font tokens and local MIME](https://github.com/seanbalz/guess-the-lines-repo/pull/36) | open, from the handoff session | `--font-body/display/mono` exported to `:root`; `.png`/manifest/icon MIME types in the local service | Webfont loading, 16px root, radius/spacing/motion export (design agent Stage 1) |
-| [#32 Ben's Week 5 import](https://github.com/seanbalz/guess-the-lines-repo/pull/32) | **merged** (`16004b6`) | Ben's Week 5 picks on the community leaderboard | — |
+| [#34](https://github.com/seanbalz/guess-the-lines-repo/pull/34) quick wins 2–11 | merged `1d8deba` | Chip helper line, "Cowboys win by…" row label, "Your call" line, "Even (pick'em)", Total enabled with auto-saved draft on switch, enabled Submit with explanation, 503/offline/409/401 banners with Retry / Load latest / Sign in again, inline post errors, "Saving…" labels (`aria-disabled`, focus kept), check icon and `forced-colors` on chips, chip row `group` labels, closed / unpublished / not-open states, first due market opens, Appearance to the foot, `main` `tabIndex={-1}`, skip link to the picks-due card | spelled-out records (#11 remainder); league switcher and coming-soon inline (#17 remainder, #36) |
+| [#42](https://github.com/seanbalz/guess-the-lines-repo/pull/42) submission receipt | merged | Confirmation panel after Submit that takes focus, names the other ballot and links to the feed reveal (#25, #15, #30) | — |
+| [#43](https://github.com/seanbalz/guess-the-lines-repo/pull/43) targets and helper parity | merged | 44px like button, content-sized team chips, due time in the save bar with bottom padding, 44px dialog radios and mode tabs, helper sentence on group game screens (#19, #21, #24, #32, #31) | type scale (#20, #28, #12) stays with the design agent |
+| [#44](https://github.com/seanbalz/guess-the-lines-repo/pull/44) onboarding step | merged | Name prompt alone, sign-in pitch, groups-screen sentence (#29, #33, #16) | — |
+| [#45](https://github.com/seanbalz/guess-the-lines-repo/pull/45) drafts and URL hash | merged | Unsaved Community picks kept per tab (`communityDraft.js`), screen and market in the URL hash (`screenHash.js`), Back works (#3) | — |
+| [#46](https://github.com/seanbalz/guess-the-lines-repo/pull/46) sit-out | merged | "Sit out this week" as a link below the ballot, revealed picks on a sat-out market, after-deadline wording (#40, #41) | feed post for the opt-out (#42 in the audit) if it needed a migration; check the PR |
+| [#33](https://github.com/seanbalz/guess-the-lines-repo/pull/33), [#40](https://github.com/seanbalz/guess-the-lines-repo/pull/40) | merged | D-26 Virtual Units settlement and the hosted `isfinite(numeric)` save-path fix (migration applied as `20261009213204`) | — |
+| [#36](https://github.com/seanbalz/guess-the-lines-repo/pull/36) font tokens and local MIME | open, green | `--font-body/display/mono` exported to `:root`; `.png`/manifest/icon MIME types in the local service | webfont loading, 16px root, radius/spacing/motion export (design agent Stage 1) |
+| keyboard model (#9, #23) | **claimed**, `claude/persona-bc-keyboard`, cloud session | radiogroup with roving tabindex, arrow keys, numeric type-ahead in `ChipPicker` | do not start; coordinate through the claim table if it stalls |
 
-Backlog rows below are annotated **[#34]** where that PR already delivers them; verify against `origin/main` after it merges and do not reimplement.
+Backlog rows below are annotated **[#NN]** where a merged PR already delivers them; verify against `origin/main` and do not reimplement.
 
 ### P0
 
 | ID | Change | Acceptance | Boundary |
 |---|---|---|---|
-| UX-P0-1 | **Draft persistence on the Community Picks tab**: keep unsaved picks per account/season/week/mode in `sessionStorage`, restore on return, put the tab in the URL hash (`#feed`, `#picks`, `#groups`), push history per screen, handle `popstate`. | `phone.spec.js`: five picks survive tab switch, reload and Back; `impatient.spec.js`: offline save keeps picks and shows Retry | Device-local only; explicit Restore like the group screens; never auto-submit |
+| UX-P0-1 | **Draft persistence on the Community Picks tab** **[#45 delivers this]**: verify on `main`; nothing to build. | `phone.spec.js`: five picks survive tab switch, reload and Back | Device-local only; never auto-submit |
 | UX-P0-2 | **Every error banner carries the next action** **[#34 delivers the buttons, inline placement and busy labels]**: remaining piece is auto-saving the draft before the D-17 fresh-quote check so a refused submit never holds picks only in memory. | `impatient.spec.js` asserts a button per failure and the banner within the viewport of the control | D-17 wording: the save was refused, the draft is kept |
 | UX-P0-3 | **Stop the silent fallback** on `/community/read` failure **[#34 delivers this]**: verify after merge; nothing to build. | `impatient-feed-503` scenario shows the shell + Retry | — |
-| UX-P0-4 | **Sit out placement**: move "Sit out this week" below the ballot as a text link with its confirm dialog; keyboard order reaches Save draft and Submit first. | `motor.spec.js` tab order; `confused.spec.js` dialog unchanged | D-23 dialog copy stays ("final… recorded as sat out, not zero") |
+| UX-P0-4 | **Sit out placement** **[#46 delivers this]**: verify on `main`. | `motor.spec.js` tab order; `confused.spec.js` dialog unchanged | D-23 dialog copy stays |
 
 ### P1
 
@@ -268,24 +275,24 @@ Backlog rows below are annotated **[#34]** where that PR already delivers them; 
 | UX-P1-2 | **Explain the chips everywhere** **[#34 delivers the helper line, row label, call line and "Even (pick'em)" on the Community tab and through the shared `ChipPicker`]**: remaining is spelled-out team records for screen readers (#11) and a check that the group ballot shows the same helper. | `first-timer.spec.js`, `low-vision.spec.js` | Signed home-spread contract unchanged in the saved value (PR #34 keeps signed chips) |
 | UX-P1-3 | **Enable, then explain** **[#34 delivers this]**: verify after merge. | `first-timer.spec.js` | Full ballot still required to submit |
 | UX-P1-4 | **One vocabulary**: Spread / Total everywhere (rename "Over/Under" tab to Total or vice versa, one choice), "2 ballots due: Spread (0 of 14 games), Total (0 of 14)", expand PK, same matchup naming in feed posts and Picks. | string audit in a spec | Ask Sean which word (recommend "Total" to match scoring docs) |
-| UX-P1-5 | **State screens** **[#34 delivers closed, unpublished and not-open states and opens the first due market]**: remaining is the sat-out market showing the revealed picks or a link to the feed posts (#41). | `confused.spec.js` scenarios each assert one headline and one action | D-24 strings; D-23 reveal rules |
-| UX-P1-6 | **Submission receipt**: after Submit, focus moves to a receipt panel (count, time, "Total still due", buttons to Total and to the feed). | `power.spec.js` focus assertion | Reveal only the submitted market |
+| UX-P1-5 | **State screens** **[#34 and #46 deliver all of this]**: verify on `main`; nothing to build. | `confused.spec.js` scenarios each assert one headline and one action | D-24 strings; D-23 reveal rules |
+| UX-P1-6 | **Submission receipt** **[#42 delivers this]**: verify on `main`. | `power.spec.js` focus assertion | Reveal only the submitted market |
 | UX-P1-7 | **Consolidated empty states** on the League Dashboard: one message per panel naming the reason ("Troy and Luke have not submitted", "No reference was saved with this historical ballot") and, where allowed, the action. | `dashboard-charts.spec.js` unscored case | Never a zero |
 | UX-P1-8 | **Home order on Community** **[#34 delivers Appearance to the foot, `main` `tabIndex={-1}` and the skip link to the picks-due card]**: remaining is the league switcher collapsed to "NFL · Live · More leagues" and coming-soon as an inline expansion rather than a screen replacement. | `first-timer.spec.js` Tab count ≤ 4; `confused-league-coming-soon` keeps the picks reminder | D-22 cards and Notify me remain |
-| UX-P1-9 | **Disclosure taxonomy and sidebar grouping** (with the design agent): settings go to the bottom/Settings, one explanation per screen, data drilldowns inside tables; sidebar grouped Play / Review / Social / Account, Design lab commissioner-only. | navigation spec; existing button names preserved or specs updated | — |
+| UX-P1-9 | **Disclosure taxonomy and sidebar grouping** (with the design agent): settings go to the bottom/Settings, one explanation per screen, data drilldowns inside tables; sidebar grouped Play / Review / Social / Account, Design lab commissioner-only. 44px mode tabs and the group-game helper sentence are already on `main` (#43). | navigation spec; existing button names preserved or specs updated | — |
 | UX-P1-10 | **Refresh transparency**: a single status line under the scoreboard ("Market data collected 1:15 PM PT · next 1:15 AM PT") that survives section toggles; `refreshWarning` surfaces there. | `onboarding.spec.js` notices tests | Twelve-hourly, not live |
 
 ### P2
 
 | ID | Change | Acceptance | Boundary |
 |---|---|---|---|
-| UX-P2-1 | **Keyboard model for chips**: radiogroup with roving tabindex, arrow keys within a row, numeric type-ahead ("3" selects −3), one tab stop per row, typed-value escape hatch on the focused row. | `power.spec.js` ≤ 100 key presses | `ChipPicker.jsx` only |
+| UX-P2-1 | **Keyboard model for chips** **[claimed by the cloud session on `claude/persona-bc-keyboard`; do not start]**: radiogroup with roving tabindex, arrow keys within a row, numeric type-ahead, one tab stop per row, typed-value escape hatch. | `power.spec.js` ≤ 100 key presses | `ChipPicker.jsx` only |
 | UX-P2-2 | **Total chips centered on the matchup's typical total** (team records / last collected consensus is **not** allowed before submission; use a neutral per-matchup prior or allow typing). | `first-timer-picks-total` | Reveal gate: never show the market total before submission |
 | UX-P2-3 | **Density at ≥ 960px**: two-column pick cards; optional dense row layout for power users. | `power.spec.js` height ≤ 3000 px | Design agent owns the styling |
 | UX-P2-4 | **Skeletons and reuse**: skeleton rows for feed and Picks; reuse the feed payload for the week; prefetch `/personal` after the feed. | `phone.spec.js` timing | No provider requests from the browser |
-| UX-P2-5 | **Sticky bar and dead ends**: deadline in the sticky save bar, bottom padding equal to the bar, back link to the feed in the bar. | `phone-picks-5-of-14` | — |
-| UX-P2-6 | **Onboarding**: name step alone with the confirmation carried into Community; one-line pitch on sign-in with email autofocused; one sentence on the groups screen about what groups are for, Solo/Bet Tracker demoted to secondary. | `first-timer`, `confused-groups-empty` | — |
-| UX-P2-7 | **Feed post for sit-out** ("Ben sat out Week 5 Total") so other members understand reveal access. | `d23.spec.js` | Needs an API/trigger change; coordinate with the rules owner |
+| UX-P2-5 | **Sticky bar and dead ends** **[#43 delivers the due time and bottom padding]**: remaining is a back link to the feed in the bar (#27). | `phone-picks-5-of-14` | — |
+| UX-P2-6 | **Onboarding** **[#44 delivers this]**: verify on `main`. | `first-timer`, `confused-groups-empty` | — |
+| UX-P2-7 | **Feed post for sit-out** ("Ben sat out Week 5 Total") so other members understand reveal access. PR #46 was allowed to defer this if it needed a hosted migration; check that PR before starting. | `d23.spec.js` | Needs an API/trigger change; coordinate with the rules owner |
 | UX-P2-8 | **Install and reminders**: surface the Home Screen install offer on the dashboard once per device; keep "not connected" honesty for push until NOT-02 unblocks. | `install` spec | No subscriptions, no caches |
 
 Items that need Sean's decision before implementation are marked in section 9; everything else can proceed.
