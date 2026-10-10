@@ -17,6 +17,8 @@
 .feed-post-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .feed-actions{display:flex;gap:16px;align-items:center}
 .feed-actions .text-button,.feed-actions span{display:inline-flex;align-items:center;gap:6px;min-height:44px}
+/* Persona audit #19: the like button is a 44px target in both directions (it was 33px wide), not only 44px tall. */
+.feed-actions .text-button{min-width:44px}
 .feed-actions .liked{color:var(--loss)}
 .feed-comments{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .feed-comment-form{display:flex;gap:8px}
@@ -27,7 +29,9 @@
 .publish-fields input{min-height:44px;width:110px;padding:0 12px}
 .week-pick h3{font-size:16px}
 .week-picks .save-bar{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:12px;background:var(--surface);border-top:1px solid var(--border)}
-.week-picks .save-bar strong{margin-right:auto}
+/* Persona audit #24: the ready count and the due time share the bar's left side; the buttons sit to the right. */
+.week-picks .save-bar .save-status{display:grid;gap:2px;margin-right:auto}
+.week-picks .save-bar .save-due{color:var(--muted)}
 .league-switcher{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
 .league-chip{min-height:44px;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:16px;line-height:20px;text-align:left}
 .league-chip.selected{border-color:var(--primaryForeground,var(--primary));box-shadow:inset 0 0 0 1px var(--primaryForeground,var(--primary))}
@@ -66,7 +70,7 @@
 .week-closed{margin:8px 0}
 .chip-help{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin:12px 0;padding:12px 16px;border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:8px;background:var(--surface);font-size:14px;line-height:1.6}
 .chip-help p{margin:0}
-.chip-help .text-button{flex:none;color:var(--text);text-decoration:underline}
+.chip-help .text-button{flex:none;min-width:44px;justify-content:center;color:var(--text);text-decoration:underline}
 /* Persona audit #3: the tab-copy recovery card above the game list. */
 .picks-recovery{margin:12px 0;padding:16px;border-left:4px solid var(--pending)}
 .picks-recovery h3{font-size:16px;line-height:24px;margin:0 0 4px}
@@ -80,7 +84,20 @@
 .error-banner .banner-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .community-home .error-banner button{margin-left:auto;min-height:44px;color:var(--text);text-decoration:underline;padding:0 4px}
 .community-home .error-banner .banner-actions button{margin-left:0}
+/* Persona audit #25: the receipt of a submitted ballot. It takes focus after the submit (2.4.3) and names the market, the count and the
+   time, what is still due, the feed reveal for that market only (D-23) and Edit picks (D-16); the win token marks the done state. */
+.submit-receipt{display:flex;gap:12px;align-items:flex-start;margin:12px 0;padding:16px;border-left:4px solid var(--win)}
+.submit-receipt>svg{flex:none;color:var(--win);margin-top:3px}
+.submit-receipt>div{display:grid;gap:8px;flex:1;min-width:0}
+.submit-receipt h3{font-size:20px;line-height:28px}
+.submit-receipt p{margin:0}
+.submit-receipt .receipt-due{font-weight:600}
+.receipt-actions{display:flex;flex-wrap:wrap;gap:8px}
+.receipt-actions button{min-height:44px}
+/* Focus targets that are not controls (the receipt, a feed post, the feed) show the same cyan ring as the controls do. */
+.submit-receipt:focus-visible,.feed-post:focus-visible,.community-feed:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 @media (forced-colors:active){
+  .submit-receipt{border-left-width:6px}
   .feed-actions .liked{color:Highlight}
   .community-leaderboard tr.me th{text-decoration:underline;text-underline-offset:3px}
   .picks-due{border-left-width:6px}

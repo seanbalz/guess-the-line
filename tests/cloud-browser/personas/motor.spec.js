@@ -8,7 +8,9 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await persona.start({ games: 3 });
   await page.goto('/');
-  await persona.smallTargets('sign-in');
+  // Bigger changes (#19, #31, #32): no interactive target under 44px on any screen of this journey. A labelled radio or checkbox is
+  // measured by its label (the press target); the 20×20 control itself stays native.
+  expect(await persona.smallTargets('sign-in')).toEqual([]);
   // Sign in without a pointer.
   await persona.tabTo(f => f.tag === 'input');
   await page.keyboard.type('ben@example.test');
@@ -28,7 +30,8 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await page.keyboard.press('Tab');
   expect((await persona.focused()).name).toBe('Make picks');
   await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Shift+Tab');
-  await persona.smallTargets('feed');
+  expect(await persona.smallTargets('feed')).toEqual([]);
+  expect(await page.locator('.feed-actions [data-action="like"]').evaluateAll(buttons => buttons.map(b => Math.round(b.getBoundingClientRect().width)).filter(w => w < 44))).toEqual([]);
   await persona.shot('feed');
 
   // Trap check: tab through the whole home screen and confirm focus leaves to the browser chrome.
@@ -48,7 +51,9 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await page.keyboard.press('Enter');
   const first = page.locator('.week-pick').first();
   await expect(first).toBeVisible();
-  await persona.smallTargets('picks');
+  expect(await persona.smallTargets('picks')).toEqual([]);
+  // The Community helper sentence (PR #34) is the one the group ballot must share (#31).
+  const communityHelp = await page.locator('.chip-help p').innerText();
   await persona.tabTo(f => f.name === 'Cowboys');
   await page.keyboard.press('Space');
   await persona.tabTo(f => f.name === '−3');
@@ -88,15 +93,21 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await page.getByRole('button', { name: /Groups & games/ }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
-  await persona.smallTargets('groups');
+  expect(await persona.smallTargets('groups')).toEqual([]);
   await persona.shot('groups');
   await page.getByRole('button', { name: 'New game', exact: true }).focus();
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Start a new game' });
   await expect(dialog).toBeVisible();
-  const dialogFocus = await persona.focused();
-  persona.finding({ screen: 'new-game-dialog', severity: dialogFocus.name === 'Close dialog' ? 4 : 3, wcag: '2.4.3', experience: `Opening "New game" moves focus to "${dialogFocus.name || dialogFocus.tag}". The native <dialog> keeps Tab inside it and Escape closes it, which is right; focus should start on the Game name field rather than the close button.`, fix: 'Autofocus the first field in dialogs.' });
-  await persona.smallTargets('new-game-dialog');
+  // #32: the dialog opens on its first field (Game name), not on the close button; the native <dialog> keeps Tab inside and Escape closes it.
+  expect(await persona.focused()).toMatchObject({ tag: 'input', visible: true });
+  expect(await page.evaluate(() => document.activeElement?.id)).toBe('game-name');
+  // #32: the Duel / Group radios and the practice checkbox stay native 20×20 controls; their press target is the padded label
+  // around each, and every label is at least 44px tall and wide.
+  expect(await persona.smallTargets('new-game-dialog')).toEqual([]);
+  const dialogLabels = await dialog.locator('label:has(input[type=radio]), label:has(input[type=checkbox])').evaluateAll(labels => labels.map(label => { const r = label.getBoundingClientRect(), input = label.querySelector('input').getBoundingClientRect(); return { label: [Math.round(r.width), Math.round(r.height)], control: [Math.round(input.width), Math.round(input.height)], padding: parseFloat(getComputedStyle(label).paddingLeft) }; }));
+  expect(dialogLabels).toHaveLength(3);
+  for (const { label, control, padding } of dialogLabels) { expect(label[0]).toBeGreaterThanOrEqual(44); expect(label[1]).toBeGreaterThanOrEqual(44); expect(control).toEqual([20, 20]); expect(padding).toBeGreaterThanOrEqual(12); }
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   const released = await persona.focused();
@@ -110,16 +121,22 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await page.getByRole('button', { name: 'Create game', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'The weekly huddle.' })).toBeVisible();
-  await persona.smallTargets('game-dashboard');
+  // #31: the mode tabs and the sidebar card's "How to play" reach 44px; the dashboard's layout radios and module checkboxes are
+  // measured by their labels.
+  expect(await persona.smallTargets('game-dashboard')).toEqual([]);
+  expect(await page.locator('.mode-tabs button').evaluateAll(tabs => tabs.map(t => Math.round(t.getBoundingClientRect().height)))).toEqual([44, 44]);
+  expect(await page.locator('.season-card button').evaluate(b => { const r = b.getBoundingClientRect(); return [Math.round(r.width) >= 44, Math.round(r.height) >= 44]; })).toEqual([true, true]);
   await persona.shot('game-dashboard');
   // Game navigation by keyboard: the sidebar buttons come after the brand and league chip.
   const toPicks = await persona.tabTo(f => f.name === 'My picks');
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Trust your read.' })).toBeVisible();
-  // Since main 5a96c80 (PR #19) the group ballot uses ChipPicker too, with a "Next game" link per row and a helper
-  // sentence that the Community Picks tab still lacks.
-  const helper = await page.locator('.ballot-header').innerText();
-  expect(helper).toContain('Tap the favorite or Pick');
+  // Since main 5a96c80 (PR #19) the group ballot uses ChipPicker too, with a "Next game" link per row. Bigger changes (#31): its
+  // header opens with the same helper sentence the Community Picks tab shows (ChipPicker's CHIP_HELP), so both surfaces explain
+  // the favorite, the points and Pick'em in one wording; the group-only chip mechanics follow it.
+  const helper = await page.locator('.ballot-header p').innerText();
+  expect(helper.startsWith(communityHelp)).toBe(true);
+  expect(helper).toContain('More covers 10.5–20');
   // The group ballot rows carry the same labelled number row and "Your call" line as the Community tab (ChipPicker is shared):
   // choose the home favorite by keyboard and the row label and call line appear, using the team codes this screen passes in.
   const groupPicker = page.locator('.prediction-entry-controls').first();
@@ -130,14 +147,20 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await page.keyboard.press('Enter');
   await expect(groupPicker.locator('.chip-call')).toHaveText('Your call: DAL by 3');
   await expect(groupPicker.locator('.chip-summary')).toHaveText('DAL −3');
-  persona.finding({ screen: 'game-picks', severity: 4, experience: `Inside a group game "My picks" (${toPicks} Tabs from the top) opens the same chip entry as the Community tab, with per-row "Next game" links and a helper sentence ("${helper.split('\n').find(line => line.startsWith('Tap'))}"). The Community Picks tab now has its own dismissible helper; the two sentences are worded differently.`, fix: 'Share one helper sentence between the two surfaces.' });
+  persona.finding({ screen: 'game-picks', severity: 4, experience: `Inside a group game "My picks" (${toPicks} Tabs from the top) opens the same chip entry as the Community tab, with per-row "Next game" links and the same helper sentence. Good.`, fix: 'Keep it.' });
   // Regression check: at 1024px the matchup column is so narrow that full team names break mid-word.
   const names = await page.locator('.prediction-matchup .team-matchup__name strong').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(), line = parseFloat(getComputedStyle(node).lineHeight) || 20; return { text: node.textContent, width: Math.round(r.width), lines: Math.round(r.height / line) }; }));
   const broken = names.filter(n => n.lines > n.text.split(' ').length + 1);
   if (broken.length) persona.finding({ screen: 'game-picks', severity: 2, wcag: '1.4.10 (reflow)', experience: `Regression on main (chip entry in PredictionEntry): at 1024px the matchup column is ${broken[0].width}px wide and full team names wrap letter by letter ("${broken[0].text}" over ${broken[0].lines} lines; ${broken.length} of ${names.length} names). The row is three times taller than its chips and the kickoff/records lines sit under a column of single syllables.`, fix: 'Give the matchup column a min-width (or use the compact code names at <1200px) and let the chip cell take the remaining width.', evidence: broken.slice(0, 4) });
   const sitOut = page.getByRole('button', { name: 'Sit out this week' });
   if (await sitOut.count()) persona.finding({ screen: 'game-picks', severity: 3, experience: '"Sit out this week" (final, forfeits the week) sits in the save bar as a secondary button directly beside "Save draft", with the same size and weight. A keyboard user tabbing to Save draft lands on Sit out first.', fix: 'Move the opt-out below the ballot as a text link ("Not playing this week? Sit out…"), keep the confirmation dialog.' });
-  await persona.smallTargets('game-picks');
+  expect(await persona.smallTargets('game-picks')).toEqual([]);
+  expect(await page.locator('.mode-tabs button').evaluateAll(tabs => tabs.map(t => Math.round(t.getBoundingClientRect().height)))).toEqual([44, 44, 44]);
+  // The group ballot's sticky save bar never hides the row that was just scrolled or focused into view (#24 parity).
+  const lastRow = page.locator('.picks-table tbody tr').last();
+  await lastRow.evaluate(el => el.scrollIntoView({ block: 'end' }));
+  const groupBar = await page.locator('.save-bar').boundingBox();
+  expect((await lastRow.boundingBox()).y + (await lastRow.boundingBox()).height).toBeLessThanOrEqual(groupBar.y + 1);
   await persona.shot('game-picks');
   expect(await persona.noOverflow()).toBe(true);
 });

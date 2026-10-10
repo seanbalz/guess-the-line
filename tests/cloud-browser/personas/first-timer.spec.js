@@ -32,7 +32,8 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await persona.shot('feed');
   await persona.axe('feed');
   await persona.smallText('feed');
-  await persona.smallTargets('feed');
+  // Bigger changes (#19): the like button is at least 44px wide.
+  expect(await persona.smallTargets('feed')).toEqual([]);
   const due = await page.locator('.picks-due').innerText();
   persona.finding({ screen: 'feed', severity: 4, experience: `The picks-due card reads "${due.replace(/\n/g, ' / ')}". "Spread 0/14 · Total 0/14" is counts without a noun; a newcomer does not know that Spread and Total are two separate ballots that both must be finished.`, fix: 'Say "2 ballots due: Spread (0 of 14 games) and Total (0 of 14 games)".' });
   // Quick win 11 (#17): Appearance sits with the account controls at the foot of the page, below the title and the picks-due card.
@@ -52,7 +53,8 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await persona.shot('picks-cold');
   await persona.axe('picks-cold');
   await persona.smallText('picks-cold');
-  await persona.smallTargets('picks-cold');
+  // "Got it" is at least 44px wide too.
+  expect(await persona.smallTargets('picks-cold')).toEqual([]);
   // Quick win 2 (#4): one helper line per market explains the favorite, the points and Pick'em; it can be dismissed.
   const help = page.locator('.chip-help');
   await expect(help).toContainText('Tap the team you think wins (the favorite), then how many points they win by.');
@@ -61,9 +63,13 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   const picksText = await page.locator('.week-picks').innerText();
   expect(/favorite|favou?red|points? better|home team|what is a spread|how to/i.test(picksText)).toBe(true);
   expect(/toss-?up|even|no favorite/i.test(picksText)).toBe(true);
+  // Bigger changes (#21): team chips are sized by their name, so "Buccaneers" and "Commanders" are never cut to "Command…" at 390px;
+  // the shorter chips in the row give way and, when a row cannot hold all three, it wraps to a second line instead of clipping.
   const truncated = await page.locator('.team-chip').evaluateAll(chips => chips.filter(chip => chip.scrollWidth > chip.clientWidth).map(chip => chip.textContent));
+  expect(truncated).toEqual([]);
   const fitsBefore = new Set(await page.locator('.team-chip').evaluateAll(chips => chips.filter(chip => chip.scrollWidth <= chip.clientWidth).map(chip => chip.textContent)));
-  if (truncated.length) persona.finding({ screen: 'picks-cold', severity: 3, wcag: '1.4.10 (reflow)', experience: `Team chips clip long names with an ellipsis at 390px: ${truncated.join(', ')} ("Command…"). The chip is the control that picks the favorite, so the name a player taps is cut off.`, fix: 'Use the team abbreviation plus nickname only when it fits (e.g. "WAS" / "Commanders" on two lines), or let the chip wrap to two lines.', evidence: truncated });
+  expect(fitsBefore.has('Buccaneers') && fitsBefore.has('Commanders')).toBe(true);
+  await expect(page.locator('.team-chip', { hasText: 'Commanders' })).toHaveCSS('text-overflow', 'ellipsis'); // Still the last resort below 320px.
   const first = page.locator('.week-pick').first();
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
   await persona.shot('picks-team-chosen');
@@ -118,10 +124,15 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   await expect(page.locator('.week-pick').first().locator('.chip-summary')).toHaveText('44 total points');
   await expect(page.locator('.week-pick').first().locator('.chip-call')).toHaveText('Your call: 44 combined points');
 
-  // What is due and when?
+  // What is due and when? Bigger changes (#24): the header names the weekday and says how far off the deadline is, and the sticky
+  // save bar repeats the due time beside the ready count so it is on screen wherever the player is scrolled.
   const status = await page.locator('.week-picks > p.muted').innerText();
-  expect(status).toContain('Due');
-  persona.finding({ screen: 'picks-total', severity: 3, experience: `The due line says "${status}". It is grey 14px text above the list. There is no time zone explanation beyond "PT", no day name, and no countdown.`, fix: 'Show "Due Thursday 5:15 PM PT (in 2 days)" in the sticky save bar as well as the header.' });
+  const deadline = persona.state.league.deadline, pt = { timeZone: 'America/Los_Angeles' };
+  const dueLong = new Date(deadline).toLocaleString('en-US', { ...pt, weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const dueShort = new Date(deadline).toLocaleString('en-US', { ...pt, weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  expect(status).toBe(`Week 5 · 1/14 picked · Due ${dueLong} PT (today)`);
+  await expect(page.locator('.save-bar .save-due')).toHaveText(`Due ${dueShort} PT (today)`);
+  await expect(page.locator('.save-bar strong')).toHaveText('1/14 ready');
   // Quick win 4 (#6): Submit stays enabled with one of fourteen picked and explains what is missing instead of saving.
   const submit = page.getByRole('button', { name: 'Submit Total' });
   await expect(submit).toBeEnabled();
