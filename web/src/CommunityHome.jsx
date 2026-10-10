@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
-import ChipPicker from './ChipPicker';
+import ChipPicker, { CHIP_HELP } from './ChipPicker';
 import TeamFacts from './TeamFacts';
 import SitOutWeek from './SitOutWeek';
 import { cloudApi, communityApi, date } from './api';
-import { TEAM_NAMES, weekOpenAt } from '../../shared/nfl-schedule.mjs';
+import { TEAM_NAMES, pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import './community.css';
 
 const MODE = { guess_spread: 'Spread', guess_total: 'Total' };
@@ -21,6 +21,10 @@ const dueText = deadline => `Picks due ${date(deadline, { weekday: 'short' })} P
 const inDays = (opensAt, now) => { const days = Math.ceil((Date.parse(opensAt) - (now ? Date.parse(now) : Date.now())) / DAY); return days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`; };
 // The Monday open after a closed week (D-24).
 const nextOpenAt = deadline => weekOpenAt(Date.parse(deadline) + 7 * DAY);
+// Persona audit #24: "today" / "tomorrow" / "in 3 days" until the deadline, by Pacific calendar day against the handler clock.
+const dueIn = (deadline, now) => { const days = Math.round((Date.parse(pacificDate(deadline).date) - Date.parse(pacificDate(now || Date.now()).date)) / DAY); return days <= 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`; };
+// "Due Thu 5:15 PM PT (in 2 days)" for the sticky save bar; the header keeps the date too.
+const dueShort = (deadline, now) => `Due ${date(deadline, { weekday: 'short', month: undefined, day: undefined })} PT (${dueIn(deadline, now)})`;
 // Persona audit #4: the chip helper is dismissed per market, so hiding the Spread tip never hides the Total one.
 const helpKey = mode => `gtl.chipHelp.${mode}`;
 // Persona audit #8: a request that never reached the service (no status) reads as "offline" everywhere, never as "Failed to fetch".
@@ -324,7 +328,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
     save(true);
   }
   const header = satOut ? "Sat out · others' picks visible" : notOpen ? `Not open yet · ${dueText(data.deadline)}`
-    : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline)} PT`}${submitted ? (closed ? ' · Submitted' : ' · Submitted, editable until the deadline') : ''}`;
+    : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline, { weekday: 'short' })} PT (${dueIn(data.deadline, data.now)})`}${submitted ? (closed ? ' · Submitted' : ' · Submitted, editable until the deadline') : ''}`;
   // The receipt's "still due" line reads the other market's saved ballot and opt-out (a sat-out market is never due, D-23).
   const otherMode = mode === 'guess_spread' ? 'guess_total' : 'guess_spread';
   const other = { mode: otherMode, submitted: !!data.ballots[otherMode]?.submittedAt, satOut: optOuts.includes(otherMode), games: data.games.length,
@@ -341,9 +345,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
     {notice && !editable && <p className="auth-notice" role="status">{notice}</p>}
     {submitted && editable && <SubmitReceipt id={receiptId} mode={mode} count={Object.values(picksFor(data, mode)).filter(v => v !== '').length} ballot={ballot} other={other} deadline={data.deadline} busy={busy}
       onOther={() => switchMode(otherMode)} onReveal={() => onReveal?.(mode)} onEdit={() => root.current?.querySelector('.week-pick-list .chip:not(:disabled)')?.focus()}/>}
-    {!dismissed.has(mode) && editable && <div className="chip-help" role="note"><p>{mode === 'guess_spread'
-      ? 'Tap the team you think wins (the favorite), then how many points they win by. Pick’em means an even game with no favorite. The chips use the sportsbook sign: −3 means the favorite wins by 3.'
-      : 'Total = both teams’ points combined. Tap the number you expect, then fine-tune by half a point with − and +.'}</p>
+    {!dismissed.has(mode) && editable && <div className="chip-help" role="note"><p>{CHIP_HELP[mode]}</p>
       <button type="button" className="text-button" aria-label="Got it, hide this tip" onClick={dismissHelp}>Got it</button></div>}
     <div className="week-pick-list">{data.games.map(g => <article className="panel week-pick" key={g.id}>
       <h3>{team(g.awayCode)} @ {team(g.homeCode)}</h3>
@@ -358,7 +360,8 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
       {notice && <p className="auth-notice save-notice" role="status">{notice}</p>}
       {/* Always mounted: a live region whose text changes is announced; one inserted with its text often is not. Submit is described by it. */}
       <p className="save-hint" id={hintId} role="status" aria-live="polite">{hint}</p>
-      <strong>{filled}/{data.games.length} ready</strong>
+      {/* Persona audit #24: the due time travels with the sticky bar, so the deadline is on screen wherever the player is scrolled. */}
+      <div className="save-status"><strong>{filled}/{data.games.length} ready</strong><span className="save-due">{dueShort(data.deadline, data.now)}</span></div>
       {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { await load(); await onSatOut?.(); }}/>}
       {/* Busy and nothing-to-save states are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…" and after. */}
       {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}

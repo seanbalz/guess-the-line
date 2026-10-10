@@ -3,10 +3,11 @@
 .chip{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--canvas);color:var(--text);font-weight:600;font-size:16px}
 .chip.selected{background:var(--primary);color:var(--primaryText);border-color:var(--primary)}
 .chip .chip-check{vertical-align:-2px;margin-right:4px}
-.team-chip{position:relative;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* The team chip's check sits outside the name's text flow, so a chosen chip needs no more room than an unchosen one: a name that fits at 390px still fits once selected (D-21). */
+/* Team chips are sized by their name (flex-basis auto) and share only the spare width, so a long name (Buccaneers, Commanders) keeps its room and the shorter chips give way instead of every chip being cut to a third of the row ("Command…" at 390px). A row that cannot hold all three wraps onto a second line (below about 330px); the ellipsis stays as the last resort for a single chip wider than its row. */
+.team-chip{position:relative;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* The team chip's check sits outside the name's text flow, so a chosen chip needs no more room than an unchosen one: a name that fits at 390px still fits once selected (D-21). Its padding adds up to the unchosen 24px, so choosing a team never resizes the row. */
 .team-chip .chip-check{position:absolute;left:4px;top:50%;transform:translateY(-50%);margin:0}
-.team-chip.selected{padding:0 6px 0 20px}
+.team-chip.selected{padding:0 4px 0 20px}
 .number-chip{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace;font-variant-numeric:tabular-nums;min-width:56px}
 .more-chip{border-style:dashed;color:var(--muted)}
 .icon-chip{display:grid;place-items:center;padding:0}
