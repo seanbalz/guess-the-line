@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
+import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
@@ -160,7 +160,8 @@ function Post({ post, name, onLike, onComment, busy }) {
     request.current ||= crypto.randomUUID();
     if (await run(() => onComment(post.id, body, request.current), '[data-action="comment"]')) { setDraft(''); request.current = null; }
   }
-  return <article ref={root} className="panel feed-post">
+  // Persona audit #25: the receipt's "See everyone's <market> picks" lands on the first post for that market, so each post is a focus target.
+  return <article ref={root} className="panel feed-post" data-post={post.id} tabIndex={-1}>
     <div className="feed-post-head"><PostText post={post} name={name}/><time className="muted small" dateTime={post.createdAt}>{date(post.createdAt)} PT</time></div>
     <PostPicks post={post}/>
     <div className="feed-actions">
@@ -212,12 +213,35 @@ function PublishWeek({ week, onDone }) {
   </section>;
 }
 
-function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) {
+/** Persona audit #25: the receipt of a submitted ballot while the week is open. Its heading names the market and the count, the line
+ * under it the submission time in PT (and the last change: a changed pick is re-referenced when saved, D-16), then what is still
+ * due for the week with a button that opens it, the feed reveal for this market only (D-23) and "Edit picks". It is the ballot's
+ * status whenever the market is shown; it takes focus only after an in-session submit (WeekPicks). */
+function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, onOther, onReveal, onEdit }) {
+  const changed = ballot.updatedAt && ballot.updatedAt !== ballot.submittedAt;
+  const due = other.submitted ? 'Both ballots submitted. Nothing else is due this week.' : other.satOut ? `${MODE[other.mode]}: sat out (final). Nothing else is due this week.`
+    : `${MODE[other.mode]}: ${other.filled}/${other.games} still due · ${dueText(deadline)}`;
+  return <section className="panel submit-receipt" tabIndex={-1} aria-labelledby={id}>
+    <CircleCheck size={22} aria-hidden="true"/>
+    <div>
+      <h3 id={id}>{MODE[mode]} submitted · {count} {count === 1 ? 'pick' : 'picks'}</h3>
+      <p className="muted small">Submitted {date(ballot.submittedAt)} PT{changed ? ` · changed ${date(ballot.updatedAt)} PT` : ''}. Points are fixed against that moment's consensus; a pick you change before the deadline gets a new reference when you save it.</p>
+      <p className="receipt-due">{due}</p>
+      <div className="receipt-actions">
+        {!other.submitted && !other.satOut && <button type="button" className="primary" aria-disabled={busy || undefined} onClick={onOther}>Make {MODE[other.mode]} picks<ArrowRight size={16} aria-hidden="true"/></button>}
+        <button type="button" className="secondary" onClick={onReveal}>See everyone's {MODE[mode]} picks</button>
+        <button type="button" className="secondary" onClick={onEdit}>Edit picks</button>
+      </div>
+    </div>
+  </section>;
+}
+
+function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initialMode }) {
   const [data, setData] = useState(null), [mode, setMode] = useState(initialMode || 'guess_spread'), [draft, setDraft] = useState(null);
   const [busy, setBusy] = useState(false), [saving, setSaving] = useState(null), [error, setError] = useState(''), [unpublished, setUnpublished] = useState(false);
   const [notice, setNotice] = useState(''), [failure, setFailure] = useState(null), [hint, setHint] = useState('');
   const [dismissed, setDismissed] = useState(() => new Set(Object.keys(MODE).filter(m => { try { return localStorage.getItem(helpKey(m)) === 'off'; } catch { return false; } })));
-  const request = useRef(null), root = useRef(null), refocus = useRefocus(root), hintId = useId();
+  const request = useRef(null), root = useRef(null), refocus = useRefocus(root), hintId = useId(), receiptId = useId();
   // The save-bar button behind the latest request ("draft" or "submit"); a banner action hands focus back to it.
   const action = useRef('draft');
   const load = useCallback(async () => { const result = await cloudApi('personal'); setData(result); return result; }, []);
@@ -252,7 +276,9 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) 
     if (e.status === 400) return { message: e.message, actions: [] };
     return { message: e.message, actions: [['Retry', retry]] };
   }
-  async function save(submit) {
+  // Persona audit #25: a submit from the save bar hands focus to the receipt (2.4.3); the save bar's status line is the announcement.
+  // A save made on the way to the other market (switchMode) leaves focus on the market button instead.
+  async function save(submit, focusReceipt = true) {
     if (busy) return false;
     action.current = submit ? 'submit' : 'draft';
     setBusy(true); setSaving(submit ? 'submit' : 'draft'); setFailure(null); setNotice(''); setHint('');
@@ -264,6 +290,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) 
       await cloudApi('personal/ballot', { ...body, requestId: request.current.requestId, revision: data.revision });
       request.current = null; await load();
       setNotice(submit || submitted ? `${MODE[mode]} picks submitted.` : 'Draft saved.'); onSaved?.();
+      if (submit && focusReceipt) refocus('.submit-receipt');
       return true;
     } catch (e) { setFailure(describe(e, () => save(submit))); return false; } finally { setBusy(false); setSaving(null); }
   }
@@ -290,7 +317,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) 
     if (next === mode || busy) return;
     if (dirty && editable) {
       if (submitted && remaining > 0) { setHint(`${missing()} to save your ${MODE[mode]} changes before switching to ${MODE[next]}. ${stands()}`); return; }
-      if (!(await save(submitted))) return;
+      if (!(await save(submitted, false))) return;
       setNotice(`${submitted ? `${MODE[mode]} picks submitted` : 'Draft saved'}. Now showing ${MODE[next]}.`);
     }
     setMode(next); setHint('');
@@ -302,6 +329,10 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) 
   }
   const header = satOut ? "Sat out · others' picks visible" : notOpen ? `Not open yet · ${dueText(data.deadline)}`
     : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline, { weekday: 'short' })} PT (${dueIn(data.deadline, data.now)})`}${submitted ? (closed ? ' · Submitted' : ' · Submitted, editable until the deadline') : ''}`;
+  // The receipt's "still due" line reads the other market's saved ballot and opt-out (a sat-out market is never due, D-23).
+  const otherMode = mode === 'guess_spread' ? 'guess_total' : 'guess_spread';
+  const other = { mode: otherMode, submitted: !!data.ballots[otherMode]?.submittedAt, satOut: optOuts.includes(otherMode), games: data.games.length,
+    filled: Object.values(picksFor(data, otherMode)).filter(v => v !== '').length };
   return <section ref={root} className="week-picks">
     <div className="personal-actions" role="group" aria-label="Market">{Object.entries(MODE).map(([m, label]) =>
       <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} aria-disabled={busy || undefined} onClick={() => switchMode(m)}>
@@ -312,6 +343,8 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, initialMode }) 
     {closed && !satOut && <p className="auth-notice week-closed" role="status">Week {data.week} {MODE[mode]} picks are closed. {submitted ? `Your submitted ${MODE[mode]} picks stay below.` : filled ? `Your ${MODE[mode]} draft was never submitted, so it does not score this week.` : `You made no ${MODE[mode]} picks this week.`} {opensText(data.week + 1, nextOpenAt(data.deadline))}.</p>}
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
     {notice && !editable && <p className="auth-notice" role="status">{notice}</p>}
+    {submitted && editable && <SubmitReceipt id={receiptId} mode={mode} count={Object.values(picksFor(data, mode)).filter(v => v !== '').length} ballot={ballot} other={other} deadline={data.deadline} busy={busy}
+      onOther={() => switchMode(otherMode)} onReveal={() => onReveal?.(mode)} onEdit={() => root.current?.querySelector('.week-pick-list .chip:not(:disabled)')?.focus()}/>}
     {!dismissed.has(mode) && editable && <div className="chip-help" role="note"><p>{CHIP_HELP[mode]}</p>
       <button type="button" className="text-button" aria-label="Got it, hide this tip" onClick={dismissHelp}>Got it</button></div>}
     <div className="week-pick-list">{data.games.map(g => <article className="panel week-pick" key={g.id}>
@@ -368,6 +401,9 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
   const dueCard = tab === 'feed' && !soon && feed?.picksDue && !['none', 'done'].includes(feed.picksDue.state);
   // The feed banner's Retry removes the banner: focus goes to main once the feed is back, or to the new banner's Retry.
   async function retryFeed() { refocus('[data-action="feed-retry"]'); if (await act(load)) { refocus(null); main.current?.focus(); } }
+  // Persona audit #25: the receipt's "See everyone's Spread picks" opens the feed on its first Spread post (the reveal is per market,
+  // D-23: the other market's posts stay hidden until that ballot is submitted), or on the feed itself when no post exists yet.
+  function reveal(mode) { const post = posts.find(p => p.kind === 'ballot_submitted' && p.mode === mode); refocus(post ? `[data-post="${post.id}"]` : '.community-feed'); setTab('feed'); }
   return <div className="hub-shell community-home">
     <a className="skip-link" href={dueCard ? '#picks-due' : '#main'}>{dueCard ? 'Skip to picks due' : 'Skip to main content'}</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{displayName}</span></div></header>
@@ -386,12 +422,12 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
       </nav>
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span>{!feed && retryable && <button type="button" className="text-button" data-action="feed-retry" aria-disabled={busy || undefined} onClick={() => { if (!busy) retryFeed(); }}>Retry</button>}</div>}
       {notice && <p className="auth-notice" role="status">{notice}</p>}
-      {tab === 'picks' ? <WeekPicks optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
+      {tab === 'picks' ? <WeekPicks optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
         <PicksDue due={feed.picksDue} all={feed.due} onPick={() => setTab('picks')}/>
         <Leaderboard feed={feed}/>
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}
-        <section className="community-feed" aria-label="Activity feed">
+        <section className="community-feed" aria-label="Activity feed" tabIndex={-1}>
           {posts.map(post => <Post key={post.id} post={post} name={name} busy={busy} onLike={like} onComment={comment}/>)}
           {!posts.length && <p className="panel">No activity yet.</p>}
           {feed.posts.length >= 30 && <button className="secondary" disabled={busy} onClick={more}>Older activity</button>}

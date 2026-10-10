@@ -51,6 +51,8 @@ const rpcChecks = [
   ['gtl_read_reviewed_results', { p_user: missingId, p_league: missingLeague }],
   ['gtl_read_virtual_units', { p_user: missingId, p_league: missingLeague }],
   ['gtl_save_virtual_units_pick', { p_user: missingId, p_league: missingLeague, p_revision: 0, p_body: {} }],
+  // D-18 save-path helper added by 20261009190000; service-only like the function that calls it.
+  ['gtl_numeric_is_finite', { p_value: 1 }],
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
   // D-25 commissioner-ruled import: service-only, never callable from a browser role.
   ['gtl_import_ruled_ballot', { p_actor: missingId, p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_picks: {}, p_submitted_at: null, p_ruling: 'boundary check only', p_reference: {} }],
