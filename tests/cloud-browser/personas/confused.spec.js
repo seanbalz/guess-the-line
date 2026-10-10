@@ -215,6 +215,8 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   await expect(page.locator('.week-sat-out')).toHaveText("You sat out Week 5 Total. This week's Total score is recorded as sat out, not zero. The other members' Total picks show below once they submit.");
   // The link that had focus is gone, so focus moves to that note rather than stranding on <body> (2.4.3).
   expect(await persona.focused()).toMatchObject({ tag: 'p', name: 'You sat out Week 5 Total. This week\'s To' });
+  // Review of the #41 reveal: the "Draft saved." notice from before the opt-out is cleared, so the sat-out note is the only notice on the market.
+  await expect(page.locator('.week-picks .auth-notice')).toHaveText([/^You sat out Week 5 Total\./]);
   await expect(cards.first().locator('.chip-picker')).toHaveCount(0);
   const revealed = cards.first().locator('.revealed-picks');
   await expect(revealed).toHaveAttribute('aria-label', 'Tampa Bay Buccaneers at Dallas Cowboys Total picks');

@@ -460,8 +460,9 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       {/* Busy and nothing-to-save states are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…" and after. */}
       {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}
       <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
-    {/* Persona audit #40: the final opt-out is a text link below the ballot, after Save draft and Submit in the tab order, not a button beside them. */}
-    {editable && !submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { removeCommunityDraft(scope); refocus('.week-sat-out'); await load(); await onSatOut?.(); }}/>}
+    {/* Persona audit #40: the final opt-out is a text link below the ballot, after Save draft and Submit in the tab order, not a button beside them.
+        The opt-out clears the last save notice ("Draft saved.") so it does not sit under the sat-out note. */}
+    {editable && !submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { removeCommunityDraft(scope); setNotice(''); refocus('.week-sat-out'); await load(); await onSatOut?.(); }}/>}
   </section>;
 }
 
