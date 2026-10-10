@@ -59,7 +59,8 @@ export function picksDue(feed, now) {
   const open = feed.due.filter(d => !d.submitted && !d.satOut);
   if (!open.length) return { state: 'done', modes: [] };
   const state = now < Date.parse(opensAt) ? 'not_open' : now >= deadline ? 'closed' : deadline - now <= 2 * 3_600_000 ? 'urgent' : 'due';
-  return { state, opensAt, deadline: feed.week.deadline, week: feed.week.week, modes: open };
+  // `now` is the handler clock the states were judged against, so the home screen can say "opens in 3 days" without trusting the device clock.
+  return { state, opensAt, deadline: feed.week.deadline, week: feed.week.week, modes: open, now: new Date(now).toISOString() };
 }
 
 export async function handleCommunity({ route, body = {}, user, service, clock = Date.now }) {

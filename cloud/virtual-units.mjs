@@ -1,11 +1,12 @@
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { settleVirtualUnitsWeek } from './virtual-settlement.mjs';
+
 const MARKETS = new Set(['spread','total']);
 const SIDES = { spread: new Set(['home','away']), total: new Set(['over','under']) };
 const BOOKS = { draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', betrivers: 'BetRivers', betonlineag: 'BetOnline.ag', betus: 'BetUS', bovada: 'Bovada', lowvig: 'LowVig.ag', mybookieag: 'MyBookie.ag' };
 const point = (value, market) => Number.isFinite(value) && Number.isInteger(value * 2) && value >= (market === 'total' ? 0 : -100) && value <= (market === 'total' ? 200 : 100);
 const odds = value => Number.isInteger(value) && Math.abs(value) >= 100 && Math.abs(value) <= 10000;
 const iso = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : null;
-export const VIRTUAL_METHODS = { '/virtual-units': ['GET'], '/virtual-pick': ['POST'] };
+export const VIRTUAL_METHODS = { '/virtual-units': ['GET'], '/virtual-pick': ['POST'], '/virtual-units/settle': ['POST'] };
 export class VirtualUnitsError extends Error { constructor(status, message) { super(message); this.status = status; } }
 const ERRORS = {
   GTL_FORBIDDEN: [403, 'Your account has not been added to this league.'],
@@ -13,6 +14,12 @@ const ERRORS = {
   GTL_VIRTUAL_CLOSED: [400, 'This matchup has started. Virtual picks and edits are closed.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your virtual picks changed on another device. Refresh before saving again.'],
   GTL_VIRTUAL_QUOTE: [409, 'That saved quote is no longer available. Review the latest offered line before confirming.'],
+  // D-26 settlement (commissioner route and script). A refused call settles nothing;
+  // a file row for a game that is not on the slate is skipped and reported, not refused.
+  GTL_VIRTUAL_FORBIDDEN: [403, 'Only the commissioner can settle Virtual Units.'],
+  GTL_SETTLEMENT_INPUT: [400, 'Send the season and week to settle. The finals payload was rejected and nothing was settled.'],
+  GTL_SETTLEMENT_WEEK: [404, 'No published slate exists for that season and week. Nothing was settled.'],
+  GTL_SETTLEMENT_EARLY: [409, 'A final arrived before that game\'s scheduled kickoff. Nothing was settled.'],
 };
 export const providerVirtualError = message => ERRORS[message] ? new VirtualUnitsError(...ERRORS[message]) : new Error('Virtual units data is unavailable.');
 
@@ -73,7 +80,30 @@ function decorate(payload, snapshot) {
   return { ...payload, games, source: 'The Odds API saved named-book quotes', sourceUrl: 'https://the-odds-api.com/liveapi/guides/v4/', quoteCutoff: null, now: new Date(now).toISOString(), automaticResults: false };
 }
 
+/**
+ * D-26 on-demand settlement. The same commissioner check the community routes
+ * use (gtl_community_admin) gates it; finals come from the public nflverse file
+ * through settleVirtualUnitsWeek, and the service-only RPC does the grading.
+ */
+async function settleRoute({ body, user, service, clock }) {
+  if (typeof service?.admin !== 'function' || typeof service?.settle !== 'function' || typeof service?.schedule !== 'function') throw new VirtualUnitsError(503, 'The virtual units settlement service is not connected yet.');
+  if (!(await service.admin(user.id))) throw providerVirtualError('GTL_VIRTUAL_FORBIDDEN');
+  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !['season', 'week'].includes(key))
+    || !Number.isInteger(body.season) || body.season < 2000 || body.season > 2200 || !Number.isInteger(body.week) || body.week < 1 || body.week > 25) throw providerVirtualError('GTL_SETTLEMENT_INPUT');
+  let csv;
+  try { csv = await service.schedule(); } catch { throw new VirtualUnitsError(503, 'The public schedule file is unavailable. Nothing was settled.'); }
+  try {
+    return await settleVirtualUnitsWeek({ season: body.season, week: body.week, actorId: user.id, clock, service: { schedule: async () => csv, settle: service.settle } });
+  } catch (error) {
+    if (error instanceof VirtualUnitsError) throw error;
+    if (ERRORS[error?.code]) throw providerVirtualError(error.code);
+    if (/schedule file|Invalid final score|Duplicate game|Unknown team code/.test(error?.message || '')) throw new VirtualUnitsError(422, `The public schedule file could not be used: ${error.message} Nothing was settled.`);
+    throw error;
+  }
+}
+
 export async function handleVirtualUnits({ route, body, user, leagueId, service, weekly, odds, clock = Date.now }) {
+  if (route === '/virtual-units/settle') return settleRoute({ body, user, service, clock });
   if (!service?.read || !service?.save) throw new VirtualUnitsError(503, 'The virtual units service is not connected yet.');
   if (route === '/virtual-units') {
     const [payload, snapshot] = await Promise.all([service.read(user.id, leagueId), odds.marketSnapshot(user.id, leagueId).catch(() => null)]);

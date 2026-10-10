@@ -1,13 +1,15 @@
-import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import React, { lazy, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Check, Copy, Flag, LoaderCircle, Plus, RefreshCw, ShieldCheck, TriangleAlert, Users, X } from 'lucide-react';
-import App from './App';
-import PersonalWorkspace from './PersonalWorkspace';
+import DeferredScreen from './DeferredScreen';
 import CommunityHome from './CommunityHome';
-import SocialBetTracker from './SocialBetTracker';
+const App = lazy(() => import('./App.jsx'));
+const PersonalWorkspace = lazy(() => import('./PersonalWorkspace.jsx'));
+const SocialBetTracker = lazy(() => import('./SocialBetTracker.jsx'));
 import ThemeSelector from './Theme';
 import Brand from './Brand';
 import { cloudApi, date } from './api';
 import { clearInvitation, pendingInvitation } from './invitations';
+import { goScreen, useScreen } from './screenHash';
 
 const formatName = value => ({ duel: 'Duel', group: 'Group', 'triple-threat': 'Triple Threat' })[value] || value;
 
@@ -16,6 +18,8 @@ function Dialog({ title, onClose, children }) {
   useEffect(() => {
     const previous = document.activeElement;
     ref.current?.showModal();
+    // Persona audit #32: a dialog that names a first field (data-initial-focus) opens on it, not on the close button, as the other modals do.
+    ref.current?.querySelector('[data-initial-focus]')?.focus();
     return () => previous?.focus();
   }, []);
   return <dialog ref={ref} className="modal hub-dialog" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); onClose(); }}>
@@ -44,6 +48,29 @@ function ProfileForm({ profile, onSaved, onCancel }) {
   </form>;
 }
 
+/** The account shell: skip link, brand, who is signed in and Sign out. The My games page adds its own heading and content.
+ * main carries tabIndex -1 (persona audit #18, as on the Community home) so the skip link moves focus onto it. */
+function Shell({ who, busy, onSignOut, children }) {
+  return <div className="hub-shell">
+    <a className="skip-link" href="#main">Skip to main content</a>
+    <header className="hub-header"><Brand/><div className="hub-account"><span>{who}</span><button className="secondary" onClick={onSignOut} disabled={busy}>Sign out</button></div></header>
+    <main className="hub-main" id="main" tabIndex={-1}>{children}</main>
+  </div>;
+}
+
+/** Persona audit #29: until a display name is saved the name prompt is the whole screen, not a form inside a greyed-out My games page.
+ * The heading takes focus so a screen reader hears the one required step (2.4.3); an invitation waits behind it. */
+function NameStep({ profile, invited, error, onSaved }) {
+  const heading = useRef(null);
+  useEffect(() => { heading.current?.focus({ preventScroll: true }); }, []);
+  return <section className="panel profile-setup onboarding-step" aria-labelledby="name-step-title">
+    <h1 id="name-step-title" ref={heading} tabIndex={-1}>First, what should we call you?</h1>
+    <ErrorMessage>{error}</ErrorMessage>
+    {invited && <p className="auth-notice">Your invitation is saved. Save a display name to accept it.</p>}
+    <ProfileForm key={profile.id} profile={profile} onSaved={onSaved}/>
+  </section>;
+}
+
 function NewGame({ onClose, onCreated }) {
   const [name, setName] = useState(''), [format, setFormat] = useState('duel'), [practice, setPractice] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
@@ -62,7 +89,7 @@ function NewGame({ onClose, onCreated }) {
     <p className="hub-help">Create a private game, then invite the people you want to play with. Your weekly predictions and Challenge selections are reused. Each group has its own players and standings.</p>
     <form className="hub-form" onSubmit={submit}>
       <ErrorMessage>{error}</ErrorMessage>
-      <label htmlFor="game-name">Game name<input id="game-name" required minLength={1} maxLength={80} placeholder="Give your rivalry a name" value={name} onChange={event => change(setName, event.target.value)} disabled={busy}/></label>
+      <label htmlFor="game-name">Game name<input id="game-name" data-initial-focus required minLength={1} maxLength={80} placeholder="Give your rivalry a name" value={name} onChange={event => change(setName, event.target.value)} disabled={busy}/></label>
       <fieldset className="format-options"><legend>Who’s playing?</legend>
         <label className={format === 'duel' ? 'selected' : ''}><input type="radio" name="format" value="duel" checked={format === 'duel'} onChange={() => change(setFormat, 'duel')} disabled={busy}/><span><strong>Duel</strong><small>You and one other player</small></span></label>
         <label className={format === 'group' ? 'selected' : ''}><input type="radio" name="format" value="group" checked={format === 'group'} onChange={() => change(setFormat, 'group')} disabled={busy}/><span><strong>Group</strong><small>Bring a group of friends</small></span></label>
@@ -128,14 +155,16 @@ function InvitePlayers({ league, onClose }) {
 
 export default function GameHub({ session, onSignOut }) {
   const selectionKey = `gtl.selectedGame.${session.user.id}`;
-  const [lobby, setLobby] = useState(null), [error, setError] = useState(''), [notice, setNotice] = useState(''), [busy, setBusy] = useState(false);
+  const [lobby, setLobby] = useState(null), [error, setError] = useState(''), [notice, setNotice] = useState(''), [welcome, setWelcome] = useState(''), [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState(() => { try { return sessionStorage.getItem(selectionKey) || ''; } catch { return ''; } });
   const [creating, setCreating] = useState(false), [editingProfile, setEditingProfile] = useState(false), [inviting, setInviting] = useState(null);
   const [token, setToken] = useState(pendingInvitation);
   const [socialDirty, setSocialDirty] = useState(false);
-  // D-21: the community feed is home; groups and games are one step away.
-  const [groupsOpen, setGroupsOpen] = useState(false), [communityOnline, setCommunityOnline] = useState(true);
-  const communityUnavailable = useCallback(() => { setCommunityOnline(false); setGroupsOpen(true); }, []);
+  // D-21: the community feed is home; groups and games are one step away. Persona audit #3: which screen is open lives in the URL hash
+  // (#feed, #picks, #groups), one history entry each, so Back moves between screens and a reload lands on the same one.
+  const screen = useScreen(), [communityOnline, setCommunityOnline] = useState(true);
+  const groupsOpen = screen === 'groups' || !communityOnline;
+  const communityUnavailable = useCallback(() => { setWelcome(''); setCommunityOnline(false); goScreen('groups', { replace: true }); }, []);
   const load = useCallback(async signal => { const result = await cloudApi('lobby', undefined, { signal }); setLobby(result); return result; }, []);
   useEffect(() => { const controller = new AbortController(); load(controller.signal).catch(failure => { if (failure.name !== 'AbortError') setError(failure.message); }); return () => controller.abort(); }, [load]);
   function choose(id) { setSelected(id); try { id ? sessionStorage.setItem(selectionKey, id) : sessionStorage.removeItem(selectionKey); } catch { /* Selection still works in this tab. */ } }
@@ -152,34 +181,52 @@ export default function GameHub({ session, onSignOut }) {
   }
   const profileReady = Boolean(lobby?.profile?.displayName?.trim());
   const current = lobby?.leagues.find(league => league.id === selected);
-  const onProfileSaved = async () => { await load(); setEditingProfile(false); setNotice('Your display name has been saved.'); };
-  if (!selected && !token && profileReady && !groupsOpen && !editingProfile) return <CommunityHome displayName={lobby.profile.displayName} onGroups={() => setGroupsOpen(true)} onUnavailable={communityUnavailable} onSignOut={signOut}/>;
-  if (selected === 'solo' && profileReady && !token) return <PersonalWorkspace onBack={() => choose('')} onSignOut={onSignOut}/>;
-  if (['social', 'units'].includes(selected) && profileReady && !token) return <div className="hub-shell">
+  // Persona audit #29: the first save names the player. When it lands on the Community home, `welcome` carries that confirmation there
+  // once and is cleared as soon as the player leaves Community, so a later edit (whose plain notice stays on My games) or a "← Community"
+  // back navigation never shows it again or re-fires the focus. With a saved invitation the first save lands on My games instead.
+  const onProfileSaved = async () => {
+    const first = !profileReady; const result = await load(); setEditingProfile(false);
+    const message = first ? `Your display name has been saved. Playing as ${result.profile.displayName}.` : 'Your display name has been saved.';
+    setNotice(message); if (first && !token) setWelcome(message);
+  };
+  const openGroups = () => { setNotice(''); setWelcome(''); goScreen('groups'); };
+  // The shell that waits for the lobby keeps a heading of its own ("Your games", the sign-in card's phrase) so the error state that
+  // persists until Try again is not a page without a title; the My games chrome still never paints before the lobby answers.
+  if (!lobby) return <Shell who={session.user.email} busy={busy} onSignOut={signOut}>
+    <div className="onboarding-step">
+      <h1>Your games</h1>
+      <ErrorMessage>{error}</ErrorMessage>
+      {error ? <button className="secondary" onClick={reload} disabled={busy}><RefreshCw size={16}/>Try again</button> : <div className="loading" role="status"><LoaderCircle className="spin"/>Loading your games…</div>}
+    </div>
+  </Shell>;
+  if (!profileReady) return <Shell who={session.user.email} busy={busy} onSignOut={signOut}><NameStep profile={lobby.profile} invited={Boolean(token)} error={error} onSaved={onProfileSaved}/></Shell>;
+  if (!selected && !token && !groupsOpen && !editingProfile) return <CommunityHome accountId={session.user.id} displayName={lobby.profile.displayName} welcome={welcome} onGroups={openGroups} onUnavailable={communityUnavailable} onSignOut={signOut}/>;
+  if (selected === 'solo' && !token) return <DeferredScreen key={session.user.id} label="your Solo workspace"><PersonalWorkspace key={session.user.id} accountId={session.user.id} onBack={() => choose('')} onSignOut={onSignOut}/></DeferredScreen>;
+  if (['social', 'units'].includes(selected) && !token) return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{lobby.profile.displayName}</span><button className="secondary" onClick={() => { if (!socialDirty || window.confirm('You have unsaved changes. Leave without saving?')) { setSocialDirty(false); choose(''); } }}>My games</button></div></header>
-    <main className="hub-main" id="main"><ThemeSelector/><SocialBetTracker key={selected} player={session.user.id} initialView={selected === 'units' ? 'units' : 'feed'} onDirty={setSocialDirty}/></main>
+    <main className="hub-main" id="main"><ThemeSelector/><DeferredScreen resetKey={selected} label={selected === 'units' ? 'your betting week' : 'bet tracker'}><SocialBetTracker key={selected} player={session.user.id} initialView={selected === 'units' ? 'units' : 'feed'} onDirty={setSocialDirty}/></DeferredScreen></main>
   </div>;
   return <>
-    {current && !token ? <App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => { setGroupsOpen(true); choose(''); }} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/>
+    {current && !token ? <DeferredScreen resetKey={current.id} label="your league"><App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => { goScreen('groups'); choose(''); }} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/></DeferredScreen>
       : <div className="hub-shell">
         <a className="skip-link" href="#main">Skip to main content</a>
-        <header className="hub-header"><Brand /><div className="hub-account"><span>{lobby?.profile?.displayName || session.user.email}</span><button className="secondary" onClick={signOut} disabled={busy}>Sign out</button></div></header>
+        <header className="hub-header"><Brand /><div className="hub-account"><span>{lobby.profile.displayName}</span><button className="secondary" onClick={signOut} disabled={busy}>Sign out</button></div></header>
         <main className="hub-main" id="main">
           <ThemeSelector/>
-          <div className="hub-heading"><div>{profileReady && communityOnline && <button className="text-button" onClick={() => setGroupsOpen(false)}>← Community</button>}<p className="eyebrow">YOUR PEOPLE. YOUR PREDICTIONS.</p><h1>My games</h1><p>One weekly spread ballot, one total ballot, and one set of Challenge selections, reused across all your groups. Compete with different people using the same calls.</p></div><button className="primary" disabled={!profileReady || busy} onClick={() => setCreating(true)}><Plus size={18}/>New game</button></div>
+          {/* Persona audit #16: one sentence on what a group is for versus the Community. New game is the primary action only once a game exists; the empty state carries "Create your first game". */}
+          <div className="hub-heading"><div>{communityOnline && <button className="text-button" onClick={() => goScreen('feed')}>← Community</button>}<p className="eyebrow">YOUR PEOPLE. YOUR PREDICTIONS.</p><h1>My games</h1><p>The Community already scores every member, so a group is optional: a private leaderboard for the people you choose, using the same weekly picks.</p></div><button className={lobby.leagues.length ? 'primary' : 'secondary'} disabled={busy} onClick={() => setCreating(true)}><Plus size={18}/>New game</button></div>
           <ErrorMessage>{error}</ErrorMessage>
           {error && <button className="secondary" onClick={reload} disabled={busy}><RefreshCw size={16}/>Try again</button>}
           {notice && <p className="auth-notice" role="status">{notice}</p>}
-          {!lobby ? !error && <div className="loading" role="status"><LoaderCircle className="spin"/>Loading your games…</div> : <>
-            {(!profileReady || editingProfile) ? <section className="panel profile-setup"><h2>{profileReady ? 'Your display name' : 'First, what should we call you?'}</h2><ProfileForm key={lobby.profile.id} profile={lobby.profile} onSaved={onProfileSaved} onCancel={profileReady ? () => setEditingProfile(false) : undefined}/></section> : <div className="profile-summary"><span>Playing as <strong>{lobby.profile.displayName}</strong></span><button className="text-button" onClick={() => setEditingProfile(true)}>Edit display name</button></div>}
-            {profileReady && <section className="panel invitation-card"><ShieldCheck size={24}/><div><h2>Play Solo</h2><p>Your private Favorites, journal and weekly guesses are available without joining a group.</p><button className="primary" disabled={busy} onClick={() => choose('solo')}>Open Solo<ArrowRight size={17}/></button></div></section>}
-            {profileReady && <section className="panel invitation-card"><Users size={24}/><div><h2>Bet Tracker</h2><p>Shared with every signed-in player. Follow bets, record singles and parlays, and compare units, ROI and history.</p><div className="hub-actions"><button className="primary" disabled={busy} onClick={() => choose('social')}>Open Bet Tracker<ArrowRight size={17}/></button><button className="secondary" disabled={busy} onClick={() => choose('units')}>My Unit Betting week</button></div></div></section>}
-            {token && <section className="panel invitation-card"><ShieldCheck size={24}/><div><h2>You have an invitation link</h2><p>Join with the account whose email was invited. Your private game details appear after acceptance.</p>{!profileReady && <p>Save your display name above to continue.</p>}<div className="hub-actions"><button className="primary" disabled={!profileReady || busy} onClick={() => accept({ token })}>Accept invitation<ArrowRight size={17}/></button><button className="secondary" disabled={busy} onClick={() => { clearInvitation(); setToken(''); }}>Dismiss link</button></div></div></section>}
-            {!!lobby.pendingInvites.length && <section className="pending-invitations"><div className="section-title"><h2>Invitations for you</h2></div>{lobby.pendingInvites.map(invite => <section className="panel invitation-card" key={invite.id}><Users size={24}/><div><h3>{invite.leagueName}</h3><p>{invite.inviterName} invited you to a {formatName(invite.format)}. Expires {date(invite.expiresAt)} PT.</p><button className="primary" disabled={!profileReady || busy} onClick={() => accept({ inviteId: invite.id })}>Join game<ArrowRight size={17}/></button></div></section>)}</section>}
-            <section aria-label="Your games">{lobby.leagues.length ? <div className="hub-games">{lobby.leagues.map(league => <article className="panel hub-game" key={league.id}><div className="hub-game-top"><span className="mode-icon lime"><Users size={24}/></span><span className={`badge ${league.practice ? 'amber' : ''}`}>{league.practice ? 'PRACTICE' : formatName(league.format)}</span></div><h2>{league.name}</h2><p>{league.memberCount} of {league.maxMembers} players · {league.role === 'commissioner' ? 'You host this game' : 'You’re a player'}</p>{league.practice && <p className="hub-help">No official scores. Original slate deadlines apply.</p>}<div className="hub-actions"><button className="primary" onClick={() => choose(league.id)}>Open game<ArrowRight size={17}/></button>{league.role === 'commissioner' && league.format !== 'triple-threat' && <button className="secondary" disabled={!profileReady} onClick={() => setInviting(league)}>Invite players</button>}</div></article>)}</div> : <div className="panel hub-empty"><Flag size={32}/><h2>Your next rivalry starts here.</h2><p>Create a Duel with one friend or bring a group together. You can play Spread, Total and Betting Challenge in each game.</p><button className="primary" disabled={!profileReady} onClick={() => setCreating(true)}>Create your first game<Plus size={17}/></button></div>}</section>
-            <div className="hub-bottom"><span>Private games · No real-money wagers</span><button className="text-button" onClick={reload} disabled={busy}><RefreshCw size={16}/>{busy ? 'Refreshing…' : 'Refresh games'}</button></div>
-          </>}
+          {editingProfile ? <section className="panel profile-setup"><h2>Your display name</h2><ProfileForm key={lobby.profile.id} profile={lobby.profile} onSaved={onProfileSaved} onCancel={() => setEditingProfile(false)}/></section> : <div className="profile-summary"><span>Playing as <strong>{lobby.profile.displayName}</strong></span><button className="text-button" onClick={() => setEditingProfile(true)}>Edit display name</button></div>}
+          {/* Persona audit #16: Solo and Bet Tracker are side doors, so their buttons are secondary rather than a second and third lime call to action. */}
+          <section className="panel invitation-card"><ShieldCheck size={24}/><div><h2>Play Solo</h2><p>Your private Favorites, journal and weekly guesses are available without joining a group.</p><button className="secondary" disabled={busy} onClick={() => choose('solo')}>Open Solo<ArrowRight size={17}/></button></div></section>
+          <section className="panel invitation-card"><Users size={24}/><div><h2>Bet Tracker</h2><p>Shared with every signed-in player. Follow bets, record singles and parlays, and compare units, ROI and history.</p><div className="hub-actions"><button className="secondary" disabled={busy} onClick={() => choose('social')}>Open Bet Tracker<ArrowRight size={17}/></button><button className="secondary" disabled={busy} onClick={() => choose('units')}>My Unit Betting week</button></div></div></section>
+          {token && <section className="panel invitation-card"><ShieldCheck size={24}/><div><h2>You have an invitation link</h2><p>Join with the account whose email was invited. Your private game details appear after acceptance.</p><div className="hub-actions"><button className="primary" disabled={busy} onClick={() => accept({ token })}>Accept invitation<ArrowRight size={17}/></button><button className="secondary" disabled={busy} onClick={() => { clearInvitation(); setToken(''); }}>Dismiss link</button></div></div></section>}
+          {!!lobby.pendingInvites.length && <section className="pending-invitations"><div className="section-title"><h2>Invitations for you</h2></div>{lobby.pendingInvites.map(invite => <section className="panel invitation-card" key={invite.id}><Users size={24}/><div><h3>{invite.leagueName}</h3><p>{invite.inviterName} invited you to a {formatName(invite.format)}. Expires {date(invite.expiresAt)} PT.</p><button className="primary" disabled={busy} onClick={() => accept({ inviteId: invite.id })}>Join game<ArrowRight size={17}/></button></div></section>)}</section>}
+          <section aria-label="Your games">{lobby.leagues.length ? <div className="hub-games">{lobby.leagues.map(league => <article className="panel hub-game" key={league.id}><div className="hub-game-top"><span className="mode-icon lime"><Users size={24}/></span><span className={`badge ${league.practice ? 'amber' : ''}`}>{league.practice ? 'PRACTICE' : formatName(league.format)}</span></div><h2>{league.name}</h2><p>{league.memberCount} of {league.maxMembers} players · {league.role === 'commissioner' ? 'You host this game' : 'You’re a player'}</p>{league.practice && <p className="hub-help">No official scores. Original slate deadlines apply.</p>}<div className="hub-actions"><button className="primary" onClick={() => choose(league.id)}>Open game<ArrowRight size={17}/></button>{league.role === 'commissioner' && league.format !== 'triple-threat' && <button className="secondary" onClick={() => setInviting(league)}>Invite players</button>}</div></article>)}</div> : <div className="panel hub-empty"><Flag size={32}/><h2>Your next rivalry starts here.</h2><p>Create a Duel with one friend or bring a group together. You can play Spread, Total and Betting Challenge in each game.</p><button className="primary" onClick={() => setCreating(true)}>Create your first game<Plus size={17}/></button></div>}</section>
+          <div className="hub-bottom"><span>Private games · No real-money wagers</span><button className="text-button" onClick={reload} disabled={busy}><RefreshCw size={16}/>{busy ? 'Refreshing…' : 'Refresh games'}</button></div>
         </main>
       </div>}
     {creating && <NewGame onClose={() => setCreating(false)} onCreated={async id => { await load(); setCreating(false); choose(id); }}/>}

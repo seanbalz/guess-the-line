@@ -17,6 +17,8 @@
 .feed-post-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .feed-actions{display:flex;gap:16px;align-items:center}
 .feed-actions .text-button,.feed-actions span{display:inline-flex;align-items:center;gap:6px;min-height:44px}
+/* Persona audit #19: the like button is a 44px target in both directions (it was 33px wide), not only 44px tall. */
+.feed-actions .text-button{min-width:44px}
 .feed-actions .liked{color:var(--loss)}
 .feed-comments{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .feed-comment-form{display:flex;gap:8px}
@@ -27,7 +29,9 @@
 .publish-fields input{min-height:44px;width:110px;padding:0 12px}
 .week-pick h3{font-size:16px}
 .week-picks .save-bar{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:12px;background:var(--surface);border-top:1px solid var(--border)}
-.week-picks .save-bar strong{margin-right:auto}
+/* Persona audit #24: the ready count and the due time share the bar's left side; the buttons sit to the right. */
+.week-picks .save-bar .save-status{display:grid;gap:2px;margin-right:auto}
+.week-picks .save-bar .save-due{color:var(--muted)}
 .league-switcher{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
 .league-chip{min-height:44px;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:16px;line-height:20px;text-align:left}
 .league-chip.selected{border-color:var(--primaryForeground,var(--primary));box-shadow:inset 0 0 0 1px var(--primaryForeground,var(--primary))}
@@ -51,3 +55,64 @@
 .sit-out-dialog .review-actions button{flex:1;min-height:44px}
 .sit-out-dialog .form-error{color:var(--loss);margin:8px 0}
 .sit-out-dialog p{margin-top:12px}
+/* Persona audit #40: the final opt-out is a text link in its own row below the ballot, after the save bar, never a button beside Save draft. */
+.sit-out-row{margin:16px 0 0;font-size:16px;line-height:24px}
+.sit-out-row .sit-out-link{display:inline-flex;min-height:44px;padding:0 4px;font-size:16px;color:var(--text);text-decoration:underline;text-underline-offset:3px;vertical-align:middle}
+/* Persona audit #41: on a sat-out market the other members' revealed picks replace the chip rows, as read-only chips with the chip look. */
+.week-sat-out{margin:8px 0}
+.revealed-picks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.revealed-picks li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.revealed-name{flex:1 1 160px;font-weight:600}
+.revealed-value{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px}
+.revealed-chip{display:inline-flex;align-items:center}
+/* Persona audit quick wins (docs/PERSONA_AUDIT_2026_10_09.md): home order, quiet week states, chip helper, error banners beside the control, forced colours. */
+/* Busy controls are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…"; they look like disabled ones. */
+.community-home [aria-disabled="true"]{cursor:not-allowed;opacity:.4}
+.community-home [aria-disabled="true"]:hover{filter:none}
+.community-home [aria-disabled="true"]:active{transform:none}
+.community-home .theme-selector{margin:32px 0 0;max-width:none}
+.week-unpublished{display:flex;gap:12px;align-items:center;margin-top:12px;padding:16px;border-left:4px solid var(--tie)}
+.week-unpublished svg{flex:none;color:var(--cyan)}
+.week-unpublished p{margin:0}
+.week-not-open{padding:16px;border-left:4px solid var(--cyan)}
+.week-not-open h3{font-size:20px;line-height:28px;margin:0 0 4px}
+.week-not-open p{margin:0;color:var(--muted)}
+.week-closed{margin:8px 0}
+.chip-help{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin:12px 0;padding:12px 16px;border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:8px;background:var(--surface);font-size:14px;line-height:1.6}
+.chip-help p{margin:0}
+.chip-help .text-button{flex:none;min-width:44px;justify-content:center;color:var(--text);text-decoration:underline}
+/* Persona audit #3: the tab-copy recovery card above the game list. */
+.picks-recovery{margin:12px 0;padding:16px;border-left:4px solid var(--pending)}
+.picks-recovery h3{font-size:16px;line-height:24px;margin:0 0 4px}
+.picks-recovery p{margin:0 0 12px;color:var(--muted)}
+.picks-recovery-actions{display:flex;gap:8px;flex-wrap:wrap}
+.week-picks .save-bar .error-banner,.week-picks .save-bar .save-notice,.week-picks .save-bar .save-hint{flex-basis:100%;margin:0}
+.save-hint{padding:12px 16px;border:1px solid var(--pending);border-radius:8px;font-size:14px;line-height:1.6}
+/* The hint stays mounted: one live region whose text changes is announced, while one inserted with its text often is not. Empty, it is visually hidden rather than display:none. */
+.week-picks .save-bar .save-hint:empty{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;white-space:nowrap}
+/* The home notice is an always-mounted live region (PR #34 pattern); while empty it keeps no box but stays in the accessibility tree. */
+.community-home>.hub-main>.auth-notice:empty{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;white-space:nowrap}
+.feed-post .error-banner{margin:0}
+.error-banner .banner-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.community-home .error-banner button{margin-left:auto;min-height:44px;color:var(--text);text-decoration:underline;padding:0 4px}
+.community-home .error-banner .banner-actions button{margin-left:0}
+/* Persona audit #25: the receipt of a submitted ballot. It takes focus after the submit (2.4.3) and names the market, the count and the
+   time, what is still due, the feed reveal for that market only (D-23) and Edit picks (D-16); the win token marks the done state. */
+.submit-receipt{display:flex;gap:12px;align-items:flex-start;margin:12px 0;padding:16px;border-left:4px solid var(--win)}
+.submit-receipt>svg{flex:none;color:var(--win);margin-top:3px}
+.submit-receipt>div{display:grid;gap:8px;flex:1;min-width:0}
+.submit-receipt h3{font-size:20px;line-height:28px}
+.submit-receipt p{margin:0}
+.submit-receipt .receipt-due{font-weight:600}
+.receipt-actions{display:flex;flex-wrap:wrap;gap:8px}
+.receipt-actions button{min-height:44px}
+/* Focus targets that are not controls (the receipt, a feed post, the feed) show the same cyan ring as the controls do. */
+.submit-receipt:focus-visible,.feed-post:focus-visible,.community-feed:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+@media (forced-colors:active){
+  .submit-receipt{border-left-width:6px}
+  .feed-actions .liked{color:Highlight}
+  .community-leaderboard tr.me th{text-decoration:underline;text-underline-offset:3px}
+  .picks-due{border-left-width:6px}
+  .picks-due.urgent{border-left-style:double;border-left-width:10px}
+  .league-chip.selected{border:3px solid Highlight}
+}

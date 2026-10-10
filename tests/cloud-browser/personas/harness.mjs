@@ -119,7 +119,8 @@ export const test = base.extend({
           const endpoint = url.pathname.replace(/^.*\/gtl-api\//, '');
           net.requests.push({ endpoint, method: req.method(), body: req.method() === 'POST' ? req.postDataJSON() : null });
           if (net.delay) await new Promise(r => setTimeout(r, net.delay));
-          if (net.offline) return route.abort('internetdisconnected');
+          // net.offline: true cuts every API call; a predicate on the endpoint cuts only some (the feed while the lobby still loads).
+          if (net.offline === true || (typeof net.offline === 'function' && net.offline(endpoint))) return route.abort('internetdisconnected');
           const injected = net.fail?.(endpoint, req);
           if (injected) return reply(injected.status, injected.body);
           const response = await persona.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));
@@ -175,11 +176,13 @@ export const test = base.extend({
         }
         return results;
       },
-      /** Measures interactive targets smaller than 44x44 CSS px on the current screen (WCAG 2.5.5 AAA target, brand guide minimum). */
+      /** Measures interactive targets smaller than 44x44 CSS px on the current screen (WCAG 2.5.5 AAA target, brand guide minimum).
+       *  A radio or checkbox inside (or named by) a <label> is activated by a press anywhere on that label, so the label's box is its
+       *  target (WCAG 2.5.8 counts the label as part of the target); the native 20×20 control itself is not enlarged. */
       async smallTargets(screen, { min = 44, severity = 3 } = {}) {
         const small = await page.evaluate(min => [...document.querySelectorAll('button,a[href],input,select,summary,[role=button]')]
           .filter(el => el.getClientRects().length && !el.closest('[inert]') && !el.classList.contains('skip-link'))
-          .map(el => { const r = el.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), text: (el.getAttribute('aria-label') || el.textContent || el.value || '').trim().slice(0, 40), tag: el.tagName.toLowerCase(), cls: el.className?.toString().split(' ').slice(0, 2).join('.') }; })
+          .map(el => { const label = (el.type === 'radio' || el.type === 'checkbox') && (el.closest('label') || el.labels?.[0]) || null; const r = (label || el).getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), text: (el.getAttribute('aria-label') || el.textContent || el.value || '').trim().slice(0, 40), tag: el.tagName.toLowerCase(), cls: el.className?.toString().split(' ').slice(0, 2).join('.'), ...(label ? { via: 'label' } : {}) }; })
           .filter(r => r.w < min || r.h < min), min);
         if (small.length) persona.finding({ screen, severity, wcag: '2.5.5 (AAA) / brand 44px minimum', experience: `${small.length} interactive target(s) under ${min}px: ${small.slice(0, 6).map(s => `"${s.text}" ${s.w}×${s.h} (${s.tag}.${s.cls})`).join('; ')}${small.length > 6 ? '; …' : ''}`,
           fix: 'Give these controls min-height/min-width 44px or enlarge their padding so a thumb or tremor-affected pointer lands on them.', evidence: small });
@@ -201,6 +204,28 @@ export const test = base.extend({
         return -1;
       },
       async noOverflow() { return page.evaluate(() => document.documentElement.scrollWidth <= innerWidth); },
+      /** Shares of a control's label box (its text node's rectangle, read from a screenshot) painted in the control's computed text colour and
+       *  in its background colour, matched per channel within 48. Computed styles cannot see a forced-colours backplate or fill; pixels can. */
+      async paint(locator) {
+        await locator.scrollIntoViewIfNeeded();
+        const target = await locator.evaluate(el => {
+          const style = getComputedStyle(el), range = document.createRange();
+          range.selectNode([...el.childNodes].find(node => node.nodeType === 3 && node.textContent.trim()));
+          const rect = range.getBoundingClientRect();
+          return { text: style.color, background: style.backgroundColor, clip: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } };
+        });
+        const png = (await page.screenshot({ clip: target.clip, animations: 'disabled' })).toString('base64');
+        return page.evaluate(async ({ png, text, background }) => {
+          const rgb = value => value.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number);
+          const image = new Image(); image.src = `data:image/png;base64,${png}`; await image.decode();
+          const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+          const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
+          const data = context.getImageData(0, 0, canvas.width, canvas.height).data, total = data.length / 4, shares = { text: 0, background: 0 };
+          const near = (i, [r, g, b]) => Math.abs(data[i] - r) <= 48 && Math.abs(data[i + 1] - g) <= 48 && Math.abs(data[i + 2] - b) <= 48;
+          for (let i = 0; i < data.length; i += 4) { if (near(i, rgb(text))) shares.text += 1 / total; else if (near(i, rgb(background))) shares.background += 1 / total; }
+          return shares;
+        }, { png, ...target });
+      },
       async smallText(screen, { min = 12, severity = 3 } = {}) {
         const small = await page.evaluate(min => {
           const out = new Map();

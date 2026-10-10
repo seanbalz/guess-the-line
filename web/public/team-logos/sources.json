@@ -1,6 +1,6 @@
 {
   "coverage": {
-    "active": 13,
+    "active": 15,
     "totalTeams": 32
   },
   "scope": "File-level public-domain artwork records. Trademark rights remain with teams; no NFL license or endorsement is claimed.",
@@ -252,6 +252,44 @@
       "modifications": "None",
       "usage": "Small team-identification marks inside matchup/data displays only; no endorsement or app-brand use.",
       "identityVerification": "https://www.therams.com/news/rams-unveil-uniform-brand-refresh-ahead-of-2026-season"
+    },
+    "NYJ": {
+      "team": "New York Jets",
+      "file": "nyj.svg",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:New_York_Jets_2024.svg",
+      "sourceRevision": 951713167,
+      "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/6/69/New_York_Jets_2024.svg",
+      "sourceFileTimestamp": "2024-04-16T23:56:14Z",
+      "sha256": "afb3e75c79a8ed9a784f493a1ec1f6be1fcbbcaed50a250a3d09e44b4fbf8a2f",
+      "bytes": 3235,
+      "width": 408,
+      "height": 244,
+      "copyrightStatus": "Public domain per file-specific Wikimedia Commons record",
+      "licenseCode": "pd",
+      "trademarkNotice": "trademarked",
+      "credit": "New York Jets",
+      "reviewedAt": "2026-10-08",
+      "modifications": "None",
+      "sourceSha1": "b60c65828c6e71096e6c3b44c324215b67a10170"
+    },
+    "BUF": {
+      "team": "Buffalo Bills",
+      "file": "buf.png",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Buffalo_Bills_logo_1974-present.png",
+      "sourceRevision": 1249487431,
+      "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Buffalo_Bills_logo_1974-present.png",
+      "sourceFileTimestamp": "2026-07-06T21:40:58Z",
+      "sha256": "8613cca9fa8ab79b4a32f775ab4521a5cc767bd1e34633531034461b6fcb00dd",
+      "bytes": 267681,
+      "width": 3840,
+      "height": 2564,
+      "copyrightStatus": "Public domain in the United States per file-specific Wikimedia Commons PD-US-no-notice record",
+      "licenseCode": "pd-us-no-notice",
+      "trademarkNotice": "trademarked",
+      "credit": "Stevens Wright; Buffalo Bills",
+      "reviewedAt": "2026-10-08",
+      "modifications": "None",
+      "sourceSha1": "8349a377d77ec9180df98306cb2261781a6b26ae"
     }
   }
 }

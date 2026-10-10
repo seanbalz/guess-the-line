@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { pickSpread, expectPick, expectPickEnabled } from '../chip-entry.mjs';
 
+// Dashboard actions are targeted inside `.heading-actions`, never with `.last()`: the lazy-loaded App renders its
+// sidebar before the data-dependent heading, and a last-match locator can lock onto the off-canvas sidebar button at 320px.
 async function fixture(page) {
   const state = await (await page.request.get('/api/state?player=sean&mode=guess_spread')).json();
   state.scoringPolicy = 'submission-time'; state.revealed = true; state.locked = false;
@@ -25,7 +27,7 @@ test('saved references remain distinct from current consensus; submitted edit re
   const errors=[];page.on('pageerror',error=>errors.push(error.message));const context=await fixture(page);
   await expect(page.locator('.score-number').first()).toContainText('120');
   await expect(page.getByRole('heading',{name:'Errors against saved references'})).toBeVisible();
-  await page.getByRole('button',{name:'Compare picks',exact:true}).last().click();
+  await page.locator('.heading-actions').getByRole('button',{name:'Compare picks',exact:true}).click();
   const table=page.getByRole('region',{name:'Spread pick comparison'});
   await expect(table).toContainText('Scoring reference');await expect(table).toContainText('Saved with guess');await expect(table).toContainText('Stale saved consensus');
   await expect(table.locator('tbody tr').first()).toContainText('−4');await expect(table.locator('tbody tr').first()).toContainText('−2.5');await expect(table.locator('tbody tr').first()).toContainText('−7');
@@ -49,7 +51,7 @@ for (const width of [1440,390,320])test(`submission reference layout ${width}px 
   await page.setViewportSize({width,height:1000});const {state}=await fixture(page);
   state.games[0].scoringReference={status:'unavailable',value:null,reason:'Historical submission has no captured reference'};state.games[0].points=null;state.score=null;state.standings[0].points=null;
   await page.reload();
-  await page.getByRole('button',{name:'Compare picks',exact:true}).last().click();
+  await page.locator('.heading-actions').getByRole('button',{name:'Compare picks',exact:true}).click();
   const visible=width<=720?page.locator('.comparison-mobile'):page.locator('.comparison-table');
   await expect(visible).toContainText('Historical submission has no captured reference');
   await expect(visible).toContainText('Current consensus');

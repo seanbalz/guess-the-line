@@ -43,6 +43,8 @@ test('a signed-in player without a league opens shared Bet Tracker while Solo no
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/user') return reply(200, user);
       if (url.pathname === '/auth/v1/logout') return reply(200, {});
+      // D-21 community routes are not part of this fixture; answer as an undeployed function so the lobby falls back to My games (persona audit #7 keeps any other failure in the Community shell).
+      if (url.pathname.includes('/gtl-api/community/')) return reply(404, { error: 'Not found.' });
       requests.push({ path: url.pathname, body: req.method() === 'POST' ? req.postDataJSON() : null });
       expect(req.headers().authorization).toBe(`Bearer ${token}`);
       const response = await handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));

@@ -133,13 +133,16 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     await dialog.getByRole('button', { name: 'Sit out Total' }).click();
     await expect(page.locator('.week-picks')).toContainText("Sat out · others' picks visible");
     await expect(page.getByRole('button', { name: 'Total · Sat out', exact: true })).toBeVisible();
-    const totalChips = page.locator('.week-pick').first().locator('.chip');
-    expect(await totalChips.count()).toBeGreaterThan(0);
-    for (const chip of await totalChips.all()) await expect(chip).toBeDisabled();
+    // Persona audit #41: the sat-out market shows the other members' revealed Total picks as read-only chips where the chip rows were.
+    const firstCard = page.locator('.week-pick').first();
+    await expect(firstCard.locator('.chip-picker')).toHaveCount(0);
+    await expect(firstCard.locator('.revealed-picks li')).toHaveText(['Troy Fixture44']);
+    await expect(page.locator('.week-pick').nth(1).locator('.revealed-chip')).toHaveText(['47.5']);
     await expect(page.getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
     expect((await db.query('select user_id,mode from public.gtl_weekly_optouts')).rows).toEqual([{ user_id: id(1), mode: 'guess_total' }]);
     await page.getByRole('button', { name: 'Spread', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Sit out this week' })).toBeVisible();
+    await expect(page.locator('.revealed-picks')).toHaveCount(0);
+    await expect(page.locator('.sit-out-row').getByRole('button', { name: 'Sit out this week' })).toBeVisible();
     for (const chip of await page.locator('.week-pick').first().locator('.chip-teams .chip').all()) await expect(chip).toBeEnabled();
     await page.getByRole('button', { name: 'Feed', exact: true }).click();
     await expect(page.locator('.picks-due')).toContainText('Spread 1/2');
@@ -210,15 +213,21 @@ test('community home: a week that has not opened shows its Monday 12:00 AM PT op
     const opens = new Date(weekOpenAt(deadline)).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     expect(opens).toMatch(/^Mon, .* 12:00 AM$/);
     await expect(page.locator('.picks-due')).toContainText(`Week 5 opens ${opens} PT`);
-    await expect(page.locator('.picks-due')).toContainText('Spread 0/2 · Total 0/2');
+    // Persona audit quick win 9 (#43, #44): no counts before the open, a relative hint plus the due time; the Picks tab is a read-only schedule.
+    const dueOn = new Date(deadline).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const days = Math.ceil((Date.parse(weekOpenAt(deadline)) - Date.now()) / DAY);
+    await expect(page.locator('.picks-due')).toContainText(`${days > 1 ? `In ${days} days` : 'Tomorrow'} · Picks due ${dueOn} PT`);
+    await expect(page.locator('.picks-due')).not.toContainText('0/2');
     await expect(page.locator('.picks-due').getByRole('button', { name: 'Make picks' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Picks', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Picks', exact: true }).click();
-    await expect(page.locator('.week-not-open')).toContainText(`Week 5 opens ${opens} PT. Nobody can pick before then.`);
+    await expect(page.locator('.week-not-open h3')).toHaveText(`Week 5 opens ${opens} PT`);
+    await expect(page.locator('.week-not-open')).toContainText('Nobody can pick before then.');
     const first = page.locator('.week-pick').first();
-    await expect(first.getByRole('button', { name: 'Cowboys', exact: true })).toBeDisabled();
-    expect(await first.locator('button.chip').count()).toBeGreaterThan(0);
-    await expect(first.locator('button.chip:not([disabled])')).toHaveCount(0);
+    await expect(page.locator('.week-pick')).toHaveCount(2);
+    await expect(first).toContainText('Tampa Bay Buccaneers @ Dallas Cowboys');
+    await expect(first.locator('.team-facts')).toContainText('as of Week');
+    await expect(page.locator('.week-pick button.chip')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Save draft' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /^Submit/ })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -1,16 +1,28 @@
-import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Minus, Plus } from 'lucide-react';
+import React, { useEffect, useId, useImperativeHandle, useRef, useState } from 'react';
+import { Check, Minus, Plus } from 'lucide-react';
 import './chipPicker.css';
 
 const halves = (from, to) => Array.from({ length: Math.round((to - from) * 2) + 1 }, (_, i) => from + i / 2);
 const SPREAD_CHIPS = halves(1, 10), SPREAD_MORE = halves(10.5, 20);
 const show = n => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
+/** One helper sentence per market, shared by every surface that renders the chips (the Community Picks tab's dismissible
+ *  tip and the group ballot's header), so a player reads the same explanation of the favorite, the points and Pick'em wherever
+ *  they enter picks (persona audit #4, #31). */
+export const CHIP_HELP = {
+  guess_spread: 'Tap the team you think wins (the favorite), then how many points they win by. Pick’em means an even game with no favorite. The chips use the sportsbook sign: −3 means the favorite wins by 3.',
+  guess_total: 'Total = both teams’ points combined. Tap the number you expect, then fine-tune by half a point with − and +.',
+};
+
 /**
  * D-21 button entry. Spread values are home-referenced: home favored by 3 is -3.
  * Totals use whole-number chips around a center plus ±0.5 fine tuning.
  * `ref` exposes focus() (first enabled chip) and scrollIntoView() for "Next game" navigation;
  * `compact` tightens the chips for table rows.
+ * Persona audit quick wins: the number row is labelled "<Favorite> win by" / "Combined points"
+ * (visible and as the group's aria-label, with each chip described by it), a selected chip
+ * carries a check icon as well as its fill, and a plain-language "Your call" line sits beside
+ * the signed mono token.
  */
 export default function ChipPicker({ mode, value, onChange, away, home, disabled, label, compact, ref }) {
   const spread = mode === 'guess_spread';
@@ -20,7 +32,7 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
   const [more, setMore] = useState(() => v !== null && Math.abs(v) > 10);
   const fav = spread ? (v === null ? favorite : v === 0 ? 'pickem' : v < 0 ? 'home' : 'away') : null;
   const size = v === null ? null : Math.abs(v);
-  const root = useRef(null);
+  const root = useRef(null), rowLabelId = useId();
   useImperativeHandle(ref, () => ({
     focus: () => root.current?.querySelector('button:not(:disabled)')?.focus(),
     scrollIntoView: options => root.current?.scrollIntoView(options),
@@ -40,24 +52,32 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
     if (spread) { const next = Math.min(20, Math.max(0.5, (size || 0) + delta)); if (fav && fav !== 'pickem') setSpread(fav, next); return; }
     onChange(Math.min(200, Math.max(0, (v ?? 44) + delta)));
   };
+  const favoriteName = fav === 'home' ? home : away;
   const summary = !has ? 'No pick yet' : spread ? (v === 0 ? "Pick'em" : `${v < 0 ? home : away} −${show(Math.abs(v))}`) : `${show(v)} total points`;
+  // The sign is sportsbook notation (the favorite gives points); the call line says the same thing in plain words.
+  const call = !has ? '' : spread ? (v === 0 ? "Even (pick'em)" : `${v < 0 ? home : away} by ${show(Math.abs(v))}`) : `${show(v)} combined points`;
+  const rowLabel = spread ? `${favoriteName} win by` : 'Combined points';
+  const check = <Check className="chip-check" size={14} aria-hidden="true"/>;
   return <div ref={root} className={`chip-picker${compact ? ' compact' : ''}`} role="group" aria-label={label}>
     {spread && <div className="chip-row chip-teams">{[['away', away], ['pickem', "Pick'em"], ['home', home]].map(([side, text]) =>
-      <button type="button" key={side} className={`chip team-chip ${fav === side ? 'selected' : ''}`} aria-pressed={fav === side} disabled={disabled} onClick={() => pickFavorite(side)}>{text}</button>)}</div>}
+      <button type="button" key={side} className={`chip team-chip ${fav === side ? 'selected' : ''}`} aria-pressed={fav === side} disabled={disabled} onClick={() => pickFavorite(side)}>{fav === side && check}{text}</button>)}</div>}
     {(!spread || (fav && fav !== 'pickem')) && <>
-      <div className="chip-row chip-numbers">{(spread ? (more ? SPREAD_MORE : SPREAD_CHIPS) : totalChips).map(n => {
-        const selected = spread ? size === n : v === n;
-        return <button type="button" key={n} className={`chip number-chip ${selected ? 'selected' : ''}`} aria-pressed={selected} disabled={disabled}
-          onClick={() => (spread ? setSpread(fav, n) : onChange(n))}>{spread ? `−${show(n)}` : show(n)}</button>;
-      })}
+      <div className="chip-row chip-numbers" role="group" aria-label={rowLabel}>
+        <span className="chip-row-label" id={rowLabelId}>{spread ? `${rowLabel}…` : rowLabel}</span>
+        {(spread ? (more ? SPREAD_MORE : SPREAD_CHIPS) : totalChips).map(n => {
+          const selected = spread ? size === n : v === n;
+          return <button type="button" key={n} className={`chip number-chip ${selected ? 'selected' : ''}`} aria-pressed={selected} aria-describedby={rowLabelId} disabled={disabled}
+            onClick={() => (spread ? setSpread(fav, n) : onChange(n))}>{selected && check}{spread ? `−${show(n)}` : show(n)}</button>;
+        })}
         {spread && <button type="button" className="chip more-chip" disabled={disabled} aria-expanded={more} onClick={() => setMore(m => !m)}>{more ? '1–10' : 'More'}</button>}
       </div>
+      {has && <p className="chip-call">Your call: <strong>{call}</strong></p>}
       <div className="chip-row chip-fine">
         <button type="button" className="chip icon-chip" aria-label="Lower by half a point" disabled={disabled || (spread ? !size : v === null)} onClick={() => step(-0.5)}><Minus size={16}/></button>
         <span className="chip-summary mono" aria-live="polite">{summary}</span>
         <button type="button" className="chip icon-chip" aria-label="Raise by half a point" disabled={disabled || (spread && !size)} onClick={() => step(0.5)}><Plus size={16}/></button>
       </div>
     </>}
-    {spread && fav === 'pickem' && <p className="chip-summary mono">Pick'em</p>}
+    {spread && fav === 'pickem' && <><p className="chip-call">Your call: <strong>{call}</strong></p><p className="chip-summary mono">Pick'em</p></>}
   </div>;
 }

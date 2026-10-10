@@ -20,7 +20,7 @@ Owner: Sean Balsiger · Version 4 · Updated 2026-10-09 (hosted state and the si
 | Picks tab: button entry (favorite team or Pick'em, then half-point chips 1–10, More for 10.5–20, −/+ 0.5) and team records under each game | Built; saves through the league-free weekly ballot |
 | Group game screens (`PredictionEntry`) | Use the same `ChipPicker` button entry and team records under each matchup; the favorite dropdown, typed number and −/+ stepper are removed. Draft recovery, per-field conflicts, search and filter, Next game focus, review and submit, closed states and the signed home-spread contract are unchanged |
 | Challenge and Units in the leaderboard strip | Not included; those records stay inside each group |
-| Score-change and weekly-winner posts | Not built yet; they need the scoring engine's results |
+| Score-change and weekly-winner posts | Not built yet; they need the scoring engine's results. Hook: D-26 Virtual Units settlement (`gtl_settle_virtual_units`) returns per-pick `picks[]` and per-player `players[]` changes and writes `settled`/`resettled`/`voided` audit events, which a later trigger or post can consume; see the [settlement runbook](../planning/virtual-units-game.md#settlement-runbook--d-26) |
 
 Practice ballots never post. Under D-23 nothing a member entered is deleted, moved or hidden: a removed member's posts, comments, likes, submissions, standings rows and member entry (flagged `removed: true`) stay visible to everyone; only the removed account loses access (`GTL_COMMUNITY_MEMBER` on its own reads and writes). Restoring a member returns their access. Removals, restorations and sit-outs (`sit_out:season:week:mode`) are written to `gtl_access_audit`. The commissioner is the active commissioner of the founding `sean-troy-luke` league.
 
@@ -86,9 +86,9 @@ The script downloads the public nflverse schedule file, counts finals only (regu
 
 ## Release checklist — October 9, 2026
 
-One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 are **done** (October 9, 2026, through the Supabase MCP and SQL editor). Steps 5–9 are **pending** and are Sean's, run from the machine with the Supabase and Cloudflare logins. Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
+One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 are **pending** and are Sean's, run from the machine with the Supabase and Cloudflare logins. Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
 
-1. **Done — hosted migrations.** The five remaining repo files were applied through the Supabase MCP, so the hosted migration history carries MCP-assigned versions, not the repo filenames:
+1. **Done — hosted migrations.** The eight remaining repo files were applied through the Supabase MCP (five at midday, the D-25 and D-26 files in the afternoon, the D-18 save-path fix in the evening), so the hosted migration history carries MCP-assigned versions, not the repo filenames:
 
    | Repo file | Hosted version |
    |---|---|
@@ -97,27 +97,30 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    | `20261009130000_gtl_league_interest.sql` | `20261009110558` |
    | `20261009140000_gtl_d23_data_rule.sql` (opt-outs, the D-23 reader, the weekly-state opt-out field) | `20261009110656` |
    | `20261009150000_gtl_auto_open_week.sql` (ballot window trigger, scheduler tables and RPCs) | `20261009110743` |
+   | `20261009160000_gtl_ruled_ballot_import.sql` (D-25 ruled-import RPC and ledger, PR #32) | `20261009174341` |
+   | `20261009170000_gtl_virtual_units_settlement.sql` (D-26 settlement ledger and RPC, reader fields, PR #33) | `20261009184601` |
+   | `20261009190000_gtl_virtual_units_save_isfinite.sql` (D-18 save-path fix: `isfinite(numeric)` and null quote terms, PR #40) | `20261009213204` |
 
-   The 15 earlier hosted versions are `20261008164347`, `20261008175527`, `20261008183819`, `20261008190027`, `20261008191007`, `20261008193357`, `20261008201020`, `20261008201611`, `20261008202111` and `20261009012049` through `20261009012054`; their names match the repo files in order (the first nine files, then the six October 8 files). All 20 repo files are therefore applied, under 20 hosted versions that differ from every filename. The D-24 ballot window (`GTL_PREDICTION_NOT_OPEN`) and the D-23 opt-out trigger are enforced on the hosted database from this point, for every writer including API v14.
+   The 15 earlier hosted versions are `20261008164347`, `20261008175527`, `20261008183819`, `20261008190027`, `20261008191007`, `20261008193357`, `20261008201020`, `20261008201611`, `20261008202111` and `20261009012049` through `20261009012054`; their names match the repo files in order (the first nine files, then the six October 8 files). All 23 repo files (`main` at `7463b9b`) are therefore applied, under 23 hosted versions that differ from every filename. The D-24 ballot window (`GTL_PREDICTION_NOT_OPEN`) and the D-23 opt-out trigger are enforced on the hosted database from this point, for every writer including API v14.
 
-2. **Do not run `npx supabase db push` as-is.** The CLI matches filename versions against hosted versions, would list all 20 files as pending and try to re-run them. Pick one of the two options and stay with it:
+2. **Do not run `npx supabase db push` as-is.** The CLI matches filename versions against hosted versions, would list every repo file as pending (all 23, applied under other versions) and try to re-run them. Pick one of the two options and stay with it:
    - Repair the hosted history once, then prove nothing is pending:
      ```sh
-     npx supabase migration repair --linked --status reverted 20261008164347 20261008175527 20261008183819 20261008190027 20261008191007 20261008193357 20261008201020 20261008201611 20261008202111 20261009012049 20261009012050 20261009012051 20261009012052 20261009012053 20261009012054 20261009110415 20261009110525 20261009110558 20261009110656 20261009110743
-     npx supabase migration repair --linked --status applied 20261008164249 20261008174007 20261008182836 20261008185715 20261008185738 20261008192528 20261008200926 20261008201000 20261008201526 20261008224444 20261008224735 20261008225401 20261008225607 20261008232055 20261008240000 20261009005145 20261009120000 20261009130000 20261009140000 20261009150000
+     npx supabase migration repair --linked --status reverted 20261008164347 20261008175527 20261008183819 20261008190027 20261008191007 20261008193357 20261008201020 20261008201611 20261008202111 20261009012049 20261009012050 20261009012051 20261009012052 20261009012053 20261009012054 20261009110415 20261009110525 20261009110558 20261009110656 20261009110743 20261009174341 20261009184601 20261009213204
+     npx supabase migration repair --linked --status applied 20261008164249 20261008174007 20261008182836 20261008185715 20261008185738 20261008192528 20261008200926 20261008201000 20261008201526 20261008224444 20261008224735 20261008225401 20261008225607 20261008232055 20261008240000 20261009005145 20261009120000 20261009130000 20261009140000 20261009150000 20261009160000 20261009170000 20261009190000
      npx supabase db push --linked --include-all --dry-run   # must list nothing before db push is ever used again
      ```
-   - Or keep applying each new migration file through the Supabase MCP or the SQL editor and never use `db push` for this project.
+   - Or keep applying each new migration file through the Supabase MCP or the SQL editor and never use `db push` for this project. The D-25, D-26 and D-18 save-path files were applied that way on October 9 and are already in both lists above; each later file adds its hosted version to the `reverted` list and its filename to the `applied` list, so both repair counts grow by one per file.
 
 3. **Done — Edge function `gtl-week-open` v1** deployed with `verify_jwt = false` per `supabase/config.toml` (like `gtl-odds-refresh`; the per-run capability is checked in SQL). Bundle (`ezbr`) SHA-256 `bcf6044516ff009400b85fcb15e8fe9537318502991cd6a1977b8cc016b6a438`; source byte-identical to `main`.
 
 4. **Done — D-24 administrator steps.** pg_cron jobs `gtl-week-open-monday-pdt` (`0 7 * * 1`) and `gtl-week-open-monday-pst` (`0 8 * * 1`) are registered (pg_cron and pg_net were already enabled by the odds scheduler migrations). The `gtl_week_open_schedule` row `nfl-weekly` is enabled with endpoint `https://onmrgvcehkflfaizvedl.supabase.co/functions/v1/gtl-week-open` and season 2026. The disabled dry run returned `{"status":"disabled"}`; after enabling, one verified dispatch (run `512cf7f7-6e75-4c8b-892e-3e19cea493c6`) finished `skipped` / `not_open_yet` with HTTP 200 from the worker. Week 6 opens automatically Monday 2026-10-12 at 07:00 UTC (12:00 AM PT); the manual fallback remains Community → Preview / publish early (fallback). Nothing beyond that one run is verified until the Monday slot fires.
 
-5. **Pending (Sean) — API.** `gtl-api` is still v14 and `gtl-odds-refresh` is v1. From the repo on `main`:
+5. **Pending (Sean) — API.** `gtl-api` is still v14 and `gtl-odds-refresh` is v1. From the repo on `main` at `b5491a2` or later (PR #33 added `POST /virtual-units/settle` and the Virtual Units reader fields; record the deployed commit in the release record):
    ```sh
    git pull
    npm ci
-   npx supabase functions deploy gtl-api            # ships the /community/* routes: read, like, comment, member, publish-preview, publish, sit-out, interest, week-open
+   npx supabase functions deploy gtl-api            # ships the /community/* routes (read, like, comment, member, publish-preview, publish, sit-out, interest, week-open) and POST /virtual-units/settle (D-26)
    npx supabase functions deploy gtl-odds-refresh   # optional: its source is unchanged since v1; redeploy only to keep the bundle in step with main
    ```
    Check: signed in, `POST /functions/v1/gtl-api/community/read` with `{}` returns the feed; signed out it returns 401.
@@ -128,10 +131,11 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    npm run check:cloud
    npm run cloudflare -- pages deploy .local/cloud-dist --project-name guess-the-line --branch main --commit-dirty=true
    ```
+   `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements`, the three Virtual Units RPCs and `gtl_numeric_is_finite` on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)).
 
 7. **Pending (Sean) — post-deploy boundary probe and release manifest.**
    ```sh
-   node scripts/check-cloud-boundary.mjs   # live anonymous denials, now including the nine new tables
+   node scripts/check-cloud-boundary.mjs   # live anonymous denials, including the eleven new tables, the D-25 RPC, the three Virtual Units RPCs and gtl_numeric_is_finite
    node scripts/release-manifest.mjs       # writes .local/release-manifest.json (private)
    ```
    Record the Pages deployment id, the `gtl-api` version and the manifest hashes in the PENDING rows of [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
@@ -142,7 +146,23 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    ```
    The committed file already says `through_week: 5` but holds only 65 finals (Weeks 1–4 plus the Week 5 Thursday game). Commit the refreshed `shared/team-records-2026.json`, then rebuild and redeploy (step 6) so the full Week 5 records ship.
 
-9. **Pending — Ben's Week 5 picks (D-25).** `data/picks/2026-week-05-ben.json` has no import path into the hosted database yet: the hosted `gtl_fresh_submission_guard` refuses post-deadline inserts and Ben is not on the `sean-troy-luke` roster. This is pending a commissioner-ruled import, not done.
+9. **Done (October 9, 17:44 UTC, cloud session) — Ben's Week 5 picks (D-25), community leaderboard only.** Sean ruled on October 9 that the picks count on the shared community leaderboard and feed only; the Triple Threat roster stays Sean, Troy, Luke (no roster row, no group standings entry). The import path is the service-only, commissioner-only RPC `public.gtl_import_ruled_ballot(p_actor, p_user, p_season, p_week, p_mode, p_picks, p_submitted_at, p_ruling, p_reference)` from migration `20261009160000_gtl_ruled_ballot_import.sql`. It writes the ballot exactly as a submission-time save would, with the ruled eDraft 10:03 ET value as each game's `scoringReferences` value and `submittedAt` 2026-10-08T19:00:00Z (12:00 PM PT), records the ruling in `gtl_ruled_ballot_imports` and `gtl_access_audit`, and lets the unchanged `gtl_feed_on_ballot` trigger post `ballot_submitted` dated at that time, so the D-23 reveal gate applies as usual. `gtl_fresh_submission_guard` is bypassed only while that function is on the call stack (a transaction-local flag plus a `PG_CONTEXT` check); a direct insert, with or without the flag, is still refused. A second identical call returns `imported:false` and changes nothing; a different submitted ballot for the same key fails with `GTL_RULED_IMPORT_CONFLICT`. Applied and imported once from the cloud session after PR #32 merged: the migration is hosted version `20261009174341`; the step 9.4 select returned one row (`Ben 🫘`, 2026 / 5 / `guess_spread`, submitted 2026-10-08 19:00:00+00, decision D-25, 15 picks, 15 references, `payload_sha256` `076cbfc8bd65b03bb5b61f771227c6078c827accb9618102a95c5f772e49e223`, post `d07a0746-c4f0-4146-a6b9-7ac584fa3a6a`, 0 `sean-troy-luke` roster rows); a replay returned `imported:false`. The steps are kept for the record:
+   1. **Apply the migration** (done: hosted `20261009174341`) through the Supabase MCP (`apply_migration`, name `gtl_ruled_ballot_import`, with the file's contents). It is the newest repo file, after `20261009150000_gtl_auto_open_week.sql`, and the hosted version will again differ from the filename (step 2 above). Never `db push`. Do this before step 6's `check:cloud` and step 7's boundary probe: both now expect `gtl_ruled_ballot_imports` and `gtl_import_ruled_ballot` to exist and report `unexpected 404` until it is applied. The migration is service-only and writes no data, so applying it ahead of the API deploy is safe.
+   2. **Dry run** from `main`: `node scripts/import-ruled-ballot.mjs --user <Ben's auth.users id>` (profile "Ben 🫘", id starting `774b721b`; the full uuid is a command-line argument, never committed). Look up both ids first through the Supabase MCP (`execute_sql`): `select user_id from public.gtl_memberships where league_id='sean-troy-luke' and role='commissioner' and active;` (the commissioner, one row) and `select user_id, display_name from public.gtl_profiles where display_name='Ben 🫘' or user_id::text like '774b721b%';` (Ben, one row). It checks `data/picks/2026-week-05-ben.json` (sha256 `538b007d…`, unchanged) against the committed Week 5 slate and the ruled snapshot and prints counts and hashes only: 15 games, 15 picks, 15 references, expected 37.6 of 150, submitted 2026-10-08T19:00:00Z. It never prints a pick.
+   3. **Import**, one of:
+      - Script (Sean, or the cloud session with the key in its environment): `SUPABASE_URL=https://onmrgvcehkflfaizvedl.supabase.co SUPABASE_SERVICE_ROLE_KEY=<from the project's API settings, never from a file> node scripts/import-ruled-ballot.mjs --user <uuid> --execute`. The actor is resolved from `gtl_memberships` (the `sean-troy-luke` commissioner) unless `--actor <uuid>` is passed. The printed result carries counts, the `payloadSha256` and the feed `postId`, never picks.
+      - Supabase MCP `execute_sql`: `node scripts/import-ruled-ballot.mjs --user <Ben uuid> --actor <commissioner uuid> --sql` writes the exact statement to `.local/ruled-ballot-import.sql` (private, mode 0600, it contains the picks; `.local/` is never committed). `--sql` refuses to run without `--actor`, so the file is executable as written and never carries a placeholder. Paste its one statement into `execute_sql`. Its shape: `select public.gtl_import_ruled_ballot('<commissioner uuid>'::uuid, '<Ben uuid>'::uuid, 2026, 5, 'guess_spread', '<p_picks>'::jsonb, '2026-10-08T19:00:00.000Z'::timestamptz, '<p_ruling>', '<p_reference>'::jsonb) as result;`
+   4. **Verify** with the select the dry run prints (counts, never pick values):
+      ```sql
+      select i.user_id, p.display_name, i.season, i.week, i.mode, i.submitted_at, i.decision, i.payload_sha256,
+        (select count(*) from jsonb_object_keys(b.ballot->'picks')) as picks, (select count(*) from jsonb_object_keys(b.ballot->'scoringReferences')) as "references",
+        (select id from public.gtl_feed_posts f where f.dedupe_key=format('ballot:%s:%s:%s:%s',i.user_id,i.season,i.week,i.mode)) as post_id,
+        (select count(*) from public.gtl_memberships m where m.user_id=i.user_id) as roster_rows
+      from public.gtl_ruled_ballot_imports i join public.gtl_profiles p on p.user_id=i.user_id
+      join public.gtl_weekly_ballots b on (b.user_id,b.season,b.week,b.mode)=(i.user_id,i.season,i.week,i.mode) order by i.recorded_at;
+      ```
+      Expect one row: `Ben 🫘`, 2026 / 5 / guess_spread, `submitted_at` 2026-10-08 19:00:00+00, decision D-25, picks 15, references 15, a `post_id`, `roster_rows` 0. Signed in as Sean, `POST /functions/v1/gtl-api/community/read` then lists Ben in `standings` (guess_spread, weekPoints 37.6, weekScored 15), in `submissions`, and a `ballot_submitted` post dated 2026-10-08T19:00:00Z. Record the hosted migration version, the `payload_sha256` and the post id in [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
+   Errors: `GTL_COMMUNITY_FORBIDDEN` (the actor is not the commissioner), `GTL_COMMUNITY_MEMBER` (no profile for that user id), `GTL_RULED_IMPORT_CONFLICT` (a different submitted ballot already exists; stop and reconcile by hand), `GTL_SLATE_CONFLICT`, `GTL_BALLOT_INCOMPLETE`, `GTL_BALLOT_INVALID`, `GTL_RULED_IMPORT_INVALID` (window, reference or ruling text).
 
 Week 6 needs no manual publish: step 4 opens it. If the Monday run does not end `succeeded`, publish it by hand (Community → Preview / publish early (fallback) → Review schedule → Publish Week 6; before the frontend deploy, `POST /community/publish-preview` then `/community/publish` with `{"season":2026,"week":6}` signed in as Sean) and read `select status,reason,finished_at from public.gtl_week_open_runs order by created_at desc limit 1;` to see why.
 

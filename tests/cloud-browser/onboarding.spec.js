@@ -180,10 +180,15 @@ for (const width of [320, 390]) test(`an invitation survives signup and refresh 
   await page.locator('.auth-form').getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Check your email');
   await page.reload(); await signIn(page);
-  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Accept invitation', exact: true })).toBeDisabled();
+  // Persona audit #29: the name step is the whole screen until a display name is saved; the invitation waits behind it.
+  await expect(page.getByRole('heading', { name: 'First, what should we call you?' })).toBeVisible();
+  await expect(page.getByText('Your invitation is saved. Save a display name to accept it.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Accept invitation', exact: true })).toHaveCount(0);
   await page.getByLabel('Your display name').fill('Avery Chen');
   await page.getByRole('button', { name: 'Save display name' }).click();
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Your display name has been saved. Playing as Avery Chen.' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Accept invitation', exact: true })).toBeEnabled();
   expect(hub.requests.filter(request => request.endpoint === 'invite/accept')).toHaveLength(0);
   await page.getByRole('button', { name: 'Accept invitation', exact: true }).click();
@@ -272,6 +277,7 @@ test('Group creation stays separate from practice and shows its own roster and s
 });
 
 test('password help only requests mail after a user action and recovery changes the password explicitly', async ({ page, hub }) => {
+  hub.profile = 'Avery Chen';
   await page.goto('/');
   expect(hub.resets + hub.resends).toBe(0);
   await page.getByRole('button', { name: 'Forgot password?' }).click();
