@@ -133,13 +133,16 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     await dialog.getByRole('button', { name: 'Sit out Total' }).click();
     await expect(page.locator('.week-picks')).toContainText("Sat out · others' picks visible");
     await expect(page.getByRole('button', { name: 'Total · Sat out', exact: true })).toBeVisible();
-    const totalChips = page.locator('.week-pick').first().locator('.chip');
-    expect(await totalChips.count()).toBeGreaterThan(0);
-    for (const chip of await totalChips.all()) await expect(chip).toBeDisabled();
+    // Persona audit #41: the sat-out market shows the other members' revealed Total picks as read-only chips where the chip rows were.
+    const firstCard = page.locator('.week-pick').first();
+    await expect(firstCard.locator('.chip-picker')).toHaveCount(0);
+    await expect(firstCard.locator('.revealed-picks li')).toHaveText(['Troy Fixture44']);
+    await expect(page.locator('.week-pick').nth(1).locator('.revealed-chip')).toHaveText(['47.5']);
     await expect(page.getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
     expect((await db.query('select user_id,mode from public.gtl_weekly_optouts')).rows).toEqual([{ user_id: id(1), mode: 'guess_total' }]);
     await page.getByRole('button', { name: 'Spread', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Sit out this week' })).toBeVisible();
+    await expect(page.locator('.revealed-picks')).toHaveCount(0);
+    await expect(page.locator('.sit-out-row').getByRole('button', { name: 'Sit out this week' })).toBeVisible();
     for (const chip of await page.locator('.week-pick').first().locator('.chip-teams .chip').all()) await expect(chip).toBeEnabled();
     await page.getByRole('button', { name: 'Feed', exact: true }).click();
     await expect(page.locator('.picks-due')).toContainText('Spread 1/2');

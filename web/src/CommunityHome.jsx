@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
+import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, Check, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
@@ -231,6 +231,35 @@ function PublishWeek({ week, onDone }) {
   </section>;
 }
 
+/**
+ * Persona audit #41 (D-23): a sat-out market shows the other members' revealed picks for one game as read-only chips, where the chip
+ * rows the viewer can no longer use were. The community reader already exposes the numbers inside the feed's submission posts once the
+ * viewer sat out, so this reads those posts and the week's submission list rather than a new route: a member with a loaded post shows
+ * the pick, one whose post sits beyond the loaded feed pages reads "Submitted · in the feed" (the submission list carries submittedAt;
+ * the post itself may not be loaded), a sat-out member "Sat out", the rest "Not submitted yet", or "No <Market> picks" once the deadline
+ * has passed and nobody can submit (D-24). Members with picks come first. The viewer's own kept draft heads the list marked not scored: nothing is deleted.
+ */
+function RevealedPicks({ game, mode, season, week, feed, posts, own, closed }) {
+  const spread = mode === 'guess_spread';
+  const chip = (text, kind = 'number') => <span className={`chip ${kind}-chip selected revealed-chip`}><Check className="chip-check" size={14} aria-hidden="true"/>{text}</span>;
+  const chips = value => (!spread ? chip(show(value)) : value === 0 ? chip("Pick'em", 'team') : <>{chip(shortName(value < 0 ? game.homeCode : game.awayCode), 'team')}{chip(`−${show(Math.abs(value))}`)}</>);
+  const rows = feed.members.filter(m => m.id !== feed.viewer).map(m => {
+    const status = feed.submissions.find(x => x.userId === m.id && x.mode === mode);
+    const post = posts.find(p => p.kind === 'ballot_submitted' && p.actorId === m.id && p.season === season && p.week === week && p.mode === mode);
+    const value = post?.picks?.[game.id];
+    const picked = Number.isFinite(value), submitted = !!status?.submittedAt;
+    return { id: m.id, name: m.displayName, removed: m.removed, value, picked, rank: picked ? 0 : status?.satOut ? 2 : submitted ? 1 : 3,
+      state: status?.satOut ? 'Sat out' : submitted ? 'Submitted · in the feed' : closed ? `No ${MODE[mode]} picks` : 'Not submitted yet' };
+  }).sort((a, b) => a.rank - b.rank);
+  const ownValue = own === '' || own === undefined || own === null ? null : Number(own);
+  return <ul className="revealed-picks" aria-label={`${team(game.awayCode)} at ${team(game.homeCode)} ${MODE[mode]} picks`}>
+    {Number.isFinite(ownValue) && <li><span className="revealed-name">You · draft (not scored)</span><span className="revealed-value">{chips(ownValue)}</span></li>}
+    {rows.map(r => <li key={r.id}><span className="revealed-name">{r.name}{r.removed && <small className="muted"> · Removed</small>}</span>
+      <span className="revealed-value">{r.picked ? chips(r.value) : <span className="muted">{r.state}</span>}</span></li>)}
+  </ul>;
+}
+
+
 /** Persona audit #25: the receipt of a submitted ballot while the week is open. Its heading names the market and the count, the line
  * under it the submission time in PT (and the last change: a changed pick is re-referenced when saved, D-16), then what is still
  * due for the week with a button that opens it, the feed reveal for this market only (D-23) and "Edit picks". It is the ballot's
@@ -254,7 +283,7 @@ function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, onOther
   </section>;
 }
 
-function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initialMode }) {
+function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initialMode, feed, posts = [] }) {
   // Persona audit #3: the Picks history entry carries its market (#picks-spread, #picks-total), so a reload, Back or Forward reopens
   // the market that was open, with its unsaved picks offered back. A bare entry (the Picks tab, "Make picks") is settled by
   // chooseMarket in the same render the week arrives, so no other market's chips ever show first; the choice is written back
@@ -391,8 +420,12 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
         {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
     <p className="muted">Week {data.week} · {header}</p>
     {notOpen && <section className="panel week-not-open" role="status"><h3>{opensText(data.week, opensAt)}</h3><p>Nobody can pick before then. The schedule is below; the chips appear when the week opens.</p></section>}
-    {/* Persona audit #13: only a submitted ballot scores, so a draft that was never submitted is told so. */}
-    {closed && !satOut && <p className="auth-notice week-closed" role="status">Week {data.week} {MODE[mode]} picks are closed. {submitted ? `Your submitted ${MODE[mode]} picks stay below.` : filled ? `Your ${MODE[mode]} draft was never submitted, so it does not score this week.` : `You made no ${MODE[mode]} picks this week.`} {opensText(data.week + 1, nextOpenAt(data.deadline))}.</p>}
+    {/* Persona audit #41: the sat-out screen keeps its promise. The other members' picks for this market are on the cards below; once the
+        deadline has passed nobody can submit (D-24), so the note says so rather than "once they submit". */}
+    {satOut && <p className="auth-notice week-sat-out" role="status" tabIndex={-1}>You sat out Week {data.week} {MODE[mode]}. This week's {MODE[mode]} score is recorded as sat out, not zero. {closed ? `The deadline has passed; the other members' ${MODE[mode]} picks are below.` : `The other members' ${MODE[mode]} picks show below once they submit.`}</p>}
+    {/* Persona audit #13: only a submitted ballot scores, so a draft that was never submitted is told so. A sat-out market is recorded as sat
+        out (the note above), so its closed line carries only the next open. */}
+    {closed && <p className="auth-notice week-closed" role="status">Week {data.week} {MODE[mode]} picks are closed.{!satOut && ` ${submitted ? `Your submitted ${MODE[mode]} picks stay below.` : filled ? `Your ${MODE[mode]} draft was never submitted, so it does not score this week.` : `You made no ${MODE[mode]} picks this week.`}`} {opensText(data.week + 1, nextOpenAt(data.deadline))}.</p>}
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
     {notice && !editable && <p className="auth-notice" role="status">{notice}</p>}
     {/* The receipt is the submitted ballot's standing status; the recovery card below it carries this tab's unsaved edits on top of it.
@@ -412,7 +445,8 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       <h3>{team(g.awayCode)} @ {team(g.homeCode)}</h3>
       <p className="muted small">{date(g.kickoff)} PT</p>
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
-      {!notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
+      {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
+        : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
         label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
     </article>)}</div>
     {editable && <div className="save-bar">
@@ -423,10 +457,12 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       <p className="save-hint" id={hintId} role="status" aria-live="polite">{hint}</p>
       {/* Persona audit #24: the due time travels with the sticky bar, so the deadline is on screen wherever the player is scrolled. */}
       <div className="save-status"><strong>{filled}/{data.games.length} ready</strong><span className="save-due">{dueShort(data.deadline, data.now)}</span></div>
-      {!submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { removeCommunityDraft(scope); await load(); await onSatOut?.(); }}/>}
       {/* Busy and nothing-to-save states are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…" and after. */}
       {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}
       <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
+    {/* Persona audit #40: the final opt-out is a text link below the ballot, after Save draft and Submit in the tab order, not a button beside them.
+        The opt-out clears the last save notice ("Draft saved.") so it does not sit under the sat-out note. */}
+    {editable && !submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { removeCommunityDraft(scope); setNotice(''); refocus('.week-sat-out'); await load(); await onSatOut?.(); }}/>}
   </section>;
 }
 
@@ -492,7 +528,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
       </nav>
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span>{!feed && retryable && <button type="button" className="text-button" data-action="feed-retry" aria-disabled={busy || undefined} onClick={() => { if (!busy) retryFeed(); }}>Retry</button>}</div>}
       <p className="auth-notice" role="status" aria-live="polite">{notice}</p>
-      {tab === 'picks' ? <WeekPicks accountId={accountId} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
+      {tab === 'picks' ? <WeekPicks accountId={accountId} feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
         <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>
         <Leaderboard feed={feed}/>

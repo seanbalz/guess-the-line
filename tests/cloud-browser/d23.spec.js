@@ -39,7 +39,12 @@ for (const width of [390, 1280]) test(`D-23: sitting out Spread from the group b
     await expect(saveBar.getByRole('button', { name: 'Save draft', exact: true })).toBeVisible();
     await expect(saveBar.getByRole('button', { name: 'Review & submit', exact: true })).toBeVisible();
 
-    await saveBar.getByRole('button', { name: 'Sit out this week' }).click();
+    // Persona audit #40: the opt-out is a text link below the save bar, after Save draft and Review & submit, never a button in the bar.
+    const sitOut = page.locator('.sit-out-row').getByRole('button', { name: 'Sit out this week' });
+    await expect(saveBar.getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
+    await expect(sitOut).toHaveClass(/text-button/);
+    expect(await sitOut.evaluate(el => el.compareDocumentPosition(document.querySelector('.save-bar .primary')) & Node.DOCUMENT_POSITION_PRECEDING)).toBeTruthy();
+    await sitOut.click();
     const dialog = page.getByRole('dialog', { name: 'Sit out Week 5 Spread?' });
     await expect(dialog).toContainText('This is final for Week 5 Spread. You forfeit this week\'s Spread score, which is recorded as sat out, not zero.');
     await expect(dialog).toContainText('Total is not affected.');
@@ -74,7 +79,8 @@ for (const width of [390, 1280]) test(`D-23: sitting out Spread from the group b
     await expect(badge).toHaveText('BLIND PREDICTIONS');
     await expect(page.locator('.hidden-value')).toHaveCount(2);
     await expect(page.locator('.opponent-picks')).toHaveCount(0);
-    await expect(saveBar.getByRole('button', { name: 'Sit out this week' })).toBeEnabled();
+    await expect(page.locator('.sit-out-row').getByRole('button', { name: 'Sit out this week' })).toBeEnabled();
+    await expect(saveBar.getByRole('button', { name: 'Sit out this week' })).toHaveCount(0);
     await expectPickEnabled(page, 'TB at DAL combined points');
     await pickTotal(page, 'TB at DAL combined points', 45);
     await expectPick(page, 'TB at DAL combined points', '45 total points');
