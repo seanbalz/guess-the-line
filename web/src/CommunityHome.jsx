@@ -282,7 +282,6 @@ function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, onOther
   </section>;
 }
 
-
 function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initialMode, feed, posts = [] }) {
   // Persona audit #3: the Picks history entry carries its market (#picks-spread, #picks-total), so a reload, Back or Forward reopens
   // the market that was open, with its unsaved picks offered back. A bare entry (the Picks tab, "Make picks") is settled by
