@@ -31,24 +31,36 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
   await persona.axe('picks');
 
   // Complete all 14 spread picks with the keyboard only, counting presses.
+  // Bigger change (#9): each chip row is one Tab stop. The team row keeps its toggle buttons (arrows move, Enter or Space
+  // chooses); the number row is a radiogroup where arrows select the next half point and a typed digit jumps straight to that
+  // number. More, − and + are pointer targets whose functions live on the row's keys, so they no longer cost a Tab each between
+  // games: one Tab leaves a finished number row on the next game's team row.
   let presses = 0, missingRing = 0;
   for (const [i, home] of HOME.entries()) {
-    const toTeam = await persona.tabTo(f => f.name === home && f.pressed !== null);
-    expect(toTeam, `reach ${home}`).toBeGreaterThan(0);
-    presses += toTeam;
-    const focus = await persona.focused(); if (!focus.ring) missingRing++;
+    const away = await cards.nth(i).locator('.team-chip').first().innerText();
+    const toRow = await persona.tabTo(f => f.name === away && f.pressed === 'false');
+    expect(toRow, `reach ${away}`).toBeGreaterThan(0);
+    if (i) expect(toRow, `one Tab from the previous game's number row to ${away}`).toBe(1);
+    presses += toRow;
+    await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight'); presses += 2;
+    const focus = await persona.focused();
+    expect(focus).toMatchObject({ tag: 'button', name: home, pressed: 'false' });
+    if (!focus.ring) missingRing++;
     await page.keyboard.press(i % 2 ? 'Space' : 'Enter'); presses++;
     await expect(cards.nth(i).getByRole('button', { name: home, exact: true })).toHaveAttribute('aria-pressed', 'true');
-    const toNumber = await persona.tabTo(f => f.name === '−3');
-    expect(toNumber, `reach −3 for ${home}`).toBeGreaterThan(0);
-    presses += toNumber;
-    await page.keyboard.press('Enter'); presses++;
+    await page.keyboard.press('Tab'); presses++;
+    expect(await persona.focused(), `the number row of ${home} is the next stop`).toMatchObject({ tag: 'button', name: '−1' });
+    await page.keyboard.press('3'); presses++;
+    await expect(cards.nth(i).getByRole('radio', { name: '−3', exact: true })).toHaveAttribute('aria-checked', 'true');
     await expect(cards.nth(i).locator('.chip-summary')).toHaveText(`${home} −3`);
   }
   await expect(page.locator('.save-bar strong')).toHaveText('14/14 ready');
   const toSubmit = await persona.tabTo(f => f.name.startsWith('Submit'));
   presses += toSubmit;
-  persona.finding({ screen: 'picks', severity: 2, experience: `Finishing 14 spread picks with the keyboard took ${presses} key presses (Tab, Enter or Space). After each team choice the tab stops run through all 20 number chips, More, − and + before the next game's team chips, so reaching "−3" on game 2 costs a dozen presses and reaching the Submit button another ${toSubmit}. Every chip is a separate tab stop; there is no arrow-key movement inside a chip row and no "next game" shortcut.`, fix: 'Make each chip row a radiogroup with roving tabindex (one tab stop per row, arrows move within), and give the row a numeric type-ahead: typing "3" selects −3.' });
+  // The audit measured 382 presses with every chip a tab stop; six per game plus the save bar now.
+  expect(toSubmit).toBeLessThanOrEqual(3);
+  expect(presses).toBeLessThanOrEqual(100);
+  console.log(`power: 14-game spread ballot in ${presses} key presses (${toSubmit} to Submit)`);
   persona.finding({ screen: 'picks', severity: missingRing ? 2 : 4, wcag: '2.4.7', experience: missingRing ? `${missingRing} of 14 focused team chips painted no focus ring.` : 'Every focused chip shows the 2px cyan focus ring (outline-offset 4px); Enter and Space both toggle a chip. Good.', fix: missingRing ? 'Ensure :focus-visible is not overridden on .chip.' : 'Keep it.' });
   await persona.shot('picks-complete');
 
@@ -117,12 +129,37 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
   expect(persona.net.requests.filter(r => r.endpoint === 'personal/ballot').length).toBe(ballotRequests);
   await expect(page.getByRole('alert')).toHaveCount(0);
   // Restoring the game clears the hint; the ballot then matches what was submitted, so the switch needs no save.
-  await cards.first().getByRole('button', { name: '−3', exact: true }).focus(); await page.keyboard.press('Enter');
+  const minus3 = cards.first().getByRole('radio', { name: '−3', exact: true }), summary = cards.first().locator('.chip-summary');
+  await minus3.focus(); await page.keyboard.press('Enter');
+  await expect(minus3).toHaveAttribute('aria-checked', 'true');
+  await expect(hint).toBeEmpty();
+  // Keys on a spread row (#9): arrows step half a point and move focus with the check; "12" typed quickly lands on the More page
+  // (the More chip reads "1–10" there), Home and End walk the page shown, Left at −10.5 returns to the first page, and "=" opens a
+  // typed field that produces the same signed value as the chips and hands focus back to the checked chip.
+  await page.keyboard.press('ArrowRight'); await expect(summary).toHaveText('Cowboys −3.5');
+  await expect(cards.first().getByRole('radio', { name: '−3.5', exact: true })).toBeFocused();
+  await page.keyboard.press('ArrowLeft'); await expect(summary).toHaveText('Cowboys −3');
+  await page.keyboard.press('1'); await page.keyboard.press('2'); await expect(summary).toHaveText('Cowboys −12');
+  await expect(cards.first().getByRole('button', { name: '1–10', exact: true })).toHaveAttribute('aria-expanded', 'true');
+  await expect(cards.first().getByRole('radio', { name: '−12', exact: true })).toBeFocused();
+  await page.keyboard.press('End'); await expect(summary).toHaveText('Cowboys −20');
+  await page.keyboard.press('Home'); await expect(summary).toHaveText('Cowboys −10.5');
+  await page.keyboard.press('ArrowLeft'); await expect(summary).toHaveText('Cowboys −10');
+  await expect(cards.first().getByRole('button', { name: 'More', exact: true })).toHaveAttribute('aria-expanded', 'false');
+  await page.keyboard.press('Home'); await expect(summary).toHaveText('Cowboys −1');
+  await page.keyboard.press('=');
+  const typed = cards.first().getByRole('textbox', { name: 'Cowboys win by (type a number)' });
+  await expect(typed).toBeFocused();
+  await page.keyboard.type('3'); await page.keyboard.press('Enter');
+  await expect(typed).toHaveCount(0);
+  await expect(summary).toHaveText('Cowboys −3');
+  await expect(minus3).toHaveAttribute('aria-checked', 'true');
+  await expect(minus3).toBeFocused();
   await expect(hint).toBeEmpty();
   // A real edit (−3 → −3.5) saved with "Save changes" is a new submit of the full ballot (D-16: the changed pick gets a new reference
   // at save time; the original submission time is kept). The receipt takes focus again and adds the change time to it.
   await expect(receipt).not.toContainText('changed');
-  await cards.first().getByRole('button', { name: '−3.5', exact: true }).focus(); await page.keyboard.press('Enter');
+  await cards.first().getByRole('radio', { name: '−3.5', exact: true }).focus(); await page.keyboard.press('Enter');
   await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3.5');
   await saveChanges.focus(); await page.keyboard.press('Enter');
   await expect(receipt).toContainText(/ · changed \w{3} \d{1,2}, \d{1,2}:\d{2} [AP]M PT\./);
@@ -136,8 +173,38 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
   await expect(cards.first().locator('.number-chip').first()).toBeVisible();
   // No receipt on a market that is not submitted.
   await expect(page.locator('.submit-receipt')).toHaveCount(0);
-  // Keyboard on total chips: eleven chips plus −/+; no arrows.
-  const toFirstTotal = await persona.tabTo(f => f.name === '44');
-  persona.finding({ screen: 'picks-total', severity: 3, experience: `On the Total ballot it takes ${toFirstTotal} Tab presses to reach the first game's "44" chip; the − / + buttons step by 0.5 only, so moving from 44 to 51.5 is either a More-less chip tap (49 max) plus five presses on +, or two chip taps. Typing a number is not possible.`, fix: 'Allow typing on the focused chip row and widen the total range per matchup.' });
+
+  // Bigger change (#23): a Total ballot by keyboard. One Tab per game lands on the row's first chip. A single digit picks the total
+  // ending in that digit nearest the current pick (from the 44 centre, 7 gives 47), two quick digits set an exact total, and "="
+  // opens the typed field for a half point (no chip is checked at 44.5; the live summary carries the value).
+  let totalPresses = 0;
+  for (let i = 0; i < HOME.length; i++) {
+    const row = cards.nth(i), total = row.locator('.chip-summary');
+    const toRow = await persona.tabTo(f => f.tag === 'button' && f.name === '39');
+    expect(toRow, `reach the total row of ${HOME[i]}`).toBeGreaterThan(0);
+    if (i) expect(toRow).toBe(1);
+    totalPresses += toRow;
+    if (i === 0) {
+      await page.keyboard.press('5'); await page.keyboard.press('1'); totalPresses += 2;
+      await expect(total).toHaveText('51 total points');
+      await expect(row.getByRole('radio', { name: '51', exact: true })).toHaveAttribute('aria-checked', 'true');
+      await expect(row.getByRole('radio', { name: '51', exact: true })).toBeFocused();
+    } else if (i === 1) {
+      await page.keyboard.press('='); await page.keyboard.type('44.5'); await page.keyboard.press('Enter'); totalPresses += 6;
+      await expect(total).toHaveText('44.5 total points');
+      await expect(row.getByRole('radio', { checked: true })).toHaveCount(0);
+      await expect(row.getByRole('radio', { name: '44', exact: true })).toBeFocused(); // the Tab stop is the nearest chip, the lower one on a tie
+    } else {
+      await page.keyboard.press('7'); totalPresses++;
+      await expect(total).toHaveText('47 total points');
+      await expect(row.getByRole('radio', { name: '47', exact: true })).toHaveAttribute('aria-checked', 'true');
+    }
+  }
+  await expect(page.locator('.save-bar strong')).toHaveText('14/14 ready');
+  const toSubmitTotal = await persona.tabTo(f => f.name.startsWith('Submit'));
+  totalPresses += toSubmitTotal;
+  expect(toSubmitTotal).toBeLessThanOrEqual(3);
+  expect(totalPresses).toBeLessThanOrEqual(60);
+  console.log(`power: 14-game Total ballot in ${totalPresses} key presses (${toSubmitTotal} to Submit)`);
   expect(await persona.noOverflow()).toBe(true);
 });

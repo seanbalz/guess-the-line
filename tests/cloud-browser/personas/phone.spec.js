@@ -9,7 +9,7 @@ const DRAFT_PREFIX = 'gtl.community-tab-draft.';
 const draftKeys = page => page.evaluate(prefix => Object.keys(sessionStorage).filter(key => key.startsWith(prefix)), DRAFT_PREFIX);
 const ballotRequests = persona => persona.net.requests.filter(r => r.endpoint === 'personal/ballot').length;
 const hash = page => new URL(page.url()).hash;
-const pick = async (card, team, line) => { await card.getByRole('button', { name: team, exact: true }).click(); await card.getByRole('button', { name: line, exact: true }).click(); };
+const pick = async (card, team, line) => { await card.getByRole('button', { name: team, exact: true }).click(); await card.getByRole('radio', { name: line, exact: true }).click(); };
 
 test('phone: slow network, interrupted ballot, reload and back button', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
@@ -125,7 +125,7 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   await expect(totalButton).toHaveAttribute('aria-pressed', 'true');
   expect(hash(page)).toBe('#picks-total');
   await expect(ready).toHaveText('0/14 ready');
-  await cards.first().getByRole('button', { name: '44', exact: true }).click();
+  await cards.first().getByRole('radio', { name: '44', exact: true }).click();
   await expect(ready).toHaveText('1/14 ready');
   await expect(cards.first().locator('.chip-summary')).toHaveText('44 total points');
   expect(await draftKeys(page)).toEqual([`${DRAFT_PREFIX}v1.${encodeURIComponent(id(1))}.${persona.state.league.season}.${persona.state.league.week}.guess_total`]);

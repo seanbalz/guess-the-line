@@ -182,7 +182,7 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   const cards = page.locator('.week-pick');
   await expect(cards.first().locator('.number-chip').first()).toBeVisible();
   // One Total pick saved as a draft before the opt-out: D-23 keeps it, and the sat-out screen still shows it (as not scored).
-  await cards.first().getByRole('button', { name: '44', exact: true }).click();
+  await cards.first().getByRole('radio', { name: '44', exact: true }).click();
   await page.locator('.save-bar').getByRole('button', { name: 'Save draft' }).click();
   await expect(page.locator('.save-bar .save-notice')).toHaveText('Draft saved.');
   // D-23: sitting out Total is final. Bigger change #40 (docs/PERSONA_AUDIT_2026_10_09.md): the trigger is a text link below the

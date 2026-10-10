@@ -30,23 +30,55 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   await persona.smallText('picks', { min: 13 });
   await persona.shot('picks-200');
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
-  await first.getByRole('button', { name: '−3', exact: true }).click();
+  await first.getByRole('radio', { name: '−3', exact: true }).click();
   // Quick win 7 (#10): a selected chip carries a check icon as well as its fill, and the call line is a bold headline.
-  const selectedChip = first.getByRole('button', { name: '−3', exact: true });
+  const selectedChip = first.getByRole('radio', { name: '−3', exact: true });
   await expect(selectedChip).toHaveClass(/selected/);
   await expect(selectedChip.locator('svg.chip-check')).toHaveCount(1);
-  await expect(first.getByRole('button', { name: '−4', exact: true }).locator('svg')).toHaveCount(0);
+  await expect(first.getByRole('radio', { name: '−4', exact: true }).locator('svg')).toHaveCount(0);
   await expect(first.locator('.chip-call strong')).toHaveText('Cowboys by 3');
   // Review of PR #34: the team chip's check sits outside the name's text flow, so the chosen name is not clipped at 200%.
   expect(await first.locator('.team-chip.selected').evaluate(chip => ({ text: chip.textContent, fits: chip.scrollWidth <= chip.clientWidth }))).toEqual({ text: 'Cowboys', fits: true });
   await persona.shot('picks-200-selected');
-  // Quick win 8 (#11): the number row is a labelled group and every chip is described by it.
+  // Quick win 8 (#11) and the keyboard model (#9): the team row is a "Favorite" group of toggle buttons, the number row is a
+  // radiogroup named by the row label, every number chip is a radio described by that label and by the row's key help, and the
+  // chosen chip reads as checked. The key help is visually hidden until a chip in the row has keyboard focus.
   const tree = await first.ariaSnapshot();
   expect(tree).toContain('Buccaneers at Dallas Cowboys Spread');
-  expect(tree).toContain('group "Cowboys win by"');
-  const described = await first.locator('.number-chip').evaluateAll(chips => chips.map(chip => document.getElementById(chip.getAttribute('aria-describedby'))?.textContent));
-  expect(new Set(described)).toEqual(new Set(['Cowboys win by…']));
-  persona.finding({ screen: 'picks-200', severity: 4, wcag: '2.4.6', experience: `Screen-reader view of one game: group "Tampa Bay Buccaneers at Dallas Cowboys Spread", toggle buttons "Buccaneers", "Pick'em", "Cowboys", then the group "Cowboys win by" with toggle buttons "−1" … "−10" (each described by "Cowboys win by…") and "More", the stepper buttons, and the live summary "Cowboys −3". The team facts line is still read as "TB 1-4 Road 1-1".`, fix: 'Spell out records ("Tampa Bay 1 and 4, road 1 and 1").', evidence: { tree: tree.split('\n').slice(0, 30).join('\n') } });
+  expect(tree).toContain('group "Favorite"');
+  expect(tree).toContain('button "Cowboys" [pressed]');
+  expect(tree).toContain('radiogroup "Cowboys win by"');
+  expect(tree).toContain('radio "−3" [checked]');
+  expect(tree).not.toContain('- group "Cowboys win by"');
+  const described = await first.locator('.number-chip').evaluateAll(chips => chips.map(chip => chip.getAttribute('aria-describedby').split(' ').map(id => document.getElementById(id)?.textContent).join(' ')));
+  expect(new Set(described)).toEqual(new Set(['Cowboys win by… Arrow keys change the number by half a point; Home and End jump to the ends of the row. Type a number, 3 or 12.5, to choose it, or press = to type one.']));
+  expect(await first.locator('.number-chip').evaluateAll(chips => chips.map(chip => [chip.getAttribute('role'), chip.getAttribute('aria-checked'), chip.tabIndex]))).toEqual([...Array(19)].map((_, i) => ['radio', i === 4 ? 'true' : 'false', i === 4 ? 0 : -1]));
+  expect(await first.locator('.team-chip').evaluateAll(chips => chips.map(chip => [chip.getAttribute('aria-pressed'), chip.tabIndex]))).toEqual([['false', -1], ['false', -1], ['true', 0]]);
+  // The full key help stays screen-reader text (absolute) whether or not the row has focus; its one-line form (aria-hidden, or it
+  // would double the description) sits on the row label's line and is toggled with visibility only, so showing it never moves a
+  // chip: with −3 checked and the hint showing, the −4 chip's box is where it was before the keyboard touched the row. (A selected
+  // chip is wider than an unselected one, so the comparison is made with the same selection.) A help line that reflowed the row
+  // on focus moved the chips between mousedown and mouseup and lost the pointer click that followed keyboard focus
+  // (prediction-completion.spec.js).
+  const help = first.locator('.chip-row-help'), keys = first.locator('.chip-row-keys'), minus4 = first.getByRole('radio', { name: '−4', exact: true });
+  const box = locator => locator.evaluate(el => { const r = el.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; });
+  await expect(help).toHaveCount(1); await expect(keys).toHaveCount(1);
+  await expect(keys).toHaveAttribute('aria-hidden', 'true');
+  expect(await help.evaluate(el => getComputedStyle(el).position)).toBe('absolute');
+  expect(await keys.evaluate(el => getComputedStyle(el).visibility)).toBe('hidden');
+  const minus4Before = await box(minus4);
+  await selectedChip.focus(); await page.keyboard.press('ArrowRight');
+  await expect(first.getByRole('radio', { name: '−3.5', exact: true })).toBeFocused();
+  expect(await keys.evaluate(el => getComputedStyle(el).visibility)).toBe('visible');
+  expect(await keys.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(13);
+  expect(await help.evaluate(el => getComputedStyle(el).position)).toBe('absolute');
+  await page.keyboard.press('ArrowLeft');
+  await expect(selectedChip).toHaveAttribute('aria-checked', 'true');
+  await expect(selectedChip).toBeFocused();
+  expect(await keys.evaluate(el => getComputedStyle(el).visibility)).toBe('visible');
+  expect(await box(minus4)).toEqual(minus4Before);
+  await persona.axe('picks-keyboard');
+  persona.finding({ screen: 'picks-200', severity: 4, wcag: '2.4.6', experience: `Screen-reader view of one game: group "Tampa Bay Buccaneers at Dallas Cowboys Spread", the group "Favorite" with toggle buttons "Buccaneers", "Pick'em", "Cowboys", then the radiogroup "Cowboys win by" with radios "−1" … "−10" (each described by "Cowboys win by…" and the key help) and "More", the stepper buttons, and the live summary "Cowboys −3". The team facts line is still read as "TB 1-4 Road 1-1".`, fix: 'Spell out records ("Tampa Bay 1 and 4, road 1 and 1").', evidence: { tree: tree.split('\n').slice(0, 30).join('\n') } });
 
   // CSS zoom 200% on a 1280 CSS viewport: does anything overflow horizontally?
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -62,7 +94,7 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   await persona.shot('picks-forced-colors');
   const chipStyle = chip => chip.evaluate(el => { const s = getComputedStyle(el); return { bg: s.backgroundColor, color: s.color, border: s.borderWidth, borderColor: s.borderColor }; });
   const forced = await chipStyle(selectedChip);
-  const unselected = await chipStyle(first.getByRole('button', { name: '−4', exact: true }));
+  const unselected = await chipStyle(first.getByRole('radio', { name: '−4', exact: true }));
   const hasForcedCss = await page.evaluate(() => [...document.styleSheets].some(sheet => { try { return [...sheet.cssRules].some(rule => rule.media && /forced-colors/.test(rule.media.mediaText)); } catch { return false; } }));
   // Quick win 7 (#10): chipPicker.css and community.css carry @media (forced-colors: active) blocks. A selected chip shows its state with a
   // 3px Highlight border and a Highlight check icon; its label keeps the forced button colours of every other chip. It takes no Highlight

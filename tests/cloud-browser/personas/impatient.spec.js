@@ -47,7 +47,7 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
   const first = page.locator('.week-pick').first();
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
-  await first.getByRole('button', { name: '−3', exact: true }).click();
+  await first.getByRole('radio', { name: '−3', exact: true }).click();
   persona.net.offline = true;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
@@ -66,7 +66,7 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   // 3. A real conflict: the same account saves from another device, then this screen saves stale picks.
   //    "Load latest" brings in the other device's ballot and keeps this screen's unsaved edit on top of it.
   await persona.saveBallot('guess_spread', { 'TB-DAL': -7 }, false);
-  await first.getByRole('button', { name: '−4', exact: true }).click();
+  await first.getByRole('radio', { name: '−4', exact: true }).click();
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
   const conflictText = await alert.innerText();
@@ -87,7 +87,7 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   // 3b. An injected 409 that is not a revision conflict: the D-17 submission guard answers 409 with a GTL_SUBMISSION_ code when fresh
   //     quotes are unavailable or a refresh is already running. Review of PR #34: that case keeps its own "Keep your draft and retry"
   //     sentence and a Retry, never "Load latest" (which would reload the week and merge).
-  await first.getByRole('button', { name: '−5', exact: true }).click();
+  await first.getByRole('radio', { name: '−5', exact: true }).click();
   persona.net.fail = endpoint => endpoint === 'personal/ballot' ? { status: 409, body: { error: 'Fresh market references are unavailable. Your guesses were not submitted. Keep your draft and retry.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } } : null;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
@@ -107,7 +107,7 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
   await expect(first).toBeVisible();
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
-  await first.getByRole('button', { name: '−6', exact: true }).click();
+  await first.getByRole('radio', { name: '−6', exact: true }).click();
   persona.net.expireSession = true;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
@@ -128,7 +128,7 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   // 6. Submitting when fresh sportsbook quotes cannot be verified (D-17 rejects the save).
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
   await expect(first).toBeVisible();
-  for (const [i, pick] of [['Cowboys', '−3'], ['Eagles', '−2.5'], ['Dolphins', '−1']].entries()) { const card = page.locator('.week-pick').nth(i); await card.getByRole('button', { name: pick[0], exact: true }).click(); await card.getByRole('button', { name: pick[1], exact: true }).click(); }
+  for (const [i, pick] of [['Cowboys', '−3'], ['Eagles', '−2.5'], ['Dolphins', '−1']].entries()) { const card = page.locator('.week-pick').nth(i); await card.getByRole('button', { name: pick[0], exact: true }).click(); await card.getByRole('radio', { name: pick[1], exact: true }).click(); }
   persona.net.quotesUnavailable = true;
   await page.getByRole('button', { name: 'Submit Spread' }).click();
   await expect(alert).toBeVisible();

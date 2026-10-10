@@ -131,8 +131,8 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   expect(chips[0]).toBe('−1');
   // The chips keep the sportsbook sign (the favorite gives points); the row label says what it means in plain words.
   await expect(first.locator('.chip-row-label')).toHaveText('Cowboys win by…');
-  await expect(first.getByRole('group', { name: 'Cowboys win by' })).toBeVisible();
-  await first.getByRole('button', { name: '−3', exact: true }).click();
+  await expect(first.getByRole('radiogroup', { name: 'Cowboys win by' })).toBeVisible();
+  await first.getByRole('radio', { name: '−3', exact: true }).click();
   // Quick win 2 (#22): the headline confirms the call in plain words; the signed mono token stays as the secondary line.
   await expect(first.locator('.chip-call')).toHaveText('Your call: Cowboys by 3');
   const summary = await first.locator('.chip-summary').innerText();
@@ -174,7 +174,7 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   expect(zeros).toBe(0);
   expect(totalChips).toEqual(['39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49']);
   persona.finding({ screen: 'picks-total', severity: 3, experience: `The Total chips (${totalChips[0]}–${totalChips.at(-1)}) are whole numbers centered on 44 for every game regardless of matchup, so a newcomer has no idea whether 44 is high or low for this game.`, fix: 'Center the chips on the matchup\'s typical total (last season average or a neutral 45) and show the chosen value in the summary line as "Over/under 44 points".' });
-  await page.locator('.week-pick').first().getByRole('button', { name: '44', exact: true }).click();
+  await page.locator('.week-pick').first().getByRole('radio', { name: '44', exact: true }).click();
   await expect(page.locator('.week-pick').first().locator('.chip-summary')).toHaveText('44 total points');
   await expect(page.locator('.week-pick').first().locator('.chip-call')).toHaveText('Your call: 44 combined points');
 
