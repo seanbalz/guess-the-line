@@ -11,7 +11,7 @@
 .number-chip{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace;font-variant-numeric:tabular-nums;min-width:56px}
 .more-chip{border-style:dashed;color:var(--muted)}
 .icon-chip{display:grid;place-items:center;padding:0}
-.chip-row-head{position:relative;flex-basis:100%;min-height:18px}
+.chip-row-head{position:relative;flex-basis:100%}
 .chip-row-label{font-size:13px;line-height:18px;font-weight:600;color:var(--muted)}
 .chip-call{margin:0;font-size:16px;line-height:24px;color:var(--text)}
 .chip-call strong{font-weight:700}
