@@ -290,6 +290,48 @@ test("confused: sat out, with the submitter's post beyond the feed's first page"
   expect(await persona.noOverflow()).toBe(true);
 });
 
+test('confused: sat out, then the deadline passes', async ({ page, persona }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await persona.start({ games: 3 });
+  const { season, week } = persona.state.league, closedAt = '2026-10-09T00:15:00Z';
+  // While the week was open Troy submitted Total and Ben sat Total out (final, through the real sit-out route, which refuses a closed
+  // week); Luke never submitted. The week then closed the way the "after the deadline" fixture is closed: the slate's deadline moves
+  // into the past (the feed and the Picks tab both read it).
+  await submitAs(persona, id(2), 'guess_total', { 'TB-DAL': 44, 'PHI-JAX': 47.5, 'CIN-MIA': 41 });
+  await persona.api('community/sit-out', { season, week, mode: 'guess_total' });
+  await persona.db.query("update public.gtl_weekly_slates set signature=jsonb_set(signature,'{deadline}',to_jsonb($3::numeric)) where season=$1 and week=$2", [season, week, String(Date.parse(closedAt) / 1000)]);
+  await persona.db.query("update public.gtl_leagues set state=jsonb_set(state,'{league,deadline}',to_jsonb($1::text))", [closedAt]);
+  await persona.signIn();
+  // The sat-out market is never due (D-23), so the closed card names only the Spread ballot that was never submitted.
+  await expect(page.locator('.picks-due')).toContainText('Spread not submitted · Deadline passed · Week 6 opens Mon, Oct 12, 12:00 AM PT');
+  await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
+  const market = page.getByRole('group', { name: 'Market' });
+  await market.getByRole('button', { name: 'Total · Sat out', exact: true }).click();
+  await expect(page.locator('.week-picks > p.muted')).toContainText("Sat out · others' picks visible");
+  // Review of the #41 reveal: nobody can submit after the deadline (D-24), so the sat-out note no longer promises picks "once they
+  // submit", a member who never submitted reads "No Total picks" rather than "Not submitted yet", and the closed-week line with the
+  // next Monday open shows on the sat-out market as on any other.
+  await expect(page.locator('.week-sat-out')).toHaveText("You sat out Week 5 Total. This week's Total score is recorded as sat out, not zero. The deadline has passed; the other members' Total picks are below.");
+  await expect(page.locator('.week-closed')).toHaveText('Week 5 Total picks are closed. Week 6 opens Mon, Oct 12, 12:00 AM PT.');
+  const cards = page.locator('.week-pick');
+  await expect(cards.first().locator('.revealed-picks li')).toHaveText(['Troy Fixture44', 'Luke FixtureNo Total picks']);
+  await expect(cards.nth(1).locator('.revealed-picks li')).toHaveText(['Troy Fixture47.5', 'Luke FixtureNo Total picks']);
+  await expect(cards.nth(2).locator('.revealed-chip')).toHaveText(['41']);
+  await expect(page.locator('.week-picks')).not.toContainText('once they submit');
+  await expect(page.locator('.week-picks')).not.toContainText('Not submitted yet');
+  await expect(page.locator('.chip-picker')).toHaveCount(0);
+  await expect(page.locator('.save-bar')).toHaveCount(0);
+  await expect(page.locator('.sit-out-row')).toHaveCount(0);
+  await persona.shot('picks-sat-out-closed');
+  await persona.axe('picks-sat-out-closed');
+  // The untouched Spread market keeps the ordinary closed-week screen: no sat-out note, no revealed list.
+  await market.getByRole('button', { name: 'Spread', exact: true }).click();
+  await expect(page.locator('.week-closed')).toHaveText('Week 5 Spread picks are closed. You made no Spread picks this week. Week 6 opens Mon, Oct 12, 12:00 AM PT.');
+  await expect(page.locator('.week-sat-out')).toHaveCount(0);
+  await expect(page.locator('.revealed-picks')).toHaveCount(0);
+  expect(await persona.noOverflow()).toBe(true);
+});
+
 test('confused: no groups, and what groups are for', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await persona.start({ games: 3 });

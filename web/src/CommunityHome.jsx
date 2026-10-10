@@ -236,9 +236,10 @@ function PublishWeek({ week, onDone }) {
  * rows the viewer can no longer use were. The community reader already exposes the numbers inside the feed's submission posts once the
  * viewer sat out, so this reads those posts and the week's submission list rather than a new route: a member with a loaded post shows
  * the pick, one whose post sits beyond the loaded feed pages reads "Submitted · in the feed" (the submission list carries submittedAt;
- * the post itself may not be loaded), a sat-out member "Sat out", the rest "Not submitted yet". Members with picks come first. The viewer's own kept draft heads the list marked not scored: nothing is deleted.
+ * the post itself may not be loaded), a sat-out member "Sat out", the rest "Not submitted yet", or "No <Market> picks" once the deadline
+ * has passed and nobody can submit (D-24). Members with picks come first. The viewer's own kept draft heads the list marked not scored: nothing is deleted.
  */
-function RevealedPicks({ game, mode, season, week, feed, posts, own }) {
+function RevealedPicks({ game, mode, season, week, feed, posts, own, closed }) {
   const spread = mode === 'guess_spread';
   const chip = (text, kind = 'number') => <span className={`chip ${kind}-chip selected revealed-chip`}><Check className="chip-check" size={14} aria-hidden="true"/>{text}</span>;
   const chips = value => (!spread ? chip(show(value)) : value === 0 ? chip("Pick'em", 'team') : <>{chip(shortName(value < 0 ? game.homeCode : game.awayCode), 'team')}{chip(`−${show(Math.abs(value))}`)}</>);
@@ -248,7 +249,7 @@ function RevealedPicks({ game, mode, season, week, feed, posts, own }) {
     const value = post?.picks?.[game.id];
     const picked = Number.isFinite(value), submitted = !!status?.submittedAt;
     return { id: m.id, name: m.displayName, removed: m.removed, value, picked, rank: picked ? 0 : status?.satOut ? 2 : submitted ? 1 : 3,
-      state: status?.satOut ? 'Sat out' : submitted ? 'Submitted · in the feed' : 'Not submitted yet' };
+      state: status?.satOut ? 'Sat out' : submitted ? 'Submitted · in the feed' : closed ? `No ${MODE[mode]} picks` : 'Not submitted yet' };
   }).sort((a, b) => a.rank - b.rank);
   const ownValue = own === '' || own === undefined || own === null ? null : Number(own);
   return <ul className="revealed-picks" aria-label={`${team(game.awayCode)} at ${team(game.homeCode)} ${MODE[mode]} picks`}>
@@ -419,10 +420,12 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
         {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
     <p className="muted">Week {data.week} · {header}</p>
     {notOpen && <section className="panel week-not-open" role="status"><h3>{opensText(data.week, opensAt)}</h3><p>Nobody can pick before then. The schedule is below; the chips appear when the week opens.</p></section>}
-    {/* Persona audit #13: only a submitted ballot scores, so a draft that was never submitted is told so. */}
-    {closed && !satOut && <p className="auth-notice week-closed" role="status">Week {data.week} {MODE[mode]} picks are closed. {submitted ? `Your submitted ${MODE[mode]} picks stay below.` : filled ? `Your ${MODE[mode]} draft was never submitted, so it does not score this week.` : `You made no ${MODE[mode]} picks this week.`} {opensText(data.week + 1, nextOpenAt(data.deadline))}.</p>}
-    {/* Persona audit #41: the sat-out screen keeps its promise. The other members' picks for this market are on the cards below. */}
-    {satOut && <p className="auth-notice week-sat-out" role="status" tabIndex={-1}>You sat out Week {data.week} {MODE[mode]}. This week's {MODE[mode]} score is recorded as sat out, not zero. The other members' {MODE[mode]} picks show below once they submit.</p>}
+    {/* Persona audit #41: the sat-out screen keeps its promise. The other members' picks for this market are on the cards below; once the
+        deadline has passed nobody can submit (D-24), so the note says so rather than "once they submit". */}
+    {satOut && <p className="auth-notice week-sat-out" role="status" tabIndex={-1}>You sat out Week {data.week} {MODE[mode]}. This week's {MODE[mode]} score is recorded as sat out, not zero. {closed ? `The deadline has passed; the other members' ${MODE[mode]} picks are below.` : `The other members' ${MODE[mode]} picks show below once they submit.`}</p>}
+    {/* Persona audit #13: only a submitted ballot scores, so a draft that was never submitted is told so. A sat-out market is recorded as sat
+        out (the note above), so its closed line carries only the next open. */}
+    {closed && <p className="auth-notice week-closed" role="status">Week {data.week} {MODE[mode]} picks are closed.{!satOut && ` ${submitted ? `Your submitted ${MODE[mode]} picks stay below.` : filled ? `Your ${MODE[mode]} draft was never submitted, so it does not score this week.` : `You made no ${MODE[mode]} picks this week.`}`} {opensText(data.week + 1, nextOpenAt(data.deadline))}.</p>}
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
     {notice && !editable && <p className="auth-notice" role="status">{notice}</p>}
     {/* The receipt is the submitted ballot's standing status; the recovery card below it carries this tab's unsaved edits on top of it.
@@ -442,7 +445,7 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       <h3>{team(g.awayCode)} @ {team(g.homeCode)}</h3>
       <p className="muted small">{date(g.kickoff)} PT</p>
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
-      {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]}/>
+      {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
         : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
         label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
     </article>)}</div>
