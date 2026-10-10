@@ -16,6 +16,9 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await page.keyboard.type('ben@example.test');
   await page.keyboard.press('Tab'); await page.keyboard.type('test-password'); await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  // The skip link names the picks-due card only once the feed has arrived (the heading paints first), so wait for the card before
+  // the first Tab: this asserts the link's text for the screen it describes, not for a race against the feed request.
+  await expect(page.locator('.picks-due')).toBeVisible();
 
   // Skip link: first Tab must land on it, it must be visible, and Enter must move focus into main.
   await page.keyboard.press('Tab');

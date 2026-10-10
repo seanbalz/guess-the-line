@@ -102,9 +102,9 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   await expect(alert).toHaveCount(0);
 
   // 4. The session expires between loading and saving: the banner says so, puts Retry first and warns that "Sign in again" clears the screen.
+  //    Persona audit #3: the tab lives in the URL hash, so the reload lands back on Picks with no "Make picks" tap.
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-  await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
   await expect(first).toBeVisible();
   await first.getByRole('button', { name: 'Cowboys', exact: true }).click();
   await first.getByRole('button', { name: '−6', exact: true }).click();

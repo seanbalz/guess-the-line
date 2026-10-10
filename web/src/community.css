@@ -81,6 +81,11 @@
 .chip-help{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin:12px 0;padding:12px 16px;border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:8px;background:var(--surface);font-size:14px;line-height:1.6}
 .chip-help p{margin:0}
 .chip-help .text-button{flex:none;min-width:44px;justify-content:center;color:var(--text);text-decoration:underline}
+/* Persona audit #3: the tab-copy recovery card above the game list. */
+.picks-recovery{margin:12px 0;padding:16px;border-left:4px solid var(--pending)}
+.picks-recovery h3{font-size:16px;line-height:24px;margin:0 0 4px}
+.picks-recovery p{margin:0 0 12px;color:var(--muted)}
+.picks-recovery-actions{display:flex;gap:8px;flex-wrap:wrap}
 .week-picks .save-bar .error-banner,.week-picks .save-bar .save-notice,.week-picks .save-bar .save-hint{flex-basis:100%;margin:0}
 .save-hint{padding:12px 16px;border:1px solid var(--pending);border-radius:8px;font-size:14px;line-height:1.6}
 /* The hint stays mounted: one live region whose text changes is announced, while one inserted with its text often is not. Empty, it is visually hidden rather than display:none. */

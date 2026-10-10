@@ -5,6 +5,7 @@ import ThemeSelector from './Theme';
 import Brand from './Brand';
 import { clearTabDrafts } from './predictionDraft';
 import { clearSoloDrafts } from './soloDraft';
+import { clearCommunityDrafts } from './communityDraft';
 import { pendingInvitation } from './invitations';
 
 export default function AuthGate({ children }) {
@@ -12,7 +13,7 @@ export default function AuthGate({ children }) {
   const lastAccount = useRef(null);
   function accountChanged(nextSession) {
     const next = nextSession?.user?.id || null;
-    if (lastAccount.current && lastAccount.current !== next) { clearTabDrafts(); clearSoloDrafts(); }
+    if (lastAccount.current && lastAccount.current !== next) { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); }
     lastAccount.current = next;
   }
   const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ export default function AuthGate({ children }) {
     if (!supabase) { setLoading(false); return; }
     let active = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === 'SIGNED_OUT') { clearTabDrafts(); clearSoloDrafts(); }
+      if (event === 'SIGNED_OUT') { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); }
       accountChanged(nextSession);
       if (active) { if (event === 'PASSWORD_RECOVERY') setRecovering(true); setSession(nextSession); setLoading(false); }
     });
@@ -103,7 +104,7 @@ export default function AuthGate({ children }) {
   async function signOut() {
     const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
     if (signOutError) throw new Error('We could not sign you out. Please try again.');
-    clearTabDrafts(); clearSoloDrafts();
+    clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts();
     setPassword(''); setError(''); setNotice('');
   }
 

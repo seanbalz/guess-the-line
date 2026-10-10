@@ -6,6 +6,8 @@ import ChipPicker, { CHIP_HELP } from './ChipPicker';
 import TeamFacts from './TeamFacts';
 import SitOutWeek from './SitOutWeek';
 import { cloudApi, communityApi, date } from './api';
+import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
+import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
 import { TEAM_NAMES, pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import './community.css';
 
@@ -29,6 +31,22 @@ const dueShort = (deadline, now) => `Due ${date(deadline, { weekday: 'short', mo
 const helpKey = mode => `gtl.chipHelp.${mode}`;
 // Persona audit #8: a request that never reached the service (no status) reads as "offline" everywhere, never as "Failed to fetch".
 const plain = (e, next = 'try again') => (e.status ? e.message : `No connection. Reconnect and ${next}.`);
+const picksFor = (d, m) => Object.fromEntries(d.games.map(g => [g.id, d.ballots[m]?.picks?.[g.id] ?? '']));
+// Persona audit #3: the market a bare #picks opens once the week is known. A market with unsaved picks waiting in this tab comes
+// first, so they are offered back instead of sitting behind the other market's button; then the feed's first market still due,
+// then the first the week itself still has open (unsubmitted, not sat out), then Spread. A closed or not-yet-open week offers no
+// copy back, so it opens the first market due as before.
+function chooseMarket(d, { accountId, initialMode, optOuts }) {
+  const modes = Object.keys(MODE), due = modes.filter(m => !d.ballots[m]?.submittedAt && !optOuts.includes(m));
+  const order = [...new Set([initialMode, ...due, ...modes].filter(Boolean))];
+  const open = Date.parse(d.now) < Date.parse(d.deadline) && Date.parse(d.now) >= Date.parse(weekOpenAt(d.deadline));
+  const waiting = open && order.find(m => {
+    if (optOuts.includes(m)) return false;
+    const copy = readCommunityDraft(communityDraftScope({ accountId, season: d.season, week: d.week, mode: m }), d.games);
+    return copy && communityPicksDiffer(copy.draft, picksFor(d, m));
+  });
+  return waiting || order[0];
+}
 
 /** Focus never strands on <body>: when a control that had focus is removed (a banner's Retry, "Got it"), the next render that
  * can focus the named control does so (WCAG 2.4.3). Busy controls stay focusable because they are aria-disabled, not disabled. */
@@ -265,28 +283,62 @@ function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, onOther
 }
 
 
-function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initialMode, feed, posts = [] }) {
-  const [data, setData] = useState(null), [mode, setMode] = useState(initialMode || 'guess_spread'), [draft, setDraft] = useState(null);
+function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initialMode, feed, posts = [] }) {
+  // Persona audit #3: the Picks history entry carries its market (#picks-spread, #picks-total), so a reload, Back or Forward reopens
+  // the market that was open, with its unsaved picks offered back. A bare entry (the Picks tab, "Make picks") is settled by
+  // chooseMarket in the same render the week arrives, so no other market's chips ever show first; the choice is written back
+  // into the entry. Read once at mount: the entry is this screen's own record, nothing else changes it while the screen is open.
+  const [data, setData] = useState(null), [mode, setMode] = useState(() => currentMarket() || initialMode || 'guess_spread'), [draft, setDraft] = useState(null);
   const [busy, setBusy] = useState(false), [saving, setSaving] = useState(null), [error, setError] = useState(''), [unpublished, setUnpublished] = useState(false);
-  const [notice, setNotice] = useState(''), [failure, setFailure] = useState(null), [hint, setHint] = useState('');
+  const [notice, setNotice] = useState(''), [failure, setFailure] = useState(null), [hint, setHint] = useState(''), [recovery, setRecovery] = useState(null);
   const [dismissed, setDismissed] = useState(() => new Set(Object.keys(MODE).filter(m => { try { return localStorage.getItem(helpKey(m)) === 'off'; } catch { return false; } })));
   const request = useRef(null), root = useRef(null), refocus = useRefocus(root), hintId = useId(), receiptId = useId();
   // The save-bar button behind the latest request ("draft" or "submit"); a banner action hands focus back to it.
   const action = useRef('draft');
-  const load = useCallback(async () => { const result = await cloudApi('personal'); setData(result); return result; }, []);
+  const settled = useRef(currentMarket() !== null), latest = useRef(null);
+  latest.current = { accountId, initialMode, optOuts };
+  const load = useCallback(async () => {
+    const result = await cloudApi('personal');
+    if (!settled.current) { settled.current = true; const chosen = chooseMarket(result, latest.current); setMode(chosen); setMarket(chosen); }
+    setData(result);
+    return result;
+  }, []);
   // Persona audit #14: no published week (the handler answers 404) is a quiet state, not an error.
   const loadWeek = useCallback(() => { setError(''); setUnpublished(false); return load().catch(e => { if (e.status === 404) setUnpublished(true); else setError(plain(e, 'tap Retry')); }); }, [load]);
   useEffect(() => { loadWeek(); }, [loadWeek]);
-  const picksFor = (d, m) => Object.fromEntries(d.games.map(g => [g.id, d.ballots[m]?.picks?.[g.id] ?? '']));
   // Picks derive from the loaded week and the market in the same render, never one render late: a draft counts only for the data and mode it was entered against,
   // so a market switch or a reload can never show one market's values in the other's chips.
   const picksOf = (d, m, dr) => (dr && dr.data === d && dr.mode === m ? dr.picks : picksFor(d, m));
+  // Persona audit #3: unsaved picks are copied to this tab on every change (sessionStorage, this account, season, week and market only,
+  // never sent anywhere) and the copy is dropped once nothing differs from the saved ballot.
+  const scope = data ? communityDraftScope({ accountId, season: data.season, week: data.week, mode }) : null;
+  useEffect(() => {
+    if (!draft) return;
+    const own = communityDraftScope({ accountId, season: draft.data.season, week: draft.data.week, mode: draft.mode }), base = picksFor(draft.data, draft.mode);
+    if (communityPicksDiffer(draft.picks, base)) writeCommunityDraft(own, draft.picks, base); else removeCommunityDraft(own);
+  }, [draft, accountId]);
+  // On return to this market (tab switch, Back, reload) a copy that still differs from the saved picks is offered back explicitly, the way
+  // the group ballot and Solo do it; a copy that matches the saved ballot is dropped. The draft being edited right now is not a recovery copy.
+  useEffect(() => {
+    if (!data || !scope || (draft && draft.data === data && draft.mode === mode)) { setRecovery(null); return; }
+    const copy = readCommunityDraft(scope, data.games);
+    if (copy && !communityPicksDiffer(copy.draft, picksFor(data, mode))) { removeCommunityDraft(scope); setRecovery(null); return; }
+    setRecovery(copy);
+  }, [data, mode, scope]);
   // "Got it" removes its own container, so focus moves on to the first chip.
   function dismissHelp() { setDismissed(s => new Set([...s, mode])); refocus('.week-pick-list .chip:not(:disabled)'); try { localStorage.setItem(helpKey(mode), 'off'); } catch { /* Hidden for this visit only. */ } }
+  // Restore puts the tab's edits on top of the latest saved picks (the "Load latest" rule); the card's buttons remove the card, so focus
+  // moves on to the first chip as "Got it" does. A chip tapped instead starts a fresh copy, as on the group ballot.
+  function restoreRecovery() {
+    if (busy || !recovery) return;
+    setDraft({ data, mode, picks: mergeCommunityDraft(recovery.base, recovery.draft, picksFor(data, mode)) });
+    setRecovery(null); setHint(''); setNotice('Unsaved picks restored. Save or submit to keep them.'); refocus('.week-pick-list .chip:not(:disabled)');
+  }
+  function discardRecovery() { if (busy) return; removeCommunityDraft(scope); setRecovery(null); refocus('.week-pick-list .chip:not(:disabled)'); }
   if (!data) return unpublished ? <WeekUnpublished/>
     : error ? <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span><button type="button" className="text-button" onClick={loadWeek}>Retry</button></div>
     : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
-  const picks = picksOf(data, mode, draft);
+  const picks = picksOf(data, mode, draft), edits = recovery ? communityDraftEdits(recovery) : 0;
   const ballot = data.ballots[mode], submitted = !!ballot?.submittedAt, closed = Date.parse(data.now) >= Date.parse(data.deadline);
   const opensAt = weekOpenAt(data.deadline), notOpen = Date.parse(data.now) < Date.parse(opensAt);
   const satOut = optOuts.includes(mode);
@@ -317,7 +369,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
     if (request.current?.serialized !== serialized) request.current = { serialized, requestId: crypto.randomUUID() };
     try {
       await cloudApi('personal/ballot', { ...body, requestId: request.current.requestId, revision: data.revision });
-      request.current = null; await load();
+      request.current = null; removeCommunityDraft(scope); await load();
       setNotice(submit || submitted ? `${MODE[mode]} picks submitted.` : 'Draft saved.'); onSaved?.();
       if (submit && focusReceipt) refocus('.submit-receipt');
       return true;
@@ -349,7 +401,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
       if (!(await save(submitted, false))) return;
       setNotice(`${submitted ? `${MODE[mode]} picks submitted` : 'Draft saved'}. Now showing ${MODE[next]}.`);
     }
-    setMode(next); setHint('');
+    setMode(next); setMarket(next); setHint('');
   }
   // Persona audit #6: Submit stays enabled and says what is missing instead of going grey.
   function submitOrExplain() {
@@ -374,8 +426,17 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
     {satOut && <p className="auth-notice week-sat-out" role="status" tabIndex={-1}>You sat out Week {data.week} {MODE[mode]}. This week's {MODE[mode]} score is recorded as sat out, not zero. The other members' {MODE[mode]} picks show below once they submit.</p>}
     {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
     {notice && !editable && <p className="auth-notice" role="status">{notice}</p>}
+    {/* The receipt is the submitted ballot's standing status; the recovery card below it carries this tab's unsaved edits on top of it.
+        Neither moves focus on a reload or a market switch: the receipt takes focus only after an in-session submit (save), and the
+        card's buttons hand focus to the first chip. */}
     {submitted && editable && <SubmitReceipt id={receiptId} mode={mode} count={Object.values(picksFor(data, mode)).filter(v => v !== '').length} ballot={ballot} other={other} deadline={data.deadline} busy={busy}
       onOther={() => switchMode(otherMode)} onReveal={() => onReveal?.(mode)} onEdit={() => root.current?.querySelector('.week-pick-list .chip:not(:disabled)')?.focus()}/>}
+    {/* Persona audit #3: a tab copy that differs from the saved ballot is offered back, never applied silently and never called saved. */}
+    {recovery && editable && <section className="panel picks-recovery" aria-label={`Unsaved ${MODE[mode]} picks`}>
+      <h3>Unsaved {MODE[mode]} picks found in this tab</h3>
+      <p>{edits} {edits === 1 ? 'pick' : 'picks'} from {date(recovery.updatedAt)} PT, kept on this device only: not saved to your account and not submitted. Restore puts them on top of your latest saved picks.</p>
+      <div className="picks-recovery-actions"><button type="button" className="primary" aria-disabled={busy || undefined} onClick={restoreRecovery}>Restore picks</button><button type="button" className="secondary" aria-disabled={busy || undefined} onClick={discardRecovery}>Discard</button></div>
+    </section>}
     {!dismissed.has(mode) && editable && <div className="chip-help" role="note"><p>{CHIP_HELP[mode]}</p>
       <button type="button" className="text-button" aria-label="Got it, hide this tip" onClick={dismissHelp}>Got it</button></div>}
     <div className="week-pick-list">{data.games.map(g => <article className="panel week-pick" key={g.id}>
@@ -384,7 +445,7 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
       {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]}/>
         : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
-        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
+        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
     </article>)}</div>
     {editable && <div className="save-bar">
       {failure && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{failure.message}</span>
@@ -398,12 +459,14 @@ function WeekPicks({ onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initi
       {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}
       <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
     {/* Persona audit #40: the final opt-out is a text link below the ballot, after Save draft and Submit in the tab order, not a button beside them. */}
-    {editable && !submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { refocus('.week-sat-out'); await load(); await onSatOut?.(); }}/>}
+    {editable && !submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { removeCommunityDraft(scope); refocus('.week-sat-out'); await load(); await onSatOut?.(); }}/>}
   </section>;
 }
 
-export default function CommunityHome({ onGroups, onSignOut, displayName, onUnavailable, welcome = '' }) {
-  const [tab, setTab] = useState('feed'), [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
+export default function CommunityHome({ accountId, onGroups, onSignOut, displayName, onUnavailable, welcome = '' }) {
+  // Persona audit #3: the open tab is the URL hash (#feed, #picks), one history entry each, so Back returns to the feed and a reload lands on the same tab.
+  const screen = useScreen(), tab = screen === 'picks' ? 'picks' : 'feed';
+  const [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [retryable, setRetryable] = useState(false);
   const main = useRef(null), refocus = useRefocus(main);
   // Persona audit #29: arriving from the name step, the saved-name confirmation is a status on this screen and focus moves to main
@@ -442,7 +505,8 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
   async function retryFeed() { refocus('[data-action="feed-retry"]'); if (await act(load)) { refocus(null); main.current?.focus(); } }
   // Persona audit #25: the receipt's "See everyone's Spread picks" opens the feed on its first Spread post (the reveal is per market,
   // D-23: the other market's posts stay hidden until that ballot is submitted), or on the feed itself when no post exists yet.
-  function reveal(mode) { const post = posts.find(p => p.kind === 'ballot_submitted' && p.mode === mode); refocus(post ? `[data-post="${post.id}"]` : '.community-feed'); setTab('feed'); }
+  // The move is a #feed history entry like a tab tap (persona audit #3), so Back returns to the Picks market the receipt was on.
+  function reveal(mode) { const post = posts.find(p => p.kind === 'ballot_submitted' && p.mode === mode); refocus(post ? `[data-post="${post.id}"]` : '.community-feed'); goScreen('feed'); }
   return <div className="hub-shell community-home">
     <a className="skip-link" href={dueCard ? '#picks-due' : '#main'}>{dueCard ? 'Skip to picks due' : 'Skip to main content'}</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{displayName}</span></div></header>
@@ -456,14 +520,14 @@ export default function CommunityHome({ onGroups, onSignOut, displayName, onUnav
       </> : <>
       <nav className="community-tabs" aria-label="Community sections">
         {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`]].map(([key, label]) =>
-          <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => setTab(key)}>{label}</button>)}
+          <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => goScreen(key)}>{label}</button>)}
         <button className="secondary" onClick={onGroups}>Groups & games<ArrowRight size={16}/></button>
       </nav>
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span>{!feed && retryable && <button type="button" className="text-button" data-action="feed-retry" aria-disabled={busy || undefined} onClick={() => { if (!busy) retryFeed(); }}>Retry</button>}</div>}
       <p className="auth-notice" role="status" aria-live="polite">{notice}</p>
-      {tab === 'picks' ? <WeekPicks feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
+      {tab === 'picks' ? <WeekPicks accountId={accountId} feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
-        <PicksDue due={feed.picksDue} all={feed.due} onPick={() => setTab('picks')}/>
+        <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>
         <Leaderboard feed={feed}/>
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}
         <section className="community-feed" aria-label="Activity feed" tabIndex={-1}>

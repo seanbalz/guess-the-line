@@ -9,6 +9,7 @@ import ThemeSelector from './Theme';
 import Brand from './Brand';
 import { cloudApi, date } from './api';
 import { clearInvitation, pendingInvitation } from './invitations';
+import { goScreen, useScreen } from './screenHash';
 
 const formatName = value => ({ duel: 'Duel', group: 'Group', 'triple-threat': 'Triple Threat' })[value] || value;
 
@@ -159,9 +160,11 @@ export default function GameHub({ session, onSignOut }) {
   const [creating, setCreating] = useState(false), [editingProfile, setEditingProfile] = useState(false), [inviting, setInviting] = useState(null);
   const [token, setToken] = useState(pendingInvitation);
   const [socialDirty, setSocialDirty] = useState(false);
-  // D-21: the community feed is home; groups and games are one step away.
-  const [groupsOpen, setGroupsOpen] = useState(false), [communityOnline, setCommunityOnline] = useState(true);
-  const communityUnavailable = useCallback(() => { setWelcome(''); setCommunityOnline(false); setGroupsOpen(true); }, []);
+  // D-21: the community feed is home; groups and games are one step away. Persona audit #3: which screen is open lives in the URL hash
+  // (#feed, #picks, #groups), one history entry each, so Back moves between screens and a reload lands on the same one.
+  const screen = useScreen(), [communityOnline, setCommunityOnline] = useState(true);
+  const groupsOpen = screen === 'groups' || !communityOnline;
+  const communityUnavailable = useCallback(() => { setWelcome(''); setCommunityOnline(false); goScreen('groups', { replace: true }); }, []);
   const load = useCallback(async signal => { const result = await cloudApi('lobby', undefined, { signal }); setLobby(result); return result; }, []);
   useEffect(() => { const controller = new AbortController(); load(controller.signal).catch(failure => { if (failure.name !== 'AbortError') setError(failure.message); }); return () => controller.abort(); }, [load]);
   function choose(id) { setSelected(id); try { id ? sessionStorage.setItem(selectionKey, id) : sessionStorage.removeItem(selectionKey); } catch { /* Selection still works in this tab. */ } }
@@ -186,7 +189,7 @@ export default function GameHub({ session, onSignOut }) {
     const message = first ? `Your display name has been saved. Playing as ${result.profile.displayName}.` : 'Your display name has been saved.';
     setNotice(message); if (first && !token) setWelcome(message);
   };
-  const openGroups = () => { setNotice(''); setWelcome(''); setGroupsOpen(true); };
+  const openGroups = () => { setNotice(''); setWelcome(''); goScreen('groups'); };
   // The shell that waits for the lobby keeps a heading of its own ("Your games", the sign-in card's phrase) so the error state that
   // persists until Try again is not a page without a title; the My games chrome still never paints before the lobby answers.
   if (!lobby) return <Shell who={session.user.email} busy={busy} onSignOut={signOut}>
@@ -197,7 +200,7 @@ export default function GameHub({ session, onSignOut }) {
     </div>
   </Shell>;
   if (!profileReady) return <Shell who={session.user.email} busy={busy} onSignOut={signOut}><NameStep profile={lobby.profile} invited={Boolean(token)} error={error} onSaved={onProfileSaved}/></Shell>;
-  if (!selected && !token && !groupsOpen && !editingProfile) return <CommunityHome displayName={lobby.profile.displayName} welcome={welcome} onGroups={openGroups} onUnavailable={communityUnavailable} onSignOut={signOut}/>;
+  if (!selected && !token && !groupsOpen && !editingProfile) return <CommunityHome accountId={session.user.id} displayName={lobby.profile.displayName} welcome={welcome} onGroups={openGroups} onUnavailable={communityUnavailable} onSignOut={signOut}/>;
   if (selected === 'solo' && !token) return <DeferredScreen key={session.user.id} label="your Solo workspace"><PersonalWorkspace key={session.user.id} accountId={session.user.id} onBack={() => choose('')} onSignOut={onSignOut}/></DeferredScreen>;
   if (['social', 'units'].includes(selected) && !token) return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>
@@ -205,14 +208,14 @@ export default function GameHub({ session, onSignOut }) {
     <main className="hub-main" id="main"><ThemeSelector/><DeferredScreen resetKey={selected} label={selected === 'units' ? 'your betting week' : 'bet tracker'}><SocialBetTracker key={selected} player={session.user.id} initialView={selected === 'units' ? 'units' : 'feed'} onDirty={setSocialDirty}/></DeferredScreen></main>
   </div>;
   return <>
-    {current && !token ? <DeferredScreen resetKey={current.id} label="your league"><App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => { setGroupsOpen(true); choose(''); }} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/></DeferredScreen>
+    {current && !token ? <DeferredScreen resetKey={current.id} label="your league"><App key={current.id} session={session} onSignOut={onSignOut} leagueId={current.id} leagues={lobby.leagues} onSelectLeague={choose} onMyGames={() => { goScreen('groups'); choose(''); }} onInvite={current.role === 'commissioner' && current.format !== 'triple-threat' ? () => setInviting(current) : undefined}/></DeferredScreen>
       : <div className="hub-shell">
         <a className="skip-link" href="#main">Skip to main content</a>
         <header className="hub-header"><Brand /><div className="hub-account"><span>{lobby.profile.displayName}</span><button className="secondary" onClick={signOut} disabled={busy}>Sign out</button></div></header>
         <main className="hub-main" id="main">
           <ThemeSelector/>
           {/* Persona audit #16: one sentence on what a group is for versus the Community. New game is the primary action only once a game exists; the empty state carries "Create your first game". */}
-          <div className="hub-heading"><div>{communityOnline && <button className="text-button" onClick={() => setGroupsOpen(false)}>← Community</button>}<p className="eyebrow">YOUR PEOPLE. YOUR PREDICTIONS.</p><h1>My games</h1><p>The Community already scores every member, so a group is optional: a private leaderboard for the people you choose, using the same weekly picks.</p></div><button className={lobby.leagues.length ? 'primary' : 'secondary'} disabled={busy} onClick={() => setCreating(true)}><Plus size={18}/>New game</button></div>
+          <div className="hub-heading"><div>{communityOnline && <button className="text-button" onClick={() => goScreen('feed')}>← Community</button>}<p className="eyebrow">YOUR PEOPLE. YOUR PREDICTIONS.</p><h1>My games</h1><p>The Community already scores every member, so a group is optional: a private leaderboard for the people you choose, using the same weekly picks.</p></div><button className={lobby.leagues.length ? 'primary' : 'secondary'} disabled={busy} onClick={() => setCreating(true)}><Plus size={18}/>New game</button></div>
           <ErrorMessage>{error}</ErrorMessage>
           {error && <button className="secondary" onClick={reload} disabled={busy}><RefreshCw size={16}/>Try again</button>}
           {notice && <p className="auth-notice" role="status">{notice}</p>}
