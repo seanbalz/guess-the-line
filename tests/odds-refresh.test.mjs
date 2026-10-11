@@ -90,8 +90,10 @@ test('scheduler SQL and HTTP enforce private dispatch, token authentication, slo
 
 test('scheduled partial upcoming slate continues after TNF and shared four/day limit includes manual attempts', { skip }, async t => {
   const f = await fixture(t, 'partial');
-  // Three earlier manual attempts use the same global counter, regardless of success.
-  await f.db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) select gen_random_uuid(),$1,'collect','failed',gen_random_uuid(),now()-interval '1 hour',now(),2,season,week,signature from public.gtl_weekly_slates cross join generate_series(1,3)", [id(1)]);
+  // Three earlier manual attempts use the same global counter, regardless of success. The daily limit counts
+  // collections started since 00:00 UTC, so the attempts are clamped to the current UTC day: before this clamp
+  // the test failed every day between 00:00 and 01:00 UTC, when now()-1h fell on the previous day.
+  await f.db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) select gen_random_uuid(),$1,'collect','failed',gen_random_uuid(),greatest(now()-interval '1 hour',date_trunc('day',now() at time zone 'UTC') at time zone 'UTC'),now(),2,season,week,signature from public.gtl_weekly_slates cross join generate_series(1,3)", [id(1)]);
   const queued = await f.dispatch(), result = await f.request(queued.runId);
   assert.equal(result.data.status, 'partial'); assert.equal(f.calls(), 1);
   const snapshot = (await f.db.query('select payload from public.gtl_market_snapshots')).rows[0].payload;
