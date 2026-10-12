@@ -331,6 +331,9 @@ check succeeded at **19:15:08 UTC**, matched all 15 saved events and reported
 public assets or exported picks; provider errors are sanitized. Manual collection is limited to the original
 commissioner, four calls per UTC day, a 15-minute cooldown, a shared expiring lease,
 idempotent request IDs and a 50-credit reserve. No scheduler or polling is active.
+(Six calls and five minutes are proposed by the October 12 migration
+`20261012213000_gtl_submission_odds_window.sql`, pending Sean's ruling and not
+applied hosted; see [DECISIONS.md](DECISIONS.md).)
 
 Validation: **122 backend/SQL tests**, **22 cloud-browser workflows** and **six
 local-browser workflows** passed; the final date-format fix passed **29 targeted
@@ -430,7 +433,8 @@ Applied migrations:
 The schedule was activated separately from migrations for the verified 2026
 Week 5 slate. New weeks still require a validated schedule and configuration.
 Manual and scheduled requests share four attempts per UTC day, a fifteen-minute
-cooldown and a fifty-credit reserve. Started games retain their earlier dated
+cooldown and a fifty-credit reserve (six attempts and five minutes once the
+pending October 12 migration is confirmed and applied). Started games retain their earlier dated
 references; collection updates upcoming games and skips a completed slate.
 Duplicate dispatch returned `already_dispatched` without spending more credits.
 The next refresh does not relax the separate five-minute official kickoff gate

@@ -138,8 +138,12 @@ precise movement alerts/kickoff capture.
 
 Current implementation uses a zero-credit NFL event check and one shared
 collector for manual requests and the active hosted schedule. Together they are
-limited to **four collections per UTC day**, **at least 15 minutes apart**, at
-most two credits each, with a **50-credit reserve** and a shared database lease.
+limited to **six collections per UTC day**, **at least 5 minutes apart** (the
+submission freshness window), at most two credits each, with a **50-credit
+reserve** and a shared database lease. Those two constants come from migration
+`20261012213000_gtl_submission_odds_window.sql` and apply to the hosted project
+only after Sean confirms them (pending entry in [DECISIONS.md](DECISIONS.md));
+until then the hosted limits are four collections and fifteen minutes.
 It requests DraftKings, FanDuel
 and BetMGM spreads/totals. Exact home/away names and kickoff must match; missing
 or rescheduled events are unavailable, never remapped by array position.

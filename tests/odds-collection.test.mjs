@@ -8,7 +8,10 @@ import { OddsProviderError } from '../cloud/odds-provider.mjs';
 let PGlite;
 try { ({PGlite}=await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
-const migrations=['20261008164249_gtl_private_cloud_state.sql','20261008174007_gtl_profiles_private_games_invites.sql','20261008182836_gtl_canonical_weekly_entries.sql','20261008185738_gtl_manual_odds_collection.sql'].map(f=>fs.readFileSync(`supabase/migrations/${f}`,'utf8'));
+// The October 12 window file replaces both collection begin RPCs (published-slate source, collect cooldown 5 minutes,
+// six collections per UTC day) and the scheduler's claim, which declares the gtl_odds_schedule row type from
+// 20261008200926; its submission begin RPC needs 20261008232055 and that file's dependencies (185715, 224444, 225401).
+const migrations=['20261008164249_gtl_private_cloud_state.sql','20261008174007_gtl_profiles_private_games_invites.sql','20261008182836_gtl_canonical_weekly_entries.sql','20261008185715_gtl_weekly_eligibility_rulings.sql','20261008185738_gtl_manual_odds_collection.sql','20261008200926_gtl_twelve_hour_odds_refresh.sql','20261008224444_gtl_personal_workspace.sql','20261008225401_gtl_submission_time_scoring.sql','20261008232055_gtl_fresh_submission_odds.sql','20261012213000_gtl_submission_odds_window.sql'].map(f=>fs.readFileSync(`supabase/migrations/${f}`,'utf8'));
 const skip=PGlite?false:'Optional local PGlite absent; no hosted database tests.';
 const quota=(remaining=500,last=0)=>({remaining,used:500-remaining,last});
 function payload(games,operation='preflight') {
@@ -144,8 +147,13 @@ test('manual collection SQL enforces authorization, private immutable snapshots,
     const expired=await f.finish(old,payload(old.games,'collect'),quota(488,2));assert.equal(expired.status,'failed');
     assert.equal((await f.db.query('select lease_token from public.gtl_odds_budget')).rows[0].lease_token,next.lease);
     await f.finish(next,null,{remaining:null,used:null,last:null},'ODDS_UNAVAILABLE');
+    // Four collections so far; the cap is six per UTC day since the October 12 window migration (was four).
+    await f.resetTime();const fifth=await f.begin(1,id(53),'collect');assert.equal(fifth.replay,false);
+    await f.finish(fifth,null,{remaining:null,used:null,last:null},'ODDS_UNAVAILABLE');
+    await f.resetTime();const sixth=await f.begin(1,id(54),'collect');assert.equal(sixth.replay,false);
+    await f.finish(sixth,null,{remaining:null,used:null,last:null},'ODDS_UNAVAILABLE');
     await f.resetTime();await assert.rejects(()=>f.begin(1,id(52),'collect'),/GTL_ODDS_DAILY_LIMIT/);
-    assert.equal((await f.db.query('select conservative_remaining from public.gtl_odds_budget')).rows[0].conservative_remaining,486);
+    assert.equal((await f.db.query('select conservative_remaining from public.gtl_odds_budget')).rows[0].conservative_remaining,482);
   });
 });
 

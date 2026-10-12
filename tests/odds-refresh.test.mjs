@@ -9,7 +9,11 @@ try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql
 const skip = PGlite ? false : 'Optional local PGlite absent; no hosted database tests.';
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const token = 'a'.repeat(64); // Synthetic fixture, never a deployed credential.
-const migrations = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008200926_gtl_twelve_hour_odds_refresh.sql'].map(f => fs.readFileSync(`supabase/migrations/${f}`, 'utf8'));
+// The October 12 window file replaces the scheduler's claim/complete/read RPCs and both collection begin RPCs; it
+// also replaces gtl_begin_submission_odds_collection, whose row types need 20261008232055 and that file's own
+// dependencies (185715, 224444, 225401). The fixture's Week 5 template matches the league slate, so the published
+// slate resolves to the same fifteen games the earlier assertions expect.
+const migrations = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql', '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql', '20261008232055_gtl_fresh_submission_odds.sql', '20261012213000_gtl_submission_odds_window.sql'].map(f => fs.readFileSync(`supabase/migrations/${f}`, 'utf8'));
 function payload(games, quotes = true) {
   const now = Date.now(), captured = new Date(now).toISOString(), observed = new Date(now - 30000).toISOString();
   return { provider: 'the-odds-api', sport: 'americanfootball_nfl', officialVerified: false, fetchedAt: captured, quota: { remaining: 498, used: 2, last: quotes ? 2 : 0 },
@@ -88,12 +92,13 @@ test('scheduler SQL and HTTP enforce private dispatch, token authentication, slo
   assert.equal(paused.configured, true); assert.equal(paused.enabled, false); assert.equal(paused.pauseReason, 'budget_paused'); assert.equal(paused.nextRunAt, null);
 });
 
-test('scheduled partial upcoming slate continues after TNF and shared four/day limit includes manual attempts', { skip }, async t => {
+test('scheduled partial upcoming slate continues after TNF and shared six/day limit includes manual attempts', { skip }, async t => {
   const f = await fixture(t, 'partial');
-  // Three earlier manual attempts use the same global counter, regardless of success. The daily limit counts
-  // collections started since 00:00 UTC, so the attempts are clamped to the current UTC day: before this clamp
-  // the test failed every day between 00:00 and 01:00 UTC, when now()-1h fell on the previous day.
-  await f.db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) select gen_random_uuid(),$1,'collect','failed',gen_random_uuid(),greatest(now()-interval '1 hour',date_trunc('day',now() at time zone 'UTC') at time zone 'UTC'),now(),2,season,week,signature from public.gtl_weekly_slates cross join generate_series(1,3)", [id(1)]);
+  // Five earlier manual attempts use the same global counter, regardless of success (the cap is six per UTC day
+  // since the October 12 window migration; it was four). The daily limit counts collections started since
+  // 00:00 UTC, so the attempts are clamped to the current UTC day: with a plain now()-1h the test failed every
+  // day between 00:00 and 01:00 UTC, when the attempts fell on the previous day.
+  await f.db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) select gen_random_uuid(),$1,'collect','failed',gen_random_uuid(),greatest(now()-interval '1 hour',date_trunc('day',now() at time zone 'UTC') at time zone 'UTC'),now(),2,season,week,signature from public.gtl_weekly_slates cross join generate_series(1,5)", [id(1)]);
   const queued = await f.dispatch(), result = await f.request(queued.runId);
   assert.equal(result.data.status, 'partial'); assert.equal(f.calls(), 1);
   const snapshot = (await f.db.query('select payload from public.gtl_market_snapshots')).rows[0].payload;

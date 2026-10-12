@@ -72,10 +72,10 @@ The current application guard allows at most two credits per collection, keeps a
 50-credit reserve, uses measured remaining quota, and shares a database lease
 across collection callers. A failed attempt remains counted conservatively.
 
-| Policy | Current approved limits | Candidate — not approved or applied |
+| Policy | Current approved limits | Candidate — proposed in migration `20261012213000_gtl_submission_odds_window.sql` (October 12), pending Sean's ruling, not applied hosted |
 | --- | --- | --- |
-| Minimum collection spacing | 15 minutes | 5 minutes |
-| Total collection attempts per UTC day | 4, including scheduled runs | 7, including scheduled runs |
+| Minimum collection spacing | 15 minutes | 5 minutes (equal to the freshness window) |
+| Total collection attempts per UTC day | 4, including scheduled runs | 6, including scheduled runs (the earlier candidate was 7; 6 keeps the worst case at 372 credits a month, above the reserve) |
 | Scheduled collection | Every 12 hours | Unchanged: every 12 hours |
 | Maximum budget per collection | 2 credits | Unchanged: 2 credits |
 | Reserve and quota validation | 50 credits; measured remaining guard | Unchanged: 50 credits; measured remaining guard |
