@@ -80,18 +80,23 @@ import or provider outreach was performed.
 ## Limits and remaining acceptance work
 
 Scheduled, commissioner and submission-triggered collection share one database
-lease, **four collection attempts per UTC day**, a **15-minute cooldown**, a
-**50-credit reserve**, and at most **two credits per collection**. A measured
-zero-cost event preflight is required within the previous 24 hours. A failed
-request keeps its reservation conservatively counted. Quota is not reset from an
-unverified assumption. The twelve-hour hosted schedule is unchanged.
+lease, **six collection attempts per UTC day**, a **5-minute cooldown** equal
+to the five-minute freshness window, a **50-credit reserve**, and at most
+**two credits per collection**. A measured zero-cost event preflight is required
+within the previous 24 hours. A failed request keeps its reservation
+conservatively counted. Quota is not reset from an unverified assumption. The
+twelve-hour hosted schedule is unchanged; its two runs count inside the six.
 
-These limits can prevent submission even when monthly credits remain. For example,
-a quote may become older than five minutes while the 15-minute cooldown still
-blocks another request. The four daily attempts are shared with the two scheduled
-runs. Supporting arbitrary submission times may require a separate decision on
-collection frequency or shared submission windows; this implementation does not
-silently relax existing limits.
+Because the submission path refuses to spend while references are still fresh,
+a cooldown equal to the freshness window cannot cause a duplicate collection; it
+only delays a retry for five minutes after a failed attempt. Six attempts leave
+four submission-triggered collections per UTC day after the scheduled runs; a
+further submitter after the cache expires receives the daily-limit reason until
+00:00 UTC. These constants come from migration
+`20261012213000_gtl_submission_odds_window.sql` (worst case 6 × 2 × 31 = 372
+credits a month, 128 above the reserve), which is not applied to the hosted
+project until Sean confirms them (pending entry in [DECISIONS.md](DECISIONS.md));
+the hosted limits remain four attempts and fifteen minutes until then.
 
 The reviewed release applied the earlier dependencies and
 `supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql`, then deployed

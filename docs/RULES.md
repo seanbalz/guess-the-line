@@ -68,6 +68,10 @@ four-attempt daily limit, 15-minute cooldown and 50-credit reserve. The hosted j
 collects permitted pregame quotes for the verified current slate and skips games
 that have already started. Retain earlier observations and label their age.
 Do not silently create a future week's schedule or reset the measured quota.
+*Pending amendment, October 12, 2026:* a six-attempt daily limit and a 5-minute
+cooldown equal to the five-minute freshness rule are proposed in migration
+`20261012213000_gtl_submission_odds_window.sql` and wait for Sean's confirmation
+before any hosted apply; see the pending entry in [DECISIONS.md](DECISIONS.md).
 
 The cadence does not relax the five-minute freshness gate for official kickoff
 freezing. A twelve-hour snapshot is a dated reference, not a continuously current
@@ -107,7 +111,8 @@ not inherit the waiver; the general verification requirements still apply.
   rulings and archived scores. This policy does not adjudicate missed deadlines,
   create forfeits, alter Challenge selections, or enable automatic polling.
   Manual collection remains limited to four attempts per UTC day, at least
-  15 minutes apart, with a 50-credit reserve.
+  15 minutes apart, with a 50-credit reserve (six attempts and five minutes once
+  the pending October 12 amendment above is confirmed and applied).
 
 ## Week 5 commissioner ruling — D-08 (October 8, 2026)
 Sean explicitly ruled that both his and Steven's submitted 2026 Week 5 spread

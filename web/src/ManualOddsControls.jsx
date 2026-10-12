@@ -46,7 +46,7 @@ export default function ManualOddsControls({ onCollected, schedule }) {
     <div className="panel-heading"><div><h2 id="manual-odds-heading">Manual market connection</h2><p>Commissioner controls · Triple Threat</p></div><Radio size={20}/></div>
     <div className="manual-odds-body">
       <p>Check the saved server connection before fetching current lines. This screen never asks for your provider key or displays market values.</p>
-      <div className="callout"><ShieldCheck size={18}/><p>Free quota only. Checking uses zero credits; each fetch can use up to 2 credits. The server limits collection to 4 times per UTC day, at least 15 minutes apart, and protects a 50-credit reserve. {refreshLabel({oddsSchedule:schedule})}. Manual fetches do not change the schedule.</p></div>
+      <div className="callout"><ShieldCheck size={18}/><p>Free quota only. Checking uses zero credits; each fetch can use up to 2 credits. The server limits collection to 6 times per UTC day, at least 5 minutes apart, and protects a 50-credit reserve. {refreshLabel({oddsSchedule:schedule})}. Manual fetches do not change the schedule.</p></div>
       <div className="manual-odds-actions"><button className="secondary" disabled={!!busy} onClick={() => run('preflight')}><Radio size={17}/>{busy === 'preflight' ? 'Checking…' : 'Check connection (zero-credit)'}</button><button className="primary" disabled={!!busy || !ready} onClick={() => run('collect')}><Download size={17}/>{busy === 'collect' ? 'Fetching…' : 'Fetch current lines'}</button></div>
       {!ready && <p className="hub-help">A successful connection check is required before fetching.</p>}
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
