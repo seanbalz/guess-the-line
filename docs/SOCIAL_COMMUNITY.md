@@ -116,7 +116,7 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
 
 4. **Done — D-24 administrator steps.** pg_cron jobs `gtl-week-open-monday-pdt` (`0 7 * * 1`) and `gtl-week-open-monday-pst` (`0 8 * * 1`) are registered (pg_cron and pg_net were already enabled by the odds scheduler migrations). The `gtl_week_open_schedule` row `nfl-weekly` is enabled with endpoint `https://onmrgvcehkflfaizvedl.supabase.co/functions/v1/gtl-week-open` and season 2026. The disabled dry run returned `{"status":"disabled"}`; after enabling, one verified dispatch (run `512cf7f7-6e75-4c8b-892e-3e19cea493c6`) finished `skipped` / `not_open_yet` with HTTP 200 from the worker. Week 6 opens automatically Monday 2026-10-12 at 07:00 UTC (12:00 AM PT); the manual fallback remains Community → Preview / publish early (fallback). Nothing beyond that one run is verified until the Monday slot fires.
 
-5. **Pending (Sean) — API.** `gtl-api` is still v14 and `gtl-odds-refresh` is v1. From the repo on `main` at `b5491a2` or later (PR #33 added `POST /virtual-units/settle` and the Virtual Units reader fields; record the deployed commit in the release record):
+5. **Done (October 12, 2026) — API.** `gtl-api` v15 was deployed from `main` at `17c22b5` (bundle `111c50f4…c099d48`; see the [release record](RELEASE_2026_10_09.md#october-12-deploy)); `gtl-odds-refresh` stays v1. The commands, kept for the next deploy, from the repo on `main`:
    ```sh
    git pull
    npm ci
@@ -125,7 +125,7 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    ```
    Check: signed in, `POST /functions/v1/gtl-api/community/read` with `{}` returns the feed; signed out it returns 401.
 
-6. **Pending (Sean) — frontend.** Pages is still `2106725d` from `30d331e`. Right after step 5:
+6. **Done (October 12, 2026) — frontend.** Pages `06c71c14` was deployed from `17c22b5` right after step 5; the previous production deployment `2106725d` (its deployment metadata records source `5ac3197`) stays selectable as a rollback. The commands, kept for the next deploy:
    ```sh
    npm run build:cloud
    npm run check:cloud
@@ -133,12 +133,12 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    ```
    `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements`, the three Virtual Units RPCs and `gtl_numeric_is_finite` on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)).
 
-7. **Pending (Sean) — post-deploy boundary probe and release manifest.**
+7. **Done (October 12, 2026) — post-deploy boundary probe and release manifest.** 152 live denials, 0 unexpected, at 20:43:48 UTC; manifest sourceSha256 `f47532fd…bdb16f1c20`, frontendSha256 `7e604426…dbb07e4`.
    ```sh
    node scripts/check-cloud-boundary.mjs   # live anonymous denials, including the eleven new tables, the D-25 RPC, the three Virtual Units RPCs and gtl_numeric_is_finite
    node scripts/release-manifest.mjs       # writes .local/release-manifest.json (private)
    ```
-   Record the Pages deployment id, the `gtl-api` version and the manifest hashes in the PENDING rows of [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
+   Recorded in the v4 rows of [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md) (PR #50).
 
 8. **Pending (Sean) — team records after Week 5 finals.** After the Monday October 12 game is final:
    ```sh
@@ -185,4 +185,4 @@ Deploy: `20261009130000_gtl_league_interest.sql` is applied on the hosted projec
 
 ## Deployed state
 
-Deployed from the cloud session on October 9, 2026, through the Supabase MCP: the five hosted migrations, `gtl-week-open` v1, both Monday cron jobs and the enabled `nfl-weekly` schedule row. Not deployed: `gtl-api` v15 (the `/community/*` routes) and the frontend (Pages is still `2106725d`); those are Sean's steps 5–7 above. Until then the live site at API v14 has no Community screens, chips, sit-out or coming-soon leagues, while the hosted database already enforces the D-24 window and the D-23 opt-out trigger and already holds one backfilled "joined" post per profile.
+Deployed from the cloud session on October 9, 2026, through the Supabase MCP: the five hosted migrations, `gtl-week-open` v1, both Monday cron jobs and the enabled `nfl-weekly` schedule row. Deployed from the Mac mini on October 12, 2026 (steps 5–7 above): `gtl-api` v15 and Pages `06c71c14`, both from `main` at `17c22b5`; see the [October 12 section of the release record](RELEASE_2026_10_09.md#october-12-deploy). The live site now has the Community screens, chips, sit-out and coming-soon leagues on top of the hosted database's D-24 window, D-23 opt-out trigger and backfilled "joined" posts. `main` has since added PR #35 and PR #47, and PR #36 is held for a second deploy after its own pre-flight.
