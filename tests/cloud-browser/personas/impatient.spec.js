@@ -84,14 +84,15 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   expect(merged.picks['TB-DAL']).toBe(-4);
   persona.finding({ screen: 'save-409', severity: 4, experience: `After the same account saved from another device, saving here fails with "${conflictText.replace(/\n/g, ' ').trim()}" and "Load latest" merges the other device's ballot under this screen's unsaved edit. The merge is silent: nothing highlights which games changed on the other device.`, fix: 'Mark the games whose saved value changed since this screen loaded, so the player can compare before resaving.' });
 
-  // 3b. An injected 409 that is not a revision conflict: the D-17 submission guard answers 409 with a GTL_SUBMISSION_ code when fresh
-  //     quotes are unavailable or a refresh is already running. Review of PR #34: that case keeps its own "Keep your draft and retry"
-  //     sentence and a Retry, never "Load latest" (which would reload the week and merge).
+  // 3b. An injected 409 that is not a revision conflict: since October 12, 2026 (D-27) the only coded 409 left is the
+  //     submission guard's failed check of the saved line (GTL_SUBMISSION_QUOTES_REQUIRED); refresh limits never refuse a save.
+  //     Review of PR #34: that case keeps its own "Keep your draft and try again" sentence and a Retry, never "Load latest"
+  //     (which would reload the week and merge).
   await first.getByRole('radio', { name: '−5', exact: true }).click();
-  persona.net.fail = endpoint => endpoint === 'personal/ballot' ? { status: 409, body: { error: 'Fresh market references are unavailable. Your guesses were not submitted. Keep your draft and retry.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } } : null;
+  persona.net.fail = endpoint => endpoint === 'personal/ballot' ? { status: 409, body: { error: 'The line for a changed guess could not be verified. Your guesses were not submitted. Keep your draft and try again.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } } : null;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
-  await expect(alert).toContainText('Keep your draft and retry.');
+  await expect(alert).toContainText('Keep your draft and try again.');
   await expect(alert.getByRole('button', { name: 'Load latest' })).toHaveCount(0);
   await expect(alert.getByRole('button', { name: 'Retry' })).toBeVisible();
   await persona.shot('save-409-code');

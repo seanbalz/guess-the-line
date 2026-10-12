@@ -52,7 +52,7 @@ export function createStore(file = path.join(root, '.local/state.json'), clock =
   function engine(refreshHistory = false) {
     // Read new historical evidence without replacing saved ballots or revisions.
     const current = refreshHistory ? { ...state, history: seed().history } : state;
-    return createEngine(current, { clock, uuid: randomUUID, requireFreshReferences: true });
+    return createEngine(current, { clock, uuid: randomUUID });
   }
   const localView = result => ({ ...result, localOnly: true });
   function view(id, mode = 'guess_spread') {

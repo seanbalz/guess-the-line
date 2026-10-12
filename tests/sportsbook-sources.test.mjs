@@ -69,3 +69,18 @@ test('total sources expose totals only and scoring breakdown must match stored m
   const bad = applySportsbookSources(view(ref, 'guess_total'), input, now).games[0].sportsbookSources;
   assert(bad.scoring.quotes.every(q => q.value === null));
 });
+test('a first line after submission shows only when observed after the save; a pending guess shows its pending state', () => {
+  const stamp = now - 60000, line = snapshot('first-after', stamp);
+  const firstAfter = savedAt => ({ status: 'available', basis: 'first_line_after_submission', value: -3, source: 'The Odds API · 3-book median',
+    snapshotId: 'first-after', capturedAt: iso(stamp), observedAt: iso(stamp - 10000), savedAt: iso(savedAt) });
+  const shown = applySportsbookSources(view(firstAfter(stamp - 20000)), line, now).games[0].sportsbookSources.scoring;
+  assert.equal(shown.status, 'available'); assert.equal(shown.basis, 'first_line_after_submission'); assert.equal(shown.value, -3);
+  assert.deepEqual(shown.quotes.slice(0, 3).map(q => q.status), ['included', 'included', 'included']);
+  const before = applySportsbookSources(view(firstAfter(stamp - 5000)), line, now).games[0].sportsbookSources.scoring;
+  assert.equal(before.status, 'unavailable'); assert.equal(before.value, null);
+  const atGuess = applySportsbookSources(view(saved(stamp)), snapshot('original', stamp), now).games[0].sportsbookSources.scoring;
+  assert.equal(atGuess.basis, 'line_at_guess');
+  const pending = applySportsbookSources(view({ status: 'pending', basis: 'first_line_after_submission', value: null, savedAt: iso(stamp), reason: 'Waiting.' }), line, now).games[0].sportsbookSources.scoring;
+  assert.equal(pending.status, 'pending'); assert.equal(pending.value, null); assert.equal(pending.basis, 'first_line_after_submission');
+  assert(pending.quotes.slice(0, 3).every(q => q.reason === 'Waiting for the first line collected after this guess.'));
+});
