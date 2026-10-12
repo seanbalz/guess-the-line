@@ -51,7 +51,9 @@ function normalize(raw) {
 
 // History (Sean's October 12, 2026 ruling): every member's guesses for every week and market with the
 // line saved when they guessed and its points. The database already withholds another member's
-// guesses, reference values and per-pick points until the D-23 reveal; this filter is the second gate.
+// guesses, reference values and per-pick points until the D-23 reveal, and returns the last change,
+// the post-submission revision count and the provenance (derived from the private audit and
+// provenance columns) for the viewer's own ballots only; this filter is the second gate for both.
 const HISTORY_STATUSES = ['submitted', 'sat_out', 'draft'];
 const HISTORY_PROVENANCE = ['community-import', 'solo', 'migrated-league', 'group', 'unknown'];
 const REFERENCE_BASES = ['saved', 'commissioner-ruled', 'nearest-snapshot', 'none'];
@@ -65,7 +67,7 @@ function normalizeReference(raw) {
     capturedAt: text(raw.capturedAt), observedAt: text(raw.observedAt), savedAt: text(raw.savedAt), decision: text(raw.decision), reason: text(raw.reason),
     gapSeconds: finite(raw.gapSeconds), nextSnapshotAt: text(raw.nextSnapshotAt) };
 }
-function normalizeHistory(raw) {
+function normalizeHistory(raw, viewer) {
   if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.weeks)) throw new Error('Invalid community history.');
   const members = raw.members.map(m => ({ id: String(m.id), displayName: String(m.displayName), removed: m.removed === true }));
   const weeks = raw.weeks.filter(record).map(w => ({
@@ -76,9 +78,11 @@ function normalizeHistory(raw) {
       origin: r.origin === 'commissioner_reported' ? 'commissioner_reported' : 'settlement' }])),
     revealed: { guess_spread: w.revealed?.guess_spread === true, guess_total: w.revealed?.guess_total === true },
     entries: (Array.isArray(w.entries) ? w.entries : []).filter(e => record(e) && MODES.includes(e.mode) && HISTORY_STATUSES.includes(e.status)).map(e => {
-      const hidden = e.picksHidden === true;
-      return { userId: String(e.userId), mode: e.mode, status: e.status, submittedAt: text(e.submittedAt), updatedAt: text(e.updatedAt), satOutAt: text(e.satOutAt),
-        revisions: Math.max(0, Number(e.revisions) || 0), provenance: HISTORY_PROVENANCE.includes(e.provenance) ? e.provenance : null,
+      const hidden = e.picksHidden === true, own = String(e.userId) === viewer;
+      return { userId: String(e.userId), mode: e.mode, status: e.status, submittedAt: text(e.submittedAt), satOutAt: text(e.satOutAt),
+        // Own-only, hidden or revealed, whatever the provider returned (the gtl_read_weekly_state rule: private provenance and audits stay own-only).
+        updatedAt: own ? text(e.updatedAt) : null, revisions: own ? Math.max(0, Number(e.revisions) || 0) : null,
+        provenance: own && HISTORY_PROVENANCE.includes(e.provenance) ? e.provenance : null,
         scoringPolicy: e.scoringPolicy === 'submission-time' ? 'submission-time' : null,
         ruling: record(e.ruling) ? { decision: text(e.ruling.decision) ?? '', basis: text(e.ruling.basis) ?? '' } : null,
         picksHidden: hidden,
@@ -124,7 +128,7 @@ export async function handleCommunity({ route, body = {}, user, service, clock =
     fields(body, ['season']);
     if (body.season !== undefined && (!Number.isInteger(body.season) || body.season < 2000 || body.season > 2200)) invalid();
     const now = clock();
-    return normalizeHistory(await service.rpc('gtl_read_community_history', { p_user: user.id, p_season: body.season ?? null, p_now: new Date(now).toISOString() }));
+    return normalizeHistory(await service.rpc('gtl_read_community_history', { p_user: user.id, p_season: body.season ?? null, p_now: new Date(now).toISOString() }), user.id);
   }
   if (route === '/community/week-open') {
     // D-24 scheduler status for the commissioner's Publish panel; reference only, never a credential.

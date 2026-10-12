@@ -18,7 +18,15 @@
 -- season/week/mode are returned only once gtl_week_revealed says so for the viewer (own
 -- full submission, a final opt-out for that mode, or the deadline). Weekly totals are
 -- shared as they already are on the leaderboard. Own drafts are returned to their owner
--- only (status 'draft'); sat-out weeks appear as status 'sat_out'.
+-- only (status 'draft'); sat-out weeks appear as status 'sat_out', and a draft saved
+-- before sitting out is left in its row but not listed (one entry per member and market).
+--
+-- Own-only metadata: the last change (updatedAt), the number of post-submission edits
+-- (revisions: the ballot_edited audit events; draft saves and the submission itself are
+-- not revisions) and the ballot's origin (provenance) are derived from the private audit and
+-- provenance columns, which gtl_read_weekly_state keeps own-only and the feed never shares,
+-- so they are returned only for the viewer's own ballots, hidden or revealed; another
+-- member's entry carries null for all three.
 
 -- The standings expression, lifted into a helper so the history view and any later
 -- reader cannot drift from it. gtl_read_community is left exactly as it is.
@@ -61,7 +69,7 @@ create function public.gtl_read_community_history(p_user uuid,p_season integer d
 language plpgsql stable security invoker set search_path='' as $$
 declare s integer; now_at timestamptz:=coalesce(p_now,clock_timestamp()); z record; b record; o record; g jsonb; tg jsonb; gid text;
   games jsonb; tmpl jsonb; results jsonb; entries jsonb; weeks jsonb:='[]'; deadline timestamptz; rev_spread boolean; rev_total boolean;
-  submitted boolean; revealed boolean; submitted_at timestamptz; market text; scope text; picks jsonb; guess numeric; saved jsonb; ref jsonb;
+  submitted boolean; own boolean; revealed boolean; submitted_at timestamptz; market text; scope text; picks jsonb; guess numeric; saved jsonb; ref jsonb;
   pts numeric; week_points numeric; week_scored integer;
 begin
   if not public.gtl_community_member(p_user) then raise exception 'GTL_COMMUNITY_MEMBER'; end if;
@@ -93,12 +101,17 @@ begin
     rev_spread:=public.gtl_week_revealed(p_user,z.season,z.week,'guess_spread',now_at);
     rev_total:=public.gtl_week_revealed(p_user,z.season,z.week,'guess_total',now_at);
     entries:='[]';
-    -- Every submitted, non-practice ballot of every member, plus the viewer's own drafts.
+    -- Every submitted, non-practice ballot of every member, plus the viewer's own drafts. A member and market that was sat
+    -- out is listed by the opt-out loop below instead: gtl_sit_out_week refuses only a submitted ballot and the opt-out trigger
+    -- refuses every later save, so the only ballot such a row can carry is a draft saved before sitting out, which stays
+    -- stored (D-23) while the week reads sat out, as it does on the feed and the leaderboard.
     for b in select x.* from public.gtl_weekly_ballots x where x.season=z.season and x.week=z.week and not x.origin_practice
         and (coalesce(x.ballot->>'submittedAt','')<>'' or (x.user_id=p_user and coalesce(x.ballot->'picks','{}'::jsonb)<>'{}'::jsonb))
+        and not exists(select 1 from public.gtl_weekly_optouts opt where opt.user_id=x.user_id and opt.season=x.season and opt.week=x.week and opt.mode=x.mode)
         order by x.user_id,x.mode loop
       submitted:=coalesce(b.ballot->>'submittedAt','')<>'';
-      revealed:=b.user_id=p_user or (case when b.mode='guess_spread' then rev_spread else rev_total end);
+      own:=b.user_id=p_user;
+      revealed:=own or (case when b.mode='guess_spread' then rev_spread else rev_total end);
       market:=case when b.mode='guess_spread' then 'spread' else 'total' end;
       begin submitted_at:=(b.ballot->>'submittedAt')::timestamptz; exception when others then submitted_at:=null; end;
       scope:=case when jsonb_typeof(b.provenance)<>'array' then 'unknown'
@@ -128,12 +141,16 @@ begin
         picks:=picks||jsonb_build_array(jsonb_build_object('gameId',gid,'guess',guess,'reference',ref,'points',pts,'scorable',pts is not null));
       end loop;
       entries:=entries||jsonb_build_array(jsonb_build_object('userId',b.user_id,'mode',b.mode,'status',case when submitted then 'submitted' else 'draft' end,
-        'submittedAt',b.ballot->'submittedAt','updatedAt',b.ballot->'updatedAt','revisions',jsonb_array_length(b.audit),
-        'provenance',scope,'scoringPolicy',b.ballot->'scoringPolicy',
+        'submittedAt',b.ballot->'submittedAt',
+        -- Own-only (see the header): the last change, the post-submission edits and the origin, null for another member's ballot.
+        'updatedAt',case when own then b.ballot->'updatedAt' end,
+        'revisions',case when own then (select count(*) from jsonb_array_elements(b.audit) e where e->>'type'='ballot_edited') end,
+        'provenance',case when own then scope end,'scoringPolicy',b.ballot->'scoringPolicy',
         'ruling',case when jsonb_typeof(b.ballot->'ruling')='object' then jsonb_build_object('decision',b.ballot#>'{ruling,decision}','basis',b.ballot#>'{ruling,basis}') end,
         'picksHidden',not revealed,'picks',case when revealed then picks end,
         'weekPoints',round(week_points,2),'weekScored',week_scored,'games',jsonb_array_length(games)));
     end loop;
+    -- Sat-out weeks (one entry per member and market; any draft saved before the opt-out is excluded above).
     for o in select user_id,mode,created_at from public.gtl_weekly_optouts where season=z.season and week=z.week order by user_id,mode loop
       entries:=entries||jsonb_build_array(jsonb_build_object('userId',o.user_id,'mode',o.mode,'status','sat_out','satOutAt',o.created_at,
         'picksHidden',false,'picks',null,'weekPoints',0,'weekScored',0,'games',jsonb_array_length(games)));

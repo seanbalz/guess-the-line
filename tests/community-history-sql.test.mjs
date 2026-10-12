@@ -117,7 +117,7 @@ test('community history: every player, week and market with the line at each gue
     late = await snapshot(now - HOUR / 2, -6, 41);
     const troy = entry(await history(TROY), TROY, 'guess_total');
     assert.deepEqual([troy.status, at(troy.submittedAt), troy.updatedAt, troy.revisions, troy.provenance, troy.scoringPolicy, troy.ruling, troy.picksHidden, troy.weekPoints, troy.weekScored, troy.games],
-      ['submitted', at(troyTotalAt), null, 1, 'migrated-league', null, null, false, 0, 0, 15]);
+      ['submitted', at(troyTotalAt), null, 0, 'migrated-league', null, null, false, 0, 0, 15], 'the legacy ballot_submitted event is the submission, not a revision');
     assert.equal(troy.picks.length, 15);
     for (const pick of troy.picks) {
       assert.deepEqual([pick.guess, pick.points, pick.scorable], [44, null, false], 'the informational line never feeds points');
@@ -141,8 +141,9 @@ test('community history: every player, week and market with the line at each gue
     const fresh = await snapshot(now - 1000);
     assert.equal(await rpc('gtl_save_weekly_ballot', { p_user: id(TROY), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 0, p_picks: full(-3), p_submit: true }), 1);
     const troy = entry(await history(TROY), TROY, 'guess_spread');
-    assert.deepEqual([troy.status, troy.provenance, troy.scoringPolicy, troy.revisions, troy.picksHidden, troy.weekScored, troy.games], ['submitted', 'group', 'submission-time', 1, false, 15, 15]);
+    assert.deepEqual([troy.status, troy.provenance, troy.scoringPolicy, troy.revisions, troy.picksHidden, troy.weekScored, troy.games], ['submitted', 'group', 'submission-time', 0, false, 15, 15], 'submitting is not a revision');
     assert.ok(troy.submittedAt && at(troy.submittedAt) > now - HOUR);
+    assert.equal(at(troy.updatedAt), at(troy.submittedAt), 'the owner sees the last change');
     for (const pick of troy.picks) {
       assert.deepEqual([pick.guess, pick.points, pick.scorable], [-3, accuracy(-3, -3.5), true]);
       const ref = pick.reference;
@@ -184,6 +185,44 @@ test('community history: every player, week and market with the line at each gue
     assert.deepEqual((await read(TROY)).submissions.filter(s => s.userId === id(LUKE)).map(s => s.mode), ['guess_total'], 'the feed still lists only the opt-out');
   });
 
+  await t.test('revisions are the edits after submitting, never draft saves or the submission; the count, the last change and the origin are the owner\'s alone', async () => {
+    const before = entry(await history(TROY), TROY, 'guess_spread');
+    assert.deepEqual([before.revisions, at(before.updatedAt)], [0, at(before.submittedAt)]);
+    // Troy re-submits with one pick changed: the original submission time is kept (D-16) and the change is one ballot_edited event.
+    assert.equal(await rpc('gtl_save_weekly_ballot', { p_user: id(TROY), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 1, p_picks: { ...full(-3), [gameIds[0]]: -4 }, p_submit: true }), 2);
+    const audit = (await db.query('select audit from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [id(TROY), 'guess_spread'])).rows[0].audit;
+    assert.deepEqual(audit.map(e => e.type), ['ballot_submitted', 'ballot_edited']);
+    const troy = entry(await history(TROY), TROY, 'guess_spread');
+    assert.deepEqual([troy.revisions, troy.provenance, at(troy.submittedAt), at(troy.updatedAt) > at(troy.submittedAt), troy.picks[0].guess, troy.picks[0].points, troy.weekPoints],
+      [1, 'group', at(before.submittedAt), true, -4, accuracy(-4, -3.5), 135]);
+    // Luke has neither submitted Spread nor sat out, so Troy's Spread stays hidden; Troy's Total is revealed. Either way the fields
+    // derived from the private audit and provenance columns are null for another member, as the group reader and the feed keep them.
+    const luke = await history(LUKE);
+    const hidden = entry(luke, TROY, 'guess_spread'), revealed = entry(luke, TROY, 'guess_total');
+    assert.deepEqual([hidden.picksHidden, hidden.status, at(hidden.submittedAt), hidden.revisions, hidden.provenance, hidden.updatedAt], [true, 'submitted', at(troy.submittedAt), null, null, null], 'the submission time is shared as on the feed; nothing else');
+    assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.revisions, revealed.provenance, revealed.updatedAt], [false, 15, null, null, null]);
+    for (const e of week5(luke).entries.filter(e => e.userId !== id(LUKE))) assert.deepEqual([e.revisions, e.provenance, e.updatedAt], [null, null, null], `${e.userId} ${e.mode}`);
+    assert.ok(!JSON.stringify(week5(luke).entries.filter(e => e.userId !== id(LUKE))).includes('migrated-league'), 'no provenance reaches another member');
+  });
+
+  await t.test('a draft that is then sat out reads sat out, once, for its owner and everyone else; the draft row is untouched (D-23)', async () => {
+    const row = async () => (await db.query('select ballot,audit,provenance from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [id(LUKE), 'guess_spread'])).rows[0];
+    const draftRow = await row();
+    assert.equal(draftRow.ballot.submittedAt ?? null, null, 'Luke\'s Spread is a draft');
+    assert.deepEqual(week5(await history(LUKE)).entries.filter(e => e.userId === id(LUKE) && e.mode === 'guess_spread').map(e => e.status), ['draft']);
+    const satOut = await handleCommunity({ route: '/community/sit-out', body: { season: 2026, week: 5, mode: 'guess_spread' }, user: user(LUKE), service, clock: () => now + 1000 });
+    assert.deepEqual([satOut.satOut, satOut.replayed], [true, false], 'a draft does not block sitting out');
+    const luke = await history(LUKE);
+    const own = week5(luke).entries.filter(e => e.userId === id(LUKE) && e.mode === 'guess_spread');
+    assert.equal(own.length, 1, 'one entry per member and market');
+    assert.deepEqual([own[0].status, own[0].picks, own[0].weekPoints, own[0].weekScored, at(own[0].satOutAt)], ['sat_out', null, 0, 0, now + 1000], 'the final sit-out wins over the draft saved before it');
+    assert.deepEqual(await row(), draftRow, 'the draft stays stored exactly as it was');
+    assert.deepEqual(week5(luke).revealed, { guess_spread: true, guess_total: true });
+    assert.deepEqual([entry(luke, TROY, 'guess_spread').picksHidden, entry(luke, TROY, 'guess_spread').revisions], [false, null], 'sitting out reveals Troy\'s Spread guesses; the revision count stays Troy\'s own');
+    assert.deepEqual((await read(LUKE)).submissions.filter(s => s.userId === id(LUKE)).map(s => [s.mode, s.satOut]), [['guess_spread', true], ['guess_total', true]], 'the feed agrees');
+    assert.deepEqual(week5(await history(TROY)).entries.filter(e => e.userId === id(LUKE) && e.mode === 'guess_spread').map(e => e.status), ['sat_out'], 'another member sees the sat-out status, never the draft');
+  });
+
   await t.test('results: the latest settlement version per game, a commissioner-reported final as the fallback, each labelled; absent otherwise', async () => {
     await db.query("insert into public.gtl_virtual_units_settlements(season,week,game_id,version,status,home,away,source,source_url,observed_at,settled_at) values(2026,5,$1,1,'final',24,20,'test finals (nflverse games.csv)','https://example.invalid/games.csv',$2,$2),(2026,5,$1,2,'final',27,24,'test finals (nflverse games.csv)','https://example.invalid/games.csv',$3,$3)", [gameIds[0], iso(now - 600_000), iso(now - 300_000)]);
     await db.query("insert into public.gtl_reviewed_result_events(season,week,game_id,version,actor_id,request_id,payload,result,reviewed_at) values(2026,5,$1,1,$2,$3,'{}',$4::jsonb,$5)",
@@ -206,9 +245,11 @@ test('community history: every player, week and market with the line at each gue
     const luke = await history(LUKE);
     assert.equal(week5(luke).closed, true);
     const ben = entry(luke, BEN, 'guess_spread');
-    assert.deepEqual([ben.status, ben.provenance, ben.scoringPolicy, ben.ruling, ben.revisions, ben.picksHidden, at(ben.submittedAt), ben.weekPoints, ben.weekScored],
-      ['submitted', 'community-import', 'submission-time', { decision: 'D-25', basis: 'commissioner-ruled' }, 1, false, at(ruled.p_submitted_at), summary.expectedPoints, 15]);
+    assert.deepEqual([ben.status, ben.provenance, ben.scoringPolicy, ben.ruling, ben.revisions, ben.updatedAt, ben.picksHidden, at(ben.submittedAt), ben.weekPoints, ben.weekScored],
+      ['submitted', null, 'submission-time', { decision: 'D-25', basis: 'commissioner-ruled' }, null, null, false, at(ruled.p_submitted_at), summary.expectedPoints, 15], 'the ruling is shared; the origin and revisions are Ben\'s own');
     assert.equal(ben.weekPoints, 37.6);
+    const bensOwn = entry(await history(BEN), BEN, 'guess_spread');
+    assert.deepEqual([bensOwn.provenance, bensOwn.revisions, bensOwn.ruling], ['community-import', 0, ben.ruling], 'written once by the import (one ballot_submitted event): never revised');
     for (const pick of ben.picks) {
       const ruledValue = ruled.p_reference.values[pick.gameId];
       assert.deepEqual([pick.guess, pick.reference.basis, pick.reference.label, pick.reference.status, pick.reference.value, pick.reference.decision, pick.reference.snapshotId, pick.reference.source, pick.points, pick.scorable],

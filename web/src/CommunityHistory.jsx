@@ -9,7 +9,9 @@ import { MODE, pickText, shortName, show } from './communityFormat';
  * saved when they guessed (D-16) and the points that line gives, the final when one is recorded, and nothing deleted or hidden
  * (D-23). One player at a time, weeks newest first, both markets per week. Another member's open-week guesses stay hidden
  * until the viewer submits that market or sits out (the same reveal gate as the feed); the week's points total is shared as it
- * is on the leaderboard. A migrated ballot that carries no saved line shows the nearest snapshot at its submission for
+ * is on the leaderboard. The last change, the number of revisions after submitting and where a ballot came from are the
+ * owner's alone (the group reader's own-only rule for audits and provenance), so another player's section shows the
+ * submission time only. A migrated ballot that carries no saved line shows the nearest snapshot at its submission for
  * reference only, labelled, and stays unscored rather than being scored against a later line. Points come from the server.
  */
 const MODES = Object.keys(MODE);
@@ -67,7 +69,7 @@ function MarketHistory({ week, mode, entry, player, viewer }) {
   else {
     const changed = entry.updatedAt && entry.submittedAt && Date.parse(entry.updatedAt) !== Date.parse(entry.submittedAt);
     const status = entry.status === 'draft' ? `Draft (not submitted)${week.closed ? ' · does not score' : ''}`
-      : `Submitted ${date(entry.submittedAt)} PT${changed ? ` · changed ${date(entry.updatedAt)} PT` : ''}${entry.revisions ? ` · ${plural(entry.revisions, 'revision')}` : ''}`;
+      : `Submitted ${date(entry.submittedAt)} PT${changed ? ` · changed ${date(entry.updatedAt)} PT` : ''}${entry.revisions ? ` · ${plural(entry.revisions, 'revision')} after submitting` : ''}`;
     const basis = entry.ruling ? `Commissioner-ruled (${entry.ruling.decision})` : entry.scoringPolicy === 'submission-time' ? 'Scored against the line saved with each guess (D-16)'
       : entry.status === 'submitted' ? 'No line was saved with these guesses; the nearest snapshot is shown for reference only and does not score' : '';
     const origin = [PROVENANCE[entry.provenance] || '', basis].filter(Boolean).join(' · ');
@@ -105,6 +107,12 @@ function MarketHistory({ week, mode, entry, player, viewer }) {
   </section>;
 }
 
+/** The one entry for a player and market; a final sit-out wins over a draft saved before it (the server lists one, this keeps the screen honest if both arrive). */
+function entryFor(week, userId, mode) {
+  const entries = week.entries.filter(e => e.userId === userId && e.mode === mode);
+  return entries.find(e => e.status === 'sat_out') || entries[0];
+}
+
 export default function CommunityHistory({ accountId }) {
   const [data, setData] = useState(null), [player, setPlayer] = useState(accountId), [error, setError] = useState(''), [busy, setBusy] = useState(false);
   const load = useCallback(async (season) => {
@@ -133,7 +141,7 @@ export default function CommunityHistory({ accountId }) {
     {chosen && data.weeks.map(week => <section key={`${week.season}-${week.week}`} className="panel history-week" aria-label={`Week ${week.week} history`}>
       <h2>Week {week.week} · {week.season}</h2>
       <p className="muted small">Picks due {date(week.deadline, { weekday: 'short' })} PT · {week.closed ? 'Closed' : 'Open'} · {plural(week.games.length, 'game')}</p>
-      {MODES.map(mode => <MarketHistory key={mode} week={week} mode={mode} player={chosen} viewer={data.viewer} entry={week.entries.find(e => e.userId === chosen.id && e.mode === mode)}/>)}
+      {MODES.map(mode => <MarketHistory key={mode} week={week} mode={mode} player={chosen} viewer={data.viewer} entry={entryFor(week, chosen.id, mode)}/>)}
     </section>)}
     <p className="muted small">Points are fixed when each pick is saved against that moment's consensus. A ballot saved before a line was collected shows the nearest snapshot for reference only and stays unscored rather than being scored against a later line. Sat out is recorded as sat out, never 0.</p>
   </section>;
