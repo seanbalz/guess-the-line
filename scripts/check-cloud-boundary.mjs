@@ -56,9 +56,15 @@ const rpcChecks = [
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
   // D-25 commissioner-ruled import: service-only, never callable from a browser role.
   ['gtl_import_ruled_ballot', { p_actor: missingId, p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_picks: {}, p_submitted_at: null, p_ruling: 'boundary check only', p_reference: {} }],
+  // Community history (October 12, 2026 ruling): three service-only readers from 20261012223000_gtl_community_history.sql.
+  // They report `unexpected 404` until that migration is applied to the hosted project.
+  ['gtl_read_community_history', { p_user: missingId, p_season: null, p_now: null }],
+  ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
+  ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
 ];
 const apiChecks = [
   ...['read','create','tail','settle','include','correct','follow'].map(action => [`social/${action}`, {}]),
+  ['community/history', {}],
   ['state?mode=guess_spread', undefined],
   ['lobby', undefined],
   ['profile', { displayName: 'Boundary check' }],

@@ -2,14 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_SCREEN, MARKET_SLUGS, SCREENS, currentMarket, currentScreen, fragmentOf, goScreen, marketFromHash, placeFromHash, screenFromHash, setMarket } from '../web/src/screenHash.js';
 
-test('only the three Community screens are read from the fragment; anything else leaves the screen alone', () => {
-  assert.deepEqual(SCREENS, ['feed', 'picks', 'groups']);
+test('only the four Community screens are read from the fragment; anything else leaves the screen alone', () => {
+  assert.deepEqual(SCREENS, ['feed', 'picks', 'history', 'groups']);
   assert.equal(screenFromHash(''), DEFAULT_SCREEN);
   assert.equal(screenFromHash('#'), DEFAULT_SCREEN);
   assert.equal(screenFromHash(undefined), DEFAULT_SCREEN);
   for (const name of SCREENS) { assert.equal(screenFromHash(`#${name}`), name); assert.equal(screenFromHash(name), name); }
   // Skip-link targets, Supabase's recovery fragment and a stripped invitation are not screens.
-  for (const other of ['#main', '#picks-due', '#type=recovery', '#access_token=x&type=recovery', '#invite=abc', '#Picks', '#games']) assert.equal(screenFromHash(other), null);
+  for (const other of ['#main', '#picks-due', '#type=recovery', '#access_token=x&type=recovery', '#invite=abc', '#Picks', '#games', '#history-x', '#History']) assert.equal(screenFromHash(other), null);
+  // The history view is a bare screen: no market slug, so a reload lands on the same tab with the week list in component state.
+  assert.deepEqual(placeFromHash('#history'), { screen: 'history', market: null });
+  assert.equal(fragmentOf({ screen: 'history', market: 'guess_total' }), '#history', 'only Picks carries a market');
 });
 
 test('the Picks entry carries its market (#picks-spread, #picks-total); a bare #picks names none and an unknown market is not a screen', () => {
@@ -46,9 +49,12 @@ test('moving between screens works without a browser history (the screen still c
   assert.equal(currentMarket(), 'guess_total');
   assert.equal(setMarket('guess_spread'), true);
   assert.equal(currentMarket(), 'guess_spread');
+  assert.equal(goScreen('history'), true);
+  assert.equal(currentScreen(), 'history');
+  assert.equal(currentMarket(), null, 'leaving Picks drops the market from the place');
+  assert.equal(setMarket('guess_total'), false, 'the history view has no market entry');
   assert.equal(goScreen('groups', { replace: true }), true);
   assert.equal(currentScreen(), 'groups');
-  assert.equal(currentMarket(), null, 'leaving Picks drops the market from the place');
   assert.equal(goScreen('feed'), true);
   assert.equal(currentScreen(), 'feed');
 });
