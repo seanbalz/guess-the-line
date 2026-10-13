@@ -13,6 +13,14 @@ Week 6 opened automatically Monday October 12, 12:00 AM PT.
 See the [October 9 release record](docs/RELEASE_2026_10_09.md) and the
 [release checklist](docs/SOCIAL_COMMUNITY.md#release-checklist--october-9-2026).
 
+**Situational trends (October 12, 2026 ruling) — on branch `claude/trends-engine`, not deployed:**
+trend cards for every game on Community Picks, the group ballot and the dashboard, built weekly
+from the free nflverse schedule release (CC BY 4.0), plus a commissioner referee dropdown. The
+panels need a Pages deploy. Shared referee assignments also need migration
+`20261012234500_gtl_game_officials.sql`, which is written but **not applied** to the hosted project,
+and a `gtl-api` deploy. Until then the referee comes from the weekly trends file or reads "Referee
+not assigned yet". See [docs/TRENDS.md](docs/TRENDS.md).
+
 **Latest verified release (October 12, 2026):** Pages `06c71c14` and authenticated
 API v15, built from `main` at `17c22b5`, are deployed at [Guess The Line](https://guess-the-line.pages.dev), with
 JWT verification enabled; see the [release record](docs/RELEASE_2026_10_09.md). The

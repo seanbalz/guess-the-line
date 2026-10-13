@@ -8,6 +8,7 @@ const modules = [
   { id: 'gaps', label: 'Matchup differences', description: 'Your guesses compared with the saved market.' },
   { id: 'history', label: 'Line history', description: 'Changes between recorded market snapshots.' },
   { id: 'connections', label: 'Data connections', description: 'Source availability and connection details.' },
+  { id: 'trends', label: 'Situational trends', description: 'Past results by game situation from public nflverse data. Reference only.' },
 ];
 
 function LayoutPreview({ layout }) {

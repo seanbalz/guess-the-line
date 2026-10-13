@@ -940,7 +940,7 @@ test('dashboard section, layout, motion and notice preferences persist without c
   await chooseDashboardLayout(page, 'markets', 'Market rows');
   let controls = await openDashboardOptions(page);
   await expect(controls).toContainText('Saved in this browser on this device');
-  for (const name of ['Player scores', 'Line history', 'Data connections']) await controls.getByRole('checkbox', { name: new RegExp(`^${name}`) }).uncheck();
+  for (const name of ['Player scores', 'Line history', 'Data connections', 'Situational trends']) await controls.getByRole('checkbox', { name: new RegExp(`^${name}`) }).uncheck();
   await expect(controls.getByRole('checkbox', { name: /^Matchup differences/ })).toBeDisabled();
   await controls.getByLabel('Animation preference').selectOption('reduced');
   await controls.getByRole('checkbox', { name: /^New saved market update/ }).uncheck();
@@ -957,7 +957,7 @@ test('dashboard section, layout, motion and notice preferences persist without c
   await expect(controls.getByRole('checkbox', { name: /^New saved market update/ })).not.toBeChecked();
   await expect(controls.getByRole('checkbox', { name: /^Data availability notices/ })).not.toBeChecked();
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('gtl.dashboard.preferences.v1')));
-  expect(stored).toEqual({ version: 1, layout: 'markets', modules: { scores: false, gaps: true, history: false, connections: false }, motion: 'reduced', notices: { marketUpdates: false, dataIssues: false } });
+  expect(stored).toEqual({ version: 1, layout: 'markets', modules: { scores: false, gaps: true, history: false, connections: false, trends: false }, motion: 'reduced', notices: { marketUpdates: false, dataIssues: false } });
   await controls.getByRole('button', { name: 'Reset dashboard preferences' }).click();
   await expect(page.locator('.visual-dashboard')).toHaveAttribute('data-layout', 'command');
   await expect(page.locator('.visual-scoreboard,.visual-gaps,.visual-history,.data-connections')).toHaveCount(4);

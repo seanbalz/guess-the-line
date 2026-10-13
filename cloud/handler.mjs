@@ -1,6 +1,7 @@
 import { handlePersonal, PERSONAL_METHODS, PersonalError, providerPersonalError } from './personal.mjs';
 import { handleSocial, SOCIAL_METHODS, SocialError, providerSocialError } from './social.mjs';
 import { handleCommunity, COMMUNITY_METHODS, CommunityError, providerCommunityError } from './community.mjs';
+import { handleOfficials, OFFICIALS_METHODS, OfficialsError, providerOfficialsError } from './officials.mjs';
 import { NFLVERSE_SCHEDULE_URL } from '../shared/nfl-schedule.mjs';
 import { applyDecisionAnalysisView } from './decision-analysis.mjs';
 import { RESULTS_METHODS, ResultError, providerResultError, handleResultReview, applyReviewedResults } from './results.mjs';
@@ -90,7 +91,7 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, results, odds, oddsProvider, virtual, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, results, odds, oddsProvider, virtual, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   async function submitWithFreshOdds(user, intent, commit) {
     if (!odds?.rpc) throw new SubmissionOddsError();
     return runSubmissionWithFreshOdds({
@@ -152,7 +153,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
     try {
       const url = new URL(request.url);
       const route = url.pathname.replace(/^\/(?:functions\/v1\/)?gtl-api(?=\/)/, '');
-      const methods = { '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'], ...LOBBY_METHODS, ...PERSONAL_METHODS, ...SOCIAL_METHODS, ...COMMUNITY_METHODS, ...RESULTS_METHODS, ...ODDS_METHODS, ...BENCHMARK_METHODS, ...VIRTUAL_METHODS };
+      const methods = { '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'], ...LOBBY_METHODS, ...PERSONAL_METHODS, ...SOCIAL_METHODS, ...COMMUNITY_METHODS, ...OFFICIALS_METHODS, ...RESULTS_METHODS, ...ODDS_METHODS, ...BENCHMARK_METHODS, ...VIRTUAL_METHODS };
       if (!Object.hasOwn(methods, route)) return json({ error: 'Not found.' }, 404);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
       if (!methods[route].includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: [...methods[route], 'OPTIONS'].join(', ') });
@@ -177,6 +178,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       }
       if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock }));
       if (Object.hasOwn(COMMUNITY_METHODS, route)) return json(await handleCommunity({ route, body, user, service: community, clock }));
+      if (Object.hasOwn(OFFICIALS_METHODS, route)) return json(await handleOfficials({ route, body, user, service: officials }));
       if (Object.hasOwn(PERSONAL_METHODS, route)) return json(await handlePersonal({ route, body, user, service: personal, clock,
         submitBallot: (payload, commit) => submitWithFreshOdds(user, {
           season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
@@ -243,7 +245,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       const freshEngine = createEngine(refreshed.state, { clock, uuid });
       return json(await marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId));
     } catch (error) {
-      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
+      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
       // Provider payloads and internal errors may contain secrets or private state.
       return json({ error: 'The saved data service is temporarily unavailable. Please try again.' }, 503);
     }
@@ -404,6 +406,18 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           let message;
           try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
           throw providerCommunityError(message);
+        }
+        return response.json();
+      },
+    },
+    // Game referees for situational trends: the commissioner check and both RPCs are service-only.
+    officials: {
+      async rpc(name, body) {
+        const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
+        if (!response.ok) {
+          let message;
+          try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
+          throw providerOfficialsError(message);
         }
         return response.json();
       },

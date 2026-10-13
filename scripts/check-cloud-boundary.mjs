@@ -56,6 +56,10 @@ const rpcChecks = [
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
   // D-25 commissioner-ruled import: service-only, never callable from a browser role.
   ['gtl_import_ruled_ballot', { p_actor: missingId, p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_picks: {}, p_submitted_at: null, p_ruling: 'boundary check only', p_reference: {} }],
+  // Game referees for situational trends (October 12, 2026 ruling): two service-only RPCs from 20261012234500_gtl_game_officials.sql.
+  // They report `unexpected 404` until that migration is applied to the hosted project.
+  ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
+  ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
 ];
 const apiChecks = [
   ...['read','create','tail','settle','include','correct','follow'].map(action => [`social/${action}`, {}]),
@@ -83,6 +87,9 @@ const apiChecks = [
   ['virtual-units', undefined],
   ['virtual-pick', {}],
   ['virtual-units/settle', {}],
+  // Referee routes ship with the next gtl-api deploy; until then they answer 404, not 401.
+  ['officials/read', {}],
+  ['officials/set', {}],
 ];
 
 export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = console.log }) {

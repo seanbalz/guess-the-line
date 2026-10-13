@@ -13,7 +13,7 @@ export const DASHBOARD_LAYOUTS = Object.freeze([
 export const DEFAULT_DASHBOARD_PREFERENCES = Object.freeze({
   version: 1,
   layout: 'command',
-  modules: Object.freeze({ scores: true, gaps: true, history: true, connections: true }),
+  modules: Object.freeze({ scores: true, gaps: true, history: true, connections: true, trends: true }),
   motion: 'system',
   notices: Object.freeze({ marketUpdates: true, dataIssues: true }),
 });

@@ -42,3 +42,8 @@ export async function communityApi(action, body = {}, signal) {
   if (!['read', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open'].includes(action)) throw new ApiError('Unknown community action.', 400);
   return cloudApi(`community/${action}`, body, { signal });
 }
+/** Game referees for situational trends: any member reads a week's assignments; only the commissioner sets one. */
+export async function officialsApi(action, body = {}, signal) {
+  if (!['read', 'set'].includes(action)) throw new ApiError('Unknown referee action.', 400);
+  return cloudApi(`officials/${action}`, body, { signal });
+}

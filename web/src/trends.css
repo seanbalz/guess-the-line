@@ -1,0 +1,132 @@
+/* Situational trends: per-game expander, panel, cards, tables and the commissioner referee list.
+   Theme tokens only (light and dark come from Theme.jsx); 44px targets; metadata 13px; one column
+   below 720px. Selectors are scoped under .trends-panel so the group ballot's responsive table rules
+   (.prediction-entry tr/td/th) never reach the trend tables nested inside it. */
+.game-trends{margin-top:8px}
+.trends-expander{min-height:44px;font-size:14px}
+.trends-chevron{transition:transform .15s ease}
+.trends-expander[aria-expanded="true"] .trends-chevron{transform:rotate(180deg)}
+.game-trends-body{margin-top:12px}
+.trends-toggle-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0}
+.trends-toggle-row .trends-toggle{min-height:44px;font-size:14px}
+.trends-toggle[aria-pressed="true"]{border-color:var(--cyan)}
+.trends-status,.trends-empty{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+
+.trends-panel{display:grid;gap:16px;font-size:14px;line-height:1.5;color:var(--text);text-align:left;white-space:normal}
+.trends-panel p{margin:0}
+.trends-panel h3,.trends-panel h4,.trends-panel h5,.trends-panel h6{margin:0;font-size:16px;line-height:24px;font-weight:650;color:var(--text)}
+.trends-panel .trend-card h4,.trends-panel .trend-card h5,.trends-panel .trend-card h6{font-size:15px}
+.trends-intro{font-size:14px}
+.trends-section{display:grid;gap:10px}
+.trend-note{font-size:13px;color:var(--muted)}
+.trend-card-grid{display:grid;gap:12px}
+.trends-panel .trend-card{display:grid;gap:8px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px;min-width:0}
+.trends-panel .trend-tier-1{border-left:4px solid var(--cyan)}
+.trends-panel .trend-tier-2{border-left:4px solid var(--primary)}
+.trends-panel .trend-watch{border-left:4px solid var(--tie)}
+.trends-panel .trend-row-card[aria-current="true"]{outline:2px solid var(--cyan);outline-offset:2px}
+.trend-card-head{display:grid;gap:6px}
+.trend-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.trend-chip,.trend-badge{display:inline-flex;align-items:center;font-size:13px;line-height:18px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--text);background:var(--surface)}
+.trend-badge{color:var(--muted)}
+.trend-badge.trend-conflict{color:var(--loss);border-color:var(--loss)}
+.trend-this{display:inline-flex;margin-left:6px;font-size:13px;padding:0 6px;border:1px solid var(--cyan);border-radius:4px;color:var(--text)}
+.trend-basis,.trend-split,.trend-records,.trend-records p{font-size:13px;color:var(--muted)}
+.trend-records{display:grid;gap:4px}
+.trends-panel .trend-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0}
+.trends-panel .trend-stats>div{display:grid;gap:2px;min-width:0}
+.trends-panel .trend-stats dt{font-size:13px;color:var(--muted)}
+.trends-panel .trend-stats dd{margin:0;color:var(--text);text-align:left;font-weight:600;overflow-wrap:anywhere}
+.trends-panel .trend-stats dd small{display:block;font-size:13px;font-weight:400;color:var(--muted)}
+.trend-spark{display:block;width:100%;max-width:280px;height:44px}
+.trend-spark-zero{stroke:var(--border);stroke-width:1;stroke-dasharray:2 2;vector-effect:non-scaling-stroke}
+.trend-spark-line{fill:none;stroke:var(--cyan);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.trend-spark-end.up{fill:var(--win)}
+.trend-spark-end.down{fill:var(--loss)}
+.trend-filters,.trend-list,.trend-h2h{margin:0;padding-left:18px;font-size:13px;display:grid;gap:2px}
+.trends-panel details>summary{min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;cursor:pointer;font-weight:600}
+.trends-context,.trends-entities,.trend-bands,.trend-conditional,.trend-score-detail{border-top:1px solid var(--line)}
+.trends-context[open],.trends-entities[open]{display:grid;gap:12px}
+.trends-context[open]>.trends-section,.trends-entities[open]>*{margin-top:4px}
+.trend-conditional summary span{font-weight:400;font-size:13px;color:var(--muted)}
+.trend-score-parts{display:grid;gap:4px;margin:0 0 8px}
+.trend-score-parts>div{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+.trend-score-parts dt{color:var(--muted)}
+.trend-score-parts dd{margin:0;color:var(--text)}
+.trend-gated-card{display:grid;gap:6px}
+.trend-referee-pick{display:grid;gap:4px;max-width:420px}
+.trend-referee-pick label{font-size:13px;color:var(--muted)}
+.trend-referee-pick select{min-height:44px;width:100%}
+.trends-source{display:grid;gap:4px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.trends-source a,.trends-data-source a{display:inline-flex;align-items:center;min-height:44px;min-width:44px;color:var(--cyan);text-decoration:underline;text-underline-offset:2px}
+
+/* Tables: one line per record at 720px and wider; stacked blocks below. Display is set explicitly at every width. */
+.trends-panel .trend-table-wrap{width:100%;overflow:visible}
+.trends-panel .trend-table{display:table;width:100%;border-collapse:collapse;font-size:13px}
+.trends-panel .trend-table caption{display:table-caption;text-align:left;font-weight:600;font-size:14px;color:var(--text);padding:4px 0}
+.trends-panel .trend-table thead{display:table-header-group}
+.trends-panel .trend-table tbody{display:table-row-group}
+.trends-panel .trend-table tr{display:table-row;padding:0;border:0;width:auto}
+.trends-panel .trend-table th,.trends-panel .trend-table td{display:table-cell;width:auto;padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-weight:400;white-space:normal;color:var(--text)}
+.trends-panel .trend-table thead th{color:var(--muted);font-weight:600}
+.trends-panel .trend-table tbody th{font-weight:600}
+.trends-panel .trend-table td[data-label]::before{content:none}
+.trends-panel .trend-table tr.trend-current>*{background:color-mix(in srgb,var(--cyan) 12%,transparent)}
+.trends-panel .trend-table small{font-size:13px;color:var(--muted)}
+
+/* The group ballot spans the panel across the whole table row. */
+.prediction-entry tr.trends-row>td{padding:12px 22px 20px;border-top:0}
+
+/* Commissioner referee list. */
+.referee-assignments{margin-top:16px}
+.referee-assignments>summary{min-height:44px;display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;font-weight:600}
+.referee-assignments-body{display:grid;gap:12px;padding:0 16px 16px}
+.referee-assignment-list{display:grid;gap:12px}
+.referee-assignment{display:grid;gap:4px}
+.referee-assignment label{font-size:13px;color:var(--muted)}
+.referee-assignment select{min-height:44px;width:100%}
+.referee-assignment-list .primary{justify-self:start;min-height:44px}
+
+@media (min-width:720px){
+  .trend-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .trends-panel .trend-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .referee-assignment-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .referee-assignment-list .auth-notice,.referee-assignment-list .error-banner,.referee-assignment-list .primary{grid-column:1/-1}
+}
+@media (max-width:719px){
+  .trends-panel .trend-table,.trends-panel .trend-table tbody,.trends-panel .trend-table tr{display:block;width:100%}
+  .trends-panel .trend-table caption{display:block}
+  .trends-panel .trend-table thead{display:none}
+  .trends-panel .trend-table tr{padding:8px 0;border-bottom:1px solid var(--line)}
+  .trends-panel .trend-table th,.trends-panel .trend-table td{display:block;width:100%;padding:2px 0;border:0}
+  .trends-panel .trend-table td[data-label]::before{content:attr(data-label);display:block;color:var(--muted);font-family:Inter,system-ui,sans-serif;min-width:0}
+  .prediction-entry tr.trends-row>td{padding:12px 0 16px}
+}
+/* The 900–1359px group ballot lays game rows out as a grid; the trends row stays one block. */
+@media (max-width:1359px){
+  .prediction-entry tr.trends-row{display:block;padding:0 16px 16px;border-top:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .trends-chevron{transition:none}
+}
+@media (forced-colors:active){
+  .trends-panel .trend-card,.trend-chip,.trend-badge,.trend-this{border-color:CanvasText}
+  .trends-panel .trend-tier-1,.trends-panel .trend-tier-2,.trends-panel .trend-watch{border-left-color:CanvasText;border-left-width:6px}
+  .trend-badge,.trend-chip{outline:1px solid CanvasText}
+  .trend-spark-line{stroke:CanvasText}
+  .trend-spark-zero{stroke:GrayText}
+  .trend-spark-end.up,.trend-spark-end.down{fill:CanvasText}
+  .trends-panel .trend-table tr.trend-current>*{outline:2px solid Highlight;background:Canvas}
+  .trends-panel .trend-row-card[aria-current="true"]{outline:2px solid Highlight}
+  .trends-toggle[aria-pressed="true"]{border:2px solid Highlight}
+}
+.prediction-entry tr.trends-row[hidden]{display:none}
+/* Dashboard: a trends section in each matchup drilldown, or a standalone list when matchup differences are hidden. */
+.visual-trends{margin:8px 0 12px}
+.visual-game-trends{display:grid;gap:12px;padding:20px}
+.visual-trend-games{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.visual-trend-games>li{display:grid;gap:4px;padding-top:12px;border-top:1px solid var(--line)}
+.visual-trend-games h3{font-size:16px}
+/* Data connections: the situational trends source card. */
+.trends-data-source{display:grid;gap:6px;padding:14px 16px;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:14px}
+.trends-data-source h3{font-size:16px}

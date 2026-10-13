@@ -38,6 +38,8 @@ The one visibility exception is the Guess pick reveal gate, shared by the feed a
 | `/community/publish` | `{ season, week }` (commissioner only) | the slate plus `published: true`, or `false` if it was already published |
 | `/community/sit-out` | `{ season, week, mode }` (`guess_spread` or `guess_total`) | `{ season, week, mode, satOut: true, replayed }`; 409 `GTL_COMMUNITY_CLOSED` after the deadline, 400 once that ballot is submitted |
 | `/community/week-open` | `{}` (commissioner only) | D-24 scheduler status: `configured`, `enabled`, `season`, `utcCrons`, `lastRunAt`, `lastStatus`, `lastReason`, `currentWeek { season, week, openAt, deadline }` |
+| `/officials/read` | `{ season, week }` (any community member) | Game referees for situational trends: `assignments { [gameId]: { referee, setAt, revision } }`. Ships with the next `gtl-api` deploy and needs migration `20261012234500_gtl_game_officials.sql`; see [TRENDS.md](TRENDS.md#referees) |
+| `/officials/set` | `{ season, week, gameId, referee \| null }` (commissioner only; 403 before any write for anyone else) | `{ season, week, gameId, referee, setAt, revision, changed }`. The game must be on that week's published slate. Every change is a new revision in `gtl_game_official_history` and `gtl_access_audit`; nothing is deleted |
 
 The handler passes the request time to the database, so the deadline reveal, the sit-out cutoff and the picks-due state use one clock. It also strips pick values from any post marked hidden. `picksDue` carries `opensAt` (the week's Monday 00:00 PT) alongside `deadline`. Group game screens read opt-outs through `gtl_read_weekly_state` (`state.optOuts`), and the league engine's reveal gate honors them; the local workspace keeps the same shape in `.local/state.json` through `POST /api/sit-out`, although the local UI does not offer the button.
 
@@ -83,6 +85,14 @@ node scripts/team-records.mjs --season 2026 --through-week 5
 ```
 
 The script downloads the public nflverse schedule file, counts finals only (regular season, both scores present) and writes `shared/team-records-2026.json`. Neutral-site games count toward overall records only. The nflverse repository publishes no explicit license; records are plain facts derived from final scores and are credited to nflverse (Lee Sharpe). Re-run after each week's Monday game.
+
+## Trends refresh
+
+```sh
+node scripts/trends.mjs --season 2026 --week 7
+```
+
+Run it Tuesday morning, after the Monday-night final is in the nflverse release. It writes the redacted season file, `shared/trends/2026-week-07.json` and the lazy loader map. Then `npm test`, `npm run build`, a PR, and a Pages deploy. Commissioner referee assignments are saved in the app (Feed → Game referees) once the hosted pieces ship. Until then, `--reuse-season-file --referees refs.json` carries them in the week file. Full procedure: [TRENDS.md](TRENDS.md#weekly-operator-step).
 
 ## Release checklist — October 9, 2026
 
@@ -186,5 +196,13 @@ Deploy: `20261009130000_gtl_league_interest.sql` is applied on the hosted projec
 ## Deployed state
 
 Deployed from the cloud session on October 9, 2026, through the Supabase MCP: the five hosted migrations, `gtl-week-open` v1, both Monday cron jobs and the enabled `nfl-weekly` schedule row. Deployed from the Mac mini on October 12, 2026 (steps 5–7 above): `gtl-api` v15 and Pages `06c71c14`, both from `main` at `17c22b5`; see the [October 12 section of the release record](RELEASE_2026_10_09.md#october-12-deploy). The live site now has the Community screens, chips, sit-out and coming-soon leagues on top of the hosted database's D-24 window, D-23 opt-out trigger and backfilled "joined" posts. `main` has since added PR #35 and PR #47, and PR #36 is held for a second deploy after its own pre-flight.
+
+*October 13, 2026 — situational trends (branch `claude/trends-engine`):* not deployed.
+- The trend panels and weekly files need a Pages deploy only.
+- The commissioner referee dropdown also needs:
+  - migration `20261012234500_gtl_game_officials.sql`, written and **not applied to the hosted project**. When it is applied through the Supabase MCP, record its hosted version here; never `db push`.
+  - a `gtl-api` deploy for `/officials/read` and `/officials/set`.
+- Before both ship, the panel falls back to the weekly file, and the commissioner panel says saving needs the next deploy.
+- The boundary check reports `unexpected 404` for the two new RPCs and routes until then.
 
 *October 12, 2026:* migration `20261012213000_gtl_submission_odds_window.sql` (branch `claude/fix-submission-odds-window`: five-minute collect cooldown, six collections per UTC day, and scheduled/manual collection from the published week instead of the group league, which is why both October 12 scheduled runs skipped with `slate_changed`) is **not applied to the hosted project**. It waits for Sean's ruling on the constants (pending entry in [DECISIONS.md](DECISIONS.md)). When it is applied through the Supabase MCP, its hosted version joins the `reverted` list and its filename the `applied` list in step 2 above; never `db push`.
