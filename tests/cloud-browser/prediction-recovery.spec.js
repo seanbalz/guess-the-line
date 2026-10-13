@@ -3,6 +3,7 @@ import { seed } from '../../server/store.mjs';
 import { createEngine } from '../../server/engine.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { pickTotal, expectPick, expectNoPick, expectPickEnabled, totalText } from '../chip-entry.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 const start = '2026-10-08T18:00:00Z', deadline = '2026-10-08T18:01:00Z';
 const actorA = '11111111-1111-4111-8111-111111111111', actorB = '33333333-3333-4333-8333-333333333333';
@@ -32,7 +33,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected origin: ${url.origin}`); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected origin: ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       const active = sessions[report.actor];
       if (url.pathname === '/auth/v1/token') return reply(200, active);

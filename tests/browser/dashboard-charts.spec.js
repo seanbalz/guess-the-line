@@ -37,9 +37,9 @@ test('unsubmitted market hides all new charts and guide',async({page})=>{
  await expect(page.locator('.chart-guide')).toHaveCount(0);
  await expect(page.getByRole('heading',{name:'Your ballot comes first'})).toBeVisible();
 });
-test('Over/Under has the same charts with its own saved totals and beginner explanation',async({page})=>{
+test('Total has the same charts with its own saved totals and beginner explanation',async({page})=>{
  await show(page);
- await page.getByRole('button',{name:'Over/Under',exact:true}).click();
+ await page.locator('.dashboard-market-tabs').getByRole('button',{name:'Total',exact:true}).click();
  const panel=page.getByRole('region',{name:'Total insights'});
  await expect(page.getByRole('region',{name:'Spread insights'})).toHaveCount(0);
  await expect(panel.locator('.score-number')).toHaveText('111 / 150');
