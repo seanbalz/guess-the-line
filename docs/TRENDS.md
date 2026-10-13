@@ -111,7 +111,7 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
 ## Deployed state
 
 - **Not deployed.** The engine, week file, UI and referee route are on branch `claude/trends-engine`.
-- Shipping the panels needs a Pages deploy only. The deploy chain's `npm run check:cloud` still passes before the referee pieces exist: `scripts/check-cloud-boundary.mjs` lists the two referee RPCs and the two `/officials` routes in `awaitingDeploy` and reports them as "awaiting deploy, not verified". It accepts only the exact not-found answer (PostgREST `PGRST202` for a missing function, gtl-api's own `Not found.` for a missing route); any other answer must still be a denial, and every other probe still runs.
+- Shipping the panels needs a Pages deploy only. The referee pieces do not fail the deploy chain's `npm run check:cloud` before they exist: `scripts/check-cloud-boundary.mjs` lists the two referee RPCs and the two `/officials` routes in `awaitingDeploy` and reports them as "awaiting deploy, not verified". It accepts only the exact not-found answer (PostgREST `PGRST202` for a missing function, gtl-api's own `Not found.` for a missing route); any other answer must still be a denial, and every other probe still runs. Nothing else is in `awaitingDeploy`: the Community history and D-27 line-at-guess probes still fail the check until their migrations are applied hosted (see [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state)).
 - Shared commissioner referees also need:
   - the migration `20261012234500_gtl_game_officials.sql` applied to the hosted project (record the hosted version; never `db push`),
   - a `gtl-api` deploy.

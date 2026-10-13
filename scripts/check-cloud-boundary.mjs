@@ -27,7 +27,6 @@ const rpcChecks = [
   ['gtl_begin_submission_odds_collection', { p_user: missingId, p_request: missingId, p_intent: {}, p_operation: 'preflight' }],
   ['gtl_finish_submission_odds_collection', { p_user: missingId, p_request: missingId, p_lease: missingId, p_payload: null, p_quota: {}, p_error: null }],
   // D-27 (20261012230000) line-at-guess helpers and the pending-reference resolver: service-only.
-  // Awaiting deploy (see awaitingDeploy below) until that migration is applied to the hosted project.
   ['gtl_line_from_snapshot', { p_payload: {}, p_game: {}, p_market: 'spread' }],
   ['gtl_pending_reference', { p_saved: null }],
   ['gtl_reference_at_save', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_saved: null }],
@@ -65,12 +64,12 @@ const rpcChecks = [
   // D-25 commissioner-ruled import: service-only, never callable from a browser role.
   ['gtl_import_ruled_ballot', { p_actor: missingId, p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_picks: {}, p_submitted_at: null, p_ruling: 'boundary check only', p_reference: {} }],
   // Community history (October 12, 2026 ruling): three service-only readers from 20261012223000_gtl_community_history.sql.
-  // Awaiting deploy (see awaitingDeploy below) until that migration is applied to the hosted project.
+  // They report `unexpected 404` until that migration is applied to the hosted project.
   ['gtl_read_community_history', { p_user: missingId, p_season: null, p_now: null }],
   ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
   ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
   // Game referees for situational trends (October 12, 2026 ruling): two service-only RPCs from 20261012234500_gtl_game_officials.sql.
-  // Awaiting deploy (see awaitingDeploy below) so a Pages-only deploy of the trend panels still passes check:cloud.
+  // Awaiting deploy (see awaitingDeploy below), so they alone do not fail check:cloud for a Pages-only deploy of the trend panels.
   ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
 ];
@@ -80,26 +79,20 @@ const rpcChecks = [
  * (PostgREST's PGRST202 for a missing function, gtl-api's own "Not found." for a missing route), and it
  * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
  * after the deploy, then remove the entries here in the change that records the hosted version.
+ *
+ * Only the situational-trends referee pieces are listed. The Community history readers (20261012223000),
+ * the D-27 line-at-guess helpers (20261012230000) and the /community/history route are deliberately not:
+ * any of them that is missing fails the default check with `unexpected 404`, which is the release
+ * checklist's gate for applying those migrations hosted before the gtl-api deploy that needs them.
  */
-const LINE_AT_GUESS = 'migration 20261012230000_gtl_submit_with_line_at_guess.sql';
-const COMMUNITY_HISTORY = 'migration 20261012223000_gtl_community_history.sql';
-const GAME_OFFICIALS = 'migration 20261012234500_gtl_game_officials.sql';
 export const awaitingDeploy = Object.freeze({
-  // D-27 line at the guess (20261012230000): written, not applied to the hosted project.
-  ...Object.fromEntries(['gtl_line_from_snapshot', 'gtl_pending_reference', 'gtl_reference_at_save', 'gtl_resolve_pending_reference', 'gtl_resolve_pending_references', 'gtl_odds_schedule_slate']
-    .map(rpc => [`rpc/${rpc}`, LINE_AT_GUESS])),
-  // D-27 ruling 3 Community history (20261012223000): written, not applied; the route ships with the next gtl-api deploy.
-  ...Object.fromEntries(['gtl_read_community_history', 'gtl_history_reference', 'gtl_pick_points'].map(rpc => [`rpc/${rpc}`, COMMUNITY_HISTORY])),
-  'gtl-api/community/history': 'the gtl-api deploy with /community/history',
-  // Situational-trends referees (20261012234500): written, not applied; the routes ship with the next gtl-api deploy.
-  'rpc/gtl_read_game_officials': GAME_OFFICIALS,
-  'rpc/gtl_set_game_official': GAME_OFFICIALS,
+  'rpc/gtl_read_game_officials': 'migration 20261012234500_gtl_game_officials.sql',
+  'rpc/gtl_set_game_official': 'migration 20261012234500_gtl_game_officials.sql',
   'gtl-api/officials/read': 'the gtl-api deploy with /officials/read',
   'gtl-api/officials/set': 'the gtl-api deploy with /officials/set',
 });
 const apiChecks = [
   ...['read','create','tail','settle','include','correct','follow'].map(action => [`social/${action}`, {}]),
-  // Ships with the next gtl-api deploy (awaitingDeploy), like the referee routes below.
   ['community/history', {}],
   ['state?mode=guess_spread', undefined],
   ['lobby', undefined],
