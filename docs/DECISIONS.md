@@ -1,5 +1,15 @@
 # Decision log
 
+## D-28 — opt-in web push, one deadline reminder (October 12, 2026)
+
+Sean decided the first external notification channel and event:
+
+- **Channel.** Web push only. No email and no SMS. Opt-in per device from Settings & setup (next to Install app) or the one-line "Remind me 2 hours before picks lock" on the Community picks-due card; nothing is registered with the browser or sent to the server until the player taps it. On iPhone and iPad it needs iOS 16.4 or later and the Home Screen app; the app explains this when the browser has no PushManager.
+- **Event.** One reminder: a player whose Spread or Total ballot for the open week is neither submitted nor sat out (D-23) gets one push 2 hours before that week's deadline (TNF kickoff, D-24). At most once per player, week, mode and kind; the reminder is recorded before it is sent. Line-movement alerts and every other event stay out of scope (NOT-03).
+- **Spoiler protection.** The notification carries the week, the lock time and the modes still due, for example "Week 6 picks lock at 5:15 PM PT. Spread still due." Never a pick, a line, a score or another player. A tap opens the app's own Picks screen; the payload cannot choose a URL.
+- **Data.** A push subscription is a device setting, not a pick or other player entry, so turning reminders off deletes that device's row (D-23 governs entries). A dead subscription (push service 404/410) is deleted; five failures in a row disable it. The sent log is append-only. Both tables are service-only (RLS on, no browser grants).
+- **Delivery.** Migration `20261012230000_gtl_web_push_reminders.sql`, `gtl-api` routes `/push/status`, `/push/subscribe`, `/push/unsubscribe`, Edge Function `gtl-push-reminders` (D-24 capability pattern, every 15 minutes), `web/public/sw.js` (push and notification click only, no fetch handler or cache) and `worker-src 'self'` in the CSP. The VAPID keys are generated and stored by Sean as Edge Function secrets; no agent creates or handles them. Nothing is applied, deployed or enabled by this decision; Sean's steps are in [WEB_PUSH_SETUP.md](WEB_PUSH_SETUP.md). D-27 is not on `main` as of this entry; the number was assigned by Sean's request.
+
 ## D-26 — Virtual Units settlement (October 9, 2026)
 
 Sean confirmed how D-18 Virtual Units picks settle. Each pick settles with standard sportsbook rules against the **final score**, using the named-book line and odds saved with the pick:
