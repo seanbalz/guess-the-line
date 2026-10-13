@@ -76,7 +76,7 @@ No free, licensed feed publishes referee assignments before games; the schedule 
 - **Records shown**: career over/under and home vs road ATS, plus primetime (19:00 ET or later) or divisional rows when the game is one, and the total band after the Total ballot.
 - **Static fallback** (works with a Pages deploy only): `node scripts/trends.mjs --season 2026 --week N --reuse-season-file --referees refs.json` with `{ "SEA-DEN": "Shawn Hochuli", … }`; names must be in `refereeOptions`.
 
-### Hosted pieces (written, not applied or deployed)
+### Hosted pieces (migration applied October 13; `gtl-api` deploy pending)
 
 - Migration `supabase/migrations/20261012234500_gtl_game_officials.sql`:
   - `gtl_game_officials`, keyed by season, week and game id, holding the referee name, who set it (`set_by`), when, and a revision number. It references the published slate.
@@ -124,7 +124,7 @@ Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.
 
 **Superseded copy.** The frozen registry note and the week file's `windConditional`, `wind15Conditional`, `weatherConditional` and `evidence` strings still say "no forecast source". `shared/trends-view.mjs` (`WIND_COPY`, `WIND_CARD_NOTES`) supersedes them on screen only, so the registry sha256 and the week file are unchanged; the next registry carries the new note.
 
-**Hosted pieces (written, not applied or deployed).**
+**Hosted pieces (migration applied October 13; `gtl-api` and Pages deploys pending).**
 
 - Route `POST /wind/read { season, week }` in `cloud/wind.mjs`, with the Open-Meteo adapter in `cloud/open-meteo.mjs` and the stadium mirror in `shared/wind-venues.mjs`.
 - Migration `supabase/migrations/20261013060000_gtl_wind_forecasts.sql`: tables `gtl_wind_fetches` (attempts, leases and the budget log; no member id), `gtl_wind_fetch_outcomes` and `gtl_wind_forecasts`, all insert-only and service-role only behind RLS; RPCs `gtl_read_wind_forecasts`, `gtl_begin_wind_fetch` and `gtl_finish_wind_fetch`, security invoker with an empty search path, executable by service_role only.
@@ -150,14 +150,14 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
 
 ## Deployed state
 
-- **Not deployed.** The engine, week file, UI and referee route are on branch `claude/trends-engine`.
+- **Not deployed.** The engine, week file, UI and referee route are on `main` (PR #60, merged October 13); the referee migration is applied hosted, and the `gtl-api` and Pages deploys are pending.
 - Shipping the panels needs a Pages deploy only. The referee pieces do not fail the deploy chain's `npm run check:cloud` before they exist: `scripts/check-cloud-boundary.mjs` lists the two referee RPCs and the two `/officials` routes in `awaitingDeploy` and reports them as "awaiting deploy, not verified". It accepts only the exact not-found answer (PostgREST `PGRST202` for a missing function, gtl-api's own `Not found.` for a missing route); any other answer must still be a denial, and every other probe still runs. Nothing else is in `awaitingDeploy`: the Community history and D-27 line-at-guess probes still fail the check until their migrations are applied hosted (see [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state)).
 - Shared commissioner referees also need:
-  - the migration `20261012234500_gtl_game_officials.sql` applied to the hosted project (record the hosted version; never `db push`),
+  - the migration `20261012234500_gtl_game_officials.sql`, applied to the hosted project on October 13 as `20261013050416` (both functions byte-identical to `main`),
   - a `gtl-api` deploy.
 - The frontend falls back cleanly, so the two can ship in either order.
 - After both are live, run `node scripts/check-cloud-boundary.mjs --strict` (every probe must deny, none awaiting deploy), then remove the four `awaitingDeploy` entries in the change that records the hosted migration version.
-- **Kickoff wind forecast (D-34): not deployed.** It needs migration `20261013060000_gtl_wind_forecasts.sql` applied to the hosted project (with Sean's go; never `db push`), a `gtl-api` deploy and a Pages deploy, in either order. Until then `check:cloud` lists the three wind RPCs and `/wind/read` as awaiting deploy for the same reason as the referee pieces (both builds fall back cleanly); after both, run `--strict`, remove the four wind entries, add the three wind tables to the table probes, and run the hosted reachability check in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state).
+- **Kickoff wind forecast (D-34): not deployed.** Migration `20261013060000_gtl_wind_forecasts.sql` is applied to the hosted project on October 13 as `20261013072206` (all three functions byte-identical to `main`); it still needs a `gtl-api` deploy and a Pages deploy, in either order. Until then `check:cloud` lists the three wind RPCs and `/wind/read` as awaiting deploy for the same reason as the referee pieces (both builds fall back cleanly); after both, run `--strict`, remove the four wind entries, add the three wind tables to the table probes, and run the hosted reachability check in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state).
 
 ## Limits
 
