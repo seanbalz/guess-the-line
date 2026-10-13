@@ -83,7 +83,7 @@ for (const [mode, values, width, theme] of [['Spread', ['-9.5', '0'], 320, 'dark
     const modeId = mode === 'Total' ? 'guess_total' : 'guess_spread';
     for (const [index, game] of solo.data.games.entries()) await page.getByLabel(`${game.id} ${mode} guess`).fill(values[index]);
     await expect(page.getByText('Unsaved guesses kept in this tab only.', { exact: false })).toBeVisible();
-    solo.failures.push({ status: 429, body: { error: 'Fresh quotes unavailable. Your entries were not submitted.', code: 'GTL_SUBMISSION_REFRESH_LIMIT', submitted: false } });
+    solo.failures.push({ status: 409, body: { error: 'The line for an edited guess could not be verified. Your guesses were not submitted. Keep your draft and try again.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } });
     await page.getByRole('button', { name: 'Review full ballot', exact: true }).click();
     await page.getByRole('button', { name: `Submit ${mode} guesses`, exact: true }).click();
     await expect(page.getByRole('alert')).toContainText('not submitted');

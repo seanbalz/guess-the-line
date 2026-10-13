@@ -5,7 +5,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createStore, seed } from '../server/store.mjs';
-import { SubmissionReferenceError } from '../server/engine.mjs';
 import { withSyntheticLocalQuotes } from './fixtures/local-quotes.mjs';
 const now = Date.parse('2026-10-08T16:00:00Z');
 function setup(t,clock=()=>now,initialState){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'gtl-test-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const file=path.join(dir,'state.json');if(initialState)fs.writeFileSync(file,JSON.stringify(initialState));return {store:createStore(file,clock),file};}
@@ -13,7 +12,7 @@ const fill=(view,value)=>Object.fromEntries(view.games.map(g=>[g.id,value]));
 test('saved Sean picks and newest snapshot load correctly without static asset imports',t=>{const {store}=setup(t);const v=store.view('sean');assert.equal(v.score,null);assert.equal(v.games.length,15);assert.equal(v.games[0].prediction,-9.5);assert.equal(v.games.find(g=>g.id==='CIN-MIA').prediction,7);assert.equal(v.archivedCount,2);assert.deepEqual(v.history.map(h=>h.total),[95.8,95.8,96.4]);assert.equal(v.snapshot.verified,false);assert.match(v.snapshot.id,/150212/);});
 test('unsubmitted player receives no benchmarks, opponents, scores or history in any route',t=>{const {store}=setup(t);for(const mode of ['guess_spread','guess_total','betting_challenge']){const v=store.view('troy',mode);assert.equal(v.score,null);assert.equal(v.snapshot,null);assert.deepEqual(v.history,[]);assert(v.standings.every(p=>p.points===null));assert(v.games.every(g=>g.market===null&&g.previousMarket===null&&g.points===null&&g.opponents.length===0));}assert.deepEqual(store.export('troy').ballots,{});});
 test('total ballot starts blank and is independent; drafts persist across process recreation',t=>{const {store,file}=setup(t),v=store.view('sean','guess_total');assert.equal(v.score,null);assert(v.games.every(g=>g.prediction===null));store.saveBallot('sean','guess_total',{'TB-DAL':44.5});const reloaded=createStore(file,()=>Date.parse('2026-10-08T16:00:00Z'));assert.equal(reloaded.view('sean','guess_total').games[0].prediction,44.5);assert.equal(reloaded.view('sean').games[0].prediction,-9.5);assert.equal(reloaded.view('sean','guess_total').revealed,false);});
-test('full ballot and fresh references are required before reveal; missing totals never become zeros',t=>{const {store,file}=setup(t);assert.throws(()=>store.saveBallot('troy','guess_total',{'TB-DAL':44.5},true));assert.throws(()=>store.saveBallot('troy','guess_total',{'TB-DAL':44.5,'PHI-JAX':-1}));assert.equal(store.view('troy','guess_total').statuses.guess_total.filled,0);const v=store.view('troy','guess_total');assert.throws(()=>store.saveBallot('troy','guess_total',fill(v,44.5),true),SubmissionReferenceError);assert.equal(store.view('troy','guess_total').revealed,false);assert.equal(store.view('troy','guess_total').score,null);assert.equal(store.view('troy').revealed,false);assert.equal(fs.existsSync(file),false);});
+test('full ballot is required before reveal; with no stored line the submission saves pending and missing totals never become zeros',t=>{const {store,file}=setup(t);assert.throws(()=>store.saveBallot('troy','guess_total',{'TB-DAL':44.5},true));assert.throws(()=>store.saveBallot('troy','guess_total',{'TB-DAL':44.5,'PHI-JAX':-1}));assert.equal(store.view('troy','guess_total').statuses.guess_total.filled,0);const v=store.view('troy','guess_total');const saved=store.saveBallot('troy','guess_total',fill(v,44.5),true);assert.equal(saved.revealed,true);assert(saved.games.every(g=>g.scoringReference.status==='pending'&&g.points===null));assert.equal(saved.score,null);assert.equal(store.view('troy').revealed,false);assert.equal(fs.existsSync(file),true);});
 test('draft and submitted revisions are audited and preserved without changing source files',t=>{
   const {store,file}=setup(t,undefined,withSyntheticLocalQuotes(seed(),now));
   const source='data/picks/2026-week-05.json',hash=()=>createHash('sha256').update(fs.readFileSync(source)).digest('hex'),original=hash();
@@ -62,40 +61,38 @@ test('local views refresh repository history while retaining saved private ballo
   assert.equal(reloaded.view('troy','guess_total').revealed,false);
 });
 
-for (const mode of ['guess_spread', 'guess_total']) test(`${mode} local submission rejects missing, stale, partial or invalid evidence without changing the saved draft or audit`, t => {
-  const invalid = [
-    state => ({ ...state, consensusHistory: [] }),
-    state => withSyntheticLocalQuotes(state, now - 600_000),
-    state => withSyntheticLocalQuotes(state, now, { gameIds: state.games.slice(1).map(game => game.id) }),
-    state => { const fixture = withSyntheticLocalQuotes(state, now); fixture.consensusHistory.forEach(row => delete row.id); return fixture; },
+for (const mode of ['guess_spread', 'guess_total']) test(`${mode} local submission saves the newest stored line at any age, or pending, and never refuses`, t => {
+  const cases = [
+    [state => ({ ...state, consensusHistory: [] }), () => 'pending'],
+    // Ten minutes old at the save but fresh at its own capture: the line at the guess, with its age.
+    [state => withSyntheticLocalQuotes(state, now - 600_000), () => 'available'],
+    [state => withSyntheticLocalQuotes(state, now, { gameIds: state.games.slice(1).map(game => game.id) }), index => index === 0 ? 'pending' : 'available'],
+    [state => { const fixture = withSyntheticLocalQuotes(state, now); fixture.consensusHistory.forEach(row => delete row.id); return fixture; }, () => 'pending'],
   ];
-  for (const prepare of invalid) {
-    const { store, file } = setup(t, undefined, prepare(seed()));
+  for (const [prepare, expected] of cases) {
+    const { store } = setup(t, undefined, prepare(seed()));
     const picks = fill(store.view('troy', mode), mode === 'guess_total' ? 45 : -3);
     store.saveBallot('troy', mode, picks, false);
-    const bytes = fs.readFileSync(file, 'utf8'), before = store.export('troy');
-    assert.throws(() => store.saveBallot('troy', mode, picks, true), error => error instanceof SubmissionReferenceError && error.status === 409 && error.code === 'GTL_SUBMISSION_QUOTES_REQUIRED');
-    assert.equal(fs.readFileSync(file, 'utf8'), bytes);
-    assert.deepEqual(store.export('troy'), before);
-    assert.equal(store.view('troy', mode).revealed, false);
-    assert.deepEqual(createStore(file, () => now).export('troy'), before);
+    const view = store.saveBallot('troy', mode, picks, true);
+    assert.equal(view.revealed, true);
+    view.games.forEach((game, index) => assert.equal(game.scoringReference.status, expected(index), `${game.id}`));
   }
 });
 
-test('local changed edits fail atomically when evidence ages; no-op preserves valid original references', t => {
+test('local changed edits take the aged stored line with its age; no-op preserves valid original references', t => {
   let clock = now;
-  const { store, file } = setup(t, () => clock, withSyntheticLocalQuotes(seed(), now));
+  const { store } = setup(t, () => clock, withSyntheticLocalQuotes(seed(), now));
   const picks = fill(store.view('troy', 'guess_total'), 45);
   assert.equal(store.saveBallot('troy', 'guess_total', picks, true).score, 150);
-  const before = store.export('troy'), bytes = fs.readFileSync(file, 'utf8');
+  const before = store.export('troy');
   clock += 600_000;
-  assert.throws(() => store.saveBallot('troy', 'guess_total', { ...picks, 'TB-DAL': 46 }, false), SubmissionReferenceError);
-  assert.equal(fs.readFileSync(file, 'utf8'), bytes);
-  assert.deepEqual(store.export('troy').ballots, before.ballots); assert.deepEqual(store.export('troy').audit, before.audit);
-  assert.equal(store.view('troy', 'guess_total').score, 150);
   store.saveBallot('troy', 'guess_total', picks, true);
   assert.deepEqual(store.export('troy').ballots.guess_total.scoringReferences, before.ballots.guess_total.scoringReferences);
-  assert.equal(store.view('troy', 'guess_total').score, 150);
+  // Ten minutes later a changed guess takes the same stored line, now ten minutes old, and is scored against it.
+  const edited = store.saveBallot('troy', 'guess_total', { ...picks, 'TB-DAL': 46 }, false);
+  const ref = store.export('troy').ballots.guess_total.scoringReferences['TB-DAL'];
+  assert.equal(ref.status, 'available'); assert.equal(ref.value, 45); assert.ok(ref.ageSeconds >= 600, String(ref.ageSeconds));
+  assert.equal(edited.score, 148);
 });
 
 test('local submitted edits require fresh evidence only for the changed guess', t => {

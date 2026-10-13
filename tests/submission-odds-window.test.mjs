@@ -11,6 +11,8 @@ const iso = n => new Date(n).toISOString();
 // Every repo migration in order, except the two that only install hosted extensions (pg_cron, pg_net) and cannot
 // load in PGlite, then the October 12 window file as the newest. Nothing here contacts the hosted project.
 const WINDOW = '20261012213000_gtl_submission_odds_window.sql';
+// October 12 ruling file: redefines the finish RPCs, the claim and the schedule read on top of WINDOW.
+const LINE_AT_GUESS = '20261012230000_gtl_submit_with_line_at_guess.sql';
 const MIGRATIONS = [
   '20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
   '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
@@ -19,7 +21,7 @@ const MIGRATIONS = [
   '20261008240000_gtl_virtual_units.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
   '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql',
   '20261009160000_gtl_ruled_ballot_import.sql', '20261009170000_gtl_virtual_units_settlement.sql', '20261009190000_gtl_virtual_units_save_isfinite.sql',
-  WINDOW,
+  WINDOW, LINE_AT_GUESS,
 ];
 const SEAN = 1, STEVEN = 2;
 const TEAMS = { SEA: 'Seattle Seahawks', DEN: 'Denver Broncos', ARI: 'Arizona Cardinals', LAR: 'Los Angeles Rams', BUF: 'Buffalo Bills', MIA: 'Miami Dolphins', NE: 'New England Patriots', NYJ: 'New York Jets', BAL: 'Baltimore Ravens', CIN: 'Cincinnati Bengals', CLE: 'Cleveland Browns', PIT: 'Pittsburgh Steelers', HOU: 'Houston Texans', IND: 'Indianapolis Colts', JAX: 'Jacksonville Jaguars', TEN: 'Tennessee Titans', KC: 'Kansas City Chiefs', LV: 'Las Vegas Raiders', LAC: 'Los Angeles Chargers', DAL: 'Dallas Cowboys', NYG: 'New York Giants', PHI: 'Philadelphia Eagles', WAS: 'Washington Commanders', CHI: 'Chicago Bears', DET: 'Detroit Lions', GB: 'Green Bay Packers', MIN: 'Minnesota Vikings', ATL: 'Atlanta Falcons' };
@@ -160,6 +162,8 @@ test('the claim still skips safely for a changed signature, a lagging configurat
   // The configuration lags the newest published week.
   await f.db.exec("update public.gtl_odds_schedule set season=s.season,week=s.week,slate_signature=s.signature from public.gtl_weekly_slates s where s.week=5");
   await expectSkip('slate_changed', 'configuration still on Week 5');
+  // One resolver for the claim and the status read: the lagging row no longer reads as active.
+  assert.equal((await f.rpc('gtl_read_odds_schedule', [id(SEAN), 'sean-troy-luke'])).pauseReason, 'slate_changed');
   await f.resetRuns();
   await f.db.query('update public.gtl_odds_schedule set season=2026,week=6,slate_signature=$1', [published]);
   await f.db.exec("update public.gtl_schedule_templates set deadline=deadline+interval '1 hour' where week=6");
@@ -228,7 +232,7 @@ test('window migration is idempotent, service-only and leaves every function sec
     'gtl_begin_submission_odds_collection(uuid,uuid,jsonb,text)', 'gtl_claim_odds_refresh(text,uuid)', 'gtl_complete_odds_refresh(uuid,uuid,text)', 'gtl_read_odds_schedule(uuid,text)'];
   const definitions = async () => Promise.all(signatures.map(async s => (await f.q('select pg_get_functiondef($1::regprocedure) d', [`public.${s}`]))[0].d));
   const before = await definitions();
-  await f.db.exec(fs.readFileSync(`supabase/migrations/${WINDOW}`, 'utf8'));
+  for (const file of [WINDOW, LINE_AT_GUESS]) await f.db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
   assert.deepEqual(await definitions(), before);
   for (const s of signatures) {
     for (const role of ['anon', 'authenticated']) assert.equal((await f.q('select has_function_privilege($1,$2,$3) ok', [role, `public.${s}`, 'EXECUTE']))[0].ok, false, s);
