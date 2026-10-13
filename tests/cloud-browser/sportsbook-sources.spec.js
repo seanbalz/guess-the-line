@@ -150,7 +150,7 @@ for (const width of [1440, 320]) test(`dashboard reveals exact sportsbook eviden
 
 test('unsubmitted Total cannot receive or render the Spread sportsbook projection', async ({ page, sources }) => {
   sources.submit('guess_spread', Object.fromEntries(sources.state.games.map(game => [game.id, -3])), true);
-  await openGame(page); await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await openGame(page); await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your ballot comes first', exact: true })).toBeVisible();
   await expect(page.locator('.sportsbook-sources')).toHaveCount(0);
   const hidden = sources.responses.find(view => view.mode === 'guess_total');

@@ -28,12 +28,6 @@
 .dashboard-layout-preview-matchups{grid-template-rows:repeat(3,18px);grid-template-columns:1fr}
 .dashboard-layout-preview-matchups .dashboard-preview-score,.dashboard-layout-preview-matchups .dashboard-preview-chart{display:none}
 .dashboard-layout-preview-matchups .dashboard-preview-row{grid-row:auto;grid-column:1;background:linear-gradient(90deg,var(--card) 68%,var(--cyan) 68%,var(--cyan) 72%,var(--card) 72%)}
-.dashboard-layout-preview-markets{grid-template-columns:1fr;grid-template-rows:repeat(3,14px);align-content:center}
-.dashboard-layout-preview-markets .dashboard-preview-score,.dashboard-layout-preview-markets .dashboard-preview-chart{display:none}
-.dashboard-layout-preview-markets .dashboard-preview-row{grid-column:1;grid-row:auto;border-width:0 0 1px;border-radius:0;background:linear-gradient(90deg,transparent 0%,transparent 55%,var(--cyan) 55%,var(--cyan) 72%,transparent 72%)}
-.dashboard-layout-preview-social{grid-template-columns:1fr;grid-template-rows:repeat(3,18px)}
-.dashboard-layout-preview-social .dashboard-preview-score,.dashboard-layout-preview-social .dashboard-preview-chart{display:none}
-.dashboard-layout-preview-social .dashboard-preview-row{grid-column:1;grid-row:auto;border:0;background:radial-gradient(circle at 9px 9px,var(--primaryForeground,var(--primary)) 0 7px,transparent 8px),linear-gradient(transparent 40%,var(--border) 40%,var(--border) 60%,transparent 60%)}
 .dashboard-layout-preview-analytics{grid-template-rows:32px 20px;grid-template-columns:repeat(3,minmax(0,1fr))}
 .dashboard-layout-preview-analytics .dashboard-preview-score{display:none}
 .dashboard-layout-preview-analytics .dashboard-preview-chart{grid-row:1}

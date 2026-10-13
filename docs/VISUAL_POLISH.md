@@ -1,5 +1,15 @@
 # Guess The Line visual polish
 
+## Dashboard hierarchy, first pass — October 12, 2026 (design handoff Stage 2 items 1–3, not deployed)
+
+- **Order (Sean's decision 3):** the League Dashboard now reads Accuracy matchup → next action → Compare accuracy in detail → gaps and line history → Your betting week → Data connections → Customize dashboard. Customize leaves the top of the page; dashboard notices stay above the scoreboard. At 1440×1000 the scoreboard starts at 324px (was 1052px) and the action tiles at 1086px (was 1947px); at 320px 446px and 1343px (were 1683px and 2683px).
+- **Next action:** one line under the scoreboard built from the real deadline only, e.g. "Next: Total ballot due Oct 8, 5:15 PM PT. Spread is in · editable until then.", "Both ballots are in · editable until …", or "Picks closed …". No countdown.
+- **Weighted tiles:** the market still due is a lime primary tile (forced-colors: 3px Highlight border); submitted and sat-out tiles are quiet; Challenge shows its W–L–P record. Labels carry the state in words ("Submitted", "Sat out", "0/15 entered"). Below 480px the three tiles stack as full-width rows so "Challenge" and "0/15 entered" no longer clip.
+- **Consolidated empty state:** when two or more games are visible and no gap can be measured for any of them, the gaps panel shows one "No gaps to measure yet" note naming the reasons (no saved reference; who has not submitted) instead of three repeated lines per game. Partial data keeps the per-game rows. An unscored player's empty accuracy track is hidden instead of drawn flat.
+- **Decision 4:** Design lab appears only for the game's commissioner (same role check the Spread benchmark controls use); a non-commissioner who lands on the brand route sees the dashboard.
+- **Decision 5:** layouts are Command center, Matchup cards and Analytics lab. A stored `markets` or `social` preference stays in browser storage and reads as Command center until the player picks again.
+- **Decision 7:** the dashboard market tab says "Total" (was "Over/Under"). "Over / Under tickets %" in Data connections stays: it names the betting side, not the market.
+
 ## Token foundation — October 12, 2026 (design handoff Stage 1, not deployed)
 
 Substrate only; no layout redesign. See [DASHBOARD_VISUAL_AUDIT_2026_10_12.md](DASHBOARD_VISUAL_AUDIT_2026_10_12.md) for the before state.
