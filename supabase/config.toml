@@ -10,3 +10,7 @@ verify_jwt = false
 [functions.gtl-week-open]
 # D-24 Monday 00:00 Pacific week opening; same one-run capability pattern.
 verify_jwt = false
+
+[functions.gtl-push-reminders]
+# D-28 deadline reminders; same one-run capability pattern as gtl-week-open.
+verify_jwt = false
