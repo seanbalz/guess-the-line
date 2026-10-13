@@ -3,6 +3,7 @@ import { ArrowRight, LoaderCircle, LockKeyhole, TriangleAlert } from 'lucide-rea
 import { configurationError, passwordRecoveryRequested, supabase } from './auth';
 import ThemeSelector from './Theme';
 import Brand from './Brand';
+import LegalLinks from './LegalLinks';
 import { clearTabDrafts } from './predictionDraft';
 import { clearSoloDrafts } from './soloDraft';
 import { clearCommunityDrafts } from './communityDraft';
@@ -136,6 +137,7 @@ export default function AuthGate({ children }) {
           {recovering && <button className="auth-switch" disabled={busy} onClick={async () => { try { await signOut(); setRecovering(false); } catch (failure) { setError(failure.message); } }}>Cancel and sign out</button>}
           <p className="auth-help">Use the same game account on every device. Each player uses their own account.</p>
         </>}
+      <LegalLinks className="auth-legal"/>
     </section>
   </main>;
 }

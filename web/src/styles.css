@@ -62,3 +62,5 @@
 @media(max-width:960px){:root:has(.save-bar){scroll-padding-bottom:200px}}
 @media(max-width:480px){:root:has(.save-bar){scroll-padding-bottom:250px}}
 @media(max-width:360px){:root:has(.save-bar){scroll-padding-bottom:300px}}
+/* Privacy and Terms links (static pages /privacy and /terms) on the sign-in card and app footers. */
+.legal-links{display:flex;flex-wrap:wrap;gap:0 16px;font-size:13px}.legal-links a{display:inline-flex;align-items:center;min-height:var(--touch-target,44px);color:var(--cyan);text-decoration:underline;text-underline-offset:3px}.auth-legal{justify-content:center;border-top:1px solid var(--border);margin-top:20px;padding-top:4px}
