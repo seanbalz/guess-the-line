@@ -7,6 +7,7 @@ import TeamFacts from './TeamFacts';
 import SitOutWeek from './SitOutWeek';
 import CommunityHistory from './CommunityHistory';
 import LineAtGuess from './LineAtGuess';
+import { PushReminderPrompt } from './PushReminders';
 import { cloudApi, communityApi, date } from './api';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
@@ -118,6 +119,8 @@ function PicksDue({ due, all = [], onPick }) {
     <Bell size={22} aria-hidden="true"/>
     <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2><p>{detail}</p></div>
     {!closed && !notOpen && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
+    {/* D-28: opt-in web push, one reminder 2 hours before the deadline; nothing is registered until the player asks. */}
+    {!closed && <PushReminderPrompt/>}
   </section>;
 }
 

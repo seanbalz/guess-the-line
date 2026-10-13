@@ -1,0 +1,14 @@
+/* D-28 pick reminders: shared GTL tokens only, 16px text, 44px targets, Light/Dark via the theme variables. */
+.push-reminders{padding:24px;margin-bottom:20px}
+.push-reminders h2{display:flex;align-items:center;gap:8px}
+.push-reminders p{margin:12px 0;font-size:16px;line-height:24px;overflow-wrap:anywhere}
+.push-reminders button,.push-prompt button{min-height:44px;min-width:44px;font-size:16px;line-height:22px;white-space:normal;text-align:left;max-width:100%}
+.push-reminders .primary{margin-top:4px;width:auto}
+.push-state strong{color:var(--text)}
+.push-prompt{flex-basis:100%;margin:0;font-size:16px;line-height:24px;overflow-wrap:anywhere}
+.push-prompt .text-button{color:var(--cyan);font-weight:600;gap:8px;padding:0}
+.push-prompt .text-button:focus-visible,.push-reminders button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.push-error{color:var(--loss)}
+.push-reminders .spin,.push-prompt .spin{animation:push-spin 1s linear infinite}
+@keyframes push-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.push-reminders .spin,.push-prompt .spin{animation:none}}

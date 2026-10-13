@@ -2,6 +2,8 @@
 
 Owner: Sean Balsiger · Updated October 12, 2026 · Provisional GTL brand system
 
+**Web push (D-28), not live:** the opt-in reminder 2 hours before picks lock is in the repository, but its migration, `gtl-push-reminders` function, VAPID secrets and cron job wait for Sean; see [WEB_PUSH_SETUP.md](WEB_PUSH_SETUP.md).
+
 **Current release — Pages `06c71c14` / API v15** (October 12, 2026, from `main` at `17c22b5`; see [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md)). **The October 8 release — Pages `2106725d` / API v14:** the frontend and authenticated
 API were deployed with JWT verification enabled. Six migrations add Solo,
 reviewed quote selections, submission-time scoring, reviewed final results,
