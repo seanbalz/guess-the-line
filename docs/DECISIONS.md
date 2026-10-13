@@ -17,6 +17,45 @@
 - **Unchanged.** No ballot, pick, eligibility ruling or feed post is written: the import appends one `gtl_reference_line_imports` row and 15 `gtl_reference_lines` rows per page (idempotent per file and payload; corrected only by appending a void through `gtl_void_reference_line_import`, nothing deleted, D-23). Sean's Week 5 picks file and the three eDraft pages stay byte-identical.
 - **Release order: the hosted apply and the import run after this branch merges.** The prerequisite migrations are applied on the hosted project: `20261012223000_gtl_community_history.sql` as hosted version `20261013023146` and `20261012230000_gtl_submit_with_line_at_guess.sql` as `20261013023542`. `20261013010000_gtl_line_at_guess_reads.sql` is not yet applied and nothing is imported. After the merge: the read-only pre-flight, then the migration through the Supabase MCP or the SQL editor (never `db push`), then `node scripts/import-reference-lines.mjs --decision D-33 --actor <commissioner uuid> --sql` (or `--execute`), then the `gtl-api` and Pages deploys, in the order of the [release steps](SOCIAL_COMMUNITY.md#line-at-the-guess-and-d-08-eligibility--october-13-2026).
 
+## D-31 — when other players' picks become visible (October 12, 2026)
+
+Sean ruled that every player's Guess the Spread and Guess the Total picks become visible to all members on a per-game, per-market basis:
+
+- **At kickoff.** Everyone's pick for a game is visible once that game kicks off.
+- **After your own submission.** A player who has submitted their own full ballot for a market sees everyone's submitted picks for that market, as today.
+- **Late window guard (with D-30).** A late pick for a game closes for a player the moment that player views that game's revealed picks before submitting their own; the lock is recorded with the time and kept in the audit trail. Without viewing, the D-30 window (15 minutes after that game's kickoff) applies.
+- **Unchanged.** A weekly sit-out (D-23) still reveals that market. Spread and Total reveal independently. Drafts stay private. Market lines, references and analysis stay behind the same gate.
+
+This replaces the whole-week deadline reveal with a per-game kickoff reveal. D-30 extends D-27's per-game kickoff lock by the 15-minute late window. Not built yet; this entry records the rule the build must follow.
+
+## D-30 — late picks are accepted and marked Late (October 12, 2026)
+
+Sean ruled that a late Guess the Spread or Guess the Total pick is always accepted, with no request or approval step, and is visibly marked as late.
+
+- **Late.** A pick saved after the week's deadline (TNF kickoff, D-24) is late.
+- **Window.** A late pick for a game is accepted until 15 minutes after that game's own kickoff. After that, the game is closed. Games that kick off later in the week (Sunday, Monday) stay open for late picks until 15 minutes after their kickoff.
+- **Marker.** Every late pick carries a visible Late indicator with the minutes past the deadline (for example "Late · 12 min"), using the pending (amber) token plus text, never color alone, wherever the pick appears: ballots, comparisons, the Community feed and history, leaderboards and exports.
+- **Scoring.** A late pick scores normally against the line at the time of the guess (D-27). Being late does not reduce points.
+- **Record.** The save time and lateness are stored with the pick and kept in its audit trail. Nothing is deleted, moved or hidden (D-23); a weekly sit-out (D-23) still closes that market.
+
+This replaces the earlier extension-request, player-vote and commissioner-override process for Guess picks. Betting Challenge selections keep their pre-kickoff quote rules. Not built yet; this entry records the rule the build must follow.
+
+## D-29 — Best Bets rules and friends contests (October 12, 2026)
+
+Sean approved the recommended rule package for Best Bets, the separate optional confidence contest confirmed by D-15. D-27 (line at the guess) and D-28 (web push reminders) are numbered for their own pull requests.
+
+- **Size.** Exactly 3 games per week.
+- **Selection.** One spread or total per pick, recorded from a named sportsbook quote with its observation time, the same receipt as the Betting Challenge.
+- **Confidence.** The three picks carry 3, 2 and 1 points, each value used once.
+- **Scoring.** A win earns its confidence points; a loss earns 0; a push or void earns 0 and is not counted as a decision. Settlement uses the final score and the saved line, as in D-26.
+- **Deadline.** Each pick locks at its own game's kickoff. The full set of three must be saved before the first of those games kicks off.
+- **Visibility.** Another player's Best Bets are visible after that game's kickoff, or once the viewer has saved a full set for the week.
+- **Ties.** Ties stand; there is no tiebreaker.
+- **Corrections.** Commissioner only, with an audit entry. Nothing is deleted, moved or hidden (D-23).
+- **Friends contests.** A contest is an existing group. Joining a group means accepting its rules. Members see only entries submitted to that contest, never another player's Solo journal, Favorites or private bets.
+
+Historical Challenge selections and scoring are unchanged. Best Bets is not built yet; this entry records the rules the build must follow.
+
 ## D-27 — October 12, 2026 rulings: weeks still open Monday 12:00 AM PT; submit any time against the line at the guess; every guess kept
 
 Sean, product owner, ruled three things on October 12, 2026.
