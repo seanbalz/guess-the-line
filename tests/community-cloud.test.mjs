@@ -205,7 +205,7 @@ test('community history route validates strictly, passes request time, keeps the
   assert.deepEqual([draft.status, draft.submittedAt, draft.updatedAt, draft.revisions, draft.provenance, draft.picksHidden, draft.picks], ['draft', null, '2026-10-15T22:00:00+00:00', 3, 'group', false, [{ gameId: 'SEA-DEN', guess: 41, reference: null, points: null, scorable: false }]], 'the viewer\'s own fields pass through');
   assert.deepEqual(revealed.picks, [{ gameId: 'SEA-DEN', guess: -3, points: null, scorable: false, reference: { basis: 'nearest-snapshot', label: 'nearest snapshot at submission', status: 'informational', value: -3.5, source: 'The Odds API · 3-book median',
     sourceUrl: null, snapshotId: OTHER, capturedAt: null, observedAt: '2026-10-13T23:50:00+00:00', savedAt: null, decision: null, reason: null, gapSeconds: 600, detail: null, priorSnapshotAt: null, nextSnapshotAt: null,
-    rule: null, origin: null, sourceFile: null, fileSha256: null, bookCount: null, guessedAt: null } }], 'a non-https source link is dropped; an informational line never carries points');
+    rule: null, origin: null, sourceFile: null, fileSha256: null, bookCount: null, guessedAt: null, guessedAtKnown: null } }], 'a non-https source link is dropped; an informational line never carries points');
   assert.deepEqual([revealed.submittedAtKnown, revealed.eligible, revealed.eligibility], [true, true, 'standard'], 'absent fields read as a known submission time and a standard ballot');
   assert.deepEqual([satOut.status, satOut.satOutAt, satOut.picks, satOut.weekPoints], ['sat_out', '2026-10-13T00:00:00+00:00', null, 0]);
   await send({ season: 2026 });
@@ -219,7 +219,7 @@ test('community history passes the line at the guess through a whitelist and nev
   const imported = { basis: 'line-at-guess', label: 'line at guess', rule: 'newest-at-or-before', origin: 'imported-reference', status: 'available', value: -8.5, source: 'eDraft consensus',
     sourceUrl: 'https://edraft.com/nfl/odds/week-5', bookCount: null, snapshotId: null, sourceFile: 'data/snapshots/2026-week-05-20261008T150212589Z.json',
     fileSha256: 'e9ebad5d805cccc732848886d843014dd3dcdb782e6656dadeb0b965c5876b69', decision: 'D-99', capturedAt: '2026-10-08T15:02:12.589+00:00', observedAt: '2026-10-08T14:03:00+00:00',
-    guessedAt: '2026-10-08T18:43:07.147792+00:00', gapSeconds: 16807 };
+    guessedAt: '2026-10-08T18:43:07.147792+00:00', guessedAtKnown: true, gapSeconds: 16807 };
   const hosted = { ...imported, rule: 'first-after-submission', origin: 'hosted-snapshot', value: -9, source: 'The Odds API · 3-book median', sourceUrl: 'https://the-odds-api.com/', bookCount: 3,
     snapshotId: '168c62b9-2834-41f3-82b1-8e28ff29db58', sourceFile: null, fileSha256: null, decision: null, gapSeconds: -1859 };
   const raw = { viewer: USER, season: 2026, now: '2026-10-13T01:00:00+00:00', seasons: [2026], members: [{ id: USER, displayName: 'Ben' }, { id: OTHER, displayName: 'Sthomas' }, { id: THIRD, displayName: 'Luke' }],
@@ -227,14 +227,16 @@ test('community history passes the line at the guess through a whitelist and nev
       { userId: OTHER, mode: 'guess_spread', status: 'submitted', submittedAt: '2026-10-08T18:43:07.147792+00:00', eligible: true, eligibility: 'ruled-eligible', picksHidden: false,
         picks: [{ gameId: 'TB-DAL', guess: -3, reference: imported, points: 0, scorable: true }], weekPoints: 0, weekScored: 1, games: 1 },
       { userId: OTHER, mode: 'guess_total', status: 'submitted', submittedAt: '2026-10-08T21:48:40.61355+00:00', eligible: true, eligibility: 'bogus', picksHidden: false,
-        picks: [{ gameId: 'TB-DAL', guess: 45, reference: { ...hosted, rule: 'made-up', origin: 'elsewhere', sourceFile: '../../etc/passwd', fileSha256: 'XYZ', bookCount: '3' }, points: 3, scorable: true }], weekPoints: 3, weekScored: 1, games: 1 },
+        picks: [{ gameId: 'TB-DAL', guess: 45, reference: { ...hosted, rule: 'made-up', origin: 'elsewhere', sourceFile: '../../etc/passwd', fileSha256: 'XYZ', bookCount: '3', guessedAtKnown: 'false' }, points: 3, scorable: true }], weekPoints: 3, weekScored: 1, games: 1 },
       { userId: THIRD, mode: 'guess_spread', status: 'submitted', submittedAt: '2026-10-08T22:00:00+00:00', eligible: false, eligibility: 'practice', picksHidden: false,
         picks: [{ gameId: 'TB-DAL', guess: -1, reference: hosted, points: 6, scorable: true }], weekPoints: 6, weekScored: 1, games: 1 },
       { userId: THIRD, mode: 'guess_total', status: 'submitted', submittedAt: '2026-10-08T22:05:00+00:00', eligible: false, eligibility: 'ruled-ineligible', picksHidden: true,
         picks: [{ gameId: 'TB-DAL', guess: 41, reference: hosted, points: 6, scorable: true }], weekPoints: 6, weekScored: 1, games: 1 },
+      // A ballot without its original submission time: compared at its stored submittedAt, labelled guessedAtKnown false.
       { userId: USER, mode: 'guess_spread', status: 'submitted', submittedAt: '2026-10-08T07:33:00+00:00', submittedAtKnown: false, eligible: true, eligibility: 'ruled-eligible', picksHidden: false,
-        picks: [{ gameId: 'TB-DAL', guess: -9.5, reference: { basis: 'none', label: 'submission time unavailable', status: 'unavailable', value: null, reason: 'submission-time-unavailable', guessedAt: null }, points: null, scorable: false }],
-        weekPoints: 0, weekScored: 0, games: 1 },
+        picks: [{ gameId: 'TB-DAL', guess: -9.5, reference: { ...hosted, guessedAt: '2026-10-08T07:33:00+00:00', guessedAtKnown: false, gapSeconds: -42066 }, points: 9, scorable: true },
+          { gameId: 'PHI-JAX', guess: -3.5, reference: { basis: 'none', label: 'submission time unavailable', status: 'unavailable', value: null, reason: 'submission-time-unavailable', guessedAt: null, guessedAtKnown: false }, points: null, scorable: false }],
+        weekPoints: 9, weekScored: 1, games: 1 },
     ] }] };
   const app = createCloudHandler({
     authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
@@ -249,11 +251,13 @@ test('community history passes the line at the guess through a whitelist and nev
   assert.deepEqual(steven.picks[0].reference, { basis: 'line-at-guess', label: 'line at guess', status: 'available', value: -8.5, source: 'eDraft consensus', sourceUrl: 'https://edraft.com/nfl/odds/week-5',
     snapshotId: null, capturedAt: '2026-10-08T15:02:12.589+00:00', observedAt: '2026-10-08T14:03:00+00:00', savedAt: null, decision: 'D-99', reason: null, gapSeconds: 16807, detail: null,
     priorSnapshotAt: null, nextSnapshotAt: null, rule: 'newest-at-or-before', origin: 'imported-reference', sourceFile: 'data/snapshots/2026-week-05-20261008T150212589Z.json',
-    fileSha256: 'e9ebad5d805cccc732848886d843014dd3dcdb782e6656dadeb0b965c5876b69', bookCount: null, guessedAt: '2026-10-08T18:43:07.147792+00:00' });
+    fileSha256: 'e9ebad5d805cccc732848886d843014dd3dcdb782e6656dadeb0b965c5876b69', bookCount: null, guessedAt: '2026-10-08T18:43:07.147792+00:00', guessedAtKnown: true });
   const odd = stevenTotal.picks[0].reference;
-  assert.deepEqual([stevenTotal.eligibility, odd.rule, odd.origin, odd.sourceFile, odd.fileSha256, odd.bookCount, odd.gapSeconds, stevenTotal.picks[0].points], ['standard', null, null, null, null, null, -1859, 3], 'unknown labels, paths and hashes are dropped; a negative gap (first line after) passes');
+  assert.deepEqual([stevenTotal.eligibility, odd.rule, odd.origin, odd.sourceFile, odd.fileSha256, odd.bookCount, odd.guessedAtKnown, odd.gapSeconds, stevenTotal.picks[0].points], ['standard', null, null, null, null, null, null, -1859, 3], 'unknown labels, paths, hashes and flags are dropped; a negative gap (first line after) passes');
   assert.deepEqual([practice.eligible, practice.eligibility, practice.weekPoints, practice.weekScored, practice.picks[0].points, practice.picks[0].scorable, practice.picks[0].guess, practice.picks[0].reference.value],
     [false, 'practice', 0, 0, null, false, -1, -9], 'an ineligible ballot shows its guess and line and never a point');
   assert.deepEqual([ineligible.eligibility, ineligible.picks, ineligible.weekPoints, ineligible.weekScored], ['ruled-ineligible', null, 0, 0], 'hidden picks still carry no numbers');
-  assert.deepEqual([own.submittedAtKnown, own.weekPoints, own.picks[0].reference.basis, own.picks[0].reference.reason, own.picks[0].reference.guessedAt], [false, 0, 'none', 'submission-time-unavailable', null]);
+  assert.deepEqual([own.submittedAtKnown, own.weekPoints, own.weekScored, own.picks[0].reference.basis, own.picks[0].reference.guessedAt, own.picks[0].reference.guessedAtKnown, own.picks[0].reference.gapSeconds, own.picks[0].points],
+    [false, 9, 1, 'line-at-guess', '2026-10-08T07:33:00+00:00', false, -42066, 9], 'the line at the stored submission time passes, labelled');
+  assert.deepEqual([own.picks[1].reference.basis, own.picks[1].reference.reason, own.picks[1].reference.guessedAt, own.picks[1].reference.guessedAtKnown, own.picks[1].points], ['none', 'submission-time-unavailable', null, false, null], 'an unreadable stored time has no line');
 });

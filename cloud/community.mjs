@@ -78,7 +78,9 @@ function normalizeReference(raw) {
     rule: REFERENCE_RULES.includes(raw.rule) ? raw.rule : null, origin: REFERENCE_ORIGINS.includes(raw.origin) ? raw.origin : null,
     sourceFile: typeof raw.sourceFile === 'string' && /^data\/snapshots\/[A-Za-z0-9._-]+\.json$/.test(raw.sourceFile) ? raw.sourceFile : null,
     fileSha256: typeof raw.fileSha256 === 'string' && /^[0-9a-f]{64}$/.test(raw.fileSha256) ? raw.fileSha256 : null,
-    bookCount: finite(raw.bookCount), guessedAt: text(raw.guessedAt) };
+    bookCount: finite(raw.bookCount), guessedAt: text(raw.guessedAt),
+    // False when the guess instant is the stored submittedAt of a ballot whose original submission time was not recorded.
+    guessedAtKnown: typeof raw.guessedAtKnown === 'boolean' ? raw.guessedAtKnown : null };
 }
 function normalizeHistory(raw, viewer) {
   if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.weeks)) throw new Error('Invalid community history.');
@@ -93,7 +95,7 @@ function normalizeHistory(raw, viewer) {
     entries: (Array.isArray(w.entries) ? w.entries : []).filter(e => record(e) && MODES.includes(e.mode) && HISTORY_STATUSES.includes(e.status)).map(e => {
       const hidden = e.picksHidden === true, own = String(e.userId) === viewer, eligible = e.eligible !== false;
       return { userId: String(e.userId), mode: e.mode, status: e.status, submittedAt: text(e.submittedAt), satOutAt: text(e.satOutAt),
-        // False when the ballot's origin records that its original submission time is unavailable (the stored time is not a guess instant).
+        // False when the ballot's origin records that its original submission time is unavailable (its picks are compared at the stored time, labelled).
         submittedAtKnown: e.submittedAtKnown !== false,
         eligible, eligibility: HISTORY_ELIGIBILITY.includes(e.eligibility) ? e.eligibility : 'standard',
         // Own-only, hidden or revealed, whatever the provider returned (the gtl_read_weekly_state rule: private provenance and audits stay own-only).

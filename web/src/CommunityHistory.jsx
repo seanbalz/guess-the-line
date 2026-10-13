@@ -10,8 +10,8 @@ import { MODE, pickText, shortName, show } from './communityFormat';
  * line is the one saved with the guess (D-16/D-27) or ruled for it (D-25); a guess saved without one (the Week 5 ballots
  * migrated from the group leagues) is compared with the line at the guess, resolved by the server: the newest stored line
  * observed at or before it, else the first line stored after it and before kickoff, with its source, observation time and
- * how long before or after the guess it was observed. A ballot whose original submission time was not recorded has no line at
- * the guess and stays unscored until the commissioner rules. One player at a time, weeks newest first, both markets per week.
+ * how long before or after the guess it was observed. A ballot whose original submission time was not recorded is compared at
+ * the submission time it stores, labelled as such. One player at a time, weeks newest first, both markets per week.
  * Another member's open-week guesses stay hidden until the viewer submits that market or sits out (the same reveal gate as the
  * feed); the week's points total is shared as it is on the leaderboard. The last change, the number of revisions after
  * submitting and where a ballot came from are the owner's alone, so another player's section shows the submission time only.
@@ -25,16 +25,16 @@ const ballotNoun = mode => (mode === 'guess_total' ? 'totals' : 'spreads');
 const PROVENANCE = { 'community-import': 'Commissioner-ruled import', solo: 'Solo workspace', 'migrated-league': 'Migrated from the group league', group: 'Group ballot', unknown: '' };
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 /** How long before or after the guess a line was observed: "4h 40m before the guess", "31m after the guess", "at the guess". */
-function gapPhrase(seconds) {
+function gapPhrase(seconds, anchor = 'the guess') {
   if (!Number.isFinite(seconds)) return '';
-  if (seconds === 0) return 'at the guess';
+  if (seconds === 0) return `at ${anchor}`;
   const minutes = Math.round(Math.abs(seconds) / 60), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24);
   const span = days >= 1 ? `${days}d ${hours % 24}h` : hours >= 1 ? `${hours}h ${minutes % 60}m` : minutes >= 1 ? `${minutes}m` : 'under a minute';
-  return `${span} ${seconds > 0 ? 'before' : 'after'} the guess`;
+  return `${span} ${seconds > 0 ? 'before' : 'after'} ${anchor}`;
 }
 const fileName = path => path.split('/').pop();
 const NONE_REASONS = {
-  'submission-time-unavailable': 'The original submission time was not recorded, so no line at the guess can be chosen; unscored until the commissioner rules',
+  'submission-time-unavailable': 'No readable submission time is stored, so no line at the guess can be chosen',
   'guess-at-or-after-kickoff': 'Guessed at or after kickoff',
   'no-schedule-template': 'No schedule entry for this game',
 };
@@ -57,9 +57,12 @@ function HistoryLine({ reference, mode, game }) {
   }
   if (reference.basis === 'commissioner-ruled') return <><strong className="mono">{value}</strong><small>Commissioner-ruled line{reference.decision ? ` (${reference.decision})` : ''}</small>{source}{observed}</>;
   if (reference.basis === 'line-at-guess') {
-    const gap = gapPhrase(reference.gapSeconds), imported = reference.origin === 'imported-reference';
+    // The original submission time was not recorded: the line is the one at the submission time the ballot stores.
+    const stored = reference.guessedAtKnown === false;
+    const gap = gapPhrase(reference.gapSeconds, stored ? 'the stored submission time' : 'the guess'), imported = reference.origin === 'imported-reference';
     return <><strong className="mono">{value}</strong>
       <small>{reference.rule === 'first-after-submission' ? 'Line at guess · first line after it' : 'Line at guess'}</small>
+      {stored && <small className="history-informational">Original guess time not recorded · compared at the stored submission time</small>}
       {reference.source && <small>{reference.source}{imported && reference.sourceFile ? ` · ${fileName(reference.sourceFile)}` : ''}</small>}
       {imported && <small className="history-informational">Provisional · page time as published by the source{reference.capturedAt ? `; captured ${date(reference.capturedAt)} PT` : '; capture time not recorded'}{reference.decision ? ` (${reference.decision})` : ''}</small>}
       {reference.observedAt && <small>Observed {date(reference.observedAt)} PT{gap ? ` · ${gap}` : ''}</small>}</>;
@@ -105,13 +108,13 @@ function MarketHistory({ week, mode, entry, player, viewer }) {
       : `${submitted}${changed ? ` · changed ${date(entry.updatedAt)} PT` : ''}${entry.revisions ? ` · ${plural(entry.revisions, 'revision')} after submitting` : ''}`;
     const basis = entry.ruling ? `Commissioner-ruled (${entry.ruling.decision})` : entry.scoringPolicy === 'submission-time' ? 'Scored against the line saved with each guess (D-16)'
       : entry.status !== 'submitted' ? ''
-      : entry.submittedAtKnown === false ? 'No line was saved with these guesses and the original submission time was not recorded, so no line at the guess can be chosen; unscored until the commissioner rules'
+      : entry.submittedAtKnown === false ? `No line was saved with these guesses and the original submission time was not recorded; each is ${entry.eligible ? 'scored against' : 'shown with'} the line at the stored submission time (the newest stored line observed at or before it, else the first line after it and before kickoff)`
       : `No line was saved with these guesses; each is ${entry.eligible ? 'scored against' : 'shown with'} the line at the guess (the newest stored line observed at or before it, else the first line after it and before kickoff)`;
     const origin = [PROVENANCE[entry.provenance] || '', ELIGIBILITY[entry.eligibility] || '', basis].filter(Boolean).join(' · ');
     const summary = entry.status === 'draft' ? null
       : !entry.eligible ? <p className="history-points"><strong>{entry.eligibility === 'ruled-ineligible' ? 'Not eligible' : 'Practice'}</strong><span className="muted small">listed, not scored</span></p>
       : entry.weekScored ? <p className="history-points"><strong className="mono">{show(entry.weekPoints)} / {max} pts</strong><span className="muted small">{entry.weekScored} of {games.length} scored</span></p>
-      : <p className="history-points"><strong>Unscored</strong><span className="muted small">{entry.submittedAtKnown === false ? 'submission time not recorded' : 'no line stored for these guesses'}</span></p>;
+      : <p className="history-points"><strong>Unscored</strong><span className="muted small">no line stored for these guesses</span></p>;
     body = <>
       <p className="history-status">{status}</p>
       {origin && <p className="history-status muted">{origin}</p>}

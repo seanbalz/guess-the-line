@@ -16,9 +16,12 @@
 --   commissioner (gtl_reference_line_imports). An imported line counts only from its recorded capture instant: a page
 --   time is never treated as a storage time. Nothing is interpolated or invented.
 -- * The guess instant of a pick is the newest submission or post-submission edit event that set its current value (an
---   edit re-anchors, D-16), else the ballot's submittedAt. A ballot whose origin records that the original submission
---   time is unavailable (Sean's Week 5 spread, seeded from the eDraft 03:33 ET page) has no guess instant except for picks
---   edited later: those picks read 'submission time unavailable' and stay unscored until a commissioner ruling scores them.
+--   edit re-anchors, D-16), else the ballot's stored submittedAt. A ballot whose origin records that the original submission
+--   time is unavailable (Sean's Week 5 spread, seeded with the eDraft 03:33 ET page time) is compared at its stored
+--   submittedAt, the submission time D-16 keeps as stored, and each such reference says so (guessedAtKnown false); only a
+--   later edit re-anchors one of its picks. For that ballot every instant the record allows (the stored 07:33:00Z and the
+--   repository's pick commits, 08:03:33Z to 08:17:14Z) selects the same stored line, because nothing was stored between
+--   07:33Z and the 09:01:21Z eDraft capture or, without that import, the 19:15:22Z hosted collection.
 -- * Effective eligibility, wherever a community reader filtered "not origin_practice": the ballot's eligibility ruling if
 --   one is recorded, else not origin_practice (the gtl_read_weekly_state rule since 20261008185715). History lists every
 --   submitted ballot; an ineligible one shows its guesses and lines, labelled, and never scores or ranks (D-23).
@@ -107,16 +110,17 @@ language sql stable security invoker set search_path='' as $$
 $$;
 
 -- A ballot imported without its original submission time (server/store.mjs seeds Sean's Week 5 spread with the eDraft
--- 03:33 ET page time and origin 'Imported complete ballot; original submission time unavailable'). Its submittedAt is not a
--- guess instant (D-16).
+-- 03:33 ET page time and origin 'Imported complete ballot; original submission time unavailable'). Its stored submittedAt is
+-- still the submission time the ballot carries (D-16 keeps it; ruling 3: "accumulate all data that's been stored"); this flag
+-- labels it as such and keeps a submission event in the audit from standing in for it.
 create function public.gtl_submission_time_unknown(p_ballot jsonb) returns boolean
 language sql immutable security invoker set search_path='' as $$
   select coalesce(p_ballot->>'origin','') ~* 'submission time unavailable'
 $$;
 
 -- When the current value of one pick was guessed: the newest submission or post-submission edit event that set it (D-16
--- re-anchors an edited guess), else the ballot's submittedAt. Draft saves are not guesses. For a ballot whose submission
--- time is unavailable only a later edit is a guess instant; otherwise null.
+-- re-anchors an edited guess), else the ballot's stored submittedAt. Draft saves are not guesses. For a ballot whose original
+-- submission time is unavailable only a later edit replaces the stored submittedAt. Null only when no readable instant is stored.
 create function public.gtl_guess_instant(p_ballot jsonb,p_audit jsonb,p_game_id text) returns timestamptz
 language plpgsql stable security invoker set search_path='' as $$
 declare t timestamptz; known boolean:=not public.gtl_submission_time_unknown(p_ballot);
@@ -129,7 +133,7 @@ begin
         and ((jsonb_typeof(e->'changedGameIds')='array' and e->'changedGameIds' ? p_game_id) or e->'after'->p_game_id is distinct from e->'before'->p_game_id);
   exception when invalid_text_representation or invalid_datetime_format or datetime_field_overflow then t:=null;
   end;
-  if t is null and known then
+  if t is null then
     begin t:=(p_ballot->>'submittedAt')::timestamptz; exception when invalid_text_representation or invalid_datetime_format or datetime_field_overflow then t:=null; end;
   end if;
   return case when t is not null and isfinite(t) then t end;
@@ -198,15 +202,21 @@ exception when invalid_text_representation or invalid_datetime_format or datetim
 end $$;
 
 -- One row per slate game for a ballot, in kickoff order: the guess, the reference shown with it and the points it gives.
--- The single scoring path for gtl_read_community's standings and gtl_read_community_history.
+-- The single scoring path for gtl_read_community's standings and gtl_read_community_history. A line at the guess carries
+-- guessedAtKnown: false when the guess instant is the stored submittedAt of a ballot whose original submission time is
+-- unavailable, true otherwise.
 create function public.gtl_ballot_pick_scores(p_season integer,p_week integer,p_mode text,p_ballot jsonb,p_audit jsonb)
 returns table(game_id text,kickoff timestamptz,guess numeric,reference jsonb,points numeric)
 language plpgsql stable security invoker set search_path='' as $$
-declare sig jsonb; g jsonb; gid text; saved jsonb; submitted boolean; market text; guessed timestamptz;
+declare sig jsonb; g jsonb; gid text; saved jsonb; submitted boolean; market text; guessed timestamptz; unknown boolean; stored timestamptz;
 begin
   select z.signature into sig from public.gtl_weekly_slates z where z.season=p_season and z.week=p_week;
   if sig is null or p_mode is null or p_mode not in ('guess_spread','guess_total') then return; end if;
   submitted:=coalesce(p_ballot->>'submittedAt','')<>'';
+  unknown:=public.gtl_submission_time_unknown(p_ballot);
+  if submitted and unknown then
+    begin stored:=(p_ballot->>'submittedAt')::timestamptz; exception when invalid_text_representation or invalid_datetime_format or datetime_field_overflow then stored:=null; end;
+  end if;
   market:=case when p_mode='guess_spread' then 'spread' else 'total' end;
   for g in select x from jsonb_array_elements(sig->'games') x order by (x->>'kickoff')::numeric,x->>'id' loop
     gid:=g->>'id'; game_id:=gid; kickoff:=to_timestamp((g->>'kickoff')::numeric);
@@ -224,10 +234,12 @@ begin
     elsif submitted then
       guessed:=public.gtl_guess_instant(p_ballot,p_audit,gid);
       if guessed is null then
+        -- No readable submission instant is stored: nothing to compare at, and none is invented (D-16).
         reference:=jsonb_build_object('basis','none','label','submission time unavailable','status','unavailable','value',null,
-          'reason','submission-time-unavailable','guessedAt',null);
+          'reason','submission-time-unavailable','guessedAt',null,'guessedAtKnown',false);
       else
-        reference:=public.gtl_line_at_guess(p_season,p_week,sig,public.gtl_slate_game(p_season,p_week,sig,gid),market,guessed);
+        reference:=public.gtl_line_at_guess(p_season,p_week,sig,public.gtl_slate_game(p_season,p_week,sig,gid),market,guessed)
+          ||jsonb_build_object('guessedAtKnown',not (unknown and guessed is not distinct from stored));
       end if;
     else
       reference:=null;

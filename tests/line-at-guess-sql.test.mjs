@@ -46,6 +46,10 @@ const BALLOTS = [
   [LUKE, 'guess_total', '2026-10-08T22:05:00Z', 41, false],
 ];
 const FILE_0433 = 'data/snapshots/2026-week-05-20261008T090121436Z.json', FILE_1003 = 'data/snapshots/2026-week-05-20261008T150212589Z.json';
+// Sean's seed Spread: the stored submittedAt (the 03:33 ET eDraft page time; the seed records the original submission time as
+// unavailable) and the repository's first and last pick commits (23647e8 at 08:03:33Z, 78a2928 at 08:17:14Z). Every instant
+// the record allows for his guesses.
+const SEAN_STORED = '2026-10-08T07:33:00Z', SEAN_WINDOW = [SEAN_STORED, '2026-10-08T08:03:33Z', '2026-10-08T08:17:14Z'];
 
 /** A hosted-shape 3-book collection for `games` (template games), captured at fetchedAt with every book updated at observedAt. */
 function payload(games, { fetchedAt, observedAt, spread = {}, total = {}, books = ['draftkings', 'fanduel', 'betmgm'] }) {
@@ -103,6 +107,20 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
   const history = n => handleCommunity({ route: '/community/history', body: { season: 2026 }, user: user(n), service, clock: () => now });
   const read = n => handleCommunity({ route: '/community/read', body: {}, user: user(n), service, clock: () => now });
   const entry = (h, n, mode) => h.weeks.find(w => w.week === 5).entries.find(e => e.userId === id(n) && e.mode === mode);
+  // Per Spread game, the stored line D-27 selects at each instant of SEAN_WINDOW; one [source, rule] per game when they all agree.
+  const seanWindowLines = async () => {
+    const out = [];
+    for (const game of state.games) {
+      const slateGame = await rpc('gtl_slate_game', { p_season: 2026, p_week: 5, p_signature: sig, p_game_id: game.id });
+      const seen = new Set();
+      for (const instant of SEAN_WINDOW) {
+        const r = await rpc('gtl_line_at_guess', { p_season: 2026, p_week: 5, p_signature: sig, p_game: slateGame, p_market: 'spread', p_guessed: instant });
+        seen.add(JSON.stringify([r.snapshotId ?? r.sourceFile, r.rule, r.value]));
+      }
+      out.push(seen.size === 1 ? JSON.parse([...seen][0]).slice(0, 2) : [...seen]);
+    }
+    return out;
+  };
   // A rolled-back transaction for lab data (snapshots, lines, voids) that must not reach the Week 5 replay.
   const ROLLBACK = new Error('lab rollback');
   const lab = async fn => { try { await db.transaction(async tx => { await fn(tx); throw ROLLBACK; }); } catch (error) { if (error !== ROLLBACK) throw error; } };
@@ -262,7 +280,7 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
     assert.deepEqual([ben.weekPoints, ben.weekScored, ben.eligibility, ben.picks.every(p => p.reference.basis === 'commissioner-ruled')], [37.6, 15, 'standard', true], 'the D-25 ballot keeps its ruled lines');
   });
 
-  await t.test('guess instant: the newest submission or post-submission edit that set the pick; draft saves never count; an unknown submission time is never a guess instant', async () => {
+  await t.test('guess instant: the newest submission or post-submission edit that set the pick; draft saves never count; a ballot without its original submission time is compared at its stored submittedAt, labelled', async () => {
     const instant = (ballot, audit, game) => rpc('gtl_guess_instant', { p_ballot: ballot, p_audit: audit, p_game_id: game });
     const submitted = '2026-10-08T22:00:00Z', edited = '2026-10-08T23:59:00Z';
     const before = full(44), after = { ...full(44), 'TB-DAL': 50 };
@@ -275,10 +293,12 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
     assert.equal(at(await instant({ picks: full(44), submittedAt: submitted }, [{ type: 'ballot_saved', timestamp: '2026-10-08T23:00:00Z', before: full(43), after: full(44) }], 'TB-DAL')), at(submitted), 'a draft save never anchors');
     const reverted = [...audit, { type: 'ballot_edited', timestamp: '2026-10-09T00:05:00Z', before: after, after: full(44), changedGameIds: ['TB-DAL'] }];
     assert.equal(at(await instant({ picks: full(44), submittedAt: submitted }, reverted, 'TB-DAL')), at('2026-10-09T00:05:00Z'), 'editing back to an earlier value is a new guess');
-    const unknown = { picks: after, submittedAt: '2026-10-08T07:33:00Z', origin: 'Imported complete ballot; original submission time unavailable' };
-    assert.equal(await instant(unknown, [], 'PHI-JAX'), null, 'no submission time is invented');
-    assert.equal(await instant(unknown, [{ type: 'ballot_submitted', timestamp: '2026-10-08T07:33:00Z', before: {}, after }], 'PHI-JAX'), null, 'nor taken from a submission event on such a ballot');
+    const origin = 'Imported complete ballot; original submission time unavailable';
+    const unknown = { picks: after, submittedAt: SEAN_STORED, origin };
+    assert.equal(at(await instant(unknown, [], 'PHI-JAX')), at(SEAN_STORED), 'the stored submittedAt, kept as stored (D-16)');
+    assert.equal(at(await instant(unknown, [{ type: 'ballot_submitted', timestamp: '2026-10-08T09:30:00Z', before: {}, after }], 'PHI-JAX')), at(SEAN_STORED), 'a submission event never stands in for it');
     assert.equal(at(await instant(unknown, audit, 'TB-DAL')), at(edited), 'a later edit is a real guess instant');
+    assert.equal(await instant({ ...unknown, submittedAt: 'not a time' }, [], 'PHI-JAX'), null, 'an unreadable stored time gives none');
     assert.equal(await instant({ picks: after, submittedAt: 'not a time' }, [{ type: 'ballot_edited', timestamp: 'bad', before, after, changedGameIds: ['TB-DAL'] }], 'TB-DAL'), null, 'malformed instants give none');
     // Through the scoring function: one edited pick resolves at its edit instant, the rest at the submission (the row is not touched).
     const row = (await db.query("select ballot,audit from public.gtl_weekly_ballots where user_id=$1 and mode='guess_total'", [id(TJ)])).rows[0];
@@ -288,20 +308,40 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
     const editedPick = picks.find(p => p.game_id === 'BUF-LAR'), other = picks.find(p => p.game_id === 'PHI-JAX');
     assert.deepEqual([editedPick.reference.snapshotId, at(editedPick.reference.guessedAt), Number(editedPick.points)], [LATER.id, at('2026-10-09T09:00:00Z'), accuracy(50, 60)], 'the edited pick reads the line stored before its edit');
     assert.deepEqual([other.reference.snapshotId, at(other.reference.guessedAt)], [SECOND.id, at('2026-10-08T22:18:34.785952Z')]);
+    assert.ok(picks.every(p => p.reference.guessedAtKnown === true), 'a recorded submission or edit is a known guess instant');
+    // A ballot without its original submission time: its picks read the line at the stored submittedAt, labelled guessedAtKnown false;
+    // an edited pick reads the line at its edit, a known instant. An unreadable stored time gives no line and no points.
+    const unknownRows = (await db.query("select * from public.gtl_ballot_pick_scores(2026,5,'guess_total',$1,$2)", [unknown, JSON.stringify(audit)])).rows;
+    const stored = unknownRows.find(p => p.game_id === 'PHI-JAX'), reanchored = unknownRows.find(p => p.game_id === 'TB-DAL');
+    assert.deepEqual([stored.reference.basis, stored.reference.rule, stored.reference.snapshotId, at(stored.reference.guessedAt), stored.reference.guessedAtKnown, Number(stored.points)],
+      ['line-at-guess', 'first-after-submission', FIRST.id, at(SEAN_STORED), false, accuracy(44, TOTAL['PHI-JAX'])]);
+    assert.deepEqual([reanchored.reference.rule, reanchored.reference.snapshotId, at(reanchored.reference.guessedAt), reanchored.reference.guessedAtKnown, Number(reanchored.points)],
+      ['newest-at-or-before', SECOND.id, at(edited), true, accuracy(50, TOTAL['TB-DAL'])]);
+    const unreadable = (await db.query("select * from public.gtl_ballot_pick_scores(2026,5,'guess_total',$1,'[]')", [{ ...unknown, submittedAt: 'not a time' }])).rows;
+    assert.ok(unreadable.every(p => p.reference.basis === 'none' && p.reference.reason === 'submission-time-unavailable' && p.reference.guessedAt === null && p.points === null), 'no instant is invented');
   });
 
   let hostedOnly;
-  await t.test('before any import: hosted lines only, exactly D-27; the ballot without its submission time reads unavailable', async () => {
+  await t.test('before any import: hosted lines only, exactly D-27; the ballot without its original submission time reads the line at its stored time', async () => {
     const h = await history(TJ);
     hostedOnly = h;
     const steven = entry(h, STEVEN, 'guess_spread');
     assert.deepEqual([steven.eligible, steven.eligibility, steven.weekScored], [true, 'ruled-eligible', 15]);
     for (const p of steven.picks) {
-      assert.deepEqual([p.reference.basis, p.reference.rule, p.reference.origin, p.reference.snapshotId, p.reference.gapSeconds, at(p.reference.observedAt), at(p.reference.capturedAt), p.reference.value, p.points],
-        ['line-at-guess', 'first-after-submission', 'hosted-snapshot', FIRST.id, -1859, at(FIRST.observedAt), at(FIRST.fetchedAt), SPREAD[p.gameId], accuracy(-3, SPREAD[p.gameId])], 'no hosted line was stored before 18:43Z: the first collected after it');
+      assert.deepEqual([p.reference.basis, p.reference.rule, p.reference.origin, p.reference.snapshotId, p.reference.gapSeconds, at(p.reference.observedAt), at(p.reference.capturedAt), p.reference.value, p.reference.guessedAtKnown, p.points],
+        ['line-at-guess', 'first-after-submission', 'hosted-snapshot', FIRST.id, -1859, at(FIRST.observedAt), at(FIRST.fetchedAt), SPREAD[p.gameId], true, accuracy(-3, SPREAD[p.gameId])], 'no hosted line was stored before 18:43Z: the first collected after it');
     }
-    const sean = entry(h, SEAN, 'guess_spread');
-    assert.deepEqual([sean.submittedAtKnown, sean.eligibility, sean.weekPoints, sean.weekScored, sean.picks.every(p => p.reference.reason === 'submission-time-unavailable' && p.points === null)], [false, 'ruled-eligible', 0, 0, true]);
+    // Sean's seed Spread (D-08 eligible): compared at its stored submittedAt (07:33Z), labelled; no hosted line was stored before it, so
+    // the first collected after it (19:15Z). Ranked with those points, never as an unscored 0.
+    const sean = entry(h, SEAN, 'guess_spread'), seanPicks = state.ballots.sean.guess_spread.picks;
+    assert.deepEqual([sean.submittedAtKnown, sean.eligible, sean.eligibility, sean.weekScored, sean.weekPoints], [false, true, 'ruled-eligible', 15, 95]);
+    for (const p of sean.picks) {
+      assert.deepEqual([p.guess, p.reference.basis, p.reference.rule, p.reference.origin, p.reference.snapshotId, at(p.reference.guessedAt), p.reference.guessedAtKnown, p.reference.gapSeconds, p.reference.value, p.points],
+        [seanPicks[p.gameId], 'line-at-guess', 'first-after-submission', 'hosted-snapshot', FIRST.id, at(SEAN_STORED), false, -42066, SPREAD[p.gameId], accuracy(seanPicks[p.gameId], SPREAD[p.gameId])], p.gameId);
+    }
+    const standing = (await read(TJ)).standings.find(x => x.userId === id(SEAN) && x.mode === 'guess_spread');
+    assert.deepEqual([standing.weekPoints, standing.weekScored, standing.seasonPoints, standing.seasonScored], [95, 15, 95, 15]);
+    assert.deepEqual(await seanWindowLines(), Array(15).fill([FIRST.id, 'first-after-submission']), 'every instant the record allows for Sean\'s guesses selects the same stored line');
   });
 
   let imports;
@@ -395,12 +435,15 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
       for (const p of e.picks) assert.equal(p.points, p.reference.value === null ? null : accuracy(p.guess, p.reference.value));
     }
     assert.equal(feed.standings.length, w5.entries.filter(e => e.eligible).length, 'every eligible ballot and nothing else');
+    assert.deepEqual(feed.standings.filter(s => s.weekScored !== 15).map(s => `${NAMES[Number(s.userId.slice(-12))]} ${s.mode}`), [], 'no eligible Week 5 ballot is ranked without its 15 lines');
   });
 
   await t.test('Week 5 replay: the line each ballot is compared with, its observation and gap', async () => {
     const h = await history(TJ);
     const w5 = h.weeks.find(w => w.week === 5);
     const expected = [
+      // Sean's seed Spread at its stored 07:33Z: nothing stored before it; the 04:33 ET page captured at 09:01:21Z is the first line after it.
+      [SEAN, 'guess_spread', FILE_0433, 'imported-reference', '2026-10-08T08:33:00Z', -3600, 'first-after-submission'],
       [STEVEN, 'guess_spread', FILE_1003, 'imported-reference', '2026-10-08T14:03:00Z', 16807, 'newest-at-or-before'],
       [SEAN, 'guess_total', SECOND.id, 'hosted-snapshot', SECOND.observedAt, 4567, 'newest-at-or-before'],
       [STEVEN, 'guess_total', SECOND.id, 'hosted-snapshot', SECOND.observedAt, 5251, 'newest-at-or-before'],
@@ -412,7 +455,7 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
     const rows = [];
     for (const [n, mode, source, origin, observed, gap, rule] of expected) {
       const e = entry(h, n, mode);
-      const values = mode === 'guess_spread' && origin === 'imported-reference' ? buildReferenceLineImport().payloads[1].p_reference.lines : null;
+      const values = origin === 'imported-reference' ? buildReferenceLineImport().payloads.find(x => x.p_file === source).p_reference.lines : null;
       for (const p of e.picks) {
         assert.deepEqual([p.reference.basis, p.reference.origin, p.reference.sourceFile ?? p.reference.snapshotId, at(p.reference.observedAt), p.reference.gapSeconds, p.reference.rule],
           ['line-at-guess', origin, source, at(observed), gap, rule], `${NAMES[n]} ${mode} ${p.gameId}`);
@@ -422,18 +465,21 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
       assert.equal(e.weekScored, 15);
       rows.push(`${NAMES[n]} ${mode}: ${source.replace('data/snapshots/', '')} observed ${observed} gap ${gap}s → ${e.weekPoints}`);
     }
-    // Nothing chosen from the first hosted collection, the Oct 9 collection or the earlier eDraft page once the 10:03 ET page is imported.
+    // Nothing chosen from the first hosted collection or the Oct 9 collection once the eDraft pages are imported; the 03:33 ET page is never imported.
     const chosen = new Set(w5.entries.flatMap(e => e.picks ?? []).map(p => p.reference.snapshotId ?? p.reference.sourceFile).filter(Boolean));
-    assert.deepEqual([...chosen].sort(), [FILE_1003, SECOND.id].sort());
+    assert.deepEqual([...chosen].sort(), [FILE_0433, FILE_1003, SECOND.id].sort());
     const sean = entry(h, SEAN, 'guess_spread');
-    assert.deepEqual([sean.submittedAtKnown, sean.eligibility, sean.weekPoints, sean.weekScored], [false, 'ruled-eligible', 0, 0], 'Sean\'s Spread waits for his ruling on its reference');
+    assert.deepEqual([sean.submittedAtKnown, sean.eligibility, sean.weekPoints, sean.weekScored, sean.picks.every(p => p.reference.guessedAtKnown === false)], [false, 'ruled-eligible', 95.8, 15, true],
+      'Sean\'s Spread scores 95.8, the 04:33 ET page\'s provisional total, labelled as compared at its stored submission time');
+    assert.deepEqual(await seanWindowLines(), Array(15).fill([FILE_0433, 'first-after-submission']), 'with the import too, every instant the record allows selects the same line');
+    assert.ok(w5.entries.filter(e => e.userId !== id(SEAN) || e.mode !== 'guess_spread').every(e => e.picks.every(p => p.reference.guessedAtKnown !== false)), 'only Sean\'s seed Spread is labelled');
     const ben = entry(h, BEN, 'guess_spread');
     assert.deepEqual([ben.weekPoints, ben.picks[0].reference.basis], [37.6, 'commissioner-ruled']);
     assert.equal(entry(h, BEN, 'guess_total'), undefined, 'Ben has no Total ballot');
-    // Steven's Spread before the import read the first hosted collection after his guess; the import only changes that ballot.
+    // Steven's and Sean's Spreads read the first hosted collection after their guesses before the import; the import only changes those two ballots.
     for (const e of w5.entries) {
       const prior = hostedOnly.weeks.find(w => w.week === 5).entries.find(x => x.userId === e.userId && x.mode === e.mode);
-      if (!(e.userId === id(STEVEN) && e.mode === 'guess_spread')) assert.deepEqual(e.picks, prior.picks, `${e.userId} ${e.mode} unchanged by the import`);
+      if (!([id(STEVEN), id(SEAN)].includes(e.userId) && e.mode === 'guess_spread')) assert.deepEqual(e.picks, prior.picks, `${e.userId} ${e.mode} unchanged by the import`);
     }
     for (const row of rows) t.diagnostic(row);
   });

@@ -6,8 +6,9 @@ import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-w
 // has pre-D-17 Week 5 Spread and Total ballots with no saved line. Luke sees Troy's ballots as hidden until he sits out a
 // market (D-23). With no line stored anywhere, the revealed Total shows each guess with "No line stored" and stays unscored;
 // with a hosted collection and an imported reference line stored before Troy's guesses, each guess is scored against the line
-// at the guess, and Sean's practice ballot is listed and never scored (D-08). Below 720px the game rows are cards, not a table,
-// and the page never scrolls sideways.
+// at the guess, and Sean's practice ballot is listed and never scored (D-08). A ballot whose original submission time was not
+// recorded is compared at the submission time it stores, labelled. Below 720px the game rows are cards, not a table, and the
+// page never scrolls sideways.
 const MIGRATIONS = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
 
 for (const width of [390, 1280]) test(`community history: player buttons, newest week first, hidden until revealed, no line invented at ${width}px`, async ({ page, baseURL }) => {
@@ -136,6 +137,24 @@ for (const width of [390, 1280]) test(`community history: the line at each guess
     await expect(practice).not.toContainText('of 10');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/previews/community-history-line-at-guess-${width}.png`, fullPage: true });
+
+    // A ballot whose origin records that its original submission time is unavailable (Sean's seeded Week 5 spread on the hosted
+    // project): compared at the submission time it stores, labelled as such, and scored on the same lines (17 / 20).
+    await db.transaction(async tx => {
+      await tx.exec('set local session_replication_role = replica');
+      await tx.query("update public.gtl_weekly_ballots set ballot=ballot||jsonb_build_object('origin','Imported complete ballot; original submission time unavailable') where user_id=$1 and season=$2 and week=$3 and mode='guess_spread'",
+        [ACCOUNTS.troy.id, season, week]);
+    });
+    await page.locator('.history-toolbar').getByRole('button', { name: 'Refresh' }).click();
+    await players.getByRole('button', { name: 'Troy Fixture' }).click();
+    const stored = week5.locator('.history-market').nth(0);
+    await expect(stored).toContainText('Submitted · original time not recorded (stored as Oct 8, 11:00 AM PT)');
+    await expect(stored).toContainText('the original submission time was not recorded; each is scored against the line at the stored submission time');
+    await expect(stored).toContainText('Original guess time not recorded · compared at the stored submission time');
+    await expect(stored).toContainText('Observed Oct 8, 6:20 AM PT · 4h 40m before the stored submission time');
+    await expect(stored).toContainText('17 / 20 pts');
+    await expect(week5.locator('.history-market').nth(1)).not.toContainText('Original guess time not recorded');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
