@@ -1,5 +1,17 @@
 # Decision log
 
+## D-30 — late picks are accepted and marked Late (October 12, 2026)
+
+Sean ruled that a late Guess the Spread or Guess the Total pick is always accepted, with no request or approval step, and is visibly marked as late.
+
+- **Late.** A pick saved after the week's deadline (TNF kickoff, D-24) is late.
+- **Window.** A late pick for a game is accepted until 15 minutes after that game's own kickoff. After that, the game is closed. Games that kick off later in the week (Sunday, Monday) stay open for late picks until 15 minutes after their kickoff.
+- **Marker.** Every late pick carries a visible Late indicator with the minutes past the deadline (for example "Late · 12 min"), using the pending (amber) token plus text, never color alone, wherever the pick appears: ballots, comparisons, the Community feed and history, leaderboards and exports.
+- **Scoring.** A late pick scores normally against the line at the time of the guess (D-27). Being late does not reduce points.
+- **Record.** The save time and lateness are stored with the pick and kept in its audit trail. Nothing is deleted, moved or hidden (D-23); a weekly sit-out (D-23) still closes that market.
+
+This replaces the earlier extension-request, player-vote and commissioner-override process for Guess picks. Betting Challenge selections keep their pre-kickoff quote rules. Not built yet; this entry records the rule the build must follow.
+
 ## D-29 — Best Bets rules and friends contests (October 12, 2026)
 
 Sean approved the recommended rule package for Best Bets, the separate optional confidence contest confirmed by D-15. D-27 (line at the guess) and D-28 (web push reminders) are numbered for their own pull requests.

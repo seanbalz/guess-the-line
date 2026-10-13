@@ -6,7 +6,8 @@
 
 | Timestamp (TZ) | Commit | Message | Changes | Validation | Status |
 |---|---|---|---|---|---|
-| 2026-10-12 18:41:48 PDT | (this commit) | docs: record D-29 Best Bets rules and friends contests | D-29 section in docs/DECISIONS.md; Best Bets row in docs/RULES.md | `python3 scripts/check-brand-docs.py` passed; `git diff --check` clean | Complete |
+| 2026-10-12 18:41:48 PDT | `d360d85` | docs: record D-29 Best Bets rules and friends contests | D-29 section in docs/DECISIONS.md; Best Bets row in docs/RULES.md | `python3 scripts/check-brand-docs.py` passed; `git diff --check` clean | Complete |
+| 2026-10-12 19:13:28 PDT | (this commit) | docs: record D-30 late picks accepted and marked Late | D-30 section in docs/DECISIONS.md; Exceptions row in docs/RULES.md replaced | `python3 scripts/check-brand-docs.py` passed; `git diff --check` clean | Complete |
 
-**Next:** Add D-30 (deadline exceptions) when Sean answers item 12, then open the PR.
+**Next:** Open the PR; build agents implement D-29 (Best Bets) and D-30 (Late marker) after the web push PR lands.
 **Sync:** COMMITTED (local)
