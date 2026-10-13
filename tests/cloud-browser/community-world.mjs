@@ -26,7 +26,7 @@ export const MIGRATIONS = ['20261008164249_gtl_private_cloud_state.sql', '202610
   '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
   '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
   '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql',
-  '20261012234500_gtl_game_officials.sql', '20261013020000_gtl_wind_forecasts.sql'];
+  '20261012234500_gtl_game_officials.sql', '20261013060000_gtl_wind_forecasts.sql'];
 /** D-24: an open fixture week must be the current Pacific week; its TNF deadline is 11:59 PM PT today. */
 export const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
 export const ACCOUNTS = {

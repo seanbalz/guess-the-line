@@ -82,7 +82,7 @@ const rpcChecks = [
   // Awaiting deploy (see awaitingDeploy below), so they alone do not fail check:cloud for a Pages-only deploy of the trend panels.
   ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
-  // D-34 kickoff wind forecast: three service-only RPCs from 20261013020000_gtl_wind_forecasts.sql, awaiting deploy like the referee pieces.
+  // D-34 kickoff wind forecast: three service-only RPCs from 20261013060000_gtl_wind_forecasts.sql, awaiting deploy like the referee pieces.
   ['gtl_read_wind_forecasts', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_begin_wind_fetch', { p_user: missingId, p_request: missingId, p_season: 2026, p_week: 6, p_games: [] }],
   ['gtl_finish_wind_fetch', { p_request: missingId, p_lease: missingId, p_status: 'failed', p_error: 'WIND_UNAVAILABLE', p_http: null, p_rows: null }],
@@ -118,9 +118,9 @@ export const awaitingDeploy = Object.freeze({
   'gtl-api/officials/read': 'the gtl-api deploy with /officials/read',
   'gtl-api/officials/set': 'the gtl-api deploy with /officials/set',
   // D-34 (see docs/DECISIONS.md): remove these four with the release record of the hosted apply and deploy.
-  'rpc/gtl_read_wind_forecasts': 'migration 20261013020000_gtl_wind_forecasts.sql',
-  'rpc/gtl_begin_wind_fetch': 'migration 20261013020000_gtl_wind_forecasts.sql',
-  'rpc/gtl_finish_wind_fetch': 'migration 20261013020000_gtl_wind_forecasts.sql',
+  'rpc/gtl_read_wind_forecasts': 'migration 20261013060000_gtl_wind_forecasts.sql',
+  'rpc/gtl_begin_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
+  'rpc/gtl_finish_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
   'gtl-api/wind/read': 'the gtl-api deploy with /wind/read',
 });
 const apiChecks = [

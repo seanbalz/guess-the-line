@@ -15,7 +15,7 @@ let PGlite;
 try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
 const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-const WIND = '20261013020000_gtl_wind_forecasts.sql';
+const WIND = '20261013060000_gtl_wind_forecasts.sql';
 const MIGRATIONS = [
   '20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
   '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql', '20261008200926_gtl_twelve_hour_odds_refresh.sql',

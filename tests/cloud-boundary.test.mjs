@@ -121,7 +121,7 @@ test('referee probes awaiting deploy pass only on the exact not-found answer, ar
 
 test('D-34 kickoff wind probes awaiting deploy pass only on the exact not-found answer, are reported, and fail under --strict', async t => {
   const rpcs = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
-  for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261013020000_gtl_wind_forecasts.sql', rpc);
+  for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261013060000_gtl_wind_forecasts.sql', rpc);
   assert.equal(awaitingDeploy['gtl-api/wind/read'], 'the gtl-api deploy with /wind/read');
   const windRpc = url => rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`));
   const windRoute = url => url.endsWith('/functions/v1/gtl-api/wind/read');
@@ -144,7 +144,7 @@ test('D-34 kickoff wind probes awaiting deploy pass only on the exact not-found 
     const result = await checkCloudBoundary({ ...options, log: line => lines.push(line), fetchImpl: beforeDeploy });
     assert.equal(result.awaiting.length, 5, 'three RPCs and the route signed out and with an invalid session');
     assert.equal(result.denied, result.checked - 5);
-    assert.ok(lines.some(line => /^anonymous gtl_begin_wind_fetch RPC: awaiting deploy \(404, not found\) until migration 20261013020000/.test(line)));
+    assert.ok(lines.some(line => /^anonymous gtl_begin_wind_fetch RPC: awaiting deploy \(404, not found\) until migration 20261013060000/.test(line)));
     assert.ok(lines.some(line => /^POST wind\/read with invalid session: awaiting deploy/.test(line)));
     assert.ok(lines.some(line => line.startsWith('anonymous vault schema: denied (406)')));
   });

@@ -127,7 +127,7 @@ Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.
 **Hosted pieces (written, not applied or deployed).**
 
 - Route `POST /wind/read { season, week }` in `cloud/wind.mjs`, with the Open-Meteo adapter in `cloud/open-meteo.mjs` and the stadium mirror in `shared/wind-venues.mjs`.
-- Migration `supabase/migrations/20261013020000_gtl_wind_forecasts.sql`: tables `gtl_wind_fetches` (attempts, leases and the budget log; no member id), `gtl_wind_fetch_outcomes` and `gtl_wind_forecasts`, all insert-only and service-role only behind RLS; RPCs `gtl_read_wind_forecasts`, `gtl_begin_wind_fetch` and `gtl_finish_wind_fetch`, security invoker with an empty search path, executable by service_role only.
+- Migration `supabase/migrations/20261013060000_gtl_wind_forecasts.sql`: tables `gtl_wind_fetches` (attempts, leases and the budget log; no member id), `gtl_wind_fetch_outcomes` and `gtl_wind_forecasts`, all insert-only and service-role only behind RLS; RPCs `gtl_read_wind_forecasts`, `gtl_begin_wind_fetch` and `gtl_finish_wind_fetch`, security invoker with an empty search path, executable by service_role only.
 
 ## Data and attribution
 
@@ -157,7 +157,7 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
   - a `gtl-api` deploy.
 - The frontend falls back cleanly, so the two can ship in either order.
 - After both are live, run `node scripts/check-cloud-boundary.mjs --strict` (every probe must deny, none awaiting deploy), then remove the four `awaitingDeploy` entries in the change that records the hosted migration version.
-- **Kickoff wind forecast (D-34): not deployed.** It needs migration `20261013020000_gtl_wind_forecasts.sql` applied to the hosted project (with Sean's go; never `db push`), a `gtl-api` deploy and a Pages deploy, in either order. Until then `check:cloud` lists the three wind RPCs and `/wind/read` as awaiting deploy for the same reason as the referee pieces (both builds fall back cleanly); after both, run `--strict`, remove the four wind entries, add the three wind tables to the table probes, and run the hosted reachability check in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state).
+- **Kickoff wind forecast (D-34): not deployed.** It needs migration `20261013060000_gtl_wind_forecasts.sql` applied to the hosted project (with Sean's go; never `db push`), a `gtl-api` deploy and a Pages deploy, in either order. Until then `check:cloud` lists the three wind RPCs and `/wind/read` as awaiting deploy for the same reason as the referee pieces (both builds fall back cleanly); after both, run `--strict`, remove the four wind entries, add the three wind tables to the table probes, and run the hosted reachability check in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state).
 
 ## Limits
 
