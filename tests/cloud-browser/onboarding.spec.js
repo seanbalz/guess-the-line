@@ -4,6 +4,7 @@ import { createEngine } from '../../server/engine.mjs';
 import { applyProvisionalAnalysisView } from '../../cloud/total-analysis-view.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { picker, pickSpread, pickTotal, expectPick, expectPickEnabled, spreadText, totalText } from '../chip-entry.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 const MATCHUPS = [['TB', 'DAL'], ['PHI', 'JAX'], ['CIN', 'MIA']];
 
 const accountId = '11111111-1111-4111-8111-111111111111';
@@ -72,7 +73,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { hub.errors.push(`Unexpected external request: ${url.origin}`); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { hub.errors.push(`Unexpected external request: ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/signup') { hub.signups++; return reply(200, { user, session: null }); }

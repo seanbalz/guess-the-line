@@ -1,5 +1,14 @@
 # Guess The Line visual polish
 
+## Token foundation — October 12, 2026 (design handoff Stage 1, not deployed)
+
+Substrate only; no layout redesign. See [DASHBOARD_VISUAL_AUDIT_2026_10_12.md](DASHBOARD_VISUAL_AUDIT_2026_10_12.md) for the before state.
+
+- **Webfonts (Sean's decision 1, October 12):** Inter (variable 300–900), Barlow Condensed (600, 700) and IBM Plex Mono (400, 500, 600) load from Google Fonts with `display=swap`; both content security policies (`server/index.mjs`, `web/public/_headers`) allow `https://fonts.googleapis.com` for styles and `https://fonts.gstatic.com` for fonts and nothing else new. No font file is in the repository. Cloud-browser fixtures abort the two font origins (`tests/fixtures/webfonts.mjs`) so suites stay offline and render the system fallbacks.
+- **Tokens exported** through `web/src/themeTokens.js`: `--radius-card`, `--radius-control`, `--space-1` … `--space-7`, `--motion-quick`, `--motion-standard`, `--text-<step>` / `--leading-<step>` for the guide's scale (hero 40/44, title 28/34, section 20/28, body 16/24, metadata 13/18, stat 36/40). The font fallbacks in `design/tokens.json` now match the guide. Every `border-radius` of exactly 12px or 8px and every 150/220ms transition now reads the token (with the old value as fallback); the previously undefined `--control-radius` and `--touch-target-min` references use `--radius-control` and `--touch-target`.
+- **Type (Sean's decision 2):** root and body 16/24 at every width (was 14px below 1600px). Every declared size under 12px outside the Brand Lab study renders and layout mini-previews was raised to the guide's 13px metadata size, tracked uppercase labels (eyebrows, table headers, captions) included (Sean's ruling of October 12; an earlier draft used 12px for those labels).
+- **Fit fixes the larger type required:** on phones a panel heading's badge wraps under its copy; the five-column group ballot at 1360px+ lets column labels wrap with 12px cell gutters (a layout gutter, not a type size); the sidebar footer gap shrank from 60px to 24px so Settings & setup stays on screen at 1440×1000 more often.
+
 ## Current implementation — October 8, 2026
 
 The team-logo follow-up expanded coverage to 15 transparent local team marks,
