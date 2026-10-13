@@ -1,5 +1,21 @@
 # Decision log
 
+## D-29 — Best Bets rules and friends contests (October 12, 2026)
+
+Sean approved the recommended rule package for Best Bets, the separate optional confidence contest confirmed by D-15. D-27 (line at the guess) and D-28 (web push reminders) are numbered for their own pull requests.
+
+- **Size.** Exactly 3 games per week.
+- **Selection.** One spread or total per pick, recorded from a named sportsbook quote with its observation time, the same receipt as the Betting Challenge.
+- **Confidence.** The three picks carry 3, 2 and 1 points, each value used once.
+- **Scoring.** A win earns its confidence points; a loss earns 0; a push or void earns 0 and is not counted as a decision. Settlement uses the final score and the saved line, as in D-26.
+- **Deadline.** Each pick locks at its own game's kickoff. The full set of three must be saved before the first of those games kicks off.
+- **Visibility.** Another player's Best Bets are visible after that game's kickoff, or once the viewer has saved a full set for the week.
+- **Ties.** Ties stand; there is no tiebreaker.
+- **Corrections.** Commissioner only, with an audit entry. Nothing is deleted, moved or hidden (D-23).
+- **Friends contests.** A contest is an existing group. Joining a group means accepting its rules. Members see only entries submitted to that contest, never another player's Solo journal, Favorites or private bets.
+
+Historical Challenge selections and scoring are unchanged. Best Bets is not built yet; this entry records the rules the build must follow.
+
 ## D-26 — Virtual Units settlement (October 9, 2026)
 
 Sean confirmed how D-18 Virtual Units picks settle. Each pick settles with standard sportsbook rules against the **final score**, using the named-book line and odds saved with the pick:
