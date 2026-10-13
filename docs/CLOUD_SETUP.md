@@ -1,9 +1,9 @@
 # Guess The Line — shared access setup
 
-Owner: Sean Balsiger · Updated October 8, 2026 · Provisional GTL brand system
+Owner: Sean Balsiger · Updated October 12, 2026 · Provisional GTL brand system
 
-**Current release — Pages `2106725d` / API v14:** the frontend and authenticated
-API are deployed with JWT verification enabled. Six migrations add Solo,
+**Current release — Pages `06c71c14` / API v15** (October 12, 2026, from `main` at `17c22b5`; see [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md)). **The October 8 release — Pages `2106725d` / API v14:** the frontend and authenticated
+API were deployed with JWT verification enabled. Six migrations add Solo,
 reviewed quote selections, submission-time scoring, reviewed final results,
 fresh-submission odds and social Bet Tracker. The release passed 368 Node checks,
 29 local browser checks, 79 cloud-style browser checks and 130 live access-denial
@@ -331,6 +331,9 @@ check succeeded at **19:15:08 UTC**, matched all 15 saved events and reported
 public assets or exported picks; provider errors are sanitized. Manual collection is limited to the original
 commissioner, four calls per UTC day, a 15-minute cooldown, a shared expiring lease,
 idempotent request IDs and a 50-credit reserve. No scheduler or polling is active.
+(Six calls and five minutes are proposed by the October 12 migration
+`20261012213000_gtl_submission_odds_window.sql`, pending Sean's ruling and not
+applied hosted; see [DECISIONS.md](DECISIONS.md).)
 
 Validation: **122 backend/SQL tests**, **22 cloud-browser workflows** and **six
 local-browser workflows** passed; the final date-format fix passed **29 targeted
@@ -430,7 +433,8 @@ Applied migrations:
 The schedule was activated separately from migrations for the verified 2026
 Week 5 slate. New weeks still require a validated schedule and configuration.
 Manual and scheduled requests share four attempts per UTC day, a fifteen-minute
-cooldown and a fifty-credit reserve. Started games retain their earlier dated
+cooldown and a fifty-credit reserve (six attempts and five minutes once the
+pending October 12 migration is confirmed and applied). Started games retain their earlier dated
 references; collection updates upcoming games and skips a completed slate.
 Duplicate dispatch returned `already_dispatched` without spending more credits.
 The next refresh does not relax the separate five-minute official kickoff gate

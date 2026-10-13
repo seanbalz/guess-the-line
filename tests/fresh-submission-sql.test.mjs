@@ -8,7 +8,10 @@ const skip = PGlite ? false : 'Local PGlite unavailable; no hosted database was 
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const iso = n => new Date(n).toISOString();
 const migration = '20261008232055_gtl_fresh_submission_odds.sql';
-const base = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql', '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql'];
+// The October 12 window file replaces the submission begin RPC (collect cooldown 5 minutes, six collections per
+// UTC day) and the scheduler's claim, which declares the gtl_odds_schedule row type from 20261008200926.
+const window = '20261012213000_gtl_submission_odds_window.sql';
+const base = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql', '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql'];
 function payload(games, captured = Date.now() - 1000, value = -3.5) {
   return { provider: 'the-odds-api', sport: 'americanfootball_nfl', officialVerified: false, fetchedAt: iso(captured), games: games.map((g, i) => ({
     gameId: g.id, home: g.home, away: g.away, kickoff: g.kickoff, providerEventId: `event${i}`, matchStatus: 'matched',
@@ -32,6 +35,7 @@ async function fixture(t) {
   for (const f of base.slice(1)) await db.exec(fs.readFileSync(`supabase/migrations/${f}`, 'utf8'));
   const beforeMigration = (await db.query('select * from public.gtl_weekly_ballots order by user_id,mode')).rows;
   await db.exec(fs.readFileSync(`supabase/migrations/${migration}`, 'utf8'));
+  await db.exec(fs.readFileSync(`supabase/migrations/${window}`, 'utf8'));
   const as = (role, sql, args = []) => db.transaction(async tx => { await tx.exec(`set local role ${role}`); return tx.query(sql, args); });
   const rpc = async (name, args) => (await as('service_role', `select public.${name}(${args.map((_, i) => `$${i + 1}`).join(',')}) value`, args)).rows[0].value;
   for (let n = 1; n <= 4; n++) await rpc('gtl_save_profile', [id(n), `Test ${n}`]);
@@ -62,10 +66,13 @@ test('availability audit: expired cache plus cooldown retains drafts, then a per
     await f.save(f.intent({ mode, picks, submit: false }));
     const intent = f.intent({ mode, picks, revision: 1 });
     const before = await f.own(2, mode);
-    // Synthetic prior collection: six minutes old, so it is outside D-17's
-    // five-minute evidence window but inside the shared fifteen-minute cooldown.
-    await f.snapshot(payload(f.state.games, Date.now() - 360_000));
-    await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '6 minutes'");
+    // Synthetic prior state: the latest snapshot is seven minutes old, outside
+    // D-17's five-minute evidence window, and a later collection attempt two
+    // minutes ago (failed, so it left no snapshot) still holds the shared
+    // cooldown. Since the October 12 window migration the cooldown equals the
+    // five-minute freshness window, so this is the only remaining refusal case.
+    await f.snapshot(payload(f.state.games, Date.now() - 420_000));
+    await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '2 minutes'");
     const reservedBefore = await f.budget();
     assert.deepEqual(await f.check(intent), { requiresReferences: true, ready: false });
     await assert.rejects(() => f.begin(id(960), intent), /GTL_ODDS_COOLDOWN/);
@@ -74,7 +81,8 @@ test('availability audit: expired cache plus cooldown retains drafts, then a per
     assert.deepEqual(await f.budget(), reservedBefore);
     // Move only the synthetic collection clock beyond cooldown; this is not a
     // sleep, provider call, production quota change or relaxed freshness rule.
-    await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '16 minutes'");
+    // Six minutes was a refusal under the old fifteen-minute cooldown.
+    await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '6 minutes'");
     const job = await f.begin(id(961), intent);
     assert.equal((await f.finish(job, payload(f.state.games))).status, 'succeeded');
     assert.deepEqual(await f.check(intent), { requiresReferences: true, ready: true });
@@ -90,15 +98,16 @@ test('availability audit: failed collections exhaust the shared daily cap withou
   const f = await fixture(t); await f.enable();
   await f.save(f.intent({ submit: false }));
   const intent = f.intent({ revision: 1 }), before = await f.own();
-  for (let attempt = 0; attempt < 4; attempt++) {
+  // Six attempts per UTC day since the October 12 window migration (was four).
+  for (let attempt = 0; attempt < 6; attempt++) {
     await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '16 minutes'");
     const job = await f.begin(id(970 + attempt), intent);
     assert.equal((await f.finish(job, null, { quota: {}, error: 'ODDS_TIMEOUT' })).status, 'failed');
   }
   await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '16 minutes'");
   const exhausted = await f.budget();
-  assert.equal(exhausted.conservative_remaining, 492);
-  await assert.rejects(() => f.begin(id(975), intent), /GTL_ODDS_DAILY_LIMIT/);
+  assert.equal(exhausted.conservative_remaining, 488);
+  await assert.rejects(() => f.begin(id(979), intent), /GTL_ODDS_DAILY_LIMIT/);
   assert.deepEqual(await f.budget(), exhausted);
   assert.deepEqual(await f.check(intent), { requiresReferences: true, ready: false });
   await assert.rejects(() => f.save(intent), /GTL_SUBMISSION_ODDS_REQUIRED/);
@@ -314,7 +323,8 @@ test('shared reserve and daily cap remain enforced; serialized conflicting calls
   assert.equal(calls.filter(x => x.status === 'fulfilled').length, 1);
   assert.equal((await f.budget()).conservative_remaining, 498);
   await f.finish(calls.find(x => x.status === 'fulfilled').value, null, { who: calls[0].status === 'fulfilled' ? 2 : 3, error: 'ODDS_TIMEOUT', quota: {} });
-  for (let n = 0; n < 3; n++) await f.snapshot(payload(f.state.games, Date.now() - 600_000));
+  // One failed attempt plus five stale snapshots reach the six-per-UTC-day cap (was four).
+  for (let n = 0; n < 5; n++) await f.snapshot(payload(f.state.games, Date.now() - 600_000));
   await f.db.exec("update public.gtl_odds_budget set last_collection_at=now()-interval '20 minutes'");
   await assert.rejects(() => f.begin(id(911)), /GTL_ODDS_DAILY_LIMIT/);
   assert.equal((await f.budget()).conservative_remaining, 498);
@@ -355,4 +365,32 @@ test('preflight operation has zero reservation and can bootstrap measured quota 
   assert.equal((await f.budget()).conservative_remaining, 496);
   const collect = await f.begin(id(917)); assert.equal(collect.operation, 'collect');
   assert.equal((await f.budget()).conservative_remaining, 494);
+});
+
+test('submission window regression: references older than five minutes permit a collection; fresh ones never spend', { skip }, async t => {
+  // T minutes after a successful collection: the latest snapshot was collected at now-T (earliest provider
+  // observation one second earlier) and gtl_odds_budget.last_collection_at is now-T. Before the October 12 window
+  // migration T = 5..14 was a dead zone: the references were already stale under the five-minute rule while the
+  // fifteen-minute cooldown still refused a new collection (Steven's Week 6 429). Fresh fixture per T.
+  for (const T of [2, 4, 6, 8, 12, 14, 16]) await t.test(`T=${T} minutes`, async t => {
+    const f = await fixture(t); await f.enable();
+    await f.snapshot(payload(f.state.games, Date.now() - T * 60_000));
+    await f.db.query('update public.gtl_odds_budget set last_collection_at=clock_timestamp()-make_interval(mins=>$1::int)', [T]);
+    const before = await f.budget();
+    if (T <= 4) {
+      assert.deepEqual(await f.check(), { requiresReferences: true, ready: true });
+      await assert.rejects(() => f.begin(id(980 + T)), /GTL_ODDS_NOT_REQUIRED/);
+      assert.deepEqual(await f.budget(), before);
+      assert.equal((await f.db.query('select count(*)::int n from public.gtl_odds_collections')).rows[0].n, 1);
+    } else {
+      assert.deepEqual(await f.check(), { requiresReferences: true, ready: false });
+      await assert.rejects(() => f.save(), /GTL_SUBMISSION_ODDS_REQUIRED/);
+      const job = await f.begin(id(980 + T)); assert.equal(job.replay, false); assert.ok(job.lease);
+      assert.equal((await f.budget()).conservative_remaining, 498);
+      assert.equal((await f.finish(job, payload(f.state.games))).status, 'succeeded');
+      assert.deepEqual(await f.check(), { requiresReferences: true, ready: true });
+    }
+    assert.equal(await f.save(), 1);
+    assert.ok((await f.own()).ballot.submittedAt);
+  });
 });
