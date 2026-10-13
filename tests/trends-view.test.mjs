@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import * as V from '../shared/trends-view.mjs';
 import { T, build } from './trends-fixture.mjs';
 import { WIND_ATTRIBUTION, WIND_LICENSE_NOTE, WIND_TIERS } from '../cloud/wind.mjs';
+import { SEASONS, WIND_STADIUMS, venueFor, windVenue } from '../shared/wind-venues.mjs';
 
 const week = JSON.parse(fs.readFileSync(new URL('../shared/trends/2026-week-06.json', import.meta.url), 'utf8'));
 const game = id => week.games.find(g => g.id === id);
@@ -210,8 +211,12 @@ test('D-34 wind formatting: compass points, ages, Eastern hours, bands from the 
   assert.equal(V.windBand(18).close, false);
   assert.equal(V.windBand(null), null);
   const H = 3_600_000;
-  assert.deepEqual([18 * H, 18 * H + 1, 48 * H, 72 * H, 100 * H].map(V.windConfidence), ['Short range: high-resolution model updated hourly', 'Next-day guidance', 'Next-day guidance',
+  assert.deepEqual([18 * H, 18 * H + 1, 48 * H, 72 * H, 100 * H].map(lead => V.windConfidence(lead, true)), ['Short range: high-resolution model updated hourly', 'Next-day guidance', 'Next-day guidance',
     'Trend indicator only (2 to 3 days out)', 'Early outlook, low confidence (3 to 5 days out)']);
+  // Outside the U.S. (or for an unknown venue) the short-range label names only the lead, never an hourly high-resolution model.
+  assert.deepEqual([H, 18 * H, 18 * H + 1].map(lead => V.windConfidence(lead, false)), ['Short range (within 18 h of kickoff)', 'Short range (within 18 h of kickoff)', 'Next-day guidance']);
+  assert.deepEqual([0, 18 * H].map(V.windConfidence), [V.WIND_SHORT_RANGE, V.WIND_SHORT_RANGE], 'only a literal true makes the U.S. claim (map passes an index)');
+  assert.equal(V.windConfidence(Number.NaN, true), null);
   assert.deepEqual([0, 1, 18 * H, 18 * H + 1, 72 * H, 72 * H + 1, 120 * H, 120 * H + 1].map(V.windTtl), [null, 60, 60, 180, 180, 360, 360, null]);
   assert.equal(V.windClock('2026-10-15T00:00:00.000Z', 1000, 61_000), Date.parse('2026-10-15T00:01:00.000Z'));
   assert.equal(V.windClock('2026-10-15T00:00:00.000Z', 5000, 1000), Date.parse('2026-10-15T00:00:00.000Z'), 'a device clock that goes backwards adds nothing');
@@ -242,6 +247,38 @@ test('D-34 windView: indoor, loading, not yet, forecast, stale, final and invali
     assert.deepEqual(V.windView({ game: g, entry: { ...entry(k - H), wind }, now: k - 2 * H }), { state: 'none', reason: 'unavailable' });
   }
   assert.deepEqual(V.windView({ game: g, entry: entry(k + H), now: k + 2 * H }), { state: 'none', reason: 'unavailable' }, 'a snapshot made after kickoff is never shown');
+});
+
+test('D-34 windView: within 18 h of kickoff only a U.S. stadium is labelled with the hourly high-resolution model', () => {
+  const H = 3_600_000;
+  const at = (season, wk, id, lead) => {
+    const v = venueFor(season, wk, id), kickoff = Date.parse('2026-11-22T20:20:00.000Z');
+    const entry = { kickoff: new Date(kickoff).toISOString(), status: 'forecast', venue: { id: v.id, name: v.name, city: v.city, country: v.country, type: v.type },
+      wind: { windMph: 12.3, fetchedAt: new Date(kickoff - lead).toISOString(), forecastHour: new Date(kickoff).toISOString() } };
+    return V.windView({ game: { id, kickoff: entry.kickoff }, entry, now: kickoff - lead + 30 * 60_000 });
+  };
+  // Saint-Denis and Munich (ICON-D2, every 3 h), Madrid (ICON-EU, IFS, GFS), Mexico City (south of HRRR: the global mix), and the other 2026 sites abroad.
+  for (const [wk, id, city] of [[7, 'PIT-NO', 'Saint-Denis'], [9, 'CIN-ATL', 'Madrid'], [10, 'NE-DET', 'Munich'], [11, 'MIN-SF', 'Mexico City'],
+    [6, 'HOU-JAX', 'London'], [4, 'IND-WAS', 'London'], [1, 'SF-LAR', 'Melbourne'], [3, 'BAL-DAL', 'Rio de Janeiro']]) {
+    for (const lead of [18 * H, 6 * H, H]) {
+      const view = at(2026, wk, id, lead);
+      assert.equal(view.venue.city, city);
+      assert.deepEqual([view.state, view.international, view.confidence], ['forecast', true, 'Short range (within 18 h of kickoff)'], `${id} at ${lead / H} h`);
+      assert.doesNotMatch(view.confidence, /hourly|high-resolution/);
+    }
+    assert.equal(at(2026, wk, id, 30 * H).confidence, 'Next-day guidance', 'longer leads are the same everywhere');
+  }
+  // Every 2026 home stadium where wind can matter is in the U.S. and keeps the HRRR label.
+  for (const [team, stadium] of Object.entries(SEASONS[2026].homes)) {
+    if (!windVenue(WIND_STADIUMS[stadium])) continue;
+    const away = team === 'BUF' ? 'MIA' : 'BUF', view = at(2026, 12, `${away}-${team}`, 12 * H);
+    assert.deepEqual([view.state, view.international, view.confidence], ['forecast', false, 'Short range: high-resolution model updated hourly'], stadium);
+  }
+  // An entry without a venue makes no model claim either.
+  const k = Date.parse('2026-11-22T20:20:00.000Z');
+  const bare = V.windView({ game: { id: 'X-Y', kickoff: new Date(k).toISOString() }, now: k - 5 * H,
+    entry: { kickoff: new Date(k).toISOString(), status: 'forecast', venue: null, wind: { windMph: 9, fetchedAt: new Date(k - 6 * H).toISOString(), forecastHour: new Date(k).toISOString() } } });
+  assert.deepEqual([bare.state, bare.international, bare.confidence], ['forecast', false, 'Short range (within 18 h of kickoff)']);
 });
 
 test('D-34 nextWindRefresh: the TTL crossing, kickoff, entering the window, and never sooner than a minute', () => {

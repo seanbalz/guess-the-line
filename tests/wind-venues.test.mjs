@@ -77,6 +77,29 @@ test('domes and canopies are never fetched; retractable roofs are kept; internat
   assert.equal(venueFor(2026, 7, 'HOU-JAX').id, 'JAX00', 'only Week 6 HOU-JAX is in London');
 });
 
+/**
+ * The NOAA HRRR CONUS grid (GRIB2 template 3.30): Lambert conformal, standard parallel 38.5 N, LoV
+ * 97.5 W, a sphere of radius 6,371,229 m, 1799 x 1059 points at 3 km, first point 21.138123 N
+ * 122.719528 W. Returns fractional grid indices [i, j] for a latitude and longitude.
+ */
+function hrrrIndex(lat, lon) {
+  const R = 6_371_229, rad = Math.PI / 180, phi1 = 38.5 * rad, lam0 = -97.5 * rad, n = Math.sin(phi1);
+  const F = Math.cos(phi1) * Math.tan(Math.PI / 4 + phi1 / 2) ** n / n, rho = phi => R * F / Math.tan(Math.PI / 4 + phi / 2) ** n, rho0 = rho(phi1);
+  const xy = (la, lo) => { const r = rho(la * rad), t = n * (lo * rad - lam0); return [r * Math.sin(t), rho0 - r * Math.cos(t)]; };
+  const [x0, y0] = xy(21.138123, -122.719528), [x, y] = xy(lat, lon);
+  return [(x - x0) / 3000, (y - y0) / 3000];
+}
+const inHrrr = ({ lat, lon }) => { const [i, j] = hrrrIndex(lat, lon); return i >= 0 && i <= 1798 && j >= 0 && j <= 1058; };
+
+test('the short-range "high-resolution model updated hourly" label holds: every U.S. stadium is inside the HRRR CONUS grid, every other one is outside', () => {
+  // The projection reproduces the grid's published far corner (47.842 N, 60.917 W).
+  const [i, j] = hrrrIndex(47.842195, -60.917193);
+  assert.ok(Math.abs(i - 1798) < 0.01 && Math.abs(j - 1058) < 0.01, `${i}, ${j}`);
+  for (const [id, stadium] of Object.entries(WIND_STADIUMS)) assert.equal(inHrrr(stadium), stadium.country === 'USA', `${id} ${stadium.city}`);
+  // Mexico City is about 585 km south of the grid's southern edge, so Open-Meteo's best match uses global models there.
+  assert.ok(hrrrIndex(WIND_STADIUMS.MEX00.lat, WIND_STADIUMS.MEX00.lon)[1] < -150);
+});
+
 test('unknown seasons, weeks, teams and malformed ids return null', () => {
   for (const args of [[2025, 6, 'SEA-DEN'], [2027, 1, 'SEA-DEN'], [2026, 0, 'SEA-DEN'], [2026, 26, 'SEA-DEN'], [2026, 6, 'XXX-DEN'], [2026, 6, 'SEA-XXX'],
     [2026, 6, 'sea-den'], [2026, 6, null], ['2026', 6, 'SEA-DEN'], [2026, 6.5, 'SEA-DEN']]) {

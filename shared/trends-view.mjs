@@ -332,10 +332,21 @@ export function windBand(mph) {
   const band = mph >= 15 ? '15+' : mph >= 10 ? '10-14' : 'below';
   return { band, wind10: mph >= 10, wind15: mph >= 15, close: Math.abs(mph - 10) < 3 || Math.abs(mph - 15) < 3 };
 }
-/** Confidence label from a snapshot's lead (kickoff minus when it was made). */
-export function windConfidence(leadMs) {
+/** The short-range labels: the hourly high-resolution claim, and the lead-only wording used everywhere else. */
+export const WIND_SHORT_RANGE_US = 'Short range: high-resolution model updated hourly';
+export const WIND_SHORT_RANGE = 'Short range (within 18 h of kickoff)';
+/**
+ * Confidence label from a snapshot's lead (kickoff minus when it was made). Within 18 h the label
+ * claims an hourly high-resolution model only when `us` is true (a known U.S. stadium): every one sits
+ * inside NOAA HRRR's CONUS domain (tests/wind-venues.test.mjs), which Open-Meteo's best match uses
+ * there. Abroad best match picks other models (its ForecastapiController best_match branch: ICON-D2,
+ * updated every 3 h, at Saint-Denis and Munich; ICON-EU, IFS and GFS at Madrid; the global GFS, ICON
+ * and IFS mix at Mexico City, which is south of the HRRR domain), so the label names only the lead and
+ * makes no model or update-rate claim. Anything but `true` (an unknown venue, an array index) counts as abroad.
+ */
+export function windConfidence(leadMs, us = false) {
   if (!finite(leadMs)) return null;
-  if (leadMs <= 18 * HOUR_MS) return 'Short range: high-resolution model updated hourly';
+  if (leadMs <= 18 * HOUR_MS) return us === true ? WIND_SHORT_RANGE_US : WIND_SHORT_RANGE;
   if (leadMs <= 48 * HOUR_MS) return 'Next-day guidance';
   if (leadMs <= 72 * HOUR_MS) return 'Trend indicator only (2 to 3 days out)';
   return 'Early outlook, low confidence (3 to 5 days out)';
@@ -367,11 +378,11 @@ export function windView({ game, entry = null, now = null, loading = false }) {
   if (lead > 0) state = Math.max(0, now - fetched) <= 2 * windTtl(lead) * 60_000 ? 'forecast' : null;
   else state = made <= WIND_FINAL_MAX_MS ? 'final' : null;
   if (!state) return { state: 'none', reason: 'stale' };
-  const venue = entry.venue || null, band = windBand(wind.windMph);
+  const venue = entry.venue || null, band = windBand(wind.windMph), us = venue?.country === 'USA';
   return {
     state, wind, venue, kickoff: new Date(kickoff).toISOString(), band, close: band.close,
-    age: Math.max(0, now - fetched), made, confidence: windConfidence(made),
-    retractable: type === 'retractable', international: !!venue && venue.country !== 'USA', early: made > 72 * HOUR_MS,
+    age: Math.max(0, now - fetched), made, confidence: windConfidence(made, us),
+    retractable: type === 'retractable', international: !!venue && !us, early: made > 72 * HOUR_MS,
   };
 }
 

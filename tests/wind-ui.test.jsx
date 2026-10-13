@@ -11,6 +11,7 @@ import { bannedCopy } from '../shared/trends.mjs';
 import TrendsView from '../web/src/TrendsView.jsx';
 import { WIND_CARD_NOTES, WIND_COPY, fmtRecord } from '../shared/trends-view.mjs';
 import { WIND_TICK_MS, watchWind, windNowFor } from '../web/src/windTimer.js';
+import { WIND_STADIUMS } from '../shared/wind-venues.mjs';
 
 const HOUR = 3_600_000, MIN = 60_000;
 const text = html => html.replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
@@ -32,10 +33,10 @@ const snapshot = (id, fetchedAt, values = {}) => {
     sourceUrl: 'https://api.open-meteo.com/v1/forecast?latitude=39.744', ...values };
 };
 /** A /wind/read answer for one game. */
-const answer = (id, asOf, wind, status = wind ? 'forecast' : 'none') => ({
+const answer = (id, asOf, wind, status = wind ? 'forecast' : 'none', venue = VENUES[id]) => ({
   season: 2026, week: 6, asOf: new Date(asOf).toISOString(), published: true, refresh: { outcome: 'not_due' },
   attribution: { text: 'Weather data by Open-Meteo.com', url: 'https://open-meteo.com/', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', changes: 'Kickoff-hour values selected by GTL; wind direction shown as compass points' },
-  games: { [id]: { kickoff: game(id).kickoff, venue: VENUES[id], status, wind } },
+  games: { [id]: { kickoff: game(id).kickoff, venue, status, wind } },
 });
 const render = (id, data, now, props = {}) => renderToStaticMarkup(<TrendsView week={week} gameId={id} level={4} wind={data} windNow={now} {...props}/>);
 const names = new Set([...week.refereeOptions, ...week.games.flatMap(g => [...Object.values(g.entities.qbs), ...Object.values(g.entities.coaches)].map(e => e.name))]);
@@ -94,8 +95,31 @@ describe('kickoff wind forecast states', () => {
     expect(t).toContain('Wembley Stadium, London (international)');
     expect(t).toContain('15+ mph band: if this holds, both wind cards would fit (Strong wind 10+ and Very strong wind 15+, both Under).');
     expect(t).toContain('Forecast for the 10 AM ET hour (kickoff 9:30 AM ET)');
-    expect(t).toContain('Short range: high-resolution model updated hourly');
+    expect(t).toContain('made 10 h before kickoff · Short range (within 18 h of kickoff)');
+    expect(t).not.toContain('high-resolution');
+    expect(t).not.toContain('updated hourly');
     expect(t).toContain('European and global models');
+  });
+  it('within 18 h, only a U.S. stadium is labelled with the hourly high-resolution model; Saint-Denis, Madrid, Munich and Mexico City are not', () => {
+    const k = kickoff('SEA-DEN');
+    const us = forecastChecks(render('SEA-DEN', answer('SEA-DEN', k - 12 * HOUR, snapshot('SEA-DEN', k - 13 * HOUR)), k - 12 * HOUR));
+    expect(us).toContain('made 13 h before kickoff · Short range: high-resolution model updated hourly');
+    expect(us).toContain('U.S. stadiums: mainly NOAA HRRR and GFS');
+    // The four 2026 sites the review named, at the 18 h boundary and an hour out, on the Week 6 London game's slot.
+    const hj = kickoff('HOU-JAX');
+    for (const id of ['PAR00', 'MAD01', 'MUN01', 'MEX00']) {
+      const { name, city, country, type } = WIND_STADIUMS[id], venue = { id, name, city, country, type };
+      for (const made of [18 * HOUR, HOUR]) {
+        const now = hj - made + 30 * MIN;
+        const t = forecastChecks(render('HOU-JAX', answer('HOU-JAX', now, snapshot('HOU-JAX', hj - made), 'forecast', venue), now));
+        expect(t).toContain(`${name}, ${city} (international)`);
+        expect(t).toContain(`made ${made / HOUR} h before kickoff · Short range (within 18 h of kickoff)`);
+        expect(t, `${id} at ${made / HOUR} h`).not.toContain('high-resolution');
+        expect(t).not.toContain('updated hourly');
+        expect(t).not.toContain('HRRR');
+        expect(t).toContain('European and global models');
+      }
+    }
   });
   it('below 10 mph: neither card; 9.6 and 11.0 are close calls', () => {
     const k = kickoff('SEA-DEN'), now = k - 30 * HOUR;
