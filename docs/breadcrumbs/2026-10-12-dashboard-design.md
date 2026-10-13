@@ -15,6 +15,8 @@
 | 2026-10-12 20:05:24 PDT | `0d671c6` | stage1-tokens | docs: breadcrumb for the 13px label change | this file | `git diff --check` | Complete |
 | 2026-10-12 20:06:09 PDT | `8b0073e` | stage0-1 | Merge origin/main (26f4e38: PRs #52, #56) into the Stage 0 branch | Merge commit (no rebase, no force-push, per the coordinator's instruction relaying Sean's protocol); no conflicts; brings Community history (#52) and D-27 line-at-guess (#56) into the stack | validated on the Stage 2 tip after the downstream merges (see the stage2 rows) | Complete |
 | 2026-10-12 20:07 PDT | `60eaf0f` | stage0-1 | docs: breadcrumb for the origin/main merge | this file | `git diff --check` | Complete |
+| 2026-10-12 20:07:55 PDT | `24ff90d` | stage1-tokens | Merge the Stage 0 branch (origin/main 26f4e38) into Stage 1 | Merge commit; the only conflict was this breadcrumb table (both sides kept). `community.css` and the cloud fixtures auto-merged | `tests/theme-tokens.test.mjs` + `tests/webfonts.test.mjs` 8/8 on the merge (main's new CSS adds no sub-12px rule and no undefined token); full suites on the Stage 2 tip | Complete |
+| 2026-10-12 20:08 PDT | (this commit) | stage1-tokens | docs: breadcrumb for the Stage 1 merge | this file | `git diff --check` | Complete |
 
 **Next:** Stage 2 first PR (score first + next action, consolidated empty states, weighted tiles, decisions 3/4/5/7) on `claude/dashboard-design-stage2-hierarchy`, stacked on Stage 1.
 **Sync:** each branch pushed to origin after its breadcrumb commit; PR links recorded in the following row.
