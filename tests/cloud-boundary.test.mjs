@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkCloudBoundary } from '../scripts/check-cloud-boundary.mjs';
+import { awaitingDeploy, checkCloudBoundary } from '../scripts/check-cloud-boundary.mjs';
 
 const options = { url: 'https://onmrgvcehkflfaizvedl.supabase.co', key: 'sb_publishable_boundary_fixture', log() {} };
 function denied(url, request) {
@@ -117,4 +117,26 @@ test('referee probes awaiting deploy pass only on the exact not-found answer, ar
     await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/virtual-units/settle')
       ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /virtual-units\/settle without session: unexpected 404/);
   });
+});
+
+test('every not-yet-applied migration and undeployed route is awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+  const pending = {
+    '20261012223000_gtl_community_history.sql': ['gtl_read_community_history', 'gtl_history_reference', 'gtl_pick_points'],
+    '20261012230000_gtl_submit_with_line_at_guess.sql': ['gtl_line_from_snapshot', 'gtl_pending_reference', 'gtl_reference_at_save', 'gtl_resolve_pending_reference', 'gtl_resolve_pending_references', 'gtl_odds_schedule_slate'],
+    '20261012234500_gtl_game_officials.sql': ['gtl_read_game_officials', 'gtl_set_game_official'],
+  };
+  for (const [file, rpcs] of Object.entries(pending)) for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], `migration ${file}`, rpc);
+  for (const route of ['community/history', 'officials/read', 'officials/set']) assert.match(awaitingDeploy[`gtl-api/${route}`], new RegExp(`gtl-api deploy with /${route}$`));
+  const rpcNames = Object.values(pending).flat();
+  assert.equal(Object.keys(awaitingDeploy).length, rpcNames.length + 3, 'nothing else is awaiting deploy');
+  const missing = async (url, request) => (rpcNames.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
+    : /\/functions\/v1\/gtl-api\/(community\/history|officials\/(read|set))$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+  const lines = [];
+  const result = await checkCloudBoundary({ ...options, log: line => lines.push(line), fetchImpl: missing });
+  assert.equal(result.awaiting.length, rpcNames.length + 3 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
+  assert.ok(lines.some(line => /^anonymous gtl_reference_at_save RPC: awaiting deploy \(404, not found\) until migration 20261012230000/.test(line)));
+  assert.ok(lines.some(line => /^POST community\/history without session: awaiting deploy \(404, not found\) until the gtl-api deploy with \/community\/history$/.test(line)));
+  await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: missing }), /unexpected 404/);
 });

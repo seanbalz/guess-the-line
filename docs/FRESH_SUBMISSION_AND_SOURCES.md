@@ -5,28 +5,36 @@ API v14 with JWT verification enabled. The hosted migration was applied in the
 subsequent six-migration release; see [the release record](RELEASE_2026_10_08.md).
 Earlier feature-task verification remains identified as local evidence below.
 
-## Approved behavior
+## Approved behavior (D-27, October 12, 2026; supersedes D-17's rejection rule)
 
-For Guess the Spread and Guess the Total, each newly submitted guess or changed
-submitted guess needs a qualifying consensus at the time it is saved. Reuse
-eligible shared evidence first. If evidence is missing or older than five minutes,
-attempt one shared collection within the existing free limits, then check again.
-If any required reference is still unavailable, reject the entire save. The
-previous ballot, audit, revision and market reveal remain unchanged. Entered
-values stay in the form for retry; group drafts also retain existing tab recovery.
-Solo form retention does not establish disk or account persistence after failure.
+For Guess the Spread and Guess the Total, players can submit or edit whenever
+before the deadline. Each newly submitted or changed guess saves, server-selected,
+the newest qualifying stored line for that game and market at the save instant,
+with its observation time and age. If that line is missing or more than five
+minutes old, the save first tries one shared collection within the existing free
+limits; whether the collection succeeds, is refused (cooldown, daily cap, budget
+guard, busy lease) or fails, the save proceeds with the newest stored line. With
+no stored line yet, the guess saves as `pending` and the first qualifying line
+collected after it and before that game's kickoff becomes its reference ("first
+line after submission"), with its observation time and age; a book whose last
+update precedes the save still counts, and a collection made before the save is
+never used for it. The collection that stores the line resolves it in the same
+transaction. Age is shown, never used to unscore. A client cannot supply a
+reference or a line value.
+References stored before D-27 stay exactly as stored.
 
 The database repeats the checks atomically when saving. Access, the exact slate,
-deadline, current revision and complete valid ballot must qualify before collection
-can reserve quota. Membership or revision changes during collection prevent that
+deadline, kickoff locks, current revision and complete valid ballot must qualify
+before collection can reserve quota and again at the save. Membership or revision changes during collection prevent that
 intent from persisting a snapshot. A no-op edit cannot refresh the scoring
 reference; unchanged guesses keep their original evidence. Historical submissions
 without references remain unscored and are never backfilled.
 
-The local Node workspace also requires eligible evidence when persisting a new
-submission or changed submitted guess. It has no provider refresh connection;
-missing evidence rejects the write. Its historical scalar-only imports do not
-qualify. Only the cloud API has the shared on-demand provider path.
+The local Node workspace saves the newest qualifying local consensus row (quotes
+within five minutes of that row's own capture) at any age, or a pending reference.
+It has no provider refresh connection and no collector, so a local pending guess
+stays pending. Its historical scalar-only imports do not qualify. Only the cloud
+API has the shared on-demand provider path.
 
 ## Dashboard
 
@@ -35,7 +43,7 @@ panel to compare:
 
 | Display | Evidence |
 | --- | --- |
-| Saved scoring consensus | The median captured with this player's guess; this determines its points. |
+| Line at your guess | The newest stored median when this player saved the guess (or, for a pending guess, the first one collected after it), with its age; this determines its points. |
 | Latest collected consensus | The most recent collection, including explicit stale/unavailable status; later collections do not change saved points. |
 | DraftKings, FanDuel and BetMGM | Each book's home-team spread or combined-points total, provider observation time, collection time and inclusion/exclusion reason. |
 | Caesars | Unavailable on the current provider's free plan; excluded from consensus. |
@@ -44,7 +52,8 @@ panel to compare:
 Three eligible distinct books are required. Normalize spreads to the home team,
 sort the three values and use the middle one. All three must pass the existing
 within-five-points consistency rule. Observation times must be no more than five
-minutes old when saved. Match the exact home/away teams, kickoff and provider
+minutes before their own collection (the qualifying rule for a stored line); since
+D-27 the line's age at the save is shown, not enforced. Match the exact home/away teams, kickoff and provider
 event; validate both paired outcomes. A provider HTTP response alone does not
 prove its underlying market is fresh. Saved receipts persist each book's value
 and timestamps, even after the live history window rolls past twenty snapshots.
@@ -87,16 +96,25 @@ within the previous 24 hours. A failed request keeps its reservation
 conservatively counted. Quota is not reset from an unverified assumption. The
 twelve-hour hosted schedule is unchanged; its two runs count inside the six.
 
-Because the submission path refuses to spend while references are still fresh,
-a cooldown equal to the freshness window cannot cause a duplicate collection; it
-only delays a retry for five minutes after a failed attempt. Six attempts leave
-four submission-triggered collections per UTC day after the scheduled runs; a
-further submitter after the cache expires receives the daily-limit reason until
-00:00 UTC. These constants come from migration
-`20261012213000_gtl_submission_odds_window.sql` (worst case 6 × 2 × 31 = 372
-credits a month, 128 above the reserve), which is not applied to the hosted
-project until Sean confirms them (pending entry in [DECISIONS.md](DECISIONS.md));
-the hosted limits remain four attempts and fifteen minutes until then.
+Because the submission path refuses to spend while the newest line is under five
+minutes old, the 5-minute cooldown cannot cause a duplicate collection. Under D-27
+these limits only bound spending: a submitter who meets the cooldown, the daily
+cap or the budget guard is saved against the newest stored line and sees its age.
+The earlier residual "dead zone" (a line older than five minutes while the
+cooldown still ran, up to the provider's observation lag) therefore no longer
+refuses anyone. Six attempts leave four submission-triggered collections per UTC
+day after the two scheduled runs (migration
+`20261012213000_gtl_submission_odds_window.sql`; worst case 6 × 2 × 31 = 372
+credits a month, 128 above the reserve), confirmed with D-27.
+
+Collection continues on a closed week between its Thursday deadline and its last
+kickoff: the scheduled runs keep collecting the published week's remaining games
+(up to six runs at two credits before the next Monday publish). This is intended:
+D-18 Virtual Units picks stay open until each game's kickoff and read these
+quotes, and a pending guess on a later game still needs its first line. The
+scheduled claim and the schedule status read share one slate resolver
+(`gtl_odds_schedule_slate`), so a schedule row lagging the newest published week
+reads `slate_changed` in both.
 
 The reviewed release applied the earlier dependencies and
 `supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql`, then deployed

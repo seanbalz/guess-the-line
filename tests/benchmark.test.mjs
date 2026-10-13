@@ -198,11 +198,9 @@ test('submission scoring ignores legacy benchmark overlays and keeps missing ref
   assert.equal((await request()).data.scoringBenchmark, undefined); assert.equal(reads, 0);
   const picks = Object.fromEntries(state.games.map(g => [g.id, -3.5]));
   const submitted = await request('guess_spread', { revision, picks, submit: true });
-  // The legacy benchmark is not an eligible submission-time source. A missing
-  // fresh-source service must preserve the draft instead of submitting unscored.
-  assert.equal(submitted.status, 503); assert.equal(state.ballots.sean.guess_spread.submittedAt, null);
-  state.ballots.sean.guess_spread = { picks: {}, submittedAt: null }; unavailable = true;
-  const saved = await request('guess_spread', { revision, picks, submit: true });
-  assert.equal(saved.status, 503); assert.equal(JSON.stringify(saved.data).includes('hidden'), false);
-  assert.equal(state.ballots.sean.guess_spread.submittedAt, null); assert.equal(revision, 0);
+  // The legacy benchmark is not an eligible submission-time source, and since October 12, 2026 a missing
+  // market-refresh service never refuses the save: the atomic commit owns the reference. The benchmark is never read.
+  assert.equal(submitted.status, 200); assert.equal(state.ballots.sean.guess_spread.submittedAt, iso(stamp));
+  assert.equal(submitted.data.scoringBenchmark, undefined); assert.equal(reads, 0); assert.equal(revision, 1);
+  assert.equal(JSON.stringify(submitted.data).includes('hidden'), false);
 });

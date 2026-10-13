@@ -55,9 +55,11 @@ function fixture(options = {}) {
     assert.equal(expectedRevision, revision);
     const prior = state.ballots.troy[mode] || { picks: {}, submittedAt: null };
     const ids = required({ mode, picks: nextPicks, submit });
-    if (ids.some(gameId => !ready.has(gameId))) throw new SubmissionOddsError('GTL_SUBMISSION_QUOTES_REQUIRED');
+    // October 12, 2026: the SQL commit never refuses for a missing line; it saves the line at the guess or pending.
     const refs = structuredClone(prior.scoringReferences || {});
-    for (const gameId of ids) refs[gameId] = reference();
+    for (const gameId of ids) refs[gameId] = ready.has(gameId) ? reference() : { status: 'pending', basis: 'first_line_after_submission', value: null,
+      source: null, sourceUrl: null, snapshotId: null, capturedAt: null, observedAt: null, savedAt: iso(now), ageSeconds: null,
+      reason: 'No line was stored yet when this guess was saved. The first line collected after it becomes its reference.' };
     state.ballots.troy[mode] = { ...prior, picks: structuredClone(nextPicks), submittedAt: prior.submittedAt || (submit ? iso(now) : null),
       updatedAt: iso(now), scoringPolicy: 'submission-time', scoringReferences: refs };
     state.audit.push({ id: id(++serial), player: 'troy', mode, type: 'ballot_saved', timestamp: iso(now), before: prior.picks, after: nextPicks });
@@ -120,8 +122,8 @@ test('ordinary authenticated player collects fresh references and then commits a
   const hidden = await f.request('/state?mode=guess_spread'); assert.equal(hidden.body.revealed, false);
   const result = await f.ballot();
   assert.equal(result.status, 200); assert.equal(result.body.revealed, true); assert.equal(result.body.revision, 4);
-  assert.equal(f.calls.paid, 1); assert.equal(f.calls.commit, 1); assert.equal(f.calls.preflights.length, 2);
-  assert.deepEqual(f.calls.required, [Object.keys(f.picks), Object.keys(f.picks)]);
+  assert.equal(f.calls.paid, 1); assert.equal(f.calls.commit, 1); assert.equal(f.calls.preflights.length, 1);
+  assert.deepEqual(f.calls.required, [Object.keys(f.picks)]);
   assert(f.calls.membership.every(call => call.userId === actor));
   assert.equal(f.calls.begin[0].p_user, actor); assert.equal(f.calls.finish[0].p_user, actor);
   assert.equal(f.calls.begin[0].p_intent.leagueId, 'sean-troy-luke');
@@ -130,20 +132,19 @@ test('ordinary authenticated player collects fresh references and then commits a
   assert.equal(total.body.revealed, false); assert(total.body.games.every(game => game.market === null));
 });
 
-test('provider failure, incomplete collection and cooldown retain the full draft and conceal the market', async () => {
-  for (const [options, status] of [
-    [{ providerUnavailable: true }, 503],
-    [{ collectionCompletes: false }, 409],
-    [{ collectionError: Object.assign(new Error('private quota detail'), { code: 'GTL_ODDS_COOLDOWN', status: 429 }) }, 429],
+test('provider failure, incomplete collection, cooldown, daily cap, budget and busy lease never refuse the submission', async () => {
+  for (const options of [
+    { providerUnavailable: true }, { collectionCompletes: false },
+    ...['GTL_ODDS_COOLDOWN', 'GTL_ODDS_DAILY_LIMIT', 'GTL_ODDS_BUDGET', 'GTL_ODDS_BUSY'].map(code => ({ collectionError: Object.assign(new Error('private quota detail'), { code, status: 429 }) })),
   ]) {
-    const f = fixture(options), before = structuredClone(f.state);
+    const f = fixture(options);
     const result = await f.ballot();
-    assert.equal(result.status, status); assert.equal(result.body.submitted, false);
-    assert.equal(f.calls.commit, 0); assert.deepEqual(f.state, before);
+    assert.equal(result.status, 200, JSON.stringify(options)); assert.equal(result.body.revealed, true);
+    assert.equal(f.calls.commit, 1); assert.equal(f.calls.preflights.length, 1);
     assert.equal(JSON.stringify(result.body).includes('private quota detail'), false);
-    const view = await f.request('/state?mode=guess_spread');
-    assert.equal(view.body.revealed, false); assert.deepEqual(view.body.picks, undefined);
-    assert(view.body.games.every(game => game.market === null));
+    // No line stored yet: each guess saves pending and is unscored until the first line after it.
+    assert(result.body.games.every(game => game.scoringReference.status === 'pending' && game.points === null));
+    assert.ok(f.state.ballots.troy.guess_spread.submittedAt);
   }
 });
 
@@ -172,7 +173,7 @@ test('submitted edits trust changed-only preflight while unchanged references an
   const f = fixture({ submitted: true }), before = structuredClone(f.state.ballots.troy.guess_spread);
   const [changed, unchanged] = Object.keys(f.picks);
   const result = await f.ballot({ picks: { ...f.picks, [changed]: -4 }, submit: false });
-  assert.equal(result.status, 200); assert.deepEqual(f.calls.required, [[changed], [changed]]);
+  assert.equal(result.status, 200); assert.deepEqual(f.calls.required, [[changed]]);
   assert.equal(f.calls.paid, 1);
   const after = f.state.ballots.troy.guess_spread;
   assert.equal(after.submittedAt, before.submittedAt);
@@ -207,17 +208,19 @@ test('authentication, membership, deadline, revision and malformed ballot fail b
   }
 });
 
-test('authoritative preflight errors and post-collection revision races never commit', async () => {
-  for (const afterCollection of [false, true]) {
-    const error = providerWeeklyError('GTL_WEEKLY_CONFLICT');
-    const f = fixture(afterCollection ? { secondCheckError: error } : { preflightError: error });
+test('authoritative preflight refusals never spend or commit; a malformed preflight only skips the refresh', async () => {
+  for (const code of ['GTL_WEEKLY_CONFLICT', 'GTL_PREDICTION_CLOSED', 'GTL_FORBIDDEN']) {
+    const f = fixture({ preflightError: providerWeeklyError(code) });
     const before = structuredClone(f.state), result = await f.ballot();
-    assert.equal(result.status, 409); assert.equal(f.calls.commit, 0); assert.deepEqual(f.state, before);
-    assert.equal(f.calls.paid, afterCollection ? 1 : 0);
+    assert.notEqual(result.status, 200); assert.equal(f.calls.commit, 0); assert.equal(f.calls.paid, 0); assert.deepEqual(f.state, before);
   }
+  // A revision race after the refresh is caught by the SQL commit itself (GTL_WEEKLY_CONFLICT), not a second check.
+  const f = fixture({ preflightError: new Error('storage fault') });
+  const result = await f.ballot();
+  assert.equal(result.status, 200); assert.equal(f.calls.paid, 0); assert.equal(f.calls.commit, 1);
 });
 
-test('freshness loss at the atomic commit preserves draft and returns retry without a second collection', async () => {
+test('an integrity refusal at the atomic commit preserves the draft and returns retry without a second collection', async () => {
   const f = fixture({ cached: true, commitError: new SubmissionOddsError('GTL_SUBMISSION_QUOTES_REQUIRED') });
   const before = structuredClone(f.state), result = await f.ballot();
   assert.equal(result.status, 409); assert.equal(result.body.code, 'GTL_SUBMISSION_QUOTES_REQUIRED');

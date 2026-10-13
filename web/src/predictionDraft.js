@@ -36,7 +36,8 @@ function validSaveAttempt(value, ids) {
     && value.changed.every(id => ids.includes(id));
 }
 // Matching numbers alone are not a save receipt. Require a newer saved revision,
-// the requested submission state, and timestamped references for changed guesses.
+// the requested submission state, and timestamped references for changed guesses
+// (a saved line, or since October 12, 2026 a pending one waiting for the first line).
 export function savedAttemptMatches(data, attempt) {
   const revision = data.weeklyRevision ?? data.predictionRevision ?? data.revision;
   if (!validSaveAttempt(attempt, data.games.map(game => game.id)) || !Number.isSafeInteger(revision) || revision <= attempt.revision) return false;
@@ -44,7 +45,7 @@ export function savedAttemptMatches(data, attempt) {
   if (!data.games.every(game => (game.prediction ?? null) === (attempt.picks[game.id] ?? null))) return false;
   return !attempt.submit || attempt.changed.every(id => {
     const reference = data.games.find(game => game.id === id)?.scoringReference;
-    return ['available', 'captured'].includes(reference?.status) && Number.isFinite(reference.value)
+    return (['available', 'captured'].includes(reference?.status) && Number.isFinite(reference.value) || reference?.status === 'pending')
       && Number.isFinite(Date.parse(reference.savedAt)) && Date.parse(reference.savedAt) >= Date.parse(attempt.serverNow)
       && Date.parse(reference.savedAt) <= Date.parse(data.now);
   });

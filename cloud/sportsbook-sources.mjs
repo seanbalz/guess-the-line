@@ -57,9 +57,9 @@ function persistedRows(reference, market, game) {
     const found = raw.filter(q => q?.book === book);
     if (found.length !== 1) return null;
     const q = found[0], observed = time(q.observedAt), collected = time(q.collectedAt);
+    // A saved line keeps its receipt whatever its age (October 12, 2026); only its own collection must match.
     if (!validValue(q.value, market) || !Number.isFinite(observed) || !Number.isFinite(collected)
-      || observed > collected || collected !== time(reference.capturedAt) || collected > time(reference.savedAt)
-      || time(reference.savedAt) - observed > FRESH_MS || time(reference.savedAt) >= time(game.kickoff)) return null;
+      || observed > collected || collected !== time(reference.capturedAt) || collected >= time(game.kickoff)) return null;
     return { book, source: BOOKS[book], value: q.value, status: 'included', reason: null,
       observedAt: iso(q.observedAt), collectedAt: iso(q.collectedAt) };
   });
@@ -68,23 +68,28 @@ function persistedRows(reference, market, game) {
 
 function savedBoard(game, market, snapshots, now) {
   const ref = game.scoringReference;
+  // The line at the guess was collected at or before the save; a pending guess's first line after it was collected
+  // after the save (its book observations may precede the save, within D-17's five minutes of that collection).
+  const firstAfter = ref?.basis === 'first_line_after_submission';
   const available = ref?.status === 'available' && validValue(ref.value, market)
     && [ref.savedAt, ref.capturedAt, ref.observedAt].every(value => Number.isFinite(time(value)))
-    && time(ref.observedAt) <= time(ref.capturedAt) && time(ref.capturedAt) <= time(ref.savedAt)
-    && time(ref.savedAt) <= now && time(ref.savedAt) - time(ref.observedAt) <= FRESH_MS;
+    && time(ref.observedAt) <= time(ref.capturedAt) && time(ref.savedAt) <= now
+    && (firstAfter ? time(ref.capturedAt) > time(ref.savedAt) && time(ref.capturedAt) <= now
+      : time(ref.capturedAt) <= time(ref.savedAt));
   let rows = available ? persistedRows(ref, market, game) : null;
   if (available && !rows) {
     const snapshot = snapshots.find(s => s?.id === ref.snapshotId);
-    if (snapshot) rows = snapshotRows(snapshot, game, market, time(ref.savedAt));
+    if (snapshot) rows = snapshotRows(snapshot, game, market, firstAfter ? now : time(ref.savedAt));
   }
   if (!rows || !rows.every(q => q.status === 'included') || !aligned(rows)
     || midpoint(rows) !== ref?.value || Math.min(...rows.map(q => time(q.observedAt))) !== time(ref?.observedAt)
     || rows.some(q => time(q.collectedAt) !== time(ref?.capturedAt))) {
-    rows = REQUIRED.map(book => missing(book, available ? 'The individual saved quote breakdown is unavailable.' : 'No valid scoring reference was saved.'));
+    rows = REQUIRED.map(book => missing(book, available ? 'The individual saved quote breakdown is unavailable.' : ref?.status === 'pending' ? 'Waiting for the first line collected after this guess.' : 'No valid scoring reference was saved.'));
   }
-  return { status: available ? 'available' : 'unavailable', value: available ? ref.value : null,
+  return { status: available ? 'available' : ref?.status === 'pending' ? 'pending' : 'unavailable', value: available ? ref.value : null,
     source: available ? ref.source : null, observedAt: available ? iso(ref.observedAt) : null,
     collectedAt: available ? iso(ref.capturedAt) : null, savedAt: iso(ref?.savedAt),
+    basis: available || ref?.status === 'pending' ? (firstAfter || ref?.status === 'pending' ? 'first_line_after_submission' : 'line_at_guess') : null,
     snapshotId: available ? ref.snapshotId : null,
     reason: !available && typeof ref?.reason === 'string' ? ref.reason.slice(0, 400) : null,
     quotes: [...rows, caesars()] };

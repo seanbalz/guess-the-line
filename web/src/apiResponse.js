@@ -24,9 +24,12 @@ export async function readResponse(response, isGameSave = false) {
   }
   // Only the server's explicit pre-commit submission rejection establishes that
   // a 5xx response left the ballot unchanged. A transport/proxy failure does not.
-  const rejectedBeforeSave = data?.submitted === false && typeof data.code === 'string' && /^GTL_SUBMISSION_[A-Z_]+$/.test(data.code);
+  const submissionCode = typeof data?.code === 'string' && /^GTL_SUBMISSION_[A-Z_]+$/.test(data.code);
+  const rejectedBeforeSave = data?.submitted === false && submissionCode;
   if (isGameSave && response.status >= 500 && !rejectedBeforeSave) throw new SaveUncertainError(response.status);
-  if (!response.ok) throw new ApiError(response.status === 409 && isGameSave && /changed|revision/i.test(data?.error || '')
+  // A coded submission refusal keeps the server's own sentence even when it mentions a "changed guess";
+  // only an uncoded 409 about a changed revision is the other-device conflict.
+  if (!response.ok) throw new ApiError(response.status === 409 && isGameSave && !submissionCode && /changed|revision/i.test(data?.error || '')
     ? 'Saved data changed in another group or on another device. Refresh the saved data, review your unsaved changes, then save again.'
     : data?.error || 'The game service is unavailable. Reload saved data to try again.', response.status, data?.code);
   if (isGameSave && (!data || typeof data !== 'object' || Array.isArray(data))) throw new SaveUncertainError(response.status);

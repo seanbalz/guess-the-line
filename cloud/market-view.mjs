@@ -83,7 +83,7 @@ export function applyMarketView(view, snapshot, now = Date.now()) {
       : null;
     const stored = game.scoringReference;
     const submissionTimeComparison = view.scoringPolicy === 'submission-time' ? {
-      status: stored?.status === 'available' ? 'available' : 'unavailable',
+      status: stored?.status === 'available' ? 'available' : stored?.status === 'pending' ? 'pending' : 'unavailable',
       submittedAt: stored?.savedAt || null, reference: stored?.status === 'available' ? stored : null,
       discrepancy: stored?.status === 'available' && Number.isFinite(game.prediction) ? Math.round(Math.abs(game.prediction - stored.value) * 100) / 100 : null,
       scope: 'Scoring reference saved with this guess',
