@@ -29,7 +29,7 @@ test('saved references remain distinct from current consensus; submitted edit re
   await expect(page.getByRole('heading',{name:'Errors against saved references'})).toBeVisible();
   await page.locator('.heading-actions').getByRole('button',{name:'Compare picks',exact:true}).click();
   const table=page.getByRole('region',{name:'Spread pick comparison'});
-  await expect(table).toContainText('Scoring reference');await expect(table).toContainText('Saved with guess');await expect(table).toContainText('Stale saved consensus');
+  await expect(table).toContainText('Line at your guess');await expect(table).toContainText('Saved with guess');await expect(table).toContainText('Stale saved consensus');
   await expect(table.locator('tbody tr').first()).toContainText('−4');await expect(table.locator('tbody tr').first()).toContainText('−2.5');await expect(table.locator('tbody tr').first()).toContainText('−7');
   context.state.games.forEach(game=>game.currentConsensus.value=-9);
   await page.getByRole('button',{name:'Refresh picks',exact:true}).click();

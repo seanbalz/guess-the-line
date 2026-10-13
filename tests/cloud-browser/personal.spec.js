@@ -4,6 +4,7 @@ import { seed } from '../../server/store.mjs';
 import { createCloudHandler } from '../../cloud/handler.mjs';
 import { providerPersonalError } from '../../cloud/personal.mjs';
 import { providerLobbyError } from '../../cloud/lobby.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
@@ -35,7 +36,7 @@ const test = base.extend({
       const req=route.request(),url=new URL(req.url());
       if(url.origin===new URL(baseURL).origin)return route.continue();
       const reply=(status,body)=>route.fulfill({status,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify(body)});
-      if(url.origin!=='https://gtl-frontend-check.supabase.co'){report.errors.push(`Unexpected request ${url.origin}`);return route.abort();}
+      if(isWebfont(url))return route.abort();if(url.origin!=='https://gtl-frontend-check.supabase.co'){report.errors.push(`Unexpected request ${url.origin}`);return route.abort();}
       if(url.pathname==='/auth/v1/token')return reply(200,session);
       if(url.pathname==='/auth/v1/user')return reply(200,user);
       // D-21 community routes are not part of these fixtures; answer as an undeployed function.

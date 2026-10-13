@@ -9,17 +9,17 @@ import GameTrends from './GameTrends';
 import RefereeAssignments from './RefereeAssignments';
 import { useTrendsToggle } from './trendsData';
 import { communityAccess, referenceValue } from '../../shared/trends-view.mjs';
+import CommunityHistory from './CommunityHistory';
+import LineAtGuess from './LineAtGuess';
+import { PushReminderPrompt } from './PushReminders';
 import { cloudApi, communityApi, date } from './api';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
-import { TEAM_NAMES, pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
+import { MODE, pickText, shortName, show, team } from './communityFormat';
+import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import './community.css';
 
-const MODE = { guess_spread: 'Spread', guess_total: 'Total' };
 const DAY = 86_400_000;
-const show = n => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
-const team = code => TEAM_NAMES[code] || code;
-const shortName = code => team(code).split(' ').at(-1);
 // D-24: "Mon, Oct 12, 12:00 AM" — the week's Monday 00:00 Pacific open.
 const opensText = (week, opensAt) => `Week ${week} opens ${date(opensAt, { weekday: 'short' })} PT`;
 const dueText = deadline => `Picks due ${date(deadline, { weekday: 'short' })} PT`;
@@ -123,6 +123,8 @@ function PicksDue({ due, all = [], onPick }) {
     <Bell size={22} aria-hidden="true"/>
     <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2><p>{detail}</p></div>
     {!closed && !notOpen && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
+    {/* D-28: opt-in web push, one reminder 2 hours before the deadline; nothing is registered until the player asks. */}
+    {!closed && <PushReminderPrompt/>}
   </section>;
 }
 
@@ -165,8 +167,7 @@ function PostPicks({ post }) {
   const entries = Object.entries(post.picks);
   return <ul className="post-picks mono">{entries.map(([gameId, value]) => {
     const [away, home] = gameId.split('-');
-    const text = post.mode === 'guess_total' ? `${show(value)}` : value === 0 ? "Even (pick'em)" : `${shortName(value < 0 ? home : away)} −${show(Math.abs(value))}`;
-    return <li key={gameId}><span>{away} @ {home}</span><span>{text}</span></li>;
+    return <li key={gameId}><span>{away} @ {home}</span><span>{pickText(post.mode, away, home, value)}</span></li>;
   })}</ul>;
 }
 
@@ -276,7 +277,7 @@ function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, onOther
     <CircleCheck size={22} aria-hidden="true"/>
     <div>
       <h3 id={id}>{MODE[mode]} submitted · {count} {count === 1 ? 'pick' : 'picks'}</h3>
-      <p className="muted small">Submitted {date(ballot.submittedAt)} PT{changed ? ` · changed ${date(ballot.updatedAt)} PT` : ''}. Points are fixed against that moment's consensus; a pick you change before the deadline gets a new reference when you save it.</p>
+      <p className="muted small">Submitted {date(ballot.submittedAt)} PT{changed ? ` · changed ${date(ballot.updatedAt)} PT` : ''}. Each pick is scored against the line stored when you saved it (shown on each game); a pick you change before the deadline takes the line at that save.</p>
       <p className="receipt-due">{due}</p>
       <div className="receipt-actions">
         {!other.submitted && !other.satOut && <button type="button" className="primary" aria-disabled={busy || undefined} onClick={onOther}>Make {MODE[other.mode]} picks<ArrowRight size={16} aria-hidden="true"/></button>}
@@ -352,9 +353,10 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   const filled = Object.values(picks).filter(v => v !== '').length, remaining = data.games.length - filled;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
   // Persona audit #8: every save failure names the problem and offers the next step, beside the save bar. "Sign in again" unmounts
-  // this screen and its unsaved picks, so the banner says so and puts Retry first. A D-17 submission refusal carries a code (fresh
-  // quotes unavailable, refresh busy) and is retried as it is, whatever its status; only a bare 409 is a revision conflict with
-  // another device; a 400 cannot succeed on a retry.
+  // this screen and its unsaved picks, so the banner says so and puts Retry first. Since October 12, 2026 a market-refresh limit
+  // never refuses a save, so no banner exists for it; the only coded refusal left (GTL_SUBMISSION_QUOTES_REQUIRED, a failed check
+  // of the saved line at commit) is retried as it is. Only a bare 409 is a revision conflict with another device; a 400 cannot
+  // succeed on a retry.
   function describe(e, retry) {
     if (!e.status) return { message: 'No connection. Your picks are kept on this screen; reconnect and tap Retry.', actions: [['Retry', retry]] };
     if (e.status === 401) return { message: 'Your session has expired and these picks are not saved. Retry first; if that fails, note your picks, then sign in again (it clears this screen).', actions: [['Retry', retry], ['Sign in again', () => onSignOut?.()]] };
@@ -454,6 +456,7 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       <h3>{team(g.awayCode)} @ {team(g.homeCode)}</h3>
       <p className="muted small">{date(g.kickoff)} PT</p>
       <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
+      {submitted && <LineAtGuess reference={ballot.scoringReferences?.[g.id]} pick={ballot.picks?.[g.id]} spread={mode === 'guess_spread'}/>}
       {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
         : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
         label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
@@ -479,8 +482,8 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
 }
 
 export default function CommunityHome({ accountId, onGroups, onSignOut, displayName, onUnavailable, welcome = '' }) {
-  // Persona audit #3: the open tab is the URL hash (#feed, #picks), one history entry each, so Back returns to the feed and a reload lands on the same tab.
-  const screen = useScreen(), tab = screen === 'picks' ? 'picks' : 'feed';
+  // Persona audit #3: the open tab is the URL hash (#feed, #picks, #history), one history entry each, so Back returns to the feed and a reload lands on the same tab.
+  const screen = useScreen(), tab = ['picks', 'history'].includes(screen) ? screen : 'feed';
   const [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [retryable, setRetryable] = useState(false);
   const main = useRef(null), refocus = useRefocus(main);
@@ -534,13 +537,15 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         <button className="secondary back-to-nfl" onClick={() => setLeague('nfl')}>Back to NFL</button>
       </> : <>
       <nav className="community-tabs" aria-label="Community sections">
-        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`]].map(([key, label]) =>
+        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`], ['history', 'History']].map(([key, label]) =>
           <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => goScreen(key)}>{label}</button>)}
         <button className="secondary" onClick={onGroups}>Groups & games<ArrowRight size={16}/></button>
       </nav>
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span>{!feed && retryable && <button type="button" className="text-button" data-action="feed-retry" aria-disabled={busy || undefined} onClick={() => { if (!busy) retryFeed(); }}>Retry</button>}</div>}
       <p className="auth-notice" role="status" aria-live="polite">{notice}</p>
-      {tab === 'picks' ? <WeekPicks accountId={accountId} feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
+      {tab === 'picks' ? <WeekPicks accountId={accountId} feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/>
+        : tab === 'history' ? <CommunityHistory accountId={accountId}/>
+        : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
         <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>
         <Leaderboard feed={feed}/>

@@ -1,7 +1,7 @@
 .chart-guide {
   min-width: 0;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-control,8px);
   background: var(--surface);
   color: var(--text);
 }

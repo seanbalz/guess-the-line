@@ -4,6 +4,7 @@ import { createEngine } from '../../server/engine.mjs';
 import { applyProvisionalAnalysisView } from '../../cloud/total-analysis-view.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { picker, pickSpread, pickTotal, expectPick, expectPickEnabled, spreadText, totalText } from '../chip-entry.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 const MATCHUPS = [['TB', 'DAL'], ['PHI', 'JAX'], ['CIN', 'MIA']];
 
 const accountId = '11111111-1111-4111-8111-111111111111';
@@ -72,7 +73,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { hub.errors.push(`Unexpected external request: ${url.origin}`); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { hub.errors.push(`Unexpected external request: ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/signup') { hub.signups++; return reply(200, { user, session: null }); }
@@ -501,7 +502,7 @@ for (const [mode, width] of [['guess_spread', 320], ['guess_total', 390]]) test(
   await page.setViewportSize({ width, height: 844 });
   await page.goto('/'); await signIn(page);
   await page.getByRole('button', { name: 'Open game', exact: true }).click();
-  if (total) await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Over/Under', exact: true }).click();
+  if (total) await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await page.locator('.heading-actions').getByRole('button', { name: 'Compare picks', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your picks, side by side.' })).toBeVisible();
   const first = page.getByRole('article', { name: 'TB at DAL predictions' });
@@ -848,10 +849,8 @@ test('scheduled private-view refresh updates once without calling the provider a
   expect(hub.requests.filter(r=>r.endpoint.startsWith('odds/'))).toHaveLength(0);
 });
 
-const presentationLayouts = [
-  ['command', 'Command center'], ['matchups', 'Matchup cards'], ['markets', 'Market rows'],
-  ['social', 'Social league'], ['analytics', 'Analytics lab'],
-];
+// Decision 5 (October 12): three layouts; Market rows and Social league were removed.
+const presentationLayouts = [['command', 'Command center'], ['matchups', 'Matchup cards'], ['analytics', 'Analytics lab']];
 function presentationGame(hub) {
   submittedBenchmarkGame(hub);
   hub.benchmarkViews[duelId] = benchmarkFixture();
@@ -882,7 +881,7 @@ async function refreshDashboardFixture(page, hub) {
   await expect.poll(() => hub.requests.filter(request => request.endpoint === 'state').length).toBeGreaterThan(before);
 }
 
-test('selected identity and five dashboard layouts render real arrangements with keyboard controls', async ({ page, hub }) => {
+test('selected identity and three dashboard layouts render real arrangements with keyboard controls', async ({ page, hub }) => {
   presentationGame(hub);
   await page.clock.install({ time: new Date(hub.serverNow) });
   await page.goto('/');
@@ -915,16 +914,6 @@ test('selected identity and five dashboard layouts render real arrangements with
       const first = await page.locator('.gap-game').nth(0).boundingBox(), second = await page.locator('.gap-game').nth(1).boundingBox();
       expect(second.x).toBeGreaterThan(first.x); expect(Math.abs(second.y - first.y)).toBeLessThan(2);
     }
-    if (id === 'markets') {
-      expect(gaps.y).toBeLessThan(scores.y);
-      const labelBox = await page.locator('.gap-game-label').first().boundingBox(), bars = await page.locator('.gap-bars').first().boundingBox();
-      expect(bars.x).toBeGreaterThan(labelBox.x + labelBox.width);
-      await expect(page.locator('.market-row-values').first().locator('strong')).toHaveText(['+2', '+1']);
-    }
-    if (id === 'social') {
-      const first = await page.locator('.accuracy-player').nth(0).boundingBox(), second = await page.locator('.accuracy-player').nth(1).boundingBox();
-      expect(second.x).toBeGreaterThan(first.x); expect(Math.abs(second.y - first.y)).toBeLessThan(2);
-    }
     if (id === 'analytics') { expect(history.y).toBeLessThan(gaps.y); expect(gaps.y).toBeLessThan(scores.y); }
     await expect(page.locator('.accuracy-row strong')).toHaveText(['26 / 30', '28 / 30']);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -937,7 +926,7 @@ test('dashboard section, layout, motion and notice preferences persist without c
   const originalBallots = structuredClone(hub.engines[duelId].snapshot().ballots);
   await page.clock.install({ time: new Date(hub.serverNow) });
   await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
-  await chooseDashboardLayout(page, 'markets', 'Market rows');
+  await chooseDashboardLayout(page, 'matchups', 'Matchup cards');
   let controls = await openDashboardOptions(page);
   await expect(controls).toContainText('Saved in this browser on this device');
   for (const name of ['Player scores', 'Line history', 'Data connections', 'Situational trends']) await controls.getByRole('checkbox', { name: new RegExp(`^${name}`) }).uncheck();
@@ -948,7 +937,7 @@ test('dashboard section, layout, motion and notice preferences persist without c
   await expect(page.locator('.visual-scoreboard,.visual-history,.data-connections,.dashboard-notices')).toHaveCount(0);
   await expect(page.locator('.visual-gaps')).toBeVisible();
   await page.reload();
-  await expect(page.locator('.visual-dashboard')).toHaveAttribute('data-layout', 'markets');
+  await expect(page.locator('.visual-dashboard')).toHaveAttribute('data-layout', 'matchups');
   await expect(page.locator('.visual-dashboard')).toHaveAttribute('data-dashboard-motion', 'reduced');
   await expect(page.locator('.visual-scoreboard,.visual-history,.data-connections,.dashboard-notices')).toHaveCount(0);
   controls = await openDashboardOptions(page);
@@ -957,12 +946,25 @@ test('dashboard section, layout, motion and notice preferences persist without c
   await expect(controls.getByRole('checkbox', { name: /^New saved market update/ })).not.toBeChecked();
   await expect(controls.getByRole('checkbox', { name: /^Data availability notices/ })).not.toBeChecked();
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('gtl.dashboard.preferences.v1')));
-  expect(stored).toEqual({ version: 1, layout: 'markets', modules: { scores: false, gaps: true, history: false, connections: false, trends: false }, motion: 'reduced', notices: { marketUpdates: false, dataIssues: false } });
+  expect(stored).toEqual({ version: 1, layout: 'matchups', modules: { scores: false, gaps: true, history: false, connections: false, trends: false }, motion: 'reduced', notices: { marketUpdates: false, dataIssues: false } });
   await controls.getByRole('button', { name: 'Reset dashboard preferences' }).click();
   await expect(page.locator('.visual-dashboard')).toHaveAttribute('data-layout', 'command');
   await expect(page.locator('.visual-scoreboard,.visual-gaps,.visual-history,.data-connections')).toHaveCount(4);
   expect(hub.engines[duelId].snapshot().ballots).toEqual(originalBallots);
   expect(hub.requests.filter(request => ['ballot', 'bet'].includes(request.endpoint))).toHaveLength(0);
+});
+
+for (const removed of ['markets', 'social']) test(`a stored ${removed} layout reads as Command center and stays in storage until the player picks again`, async ({ page, hub }) => {
+  presentationGame(hub);
+  await page.clock.install({ time: new Date(hub.serverNow) });
+  const stored = { version: 1, layout: removed, modules: { scores: true, gaps: true, history: true, connections: true }, motion: 'system', notices: { marketUpdates: true, dataIssues: true } };
+  await page.goto('/'); await page.evaluate(value => localStorage.setItem('gtl.dashboard.preferences.v1', value), JSON.stringify(stored));
+  await page.reload(); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  await expect(page.locator('.visual-dashboard')).toHaveAttribute('data-layout', 'command');
+  const controls = await openDashboardOptions(page);
+  await expect(controls.getByRole('radio')).toHaveCount(3);
+  await expect(controls.getByRole('radio', { name: /^Command center/ })).toBeChecked();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('gtl.dashboard.preferences.v1')).layout)).toBe(removed);
 });
 
 test('dashboard reduced-motion preference and the device setting override chart and panel animation', async ({ page, hub }) => {
@@ -1087,13 +1089,13 @@ function totalPresentationGame(hub, { weekly = false, spreadSubmitted = true } =
   };
 }
 
-for (const weekly of [false, true]) test(`Over/Under dashboard uses a complete provisional total reference with ${weekly ? 'weekly' : 'league'} fixture scope`, async ({ page, hub }) => {
+for (const weekly of [false, true]) test(`Total dashboard uses a complete provisional total reference with ${weekly ? 'weekly' : 'league'} fixture scope`, async ({ page, hub }) => {
   totalPresentationGame(hub, { weekly });
   const originalBallots = structuredClone(hub.engines[duelId].snapshot().ballots);
   await page.clock.install({ time: new Date(hub.serverNow) });
   await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
   await expect(page.locator('.accuracy-row strong')).toHaveText(['26 / 30', '28 / 30']);
-  await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Total provisional accuracy comparison' })).toBeVisible();
   await expect(page.locator('.accuracy-row strong')).toHaveText(['28 / 30', '25 / 30']);
   await expect(page.locator('.visual-source-line')).toContainText('Provisional total comparison · Not official scoring');
@@ -1120,7 +1122,7 @@ test('submitted Total analysis never opens an unsubmitted Spread dashboard', asy
   await expect(page.getByRole('heading', { name: 'Your ballot comes first', exact: true })).toBeVisible();
   await expect(page.locator('.accuracy-bars,.gap-bars,.line-chart')).toHaveCount(0);
   await expect(page.locator('.visual-dashboard')).not.toContainText('Total browser fixture');
-  await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await expect(page.locator('.accuracy-row strong')).toHaveText(['28 / 30', '25 / 30']);
   await expect(page.locator('.line-chart svg')).toHaveAccessibleName(/43.5 at .*44.5 at/);
   await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Spread', exact: true }).click();
@@ -1167,7 +1169,7 @@ for (const triple of [false, true]) test(`saved Spread data supplies provisional
   const gap = page.locator('.gap-game').filter({ has: page.getByLabel('Expand TB at DAL gap details') });
   await expect(gap).toContainText('DAL home-spread reference · PK');
   await expect(gap.locator('dd')).toHaveText(triple ? ['PK', '+1', 'Not submitted', '10 / 10 pts'] : ['PK', '+1', '10 / 10 pts']);
-  await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your ballot comes first', exact: true })).toBeVisible();
   await expect(page.locator('.accuracy-bars,.gap-bars,.line-chart')).toHaveCount(0);
   await expect(page.locator('.visual-dashboard')).not.toContainText('Shared canonical slate');
@@ -1198,7 +1200,7 @@ test('dashboard matchup selection filters comparisons only and persists across S
   await expect(page.locator('.gap-game')).toHaveCount(1);
   await expect(page.locator('.gap-game > summary')).toHaveAttribute('aria-label', 'Expand TB at DAL gap details');
   await expect(page.locator('.visual-history').getByLabel('Matchup', { exact: true }).locator('option')).toHaveText(['TB at DAL']);
-  await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await expect(page.locator('.accuracy-row strong')).toHaveText(['28 / 30', '25 / 30']);
   await expect(page.locator('.gap-game')).toHaveCount(1);
   await expect(page.locator('.line-chart svg')).toHaveAccessibleName(/TB at DAL collected total: 43.5 at .*44.5 at/);
@@ -1207,7 +1209,7 @@ test('dashboard matchup selection filters comparisons only and persists across S
   await expect(page.locator('.gap-game')).toHaveCount(1);
   await expect(page.locator('.gap-game > summary')).toHaveAttribute('aria-label', 'Expand TB at DAL gap details');
   await expect(page.locator('.accuracy-row strong')).toHaveText(['26 / 30', '28 / 30']);
-  await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await page.getByRole('button', { name: 'My picks', exact: true }).click();
   await expect(page.locator('.picks-table .chip-picker')).toHaveCount(3);
   for (const chip of await page.locator('.picks-table .team-chip, .picks-table .number-chip').all()) await expect(chip).toBeEnabled();
@@ -1231,7 +1233,7 @@ test('dashboard matchup filtering cannot reveal another market or shrink its req
   let filter = await openDashboardGameFilter(page);
   await filter.getByRole('radio', { name: 'Selected games', exact: true }).check();
   await filter.getByRole('checkbox', { name: 'Show TB at DAL', exact: true }).check();
-  await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your ballot comes first', exact: true })).toBeVisible();
   await expect(page.locator('.visual-actions .game-option').filter({ hasText: 'Total' })).toContainText('0/3 entered');
   await expect(page.locator('.accuracy-bars,.gap-bars,.line-chart')).toHaveCount(0);
@@ -1306,5 +1308,5 @@ test('browser install offer is retained until Settings and requires an explicit 
 });
 test('personal decision analysis displays sourced fields only in the submitted matching market',async({page,hub})=>{
  submittedBenchmarkGame(hub);hub.decisionAnalysis={'TB-DAL':{market:'spread',savedGuess:0,reference:{value:-3,source:'Recorded fixture book median',observedAt:'2026-10-08T15:59:00Z',collectedAt:'2026-10-08T16:00:00Z',status:'stale'},guessDiscrepancy:3,personalForecast:{kind:'personal_outcome_forecast',value:-7.5,savedAt:'2026-10-08T15:30:00Z',revision:2},model:null,explanation:'No eligible current independent forecast; a sportsbook-number guess is not an outcome forecast.'}};
- await page.goto('/');await signIn(page);await page.getByRole('button',{name:'Open game',exact:true}).click();await page.locator('.data-connections > summary').click();const panel=page.getByRole('region',{name:'Your forecast and the recorded market'});await expect(panel).toContainText('Stale saved market reference');await expect(panel).toContainText('Recorded fixture book median');await expect(panel).toContainText('−7.5');await expect(panel).toContainText('Revision 2');await expect(panel).toContainText('Independent outcome forecastUnavailable');await expect(panel).toContainText('No automated selection is made');await page.getByRole('button',{name:'Over/Under',exact:true}).click();await page.locator('.data-connections > summary').click();await expect(page.getByRole('region',{name:'Your forecast and the recorded market'})).toHaveCount(0);await expect(page.locator('.external-research')).toHaveCount(0);
+ await page.goto('/');await signIn(page);await page.getByRole('button',{name:'Open game',exact:true}).click();await page.locator('.data-connections > summary').click();const panel=page.getByRole('region',{name:'Your forecast and the recorded market'});await expect(panel).toContainText('Stale saved market reference');await expect(panel).toContainText('Recorded fixture book median');await expect(panel).toContainText('−7.5');await expect(panel).toContainText('Revision 2');await expect(panel).toContainText('Independent outcome forecastUnavailable');await expect(panel).toContainText('No automated selection is made');await page.locator('.dashboard-market-tabs').getByRole('button',{name:'Total',exact:true}).click();await page.locator('.data-connections > summary').click();await expect(page.getByRole('region',{name:'Your forecast and the recorded market'})).toHaveCount(0);await expect(page.locator('.external-research')).toHaveCount(0);
 });

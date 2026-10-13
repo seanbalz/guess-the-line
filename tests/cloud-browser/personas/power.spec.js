@@ -21,8 +21,9 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
 
   // How far is "Make picks" by keyboard from the top of the home screen?
   const toMakePicks = await persona.tabTo(f => f.name === 'Make picks');
-  // Quick win 11 (#17): Appearance moved to the foot of the page, so the skip link, six league chips and three tabs are all that precede the card.
-  expect(toMakePicks).toBeLessThanOrEqual(11);
+  // Quick win 11 (#17): Appearance moved to the foot of the page, so the skip link, six league chips and the Community tabs are all that precede the card.
+  // D-27 (October 12, 2026) added a History tab after Feed and Picks, one more stop: the budget moved from 11 to 12.
+  expect(toMakePicks).toBeLessThanOrEqual(12);
   persona.finding({ screen: 'feed', severity: 3, experience: `From page load it takes ${toMakePicks} Tab presses to reach "Make picks" (skip link, six league chips, three tabs, then the card). The skip link now lands on the picks-due card, but tabbing from the top still crosses the league switcher.`, fix: 'Collapse the league switcher to "NFL · Live · More leagues" while only NFL is live.' });
   await page.keyboard.press('Enter');
   const cards = page.locator('.week-pick');

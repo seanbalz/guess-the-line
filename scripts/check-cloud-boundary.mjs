@@ -26,6 +26,23 @@ const rpcChecks = [
   ['gtl_preflight_submission', { p_user: missingId, p_intent: {} }],
   ['gtl_begin_submission_odds_collection', { p_user: missingId, p_request: missingId, p_intent: {}, p_operation: 'preflight' }],
   ['gtl_finish_submission_odds_collection', { p_user: missingId, p_request: missingId, p_lease: missingId, p_payload: null, p_quota: {}, p_error: null }],
+  // D-27 (20261012230000) line-at-guess helpers and the pending-reference resolver: service-only.
+  ['gtl_line_from_snapshot', { p_payload: {}, p_game: {}, p_market: 'spread' }],
+  ['gtl_pending_reference', { p_saved: null }],
+  ['gtl_reference_at_save', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_saved: null }],
+  ['gtl_resolve_pending_reference', { p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game_id: 'AAA-BBB', p_pending: {} }],
+  ['gtl_resolve_pending_references', { p_season: 2026, p_week: 5 }],
+  ['gtl_odds_schedule_slate', { p_season: 2026, p_week: 5, p_signature: {} }],
+  // Line at the guess for ballots saved without a line and D-08 eligibility in the community (20261013010000): service-only.
+  // They report `unexpected 404` until that migration is applied to the hosted project.
+  ['gtl_slate_game', { p_season: 2026, p_week: 5, p_signature: {}, p_game_id: 'AAA-BBB' }],
+  ['gtl_ballot_eligible', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_origin_practice: false }],
+  ['gtl_submission_time_unknown', { p_ballot: {} }],
+  ['gtl_guess_instant', { p_ballot: {}, p_audit: [], p_game_id: 'AAA-BBB' }],
+  ['gtl_line_at_guess', { p_season: 2026, p_week: 5, p_signature: {}, p_game: null, p_market: 'spread', p_guessed: null }],
+  ['gtl_ballot_pick_scores', { p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_ballot: {}, p_audit: [] }],
+  ['gtl_import_reference_lines', { p_actor: missingId, p_season: 2026, p_week: 5, p_file: 'data/snapshots/boundary-check.json', p_file_sha256: '0'.repeat(64), p_ruling: 'boundary check only', p_reference: {} }],
+  ['gtl_void_reference_line_import', { p_actor: missingId, p_import: missingId, p_decision: 'D-0', p_reason: 'boundary check only' }],
   // gtl_guard_fresh_submission returns trigger, so its invoker/grant boundary
   // is checked in fresh-submission-sql.test.mjs, not as a callable REST RPC.
   ['gtl_weekly_context', { p_user: missingId, p_league: missingLeague }],
@@ -56,14 +73,28 @@ const rpcChecks = [
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
   // D-25 commissioner-ruled import: service-only, never callable from a browser role.
   ['gtl_import_ruled_ballot', { p_actor: missingId, p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_picks: {}, p_submitted_at: null, p_ruling: 'boundary check only', p_reference: {} }],
+  // Community history (October 12, 2026 ruling): three service-only readers from 20261012223000_gtl_community_history.sql.
+  // They report `unexpected 404` until that migration is applied to the hosted project.
+  ['gtl_read_community_history', { p_user: missingId, p_season: null, p_now: null }],
+  ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
+  ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
   // Game referees for situational trends (October 12, 2026 ruling): two service-only RPCs from 20261012234500_gtl_game_officials.sql.
-  // Awaiting deploy (see awaitingDeploy below) so a Pages-only deploy of the trend panels still passes check:cloud.
+  // Awaiting deploy (see awaitingDeploy below), so they alone do not fail check:cloud for a Pages-only deploy of the trend panels.
   ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
   // D-34 kickoff wind forecast: three service-only RPCs from 20261013020000_gtl_wind_forecasts.sql, awaiting deploy like the referee pieces.
   ['gtl_read_wind_forecasts', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_begin_wind_fetch', { p_user: missingId, p_request: missingId, p_season: 2026, p_week: 6, p_games: [] }],
   ['gtl_finish_wind_fetch', { p_request: missingId, p_lease: missingId, p_status: 'failed', p_error: 'WIND_UNAVAILABLE', p_http: null, p_rows: null }],
+  // D-28 web push reminders (20261013030000): device subscriptions and the reminder scheduler are service-only.
+  ['gtl_push_subscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_p256dh: `B${'A'.repeat(86)}`, p_auth: 'A'.repeat(22) }],
+  ['gtl_push_unsubscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check' }],
+  ['gtl_push_status', { p_user: missingId, p_endpoint: null }],
+  ['gtl_dispatch_push_reminders', {}],
+  ['gtl_claim_push_reminders', { p_token: '0'.repeat(64), p_run: missingId }],
+  ['gtl_mark_push_reminder', { p_run: missingId, p_claim: missingId, p_user: missingId, p_season: 2026, p_week: 6, p_modes: ['guess_spread'] }],
+  ['gtl_record_push_delivery', { p_run: missingId, p_claim: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_outcome: 'failed' }],
+  ['gtl_complete_push_reminders', { p_run: missingId, p_claim: missingId, p_reason: 'nothing_due', p_sent: 0, p_failed: 0 }],
 ];
 /**
  * Probes for hosted pieces that are written but not yet applied or deployed. Each still has to deny
@@ -72,11 +103,14 @@ const rpcChecks = [
  * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
  * after the deploy, then remove the entries here in the change that records the hosted version.
  *
- * The D-34 kickoff wind pieces are listed for the same reason as the referee pieces: both the gtl-api
- * build and the Pages build fall back cleanly while they are missing (the trends panel keeps its
+ * The situational-trends referee pieces and the D-34 kickoff wind pieces are listed. Both the gtl-api
+ * build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
  * "no current forecast" note), so a Pages-only deploy, or a gtl-api deploy before the migration is
- * applied, must not fail check:cloud on them alone. A missing piece that gtl-api needs for anything
- * else still fails the default check; --strict runs after the migration and the gtl-api deploy.
+ * applied, must not fail check:cloud on them alone; --strict runs after the migration and the gtl-api deploy.
+ * The Community history readers (20261012223000), the D-27 line-at-guess helpers (20261012230000) and the
+ * /community/history route are deliberately not listed: any of them that is missing fails the default
+ * check with `unexpected 404`, which is the release checklist's gate for applying those migrations hosted
+ * before the gtl-api deploy that needs them.
  */
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_read_game_officials': 'migration 20261012234500_gtl_game_officials.sql',
@@ -91,6 +125,7 @@ export const awaitingDeploy = Object.freeze({
 });
 const apiChecks = [
   ...['read','create','tail','settle','include','correct','follow'].map(action => [`social/${action}`, {}]),
+  ['community/history', {}],
   ['state?mode=guess_spread', undefined],
   ['lobby', undefined],
   ['profile', { displayName: 'Boundary check' }],
@@ -121,6 +156,9 @@ const apiChecks = [
   ['officials/set', {}],
   // D-34 kickoff wind route (awaitingDeploy): signed-out probes prove only authentication protection.
   ['wind/read', {}],
+  ['push/status', {}],
+  ['push/subscribe', {}],
+  ['push/unsubscribe', {}],
 ];
 
 export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
@@ -131,7 +169,7 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
   assert.ok(/^https:\/\/onmrgvcehkflfaizvedl\.supabase\.co$/.test(url || ''), 'Unexpected cloud project URL.');
   assert.ok(/^sb_publishable_/.test(key || ''), 'A publishable key is required.');
   const requests = [
-    ...['social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings', 'odds_budget', 'odds_collections', 'submission_odds_intents', 'market_snapshots', 'benchmark_policies', 'frozen_benchmarks', 'odds_schedule', 'odds_refresh_runs', 'personal_versions', 'favorites', 'journal_entries', 'personal_forecasts', 'personal_events', 'personal_receipts', 'result_review_lock', 'reviewed_result_events', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals', 'league_interest', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'virtual_units_picks', 'virtual_units_settlements', 'ruled_ballot_imports'].map(table => ({
+    ...['social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings', 'odds_budget', 'odds_collections', 'submission_odds_intents', 'market_snapshots', 'reference_line_imports', 'reference_lines', 'reference_line_voids', 'benchmark_policies', 'frozen_benchmarks', 'odds_schedule', 'odds_refresh_runs', 'personal_versions', 'favorites', 'journal_entries', 'personal_forecasts', 'personal_events', 'personal_receipts', 'result_review_lock', 'reviewed_result_events', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals', 'league_interest', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'virtual_units_picks', 'virtual_units_settlements', 'ruled_ballot_imports', 'push_subscriptions', 'push_reminders_sent', 'push_reminder_schedule', 'push_reminder_runs'].map(table => ({
       name: `anonymous ${table} table`, route: `/rest/v1/gtl_${table}?select=*&limit=1`, statuses: [401, 403], database: true,
     })),
     ...rpcChecks.map(([rpc, body]) => ({
@@ -144,6 +182,11 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
     ...[false, true].map(invalidMachineToken => ({
       name: `POST scheduled refresh ${invalidMachineToken ? 'with invalid machine token' : 'without machine token'}`,
       route: '/functions/v1/gtl-odds-refresh', body: { runId: missingId }, statuses: [401], invalidMachineToken,
+    })),
+    // D-28: the reminder worker accepts only a one-run capability (expects gtl-push-reminders to be deployed).
+    ...[false, true].map(invalidMachineToken => ({
+      name: `POST scheduled reminders ${invalidMachineToken ? 'with invalid machine token' : 'without machine token'}`,
+      route: '/functions/v1/gtl-push-reminders', body: { runId: missingId }, statuses: [401], invalidMachineToken,
     })),
     ...[['net', 'http_request_queue'], ['cron', 'job'], ['vault', 'decrypted_secrets']].map(([schema, table]) => ({
       name: `anonymous ${schema} schema`, route: `/rest/v1/${table}?select=id&limit=0`, statuses: [406], schema,

@@ -164,3 +164,54 @@ test('D-34 kickoff wind probes awaiting deploy pass only on the exact not-found 
       ? new Response(JSON.stringify({ code: 'PGRST202', lease_token: 'x' }), { status: 404 }) : denied(url, request)) }), /private material in not-found response/);
   });
 });
+
+test('only the referee and D-34 wind pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+  const referees = ['gtl_read_game_officials', 'gtl_set_game_official'];
+  const winds = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', ...[...referees, ...winds].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
+  for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
+  const missing = async (url, request) => ([...referees, ...winds].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
+    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+  const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
+  assert.equal(result.awaiting.length, referees.length + winds.length + 3 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
+});
+
+test('Community history and D-27 line-at-guess probes stay fail-closed: not applied or not deployed fails the default check', async t => {
+  const notApplied = {
+    '20261012223000_gtl_community_history.sql': ['gtl_read_community_history', 'gtl_history_reference', 'gtl_pick_points'],
+    '20261012230000_gtl_submit_with_line_at_guess.sql': ['gtl_line_from_snapshot', 'gtl_pending_reference', 'gtl_reference_at_save', 'gtl_resolve_pending_reference', 'gtl_resolve_pending_references', 'gtl_odds_schedule_slate'],
+  };
+  const captured = [];
+  await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push(url); return denied(url, request); } });
+  for (const [file, rpcs] of Object.entries(notApplied)) for (const rpc of rpcs) await t.test(`${rpc} (${file})`, async () => {
+    assert.equal(captured.filter(url => url.endsWith(`/rest/v1/rpc/${rpc}`)).length, 1, 'probed once');
+    assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`));
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => url.endsWith(`/rest/v1/rpc/${rpc}`)
+      ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 }) : denied(url, request) }), new RegExp(`${rpc} RPC: unexpected 404`));
+  });
+  await t.test('/community/history route', async () => {
+    assert.equal(captured.filter(url => url.endsWith('/functions/v1/gtl-api/community/history')).length, 2, 'signed out and with an invalid session');
+    assert.ok(!Object.hasOwn(awaitingDeploy, 'gtl-api/community/history'));
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => url.endsWith('/functions/v1/gtl-api/community/history')
+      ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request) }), /POST community\/history without session: unexpected 404/);
+  });
+});
+
+test('D-28 push tables, RPCs, API routes and the reminder worker are probed anonymously', async () => {
+  const captured = [];
+  await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+  for (const table of ['push_subscriptions', 'push_reminders_sent', 'push_reminder_schedule', 'push_reminder_runs']) {
+    assert.ok(captured.some(({ url, request }) => url.includes(`/rest/v1/gtl_${table}?`) && !request.method && !request.headers.Authorization), table);
+  }
+  for (const rpc of ['gtl_push_subscribe', 'gtl_push_unsubscribe', 'gtl_push_status', 'gtl_dispatch_push_reminders', 'gtl_claim_push_reminders', 'gtl_mark_push_reminder', 'gtl_record_push_delivery', 'gtl_complete_push_reminders']) {
+    const probe = captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`));
+    assert.ok(probe, rpc); assert.equal(probe.request.headers.Authorization, undefined);
+  }
+  for (const route of ['push/status', 'push/subscribe', 'push/unsubscribe']) {
+    assert.deepEqual(captured.filter(({ url }) => url.endsWith(`/functions/v1/gtl-api/${route}`)).map(({ request }) => request.headers.Authorization), [undefined, 'Bearer invalid-test-token'], route);
+  }
+  assert.deepEqual(captured.filter(({ url }) => url.endsWith('/functions/v1/gtl-push-reminders')).map(({ request }) => request.headers.Authorization), [undefined, `Bearer ${'0'.repeat(64)}`]);
+});

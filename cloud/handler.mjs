@@ -21,6 +21,7 @@ import { handleVirtualUnits, VIRTUAL_METHODS, VirtualUnitsError, providerVirtual
 // Kickoff wind forecast (D-34): the member read route and the server-only Open-Meteo provider.
 import { handleWind, WIND_METHODS, WindError, providerWindError } from './wind.mjs';
 import { createOpenMeteoProvider } from './open-meteo.mjs';
+import { handlePush, PUSH_METHODS, PushError, providerPushError } from './push.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const CORS = {
@@ -94,9 +95,10 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+  // October 12, 2026: a refresh is attempted when useful and never required; commit() is the authority.
   async function submitWithFreshOdds(user, intent, commit) {
-    if (!odds?.rpc) throw new SubmissionOddsError();
+    if (!odds?.rpc) return commit();
     return runSubmissionWithFreshOdds({
       preflight: () => odds.rpc('gtl_preflight_submission', { p_user: user.id, p_intent: intent }),
       collect: ({ requestId }) => collectSubmissionOdds({ user, intent, service: odds, provider: oddsProvider, requestId, uuid }),
@@ -156,7 +158,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
     try {
       const url = new URL(request.url);
       const route = url.pathname.replace(/^\/(?:functions\/v1\/)?gtl-api(?=\/)/, '');
-      const methods = { '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'], ...LOBBY_METHODS, ...PERSONAL_METHODS, ...SOCIAL_METHODS, ...COMMUNITY_METHODS, ...OFFICIALS_METHODS, ...RESULTS_METHODS, ...ODDS_METHODS, ...BENCHMARK_METHODS, ...VIRTUAL_METHODS, ...WIND_METHODS };
+      const methods = { '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'], ...LOBBY_METHODS, ...PERSONAL_METHODS, ...SOCIAL_METHODS, ...COMMUNITY_METHODS, ...OFFICIALS_METHODS, ...RESULTS_METHODS, ...ODDS_METHODS, ...BENCHMARK_METHODS, ...VIRTUAL_METHODS, ...WIND_METHODS, ...PUSH_METHODS };
       if (!Object.hasOwn(methods, route)) return json({ error: 'Not found.' }, 404);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
       if (!methods[route].includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: [...methods[route], 'OPTIONS'].join(', ') });
@@ -183,6 +185,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (Object.hasOwn(COMMUNITY_METHODS, route)) return json(await handleCommunity({ route, body, user, service: community, clock }));
       if (Object.hasOwn(OFFICIALS_METHODS, route)) return json(await handleOfficials({ route, body, user, service: officials }));
       if (Object.hasOwn(WIND_METHODS, route)) return json(await handleWind({ route, body, user, service: wind, uuid }));
+      if (Object.hasOwn(PUSH_METHODS, route)) return json(await handlePush({ route, body, user, service: push, publicKey: pushPublicKey }));
       if (Object.hasOwn(PERSONAL_METHODS, route)) return json(await handlePersonal({ route, body, user, service: personal, clock,
         submitBallot: (payload, commit) => submitWithFreshOdds(user, {
           season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
@@ -249,7 +252,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       const freshEngine = createEngine(refreshed.state, { clock, uuid });
       return json(await marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId));
     } catch (error) {
-      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
+      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError || error instanceof PushError) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
       // Provider payloads and internal errors may contain secrets or private state.
       return json({ error: 'The saved data service is temporarily unavailable. Please try again.' }, 503);
     }
@@ -468,6 +471,19 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           try { message = (await response.json())?.message; } catch { /* Private provider response is never returned. */ }
           if (message === 'GTL_SUBMISSION_ODDS_REQUIRED') throw new SubmissionOddsError('GTL_SUBMISSION_QUOTES_REQUIRED');
           throw providerPersonalError(message);
+        }
+        return response.json();
+      },
+    },
+    // D-28 device subscriptions for web push reminders (service-only table and RPCs).
+    push: {
+      async rpc(name, body) {
+        if (!['gtl_push_status', 'gtl_push_subscribe', 'gtl_push_unsubscribe'].includes(name)) throw new Error('Invalid reminder operation.');
+        const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
+        if (!response.ok) {
+          let message;
+          try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
+          throw providerPushError(message);
         }
         return response.json();
       },

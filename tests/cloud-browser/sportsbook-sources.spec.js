@@ -6,6 +6,7 @@ import { applySportsbookSources } from '../../cloud/sportsbook-sources.mjs';
 import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { pickSpread, expectPick, spreadText } from '../chip-entry.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 // Authenticated frontend integration with synthetic, in-memory source evidence.
 // No hosted account, real provider request, or production write is used here.
@@ -69,7 +70,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected external origin: ${url.origin}`); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected external origin: ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/user') return reply(200, user);
@@ -123,7 +124,7 @@ for (const width of [1440, 320]) test(`dashboard reveals exact sportsbook eviden
   const panel = matchup.getByRole('region', { name: 'Spread sportsbook sources for TB at DAL', exact: true });
   await expect(panel).toBeVisible();
   await expect(panel.getByRole('region', { name: 'Saved scoring consensus', exact: true })).toContainText('DAL −3.5');
-  await expect(panel.getByRole('region', { name: 'Saved scoring consensus', exact: true })).toContainText('Saved for scoring');
+  await expect(panel.getByRole('region', { name: 'Saved scoring consensus', exact: true })).toContainText('Line at your guess');
   await expect(panel.getByRole('region', { name: 'Latest collected consensus', exact: true })).toContainText('DAL −6.5');
   await expect(panel).toContainText('Stale collection');
   const details = panel.locator('.sportsbook-source-details'); await details.locator(':scope > summary').press('Enter');
@@ -149,14 +150,15 @@ for (const width of [1440, 320]) test(`dashboard reveals exact sportsbook eviden
 
 test('unsubmitted Total cannot receive or render the Spread sportsbook projection', async ({ page, sources }) => {
   sources.submit('guess_spread', Object.fromEntries(sources.state.games.map(game => [game.id, -3])), true);
-  await openGame(page); await page.getByRole('button', { name: 'Over/Under', exact: true }).click();
+  await openGame(page); await page.locator('.dashboard-market-tabs').getByRole('button', { name: 'Total', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your ballot comes first', exact: true })).toBeVisible();
   await expect(page.locator('.sportsbook-sources')).toHaveCount(0);
   const hidden = sources.responses.find(view => view.mode === 'guess_total');
   expect(hidden.revealed).toBe(false); expect(hidden.games.every(game => !game.sportsbookSources && !game.currentConsensus && !game.scoringReference)).toBe(true);
 });
 
-for (const code of ['GTL_SUBMISSION_REFRESH_UNAVAILABLE', 'GTL_SUBMISSION_QUOTES_REQUIRED', 'GTL_SUBMISSION_REFRESH_LIMIT', 'GTL_SUBMISSION_REFRESH_COOLDOWN', 'GTL_SUBMISSION_REFRESH_DAILY_LIMIT', 'GTL_SUBMISSION_REFRESH_BUDGET']) test(`failed group submission ${code} preserves full draft and review; manual retry reveals`, async ({ page, sources }) => {
+// October 12, 2026 (D-27): a refresh limit never refuses a save; these are the only coded refusals the server still returns.
+for (const code of ['GTL_SUBMISSION_QUOTES_REQUIRED', 'GTL_SUBMISSION_CHECK_UNAVAILABLE']) test(`failed group submission ${code} preserves full draft and review; manual retry reveals`, async ({ page, sources }) => {
   sources.failure = code; await page.setViewportSize({ width: 390, height: 844 }); await openGame(page); await navigate(page, 'My picks');
   const values = ['-3.5', '2', '-1'], games = sources.state.games;
   for (const [index, game] of games.entries()) await pickSpread(page, `${game.awayCode} at ${game.homeCode} home spread`, values[index]);
@@ -187,10 +189,10 @@ test('Solo quote failure preserves typed guesses and review in the mounted form;
   await page.getByRole('button', { name: 'Review full ballot', exact: true }).click();
   const review = page.getByRole('region', { name: 'Review full ballot', exact: true });
   await review.getByRole('button', { name: 'Submit Spread guesses', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Fresh market references are unavailable'); await expect(review).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('could not be verified'); await expect(review).toBeVisible();
   for (const [index, game] of sources.state.games.entries()) await expect(page.getByLabel(`${game.id} Spread guess`)).toHaveValue(values[index]);
   expect(sources.state.ballots).toEqual({}); expect(sources.committed).toBe(0);
-  await expect(page.getByText('Saved scoring reference:', { exact: false })).toHaveCount(0);
+  await expect(page.locator('.line-at-guess')).toHaveCount(0);
   // Solo retention is in mounted React state, not an account save or tab-recovery guarantee.
   expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.tab-draft.v1.')))).toEqual([]);
   await review.getByRole('button', { name: 'Submit Spread guesses', exact: true }).click();

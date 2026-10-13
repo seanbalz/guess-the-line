@@ -7,7 +7,7 @@ import { buildSlate, weekOpenAt } from '../shared/nfl-schedule.mjs';
 export class CommunityError extends Error {
   constructor(status, message) { super(message); this.name = 'CommunityError'; this.status = status; }
 }
-export const COMMUNITY_METHODS = Object.fromEntries(['read', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open'].map(action => [`/community/${action}`, ['POST']]));
+export const COMMUNITY_METHODS = Object.fromEntries(['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open'].map(action => [`/community/${action}`, ['POST']]));
 const ERRORS = {
   GTL_COMMUNITY_INVALID: [400, 'Check the post and try again.'],
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -49,6 +49,74 @@ function normalize(raw) {
   return { viewer: String(raw.viewer), admin: raw.admin === true, members, week, optOuts, due, submissions, standings, posts, interests, interestCounts };
 }
 
+// History (Sean's October 12, 2026 rulings): every member's guesses for every week and market with the
+// line at each guess and its points: the line saved with the guess (D-16/D-27) or ruled for it (D-25), else
+// the line at the guess resolved when read (basis 'line-at-guess'). The database already withholds another
+// member's guesses, reference values and per-pick points until the D-23 reveal, and returns the last change,
+// the post-submission revision count and the provenance (derived from the private audit and provenance
+// columns) for the viewer's own ballots only; this filter is the second gate for both. A ballot that is not
+// eligible (a practice ballot without an eligible commissioner ruling, D-08) is listed with its guesses and
+// lines but never carries points, whatever the provider returned.
+const HISTORY_STATUSES = ['submitted', 'sat_out', 'draft'];
+const HISTORY_PROVENANCE = ['community-import', 'solo', 'migrated-league', 'group', 'unknown'];
+const HISTORY_ELIGIBILITY = ['standard', 'ruled-eligible', 'ruled-ineligible', 'practice'];
+const REFERENCE_BASES = ['saved', 'commissioner-ruled', 'line-at-guess', 'nearest-snapshot', 'none'];
+// The read-time rule ('newest-at-or-before', 'first-after-submission') or the saved basis (D-27 'line_at_guess',
+// 'first_line_after_submission', D-25 'commissioner-ruled').
+const REFERENCE_RULES = ['newest-at-or-before', 'first-after-submission', 'line_at_guess', 'first_line_after_submission', 'commissioner-ruled'];
+const REFERENCE_ORIGINS = ['hosted-snapshot', 'imported-reference'];
+const RESULT_STATUSES = ['final', 'postponed', 'cancelled'];
+const finite = value => (typeof value === 'number' && Number.isFinite(value) ? value : null);
+const text = value => (value === null || value === undefined ? null : String(value));
+function normalizeReference(raw) {
+  if (!record(raw) || !REFERENCE_BASES.includes(raw.basis)) return null;
+  return { basis: raw.basis, label: text(raw.label) ?? '', status: text(raw.status) ?? '', value: finite(raw.value), source: text(raw.source),
+    sourceUrl: typeof raw.sourceUrl === 'string' && /^https:\/\//.test(raw.sourceUrl) ? raw.sourceUrl : null, snapshotId: text(raw.snapshotId),
+    capturedAt: text(raw.capturedAt), observedAt: text(raw.observedAt), savedAt: text(raw.savedAt), decision: text(raw.decision), reason: text(raw.reason),
+    // Seconds from the line's observation to the guess: positive when observed before it, negative when after (first line after submission).
+    gapSeconds: finite(raw.gapSeconds), detail: text(raw.detail), priorSnapshotAt: text(raw.priorSnapshotAt), nextSnapshotAt: text(raw.nextSnapshotAt),
+    rule: REFERENCE_RULES.includes(raw.rule) ? raw.rule : null, origin: REFERENCE_ORIGINS.includes(raw.origin) ? raw.origin : null,
+    sourceFile: typeof raw.sourceFile === 'string' && /^data\/snapshots\/[A-Za-z0-9._-]+\.json$/.test(raw.sourceFile) ? raw.sourceFile : null,
+    fileSha256: typeof raw.fileSha256 === 'string' && /^[0-9a-f]{64}$/.test(raw.fileSha256) ? raw.fileSha256 : null,
+    bookCount: finite(raw.bookCount), guessedAt: text(raw.guessedAt),
+    // False when the guess instant is the stored submittedAt of a ballot whose original submission time was not recorded.
+    guessedAtKnown: typeof raw.guessedAtKnown === 'boolean' ? raw.guessedAtKnown : null };
+}
+function normalizeHistory(raw, viewer) {
+  if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.weeks)) throw new Error('Invalid community history.');
+  const members = raw.members.map(m => ({ id: String(m.id), displayName: String(m.displayName), removed: m.removed === true }));
+  const weeks = raw.weeks.filter(record).map(w => ({
+    season: Number(w.season), week: Number(w.week), deadline: text(w.deadline), closed: w.closed === true,
+    games: (Array.isArray(w.games) ? w.games : []).filter(record).map(g => ({ id: String(g.id), awayCode: String(g.awayCode), homeCode: String(g.homeCode), away: String(g.away), home: String(g.home), kickoff: text(g.kickoff) })),
+    results: Object.fromEntries(Object.entries(record(w.results) ? w.results : {}).filter(([, r]) => record(r) && RESULT_STATUSES.includes(r.status)).map(([gameId, r]) => [gameId, {
+      status: r.status, home: finite(r.home), away: finite(r.away), source: text(r.source), observedAt: text(r.observedAt), settledAt: text(r.settledAt),
+      origin: r.origin === 'commissioner_reported' ? 'commissioner_reported' : 'settlement' }])),
+    revealed: { guess_spread: w.revealed?.guess_spread === true, guess_total: w.revealed?.guess_total === true },
+    entries: (Array.isArray(w.entries) ? w.entries : []).filter(e => record(e) && MODES.includes(e.mode) && HISTORY_STATUSES.includes(e.status)).map(e => {
+      const hidden = e.picksHidden === true, own = String(e.userId) === viewer, eligible = e.eligible !== false;
+      return { userId: String(e.userId), mode: e.mode, status: e.status, submittedAt: text(e.submittedAt), satOutAt: text(e.satOutAt),
+        // False when the ballot's origin records that its original submission time is unavailable (its picks are compared at the stored time, labelled).
+        submittedAtKnown: e.submittedAtKnown !== false,
+        eligible, eligibility: HISTORY_ELIGIBILITY.includes(e.eligibility) ? e.eligibility : 'standard',
+        // Own-only, hidden or revealed, whatever the provider returned (the gtl_read_weekly_state rule: private provenance and audits stay own-only).
+        updatedAt: own ? text(e.updatedAt) : null, revisions: own ? Math.max(0, Number(e.revisions) || 0) : null,
+        provenance: own && HISTORY_PROVENANCE.includes(e.provenance) ? e.provenance : null,
+        scoringPolicy: e.scoringPolicy === 'submission-time' ? 'submission-time' : null,
+        ruling: record(e.ruling) ? { decision: text(e.ruling.decision) ?? '', basis: text(e.ruling.basis) ?? '' } : null,
+        picksHidden: hidden,
+        // Never pass a hidden ballot's numbers through, whatever the provider returned (the /community/read rule).
+        picks: hidden || !Array.isArray(e.picks) ? null : e.picks.filter(record).map(p => {
+          // An ineligible ballot never scores (D-08), whatever the provider returned.
+          const points = eligible ? finite(p.points) : null;
+          return { gameId: String(p.gameId), guess: finite(p.guess), reference: normalizeReference(p.reference), points, scorable: points !== null };
+        }),
+        weekPoints: eligible ? Number(e.weekPoints) || 0 : 0, weekScored: eligible ? Number(e.weekScored) || 0 : 0, games: Number(e.games) || 0 };
+    }),
+  }));
+  const seasons = (Array.isArray(raw.seasons) ? raw.seasons : []).map(Number).filter(Number.isInteger);
+  return { viewer: String(raw.viewer), season: Number.isInteger(raw.season) ? raw.season : null, now: text(raw.now), seasons, members, weeks };
+}
+
 /**
  * Picks due for the viewer: "not_open" before the week's Monday 00:00 PT open (D-24),
  * "urgent" inside two hours of the deadline, "closed" after it. A sat-out mode is never due (D-23).
@@ -74,6 +142,12 @@ export async function handleCommunity({ route, body = {}, user, service, clock =
     const now = clock();
     const feed = normalize(await service.rpc('gtl_read_community', { p_user: user.id, p_before: body.before ?? null, p_limit: body.limit ?? 30, p_now: new Date(now).toISOString() }));
     return { ...feed, picksDue: picksDue(feed, now) };
+  }
+  if (route === '/community/history') {
+    fields(body, ['season']);
+    if (body.season !== undefined && (!Number.isInteger(body.season) || body.season < 2000 || body.season > 2200)) invalid();
+    const now = clock();
+    return normalizeHistory(await service.rpc('gtl_read_community_history', { p_user: user.id, p_season: body.season ?? null, p_now: new Date(now).toISOString() }), user.id);
   }
   if (route === '/community/week-open') {
     // D-24 scheduler status for the commissioner's Publish panel; reference only, never a credential.

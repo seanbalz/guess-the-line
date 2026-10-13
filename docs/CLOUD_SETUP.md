@@ -2,6 +2,8 @@
 
 Owner: Sean Balsiger · Updated October 12, 2026 · Provisional GTL brand system
 
+**Web push (D-28), not live:** the opt-in reminder 2 hours before picks lock is in the repository, but its migration, `gtl-push-reminders` function, VAPID secrets and cron job wait for Sean; see [WEB_PUSH_SETUP.md](WEB_PUSH_SETUP.md).
+
 **Current release — Pages `06c71c14` / API v15** (October 12, 2026, from `main` at `17c22b5`; see [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md)). **The October 8 release — Pages `2106725d` / API v14:** the frontend and authenticated
 API were deployed with JWT verification enabled. Six migrations add Solo,
 reviewed quote selections, submission-time scoring, reviewed final results,
@@ -135,6 +137,18 @@ is not ready for ordinary player invitations. See
 The Free plan can pause after inactivity and does not include automatic backups;
 use player exports and private owner backups. See
 [plan details](https://supabase.com/pricing). No paid service was activated.
+
+## Google sign-in — code ready, provider not switched on (October 12)
+
+Sean decided on October 12 that Google sign-in is how new players sign up and
+recover access, because the built-in mailer only reaches team addresses. The
+frontend has a **Continue with Google** button above the email form; email
+sign-in is unchanged. Until the Google provider is enabled in the Supabase
+dashboard, the button shows a plain "not switched on yet" message. Sean's
+click-by-click Google Cloud Console and Supabase steps, the redirect allow-list
+check and the post-deploy verification are in
+[GOOGLE_SIGN_IN_SETUP.md](GOOGLE_SIGN_IN_SETUP.md). The client secret is never
+stored in the repository or shared in chat.
 
 ## Historical validation and release evidence
 
@@ -331,9 +345,10 @@ check succeeded at **19:15:08 UTC**, matched all 15 saved events and reported
 public assets or exported picks; provider errors are sanitized. Manual collection is limited to the original
 commissioner, four calls per UTC day, a 15-minute cooldown, a shared expiring lease,
 idempotent request IDs and a 50-credit reserve. No scheduler or polling is active.
-(Six calls and five minutes are proposed by the October 12 migration
-`20261012213000_gtl_submission_odds_window.sql`, pending Sean's ruling and not
-applied hosted; see [DECISIONS.md](DECISIONS.md).)
+(Six calls and five minutes come from the October 12 migration
+`20261012213000_gtl_submission_odds_window.sql`; Sean confirmed them on October 12
+(D-27), and under D-27 these limits only bound spending, never a submission. Applied
+hosted on October 12 as version `20261012235554`; see [DECISIONS.md](DECISIONS.md).)
 
 Validation: **122 backend/SQL tests**, **22 cloud-browser workflows** and **six
 local-browser workflows** passed; the final date-format fix passed **29 targeted

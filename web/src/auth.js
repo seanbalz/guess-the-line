@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import './invitations';
+import './oauth';
 
 const configuredUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
 export const publishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();

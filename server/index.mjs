@@ -10,7 +10,7 @@ const mimeTypes = {'.html':'text/html','.js':'text/javascript','.css':'text/css'
 export function createServer(store = createStore(), { dist = path.resolve(import.meta.dirname, '../dist') } = {}) {
   return http.createServer(async (req,res) => {
     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');
-    res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
     const send = (status,data) => {res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
     try {
       if(!/^(localhost|127\.0\.0\.1):\d+$/.test(req.headers.host || '')) return send(403,{error:'This workspace is only available on localhost.'});
