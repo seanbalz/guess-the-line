@@ -49,6 +49,9 @@ test('radius, spacing, motion and type-scale tokens are exported as CSS variable
     assert.equal(variables['--motion-quick'], `${tokens.motionMs.quick}ms`);
     assert.equal(variables['--motion-standard'], `${tokens.motionMs.standard}ms`);
     // Brand guide scale: hero 40/44, title 28/34, section 20/28, body 16/24, metadata 13/18, stat numeral 36/40.
+    // Sean, October 12: tracked uppercase labels use the 13px metadata size too; no step sits below it.
+    assert.deepEqual(Object.keys(tokens.typeScale).sort(), ['body', 'hero', 'meta', 'section', 'stat', 'title']);
+    assert.equal(variables['--text-label'], undefined);
     for (const [step, size, leading] of [['hero', 40, 44], ['title', 28, 34], ['section', 20, 28], ['body', 16, 24], ['meta', 13, 18], ['stat', 36, 40]]) {
       assert.equal(variables[`--text-${step}`], `${size}px`, step);
       assert.equal(variables[`--leading-${step}`], `${leading}px`, step);

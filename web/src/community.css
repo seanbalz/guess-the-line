@@ -116,3 +116,31 @@
   .picks-due.urgent{border-left-style:double;border-left-width:10px}
   .league-chip.selected{border:3px solid Highlight}
 }
+/* Community history (Sean's October 12 ruling): one player at a time, a panel per week with a section per market. The game rows reuse
+   the comparison table (13px headers) above 720px and the comparison cards below it, so the phone layout costs no new breakpoint. */
+.community-history{display:grid;gap:12px;margin-top:12px}
+.community-history>p{margin:0}
+.history-toolbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:end}
+.history-toolbar label{display:grid;gap:4px;font-size:13px}
+.history-toolbar select{min-height:44px;padding:0 12px}
+.history-toolbar .text-button{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--text);text-decoration:underline;padding:0 4px}
+.history-players{display:flex;flex-wrap:wrap;gap:8px}
+.history-players button{min-height:44px}
+.history-week{padding:16px;display:grid;gap:12px;margin:0}
+.history-week h2{font-size:20px;line-height:28px}
+.history-week>p{margin:0}
+.history-market{display:grid;gap:8px;padding-top:8px;border-top:1px solid var(--border)}
+.history-market h3{font-size:16px;line-height:24px}
+.history-status,.history-state{margin:0;font-size:14px;line-height:1.6}
+.history-points{margin:0;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.history-table table{width:100%;border-collapse:collapse}
+.history-table.comparison-table th,.history-table.comparison-table td{padding:8px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+.history-table.comparison-table td{font-size:16px}
+.history-table.comparison-table th[scope=row] small{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
+.history-table td small,.history-cards dd small{display:block;font-size:12px;line-height:1.5;color:var(--muted);font-weight:400;font-family:inherit;margin-top:2px}
+.history-cards dd{font-size:20px}
+.history-cards article>small{display:block;margin-top:4px;color:var(--muted)}
+.history-informational{color:var(--pending)}
+@media (forced-colors:active){
+  .history-informational{text-decoration:underline;text-underline-offset:3px}
+}

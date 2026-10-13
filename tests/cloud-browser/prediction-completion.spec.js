@@ -154,7 +154,7 @@ test('saved favorite and restored tab edits retain the visible sign during furth
 });
 
 test('quote failure keeps the full review and offers an in-place retry without conflicting refresh instructions', async ({ page, entry }) => {
-  entry.failure = 'GTL_SUBMISSION_REFRESH_LIMIT'; await page.setViewportSize({ width: 320, height: 844 }); await openBallot(page);
+  entry.failure = 'GTL_SUBMISSION_QUOTES_REQUIRED'; await page.setViewportSize({ width: 320, height: 844 }); await openBallot(page);
   for (const [index, value] of ['-3.5', '2', '-1'].entries()) await pickSpread(page, `${entry.state.games[index].awayCode} at ${entry.state.games[index].homeCode} home spread`, value);
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   const review = page.getByRole('dialog', { name: 'Submit your spread ballot?' });

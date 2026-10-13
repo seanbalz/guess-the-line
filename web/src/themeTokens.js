@@ -6,7 +6,7 @@ export function themeVariables(tokens, resolved) {
   for (const [key, value] of Object.entries({ ...tokens.colors, ...tokens.themes[resolved] })) variables[`--${key}`] = value;
   // Fonts: --font-body, --font-display, --font-mono. Several stylesheets use var(--font-mono) without a fallback.
   for (const [key, value] of Object.entries(tokens.fonts)) variables[`--font-${key}`] = value;
-  // Type scale: --text-<step> and --leading-<step> (hero, title, section, body, meta, stat, label).
+  // Type scale: --text-<step> and --leading-<step> (hero, title, section, body, meta, stat).
   for (const [key, { size, lineHeight }] of Object.entries(tokens.typeScale || {})) { variables[`--text-${key}`] = size; variables[`--leading-${key}`] = lineHeight; }
   // Radius: --radius-card, --radius-control.
   for (const [key, value] of Object.entries(tokens.radius)) variables[`--radius-${key}`] = value;

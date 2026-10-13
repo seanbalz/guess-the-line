@@ -26,6 +26,13 @@ const rpcChecks = [
   ['gtl_preflight_submission', { p_user: missingId, p_intent: {} }],
   ['gtl_begin_submission_odds_collection', { p_user: missingId, p_request: missingId, p_intent: {}, p_operation: 'preflight' }],
   ['gtl_finish_submission_odds_collection', { p_user: missingId, p_request: missingId, p_lease: missingId, p_payload: null, p_quota: {}, p_error: null }],
+  // D-27 (20261012230000) line-at-guess helpers and the pending-reference resolver: service-only.
+  ['gtl_line_from_snapshot', { p_payload: {}, p_game: {}, p_market: 'spread' }],
+  ['gtl_pending_reference', { p_saved: null }],
+  ['gtl_reference_at_save', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_saved: null }],
+  ['gtl_resolve_pending_reference', { p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game_id: 'AAA-BBB', p_pending: {} }],
+  ['gtl_resolve_pending_references', { p_season: 2026, p_week: 5 }],
+  ['gtl_odds_schedule_slate', { p_season: 2026, p_week: 5, p_signature: {} }],
   // gtl_guard_fresh_submission returns trigger, so its invoker/grant boundary
   // is checked in fresh-submission-sql.test.mjs, not as a callable REST RPC.
   ['gtl_weekly_context', { p_user: missingId, p_league: missingLeague }],
@@ -56,9 +63,15 @@ const rpcChecks = [
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
   // D-25 commissioner-ruled import: service-only, never callable from a browser role.
   ['gtl_import_ruled_ballot', { p_actor: missingId, p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_picks: {}, p_submitted_at: null, p_ruling: 'boundary check only', p_reference: {} }],
+  // Community history (October 12, 2026 ruling): three service-only readers from 20261012223000_gtl_community_history.sql.
+  // They report `unexpected 404` until that migration is applied to the hosted project.
+  ['gtl_read_community_history', { p_user: missingId, p_season: null, p_now: null }],
+  ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
+  ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
 ];
 const apiChecks = [
   ...['read','create','tail','settle','include','correct','follow'].map(action => [`social/${action}`, {}]),
+  ['community/history', {}],
   ['state?mode=guess_spread', undefined],
   ['lobby', undefined],
   ['profile', { displayName: 'Boundary check' }],
