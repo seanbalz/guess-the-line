@@ -1,6 +1,6 @@
 .chip-picker{display:grid;gap:8px}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.chip{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--canvas);color:var(--text);font-weight:600;font-size:16px}
+.chip{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-control,8px);background:var(--canvas);color:var(--text);font-weight:600;font-size:16px}
 .chip.selected{background:var(--primary);color:var(--primaryText);border-color:var(--primary)}
 .chip .chip-check{vertical-align:-2px;margin-right:4px}
 /* Team chips are sized by their name (flex-basis auto) and share only the spare width, so a long name (Buccaneers, Commanders) keeps its room and the shorter chips give way instead of every chip being cut to a third of the row ("Command…" at 390px). A row that cannot hold all three wraps onto a second line (below about 330px); the ellipsis stays as the last resort for a single chip wider than its row. */
@@ -44,7 +44,7 @@
 .chip-row-keys{position:absolute;top:0;right:0;max-width:calc(100% - 144px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:18px;color:var(--muted);visibility:hidden}
 .chip-numbers:has(:focus-visible) .chip-row-keys{visibility:visible}
 .chip-typed-wrap{display:flex;flex-basis:100%;flex-wrap:wrap;align-items:center;gap:8px}
-.chip-typed{min-height:44px;width:96px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--canvas);color:var(--text);font-size:16px;font-variant-numeric:tabular-nums}
+.chip-typed{min-height:44px;width:96px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-control,8px);background:var(--canvas);color:var(--text);font-size:16px;font-variant-numeric:tabular-nums}
 .chip-typed-hint{font-size:13px;line-height:18px;color:var(--muted)}
 .chip-typed[aria-invalid="true"]{border-color:var(--loss)}
 .chip-typed[aria-invalid="true"]+.chip-typed-hint{color:var(--loss)}

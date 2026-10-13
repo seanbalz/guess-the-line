@@ -10,6 +10,7 @@ test('dashboard, private ballots, persistence, separate games and one immutable 
  await expectPick(page,'TB at DAL home spread','DAL −9.5');
  await page.getByLabel('Local player view').selectOption('troy');
  await expectNoPick(page,'TB at DAL home spread');
+ await expect(page.getByRole('button',{name:/Design lab/})).toHaveCount(0);
  await expect(page.locator('.hidden-value')).toHaveCount(15);
  const response=await page.request.get('/api/state?player=troy&mode=guess_spread');
  expect((await response.json()).games.every(g=>g.market===null&&g.opponents.length===0)).toBeTruthy();
