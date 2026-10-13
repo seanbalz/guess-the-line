@@ -136,6 +136,18 @@ The Free plan can pause after inactivity and does not include automatic backups;
 use player exports and private owner backups. See
 [plan details](https://supabase.com/pricing). No paid service was activated.
 
+## Google sign-in — code ready, provider not switched on (October 12)
+
+Sean decided on October 12 that Google sign-in is how new players sign up and
+recover access, because the built-in mailer only reaches team addresses. The
+frontend has a **Continue with Google** button above the email form; email
+sign-in is unchanged. Until the Google provider is enabled in the Supabase
+dashboard, the button shows a plain "not switched on yet" message. Sean's
+click-by-click Google Cloud Console and Supabase steps, the redirect allow-list
+check and the post-deploy verification are in
+[GOOGLE_SIGN_IN_SETUP.md](GOOGLE_SIGN_IN_SETUP.md). The client secret is never
+stored in the repository or shared in chat.
+
 ## Historical validation and release evidence
 
 October 8: 43 Node engine/API tests passed, six existing browser workflows

@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, LoaderCircle, LockKeyhole, TriangleAlert } from 'lucide-react';
-import { configurationError, passwordRecoveryRequested, supabase } from './auth';
+import { ArrowRight, LoaderCircle, LockKeyhole, LogIn, TriangleAlert } from 'lucide-react';
+import { configurationError, passwordRecoveryRequested, publishableKey, supabase, supabaseUrl } from './auth';
 import ThemeSelector from './Theme';
 import Brand from './Brand';
 import { clearTabDrafts } from './predictionDraft';
 import { clearSoloDrafts } from './soloDraft';
 import { clearCommunityDrafts } from './communityDraft';
 import { pendingInvitation } from './invitations';
+import { oauthReturnError, startGoogleSignIn } from './oauth';
 
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null);
@@ -25,7 +26,8 @@ export default function AuthGate({ children }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [redirecting, setRedirecting] = useState(false);
+  const [error, setError] = useState(oauthReturnError);
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
@@ -99,6 +101,15 @@ export default function AuthGate({ children }) {
     finally { setBusy(false); }
   }
 
+  // Full-page redirect to Google through Supabase Auth. The page stays busy until the browser leaves; the pending invitation
+  // stays in this tab's sessionStorage and is offered again after the return.
+  async function continueWithGoogle() {
+    if (busy || !supabase) return;
+    setBusy(true); setRedirecting(true); setError(''); setNotice('');
+    try { await startGoogleSignIn(supabase, { url: supabaseUrl, key: publishableKey }); }
+    catch (failure) { setError(failure.message); setBusy(false); setRedirecting(false); }
+  }
+
   function changeScreen(signup) { setCreating(signup); setForgotten(false); setError(''); setNotice(''); setPassword(''); }
 
   async function signOut() {
@@ -121,10 +132,15 @@ export default function AuthGate({ children }) {
       {configurationError ? <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{configurationError}</span></div>
         : loading ? <div className="auth-loading" role="status"><LoaderCircle className="spin" size={20}/>Checking your sign-in…</div>
         : <>
-          {!!pendingInvitation() && <p className="auth-notice">Your invitation is saved in this tab. Use the email address that was invited, then accept after signing in.</p>}
+          {!!pendingInvitation() && <p className="auth-notice">Your invitation is saved in this tab. Use the Google account or email address that was invited, then accept after signing in.</p>}
           {!forgotten && !recovering && <div className="auth-tabs" aria-label="Account access"><button type="button" aria-pressed={!creating} onClick={() => changeScreen(false)} disabled={busy}>Sign in</button><button type="button" aria-pressed={creating} onClick={() => changeScreen(true)} disabled={busy}>Create account</button></div>}
           {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
           {notice && <p className="auth-notice" role="status">{notice}</p>}
+          {!forgotten && !recovering && <div className="auth-oauth">
+            <button type="button" className="secondary auth-google" onClick={continueWithGoogle} disabled={busy} aria-describedby="auth-oauth-help">{redirecting ? <><LoaderCircle className="spin" size={18} aria-hidden="true"/>Opening Google…</> : <><LogIn size={18} aria-hidden="true"/>Continue with Google</>}</button>
+            <p className="auth-help" id="auth-oauth-help">{creating ? 'New players can create an account with Google in one step.' : 'Signs in to the same account as an email sign-in with the same verified address.'}</p>
+            <p className="auth-divider"><span>or use email</span></p>
+          </div>}
           <form className="auth-form" onSubmit={submit}>
             {!recovering && <label htmlFor="auth-email">Email<input id="auth-email" name="email" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} disabled={busy}/></label>}
             {!forgotten && <label htmlFor="auth-password">{recovering ? 'New password' : 'Password'}<input id="auth-password" name="password" type="password" autoComplete={creating || recovering ? 'new-password' : 'current-password'} required minLength={creating || recovering ? 8 : undefined} value={password} onChange={event => setPassword(event.target.value)} disabled={busy}/></label>}
