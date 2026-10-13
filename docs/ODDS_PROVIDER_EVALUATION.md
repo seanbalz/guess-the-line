@@ -142,9 +142,9 @@ limited to **six collections per UTC day**, **at least 5 minutes apart** (the
 submission freshness window), at most two credits each, with a **50-credit
 reserve** and a shared database lease. Those two constants come from migration
 `20261012213000_gtl_submission_odds_window.sql`; Sean confirmed them on October 12
-(D-27 in [DECISIONS.md](DECISIONS.md)). They apply to the hosted project once that
-migration is applied; until then the hosted limits are four collections and
-fifteen minutes. Under D-27 they bound spending only: a refused or failed
+(D-27 in [DECISIONS.md](DECISIONS.md)). They are live on the hosted project since October 12
+(hosted version `20261012235554`); before that the hosted limits were four
+collections and fifteen minutes. Under D-27 they bound spending only: a refused or failed
 collection never refuses a submission, which saves the newest stored line.
 It requests DraftKings, FanDuel
 and BetMGM spreads/totals. Exact home/away names and kickoff must match; missing
