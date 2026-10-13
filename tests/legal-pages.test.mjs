@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createServer } from '../server/index.mjs';
 import { createStore } from '../server/store.mjs';
+import { scanFrontend } from '../scripts/check-cloud-boundary.mjs';
 
 // Vite copies web/public verbatim into dist, so these files are exactly what Cloudflare Pages serves at /privacy and /terms.
 const root = path.resolve(import.meta.dirname, '..');
@@ -48,4 +49,25 @@ test('the legal pages are self-contained, accurate on the essentials and use onl
   for (const phrase of ['Supabase', 'Cloudflare', 'Google', 'do not sell', 'Solo journal is private']) assert.ok(privacy.includes(phrase), `privacy mentions ${phrase}`);
   const terms = fs.readFileSync(path.join(pub, 'terms.html'), 'utf8');
   for (const phrase of ['not a sportsbook', 'may be wrong, delayed or missing', 'as is']) assert.ok(terms.includes(phrase), `terms mentions ${phrase}`);
+});
+
+test('the frontend email guard allows a contact address only as a mailto: link on the top-level legal pages', () => {
+  const scan = files => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gtl-legal-scan-'));
+    try {
+      for (const [name, text] of Object.entries(files)) { fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true }); fs.writeFileSync(path.join(dir, name), text); }
+      scanFrontend(dir);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  };
+  const linked = '<a href="mailto:owner@realmail.co">owner@realmail.co</a>';
+  assert.doesNotThrow(() => scan({ 'privacy.html': linked, 'terms.html': linked }));
+  assert.throws(() => scan({ 'privacy.html': 'owner@realmail.co' }), /Non-example email/);
+  assert.throws(() => scan({ 'index.html': linked }), /Non-example email/);
+  assert.throws(() => scan({ 'assets/privacy.html': linked }), /Non-example email/);
+  const built = path.join(os.tmpdir(), `gtl-legal-built-${process.pid}`);
+  fs.mkdirSync(built, { recursive: true });
+  try {
+    for (const name of Object.keys(pages)) fs.copyFileSync(path.join(pub, `${name}.html`), path.join(built, `${name}.html`));
+    assert.doesNotThrow(() => scanFrontend(built), 'the shipped legal pages pass the frontend boundary scan');
+  } finally { fs.rmSync(built, { recursive: true, force: true }); }
 });

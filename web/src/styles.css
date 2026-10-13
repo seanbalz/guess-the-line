@@ -65,4 +65,4 @@
 /* Stage 1 (16px root, 12px label floor): on phones a heading's badge or action wraps under its copy instead of squeezing the copy into a narrow column. */
 @media(max-width:480px){.panel-heading{flex-wrap:wrap}.panel-heading>div:first-child{flex:1 1 220px}}
 /* Privacy and Terms links (static pages /privacy and /terms) on the sign-in card and app footers. */
-.legal-links{display:flex;flex-wrap:wrap;gap:0 16px;font-size:13px}.legal-links a{display:inline-flex;align-items:center;min-height:var(--touch-target,44px);color:var(--cyan);text-decoration:underline;text-underline-offset:3px}.auth-legal{justify-content:center;border-top:1px solid var(--border);margin-top:20px;padding-top:4px}
+.legal-links{display:flex;flex-wrap:wrap;gap:0 16px;font-size:13px}.legal-links a{display:inline-flex;align-items:center;justify-content:center;min-width:var(--touch-target,44px);min-height:var(--touch-target,44px);color:var(--cyan);text-decoration:underline;text-underline-offset:3px}.auth-legal{justify-content:center;border-top:1px solid var(--border);margin-top:20px;padding-top:4px}
