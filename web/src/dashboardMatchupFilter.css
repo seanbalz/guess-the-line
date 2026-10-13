@@ -12,7 +12,7 @@
 .dashboard-matchup-filter fieldset { border: 0; padding: 0; margin: 16px 0; min-width: 0; }
 .dashboard-matchup-filter legend { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
 .dashboard-matchup-modes { display: flex; gap: 12px; }
-.dashboard-matchup-modes label, .dashboard-matchup-choices label { display: flex; gap: 12px; align-items: center; min-height: 48px; border: 1px solid var(--border); border-radius: 8px; background: var(--canvas); padding: 12px; cursor: pointer; min-width: 0; }
+.dashboard-matchup-modes label, .dashboard-matchup-choices label { display: flex; gap: 12px; align-items: center; min-height: 48px; border: 1px solid var(--border); border-radius: var(--radius-control,8px); background: var(--canvas); padding: 12px; cursor: pointer; min-width: 0; }
 .dashboard-matchup-modes label { flex: 1; font-size: 16px; }
 .dashboard-matchup-filter label.is-selected { border-color: var(--primaryForeground,var(--primary)); background: color-mix(in srgb,var(--primary) 4%,var(--surface)); }
 .dashboard-matchup-filter input { appearance: auto; width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--primaryForeground,var(--primary)); }

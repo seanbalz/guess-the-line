@@ -14,6 +14,7 @@ import { providerLobbyError } from '../../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../../cloud/community.mjs';
 import { providerWeeklyError } from '../../../cloud/weekly.mjs';
 import { pacificDate, pacificToUtc, weekOpenAt } from '../../../shared/nfl-schedule.mjs';
+import { isWebfont } from '../../fixtures/webfonts.mjs';
 
 const DAY = 86_400_000;
 /** D-24: a week opens Monday 00:00 PT, so an open fixture week must be the current Pacific week. Deadline 11:59 PM PT today. */
@@ -112,7 +113,7 @@ export const test = base.extend({
           const req = route.request(), url = new URL(req.url());
           if (url.origin === new URL(baseURL).origin) { if (net.delay) await new Promise(r => setTimeout(r, net.delay)); return route.continue(); }
           const reply = (status, body) => route.fulfill({ status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
-          if (url.origin !== SUPABASE) { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
+          if (isWebfont(url)) return route.abort(); if (url.origin !== SUPABASE) { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
           if (url.pathname === '/auth/v1/token') return reply(200, session);
           if (url.pathname === '/auth/v1/user') return reply(200, persona.user);
           if (url.pathname === '/auth/v1/logout') return reply(200, {});
