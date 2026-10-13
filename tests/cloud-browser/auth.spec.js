@@ -6,6 +6,7 @@ import { pickTotal, expectPick, expectNoPick, expectPickEnabled } from '../chip-
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 // All Supabase traffic is intercepted locally. These tests never use real accounts,
 // send confirmation emails, or exercise a deployed Supabase project.
@@ -33,7 +34,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') {
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') {
         league.browserErrors.push(`Unexpected external request: ${url.origin}`);
         return route.abort();
       }

@@ -96,7 +96,7 @@
 .team-matchup .team-matchup__name small,
 .team-matchup__at {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 400;
   line-height: 1.25;
 }

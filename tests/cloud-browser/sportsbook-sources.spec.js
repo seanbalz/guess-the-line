@@ -6,6 +6,7 @@ import { applySportsbookSources } from '../../cloud/sportsbook-sources.mjs';
 import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { pickSpread, expectPick, spreadText } from '../chip-entry.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 // Authenticated frontend integration with synthetic, in-memory source evidence.
 // No hosted account, real provider request, or production write is used here.
@@ -69,7 +70,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected external origin: ${url.origin}`); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected external origin: ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/user') return reply(200, user);
