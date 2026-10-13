@@ -35,7 +35,8 @@ test('trends: off by default, one expander per game, gated by ballot, referee se
   await expect(expander).toBeFocused();
   const panel = page.locator(`#${await expander.getAttribute('aria-controls')}`);
   await expect(panel.getByRole('heading', { name: 'Strongest historical evidence' })).toBeVisible();
-  await expect(panel).toContainText('Applies only if kickoff wind is 10+ mph; no forecast source');
+  // D-34: without a stored forecast (this spec's world has no Open-Meteo provider) the panel keeps the fallback note.
+  await expect(panel).toContainText('Applies only if kickoff wind is 10+ mph; no current forecast for this game');
   await expect(panel).toContainText('Referee not assigned yet.');
   await expect(panel.getByRole('heading', { name: 'Unlocks after your Spread ballot' })).toBeVisible();
   await expect(panel).toContainText('Data: nflverse; schedules maintained by Lee Sharpe (CC BY 4.0), modified');

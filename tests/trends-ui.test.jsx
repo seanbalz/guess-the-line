@@ -9,7 +9,7 @@ import week from '../shared/trends/2026-week-06.json';
 import { bannedCopy } from '../shared/trends.mjs';
 import TrendsView from '../web/src/TrendsView.jsx';
 import { RowCard, Sparkline, TrendCard, TrendTable } from '../web/src/TrendCard.jsx';
-import { parseItem } from '../shared/trends-view.mjs';
+import { WIND_COPY, parseItem } from '../shared/trends-view.mjs';
 import GameTrends, { TrendsExpander } from '../web/src/GameTrends.jsx';
 
 const render = props => renderToStaticMarkup(<TrendsView week={week} level={4} {...props}/>);
@@ -109,7 +109,9 @@ describe('trends panel', () => {
     const at = order.map(label => t.indexOf(label));
     expect(at.every(i => i >= 0)).toBe(true);
     expect([...at].sort((a, b) => a - b)).toEqual(at);
-    expect(t).toContain(week.copy.windConditional);
+    // D-34: the view's wind copy supersedes the frozen week file's "no forecast source" note.
+    expect(t).toContain(WIND_COPY.windConditional);
+    expect(t).not.toContain('no forecast source');
     expect(t).toContain(week.copy.calibration);
     expect(t).toContain('Back HOU ATS');
     expect(t).toContain('International: London (LON00), 09:30 ET');
@@ -162,7 +164,8 @@ describe('trends panel', () => {
   it('dome games carry no wind note, and pending teams wait for the final', () => {
     const t = text(render({ gameId: 'BUF-LV' }));
     expect(t).toContain('Strong wind trends do not apply indoors (dome or closed roof).');
-    expect(t).not.toContain(week.copy.windConditional);
+    expect(t).not.toContain(WIND_COPY.windConditional);
+    expect(t).not.toContain('no forecast source');
     expect(t).toContain('Updates after the final');
     expect(t).toContain('BUF has an earlier game without a final score');
   });

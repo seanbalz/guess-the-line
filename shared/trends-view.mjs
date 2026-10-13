@@ -249,3 +249,148 @@ export function summarizeSpark(series, { bets = null, low = null } = {}) {
   const lowest = low && finite(low.units) ? `; lowest ${fmtUnits(low.units)}${low.season ? ` in ${low.season}` : ''}` : '';
   return `Cumulative units at ${MINUS}110: ${fmtUnits(series.at(-1))}${after}${lowest}`;
 }
+
+// ---------------------------------------------------------------------------
+// Kickoff wind forecast (D-34). Open-Meteo snapshots come from gtl-api /wind/read for signed-in
+// community members; this file only shapes them. Every age and state is computed from an explicit
+// `now` (the server's asOf plus the time since the response arrived), never from a clock read here.
+// The frozen week file and registry still say "no forecast source"; WIND_COPY and WIND_CARD_NOTES
+// supersede those strings on screen only, so no artifact (and no registry sha256) changes.
+// ---------------------------------------------------------------------------
+// The same strings as cloud/wind.mjs WIND_ATTRIBUTION (a test keeps them equal).
+export const WIND_CREDIT = 'Weather data by Open-Meteo.com';
+export const WIND_SOURCE_URL = 'https://open-meteo.com/';
+export const WIND_LICENSE = 'CC BY 4.0';
+export const WIND_LICENSE_URL = TRENDS_LICENSE_URL;
+export const WIND_CHANGES = 'Kickoff-hour values selected by GTL; wind direction shown as compass points';
+/** Refresh tiers by lead; the same numbers as cloud/wind.mjs and the SQL (a test keeps them equal). */
+export const WIND_TIERS = Object.freeze([
+  Object.freeze({ maxLeadH: 18, ttlMin: 60 }), Object.freeze({ maxLeadH: 72, ttlMin: 180 }), Object.freeze({ maxLeadH: 120, ttlMin: 360 }),
+]);
+export const WIND_HORIZON_H = 120;
+/** A final pre-kickoff forecast must be at most this old at kickoff: twice the 1 h TTL, the same rule as the last hour before kickoff. */
+export const WIND_FINAL_MAX_MS = 2 * 60 * 60_000;
+export const WIND_CARD = 'total|g:g_wind10';
+export const WIND15_CARD = 'total|g:g_wind15';
+export const WIND_COPY = Object.freeze({
+  evidence: 'In out-of-sample testing (2018-2025) only one trend beat chance: strong wind at kickoff (10+ mph) went Under, on played games. Its record uses observed kickoff wind. Signed-in community members see an Open-Meteo kickoff wind forecast for upcoming outdoor games, but using the record with a forecast has not been backtested.',
+  windConditional: 'Applies only if kickoff wind is 10+ mph; no current forecast for this game',
+  wind15Conditional: 'Applies only if kickoff wind is 15+ mph; no current forecast for this game',
+  weatherConditional: 'Applies only to observed kickoff weather',
+  windShown: 'Applies only if kickoff wind is 10+ mph; see the kickoff wind forecast above',
+  wind15Shown: 'Applies only if kickoff wind is 15+ mph; see the kickoff wind forecast above',
+  stale: 'The last forecast is out of date.',
+  later: 'The kickoff forecast appears 5 days before kickoff.',
+  loading: 'Loading kickoff forecast…',
+  indoor: 'Strong wind trends do not apply indoors (dome or closed roof).',
+});
+/** Displayed card notes that supersede the frozen registry note; the registry itself is untouched. */
+export const WIND_CARD_NOTES = Object.freeze({
+  [WIND_CARD]: 'Observed kickoff wind. For upcoming outdoor games, signed-in community members see an Open-Meteo kickoff forecast beside this card (D-34); the record has not been tested on forecast wind.',
+});
+export const cardNote = card => (card ? WIND_CARD_NOTES[card.id] ?? card.note ?? null : null);
+/** The conditional summary for a wind card: the week file's note unless the view overrides it. */
+export function windNote(week, note, shown = false) {
+  if (shown && note === 'windConditional') return WIND_COPY.windShown;
+  if (shown && note === 'wind15Conditional') return WIND_COPY.wind15Shown;
+  return WIND_COPY[note] ?? week?.copy?.[note] ?? note;
+}
+
+const HOUR_MS = 3_600_000;
+/** TTL in minutes for a lead in ms, or null at or after kickoff and beyond 120 h. */
+export function windTtl(leadMs) {
+  if (!finite(leadMs) || leadMs <= 0) return null;
+  return WIND_TIERS.find(tier => leadMs <= tier.maxLeadH * HOUR_MS)?.ttlMin ?? null;
+}
+/** The effective server time: the response's asOf plus the time since it arrived on this device. */
+export function windClock(asOf, receivedAt, nowMs) {
+  const base = typeof asOf === 'string' ? Date.parse(asOf) : NaN;
+  return Number.isFinite(base) && finite(receivedAt) && finite(nowMs) ? base + Math.max(0, nowMs - receivedAt) : null;
+}
+const POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+/** Meteorological direction (where the wind comes from) as one of 16 compass points: 247° is WSW. */
+export const compass = deg => (finite(deg) && deg >= 0 && deg <= 360 ? POINTS[Math.round(deg / 22.5) % 16] : null);
+/** "less than a minute", "12 min", "5 h", "3 days". */
+export function fmtAge(ms) {
+  if (!finite(ms) || ms < 0) return '—';
+  if (ms < 60_000) return 'less than a minute';
+  if (ms < HOUR_MS) return `${Math.floor(ms / 60_000)} min`;
+  if (ms < 48 * HOUR_MS) return `${Math.floor(ms / HOUR_MS)} h`;
+  return `${Math.floor(ms / (24 * HOUR_MS))} days`;
+}
+const etParts = (iso, options) => {
+  const ms = typeof iso === 'string' ? Date.parse(iso) : NaN;
+  return Number.isFinite(ms) ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', ...options }).format(ms) : null;
+};
+/** "8 PM" (Eastern, like the panel's kickoffEt). */
+export const etHour = iso => etParts(iso, { hour: 'numeric', hour12: true })?.replace(/\s/g, ' ') ?? null;
+/** "8:15 PM" (Eastern). */
+export const etTime = iso => etParts(iso, { hour: 'numeric', minute: '2-digit', hour12: true })?.replace(/\s/g, ' ') ?? null;
+/** The band from the unrounded source value, so the shown number and the threshold test never disagree. */
+export function windBand(mph) {
+  if (!finite(mph)) return null;
+  const band = mph >= 15 ? '15+' : mph >= 10 ? '10-14' : 'below';
+  return { band, wind10: mph >= 10, wind15: mph >= 15, close: Math.abs(mph - 10) < 3 || Math.abs(mph - 15) < 3 };
+}
+/** Confidence label from a snapshot's lead (kickoff minus when it was made). */
+export function windConfidence(leadMs) {
+  if (!finite(leadMs)) return null;
+  if (leadMs <= 18 * HOUR_MS) return 'Short range: high-resolution model updated hourly';
+  if (leadMs <= 48 * HOUR_MS) return 'Next-day guidance';
+  if (leadMs <= 72 * HOUR_MS) return 'Trend indicator only (2 to 3 days out)';
+  return 'Early outlook, low confidence (3 to 5 days out)';
+}
+const validWind = w => !!w && typeof w === 'object' && finite(w.windMph) && Number.isFinite(Date.parse(w.fetchedAt)) && Number.isFinite(Date.parse(w.forecastHour));
+
+/**
+ * What the panel shows for one game's kickoff wind:
+ * - loading: the read is in flight;
+ * - indoor: dome, closed roof or canopy (no fetch, no numbers, no credit);
+ * - forecast: a pre-kickoff snapshot no older than twice the TTL for the current lead;
+ * - final: after kickoff, the last pre-kickoff snapshot if it was made within 2 h of kickoff;
+ * - not_yet: more than 120 h before kickoff;
+ * - none: missing, stale, invalid or unavailable (reason 'stale' or 'unavailable').
+ */
+export function windView({ game, entry = null, now = null, loading = false }) {
+  const type = entry?.venue?.type ?? game?.flags?.stadium?.type ?? null;
+  const roof = game?.flags?.roof;
+  if (roof === 'dome' || roof === 'closed' || type === 'dome' || type === 'canopy' || entry?.status === 'indoor') return { state: 'indoor' };
+  if (!entry || !finite(now)) return loading ? { state: 'loading' } : { state: 'none', reason: 'unavailable' };
+  const kickoff = Date.parse(entry.kickoff ?? game?.kickoff);
+  if (!Number.isFinite(kickoff)) return { state: 'none', reason: 'unavailable' };
+  const lead = kickoff - now, wind = validWind(entry.wind) ? entry.wind : null;
+  if (lead > WIND_HORIZON_H * HOUR_MS) return { state: 'not_yet' };
+  if (!wind) return { state: 'none', reason: 'unavailable' };
+  const fetched = Date.parse(wind.fetchedAt), made = kickoff - fetched;
+  if (made <= 0) return { state: 'none', reason: 'unavailable' };
+  let state;
+  if (lead > 0) state = Math.max(0, now - fetched) <= 2 * windTtl(lead) * 60_000 ? 'forecast' : null;
+  else state = made <= WIND_FINAL_MAX_MS ? 'final' : null;
+  if (!state) return { state: 'none', reason: 'stale' };
+  const venue = entry.venue || null, band = windBand(wind.windMph);
+  return {
+    state, wind, venue, kickoff: new Date(kickoff).toISOString(), band, close: band.close,
+    age: Math.max(0, now - fetched), made, confidence: windConfidence(made),
+    retractable: type === 'retractable', international: !!venue && venue.country !== 'USA', early: made > 72 * HOUR_MS,
+  };
+}
+
+/**
+ * When an open panel should ask the server again (ms since epoch), or null: the earliest of a game
+ * entering the 120 h window, a snapshot's age crossing the TTL for its lead, and kickoff. A game
+ * within the window with no snapshot is retried after its TTL. Never sooner than a minute from now.
+ */
+export function nextWindRefresh(data, now) {
+  if (!data || typeof data !== 'object' || !finite(now) || !data.games || typeof data.games !== 'object') return null;
+  let next = Infinity;
+  for (const entry of Object.values(data.games)) {
+    if (!entry || entry.status === 'indoor' || entry.status === 'unknown_venue') continue;
+    const kickoff = Date.parse(entry.kickoff);
+    if (!Number.isFinite(kickoff) || kickoff <= now) continue;
+    const lead = kickoff - now, ttl = windTtl(lead);
+    if (ttl === null) { next = Math.min(next, kickoff - WIND_HORIZON_H * HOUR_MS); continue; }
+    const fetched = validWind(entry.wind) ? Date.parse(entry.wind.fetchedAt) : NaN;
+    next = Math.min(next, kickoff, Number.isFinite(fetched) ? fetched + ttl * 60_000 : now + ttl * 60_000);
+  }
+  return Number.isFinite(next) ? Math.max(next, now + 60_000) : null;
+}

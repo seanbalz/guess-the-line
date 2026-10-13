@@ -12,7 +12,7 @@ The panel answers both:
 
 - **Quality first.** Every trend is a frozen preset (at most two filters) from a registry tested on 1,722 hypotheses. Each preset has an out-of-sample quality score, and the panel shows tiers in score order, never sorted by ROI, win rate, streak or last 10.
 - **Sean's families are always there,** as clearly labelled context with "No proven edge".
-- **Honest evidence.** Only one trend beat chance out of sample (2018–2025): strong wind at kickoff (10+ mph) went Under. It needs observed wind, and no free forecast source is approved, so on an upcoming game it appears only as a collapsed note: "Applies only if kickoff wind is 10+ mph; no forecast source".
+- **Honest evidence.** Only one trend beat chance out of sample (2018–2025): strong wind at kickoff (10+ mph) went Under. Its record uses observed kickoff wind. Since D-34, signed-in community members see an Open-Meteo kickoff wind forecast for upcoming outdoor games above the card; using the record with a forecast has **not been backtested**, and the panel says so. Without a current forecast the card stays a collapsed note: "Applies only if kickoff wind is 10+ mph; no current forecast for this game". See [Kickoff wind forecast](#kickoff-wind-forecast-d-34).
 
 ## Where it shows
 
@@ -29,7 +29,7 @@ Every **Trends** button is a disclosure (`aria-expanded`, `aria-controls`) named
 ## Panel contents, in order
 
 1. **Intro**: "Past results against nflverse lines. Reference only…" and the one-line evidence summary.
-2. **Strongest historical evidence**: the Tier 1 wind card, collapsed behind its condition on outdoor, open-roof or unknown-roof games; "Strong wind trends do not apply indoors" for domes.
+2. **Strongest historical evidence**: the kickoff wind forecast (D-34) for outdoor and retractable-roof games, then the Tier 1 wind card, collapsed behind its condition; "Strong wind trends do not apply indoors" for domes.
 3. **Consistent, not proven** (Tier 2): up to three cards that fit this game, de-duplicated, with conflicts flagged ("Conflicting trends") and same-side overlaps noted ("not independent confirmations"). The calibration note says the Tier 2 gate passes about as many trends on shuffled outcomes (13.3) as on real data (12).
 4. **Updates after the final**: when a team's previous game has no final yet (Week 6: BUF and LAR until the 2026_05_BUF_LA final).
 5. **Watch list** cards that fit.
@@ -90,6 +90,43 @@ No free, licensed feed publishes referee assignments before games; the schedule 
   - `/officials/set { season, week, gameId, referee | null }` → `{ …, changed }`. Commissioner only: the handler checks `gtl_community_admin` before the write, then the RPC checks again. Names are canonicalized through the referee alias table (`shared/referees.mjs`, kept equal to `shared/trends-corrections.json`), so "Ronald Torbert" is stored as "Ron Torbert".
 - Until the migration is applied and gtl-api is deployed, the routes answer 404. The commissioner panel then says that saving needs the next deploy, and panels fall back to the week file.
 
+## Kickoff wind forecast (D-34)
+
+Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.md#d-34--kickoff-wind-forecast-from-open-meteo-october-13-2026)).
+
+**Where it shows.** Everywhere the trends panel mounts (Community Picks, the group ballot and the dashboard game detail), at the top of "Strongest historical evidence", for outdoor and retractable-roof games. It loads only when a signed-in community member opens a game's trends, so reads (and refreshes) happen only on use.
+
+**States.**
+
+| State | When | Shows |
+|---|---|---|
+| Forecast | A snapshot made before kickoff and no older than twice the TTL for the current lead | Stadium, sustained wind at kickoff with compass direction, gusts in the kickoff hour, temperature, precipitation chance, the time line (forecast hour, kickoff, age, how far ahead it was made, a confidence label), the band sentence, notes, the honesty note, the model line and the credit |
+| Final | After kickoff, the last snapshot if it was made within 2 h of kickoff (twice the 1 h TTL, the same rule as just before kickoff) | The same, titled "Final pre-kickoff forecast (fetched N min before kickoff)"; never called observed |
+| Not yet | More than 120 h before kickoff | "The kickoff forecast appears 5 days before kickoff." No numbers, no credit |
+| Fallback | No snapshot, a stale one, or no access (signed out, local mode, not a member, or not deployed) | The Tier 1 note "Applies only if kickoff wind is 10+ mph; no current forecast for this game", plus "The last forecast is out of date." for a stale one |
+| Retractable | A retractable roof | The forecast plus "Retractable roof: the wind matters only if the roof is open, which is decided on game day." |
+| Indoor | A dome, closed roof or canopy | Unchanged: "Strong wind trends do not apply indoors (dome or closed roof)." No request, numbers or credit |
+| Loading | The first read is in flight | "Loading kickoff forecast…" |
+
+**Lead tiers.** Refresh TTL 6 h at 72–120 h, 3 h at 18–72 h, 1 h within 18 h (the hourly HRRR runs); never at or after kickoff. Confidence labels by how far ahead a snapshot was made: within 18 h "Short range: high-resolution model updated hourly", within 48 h "Next-day guidance", within 72 h "Trend indicator only (2 to 3 days out)", within 120 h "Early outlook, low confidence (3 to 5 days out)". An open panel re-renders every minute from the server's `asOf` plus the time since the answer arrived (never the device's own date), asks again when an age crosses its TTL, at kickoff, when a game enters the 120 h window and when the tab becomes visible, so a stale forecast never stays on screen as fresh.
+
+**Which hour.** Sustained wind, direction and temperature come from the model hour nearest kickoff (kickoffs fall on :00 to :30, so at most 30 minutes away; a :30 kickoff takes the later hour). Gusts, precipitation and precipitation chance come from the hour after kickoff's clock hour, because Open-Meteo reports those over the preceding hour. The trend's input, nflverse `wind`, is a single kickoff reading, so GTL does not interpolate: the stored number is an exact Open-Meteo value, and the band test uses it unrounded (10.0 and 15.0 mph).
+
+**Bands.** "10–14 mph band: if this holds, the Strong wind (10+ mph) Under card would fit this game; the Very strong wind (15+ mph) card would not." "15+ mph band: if this holds, both wind cards would fit." "Below 10 mph: neither wind card would fit if this holds." Within 3 mph of 10 or 15: "Within 3 mph of a threshold. Forecasts this far out often miss by more than that." The cards keep their Tier 1 and Tier 2 places; a forecast never relabels them as firing.
+
+**Attribution.** "Weather data by Open-Meteo.com" (<https://open-meteo.com/>) · CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>) · "Kickoff-hour values selected by GTL; wind direction shown as compass points", on the wind card and in the trends footer whenever forecast data is shown. Collapsed summaries say only "see the kickoff wind forecast above" and never carry values or links (a link inside `<summary>` fails axe's nested-interactive rule and cannot sit next to data that is collapsed).
+
+**Not backtested.** The 10+ mph Under record was measured with observed kickoff wind. The honesty note, shown with every forecast, cites the file's own record label (Results 2018-2025 (period used to select this card): 282-196-5), the full history (898-730-22) and this season, says using it with a forecast has not been backtested, and that open-ground grid wind can differ from what reaches the field. Plan: from an environment with egress, compare Open-Meteo Previous Runs forecasts (T-24 h and T-48 h, archived since January 2024) with 2024–2025 observed wind and re-run the walk-forward split on forecast-qualified games.
+
+**Budget and single flight.** One multi-location GET per refresh (at most 16 locations; a shared stadium is sent once; Week 6 is 12 locations), one Open-Meteo call per location. `gtl_begin_wind_fetch` serializes every start under one advisory lock, refuses while a 20 s lease is live (`busy`), spaces starts 60 s apart (`cooldown`), backs off 15 minutes after a failure, 60 minutes after two in a row or an hourly rate limit, and until 00:00 UTC after the daily limit (`backoff`), re-checks which games are still due (`not_due`) and caps the UTC day at 200 calls (`budget`, trimming a request to what is left, nearest kickoff first). Readers who are refused are served what is stored, with its age. A request that dies mid-fetch costs its calls and backs off 15 minutes.
+
+**Superseded copy.** The frozen registry note and the week file's `windConditional`, `wind15Conditional`, `weatherConditional` and `evidence` strings still say "no forecast source". `shared/trends-view.mjs` (`WIND_COPY`, `WIND_CARD_NOTES`) supersedes them on screen only, so the registry sha256 and the week file are unchanged; the next registry carries the new note.
+
+**Hosted pieces (written, not applied or deployed).**
+
+- Route `POST /wind/read { season, week }` in `cloud/wind.mjs`, with the Open-Meteo adapter in `cloud/open-meteo.mjs` and the stadium mirror in `shared/wind-venues.mjs`.
+- Migration `supabase/migrations/20261013020000_gtl_wind_forecasts.sql`: tables `gtl_wind_fetches` (attempts, leases and the budget log; no member id), `gtl_wind_fetch_outcomes` and `gtl_wind_forecasts`, all insert-only and service-role only behind RLS; RPCs `gtl_read_wind_forecasts`, `gtl_begin_wind_fetch` and `gtl_finish_wind_fetch`, security invoker with an empty search path, executable by service_role only.
+
 ## Data and attribution
 
 - Source: the nflverse-data schedules release, <https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv>, licensed CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>).
@@ -98,6 +135,7 @@ No free, licensed feed publishes referee assignments before games; the schedule 
 - Caveat: NFL data belongs to its respective owners. The CC BY license does not extend to upstream rights such as the odds columns, whose book is not documented.
 - Line source label: "nflverse schedule file: last recorded line (book not documented)". ROI from the file's odds is computed but not shown until Sean approves records derived from odds with an undocumented book.
 - Only public game facts and derived aggregates ship in static assets. No player or user data enters the generator or the week files.
+- Kickoff wind forecast (D-34): "Weather data by Open-Meteo.com" (<https://open-meteo.com/>), API data under CC BY 4.0, with an attribution link next to every place it is shown. Changes: "Kickoff-hour values selected by GTL; wind direction shown as compass points". The free API is for non-commercial use under 10,000 calls a day, 5,000 an hour and 600 a minute; GTL caps itself at 200 a day. Forecasts are fetched by the hosted service only and never enter static assets.
 
 ## Weekly operator step
 
@@ -117,10 +155,11 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
   - a `gtl-api` deploy.
 - The frontend falls back cleanly, so the two can ship in either order.
 - After both are live, run `node scripts/check-cloud-boundary.mjs --strict` (every probe must deny, none awaiting deploy), then remove the four `awaitingDeploy` entries in the change that records the hosted migration version.
+- **Kickoff wind forecast (D-34): not deployed.** It needs migration `20261013020000_gtl_wind_forecasts.sql` applied to the hosted project (with Sean's go; never `db push`), a `gtl-api` deploy and a Pages deploy, in either order. Until then `check:cloud` lists the three wind RPCs and `/wind/read` as awaiting deploy for the same reason as the referee pieces (both builds fall back cleanly); after both, run `--strict`, remove the four wind entries, add the three wind tables to the table probes, and run the hosted reachability check in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state).
 
 ## Limits
 
-- No forecast weather: observed-weather trends apply to played games only.
+- Forecast wind only, at the kickoff hour, for outdoor and retractable venues; temperature, precipitation and other weather trends still need observed data; using the wind record with a forecast is not backtested.
 - No opening lines or line movement.
 - Tier 2 is "not proven" as a group.
 - Starting quarterbacks for upcoming games are nflverse's expected starters (provisional).
@@ -151,6 +190,13 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
   - the copy guard across all 14 games.
 - `tests/officials-cloud.test.mjs`: the route with an in-memory store, including the non-commissioner refusal before any write.
 - `tests/officials-sql.test.mjs`: the migration on PGlite (grants, RLS, invoker functions, refusals, revisions, history, audit, member reads).
+- Kickoff wind forecast (D-34):
+  - `tests/open-meteo.test.mjs`: the recorded fixtures and the schema-exact builder (`tests/fixtures/open-meteo/`), strict validation and unit traps, every error code, transport limits, the exact request URL and fetch options, and kickoff-hour selection for every Week 6 kickoff, Melbourne, both DST changes and three process time zones.
+  - `tests/wind-venues.test.mjs`: the stadium mirror against the venue table, the 2026 season file and every week file.
+  - `tests/wind-cloud.test.mjs`: the route through the handler (planner tiers, one request for concurrent reads, failures as 200s with stored data, Monday night after the next week opens, refusals, no private keys, the adapter's headers).
+  - `tests/wind-sql.test.mjs`: the migration on PGlite (grants, RLS, insert-only, single flight, spacing, backoff, the daily cap with trimming, row checks, replay, time zones, isolation from scoring tables, the route end to end).
+  - `tests/wind-ui.test.jsx`: every state, the credit next to every value, the honesty note from the file, and fake timers moving an open panel from forecast to out of date and to final.
+  - `tests/cloud-browser/wind.spec.js`: a member's panel with one Open-Meteo stand-in request for every panel and member, axe, a dome and a retractable roof, and a failed request. Run locally through a Playwright wrapper on ports 5398 (cloud) and 8990 (local), with its own output directories.
 - `tests/cloud-browser/trends.spec.js`:
   - the toggle and expander,
   - axe on the open panel,

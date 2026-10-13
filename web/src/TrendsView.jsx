@@ -1,9 +1,10 @@
 import React, { useId, useState } from 'react';
 import {
-  TRENDS_CREDIT, TRENDS_LICENSE_URL, TRENDS_SOURCE_URL, appSpreadToNflverse, familyTitle, fmtNumber, gateOpen, itemApplies, itemTitle,
-  lineAtoms, parseItem, refereeFor, refereeRows,
+  TRENDS_CREDIT, TRENDS_LICENSE_URL, TRENDS_SOURCE_URL, WIND_COPY, appSpreadToNflverse, familyTitle, fmtNumber, gateOpen, itemApplies, itemTitle,
+  lineAtoms, parseItem, refereeFor, refereeRows, windNote, windView,
 } from '../../shared/trends-view.mjs';
 import { Heading, RowCard, TrendCard, TrendTable } from './TrendCard.jsx';
+import WindForecast, { WindCredit } from './WindForecast.jsx';
 import './trends.css';
 
 const finite = value => typeof value === 'number' && Number.isFinite(value);
@@ -79,7 +80,7 @@ function ContextFamily({ week, entry, level }) {
   const leads = [entry.lead?.ats, entry.lead?.ou].filter(Boolean).map(parseItem);
   const more = (entry.more || []).map(parseItem);
   const notes = [entry.unlocks?.length ? `More records unlock after your ${entry.unlocks.map(g => (g === 'both' ? 'Spread and Total' : MARKET[g])).join(' and ')} ballot.` : null,
-    entry.playedOnly ? `${week.copy.weatherConditional}.` : null, entry.pending ? 'Some records update after the final.' : null,
+    entry.playedOnly ? `${WIND_COPY.weatherConditional}.` : null, entry.pending ? 'Some records update after the final.' : null,
     entry.roofConditional ? `${week.copy.roofConditional}.` : null, entry.provisional ? week.copy.qbProvisional : null].filter(Boolean);
   return <Section title={familyTitle(week, entry.family)} level={level} className="trends-family">
     {notes.map(note => <p className="trend-note" key={note}>{note}</p>)}
@@ -110,9 +111,11 @@ function Entities({ week, game, level }) {
  * consistent-not-proven cards, the watch list, the referee, Sean's families as context, the teams,
  * then the line-dependent records behind the matching ballot. Reference only; nothing here changes
  * GTL scoring. `saved` is the viewer's own saved line per market in app convention, used only for a
- * market whose ballot is already submitted, sat out or closed.
+ * market whose ballot is already submitted, sat out or closed. `wind` is the gtl-api /wind/read answer
+ * (D-34) or null, and `windNow` the effective server time for its ages (asOf plus the time since it
+ * arrived); without them an outdoor game keeps the "no current forecast" note.
  */
-export default function TrendsView({ week, gameId, access = {}, saved = {}, savedLabel = 'your saved line', officials = null, level = 4 }) {
+export default function TrendsView({ week, gameId, access = {}, saved = {}, savedLabel = 'your saved line', officials = null, wind = null, windNow = null, windLoading = false, level = 4 }) {
   const game = week?.games?.find(g => g.id === gameId);
   if (!game) return <p className="trends-empty" role="status">No trends for this game in the Week {week?.week} trends file.</p>;
   const lines = { spread: access.spread ? appSpreadToNflverse(saved.spread) : null, total: access.total && finite(saved.total) ? saved.total : null };
@@ -121,20 +124,26 @@ export default function TrendsView({ week, gameId, access = {}, saved = {}, save
   const cardOf = id => week.cards?.[id];
   const evidence = (game.conditional || []).filter(c => cardOf(c.card)?.tier === 1), otherConditional = (game.conditional || []).filter(c => cardOf(c.card) && cardOf(c.card).tier !== 1);
   const indoor = game.flags?.roof === 'dome' || game.flags?.roof === 'closed';
+  const forecast = windView({ game, entry: wind?.games?.[game.id] ?? null, now: windNow, loading: windLoading });
+  const forecastShown = forecast.state === 'forecast' || forecast.state === 'final';
+  const windText = note => windNote(week, note, forecastShown);
   const families = (game.context || []).filter(entry => entry.family !== 'referee');
   const sub = level + 1;
   return <div className="trends-panel">
     <p className="trends-intro">{week.copy.reference}</p>
-    <p className="trends-intro muted">{week.copy.evidence}</p>
+    <p className="trends-intro muted">{WIND_COPY.evidence}</p>
     <Section title="Strongest historical evidence" level={level} className="trends-evidence">
-      {evidence.map(c => <details className="trend-conditional" key={c.card}><summary><strong>{cardOf(c.card).title}: {cardOf(c.card).sideLabel}</strong> <span>{week.copy[c.note] || week.copy.weatherConditional}</span></summary>
+      {evidence.length > 0 && forecast.state === 'loading' && <p className="trend-note">{WIND_COPY.loading}</p>}
+      {evidence.length > 0 && <WindForecast view={forecast} week={week} level={sub}/>}
+      {evidence.map(c => <details className="trend-conditional" key={c.card}><summary><strong>{cardOf(c.card).title}: {cardOf(c.card).sideLabel}</strong> <span>{windText(c.note) || WIND_COPY.weatherConditional}</span></summary>
         <TrendCard week={week} card={cardOf(c.card)} level={sub}/></details>)}
-      {!evidence.length && <p className="trend-note">{indoor ? 'Strong wind trends do not apply indoors (dome or closed roof).' : 'No evidence-tier trend fits this game.'}</p>}
+      {evidence.length > 0 && forecast.state === 'none' && forecast.reason === 'stale' && <p className="trend-note">{WIND_COPY.stale}</p>}
+      {!evidence.length && <p className="trend-note">{indoor ? WIND_COPY.indoor : 'No evidence-tier trend fits this game.'}</p>}
     </Section>
     {(game.tier2?.length > 0 || otherConditional.length > 0) && <Section title="Consistent, not proven" level={level} className="trends-tier2">
       <p className="trend-note">{week.copy.calibration}</p>
       <div className="trend-card-grid">{game.tier2.map(item => cardOf(item.card) && <TrendCard key={`${item.card}@${item.team || ''}`} week={week} card={cardOf(item.card)} item={item} level={sub}/>)}</div>
-      {otherConditional.map(c => <details className="trend-conditional" key={`${c.card}@${c.team || ''}`}><summary><strong>{cardOf(c.card).title}{c.team ? ` · ${c.team}` : ''}</strong> <span>{week.copy[c.note] || c.note}</span></summary>
+      {otherConditional.map(c => <details className="trend-conditional" key={`${c.card}@${c.team || ''}`}><summary><strong>{cardOf(c.card).title}{c.team ? ` · ${c.team}` : ''}</strong> <span>{windText(c.note)}</span></summary>
         <TrendCard week={week} card={cardOf(c.card)} item={{ team: c.team }} level={sub}/></details>)}
     </Section>}
     {(game.pending?.length > 0 || game.pendingCards?.length > 0) && <Section title="Updates after the final" level={level} className="trends-pending">
@@ -155,6 +164,7 @@ export default function TrendsView({ week, gameId, access = {}, saved = {}, save
     <footer className="trends-source">
       <p><a href={TRENDS_SOURCE_URL} target="_blank" rel="noreferrer">{TRENDS_CREDIT}</a> · <a href={TRENDS_LICENSE_URL} target="_blank" rel="noreferrer">License: CC BY 4.0</a>. {week.source?.caveat}</p>
       <p>{week.copy.lineSource}. Results through {week.asOf}; trends registered {week.registry?.registeredAt}. Trends never change GTL scoring.</p>
+      {forecastShown && <WindCredit compact/>}
     </footer>
   </div>;
 }
