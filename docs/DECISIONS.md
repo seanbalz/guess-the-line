@@ -1,5 +1,28 @@
 # Decision log
 
+## D-36 — Redesign rulings: real slips, boards, line lock, visibility (October 13, 2026)
+
+Sean answered these one at a time in the cloud session after the D-35 prototype spec raised them. Quotes are verbatim where Sean typed his own answer.
+
+| Question | Ruling |
+|---|---|
+| Shared real-money Bet Tracker | A **Real slips** section inside Bets, next to Place bets and My bets. Friends keep posting, tailing and following real slips there as today. It is kept apart from Virtual Units, never counts in any leaderboard, and GTL never moves money. |
+| Real slips in the feed | **Yes, as today**: posting or settling a real slip makes a feed post friends can react to, comment on and tail, marked "Real slip". |
+| Guess the Line board | **Two sub-tabs, Spread and Total**, each ranked on its own; the points are never combined (the existing rule). The Community board's hidden Spread + Total sort is a display defect to fix. |
+| Ties on a Guess the Line board | **Share the rank** (T-2). The old tiebreakers (total miss, then exact guesses) show as context on tap. |
+| Line lock | Sean: "Hide until you guess, or there’s a button that you confirm you are skipping this weeks guess the line and then it will show". A game's spread or total line stays hidden in Bets, Lines and challenges until the player submits that market's guesses, or confirms a skip of that week's Guess the Line (a D-23 sit-out, final for the week), after which the lines show. |
+| Late picks and the late window | Sean: "Picks are allowed until the game kicks off, you can view other people’s bets at any time". A Guess pick for a game is accepted until **that game's kickoff**; the D-30 15-minute window after kickoff is withdrawn. A pick saved after the week's deadline (TNF kickoff) still carries the D-30 Late marker. D-31's late-window guard no longer applies. |
+| Other players' bets | Virtual Units bets and challenges of other players are **visible at any time** (replaces D-18's "after kickoff unless shared earlier"). |
+| Other players' Guess the Line guesses | Sean: "Hidden until submit or kickoff, optional button to bypass but then you forego the guess the line game for that week with a warning after clicking that button". D-31 stands (visible after your own submission for that market or at that game's kickoff), plus an optional reveal button that, after a warning, forfeits that week's Guess the Line (a D-23 sit-out). |
+| Challenges and weekly qualification | Friend challenges **count toward** D-18's weekly minimum (3 bets or 3 units). |
+| Bets season board | Lists anyone who **qualified in at least one week**, ranked by season ROI, then net units, then wins (D-18, D-35). |
+| Edge board | Moves **into Play after you submit**: each game shows the line now and how far your guess was, with a sort by biggest gap. No separate screen. |
+| Solo extras | **Private notes** on a game stay (in the game detail sheet). Favorites and personal forecasts leave the screens; saved records stay readable in History (D-23). |
+| Other sports | One row, **"More sports, coming soon"** with Notify me, in the Me menu; off Home. |
+| Pick streak | A sit-out (including the skip above) **breaks** the Pick streak. Bets streaks are separate. |
+
+These rulings amend D-18 (bet visibility), D-30 (late window) and D-31 (late-window guard) as stated, and add to D-35. Visual choices (colors, type sizes, award names, prices on bet buttons) are reviewed on the prototype. Nothing here is built or deployed yet.
+
 ## D-35 — Dashboard redesign direction (October 13, 2026)
 
 Sean (product owner), verbatim: "There are still some major items open. The formatting looks horrible, this is not an intuitive dashboard, this does not feel gamified, the formatting and spacing is poor, the design is poor, it’s super confusing, and the data doesn’t display properly and there’s too much information. It can be overwhelming and majorly confusing. Guess the line is a game, that part is social, there also should be areas to place bets, bet against friends, see lines, see trends, and everything in between."
