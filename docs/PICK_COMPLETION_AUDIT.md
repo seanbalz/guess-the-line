@@ -74,7 +74,7 @@ across collection callers. A failed attempt remains counted conservatively.
 
 *Ruling, October 12, 2026 (D-27):* Sean confirmed the candidate's constants (6 per UTC day, 5 minutes apart) and replaced the five-minute scoring-evidence rule: a submission is never refused for refresh limits and each guess is scored against the newest stored line at its save, whatever its age, or the first line collected after it. The comparison below is kept as the decision record.
 
-| Policy | Current approved limits | Candidate — migration `20261012213000_gtl_submission_odds_window.sql` (October 12); constants confirmed October 12 (D-27), not applied hosted yet |
+| Policy | Current approved limits | Candidate — migration `20261012213000_gtl_submission_odds_window.sql` (October 12); constants confirmed October 12 (D-27), applied hosted October 12 as `20261012235554` |
 | --- | --- | --- |
 | Minimum collection spacing | 15 minutes | 5 minutes (equal to the freshness window) |
 | Total collection attempts per UTC day | 4, including scheduled runs | 6, including scheduled runs (the earlier candidate was 7; 6 keeps the worst case at 372 credits a month, above the reserve) |
