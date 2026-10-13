@@ -1,5 +1,32 @@
 # Decision log
 
+## D-35 — Dashboard redesign direction (October 13, 2026)
+
+Sean (product owner), verbatim: "There are still some major items open. The formatting looks horrible, this is not an intuitive dashboard, this does not feel gamified, the formatting and spacing is poor, the design is poor, it’s super confusing, and the data doesn’t display properly and there’s too much information. It can be overwhelming and majorly confusing. Guess the line is a game, that part is social, there also should be areas to place bets, bet against friends, see lines, see trends, and everything in between."
+
+Answers given one question at a time in the cloud session, each the recommended option:
+
+| Question | Ruling |
+|---|---|
+| Bet currency | **Virtual Units** for all bets, including bets against friends. No real money moves; GTL stays non-commercial (D-34 basis). |
+| Home screen | **This week's game hub**: deadline countdown, your pick status, your rank and units, and one big next action (make picks, place a bet, answer a challenge). Everything else is one tap away. |
+| Look and feel | **Sleeper-style** social, card-based app; a **FanDuel-style market row and bet slip inside the Bets tab only**. |
+| Friend bets | **One-game challenge**: offer a side, line and units on one game to a friend or the whole league; whoever accepts takes the other side at the same line. |
+| Challenge line and standings | Starts at the **current best book line**, which the challenger can change before sending; acceptance allowed **until kickoff**; the result counts in both players' **Bets results and their head-to-head record**. |
+| Challenge payout | **Even money**: both risk the same units, the winner takes them, a push returns both stakes. No house cut. |
+| Game features | **Streaks, badges, weekly awards** (e.g. Bullseye for an exact guess, Sharp for beating the closing line; Best guess, Biggest upset, Worst beat). No levels or XP. |
+| Ways to play | **Two games**: Guess the Line (spread and total guesses, closest wins) and Bets (Virtual Units with friend challenges). Record-only Betting Challenge and Best Bets (D-15) leave the main screens; their past records stay visible in History (D-23). The private journal becomes "My bets" inside Bets. |
+| Standings | **Two leaderboards**, one per game, as two tabs on one League screen, each with its own weekly and season winner. |
+| Bets ranking | **D-18 unchanged**: ROI, then net units, then wins, with D-18's weekly qualification (3 picks or 3 units). No bankroll or cap. |
+| Bet types | **Spread and total** only (D-18), inside the free odds budget. No moneyline or parlays. |
+| Game card | **Minimal**: teams, kickoff, current spread and total, your guess or bet, at most one standout trend chip. Book lines, line movement, referee and full trends open on tap. |
+| Social | **League feed + reactions + comments**: automatic posts (picks revealed per D-31, bet and challenge results, badges, weekly awards), emoji reactions and comments. |
+| Leagues | **One app with a league switcher**: one set of tabs; picks and bets made once count in every league the player is in; the Community is the default league. |
+| Brand | **Keep the name and Field monogram; refresh colors, type and spacing** into a darker, higher-energy system. Dark is the default; light stays. |
+| Approval | **Clickable phone prototype first** (new app map and main screens), approved by Sean before the build, then staged PRs. The prototype uses public schedule and lines with sample picks only; no player's private picks. |
+
+Work items DASH-1 to DASH-12 track the redesign (app map, design system, game features, Bets, friend challenges, lines board, trends cards, data display fixes, cutting information, social, first-run, phone-first). DASH-1 (the app map, delivered as the prototype) is next. This ruling changes no scoring, settlement, pick or ballot rule and deploys nothing.
+
 ## D-34 — Kickoff wind forecast from Open-Meteo (October 13, 2026)
 
 Sean (product owner), verbatim: "go ahead with the wind forecast too".
