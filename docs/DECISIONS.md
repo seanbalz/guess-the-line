@@ -1,5 +1,21 @@
 # Decision log
 
+## D-32 — Situational trends beside every game (October 12, 2026)
+
+- Sean, product owner, chose option A: "Preset trend cards from the free data on Picks and the dashboard. Referee trends use a referee you pick from a dropdown for each game once assignments come out".
+- He added: "it needs to be more than referee trends, home vs away trends, divisional games, totals, whether it is a night game/primetime game, the teams playing being from afc and nfc, one team traveling, coming off bye week rest, coming off a short week. these are just to name a couple of examples".
+- His follow-up the same day: "that is a shortsided trend list. you may be missing trends with the most statistical impact to the outcome. we need quality trends".
+- Delivery, on branch `claude/trends-engine`:
+  - Every trend is a frozen preset of at most two filters, ranked by an out-of-sample quality score and never by ROI or streak.
+  - Sean's families are always shown as context labelled "No proven edge".
+  - The only trend that beat chance out of sample (2018–2025) is strong wind at kickoff (10+ mph) → Under. It needs observed wind, so on an upcoming game it is a collapsed conditional note.
+  - Tier 2 cards are labelled "not proven". Tier 3 and entity records are shown both ways, with walk-forward card fields.
+  - Line-dependent records unlock only after the matching ballot is submitted, sat out or closed. Rows are marked only with the player's own saved line.
+  - The commissioner sets each game's referee from a dropdown in the commissioner area. Every member sees that referee's records, or "Referee not assigned yet". Any member can look up another referee on screen without saving it.
+- Trend cards are reference only and never change scoring. This ruling places them beside each game, so D-21's "no tips or analysis" line now covers the plain team-records line only.
+- Week files and panels ship with a Pages deploy. Shared referee assignments also need migration `20261012234500_gtl_game_officials.sql` (written, **not applied to the hosted project**) and a `gtl-api` deploy.
+- Details: [TRENDS.md](TRENDS.md).
+
 ## D-27 — October 12, 2026 rulings: weeks still open Monday 12:00 AM PT; submit any time against the line at the guess; every guess kept
 
 Sean, product owner, ruled three things on October 12, 2026.
@@ -33,21 +49,6 @@ Sean confirmed how D-18 Virtual Units picks settle. Each pick settles with stand
 - **Delivery.** Migration `20261009170000_gtl_virtual_units_settlement.sql` (ledger `gtl_virtual_units_settlements`, service-only `gtl_settle_virtual_units(p_season, p_week, p_results)`), the finals builder `cloud/virtual-settlement.mjs` and script `scripts/virtual-units-settle.mjs`, the commissioner-only route `POST /virtual-units/settle`, and settled results on the Virtual Units screen. No cron job is registered by this decision; a scheduled run is the documented follow-up. Settlement ships after the next `gtl-api` deploy; see the runbook in [planning/virtual-units-game.md](../planning/virtual-units-game.md#settlement-runbook--d-26). *Addendum, October 9, 2026 (18:46 UTC):* after PR #33 merged, the migration was applied to the hosted project through the Supabase MCP as hosted version `20261009184601`; the ledger is empty until the first settlement. The pre-existing `isfinite(numeric)` defect in `gtl_save_virtual_units_pick` (every D-18 pick save fails with SQLSTATE 42883 on the hosted project) is fixed by a separate follow-up migration. *Addendum, October 10, 2026 (about 14:45 UTC):* Sean ruled that `gtl-api` v15 and the Cloudflare Pages frontend are deployed from `main` at `17c22b5` by the "Cloud/local repo sync for Guess the Line" session on the Mac mini, with the credentials that session already holds and no new tokens; the same session fills the PENDING rows of the [October 9 release record](RELEASE_2026_10_09.md). A second deploy follows with the keyboard model (PR #47) and PR #36.
 
 - **Ruling, October 12, 2026 — submission odds window (constants confirmed with D-27 above; the refusal it addressed no longer exists under D-27).** Steven's complete Week 6 ballot was refused with `GTL_SUBMISSION_REFRESH_COOLDOWN` (HTTP 429) eight to ten minutes after Sean's 21:11 UTC submission collection. A saved market reference is usable for five minutes (the D-16/D-17 freshness rule, unchanged), but the submission path refused a new collection for fifteen minutes after any collection, so about ten of every fifteen minutes were a guaranteed refusal (reproduced locally at 5, 6, 8, 10, 12 and 14 minutes). Separately, both October 12 scheduled runs skipped with `slate_changed`: the collector derived its slate from the private group league (still Week 5, fifteen games; nothing advances it) while `gtl_publish_week` had pointed the schedule at the community Week 6 slate (fourteen games), and the claim demanded exactly fifteen games. Branch `claude/fix-submission-odds-window` carries migration `20261012213000_gtl_submission_odds_window.sql`: the collect cooldown in both begin RPCs becomes **5 minutes**, equal to the freshness window, and the shared cap becomes **6 collections per UTC day** (the two scheduled runs count inside it; worst case 6 × 2 × 31 = 372 credits, 128 above the 50-credit reserve on the 500-credit free plan); scheduled and manual collection resolve their slate from the published week (`gtl_weekly_slates` plus the matching `gtl_schedule_templates` row, the submission path's own source) and accept the published game count. The freshness rule, the two-credit reservation, the preflight cooldown, the lease and the replay rules are unchanged, and the file only replaces functions: no collection, snapshot, intent, ballot or budget row is written. The five-minute cooldown was recorded as **not approved** in the [October 8 release record](RELEASE_2026_10_08.md) and in `planning/audits/pick-completion-verification.json` ("fifteen-minute / four-attempt rules retained"), so this amends the D-10 and D-17 operating limits only once Sean confirms the constants. The migration was **applied to the hosted project on October 12, 2026** through the Supabase MCP as version `20261012235554` after Sean confirmed the constants, and verified (both begin RPCs read the 5-minute cooldown and the 6-per-day cap); before that the hosted limits were four attempts and fifteen minutes.
-
-- **Ruling, October 12, 2026 — situational trends (decision number assigned at merge; other in-flight branches already use D-27).**
-  - Sean, product owner, chose option A: "Preset trend cards from the free data on Picks and the dashboard. Referee trends use a referee you pick from a dropdown for each game once assignments come out".
-  - He added: "it needs to be more than referee trends, home vs away trends, divisional games, totals, whether it is a night game/primetime game, the teams playing being from afc and nfc, one team traveling, coming off bye week rest, coming off a short week. these are just to name a couple of examples".
-  - His follow-up the same day: "that is a shortsided trend list. you may be missing trends with the most statistical impact to the outcome. we need quality trends".
-  - Delivery, on branch `claude/trends-engine`:
-    - Every trend is a frozen preset of at most two filters, ranked by an out-of-sample quality score and never by ROI or streak.
-    - Sean's families are always shown as context labelled "No proven edge".
-    - The only trend that beat chance out of sample (2018–2025) is strong wind at kickoff (10+ mph) → Under. It needs observed wind, so on an upcoming game it is a collapsed conditional note.
-    - Tier 2 cards are labelled "not proven". Tier 3 and entity records are shown both ways, with walk-forward card fields.
-    - Line-dependent records unlock only after the matching ballot is submitted, sat out or closed. Rows are marked only with the player's own saved line.
-    - The commissioner sets each game's referee from a dropdown in the commissioner area. Every member sees that referee's records, or "Referee not assigned yet". Any member can look up another referee on screen without saving it.
-  - Trend cards are reference only and never change scoring. This ruling places them beside each game, so D-21's "no tips or analysis" line now covers the plain team-records line only.
-  - Week files and panels ship with a Pages deploy. Shared referee assignments also need migration `20261012234500_gtl_game_officials.sql` (written, **not applied to the hosted project**) and a `gtl-api` deploy.
-  - Details: [TRENDS.md](TRENDS.md).
 
 ## D-25 — Ben's Week 5 picks and scoring reference (October 9, 2026)
 
@@ -159,7 +160,6 @@ Sean requested removing text beside the logo and supplied the selected Field
 monogram screenshot. Use its rounded lime tile and dark original mark in product
 brand placements. Preserve the accessible name and browser title Guess The Line.
 This refines D-12 presentation without choosing new type or palette options.
-
 
 - **D-15 — October 8, 2026: separate Best Bets competition.** Sean confirmed optional games and confidence weighting belong to a separate Best Bets competition. Spread and Total keep existing full-slate accuracy rules. The numerical confidence budget, deadline, scoring and settlement rules remain undecided; planning documents are not shipped features.
 - **D-16 — earlier pending question, now answered below: submission-time versus common scoring reference.** Sean requested a global member leaderboard, stronger player comparisons, time-of-selection odds comparisons and actual stake/result/ROI tracking. The earlier question was whether to use a common benchmark or individual submission-time references. Its pending state is superseded by the following answer; global visibility/eligibility and journal privacy remain separate.

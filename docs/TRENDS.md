@@ -1,6 +1,6 @@
 # Situational trends
 
-Owner: Sean Balsiger · Version 1 · Updated 2026-10-13 · Ruling of October 12, 2026 (see [DECISIONS.md](DECISIONS.md); the decision number is assigned at merge)
+Owner: Sean Balsiger · Version 1 · Updated 2026-10-13 · Ruling of October 12, 2026, D-32 in [DECISIONS.md](DECISIONS.md)
 
 Trend cards show how NFL games in a given situation went against the line in the past. They sit next to each game on the Community Picks tab, on the group ballot and in the dashboard's game detail. **They are reference only: they never change GTL scoring, and they are not betting recommendations.**
 
