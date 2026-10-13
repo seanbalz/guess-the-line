@@ -84,14 +84,15 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   expect(merged.picks['TB-DAL']).toBe(-4);
   persona.finding({ screen: 'save-409', severity: 4, experience: `After the same account saved from another device, saving here fails with "${conflictText.replace(/\n/g, ' ').trim()}" and "Load latest" merges the other device's ballot under this screen's unsaved edit. The merge is silent: nothing highlights which games changed on the other device.`, fix: 'Mark the games whose saved value changed since this screen loaded, so the player can compare before resaving.' });
 
-  // 3b. An injected 409 that is not a revision conflict: the D-17 submission guard answers 409 with a GTL_SUBMISSION_ code when fresh
-  //     quotes are unavailable or a refresh is already running. Review of PR #34: that case keeps its own "Keep your draft and retry"
-  //     sentence and a Retry, never "Load latest" (which would reload the week and merge).
+  // 3b. An injected 409 that is not a revision conflict: since October 12, 2026 (D-27) the only coded 409 left is the
+  //     submission guard's failed check of the saved line (GTL_SUBMISSION_QUOTES_REQUIRED); refresh limits never refuse a save.
+  //     Review of PR #34: that case keeps its own "Keep your draft and try again" sentence and a Retry, never "Load latest"
+  //     (which would reload the week and merge).
   await first.getByRole('radio', { name: '−5', exact: true }).click();
-  persona.net.fail = endpoint => endpoint === 'personal/ballot' ? { status: 409, body: { error: 'Fresh market references are unavailable. Your guesses were not submitted. Keep your draft and retry.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } } : null;
+  persona.net.fail = endpoint => endpoint === 'personal/ballot' ? { status: 409, body: { error: 'The line for an edited guess could not be verified. Your guesses were not submitted. Keep your draft and try again.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } } : null;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
-  await expect(alert).toContainText('Keep your draft and retry.');
+  await expect(alert).toContainText('Keep your draft and try again.');
   await expect(alert.getByRole('button', { name: 'Load latest' })).toHaveCount(0);
   await expect(alert.getByRole('button', { name: 'Retry' })).toBeVisible();
   await persona.shot('save-409-code');
@@ -125,19 +126,18 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   await expect(page.getByRole('button', { name: 'Save draft' })).toBeDisabled();
   persona.finding({ screen: 'save-expired', severity: 4, experience: `After a successful save, "Save draft" is disabled until a pick changes (${requestsBefore} ballot requests so far, one per tap), and each save carries a request id so a retried tap cannot double-write. Good.`, fix: 'Keep it.' });
 
-  // 6. Submitting when fresh sportsbook quotes cannot be verified (D-17 rejects the save).
+  // 6. Submitting when no fresh sportsbook quote can be collected. Before October 12 (D-17) the save was refused; since
+  //    D-27 it is never refused for refresh limits: the guess saves with the newest stored line, or a pending reference.
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
   await expect(first).toBeVisible();
   for (const [i, pick] of [['Cowboys', '−3'], ['Eagles', '−2.5'], ['Dolphins', '−1']].entries()) { const card = page.locator('.week-pick').nth(i); await card.getByRole('button', { name: pick[0], exact: true }).click(); await card.getByRole('radio', { name: pick[1], exact: true }).click(); }
   persona.net.quotesUnavailable = true;
   await page.getByRole('button', { name: 'Submit Spread' }).click();
-  await expect(alert).toBeVisible();
-  const quotesText = await alert.innerText();
+  await expect(page.getByRole('region', { name: 'Spread submitted · 3 picks' })).toBeVisible();
+  await expect(alert).toHaveCount(0);
   await persona.shot('submit-no-quotes');
   await persona.axe('submit-no-quotes');
-  persona.finding({ screen: 'submit-no-quotes', severity: 2, experience: `When the market reference cannot be refreshed, Submit fails with "${quotesText.replace(/\n/g, ' ').trim()}". The sentence is honest but assumes the player knows what a "market reference" is; it does not say whether the draft was saved (it was not: the three picks are only on this screen), when to retry, or that Save draft would keep them.`, fix: 'Save the draft automatically before the reference check, then say: "Your 3 picks are saved as a draft. We could not fetch fresh sportsbook lines to lock in your submission; try again in a few minutes."' });
-  expect(quotesText).toContain('not submitted');
-  await expect(alert.getByRole('button', { name: 'Retry' })).toBeVisible();
+  persona.finding({ screen: 'submit-no-quotes', severity: 4, experience: 'With no fresh market quote available, Submit still succeeds (D-27): the receipt appears and no error is shown; the guesses are scored against the line at the guess.', fix: 'None needed.' });
   persona.net.quotesUnavailable = false;
 
   // 7. Like a post while the service is briefly failing. Quick win 6 (#26): the error sits inside the post with a Retry.

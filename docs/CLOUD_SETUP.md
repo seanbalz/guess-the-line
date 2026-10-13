@@ -331,9 +331,10 @@ check succeeded at **19:15:08 UTC**, matched all 15 saved events and reported
 public assets or exported picks; provider errors are sanitized. Manual collection is limited to the original
 commissioner, four calls per UTC day, a 15-minute cooldown, a shared expiring lease,
 idempotent request IDs and a 50-credit reserve. No scheduler or polling is active.
-(Six calls and five minutes are proposed by the October 12 migration
-`20261012213000_gtl_submission_odds_window.sql`, pending Sean's ruling and not
-applied hosted; see [DECISIONS.md](DECISIONS.md).)
+(Six calls and five minutes come from the October 12 migration
+`20261012213000_gtl_submission_odds_window.sql`; Sean confirmed them on October 12
+(D-27), and under D-27 these limits only bound spending, never a submission. Applied
+hosted on October 12 as version `20261012235554`; see [DECISIONS.md](DECISIONS.md).)
 
 Validation: **122 backend/SQL tests**, **22 cloud-browser workflows** and **six
 local-browser workflows** passed; the final date-format fix passed **29 targeted

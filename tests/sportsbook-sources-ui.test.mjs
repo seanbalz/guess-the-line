@@ -45,8 +45,8 @@ test('old eligible saved references keep scoring while current collection become
   props.game.sportsbookSources.latest.value = -6.5;
   props.game.sportsbookSources.latest.quotes = props.game.sportsbookSources.latest.quotes.map(quote => quote.status === 'included' ? { ...quote, status: 'excluded' } : quote);
   const html = render(props);
-  assert(html.includes('Saved for scoring')); assert(html.includes('HOME −3.5')); assert(html.includes('HOME −6.5'));
-  assert(html.includes('Stale collection')); assert(html.includes('Later market movement and quote age do not change it.'));
+  assert(html.includes('Line at your guess')); assert(html.includes('HOME −3.5')); assert(html.includes('HOME −6.5'));
+  assert(html.includes('Stale collection')); assert(html.includes('This saved line determines your points, whatever its age. Later market movement does not change it.'));
   assert(html.includes('Excluded from new scoring')); assert(html.includes('Included when saved'));
   assert(html.includes('The median is the middle value after eligible sportsbook lines are ordered.'));
   assert(html.includes('Older quotes can explain a retained consensus'));
