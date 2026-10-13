@@ -6,7 +6,7 @@ export function playerReference(data, game, playerId = data.playerId) {
 }
 export function referenceTime(reference) { return reference?.savedAt || reference?.recordedAt; }
 // October 12, 2026 ruling: every guess is scored against the line stored when it was saved (any age), or, for a
-// guess saved before any line was stored, the first line collected and observed after it. Age is shown, never used to unscore.
+// guess saved before any line was stored, the first line collected after it. Age is shown, never used to unscore.
 export const pendingScoringReference = reference => reference?.status === 'pending';
 export const lineLabel = reference => reference?.basis === 'first_line_after_submission' ? 'First line after submission' : 'Line at your guess';
 // Whole minutes from the line's earliest sportsbook observation to the guess; negative when observed after it.

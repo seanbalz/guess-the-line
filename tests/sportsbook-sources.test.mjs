@@ -69,15 +69,23 @@ test('total sources expose totals only and scoring breakdown must match stored m
   const bad = applySportsbookSources(view(ref, 'guess_total'), input, now).games[0].sportsbookSources;
   assert(bad.scoring.quotes.every(q => q.value === null));
 });
-test('a first line after submission shows only when observed after the save; a pending guess shows its pending state', () => {
+test('a first line after submission shows when collected after the save, also with a book observed before it; a pending guess shows its pending state', () => {
   const stamp = now - 60000, line = snapshot('first-after', stamp);
   const firstAfter = savedAt => ({ status: 'available', basis: 'first_line_after_submission', value: -3, source: 'The Odds API · 3-book median',
     snapshotId: 'first-after', capturedAt: iso(stamp), observedAt: iso(stamp - 10000), savedAt: iso(savedAt) });
   const shown = applySportsbookSources(view(firstAfter(stamp - 20000)), line, now).games[0].sportsbookSources.scoring;
   assert.equal(shown.status, 'available'); assert.equal(shown.basis, 'first_line_after_submission'); assert.equal(shown.value, -3);
   assert.deepEqual(shown.quotes.slice(0, 3).map(q => q.status), ['included', 'included', 'included']);
-  const before = applySportsbookSources(view(firstAfter(stamp - 5000)), line, now).games[0].sportsbookSources.scoring;
-  assert.equal(before.status, 'unavailable'); assert.equal(before.value, null);
+  // Collected 5 s after the save, every book observed 10 s before the collection (5 s before the save): still its line.
+  const observedBefore = applySportsbookSources(view(firstAfter(stamp - 5000)), line, now).games[0].sportsbookSources.scoring;
+  assert.equal(observedBefore.status, 'available'); assert.equal(observedBefore.value, -3); assert.equal(observedBefore.basis, 'first_line_after_submission');
+  assert.equal(observedBefore.observedAt, iso(stamp - 10000)); assert.equal(observedBefore.savedAt, iso(stamp - 5000));
+  assert.deepEqual(observedBefore.quotes.slice(0, 3).map(q => q.status), ['included', 'included', 'included']);
+  // A collection made at or before the save is never a first line after it.
+  for (const savedAt of [stamp, stamp + 1000]) {
+    const collectedBefore = applySportsbookSources(view(firstAfter(savedAt)), line, now).games[0].sportsbookSources.scoring;
+    assert.equal(collectedBefore.status, 'unavailable'); assert.equal(collectedBefore.value, null);
+  }
   const atGuess = applySportsbookSources(view(saved(stamp)), snapshot('original', stamp), now).games[0].sportsbookSources.scoring;
   assert.equal(atGuess.basis, 'line_at_guess');
   const pending = applySportsbookSources(view({ status: 'pending', basis: 'first_line_after_submission', value: null, savedAt: iso(stamp), reason: 'Waiting.' }), line, now).games[0].sportsbookSources.scoring;

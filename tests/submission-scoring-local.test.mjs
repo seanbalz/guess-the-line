@@ -196,7 +196,7 @@ test('persisted references with future or inconsistent ballot timestamps fail cl
   assert.equal(engineFor(missingUpdate).view('one').score, 20, 'a first-submission receipt is consistent with the known submission timestamp');
 });
 
-test('a pending guess is unscored; its first line after submission scores only when collected and observed after the save', () => {
+test('a pending guess is unscored; its first line after submission scores when collected after the save, whenever its books were observed', () => {
   const state = fixture(); state.consensusHistory = [];
   const engine = engineFor(state);
   const pending = engine.saveBallot('one', 'guess_spread', fill(-3), true);
@@ -212,8 +212,16 @@ test('a pending guess is unscored; its first line after submission scores only w
   };
   const scored = viewWith(firstAfter(savedAt + 30_000));
   assert.equal(scored.points, 9); assert.equal(scored.scoringReference.basis, 'first_line_after_submission'); assert.equal(scored.scoringReference.ageSeconds, -30);
-  assert.equal(viewWith(firstAfter(savedAt)).points, 9, 'observed at the save instant is after it');
-  for (const ref of [firstAfter(savedAt - 1), firstAfter(savedAt - 20_000, savedAt + 10_000), firstAfter(savedAt - 30_000, savedAt), { ...firstAfter(savedAt + 30_000), capturedAt: iso(savedAt + 600_000) }]) {
+  assert.equal(viewWith(firstAfter(savedAt)).points, 9, 'observed at the save instant');
+  // Collected after the save with a book observation before it (D-17 keeps it within five minutes of the collection):
+  // still the first line after submission, with a positive age.
+  for (const [observed, captured, age] of [[savedAt - 1, savedAt + 60_000, 0], [savedAt - 20_000, savedAt + 10_000, 20], [savedAt - 200_000, savedAt + 60_000, 200]]) {
+    const game = viewWith(firstAfter(observed, captured));
+    assert.equal(game.points, 9, String(observed - savedAt)); assert.equal(game.scoringReference.status, 'available');
+    assert.equal(game.scoringReference.basis, 'first_line_after_submission'); assert.equal(game.scoringReference.ageSeconds, age);
+  }
+  // Collected at or before the save, or after the current clock: never a first line after submission.
+  for (const ref of [firstAfter(savedAt - 30_000, savedAt), firstAfter(savedAt - 40_000, savedAt - 10_000), { ...firstAfter(savedAt + 30_000), capturedAt: iso(savedAt + 600_000) }]) {
     const game = viewWith(ref);
     assert.equal(game.points, null, JSON.stringify(ref)); assert.equal(game.scoringReference.status, 'unavailable');
   }

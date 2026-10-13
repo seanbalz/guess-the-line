@@ -15,11 +15,12 @@ minutes old, the save first tries one shared collection within the existing free
 limits; whether the collection succeeds, is refused (cooldown, daily cap, budget
 guard, busy lease) or fails, the save proceeds with the newest stored line. With
 no stored line yet, the guess saves as `pending` and the first qualifying line
-collected after it, with every book observation at or after the save and
-collected before that game's kickoff, becomes its reference ("first line after
-submission"); a line observed before the save is never used for it. The
-collection that stores the line resolves it in the same transaction. Age is
-shown, never used to unscore. A client cannot supply a reference or a line value.
+collected after it and before that game's kickoff becomes its reference ("first
+line after submission"), with its observation time and age; a book whose last
+update precedes the save still counts, and a collection made before the save is
+never used for it. The collection that stores the line resolves it in the same
+transaction. Age is shown, never used to unscore. A client cannot supply a
+reference or a line value.
 References stored before D-27 stay exactly as stored.
 
 The database repeats the checks atomically when saving. Access, the exact slate,
@@ -42,7 +43,7 @@ panel to compare:
 
 | Display | Evidence |
 | --- | --- |
-| Line at your guess | The newest stored median when this player saved the guess (or, for a pending guess, the first one collected and observed after it), with its age; this determines its points. |
+| Line at your guess | The newest stored median when this player saved the guess (or, for a pending guess, the first one collected after it), with its age; this determines its points. |
 | Latest collected consensus | The most recent collection, including explicit stale/unavailable status; later collections do not change saved points. |
 | DraftKings, FanDuel and BetMGM | Each book's home-team spread or combined-points total, provider observation time, collection time and inclusion/exclusion reason. |
 | Caesars | Unavailable on the current provider's free plan; excluded from consensus. |

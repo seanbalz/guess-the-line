@@ -10,9 +10,9 @@ const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; n
 
 // October 12, 2026 rulings (D-27): a player can submit or edit any time before the deadline; each changed guess is
 // scored against the newest stored line at its save, whatever its age, or, when no line is stored yet, the first
-// line collected and observed after it. Every repository migration runs in order (the two hosted-extension files
-// excepted) and requests go through the real gtl-api handler and Supabase adapter, whose REST calls are answered
-// by this in-process PGlite database. The odds provider is a stub: nothing here contacts a hosted project or a
+// line collected after it, whenever its books last updated. Every repository migration runs in order (the two
+// hosted-extension files excepted) and requests go through the real gtl-api handler and Supabase adapter, whose REST
+// calls are answered by this in-process PGlite database. The odds provider is a stub: nothing here contacts a hosted project or a
 // provider, and every quote is synthetic.
 const NEW = '20261012230000_gtl_submit_with_line_at_guess.sql';
 const FILES = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
@@ -42,13 +42,14 @@ function slate(now = Date.now(), first = now + Math.max(5 * MINUTE, Math.min(3 *
   }
   return { games, deadline: iso(first) };
 }
-// One three-book collection. lag is how long before the collection every book last updated (D-17 allows five minutes).
-function payload(games, { captured = Date.now(), lag = 30_000, spread = -3.5, total = 45, markets = ['spread', 'total'] } = {}) {
+// One three-book collection. lag is how long before the collection every book last updated (D-17 allows five minutes);
+// observed sets one book's last update to an exact instant instead.
+function payload(games, { captured = Date.now(), lag = 30_000, spread = -3.5, total = 45, markets = ['spread', 'total'], observed = {} } = {}) {
   return { provider: 'the-odds-api', sport: 'americanfootball_nfl', officialVerified: false, fetchedAt: iso(captured), quota: { remaining: 478, used: 22, last: 2 },
     games: games.map((g, i) => ({ gameId: g.id, home: g.home, away: g.away, kickoff: g.kickoff, providerEventId: `event${i}`, matchStatus: 'matched',
       markets: Object.fromEntries(['spread', 'total'].map(m => [m, { quotes: !markets.includes(m) ? [] : ['draftkings', 'fanduel', 'betmgm'].map(book => {
         const line = m === 'spread' ? spread : total;
-        return { provider: 'the-odds-api', providerEventId: `event${i}`, market: m, book, value: line, collectedAt: iso(captured), providerObservedAt: iso(captured - lag), timeBasis: 'provider_market_last_update',
+        return { provider: 'the-odds-api', providerEventId: `event${i}`, market: m, book, value: line, collectedAt: iso(captured), providerObservedAt: iso(observed[book] ?? captured - lag), timeBasis: 'provider_market_last_update',
           outcomes: m === 'spread' ? { home: { line, odds: -110 }, away: { line: -line, odds: -110 } } : { over: { line, odds: -110 }, under: { line, odds: -110 } } };
       }) }])) })) };
 }
@@ -152,7 +153,7 @@ async function fixture(t, { legacy } = {}) {
   return { db, q, rpc, as, week6, signature, snapshot, provider, log, call, read, submit, ballot, revision, count, budget, outcomes, standing, picks, failedAttempt, cooldownPassed, collect };
 }
 
-// Lines whose every book observation is at or after `savedAt` (the instant of a pending save).
+// Lines collected after `savedAt` (the instant of a pending save) whose every book observation is at or after it.
 const afterSave = (savedAt, extra = {}) => () => { const captured = Math.max(Date.now(), Date.parse(savedAt) + 2); return { captured, lag: Math.min(15_000, captured - Date.parse(savedAt) - 1), ...extra }; };
 const ageOf = ref => Math.floor((Date.parse(ref.savedAt) - Date.parse(ref.observedAt)) / 1000);
 const pendingRef = savedAt => ({ status: 'pending', basis: 'first_line_after_submission', value: null, savedAt, source: null, sourceUrl: null, snapshotId: null,
@@ -240,7 +241,7 @@ test('2. daily cap, provider failure, budget guard, busy lease and cooldown: eve
   assert.equal(edited.ballot.submittedAt, steven.submittedAt);
 });
 
-test('3. no line stored yet: the submit saves pending, and a later collection resolves it to the first line after submission, never a line observed before the save', { skip }, async t => {
+test('3. no line stored yet: the submit saves pending, and the first line collected after the save becomes its reference, also when a book last updated before the save', { skip }, async t => {
   const f = await fixture(t);
   // The Monday open: the refresh runs and succeeds, but no sportsbook has posted a Week 6 line, so nothing is stored.
   f.provider.mode = 'none';
@@ -251,23 +252,24 @@ test('3. no line stored yet: the submit saves pending, and a later collection re
   const saved = await f.ballot(STEVEN), savedAt = saved.ballot.updatedAt, rev = await f.revision(STEVEN);
   for (const game of f.week6.games) assert.deepEqual(saved.ballot.scoringReferences[game.id], pendingRef(savedAt));
   assert.equal(Number((await f.standing(STEVEN)).weekScored), 0);
-  // A collection fetched before the save but stored after it (commit order), and a collection made after the save whose
-  // book quotes were observed before it: neither is ever used for a pending guess.
+  // A collection fetched before the save but stored after it (commit order) was not collected after the save: never used.
   await f.snapshot(payload(f.week6.games, { captured: Date.parse(savedAt) - 10_000, lag: 30_000, spread: -9 }), { createdAt: iso(Date.now() + 5) });
-  const captured = Math.max(Date.now(), Date.parse(savedAt) + 2);
-  await f.snapshot(payload(f.week6.games, { captured, lag: captured - Date.parse(savedAt) + 20_000, spread: -8 }), { createdAt: iso(captured + 5) });
   assert.equal(await f.rpc('gtl_resolve_pending_references', [2026, 6]), 0);
   assert.deepEqual(await f.ballot(STEVEN), saved);
-  // The next real collection (Sean's manual collection; six minutes later on the shared cooldown clock).
+  // The next real collection (Sean's manual collection; six minutes later on the shared cooldown clock) is collected after
+  // the save; BetMGM's market last updated 30 seconds before the save, valid under D-17 (within five minutes of the
+  // collection). It is the first line after submission: observation times are not compared with the save.
   await f.cooldownPassed();
-  const done = await f.collect(id(700), afterSave(savedAt, { spread: -4 }));
+  const early = Date.parse(savedAt) - 30_000;
+  const done = await f.collect(id(700), () => ({ ...afterSave(savedAt)(), spread: -4, observed: { betmgm: early } }));
   assert.equal(done.status, 'succeeded');
   const after = await f.ballot(STEVEN);
   for (const game of f.week6.games) {
     const ref = after.ballot.scoringReferences[game.id];
     assert.equal(ref.status, 'available'); assert.equal(ref.basis, 'first_line_after_submission'); assert.equal(ref.value, -4); assert.equal(ref.snapshotId, id(700));
-    assert.equal(ref.savedAt, savedAt); assert.ok(Date.parse(ref.capturedAt) > Date.parse(savedAt)); assert.ok(Date.parse(ref.observedAt) >= Date.parse(savedAt));
-    assert.ok(ref.ageSeconds <= 0, String(ref.ageSeconds)); assert.equal(ref.reason, null);
+    assert.equal(ref.savedAt, savedAt); assert.ok(Date.parse(ref.capturedAt) > Date.parse(savedAt));
+    assert.equal(Date.parse(ref.observedAt), early); assert.equal(Date.parse(ref.quotes.find(q => q.book === 'betmgm').observedAt), early);
+    assert.equal(ref.ageSeconds, 30); assert.equal(ref.reason, null);
   }
   // Only the references changed: picks, submittedAt, updatedAt and the weekly revision stay; one audit event is added.
   assert.deepEqual(after.ballot.picks, saved.ballot.picks); assert.equal(after.ballot.submittedAt, saved.ballot.submittedAt); assert.equal(after.ballot.updatedAt, savedAt);
@@ -511,4 +513,37 @@ test('a member\'s submission collection resolves another member\'s pending guess
   assert.equal(stored.status, 'succeeded'); assert.ok(stored.snapshotId);
   assert.ok(Object.values((await f.ballot(TROY)).ballot.scoringReferences).every(ref => ref.status === 'available' && ref.basis === 'first_line_after_submission' && ref.snapshotId === stored.snapshotId));
   assert.ok(Object.values((await f.ballot(STEVEN)).ballot.scoringReferences).every(ref => ref.basis === 'line_at_guess' && ref.snapshotId === stored.snapshotId && ref.ageSeconds < 60));
+});
+
+test('Monday-open rush: the next member\'s submission collection resolves a pending guess even when one book last updated before that save', { skip }, async t => {
+  const f = await fixture(t);
+  // Steven submits right after the open: no book has a line yet, so his refresh stores nothing and his guesses save pending.
+  f.provider.mode = 'none';
+  assert.equal((await f.submit(STEVEN, f.picks(-3))).status, 200);
+  const pending = await f.ballot(STEVEN), stevenSaved = pending.ballot.updatedAt;
+  assert.ok(Object.values(pending.ballot.scoringReferences).every(ref => ref.status === 'pending'));
+  // Troy submits on the next cooldown slot. His refresh stores a qualifying three-book line collected after Steven's save,
+  // in which BetMGM's market last updated 30 seconds before Steven's save (valid under D-17).
+  await f.cooldownPassed();
+  const early = Date.parse(stevenSaved) - 30_000;
+  f.provider.mode = 'lines'; f.provider.line = { ...afterSave(stevenSaved)(), spread: -4, observed: { betmgm: early } };
+  const res = await f.submit(TROY, f.picks(-7));
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  const stored = f.log.filter(entry => entry.name === 'gtl_finish_submission_odds_collection').at(-1).value;
+  assert.equal(stored.status, 'succeeded'); assert.ok(stored.snapshotId);
+  // That line, in the same transaction, becomes Steven's reference: not a later collection hours away.
+  const steven = await f.ballot(STEVEN);
+  for (const ref of Object.values(steven.ballot.scoringReferences)) {
+    assert.equal(ref.status, 'available'); assert.equal(ref.basis, 'first_line_after_submission'); assert.equal(ref.snapshotId, stored.snapshotId);
+    assert.equal(ref.value, -4); assert.equal(ref.savedAt, stevenSaved); assert.ok(Date.parse(ref.capturedAt) > Date.parse(stevenSaved));
+    assert.equal(Date.parse(ref.observedAt), early); assert.equal(ref.ageSeconds, 30);
+  }
+  assert.equal(steven.audit.at(-1).type, 'reference_resolved');
+  assert.ok(Object.values((await f.ballot(TROY)).ballot.scoringReferences).every(ref => ref.basis === 'line_at_guess' && ref.snapshotId === stored.snapshotId));
+  const row = await f.standing(STEVEN);
+  assert.equal(Number(row.weekScored), 14); assert.equal(Number(row.weekPoints), 14 * 8);
+  // The scheduled run later in the day changes nothing.
+  await f.cooldownPassed();
+  assert.equal((await f.collect(id(701), { spread: -6, lag: 0 })).status, 'succeeded');
+  assert.deepEqual(await f.ballot(STEVEN), steven);
 });

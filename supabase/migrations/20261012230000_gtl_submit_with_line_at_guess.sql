@@ -11,9 +11,10 @@
 --   (savedAt - observedAt). The five-minute freshness rule no longer decides whether a reference is scored.
 -- * When no qualifying line is stored yet (for example right after the Monday open), the guess saves with a
 --   'pending' reference. The first qualifying line collected after the save becomes its reference, labelled
---   basis 'first_line_after_submission': stored after the save, collected after it, every book observation at
---   or after it, and collected before that game's kickoff. A line observed before the save is never used for a
---   pending guess. That resolution runs inside gtl_finish_odds_collection and
+--   basis 'first_line_after_submission': stored after the save, collected after it and before that game's
+--   kickoff. Its book observation times are not compared with the save: a book whose last update precedes the
+--   save still counts (D-17 already bounds every observation to five minutes before the collection), and
+--   ageSeconds then shows how much earlier. That resolution runs inside gtl_finish_odds_collection and
 --   gtl_finish_submission_odds_collection, in the transaction that stores the line, so every reader (community
 --   leaderboard SQL, group engine, Solo, journal context) sees one saved value.
 -- * The fresh-submission trigger still verifies every changed reference against its stored snapshot, still
@@ -122,10 +123,12 @@ end $$;
 
 -- The resolved value of one pending reference, or null while no qualifying line exists yet. Deterministic for a
 -- given set of stored snapshots (they are insert-only), so the trigger can recompute it exactly. The reference is
--- the first qualifying line, in storage order, that was stored after the save, collected after it and observed
--- (every book) at or after it, and collected before this game's kickoff (gtl_line_from_snapshot). A line observed
--- before the save is never used, also when it was stored after it (a collection that committed late) or collected
--- after it (a book quote older than the save). ageSeconds is savedAt minus observedAt, so zero or negative.
+-- the first qualifying line, in storage order, that was stored after the save and collected after it but before this
+-- game's kickoff (gtl_line_from_snapshot). A collection made before the save is never used, also when it
+-- was stored after it (a collection that committed late). Book observation times are not compared with the save
+-- (approved path, October 12, 2026: the first qualifying snapshot collected after the save), so a book whose last
+-- update precedes the save still counts. ageSeconds is savedAt minus observedAt: positive when the earliest book
+-- observation precedes the save (at most five minutes, D-17), zero or negative otherwise.
 create or replace function public.gtl_resolve_pending_reference(p_season integer,p_week integer,p_mode text,p_game_id text,p_pending jsonb)
 returns jsonb language plpgsql stable security invoker set search_path='' as $$
 declare sig jsonb; g jsonb; game jsonb; market text; saved timestamptz; line jsonb; snap record;
@@ -145,7 +148,7 @@ begin
   for snap in select id,payload from public.gtl_market_snapshots where season=p_season and week=p_week and slate_signature=sig
       and created_at>saved order by created_at,id loop
     line:=public.gtl_line_from_snapshot(snap.payload,game,market);
-    continue when line is null or (line->>'capturedAt')::timestamptz<=saved or (line->>'observedAt')::timestamptz<saved;
+    continue when line is null or (line->>'capturedAt')::timestamptz<=saved;
     return line||jsonb_build_object('status','available','basis','first_line_after_submission','savedAt',saved,
       'ageSeconds',floor(extract(epoch from saved-(line->>'observedAt')::timestamptz))::bigint,'reason',null,'snapshotId',snap.id);
   end loop;

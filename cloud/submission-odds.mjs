@@ -45,7 +45,7 @@ const refused = error => !(error instanceof SubmissionOddsError) && (
  *
  * commit() is authoritative. In one database transaction it revalidates access, revision, deadline, kickoff locks
  * and the full ballot, and saves for each changed guess the newest stored line at that instant (any age, with
- * observedAt and ageSeconds) or a pending reference resolved by the first line collected and observed after it. Commit failures
+ * observedAt and ageSeconds) or a pending reference resolved by the first line collected after it. Commit failures
  * deliberately propagate: a transport failure can be ambiguous, so do not claim rollback or re-submit.
  *
  * No sleeps, automatic retries, draft writes, quote injection or reveal here.

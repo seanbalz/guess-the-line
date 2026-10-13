@@ -9,7 +9,7 @@ export class SubmissionReferenceError extends Error {
     this.status = 409;
   }
 }
-// October 12, 2026 ruling: a guess saved before any line was stored waits for the first line collected and observed after it.
+// October 12, 2026 ruling: a guess saved before any line was stored waits for the first line collected after it.
 const PENDING_REASON = 'No line was stored yet when this guess was saved. The first line collected after it becomes its reference.';
 const pendingReference = savedAt => ({ status: 'pending', basis: 'first_line_after_submission', value: null, source: null, sourceUrl: null,
   snapshotId: null, capturedAt: null, observedAt: null, savedAt, ageSeconds: null, reason: PENDING_REASON });
@@ -25,7 +25,8 @@ const sourceMetadata = row => typeof row?.source === 'string' && row.source.trim
 // Check receipts against their recorded save instant, never the current clock.
 // A valid saved scoring reference stays valid when the live market later moves.
 // Since October 12, 2026 the line's age decides nothing: a stored line at (or the first line after) the guess is
-// scored whatever its age. A first line after the guess must be collected and observed after it, never before.
+// scored whatever its age. A first line after the guess must be collected after it; its book observations may precede
+// the save (D-17 keeps them within five minutes of the collection), and ageSeconds is then positive.
 // Stored 'stale' and 'unavailable' references keep value null and stay unscored.
 function savedReference(ballot, game, mode, now) {
   const ref = ballot.scoringReferences?.[game.id];
@@ -41,7 +42,7 @@ function savedReference(ballot, game, mode, now) {
   try { validatePrediction(mode, ref.value); validValue = true; } catch { /* Invalid evidence is unscored. */ }
   if (!validValue || ![saved, captured, observed, submitted, updated, now].every(Number.isFinite)
     || saved > now || saved < submitted || saved > updated || observed > captured
-    || (firstAfter ? captured <= saved || observed < saved || captured > now : captured > saved)
+    || (firstAfter ? captured <= saved || captured > now : captured > saved)
     || saved >= kickoff || captured >= kickoff
     || typeof ref.source !== 'string' || !ref.source.trim() || typeof ref.snapshotId !== 'string' || !ref.snapshotId
     || !/^https:\/\//.test(ref.sourceUrl || '')) return missingReference('The saved scoring reference has incomplete or invalid evidence.', ref.savedAt || null);

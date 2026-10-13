@@ -69,12 +69,12 @@ function persistedRows(reference, market, game) {
 function savedBoard(game, market, snapshots, now) {
   const ref = game.scoringReference;
   // The line at the guess was collected at or before the save; a pending guess's first line after it was collected
-  // and observed after the save (never a quote older than the guess).
+  // after the save (its book observations may precede the save, within D-17's five minutes of that collection).
   const firstAfter = ref?.basis === 'first_line_after_submission';
   const available = ref?.status === 'available' && validValue(ref.value, market)
     && [ref.savedAt, ref.capturedAt, ref.observedAt].every(value => Number.isFinite(time(value)))
     && time(ref.observedAt) <= time(ref.capturedAt) && time(ref.savedAt) <= now
-    && (firstAfter ? time(ref.capturedAt) > time(ref.savedAt) && time(ref.observedAt) >= time(ref.savedAt) && time(ref.capturedAt) <= now
+    && (firstAfter ? time(ref.capturedAt) > time(ref.savedAt) && time(ref.capturedAt) <= now
       : time(ref.capturedAt) <= time(ref.savedAt));
   let rows = available ? persistedRows(ref, market, game) : null;
   if (available && !rows) {

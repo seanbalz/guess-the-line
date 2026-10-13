@@ -25,12 +25,15 @@ API/UI changes listed in [DECISIONS.md](DECISIONS.md) (D-27):
   guess").
 - With no qualifying stored line yet (for example right after the Monday open),
   the guess saves with a `pending` reference and is unscored until the first
-  qualifying line collected after it, with every book observation at or after the
-  save, which becomes its reference (`basis: first_line_after_submission`, "First
-  line after submission"; `ageSeconds` is then zero or negative). A line observed
-  before the save is never used for a pending guess, also when its collection was
-  stored after the save. The collection that stores the qualifying line resolves
-  every pending guess of the week in the same database transaction
+  qualifying line collected after it, which becomes its reference
+  (`basis: first_line_after_submission`, "First line after submission"). Book
+  observation times are not compared with the save: a book whose last update
+  precedes the save still counts, and `ageSeconds` is then positive (at most five
+  minutes, since D-17 keeps each observation within five minutes of its
+  collection); otherwise it is zero or negative. A collection made before the save
+  is never used for a pending guess, also when it was stored after the save. The
+  collection that stores the qualifying line resolves every pending guess of the
+  week in the same database transaction
   (`gtl_resolve_pending_references`, called from both finish RPCs), so the
   community leaderboard, group screens and Solo read one saved value; only the
   pending reference changes and a `reference_resolved` audit event is appended.
@@ -59,7 +62,7 @@ were not accessed, and this record does not claim to reproduce those messages.
 
 ## Evidence and migration boundaries
 
-The server chooses the source; client-supplied consensus cannot establish a scoring reference. Save the source, snapshot identity, collection time, observation time and server save time. Until October 12, 2026 a qualifying observation had to exist at save time and meet the five-minute freshness window, and under D-17 the entire save failed otherwise. D-27 (above) replaces both: the newest stored line at the save is used whatever its age, or a pending reference resolved by the first line collected and observed after the save. Historical guesses with missing evidence remain unscored with a reason. A captured reference does not become invalid simply because time subsequently passes.
+The server chooses the source; client-supplied consensus cannot establish a scoring reference. Save the source, snapshot identity, collection time, observation time and server save time. Until October 12, 2026 a qualifying observation had to exist at save time and meet the five-minute freshness window, and under D-17 the entire save failed otherwise. D-27 (above) replaces both: the newest stored line at the save is used whatever its age, or a pending reference resolved by the first line collected after the save. Historical guesses with missing evidence remain unscored with a reason. A captured reference does not become invalid simply because time subsequently passes.
 
 Initial submission captures the complete ballot's references. Revisions preserve original submission time and record before/after guesses and references. Existing submitted guesses without a saved submission-time reference remain explicitly unavailable under this policy. Historical source files, archived scores, eligibility rulings and frozen benchmarks are preserved; no later quote is substituted for missing historical evidence. An explicit changed guess can establish a new reference before the deadline.
 
