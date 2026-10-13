@@ -52,6 +52,18 @@ test('revision and deadline rejections keep their definite recovery paths', asyn
   await assert.rejects(readResponse(json({ error: 'Prediction deadline passed.' }, 423), true), error => error.status === 423 && !error.uncertain);
 });
 
+test('a coded submission refusal keeps its own sentence even when it mentions a changed guess (D-27)', async () => {
+  const body = { error: 'The line for a changed guess could not be verified. Your guesses were not submitted. Keep your draft and try again.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false };
+  await assert.rejects(readResponse(json(body, 409), true), error => {
+    assert.equal(error.message, body.error);
+    assert.equal(error.code, 'GTL_SUBMISSION_QUOTES_REQUIRED');
+    assert.equal(error.status, 409);
+    assert.notEqual(error.uncertain, true);
+    return true;
+  });
+  await assert.rejects(readResponse(json({ error: 'Revision changed.', code: 'NOT_A_SUBMISSION_CODE' }, 409), true), error => /another group or on another device/.test(error.message), 'an uncoded or foreign-coded revision 409 is still the conflict');
+});
+
 test('successful save acknowledgement passes through once without retry or extra reads', async () => {
   let requests = 0;
   const saved = { revision: 3, games: [], league: { week: 5 } };
