@@ -5,18 +5,16 @@ import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
 import TeamFacts from './TeamFacts';
 import SitOutWeek from './SitOutWeek';
+import CommunityHistory from './CommunityHistory';
 import LineAtGuess from './LineAtGuess';
 import { cloudApi, communityApi, date } from './api';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
-import { TEAM_NAMES, pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
+import { MODE, pickText, shortName, show, team } from './communityFormat';
+import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import './community.css';
 
-const MODE = { guess_spread: 'Spread', guess_total: 'Total' };
 const DAY = 86_400_000;
-const show = n => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
-const team = code => TEAM_NAMES[code] || code;
-const shortName = code => team(code).split(' ').at(-1);
 // D-24: "Mon, Oct 12, 12:00 AM" — the week's Monday 00:00 Pacific open.
 const opensText = (week, opensAt) => `Week ${week} opens ${date(opensAt, { weekday: 'short' })} PT`;
 const dueText = deadline => `Picks due ${date(deadline, { weekday: 'short' })} PT`;
@@ -162,8 +160,7 @@ function PostPicks({ post }) {
   const entries = Object.entries(post.picks);
   return <ul className="post-picks mono">{entries.map(([gameId, value]) => {
     const [away, home] = gameId.split('-');
-    const text = post.mode === 'guess_total' ? `${show(value)}` : value === 0 ? "Even (pick'em)" : `${shortName(value < 0 ? home : away)} −${show(Math.abs(value))}`;
-    return <li key={gameId}><span>{away} @ {home}</span><span>{text}</span></li>;
+    return <li key={gameId}><span>{away} @ {home}</span><span>{pickText(post.mode, away, home, value)}</span></li>;
   })}</ul>;
 }
 
@@ -470,8 +467,8 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
 }
 
 export default function CommunityHome({ accountId, onGroups, onSignOut, displayName, onUnavailable, welcome = '' }) {
-  // Persona audit #3: the open tab is the URL hash (#feed, #picks), one history entry each, so Back returns to the feed and a reload lands on the same tab.
-  const screen = useScreen(), tab = screen === 'picks' ? 'picks' : 'feed';
+  // Persona audit #3: the open tab is the URL hash (#feed, #picks, #history), one history entry each, so Back returns to the feed and a reload lands on the same tab.
+  const screen = useScreen(), tab = ['picks', 'history'].includes(screen) ? screen : 'feed';
   const [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [retryable, setRetryable] = useState(false);
   const main = useRef(null), refocus = useRefocus(main);
@@ -525,13 +522,15 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         <button className="secondary back-to-nfl" onClick={() => setLeague('nfl')}>Back to NFL</button>
       </> : <>
       <nav className="community-tabs" aria-label="Community sections">
-        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`]].map(([key, label]) =>
+        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`], ['history', 'History']].map(([key, label]) =>
           <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => goScreen(key)}>{label}</button>)}
         <button className="secondary" onClick={onGroups}>Groups & games<ArrowRight size={16}/></button>
       </nav>
       {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span>{!feed && retryable && <button type="button" className="text-button" data-action="feed-retry" aria-disabled={busy || undefined} onClick={() => { if (!busy) retryFeed(); }}>Retry</button>}</div>}
       <p className="auth-notice" role="status" aria-live="polite">{notice}</p>
-      {tab === 'picks' ? <WeekPicks accountId={accountId} feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/> : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
+      {tab === 'picks' ? <WeekPicks accountId={accountId} feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/>
+        : tab === 'history' ? <CommunityHistory accountId={accountId}/>
+        : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
         <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>
         <Leaderboard feed={feed}/>

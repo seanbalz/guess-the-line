@@ -2,7 +2,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // October 12, 2026 ruling: quote-refresh limits never refuse a save. The only SubmissionOddsError a player can still
 // see is a failed integrity check of the server-selected line at the atomic commit (GTL_SUBMISSION_ODDS_REQUIRED).
 const ERRORS = {
-  GTL_SUBMISSION_QUOTES_REQUIRED: [409, 'The line for a changed guess could not be verified. Your guesses were not submitted. Keep your draft and try again.'],
+  GTL_SUBMISSION_QUOTES_REQUIRED: [409, 'The line for an edited guess could not be verified. Your guesses were not submitted. Keep your draft and try again.'],
   // Internal only: collectSubmissionOdds without a configured provider. The orchestration ignores it.
   GTL_SUBMISSION_REFRESH_UNAVAILABLE: [503, 'Market refresh is not configured.'],
   GTL_SUBMISSION_CHECK_UNAVAILABLE: [503, 'The submission check is temporarily unavailable. Your guesses were not submitted. Keep your draft and retry.'],
