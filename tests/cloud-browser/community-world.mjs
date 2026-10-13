@@ -10,6 +10,7 @@ import { providerSocialError } from '../../cloud/social.mjs';
 import { providerPersonalError } from '../../cloud/personal.mjs';
 import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../cloud/community.mjs';
+import { providerOfficialsError } from '../../cloud/officials.mjs';
 import { providerWeeklyError } from '../../cloud/weekly.mjs';
 import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
@@ -23,7 +24,8 @@ export const MIGRATIONS = ['20261008164249_gtl_private_cloud_state.sql', '202610
   '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
   '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
   '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
-  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql'];
+  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql',
+  '20261012234500_gtl_game_officials.sql'];
 /** D-24: an open fixture week must be the current Pacific week; its TNF deadline is 11:59 PM PT today. */
 export const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
 export const ACCOUNTS = {
@@ -38,14 +40,16 @@ export const ACCOUNTS = {
  * groupScreens: let the group game routes read membership and weekly state; community routes never need either.
  * troyBallots: Troy's pre-D-17 submitted Week 5 Spread and Total ballots (picks hidden from others until they submit or sit out).
  * clock: the handler clock (community reads, picks-due and sit-outs); database triggers keep the real clock.
+ * prepare: optional (state) => void that edits the seeded league state (week, games) before it is stored and the slate is derived.
  * migrations: the migration files to apply in order (default MIGRATIONS; a spec that needs a newer file passes the full sorted list).
  */
-export async function communityWorld(page, baseURL, { deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, migrations = MIGRATIONS } = {}) {
+export async function communityWorld(page, baseURL, { deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, migrations = MIGRATIONS } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
   await db.exec(fs.readFileSync(`supabase/migrations/${migrations[0]}`, 'utf8'));
   const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0, games);
   state.league.deadline = deadline; state.games.forEach((game, i) => { game.kickoff = new Date(Date.parse(deadline) + i * 3_600_000).toISOString(); });
+  prepare?.(state);
   await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);
   await db.query(`insert into auth.users values ${accounts.map((_, i) => `($${i + 1})`).join(',')}`, accounts.map(a => a.id));
   for (const a of accounts) await db.query("insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,'sean-troy-luke',$2,$3)", [a.id, a.player, a.role]);
@@ -84,6 +88,8 @@ export async function communityWorld(page, baseURL, { deadline = openDeadline(),
     social: { rpc: rpc(providerSocialError) }, personal: { rpc: personalRpc }, lobby: { rpc: rpc(providerLobbyError) },
     // The public schedule is a spec-owned fixture; the real adapter fetches nflverse. Never a live download here.
     community: { rpc: rpc(providerCommunityError), schedule: async () => { if (typeof world.schedule !== 'function') throw new Error('No schedule fixture.'); return world.schedule(); } },
+    // Game referees for situational trends (the commissioner check and both RPCs run on the same PGlite database).
+    officials: { rpc: rpc(providerOfficialsError) },
     // D-17: this fixture has no odds provider; the preflight reports eligible cached references (no spec here submits).
     odds: { rpc: (fn, args) => (fn === 'gtl_preflight_submission' ? Promise.resolve({ requiresReferences: false, ready: true }) : personalRpc(fn, args)) },
     storage: { async membership(userId, leagueId) {

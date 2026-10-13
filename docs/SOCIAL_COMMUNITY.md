@@ -40,6 +40,8 @@ The one visibility exception is the Guess pick reveal gate, shared by the feed a
 | `/community/sit-out` | `{ season, week, mode }` (`guess_spread` or `guess_total`) | `{ season, week, mode, satOut: true, replayed }`; 409 `GTL_COMMUNITY_CLOSED` after the deadline, 400 once that ballot is submitted |
 | `/community/week-open` | `{}` (commissioner only) | D-24 scheduler status: `configured`, `enabled`, `season`, `utcCrons`, `lastRunAt`, `lastStatus`, `lastReason`, `currentWeek { season, week, openAt, deadline }` |
 | `/community/history` | `{ season? }` (default: the newest published season) | D-27 history: `viewer`, `season`, `seasons`, `members` (with `removed`), `weeks[]` newest first, each with `deadline`, `closed`, `games[]`, `results{}`, `revealed{}` and `entries[]` (one per member and market: `status` submitted / sat_out / draft, `submittedAt`, `scoringPolicy`, `ruling`, `picksHidden`, `picks[]` with `guess`, `reference`, `points`, `scorable`, and `weekPoints`, `weekScored`, `games`; `updatedAt`, `revisions` (edits after submitting) and `provenance` are the viewer's own entries only and `null` on every other member's). Since 20261013010000 each entry also carries `eligible`, `eligibility` (`standard`, `ruled-eligible`, `ruled-ineligible`, `practice`; an ineligible entry never carries points) and `submittedAtKnown`, and a reference can have basis `line-at-guess` with `rule` (`newest-at-or-before` or `first-after-submission`), `origin` (`hosted-snapshot` or `imported-reference`), `sourceFile`, `fileSha256`, `bookCount`, `capturedAt`, `observedAt`, `guessedAt`, `guessedAtKnown` (false when the guess instant is the stored `submittedAt` of a ballot whose original submission time was not recorded) and `gapSeconds` (positive when observed before the guess, negative after); saved references add `rule` (the saved basis) and `gapSeconds` (the saved age) |
+| `/officials/read` | `{ season, week }` (any community member) | Game referees for situational trends: `assignments { [gameId]: { referee, setAt, revision } }`. Ships with the next `gtl-api` deploy and needs migration `20261012234500_gtl_game_officials.sql`; see [TRENDS.md](TRENDS.md#referees) |
+| `/officials/set` | `{ season, week, gameId, referee \| null }` (commissioner only; 403 before any write for anyone else) | `{ season, week, gameId, referee, setAt, revision, changed }`. The game must be on that week's published slate. Every change is a new revision in `gtl_game_official_history` and `gtl_access_audit`; nothing is deleted |
 
 The handler passes the request time to the database, so the deadline reveal, the sit-out cutoff and the picks-due state use one clock. It also strips pick values from any post marked hidden. `picksDue` carries `opensAt` (the week's Monday 00:00 PT) alongside `deadline`. Group game screens read opt-outs through `gtl_read_weekly_state` (`state.optOuts`), and the league engine's reveal gate honors them; the local workspace keeps the same shape in `.local/state.json` through `POST /api/sit-out`, although the local UI does not offer the button.
 
@@ -129,6 +131,14 @@ node scripts/team-records.mjs --season 2026 --through-week 5
 
 The script downloads the public nflverse schedule file, counts finals only (regular season, both scores present) and writes `shared/team-records-2026.json`. Neutral-site games count toward overall records only. The nflverse repository publishes no explicit license; records are plain facts derived from final scores and are credited to nflverse (Lee Sharpe). Re-run after each week's Monday game.
 
+## Trends refresh
+
+```sh
+node scripts/trends.mjs --season 2026 --week 7
+```
+
+Run it Tuesday morning, after the Monday-night final is in the nflverse release. It writes the redacted season file, `shared/trends/2026-week-07.json` and the lazy loader map. Then `npm test`, `npm run build`, a PR, and a Pages deploy. Commissioner referee assignments are saved in the app (Feed → Game referees) once the hosted pieces ship. Until then, `--reuse-season-file --referees refs.json` carries them in the week file. Full procedure: [TRENDS.md](TRENDS.md#weekly-operator-step).
+
 ## Release checklist — October 9, 2026
 
 One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 are **pending** and are Sean's, run from the machine with the Supabase and Cloudflare logins. Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
@@ -180,7 +190,7 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    npm run check:cloud
    npm run cloudflare -- pages deploy .local/cloud-dist --project-name guess-the-line --branch main --commit-dirty=true
    ```
-   `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements`, the three Virtual Units RPCs and `gtl_numeric_is_finite` on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)).
+   `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements`, the three Virtual Units RPCs and `gtl_numeric_is_finite` on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)). It also expects the three Community history readers (`20261012223000`) and the six D-27 line-at-guess helpers (`20261012230000`), and fails with `unexpected 404` until both migrations are applied hosted, so it holds the Pages deploy until they are. Probes listed in its `awaitingDeploy` table (only the situational-trends referee RPCs and routes; see [Deployed state](#deployed-state)) pass with the exact not-found answer until their migration and API deploy, and are printed as "awaiting deploy, not verified"; `--strict` requires every probe to deny.
 
 7. **Done (October 12, 2026) — post-deploy boundary probe and release manifest.** 152 live denials, 0 unexpected, at 20:43:48 UTC; manifest sourceSha256 `f47532fd…bdb16f1c20`, frontendSha256 `7e604426…dbb07e4`.
    ```sh
@@ -243,3 +253,14 @@ Deployed from the cloud session on October 9, 2026, through the Supabase MCP: th
 October 12, 2026 addition: migration `20261012223000_gtl_community_history.sql`, the `/community/history` route and the History tab (D-27, see [Community history](#community-history--october-12-2026)). The migration is applied hosted since October 13 as `20261013023146`, with D-27's `20261012230000_gtl_submit_with_line_at_guess.sql` as `20261013023542` (both verified byte-identical to the repo files and in both repair lists in step 2); the route and the tab ship with the `gtl-api` and Pages deploys.
 
 October 13, 2026 addition: migration `20261013010000_gtl_line_at_guess_reads.sql` is applied hosted as `20261013040845` (in both repair lists in step 2) and the eDraft reference-line import Sean approved as D-33 has run (see [Line at the guess](#line-at-the-guess-and-d-08-eligibility--october-13-2026)); `gtl-api` v17 and Pages `9dd92b5b` were deployed from `main` at `c1f3092` afterwards.
+
+*October 13, 2026 — situational trends (branch `claude/trends-engine`):* not deployed.
+- The trend panels and weekly files need a Pages deploy only.
+- The commissioner referee dropdown also needs:
+  - migration `20261012234500_gtl_game_officials.sql`, written and **not applied to the hosted project**. When it is applied through the Supabase MCP, record its hosted version here; never `db push`.
+  - a `gtl-api` deploy for `/officials/read` and `/officials/set`.
+- Before both ship, the panel falls back to the weekly file, and the commissioner panel says saving needs the next deploy.
+
+*Boundary check while these are pending.*
+- The referee pieces do not hold a deploy. Until `20261012234500` is applied and `/officials/read` and `/officials/set` are deployed, the check reports the two referee RPCs and the two `/officials` routes as "awaiting deploy, not verified" (they are the only entries in `awaitingDeploy` in `scripts/check-cloud-boundary.mjs`). Only the exact not-found answer is accepted for them; any other answer must still be a denial, and every other probe still runs.
+- After the referee migration and the `gtl-api` deploy, run `node scripts/check-cloud-boundary.mjs --strict`, which fails while anything is awaiting deploy, then remove those entries in the change that records the hosted version.

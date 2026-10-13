@@ -18,6 +18,22 @@
 - **Release order: the hosted apply and the import run after this branch merges.** The prerequisite migrations are applied on the hosted project: `20261012223000_gtl_community_history.sql` as hosted version `20261013023146` and `20261012230000_gtl_submit_with_line_at_guess.sql` as `20261013023542`. After the merge: the read-only pre-flight, then the migration through the Supabase MCP or the SQL editor (never `db push`), then `node scripts/import-reference-lines.mjs --decision D-33 --actor <commissioner uuid> --sql` (or `--execute`), then the `gtl-api` and Pages deploys, in the order of the [release steps](SOCIAL_COMMUNITY.md#line-at-the-guess-and-d-08-eligibility--october-13-2026).
 - **Done, October 13, 2026.** `20261013010000` applied hosted as `20261013040845` (byte-identical to `main`); both pages imported, 15 lines each; `gtl-api` v17 and Pages `9dd92b5b` deployed from `main` at `c1f3092`. Hosted Week 5 spreads read as expected: Sean 95.8, Steven 91.4 (10:03 ET page), Ben 37.6; the six later ballots on hosted snapshots. Record: [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md#october-13-second-deploy).
 
+## D-32 — Situational trends beside every game (October 12, 2026)
+
+- Sean, product owner, chose option A: "Preset trend cards from the free data on Picks and the dashboard. Referee trends use a referee you pick from a dropdown for each game once assignments come out".
+- He added: "it needs to be more than referee trends, home vs away trends, divisional games, totals, whether it is a night game/primetime game, the teams playing being from afc and nfc, one team traveling, coming off bye week rest, coming off a short week. these are just to name a couple of examples".
+- His follow-up the same day: "that is a shortsided trend list. you may be missing trends with the most statistical impact to the outcome. we need quality trends".
+- Delivery, on branch `claude/trends-engine`:
+  - Every trend is a frozen preset of at most two filters, ranked by an out-of-sample quality score and never by ROI or streak.
+  - Sean's families are always shown as context labelled "No proven edge".
+  - The only trend that beat chance out of sample (2018–2025) is strong wind at kickoff (10+ mph) → Under. It needs observed wind, so on an upcoming game it is a collapsed conditional note.
+  - Tier 2 cards are labelled "not proven". Tier 3 and entity records are shown both ways, with walk-forward card fields.
+  - Line-dependent records unlock only after the matching ballot is submitted, sat out or closed. Rows are marked only with the player's own saved line.
+  - The commissioner sets each game's referee from a dropdown in the commissioner area. Every member sees that referee's records, or "Referee not assigned yet". Any member can look up another referee on screen without saving it.
+- Trend cards are reference only and never change scoring. This ruling places them beside each game, so D-21's "no tips or analysis" line now covers the plain team-records line only.
+- Week files and panels ship with a Pages deploy. Shared referee assignments also need migration `20261012234500_gtl_game_officials.sql` (written, **not applied to the hosted project**) and a `gtl-api` deploy.
+- Details: [TRENDS.md](TRENDS.md).
+
 ## D-31 — when other players' picks become visible (October 12, 2026)
 
 Sean ruled that every player's Guess the Spread and Guess the Total picks become visible to all members on a per-game, per-market basis:
@@ -219,7 +235,6 @@ Sean requested removing text beside the logo and supplied the selected Field
 monogram screenshot. Use its rounded lime tile and dark original mark in product
 brand placements. Preserve the accessible name and browser title Guess The Line.
 This refines D-12 presentation without choosing new type or palette options.
-
 
 - **D-15 — October 8, 2026: separate Best Bets competition.** Sean confirmed optional games and confidence weighting belong to a separate Best Bets competition. Spread and Total keep existing full-slate accuracy rules. The numerical confidence budget, deadline, scoring and settlement rules remain undecided; planning documents are not shipped features.
 - **D-16 — earlier pending question, now answered below: submission-time versus common scoring reference.** Sean requested a global member leaderboard, stronger player comparisons, time-of-selection odds comparisons and actual stake/result/ROI tracking. The earlier question was whether to use a common benchmark or individual submission-time references. Its pending state is superseded by the following answer; global visibility/eligibility and journal privacy remain separate.

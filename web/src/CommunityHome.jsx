@@ -1,10 +1,14 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, Check, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
+import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, ChartSpline, Check, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
 import TeamFacts from './TeamFacts';
 import SitOutWeek from './SitOutWeek';
+import GameTrends from './GameTrends';
+import RefereeAssignments from './RefereeAssignments';
+import { useTrendsToggle } from './trendsData';
+import { communityAccess, referenceValue } from '../../shared/trends-view.mjs';
 import CommunityHistory from './CommunityHistory';
 import LineAtGuess from './LineAtGuess';
 import { PushReminderPrompt } from './PushReminders';
@@ -294,6 +298,7 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   const [notice, setNotice] = useState(''), [failure, setFailure] = useState(null), [hint, setHint] = useState(''), [recovery, setRecovery] = useState(null);
   const [dismissed, setDismissed] = useState(() => new Set(Object.keys(MODE).filter(m => { try { return localStorage.getItem(helpKey(m)) === 'off'; } catch { return false; } })));
   const request = useRef(null), root = useRef(null), refocus = useRefocus(root), hintId = useId(), receiptId = useId();
+  const [showTrends, toggleTrends] = useTrendsToggle();
   // The save-bar button behind the latest request ("draft" or "submit"); a banner action hands focus back to it.
   const action = useRef('draft');
   const settled = useRef(currentMarket() !== null), latest = useRef(null);
@@ -344,6 +349,7 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   const opensAt = weekOpenAt(data.deadline), notOpen = Date.parse(data.now) < Date.parse(opensAt);
   const satOut = optOuts.includes(mode);
   const editable = !closed && !notOpen && !satOut;
+  const trendAccess = communityAccess({ ballots: data.ballots, optOuts, closed });
   const filled = Object.values(picks).filter(v => v !== '').length, remaining = data.games.length - filled;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
   // Persona audit #8: every save failure names the problem and offers the next step, beside the save bar. "Sign in again" unmounts
@@ -420,6 +426,9 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
     <div className="personal-actions" role="group" aria-label="Market">{Object.entries(MODE).map(([m, label]) =>
       <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} aria-disabled={busy || undefined} onClick={() => switchMode(m)}>
         {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
+    {/* Situational trends (October 12, 2026 ruling): off by default so each game keeps one Tab stop per chip row; the choice is kept on this device. */}
+    <div className="trends-toggle-row"><button type="button" className="secondary trends-toggle" aria-pressed={showTrends} onClick={toggleTrends}><ChartSpline size={16} aria-hidden="true"/>Show trends</button>
+      <span className="muted small">Past results by game situation. Reference only; trends never change scoring.</span></div>
     <p className="muted">Week {data.week} · {header}</p>
     {notOpen && <section className="panel week-not-open" role="status"><h3>{opensText(data.week, opensAt)}</h3><p>Nobody can pick before then. The schedule is below; the chips appear when the week opens.</p></section>}
     {/* Persona audit #41: the sat-out screen keeps its promise. The other members' picks for this market are on the cards below; once the
@@ -451,6 +460,9 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
         : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
         label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
+      {/* Line-dependent trends unlock per market (submitted, sat out or closed); bands are marked with this player's own saved line only. */}
+      {showTrends && <GameTrends season={data.season} week={data.week} gameId={g.id} away={g.awayCode} home={g.homeCode} level={4} access={trendAccess} savedLabel="your saved line"
+        saved={{ spread: referenceValue(data.ballots.guess_spread?.scoringReferences?.[g.id]), total: referenceValue(data.ballots.guess_total?.scoringReferences?.[g.id]) }}/>}
     </article>)}</div>
     {editable && <div className="save-bar">
       {failure && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{failure.message}</span>
@@ -538,6 +550,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>
         <Leaderboard feed={feed}/>
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}
+        {feed.admin && feed.week && <RefereeAssignments season={feed.week.season} week={feed.week.week}/>}
         <section className="community-feed" aria-label="Activity feed" tabIndex={-1}>
           {posts.map(post => <Post key={post.id} post={post} name={name} busy={busy} onLike={like} onComment={comment}/>)}
           {!posts.length && <p className="panel">No activity yet.</p>}

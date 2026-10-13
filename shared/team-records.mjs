@@ -1,5 +1,5 @@
 // Plain team records from final scores only: overall W-L-T plus home and road splits.
-// No forecasts, trends or tips. Neutral-site games count toward overall only.
+// Plain records only; situational trends live in shared/trends.mjs. Neutral-site games count toward overall only.
 import { appCode } from './nfl-schedule.mjs';
 const CSV_COLUMNS = ['game_id', 'season', 'game_type', 'week', 'away_team', 'away_score', 'home_team', 'home_score', 'location'];
 

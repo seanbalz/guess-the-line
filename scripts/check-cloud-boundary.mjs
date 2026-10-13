@@ -78,6 +78,10 @@ const rpcChecks = [
   ['gtl_read_community_history', { p_user: missingId, p_season: null, p_now: null }],
   ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
   ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
+  // Game referees for situational trends (October 12, 2026 ruling): two service-only RPCs from 20261012234500_gtl_game_officials.sql.
+  // Awaiting deploy (see awaitingDeploy below), so they alone do not fail check:cloud for a Pages-only deploy of the trend panels.
+  ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
+  ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
   // D-28 web push reminders (20261013030000): device subscriptions and the reminder scheduler are service-only.
   ['gtl_push_subscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_p256dh: `B${'A'.repeat(86)}`, p_auth: 'A'.repeat(22) }],
   ['gtl_push_unsubscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check' }],
@@ -88,6 +92,24 @@ const rpcChecks = [
   ['gtl_record_push_delivery', { p_run: missingId, p_claim: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_outcome: 'failed' }],
   ['gtl_complete_push_reminders', { p_run: missingId, p_claim: missingId, p_reason: 'nothing_due', p_sent: 0, p_failed: 0 }],
 ];
+/**
+ * Probes for hosted pieces that are written but not yet applied or deployed. Each still has to deny
+ * like any other probe once it exists. Until then only the exact "does not exist yet" answer passes
+ * (PostgREST's PGRST202 for a missing function, gtl-api's own "Not found." for a missing route), and it
+ * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
+ * after the deploy, then remove the entries here in the change that records the hosted version.
+ *
+ * Only the situational-trends referee pieces are listed. The Community history readers (20261012223000),
+ * the D-27 line-at-guess helpers (20261012230000) and the /community/history route are deliberately not:
+ * any of them that is missing fails the default check with `unexpected 404`, which is the release
+ * checklist's gate for applying those migrations hosted before the gtl-api deploy that needs them.
+ */
+export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_read_game_officials': 'migration 20261012234500_gtl_game_officials.sql',
+  'rpc/gtl_set_game_official': 'migration 20261012234500_gtl_game_officials.sql',
+  'gtl-api/officials/read': 'the gtl-api deploy with /officials/read',
+  'gtl-api/officials/set': 'the gtl-api deploy with /officials/set',
+});
 const apiChecks = [
   ...['read','create','tail','settle','include','correct','follow'].map(action => [`social/${action}`, {}]),
   ['community/history', {}],
@@ -115,12 +137,20 @@ const apiChecks = [
   ['virtual-units', undefined],
   ['virtual-pick', {}],
   ['virtual-units/settle', {}],
+  // Referee routes ship with the next gtl-api deploy (awaitingDeploy). gtl-api runs behind verify_jwt, so the
+  // gateway normally answers these signed-out probes with 401 before the function runs, deployed or not.
+  ['officials/read', {}],
+  ['officials/set', {}],
   ['push/status', {}],
   ['push/subscribe', {}],
   ['push/unsubscribe', {}],
 ];
 
-export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = console.log }) {
+const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
+const notDeployed = (key, status, result) => Object.hasOwn(awaitingDeploy, key) && status === 404
+  && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : result?.error === 'Not found.' && Object.keys(result).length === 1);
+
+export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = console.log, strict = false }) {
   assert.ok(/^https:\/\/onmrgvcehkflfaizvedl\.supabase\.co$/.test(url || ''), 'Unexpected cloud project URL.');
   assert.ok(/^sb_publishable_/.test(key || ''), 'A publishable key is required.');
   const requests = [
@@ -128,11 +158,11 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
       name: `anonymous ${table} table`, route: `/rest/v1/gtl_${table}?select=*&limit=1`, statuses: [401, 403], database: true,
     })),
     ...rpcChecks.map(([rpc, body]) => ({
-      name: `anonymous ${rpc} RPC`, route: `/rest/v1/rpc/${rpc}`, body, statuses: [401, 403], database: true,
+      name: `anonymous ${rpc} RPC`, route: `/rest/v1/rpc/${rpc}`, body, statuses: [401, 403], database: true, pending: `rpc/${rpc}`,
     })),
     ...apiChecks.flatMap(([route, body]) => [false, true].map(invalidSession => ({
       name: `${body ? 'POST' : 'GET'} ${route.split('?')[0]} ${invalidSession ? 'with invalid session' : 'without session'}`,
-      route: `/functions/v1/gtl-api/${route}`, body, statuses: [401], invalidSession,
+      route: `/functions/v1/gtl-api/${route}`, body, statuses: [401], invalidSession, pending: `gtl-api/${route.split('?')[0]}`,
     }))),
     ...[false, true].map(invalidMachineToken => ({
       name: `POST scheduled refresh ${invalidMachineToken ? 'with invalid machine token' : 'without machine token'}`,
@@ -147,7 +177,8 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
       name: `anonymous ${schema} schema`, route: `/rest/v1/${table}?select=id&limit=0`, statuses: [406], schema,
     })),
   ];
-  for (const { name, route, body, statuses, database, invalidSession, invalidMachineToken, schema } of requests) {
+  const awaiting = [];
+  for (const { name, route, body, statuses, database, invalidSession, invalidMachineToken, schema, pending } of requests) {
     const headers = { apikey: key, ...(invalidSession ? { Authorization: 'Bearer invalid-test-token' } : {}), ...(invalidMachineToken ? { Authorization: `Bearer ${'0'.repeat(64)}` } : {}), ...(schema ? { 'Accept-Profile': schema } : {}) };
     const response = await fetchImpl(url + route, {
       headers: { ...headers, ...(body ? { 'Content-Type': 'application/json' } : {}) },
@@ -155,8 +186,18 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
       signal: AbortSignal.timeout(15000), redirect: 'error',
     });
     const text = await response.text();
+    if (!strict && !statuses.includes(response.status) && pending && Object.hasOwn(awaitingDeploy, pending)) {
+      let missing = null;
+      try { missing = JSON.parse(text); } catch { /* Not the not-deployed answer; the checks below fail it. */ }
+      if (notDeployed(pending, response.status, missing)) {
+        assert.ok(!privateResponse.test(text), `${name}: private material in not-found response`);
+        awaiting.push({ name, until: awaitingDeploy[pending] });
+        log(`${name}: awaiting deploy (404, not found) until ${awaitingDeploy[pending]}`);
+        continue;
+      }
+    }
     assert.ok(statuses.includes(response.status), `${name}: unexpected ${response.status}`);
-    assert.ok(!/TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/.test(text), `${name}: private material in denied response`);
+    assert.ok(!privateResponse.test(text), `${name}: private material in denied response`);
     let result;
     try { result = JSON.parse(text); } catch { assert.fail(`${name}: non-JSON denial response`); }
     // Missing tables/functions and unrelated gateway failures do not prove grants.
@@ -164,7 +205,7 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
     if (schema) assert.equal(result.code, 'PGRST106', `${name}: expected unexposed schema denial`);
     log(`${name}: denied (${response.status})`);
   }
-  return requests.length;
+  return { checked: requests.length, denied: requests.length - awaiting.length, awaiting };
 }
 
 const privateDirectories = new Set(['data', 'server', 'cloud', 'supabase', 'src', 'scripts', 'tests', 'config', 'planning', '.git', '.github', '.local', 'node_modules']);
@@ -199,12 +240,13 @@ export function scanFrontend(dir) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  assert.ok(process.argv.slice(2).every(arg => arg === '--bundle-only'), 'Only --bundle-only is supported.');
+  assert.ok(process.argv.slice(2).every(arg => arg === '--bundle-only' || arg === '--strict'), 'Only --bundle-only and --strict are supported.');
   scanFrontend(path.join(root, '.local/cloud-dist'));
   console.log('Cloud frontend: no private state, contacts, source files or server credentials found.');
   if (!process.argv.includes('--bundle-only')) {
     process.loadEnvFile(path.join(root, '.env.cloud'));
-    await checkCloudBoundary({ url: process.env.VITE_SUPABASE_URL, key: process.env.VITE_SUPABASE_PUBLISHABLE_KEY });
+    const result = await checkCloudBoundary({ url: process.env.VITE_SUPABASE_URL, key: process.env.VITE_SUPABASE_PUBLISHABLE_KEY, strict: process.argv.includes('--strict') });
+    console.log(`${result.denied} live denials${result.awaiting.length ? `; ${result.awaiting.length} awaiting deploy, not verified: ${[...new Set(result.awaiting.map(a => a.until))].join('; ')}` : ''}.`);
   }
   console.log('Signed-out API denials verify authentication protection, not route existence behind the gateway.');
   console.log('These checks do not verify a real player login, authenticated access denial, concurrent database transactions, email delivery or a cross-device save.');
