@@ -44,7 +44,12 @@ test('the production CSP does not block the OAuth redirect or the session check 
   assert.match(csp, /form-action 'self'/);
   // After the return, supabase-js reads the session from the fragment and checks it against the project's Auth API.
   assert.match(csp, /connect-src 'self' https:\/\/onmrgvcehkflfaizvedl\.supabase\.co/);
-  assert.doesNotMatch(csp, /google/i);
+  // Google Fonts (PR #54) may appear in style-src and font-src; the sign-in flow itself needs no Google origin anywhere.
+  assert.doesNotMatch(csp, /accounts\.google\.com|googleusercontent\.com/i);
+  for (const directive of ['connect-src', 'form-action', 'script-src', 'frame-src', 'default-src']) {
+    const value = csp.split(';').map(part => part.trim()).find(part => part.startsWith(directive)) || '';
+    assert.doesNotMatch(value, /google/i, `${directive} must not need a Google origin for sign-in`);
+  }
   const server = fs.readFileSync('server/index.mjs', 'utf8');
   assert.doesNotMatch(server, /navigate-to/);
 });
