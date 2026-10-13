@@ -155,3 +155,58 @@ test('community interest route validates strictly and normalizes interests (D-22
   assert.deepEqual(read.interests, ['nba', 'nhl'], 'unknown and live leagues are dropped');
   assert.deepEqual(read.interestCounts, { nba: 2, mlb: 0, nhl: 1, cfb: 0, cbb: 0 });
 });
+
+test('community history route validates strictly, passes request time, keeps the shape strict and never leaks a hidden ballot or another member\'s own-only fields', async () => {
+  const OTHER = '00000000-0000-4000-8000-000000000002';
+  const raw = { viewer: USER, season: 2026, now: '2026-10-15T23:00:00+00:00', seasons: [2026, 'x'], members: [{ id: USER, displayName: 'Ben' }, { id: OTHER, displayName: 'Troy', removed: true }],
+    weeks: [{ season: 2026, week: 6, deadline: '2026-10-16T00:15:00+00:00', closed: false,
+      games: [{ id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', away: 'Seattle Seahawks', home: 'Denver Broncos', kickoff: '2026-10-16T00:15:00+00:00' }],
+      results: { 'SEA-DEN': { status: 'final', home: 27, away: 24, source: 'nflverse games.csv', observedAt: '2026-10-16T04:00:00+00:00', settledAt: '2026-10-16T04:01:00+00:00', origin: 'settlement' }, 'X-Y': { status: 'weird', home: 1, away: 2 } },
+      revealed: { guess_spread: true, guess_total: false },
+      entries: [
+        { userId: OTHER, mode: 'guess_total', status: 'submitted', submittedAt: '2026-10-14T00:00:00+00:00', updatedAt: '2026-10-14T01:00:00+00:00', revisions: 2, provenance: 'solo', scoringPolicy: 'submission-time', picksHidden: true,
+          picks: [{ gameId: 'SEA-DEN', guess: 44, reference: { basis: 'saved', status: 'available', value: 44.5 }, points: 9, scorable: true }], weekPoints: 9, weekScored: 1, games: 1 },
+        { userId: OTHER, mode: 'guess_spread', status: 'submitted', submittedAt: '2026-10-14T00:00:00+00:00', updatedAt: '2026-10-14T00:00:00+00:00', revisions: 1, provenance: 'migrated-league', scoringPolicy: null, ruling: null, picksHidden: false,
+          picks: [{ gameId: 'SEA-DEN', guess: -3, reference: { basis: 'nearest-snapshot', label: 'nearest snapshot at submission', status: 'informational', value: -3.5, source: 'The Odds API · 3-book median', sourceUrl: 'http://insecure.example/', snapshotId: OTHER, observedAt: '2026-10-13T23:50:00+00:00', gapSeconds: 600 }, points: null, scorable: false }],
+          weekPoints: 0, weekScored: 0, games: 1 },
+        { userId: USER, mode: 'guess_spread', status: 'sat_out', satOutAt: '2026-10-13T00:00:00+00:00', picksHidden: false, picks: null, weekPoints: 0, weekScored: 0, games: 1 },
+        { userId: USER, mode: 'guess_total', status: 'draft', submittedAt: null, updatedAt: '2026-10-15T22:00:00+00:00', revisions: 3, provenance: 'group', scoringPolicy: null, ruling: null, picksHidden: false,
+          picks: [{ gameId: 'SEA-DEN', guess: 41, reference: null, points: null, scorable: false }], weekPoints: 0, weekScored: 0, games: 1 },
+        { userId: OTHER, mode: 'betting_challenge', status: 'submitted', picksHidden: false, picks: [] },
+        { userId: OTHER, mode: 'guess_total', status: 'pending', picksHidden: false, picks: [] },
+      ] }] };
+  const calls = [];
+  const app = createCloudHandler({
+    authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
+    storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden,
+    community: { rpc: async (name, args) => { calls.push([name, args]); return raw; } },
+    clock: () => Date.parse('2026-10-15T23:00:00Z'),
+  });
+  const send = (body, auth = 'Bearer token') => app(new Request('https://fixture.invalid/community/history', { method: 'POST', headers: { ...(auth ? { authorization: auth } : {}), 'content-type': 'application/json' }, body: JSON.stringify(body) }));
+  for (const body of [{ week: 5 }, { season: '2026' }, { season: 1999 }, { season: 2026.5 }, { season: 2026, extra: 1 }, [2026]]) assert.equal((await send(body)).status, 400, JSON.stringify(body));
+  assert.equal((await send({}, null)).status, 401);
+  assert.equal(calls.length, 0, 'invalid requests never reach the database');
+  const response = await send({});
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(calls, [['gtl_read_community_history', { p_user: USER, p_season: null, p_now: '2026-10-15T23:00:00.000Z' }]]);
+  assert.deepEqual([body.viewer, body.season, body.seasons, body.now], [USER, 2026, [2026], '2026-10-15T23:00:00+00:00']);
+  assert.deepEqual(body.members, [{ id: USER, displayName: 'Ben', removed: false }, { id: OTHER, displayName: 'Troy', removed: true }]);
+  const [week] = body.weeks;
+  assert.deepEqual([week.season, week.week, week.deadline, week.closed, week.revealed, week.games], [2026, 6, '2026-10-16T00:15:00+00:00', false, { guess_spread: true, guess_total: false }, raw.weeks[0].games]);
+  assert.deepEqual(week.results, { 'SEA-DEN': { status: 'final', home: 27, away: 24, source: 'nflverse games.csv', observedAt: '2026-10-16T04:00:00+00:00', settledAt: '2026-10-16T04:01:00+00:00', origin: 'settlement' } }, 'an unknown result status is dropped');
+  assert.deepEqual(week.entries.map(e => [e.userId, e.mode, e.status]), [[OTHER, 'guess_total', 'submitted'], [OTHER, 'guess_spread', 'submitted'], [USER, 'guess_spread', 'sat_out'], [USER, 'guess_total', 'draft']], 'unknown modes and statuses are dropped');
+  const [hidden, revealed, satOut, draft] = week.entries;
+  assert.deepEqual([hidden.picksHidden, hidden.picks, hidden.weekPoints, hidden.weekScored, hidden.submittedAt, hidden.scoringPolicy, hidden.ruling], [true, null, 9, 1, '2026-10-14T00:00:00+00:00', 'submission-time', null], 'hidden picks are stripped even if the provider returned them');
+  assert.ok(!JSON.stringify(hidden).includes('44'), 'no guess, line or per-pick points for a hidden ballot');
+  // The last change, the revision count and the provenance come from the private audit and provenance columns: the viewer's own only, hidden or revealed.
+  assert.deepEqual([hidden.updatedAt, hidden.revisions, hidden.provenance, revealed.updatedAt, revealed.revisions, revealed.provenance], [null, null, null, null, null, null], 'another member\'s own-only fields are stripped even if the provider returned them');
+  assert.ok(!JSON.stringify([hidden, revealed]).includes('solo') && !JSON.stringify([hidden, revealed]).includes('2026-10-14T01'), 'no provenance or change time of another member');
+  assert.deepEqual([draft.status, draft.submittedAt, draft.updatedAt, draft.revisions, draft.provenance, draft.picksHidden, draft.picks], ['draft', null, '2026-10-15T22:00:00+00:00', 3, 'group', false, [{ gameId: 'SEA-DEN', guess: 41, reference: null, points: null, scorable: false }]], 'the viewer\'s own fields pass through');
+  assert.deepEqual(revealed.picks, [{ gameId: 'SEA-DEN', guess: -3, points: null, scorable: false, reference: { basis: 'nearest-snapshot', label: 'nearest snapshot at submission', status: 'informational', value: -3.5, source: 'The Odds API · 3-book median',
+    sourceUrl: null, snapshotId: OTHER, capturedAt: null, observedAt: '2026-10-13T23:50:00+00:00', savedAt: null, decision: null, reason: null, gapSeconds: 600, detail: null, priorSnapshotAt: null, nextSnapshotAt: null } }], 'a non-https source link is dropped; an informational line never carries points');
+  assert.deepEqual([satOut.status, satOut.satOutAt, satOut.picks, satOut.weekPoints], ['sat_out', '2026-10-13T00:00:00+00:00', null, 0]);
+  await send({ season: 2026 });
+  assert.equal(calls.at(-1)[1].p_season, 2026);
+  assert.equal((await send({ season: 2026, week: 6 })).status, 400);
+});

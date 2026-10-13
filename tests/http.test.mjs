@@ -53,7 +53,7 @@ test('HTTP revisions preserve submitted state and reject incomplete edits before
   assert.equal(reloaded.audit[0].type, 'ballot_edited');
 });
 
-test('HTTP fresh-source rejection exposes a safe retry code and leaves draft, audit and disk unchanged', async t => {
+test('HTTP submission with no stored line saves pending instead of refusing', async t => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gtl-http-source-failure-'));
   const file = path.join(dir, 'state.json'), clock = () => Date.parse('2026-10-08T16:00:00Z');
   const store = createStore(file, clock), server = createServer(store);
@@ -64,13 +64,10 @@ test('HTTP fresh-source rejection exposes a safe retry code and leaves draft, au
   const save = submit => fetch(`${base}/api/ballot?player=troy&mode=guess_total`, { method: 'POST',
     headers: { Origin: base, 'Content-Type': 'application/json' }, body: JSON.stringify({ picks, submit }) });
   assert.equal((await save(false)).status, 200);
-  const bytes = fs.readFileSync(file, 'utf8'), before = store.export('troy');
-  const response = await save(true), error = await response.json();
-  assert.equal(response.status, 409); assert.equal(error.code, 'GTL_SUBMISSION_QUOTES_REQUIRED'); assert.equal(error.submitted, false);
-  assert.match(error.error, /Your guesses were not submitted/); assert.match(error.error, /does not refresh odds automatically/);
-  assert.deepEqual(Object.keys(error).sort(), ['code', 'error', 'submitted']);
-  assert.equal(fs.readFileSync(file, 'utf8'), bytes); assert.deepEqual(store.export('troy'), before);
-  assert.equal(store.view('troy', 'guess_total').revealed, false);
+  const response = await save(true), view = await response.json();
+  assert.equal(response.status, 200); assert.ok(view.submittedAt); assert.equal(view.revealed, true);
+  assert(view.games.every(game => game.scoringReference.status === 'pending' && game.points === null));
+  assert.equal(store.view('troy', 'guess_total').revealed, true);
 });
 
 test('HTTP static assets carry the right Content-Type under nosniff (PNG marks, manifest, icons)', async t => {
