@@ -43,15 +43,21 @@ $$;
 -- against a submission that may be hours later. Informational only.
 create function public.gtl_history_reference(p_season integer,p_week integer,p_signature jsonb,p_game jsonb,p_market text,p_submitted timestamptz) returns jsonb
 language plpgsql stable security invoker set search_path='' as $$
-declare snap record; ref jsonb; captured timestamptz; later timestamptz;
+declare snap record; ref jsonb; captured timestamptz; later timestamptz; prior_at timestamptz; prior_reason text; seen boolean:=false;
 begin
   if p_game is not null and p_submitted is not null and isfinite(p_submitted) then
     for snap in select id,payload,created_at from public.gtl_market_snapshots
       where season=p_season and week=p_week and slate_signature=p_signature and created_at<=p_submitted
       order by created_at desc,id desc limit 20 loop
       begin captured:=(snap.payload->>'fetchedAt')::timestamptz; exception when others then captured:=null; end;
+      if not seen then
+        -- The newest snapshot at or before the submission, remembered in case none qualifies.
+        seen:=true; prior_at:=case when captured is not null and isfinite(captured) then captured else snap.created_at end;
+        prior_reason:=case when captured is null or not isfinite(captured) then 'snapshot has no capture time' end;
+      end if;
       if captured is null or not isfinite(captured) then continue; end if;
       ref:=public.gtl_submission_reference(snap.payload,p_game,p_market,captured);
+      if prior_reason is null and prior_at=captured then prior_reason:=coalesce(ref->>'reason','no complete 3-book line for this game'); end if;
       if ref is not null and ref->>'status'='available' and jsonb_typeof(ref->'value')='number' then
         return jsonb_build_object('basis','nearest-snapshot','label','nearest snapshot at submission','status','informational',
           'value',ref->'value','source',ref->'source','sourceUrl',ref->'sourceUrl','bookCount',ref->'bookCount','snapshotId',snap.id,
@@ -60,9 +66,16 @@ begin
       end if;
     end loop;
   end if;
+  if seen then
+    -- Snapshots existed before the submission but none carried a usable line for this pick:
+    -- name the newest one and why, not the next collection.
+    return jsonb_build_object('basis','none','label','no line stored','status','unavailable','value',null,
+      'reason','snapshot-not-qualifying','detail',prior_reason,'priorSnapshotAt',prior_at,'nextSnapshotAt',null);
+  end if;
   select min(created_at) into later from public.gtl_market_snapshots
     where season=p_season and week=p_week and slate_signature=p_signature and (p_submitted is null or created_at>p_submitted);
-  return jsonb_build_object('basis','none','label','no line stored','status','unavailable','value',null,'nextSnapshotAt',later);
+  return jsonb_build_object('basis','none','label','no line stored','status','unavailable','value',null,
+    'reason','no-prior-snapshot','detail',null,'priorSnapshotAt',null,'nextSnapshotAt',later);
 end $$;
 
 create function public.gtl_read_community_history(p_user uuid,p_season integer default null,p_now timestamptz default null) returns jsonb

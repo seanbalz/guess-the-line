@@ -204,7 +204,7 @@ test('community history route validates strictly, passes request time, keeps the
   assert.ok(!JSON.stringify([hidden, revealed]).includes('solo') && !JSON.stringify([hidden, revealed]).includes('2026-10-14T01'), 'no provenance or change time of another member');
   assert.deepEqual([draft.status, draft.submittedAt, draft.updatedAt, draft.revisions, draft.provenance, draft.picksHidden, draft.picks], ['draft', null, '2026-10-15T22:00:00+00:00', 3, 'group', false, [{ gameId: 'SEA-DEN', guess: 41, reference: null, points: null, scorable: false }]], 'the viewer\'s own fields pass through');
   assert.deepEqual(revealed.picks, [{ gameId: 'SEA-DEN', guess: -3, points: null, scorable: false, reference: { basis: 'nearest-snapshot', label: 'nearest snapshot at submission', status: 'informational', value: -3.5, source: 'The Odds API · 3-book median',
-    sourceUrl: null, snapshotId: OTHER, capturedAt: null, observedAt: '2026-10-13T23:50:00+00:00', savedAt: null, decision: null, reason: null, gapSeconds: 600, nextSnapshotAt: null } }], 'a non-https source link is dropped; an informational line never carries points');
+    sourceUrl: null, snapshotId: OTHER, capturedAt: null, observedAt: '2026-10-13T23:50:00+00:00', savedAt: null, decision: null, reason: null, gapSeconds: 600, detail: null, priorSnapshotAt: null, nextSnapshotAt: null } }], 'a non-https source link is dropped; an informational line never carries points');
   assert.deepEqual([satOut.status, satOut.satOutAt, satOut.picks, satOut.weekPoints], ['sat_out', '2026-10-13T00:00:00+00:00', null, 0]);
   await send({ season: 2026 });
   assert.equal(calls.at(-1)[1].p_season, 2026);

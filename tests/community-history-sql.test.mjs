@@ -131,9 +131,17 @@ test('community history: every player, week and market with the line at each gue
     assert.deepEqual(sean.picks.map(p => p.gameId), gameIds, 'every slate game, in kickoff order');
     assert.equal(sean.picks[0].guess, state.ballots.sean.guess_spread.picks['TB-DAL']);
     for (const pick of sean.picks) {
-      assert.deepEqual([pick.points, pick.scorable, pick.reference.basis, pick.reference.label, pick.reference.status, pick.reference.value, at(pick.reference.nextSnapshotAt)],
-        [null, false, 'none', 'no line stored', 'unavailable', null, now - 2 * HOUR], 'submitted before any snapshot: no line is invented; the first later snapshot is named as context');
+      assert.deepEqual([pick.points, pick.scorable, pick.reference.basis, pick.reference.label, pick.reference.status, pick.reference.value, pick.reference.reason, pick.reference.priorSnapshotAt, at(pick.reference.nextSnapshotAt)],
+        [null, false, 'none', 'no line stored', 'unavailable', null, 'no-prior-snapshot', null, now - 2 * HOUR], 'submitted before any snapshot: no line is invented; the first later snapshot is named as context');
     }
+    // Snapshots existed before the guess but none carried a usable line for the game: the newest of them is named, not the next collection.
+    const sig = await signature(), stray = { id: 'XX-YY', home: 'Nowhere', away: 'Elsewhere', homeCode: 'YY', awayCode: 'XX', kickoff: iso(now + 9 * HOUR) };
+    const reference = submitted => rpc('gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: sig, p_game: stray, p_market: 'spread', p_submitted: iso(submitted) });
+    const notQualifying = await reference(now - HOUR);
+    assert.deepEqual([notQualifying.basis, notQualifying.label, notQualifying.status, notQualifying.value, notQualifying.reason, notQualifying.detail, at(notQualifying.priorSnapshotAt), notQualifying.nextSnapshotAt],
+      ['none', 'no line stored', 'unavailable', null, 'snapshot-not-qualifying', 'no complete 3-book line for this game', now - 2 * HOUR, null], 'the earlier snapshot is named with why it did not qualify');
+    const beforeAny = await reference(now - 3 * HOUR);
+    assert.deepEqual([beforeAny.reason, beforeAny.detail, beforeAny.priorSnapshotAt, at(beforeAny.nextSnapshotAt)], ['no-prior-snapshot', null, null, now - 2 * HOUR], 'no earlier snapshot: the first later one is the context');
     assert.equal(entry(await history(SEAN), SEAN, 'guess_total'), undefined, 'no Total ballot is simply no entry');
   });
 

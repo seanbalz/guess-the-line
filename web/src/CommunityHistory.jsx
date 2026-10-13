@@ -46,7 +46,9 @@ function LineAtGuess({ reference, mode, game }) {
       {reference.observedAt && <small>Observed {date(reference.observedAt)} PT{gap ? ` · ${gap} before the guess` : ''}</small>}</>;
   }
   return <><strong className="mono">—</strong><small>No line stored</small>
-    <small>{reference.nextSnapshotAt ? `No snapshot before this submission; the first came ${date(reference.nextSnapshotAt)} PT` : 'No snapshot was collected for this week'}</small></>;
+    <small>{reference.reason === 'snapshot-not-qualifying'
+      ? `The snapshot before this submission (${date(reference.priorSnapshotAt)} PT) had no usable line for this game${reference.detail ? ` (${reference.detail})` : ''}`
+      : reference.nextSnapshotAt ? `No snapshot before this submission; the first came ${date(reference.nextSnapshotAt)} PT` : 'No snapshot was collected for this week'}</small></>;
 }
 
 function Result({ result, game, mode }) {

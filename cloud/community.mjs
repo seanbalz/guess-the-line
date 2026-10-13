@@ -65,7 +65,7 @@ function normalizeReference(raw) {
   return { basis: raw.basis, label: text(raw.label) ?? '', status: text(raw.status) ?? '', value: finite(raw.value), source: text(raw.source),
     sourceUrl: typeof raw.sourceUrl === 'string' && /^https:\/\//.test(raw.sourceUrl) ? raw.sourceUrl : null, snapshotId: text(raw.snapshotId),
     capturedAt: text(raw.capturedAt), observedAt: text(raw.observedAt), savedAt: text(raw.savedAt), decision: text(raw.decision), reason: text(raw.reason),
-    gapSeconds: finite(raw.gapSeconds), nextSnapshotAt: text(raw.nextSnapshotAt) };
+    gapSeconds: finite(raw.gapSeconds), detail: text(raw.detail), priorSnapshotAt: text(raw.priorSnapshotAt), nextSnapshotAt: text(raw.nextSnapshotAt) };
 }
 function normalizeHistory(raw, viewer) {
   if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.weeks)) throw new Error('Invalid community history.');
