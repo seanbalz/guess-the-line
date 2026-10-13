@@ -12,7 +12,7 @@ const SAFE_ERRORS = {
   GTL_ODDS_COOLDOWN: [429, 'Wait before requesting another manual market collection.'],
   GTL_ODDS_PREFLIGHT_REQUIRED: [409, 'Run the free provider check before collecting market quotes.'],
   GTL_ODDS_BUDGET: [429, 'The protected free quota does not allow this collection.'],
-  GTL_ODDS_DAILY_LIMIT: [429, 'The four market collections for today have been used.'],
+  GTL_ODDS_DAILY_LIMIT: [429, 'The six market collections for today have been used. The count resets at 00:00 UTC.'],
   GTL_ODDS_LEASE: [409, 'The collection lease expired. Check its saved status before retrying.'],
   GTL_SLATE_CONFLICT: [409, 'The saved weekly schedule changed. Review it before collecting market data.'],
 };

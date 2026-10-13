@@ -35,7 +35,7 @@ function payload(games, captured, spread = -3.5, total = 44.5) {
 }
 
 test('community history: every player, week and market with the line at each guess and its points; nothing invented, nothing hidden beyond the D-23 gate', { skip }, async t => {
-  assert.equal(MIGRATIONS.at(-1), MIGRATION, 'the history migration is the newest repo file');
+  assert.ok(MIGRATIONS.includes(MIGRATION), 'the history migration is a repo file; later files run after it, as they do hosted');
   const db = new PGlite(); t.after(() => db.close());
   await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
   // The Week 5 slate from the seed with an open window (deadline two hours ahead, kickoffs after it) so a D-16 save can run;
