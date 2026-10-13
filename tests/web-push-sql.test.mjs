@@ -24,7 +24,7 @@ const MIGRATIONS = [
   '20261009130000_gtl_league_interest.sql',
   '20261009140000_gtl_d23_data_rule.sql',
   '20261009150000_gtl_auto_open_week.sql',
-  '20261012230000_gtl_web_push_reminders.sql',
+  '20261013030000_gtl_web_push_reminders.sql',
 ];
 const SEAN = 30, TROY = 1, BEN = 2, NEW = 3, AMY = 4;
 const TABLES = ['gtl_push_subscriptions', 'gtl_push_reminders_sent', 'gtl_push_reminder_schedule', 'gtl_push_reminder_runs'];

@@ -1,6 +1,6 @@
 -- D-28 web push reminders: ADMIN ONLY, run by hand in the Supabase SQL editor.
 -- NOT a migration: the Supabase CLI never runs files in supabase/admin. Run it
--- only after (1) migration 20261012230000_gtl_web_push_reminders.sql is applied,
+-- only after (1) migration 20261013030000_gtl_web_push_reminders.sql is applied,
 -- (2) the three VAPID secrets are set and (3) gtl-push-reminders is deployed.
 -- Full steps and the iPhone test: docs/WEB_PUSH_SETUP.md.
 --

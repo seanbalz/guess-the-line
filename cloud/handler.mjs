@@ -92,8 +92,9 @@ function onlyKeys(value, allowed) {
  * Legacy league entry JSON is never written by this handler.
  */
 export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, results, odds, oddsProvider, virtual, push, pushPublicKey, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+  // October 12, 2026: a refresh is attempted when useful and never required; commit() is the authority.
   async function submitWithFreshOdds(user, intent, commit) {
-    if (!odds?.rpc) throw new SubmissionOddsError();
+    if (!odds?.rpc) return commit();
     return runSubmissionWithFreshOdds({
       preflight: () => odds.rpc('gtl_preflight_submission', { p_user: user.id, p_intent: intent }),
       collect: ({ requestId }) => collectSubmissionOdds({ user, intent, service: odds, provider: oddsProvider, requestId, uuid }),

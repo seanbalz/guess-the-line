@@ -9,6 +9,10 @@ export class SubmissionReferenceError extends Error {
     this.status = 409;
   }
 }
+// October 12, 2026 ruling: a guess saved before any line was stored waits for the first line collected after it.
+const PENDING_REASON = 'No line was stored yet when this guess was saved. The first line collected after it becomes its reference.';
+const pendingReference = savedAt => ({ status: 'pending', basis: 'first_line_after_submission', value: null, source: null, sourceUrl: null,
+  snapshotId: null, capturedAt: null, observedAt: null, savedAt, ageSeconds: null, reason: PENDING_REASON });
 const missingReference = (reason = 'No submission-time reference was recorded for this guess.', savedAt = null) => ({
   status: 'unavailable', value: null, source: null, sourceUrl: null, snapshotId: null,
   capturedAt: null, observedAt: null, savedAt, reason,
@@ -20,19 +24,26 @@ const sourceMetadata = row => typeof row?.source === 'string' && row.source.trim
 
 // Check receipts against their recorded save instant, never the current clock.
 // A valid saved scoring reference stays valid when the live market later moves.
+// Since October 12, 2026 the line's age decides nothing: a stored line at (or the first line after) the guess is
+// scored whatever its age. A first line after the guess must be collected after it; its book observations may precede
+// the save (D-17 keeps them within five minutes of the collection), and ageSeconds is then positive.
+// Stored 'stale' and 'unavailable' references keep value null and stay unscored.
 function savedReference(ballot, game, mode, now) {
   const ref = ballot.scoringReferences?.[game.id];
   if (!ref) return missingReference();
-  const safe = Object.fromEntries(['status', 'value', 'source', 'sourceUrl', 'snapshotId', 'capturedAt', 'observedAt', 'savedAt', 'reason']
+  const safe = Object.fromEntries(['status', 'value', 'source', 'sourceUrl', 'snapshotId', 'capturedAt', 'observedAt', 'savedAt', 'reason', 'basis', 'ageSeconds']
     .filter(key => Object.hasOwn(ref, key)).map(key => [key, ref[key]]));
+  if (ref.status === 'pending') return { ...pendingReference(ref.savedAt || null), ...safe, status: 'pending', value: null };
   if (ref.status !== 'available') return { ...missingReference(ref.reason, ref.savedAt || null), ...safe, value: null };
-  const saved = Date.parse(ref.savedAt), captured = Date.parse(ref.capturedAt), observed = Date.parse(ref.observedAt);
+  const saved = Date.parse(ref.savedAt), captured = Date.parse(ref.capturedAt), observed = Date.parse(ref.observedAt), kickoff = Date.parse(game.kickoff);
+  const firstAfter = ref.basis === 'first_line_after_submission';
   const submitted = Date.parse(ballot.submittedAt), updated = Date.parse(ballot.updatedAt || ballot.submittedAt);
   let validValue = false;
   try { validatePrediction(mode, ref.value); validValue = true; } catch { /* Invalid evidence is unscored. */ }
   if (!validValue || ![saved, captured, observed, submitted, updated, now].every(Number.isFinite)
-    || saved > now || saved < submitted || saved > updated || observed > captured || captured > saved
-    || saved - observed > FRESH_MS || saved >= Date.parse(game.kickoff)
+    || saved > now || saved < submitted || saved > updated || observed > captured
+    || (firstAfter ? captured <= saved || captured > now : captured > saved)
+    || saved >= kickoff || captured >= kickoff
     || typeof ref.source !== 'string' || !ref.source.trim() || typeof ref.snapshotId !== 'string' || !ref.snapshotId
     || !/^https:\/\//.test(ref.sourceUrl || '')) return missingReference('The saved scoring reference has incomplete or invalid evidence.', ref.savedAt || null);
   // Persisted book evidence must survive the bounded live snapshot history.
@@ -45,7 +56,7 @@ function savedReference(ballot, game, mode, now) {
       const q = matches[0], observation = Date.parse(q.observedAt), collection = Date.parse(q.collectedAt);
       try { validatePrediction(mode, q.value); } catch { return null; }
       if (!Number.isFinite(observation) || !Number.isFinite(collection) || observation > collection
-        || collection !== captured || saved - observation > FRESH_MS) return null;
+        || collection !== captured) return null;
       return { book, value: q.value, observedAt: new Date(observation).toISOString(), collectedAt: new Date(collection).toISOString() };
     });
     if (quotes.every(Boolean) && quotes.map(q => q.value).sort((a, b) => a - b)[1] === ref.value
@@ -57,9 +68,11 @@ function savedReference(ballot, game, mode, now) {
 
 // Local captures require quote evidence. The imported scalar-only historical
 // snapshots deliberately cannot qualify, even when their dates look recent.
+// A row qualifies when its quotes were observed within five minutes of its own capture; the newest qualifying
+// row at the save is the line at the guess, whatever its age. With none, the guess saves pending.
 function captureReference(state, game, mode, now) {
   const savedAt = new Date(now).toISOString();
-  const candidates = (state.consensusHistory || []).filter(row => row?.mode === mode && sourceMetadata(row)
+  const candidates = (state.consensusHistory || []).filter(row => row?.mode === mode && sourceMetadata(row) && typeof row.id === 'string' && row.id
     && Date.parse(row.capturedAt) <= now && Date.parse(row.capturedAt) < Date.parse(game.kickoff))
     .sort((a, b) => Date.parse(b.capturedAt) - Date.parse(a.capturedAt));
   for (const row of candidates) {
@@ -67,18 +80,18 @@ function captureReference(state, game, mode, now) {
     if (!evidence || !Array.isArray(evidence.quotes)) continue;
     try { evidence.quotes.forEach(q => validatePrediction(mode, q.value)); validatePrediction(mode, evidence.crossCheck?.value); }
     catch { continue; }
-    const reference = consensus(evidence.quotes, { now, crossCheck: evidence.crossCheck, maxAgeMs: FRESH_MS, alignmentMs: FRESH_MS });
+    const reference = consensus(evidence.quotes, { now: Date.parse(row.capturedAt), crossCheck: evidence.crossCheck, maxAgeMs: FRESH_MS, alignmentMs: FRESH_MS });
     if (!reference || [...evidence.quotes, evidence.crossCheck].some(q => Date.parse(q.quotedAt) > Date.parse(row.capturedAt))) continue;
     const observedAt = new Date(Math.min(...[...evidence.quotes, evidence.crossCheck].map(q => Date.parse(q.quotedAt)))).toISOString();
-    return { status: 'available', value: reference.value, source: row.source, sourceUrl: row.sourceUrl,
-      snapshotId: row.id, capturedAt: row.capturedAt, observedAt, savedAt };
+    return { status: 'available', basis: 'line_at_guess', value: reference.value, source: row.source, sourceUrl: row.sourceUrl,
+      snapshotId: row.id, capturedAt: row.capturedAt, observedAt, savedAt, ageSeconds: Math.floor((now - Date.parse(observedAt)) / 1000) };
   }
-  return missingReference('No validated consensus within five minutes of this submission or edit.', savedAt);
+  return pendingReference(savedAt);
 }
 
 // Persistence and authenticated identity belong to the adapter. This engine only
 // operates on an isolated state snapshot and the roster identity supplied to it.
-export function createEngine(initialState, { clock = Date.now, uuid = () => globalThis.crypto.randomUUID(), requireFreshReferences = false } = {}) {
+export function createEngine(initialState, { clock = Date.now, uuid = () => globalThis.crypto.randomUUID() } = {}) {
   let state = structuredClone(initialState);
   if (state?.version !== 1) throw new Error('Unsupported local data version. Preserve the file before migrating.');
 
@@ -232,7 +245,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       score: standings.find(p => p.id === id)?.points ?? null,
       maxPoints: state.games.length * 10,
       archivedCount: state.archivedCount,
-      revisionCount: state.audit.filter(a => a.player === id && a.mode === mode).length,
+      revisionCount: state.audit.filter(a => a.player === id && a.mode === mode && a.type !== 'reference_resolved').length,
       marketAccess: { spread: spreadRevealed, total: !!ballot(id, 'guess_total').submittedAt },
       locked: !!lockReason(id, mode),
       lockReason: lockReason(id, mode),
@@ -263,15 +276,13 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     const changed = Object.keys(valid).filter(gameId => before.picks[gameId] !== valid[gameId]);
     const scoringReferences = structuredClone(before.scoringReferences || {});
     const captureGames = submitted ? state.games.filter(game => !before.submittedAt || changed.includes(game.id)) : [];
+    // Kickoff locks are unchanged; before October 12, 2026 the freshness rule enforced them implicitly.
+    if (captureGames.some(game => now >= Date.parse(game.kickoff))) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
     for (const game of captureGames) scoringReferences[game.id] = captureReference(state, game, mode, now);
     next.ballots[id][mode] = { ...before, picks: valid, submittedAt: before.submittedAt || (submit ? timestamp : null), updatedAt: timestamp,
       ...(submitted ? { scoringPolicy: 'submission-time', scoringReferences } : {}) };
-    // Local persistence opts in; cloud prevalidation still defers to its atomic
-    // database guard. Validate at the save instant before accepting any state or
-    // audit. Drafts and unchanged historical references do not require new odds.
-    if (requireFreshReferences && captureGames.some(game => savedReference(next.ballots[id][mode], game, mode, now).status !== 'available')) {
-      throw new SubmissionReferenceError();
-    }
+    // October 12, 2026: a save is never refused for the age or absence of a line; the newest stored line or a
+    // pending reference is saved. Cloud prevalidation still defers to its atomic database guard.
     next.audit.push({ id: uuid(), player: id, mode, type: before.submittedAt ? 'ballot_edited' : submit ? 'ballot_submitted' : 'ballot_saved', timestamp,
       before: before.picks, after: valid, changedGameIds: changed,
       beforeScoringReferences: structuredClone(before.scoringReferences || {}), afterScoringReferences: structuredClone(scoringReferences) });

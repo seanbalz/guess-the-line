@@ -19,7 +19,7 @@ Owner: Sean Balsiger · Version 1 · Updated 2026-10-12 · Decision [D-28](DECIS
 | Service worker | `web/public/sw.js` | `push` and `notificationclick` only. No fetch handler, no cache. Registered only on opt-in; served with `Cache-Control: no-cache` |
 | CSP | `web/public/_headers`, `server/index.mjs` | `worker-src 'self'` added; nothing else changed |
 | Opt-in UI | `web/src/PushReminders.jsx`, `web/src/webPush.js` | Settings panel and picks-due line |
-| Storage | migration `20261012230000_gtl_web_push_reminders.sql` | `gtl_push_subscriptions`, `gtl_push_reminders_sent`, `gtl_push_reminder_schedule` (row disabled by default), `gtl_push_reminder_runs`. RLS on, no browser grants, every function security invoker and service-only |
+| Storage | migration `20261013030000_gtl_web_push_reminders.sql` | `gtl_push_subscriptions`, `gtl_push_reminders_sent`, `gtl_push_reminder_schedule` (row disabled by default), `gtl_push_reminder_runs`. RLS on, no browser grants, every function security invoker and service-only |
 | API | `gtl-api`: `POST /push/status`, `/push/subscribe`, `/push/unsubscribe` | Signed-in and email-confirmed like every other route; endpoint must be https on a known push service (FCM, Mozilla, Windows, Apple); keys and sizes checked in the handler and again in SQL; at most 10 devices per player |
 | Sender | Edge Function `gtl-push-reminders` → `cloud/push-reminders.mjs`, `cloud/web-push.mjs` | D-24 pattern: pg_cron → one-run capability → claim in SQL. VAPID (ES256) and aes128gcm encryption with WebCrypto, no extra dependency. Reads `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` from Edge Function secrets at run time |
 | Cron | `supabase/admin/web_push_reminders_cron.sql` | Not a migration. Every 15 minutes; outside the 2-hour window the dispatcher writes nothing and calls nothing |
@@ -41,7 +41,7 @@ Do these from the Mac mini on an up-to-date `main` (`git pull && npm ci`). Never
 
    Both functions read them at run time: `gtl-api` hands the public key to the browser; `gtl-push-reminders` signs with the private key.
 
-3. **Apply the migration** through the Supabase MCP (`apply_migration`, name `gtl_web_push_reminders`, with the contents of `supabase/migrations/20261012230000_gtl_web_push_reminders.sql`) or paste it into the SQL editor. Apply files in repo order: if `20261012213000_gtl_submission_odds_window.sql` is still unapplied, that is a separate decision; this file does not depend on it. The hosted version will differ from the filename; add it to the two `migration repair` lists in the release checklist.
+3. **Apply the migration** through the Supabase MCP (`apply_migration`, name `gtl_web_push_reminders`, with the contents of `supabase/migrations/20261013030000_gtl_web_push_reminders.sql`) or paste it into the SQL editor. Apply files in repo order: it is numbered after the D-27 file `20261012230000_gtl_submit_with_line_at_guess.sql` and the other October 12–13 files, so apply those first. It reads only a ballot's `submittedAt`, the D-23 opt-outs and the published slate, and changes none of them. The hosted version will differ from the filename; add it to the two `migration repair` lists in the release checklist.
 
 4. **Deploy both functions.**
    ```sh

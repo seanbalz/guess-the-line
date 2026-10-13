@@ -25,7 +25,8 @@ function ReferenceSummary({ reference, saved, total, game }) {
   const available = reference?.status === 'available' && finite(reference.value);
   const stale = !saved && reference?.status === 'stale' && finite(reference.value);
   const present = available || stale;
-  const state = saved ? available ? 'Saved for scoring' : 'Unscored'
+  const pending = saved && reference?.status === 'pending';
+  const state = saved ? available ? reference?.basis === 'first_line_after_submission' ? 'First line after submission' : 'Line at your guess' : pending ? 'Waiting for first line' : 'Unscored'
     : stale ? 'Stale collection' : available ? 'Latest collected' : 'Unavailable';
   return <section className={`sportsbook-reference ${saved ? 'sportsbook-reference-saved' : ''}`} aria-label={saved ? 'Saved scoring consensus' : 'Latest collected consensus'}>
     <div className="sportsbook-reference-heading"><h4>{saved ? 'Saved scoring consensus' : 'Latest collected consensus'}</h4><span className={`sportsbook-source-status ${saved && available ? 'is-included' : stale || !present ? 'is-excluded' : ''}`}>{state}</span></div>
@@ -37,8 +38,9 @@ function ReferenceSummary({ reference, saved, total, game }) {
       <SourceTime label="Collected" value={reference?.collectedAt}/>
     </div>
     <p className="sportsbook-source-explanation">{saved
-      ? available ? 'This saved consensus determines your points. Later market movement and quote age do not change it.'
-        : reference?.reason || (reference?.status === 'stale' ? 'The source was stale when this guess was saved. It remains unscored.' : 'No eligible consensus was saved for this guess. A later collection cannot fill that gap.')
+      ? available ? 'This saved line determines your points, whatever its age. Later market movement does not change it.'
+        : pending ? 'No line was stored yet when you saved this guess. The first line collected after it becomes its reference.'
+          : reference?.reason || (reference?.status === 'stale' ? 'The source was stale when this guess was saved under the earlier five-minute rule. It remains unscored.' : 'No eligible consensus was saved for this guess.')
       : stale ? 'These are retained prices from an older collection, not current betting lines.'
         : available ? 'A collected market reference, not a continuously live price. It does not replace your saved scoring consensus.'
           : reference?.reason || 'No qualifying collected consensus is available.'}</p>
