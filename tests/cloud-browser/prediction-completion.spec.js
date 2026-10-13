@@ -4,6 +4,7 @@ import { createEngine } from '../../server/engine.mjs';
 import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { picker, pickSpread, pickTotal, expectPick, expectNoPick, MINUS } from '../chip-entry.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 // Synthetic authenticated group fixtures only; no hosted data or odds requests.
 const accountId = '11111111-1111-4111-8111-111111111111';
@@ -26,7 +27,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected external origin: ${url.origin}`); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected external origin: ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/user') return reply(200, user);
@@ -153,7 +154,7 @@ test('saved favorite and restored tab edits retain the visible sign during furth
 });
 
 test('quote failure keeps the full review and offers an in-place retry without conflicting refresh instructions', async ({ page, entry }) => {
-  entry.failure = 'GTL_SUBMISSION_REFRESH_LIMIT'; await page.setViewportSize({ width: 320, height: 844 }); await openBallot(page);
+  entry.failure = 'GTL_SUBMISSION_QUOTES_REQUIRED'; await page.setViewportSize({ width: 320, height: 844 }); await openBallot(page);
   for (const [index, value] of ['-3.5', '2', '-1'].entries()) await pickSpread(page, `${entry.state.games[index].awayCode} at ${entry.state.games[index].homeCode} home spread`, value);
   await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
   const review = page.getByRole('dialog', { name: 'Submit your spread ballot?' });

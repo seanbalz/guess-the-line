@@ -33,7 +33,7 @@
 .week-picks .save-bar .save-status{display:grid;gap:2px;margin-right:auto}
 .week-picks .save-bar .save-due{color:var(--muted)}
 .league-switcher{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
-.league-chip{min-height:44px;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:16px;line-height:20px;text-align:left}
+.league-chip{min-height:44px;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:4px 12px;border:1px solid var(--border);border-radius:var(--radius-control,8px);background:var(--surface);color:var(--text);font-size:16px;line-height:20px;text-align:left}
 .league-chip.selected{border-color:var(--primaryForeground,var(--primary));box-shadow:inset 0 0 0 1px var(--primaryForeground,var(--primary))}
 .league-chip-name{font-weight:600}
 .league-chip-state{font-size:12px;line-height:16px;color:var(--muted)}
@@ -45,7 +45,7 @@
 .coming-soon-grid .coming-soon-card{margin-top:0}
 .coming-soon-head{display:flex;gap:12px;align-items:center}
 .coming-soon-head h3{font-size:16px;line-height:24px}
-.league-badge{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:48px;padding:0 8px;border-radius:12px;background:var(--card);border:1px solid var(--border);font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-weight:700;font-size:20px;letter-spacing:.04em}
+.league-badge{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:48px;padding:0 8px;border-radius:var(--radius-card,12px);background:var(--card);border:1px solid var(--border);font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-weight:700;font-size:20px;letter-spacing:.04em}
 .coming-soon-tag{display:inline-flex;align-items:center;gap:4px;font-size:13px;line-height:18px;color:var(--pending)}
 .coming-soon-actions{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .coming-soon-actions button{min-height:44px;display:inline-flex;align-items:center;gap:6px}
@@ -78,7 +78,7 @@
 .week-not-open h3{font-size:20px;line-height:28px;margin:0 0 4px}
 .week-not-open p{margin:0;color:var(--muted)}
 .week-closed{margin:8px 0}
-.chip-help{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin:12px 0;padding:12px 16px;border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:8px;background:var(--surface);font-size:14px;line-height:1.6}
+.chip-help{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin:12px 0;padding:12px 16px;border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:var(--radius-control,8px);background:var(--surface);font-size:14px;line-height:1.6}
 .chip-help p{margin:0}
 .chip-help .text-button{flex:none;min-width:44px;justify-content:center;color:var(--text);text-decoration:underline}
 /* Persona audit #3: the tab-copy recovery card above the game list. */
@@ -87,7 +87,7 @@
 .picks-recovery p{margin:0 0 12px;color:var(--muted)}
 .picks-recovery-actions{display:flex;gap:8px;flex-wrap:wrap}
 .week-picks .save-bar .error-banner,.week-picks .save-bar .save-notice,.week-picks .save-bar .save-hint{flex-basis:100%;margin:0}
-.save-hint{padding:12px 16px;border:1px solid var(--pending);border-radius:8px;font-size:14px;line-height:1.6}
+.save-hint{padding:12px 16px;border:1px solid var(--pending);border-radius:var(--radius-control,8px);font-size:14px;line-height:1.6}
 /* The hint stays mounted: one live region whose text changes is announced, while one inserted with its text often is not. Empty, it is visually hidden rather than display:none. */
 .week-picks .save-bar .save-hint:empty{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;white-space:nowrap}
 /* The home notice is an always-mounted live region (PR #34 pattern); while empty it keeps no box but stays in the accessibility tree. */
@@ -115,4 +115,32 @@
   .picks-due{border-left-width:6px}
   .picks-due.urgent{border-left-style:double;border-left-width:10px}
   .league-chip.selected{border:3px solid Highlight}
+}
+/* Community history (Sean's October 12 ruling): one player at a time, a panel per week with a section per market. The game rows reuse
+   the comparison table (13px headers) above 720px and the comparison cards below it, so the phone layout costs no new breakpoint. */
+.community-history{display:grid;gap:12px;margin-top:12px}
+.community-history>p{margin:0}
+.history-toolbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:end}
+.history-toolbar label{display:grid;gap:4px;font-size:13px}
+.history-toolbar select{min-height:44px;padding:0 12px}
+.history-toolbar .text-button{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--text);text-decoration:underline;padding:0 4px}
+.history-players{display:flex;flex-wrap:wrap;gap:8px}
+.history-players button{min-height:44px}
+.history-week{padding:16px;display:grid;gap:12px;margin:0}
+.history-week h2{font-size:20px;line-height:28px}
+.history-week>p{margin:0}
+.history-market{display:grid;gap:8px;padding-top:8px;border-top:1px solid var(--border)}
+.history-market h3{font-size:16px;line-height:24px}
+.history-status,.history-state{margin:0;font-size:14px;line-height:1.6}
+.history-points{margin:0;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.history-table table{width:100%;border-collapse:collapse}
+.history-table.comparison-table th,.history-table.comparison-table td{padding:8px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+.history-table.comparison-table td{font-size:16px}
+.history-table.comparison-table th[scope=row] small{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
+.history-table td small,.history-cards dd small{display:block;font-size:12px;line-height:1.5;color:var(--muted);font-weight:400;font-family:inherit;margin-top:2px}
+.history-cards dd{font-size:20px}
+.history-cards article>small{display:block;margin-top:4px;color:var(--muted)}
+.history-informational{color:var(--pending)}
+@media (forced-colors:active){
+  .history-informational{text-decoration:underline;text-underline-offset:3px}
 }

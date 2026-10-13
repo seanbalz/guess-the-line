@@ -100,25 +100,27 @@ test('legacy ballots never acquire present-day references from a read or no-op s
   assert.equal(engine.view('one').score, null, 'partial references do not fabricate a complete score');
 });
 
-test('a revision without fresh evidence removes only that changed guess from scoring and preserves prior evidence in audit', () => {
+test('a revision ten minutes later takes the same stored line with its age and preserves prior evidence in audit', () => {
   const engine = engineFor(fixture());
   engine.saveBallot('one', 'guess_spread', fill(-3), true);
   const saved = engine.snapshot(), first = structuredClone(saved.ballots.one.guess_spread.scoringReferences);
   const later = engineFor(saved, initialTime + 600_000);
   later.saveBallot('one', 'guess_spread', { ...fill(-3), 'A-B': -2.5 });
   const view = later.view('one');
-  assert.equal(view.score, null);
-  assert.equal(view.games[0].points, null);
-  assert.equal(view.games[0].scoringReference.status, 'unavailable');
+  assert.equal(view.games[0].scoringReference.status, 'available');
+  assert.equal(view.games[0].scoringReference.ageSeconds, 630);
+  assert.equal(view.games[0].points, 9);
   assert.equal(view.games[1].points, 10);
+  assert.equal(view.score, 19);
   assert.deepEqual(view.audit[0].beforeScoringReferences, first);
 });
 
-test('missing, stale, future, duplicate and malformed source evidence cannot become submission references', () => {
+test('missing, future, duplicate and malformed source evidence cannot become submission references; the guess saves pending', () => {
   const invalid = [
     state => { state.consensusHistory = []; },
-    state => { state.consensusHistory = [evidence('guess_spread', -3, initialTime - 300_001)]; },
     state => { state.consensusHistory = [evidence('guess_spread', -3, initialTime + 60_000)]; },
+    // Quotes observed more than five minutes before their own collection never qualify.
+    state => { for (const g of Object.values(state.consensusHistory[0].games)) for (const q of [...g.quotes, g.crossCheck]) q.quotedAt = iso(initialTime - 10_000 - 300_001); },
     state => { for (const g of Object.values(state.consensusHistory[0].games)) g.quotes[1].book = g.quotes[0].book; },
     state => { for (const g of Object.values(state.consensusHistory[0].games)) g.quotes[0].value = -3.25; },
     state => { for (const g of Object.values(state.consensusHistory[0].games)) delete g.crossCheck; },
@@ -130,17 +132,17 @@ test('missing, stale, future, duplicate and malformed source evidence cannot bec
     const engine = engineFor(state);
     const submitted = engine.saveBallot('one', 'guess_spread', fill(-3), true);
     assert.equal(submitted.score, null);
-    assert(submitted.games.every(game => game.scoringReference.status === 'unavailable'));
+    assert(submitted.games.every(game => game.scoringReference.status === 'pending' && game.points === null));
   }
 });
 
-test('freshness cutoff is inclusive at exactly five minutes and fails one millisecond later', () => {
+test('age no longer unscores: a line qualifying at its own collection scores at any later save, with its age', () => {
   const state = fixture();
-  const row = state.consensusHistory[0];
-  row.quotedAt = iso(initialTime - 300_000);
-  for (const game of Object.values(row.games)) for (const quote of [...game.quotes, game.crossCheck]) quote.quotedAt = row.quotedAt;
-  assert.equal(engineFor(state).saveBallot('one', 'guess_spread', fill(-3), true).score, 20);
-  assert.equal(engineFor(state, initialTime + 1).saveBallot('one', 'guess_spread', fill(-3), true).score, null);
+  for (const later of [0, 300_001, 6 * 3600_000]) {
+    const view = engineFor(structuredClone(state), initialTime + later).saveBallot('one', 'guess_spread', fill(-3), true);
+    assert.equal(view.score, 20);
+    assert.equal(view.games[0].scoringReference.ageSeconds, Math.floor((later + 30_000) / 1000));
+  }
 });
 
 test('submission references remain hidden from unsubmitted players and cross-market views', () => {
@@ -192,4 +194,35 @@ test('persisted references with future or inconsistent ballot timestamps fail cl
   const missingUpdate = structuredClone(valid);
   delete missingUpdate.ballots.one.guess_spread.updatedAt;
   assert.equal(engineFor(missingUpdate).view('one').score, 20, 'a first-submission receipt is consistent with the known submission timestamp');
+});
+
+test('a pending guess is unscored; its first line after submission scores when collected after the save, whenever its books were observed', () => {
+  const state = fixture(); state.consensusHistory = [];
+  const engine = engineFor(state);
+  const pending = engine.saveBallot('one', 'guess_spread', fill(-3), true);
+  assert(pending.games.every(game => game.scoringReference.status === 'pending' && game.scoringReference.basis === 'first_line_after_submission' && game.points === null));
+  const saved = engine.snapshot(), savedAt = initialTime;
+  const firstAfter = (observed, captured = savedAt + 60_000) => ({ status: 'available', basis: 'first_line_after_submission', value: -3.5,
+    source: 'The Odds API · 3-book median', sourceUrl: 'https://the-odds-api.com/', snapshotId: 'first-after', savedAt: iso(savedAt),
+    capturedAt: iso(captured), observedAt: iso(observed), ageSeconds: Math.floor((savedAt - observed) / 1000) });
+  const viewWith = (ref, now = savedAt + 120_000) => {
+    const state = structuredClone(saved);
+    state.ballots.one.guess_spread.scoringReferences['A-B'] = ref;
+    return engineFor(state, now).view('one').games[0];
+  };
+  const scored = viewWith(firstAfter(savedAt + 30_000));
+  assert.equal(scored.points, 9); assert.equal(scored.scoringReference.basis, 'first_line_after_submission'); assert.equal(scored.scoringReference.ageSeconds, -30);
+  assert.equal(viewWith(firstAfter(savedAt)).points, 9, 'observed at the save instant');
+  // Collected after the save with a book observation before it (D-17 keeps it within five minutes of the collection):
+  // still the first line after submission, with a positive age.
+  for (const [observed, captured, age] of [[savedAt - 1, savedAt + 60_000, 0], [savedAt - 20_000, savedAt + 10_000, 20], [savedAt - 200_000, savedAt + 60_000, 200]]) {
+    const game = viewWith(firstAfter(observed, captured));
+    assert.equal(game.points, 9, String(observed - savedAt)); assert.equal(game.scoringReference.status, 'available');
+    assert.equal(game.scoringReference.basis, 'first_line_after_submission'); assert.equal(game.scoringReference.ageSeconds, age);
+  }
+  // Collected at or before the save, or after the current clock: never a first line after submission.
+  for (const ref of [firstAfter(savedAt - 30_000, savedAt), firstAfter(savedAt - 40_000, savedAt - 10_000), { ...firstAfter(savedAt + 30_000), capturedAt: iso(savedAt + 600_000) }]) {
+    const game = viewWith(ref);
+    assert.equal(game.points, null, JSON.stringify(ref)); assert.equal(game.scoringReference.status, 'unavailable');
+  }
 });

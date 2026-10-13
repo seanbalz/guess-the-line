@@ -1,6 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 import { seed } from '../../server/store.mjs';
 import { soloDraftScope } from '../../web/src/soloDraft.js';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 // UI recovery coverage uses explicit synthetic authenticated responses. It does
 // not submit real picks, consume provider credits or replace SQL integration tests.
@@ -22,7 +23,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected origin ${url.origin}`); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { report.errors.push(`Unexpected origin ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(200, session);
       if (url.pathname === '/auth/v1/user') return reply(200, user);
@@ -82,7 +83,7 @@ for (const [mode, values, width, theme] of [['Spread', ['-9.5', '0'], 320, 'dark
     const modeId = mode === 'Total' ? 'guess_total' : 'guess_spread';
     for (const [index, game] of solo.data.games.entries()) await page.getByLabel(`${game.id} ${mode} guess`).fill(values[index]);
     await expect(page.getByText('Unsaved guesses kept in this tab only.', { exact: false })).toBeVisible();
-    solo.failures.push({ status: 429, body: { error: 'Fresh quotes unavailable. Your entries were not submitted.', code: 'GTL_SUBMISSION_REFRESH_LIMIT', submitted: false } });
+    solo.failures.push({ status: 409, body: { error: 'The line for an edited guess could not be verified. Your guesses were not submitted. Keep your draft and try again.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } });
     await page.getByRole('button', { name: 'Review full ballot', exact: true }).click();
     await page.getByRole('button', { name: `Submit ${mode} guesses`, exact: true }).click();
     await expect(page.getByRole('alert')).toContainText('not submitted');

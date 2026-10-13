@@ -1,5 +1,24 @@
 # Guess The Line visual polish
 
+## Dashboard hierarchy, first pass — October 12, 2026 (design handoff Stage 2 items 1–3, not deployed)
+
+- **Order (Sean's decision 3):** the League Dashboard now reads Accuracy matchup → next action → Compare accuracy in detail → gaps and line history → Your betting week → Data connections → Customize dashboard. Customize leaves the top of the page; dashboard notices stay above the scoreboard. At 1440×1000 the scoreboard starts at 324px (was 1052px) and the action tiles at 1086px (was 1947px); at 320px 446px and 1343px (were 1683px and 2683px).
+- **Next action:** one line under the scoreboard built from the real deadline only, e.g. "Next: Total ballot due Oct 8, 5:15 PM PT. Spread is in · editable until then.", "Both ballots are in · editable until …", or "Picks closed …". No countdown.
+- **Weighted tiles:** the market still due is a lime primary tile (forced-colors: 3px Highlight border); submitted and sat-out tiles are quiet; Challenge shows its W–L–P record. Labels carry the state in words ("Submitted", "Sat out", "0/15 entered"). Below 480px the three tiles stack as full-width rows so "Challenge" and "0/15 entered" no longer clip.
+- **Consolidated empty state:** when two or more games are visible and no gap can be measured for any of them, the gaps panel shows one "No gaps to measure yet" note naming the reasons (no saved reference; who has not submitted) instead of three repeated lines per game. Partial data keeps the per-game rows. An unscored player's empty accuracy track is hidden instead of drawn flat.
+- **Decision 4:** Design lab appears only for the game's commissioner (same role check the Spread benchmark controls use); a non-commissioner who lands on the brand route sees the dashboard.
+- **Decision 5:** layouts are Command center, Matchup cards and Analytics lab. A stored `markets` or `social` preference stays in browser storage and reads as Command center until the player picks again.
+- **Decision 7:** the dashboard market tab says "Total" (was "Over/Under"). "Over / Under tickets %" in Data connections stays: it names the betting side, not the market.
+
+## Token foundation — October 12, 2026 (design handoff Stage 1, not deployed)
+
+Substrate only; no layout redesign. See [DASHBOARD_VISUAL_AUDIT_2026_10_12.md](DASHBOARD_VISUAL_AUDIT_2026_10_12.md) for the before state.
+
+- **Webfonts (Sean's decision 1, October 12):** Inter (variable 300–900), Barlow Condensed (600, 700) and IBM Plex Mono (400, 500, 600) load from Google Fonts with `display=swap`; both content security policies (`server/index.mjs`, `web/public/_headers`) allow `https://fonts.googleapis.com` for styles and `https://fonts.gstatic.com` for fonts and nothing else new. No font file is in the repository. Cloud-browser fixtures abort the two font origins (`tests/fixtures/webfonts.mjs`) so suites stay offline and render the system fallbacks.
+- **Tokens exported** through `web/src/themeTokens.js`: `--radius-card`, `--radius-control`, `--space-1` … `--space-7`, `--motion-quick`, `--motion-standard`, `--text-<step>` / `--leading-<step>` for the guide's scale (hero 40/44, title 28/34, section 20/28, body 16/24, metadata 13/18, stat 36/40). The font fallbacks in `design/tokens.json` now match the guide. Every `border-radius` of exactly 12px or 8px and every 150/220ms transition now reads the token (with the old value as fallback); the previously undefined `--control-radius` and `--touch-target-min` references use `--radius-control` and `--touch-target`.
+- **Type (Sean's decision 2):** root and body 16/24 at every width (was 14px below 1600px). Every declared size under 12px outside the Brand Lab study renders and layout mini-previews was raised to the guide's 13px metadata size, tracked uppercase labels (eyebrows, table headers, captions) included (Sean's ruling of October 12; an earlier draft used 12px for those labels).
+- **Fit fixes the larger type required:** on phones a panel heading's badge wraps under its copy; the five-column group ballot at 1360px+ lets column labels wrap with 12px cell gutters (a layout gutter, not a type size); the sidebar footer gap shrank from 60px to 24px so Settings & setup stays on screen at 1440×1000 more often.
+
 ## Current implementation — October 8, 2026
 
 The team-logo follow-up expanded coverage to 15 transparent local team marks,

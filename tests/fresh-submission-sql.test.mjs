@@ -11,6 +11,9 @@ const migration = '20261008232055_gtl_fresh_submission_odds.sql';
 // The October 12 window file replaces the submission begin RPC (collect cooldown 5 minutes, six collections per
 // UTC day) and the scheduler's claim, which declares the gtl_odds_schedule row type from 20261008200926.
 const window = '20261012213000_gtl_submission_odds_window.sql';
+// October 12, 2026 ruling: refresh limits never refuse a save; each changed guess saves the newest stored line (any
+// age) or a pending reference resolved by the first line stored after it.
+const lineAtGuess = '20261012230000_gtl_submit_with_line_at_guess.sql';
 const base = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql', '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql'];
 function payload(games, captured = Date.now() - 1000, value = -3.5) {
   return { provider: 'the-odds-api', sport: 'americanfootball_nfl', officialVerified: false, fetchedAt: iso(captured), games: games.map((g, i) => ({
@@ -36,6 +39,7 @@ async function fixture(t) {
   const beforeMigration = (await db.query('select * from public.gtl_weekly_ballots order by user_id,mode')).rows;
   await db.exec(fs.readFileSync(`supabase/migrations/${migration}`, 'utf8'));
   await db.exec(fs.readFileSync(`supabase/migrations/${window}`, 'utf8'));
+  await db.exec(fs.readFileSync(`supabase/migrations/${lineAtGuess}`, 'utf8'));
   const as = (role, sql, args = []) => db.transaction(async tx => { await tx.exec(`set local role ${role}`); return tx.query(sql, args); });
   const rpc = async (name, args) => (await as('service_role', `select public.${name}(${args.map((_, i) => `$${i + 1}`).join(',')}) value`, args)).rows[0].value;
   for (let n = 1; n <= 4; n++) await rpc('gtl_save_profile', [id(n), `Test ${n}`]);
@@ -59,7 +63,7 @@ async function fixture(t) {
   return { db, rpc, as, state, beforeMigration, signature, full, intent, check, save, begin, finish, own, budget, enable, snapshot };
 }
 
-test('availability audit: expired cache plus cooldown retains drafts, then a permitted collection allows each market', { skip }, async t => {
+test('availability audit: an expired cache plus cooldown saves the older line with its age, then a later collection serves edits', { skip }, async t => {
   for (const mode of ['guess_spread', 'guess_total']) await t.test(mode, async t => {
     const f = await fixture(t); await f.enable();
     const picks = f.full(mode === 'guess_total' ? 44.5 : -3);
@@ -71,30 +75,37 @@ test('availability audit: expired cache plus cooldown retains drafts, then a per
     // minutes ago (failed, so it left no snapshot) still holds the shared
     // cooldown. Since the October 12 window migration the cooldown equals the
     // five-minute freshness window, so this is the only remaining refusal case.
-    await f.snapshot(payload(f.state.games, Date.now() - 420_000));
+    const old = await f.snapshot(payload(f.state.games, Date.now() - 420_000));
     await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '2 minutes'");
     const reservedBefore = await f.budget();
     assert.deepEqual(await f.check(intent), { requiresReferences: true, ready: false });
     await assert.rejects(() => f.begin(id(960), intent), /GTL_ODDS_COOLDOWN/);
-    await assert.rejects(() => f.save(intent), /GTL_SUBMISSION_ODDS_REQUIRED/);
-    assert.deepEqual(await f.own(2, mode), before);
-    assert.deepEqual(await f.budget(), reservedBefore);
-    // Move only the synthetic collection clock beyond cooldown; this is not a
-    // sleep, provider call, production quota change or relaxed freshness rule.
-    // Six minutes was a refusal under the old fifteen-minute cooldown.
-    await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '6 minutes'");
-    const job = await f.begin(id(961), intent);
-    assert.equal((await f.finish(job, payload(f.state.games))).status, 'succeeded');
-    assert.deepEqual(await f.check(intent), { requiresReferences: true, ready: true });
+    assert.deepEqual(await f.budget(), reservedBefore, 'a refused refresh reserves nothing');
+    // The refused refresh no longer refuses the save: the 7-minute-old line is the line at the guess.
     assert.equal(await f.save(intent), 2);
     const saved = await f.own(2, mode);
     assert.ok(saved.ballot.submittedAt);
     assert.deepEqual(saved.ballot.picks, picks);
+    for (const ref of Object.values(saved.ballot.scoringReferences)) {
+      assert.equal(ref.status, 'available'); assert.equal(ref.basis, 'line_at_guess'); assert.equal(ref.snapshotId, old);
+      assert.ok(ref.ageSeconds >= 420 && ref.ageSeconds < 450, String(ref.ageSeconds));
+    }
+    assert.equal(saved.audit.length, before.audit.length + 1);
+    // A later permitted collection serves the next edit; unchanged guesses keep the older line.
+    await f.db.exec("update public.gtl_odds_budget set last_collection_at=clock_timestamp()-interval '6 minutes'");
+    const edit = f.intent({ mode, revision: 2, picks: { ...picks, [f.state.games[0].id]: mode === 'guess_total' ? 45 : -4 } });
+    const job = await f.begin(id(961), edit);
+    assert.equal((await f.finish(job, payload(f.state.games))).status, 'succeeded');
+    assert.deepEqual(await f.check(edit), { requiresReferences: true, ready: true });
+    assert.equal(await f.save(edit), 3);
+    const edited = (await f.own(2, mode)).ballot;
+    assert.equal(edited.scoringReferences[f.state.games[0].id].snapshotId, id(961));
+    assert.deepEqual(edited.scoringReferences[f.state.games[1].id], saved.ballot.scoringReferences[f.state.games[1].id]);
     assert.equal(await f.own(2, mode === 'guess_total' ? 'guess_spread' : 'guess_total'), undefined);
   });
 });
 
-test('availability audit: failed collections exhaust the shared daily cap without submitting a saved draft', { skip }, async t => {
+test('availability audit: failed collections exhaust the shared daily cap and the ballot still saves, pending until the first line', { skip }, async t => {
   const f = await fixture(t); await f.enable();
   await f.save(f.intent({ submit: false }));
   const intent = f.intent({ revision: 1 }), before = await f.own();
@@ -110,9 +121,17 @@ test('availability audit: failed collections exhaust the shared daily cap withou
   await assert.rejects(() => f.begin(id(979), intent), /GTL_ODDS_DAILY_LIMIT/);
   assert.deepEqual(await f.budget(), exhausted);
   assert.deepEqual(await f.check(intent), { requiresReferences: true, ready: false });
-  await assert.rejects(() => f.save(intent), /GTL_SUBMISSION_ODDS_REQUIRED/);
-  assert.deepEqual(await f.own(), before);
   assert.equal((await f.db.query('select count(*)::int n from public.gtl_market_snapshots')).rows[0].n, 0);
+  assert.equal(await f.save(intent), 2);
+  const saved = await f.own();
+  assert.equal(saved.ballot.submittedAt, saved.ballot.updatedAt); assert.notDeepEqual(saved, before);
+  for (const ref of Object.values(saved.ballot.scoringReferences)) { assert.equal(ref.status, 'pending'); assert.equal(ref.value, null); assert.equal(ref.savedAt, saved.ballot.updatedAt); }
+  // The next stored line (any collector) resolves every pending guess in its own transaction.
+  const line = await f.snapshot(payload(f.state.games, Date.now() + 1000));
+  assert.equal(await f.rpc('gtl_resolve_pending_references', [2026, 5]), f.state.games.length);
+  const resolved = (await f.own()).ballot;
+  for (const ref of Object.values(resolved.scoringReferences)) { assert.equal(ref.basis, 'first_line_after_submission'); assert.equal(ref.snapshotId, line); assert.equal(ref.value, -3.5); }
+  assert.equal(resolved.updatedAt, saved.ballot.updatedAt); assert.deepEqual(resolved.picks, saved.ballot.picks);
 });
 
 test('fresh submission migration preserves historical state and has no browser privileges', { skip }, async t => {
@@ -184,20 +203,22 @@ test('reservation rechecks deadline and new references after initial preflight b
   });
 });
 
-test('failed full submission leaves saved draft, audit, revision and hidden market unchanged', { skip }, async t => {
+test('a full submission with no stored line saves pending; with an old line saves that line and its age', { skip }, async t => {
   const f = await fixture(t);
   const draft = f.intent({ picks: { [f.state.games[0].id]: -4 }, submit: false });
   assert.deepEqual(await f.check(draft), { requiresReferences: false, ready: true });
   await assert.rejects(() => f.begin(id(901), draft), /GTL_ODDS_NOT_REQUIRED/);
   assert.equal(await f.save(draft), 1);
-  const before = await f.own(); const x = f.intent({ revision: 1 });
-  await assert.rejects(() => f.save(x), /GTL_SUBMISSION_ODDS_REQUIRED/);
-  assert.deepEqual(await f.own(), before);
-  assert.equal((await f.rpc('gtl_read_weekly_state', [id(2), 'sean-troy-luke'])).revision, 1);
-  await f.snapshot(payload(f.state.games, Date.now() - 600_000));
-  assert.deepEqual(await f.check(x), { requiresReferences: true, ready: false });
-  await assert.rejects(() => f.save(x), /GTL_SUBMISSION_ODDS_REQUIRED/);
-  assert.deepEqual(await f.own(), before);
+  const x = f.intent({ revision: 1 });
+  assert.equal(await f.save(x), 2);
+  assert.equal((await f.own()).ballot.scoringReferences[f.state.games[0].id].status, 'pending');
+  assert.equal((await f.rpc('gtl_read_weekly_state', [id(2), 'sean-troy-luke'])).revision, 2);
+  const old = await f.snapshot(payload(f.state.games, Date.now() - 600_000));
+  const edit = f.intent({ revision: 2, picks: { ...f.full(), [f.state.games[0].id]: -5 } });
+  assert.deepEqual(await f.check(edit), { requiresReferences: true, ready: false });
+  assert.equal(await f.save(edit), 3);
+  const ref = (await f.own()).ballot.scoringReferences[f.state.games[0].id];
+  assert.equal(ref.snapshotId, old); assert.ok(ref.ageSeconds >= 600, String(ref.ageSeconds));
 });
 
 test('available references pin sanitized book evidence; no-op and unchanged picks do not reanchor', { skip }, async t => {
@@ -223,15 +244,18 @@ test('available references pin sanitized book evidence; no-op and unchanged pick
   assert.equal(await f.own(2, 'guess_total'), undefined);
 });
 
-test('partial fresh slate cannot submit partially or reveal; tampered receipts cannot write', { skip }, async t => {
+test('a game missing from the newest line takes its newest qualifying line or pending; tampered receipts cannot write', { skip }, async t => {
   const f = await fixture(t); const data = payload(f.state.games);
   data.games[0].markets.spread.quotes = [];
   await f.snapshot(data);
   assert.deepEqual(await f.check(), { requiresReferences: true, ready: false });
-  await assert.rejects(() => f.save(), /GTL_SUBMISSION_ODDS_REQUIRED/);
-  assert.equal(await f.own(), undefined);
-  await f.snapshot(payload(f.state.games, Date.now() - 50)); await f.save();
+  assert.equal(await f.save(), 1);
+  const partial = (await f.own()).ballot.scoringReferences;
+  assert.equal(partial[f.state.games[0].id].status, 'pending'); assert.equal(partial[f.state.games[1].id].status, 'available');
+  await f.snapshot(payload(f.state.games, Date.now() - 50));
+  await f.save(f.intent({ revision: 1, picks: { ...f.full(), [f.state.games[0].id]: -4 } }));
   const before = await f.own(); const game = f.state.games[0].id;
+  assert.equal(before.ballot.scoringReferences[game].status, 'available');
   const tampered = structuredClone(before.ballot); tampered.scoringReferences[game].quotes[0].value = 99;
   await assert.rejects(() => f.as('service_role', 'update public.gtl_weekly_ballots set ballot=$1 where user_id=$2 and mode=$3', [tampered, id(2), 'guess_spread']), /GTL_SUBMISSION_ODDS_REQUIRED/);
   assert.deepEqual(await f.own(), before);
@@ -257,14 +281,16 @@ test('ordinary member collection uses its own intent and global quota; no commis
   assert.equal((await f.db.query('select count(*)::int n from public.gtl_market_snapshots')).rows[0].n, 1);
 });
 
-test('provider failure spends only its reservation, releases lease, and leaves ballots unsubmitted', { skip }, async t => {
+test('provider failure spends only its reservation, releases lease, and the ballot still saves pending', { skip }, async t => {
   const f = await fixture(t); await f.enable(); const job = await f.begin(id(905));
   const result = await f.finish(job, null, { quota: {}, error: 'ODDS_TIMEOUT' });
   assert.equal(result.status, 'failed'); assert.equal(result.snapshotId, null);
   assert.equal((await f.budget()).conservative_remaining, 498); assert.equal((await f.budget()).lease_token, null);
   assert.equal(await f.own(), undefined);
-  await assert.rejects(() => f.save(), /GTL_SUBMISSION_ODDS_REQUIRED/);
   await assert.rejects(() => f.begin(id(906)), /GTL_ODDS_COOLDOWN/);
+  // The failed refresh never blocks the save: no line is stored yet, so every guess saves pending.
+  assert.equal(await f.save(), 1);
+  assert.ok(Object.values((await f.own()).ballot.scoringReferences).every(ref => ref.status === 'pending'));
 });
 
 test('future source clocks cannot persist snapshots that projections must permanently reject', { skip }, async t => {
@@ -344,9 +370,6 @@ test('personal full submission has identical atomic guard and dedicated collecti
   const intent = { season: 2026, week: 5, mode: 'guess_spread', revision: 0, picks: f.full(), submit: true, personalRevision: 0, requestId: id(914) };
   const body = ({ personalRevision, revision, ...x }) => ({ ...x, revision: personalRevision, weeklyRevision: revision });
   assert.deepEqual(await f.check(intent, 4), { requiresReferences: true, ready: false });
-  await assert.rejects(() => f.rpc('gtl_mutate_personal', [id(4), 'personal/ballot', body(intent)]), /GTL_SUBMISSION_ODDS_REQUIRED/);
-  assert.equal(await f.own(4), undefined);
-  assert.equal((await f.db.query('select count(*)::int n from public.gtl_personal_events where user_id=$1', [id(4)])).rows[0].n, 0);
   const job = await f.begin(id(915), intent, 4);
   assert.equal((await f.finish(job, payload(f.state.games), { who: 4 })).status, 'succeeded');
   const result = await f.rpc('gtl_mutate_personal', [id(4), 'personal/ballot', body(intent)]);
@@ -367,7 +390,7 @@ test('preflight operation has zero reservation and can bootstrap measured quota 
   assert.equal((await f.budget()).conservative_remaining, 494);
 });
 
-test('submission window regression: references older than five minutes permit a collection; fresh ones never spend', { skip }, async t => {
+test('submission window regression: an older line permits a collection, fresh ones never spend, and the save never waits on either', { skip }, async t => {
   // T minutes after a successful collection: the latest snapshot was collected at now-T (earliest provider
   // observation one second earlier) and gtl_odds_budget.last_collection_at is now-T. Before the October 12 window
   // migration T = 5..14 was a dead zone: the references were already stale under the five-minute rule while the
@@ -384,7 +407,6 @@ test('submission window regression: references older than five minutes permit a 
       assert.equal((await f.db.query('select count(*)::int n from public.gtl_odds_collections')).rows[0].n, 1);
     } else {
       assert.deepEqual(await f.check(), { requiresReferences: true, ready: false });
-      await assert.rejects(() => f.save(), /GTL_SUBMISSION_ODDS_REQUIRED/);
       const job = await f.begin(id(980 + T)); assert.equal(job.replay, false); assert.ok(job.lease);
       assert.equal((await f.budget()).conservative_remaining, 498);
       assert.equal((await f.finish(job, payload(f.state.games))).status, 'succeeded');

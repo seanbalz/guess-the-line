@@ -26,9 +26,10 @@ test('sign-in, lobby, league and optional screens load only the code they use', 
   for (const name of optional) expect(loaded(fixture, name)).toHaveLength(0);
   await navigate(page, 'My picks');
   await expect(page.locator('.chip-picker')).toHaveCount(15);
-  await page.getByRole('button', { name: 'Design lab', exact: false }).click();
-  await expect(page.getByRole('heading', { name: '01 / Primary logo', exact: true })).toBeVisible();
-  expect(loaded(fixture, 'BrandLab')).toHaveLength(1);
+  // Decision 4 (October 12): a player never sees the commissioner-only Design lab, so its chunk is never fetched.
+  // The commissioner path (and the chunk loading on demand) is covered by tests/browser/dashboard.spec.js.
+  await expect(page.getByRole('button', { name: /Design lab/ })).toHaveCount(0);
+  expect(loaded(fixture, 'BrandLab')).toHaveLength(0);
   await navigate(page, 'Bet Tracker');
   await expect(page.getByRole('heading', { name: 'The bet feed', exact: true })).toBeVisible();
   expect(loaded(fixture, 'SocialBetTracker')).toHaveLength(1);

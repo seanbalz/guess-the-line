@@ -12,6 +12,7 @@ import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../cloud/community.mjs';
 import { providerWeeklyError } from '../../cloud/weekly.mjs';
 import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip in each spec. */ }
@@ -37,11 +38,12 @@ export const ACCOUNTS = {
  * groupScreens: let the group game routes read membership and weekly state; community routes never need either.
  * troyBallots: Troy's pre-D-17 submitted Week 5 Spread and Total ballots (picks hidden from others until they submit or sit out).
  * clock: the handler clock (community reads, picks-due and sit-outs); database triggers keep the real clock.
+ * migrations: the migration files to apply in order (default MIGRATIONS; a spec that needs a newer file passes the full sorted list).
  */
-export async function communityWorld(page, baseURL, { deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now } = {}) {
+export async function communityWorld(page, baseURL, { deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, migrations = MIGRATIONS } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
-  await db.exec(fs.readFileSync(`supabase/migrations/${MIGRATIONS[0]}`, 'utf8'));
+  await db.exec(fs.readFileSync(`supabase/migrations/${migrations[0]}`, 'utf8'));
   const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0, games);
   state.league.deadline = deadline; state.games.forEach((game, i) => { game.kickoff = new Date(Date.parse(deadline) + i * 3_600_000).toISOString(); });
   await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);
@@ -49,9 +51,9 @@ export async function communityWorld(page, baseURL, { deadline = openDeadline(),
   for (const a of accounts) await db.query("insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,'sean-troy-luke',$2,$3)", [a.id, a.player, a.role]);
   const { season, week } = state.league;
   const troyPicks = { guess_spread: Object.fromEntries(state.games.map((g, i) => [g.id, [-3, 2.5][i % 2]])), guess_total: Object.fromEntries(state.games.map((g, i) => [g.id, [44, 47.5][i % 2]])) };
-  for (const file of MIGRATIONS.slice(1)) {
+  for (const file of migrations.slice(1)) {
     await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
-    if (file === MIGRATIONS[2] && troyBallots) {
+    if (file === '20261008182836_gtl_canonical_weekly_entries.sql' && troyBallots) {
       await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3)', [troy.id, season, week]);
       for (const mode of ['guess_spread', 'guess_total']) {
         await db.query('insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,$2,$3,$4,$5)', [troy.id, season, week, mode, { picks: troyPicks[mode], submittedAt: '2026-10-08T18:00:00Z' }]);
@@ -99,7 +101,7 @@ export async function communityWorld(page, baseURL, { deadline = openDeadline(),
     const req = route.request(), url = new URL(req.url());
     if (url.origin === new URL(baseURL).origin) return route.continue();
     const reply = (status, body) => route.fulfill({ status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
-    if (url.origin !== SUPABASE) { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
+    if (isWebfont(url)) return route.abort(); if (url.origin !== SUPABASE) { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
     if (url.pathname === '/auth/v1/token') { const session = sessions[req.postDataJSON()?.email]; return session ? reply(200, session) : reply(400, { error: 'invalid_grant', error_description: 'Unknown fixture account.' }); }
     if (url.pathname === '/auth/v1/user') { const user = users.get((req.headers().authorization || '').replace(/^Bearer /i, '')); return user ? reply(200, user) : reply(401, { message: 'Invalid token.' }); }
     if (url.pathname === '/auth/v1/logout') return reply(200, {});

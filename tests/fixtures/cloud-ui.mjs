@@ -6,6 +6,7 @@ import { createStore, seed } from '../../server/store.mjs';
 import { withSyntheticLocalQuotes } from './local-quotes.mjs';
 import { handleSocial } from '../../cloud/social.mjs';
 import { emptySocialState } from '../../shared/social-bets.mjs';
+import { isWebfont } from './webfonts.mjs';
 
 // Real built chunks, synthetic account and slate. No hosted reads or writes.
 export const test = base.extend({
@@ -24,7 +25,7 @@ export const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
-      if (url.origin !== 'https://gtl-frontend-check.supabase.co') { fixture.unexpected.push(url.origin); return route.abort(); }
+      if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { fixture.unexpected.push(url.origin); return route.abort(); }
       const reply = body => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/token') return reply(session);
       if (url.pathname === '/auth/v1/user') return reply(user);
