@@ -13,14 +13,14 @@
 .dashboard-preferences legend{font-size:16px;font-weight:600;padding-right:12px;color:var(--text)}
 .dashboard-control-help{font-size:14px;line-height:1.6;color:var(--muted);margin:0 0 16px}
 .dashboard-layout-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.dashboard-layout-option{display:flex;flex-direction:column;position:relative;padding:12px;gap:12px;cursor:pointer;border:1px solid var(--border);border-radius:8px;background:var(--canvas);min-height:44px;min-width:0}
+.dashboard-layout-option{display:flex;flex-direction:column;position:relative;padding:12px;gap:12px;cursor:pointer;border:1px solid var(--border);border-radius:var(--radius-control,8px);background:var(--canvas);min-height:44px;min-width:0}
 .dashboard-layout-option.is-selected{border-color:var(--primaryForeground,var(--primary));background:color-mix(in srgb,var(--primary) 4%,var(--surface))}
 .dashboard-layout-option:has(input:focus-visible){outline:2px solid var(--cyan);outline-offset:4px}
 .dashboard-layout-option input{position:absolute;opacity:0;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .dashboard-layout-label{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;color:var(--text);font-size:16px;line-height:1.4}
 .dashboard-layout-label svg{color:var(--primaryForeground,var(--primary));flex-shrink:0}
 .dashboard-layout-description{font-size:13px;line-height:1.5;color:var(--muted)}
-.dashboard-layout-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:16px 24px 10px;gap:6px;padding:12px;min-height:94px;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.dashboard-layout-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:16px 24px 10px;gap:6px;padding:12px;min-height:94px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-control,8px);overflow:hidden}
 .dashboard-layout-preview>span{display:block;border:1px solid var(--border);border-radius:2px;background:var(--card)}
 .dashboard-layout-preview .dashboard-preview-score{grid-column:1;grid-row:1;background:var(--primaryForeground,var(--primary));max-width:32px;border:0}
 .dashboard-layout-preview .dashboard-preview-chart{grid-column:1/-1;grid-row:2;background:linear-gradient(175deg,transparent 45%,var(--cyan) 48%,var(--cyan) 52%,transparent 55%);border:0}
@@ -28,18 +28,12 @@
 .dashboard-layout-preview-matchups{grid-template-rows:repeat(3,18px);grid-template-columns:1fr}
 .dashboard-layout-preview-matchups .dashboard-preview-score,.dashboard-layout-preview-matchups .dashboard-preview-chart{display:none}
 .dashboard-layout-preview-matchups .dashboard-preview-row{grid-row:auto;grid-column:1;background:linear-gradient(90deg,var(--card) 68%,var(--cyan) 68%,var(--cyan) 72%,var(--card) 72%)}
-.dashboard-layout-preview-markets{grid-template-columns:1fr;grid-template-rows:repeat(3,14px);align-content:center}
-.dashboard-layout-preview-markets .dashboard-preview-score,.dashboard-layout-preview-markets .dashboard-preview-chart{display:none}
-.dashboard-layout-preview-markets .dashboard-preview-row{grid-column:1;grid-row:auto;border-width:0 0 1px;border-radius:0;background:linear-gradient(90deg,transparent 0%,transparent 55%,var(--cyan) 55%,var(--cyan) 72%,transparent 72%)}
-.dashboard-layout-preview-social{grid-template-columns:1fr;grid-template-rows:repeat(3,18px)}
-.dashboard-layout-preview-social .dashboard-preview-score,.dashboard-layout-preview-social .dashboard-preview-chart{display:none}
-.dashboard-layout-preview-social .dashboard-preview-row{grid-column:1;grid-row:auto;border:0;background:radial-gradient(circle at 9px 9px,var(--primaryForeground,var(--primary)) 0 7px,transparent 8px),linear-gradient(transparent 40%,var(--border) 40%,var(--border) 60%,transparent 60%)}
 .dashboard-layout-preview-analytics{grid-template-rows:32px 20px;grid-template-columns:repeat(3,minmax(0,1fr))}
 .dashboard-layout-preview-analytics .dashboard-preview-score{display:none}
 .dashboard-layout-preview-analytics .dashboard-preview-chart{grid-row:1}
 .dashboard-layout-preview-analytics .dashboard-preview-row{grid-row:2}
 .dashboard-checkbox-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.dashboard-checkbox-option{display:flex;align-items:flex-start;gap:12px;min-height:64px;padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--canvas)}
+.dashboard-checkbox-option{display:flex;align-items:flex-start;gap:12px;min-height:64px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-control,8px);cursor:pointer;background:var(--canvas)}
 .dashboard-checkbox-option input{appearance:auto;flex-shrink:0;width:20px;height:20px;margin:2px 0 0;accent-color:var(--primaryForeground,var(--primary))}
 .dashboard-checkbox-option:has(input:focus-visible){outline:2px solid var(--cyan);outline-offset:4px}
 .dashboard-checkbox-option:has(input:disabled){cursor:default}

@@ -7,6 +7,7 @@ import { providerPersonalError } from '../../cloud/personal.mjs';
 import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../cloud/community.mjs';
 import { pacificDate, pacificToUtc, weekOpenAt } from '../../shared/nfl-schedule.mjs';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -59,7 +60,7 @@ async function fixture(page, baseURL, deadline) {
     const req = route.request(), url = new URL(req.url());
     if (url.origin === new URL(baseURL).origin) return route.continue();
     const reply = (status, body) => route.fulfill({ status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
-    if (url.origin !== 'https://gtl-frontend-check.supabase.co') { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
+    if (isWebfont(url)) return route.abort(); if (url.origin !== 'https://gtl-frontend-check.supabase.co') { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
     if (url.pathname === '/auth/v1/token') return reply(200, session);
     if (url.pathname === '/auth/v1/user') return reply(200, user);
     if (url.pathname === '/auth/v1/logout') return reply(200, {});

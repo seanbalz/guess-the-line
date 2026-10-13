@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 
 export const DASHBOARD_PREFERENCES_KEY = 'gtl.dashboard.preferences.v1';
 
+// Decision 5 (October 12): three layouts. A stored 'markets' or 'social' preference is left in storage
+// untouched and reads as Command center through normalizeDashboardPreferences until the player picks again.
 export const DASHBOARD_LAYOUTS = Object.freeze([
   { id: 'command', label: 'Command center', description: 'Scores first, then matchup gaps and line history.' },
   { id: 'matchups', label: 'Matchup cards', description: 'Give each matchup more room to compare.' },
-  { id: 'markets', label: 'Market rows', description: 'Scan compact rows of signed lines and differences.' },
-  { id: 'social', label: 'Social league', description: 'Lead with player scores and head-to-head results.' },
   { id: 'analytics', label: 'Analytics lab', description: 'Lead with line history and research comparisons.' },
 ]);
 
