@@ -1,4 +1,5 @@
 import { test as base, expect } from '@playwright/test';
+import { isWebfont } from '../fixtures/webfonts.mjs';
 
 // "Continue with Google" with Supabase Auth mocked locally. No request reaches Google or a real Supabase project: the
 // authorize navigation is answered with the redirect Supabase would send after a successful Google consent.
@@ -26,6 +27,7 @@ const test = base.extend({
     await page.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === new URL(baseURL).origin) return route.continue();
+      if (isWebfont(request.url())) return route.abort(); // Google Fonts (#54) only; every other external origin still fails the test.
       if (url.origin !== SUPABASE) { auth.errors.push(`Unexpected external request: ${url.origin}`); return route.abort(); }
       const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
       if (url.pathname === '/auth/v1/settings') {
