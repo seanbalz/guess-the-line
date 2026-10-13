@@ -12,7 +12,8 @@
   "excludePlayoffByes": true,
   "afterWeeknightByDays": true,
   "intlBackToBackTravel": true,
-  "homeMarketExcludesNeutral": true
+  "homeMarketExcludesNeutral": true,
+  "streakFromHomeStadium": true
  },
  "ruleNotes": {
   "kickoffTwelveHourFix": "2000-2005 night games carry 12-hour times such as 09:00; a kickoff before 11:00 ET at a US venue gets +12 hours.",
@@ -26,7 +27,8 @@
   "excludePlayoffByes": "Off-a-bye trends count regular-season games only (a playoff seeding bye is confounded with team strength).",
   "afterWeeknightByDays": "After a Monday-night game means the previous game was played on a Monday, Tuesday or Wednesday; after a Thursday game means Thursday or Friday.",
   "intlBackToBackTravel": "When a team's previous game was abroad and this game is abroad too, travel is measured from the previous venue.",
-  "homeMarketExcludesNeutral": "Home-versus-road ATS records exclude neutral-site games."
+  "homeMarketExcludesNeutral": "Home-versus-road ATS records exclude neutral-site games.",
+  "streakFromHomeStadium": "Road and home streaks (second and third straight road game, home after two road games, third straight home game) count games played away from the team's own season home stadium, including neutral and international sites, instead of the travel distance. A team playing a second straight game abroad is not traveling that week but is still on a road streak, and a short trip to a nearby opponent (Bay Area, Baltimore and Washington, Los Angeles) is still a road game; a team playing at its own shared home stadium (Giants and Jets) is at home."
  },
  "kickoff": {
   "london2130": {

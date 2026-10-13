@@ -139,7 +139,16 @@ test('records and formatting: units at −110, ROI with pushes, signed values an
   assert.equal(V.fmtRecord({ W: 3, L: 1, P: 4 }), '3-1-4');
   assert.equal(V.fmtStreak({ result: 'W', length: 5 }), 'W5');
   assert.equal(V.fmtYears([2019, 2026]), '2019–2026');
-  assert.deepEqual(V.splitLabels('team_ats', 'HOU'), ['HOU covered', 'Opponent covered', 'Pushes']);
+  // Split labels name whose record a row counts, from the row id: only team:X rows are that team's own record.
+  assert.deepEqual(V.splitLabels('team_ats', 'team_ats|team:HOU+venue:neutral'), ['HOU covered', 'Opponent covered', 'Pushes']);
+  assert.deepEqual(V.splitLabels('team_ats', 'team_ats|team:DEN+role:fav'), ['DEN covered', 'Opponent covered', 'Pushes']);
+  assert.deepEqual(V.splitLabels('su', 'su|team:SEA+venue:road'), ['SEA won', 'SEA lost', 'Ties']);
+  assert.deepEqual(V.splitLabels('team_ats', 'team_ats|t:t_off_win'), ['Team with the trait covered', 'Opponent covered', 'Pushes']);
+  assert.deepEqual(V.splitLabels('team_ats', 'team_ats|t:t_ats_margin_cold+role:dog'), ['Team with the trait covered', 'Opponent covered', 'Pushes']);
+  assert.deepEqual(V.splitLabels('team_ats', 'team_ats|coach:Sean Payton'), ['Coach’s team covered', 'Opponent covered', 'Pushes']);
+  assert.deepEqual(V.splitLabels('team_ats', 'team_ats|qb:00-0035704'), ['QB’s team covered', 'Opponent covered', 'Pushes']);
+  assert.deepEqual(V.splitLabels('team_ats'), ['Team covered', 'Opponent covered', 'Pushes']);
+  assert.deepEqual(V.splitLabels('total', 'total|any:t_off_win'), ['Over', 'Under', 'Pushes']);
   assert.equal(V.sideText(week, 'total', 'B'), 'Under');
   assert.equal(V.sideText(week, 'team_ats', 'B', 'NYG'), 'Fade NYG ATS');
   assert.equal(V.sideText(week, 'total', null), null);

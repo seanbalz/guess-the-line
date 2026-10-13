@@ -88,7 +88,8 @@ export function TrendCard({ week, card, item = {}, level = 4 }) {
 
 /** Labels for a compact row: the market, this season's side and the row's standing. */
 function rowBadge(row) { return row.anecdote ? 'Anecdote' : row.descriptive ? 'Descriptive' : 'No proven edge'; }
-const splitText = (row, team) => { const labels = splitLabels(row.market, team), [a, b, p] = row.split; return `${labels[0]} ${a} · ${labels[1]} ${b} · ${labels[2]} ${p}`; };
+// Split labels come from the row id: a trait, coach or QB row bound to this game's team is not that team's record.
+const splitText = (row, id) => { const labels = splitLabels(row.market, id), [a, b, p] = row.split; return `${labels[0]} ${a} · ${labels[1]} ${b} · ${labels[2]} ${p}`; };
 
 /**
  * A Tier 3, entity or referee record. In-sample history is shown both ways (no side, no ROI); the
@@ -112,7 +113,7 @@ export function RowCard({ week, id, team = null, title, level = 5, mark = null }
         {mark && <strong className="trend-this">{mark}</strong>}
       </p>
     </header>
-    <p className="trend-split"><span>Since {years[0]}, both ways (in-sample):</span> <span className="mono">{splitText(row, team)}</span></p>
+    <p className="trend-split"><span>Since {years[0]}, both ways (in-sample):</span> <span className="mono">{splitText(row, id)}</span></p>
     {wf ? <>
       <p className="trend-basis">Walk-forward from {row.wfFrom || 2003}: each season’s side chosen from earlier seasons only</p>
       <Stats items={[
@@ -145,7 +146,7 @@ export function TrendTable({ week, items, caption, marks = {} }) {
       const wf = row?.wf ? rec(row.wf) : null;
       return <tr key={key} {...(mark ? { 'aria-current': 'true', className: 'trend-current' } : {})}>
         <th scope="row">{itemTitle(week, id, team)}{mark && <strong className="trend-this">{mark}</strong>}{row?.anecdote && <small> · Anecdote</small>}{row?.provisional && <small> · Provisional starter</small>}{card && <small> · {card.watch ? 'Watch list' : card.label}</small>}</th>
-        <td data-label="Since 2002, both ways" className="mono">{row ? splitText(row, team) : `${card.split.sides[0]} ${card.split.rec[0]} · ${card.split.sides[1]} ${card.split.rec[1]} · Pushes ${card.split.rec[2]}`}</td>
+        <td data-label="Since 2002, both ways" className="mono">{row ? splitText(row, id) : `${card.split.sides[0]} ${card.split.rec[0]} · ${card.split.sides[1]} ${card.split.rec[1]} · Pushes ${card.split.rec[2]}`}</td>
         <td data-label="Walk-forward" className="mono">{card ? `Registered: ${fmtRecord(card.record)}` : wf ? `${fmtRecord(wf)} · ${fmtPct(winRate(wf))}${row.market === 'su' ? '' : ` · ${fmtUnits(units110(wf))}u`}` : 'Not enough history'}</td>
         <td data-label="2018–2025" className="mono">{fmtRecord(row ? row.oos : card.selection.rec)}</td>
         <td data-label="Score" className="mono">{row && (row.score === null || row.score === undefined) ? 'Descriptive' : fmtNumber(row ? row.score : card.score.score)}</td>

@@ -138,6 +138,35 @@ test('a second straight game abroad is measured from the previous venue', () => 
   assert.equal(g.tf[0].t_road, false);
   assert.ok(g.meta.dist[1] > 4500);
   assert.equal(g.tf[1].t_road, true);
+  // Road and home streaks count games away from the home stadium, not travel: JAX played week 4 at CIN,
+  // week 5 at Tottenham and week 6 at Wembley, so this is its third straight road game, not a homecoming.
+  assert.equal(g.tf[0].t_2nd_road, true);
+  assert.equal(g.tf[0].t_3rd_road, true);
+  assert.equal(g.tf[0].t_homecoming, false);
+  assert.equal(g.tf[0].t_3rd_home, false);
+  const travelOnly = build({ ...corrections, rules: { ...corrections.rules, streakFromHomeStadium: false } }).byId.get('2026_06_HOU_JAX');
+  assert.equal(travelOnly.tf[0].t_homecoming, true, 'measured from travel distance alone, London looked like a homecoming');
+});
+
+test('road streaks: a short trip to a nearby opponent is a road game; a shared home stadium is home', () => {
+  // Baltimore at Washington (about 35 miles): the old travel rule called it home.
+  const bal = real.byId.get('2000_07_BAL_WAS');
+  assert.ok(bal.meta.dist[1] < 50);
+  assert.equal(bal.tf[1].t_road, false, 'not traveling 50+ miles');
+  assert.equal(bal.tf[1].t_2nd_road, true);
+  assert.equal(bal.tf[1].t_homecoming, false);
+  // Synthetic shared stadium: NYJ and NYG both host at S00. NYJ's visit to NYG is at its own stadium,
+  // so its next road game (at MIA) is its first, not its second; MIA's two visits in a row are a streak.
+  const r = (week, gameday, away, home, sid) => ({ season: 2021, week, gameday, away_team: away, home_team: home, stadium_id: sid, away_score: 20, home_score: 17 });
+  const g = synth([
+    r(1, '2021-09-12', 'NE', 'NYJ', 'S00'), r(1, '2021-09-12', 'MIA', 'NYG', 'S00'),
+    r(2, '2021-09-19', 'NYJ', 'NYG', 'S00'), r(2, '2021-09-19', 'MIA', 'NE', 'S1500'),
+    r(3, '2021-09-26', 'NYJ', 'MIA', 'S499'), r(3, '2021-09-26', 'NE', 'NYG', 'S00'),
+    r(4, '2021-10-03', 'MIA', 'NE', 'S1500'), r(4, '2021-10-03', 'NYG', 'NYJ', 'S00'),
+  ]);
+  assert.equal(g.get('2021_02_NYJ_NYG').tf[1].t_road, false, 'NYJ at its own shared stadium');
+  assert.equal(g.get('2021_03_NYJ_MIA').tf[1].t_2nd_road, false, 'the visit to NYG was at home');
+  assert.equal(g.get('2021_02_MIA_NE').tf[1].t_2nd_road, true, 'MIA visited NYG, then NE');
 });
 
 test('rest: Week 1 has none, short week, Thursday after Sunday, bye (regular season only), mini-bye, rest edge, after a weeknight game', () => {

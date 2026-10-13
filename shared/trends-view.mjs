@@ -157,14 +157,24 @@ export const familyTitle = (week, family) => week?.families?.find(f => f.id === 
 const OUTCOMES = {
   home_ats: ['Home covered', 'Road covered', 'Pushes'], fav_ats: ['Favorite covered', 'Underdog covered', 'Pushes'],
   total: ['Over', 'Under', 'Pushes'], total_rev: ['With the rule', 'Against the rule', 'Pushes'],
-  team_ats: ['Team covered', 'Opponent covered', 'Pushes'], su: ['Won', 'Lost', 'Ties'],
 };
-/** Labels for a two-sided split [A, B, pushes] (in-sample, shown both ways). */
-export function splitLabels(market, team = null) {
-  const labels = OUTCOMES[market] || ['Side A', 'Side B', 'Pushes'];
-  if (team && market === 'team_ats') return [`${team} covered`, 'Opponent covered', 'Pushes'];
-  if (team && market === 'su') return [`${team} won`, `${team} lost`, 'Ties'];
-  return labels;
+/**
+ * Whose record a team-market row counts, from its id. Only a team:X row is that team's own record;
+ * a trait row counts every team with the trait league-wide, a coach row every team the coach led and
+ * a QB row every team the QB started for, so those get generic subjects even when bound to a team.
+ */
+export function rowSubject(id = '') {
+  const parts = typeof id === 'string' && id.includes('|') ? atomsOf(id) : [];
+  const own = parts.find(({ kind }) => kind === 'team');
+  if (own) return /^[A-Z]{2,3}$/.test(own.value) ? own.value : 'Team';
+  const kinds = new Set(parts.map(({ kind }) => kind));
+  return kinds.has('coach') ? 'Coach’s team' : kinds.has('qb') ? 'QB’s team' : kinds.has('t') ? 'Team with the trait' : 'Team';
+}
+/** Labels for a two-sided split [A, B, pushes] (in-sample, shown both ways), named from the row id, never from the game's team. */
+export function splitLabels(market, id = '') {
+  if (market === 'team_ats') return [`${rowSubject(id)} covered`, 'Opponent covered', 'Pushes'];
+  if (market === 'su') { const who = rowSubject(id); return [`${who} won`, `${who} lost`, 'Ties']; }
+  return OUTCOMES[market] || ['Side A', 'Side B', 'Pushes'];
 }
 /** A side as the panel names it: "Under", "Road team ATS", "Back HOU ATS", "Fade NYG ATS". */
 export function sideText(week, market, side, team = null) {

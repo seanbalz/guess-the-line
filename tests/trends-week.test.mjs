@@ -62,6 +62,11 @@ test('game flags: international morning, TNF at altitude, MNF, SNF, domes and un
   }
   assert.ok(game('DAL-GB').context.find(c => c.family === 'venue').more.includes('team_ats|t:t_dome_team_outdoors@DAL'));
   assert.ok(game('HOU-JAX').context.find(c => c.family === 'venue').more.includes('team_ats|t:t_dome_team_outdoors@HOU'));
+  // JAX played at CIN, then Tottenham, then Wembley: a third straight game away from Jacksonville, never a homecoming.
+  const streak = game('HOU-JAX').context.find(c => c.family === 'road_streak');
+  const streakItems = [streak.lead.ats, streak.lead.ou, ...streak.more].filter(Boolean);
+  assert.ok(streakItems.includes('team_ats|t:t_3rd_road@JAX'), streakItems.join(', '));
+  assert.ok(!streakItems.some(id => id.includes('t_homecoming') || id.includes('t_3rd_home')), streakItems.join(', '));
 });
 
 test('strong wind is only a collapsed conditional note on upcoming outdoor games, never a top card', () => {

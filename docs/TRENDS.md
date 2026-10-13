@@ -52,7 +52,7 @@ Laid out like Sean's TrendsCenter card: title, market ("NFL · ATS · Back HOU A
 
 These are never shown as a side with a record, because a side chosen from the same history always looks like a winner. Instead:
 
-- **Since 2002, both ways (in-sample)**: e.g. "Over 3212 · Under 3270 · Pushes 95".
+- **Since 2002, both ways (in-sample)**: e.g. "Over 3212 · Under 3270 · Pushes 95". A team-market row says whose record it counts, from the row itself: "DEN covered" only for Denver's own home, road, favorite or underdog record; a trait row says "Team with the trait covered" (every team with that trait since 2002), a coach row "Coach’s team covered" (every team the coach led) and a quarterback row "QB’s team covered" (every team he started for), even when the panel shows it for one team in this game.
 - **Walk-forward** card fields (record, win rate, ROI, units, streak, last 10): each season's side is chosen from earlier seasons only.
 - Walk-forward 2018–2025, this season's side, this season and since registered.
 - Straight-up records are descriptive: no units or ROI, because GTL scores spread and total only.
@@ -111,11 +111,12 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
 ## Deployed state
 
 - **Not deployed.** The engine, week file, UI and referee route are on branch `claude/trends-engine`.
-- Shipping the panels needs a Pages deploy only.
+- Shipping the panels needs a Pages deploy only. The deploy chain's `npm run check:cloud` still passes before the referee pieces exist: `scripts/check-cloud-boundary.mjs` lists the two referee RPCs and the two `/officials` routes in `awaitingDeploy` and reports them as "awaiting deploy, not verified". It accepts only the exact not-found answer (PostgREST `PGRST202` for a missing function, gtl-api's own `Not found.` for a missing route); any other answer must still be a denial, and every other probe still runs.
 - Shared commissioner referees also need:
   - the migration `20261012234500_gtl_game_officials.sql` applied to the hosted project (record the hosted version; never `db push`),
   - a `gtl-api` deploy.
 - The frontend falls back cleanly, so the two can ship in either order.
+- After both are live, run `node scripts/check-cloud-boundary.mjs --strict` (every probe must deny, none awaiting deploy), then remove the four `awaitingDeploy` entries in the change that records the hosted migration version.
 
 ## Limits
 

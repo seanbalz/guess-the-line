@@ -8,7 +8,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import week from '../shared/trends/2026-week-06.json';
 import { bannedCopy } from '../shared/trends.mjs';
 import TrendsView from '../web/src/TrendsView.jsx';
-import { RowCard, Sparkline, TrendCard } from '../web/src/TrendCard.jsx';
+import { RowCard, Sparkline, TrendCard, TrendTable } from '../web/src/TrendCard.jsx';
+import { parseItem } from '../shared/trends-view.mjs';
 import GameTrends, { TrendsExpander } from '../web/src/GameTrends.jsx';
 
 const render = props => renderToStaticMarkup(<TrendsView week={week} level={4} {...props}/>);
@@ -68,6 +69,36 @@ describe('compact rows are two-sided and walk-forward, never a winner by constru
     expect(html).not.toContain('<dt>ROI (−110)</dt>');
     expect(html).not.toContain('<dt>Units</dt>');
     expect(text(html)).toContain('SEA won 101 · SEA lost 104 · Ties 1');
+  });
+  it('never labels a league-wide trait, coach career or QB career split as the bound team’s own record', () => {
+    // SEA at DEN: "Team won its last game" is every team since 2002, Sean Payton's career includes New Orleans,
+    // and a QB's career counts every team he started for.
+    const game = week.games.find(g => g.id === 'SEA-DEN');
+    const trait = text(renderToStaticMarkup(<RowCard week={week} id="team_ats|t:t_off_win" team="DEN" level={5}/>));
+    expect(trait).toContain('Team won its last game: ATS · DEN');
+    expect(trait).toMatch(/Team with the trait covered \d+ · Opponent covered \d+ · Pushes \d+/);
+    expect(trait).not.toContain('DEN covered');
+    const coachId = game.entities.coaches.DEN.ats, qbId = game.entities.qbs.SEA.ats;
+    const table = text(renderToStaticMarkup(<TrendTable week={week} caption="x" items={[{ id: coachId, team: 'DEN' }, { id: qbId, team: 'SEA' }, { id: game.entities.teams.DEN.ats, team: 'DEN' }]}/>));
+    expect(table).toContain('Coach’s team covered');
+    expect(table).toContain('QB’s team covered');
+    expect(table).not.toContain('SEA covered');
+    expect(count(table, 'DEN covered')).toBe(1);
+    // Across every game file item bound to a team, "<TEAM> covered" or "<TEAM> won" appears only for that team's own team:X rows.
+    let checked = 0;
+    for (const g of week.games) {
+      const ctx = (g.context || []).flatMap(e => [e.lead?.ats, e.lead?.ou, ...(e.more || [])]).filter(Boolean).map(parseItem);
+      const ent = Object.entries(g.entities || {}).flatMap(([kind, v]) => (kind === 'h2h' ? [] : Object.entries(v).flatMap(([team, e]) => [e.ats, e.su].filter(Boolean).map(id => ({ id, team })))));
+      const gated = Object.values(g.gated || {}).flat().map(parseItem);
+      for (const { id, team } of [...ctx, ...ent, ...gated]) {
+        if (!team || !week.rows[id]) continue;
+        const own = id.split('|')[1].split('+').includes(`team:${team}`);
+        const out = text(renderToStaticMarkup(<RowCard week={week} id={id} team={team} level={5}/>));
+        expect(out.includes(`${team} covered`) || out.includes(`${team} won`), id).toBe(own);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(200);
   });
 });
 

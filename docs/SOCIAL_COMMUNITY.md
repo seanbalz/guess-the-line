@@ -141,7 +141,7 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    npm run check:cloud
    npm run cloudflare -- pages deploy .local/cloud-dist --project-name guess-the-line --branch main --commit-dirty=true
    ```
-   `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements`, the three Virtual Units RPCs and `gtl_numeric_is_finite` on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)).
+   `check:cloud` is the live boundary probe (`scripts/check-cloud-boundary.mjs`). It expects `gtl_ruled_ballot_imports`, `gtl_import_ruled_ballot`, `gtl_virtual_units_settlements`, the three Virtual Units RPCs and `gtl_numeric_is_finite` on the hosted project; all of them are applied (step 9 and the [D-26 runbook](../planning/virtual-units-game.md#settlement-runbook--d-26)). Probes listed in its `awaitingDeploy` table (the situational-trends referee RPCs and routes, below) pass with the exact not-found answer until their migration and API deploy, and are printed as "awaiting deploy, not verified"; `--strict` requires every probe to deny.
 
 7. **Done (October 12, 2026) — post-deploy boundary probe and release manifest.** 152 live denials, 0 unexpected, at 20:43:48 UTC; manifest sourceSha256 `f47532fd…bdb16f1c20`, frontendSha256 `7e604426…dbb07e4`.
    ```sh
@@ -203,6 +203,6 @@ Deployed from the cloud session on October 9, 2026, through the Supabase MCP: th
   - migration `20261012234500_gtl_game_officials.sql`, written and **not applied to the hosted project**. When it is applied through the Supabase MCP, record its hosted version here; never `db push`.
   - a `gtl-api` deploy for `/officials/read` and `/officials/set`.
 - Before both ship, the panel falls back to the weekly file, and the commissioner panel says saving needs the next deploy.
-- The boundary check reports `unexpected 404` for the two new RPCs and routes until then.
+- Until then the boundary check (step 6's `check:cloud` and step 7) still passes: it reports the two referee RPCs and the two `/officials` routes as "awaiting deploy, not verified" (they are listed in `awaitingDeploy` in `scripts/check-cloud-boundary.mjs`). Only the exact not-found answer is accepted for them; any other answer must still be a denial, and every other probe still runs. After the migration and the `gtl-api` deploy, run `node scripts/check-cloud-boundary.mjs --strict`, which fails while anything is awaiting deploy, then remove those entries in the change that records the hosted version.
 
 *October 12, 2026:* migration `20261012213000_gtl_submission_odds_window.sql` (branch `claude/fix-submission-odds-window`: five-minute collect cooldown, six collections per UTC day, and scheduled/manual collection from the published week instead of the group league, which is why both October 12 scheduled runs skipped with `slate_changed`) is **not applied to the hosted project**. It waits for Sean's ruling on the constants (pending entry in [DECISIONS.md](DECISIONS.md)). When it is applied through the Supabase MCP, its hosted version joins the `reverted` list and its filename the `applied` list in step 2 above; never `db push`.

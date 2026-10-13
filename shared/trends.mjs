@@ -696,9 +696,15 @@ export function buildFeatures(games, { venues, corrections }) {
         tzd = rules.tzFromIana ? utcOffsetHours(venue.tz, g.date) - utcOffsetHours(origin.tz, g.date) : venue.stdOffset - origin.stdOffset;
       }
       const road = (dist !== null && dist > 50) || (dist === null && side === 1);
+      // Home and road streaks count games away from the team's own season home stadium, not this
+      // week's travel: a team staying abroad for a second game is not traveling (road is false) but
+      // is still away from home. Without a known home stadium, the designated road team or a neutral site.
+      const away = rules.streakFromHomeStadium
+        ? (info?.sid && g.stadiumId ? g.stadiumId !== info.sid : side === 1 || g.neutral)
+        : road;
       meta.dist[side] = dist === null ? null : Math.round(dist);
       meta.tz[side] = tzd;
-      pre[side] = { road, dist, intl: gf.g_intl, venue, oppWpct: sO.wpct, oppN: sO.n };
+      pre[side] = { road, away, dist, intl: gf.g_intl, venue, oppWpct: sO.wpct, oppN: sO.n };
       f.t_road = road;
       if (dist !== null && road) {
         f.t_trip_short = dist < 500; f.t_trip_mid = dist >= 500 && dist < 1500; f.t_trip_long = dist >= 1500; f.t_trip_xc = dist >= 2000;
@@ -731,13 +737,13 @@ export function buildFeatures(games, { venues, corrections }) {
         f.t_after_intl = prev.intl;
         f.t_2nd_intl = prev.intl && gf.g_intl;
         f.t_after_long_trip = prev.road && (prev.dist ?? 0) >= 1500;
-        f.t_2nd_road = road && prev.road;
+        f.t_2nd_road = away && prev.away;
         f.t_2nd_long_trip = road && (dist ?? 0) >= 1500 && prev.road && (prev.dist ?? 0) >= 1500;
         if (log.length >= 2) {
           const p2 = log[log.length - 2];
-          f.t_3rd_road = road && prev.road && p2.road;
-          f.t_homecoming = !road && prev.road && p2.road;
-          f.t_3rd_home = !road && !prev.road && !p2.road;
+          f.t_3rd_road = away && prev.away && p2.away;
+          f.t_homecoming = !away && prev.away && p2.away;
+          f.t_3rd_home = !away && !prev.away && !p2.away;
         }
         const m = prev.margin;
         f.t_off_win = m > 0; f.t_off_loss = m < 0; f.t_off_blowout_win = m >= 14; f.t_off_blowout_loss = m <= -14;
@@ -842,7 +848,7 @@ export function buildFeatures(games, { venues, corrections }) {
       st.logs.get(key).push({
         date: g.date, season, margin: m, pf: side === 0 ? hs : as, pa: side === 0 ? as : hs, line, cover: c,
         ou: g.total === null ? null : total - g.total, weekday: g.weekday, kick: g.kick, ot: g.ot,
-        intl: pr.intl ?? false, road: pr.road ?? side === 1, dist: pr.dist ?? null, venue: pr.venue ?? null, qb: pr.qb ?? null,
+        intl: pr.intl ?? false, road: pr.road ?? side === 1, away: pr.away ?? pr.road ?? side === 1, dist: pr.dist ?? null, venue: pr.venue ?? null, qb: pr.qb ?? null,
       });
       if (pr.qb) {
         st.qbStarts.set(pr.qb, (st.qbStarts.get(pr.qb) ?? 0) + 1);
