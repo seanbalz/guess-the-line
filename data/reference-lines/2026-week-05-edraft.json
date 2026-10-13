@@ -1,0 +1,139 @@
+{
+  "schema": "gtl-reference-lines-v1",
+  "season": 2026,
+  "week": 5,
+  "rpc": "gtl_import_reference_lines",
+  "migration": "20261013010000_gtl_line_at_guess_reads.sql",
+  "decision": null,
+  "decisionStatus": "Pending: an import needs Sean's explicit ruling, recorded in docs/DECISIONS.md under its own number after D-27; the number is added at import time (--decision).",
+  "note": "Public market data only: eDraft consensus home spreads with their page and capture times. No pick and no points.",
+  "excluded": [
+    {
+      "file": "data/snapshots/2026-week-05-edraft-0333ET.json",
+      "fileSha256": "c4647306f172d78c89fd9a560ded8e4a2624a5c09615691f6c283e906fc55f1b",
+      "reason": "The page records only its publication time (03:33 ET) and a retrieval date, not when it was captured, so it cannot be shown to have been stored before any guess (D-16). Its spreads equal the 04:33 ET page captured at 09:01:21Z, which is imported."
+    }
+  ],
+  "imports": [
+    {
+      "file": "data/snapshots/2026-week-05-20261008T090121436Z.json",
+      "fileSha256": "309e2c9d9270799f9bb94c7651da0074fc0daea654b0b7864932579f3b807820",
+      "reference": {
+        "source": "eDraft consensus",
+        "sourceUrl": "https://edraft.com/nfl/odds/week-5",
+        "kind": "provisional_timestamped_aggregator_consensus",
+        "method": "reported median of tracked active sportsbook full-game spreads",
+        "timeBasis": "page time as published by the source; capture time recorded by the snapshot",
+        "observedAt": "2026-10-08T08:33:00.000Z",
+        "capturedAt": "2026-10-08T09:01:21.436Z",
+        "lines": {
+          "TB-DAL": {
+            "spread": -8.5
+          },
+          "PHI-JAX": {
+            "spread": -7.3
+          },
+          "CIN-MIA": {
+            "spread": 6.5
+          },
+          "LV-NE": {
+            "spread": -3.5
+          },
+          "MIN-NO": {
+            "spread": 1.5
+          },
+          "CLE-NYJ": {
+            "spread": -2
+          },
+          "IND-PIT": {
+            "spread": -2.5
+          },
+          "HOU-TEN": {
+            "spread": 7.5
+          },
+          "NYG-WAS": {
+            "spread": -3.5
+          },
+          "CHI-GB": {
+            "spread": 1.8
+          },
+          "DEN-LAC": {
+            "spread": 3.5
+          },
+          "SF-SEA": {
+            "spread": -3
+          },
+          "BAL-ATL": {
+            "spread": -3.5
+          },
+          "DET-ARI": {
+            "spread": 5.5
+          },
+          "BUF-LAR": {
+            "spread": -3
+          }
+        }
+      }
+    },
+    {
+      "file": "data/snapshots/2026-week-05-20261008T150212589Z.json",
+      "fileSha256": "e9ebad5d805cccc732848886d843014dd3dcdb782e6656dadeb0b965c5876b69",
+      "reference": {
+        "source": "eDraft consensus",
+        "sourceUrl": "https://edraft.com/nfl/odds/week-5",
+        "kind": "provisional_timestamped_aggregator_consensus",
+        "method": "eDraft-reported median of tracked active sportsbook full-game spreads",
+        "timeBasis": "page time as published by the source; capture time recorded by the snapshot",
+        "observedAt": "2026-10-08T14:03:00.000Z",
+        "capturedAt": "2026-10-08T15:02:12.589Z",
+        "lines": {
+          "TB-DAL": {
+            "spread": -8.5
+          },
+          "PHI-JAX": {
+            "spread": -7.5
+          },
+          "CIN-MIA": {
+            "spread": 6.5
+          },
+          "LV-NE": {
+            "spread": -3.5
+          },
+          "MIN-NO": {
+            "spread": 1.5
+          },
+          "CLE-NYJ": {
+            "spread": -1.5
+          },
+          "IND-PIT": {
+            "spread": -2.5
+          },
+          "HOU-TEN": {
+            "spread": 7.5
+          },
+          "NYG-WAS": {
+            "spread": -3.5
+          },
+          "CHI-GB": {
+            "spread": 1.5
+          },
+          "DEN-LAC": {
+            "spread": 3.5
+          },
+          "SF-SEA": {
+            "spread": -3
+          },
+          "BAL-ATL": {
+            "spread": -3.5
+          },
+          "DET-ARI": {
+            "spread": 5.5
+          },
+          "BUF-LAR": {
+            "spread": -3.3
+          }
+        }
+      }
+    }
+  ]
+}
