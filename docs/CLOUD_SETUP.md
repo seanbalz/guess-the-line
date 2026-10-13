@@ -1,9 +1,9 @@
 # Guess The Line — shared access setup
 
-Owner: Sean Balsiger · Updated October 8, 2026 · Provisional GTL brand system
+Owner: Sean Balsiger · Updated October 12, 2026 · Provisional GTL brand system
 
-**Current release — Pages `2106725d` / API v14:** the frontend and authenticated
-API are deployed with JWT verification enabled. Six migrations add Solo,
+**Current release — Pages `06c71c14` / API v15** (October 12, 2026, from `main` at `17c22b5`; see [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md)). **The October 8 release — Pages `2106725d` / API v14:** the frontend and authenticated
+API were deployed with JWT verification enabled. Six migrations add Solo,
 reviewed quote selections, submission-time scoring, reviewed final results,
 fresh-submission odds and social Bet Tracker. The release passed 368 Node checks,
 29 local browser checks, 79 cloud-style browser checks and 130 live access-denial

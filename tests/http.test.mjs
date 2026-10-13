@@ -69,3 +69,24 @@ test('HTTP submission with no stored line saves pending instead of refusing', as
   assert(view.games.every(game => game.scoringReference.status === 'pending' && game.points === null));
   assert.equal(store.view('troy', 'guess_total').revealed, true);
 });
+
+test('HTTP static assets carry the right Content-Type under nosniff (PNG marks, manifest, icons)', async t => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gtl-http-static-'));
+  const dist = path.join(dir, 'dist');
+  fs.mkdirSync(path.join(dist, 'team-logos'), { recursive: true });
+  fs.writeFileSync(path.join(dist, 'index.html'), '<!doctype html><title>t</title>');
+  fs.writeFileSync(path.join(dist, 'team-logos', 'buf.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+  fs.writeFileSync(path.join(dist, 'favicon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+  fs.writeFileSync(path.join(dist, 'manifest.webmanifest'), '{}');
+  fs.writeFileSync(path.join(dist, 'notes.unknown'), 'x');
+  const server = createServer(createStore(path.join(dir, 'state.json'), () => Date.parse('2026-10-08T16:00:00Z')), { dist });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => { server.closeAllConnections(); server.close(); fs.rmSync(dir, { recursive: true, force: true }); });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  for (const [route, type] of [['/team-logos/buf.png', 'image/png'], ['/favicon.svg', 'image/svg+xml'], ['/manifest.webmanifest', 'application/manifest+json'], ['/notes.unknown', 'application/octet-stream'], ['/', 'text/html']]) {
+    const response = await fetch(base + route);
+    assert.equal(response.status, 200, route);
+    assert.equal(response.headers.get('content-type'), type, route);
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff', route);
+  }
+});

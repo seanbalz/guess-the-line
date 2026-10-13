@@ -5,8 +5,9 @@ import { pathToFileURL } from 'node:url';
 import { createStore } from './store.mjs';
 import { SubmissionReferenceError } from './engine.mjs';
 import { SocialError } from '../shared/social-bets.mjs';
-export function createServer(store = createStore()) {
-  const dist = path.resolve(import.meta.dirname, '../dist');
+// Served under X-Content-Type-Options: nosniff, so every published asset type needs an entry; unknown types stay octet-stream.
+const mimeTypes = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.webmanifest':'application/manifest+json','.json':'application/json','.txt':'text/plain'};
+export function createServer(store = createStore(), { dist = path.resolve(import.meta.dirname, '../dist') } = {}) {
   return http.createServer(async (req,res) => {
     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');
     res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
@@ -36,7 +37,7 @@ export function createServer(store = createStore()) {
       if(!requested.startsWith(dist+path.sep) && requested!==dist) return send(404,{error:'Not found.'});
       const file=fs.existsSync(requested)&&fs.statSync(requested).isFile()?requested:path.join(dist,'index.html');
       if(!fs.existsSync(file)) return send(503,{error:'Run npm run build, or use the development preview on port 5173.'});
-      const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'}[path.extname(file)]||'application/octet-stream';
+      const mime=mimeTypes[path.extname(file).toLowerCase()]||'application/octet-stream';
       res.writeHead(200,{'Content-Type':mime,'Cache-Control':file.endsWith('.html')?'no-cache':'public, max-age=3600'});fs.createReadStream(file).pipe(res);
     } catch(error) {
       if (error instanceof SocialError) return send(error.status, { error: error.message });
