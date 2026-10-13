@@ -33,6 +33,16 @@ const rpcChecks = [
   ['gtl_resolve_pending_reference', { p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game_id: 'AAA-BBB', p_pending: {} }],
   ['gtl_resolve_pending_references', { p_season: 2026, p_week: 5 }],
   ['gtl_odds_schedule_slate', { p_season: 2026, p_week: 5, p_signature: {} }],
+  // Line at the guess for ballots saved without a line and D-08 eligibility in the community (20261013010000): service-only.
+  // They report `unexpected 404` until that migration is applied to the hosted project.
+  ['gtl_slate_game', { p_season: 2026, p_week: 5, p_signature: {}, p_game_id: 'AAA-BBB' }],
+  ['gtl_ballot_eligible', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_origin_practice: false }],
+  ['gtl_submission_time_unknown', { p_ballot: {} }],
+  ['gtl_guess_instant', { p_ballot: {}, p_audit: [], p_game_id: 'AAA-BBB' }],
+  ['gtl_line_at_guess', { p_season: 2026, p_week: 5, p_signature: {}, p_game: null, p_market: 'spread', p_guessed: null }],
+  ['gtl_ballot_pick_scores', { p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_ballot: {}, p_audit: [] }],
+  ['gtl_import_reference_lines', { p_actor: missingId, p_season: 2026, p_week: 5, p_file: 'data/snapshots/boundary-check.json', p_file_sha256: '0'.repeat(64), p_ruling: 'boundary check only', p_reference: {} }],
+  ['gtl_void_reference_line_import', { p_actor: missingId, p_import: missingId, p_decision: 'D-0', p_reason: 'boundary check only' }],
   // gtl_guard_fresh_submission returns trigger, so its invoker/grant boundary
   // is checked in fresh-submission-sql.test.mjs, not as a callable REST RPC.
   ['gtl_weekly_context', { p_user: missingId, p_league: missingLeague }],
@@ -132,7 +142,7 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
   assert.ok(/^https:\/\/onmrgvcehkflfaizvedl\.supabase\.co$/.test(url || ''), 'Unexpected cloud project URL.');
   assert.ok(/^sb_publishable_/.test(key || ''), 'A publishable key is required.');
   const requests = [
-    ...['social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings', 'odds_budget', 'odds_collections', 'submission_odds_intents', 'market_snapshots', 'benchmark_policies', 'frozen_benchmarks', 'odds_schedule', 'odds_refresh_runs', 'personal_versions', 'favorites', 'journal_entries', 'personal_forecasts', 'personal_events', 'personal_receipts', 'result_review_lock', 'reviewed_result_events', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals', 'league_interest', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'virtual_units_picks', 'virtual_units_settlements', 'ruled_ballot_imports'].map(table => ({
+    ...['social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings', 'odds_budget', 'odds_collections', 'submission_odds_intents', 'market_snapshots', 'reference_line_imports', 'reference_lines', 'reference_line_voids', 'benchmark_policies', 'frozen_benchmarks', 'odds_schedule', 'odds_refresh_runs', 'personal_versions', 'favorites', 'journal_entries', 'personal_forecasts', 'personal_events', 'personal_receipts', 'result_review_lock', 'reviewed_result_events', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals', 'league_interest', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'virtual_units_picks', 'virtual_units_settlements', 'ruled_ballot_imports'].map(table => ({
       name: `anonymous ${table} table`, route: `/rest/v1/gtl_${table}?select=*&limit=1`, statuses: [401, 403], database: true,
     })),
     ...rpcChecks.map(([rpc, body]) => ({
