@@ -62,3 +62,10 @@
 @media(max-width:960px){:root:has(.save-bar){scroll-padding-bottom:200px}}
 @media(max-width:480px){:root:has(.save-bar){scroll-padding-bottom:250px}}
 @media(max-width:360px){:root:has(.save-bar){scroll-padding-bottom:300px}}
+/* Continue with Google (October 12): a full-width outlined secondary action above the email form. Tokens only; no third-party mark. */
+.auth-oauth{display:grid;gap:12px;margin-bottom:20px}
+.auth-oauth .auth-google{width:100%;min-height:var(--touch-target,44px);font-size:16px;line-height:1.5;white-space:normal;background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.auth-oauth .auth-google:disabled{cursor:progress}
+.auth-oauth>.auth-help{margin:0}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;border-top:1px solid var(--border)}
