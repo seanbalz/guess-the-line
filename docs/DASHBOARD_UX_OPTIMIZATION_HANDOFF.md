@@ -339,7 +339,7 @@ Items that need Sean's decision before implementation are marked in section 9; e
 | `social` read | `SocialDashboardCard`, `SocialBetTracker` | shared bet entries |
 | `lobby`, `profile`, `leagues`, `invites`, `invite/accept`, `invite/revoke` | `GameHub` | profile and games |
 
-Error codes the UI must map: `GTL_PREDICTION_NOT_OPEN` (D-24), `GTL_COMMUNITY_SAT_OUT`, `GTL_COMMUNITY_CLOSED`, `GTL_COMMUNITY_MEMBER`, `GTL_SUBMISSION_REFRESH_UNAVAILABLE`, `GTL_SUBMISSION_QUOTES_REQUIRED`, `GTL_SUBMISSION_REFRESH_LIMIT`, `GTL_SUBMISSION_REFRESH_COOLDOWN`, `GTL_SUBMISSION_REFRESH_DAILY_LIMIT`, `GTL_SUBMISSION_REFRESH_BUDGET` (D-17), HTTP 409 (stale revision), 403 (membership), 401 (session).
+Error codes the UI must map: `GTL_PREDICTION_NOT_OPEN` (D-24), `GTL_COMMUNITY_SAT_OUT`, `GTL_COMMUNITY_CLOSED`, `GTL_COMMUNITY_MEMBER`, `GTL_SUBMISSION_REFRESH_UNAVAILABLE`, `GTL_SUBMISSION_QUOTES_REQUIRED`, `GTL_SUBMISSION_REFRESH_LIMIT`, `GTL_SUBMISSION_REFRESH_COOLDOWN`, `GTL_SUBMISSION_REFRESH_DAILY_LIMIT`, `GTL_SUBMISSION_REFRESH_BUDGET` (D-17; since D-27 on October 12, 2026 the server returns only `GTL_SUBMISSION_QUOTES_REQUIRED` and `GTL_SUBMISSION_CHECK_UNAVAILABLE` from this family, because refresh limits never refuse a submission), HTTP 409 (stale revision), 403 (membership), 401 (session).
 
 ## Appendix B — Where the existing evidence lives on the Mac mini
 

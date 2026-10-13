@@ -11,6 +11,9 @@ import TeamFacts from './TeamFacts';
 import { draftFromGames, draftScope, draftHasChanges, mergeDraft, readDraft, writeDraft, writeRecoveryCopy, removeDraft, savedAttemptMatches } from './predictionDraft';
 import './predictionReview.css';
 
+// A collection that resolves a pending line is audited but is not a save by this player.
+const lastSave = data => data.audit?.find(event => event.type !== 'reference_resolved')?.timestamp;
+
 export default function PredictionEntry({ data, accountId, save, saveIssue, refreshSaved, busy, conflict, onDirty, error, go, Modal, SourceNote, benchmark }) {
   // D-23: a final weekly opt-out closes this mode's ballot and reveals others' picks.
   const satOut = data.satOut === true || data.statuses?.[data.mode]?.satOut === true;
@@ -29,7 +32,7 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   const [activeRow, setActiveRow] = useState(null), [navigationMessage, setNavigationMessage] = useState('');
   const [recovery, setRecovery] = useState(() => readDraft(scope, data.games)), [storageAvailable, setStorageAvailable] = useState(true);
   const [pendingAttempt, setPendingAttempt] = useState(() => readDraft(scope, data.games)?.pendingSave || null), [checking, setChecking] = useState(false), [readbackReady, setReadbackReady] = useState(false), [recoveryNotice, setRecoveryNotice] = useState('');
-  const [online, setOnline] = useState(() => navigator.onLine), [savedAt, setSavedAt] = useState(data.audit?.[0]?.timestamp || data.submittedAt || null);
+  const [online, setOnline] = useState(() => navigator.onLine), [savedAt, setSavedAt] = useState(lastSave(data) || data.submittedAt || null);
   const baseline = useRef(draftFromGames(data.games)), current = useRef(draft), pickers = useRef({}), savingRef = useRef(false), reviewButton = useRef(null), lastCopy = useRef(recovery);
   const uncertain = !!saveIssue?.uncertain || !!pendingAttempt;
   current.current = draft;
@@ -52,7 +55,7 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
       else { const copy = readDraft(scope, data.games) || lastCopy.current; setRecovery(draftHasChanges(copy) || copy?.pendingSave ? copy : null); }
       setDirty(false); setReview(false); setFieldConflicts({});
     }
-    if (data.audit?.[0]?.timestamp) setSavedAt(data.audit[0].timestamp);
+    if (lastSave(data)) setSavedAt(lastSave(data));
   }, [data.games, closed, satOut, scope]);
   useEffect(() => {
     if (!readbackReady || !pendingAttempt) return;
@@ -61,7 +64,7 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
     if (savedAttemptMatches(data, pendingAttempt)) {
       const saved = draftFromGames(data.games);
       baseline.current = saved; setDraft(saved); setDirty(false); setReview(false); setRecovery(null); setFieldConflicts({});
-      lastCopy.current = null; removeDraft(scope); setRecoveryNotice('Saved ballot confirmed. Your account contains the attempted guesses and required scoring references.');
+      lastCopy.current = null; removeDraft(scope); setRecoveryNotice('Saved ballot confirmed. Your account contains the attempted guesses and the line saved with each one.');
     } else if (copy) {
       const retained = { ...copy, pendingSave: null };
       lastCopy.current = retained; setRecovery(retained);
@@ -123,7 +126,7 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
     <section className="ballot-header panel"><div><span className="badge cyan">{satOut ? 'SAT OUT' : closed ? 'BALLOT CLOSED' : submitted ? 'SUBMITTED · EDITABLE' : 'BLIND PREDICTIONS'}</span><h2>{total ? 'Where would you set the total?' : 'Where would you set the line?'}</h2>{/* Persona audit #31: the same helper sentence as the Community Picks tab (CHIP_HELP), then the mechanics only this ballot has. */}<p>{total ? `${CHIP_HELP.guess_total} Guess the sportsbook’s total, not your own score forecast or an Over/Under pick.` : `${CHIP_HELP.guess_spread} More covers 10.5–20, and − and + fine-tune by half a point. Tap the other team to switch sides.`}</p></div><div className="ballot-count"><strong>{filled}<span>/{data.games.length}</span></strong><small>VALID PREDICTIONS</small></div></section>
     {submitted && <div className="ballot-analysis-entry"><button className="primary" onClick={() => go('edges')}>Open {total ? 'total' : 'spread'} analysis <ArrowRight size={18}/></button><button className="secondary" onClick={() => go('comparison')}>Compare picks</button></div>}
     {data.ballotScope === 'weekly' && <p className="weekly-ballot-note">One weekly {total ? 'total' : 'spread'} ballot across all groups. Saved guesses and their scoring references are reused everywhere.</p>}
-    <div className="callout"><LockKeyhole size={18}/><p>{satOut ? `You sat out Week ${data.league.week} ${total ? 'Total' : 'Spread'}. This week's ${total ? 'Total' : 'Spread'} score is recorded as sat out, and the other players' picks are visible below.` : closed ? 'The prediction deadline has passed. Extensions require commissioner review.' : submitted ? 'Edit and review your guesses before saving. Each changed guess gets the consensus at the time you save; unchanged guesses keep their scoring reference.' : 'Save draft stores your edits. Submit the full ballot to capture scoring references and open this mode’s analysis. You may edit before the deadline.'} Deadline: {date(data.league.deadline)} PT.</p></div>
+    <div className="callout"><LockKeyhole size={18}/><p>{satOut ? `You sat out Week ${data.league.week} ${total ? 'Total' : 'Spread'}. This week's ${total ? 'Total' : 'Spread'} score is recorded as sat out, and the other players' picks are visible below.` : closed ? 'The prediction deadline has passed. Extensions require commissioner review.' : submitted ? 'Edit and review your guesses before saving. Each changed guess is scored against the line stored when you save it; unchanged guesses keep theirs.' : 'Save draft stores your edits. Submit the full ballot any time before the deadline to save the line at your guess and open this mode’s analysis. You may edit before the deadline.'} Deadline: {date(data.league.deadline)} PT.</p></div>
     {recoveryNotice && <p className="draft-recovery-notice" role="status">{recoveryNotice}</p>}
     {uncertain && !saving && !review && <section className="draft-reconciliation panel" aria-label="Check unconfirmed save"><h3>Save outcome not confirmed</h3><p>The request may have reached the server. Check your saved ballot before another attempt; your entered values are retained in this tab.</p><button className="primary" disabled={checking || busy || !online || !refreshSaved} onClick={checkSaved}>{checking ? 'Checking…' : 'Check saved ballot'}</button></section>}
     {recovery && (closed ? <section className="draft-recovery expired-draft panel" aria-label="Expired prediction recovery"><span className="badge amber">READ-ONLY · DEADLINE PASSED</span><h3>Your entered guesses are retained</h3><p>This tab copy is not confirmation of a save. Editing and submission are closed. Your saved ballot is shown separately below.</p><details><summary>View retained {total ? 'Total' : 'Spread'} guesses</summary><dl>{data.games.filter(game => recovery.draft[game.id] !== recovery.base[game.id] || recovery.pendingSave && recovery.draft[game.id] !== '').map(game => <div key={game.id}><dt>{game.awayCode} at {game.homeCode}</dt><dd><span>Entered <strong>{recovery.draft[game.id] === '' ? 'Cleared' : total ? recovery.draft[game.id] : signed(Number(recovery.draft[game.id]))}</strong></span><span>Saved ballot <strong>{game.prediction == null ? 'No guess saved' : total ? fmt(game.prediction) : signed(game.prediction)}</strong></span></dd></div>)}</dl></details><p className="recovery-retention">{storageAvailable ? <>Kept in this tab until {date(new Date(Date.parse(recovery.updatedAt) + 24 * 3600_000).toISOString())} PT, or until you discard it or sign out.</> : 'Tab storage is unavailable. This copy is only on the open page and cannot survive a reload.'}</p><button className="secondary" disabled={uncertain} onClick={discardRecovery}>Discard recovery copy</button></section> : !uncertain && <section className="draft-recovery panel" aria-label="Recover unsaved predictions"><h3>Unsaved predictions found in this tab</h3><p>Recovery copy from {date(recovery.updatedAt)} PT. Review it against the latest saved account data before saving.</p><div><button className="primary" onClick={restore}>Restore tab draft</button><button className="secondary" onClick={discardRecovery}>Discard recovery copy</button></div></section>)}
@@ -144,12 +147,12 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
     {!closed && !submitted && cloudEnabled && data.ballotScope === 'weekly' && <SitOutWeek season={data.league.season} week={data.league.week} mode={data.mode} disabled={disabled || saving || !online} onDone={async () => { removeDraft(scope); lastCopy.current = null; setRecovery(null); setDirty(false); await refreshSaved?.(); }}/>}
     {data.revealed && <SourceNote data={data}/>}
     {review && <Modal title={`${submitted ? 'Save changes to' : 'Submit'} your ${total ? 'total' : 'spread'} ballot?`} className="submit-review prediction-review" onClose={() => { if (!saving) setReview(false); }}>
-      <div className="callout"><LockKeyhole size={19}/><p>{submitted ? 'Save fresh scoring references for changed guesses only.' : `Save scoring references and reveal your ${total ? 'total' : 'spread'} analysis.`}</p></div>
-      <p className="review-description">Review all {data.games.length} guesses. If fresh quotes are unavailable, your ballot stays unchanged and your edits stay here.</p>
+      <div className="callout"><LockKeyhole size={19}/><p>{submitted ? 'Save the current line for changed guesses only.' : `Save the line at your guess and reveal your ${total ? 'total' : 'spread'} analysis.`}</p></div>
+      <p className="review-description">Review all {data.games.length} guesses. You can submit any time before the deadline: each guess is scored against the line stored when you save it.</p>
       <div className="review-picks" role="list" tabIndex={0} aria-label="Predictions to submit">{data.games.map(game => <div key={game.id} role="listitem"><span>{game.awayCode} at {game.homeCode}</span><strong className="mono">{total ? fmt(Number(draft[game.id])) : signed(Number(draft[game.id]))}</strong></div>)}</div>
       <details className="prediction-review-details"><summary>Scoring & editing details</summary>
         <p>Deadline: {date(data.league.deadline)} PT. You can edit until the deadline.</p>
-        <p>{submitted ? 'Saving changes captures the consensus at save time for changed guesses only. Unchanged guesses keep their existing scoring references.' : 'Submitting captures fresh scoring references for every guess and opens this mode’s analysis.'} We check for fresh sportsbook quotes before saving.</p>
+        <p>{submitted ? 'Saving changes saves the current line for changed guesses only. Unchanged guesses keep their saved lines.' : 'Submitting saves the line at your guess for every game and opens this mode’s analysis.'} We try to refresh the line first. If a refresh is not possible right now, the newest stored line is used and its age is shown. If no line is stored yet, the first line collected after your guess is used.</p>
         <p>{total ? 'Each number is your guess of the sportsbook’s total for both teams.' : 'Each signed spread is from the home team’s perspective.'} {data.ballotScope === 'weekly' && <>Your Week {data.league.week} ballot is shared across every group. </>}{total ? 'Spread' : 'Total'} predictions stay separate.</p>
         <p>{dirty ? 'Your reviewed edits will be saved and submitted together.' : 'You are reviewing your saved draft.'}</p>
       </details>

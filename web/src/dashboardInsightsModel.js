@@ -32,7 +32,7 @@ export function buildDashboardInsights(data, selectedGames) {
         source: reference?.source || null, savedAt: referenceTime(reference) || null,
         observedAt: reference?.observedAt || reference?.quotedAt || null,
         collectedAt: reference?.capturedAt || reference?.collectedAt || null,
-        reason: !submitted ? 'Ballot not submitted' : guess === null ? 'Guess unavailable' : reference ? null : candidate?.status === 'stale' ? 'Reference was stale when this guess was saved' : candidate?.reason || 'No eligible reference was saved',
+        reason: !submitted ? 'Ballot not submitted' : guess === null ? 'Guess unavailable' : reference ? null : candidate?.status === 'pending' ? 'Pending · first line after submission' : candidate?.status === 'stale' ? 'Reference was stale when this guess was saved' : candidate?.reason || 'No eligible reference was saved',
       };
     });
     const scored = rows.filter(row => row.points !== null);

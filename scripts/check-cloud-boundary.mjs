@@ -26,6 +26,13 @@ const rpcChecks = [
   ['gtl_preflight_submission', { p_user: missingId, p_intent: {} }],
   ['gtl_begin_submission_odds_collection', { p_user: missingId, p_request: missingId, p_intent: {}, p_operation: 'preflight' }],
   ['gtl_finish_submission_odds_collection', { p_user: missingId, p_request: missingId, p_lease: missingId, p_payload: null, p_quota: {}, p_error: null }],
+  // D-27 (20261012230000) line-at-guess helpers and the pending-reference resolver: service-only.
+  ['gtl_line_from_snapshot', { p_payload: {}, p_game: {}, p_market: 'spread' }],
+  ['gtl_pending_reference', { p_saved: null }],
+  ['gtl_reference_at_save', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_saved: null }],
+  ['gtl_resolve_pending_reference', { p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game_id: 'AAA-BBB', p_pending: {} }],
+  ['gtl_resolve_pending_references', { p_season: 2026, p_week: 5 }],
+  ['gtl_odds_schedule_slate', { p_season: 2026, p_week: 5, p_signature: {} }],
   // gtl_guard_fresh_submission returns trigger, so its invoker/grant boundary
   // is checked in fresh-submission-sql.test.mjs, not as a callable REST RPC.
   ['gtl_weekly_context', { p_user: missingId, p_league: missingLeague }],

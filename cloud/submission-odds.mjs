@@ -1,14 +1,11 @@
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// October 12, 2026 ruling: quote-refresh limits never refuse a save. The only SubmissionOddsError a player can still
+// see is a failed integrity check of the server-selected line at the atomic commit (GTL_SUBMISSION_ODDS_REQUIRED).
 const ERRORS = {
-  GTL_SUBMISSION_QUOTES_REQUIRED: [409, 'Fresh market references are unavailable. Your guesses were not submitted. Keep your draft and retry.'],
-  GTL_SUBMISSION_REFRESH_BUSY: [409, 'A market refresh is already running. Your guesses were not submitted. Keep your draft and retry.'],
-  GTL_SUBMISSION_REFRESH_COOLDOWN: [429, 'A market refresh was requested recently. Your guesses were not submitted. Keep your draft and try later; fresh quotes are still required.'],
-  GTL_SUBMISSION_REFRESH_DAILY_LIMIT: [429, 'The shared daily market refresh limit has been reached. Your guesses were not submitted. Keep your draft; the count resets at midnight UTC, but fresh quotes and an open deadline are still required.'],
-  GTL_SUBMISSION_REFRESH_BUDGET: [429, 'The protected free market quota is unavailable or paused. Your guesses were not submitted. Keep your draft and ask the commissioner to review it; repeated retries will not clear this limit.'],
-  GTL_SUBMISSION_REFRESH_LIMIT: [429, 'The free market refresh limit prevents a fresh reference right now. Your guesses were not submitted. Keep your draft and retry later.'],
-  GTL_SUBMISSION_REFRESH_UNAVAILABLE: [503, 'Fresh market data could not be verified. Your guesses were not submitted. Keep your draft and retry.'],
+  GTL_SUBMISSION_QUOTES_REQUIRED: [409, 'The line for a changed guess could not be verified. Your guesses were not submitted. Keep your draft and try again.'],
+  // Internal only: collectSubmissionOdds without a configured provider. The orchestration ignores it.
+  GTL_SUBMISSION_REFRESH_UNAVAILABLE: [503, 'Market refresh is not configured.'],
   GTL_SUBMISSION_CHECK_UNAVAILABLE: [503, 'The submission check is temporarily unavailable. Your guesses were not submitted. Keep your draft and retry.'],
-  GTL_SUBMISSION_REQUEST: [400, 'A valid server market-refresh request is required. Your guesses were not submitted.'],
 };
 
 export class SubmissionOddsError extends Error {
@@ -29,63 +26,42 @@ function checked(result) {
   return { requiresReferences: result.requiresReferences, ready: result.ready };
 }
 
-function collectionFailure(error) {
-  // Never include a provider/storage message, payload, quota object, or secret.
-  if (error instanceof SubmissionOddsError) return error;
-  // Only exact trusted codes identify the guard. A generic rate limit does not
-  // establish a cooldown, daily reset, remaining quota, or reliable retry time.
-  if (error?.code === 'GTL_ODDS_COOLDOWN') return new SubmissionOddsError('GTL_SUBMISSION_REFRESH_COOLDOWN');
-  if (error?.code === 'GTL_ODDS_DAILY_LIMIT') return new SubmissionOddsError('GTL_SUBMISSION_REFRESH_DAILY_LIMIT');
-  if (error?.code === 'GTL_ODDS_BUDGET') return new SubmissionOddsError('GTL_SUBMISSION_REFRESH_BUDGET');
-  if (error?.status === 429) return new SubmissionOddsError('GTL_SUBMISSION_REFRESH_LIMIT');
-  if (error?.code === 'GTL_ODDS_BUSY') return new SubmissionOddsError('GTL_SUBMISSION_REFRESH_BUSY');
-  return new SubmissionOddsError('GTL_SUBMISSION_REFRESH_UNAVAILABLE');
-}
+// A refusal the database itself would repeat at commit (deadline, kickoff, revision, membership, invalid or
+// incomplete ballot, sat out, not open, retry conflict): a trusted GTL_ code that is not a market-refresh code,
+// or a 4xx status from the provider error maps. Anything else from preflight only skips the refresh.
+const refused = error => !(error instanceof SubmissionOddsError) && (
+  typeof error?.code === 'string' && /^GTL_[A-Z_]+$/.test(error.code) && !/^GTL_(?:SUBMISSION|ODDS)_/.test(error.code)
+  || Number.isInteger(error?.status) && error.status >= 400 && error.status < 500);
 
 /**
  * Server-only orchestration; callbacks close over a fixed authenticated request.
  *
- * preflight() MUST revalidate account access, slate, deadline, revision, and pick
- * validity/completeness before returning booleans. For first submission it checks
- * every game; for a submitted edit only changed guesses need fresh references.
- * A draft or no-op has requiresReferences:false. ready:true means every required
- * reference passes the same evidence/freshness policy used by the atomic commit.
- * It must not save/reveal a ballot. Do not derive these flags from request JSON.
+ * preflight() is advisory. requiresReferences:false means a draft or a no-op; ready:true means every changed guess
+ * already has a stored line observed in the last five minutes, so no refresh is worth spending on. A 4xx refusal
+ * (see refused) stops here exactly as the commit would; any other preflight fault only skips the refresh.
  *
- * collect({requestId}) MUST authorize this exact submission again when acquiring
- * the shared database lease and existing quota/cooldown reservation. It persists
- * provider evidence server-side. This helper neither grants collection authority
- * nor bypasses the existing commissioner-only collection RPC. requestId must be
- * generated by the server. Collection summaries never establish scoring evidence.
+ * collect({requestId}) tries one shared collection inside the free limits (lease, cooldown, daily cap, budget guard,
+ * measured preflight). Its result never decides the save: a refused, failed or partial collection is ignored.
  *
- * commit() MUST revalidate access, revision, deadline and fresh references in the
- * same database transaction as the ballot/audit/reveal update. It must select its
- * own persisted evidence and roll back completely on a missing/stale reference.
- * A preflight is not a lock and never replaces this transaction guard.
+ * commit() is authoritative. In one database transaction it revalidates access, revision, deadline, kickoff locks
+ * and the full ballot, and saves for each changed guess the newest stored line at that instant (any age, with
+ * observedAt and ageSeconds) or a pending reference resolved by the first line collected after it. Commit failures
+ * deliberately propagate: a transport failure can be ambiguous, so do not claim rollback or re-submit.
  *
- * No sleeps, automatic retries, draft writes, quote injection, or reveal here.
- * Commit failures deliberately propagate: a transport failure can be ambiguous,
- * so do not claim rollback or re-submit automatically after commit was attempted.
+ * No sleeps, automatic retries, draft writes, quote injection or reveal here.
  */
 export async function runSubmissionWithFreshOdds({ preflight, collect, commit, requestId }) {
-  if (typeof preflight !== 'function' || typeof commit !== 'function') throw new SubmissionOddsError();
-  const before = checked(await preflight());
-  if (!before.requiresReferences || before.ready) return commit();
-  if (typeof collect !== 'function') throw new SubmissionOddsError('GTL_SUBMISSION_REFRESH_UNAVAILABLE');
-  if (!UUID.test(requestId || '')) throw new SubmissionOddsError('GTL_SUBMISSION_REQUEST');
-
-  let failed = null;
+  if (typeof commit !== 'function') throw new SubmissionOddsError();
+  let refresh = false;
   try {
-    const result = await collect({ requestId });
-    if (result?.status !== 'succeeded') failed = new SubmissionOddsError('GTL_SUBMISSION_REFRESH_UNAVAILABLE');
+    const before = checked(await preflight());
+    refresh = before.requiresReferences && !before.ready;
   } catch (error) {
-    failed = collectionFailure(error);
+    if (refused(error)) throw error;
   }
-
-  // Another authorized collector may have finished while this one encountered
-  // the shared lease/cooldown. Only a fresh authoritative read can permit saving.
-  // Rechecking also rejects revoked access, elapsed deadlines and revision races.
-  const after = checked(await preflight());
-  if (after.requiresReferences && !after.ready) throw failed || new SubmissionOddsError('GTL_SUBMISSION_QUOTES_REQUIRED');
+  if (refresh && typeof collect === 'function' && UUID.test(requestId || '')) {
+    try { await collect({ requestId }); }
+    catch { /* Cooldown, daily cap, budget guard, busy lease, provider or storage fault: the save still proceeds. */ }
+  }
   return commit();
 }
