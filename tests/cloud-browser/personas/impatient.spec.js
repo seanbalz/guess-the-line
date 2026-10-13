@@ -89,7 +89,7 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   //     Review of PR #34: that case keeps its own "Keep your draft and try again" sentence and a Retry, never "Load latest"
   //     (which would reload the week and merge).
   await first.getByRole('radio', { name: '−5', exact: true }).click();
-  persona.net.fail = endpoint => endpoint === 'personal/ballot' ? { status: 409, body: { error: 'The line for an edited guess could not be verified. Your guesses were not submitted. Keep your draft and try again.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } } : null;
+  persona.net.fail = endpoint => endpoint === 'personal/ballot' ? { status: 409, body: { error: 'The line for a changed guess could not be verified. Your guesses were not submitted. Keep your draft and try again.', code: 'GTL_SUBMISSION_QUOTES_REQUIRED', submitted: false } } : null;
   await page.getByRole('button', { name: 'Save draft' }).click();
   await expect(alert).toBeVisible();
   await expect(alert).toContainText('Keep your draft and try again.');
@@ -126,18 +126,21 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   await expect(page.getByRole('button', { name: 'Save draft' })).toBeDisabled();
   persona.finding({ screen: 'save-expired', severity: 4, experience: `After a successful save, "Save draft" is disabled until a pick changes (${requestsBefore} ballot requests so far, one per tap), and each save carries a request id so a retried tap cannot double-write. Good.`, fix: 'Keep it.' });
 
-  // 6. Submitting when no fresh sportsbook quote can be collected. Before October 12 (D-17) the save was refused; since
-  //    D-27 it is never refused for refresh limits: the guess saves with the newest stored line, or a pending reference.
+  // 6. Submitting when fresh sportsbook quotes cannot be verified. Since October 12, 2026 (D-27) the refresh is advisory:
+  //    the submit is never refused; each guess keeps the newest stored line, or the first line collected after it.
   await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
   await expect(first).toBeVisible();
   for (const [i, pick] of [['Cowboys', '−3'], ['Eagles', '−2.5'], ['Dolphins', '−1']].entries()) { const card = page.locator('.week-pick').nth(i); await card.getByRole('button', { name: pick[0], exact: true }).click(); await card.getByRole('radio', { name: pick[1], exact: true }).click(); }
   persona.net.quotesUnavailable = true;
   await page.getByRole('button', { name: 'Submit Spread' }).click();
-  await expect(page.getByRole('region', { name: 'Spread submitted · 3 picks' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Spread picks submitted.' })).toBeVisible();
   await expect(alert).toHaveCount(0);
   await persona.shot('submit-no-quotes');
   await persona.axe('submit-no-quotes');
-  persona.finding({ screen: 'submit-no-quotes', severity: 4, experience: 'With no fresh market quote available, Submit still succeeds (D-27): the receipt appears and no error is shown; the guesses are scored against the line at the guess.', fix: 'None needed.' });
+  const submitted = (await persona.db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'", [persona.user.id])).rows[0].ballot;
+  expect(submitted.submittedAt).toBeTruthy();
+  expect(submitted.picks['TB-DAL']).toBe(-3);
+  persona.finding({ screen: 'submit-no-quotes', severity: 4, experience: 'When fresh sportsbook lines cannot be fetched, Submit still succeeds (D-27): the ballot is submitted and each guess keeps the line at the guess, the newest stored line or the first one collected after it. No refusal, no retry loop.', fix: 'Keep it.' });
   persona.net.quotesUnavailable = false;
 
   // 7. Like a post while the service is briefly failing. Quick win 6 (#26): the error sits inside the post with a Retry.
