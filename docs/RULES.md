@@ -15,6 +15,7 @@ and not in the repo, pending Sean's decision; dated release records are in
 `docs/RELEASE_*.md` (latest: [October 9, 2026](RELEASE_2026_10_09.md)).
 October 9 adds D-21 (one community, shared leaderboard, chip entry), D-22
 (coming-soon leagues, a mark for all 32 teams), D-23, D-24 and D-25 as rows below.
+October 12 adds D-28 (opt-in web push, one deadline reminder).
 
 | Topic | Current rule | Superseded or unresolved |
 | --- | --- | --- |
@@ -38,7 +39,8 @@ October 9 adds D-21 (one community, shared leaderboard, chip entry), D-22
 | Solo/journal/Best Bets | Separate optional personal forecasts and private journal/ROI are requested. Best Bets (D-01/D-15, rules D-29): exactly 3 weekly spread or total picks from named-book quotes, confidence 3/2/1, win earns its confidence, loss/push/void earn 0, each pick locks at its kickoff, full set before the first lock, others visible after kickoff or once the viewer saved a full set, ties stand, commissioner corrections with audit. A friends contest is an existing group; members see only entries submitted to it. | Journal monetary conventions remain separate; Best Bets is not built yet. |
 | Exceptions | Late Guess picks are accepted automatically until 15 minutes after each game's own kickoff, marked "Late · N min" (amber token plus text) everywhere they appear, and scored normally against the line at the guess (D-30, D-27). No request, vote or approval step. | Challenge keeps its pre-kickoff quote rules; nothing is deleted or hidden (D-23). Not built yet. |
 | Sources and schedule | Free sources with demonstrated access/reuse; twelve-hour market collection for the validated current slate (D-07/D-10). | No paid feeds, fabricated forecasts, silently generated future weeks or inferred ticket counts/sharp action. |
-| Notifications and identity | Saved in-page notices and selected Yardline G/Field monogram are approved (D-12/D-14). | External delivery/consent and remaining brand categories are not established by those choices. |
+| Web push reminder (D-28) | Web push only, opt-in per device (Settings & setup, or the picks-due card's "Remind me 2 hours before picks lock"). A player whose Spread or Total ballot for the open week is neither submitted nor sat out gets one push 2 hours before that week's deadline (TNF kickoff), at most once per week and mode. The text names the week, the lock time and the modes still due, never a pick, line, score or player; a tap opens Picks. Turning reminders off deletes that device's subscription. iPhone needs iOS 16.4+ and the Home Screen app. | No email, SMS or line-movement alerts. Not live until Sean generates the VAPID keys, sets the Edge Function secrets, applies the migration, deploys and enables the schedule row ([WEB_PUSH_SETUP.md](WEB_PUSH_SETUP.md)). |
+| Notifications and identity | Saved in-page notices and selected Yardline G/Field monogram are approved (D-12/D-14). D-28 adds opt-in web push for one reminder. | Other external delivery/consent and remaining brand categories are not established by those choices. |
 
 D-16 is confirmed; [submission-time scoring](SUBMISSION_TIME_SCORING.md) records
 its implementation and delivery state. The leaderboard audience is settled by D-21

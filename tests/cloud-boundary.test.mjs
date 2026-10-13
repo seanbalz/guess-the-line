@@ -152,3 +152,19 @@ test('Community history and D-27 line-at-guess probes stay fail-closed: not appl
       ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request) }), /POST community\/history without session: unexpected 404/);
   });
 });
+
+test('D-28 push tables, RPCs, API routes and the reminder worker are probed anonymously', async () => {
+  const captured = [];
+  await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+  for (const table of ['push_subscriptions', 'push_reminders_sent', 'push_reminder_schedule', 'push_reminder_runs']) {
+    assert.ok(captured.some(({ url, request }) => url.includes(`/rest/v1/gtl_${table}?`) && !request.method && !request.headers.Authorization), table);
+  }
+  for (const rpc of ['gtl_push_subscribe', 'gtl_push_unsubscribe', 'gtl_push_status', 'gtl_dispatch_push_reminders', 'gtl_claim_push_reminders', 'gtl_mark_push_reminder', 'gtl_record_push_delivery', 'gtl_complete_push_reminders']) {
+    const probe = captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`));
+    assert.ok(probe, rpc); assert.equal(probe.request.headers.Authorization, undefined);
+  }
+  for (const route of ['push/status', 'push/subscribe', 'push/unsubscribe']) {
+    assert.deepEqual(captured.filter(({ url }) => url.endsWith(`/functions/v1/gtl-api/${route}`)).map(({ request }) => request.headers.Authorization), [undefined, 'Bearer invalid-test-token'], route);
+  }
+  assert.deepEqual(captured.filter(({ url }) => url.endsWith('/functions/v1/gtl-push-reminders')).map(({ request }) => request.headers.Authorization), [undefined, `Bearer ${'0'.repeat(64)}`]);
+});

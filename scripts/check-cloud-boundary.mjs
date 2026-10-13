@@ -82,6 +82,15 @@ const rpcChecks = [
   // Awaiting deploy (see awaitingDeploy below), so they alone do not fail check:cloud for a Pages-only deploy of the trend panels.
   ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
+  // D-28 web push reminders (20261013030000): device subscriptions and the reminder scheduler are service-only.
+  ['gtl_push_subscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_p256dh: `B${'A'.repeat(86)}`, p_auth: 'A'.repeat(22) }],
+  ['gtl_push_unsubscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check' }],
+  ['gtl_push_status', { p_user: missingId, p_endpoint: null }],
+  ['gtl_dispatch_push_reminders', {}],
+  ['gtl_claim_push_reminders', { p_token: '0'.repeat(64), p_run: missingId }],
+  ['gtl_mark_push_reminder', { p_run: missingId, p_claim: missingId, p_user: missingId, p_season: 2026, p_week: 6, p_modes: ['guess_spread'] }],
+  ['gtl_record_push_delivery', { p_run: missingId, p_claim: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_outcome: 'failed' }],
+  ['gtl_complete_push_reminders', { p_run: missingId, p_claim: missingId, p_reason: 'nothing_due', p_sent: 0, p_failed: 0 }],
 ];
 /**
  * Probes for hosted pieces that are written but not yet applied or deployed. Each still has to deny
@@ -132,6 +141,9 @@ const apiChecks = [
   // gateway normally answers these signed-out probes with 401 before the function runs, deployed or not.
   ['officials/read', {}],
   ['officials/set', {}],
+  ['push/status', {}],
+  ['push/subscribe', {}],
+  ['push/unsubscribe', {}],
 ];
 
 const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
@@ -142,7 +154,7 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
   assert.ok(/^https:\/\/onmrgvcehkflfaizvedl\.supabase\.co$/.test(url || ''), 'Unexpected cloud project URL.');
   assert.ok(/^sb_publishable_/.test(key || ''), 'A publishable key is required.');
   const requests = [
-    ...['social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings', 'odds_budget', 'odds_collections', 'submission_odds_intents', 'market_snapshots', 'reference_line_imports', 'reference_lines', 'reference_line_voids', 'benchmark_policies', 'frozen_benchmarks', 'odds_schedule', 'odds_refresh_runs', 'personal_versions', 'favorites', 'journal_entries', 'personal_forecasts', 'personal_events', 'personal_receipts', 'result_review_lock', 'reviewed_result_events', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals', 'league_interest', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'virtual_units_picks', 'virtual_units_settlements', 'ruled_ballot_imports'].map(table => ({
+    ...['social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings', 'odds_budget', 'odds_collections', 'submission_odds_intents', 'market_snapshots', 'reference_line_imports', 'reference_lines', 'reference_line_voids', 'benchmark_policies', 'frozen_benchmarks', 'odds_schedule', 'odds_refresh_runs', 'personal_versions', 'favorites', 'journal_entries', 'personal_forecasts', 'personal_events', 'personal_receipts', 'result_review_lock', 'reviewed_result_events', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals', 'league_interest', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'virtual_units_picks', 'virtual_units_settlements', 'ruled_ballot_imports', 'push_subscriptions', 'push_reminders_sent', 'push_reminder_schedule', 'push_reminder_runs'].map(table => ({
       name: `anonymous ${table} table`, route: `/rest/v1/gtl_${table}?select=*&limit=1`, statuses: [401, 403], database: true,
     })),
     ...rpcChecks.map(([rpc, body]) => ({
@@ -155,6 +167,11 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
     ...[false, true].map(invalidMachineToken => ({
       name: `POST scheduled refresh ${invalidMachineToken ? 'with invalid machine token' : 'without machine token'}`,
       route: '/functions/v1/gtl-odds-refresh', body: { runId: missingId }, statuses: [401], invalidMachineToken,
+    })),
+    // D-28: the reminder worker accepts only a one-run capability (expects gtl-push-reminders to be deployed).
+    ...[false, true].map(invalidMachineToken => ({
+      name: `POST scheduled reminders ${invalidMachineToken ? 'with invalid machine token' : 'without machine token'}`,
+      route: '/functions/v1/gtl-push-reminders', body: { runId: missingId }, statuses: [401], invalidMachineToken,
     })),
     ...[['net', 'http_request_queue'], ['cron', 'job'], ['vault', 'decrypted_secrets']].map(([schema, table]) => ({
       name: `anonymous ${schema} schema`, route: `/rest/v1/${table}?select=id&limit=0`, statuses: [406], schema,
