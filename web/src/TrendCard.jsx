@@ -1,6 +1,6 @@
 import React, { useId } from 'react';
 import {
-  fmtNumber, fmtPct, fmtRecord, fmtSigned, fmtSignedPct, fmtStreak, fmtUnits, fmtYears, itemTitle, lookup, rec, roi110, seasonsOf,
+  cardNote, fmtNumber, fmtPct, fmtRecord, fmtSigned, fmtSignedPct, fmtStreak, fmtUnits, fmtYears, itemTitle, lookup, rec, roi110, seasonsOf,
   sideText, sparkPath, splitLabels, summarizeSpark, units110, winRate, yearsOf,
 } from '../../shared/trends-view.mjs';
 
@@ -72,7 +72,7 @@ export function TrendCard({ week, card, item = {}, level = 4 }) {
       <p><strong>{sel.label}:</strong> <span className="mono">{fmtRecord(sel.rec)}</span> · {sel.seasonsPos} of {sel.seasonsBet} seasons positive · {fmtSigned(sel.pts)} pts/game against the line · q {q3(card.q)}{card.permMaxP ? ` · permutation p ${card.permMaxP} (best score in each shuffled run)` : ''}</p>
       <p><strong>{week.copy.prospective}:</strong> <span className="mono">{fmtRecord(card.sinceRegistered.rec)}</span>{card.thisSeason ? <> · This season <span className="mono">{fmtRecord(card.thisSeason)}</span></> : null}</p>
       {card.roofSplit && <p>Fixed domes <span className="mono">{fmtRecord(card.roofSplit.fixedDome)}</span> · Retractable roofs closed <span className="mono">{fmtRecord(card.roofSplit.retractableClosed)}</span></p>}
-      {card.note && <p>{card.note}</p>}
+      {cardNote(card) && <p>{cardNote(card)}</p>}
       {item.stacked && <p className="trend-note">{item.stacked.note} {item.stacked.overlapGames} past games overlap with “{itemTitle(week, item.stacked.with)}”.</p>}
       {item.alternatives?.length > 0 && <p className="trend-note">Same bets, also fits: {item.alternatives.map(id => itemTitle(week, id)).join('; ')}.</p>}
     </div>

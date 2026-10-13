@@ -119,16 +119,63 @@ test('referee probes awaiting deploy pass only on the exact not-found answer, ar
   });
 });
 
-test('only the referee pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+test('D-34 kickoff wind probes awaiting deploy pass only on the exact not-found answer, are reported, and fail under --strict', async t => {
+  const rpcs = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
+  for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261013060000_gtl_wind_forecasts.sql', rpc);
+  assert.equal(awaitingDeploy['gtl-api/wind/read'], 'the gtl-api deploy with /wind/read');
+  const windRpc = url => rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`));
+  const windRoute = url => url.endsWith('/functions/v1/gtl-api/wind/read');
+  const beforeDeploy = async (url, request) => (windRpc(url)
+    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
+    : windRoute(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+  await t.test('the probes use inert fixtures and no credentials', async () => {
+    const captured = [];
+    await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+    const bodies = Object.fromEntries(rpcs.map(rpc => [rpc, JSON.parse(captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`)).request.body)]));
+    assert.deepEqual(bodies.gtl_begin_wind_fetch.p_games, []);
+    assert.deepEqual([bodies.gtl_finish_wind_fetch.p_status, bodies.gtl_finish_wind_fetch.p_rows], ['failed', null]);
+    assert.equal(bodies.gtl_read_wind_forecasts.p_user, '00000000-0000-0000-0000-000000000000');
+    const routes = captured.filter(({ url }) => windRoute(url));
+    assert.deepEqual(routes.map(({ request }) => request.headers.Authorization), [undefined, 'Bearer invalid-test-token']);
+    for (const { request } of [...routes, ...captured.filter(({ url }) => windRpc(url))]) assert.ok(!/service|secret/i.test(JSON.stringify(request.headers)));
+  });
+  await t.test('before the migration and the gtl-api deploy: five probes await deploy, every other probe still denies', async () => {
+    const lines = [];
+    const result = await checkCloudBoundary({ ...options, log: line => lines.push(line), fetchImpl: beforeDeploy });
+    assert.equal(result.awaiting.length, 5, 'three RPCs and the route signed out and with an invalid session');
+    assert.equal(result.denied, result.checked - 5);
+    assert.ok(lines.some(line => /^anonymous gtl_begin_wind_fetch RPC: awaiting deploy \(404, not found\) until migration 20261013060000/.test(line)));
+    assert.ok(lines.some(line => /^POST wind\/read with invalid session: awaiting deploy/.test(line)));
+    assert.ok(lines.some(line => line.startsWith('anonymous vault schema: denied (406)')));
+  });
+  await t.test('--strict fails until they deny; afterwards they must deny like every other probe', async () => {
+    await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: beforeDeploy }), /gtl_read_wind_forecasts RPC: unexpected 404/);
+    const after = await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => denied(url, request) });
+    assert.deepEqual([after.awaiting, after.denied], [[], after.checked]);
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (windRpc(url) ? new Response('[]', { status: 200 }) : denied(url, request)) }), /gtl_read_wind_forecasts RPC: unexpected 200/);
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (windRoute(url) ? new Response(JSON.stringify({ games: {} }), { status: 200 }) : denied(url, request)) }), /wind\/read without session: unexpected 200/);
+  });
+  await t.test('any other answer still fails, and a not-found answer may carry no private material', async () => {
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (windRpc(url)
+      ? new Response(JSON.stringify({ code: '42883', message: 'Unavailable.' }), { status: 404 }) : denied(url, request)) }), /gtl_read_wind_forecasts RPC: unexpected 404/);
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (windRoute(url)
+      ? new Response(JSON.stringify({ error: 'Not found.', forecasts: [] }), { status: 404 }) : denied(url, request)) }), /wind\/read without session: unexpected 404/);
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (windRpc(url)
+      ? new Response(JSON.stringify({ code: 'PGRST202', lease_token: 'x' }), { status: 404 }) : denied(url, request)) }), /private material in not-found response/);
+  });
+});
+
+test('only the referee and D-34 wind pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
   const referees = ['gtl_read_game_officials', 'gtl_set_game_official'];
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', ...referees.map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  const winds = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', ...[...referees, ...winds].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
-  const missing = async (url, request) => (referees.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  const missing = async (url, request) => ([...referees, ...winds].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/functions\/v1\/gtl-api\/officials\/(read|set)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + 2 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + 3 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 

@@ -82,6 +82,10 @@ const rpcChecks = [
   // Awaiting deploy (see awaitingDeploy below), so they alone do not fail check:cloud for a Pages-only deploy of the trend panels.
   ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
+  // D-34 kickoff wind forecast: three service-only RPCs from 20261013060000_gtl_wind_forecasts.sql, awaiting deploy like the referee pieces.
+  ['gtl_read_wind_forecasts', { p_user: missingId, p_season: 2026, p_week: 6 }],
+  ['gtl_begin_wind_fetch', { p_user: missingId, p_request: missingId, p_season: 2026, p_week: 6, p_games: [] }],
+  ['gtl_finish_wind_fetch', { p_request: missingId, p_lease: missingId, p_status: 'failed', p_error: 'WIND_UNAVAILABLE', p_http: null, p_rows: null }],
   // D-28 web push reminders (20261013030000): device subscriptions and the reminder scheduler are service-only.
   ['gtl_push_subscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_p256dh: `B${'A'.repeat(86)}`, p_auth: 'A'.repeat(22) }],
   ['gtl_push_unsubscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check' }],
@@ -99,16 +103,25 @@ const rpcChecks = [
  * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
  * after the deploy, then remove the entries here in the change that records the hosted version.
  *
- * Only the situational-trends referee pieces are listed. The Community history readers (20261012223000),
- * the D-27 line-at-guess helpers (20261012230000) and the /community/history route are deliberately not:
- * any of them that is missing fails the default check with `unexpected 404`, which is the release
- * checklist's gate for applying those migrations hosted before the gtl-api deploy that needs them.
+ * The situational-trends referee pieces and the D-34 kickoff wind pieces are listed. Both the gtl-api
+ * build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
+ * "no current forecast" note), so a Pages-only deploy, or a gtl-api deploy before the migration is
+ * applied, must not fail check:cloud on them alone; --strict runs after the migration and the gtl-api deploy.
+ * The Community history readers (20261012223000), the D-27 line-at-guess helpers (20261012230000) and the
+ * /community/history route are deliberately not listed: any of them that is missing fails the default
+ * check with `unexpected 404`, which is the release checklist's gate for applying those migrations hosted
+ * before the gtl-api deploy that needs them.
  */
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_read_game_officials': 'migration 20261012234500_gtl_game_officials.sql',
   'rpc/gtl_set_game_official': 'migration 20261012234500_gtl_game_officials.sql',
   'gtl-api/officials/read': 'the gtl-api deploy with /officials/read',
   'gtl-api/officials/set': 'the gtl-api deploy with /officials/set',
+  // D-34 (see docs/DECISIONS.md): remove these four with the release record of the hosted apply and deploy.
+  'rpc/gtl_read_wind_forecasts': 'migration 20261013060000_gtl_wind_forecasts.sql',
+  'rpc/gtl_begin_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
+  'rpc/gtl_finish_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
+  'gtl-api/wind/read': 'the gtl-api deploy with /wind/read',
 });
 const apiChecks = [
   ...['read','create','tail','settle','include','correct','follow'].map(action => [`social/${action}`, {}]),
@@ -141,12 +154,14 @@ const apiChecks = [
   // gateway normally answers these signed-out probes with 401 before the function runs, deployed or not.
   ['officials/read', {}],
   ['officials/set', {}],
+  // D-34 kickoff wind route (awaitingDeploy): signed-out probes prove only authentication protection.
+  ['wind/read', {}],
   ['push/status', {}],
   ['push/subscribe', {}],
   ['push/unsubscribe', {}],
 ];
 
-const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
+export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
 const notDeployed = (key, status, result) => Object.hasOwn(awaitingDeploy, key) && status === 404
   && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : result?.error === 'Not found.' && Object.keys(result).length === 1);
 

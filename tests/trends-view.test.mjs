@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as V from '../shared/trends-view.mjs';
 import { T, build } from './trends-fixture.mjs';
+import { WIND_ATTRIBUTION, WIND_LICENSE_NOTE, WIND_TIERS } from '../cloud/wind.mjs';
+import { SEASONS, WIND_STADIUMS, venueFor, windVenue } from '../shared/wind-venues.mjs';
 
 const week = JSON.parse(fs.readFileSync(new URL('../shared/trends/2026-week-06.json', import.meta.url), 'utf8'));
 const game = id => week.games.find(g => g.id === id);
@@ -163,12 +165,132 @@ test('records and formatting: units at −110, ROI with pushes, signed values an
 test('the browser trend modules stay pure: no engine, history, auth or network import in the panel view', () => {
   const src = file => fs.readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
   assert.doesNotMatch(src('shared/trends-view.mjs'), /^\s*import\s/m, 'shared/trends-view.mjs imports nothing');
-  for (const file of ['web/src/TrendsView.jsx', 'web/src/TrendCard.jsx']) assert.doesNotMatch(src(file), /from '\.\/(auth|api|trendsData)/, file);
+  for (const file of ['web/src/TrendsView.jsx', 'web/src/TrendCard.jsx', 'web/src/WindForecast.jsx', 'web/src/windTimer.js']) assert.doesNotMatch(src(file), /from '\.\/(auth|api|trendsData)/, file);
+  // The wind card imports only React and the pure view helpers; the timer only the pure helpers.
+  assert.deepEqual([...src('web/src/WindForecast.jsx').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['react', '../../shared/trends-view.mjs']);
+  assert.deepEqual([...src('web/src/windTimer.js').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['../../shared/trends-view.mjs']);
   for (const file of fs.readdirSync(new URL('../web/src/', import.meta.url))) {
     if (!/\.(jsx?|mjs)$/.test(file)) continue;
     assert.doesNotMatch(src(`web/src/${file}`), /shared\/trends\.mjs|history-\d{4}-\d{4}\.csv|season-\d{4}\.csv/, `${file} must not pull the engine or history into the bundle`);
   }
-  for (const file of ['web/src/GameTrends.jsx', 'web/src/TrendsPanel.jsx', 'web/src/RefereeAssignments.jsx', 'web/src/TrendsView.jsx', 'web/src/TrendCard.jsx']) {
+  for (const file of ['web/src/GameTrends.jsx', 'web/src/TrendsPanel.jsx', 'web/src/RefereeAssignments.jsx', 'web/src/TrendsView.jsx', 'web/src/TrendCard.jsx', 'web/src/WindForecast.jsx']) {
     assert.deepEqual(T.bannedCopy(src(file)), [], `${file} copy`);
   }
+});
+
+test('D-34 wind: one credit and one set of tiers shared with the server; the view copy passes the copy guard', () => {
+  assert.deepEqual([V.WIND_CREDIT, V.WIND_SOURCE_URL, V.WIND_LICENSE, V.WIND_LICENSE_URL, V.WIND_CHANGES],
+    [WIND_ATTRIBUTION.text, WIND_ATTRIBUTION.url, WIND_ATTRIBUTION.license, WIND_ATTRIBUTION.licenseUrl, WIND_ATTRIBUTION.changes]);
+  assert.equal(WIND_LICENSE_NOTE, `${V.WIND_CREDIT}, ${V.WIND_LICENSE} (${V.WIND_LICENSE_URL}); ${V.WIND_CHANGES}`);
+  assert.deepEqual(V.WIND_TIERS, WIND_TIERS);
+  for (const text of [...Object.values(V.WIND_COPY), ...Object.values(V.WIND_CARD_NOTES), V.WIND_CHANGES]) assert.deepEqual(T.bannedCopy(text), [], text);
+  // The frozen week file and registry are untouched; the view supersedes their wind strings on screen only.
+  assert.match(week.copy.windConditional, /no forecast source/);
+  assert.match(week.cards[V.WIND_CARD].note, /no approved forecast source/);
+  assert.equal(V.cardNote(week.cards[V.WIND_CARD]), V.WIND_CARD_NOTES[V.WIND_CARD]);
+  assert.equal(V.cardNote({ id: 'x', note: 'kept' }), 'kept');
+  assert.equal(V.windNote(week, 'windConditional'), V.WIND_COPY.windConditional);
+  assert.equal(V.windNote(week, 'wind15Conditional', true), V.WIND_COPY.wind15Shown);
+  assert.equal(V.windNote(week, 'roofConditional', true), week.copy.roofConditional);
+  for (const note of Object.values(V.WIND_COPY)) assert.doesNotMatch(note, /no forecast source/);
+});
+
+test('D-34 wind formatting: compass points, ages, Eastern hours, bands from the unrounded value, confidence and TTL', () => {
+  assert.deepEqual([0, 11, 12, 247, 270, 348, 349, 360].map(V.compass), ['N', 'N', 'NNE', 'WSW', 'W', 'NNW', 'N', 'N']);
+  assert.equal(V.compass(null), null);
+  assert.equal(V.compass(400), null);
+  assert.deepEqual([30_000, 12 * 60_000, 5 * 3_600_000, 47.9 * 3_600_000, 3 * 86_400_000].map(V.fmtAge), ['less than a minute', '12 min', '5 h', '47 h', '3 days']);
+  assert.equal(V.etHour('2026-10-16T00:00:00.000Z'), '8 PM');
+  assert.equal(V.etTime('2026-10-16T00:15:00.000Z'), '8:15 PM');
+  assert.equal(V.etTime('2026-11-01T18:00:00.000Z'), '1:00 PM', 'Eastern standard time after November 1');
+  assert.deepEqual(V.windBand(9.99), { band: 'below', wind10: false, wind15: false, close: true });
+  assert.deepEqual(V.windBand(10), { band: '10-14', wind10: true, wind15: false, close: true });
+  assert.deepEqual(V.windBand(14.95), { band: '10-14', wind10: true, wind15: false, close: true });
+  assert.deepEqual(V.windBand(15), { band: '15+', wind10: true, wind15: true, close: true });
+  assert.equal(V.windBand(6.9).close, false);
+  assert.equal(V.windBand(18).close, false);
+  assert.equal(V.windBand(null), null);
+  const H = 3_600_000;
+  assert.deepEqual([18 * H, 18 * H + 1, 48 * H, 72 * H, 100 * H].map(lead => V.windConfidence(lead, true)), ['Short range: high-resolution model updated hourly', 'Next-day guidance', 'Next-day guidance',
+    'Trend indicator only (2 to 3 days out)', 'Early outlook, low confidence (3 to 5 days out)']);
+  // Outside the U.S. (or for an unknown venue) the short-range label names only the lead, never an hourly high-resolution model.
+  assert.deepEqual([H, 18 * H, 18 * H + 1].map(lead => V.windConfidence(lead, false)), ['Short range (within 18 h of kickoff)', 'Short range (within 18 h of kickoff)', 'Next-day guidance']);
+  assert.deepEqual([0, 18 * H].map(V.windConfidence), [V.WIND_SHORT_RANGE, V.WIND_SHORT_RANGE], 'only a literal true makes the U.S. claim (map passes an index)');
+  assert.equal(V.windConfidence(Number.NaN, true), null);
+  assert.deepEqual([0, 1, 18 * H, 18 * H + 1, 72 * H, 72 * H + 1, 120 * H, 120 * H + 1].map(V.windTtl), [null, 60, 60, 180, 180, 360, 360, null]);
+  assert.equal(V.windClock('2026-10-15T00:00:00.000Z', 1000, 61_000), Date.parse('2026-10-15T00:01:00.000Z'));
+  assert.equal(V.windClock('2026-10-15T00:00:00.000Z', 5000, 1000), Date.parse('2026-10-15T00:00:00.000Z'), 'a device clock that goes backwards adds nothing');
+  assert.equal(V.windClock('nope', 1, 2), null);
+});
+
+test('D-34 windView: indoor, loading, not yet, forecast, stale, final and invalid snapshots', () => {
+  const H = 3_600_000, g = game('SEA-DEN'), k = Date.parse(g.kickoff);
+  const entry = (fetchedAt, extra = {}) => ({ kickoff: g.kickoff, venue: { id: 'DEN00', name: 'Empower Field at Mile High', city: 'Denver', country: 'USA', type: 'outdoor' }, status: 'forecast',
+    wind: { windMph: 12.3, fetchedAt: new Date(fetchedAt).toISOString(), forecastHour: '2026-10-16T00:00:00.000Z', ...extra } });
+  assert.equal(V.windView({ game: game('BUF-LV'), entry: null, now: k }).state, 'indoor');
+  assert.equal(V.windView({ game: game('ARI-LAR'), entry: null, now: k }).state, 'indoor', 'a canopy counts as indoors');
+  assert.deepEqual(V.windView({ game: g, entry: null, now: null }), { state: 'none', reason: 'unavailable' });
+  assert.deepEqual(V.windView({ game: g, entry: null, now: null, loading: true }), { state: 'loading' });
+  assert.equal(V.windView({ game: g, entry: { ...entry(k - 125 * H), wind: null, status: 'not_yet' }, now: k - 121 * H }).state, 'not_yet');
+  const fresh = V.windView({ game: g, entry: entry(k - 26 * H), now: k - 24 * H });
+  assert.deepEqual([fresh.state, fresh.age, fresh.made, fresh.band.band, fresh.close, fresh.retractable, fresh.international, fresh.early], ['forecast', 2 * H, 26 * H, '10-14', true, false, false, false]);
+  // Stale at more than twice the TTL for the current lead (3 h at 24 h out).
+  assert.equal(V.windView({ game: g, entry: entry(k - 30 * H), now: k - 24 * H }).state, 'forecast');
+  assert.deepEqual(V.windView({ game: g, entry: entry(k - 30 * H - 1), now: k - 24 * H }), { state: 'none', reason: 'stale' });
+  // After kickoff: the last pre-kickoff snapshot if made within 2 h of kickoff, the same window as the last hour before it.
+  assert.equal(V.windView({ game: g, entry: entry(k - 2 * H), now: k + H }).state, 'final');
+  assert.deepEqual(V.windView({ game: g, entry: entry(k - 2 * H - 1), now: k + H }), { state: 'none', reason: 'stale' });
+  assert.equal(V.windView({ game: g, entry: entry(k - 101 * H), now: k - 100 * H }).early, true);
+  const atl = Date.parse(game('CHI-ATL').kickoff);
+  assert.equal(V.windView({ game: game('CHI-ATL'), entry: { ...entry(atl - 26 * H), kickoff: game('CHI-ATL').kickoff, venue: { type: 'retractable', country: 'USA' } }, now: atl - 24 * H }).retractable, true);
+  for (const wind of [null, { windMph: 'x', fetchedAt: g.kickoff, forecastHour: g.kickoff }, { windMph: 3, fetchedAt: 'never', forecastHour: g.kickoff }]) {
+    assert.deepEqual(V.windView({ game: g, entry: { ...entry(k - H), wind }, now: k - 2 * H }), { state: 'none', reason: 'unavailable' });
+  }
+  assert.deepEqual(V.windView({ game: g, entry: entry(k + H), now: k + 2 * H }), { state: 'none', reason: 'unavailable' }, 'a snapshot made after kickoff is never shown');
+});
+
+test('D-34 windView: within 18 h of kickoff only a U.S. stadium is labelled with the hourly high-resolution model', () => {
+  const H = 3_600_000;
+  const at = (season, wk, id, lead) => {
+    const v = venueFor(season, wk, id), kickoff = Date.parse('2026-11-22T20:20:00.000Z');
+    const entry = { kickoff: new Date(kickoff).toISOString(), status: 'forecast', venue: { id: v.id, name: v.name, city: v.city, country: v.country, type: v.type },
+      wind: { windMph: 12.3, fetchedAt: new Date(kickoff - lead).toISOString(), forecastHour: new Date(kickoff).toISOString() } };
+    return V.windView({ game: { id, kickoff: entry.kickoff }, entry, now: kickoff - lead + 30 * 60_000 });
+  };
+  // Saint-Denis and Munich (ICON-D2, every 3 h), Madrid (ICON-EU, IFS, GFS), Mexico City (south of HRRR: the global mix), and the other 2026 sites abroad.
+  for (const [wk, id, city] of [[7, 'PIT-NO', 'Saint-Denis'], [9, 'CIN-ATL', 'Madrid'], [10, 'NE-DET', 'Munich'], [11, 'MIN-SF', 'Mexico City'],
+    [6, 'HOU-JAX', 'London'], [4, 'IND-WAS', 'London'], [1, 'SF-LAR', 'Melbourne'], [3, 'BAL-DAL', 'Rio de Janeiro']]) {
+    for (const lead of [18 * H, 6 * H, H]) {
+      const view = at(2026, wk, id, lead);
+      assert.equal(view.venue.city, city);
+      assert.deepEqual([view.state, view.international, view.confidence], ['forecast', true, 'Short range (within 18 h of kickoff)'], `${id} at ${lead / H} h`);
+      assert.doesNotMatch(view.confidence, /hourly|high-resolution/);
+    }
+    assert.equal(at(2026, wk, id, 30 * H).confidence, 'Next-day guidance', 'longer leads are the same everywhere');
+  }
+  // Every 2026 home stadium where wind can matter is in the U.S. and keeps the HRRR label.
+  for (const [team, stadium] of Object.entries(SEASONS[2026].homes)) {
+    if (!windVenue(WIND_STADIUMS[stadium])) continue;
+    const away = team === 'BUF' ? 'MIA' : 'BUF', view = at(2026, 12, `${away}-${team}`, 12 * H);
+    assert.deepEqual([view.state, view.international, view.confidence], ['forecast', false, 'Short range: high-resolution model updated hourly'], stadium);
+  }
+  // An entry without a venue makes no model claim either.
+  const k = Date.parse('2026-11-22T20:20:00.000Z');
+  const bare = V.windView({ game: { id: 'X-Y', kickoff: new Date(k).toISOString() }, now: k - 5 * H,
+    entry: { kickoff: new Date(k).toISOString(), status: 'forecast', venue: null, wind: { windMph: 9, fetchedAt: new Date(k - 6 * H).toISOString(), forecastHour: new Date(k).toISOString() } } });
+  assert.deepEqual([bare.state, bare.international, bare.confidence], ['forecast', false, 'Short range (within 18 h of kickoff)']);
+});
+
+test('D-34 nextWindRefresh: the TTL crossing, kickoff, entering the window, and never sooner than a minute', () => {
+  const H = 3_600_000, k = Date.parse('2026-10-16T00:15:00.000Z'), now = k - 24 * H;
+  const data = games => ({ games });
+  const at = (fetched, extra = {}) => ({ kickoff: new Date(k).toISOString(), status: 'forecast', wind: { windMph: 5, fetchedAt: new Date(fetched).toISOString(), forecastHour: '2026-10-16T00:00:00.000Z' }, ...extra });
+  assert.equal(V.nextWindRefresh(data({ a: at(now - 2 * H) }), now), now + H, 'fetched 2 h ago with a 3 h TTL');
+  assert.equal(V.nextWindRefresh(data({ a: at(now - 5 * H) }), now), now + 60_000, 'already past the TTL: a minute from now');
+  assert.equal(V.nextWindRefresh(data({ a: at(k - 30 * 60_000) }), k - 20 * 60_000), k, 'kickoff comes first');
+  assert.equal(V.nextWindRefresh(data({ a: { kickoff: new Date(k).toISOString(), status: 'not_yet', wind: null } }), k - 130 * H), k - 120 * H, 'entering the 120 h window');
+  assert.equal(V.nextWindRefresh(data({ a: { kickoff: new Date(k).toISOString(), status: 'none', wind: null } }), now), now + 3 * H, 'no snapshot: retry after the TTL');
+  assert.equal(V.nextWindRefresh(data({ a: { ...at(now), status: 'indoor' } }), now), null);
+  assert.equal(V.nextWindRefresh(data({ a: at(k - 3 * H) }), k + 1), null, 'nothing after kickoff');
+  assert.equal(V.nextWindRefresh(null, now), null);
 });

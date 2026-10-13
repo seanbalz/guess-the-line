@@ -47,3 +47,8 @@ export async function officialsApi(action, body = {}, signal) {
   if (!['read', 'set'].includes(action)) throw new ApiError('Unknown referee action.', 400);
   return cloudApi(`officials/${action}`, body, { signal });
 }
+/** Kickoff wind forecasts (D-34): any community member reads a week's stored Open-Meteo snapshots; the hosted service refreshes due games. */
+export async function windApi(action, body = {}, signal) {
+  if (!['read'].includes(action)) throw new ApiError('Unknown wind forecast action.', 400);
+  return cloudApi(`wind/${action}`, body, { signal });
+}
