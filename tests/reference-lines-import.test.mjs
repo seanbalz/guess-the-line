@@ -26,7 +26,7 @@ test('the committed eDraft pages are byte-identical and the payload carries only
   assert.deepEqual(payloads.map(p => [p.p_reference.observedAt, p.p_reference.capturedAt]), [['2026-10-08T08:33:00.000Z', '2026-10-08T09:01:21.436Z'], ['2026-10-08T14:03:00.000Z', '2026-10-08T15:02:12.589Z']]);
   const slate = seed().games;
   for (const p of payloads) {
-    assert.deepEqual([p.p_season, p.p_week, p.p_actor, p.p_ruling, p.p_reference.decision, p.p_reference.source, p.p_reference.sourceUrl], [2026, 5, null, null, null, 'eDraft consensus', 'https://edraft.com/nfl/odds/week-5'], 'no decision until Sean rules');
+    assert.deepEqual([p.p_season, p.p_week, p.p_actor, p.p_ruling, p.p_reference.decision, p.p_reference.source, p.p_reference.sourceUrl], [2026, 5, null, null, null, 'eDraft consensus', 'https://edraft.com/nfl/odds/week-5'], 'no decision unless --decision is passed at import time');
     assert.deepEqual(Object.keys(p.p_reference.lines).sort(), slate.map(g => g.id).sort());
     const doc = JSON.parse(fs.readFileSync(p.p_file, 'utf8'));
     for (const game of doc.games) {
@@ -60,6 +60,12 @@ test('a changed page, a broken chain, a bad actor or an unrecorded decision is r
   const decisions = fs.readFileSync(DECISIONS_FILE, 'utf8');
   assert.throws(() => verifyDecision('D-27', decisions), /--decision/, 'D-27 alone does not make a page a stored line');
   assert.throws(() => verifyDecision('D-99', decisions), /not recorded/);
+  // Sean's approval of October 13, 2026 is recorded as D-33: the import runs under that number and no other recorded one.
+  assert.equal(verifyDecision('D-33', decisions), 'D-33', 'D-33 records Sean\'s approval of the eDraft reference lines');
+  const d33 = decisions.slice(decisions.indexOf('## D-33 '), decisions.indexOf('\n## ', decisions.indexOf('## D-33 ') + 1));
+  for (const { file } of FILES) assert.ok(d33.includes(file), `D-33 names ${file}`);
+  assert.ok(d33.includes(EXCLUDED[0].file) && /not imported/.test(d33), 'D-33 records that the 03:33 ET page is not imported');
+  assert.ok(d33.includes('"communicate with the other sessions to get things completed. you have full approval for deploying all recommendations"'), 'D-33 quotes Sean verbatim');
   assert.throws(() => verifyDecision('D-99', '## D-99 — Something else\nNo ruling here.\n## D-98 — x\ngtl_import_reference_lines eDraft'), /does not rule/);
   assert.equal(verifyDecision('D-99', `## D-99 — eDraft reference lines\nSean ruled the eDraft pages are reference lines (${RPC}).\n## D-98 — x`), 'D-99');
 });

@@ -6,15 +6,17 @@
 // ballot row is written).
 //
 // D-27 alone does not make a non-hosted page a stored line: an import needs Sean's explicit ruling recorded in
-// docs/DECISIONS.md under its own number after D-27 (the D-25 pattern). Until then only the dry run and --write-payload work.
+// docs/DECISIONS.md under its own number after D-27 (the D-25 pattern). Sean approved it on October 13, 2026, recorded as
+// D-33 (the two timed pages below; never the 03:33 ET page). Without --decision only the dry run and --write-payload work.
 //
 //   node scripts/import-reference-lines.mjs                                   # dry run: counts, hashes and instants, never a line value or pick
 //   node scripts/import-reference-lines.mjs --write-payload                   # regenerate the committed payload file (public market data only)
 //   node scripts/import-reference-lines.mjs --decision D-nn --actor <commissioner uuid> --sql   # also writes .local/reference-lines-import.sql (0600)
 //   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/import-reference-lines.mjs --decision D-nn [--actor <uuid>] --execute
 //
-// Sean, or the session acting on his recorded go, runs --sql or --execute right after the migration is applied. Nothing
-// here reads a committed credential, hard-codes an account id, reads a pick or Sean's provisional points, or prints a value.
+// Sean, or the session acting on his recorded go (D-33), runs --sql or --execute right after the migration is applied,
+// which happens after this branch merges. Nothing here reads a committed credential, hard-codes an account id, reads a
+// pick or Sean's provisional points, or prints a value.
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -120,10 +122,10 @@ export function buildReferenceLineImport({ actor = null, decision = null, root =
   return {
     payloads,
     document: { schema: 'gtl-reference-lines-v1', season: SEASON, week: WEEK, rpc: RPC, migration: MIGRATION, decision: null,
-      decisionStatus: 'Pending: an import needs Sean\'s explicit ruling, recorded in docs/DECISIONS.md under its own number after D-27; the number is added at import time (--decision).',
+      decisionStatus: 'Approved: Sean\'s approval of October 13, 2026 is recorded in docs/DECISIONS.md as D-33 (its own number after D-27); the number is added at import time (--decision D-33), after the migration is applied.',
       note: 'Public market data only: eDraft consensus home spreads with their page and capture times. No pick and no points.',
       excluded: EXCLUDED.map(({ file, sha256: fileSha256, reason }) => ({ file, fileSha256, reason })), imports },
-    summary: { rpc: RPC, migration: MIGRATION, season: SEASON, week: WEEK, decision: decision || 'pending (pass --decision once Sean has ruled)',
+    summary: { rpc: RPC, migration: MIGRATION, season: SEASON, week: WEEK, decision: decision || 'pending (pass --decision D-33, Sean\'s recorded approval, once the migration is applied)',
       files: summary, excluded: EXCLUDED.map(e => e.file), imports: summary.length, lines: summary.reduce((sum, f) => sum + f.lines, 0),
       actor: actor ? `${actor.slice(0, 8)}…` : `resolved from gtl_memberships (${COMMISSIONER_LEAGUE} commissioner) at --execute` },
   };

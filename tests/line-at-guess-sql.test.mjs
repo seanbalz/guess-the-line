@@ -22,7 +22,7 @@ const at = value => Date.parse(value);
 const MIGRATIONS = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
 const SEAN = 30, STEVEN = 31, TJ = 32, CUH = 33, LUKE = 4, BEN = 2, OUTSIDER = 5;
 const NAMES = { [SEAN]: 'Fistathon', [STEVEN]: 'Sthomas', [TJ]: 'TJ', [CUH]: 'Cuh', [LUKE]: 'Luke', [BEN]: 'Ben', [OUTSIDER]: 'Outsider' };
-// A fixture decision number: the real one is assigned when Sean rules on the eDraft reference lines.
+// A fixture decision number, so the replay does not depend on docs/DECISIONS.md (Sean's approval is recorded as D-33).
 const DECISION = 'D-99';
 const HOUR = 3_600_000;
 // The hosted collections of October 8 (createdAt is the storage instant, fetchedAt the capture, observedAt the books' update).

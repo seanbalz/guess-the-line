@@ -5,7 +5,7 @@
   "rpc": "gtl_import_reference_lines",
   "migration": "20261013010000_gtl_line_at_guess_reads.sql",
   "decision": null,
-  "decisionStatus": "Pending: an import needs Sean's explicit ruling, recorded in docs/DECISIONS.md under its own number after D-27; the number is added at import time (--decision).",
+  "decisionStatus": "Approved: Sean's approval of October 13, 2026 is recorded in docs/DECISIONS.md as D-33 (its own number after D-27); the number is added at import time (--decision D-33), after the migration is applied.",
   "note": "Public market data only: eDraft consensus home spreads with their page and capture times. No pick and no points.",
   "excluded": [
     {
