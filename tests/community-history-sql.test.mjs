@@ -35,7 +35,11 @@ function payload(games, captured, spread = -3.5, total = 44.5) {
 }
 
 test('community history: every player, week and market with the line at each guess and its points; nothing invented, nothing hidden beyond the D-23 gate', { skip }, async t => {
-  assert.ok(MIGRATIONS.includes(MIGRATION), 'the history migration is a repo file; later files run after it, as they do hosted');
+  // Membership and order only: later files (D-27's 20261012230000, the line-at-guess reads 20261013010000, other branches') follow it.
+  assert.ok(MIGRATIONS.includes(MIGRATION), 'the history migration is a repo file');
+  for (const later of ['20261012230000_gtl_submit_with_line_at_guess.sql', '20261013010000_gtl_line_at_guess_reads.sql']) {
+    assert.ok(MIGRATIONS.indexOf(MIGRATION) < MIGRATIONS.indexOf(later), `${later} applies after the history migration`);
+  }
   const db = new PGlite(); t.after(() => db.close());
   await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
   // The Week 5 slate from the seed with an open window (deadline two hours ahead, kickoffs after it) so a D-16 save can run;
@@ -111,28 +115,38 @@ test('community history: every player, week and market with the line at each gue
     assert.deepEqual(w.results, {}, 'no final recorded yet');
   });
 
-  let early, late;
-  await t.test('a migrated ballot without a saved line shows the nearest snapshot at its submission, labelled and never scored, or no line stored', async () => {
+  let early, late, troyRow;
+  await t.test('a migrated ballot without a saved line is scored against the line at its guess (D-27 order); a ballot without its original submission time is compared at its stored submittedAt, labelled', async () => {
+    troyRow = (await db.query('select ballot,audit,provenance,origin_practice from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [id(TROY), 'guess_total'])).rows[0];
     early = await snapshot(now - 2 * HOUR, -4, 44.5);
     late = await snapshot(now - HOUR / 2, -6, 41);
     const troy = entry(await history(TROY), TROY, 'guess_total');
-    assert.deepEqual([troy.status, at(troy.submittedAt), troy.updatedAt, troy.revisions, troy.provenance, troy.scoringPolicy, troy.ruling, troy.picksHidden, troy.weekPoints, troy.weekScored, troy.games],
-      ['submitted', at(troyTotalAt), null, 0, 'migrated-league', null, null, false, 0, 0, 15], 'the legacy ballot_submitted event is the submission, not a revision');
+    assert.deepEqual([troy.status, at(troy.submittedAt), troy.submittedAtKnown, troy.updatedAt, troy.revisions, troy.provenance, troy.scoringPolicy, troy.ruling, troy.picksHidden, troy.eligible, troy.eligibility, troy.weekPoints, troy.weekScored, troy.games],
+      ['submitted', at(troyTotalAt), true, null, 0, 'migrated-league', null, null, false, true, 'standard', 15 * accuracy(44, 44.5), 15, 15], 'the legacy ballot_submitted event is the submission, not a revision');
     assert.equal(troy.picks.length, 15);
     for (const pick of troy.picks) {
-      assert.deepEqual([pick.guess, pick.points, pick.scorable], [44, null, false], 'the informational line never feeds points');
+      assert.deepEqual([pick.guess, pick.points, pick.scorable], [44, accuracy(44, 44.5), true], 'the line at the guess scores');
       const ref = pick.reference;
-      assert.deepEqual([ref.basis, ref.label, ref.status, ref.value, ref.source, ref.snapshotId, ref.gapSeconds, at(ref.capturedAt), at(ref.observedAt)],
-        ['nearest-snapshot', 'nearest snapshot at submission', 'informational', 44.5, 'The Odds API · 3-book median', early, 3601, now - 2 * HOUR, now - 2 * HOUR - 1000],
-        'the newest snapshot at or before the submission, not the one collected after it');
+      assert.deepEqual([ref.basis, ref.label, ref.rule, ref.origin, ref.status, ref.value, ref.source, ref.bookCount, ref.snapshotId, ref.sourceFile, ref.gapSeconds, at(ref.capturedAt), at(ref.observedAt), at(ref.guessedAt)],
+        ['line-at-guess', 'line at guess', 'newest-at-or-before', 'hosted-snapshot', 'available', 44.5, 'The Odds API · 3-book median', 3, early, null, 3601, now - 2 * HOUR, now - 2 * HOUR - 1000, at(troyTotalAt)],
+        'the newest line stored at or before the guess, not the one collected after it');
     }
+    const standings = (await read(TROY)).standings.find(x => x.userId === id(TROY) && x.mode === 'guess_total');
+    assert.deepEqual([standings.weekPoints, standings.weekScored, standings.seasonPoints, standings.weeksSubmitted], [troy.weekPoints, 15, troy.weekPoints, 1], 'the leaderboard reads the same rows');
+    // Sean's seed Spread ballot records that its original submission time is unavailable (its submittedAt is the eDraft page time it
+    // was seeded with). It is compared at that stored submittedAt, kept as stored (D-16), and each line says so: nothing was stored
+    // before it, so the first line stored after it (the early collection) is the line at the guess.
+    const seanBallot = state.ballots.sean.guess_spread;
     const sean = entry(await history(SEAN), SEAN, 'guess_spread');
-    assert.deepEqual([sean.status, at(sean.submittedAt), sean.revisions, sean.provenance, sean.scoringPolicy, sean.weekPoints, sean.weekScored], ['submitted', at(state.ballots.sean.guess_spread.submittedAt), 0, 'migrated-league', null, 0, 0]);
+    assert.deepEqual([sean.status, at(sean.submittedAt), sean.submittedAtKnown, sean.revisions, sean.provenance, sean.scoringPolicy, sean.weekPoints, sean.weekScored],
+      ['submitted', at(seanBallot.submittedAt), false, 0, 'migrated-league', null, round(gameIds.reduce((sum, g) => sum + accuracy(seanBallot.picks[g], -4), 0)), 15]);
     assert.deepEqual(sean.picks.map(p => p.gameId), gameIds, 'every slate game, in kickoff order');
-    assert.equal(sean.picks[0].guess, state.ballots.sean.guess_spread.picks['TB-DAL']);
+    assert.equal(sean.picks[0].guess, seanBallot.picks['TB-DAL']);
     for (const pick of sean.picks) {
-      assert.deepEqual([pick.points, pick.scorable, pick.reference.basis, pick.reference.label, pick.reference.status, pick.reference.value, pick.reference.reason, pick.reference.priorSnapshotAt, at(pick.reference.nextSnapshotAt)],
-        [null, false, 'none', 'no line stored', 'unavailable', null, 'no-prior-snapshot', null, now - 2 * HOUR], 'submitted before any snapshot: no line is invented; the first later snapshot is named as context');
+      const ref = pick.reference;
+      assert.deepEqual([pick.points, pick.scorable, ref.basis, ref.rule, ref.origin, ref.snapshotId, ref.value, at(ref.guessedAt), ref.guessedAtKnown, ref.gapSeconds],
+        [accuracy(pick.guess, -4), true, 'line-at-guess', 'first-after-submission', 'hosted-snapshot', early, -4, at(seanBallot.submittedAt), false, Math.floor((at(seanBallot.submittedAt) - (now - 2 * HOUR - 1000)) / 1000)],
+        'the line at the stored submission time, labelled; no other instant is invented');
     }
     // Snapshots existed before the guess but none carried a usable line for the game: the newest of them is named, not the next collection.
     const sig = await signature(), stray = { id: 'XX-YY', home: 'Nowhere', away: 'Elsewhere', homeCode: 'YY', awayCode: 'XX', kickoff: iso(now + 9 * HOUR) };
@@ -178,7 +192,7 @@ test('community history: every player, week and market with the line at each gue
     assert.deepEqual(week5(luke).revealed, { guess_spread: false, guess_total: true });
     assert.deepEqual([entry(luke, TROY, 'guess_spread').picksHidden, entry(luke, TROY, 'guess_spread').picks], [true, null], 'sitting out Total reveals Total only');
     const revealed = entry(luke, TROY, 'guess_total');
-    assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.picks[0].guess, revealed.picks[0].reference.basis, revealed.picks[0].reference.value], [false, 15, 44, 'nearest-snapshot', 44.5]);
+    assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.picks[0].guess, revealed.picks[0].reference.basis, revealed.picks[0].reference.value, revealed.picks[0].points], [false, 15, 44, 'line-at-guess', 44.5, accuracy(44, 44.5)]);
     const own = entry(luke, LUKE, 'guess_total');
     assert.deepEqual([own.status, own.picksHidden, own.picks, own.weekPoints, own.weekScored, at(own.satOutAt)], ['sat_out', false, null, 0, 0, now], 'a sat-out week is recorded as sat out, not zero');
     const troy = await history(TROY);
@@ -267,9 +281,10 @@ test('community history: every player, week and market with the line at each gue
     assert.equal(entry(luke, BEN, 'guess_total'), undefined, 'Ben has no Week 5 Total ballot: no entry, no error');
     const standings = (await read(LUKE)).standings.find(x => x.userId === id(BEN) && x.mode === 'guess_spread');
     assert.deepEqual([standings.weekPoints, standings.weekScored], [37.6, 15]);
-    // The migrated ballots are still unscored and still carry their informational line after the ruling: nothing was backfilled.
+    // The migrated ballot still reads the line at its guess after the ruling, and its row is exactly as stored: nothing was backfilled.
     const troy = entry(luke, TROY, 'guess_total');
-    assert.deepEqual([troy.weekPoints, troy.weekScored, troy.picks[0].reference.basis, troy.picks[0].reference.snapshotId, troy.picks[0].points], [0, 0, 'nearest-snapshot', early, null]);
-    assert.ok(late, 'the later snapshot was never chosen');
+    assert.deepEqual([troy.weekPoints, troy.weekScored, troy.picks[0].reference.basis, troy.picks[0].reference.snapshotId, troy.picks[0].points], [15 * accuracy(44, 44.5), 15, 'line-at-guess', early, accuracy(44, 44.5)]);
+    assert.ok(late && troy.picks.every(p => p.reference.snapshotId !== late), 'the later snapshot was never chosen');
+    assert.deepEqual((await db.query('select ballot,audit,provenance,origin_practice from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [id(TROY), 'guess_total'])).rows[0], troyRow);
   });
 });
