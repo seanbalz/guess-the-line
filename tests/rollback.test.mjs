@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { HEADERS_FROM, catalog, checkHeaders, forMigration, parseFunctions, readMigrations, topLevel } from '../scripts/migration-functions.mjs';
-import { ALL, FIX_FORWARD, HOSTED, MIGRATIONS_DIR, PRELUDE, ROLLBACK_DIR, version } from './migrations.mjs';
+import { ALL, FIX_FORWARD, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, REQUIRES, ROLLBACK_DIR, version } from './migrations.mjs';
 
 // Stage 3 of docs/REDESIGN_BUILD_PLAN.md (Gate M step 9): supabase/rollback/<migration file> holds the bodies a
 // migration replaces. Each one is checked here, applied on PGlite after HOSTED and its migration, and then the
@@ -21,6 +21,8 @@ const OLD_APP_SQL_SUITES = ['tests/community-history-sql.test.mjs', 'tests/line-
 const ROLLBACKS = fs.readdirSync(ROLLBACK_DIR).filter(f => f.endsWith('.sql')).sort();
 const ALLOWED = /^(?:create\s+or\s+replace\s+function|grant|revoke)\b/i;
 const key = fn => `${fn.schema}.${fn.name}`;
+/** The repo files a migration REQUIRES (tests/migrations.mjs): unapplied files it must follow, built before it here too. */
+const requiredFiles = name => (REQUIRES[version(name)] ?? []).map(v => ALL.find(file => version(file) === v));
 
 /** What `migration` replaces (as of the repo files before it) and what a rollback file restores, with problems. */
 function review(migrationPath, rollbackSql) {
@@ -42,13 +44,13 @@ function review(migrationPath, rollbackSql) {
 }
 
 /**
- * Builds HOSTED plus the migration (in filename order) and applies the rollback straight after it. Reports
+ * Builds HOSTED plus the migration and the files it REQUIRES (in filename order) and applies the rollback straight after it. Reports
  * md5(prosrc) after the migration and after the rollback (before any later file, which may replace the same
  * function again), and any overload once every file is in.
  */
 async function applyWithRollback(migrationPath, rollbackSql) {
   const name = path.basename(migrationPath), db = new PGlite();
-  const files = [...new Set([...HOSTED, name])].sort();
+  const files = [...new Set([...HOSTED, ...requiredFiles(name), name])].sort();
   const md5s = async () => new Map((await db.query("select p.proname, md5(p.prosrc) md5 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'")).rows.map(r => [`public.${r.proname}`, r.md5]));
   let after, restored;
   try {
@@ -97,6 +99,22 @@ test('the rollback convention: each file names a migration, restores exactly the
   assert.match(review(fixture, `${drafted}\ndelete from public.gtl_weekly_ballots;`).problems.join('\n'), /not allowed: delete from/);
   assert.deepEqual(review(fixture, drafted).problems, [], 'a drafted rollback passes as drafted');
   assert.match(review(fixture, '-- nothing restored\n').problems.join('\n'), /does not restore public\.gtl_read_community/);
+});
+
+test('REQUIRES names repo migrations that are not hosted yet and sort before the migration that needs them', () => {
+  for (const [needs, list] of Object.entries(REQUIRES)) {
+    const file = ALL.find(f => version(f) === Number(needs));
+    assert.ok(file, `${needs} is a repo migration`);
+    assert.ok(NOT_HOSTED.includes(Number(needs)), `${file} is hosted: its REQUIRES entry goes with its apply record`);
+    assert.ok(Array.isArray(list) && list.length > 0, needs);
+    for (const v of list) {
+      const required = ALL.find(f => version(f) === v);
+      assert.ok(required && required < file, `${v} is a repo migration that sorts (applies) before ${file}`);
+      assert.ok(NOT_HOSTED.includes(v), `${required} is hosted: drop it from REQUIRES with its apply record`);
+    }
+  }
+  // Only the rollback check reads REQUIRES: a normal run's HOSTED is ALL minus NOT_HOSTED.
+  assert.deepEqual(HOSTED, ALL.filter(f => !NOT_HOSTED.includes(version(f))));
 });
 
 test('the old-app SQL suites take HOSTED and migrationSql from tests/migrations.mjs', () => {

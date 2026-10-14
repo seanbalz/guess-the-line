@@ -41,7 +41,8 @@ export const date = (value, options={}) => value ? new Date(value).toLocaleStrin
 export const shortTeam = team => team.split(' ').at(-1);
 export async function communityApi(action, body = {}, signal) {
   // 'picks': everyone's Guess picks for a week and market (M-08, redesign stage 26); the new app's Everyone's picks reads it (stage 31).
-  if (!['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks'].includes(action)) throw new ApiError('Unknown community action.', 400);
+  // 'forfeit': "Skip this week's Guess the Line" and "See picks now" (M-03, redesign stage 19); the new app's ForfeitDialog sends it (stage 30).
+  if (!['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks', 'forfeit'].includes(action)) throw new ApiError('Unknown community action.', 400);
   return cloudApi(`community/${action}`, body, { signal });
 }
 /** Game referees for situational trends: any member reads a week's assignments; only the commissioner sets one. */
