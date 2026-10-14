@@ -44,8 +44,9 @@ export const ACCOUNTS = {
  * prepare: optional (state) => void that edits the seeded league state (week, games) before it is stored and the slate is derived.
  * wind: optional Open-Meteo provider ({ forecast }) for the D-34 kickoff wind forecast; null reads stored forecasts only and never fetches.
  * migrations: the migration files to apply in order (default MIGRATIONS; a spec that needs a newer file passes the full sorted list).
+ * pushPublicKey: the gtl-api VAPID public key (redesign stage 2 push guard); none by default, so /community/read says pushConfigured: false.
  */
-export async function communityWorld(page, baseURL, { deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS } = {}) {
+export async function communityWorld(page, baseURL, { deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
   await db.exec(fs.readFileSync(`supabase/migrations/${migrations[0]}`, 'utf8'));
@@ -86,7 +87,7 @@ export async function communityWorld(page, baseURL, { deadline = openDeadline(),
   }
   const world = { db, state, errors, troyPicks, schedule: null };
   const handler = createCloudHandler({
-    authenticate: async value => (users.has(value) ? { ...users.get(value), emailConfirmed: true } : null), clock,
+    authenticate: async value => (users.has(value) ? { ...users.get(value), emailConfirmed: true } : null), clock, pushPublicKey,
     social: { rpc: rpc(providerSocialError) }, personal: { rpc: personalRpc }, lobby: { rpc: rpc(providerLobbyError) },
     // The public schedule is a spec-owned fixture; the real adapter fetches nflverse. Never a live download here.
     community: { rpc: rpc(providerCommunityError), schedule: async () => { if (typeof world.schedule !== 'function') throw new Error('No schedule fixture.'); return world.schedule(); } },

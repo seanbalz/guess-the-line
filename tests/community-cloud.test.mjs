@@ -32,6 +32,34 @@ test('community read is isolated from league services, passes request time and n
   assert.deepEqual(body.members, [{ id: USER, displayName: 'Ben', removed: false }]);
 });
 
+test('redesign stage 2 push guard: /community/read says pushConfigured only with a valid VAPID public key and never carries the key', async () => {
+  const KEY = `B${'Q'.repeat(86)}`;
+  const read = async (pushPublicKey, body = {}) => {
+    const app = createCloudHandler({
+      authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
+      // The guard reads only the configured key: the push service itself is never called by a community read.
+      storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden, push: forbidden, pushPublicKey,
+      community: { rpc: async () => feed },
+      clock: () => Date.parse('2026-10-15T23:00:00Z'),
+    });
+    const response = await app(new Request('https://fixture.invalid/community/read', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify(body) }));
+    assert.equal(response.status, 200);
+    return response.text();
+  };
+  for (const body of [{}, { limit: 1 }, { before: '2026-10-14T00:00:00Z' }]) {
+    const on = await read(KEY, body);
+    assert.equal(JSON.parse(on).pushConfigured, true, JSON.stringify(body));
+    assert.equal(on.includes(KEY), false, 'the VAPID key is never in a community reply');
+    assert.doesNotMatch(on, /publicKey|vapid/i);
+  }
+  // Missing, empty, malformed, the wrong length or prefix, padded, a private-key-sized value or a non-string: false.
+  for (const key of [undefined, null, '', 'not-a-key', KEY.slice(1), `${KEY}=`, `${KEY}Q`, `A${'Q'.repeat(86)}`, `B${'Q'.repeat(85)}+`, 'Q'.repeat(43), 42, { key: KEY }]) {
+    const off = await read(key);
+    assert.equal(JSON.parse(off).pushConfigured, false, JSON.stringify(key) ?? 'undefined');
+    assert.equal(off.includes(KEY), false);
+  }
+});
+
 test('D-23 sit-out route validates strictly, passes the request time and returns the final opt-out', async () => {
   const calls = [];
   const send = (body, auth = 'Bearer token') => handler(calls)(new Request('https://fixture.invalid/community/sit-out', { method: 'POST', headers: { ...(auth ? { authorization: auth } : {}), 'content-type': 'application/json' }, body: JSON.stringify(body) }));

@@ -22,6 +22,9 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   const sawLoading = await loading.isVisible().catch(() => false);
   await expect(page.locator('.picks-due')).toBeVisible({ timeout: 15000 });
   const toFeed = Date.now() - t0;
+  // Redesign stage 2 (push guard): this fixture's server holds no VAPID key, so the card offers no "Remind me" button that would fail.
+  await expect(page.locator('.picks-due').getByRole('button', { name: /^Remind me/ })).toHaveCount(0);
+  await expect(page.locator('.picks-due .push-prompt')).toHaveCount(0);
   persona.finding({ screen: 'feed-slow', severity: 4, experience: `With 400 ms added to every request the home screen took ${(toFeed / 1000).toFixed(1)} s from tapping Sign in to the picks-due card. During that time the player sees "${sawLoading ? 'Loading the feed…' : 'nothing (the loading line was too brief to see)'}" under the title; the header, theme card and league switcher render first, so the page looks finished before the feed arrives.`, fix: 'Show skeleton rows for the picks-due card, leaderboard and three posts instead of a one-line status; keep the chrome from settling before the content.' });
   await persona.shot('feed');
   // Bigger changes (#19): the like button is at least 44px wide for a thumb.

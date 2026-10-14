@@ -131,7 +131,12 @@ export function picksDue(feed, now) {
   return { state, opensAt, deadline: feed.week.deadline, week: feed.week.week, modes: open, now: new Date(now).toISOString() };
 }
 
-export async function handleCommunity({ route, body = {}, user, service, clock = Date.now }) {
+/**
+ * `pushConfigured` (redesign stage 2, push guard): true only when gtl-api holds a valid VAPID public key.
+ * /community/read carries the boolean so the old app hides its reminder controls until push really works;
+ * the key itself is never part of this reply (only /push/status hands it over, on the player's tap).
+ */
+export async function handleCommunity({ route, body = {}, user, service, clock = Date.now, pushConfigured = false }) {
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new CommunityError(401, 'Sign in to continue.');
   if (!service?.rpc) throw new Error('The community feed is not configured.');
   if (!Object.hasOwn(COMMUNITY_METHODS, route)) invalid();
@@ -141,7 +146,7 @@ export async function handleCommunity({ route, body = {}, user, service, clock =
     if (body.limit !== undefined && (!Number.isInteger(body.limit) || body.limit < 1 || body.limit > 100)) invalid();
     const now = clock();
     const feed = normalize(await service.rpc('gtl_read_community', { p_user: user.id, p_before: body.before ?? null, p_limit: body.limit ?? 30, p_now: new Date(now).toISOString() }));
-    return { ...feed, picksDue: picksDue(feed, now) };
+    return { ...feed, picksDue: picksDue(feed, now), pushConfigured: pushConfigured === true };
   }
   if (route === '/community/history') {
     fields(body, ['season']);

@@ -21,7 +21,7 @@ import { handleVirtualUnits, VIRTUAL_METHODS, VirtualUnitsError, providerVirtual
 // Kickoff wind forecast (D-34): the member read route and the server-only Open-Meteo provider.
 import { handleWind, WIND_METHODS, WindError, providerWindError } from './wind.mjs';
 import { createOpenMeteoProvider } from './open-meteo.mjs';
-import { handlePush, PUSH_METHODS, PushError, providerPushError } from './push.mjs';
+import { handlePush, PUSH_METHODS, PushError, providerPushError, validVapidPublicKey } from './push.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const CORS = {
@@ -96,6 +96,9 @@ function onlyKeys(value, allowed) {
  * Legacy league entry JSON is never written by this handler.
  */
 export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+  // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
+  // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
+  const pushConfigured = validVapidPublicKey(pushPublicKey);
   // October 12, 2026: a refresh is attempted when useful and never required; commit() is the authority.
   async function submitWithFreshOdds(user, intent, commit) {
     if (!odds?.rpc) return commit();
@@ -182,7 +185,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
         body = await readJson(request);
       }
       if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock }));
-      if (Object.hasOwn(COMMUNITY_METHODS, route)) return json(await handleCommunity({ route, body, user, service: community, clock }));
+      if (Object.hasOwn(COMMUNITY_METHODS, route)) return json(await handleCommunity({ route, body, user, service: community, clock, pushConfigured }));
       if (Object.hasOwn(OFFICIALS_METHODS, route)) return json(await handleOfficials({ route, body, user, service: officials }));
       if (Object.hasOwn(WIND_METHODS, route)) return json(await handleWind({ route, body, user, service: wind, uuid }));
       if (Object.hasOwn(PUSH_METHODS, route)) return json(await handlePush({ route, body, user, service: push, publicKey: pushPublicKey }));
