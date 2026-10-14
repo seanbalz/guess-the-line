@@ -12,7 +12,9 @@ function is applied to the hosted project, its rollback sits here and has passed
   `grant` or `revoke` lines when the migration changed a grant. Nothing else: never a `drop`, `delete`, `truncate`,
   `alter`, `insert` or `update`.
 - **New things stay.** Tables and functions the migration added are not removed. The code's off switch
-  (`GTL_FEATURE_OFF`) stops their use, and every row a player wrote stays (D-23).
+  (`GTL_FEATURE_OFF`) stops their use, and every row a player wrote stays (D-23). A new function that a deployed
+  route already reads through `cloud/optional-rpc.mjs` (M-01's `gtl_live_rules`) is switched off by revoking the
+  grant the migration gave the service role: the read fails and the route answers its fallback.
 - **Fix-forward migrations have no rollback.** M-13, M-21 and M-23 add their version to `FIX_FORWARD` in
   `tests/migrations.mjs` instead.
 - A migration newer than the stage 3 cut-off that replaces a function needs either a file here or a `FIX_FORWARD`

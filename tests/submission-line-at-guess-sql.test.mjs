@@ -135,7 +135,10 @@ async function fixture(t, { legacy } = {}) {
   const count = async table => (await q(`select count(*)::int n from public.${table}`))[0].n;
   const budget = async () => (await q('select * from public.gtl_odds_budget'))[0];
   const outcomes = name => log.filter(entry => entry.name === name).map(entry => entry.outcome);
-  const standing = async (who, mode = 'guess_spread') => (await rpc('gtl_read_community', [id(who), null, 30, null])).standings.find(s => s.userId === id(who) && s.mode === mode);
+  // The board read after Week 6's last kickoff: M-01 (redesign stage 16) counts a game's points from its kickoff, and the earlier
+  // reader ignores the clock for points, so this reads the same totals with or without M-01 on HOSTED.
+  const afterKickoffs = new Date(Math.max(...week6.games.map(g => Date.parse(g.kickoff))) + 1000).toISOString();
+  const standing = async (who, mode = 'guess_spread') => (await rpc('gtl_read_community', [id(who), null, 30, afterKickoffs])).standings.find(s => s.userId === id(who) && s.mode === mode);
   const picks = (value = -3, games = week6.games) => Object.fromEntries(games.map(g => [g.id, value]));
   // A collection attempt that failed `ago` ms ago: it stored no line but holds the shared collect cooldown.
   const failedAttempt = async ago => {
@@ -150,7 +153,7 @@ async function fixture(t, { legacy } = {}) {
     const job = await rpc('gtl_begin_odds_collection', [id(SEAN), request, 'collect']);
     return rpc('gtl_finish_odds_collection', [id(SEAN), request, job.lease, payload(job.games, typeof line === 'function' ? line() : line), { remaining: 470, used: 30, last: 2 }, null]);
   };
-  return { db, q, rpc, as, week6, signature, snapshot, provider, log, call, read, submit, ballot, revision, count, budget, outcomes, standing, picks, failedAttempt, cooldownPassed, collect };
+  return { db, q, rpc, as, week6, signature, snapshot, provider, log, call, read, submit, ballot, revision, count, budget, outcomes, standing, afterKickoffs, picks, failedAttempt, cooldownPassed, collect };
 }
 
 // Lines collected after `savedAt` (the instant of a pending save) whose every book observation is at or after it.
@@ -456,7 +459,7 @@ test('7. rows stored before this migration stay byte for byte; legacy stale and 
   assert.equal(await f.rpc('gtl_resolve_pending_references', [2026, 6]), 0);
   assert.deepEqual(await dump(f.q, id(STEVEN)), legacy, 'no stored row of another player changed');
   // Scoring is unchanged for them: the old 'available' line scores, 'stale' and 'unavailable' stay unscored.
-  const standings = (await f.rpc('gtl_read_community', [id(SEAN), null, 30, null])).standings;
+  const standings = (await f.rpc('gtl_read_community', [id(SEAN), null, 30, f.afterKickoffs])).standings;
   const row = (who, mode) => standings.find(s => s.userId === id(who) && s.mode === mode);
   assert.equal(Number(row(TROY, 'guess_spread').weekScored), 14); assert.equal(Number(row(TROY, 'guess_spread').weekPoints), 14 * 9);
   assert.equal(Number(row(LUKE, 'guess_spread').weekScored), 0); assert.equal(Number(row(BEN, 'guess_total').weekScored), 0);

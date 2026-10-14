@@ -80,6 +80,12 @@ test('community history: every player, week and market with the line at each gue
   const week5 = h => h.weeks.find(w => w.season === 2026 && w.week === 5);
   const entry = (h, n, mode) => week5(h).entries.find(e => e.userId === id(n) && e.mode === mode);
   const signature = async () => (await db.query('select signature from public.gtl_weekly_slates where season=2026 and week=5')).rows[0].signature;
+  // M-01 (20261014223000_gtl_guess_gate_per_game.sql, redesign stage 16) opens each game and market on its own and counts a
+  // game's points from its kickoff. This suite runs on HOSTED, which gains M-01 once Sean applies it, and reruns with M-01 and
+  // its rollback (tests/rollback.test.mjs), so it reads which readers are installed: points are checked after every kickoff
+  // (AFTER; the earlier readers ignore the clock for points), and each expectation M-01 changes is written for both.
+  const PER_GAME = (await db.query("select count(*)::int n from pg_proc where proname='gtl_read_community_history' and prosrc like '%gtl_markets_visible%'")).rows[0].n === 1;
+  const AFTER = Math.max(...state.games.map(g => at(g.kickoff))) + 1000;
   let serial = 500;
   const snapshot = async (captured, spread = -3.5, total = 44.5) => {
     const key = id(++serial), data = payload(state.games, captured, spread, total), sig = await signature();
@@ -121,7 +127,7 @@ test('community history: every player, week and market with the line at each gue
     troyRow = (await db.query('select ballot,audit,provenance,origin_practice from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [id(TROY), 'guess_total'])).rows[0];
     early = await snapshot(now - 2 * HOUR, -4, 44.5);
     late = await snapshot(now - HOUR / 2, -6, 41);
-    const troy = entry(await history(TROY), TROY, 'guess_total');
+    const troy = entry(await history(TROY, AFTER), TROY, 'guess_total');
     assert.deepEqual([troy.status, at(troy.submittedAt), troy.submittedAtKnown, troy.updatedAt, troy.revisions, troy.provenance, troy.scoringPolicy, troy.ruling, troy.picksHidden, troy.eligible, troy.eligibility, troy.weekPoints, troy.weekScored, troy.games],
       ['submitted', at(troyTotalAt), true, null, 0, 'migrated-league', null, null, false, true, 'standard', 15 * accuracy(44, 44.5), 15, 15], 'the legacy ballot_submitted event is the submission, not a revision');
     assert.equal(troy.picks.length, 15);
@@ -132,13 +138,13 @@ test('community history: every player, week and market with the line at each gue
         ['line-at-guess', 'line at guess', 'newest-at-or-before', 'hosted-snapshot', 'available', 44.5, 'The Odds API · 3-book median', 3, early, null, 3601, now - 2 * HOUR, now - 2 * HOUR - 1000, at(troyTotalAt)],
         'the newest line stored at or before the guess, not the one collected after it');
     }
-    const standings = (await read(TROY)).standings.find(x => x.userId === id(TROY) && x.mode === 'guess_total');
+    const standings = (await read(TROY, AFTER)).standings.find(x => x.userId === id(TROY) && x.mode === 'guess_total');
     assert.deepEqual([standings.weekPoints, standings.weekScored, standings.seasonPoints, standings.weeksSubmitted], [troy.weekPoints, 15, troy.weekPoints, 1], 'the leaderboard reads the same rows');
     // Sean's seed Spread ballot records that its original submission time is unavailable (its submittedAt is the eDraft page time it
     // was seeded with). It is compared at that stored submittedAt, kept as stored (D-16), and each line says so: nothing was stored
     // before it, so the first line stored after it (the early collection) is the line at the guess.
     const seanBallot = state.ballots.sean.guess_spread;
-    const sean = entry(await history(SEAN), SEAN, 'guess_spread');
+    const sean = entry(await history(SEAN, AFTER), SEAN, 'guess_spread');
     assert.deepEqual([sean.status, at(sean.submittedAt), sean.submittedAtKnown, sean.revisions, sean.provenance, sean.scoringPolicy, sean.weekPoints, sean.weekScored],
       ['submitted', at(seanBallot.submittedAt), false, 0, 'migrated-league', null, round(gameIds.reduce((sum, g) => sum + accuracy(seanBallot.picks[g], -4), 0)), 15]);
     assert.deepEqual(sean.picks.map(p => p.gameId), gameIds, 'every slate game, in kickoff order');
@@ -163,7 +169,7 @@ test('community history: every player, week and market with the line at each gue
   await t.test('a D-16 submission scores against the line saved with each guess; per-pick points match accuracy() and the leaderboard', async () => {
     const fresh = await snapshot(now - 1000);
     assert.equal(await rpc('gtl_save_weekly_ballot', { p_user: id(TROY), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 0, p_picks: full(-3), p_submit: true }), 1);
-    const troy = entry(await history(TROY), TROY, 'guess_spread');
+    const troy = entry(await history(TROY, AFTER), TROY, 'guess_spread');
     assert.deepEqual([troy.status, troy.provenance, troy.scoringPolicy, troy.revisions, troy.picksHidden, troy.weekScored, troy.games], ['submitted', 'group', 'submission-time', 0, false, 15, 15], 'submitting is not a revision');
     assert.ok(troy.submittedAt && at(troy.submittedAt) > now - HOUR);
     assert.equal(at(troy.updatedAt), at(troy.submittedAt), 'the owner sees the last change');
@@ -175,7 +181,7 @@ test('community history: every player, week and market with the line at each gue
     }
     const expected = round(troy.picks.reduce((sum, p) => sum + accuracy(p.guess, p.reference.value), 0));
     assert.equal(troy.weekPoints, expected);
-    const standings = (await read(TROY)).standings.find(x => x.userId === id(TROY) && x.mode === 'guess_spread');
+    const standings = (await read(TROY, AFTER)).standings.find(x => x.userId === id(TROY) && x.mode === 'guess_spread');
     assert.deepEqual([standings.weekPoints, standings.weekScored], [troy.weekPoints, troy.weekScored], 'the history total is the leaderboard total');
   });
 
@@ -183,7 +189,8 @@ test('community history: every player, week and market with the line at each gue
     let luke = await history(LUKE);
     assert.deepEqual(week5(luke).revealed, { guess_spread: false, guess_total: false });
     const spread = entry(luke, TROY, 'guess_spread'), total = entry(luke, TROY, 'guess_total');
-    assert.deepEqual([spread.picksHidden, spread.picks, spread.weekPoints, spread.weekScored, spread.status, at(spread.submittedAt) > 0], [true, null, 135, 15, 'submitted', true]);
+    // Totals are shared as on the leaderboard; under M-01 no game has kicked off yet, so no point counts.
+    assert.deepEqual([spread.picksHidden, spread.picks, spread.weekPoints, spread.weekScored, spread.status, at(spread.submittedAt) > 0], [true, null, PER_GAME ? 0 : 135, PER_GAME ? 0 : 15, 'submitted', true]);
     assert.deepEqual([total.picksHidden, total.picks], [true, null]);
     assert.ok(!JSON.stringify(luke).includes('"guess":'), 'no guess value anywhere in the hidden payload');
     assert.equal(entry(luke, LUKE, 'guess_spread'), undefined, 'nothing of Luke\'s yet');
@@ -193,13 +200,20 @@ test('community history: every player, week and market with the line at each gue
     assert.deepEqual(week5(luke).revealed, { guess_spread: false, guess_total: true });
     assert.deepEqual([entry(luke, TROY, 'guess_spread').picksHidden, entry(luke, TROY, 'guess_spread').picks], [true, null], 'sitting out Total reveals Total only');
     const revealed = entry(luke, TROY, 'guess_total');
-    assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.picks[0].guess, revealed.picks[0].reference.basis, revealed.picks[0].reference.value, revealed.picks[0].points], [false, 15, 44, 'line-at-guess', 44.5, accuracy(44, 44.5)]);
+    assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.picks[0].guess, revealed.picks[0].reference.basis, revealed.picks[0].reference.value, revealed.picks[0].points], [false, 15, 44, 'line-at-guess', 44.5, PER_GAME ? null : accuracy(44, 44.5)], 'under M-01 points count from kickoff');
     const own = entry(luke, LUKE, 'guess_total');
     assert.deepEqual([own.status, own.picksHidden, own.picks, own.weekPoints, own.weekScored, at(own.satOutAt)], ['sat_out', false, null, 0, 0, now], 'a sat-out week is recorded as sat out, not zero');
     const troy = await history(TROY);
     assert.deepEqual([entry(troy, TROY, 'guess_spread').picksHidden, entry(troy, SEAN, 'guess_spread').picksHidden, entry(troy, TROY, 'guess_total').picksHidden], [false, false, false], 'own submission reveals that market for everyone');
     const closed = await history(LUKE, at(state.league.deadline));
-    assert.deepEqual([week5(closed).closed, week5(closed).revealed, entry(closed, TROY, 'guess_spread').picksHidden, entry(closed, TROY, 'guess_spread').picks.length], [true, { guess_spread: true, guess_total: true }, false, 15], 'the deadline reveals every market');
+    if (PER_GAME) {
+      // M-01: the deadline opens nothing by itself; each game opens at its own kickoff (here every kickoff is after the deadline).
+      assert.deepEqual([week5(closed).closed, week5(closed).revealed, entry(closed, TROY, 'guess_spread').picksHidden, entry(closed, TROY, 'guess_spread').picks], [true, { guess_spread: false, guess_total: true }, true, null], 'the deadline alone reveals nothing');
+      const kicked = await history(LUKE, AFTER);
+      assert.deepEqual([week5(kicked).revealed, entry(kicked, TROY, 'guess_spread').picksHidden, entry(kicked, TROY, 'guess_spread').picks.length], [{ guess_spread: true, guess_total: true }, false, 15], 'the last kickoff reveals every market');
+    } else {
+      assert.deepEqual([week5(closed).closed, week5(closed).revealed, entry(closed, TROY, 'guess_spread').picksHidden, entry(closed, TROY, 'guess_spread').picks.length], [true, { guess_spread: true, guess_total: true }, false, 15], 'the deadline reveals every market');
+    }
     // A draft is the owner's alone and never scores.
     await rpc('gtl_save_weekly_ballot', { p_user: id(LUKE), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 0, p_picks: { 'TB-DAL': -7 }, p_submit: false });
     const draft = entry(await history(LUKE), LUKE, 'guess_spread');
@@ -215,7 +229,7 @@ test('community history: every player, week and market with the line at each gue
     assert.equal(await rpc('gtl_save_weekly_ballot', { p_user: id(TROY), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 1, p_picks: { ...full(-3), [gameIds[0]]: -4 }, p_submit: true }), 2);
     const audit = (await db.query('select audit from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [id(TROY), 'guess_spread'])).rows[0].audit;
     assert.deepEqual(audit.map(e => e.type), ['ballot_submitted', 'ballot_edited']);
-    const troy = entry(await history(TROY), TROY, 'guess_spread');
+    const troy = entry(await history(TROY, AFTER), TROY, 'guess_spread');
     assert.deepEqual([troy.revisions, troy.provenance, at(troy.submittedAt), at(troy.updatedAt) > at(troy.submittedAt), troy.picks[0].guess, troy.picks[0].points, troy.weekPoints],
       [1, 'group', at(before.submittedAt), true, -4, accuracy(-4, -3.5), 135]);
     // Luke has neither submitted Spread nor sat out, so Troy's Spread stays hidden; Troy's Total is revealed. Either way the fields
@@ -265,7 +279,7 @@ test('community history: every player, week and market with the line at each gue
     const { payload: ruled, summary } = buildRuledImport({ user: id(BEN), actor: id(SEAN) });
     const imported = await rpc(RULED_RPC, ruled);
     assert.deepEqual([imported.imported, imported.references], [true, 15]);
-    const luke = await history(LUKE);
+    const luke = await history(LUKE, AFTER);
     assert.equal(week5(luke).closed, true);
     const ben = entry(luke, BEN, 'guess_spread');
     assert.deepEqual([ben.status, ben.provenance, ben.scoringPolicy, ben.ruling, ben.revisions, ben.updatedAt, ben.picksHidden, at(ben.submittedAt), ben.weekPoints, ben.weekScored],
@@ -280,7 +294,7 @@ test('community history: every player, week and market with the line at each gue
     }
     assert.equal(round(ben.picks.reduce((sum, p) => sum + p.points, 0)), ben.weekPoints, 'per-pick points, rounded like accuracy(), sum to the week total');
     assert.equal(entry(luke, BEN, 'guess_total'), undefined, 'Ben has no Week 5 Total ballot: no entry, no error');
-    const standings = (await read(LUKE)).standings.find(x => x.userId === id(BEN) && x.mode === 'guess_spread');
+    const standings = (await read(LUKE, AFTER)).standings.find(x => x.userId === id(BEN) && x.mode === 'guess_spread');
     assert.deepEqual([standings.weekPoints, standings.weekScored], [37.6, 15]);
     // The migrated ballot still reads the line at its guess after the ruling, and its row is exactly as stored: nothing was backfilled.
     const troy = entry(luke, TROY, 'guess_total');
