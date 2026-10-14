@@ -167,7 +167,7 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 | `gtl_live_rules` (new) | M-01, M-02, M-07 |
 | `gtl_feed_on_ballot` | M-07 |
 | `gtl_read_social` | M-04 |
-| `gtl_odds_collection_slate`, `gtl_odds_schedule_slate` | M-05 |
+| `gtl_begin_odds_collection`, `gtl_finish_odds_collection`, `gtl_begin_submission_odds_collection` (as built in stage 22; the two slate resolvers stay unchanged) | M-05 |
 | `gtl_read_bets`, `gtl_read_bets_board` | M-10 and M-12, then M-16 |
 | `gtl_settle_virtual_units` | M-18 |
 | `gtl_like_feed` | M-21 |
