@@ -10,14 +10,14 @@ const game = { id: 'NYJ-BUF', away: 'New York Jets', home: 'Buffalo Bills', kick
 const state = { revision: 3, state: { league: { season: 2099, week: 5 }, games: [game] } };
 const snapshot = { id: '22222222-2222-4222-8222-222222222222', createdAt: observed, payload: { provider: 'the-odds-api', sport: 'americanfootball_nfl', fetchedAt: observed, games: [{ gameId: game.id, home: game.home, away: game.away, kickoff, matchStatus: 'matched', markets: { spread: { quotes: [{ provider: 'the-odds-api', providerEventId: 'event-1', book: 'draftkings', market: 'spread', value: -3.5, providerObservedAt: observed, collectedAt: observed, outcomes: { home: { line: -3.5, odds: -110 }, away: { line: 3.5, odds: -110 } } }] }, total: { quotes: [] } } }] } };
 
-function make() {
+function make({ market = snapshot, picks = [] } = {}) {
   let saved = null;
   const handler = createCloudHandler({
     authenticate: async token => token === 'token' ? user : null,
     storage: { membership: async () => ({ active: true, player_id: 'sean', role: 'commissioner' }) },
     weekly: { load: async () => state },
-    odds: { marketSnapshot: async () => snapshot },
-    virtual: { read: async () => ({ season: 2099, week: 5, revision: 3, games: [game], picks: [], summary: { wins: 0, losses: 0, pushes: 0, pending: 0, voids: 0, riskUnits: 0, netUnits: 0, roi: null, qualificationPicks: 0, qualificationUnits: 0 } }), save: async (_user, _league, revision, body) => { saved = { revision, body }; return 4; } },
+    odds: { marketSnapshot: async () => market },
+    virtual: { read: async () => ({ season: 2099, week: 5, revision: 3, games: [game], picks, summary: { wins: 0, losses: 0, pushes: 0, pending: 0, voids: 0, riskUnits: 0, netUnits: 0, roi: null, qualificationPicks: 0, qualificationUnits: 0 } }), save: async (_user, _league, revision, body) => { saved = { revision, body }; return 4; } },
     clock: () => Date.parse('2099-10-08T19:00:00.000Z'),
   });
   return { handler, getSaved: () => saved };
@@ -41,6 +41,63 @@ test('virtual units keeps a saved quote usable after it ages', async () => {
   const { handler } = make();
   const response = await handler(new Request('https://example.test/gtl-api/virtual-pick?league=sean-troy-luke', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify({ gameId: game.id, market: 'spread', side: 'away', line: 3.5, odds: -110, units: 0.5, source: 'draftkings', quotedAt: observed }) }));
   assert.equal(response.status, 200);
+});
+
+// Stage 14, D-18 best price (shared/best-offer.mjs). Fixture books and prices only.
+const spreadQuote = (book, at, homeLine, homeOdds, awayOdds) => ({ provider: 'the-odds-api', providerEventId: 'event-1', book, market: 'spread', value: homeLine, providerObservedAt: at, collectedAt: at,
+  outcomes: { home: { line: homeLine, odds: homeOdds }, away: { line: -homeLine, odds: awayOdds } } });
+const snapshotAt = (id, createdAt, quotes) => ({ id, createdAt, payload: { provider: 'the-odds-api', sport: 'americanfootball_nfl', fetchedAt: createdAt,
+  games: [{ gameId: game.id, home: game.home, away: game.away, kickoff, matchStatus: 'matched', markets: { spread: { quotes }, total: { quotes: [] } } }] } });
+// gtl_read_market_snapshot returns the latest snapshot plus its history, oldest first.
+const withHistory = (...snapshots) => ({ ...snapshots.at(-1), officialVerified: false, history: snapshots });
+const readOffers = async handler => {
+  const response = await handler(new Request('https://example.test/gtl-api/virtual-units?league=sean-troy-luke', { headers: { authorization: 'Bearer token' } }));
+  assert.equal(response.status, 200);
+  return response.json();
+};
+const place = (handler, pick) => handler(new Request('https://example.test/gtl-api/virtual-pick?league=sean-troy-luke', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify(pick) }));
+
+test('virtual units breaks a same-line tie by the better price, not the price closest to -110', async () => {
+  const at = '2099-10-08T18:00:00.000Z';
+  const { handler } = make({ market: withHistory(snapshotAt('one', at, [
+    spreadQuote('draftkings', at, -3.5, -110, -110), spreadQuote('fanduel', at, -3.5, 100, -120), spreadQuote('betmgm', at, -3.5, -115, -105)])) });
+  const { spread } = (await readOffers(handler)).games[0].offers;
+  assert.deepEqual([spread.home.book, spread.home.source, spread.home.line, spread.home.odds, spread.home.observedAt], ['fanduel', 'FanDuel', -3.5, 100, at]);
+  assert.deepEqual([spread.away.book, spread.away.line, spread.away.odds], ['betmgm', 3.5, -105]);
+});
+
+test('a book missing from the latest snapshot is offered at its newest retained quote, saved picks keep their terms, and only the offered quote saves', async () => {
+  const early = '2099-10-08T12:00:00.000Z', middle = '2099-10-08T14:00:00.000Z', late = '2099-10-08T16:00:00.000Z';
+  const market = withHistory(
+    snapshotAt('early', early, [spreadQuote('betmgm', early, -2.5, -110, -110)]),
+    snapshotAt('middle', middle, [spreadQuote('betmgm', middle, -4, -110, -110)]),
+    snapshotAt('late', late, [spreadQuote('draftkings', late, -3.5, -110, -110)]));
+  const savedPick = { gameId: game.id, market: 'spread', status: 'pending', selection: { side: 'away', line: 2.5, odds: -110, units: 1, source: 'BetMGM', quotedAt: early } };
+  const { handler, getSaved } = make({ market, picks: [savedPick] });
+  const body = await readOffers(handler);
+  const { spread } = body.games[0].offers;
+  // BetMGM's newest quote is -4 (away +4), not its oldest -2.5 (away +2.5).
+  assert.deepEqual([spread.away.book, spread.away.line, spread.away.observedAt], ['betmgm', 4, middle]);
+  assert.deepEqual([spread.home.book, spread.home.line, spread.home.observedAt], ['draftkings', -3.5, late]);
+  assert.deepEqual(body.games[0].consensus.spread, { value: -3.75, source: 'Latest retained named-book median', books: 2, observedAt: middle });
+  assert.deepEqual(body.picks, [savedPick], 'a saved pick keeps its own line, odds, book and time');
+  const stale = await place(handler, { gameId: game.id, market: 'spread', side: 'away', line: 2.5, odds: -110, units: 1, source: 'betmgm', quotedAt: early });
+  assert.equal(stale.status, 409);
+  assert.equal(getSaved(), null);
+  const fresh = await place(handler, { gameId: game.id, market: 'spread', side: 'away', line: 4, odds: -110, units: 1, source: 'betmgm', quotedAt: middle });
+  assert.equal(fresh.status, 200);
+  assert.deepEqual(getSaved().body, { gameId: game.id, market: 'spread', side: 'away', line: 4, odds: -110, units: 1, source: 'BetMGM', quotedAt: middle });
+});
+
+test('a quote observed at or after kickoff never becomes the offer; the book keeps its last quote before kickoff', async () => {
+  const before = '2099-10-08T18:00:00.000Z', after = '2099-10-08T20:05:00.000Z';
+  const market = withHistory(
+    snapshotAt('before', before, [spreadQuote('draftkings', before, -3.5, -105, -115), spreadQuote('fanduel', before, -3.5, -110, -110)]),
+    snapshotAt('after', after, [spreadQuote('fanduel', kickoff, -3.5, 150, -200), spreadQuote('draftkings', after, -3, -110, -110)]));
+  const { handler } = make({ market });
+  const { spread } = (await readOffers(handler)).games[0].offers;
+  assert.deepEqual([spread.home.book, spread.home.odds, spread.home.observedAt], ['draftkings', -105, before]);
+  assert.deepEqual([spread.away.book, spread.away.odds, spread.away.observedAt], ['fanduel', -110, before]);
 });
 
 // D-26 commissioner-only settlement route. The same admin check the community

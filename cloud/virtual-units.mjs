@@ -1,3 +1,4 @@
+import { bestOffer, newestPerBook } from '../shared/best-offer.mjs';
 import { settleVirtualUnitsWeek } from './virtual-settlement.mjs';
 
 const MARKETS = new Set(['spread','total']);
@@ -32,9 +33,11 @@ function validateBody(body) {
   return { ...body, line: Number(body.line), odds: Number(body.odds), units: Number(body.units), source: BOOKS[body.source] || body.source, quotedAt: iso(body.quotedAt) };
 }
 
+// Each book's newest retained quote (shared/best-offer.mjs): a book missing from
+// the latest snapshot keeps its newest older quote, never its oldest.
 function latestQuotes(snapshot, game, market) {
   const sources = [snapshot, ...(Array.isArray(snapshot?.history) ? snapshot.history : [])];
-  const byBook = new Map();
+  const candidates = [];
   for (const item of sources) {
     const captured = Date.parse(item?.createdAt);
     const row = item?.payload?.games?.find(candidate => candidate?.gameId === game.id && candidate.home === game.home && candidate.away === game.away && Date.parse(candidate.kickoff) === Date.parse(game.kickoff));
@@ -43,19 +46,18 @@ function latestQuotes(snapshot, game, market) {
       if (!Number.isFinite(captured) || !observed || !collected || quote.provider !== 'the-odds-api' || !BOOKS[quote.book] || quote.market !== market || Date.parse(observed) > Date.parse(collected) || Date.parse(collected) > captured || Date.parse(observed) >= Date.parse(game.kickoff)) continue;
       const outcome = quote.outcomes?.[market === 'spread' ? 'home' : 'over'];
       if (!outcome || !point(Number(quote.value), market) || !odds(Number(outcome.odds))) continue;
-      if (!byBook.has(quote.book)) byBook.set(quote.book, { book: quote.book, source: BOOKS[quote.book], value: Number(quote.value), outcomes: quote.outcomes, observedAt: observed, collectedAt: collected });
+      candidates.push({ book: quote.book, source: BOOKS[quote.book], value: Number(quote.value), outcomes: quote.outcomes, observedAt: observed, collectedAt: collected, capturedAt: item.createdAt });
     }
   }
-  return [...byBook.values()];
+  return newestPerBook(candidates, game.kickoff).map(({ capturedAt, ...quote }) => quote);
 }
 
+// D-18 order (shared/best-offer.mjs): best line, then better price by decimal
+// payout, then newest observation, then book key A to Z.
 function bestOffers(game, snapshot) {
   return Object.fromEntries(['spread','total'].map(market => {
     const quotes = latestQuotes(snapshot, game, market);
-    const offers = Object.fromEntries([...(market === 'spread' ? ['home','away'] : ['over','under'])].map(side => [side, quotes.map(q => ({ ...q, side, line: Number(q.outcomes[side].line), odds: Number(q.outcomes[side].odds) })).filter(q => point(q.line, market) && odds(q.odds)).sort((a,b) => {
-      const line = market === 'spread' ? b.line - a.line : side === 'over' ? a.line - b.line : b.line - a.line;
-      return line || (Math.abs(a.odds - (-110)) - Math.abs(b.odds - (-110))) || Date.parse(b.observedAt) - Date.parse(a.observedAt) || a.book.localeCompare(b.book);
-    }).slice(0,1)[0] || null]));
+    const offers = Object.fromEntries((market === 'spread' ? ['home','away'] : ['over','under']).map(side => [side, bestOffer(quotes.map(q => ({ ...q, side, line: Number(q.outcomes?.[side]?.line), odds: Number(q.outcomes?.[side]?.odds) })).filter(q => point(q.line, market) && odds(q.odds)), market, side)]));
     return [market, offers];
   }));
 }
