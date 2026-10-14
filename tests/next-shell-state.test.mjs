@@ -27,14 +27,14 @@ test('a place from the address starts on its tab, with its view and layer', () =
   assert.equal(initialState({ tab: 'play', view: { market: 'total' } }).views.play.market, 'total');
   const groups = initialState({ tab: 'home', layer: { id: 'sh.switcher' } });
   assert.equal(groups.tab, 'home');
-  assert.deepEqual(groups.sheets, [{ id: 'sh.switcher' }]);
+  assert.deepEqual(groups.sheets, [{ id: 'sh.switcher', key: 1 }]);
   assert.equal(initialState({ tab: 'league', view: { view: 'feed' } }).views.league.view, 'feed');
   // Anything else starts on Home.
   for (const place of [null, {}, { tab: 'menu' }, { tab: 'Play' }, 'play']) assert.equal(initialState(place).tab, 'home');
   assert.deepEqual(initialState({ tab: 'home', layer: { id: 'nope' } }).sheets, []);
 });
 
-test('layer ids name their kind by prefix, and args may not use "id"', () => {
+test('layer ids name their kind by prefix, and args may not use "id" or "key"', () => {
   assert.deepEqual(LAYER_KINDS, ['sheet', 'dialog', 'popover', 'overlay', 'page']);
   assert.deepEqual(['sh.menu', 'dlg.sitOut', 'pop.reactions', 'ov.flash', 'page.settings'].map(layerKind), LAYER_KINDS);
   for (const bad of ['menu', 'sh.', '.menu', 'tab.home', 'sheet.menu', '', null, 4]) assert.equal(layerKind(bad), null, String(bad));
@@ -42,6 +42,7 @@ test('layer ids name their kind by prefix, and args may not use "id"', () => {
   assert.deepEqual(layer('sh.menu'), { id: 'sh.menu' });
   assert.throws(() => layer('menu'), /Not a layer id/);
   assert.throws(() => layer('sh.game', { id: 'g1' }), /may not use "id"/);
+  assert.throws(() => layer('ov.flash', { key: 3 }), /may not use "key"/);
   assert.throws(() => layer('sh.game', ['g1']), /plain object/);
 });
 
@@ -84,10 +85,14 @@ test('sheets are one stack; a sub-view changes the top sheet in place; replace s
   assert.deepEqual(state.sheets.map(s => s.id), ['sh.game', 'sh.everyone']);
   assert.equal(topSheet(state).id, 'sh.everyone');
   state = reduce(state, { type: 'sheetArgs', patch: { sub: 'game', game: 'g1' } });
-  assert.deepEqual(topSheet(state), { id: 'sh.everyone', market: 'spread', sub: 'game', game: 'g1' });
+  assert.deepEqual(topSheet(state), { id: 'sh.everyone', market: 'spread', sub: 'game', game: 'g1', key: 2 }, 'it keeps its key');
   assert.equal(reduce(state, { type: 'sheetArgs', patch: { id: 'sh.other' } }), state, 'a patch cannot rename the sheet');
+  assert.equal(reduce(state, { type: 'sheetArgs', patch: { key: 1 } }), state, 'or change its key');
+  // A replace with the same id keeps the key (the host keeps drawing it); another sheet gets a new one.
+  assert.equal(topSheet(reduce(state, { type: 'replaceSheet', layer: layer('sh.everyone', { market: 'total' }) })).key, 2);
   state = reduce(state, { type: 'replaceSheet', layer: layer('sh.whosIn', { market: 'total' }) });
   assert.deepEqual(state.sheets.map(s => s.id), ['sh.game', 'sh.whosIn']);
+  assert.deepEqual(state.sheets.map(s => s.key), [1, 3]);
   state = reduce(state, { type: 'close', kind: 'sheet' });
   assert.deepEqual(state.sheets.map(s => s.id), ['sh.game']);
   // Opening a sheet closes the dialog and popover; closing one closes the popover.
@@ -132,6 +137,36 @@ test('overlays queue and show one at a time, never over a dialog; toasts never s
   assert.ok(modalOpen(reduce(state, { type: 'close', kind: 'dialog' })), 'the overlay it held now shows');
   assert.ok(modalOpen(reduce(start(), sheet('sh.menu'))));
   assert.equal(modalOpen(run(start(), sheet('pop.reactions', { post: 'p1' }), { type: 'open', layer: layer('page.settings') })), false);
+});
+
+test('each opening has its own key; a close that names one closes that layer wherever it is, and a stale one nothing', () => {
+  // A layer that fails closes itself by its key (LayerHosts.jsx): a sheet hidden under another, not the top one.
+  let state = run(start(), sheet('sh.game', { game: 'g1' }), sheet('sh.everyone', { market: 'total' }), sheet('pop.reactions', { post: 'p1' }));
+  const [lower, top] = state.sheets;
+  assert.equal(new Set([lower.key, top.key, state.popover.key]).size, 3);
+  let next = reduce(state, { type: 'close', kind: 'sheet', key: lower.key });
+  assert.deepEqual(next.sheets, [top], 'the sheet showing stays');
+  assert.equal(next.popover, state.popover, 'with its popover');
+  assert.equal(modalOpen(next), true);
+  assert.equal(reduce(next, { type: 'close', kind: 'sheet', key: lower.key }), next, 'a stale close does nothing');
+  next = reduce(state, { type: 'close', kind: 'sheet', key: top.key });
+  assert.deepEqual([next.sheets, next.popover], [[lower], null], 'the top one closes with its popover');
+  assert.equal(modalOpen(reduce(next, { type: 'close', kind: 'sheet', key: lower.key })), false, 'the last one leaves nothing over the frame');
+  assert.equal(reduce(state, { type: 'close', kind: 'popover', key: state.popover.key + 99 }), state);
+  assert.equal(reduce(state, { type: 'close', kind: 'popover', key: state.popover.key }).popover, null);
+  // A dialog: a close for an earlier opening leaves the one open now.
+  state = reduce(state, sheet('dlg.sitOut', { from: 'play' }));
+  const first = state.dialog.key;
+  state = reduce(state, sheet('dlg.pass', { challenge: 'c1' }));
+  assert.equal(reduce(state, { type: 'close', kind: 'dialog', key: first }), state);
+  assert.equal(reduce(state, { type: 'close', kind: 'dialog', key: state.dialog.key }).dialog, null);
+  // Overlays: one queued behind the one showing can close by its key too.
+  state = run(start(), sheet('ov.flash', { kind: 'bullseye' }), sheet('ov.newResults', { rows: [] }));
+  const [showing, queued] = state.overlays;
+  next = reduce(state, { type: 'close', kind: 'overlay', key: queued.key });
+  assert.deepEqual(next.overlays, [showing]);
+  assert.equal(reduce(next, { type: 'close', kind: 'overlay', key: queued.key }), next);
+  assert.deepEqual(reduce(state, { type: 'close', kind: 'overlay' }).overlays, [queued], 'without a key, the one showing');
 });
 
 test('closeTop is Escape and Back: overlay, popover, dialog, the top sheet, then the page', () => {

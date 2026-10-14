@@ -127,6 +127,11 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       },
       closeOverlay: key => dispatch({ type: 'close', kind: 'overlay', key }),
       closeTop: () => dispatch({ type: 'closeTop' }),
+      /** Closes one opening of a sheet, dialog, popover or overlay by its key, wherever it is (a layer that fails). */
+      closeLayer: (id, key) => {
+        const kind = layerKind(id);
+        if (kind && kind !== 'page' && key !== undefined) dispatch({ type: 'close', kind, key });
+      },
       toast,
       dismissToast: key => dispatch({ type: 'dismissToast', key }),
       toOldApp: () => switchApp('classic'),

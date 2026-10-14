@@ -1,9 +1,9 @@
 // Redesign stage 10: a test-only harness for tests/cloud-browser/next-shell.spec.js. The spec bundles this file with
 // Vite in memory and serves it from a fake origin; it never ships in the app. It mounts the real Shell (web/src/next/
 // shell) inside the real ThemeProvider, with the real registry plus test screens and layers that exercise what the
-// stage 10 tabs do not use yet: a dock bar, a tab that throws, a layer that throws, a dialog whose onClose may refuse,
-// an in-place sub-view whose control removes itself, a popover, an overlay and a page. No account, data or network;
-// fictional names only.
+// stage 10 tabs do not use yet: a dock bar, a tab that throws, layers that throw (on open, or later while hidden
+// under another sheet), a dialog whose onClose may refuse, an in-place sub-view whose control removes itself, a
+// popover, an overlay and a page. No account, data or network; fictional names only.
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../../../web/src/styles.css';
@@ -30,6 +30,7 @@ function TestHome() {
       <div className="gx-vstack gx-gap-8">
         <Button onClick={() => shell.openSheet('sh.test')}>Open the test sheet</Button>
         <Button onClick={() => shell.openSheet('sh.broken')}>Open a broken sheet</Button>
+        <Button onClick={() => shell.openSheet('sh.fragile')}>Open a fragile sheet</Button>
         <Button onClick={() => shell.openDialog('dlg.busy')}>Open the busy dialog</Button>
         <Button onClick={() => shell.showOverlay('ov.test', { title: 'Bullseye' })}>Show an overlay</Button>
         <Button onClick={() => shell.openPopover('pop.test')}>Open a popover</Button>
@@ -86,6 +87,19 @@ function TestSheet({ args }) {
 function BrokenSheet() {
   throw new Error('This sheet failed on purpose.');
 }
+/**
+ * Draws until the spec sets window.__breakFragile, then throws the next time the shell draws it: every sheet in the
+ * stack draws again on each change to the shell's state, so it can fail while hidden under another (a data refresh).
+ */
+function FragileSheet() {
+  const shell = useShell();
+  if (window.__breakFragile) throw new Error('This sheet failed on purpose, under another.');
+  return (
+    <Sheet title="Fragile sheet" onClose={shell.closeSheet}>
+      <Button onClick={() => shell.openSheet('sh.test')}>Open the test sheet</Button>
+    </Sheet>
+  );
+}
 
 /** Its onClose refuses unless the spec allows it (a save still running), and counts every call. */
 function BusyDialog({ open }) {
@@ -133,7 +147,7 @@ function TestPage({ args }) {
 }
 
 const screens = { ...SCREENS, home: TestHome, play: TestPlay };
-const layers = { ...LAYERS, 'sh.test': TestSheet, 'sh.broken': BrokenSheet, 'dlg.busy': BusyDialog, 'ov.test': TestOverlay, 'pop.test': TestPopover, 'page.test': TestPage };
+const layers = { ...LAYERS, 'sh.test': TestSheet, 'sh.broken': BrokenSheet, 'sh.fragile': FragileSheet, 'dlg.busy': BusyDialog, 'ov.test': TestOverlay, 'pop.test': TestPopover, 'page.test': TestPage };
 const session = { user: { id: 'acct-3', email: 'casey@example.test', user_metadata: { full_name: 'Casey Moore' } } };
 async function onSignOut() {
   record('sign-out');

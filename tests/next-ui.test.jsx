@@ -552,12 +552,18 @@ describe('Sheet, Dialog, Toast, Overlay', () => {
     const input = one(node, n => n.tag === 'input');
     expect(input.attrs).toMatchObject({ type: 'checkbox', role: 'switch', class: 'gx-switch-input' });
     expect('checked' in input.attrs).toBe(true);
-    expect(nameFrom(one(node, n => n.attrs.id === input.attrs['aria-describedby']))).toBe("Your phone's setting also counts.");
+    // Its name is its words alone: the label wraps the meta line too, which would join the name and be read twice.
+    const byId = id => one(node, n => n.attrs.id === id);
+    expect(input.attrs['aria-labelledby'].trim().split(/\s+/)).toHaveLength(1);
+    expect(nameFrom(byId(input.attrs['aria-labelledby']))).toBe('Reduce motion');
+    expect(nameFrom(byId(input.attrs['aria-describedby']))).toBe("Your phone's setting also counts.");
     expect(one(node, byClass('gx-switch')).attrs['aria-hidden']).toBe('true');
     expect(text(node)).toContain('Reduce motion');
-    const plain = one(<Switch label="Pick reminders"/>, n => n.tag === 'input');
+    const plainNode = <Switch label="Pick reminders"/>;
+    const plain = one(plainNode, n => n.tag === 'input');
     expect('checked' in plain.attrs).toBe(false);
     expect(plain.attrs['aria-describedby']).toBeUndefined();
+    expect(nameFrom(one(plainNode, n => n.attrs.id === plain.attrs['aria-labelledby']))).toBe('Pick reminders');
     clean(node);
   });
 

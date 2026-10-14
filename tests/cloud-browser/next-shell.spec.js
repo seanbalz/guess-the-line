@@ -503,6 +503,34 @@ test.describe('the shell harness', () => {
     await expect(page.locator('.gx-app')).not.toHaveAttribute('inert', '');
   });
 
+  test('a sheet that fails while hidden under another closes itself; the sheet showing stays and the frame is not left inert', async ({ page }) => {
+    const { errors } = await harness(page);
+    await page.getByRole('button', { name: 'Open a fragile sheet' }).click();
+    await sheet(page, 'Fragile sheet').getByRole('button', { name: 'Open the test sheet' }).click();
+    const top = sheet(page, 'Test sheet');
+    await expect(top).toBeFocused();
+    await top.evaluate(node => { node.dataset.probe = 'same'; });
+    // The next change to the shell's state draws every sheet again, and the hidden one under the top one throws.
+    await page.evaluate(() => { window.__breakFragile = true; });
+    await top.getByRole('button', { name: 'Show the detail' }).click();
+    await expect(page.locator('.gx-toast')).toContainText('That couldn’t open.');
+    await expect(page.locator('.gx-toast').getByRole('button', { name: OLD })).toBeVisible();
+    const detail = sheet(page, 'Detail');
+    await expect(detail, 'the sheet the member was using stays').toBeVisible();
+    await expect(detail, 'and is not drawn again from scratch').toHaveAttribute('data-probe', 'same');
+    expect(await inside(page, '.gx-sheet')).toBe(true);
+    await expect(page.getByRole('dialog')).toHaveCount(1);
+    expect(await page.locator('.gx-layer--sheet').count(), 'the failed sheet left the stack').toBe(1);
+    // Closing it leaves nothing over the frame.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.locator('.gx-app')).not.toHaveAttribute('inert', '');
+    await expect(title(page, 'Shell harness')).toBeVisible();
+    await page.getByRole('button', { name: 'Open the test sheet' }).click();
+    await expect(sheet(page, 'Test sheet')).toBeFocused();
+    expect(errors.filter(e => !/failed on purpose/.test(e))).toEqual([]);
+  });
+
   test('Back closes the top layer of each kind: page, popover, overlay; Escape too, and focus comes back', async ({ page }) => {
     await harness(page);
     await page.getByRole('button', { name: 'Open a page' }).click();
@@ -560,6 +588,9 @@ test.describe('the shell harness', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     expect(await page.evaluate(() => localStorage.getItem('gtl.theme'))).toBe('light');
     const motion = page.getByRole('switch', { name: 'Reduce motion' });
+    // Named by its words alone and described by its meta line, so a screen reader reads each once.
+    await expect(motion).toHaveAccessibleName('Reduce motion');
+    await expect(motion).toHaveAccessibleDescription('Your device’s own setting also stops motion.');
     await motion.check();
     await expect(page.locator('.gx').first()).toHaveAttribute('data-motion', 'reduce');
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('gtl.dashboard.preferences.v1')).motion)).toBe('reduced');

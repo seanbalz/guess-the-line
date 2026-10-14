@@ -7,7 +7,10 @@
 //   never reads it. Tapping a tab closes every sheet, dialog, popover and page and shows that tab as it was; tapping
 //   the tab already showing closes its page (the frame scrolls to the top when there is none).
 // - Layers are named by id, and the id's prefix says which kind: `sh.` sheet, `dlg.` dialog, `pop.` popover, `ov.`
-//   overlay, `page.` page. Their args are plain values and may not use the key `id`, which is the layer id.
+//   overlay, `page.` page. Their args are plain values and may not use the keys `id` (the layer id) or `key`.
+// - Every sheet, dialog, popover and overlay that opens gets its own `key`, which the hosts draw it by. A close that
+//   names a key closes that one, wherever it is (a layer that fails closes itself, even under another sheet), and does
+//   nothing once it is gone. A sheet keeps its key through a sub-view, and through a replace with the same id.
 // - Sheets are one stack (only the top one shows; a sub-view changes the top sheet's args in place). One dialog,
 //   one popover and one page at a time. Overlays are a queue: the first shows, but never over a dialog. Toasts are a
 //   queue too: the first shows, never over an overlay.
@@ -28,15 +31,20 @@ export function layerKind(id) {
   return dot > 0 && dot < id.length - 1 ? KINDS[id.slice(0, dot)] ?? null : null;
 }
 
+/** True for args or a patch that use a name the shell keeps for itself: `id` (the layer id) or `key` (its opening). */
+const usesReserved = args => Object.hasOwn(args, 'id') || Object.hasOwn(args, 'key');
+
 /**
  * A layer record `{ ...args, id }`. Throws a TypeError for an id that names no layer kind, args that are not a plain
- * object, or args that use `id` (the layer id): these are programming errors, caught where the call is made.
+ * object, or args that use `id` (the layer id) or `key` (the shell keys each opening): these are programming errors,
+ * caught where the call is made.
  */
 export function layer(id, args = {}) {
   if (!layerKind(id)) throw new TypeError(`Not a layer id: ${String(id)}`);
   if (args === null || args === undefined) args = {};
   if (!isRecord(args)) throw new TypeError(`Layer args for ${id} must be a plain object.`);
   if (Object.hasOwn(args, 'id')) throw new TypeError(`Layer args for ${id} may not use "id"; it is the layer id.`);
+  if (Object.hasOwn(args, 'key')) throw new TypeError(`Layer args for ${id} may not use "key"; the shell keys each opening.`);
   return { ...args, id };
 }
 
@@ -96,40 +104,51 @@ export function reduce(state, action) {
       const kind = layerKind(action.layer?.id);
       if (!kind) return state;
       const record = { ...action.layer };
-      if (kind === 'sheet') return { ...state, sheets: [...state.sheets, record], dialog: null, popover: null };
-      if (kind === 'popover') return { ...state, popover: record };
       if (kind === 'page') return { ...state, ...closed, page: record };
-      // Dialogs and overlays carry a key per opening, so the host draws each opening afresh.
+      // Every other opening carries its own key: the hosts draw each one by it, and a close can name it.
       const seq = state.seq + 1;
       const shown = { ...record, key: seq };
+      if (kind === 'sheet') return { ...state, seq, sheets: [...state.sheets, shown], dialog: null, popover: null };
+      if (kind === 'popover') return { ...state, seq, popover: shown };
       if (kind === 'dialog') return { ...state, seq, dialog: shown, popover: null };
       return { ...state, seq, overlays: action.front ? [shown, ...state.overlays] : [...state.overlays, shown] };
     }
     case 'replaceSheet': {
       if (layerKind(action.layer?.id) !== 'sheet') return state;
-      return { ...state, sheets: [...state.sheets.slice(0, -1), { ...action.layer }], dialog: null, popover: null };
+      // The same id keeps its key (the host keeps drawing it, as a sub-view does); another sheet gets a new one.
+      const top = topSheet(state);
+      const seq = top?.id === action.layer.id ? state.seq : state.seq + 1;
+      const key = top?.id === action.layer.id ? top.key : seq;
+      return { ...state, seq, sheets: [...state.sheets.slice(0, -1), { ...action.layer, key }], dialog: null, popover: null };
     }
     case 'sheetArgs': {
       const top = topSheet(state);
-      if (!top || !isRecord(action.patch) || Object.hasOwn(action.patch, 'id')) return state;
+      if (!top || !isRecord(action.patch) || usesReserved(action.patch)) return state;
       return { ...state, sheets: [...state.sheets.slice(0, -1), { ...top, ...action.patch, id: top.id }] };
     }
     case 'pageArgs': {
-      if (!state.page || !isRecord(action.patch) || Object.hasOwn(action.patch, 'id')) return state;
+      if (!state.page || !isRecord(action.patch) || usesReserved(action.patch)) return state;
       return { ...state, page: { ...state.page, ...action.patch, id: state.page.id } };
     }
     case 'close': {
+      // With a key, only that opening closes, wherever it is; a stale call for one already gone does nothing.
+      const named = action.key !== undefined;
       switch (action.kind) {
-        case 'sheet': return state.sheets.length ? { ...state, sheets: state.sheets.slice(0, -1), popover: null } : state;
+        case 'sheet': {
+          const at = named ? state.sheets.findIndex(sheet => sheet.key === action.key) : state.sheets.length - 1;
+          if (at < 0) return state;
+          // The popover belongs to the sheet showing: it closes with that one only.
+          const top = at === state.sheets.length - 1;
+          return { ...state, sheets: state.sheets.filter((_, index) => index !== at), popover: top ? null : state.popover };
+        }
         case 'sheets': return state.sheets.length || state.dialog || state.popover ? { ...state, sheets: [], dialog: null, popover: null } : state;
-        case 'dialog': return state.dialog ? { ...state, dialog: null } : state;
-        case 'popover': return state.popover ? { ...state, popover: null } : state;
+        case 'dialog': return state.dialog && (!named || state.dialog.key === action.key) ? { ...state, dialog: null } : state;
+        case 'popover': return state.popover && (!named || state.popover.key === action.key) ? { ...state, popover: null } : state;
         case 'page': return state.page ? { ...state, ...closed } : state;
         case 'overlay': {
-          if (!state.overlays.length) return state;
-          // Only the overlay showing closes; a stale call for one already gone does nothing.
-          if (action.key !== undefined && state.overlays[0].key !== action.key) return state;
-          return { ...state, overlays: state.overlays.slice(1) };
+          // Without a key, the one showing.
+          const overlays = named ? state.overlays.filter(overlay => overlay.key !== action.key) : state.overlays.slice(1);
+          return overlays.length === state.overlays.length ? state : { ...state, overlays };
         }
         default: return state;
       }
