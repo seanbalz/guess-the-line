@@ -111,6 +111,30 @@ test('the second gate: another member\'s number passes only when locked in and o
   }
 });
 
+test('the second gate on scores: none before kickoff, even on a game open to the viewer; none for a guess not locked in, even the viewer\'s own', async () => {
+  // What a wrong provider could send: scores on a game that is open to the viewer (he locked it in) but has not kicked off,
+  // and scores on the viewer's own draft of a game that has kicked off. The database sends neither; the route drops both.
+  const scores = { error: 1, points: 8, rank: 1, tied: true, closest: true };
+  const forged = { ...reply(), games: [
+    { gameId: 'NE-NYJ', kickoff: '2026-10-18T20:05:00+00:00', started: false, open: true, rows: [
+      { ...ROW, userId: VIEWER, status: 'in', lockedIn: true, eligible: true, pick: 41.5, ...scores },
+      { ...ROW, userId: OTHER, status: 'in', lockedIn: true, eligible: true, pick: 43.5, ...scores },
+    ] },
+    { gameId: 'GB-CHI', kickoff: '2026-10-18T17:00:00+00:00', started: true, open: true, rows: [
+      { ...ROW, userId: VIEWER, status: 'not_yet', pick: 45.5, ...scores },
+      { ...ROW, userId: OTHER, status: 'in', lockedIn: true, eligible: true, pick: 47.5, error: 2, points: 6, rank: 1, closest: true },
+    ] },
+  ] };
+  const service = { rpc: async () => forged };
+  const result = await handleCommunity({ route: '/community/picks', body: { mode: 'guess_total' }, user, service, clock: () => Date.parse(NOW) });
+  const [early, kicked] = result.games;
+  assert.deepEqual([early.started, early.open, kicked.started, kicked.open], [false, true, true, true]);
+  assert.deepEqual(early.rows[0], { ...ROW, userId: VIEWER, status: 'in', lockedIn: true, eligible: true, pick: 41.5 }, 'his own locked-in guess, no score before kickoff');
+  assert.deepEqual(early.rows[1], { ...ROW, userId: OTHER, status: 'in', lockedIn: true, eligible: true, pick: 43.5 }, 'another locked-in guess shows on an open game, with no score before kickoff');
+  assert.deepEqual(kicked.rows[0], { ...ROW, userId: VIEWER, pick: 45.5 }, 'his own draft shows, and never scores');
+  assert.deepEqual(kicked.rows[1], { ...ROW, userId: OTHER, status: 'in', lockedIn: true, eligible: true, pick: 47.5, error: 2, points: 6, rank: 1, closest: true }, 'a locked-in guess scores from kickoff');
+});
+
 test('before "apply M-08" the route answers 503 "not available right now"; other community RPCs answer exactly as before', async () => {
   const off = providerCommunityError('GTL_FEATURE_OFF');
   assert.deepEqual([off.status, off.message], [503, 'This feature is not available right now.']);

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import { pickSpread, expectPick, expectPickEnabled } from '../chip-entry.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, sendBallot, signIn } from './community-world.mjs';
@@ -101,6 +102,55 @@ for (const width of [390, 1280]) test(`group ballot at ${width}px: an edit refus
     expect(await storedSpread(db)).toEqual(sent);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/previews/sent-final-refusal-group-${width}.png`, fullPage: true });
+    expect(errors).toEqual([]);
+  } finally { await db.close(); }
+});
+
+// Review follow-up (stage 15, D-39): the per-game wiring of Community Picks' chips. With M-02 applied, Luke locks in one Spread game
+// on its own (as the new app will, through /personal/ballot's lockIn) and keeps the other game a draft. The locked-in game is
+// read-only; the draft game's chips still work, the save bar stays and nothing says "Submitted". The other final-rule specs cover
+// only a market with every game locked in, where the whole screen is read-only either way.
+test('Community Picks at 390px: a game locked in on its own is read-only, and the rest of the market stays a draft', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true });
+  const { db, errors, state } = world, [first, second] = state.games.map(g => g.id), { season, week } = state.league;
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const workspace = await world.api('luke', 'personal');
+    const saved = await world.api('luke', 'personal/ballot', { season, week, mode: 'guess_spread', picks: { [first]: -3, [second]: 2.5 }, lockIn: [first], submit: false,
+      revision: workspace.body.revision, weeklyRevision: workspace.body.weeklyRevision, requestId: randomUUID() });
+    expect(saved.status, JSON.stringify(saved.body)).toBe(200);
+    const stored = async () => (await db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'", [luke.id])).rows[0].ballot;
+    const before = await stored();
+    expect([Object.keys(before.lockedAt ?? {}), before.submittedAt ?? null]).toEqual([[first], null]);
+
+    await signIn(page, 'luke');
+    await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: /^Picks/ }).click();
+    const spread = page.getByRole('group', { name: 'Market' }).getByRole('button', { name: /^Spread/ });
+    await spread.click();
+    await expect(spread).toHaveAttribute('aria-pressed', 'true');
+    const [locked, draft] = [page.locator('.week-pick').nth(0), page.locator('.week-pick').nth(1)];
+    await expect(locked.locator('.chip-summary')).toHaveText('Cowboys −3');
+    for (const chip of await locked.locator('.team-chip, .number-chip').all()) await expect(chip).toBeDisabled();
+    const draftChips = draft.locator('.team-chip, .number-chip');
+    expect(await draftChips.count()).toBeGreaterThan(0);
+    for (const chip of await draftChips.all()) await expect(chip).toBeEnabled();
+    await expect(page.locator('.save-bar')).toBeVisible();
+    const header = page.locator('.week-picks > p.muted');
+    await expect(header).toContainText('2/2 picked');
+    await expect(header).not.toContainText('Submitted');
+
+    // The draft game still changes and saves; the locked-in game keeps its pick and its lock-in time.
+    const summary = await draft.locator('.chip-summary').innerText();
+    await draft.locator('.number-chip:not([aria-checked="true"])').first().click();
+    await expect(draft.locator('.chip-summary')).not.toHaveText(summary);
+    await page.getByRole('button', { name: 'Save draft', exact: true }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
+    const after = await stored();
+    expect([after.picks[first], after.lockedAt, after.submittedAt ?? null]).toEqual([-3, before.lockedAt, null]);
+    expect(after.picks[second]).not.toBe(2.5);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });

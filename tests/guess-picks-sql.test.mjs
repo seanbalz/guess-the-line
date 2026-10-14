@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ALL, MIGRATIONS_DIR, NOT_HOSTED, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, id as fixtureId, pgliteAvailable } from './cloud-browser/community-world.mjs';
-import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
+import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS } from './helpers/leak-scan.mjs';
 import { sendBallot, serviceSql, storeLines } from './helpers/guess-week.mjs';
 import { catalog, parseFunctions, readMigrations, topLevel } from '../scripts/migration-functions.mjs';
 import { accuracy } from '../server/domain.mjs';
@@ -42,6 +42,10 @@ test('M-08 is a repo file the hosted project does not have yet; it adds one func
   assert.deepEqual(statements.map(s => s.split(/\s+/).slice(0, 2).join(' ').toLowerCase()), ['create or', 'revoke all', 'grant execute']);
   // M-01's helpers come first in filename order (Gate M step 1; build plan section 5 rule 3).
   assert.ok(ALL.indexOf('20261014223000_gtl_guess_gate_per_game.sql') < ALL.indexOf(MIGRATION));
+  // The apply record that takes M-08 out of NOT_HOSTED (Gate M step 8) puts /community/picks into the leak scan's READERS in
+  // the same change, as M-09's did for /personal/notes; until then this suite scans the route on ALL itself.
+  assert.equal(READERS.some(([route]) => route === '/community/picks'), !NOT_HOSTED.includes(version(MIGRATION)),
+    'a hosted M-08 needs /community/picks in READERS (tests/helpers/leak-scan.mjs), and an unapplied one stays out of the HOSTED scans');
 });
 
 test('everyone\'s picks (M-08): per game and market through M-01\'s gate; statuses; error, points, shared rank and closest from kickoff; no leak', { skip }, async t => {
@@ -308,6 +312,15 @@ test('everyone\'s picks (M-08): per game and market through M-01\'s gate; status
     // Hidden from a viewer who has not opened the game, the late row still carries no number.
     const finn = await raw('finn', 'guess_total', NOW);
     assert.deepEqual(row(finn, 0, 'troy'), { ...blank('troy'), status: 'late', lockedIn: true, eligible: true, late, hidden: true });
+    // A Late marker on a ballot with nothing locked in (Luke's Spread draft) shows nowhere, not even to its owner: `late` and
+    // the 'late' status belong to a locked-in guess only.
+    await db.query("update public.gtl_weekly_ballots set ballot=ballot||jsonb_build_object('late',$1::jsonb) where user_id=$2 and season=$3 and week=$4 and mode='guess_spread'",
+      [late, uid('luke'), season, week]);
+    for (const viewer of ['luke', 'troy', 'sean']) {
+      const spread = await raw(viewer, 'guess_spread', NOW);
+      for (let i = 0; i < 4; i++) assert.deepEqual([row(spread, i, 'luke').status, row(spread, i, 'luke').late, row(spread, i, 'luke').lockedIn], ['not_yet', null, false], `${viewer}, game ${i + 1}`);
+    }
+    assert.deepEqual(row(await raw('luke', 'guess_spread', NOW), 0, 'luke'), { ...blank('luke'), pick: LUKE.spread[0] }, 'his own draft, unchanged');
   });
 
   await t.test('an ineligible ballot (practice, no ruling) shows its locked-in guesses and never scores or ranks (D-08)', async () => {
