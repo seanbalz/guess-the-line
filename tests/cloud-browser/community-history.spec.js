@@ -1,15 +1,16 @@
 import { test, expect } from '@playwright/test';
-import fs from 'node:fs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { HOSTED } from '../migrations.mjs';
 
-// The Community History tab (Sean's October 12, 2026 rulings) on the real handler, every migration and PGlite. Luke views; Troy
+// The Community History tab (Sean's October 12, 2026 rulings) on the real handler, the hosted migrations and PGlite. Luke views; Troy
 // has pre-D-17 Week 5 Spread and Total ballots with no saved line. Luke sees Troy's ballots as hidden until he sits out a
 // market (D-23). With no line stored anywhere, the revealed Total shows each guess with "No line stored" and stays unscored;
 // with a hosted collection and an imported reference line stored before Troy's guesses, each guess is scored against the line
 // at the guess, and Sean's practice ballot is listed and never scored (D-08). A ballot whose original submission time was not
 // recorded is compared at the submission time it stores, labelled. Below 720px the game rows are cards, not a table, and the
 // page never scrolls sideways.
-const MIGRATIONS = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
+// The old app on the schema players actually have (tests/migrations.mjs).
+const MIGRATIONS = HOSTED;
 
 for (const width of [390, 1280]) test(`community history: player buttons, newest week first, hidden until revealed, no line invented at ${width}px`, async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');

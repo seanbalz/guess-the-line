@@ -1,10 +1,11 @@
 import { test as base, expect } from '@playwright/test';
-import fs from 'node:fs';
 import { seed } from '../../server/store.mjs';
 import { createCloudHandler } from '../../cloud/handler.mjs';
 import { providerPersonalError } from '../../cloud/personal.mjs';
 import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
+import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
@@ -12,13 +13,17 @@ const test = base.extend({
   personal: async ({ page, baseURL }, use) => {
     test.skip(!PGlite, 'Local PGlite is required; never connects to hosted data.');
     const db = new PGlite(), report = { errors: [], requests: [], oddsCalls: [], failAfterCommit: false };
-    await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
-    const migrations = ['20261008164249_gtl_private_cloud_state.sql','20261008174007_gtl_profiles_private_games_invites.sql','20261008182836_gtl_canonical_weekly_entries.sql','20261008185715_gtl_weekly_eligibility_rulings.sql','20261008185738_gtl_manual_odds_collection.sql','20261008224444_gtl_personal_workspace.sql','20261008225401_gtl_submission_time_scoring.sql','20261008232055_gtl_fresh_submission_odds.sql'];
-    await db.exec(fs.readFileSync(`supabase/migrations/${migrations[0]}`,'utf8'));
-    const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0,2); state.league.deadline = '2099-10-09T00:15:00Z'; state.games.forEach(g => g.kickoff = g.kickoff.replace('2026-','2099-'));
+    await db.exec(PRELUDE);
+    // The old app on the schema players actually have (tests/migrations.mjs).
+    const migrations = HOSTED;
+    await db.exec(migrationSql(migrations[0]));
+    // D-24 on the hosted schema: a ballot saves only in an open week (Monday 12:00 AM PT to the deadline), so the
+    // fixture week is the current Pacific week with its deadline at 11:59 PM PT today and kickoffs after it.
+    const deadline = pacificToUtc(pacificDate(Date.now()).date, '23:59');
+    const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0,2); state.league.deadline = deadline; state.games.forEach((g, i) => { g.kickoff = new Date(Date.parse(deadline) + i * 3_600_000).toISOString(); });
     await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke',state]);
     await db.query('insert into auth.users values($1)', [id(1)]);
-    for (const file of migrations.slice(1)) await db.exec(fs.readFileSync(`supabase/migrations/${file}`,'utf8'));
+    for (const file of migrations.slice(1)) await db.exec(migrationSql(file));
     await db.query('insert into public.gtl_profiles(user_id,display_name) values($1,$2)', [id(1),'Solo Tester']);
     const rpc = (mapper) => async (name, args) => {
       try { return await db.transaction(async tx => { await tx.exec('set local role service_role'); return (await tx.query(`select public.${name}(${Object.keys(args).map((key,i) => `${key}=>$${i+1}`).join(',')}) value`, Object.values(args))).rows[0].value; }); }

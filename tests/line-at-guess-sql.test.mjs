@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
+import { HOSTED, migrationSql } from './migrations.mjs';
 import { seed } from '../server/store.mjs';
 import { accuracy, round } from '../server/domain.mjs';
 import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
@@ -18,8 +18,9 @@ try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql
 const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const at = value => Date.parse(value);
-// Every repo migration in filename order except the two that install pg_cron/pg_net (hosted-only extensions).
-const MIGRATIONS = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
+// The hosted migrations in filename order (tests/migrations.mjs). This old-app suite also reruns on HOSTED plus a new
+// migration and its rollback (tests/rollback.test.mjs).
+const MIGRATIONS = HOSTED;
 const SEAN = 30, STEVEN = 31, TJ = 32, CUH = 33, LUKE = 4, BEN = 2, OUTSIDER = 5;
 const NAMES = { [SEAN]: 'Fistathon', [STEVEN]: 'Sthomas', [TJ]: 'TJ', [CUH]: 'Cuh', [LUKE]: 'Luke', [BEN]: 'Ben', [OUTSIDER]: 'Outsider' };
 // A fixture decision number, so the replay does not depend on docs/DECISIONS.md (Sean's approval is recorded as D-33).
@@ -74,7 +75,7 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
   let beforeMigration, afterMigration;
   for (const file of MIGRATIONS) {
     if (file === MIGRATION) beforeMigration = await dumpBallots();
-    await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    await db.exec(migrationSql(file));
     if (file === MIGRATION) afterMigration = await dumpBallots();
     if (file === MIGRATIONS[0]) {
       await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);

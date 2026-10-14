@@ -3,8 +3,9 @@
 // accounts. Luke views, Troy plays and Sean is the sean-troy-luke commissioner, so the
 // community admin. The browser signs in through the mocked password form; the handler is
 // also callable directly as any account for cross-user checks (removal, publish, 403s).
-import fs from 'node:fs';
+// createCommunityWorld builds the same world without a browser (node tests, the leak scan).
 import { seed } from '../../server/store.mjs';
+import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 import { createCloudHandler } from '../../cloud/handler.mjs';
 import { providerSocialError } from '../../cloud/social.mjs';
 import { providerPersonalError } from '../../cloud/personal.mjs';
@@ -21,12 +22,8 @@ try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-
 export const pgliteAvailable = !!PGlite;
 export const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 export const SUPABASE = 'https://gtl-frontend-check.supabase.co';
-export const MIGRATIONS = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
-  '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
-  '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
-  '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
-  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql',
-  '20261012234500_gtl_game_officials.sql', '20261013060000_gtl_wind_forecasts.sql'];
+// The old-app specs run on the schema players actually have: HOSTED from tests/migrations.mjs. A new spec passes ALL.
+export const MIGRATIONS = HOSTED;
 /** D-24: an open fixture week must be the current Pacific week; its TNF deadline is 11:59 PM PT today. */
 export const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
 export const ACCOUNTS = {
@@ -43,13 +40,33 @@ export const ACCOUNTS = {
  * clock: the handler clock (community reads, picks-due and sit-outs); database triggers keep the real clock.
  * prepare: optional (state) => void that edits the seeded league state (week, games) before it is stored and the slate is derived.
  * wind: optional Open-Meteo provider ({ forecast }) for the D-34 kickoff wind forecast; null reads stored forecasts only and never fetches.
- * migrations: the migration files to apply in order (default MIGRATIONS; a spec that needs a newer file passes the full sorted list).
+ * migrations: the migration files to apply in order (default MIGRATIONS, the hosted list; a spec that needs a file the hosted
+ * project does not have yet passes ALL from tests/migrations.mjs).
  * pushPublicKey: the gtl-api VAPID public key (redesign stage 2 push guard); none by default, so /community/read says pushConfigured: false.
  */
-export async function communityWorld(page, baseURL, { deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey } = {}) {
+export async function communityWorld(page, baseURL, options = {}) {
+  const world = await createCommunityWorld(options);
+  const { errors, handler, sessions, users } = world;
+  page.on('pageerror', error => errors.push(error.message));
+  await page.route('**/*', async route => {
+    const req = route.request(), url = new URL(req.url());
+    if (url.origin === new URL(baseURL).origin) return route.continue();
+    const reply = (status, body) => route.fulfill({ status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
+    if (isWebfont(url)) return route.abort(); if (url.origin !== SUPABASE) { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
+    if (url.pathname === '/auth/v1/token') { const session = sessions[req.postDataJSON()?.email]; return session ? reply(200, session) : reply(400, { error: 'invalid_grant', error_description: 'Unknown fixture account.' }); }
+    if (url.pathname === '/auth/v1/user') { const user = users.get((req.headers().authorization || '').replace(/^Bearer /i, '')); return user ? reply(200, user) : reply(401, { message: 'Invalid token.' }); }
+    if (url.pathname === '/auth/v1/logout') return reply(200, {});
+    const response = await handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));
+    return route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: await response.text() });
+  });
+  return world;
+}
+
+/** The same world without a browser: the database, the real handler and world.api (options as communityWorld). */
+export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
-  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
-  await db.exec(fs.readFileSync(`supabase/migrations/${migrations[0]}`, 'utf8'));
+  await db.exec(PRELUDE);
+  await db.exec(migrationSql(migrations[0]));
   const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0, games);
   state.league.deadline = deadline; state.games.forEach((game, i) => { game.kickoff = new Date(Date.parse(deadline) + i * 3_600_000).toISOString(); });
   prepare?.(state);
@@ -59,7 +76,7 @@ export async function communityWorld(page, baseURL, { deadline = openDeadline(),
   const { season, week } = state.league;
   const troyPicks = { guess_spread: Object.fromEntries(state.games.map((g, i) => [g.id, [-3, 2.5][i % 2]])), guess_total: Object.fromEntries(state.games.map((g, i) => [g.id, [44, 47.5][i % 2]])) };
   for (const file of migrations.slice(1)) {
-    await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    await db.exec(migrationSql(file));
     if (file === '20261008182836_gtl_canonical_weekly_entries.sql' && troyBallots) {
       await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3)', [troy.id, season, week]);
       for (const mode of ['guess_spread', 'guess_total']) {
@@ -85,8 +102,8 @@ export async function communityWorld(page, baseURL, { deadline = openDeadline(),
     sessions[a.email] = { access_token: token, refresh_token: 'test-only', expires_in: 3600, expires_at: expires, token_type: 'bearer', user };
     users.set(token, user);
   }
-  const world = { db, state, errors, troyPicks, schedule: null };
-  const handler = createCloudHandler({
+  const world = { db, state, errors, troyPicks, schedule: null, sessions, users };
+  const handler = world.handler = createCloudHandler({
     authenticate: async value => (users.has(value) ? { ...users.get(value), emailConfirmed: true } : null), clock, pushPublicKey,
     social: { rpc: rpc(providerSocialError) }, personal: { rpc: personalRpc }, lobby: { rpc: rpc(providerLobbyError) },
     // The public schedule is a spec-owned fixture; the real adapter fetches nflverse. Never a live download here.
@@ -106,18 +123,6 @@ export async function communityWorld(page, baseURL, { deadline = openDeadline(),
       saveBallot: (userId, leagueId, mode, revision, picks, submit) => weeklyRpc('gtl_save_weekly_ballot', { p_user: userId, p_league: leagueId, p_mode: mode, p_revision: revision, p_picks: picks, p_submit: submit }),
       saveSelection: (userId, leagueId, revision, selection) => weeklyRpc('gtl_save_weekly_selection', { p_user: userId, p_league: leagueId, p_revision: revision, p_selection: selection }),
     },
-  });
-  page.on('pageerror', error => errors.push(error.message));
-  await page.route('**/*', async route => {
-    const req = route.request(), url = new URL(req.url());
-    if (url.origin === new URL(baseURL).origin) return route.continue();
-    const reply = (status, body) => route.fulfill({ status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
-    if (isWebfont(url)) return route.abort(); if (url.origin !== SUPABASE) { errors.push(`Unexpected external request ${url.origin}`); return route.abort(); }
-    if (url.pathname === '/auth/v1/token') { const session = sessions[req.postDataJSON()?.email]; return session ? reply(200, session) : reply(400, { error: 'invalid_grant', error_description: 'Unknown fixture account.' }); }
-    if (url.pathname === '/auth/v1/user') { const user = users.get((req.headers().authorization || '').replace(/^Bearer /i, '')); return user ? reply(200, user) : reply(401, { message: 'Invalid token.' }); }
-    if (url.pathname === '/auth/v1/logout') return reply(200, {});
-    const response = await handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));
-    return route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: await response.text() });
   });
   /** Calls the handler directly as one account, as that person would from another device. Returns status and JSON, never throws on 4xx. */
   world.api = async (account, route, body) => {

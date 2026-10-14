@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import fs from 'node:fs';
 import { seed } from '../../server/store.mjs';
 import { createCloudHandler } from '../../cloud/handler.mjs';
 import { providerSocialError } from '../../cloud/social.mjs';
@@ -8,15 +7,13 @@ import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../cloud/community.mjs';
 import { pacificDate, pacificToUtc, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const DAY = 86_400_000;
-const migrations = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
-  '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
-  '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
-  '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
-  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql'];
+// The old app on the schema players actually have (tests/migrations.mjs).
+const migrations = HOSTED;
 // D-24: a week opens Monday 00:00 PT, so the fixture week must be the current Pacific
 // week to be open. Its TNF deadline is 11:59 PM PT today; the not-open fixture uses a
 // Thursday ~5:15 PM PT deadline in a week whose Monday is still ahead.
@@ -25,17 +22,17 @@ const futureDeadline = () => new Date(Date.parse(weekOpenAt(Date.now() + 10 * DA
 
 async function fixture(page, baseURL, deadline) {
   const db = new PGlite(), errors = [];
-  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
-  await db.exec(fs.readFileSync(`supabase/migrations/${migrations[0]}`, 'utf8'));
+  await db.exec(PRELUDE);
+  await db.exec(migrationSql(migrations[0]));
   const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0, 2);
   state.league.deadline = deadline; state.games.forEach((game, i) => { game.kickoff = new Date(Date.parse(deadline) + i * 3_600_000).toISOString(); });
   await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);
   await db.query('insert into auth.users values($1),($2)', [id(1), id(2)]);
   const troyTotalPicks = { [state.games[0].id]: 44, [state.games[1].id]: 47.5 };
   for (const file of migrations.slice(1)) {
-    await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    await db.exec(migrationSql(file));
     // Troy's pre-D-17 submitted Total ballot: its picks stay hidden from Ben until Ben submits or sits out (D-23).
-    if (file === migrations[2]) {
+    if (file === '20261008182836_gtl_canonical_weekly_entries.sql') {
       await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3)', [id(2), state.league.season, state.league.week]);
       await db.query('insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,$2,$3,$4,$5)',
         [id(2), state.league.season, state.league.week, 'guess_total', { picks: troyTotalPicks, submittedAt: '2026-10-08T18:00:00Z' }]);

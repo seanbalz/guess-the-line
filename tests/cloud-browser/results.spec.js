@@ -1,28 +1,29 @@
 import { test as base, expect } from '@playwright/test';
-import fs from 'node:fs';
 import { seed } from '../../server/store.mjs';
 import { createCloudHandler } from '../../cloud/handler.mjs';
 import { providerResultError } from '../../cloud/results.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-const migrations = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008225607_gtl_reviewed_final_results.sql'];
+// The old app on the schema players actually have (tests/migrations.mjs).
+const migrations = HOSTED;
 const test = base.extend({
   results: async ({ page, baseURL }, use) => {
     test.skip(!PGlite, 'Local PGlite is required; never contacts hosted data.');
     const db = new PGlite(), report = { errors: [], requests: [], failAfterCommit: false, failReads: false, failState: false, failRefreshAfterCommit: false, actor: id(1) };
-    await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
-    await db.exec(fs.readFileSync(`supabase/migrations/${migrations[0]}`, 'utf8'));
+    await db.exec(PRELUDE);
+    await db.exec(migrationSql(migrations[0]));
     const state = seed(), now = Date.now(), iso = stamp => new Date(stamp).toISOString();
     state.games = state.games.slice(0, 2); state.league.deadline = iso(now - 5 * 3600000);
     state.games.forEach((game, i) => { game.kickoff = iso(now + (i ? 3600000 : -4 * 3600000)); });
     await db.query('insert into auth.users values($1),($2)', [id(1), id(2)]);
     await db.query("insert into public.gtl_leagues(id,state) values('sean-troy-luke',$1)", [state]);
     await db.query("insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,'sean-troy-luke','sean','commissioner'),($2,'sean-troy-luke','troy','player')", [id(1), id(2)]);
-    for (const file of migrations.slice(1)) await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    for (const file of migrations.slice(1)) await db.exec(migrationSql(file));
     const asService = (sql, args = []) => db.transaction(async tx => { await tx.exec('set local role service_role'); return tx.query(sql, args); });
     report.review = async body => (await asService('select public.gtl_review_final_result($1,$2) value', [id(1), body])).rows[0].value;
     report.defaultBody = { requestId: id(500), season: 2026, week: 5, gameId: state.games[0].id, home: 24, away: 21, source: 'Local scoreboard fixture', sourceURL: 'https://example.com/final-score-fixture', observedAt: iso(now - 60000), expectedVersion: 0, reason: 'Reviewed a completed ordinary game' };

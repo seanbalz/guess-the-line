@@ -15,6 +15,7 @@ import { providerCommunityError } from '../../../cloud/community.mjs';
 import { providerWeeklyError } from '../../../cloud/weekly.mjs';
 import { pacificDate, pacificToUtc, weekOpenAt } from '../../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../../fixtures/webfonts.mjs';
+import { HOSTED, PRELUDE, migrationSql } from '../../migrations.mjs';
 
 const DAY = 86_400_000;
 /** D-24: a week opens Monday 00:00 PT, so an open fixture week must be the current Pacific week. Deadline 11:59 PM PT today. */
@@ -27,11 +28,8 @@ try { ({ PGlite } = await import('../../../.local/sql-check/node_modules/@electr
 export const pgliteAvailable = !!PGlite;
 
 export const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-export const MIGRATIONS = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
-  '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
-  '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
-  '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
-  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql'];
+// The old app on the schema players actually have (tests/migrations.mjs).
+export const MIGRATIONS = HOSTED;
 export const SUPABASE = 'https://gtl-frontend-check.supabase.co';
 export const PREVIEWS = '.local/previews/personas';
 export const FINDINGS = '.local/personas/findings.json';
@@ -43,8 +41,8 @@ const cleared = new Set();
 /** Builds the database and world for one persona run. */
 async function buildWorld({ games = 14, deadline = openDeadline(), slate = true, profile = true, members = ['Troy Fixture', 'Luke Fixture'] } = {}) {
   const db = new PGlite();
-  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
-  await db.exec(fs.readFileSync(`supabase/migrations/${MIGRATIONS[0]}`, 'utf8'));
+  await db.exec(PRELUDE);
+  await db.exec(migrationSql(MIGRATIONS[0]));
   const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0, games);
   state.league.deadline = deadline;
   // Keep every kickoff after the deadline so the slate stays internally consistent.
@@ -53,7 +51,7 @@ async function buildWorld({ games = 14, deadline = openDeadline(), slate = true,
   if (slate) await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);
   const users = [id(1), ...members.map((_, i) => id(i + 2))];
   await db.query(`insert into auth.users values ${users.map((_, i) => `($${i + 1})`).join(',')}`, users);
-  for (const file of MIGRATIONS.slice(1)) await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+  for (const file of MIGRATIONS.slice(1)) await db.exec(migrationSql(file));
   const profiles = [...(profile ? [[id(1), 'Ben Fixture']] : []), ...members.map((name, i) => [id(i + 2), name])];
   for (const [userId, name] of profiles) await db.query('insert into public.gtl_profiles(user_id,display_name) values($1,$2)', [userId, name]);
   if (slate) await freshQuotes(db, state);
