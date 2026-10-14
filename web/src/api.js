@@ -40,7 +40,8 @@ export const signed = value => value === null || value === undefined ? '—' : v
 export const date = (value, options={}) => value ? new Date(value).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',...options}) : 'Not available';
 export const shortTeam = team => team.split(' ').at(-1);
 export async function communityApi(action, body = {}, signal) {
-  if (!['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open'].includes(action)) throw new ApiError('Unknown community action.', 400);
+  // 'picks': everyone's Guess picks for a week and market (M-08, redesign stage 26); the new app's Everyone's picks reads it (stage 31).
+  if (!['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks'].includes(action)) throw new ApiError('Unknown community action.', 400);
   return cloudApi(`community/${action}`, body, { signal });
 }
 /** Game referees for situational trends: any member reads a week's assignments; only the commissioner sets one. */

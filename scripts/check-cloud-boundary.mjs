@@ -43,6 +43,9 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * scripts/boundary/lines.mjs also lists M-06's lines readers (redesign stage 23): its four RPCs and the /lines/read and
  * /lines/game routes. The gtl-api deploy comes first (until the apply both routes answer 503 "not available right now"),
  * nothing calls them until stages 32 to 34, and the private-key pattern below includes the lines reply keys.
+ * scripts/boundary/guess.mjs also lists M-08's everyone's picks pieces (redesign stage 26): gtl_read_guess_picks and the
+ * /community/picks route. Nothing calls them until the new app's Everyone's picks (stage 31), and a gtl-api deploy before
+ * the apply answers the route 503 "not available right now", so neither order fails check:cloud on them alone.
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 

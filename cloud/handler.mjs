@@ -224,7 +224,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       }
       if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock }));
       if (Object.hasOwn(COMMUNITY_METHODS, route)) {
-        const result = handleCommunity({ route, body, user, service: community, clock, pushConfigured });
+        const result = handleCommunity({ route, body, user, service: community, clock, pushConfigured, featureOff: featuresOff });
         return json(await (route === '/community/read' ? withRules(result) : result));
       }
       if (Object.hasOwn(OFFICIALS_METHODS, route)) return json(await handleOfficials({ route, body, user, service: officials }));
@@ -494,8 +494,10 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
       async rpc(name, body) {
         const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!response.ok) {
-          let message;
-          try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
+          let message, code;
+          try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Provider details remain private. */ }
+          // M-08's reader before "apply M-08" (PostgREST PGRST202) reads as off; every other community RPC answers as before.
+          if (name === 'gtl_read_guess_picks' && response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerCommunityError('GTL_FEATURE_OFF');
           throw providerCommunityError(message);
         }
         return response.json();
