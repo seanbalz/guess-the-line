@@ -14,8 +14,10 @@ import { fileURLToPath } from 'node:url';
 
 export const MIGRATIONS_DIR = fileURLToPath(new URL('../supabase/migrations/', import.meta.url));
 export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', import.meta.url));
-/** The PGlite stand-in for the Supabase roles and auth schema that every migration expects. */
-export const PRELUDE = 'create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;';
+/** The PGlite stand-in for the Supabase roles and auth schema that every migration expects. Supabase databases run in
+ *  UTC, but PGlite starts in a fixed offset taken from the host (Etc/GMT+8 on a Mac in Pacific time), which changes how a
+ *  timestamptz reads in a jsonb reply ("…-08:00" instead of "…+00:00"); the session is set to UTC as on the hosted project and CI. */
+export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;";
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
