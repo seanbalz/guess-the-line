@@ -12,6 +12,7 @@ import { communityAccess, referenceValue } from '../../shared/trends-view.mjs';
 import CommunityHistory from './CommunityHistory';
 import LineAtGuess from './LineAtGuess';
 import { PushReminderPrompt } from './PushReminders';
+import TryNewApp from './TryNewApp';
 import { cloudApi, communityApi, date } from './api';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
@@ -564,6 +565,8 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
       <ThemeSelector/>
       <div className="hub-bottom"><span>Signed in as {displayName}. Everything here is shared with every member.</span>
         <button className="text-button" disabled={busy} onClick={() => act(load)}><RefreshCw size={16}/>Refresh</button>
+        {/* Redesign stage 9 (D-38, D-39): every signed-in member can opt in to the new app on this device. */}
+        <TryNewApp disabled={busy}/>
         <button className="secondary" disabled={busy} onClick={onSignOut}>Sign out</button></div>
     </main>
   </div>;

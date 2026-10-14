@@ -1,0 +1,16 @@
+import React, { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { APP_SWITCH_COPY, appFellBack, switchApp } from './appView.js';
+
+/** D-38, D-39 (redesign build plan stage 9): "Try the new app" in the Community footer, for every signed-in member.
+ *  The choice is kept on this device and the page reloads into the new app. The note below the button is an
+ *  always-mounted live region: it says when this browser refuses to save the choice, or when the new app could not
+ *  open on this page and the old app came back in its place (main.jsx's fallback). */
+export default function TryNewApp({ disabled = false }) {
+  const [blocked, setBlocked] = useState(false);
+  const note = blocked ? APP_SWITCH_COPY.storageBlocked : appFellBack() ? APP_SWITCH_COPY.fellBack : '';
+  return <div className="try-new-app">
+    <button type="button" className="secondary" disabled={disabled} onClick={() => setBlocked(!switchApp('next'))}>{APP_SWITCH_COPY.tryNew}<ArrowRight size={16} aria-hidden="true"/></button>
+    <p className="try-new-app-note" role="status">{note}</p>
+  </div>;
+}
