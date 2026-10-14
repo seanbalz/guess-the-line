@@ -339,7 +339,8 @@ test('HOSTED schema: today\'s deadline opens every line (D-23); with M-01 each g
   let clockAll = Date.now();
   const m01 = await linesWorld(t, { migrations: ALL, optionalRpc: true, clock: () => clockAll });
   const before = await m01.units('luke');
-  assert.deepEqual(before.rules, { sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' }, 'M-01 reports the kickoff reveal');
+  // ALL also has M-02 (stage 18), so a sent guess is final; M-01's field is the kickoff reveal.
+  assert.deepEqual(before.rules, { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' }, 'M-01 reports the kickoff reveal');
   await m01.send('luke', 'guess_spread', m01.map([-6.5, 2.5]));
   assert.deepEqual(locks(await m01.units('luke')), { [g0]: { spread: false, total: true }, [g1]: { spread: false, total: true } }, 'a locked-in game opens its market');
   clockAll = late(m01.state);

@@ -22,6 +22,7 @@ const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; n
 // a local double of The Odds API V4, so every request it would receive is counted. Every line is synthetic and no
 // request leaves this process.
 const M05 = '20261014221500_gtl_odds_open_weeks.sql';
+const M02 = '20261015030000_gtl_sent_picks_final.sql';
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const iso = n => new Date(n).toISOString();
 const MINUTE = 60_000, HOUR = 3_600_000, DAY = 86_400_000;
@@ -429,7 +430,9 @@ test('50 draft saves on Monday start no collection: no provider request, no coll
 
 test("sends never pass six collections a UTC day: a late send for last week is refused before any request, and this week's sends share the six with the scheduled run; the carried record row never takes one", { skip }, async t => {
   // Books are posted for the Monday game only, so this week's guesses stay pending and every send asks for a refresh.
-  const f = await fixture(t, { priced: g => Boolean(g.line) });
+  // Twenty sends from three accounts re-send changed ballots (D-16 edits). M-02 (stage 18) makes a sent guess final, so
+  // this case runs on every migration before it; the cap does not depend on M-02, which only leaves fewer sends to count.
+  const f = await fixture(t, { files: ALL.filter(file => file < M02), priced: g => Boolean(g.line) });
   const late = await f.save(TWO, 6, picks(f.week.last.games, -3), true);
   assert.ok(late.status >= 400 && late.status < 500, JSON.stringify(late));
   assert.equal(f.api.requests.length, 0, 'a refused late send starts no collection');
