@@ -25,7 +25,7 @@ Owner: Sean Balsiger · Version 6 · Updated 2026-10-13 (line at the guess and D
 
 Practice ballots never post. Under D-23 nothing a member entered is deleted, moved or hidden: a removed member's posts, comments, likes, submissions, standings rows and member entry (flagged `removed: true`) stay visible to everyone; only the removed account loses access (`GTL_COMMUNITY_MEMBER` on its own reads and writes). Restoring a member returns their access. Removals, restorations and sit-outs (`sit_out:season:week:mode`) are written to `gtl_access_audit`. The commissioner is the active commissioner of the founding `sean-troy-luke` league.
 
-The one visibility exception is the Guess pick reveal gate, shared by the feed and the group game screens through `gtl_week_revealed`: own full submission, a final weekly opt-out for that mode, or the deadline. An opt-out row can be inserted and read by the service role only; there is no update or delete grant, and a trigger refuses any later draft or submission for that user/week/mode (`GTL_COMMUNITY_SAT_OUT`).
+The one visibility exception is the Guess pick reveal gate, shared by the feed and the group game screens through `gtl_week_revealed`: own full submission, a final weekly opt-out for that mode, or the deadline. M-01 (redesign stage 16, written and not applied) makes that gate per game and market; see [Per-game reveal gate](#per-game-reveal-gate-m-01--october-14-2026). An opt-out row can be inserted and read by the service role only; there is no update or delete grant, and a trigger refuses any later draft or submission for that user/week/mode (`GTL_COMMUNITY_SAT_OUT`).
 
 ## API (Supabase Edge Function `gtl-api`, POST, signed-in and email-confirmed)
 
@@ -49,6 +49,31 @@ The handler passes the request time to the database, so the deadline reveal, the
 ### Live rules field
 
 Redesign build plan stage 4 (section 3.4): `/community/read`, `/personal`, `/personal/read` and `/state` carry `rules: { sentFinal, lateWindow }`, and so do the `/ballot` and `/bet` replies, which are the `/state` view. It is read from the service-only `gtl_live_rules()` through `cloud/optional-rpc.mjs`, which treats PostgREST's `PGRST202` (function not found) as "feature off". The function does not exist yet, so every reply carries today's rules, `{ sentFinal: false, lateWindow: 'deadline' }`: a guess can be changed until the week's deadline (D-16) and picks close at the deadline (D-24). A missing or failing read never fails the route; it answers as before. The future rule is D-39's per-game lock-in: M-02 (stage 18) creates the function with `sentFinal: true`, meaning each game's Spread or Total guess is final once locked in, and locking it in opens that game's line and everyone's guesses for that game and market (there is no market-level send); M-07 (stage 24) switches `lateWindow` to `'kickoff'` (D-36). The field only lets both apps describe the live rule; the SQL writers enforce it.
+
+## Per-game reveal gate (M-01) — October 14, 2026
+
+D-39 (Sean, October 14): "once you make a pick that game is revealed. you can change bets up until game start but you cannot guess the spread or total again once youve locked in that games guess". Each game's Spread guess and Total guess is locked in on its own; locking it in opens, for that player, that game's line for that market and everyone's guesses for that game and market. A game's kickoff opens it for everyone (D-31); a sit-out (D-23), and from M-03 a skip or "See picks now" (D-36), opens the rest of the week for that market. Unlocked guesses are drafts that only their owner sees.
+
+**Database.** Migration `20261014160000_gtl_guess_gate_per_game.sql` (M-01, redesign build plan stage 16) changes read paths only: no table, row, trigger, write path or table grant. Four new service-only, security-invoker helpers:
+
+| Function | What it answers |
+|---|---|
+| `gtl_guess_locked_in(user, season, week, mode, game)` | Whether that player's guess for that game and market is locked in. Today a pick in a submitted ballot (the old app sends a market at once). M-02 (stage 18) records per-game lock-ins and replaces only this body. |
+| `gtl_guess_revealed(viewer, season, week, mode, game, now)` | The gate: that game's kickoff on the published slate, the viewer's own lock-in of that game and market, or the viewer's sit-out of that market. |
+| `gtl_markets_visible(viewer, season, week, now)` | The gate for every game of a published week, `{ gameId: { spread, total } }` (`{}` for an unknown week). Stages 21 and 23 read it. |
+| `gtl_ballot_late(ballot)` | The stored Late marker `{ deadline, minutes }`, or null. Nothing writes one until M-07 (stage 24). |
+
+It replaces three functions with unchanged argument lists (each `-- replaces` header names the md5 of the body it replaces; the rollback is `supabase/rollback/20261014160000_gtl_guess_gate_per_game.sql`):
+
+- `gtl_week_revealed`: a sit-out, or every game of the slate open through `gtl_guess_revealed`. The deadline clause becomes each game's kickoff, so after Thursday's deadline a player who has not locked in Sunday's games no longer sees Sunday's guesses (this closes the deadline reveal before late picks exist, M-07).
+- `gtl_read_community`: a `ballot_submitted` post carries another member's pick for a game only while that pick is locked in and the game and market is open to the viewer; `picksHidden` is true while any of them is hidden and the new `hiddenGames` lists the hidden game ids. The viewer's own posts are never redacted. Standings count kicked-off games only; `weekPoints` is null without a submitted ballot that week and `seasonPoints` without one that season (sat out included), ordered last. Posts dated after the request time are left out; paging is unchanged. Posts and `submissions` carry `late`.
+- `gtl_read_community_history`: per game and market. Another member's row carries the guess, the line and the points only while their pick is locked in and that game and market is open to the viewer; otherwise `hidden: true` and no number, `picks` is null when every row is hidden and `picksHidden` is true while any is. The viewer's own guesses always come back, the line with one only once that game and market is open to them, so an unlocked draft's line stays hidden until kickoff. Points count from each game's kickoff for a submitted eligible ballot; a draft never scores and a draft's or sit-out's `weekPoints` is null. Each week adds `gate`, each entry `hiddenGames` and `late`, and each row `hidden`.
+
+Finished weeks score exactly as before (Week 5: Sean 95.8, Steven 91.4, Ben 37.6): `gtl_ballot_pick_scores` and every stored or ruled line are untouched; only the current week's totals now grow game by game.
+
+**Handler and screens.** No route changes in this stage. The deployed `/community/read` and `/community/history` keep their filters: a post or entry with `picksHidden` shows no pick at all (so a partly open week reads as hidden until stage 17 shows per-game picks and "—"), `weekPoints: null` reads as 0, and the new fields are dropped. The group game screens (`gtl_read_weekly_state`) keep the deadline reveal until stage 17. One wording gap until stage 17: the old History tab reads "Unscored · no line stored for these guesses" for a current-week ballot before its first game kicks off (no point counts yet), so stage 17's Pages deploy should follow the apply closely.
+
+**State.** Written and tested on PGlite (`tests/guess-reveal-per-game-sql.test.mjs`, `tests/history-draft-lines-sql.test.mjs`; `tests/community-history-sql.test.mjs` and `tests/submission-line-at-guess-sql.test.mjs` pass with and without M-01, and with its rollback). Not applied: it is in `NOT_HOSTED`, and its four helpers are awaiting deploy in `scripts/boundary/guess.mjs`. The apply follows Gate M after Sean says "apply M-01": the read-only pre-check of the three replaced md5s, the score hash, the apply through the Supabase MCP or the SQL editor (never `db push`), the byte-identical check of all seven functions, then the release record removes the file from `NOT_HOSTED` and the four entries from `awaitingDeploy`.
 
 ## Community history — October 12, 2026
 

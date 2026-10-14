@@ -25,9 +25,10 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
  * after the deploy, then remove the entries from their area file in the change that records the hosted version.
  *
- * Each area file lists its own pieces; today only scripts/boundary/lines.mjs has entries: the situational-trends
- * referee pieces and the D-34 kickoff wind pieces. Both the gtl-api
- * build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
+ * Each area file lists its own pieces; today scripts/boundary/lines.mjs has the situational-trends referee pieces and
+ * the D-34 kickoff wind pieces, and scripts/boundary/guess.mjs has M-01's four per-game gate helpers (redesign stage
+ * 16: service-only SQL that no deployed route calls directly, so the default check passes until Sean applies M-01).
+ * Both the gtl-api build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
  * "no current forecast" note), so a Pages-only deploy, or a gtl-api deploy before the migration is
  * applied, must not fail check:cloud on them alone; --strict runs after the migration and the gtl-api deploy.
  * The Community history readers (20261012223000), the D-27 line-at-guess helpers (20261012230000) and the
