@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createEngine } from '../server/engine.mjs';
+import { SENT_FINAL_MESSAGE, createEngine } from '../server/engine.mjs';
 import { seed } from '../server/store.mjs';
 
 const now = Date.parse('2026-10-08T16:00:00Z');
@@ -238,4 +238,40 @@ test('line chart projection rejects invalid source metadata and missing market o
   const series = createEngine(initial, options).view('sean').lineHistory;
   assert.equal(series.length, initial.history.length - 2);
   assert.equal(Object.hasOwn(series.at(-1).games, 'TB-DAL'), false);
+});
+
+// Redesign stage 18 (M-02): the engine mirror of the SQL writers. With sentFinal (gtl_live_rules once M-02 is applied) a
+// locked-in pick can neither change nor be left out; a send records each guess it locks in; without it D-16's edits stay.
+test('sentFinal mirror: a locked-in pick is final; a send records lockedAt; without sentFinal the D-16 edit stays', () => {
+  const final = createEngine(seed(), { ...options, sentFinal: true });
+  const picks = fill(final, 44.5), [first, second] = Object.keys(picks);
+  final.saveBallot('troy', 'guess_total', picks, true);
+  const sent = final.snapshot().ballots.troy.guess_total;
+  assert.deepEqual(Object.keys(sent.lockedAt).sort(), Object.keys(picks).sort());
+  assert.ok(Object.values(sent.lockedAt).every(at => at === sent.submittedAt));
+  assert.deepEqual(final.view('troy', 'guess_total').lockedAt, sent.lockedAt, 'the /state view carries it for the group screen');
+  const before = final.snapshot();
+  for (const [label, next, submit] of [['changed', { ...picks, [first]: 45.5 }, true], ['changed as a draft', { ...picks, [first]: 45.5 }, false], ['left out', { [second]: 44.5 }, false]]) {
+    assert.throws(() => final.saveBallot('troy', 'guess_total', next, submit), new RegExp(SENT_FINAL_MESSAGE.replace('.', '\\.')), label);
+  }
+  assert.deepEqual(final.snapshot(), before, 'a refusal leaves the state untouched');
+  final.saveBallot('troy', 'guess_total', picks, true);
+  assert.deepEqual(final.snapshot().ballots.troy.guess_total.lockedAt, sent.lockedAt, 'an unchanged re-save keeps every lock-in time');
+  // A draft with one game locked in (the new app's lock-in, read back from the database): that game is final, the others are drafts.
+  const state = seed();
+  state.ballots.luke = { guess_total: { submittedAt: null, picks: { [first]: 41.5 }, lockedAt: { [first]: '2026-10-08T15:00:00.000Z' }, scoringReferences: { [first]: { status: 'pending', value: null } } } };
+  const mixed = createEngine(state, { ...options, sentFinal: true });
+  assert.throws(() => mixed.saveBallot('luke', 'guess_total', { [first]: 40.5 }, false), /Sent picks are final/);
+  mixed.saveBallot('luke', 'guess_total', { [first]: 41.5, [second]: 39.5 }, false);
+  const all = Object.fromEntries(Object.keys(picks).map(id => [id, id === first ? 41.5 : 39.5]));
+  mixed.saveBallot('luke', 'guess_total', all, true);
+  const done = mixed.snapshot().ballots.luke.guess_total;
+  assert.deepEqual([done.lockedAt[first], done.scoringReferences[first]], ['2026-10-08T15:00:00.000Z', { status: 'pending', value: null }], 'the earlier lock-in keeps its time and line');
+  // Today's rules: the same edit of a sent ballot saves, and no lockedAt is written.
+  const today = createEngine(seed(), options);
+  today.saveBallot('troy', 'guess_total', picks, true);
+  today.saveBallot('troy', 'guess_total', { ...picks, [first]: 45.5 }, true);
+  assert.equal(today.snapshot().ballots.troy.guess_total.picks[first], 45.5);
+  assert.equal('lockedAt' in today.snapshot().ballots.troy.guess_total, false);
+  assert.equal(today.view('troy', 'guess_total').lockedAt, null);
 });

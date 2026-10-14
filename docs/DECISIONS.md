@@ -12,6 +12,18 @@ Sean answered the questions PR #98 (redesign stage 21, M-04) and PR #99 (stage 1
 | Does History show other players' locked-in guesses in a market that is neither sent nor sat out? (#99) | **Yes, gated per game, with M-07.** Each locked-in guess shows to another player once that game and market is open to them, the same rule as Everyone's picks (M-08). Unlocked drafts are never shown. It lands with per-game scoring so History and points change together. |
 
 - **Where it is built.** M-04 (#98) already holds notes back. M-07 (stage 24) moves the old sit-out (`gtl_sit_out_week`) to the last-kickoff window, replaces `gtl_read_community_history` again to list locked-in guesses per game, and lets D-27 pending-line resolution through for a sat-out market's locked-in guesses. Stage 25 updates the old app's sit-out button and History rows the same day.
+## D-42 — account deletion keeps the display name; public contact address on the legal pages (October 14, 2026)
+
+Sean answered, in the coordinating session, the two questions PR #62 (the public Privacy Policy and Terms of Service pages) asked him to confirm.
+
+| Question | Ruling |
+|---|---|
+| When a player asks to delete their account, what happens to their past game entries? The options were "keep the draft (name or anonymous label)", "Always keep the name" and "always anonymize". | **Always keep the name.** The sign-in details and email address are removed; past game entries stay under the player's display name so the competition record stays complete. |
+| CI's privacy check (`scripts/check-cloud-boundary.mjs`) refuses any real email address in the built site. May the Privacy and Terms pages publish the contact address? | **Allow it on those two pages.** Only the top-level `privacy.html` and `terms.html` may carry an address, and only as a `mailto:` link on the same page. A bare address, `index.html` and nested files still fail. |
+
+- **Fits [D-23](#d-23--user-data-is-never-deleted-moved-or-hidden-october-9-2026).** Nothing a player entered is deleted, moved or hidden, so a deletion removes only the sign-in details and email address. The picks, posts and records stay in the record, under the name they were made under, and nobody's entry is relabelled.
+- **Where it is.** `web/public/privacy.html` ("Your choices and requests") states the deletion rule, and both pages link the contact address as `mailto:`. `tests/legal-pages.test.mjs` checks the deletion sentence, that no "anonymous label" wording comes back, and the scanner's limits: a linked address passes only on the two top-level pages, while a bare or second unlinked address, `index.html` and nested copies fail.
+- **Unchanged.** Deletion is still a request by email, handled by hand; no deletion feature is built (the redesign adds none, build plan section 12). Every other file in the built site still refuses any real address.
 - Nothing is applied or deployed by this entry.
 
 ## D-41 — each locked-in guess counts on its own; the old sit-out keeps them (October 14, 2026)

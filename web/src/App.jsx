@@ -4,6 +4,7 @@ import { api, fmt, signed, date, shortTeam } from './api';
 import { cloudEnabled } from './auth';
 import ThemeSelector from './Theme';
 import Brand from './Brand';
+import LegalLinks from './LegalLinks';
 import { TeamMatchup } from './TeamIdentity';
 import ManualOddsControls from './ManualOddsControls';
 import BenchmarkControls from './BenchmarkControls';
@@ -14,7 +15,7 @@ import SubmissionComparison from './SubmissionComparison';
 import { ScoringPolicyNote } from './ScoringReference';
 import { submissionTimeScoring } from './scoringReferences';
 import PredictionEntry from './PredictionEntry';
-import { FINAL_RULE, sentFinal } from './sentFinal';
+import { FINAL_RULE, LOCKED_MESSAGE, isBallotLocked, sentFinal } from './sentFinal';
 import { clearTabDrafts } from './predictionDraft';
 import ChallengeQuoteReview from './ChallengeQuoteReview';
 import InstallApp from './InstallApp';
@@ -83,7 +84,11 @@ export default function App({session,onSignOut,leagueId,leagues=[],onSelectLeagu
     window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
     return()=>{clearTimeout(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh)};
   },[page,mode,leagueId,data?.revealed,data?.oddsSchedule?.enabled,data?.oddsSchedule?.nextRunAt,hasUnsaved,busy]);
-  async function save(route,body){if(saveIssue?.uncertain)return route==='ballot'?{saved:false,uncertain:true}:false;const requested=selection.current;setBusy(true);setError('');try{const saveRevision=data?.weeklyRevision??(route==='ballot'?(data?.predictionRevision??data?.revision):data?.revision);const result=await api(route,player,mode,body,undefined,saveRevision,leagueId);if(requested!==selection.current)return false;setData(result);setConflict(false);setSaveIssue(null);setNotice(route==='bet'?'Selection recorded with its original quote.':body.submit?'Ballot saved. Your scoring references and analysis are ready.':cloudEnabled?'Changes saved to your account.':'Changes saved to this local workspace.');if(route==='ballot'&&body.submit){setHasUnsaved(false);setPage('edges')}return true;}catch(e){if(requested===selection.current)reportError(e);return route==='ballot'&&e.uncertain?{saved:false,uncertain:true}:false;}finally{setBusy(false)}}
+  async function save(route,body){if(saveIssue?.uncertain)return route==='ballot'?{saved:false,uncertain:true}:false;const requested=selection.current;setBusy(true);setError('');try{const saveRevision=data?.weeklyRevision??(route==='ballot'?(data?.predictionRevision??data?.revision):data?.revision);const result=await api(route,player,mode,body,undefined,saveRevision,leagueId);if(requested!==selection.current)return false;setData(result);setConflict(false);setSaveIssue(null);setNotice(route==='bet'?'Selection recorded with its original quote.':body.submit?'Ballot saved. Your scoring references and analysis are ready.':cloudEnabled?'Changes saved to your account.':'Changes saved to this local workspace.');if(route==='ballot'&&body.submit){setHasUnsaved(false);setPage('edges')}return true;}catch(e){if(requested===selection.current){if(isBallotLocked(e))await showFinal(requested);else reportError(e)}return route==='ballot'&&e.uncertain?{saved:false,uncertain:true}:false;}finally{setBusy(false)}}
+  // Redesign stage 18 (M-02): a save that changes a locked-in pick is refused with GTL_BALLOT_LOCKED (the pick was locked in on another
+  // device, or this tab still held the rules from before M-02). The saved ballot comes in and shows those picks as final; it is not a
+  // conflict with another device, so there is no "Refresh saved data" step and no retry.
+  async function showFinal(requested){try{const result=await api('state',player,mode,undefined,undefined,undefined,leagueId);if(requested!==selection.current)return;setData(result);setConflict(false);setSaveIssue(null);setNotice('');setError(`${LOCKED_MESSAGE} Your saved picks are shown.`)}catch(reload){if(requested===selection.current)reportError(reload)}}
   async function signOut(){if(!mayLeave())return;setBusy(true);try{await onSignOut();clearTabDrafts()}catch(e){setError(e.message)}finally{setBusy(false)}}
   async function download(){try{const result=await api('export',player,mode,undefined,undefined,undefined,leagueId);const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`gtl-${cloudEnabled?`${leagueId}-`:""}${data?.playerId||player}-week-${String(data?.league.week||5).padStart(2,"0")}-audit.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setNotice('Your saved ballots and audit have been exported.')}catch(e){reportError(e)}}
   const selected=modes.find(m=>m.id===mode), active=data?.league.roster.find(p=>p.id===(cloudEnabled?data.playerId:player));
@@ -103,7 +108,7 @@ export default function App({session,onSignOut,leagueId,leagues=[],onSelectLeagu
       {data.mode==='betting_challenge'&&data.resultServiceStatus==='unavailable'&&<div className="callout" role="status"><TriangleAlert size={19}/><p>Reviewed results are temporarily unavailable. Challenge grades are pending until current results can be loaded.</p></div>}
       {['picks','comparison','leaderboard','edges'].includes(page)&&<><BenchmarkSummary data={data} showScore/><ProvisionalAnalysisSummary data={data}/></>}
       {['social','units'].includes(page)?<DeferredScreen resetKey={`${page}-${player}`} label={page==='units'?'your betting week':'bet tracker'}><SocialBetTracker key={`${page}-${player}`} player={player} initialView={page==='units'?'units':'feed'} season={data.league.season} week={data.league.week} onDirty={setHasUnsaved}/></DeferredScreen>:page==='virtual'?<VirtualUnits key={`${leagueId}-${data.league.season}-${data.league.week}`} leagueId={leagueId} onDirty={setHasUnsaved}/>:page==='overview'?<Overview data={data} go={go} setRules={setRules}/>:page==='brand'?commissioner?<DeferredScreen label="design lab" resetKey="brand"><BrandLab onDashboard={()=>go('overview')}/></DeferredScreen>:<Overview data={data} go={go} setRules={setRules}/>:page==='settings'?<SettingsPage data={data} onMarketCollected={refreshData}/>:<><ModeTabs mode={mode} setMode={changeMode}/>{page==='picks'?mode==='betting_challenge'?<Betting data={data} saveIssue={saveIssue} refreshSaved={refreshData} save={save} busy={busy||conflict} go={go} error={error}/>:<Predictions key={`${session?.user.id||data.playerId}-${data.league.season}-${data.league.week}-${mode}`} accountId={session?.user.id} saveIssue={saveIssue} refreshSaved={refreshData} conflict={conflict} data={data} save={save} busy={busy||conflict} onDirty={setHasUnsaved} error={error} go={go}/>:page==='comparison'?<ComparePicks data={data} go={go} refresh={refreshData} busy={busy}/>:page==='leaderboard'?<Leaderboard data={data}/>:page==='edges'?<Edges data={data} go={go}/>:<HistoryPage data={data}/>}</>}
-      <footer><span><span className="mini-brand">Guess The Line</span> A game of instincts.</span><span>{cloudEnabled?`Private account · ${refreshLabel(data)}`:'Local preview · No live odds feed'} · All times Pacific</span><button onClick={()=>setRules(true)}>Rules & scoring <ArrowUpRight size={13}/></button></footer>
+      <footer><span><span className="mini-brand">Guess The Line</span> A game of instincts.</span><span>{cloudEnabled?`Private account · ${refreshLabel(data)}`:'Local preview · No live odds feed'} · All times Pacific</span><button onClick={()=>setRules(true)}>Rules & scoring <ArrowUpRight size={13}/></button><LegalLinks/></footer>
       </>}
     </main></div>
     {notice&&<div className="toast" role="status"><CheckCheck size={18}/>{notice}</div>}
