@@ -15,8 +15,9 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
 
 /**
  * The reader routes the scan covers, called as the viewer through the cloud handler: [route, method, body].
- * Keep the order stable; append a route in the stage that gates it. Not yet here: /virtual-units (stage 20, its line
- * lock), /social/read with real slips (stage 21), /lines/* (23), /community/picks (26), /league/* and /me/* (later).
+ * Keep the order stable; append a route in the stage that gates it. Stage 20 added /virtual-units (its line lock; the
+ * world needs `virtualUnits: true`). Not yet here: /social/read with real slips (stage 21), /lines/* (23), /community/picks
+ * (26), /league/* and /me/* (later).
  * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
  */
@@ -28,6 +29,7 @@ export const READERS = Object.freeze([
   ['/state?mode=guess_spread', 'GET'],
   ['/state?mode=guess_total', 'GET'],
   ['/export', 'GET'],
+  ['/virtual-units', 'GET'],
 ]);
 
 const NUMBER = /[+-]?(?:\d+\.\d+|\d+|\.\d+)/g;

@@ -17,7 +17,10 @@ function make({ market = snapshot, picks = [] } = {}) {
     storage: { membership: async () => ({ active: true, player_id: 'sean', role: 'commissioner' }) },
     weekly: { load: async () => state },
     odds: { marketSnapshot: async () => market },
-    virtual: { read: async () => ({ season: 2099, week: 5, revision: 3, games: [game], picks, summary: { wins: 0, losses: 0, pushes: 0, pending: 0, voids: 0, riskUnits: 0, netUnits: 0, roi: null, qualificationPicks: 0, qualificationUnits: 0 } }), save: async (_user, _league, revision, body) => { saved = { revision, body }; return 4; } },
+    virtual: { read: async () => ({ season: 2099, week: 5, revision: 3, games: [game], picks, summary: { wins: 0, losses: 0, pushes: 0, pending: 0, voids: 0, riskUnits: 0, netUnits: 0, roi: null, qualificationPicks: 0, qualificationUnits: 0 } }), save: async (_user, _league, revision, body) => { saved = { revision, body }; return 4; },
+      // Stage 20 line lock: this player has sent both Guess the Line markets of the published week, so every line is open
+      // (tests/virtual-units-line-lock.test.mjs covers the lock itself).
+      publishedWeek: async () => ({ season: 2099, week: 5 }), weekRevealed: async () => true },
     clock: () => Date.parse('2099-10-08T19:00:00.000Z'),
   });
   return { handler, getSaved: () => saved };

@@ -274,7 +274,8 @@ test('M-09 SQL: private notes per game, never cut, the saved flag kept, every ch
 });
 
 test('through gtl-api: /personal/note and /personal/notes serve only the signed-in owner; no other reader carries a note', { skip }, async t => {
-  const f = await notesWorld(t, { groupScreens: true });
+  // virtualUnits: /virtual-units is one of the READERS (stage 20).
+  const f = await notesWorld(t, { groupScreens: true, virtualUnits: true });
   const { world, season, week } = f, [A] = f.games;
   // An unusual half point inside the note: the leak scan can find it anywhere a note text might travel.
   const NOTE = 'Private note for the fixture: lean 41.5 if the wind holds.';
