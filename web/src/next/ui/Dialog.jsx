@@ -1,17 +1,24 @@
 // A confirmation dialog on the native <dialog> element (CONTRACT section 10: title, text, actions; 342 wide). The
 // browser opens it modally with showModal(), so the page behind is inert, focus moves into it (to the first action:
 // put the safe one first, "Keep playing" before "Skip this week") and returns to the opener when it closes. Escape asks
-// `onClose`; a click on the backdrop does nothing, since these dialogs ask for a decision. `alert` (default) marks it
-// an alertdialog. The parent owns `open`.
-import { useEffect, useId, useRef } from 'react';
+// `onClose`, once per press; a click on the backdrop does nothing, since these dialogs ask for a decision. `alert`
+// (default) marks it an alertdialog. The parent owns `open`: when its onClose leaves `open` true (a save still
+// running), the dialog stays open, even after a browser that will not let a page refuse a second Escape in a row closes
+// it anyway (stage 10 kit fix).
+import { useEffect, useId, useReducer, useRef } from 'react';
 import { cx } from './cx.js';
 
 export function Dialog({ open, title, text, onClose, alert = true, className, children }) {
   const ref = useRef(null);
   const titleId = useId();
   const textId = useId();
-  const isOpen = useRef(open);
-  isOpen.current = open;
+  const latest = useRef({ open, onClose });
+  latest.current = { open, onClose };
+  // Set when the browser fired a cancel it would not let us stop: the close event that follows is the same Escape.
+  const closing = useRef(false);
+  // Bumped when the browser closed the dialog by itself, so the effect below runs again and reopens it if `open` is
+  // still true.
+  const [closedByBrowser, noteClosed] = useReducer(n => n + 1, 0);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
@@ -22,15 +29,19 @@ export function Dialog({ open, title, text, onClose, alert = true, className, ch
       if (typeof dialog.close === 'function') dialog.close();
       else dialog.removeAttribute('open');
     }
-  }, [open]);
-  // The browser may close a modal dialog on Escape by itself (a close request it does not let a page cancel twice);
-  // either way the parent hears about it once and stays the owner of `open`.
+  }, [open, closedByBrowser]);
+  // Escape fires cancel. It is refused here so the parent decides; a browser that will not let a page refuse two in a
+  // row sends it uncancelable, then closes the dialog and fires close. Either way the parent hears once per Escape.
   const cancel = event => {
     event.preventDefault();
-    if (isOpen.current) onClose?.();
+    closing.current = !event.cancelable;
+    if (latest.current.open) latest.current.onClose?.();
   };
   const closed = () => {
-    if (isOpen.current) onClose?.();
+    const sameEscape = closing.current;
+    closing.current = false;
+    if (!sameEscape && latest.current.open) latest.current.onClose?.();
+    noteClosed();
   };
   return (
     <dialog

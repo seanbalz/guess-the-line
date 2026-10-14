@@ -1,0 +1,180 @@
+/* Guess The Line, D-38: the new app's frame (redesign build plan stage 10; prototype shell, CONTRACT section 2).
+   Top bar (56, sticky, never under the status bar), the page, the dock 8 above the tab bar, the tab bar (64 plus the
+   home-indicator inset). On a phone the frame fills the screen; on a wider screen each bar keeps its color edge to edge
+   and its contents in the 520 column. Loaded after components.css; every rule stays inside .gx. */
+
+.gx-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px));
+}
+
+/* ===== top bar: the monogram (Home), the league pill (switcher), your avatar (menu) ===== */
+.gx-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--gx-z-topbar);
+  flex: none;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--gx-canvas);
+  border-bottom: 1px solid var(--gx-border);
+}
+.gx-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: var(--gx-size-content);
+  height: var(--gx-size-topbar);
+  margin-inline: auto;
+  padding: 0 10px;
+}
+.gx-top-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--gx-size-touch);
+  height: var(--gx-size-touch);
+  border-radius: var(--gx-radius-sm);
+}
+.gx-league-btn {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 240px;
+  height: var(--gx-size-touch);
+}
+.gx-league-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px 0 16px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-1);
+  font: 700 16px/24px var(--gx-font-body);
+}
+.gx-league-pill .gx-ic { color: var(--gx-text-2); }
+/* About 16 characters, then an ellipsis (with .gx-truncate). */
+.gx-league-name { max-width: 170px; }
+
+/* ===== the page ===== */
+.gx-main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.gx-offline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--gx-size-touch);
+  padding: 0 8px 0 16px;
+  background: var(--gx-pending-tint);
+  color: var(--gx-text-1);
+  font: 500 13px/18px var(--gx-font-body);
+}
+.gx-offline .gx-ic { color: var(--gx-text-1); }
+.gx-offline .gx-btn--ghost-2 { color: var(--gx-text-1); }
+/* A tab or page that failed: one sentence, a way to try again and the old app. */
+.gx-fail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+  box-shadow: inset 4px 0 0 var(--gx-loss), var(--gx-e1);
+}
+
+/* The menu's Sign out: a grey text button at the bottom, aligned with the rows' words. */
+.gx-menu-signout { align-self: flex-start; margin-left: -8px; }
+
+/* ===== the dock (Play's submit bar, Bets' slip bar): 8 above the tab bar; only its bars take taps ===== */
+.gx-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px);
+  z-index: var(--gx-z-dock);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: var(--gx-size-content);
+  margin-inline: auto;
+  pointer-events: none;
+}
+.gx-dock:empty { display: none; }
+.gx-dock .gx-dock-bar { pointer-events: auto; }
+
+/* ===== tab bar: Home, Play, Bets, Lines, League ===== */
+/* 64 tall with its top border, plus the home-indicator inset: a toast or dock 8 above it is 8 above the border. */
+.gx-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--gx-z-tabbar);
+  height: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--gx-surface-1);
+  border-top: 1px solid var(--gx-border);
+}
+.gx-tabbar-inner {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: var(--gx-size-content);
+  margin-inline: auto;
+}
+.gx-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  height: calc(var(--gx-size-tabbar) - 1px);
+  color: var(--gx-text-2);
+}
+.gx-tab .gx-ic { color: var(--gx-text-3); }
+.gx-tab-icon { position: relative; display: block; width: 24px; height: 24px; }
+.gx-tab-label { font: 600 16px/20px var(--gx-font-body); }
+.gx-tab--on { color: var(--gx-text-1); }
+.gx-tab--on .gx-tab-label { font-weight: 700; }
+.gx-tab--on .gx-ic { color: var(--gx-accent-ink); }
+.gx-tab--on::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 24px;
+  height: 3px;
+  margin-left: -12px;
+  border-radius: 0 0 3px 3px;
+  background: var(--gx-accent);
+  box-shadow: var(--gx-glow-accent);
+}
+/* The League tab's "new posts" dot (8, data color); counters use .gx-counter. */
+.gx-tab-dot {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--gx-data);
+}
+
+@media (forced-colors: active) {
+  .gx-league-pill,
+  .gx-offline,
+  .gx-fail { border: 1px solid CanvasText; }
+  .gx-tab--on::before { forced-color-adjust: none; background: Highlight; }
+}

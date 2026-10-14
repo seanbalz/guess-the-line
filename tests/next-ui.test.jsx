@@ -16,7 +16,7 @@ import { EMOJI, markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui
 
 const {
   Avatar, AvatarStack, Badge, Button, Card, CardButton, Chip, ChipRail, Countdown, Dialog, DriveMeter, FieldMark, GateBanner,
-  Icon, IconButton, LinkRow, List, LockCell, LockLine, Meter, Move, Overlay, Pill, Rank, Row, Segmented, Sheet, Strip, Tag,
+  Icon, IconButton, LinkRow, List, LockCell, LockLine, Meter, Move, Overlay, Pill, Rank, Row, Segmented, Sheet, Strip, Switch, Tag,
   TeamMark, Text, Toast,
 } = ui;
 
@@ -125,6 +125,7 @@ function KitchenSink() {
         <Chip text>More</Chip>
       </ChipRail>
       <Segmented label="Market" options={[{ value: 'spread', label: 'Spread' }, { value: 'total', label: 'Total' }]} value="spread" onChange={() => {}}/>
+      <Switch label="Reduce motion" sub="Your phone's setting also counts." checked onChange={() => {}}/>
       <GateBanner gate={gateBanner(week, 'spread')} onCta={() => {}} onSkip={() => {}}/>
       <LockLine>{copy.lineLocked('total')}</LockLine>
       <LockCell label={copy.lineLocked('total')}/>
@@ -163,7 +164,7 @@ describe('every component together', () => {
     for (const cls of ['gx-t-title', 'gx-btn--primary', 'gx-icon-btn', 'gx-card--hero', 'gx-card-btn', 'gx-list', 'gx-row--you', 'gx-row-btn', 'gx-link-row',
       'gx-pill--live', 'gx-live-dot', 'gx-tag-k', 'gx-chip--on', 'gx-chip-rail', 'gx-seg-btn--on', 'gx-lock-card', 'gx-lock-line', 'gx-lock-cell', 'gx-cd-tile',
       'gx-rank--1', 'gx-rank--t', 'gx-move--up', 'gx-meter3-seg--on', 'gx-drive-seg--on', 'gx-badge--rare', 'gx-badge--locked', 'gx-strip-tick', 'gx-strip--mini',
-      'gx-av-stack', 'gx-av--anyone', 'gx-team', 'gx-mono', 'gx-toast', 'gx-sheet', 'gx-dialog', 'gx-ov-card']) {
+      'gx-av-stack', 'gx-av--anyone', 'gx-team', 'gx-mono', 'gx-toast', 'gx-sheet', 'gx-dialog', 'gx-ov-card', 'gx-switch-row', 'gx-switch']) {
       expect(used.has(cls), cls).toBe(true);
     }
   });
@@ -539,6 +540,25 @@ describe('Sheet, Dialog, Toast, Overlay', () => {
     expect(els(<Toast text="x" actionLabel="Undo" onDismiss={() => {}}/>, n => n.tag === 'button')).toHaveLength(1);
     expect(els(<Toast text="x" tone="plain" onDismiss={() => {}}/>, n => n.tag === 'svg')).toHaveLength(1); // the dismiss icon only
     clean(withAction);
+    // Stage 10: a host that announces toasts in its own live region drops the toast's role, an error's too.
+    expect(one(<Toast text="Saved" live={false} onDismiss={() => {}}/>, byClass('gx-toast')).attrs.role).toBeUndefined();
+    expect(one(<Toast text="Couldn't save" tone="error" live={false} onDismiss={() => {}}/>, byClass('gx-toast')).attrs.role).toBeUndefined();
+  });
+
+  it('Switch is a checkbox with role="switch", named by its words, described by its meta line, covering its row', () => {
+    const node = <Switch label="Reduce motion" sub="Your phone's setting also counts." checked onChange={() => {}}/>;
+    const row = one(node, n => n.tag === 'label');
+    expect(classes(row)).toEqual(['gx-switch-row']);
+    const input = one(node, n => n.tag === 'input');
+    expect(input.attrs).toMatchObject({ type: 'checkbox', role: 'switch', class: 'gx-switch-input' });
+    expect('checked' in input.attrs).toBe(true);
+    expect(nameFrom(one(node, n => n.attrs.id === input.attrs['aria-describedby']))).toBe("Your phone's setting also counts.");
+    expect(one(node, byClass('gx-switch')).attrs['aria-hidden']).toBe('true');
+    expect(text(node)).toContain('Reduce motion');
+    const plain = one(<Switch label="Pick reminders"/>, n => n.tag === 'input');
+    expect('checked' in plain.attrs).toBe(false);
+    expect(plain.attrs['aria-describedby']).toBeUndefined();
+    clean(node);
   });
 
   it('Overlay is a named modal dialog around a card or a full panel', () => {
@@ -613,7 +633,7 @@ describe('the kit\'s source (web/src/next/ui)', () => {
   const files = readdirSync(UI_DIR).filter(f => /\.(jsx?|mjs)$/.test(f)).map(f => ({ f, src: readFileSync(join(UI_DIR, f), 'utf8') }));
   it('has the files the plan lists', () => {
     expect(files.map(x => x.f).sort()).toEqual(expect.arrayContaining(['index.js', 'Text.jsx', 'Button.jsx', 'IconButton.jsx', 'Card.jsx', 'List.jsx', 'Row.jsx', 'Pill.jsx',
-      'Tag.jsx', 'Chip.jsx', 'ChipRail.jsx', 'Segmented.jsx', 'GateBanner.jsx', 'LockLine.jsx', 'Countdown.jsx', 'Rank.jsx', 'Meter.jsx', 'Badge.jsx', 'Strip.jsx',
+      'Tag.jsx', 'Chip.jsx', 'ChipRail.jsx', 'Segmented.jsx', 'Switch.jsx', 'GateBanner.jsx', 'LockLine.jsx', 'Countdown.jsx', 'Rank.jsx', 'Meter.jsx', 'Badge.jsx', 'Strip.jsx',
       'Sheet.jsx', 'Dialog.jsx', 'Toast.jsx', 'Overlay.jsx', 'TeamMark.jsx', 'FieldMark.jsx', 'Icon.jsx']));
   });
   it('builds UI as markup only: no innerHTML, storage, network or document writes', () => {
