@@ -5,8 +5,9 @@ import { providerSocialError } from '../../cloud/social.mjs';
 import { providerPersonalError } from '../../cloud/personal.mjs';
 import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../cloud/community.mjs';
-import { pacificDate, pacificToUtc, weekOpenAt } from '../../shared/nfl-schedule.mjs';
+import { weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { openDeadline } from './fixture-deadline.mjs';
 import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
@@ -15,9 +16,8 @@ const DAY = 86_400_000;
 // The old app on the schema players actually have (tests/migrations.mjs).
 const migrations = HOSTED;
 // D-24: a week opens Monday 00:00 PT, so the fixture week must be the current Pacific
-// week to be open. Its TNF deadline is 11:59 PM PT today; the not-open fixture uses a
-// Thursday ~5:15 PM PT deadline in a week whose Monday is still ahead.
-const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
+// week to be open. Its TNF deadline comes from fixture-deadline.mjs (11:59 PM PT today, or tomorrow late at night); the
+// not-open fixture uses a Thursday ~5:15 PM PT deadline in a week whose Monday is still ahead.
 const futureDeadline = () => new Date(Date.parse(weekOpenAt(Date.now() + 10 * DAY)) + 3 * DAY + 17.25 * 3_600_000).toISOString();
 
 async function fixture(page, baseURL, deadline) {

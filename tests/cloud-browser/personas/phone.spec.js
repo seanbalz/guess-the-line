@@ -1,6 +1,6 @@
 // Persona (b): casual phone user at 390px on a slow connection (every request delayed),
 // interrupted mid-ballot: tab switch, reload, back button. Does the draft survive?
-import { test, expect, pgliteAvailable, id } from './harness.mjs';
+import { test, expect, pgliteAvailable, id, dueDay } from './harness.mjs';
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
@@ -13,6 +13,8 @@ const pick = async (card, team, line) => { await card.getByRole('button', { name
 
 test('phone: slow network, interrupted ballot, reload and back button', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  // Every request waits 400 ms, so this journey takes 25 to 35 s: more than the config's 30 s default allows.
+  test.setTimeout(90_000);
   await persona.start();
   persona.net.delay = 400; // Slow-3G-like latency on every request, static and API.
   const t0 = Date.now();
@@ -50,7 +52,7 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   const bar = page.locator('.save-bar');
   const deadline = persona.state.league.deadline;
   const dueShort = new Date(deadline).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', hour: 'numeric', minute: '2-digit' });
-  await expect(bar.locator('.save-due')).toHaveText(`Due ${dueShort} PT (today)`);
+  await expect(bar.locator('.save-due')).toHaveText(`Due ${dueShort} PT (${dueDay(deadline)})`);
   const bottomOf = async locator => { const box = await locator.boundingBox(); return box.y + box.height; };
   const lastCard = cards.last();
   await lastCard.evaluate(el => el.scrollIntoView({ block: 'end' }));

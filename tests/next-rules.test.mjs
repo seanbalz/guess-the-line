@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { pacificToUtc } from '../shared/nfl-schedule.mjs';
-import { LATE_WINDOWS as CLOUD_LATE_WINDOWS, TODAYS_RULES as CLOUD_TODAYS_RULES } from '../cloud/live-rules.mjs';
+import { LATE_WINDOWS as CLOUD_LATE_WINDOWS, REVEAL_TIMES as CLOUD_REVEAL_TIMES, TODAYS_RULES as CLOUD_TODAYS_RULES, parseLiveRules } from '../cloud/live-rules.mjs';
 import * as R from '../web/src/next/rules.js';
 import * as C from '../web/src/next/copy.js';
 
@@ -22,8 +22,9 @@ const TUE = pt('2026-10-13', '13:03');
 const FRI = pt('2026-10-16', '09:00'); // after the deadline: G1 has kicked off, G2 to G4 have not
 const SUN = pt('2026-10-18', '12:00'); // G1 and G2 have kicked off
 const LATER = pt('2026-10-20', '09:00'); // every game has kicked off
-const LIVE = Object.freeze({ sentFinal: true, lateWindow: 'kickoff' }); // after M-02 and M-07
-const TODAY = Object.freeze({ sentFinal: false, lateWindow: 'deadline' }); // what the server sends today
+const LIVE = Object.freeze({ sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff' }); // after M-01, M-02 and M-07
+const TODAY = Object.freeze({ sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' }); // what the server sends today
+const M01 = Object.freeze({ sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' }); // M-01's per-game gate, nothing else yet
 const MINUS = '−';
 
 const deepFreeze = value => {
@@ -35,12 +36,24 @@ const state = (input) => R.guessState({ deadline: DEADLINE, rules: LIVE, ...inpu
 test('the live rules: same fallback as the server, and malformed rules read as today\'s', () => {
   assert.deepEqual(R.TODAYS_RULES, CLOUD_TODAYS_RULES);
   assert.deepEqual(R.LATE_WINDOWS, CLOUD_LATE_WINDOWS);
+  assert.deepEqual(R.REVEAL_TIMES, CLOUD_REVEAL_TIMES);
   assert.deepEqual(R.liveRules(LIVE), LIVE);
-  assert.deepEqual(R.liveRules({ sentFinal: true, lateWindow: 'kickoff', extra: 1 }), LIVE, 'only the known keys pass');
-  for (const raw of [undefined, null, [], 'kickoff', {}, { sentFinal: 'true', lateWindow: 'kickoff' }, { sentFinal: true, lateWindow: 'game' }, { sentFinal: true }]) {
+  assert.deepEqual(R.liveRules(M01), M01);
+  assert.deepEqual(R.liveRules({ sentFinal: true, lateWindow: 'kickoff', extra: 1 }), LIVE, 'only the known keys pass; a kickoff late window reveals at kickoff');
+  assert.deepEqual(R.liveRules({ sentFinal: true, lateWindow: 'kickoff', revealAt: 'deadline' }), LIVE, 'M-07 comes after M-01');
+  assert.deepEqual(R.liveRules({ sentFinal: false, lateWindow: 'deadline' }), TODAY, 'no revealAt: the deadline opens the week');
+  for (const raw of [undefined, null, [], 'kickoff', {}, { sentFinal: 'true', lateWindow: 'kickoff' }, { sentFinal: true, lateWindow: 'game' }, { sentFinal: true },
+    { sentFinal: true, lateWindow: 'deadline', revealAt: 'game' }]) {
     assert.deepEqual(R.liveRules(raw), TODAY, JSON.stringify(raw));
   }
   assert.notEqual(R.liveRules(null), R.TODAYS_RULES, 'a copy, so a caller cannot change the frozen fallback');
+  // The screens read the reply exactly as the server parsed the function's answer.
+  for (const raw of [LIVE, M01, TODAY, { sentFinal: true, lateWindow: 'deadline' }, { sentFinal: true, lateWindow: 'kickoff', revealAt: 'deadline' }, { sentFinal: false, lateWindow: 'deadline', revealAt: null }, { sentFinal: 1, lateWindow: 'deadline' }, { sentFinal: false, lateWindow: 'deadline', revealAt: 'game' }]) {
+    let served;
+    try { served = parseLiveRules(raw); } catch { served = CLOUD_TODAYS_RULES; }
+    assert.deepEqual(R.liveRules(raw), served, JSON.stringify(raw));
+    assert.deepEqual(R.liveRules(served), served, `${JSON.stringify(raw)}: reading the reply again changes nothing`);
+  }
 });
 
 test('when a pick closes: at its own kickoff once M-07 is live; today at the deadline, or the kickoff if earlier', () => {
@@ -140,13 +153,37 @@ test('after kickoff: an unlocked game is closed, its draft kept for its owner on
   assert.equal(none.state, 'closed');
   assert.equal(none.unsentDraft, null);
 
-  // Today a game closes at the deadline but opens only at its kickoff (M-01's per-game gate).
+  // Today a game closes at the deadline, and the deadline opens the whole week for everyone (D-23, gtl_week_revealed).
   const today = R.guessState({ kickoff: KO.G3, deadline: DEADLINE, entry: { value: 2.5 }, now: FRI, rules: TODAY });
   assert.equal(today.state, 'closed');
   assert.equal(today.label, `Closed · No pick`);
   assert.equal(today.closedAtKickoff, false);
-  assert.equal(today.lineVisible, false);
-  assert.equal(today.picksVisible, false);
+  assert.equal(today.unsentDraft, 2.5);
+  assert.equal(today.lineVisible, true);
+  assert.equal(today.picksVisible, true);
+  // One minute before the deadline nothing has opened yet.
+  const before = R.guessState({ kickoff: KO.G3, deadline: DEADLINE, entry: { value: 2.5 }, now: Date.parse(DEADLINE) - 60_000, rules: TODAY });
+  assert.equal(before.state, 'draft');
+  assert.equal(before.lineVisible, false);
+  assert.equal(before.picksVisible, false);
+  // With M-01's per-game gate (and picks still closing at the deadline) the game opens only at its kickoff.
+  const gated = R.guessState({ kickoff: KO.G3, deadline: DEADLINE, entry: { value: 2.5 }, now: FRI, rules: M01 });
+  assert.equal(gated.state, 'closed');
+  assert.equal(gated.lineVisible, false);
+  assert.equal(gated.picksVisible, false);
+  assert.equal(R.guessState({ kickoff: KO.G3, deadline: DEADLINE, now: KO.G3, rules: M01 }).picksVisible, true);
+
+  // The week on Friday under today's rules: every game of both markets is open to see, nothing is hidden.
+  const week = R.weekSummary({ games: GAMES, entries: {}, deadline: DEADLINE, now: FRI, rules: TODAY });
+  for (const market of R.MARKETS) {
+    assert.equal(week.markets[market].hidden, 0, market);
+    for (const id of ['G1', 'G2', 'G3', 'G4']) {
+      assert.equal(week.markets[market].games[id].state, 'closed', `${market} ${id}`);
+      assert.equal(week.markets[market].games[id].lineVisible, true, `${market} ${id}`);
+      assert.equal(week.markets[market].games[id].picksVisible, true, `${market} ${id}`);
+    }
+  }
+  assert.equal(R.weekSummary({ games: GAMES, entries: {}, deadline: DEADLINE, now: FRI, rules: M01 }).markets.spread.hidden, 3, 'M-01: G2 to G4 wait for kickoff');
 });
 
 test('late: after the deadline open games stay open until kickoff, and the stored marker shows (D-30, D-36)', () => {
@@ -167,10 +204,11 @@ test('late: after the deadline open games stay open until kickoff, and the store
   assert.equal(ruled.lateText, '');
   // A draft is never Late; only a locked-in pick carries the marker.
   assert.equal(state({ kickoff: KO.G3, entry: { value: 44, late: { minutes: 3 } }, now: FRI }).late, false);
-  // Today there is no late window: after the deadline every game is closed.
+  // Today there is no late window: after the deadline every game is closed, and open to see.
   const today = R.guessState({ kickoff: KO.G3, deadline: DEADLINE, now: FRI, rules: TODAY });
   assert.equal(today.state, 'closed');
   assert.equal(today.wouldBeLate, false);
+  assert.equal(today.lineVisible, true);
 });
 
 test('sat out: skip and "See picks now" forfeit the rest of the week; locked-in picks keep counting', () => {
@@ -290,12 +328,61 @@ test('the gate banner: one per screen while a market\'s lines are hidden, with t
   assert.equal(open.sentence, '');
   assert.equal(open.ctaLabel, '');
   assert.equal(open.canSkip, false);
-  // Today, after the deadline with no ballot: nothing can be picked, and the lines open at each kickoff.
+  // Today, after the deadline with no ballot: the deadline opened every line, so there is no banner.
   const closed = banner({}, FRI, TODAY);
-  assert.equal(closed.locked, true);
-  assert.equal(closed.sentence, "Spreads show at each game's kickoff.");
+  assert.equal(closed.locked, false);
+  assert.equal(closed.sentence, '');
   assert.equal(closed.ctaLabel, '');
   assert.equal(closed.canSkip, false);
+  // With M-01's per-game gate: nothing can be picked, and the lines open at each kickoff.
+  const gated = banner({}, FRI, M01);
+  assert.equal(gated.locked, true);
+  assert.equal(gated.sentence, "Spreads show at each game's kickoff.");
+  assert.equal(gated.ctaLabel, '');
+  assert.equal(gated.canSkip, false);
+});
+
+test('today\'s rules (sentFinal false): a market is submitted whole, so the gate says "Submit" and no single game locks in', () => {
+  const week = (entries, rules = TODAY) => R.weekSummary({ games: GAMES, entries: { spread: entries }, deadline: DEADLINE, now: TUE, rules });
+  // One draft, three games missing: the server would refuse the submission (GTL_BALLOT_INCOMPLETE).
+  const oneDraft = week({ G1: { value: -3 } });
+  const g1 = oneDraft.markets.spread.games.G1;
+  assert.equal(g1.state, 'draft');
+  assert.equal(g1.canLockIn, false);
+  assert.equal(g1.canEdit, true);
+  assert.equal(oneDraft.markets.spread.complete, false);
+  assert.equal(oneDraft.markets.spread.canLockIn, false);
+  const gate = R.gateBanner(oneDraft, 'spread');
+  assert.equal(gate.locked, true);
+  assert.equal(gate.sentence, 'Submit your Spread picks to see spreads.');
+  assert.equal(gate.cellSentence, 'Submit your Spread picks to see this line.');
+  assert.equal(gate.ctaLabel, 'Finish Spread picks · 3 left');
+  assert.equal(R.gateBanner(week({}), 'total').sentence, 'Submit your Total picks to see totals.');
+  assert.equal(R.guessState({ kickoff: KO.G2, deadline: DEADLINE, entry: { value: -3 }, now: TUE, rules: TODAY }).canLockIn, false, 'a lone game never locks in today');
+  assert.equal(R.guessState({ kickoff: KO.G2, deadline: DEADLINE, entry: { value: -3 }, now: TUE }).canLockIn, false, 'missing rules read as today\'s');
+
+  // Every game picked: the whole market can be submitted, and every draft goes with it.
+  const allDrafts = week(Object.fromEntries(GAMES.map(g => [g.id, { value: 3 }])));
+  assert.equal(allDrafts.markets.spread.complete, true);
+  assert.equal(allDrafts.markets.spread.canLockIn, true);
+  for (const id of ['G1', 'G2', 'G3', 'G4']) assert.equal(allDrafts.markets.spread.games[id].canLockIn, true, id);
+  assert.equal(R.gateBanner(allDrafts, 'spread').ctaLabel, 'Submit Spread picks');
+  assert.equal(allDrafts.markets.total.canLockIn, false, 'the other market has no picks');
+
+  // Submitted: the whole market opens at once, and the picks can still change until the deadline.
+  const submitted = week(Object.fromEntries(GAMES.map(g => [g.id, { value: 3, lockedAt: TUE }])));
+  assert.equal(submitted.markets.spread.hidden, 0);
+  assert.equal(submitted.markets.spread.games.G4.label, 'Submitted');
+  assert.equal(submitted.markets.spread.games.G4.canEdit, true);
+  assert.equal(submitted.markets.spread.canLockIn, false);
+  assert.equal(R.gateBanner(submitted, 'spread').locked, false);
+
+  // D-39 (sentFinal true): one game locks in on its own, with others still missing.
+  const live = week({ G1: { value: -3 } }, LIVE);
+  assert.equal(live.markets.spread.games.G1.canLockIn, true);
+  assert.equal(live.markets.spread.canLockIn, true);
+  assert.equal(live.markets.spread.complete, false);
+  assert.equal(R.gateBanner(live, 'spread').sentence, 'Lock in your Spread pick for a game to see its spread.');
 });
 
 test('pure: inputs are never changed, the same input gives the same answer, and there is no clock', () => {
@@ -320,21 +407,41 @@ test('copy: D-39 wording, "due" not "lock" for deadlines, real minus, no emoji',
   assert.equal(C.weekName(null), 'This week');
   assert.equal(C.marketName('total'), 'Total');
   assert.equal(C.marketName('overUnder'), '—');
-  assert.equal(C.picksHidden('total'), "Friends' Total picks show after you lock in yours, or at kickoff.");
-  assert.equal(C.closedDraft(`SEA ${MINUS}2.5`), `Closed at kickoff · draft SEA ${MINUS}2.5 not locked in`);
+  assert.equal(C.picksHidden('total', LIVE), "Friends' Total picks show after you lock in yours, or at kickoff.");
+  assert.equal(C.picksHidden('total', TODAY), "Friends' Total picks show after you submit yours, or at the deadline.");
+  assert.equal(C.picksHidden('total'), C.picksHidden('total', TODAY), 'missing rules read as today\'s');
+  assert.equal(C.picksHidden('spread', M01), "Friends' Spread picks show after you submit yours, or at kickoff.");
+  assert.equal(C.picksHidden('spread', { sentFinal: true, lateWindow: 'deadline', revealAt: 'deadline' }), "Friends' Spread picks show after you lock in yours, or at the deadline.");
+  assert.equal(C.lineLocked('total', LIVE), 'Lock in your Total pick to see this line.');
+  assert.equal(C.lineLocked('total', TODAY), 'Submit your Total picks to see this line.');
+  assert.equal(C.lineLocked('total'), C.lineLocked('total', TODAY));
+  assert.equal(C.lineLockedBanner('total', LIVE), 'Lock in your Total pick for a game to see its total.');
+  assert.equal(C.lineLockedBanner('spread', TODAY), 'Submit your Spread picks to see spreads.');
+  assert.equal(C.lineLockedBanner('spread'), C.lineLockedBanner('spread', TODAY));
+  assert.equal(C.closedDraft(`SEA ${MINUS}2.5`, { rules: LIVE, atKickoff: true }), `Closed at kickoff · draft SEA ${MINUS}2.5 not locked in`);
+  assert.equal(C.closedDraft(`SEA ${MINUS}2.5`, { rules: LIVE }), `Closed at kickoff · draft SEA ${MINUS}2.5 not locked in`, 'every game closes at its kickoff under M-07');
+  assert.equal(C.closedDraft(`SEA ${MINUS}2.5`, { rules: TODAY }), `Closed · draft SEA ${MINUS}2.5 not submitted`, 'today a draft closes at the deadline');
+  assert.equal(C.closedDraft(`SEA ${MINUS}2.5`), C.closedDraft(`SEA ${MINUS}2.5`, { rules: TODAY }));
+  assert.equal(C.closedDraft('Over 44.5', { rules: TODAY, atKickoff: true }), 'Closed at kickoff · draft Over 44.5 not submitted');
   assert.equal(C.lateRule(LIVE, 'Thu 5:15 PM PT'), "Each game's pick closes at its kickoff. Picks locked in after Thu 5:15 PM PT are marked Late.");
   assert.equal(C.lateRule(TODAY, 'Thu 5:15 PM PT'), 'Picks close Thu 5:15 PM PT.');
   assert.equal(C.finalRule(LIVE), "Locked-in picks are final. Locking in a game's pick shows its line and friends' picks for that game.");
   assert.equal(C.finalRule(TODAY), 'You can change a sent pick until it closes.');
 
-  const skip = C.skipDialog({ week: 6, keepsCounting: true });
+  const skip = C.skipDialog({ week: 6, keepsCounting: true, rules: LIVE });
   assert.equal(skip.title, 'Skip Week 6 Guess the Line?');
   assert.equal(skip.body, "Lines show right away. You can't lock in more Week 6 picks after this. It counts as sitting out and breaks your Pick streak.");
   assert.equal(skip.keep, 'Picks you already locked in still count.');
   assert.equal(skip.cancel, 'Keep playing');
   assert.equal(skip.confirm, 'Skip this week');
   assert.equal(skip.toast, "You're sitting out Week 6. Lines are open.");
-  assert.equal(C.skipDialog({ week: 6, keepsCounting: false }).keep, '');
+  assert.equal(C.skipDialog({ week: 6, keepsCounting: false, rules: LIVE }).keep, '');
+  const skipToday = C.skipDialog({ week: 6, keepsCounting: true, rules: TODAY });
+  assert.equal(skipToday.body, "Lines show right away. You can't submit more Week 6 picks after this. It counts as sitting out and breaks your Pick streak.");
+  assert.equal(skipToday.keep, 'Picks you already submitted still count.');
+  assert.deepEqual(C.skipDialog({ week: 6, keepsCounting: true }), skipToday, 'missing rules read as today\'s');
+  assert.equal(C.revealDialog({ week: 6, market: 'total', keepsCounting: true, rules: LIVE }).keep, 'Picks you already locked in still count.');
+  assert.equal(C.revealDialog({ week: 6, market: 'total', keepsCounting: true, rules: TODAY }).keep, 'Picks you already submitted still count.');
   const reveal = C.revealDialog({ week: 6, market: 'total', keepsCounting: false });
   assert.equal(reveal.title, 'See picks now?');
   assert.equal(reveal.body, "Seeing friends' Total picks now ends your Week 6 Guess the Line. It counts as sitting out and breaks your Pick streak.");
@@ -345,9 +452,12 @@ test('copy: D-39 wording, "due" not "lock" for deadlines, real minus, no emoji',
   const strings = [
     ...Object.values(C.GUESS_STATE_LABEL), ...Object.values(C.FORFEIT_LABEL), ...Object.values(C.WHOS_IN_LABEL),
     C.SCORES_AT_KICKOFF, C.PICKS_STILL_OPEN, C.SKIP_LABEL, C.SEE_PICKS_NOW, C.LATE_NOW,
-    C.dueIn(6), C.dueAt('Thu 5:15 PM PT'), C.lineLocked('spread'), C.lineLockedBanner('total'), C.linesAtKickoff('total'), C.picksHidden('spread'),
+    C.dueIn(6), C.dueAt('Thu 5:15 PM PT'), C.linesAtKickoff('total'),
     C.lateRule(LIVE, 'Thu 5:15 PM PT'), C.lateRule(TODAY, 'Thu 5:15 PM PT'), C.finalRule(LIVE), C.finalRule(TODAY),
-    ...Object.values(C.skipDialog({ week: 6, keepsCounting: true })), ...Object.values(C.revealDialog({ week: 6, market: 'spread', keepsCounting: true })),
+    ...[LIVE, TODAY, M01].flatMap(rules => [
+      C.lineLocked('spread', rules), C.lineLockedBanner('total', rules), C.picksHidden('spread', rules), C.closedDraft(`SEA ${MINUS}2.5`, { rules }),
+      ...Object.values(C.skipDialog({ week: 6, keepsCounting: true, rules })), ...Object.values(C.revealDialog({ week: 6, market: 'spread', keepsCounting: true, rules })),
+    ]),
   ];
   for (const s of strings) {
     assert.equal(typeof s, 'string');
