@@ -20,6 +20,7 @@ import { providerVirtualError } from '../../cloud/virtual-units.mjs';
 import { createOptionalRpc } from '../../cloud/optional-rpc.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { openDeadline } from './fixture-deadline.mjs';
+import { shiftBrowserClock } from './test-clock.mjs';
 
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip in each spec. */ }
@@ -57,6 +58,7 @@ export async function communityWorld(page, baseURL, options = {}) {
   const world = await createCommunityWorld(options);
   const { errors, handler, sessions, users } = world;
   page.on('pageerror', error => errors.push(error.message));
+  await shiftBrowserClock(page);
   await page.route('**/*', async route => {
     const req = route.request(), url = new URL(req.url());
     if (url.origin === new URL(baseURL).origin) return route.continue();
