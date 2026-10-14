@@ -153,7 +153,7 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   const picks = await post.locator('.post-picks').innerText();
   persona.finding({ screen: 'feed-half-done', severity: 3, experience: `The feed post for the submission lists the picks as "${picks.replace(/\n/g, ' / ')}" using team codes ("TB @ DAL") and "Cowboys −3", while the Picks tab uses full names and the leaderboard uses the player's name only. The card reads "${card.replace(/\n/g, ' · ')}".`, fix: 'Use one team naming scheme across feed, picks and leaderboard (code + nickname).', evidence: { picks } });
   const troyTotal = page.locator('.feed-post').filter({ hasText: 'Troy Fixture submitted Week 5 Total picks' });
-  await expect(troyTotal).toContainText('Submit your Week 5 Total picks to see these.');
+  await expect(troyTotal).toContainText('Submit your Week 5 Total picks to see these');
   // "Make picks" opens the first market still due: Total, with Spread shown as submitted.
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
   await expect(page.locator('.week-pick').first()).toBeVisible();
@@ -246,7 +246,7 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   expect(totalCell).toBe('Sat out');
   // The D-23 reveal reaches the feed too: Troy's Total post now carries his numbers.
   await expect(troyTotal.locator('.post-picks')).toContainText('44');
-  await expect(troyTotal).not.toContainText('Submit your Week 5 Total picks to see these.');
+  await expect(troyTotal).not.toContainText('Submit your Week 5 Total picks to see these');
   await persona.shot('feed-sat-out');
   persona.finding({ screen: 'feed-sat-out', severity: 4, experience: 'After sitting out Total the picks-due card disappears entirely and the leaderboard shows "Sat out" in the Total week column with a footnote. Nothing on the feed records that the player sat out (no post), so the act is invisible to everyone else until the leaderboard is read.', fix: 'Post "Ben sat out Week 5 Total" to the feed like a submission, so the reveal to others is explained.' });
   expect(await persona.noOverflow()).toBe(true);
