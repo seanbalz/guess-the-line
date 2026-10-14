@@ -329,7 +329,7 @@ export const WIND_FINAL_MAX_MS = 2 * 60 * 60_000;
 export const WIND_CARD = 'total|g:g_wind10';
 export const WIND15_CARD = 'total|g:g_wind15';
 export const WIND_COPY = Object.freeze({
-  evidence: 'In out-of-sample testing (2018-2025) only one trend beat chance: strong wind at kickoff (10+ mph) went Under, on played games. Its record uses observed kickoff wind. Signed-in community members see an Open-Meteo kickoff wind forecast for upcoming outdoor games, but using the record with a forecast has not been backtested.',
+  evidence: 'In out-of-sample testing (2018-2025) only one trend beat chance: strong wind at kickoff (10+ mph) went Under, on played games. Its record uses observed kickoff wind. Signed-in community members see an Open-Meteo kickoff forecast for upcoming open-air and retractable-roof games, but using the record with a forecast has not been backtested.',
   windConditional: 'Applies only if kickoff wind is 10+ mph; no current forecast for this game',
   wind15Conditional: 'Applies only if kickoff wind is 15+ mph; no current forecast for this game',
   weatherConditional: 'Applies only to observed kickoff weather',
@@ -342,7 +342,7 @@ export const WIND_COPY = Object.freeze({
 });
 /** Displayed card notes that supersede the frozen registry note; the registry itself is untouched. */
 export const WIND_CARD_NOTES = Object.freeze({
-  [WIND_CARD]: 'Observed kickoff wind. For upcoming outdoor games, signed-in community members see an Open-Meteo kickoff forecast beside this card (D-34); the record has not been tested on forecast wind.',
+  [WIND_CARD]: 'Observed kickoff wind. For upcoming open-air and retractable-roof games, signed-in community members see an Open-Meteo kickoff forecast beside this card (D-34); the record has not been tested on forecast wind.',
 });
 export const cardNote = card => (card ? WIND_CARD_NOTES[card.id] ?? card.note ?? null : null);
 /** The conditional summary for a wind card: the week file's note unless the view overrides it. */
@@ -408,20 +408,37 @@ export function windConfidence(leadMs, us = false) {
   return 'Early outlook, low confidence (3 to 5 days out)';
 }
 const validWind = w => !!w && typeof w === 'object' && finite(w.windMph) && Number.isFinite(Date.parse(w.fetchedAt)) && Number.isFinite(Date.parse(w.forecastHour));
+export const ROOF_TYPES = Object.freeze(['outdoor', 'canopy', 'retractable', 'dome']);
+/**
+ * A game's roof for the weather row (D-45): the venue's type ('outdoor', 'canopy', 'retractable' or 'dome'), from
+ * the server's venue (or the week file's stadium when there is none), else null. The week file's nflverse `roof`
+ * never overrides a known venue type.
+ */
+export const venueRoof = (venue, game = null) => {
+  const type = venue?.type ?? game?.flags?.stadium?.type ?? null;
+  return ROOF_TYPES.includes(type) ? type : null;
+};
+/**
+ * Indoors (D-45): a dome; SoFi Stadium's canopy, a fixed roof over the field that nflverse and the trend records count
+ * as a dome (never fetched); a retractable roof the week file records as closed; an unknown venue the week file
+ * records as a dome or closed.
+ */
+export const indoorsFor = (roof, game = null) => roof === 'dome' || roof === 'canopy'
+  || ((roof === 'retractable' || roof === null) && ['dome', 'closed'].includes(game?.flags?.roof));
 
 /**
  * What the panel shows for one game's kickoff wind:
  * - loading: the read is in flight;
- * - indoor: dome, closed roof or canopy (no fetch, no numbers, no credit);
+ * - indoor: a dome, a canopy or a closed roof (no fetch, no numbers, no credit), or a game the server answers 'indoor'
+ *   for when no venue type is known;
  * - forecast: a pre-kickoff snapshot no older than twice the TTL for the current lead;
  * - final: after kickoff, the last pre-kickoff snapshot if it was made within 2 h of kickoff;
  * - not_yet: more than 120 h before kickoff;
  * - none: missing, stale, invalid or unavailable (reason 'stale' or 'unavailable').
  */
 export function windView({ game, entry = null, now = null, loading = false }) {
-  const type = entry?.venue?.type ?? game?.flags?.stadium?.type ?? null;
-  const roof = game?.flags?.roof;
-  if (roof === 'dome' || roof === 'closed' || type === 'dome' || type === 'canopy' || entry?.status === 'indoor') return { state: 'indoor' };
+  const type = venueRoof(entry?.venue, game);
+  if (indoorsFor(type, game) || (type === null && entry?.status === 'indoor')) return { state: 'indoor' };
   if (!entry || !finite(now)) return loading ? { state: 'loading' } : { state: 'none', reason: 'unavailable' };
   const kickoff = Date.parse(entry.kickoff ?? game?.kickoff);
   if (!Number.isFinite(kickoff)) return { state: 'none', reason: 'unavailable' };

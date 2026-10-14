@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, version } from './migrations.mjs';
+import { topLevel } from '../scripts/migration-functions.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READER_MIGRATIONS, READERS, readersOn } from './helpers/leak-scan.mjs';
 import { sendBallot, serviceSql } from './helpers/guess-week.mjs';
@@ -35,11 +38,11 @@ function keys(value, found = new Set()) {
 const noRawKeys = (reply, where) => assert.deepEqual(FORBIDDEN.filter(key => keys(reply).has(key)), [], `${where} carries a raw payload key`);
 
 /**
- * Stores one collection for the world's open week, captured at `captured` (whole seconds) and stored a second later.
- * games: { gameId: { spread?: market, total?: market } }; market: { books: { book: { value, prices? } } } (prices default
- * -110 both ways). A game or market left out is not in the payload.
+ * Stores one collection for the world's open week, captured at `captured` (whole seconds) and stored a second later, or at
+ * `stored` (a collection written late). games: { gameId: { spread?: market, total?: market } }; market: { books: { book:
+ * { value, prices? } } } (prices default -110 both ways). A game or market left out is not in the payload.
  */
-async function storeSnapshot(world, captured, games) {
+async function storeSnapshot(world, captured, games, { stored = captured + 1000 } = {}) {
   const { db, state } = world, { season, week } = state.league;
   const signature = (await db.query('select signature from public.gtl_weekly_slates where season=$1 and week=$2', [season, week])).rows[0].signature;
   const payload = { provider: 'the-odds-api', sport: 'americanfootball_nfl', officialVerified: false, fetchedAt: iso(captured),
@@ -55,7 +58,7 @@ async function storeSnapshot(world, captured, games) {
   const key = randomUUID();
   await db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) values($1,$2,'collect','succeeded',$3,$4,$5,2,$6,$7,$8)",
     [key, id('sean'), randomUUID(), iso(captured), iso(captured + 90_000), season, week, signature]);
-  await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,$2,$3,$4,$5,$6)', [key, season, week, signature, payload, iso(captured + 1000)]);
+  await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,$2,$3,$4,$5,$6)', [key, season, week, signature, payload, iso(stored)]);
   return key;
 }
 /** The same line at all three books (or `books` of them) for every game of `lines` ({ spread: { g: v }, total: { g: v } }). */
@@ -76,6 +79,21 @@ test('M-06 is a repo file the hosted project does not have yet; its readers join
   for (const [route, file] of Object.entries(READER_MIGRATIONS)) assert.ok(NOT_HOSTED.includes(version(file)), `${route}: ${file} is hosted; remove it from READER_MIGRATIONS`);
   assert.deepEqual(readersOn(HOSTED).filter(([route]) => route.startsWith('/lines/')), [], 'the HOSTED suites skip /lines/* until M-06 is hosted');
   assert.equal(readersOn(ALL).length, READERS.length);
+});
+
+test('M-06 takes all four functions from public, anon and authenticated and grants them to the service role only', () => {
+  // PGlite has no Supabase default privileges, so has_function_privilege('authenticated', ...) is false whether or not the
+  // revoke names that role (the grants check below cannot tell): the statement itself is checked here, as for M-09.
+  const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8');
+  const statements = topLevel(sql).split(';').map(s => s.trim().replace(/\s+/g, ' ')).filter(Boolean);
+  const revokes = statements.filter(s => /^revoke /i.test(s)), grants = statements.filter(s => /^grant /i.test(s));
+  assert.equal(revokes.length, 1);
+  assert.equal(grants.length, 1);
+  const named = statement => statement.match(/public\.gtl_\w+\([^)]*\)/g).map(name => name.replace(/^public\./, ''));
+  assert.deepEqual(named(revokes[0]).sort(), [...NEW_RPCS].sort());
+  assert.match(revokes[0], /^revoke all on function .* from public,anon,authenticated$/);
+  assert.deepEqual(named(grants[0]).sort(), [...NEW_RPCS].sort());
+  assert.match(grants[0], /^grant execute on function .* to service_role$/);
 });
 
 test('the lines readers (M-06): a cell opens per game and market on a lock-in, a sit-out or that game\'s kickoff; nothing else ever shows', { skip }, async t => {
@@ -385,6 +403,18 @@ test('the kickoff line, movement and named books with prices (M-06): the newest 
     assert.equal(z.spread.movement.length, 48);
     assert.equal(Date.parse(z.spread.movement.at(-1).capturedAt), K - 4 * HOUR + 49 * MINUTE, 'the newest last');
     assert.equal(Date.parse(z.spread.movement[0].capturedAt), K - 4 * HOUR + 2 * MINUTE, 'the four oldest of the 52 qualifying lines (Q1, QZ and two of these) are left out');
+  });
+
+  await t.test('gtl_kickoff_line goes by when a line was captured, not when it was stored: one captured before the window and stored inside it is not a kickoff line', async () => {
+    // A collection for Y captured 12 hours 30 minutes before its kickoff, written 90 minutes late (11 hours before kickoff).
+    const late = await storeSnapshot(world, KY - 12 * HOUR - 30 * MINUTE, uniform({ spread: { [Y]: 6.5 }, total: { [Y]: 44.5 } }), { stored: KY - 11 * HOUR });
+    assert.equal(await kickoffLine(Y, 'spread'), null);
+    assert.equal(await kickoffLine(Y, 'total'), null);
+    // It is still Y's newest qualifying line: only the kickoff line has the 12-hour window.
+    const y = await lines(Y, KY + HOUR);
+    assert.deepEqual([y.spread.line.value, Date.parse(y.spread.line.capturedAt), y.spread.kickoffLine, y.total.line.value, y.total.kickoffLine],
+      [6.5, KY - 12 * HOUR - 30 * MINUTE, null, 44.5, null]);
+    assert.equal((await db.query('select count(*)::int n from public.gtl_market_snapshots where id=$1 and created_at>=$2', [late, iso(KY - 12 * HOUR)])).rows[0].n, 1, 'stored inside the window');
   });
 });
 
