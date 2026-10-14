@@ -144,3 +144,7 @@
 @media (forced-colors:active){
   .history-informational{text-decoration:underline;text-underline-offset:3px}
 }
+/* Redesign stage 9: "Try the new app" in the Community footer, with its always-mounted note (hidden while empty). */
+.try-new-app{display:grid;gap:8px;justify-items:start;max-width:420px}
+.try-new-app-note{margin:0;font-size:14px;line-height:1.5;color:var(--muted)}
+.try-new-app-note:empty{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;white-space:nowrap}

@@ -213,3 +213,24 @@ Open **Settings & setup → Appearance** for Light, Dark or System. The same con
 is on sign-in and My games. It remembers this browser/device’s choice, with Dark
 the default. Final brand approval remains separate. Current deployment and exact
 preservation/readback evidence are in [CLOUD_SETUP.md](CLOUD_SETUP.md).
+
+## The new app switch (redesign stage 9, D-38 and D-39)
+Every signed-in member sees **Try the new app** in the Community footer (D-39:
+the whole league, opt-in; no tester list). The choice is kept on this device
+(`gtl.app` in localStorage, `web/src/appView.js`) and the page reloads into the
+new app, a separate lazy chunk (`web/src/next/NextApp.jsx`, with its own CSS)
+that a device on the old app never downloads. **Use the old app** in the new app
+switches back. Every switch reloads the page, so the two apps never run together;
+both use the same sign-in, routes and tables, so a pick or bet made in one shows in
+the other. The switch is a convenience, not a security gate.
+
+- The default stays the old app until the flip (build plan stage 80). Nothing
+  saved, an unknown value or storage that throws all mean the default.
+- `?app=classic` always opens the old app and keeps that choice for this device.
+- If the new app's chunk cannot load, the old app opens in its place, the saved
+  choice is cleared and the footer says so.
+- If the browser refuses to save the choice, the old app stays open and the
+  footer says why.
+
+At stage 9 the new app is an empty frame (Use the old app, Sign out) that reads
+and writes nothing; the shell arrives in stage 10 and the data layer in stage 11.
