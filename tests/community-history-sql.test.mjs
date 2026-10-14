@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
+import { HOSTED, migrationSql } from './migrations.mjs';
 import { seed } from '../server/store.mjs';
 import { accuracy, round } from '../server/domain.mjs';
 import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
@@ -16,8 +16,9 @@ const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const iso = n => new Date(n).toISOString();
 const at = value => Date.parse(value);
 const MIGRATION = '20261012223000_gtl_community_history.sql';
-// Every repo migration in filename order except the two that install pg_cron/pg_net (hosted-only extensions).
-const MIGRATIONS = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
+// The hosted migrations in filename order (tests/migrations.mjs). This old-app suite also reruns on HOSTED plus a new
+// migration and its rollback (tests/rollback.test.mjs).
+const MIGRATIONS = HOSTED;
 const SEAN = 30, TROY = 1, LUKE = 4, BEN = 2, NEW = 3;
 const HOUR = 3_600_000;
 const RPCS = ['gtl_pick_points(numeric,numeric)', 'gtl_history_reference(integer,integer,jsonb,jsonb,text,timestamptz)', 'gtl_read_community_history(uuid,integer,timestamptz)'];
@@ -53,7 +54,7 @@ test('community history: every player, week and market with the line at each gue
   let before;
   for (const file of MIGRATIONS) {
     if (file === MIGRATION) before = (await db.query('select * from public.gtl_weekly_ballots order by user_id,mode')).rows;
-    await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    await db.exec(migrationSql(file));
     if (file === MIGRATIONS[0]) {
       await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);
       for (const n of [SEAN, TROY, LUKE, BEN, NEW]) await db.query('insert into auth.users values($1)', [id(n)]);
