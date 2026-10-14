@@ -241,7 +241,7 @@ test('the browser trend modules stay pure: no engine, history, auth or network i
   assert.doesNotMatch(src('shared/trends-view.mjs'), /^\s*import\s/m, 'shared/trends-view.mjs imports nothing');
   for (const file of ['web/src/TrendsView.jsx', 'web/src/TrendCard.jsx', 'web/src/WindForecast.jsx', 'web/src/windTimer.js']) assert.doesNotMatch(src(file), /from '\.\/(auth|api|trendsData)/, file);
   // The wind card imports only React and the pure view helpers; the timer only the pure helpers.
-  assert.deepEqual([...src('web/src/WindForecast.jsx').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['react', '../../shared/trends-view.mjs']);
+  assert.deepEqual([...src('web/src/WindForecast.jsx').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['react', '../../shared/trends-view.mjs', '../../shared/weather-view.mjs']);
   assert.deepEqual([...src('web/src/windTimer.js').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['../../shared/trends-view.mjs']);
   for (const file of fs.readdirSync(new URL('../web/src/', import.meta.url))) {
     if (!/\.(jsx?|mjs)$/.test(file)) continue;
@@ -302,7 +302,21 @@ test('D-34 windView: indoor, loading, not yet, forecast, stale, final and invali
   const entry = (fetchedAt, extra = {}) => ({ kickoff: g.kickoff, venue: { id: 'DEN00', name: 'Empower Field at Mile High', city: 'Denver', country: 'USA', type: 'outdoor' }, status: 'forecast',
     wind: { windMph: 12.3, fetchedAt: new Date(fetchedAt).toISOString(), forecastHour: '2026-10-16T00:00:00.000Z', ...extra } });
   assert.equal(V.windView({ game: game('BUF-LV'), entry: null, now: k }).state, 'indoor');
+  // D-45: SoFi's canopy (a fixed roof over the field) is Indoors with or without the server's venue, even if a snapshot is passed.
+  assert.equal(game('ARI-LAR').flags.roof, 'dome');
   assert.equal(V.windView({ game: game('ARI-LAR'), entry: null, now: k }).state, 'indoor', 'a canopy counts as indoors');
+  const lar = Date.parse(game('ARI-LAR').kickoff), sofi = { id: 'LAX01', name: 'SoFi Stadium', city: 'Inglewood', country: 'USA', type: 'canopy' };
+  assert.deepEqual(V.windView({ game: game('ARI-LAR'), entry: { ...entry(lar - 26 * H), kickoff: game('ARI-LAR').kickoff, venue: sofi }, now: lar - 24 * H }), { state: 'indoor' });
+  // The server's venue decides the roof, not the week file's stadium: an open-air venue shows its forecast even if the
+  // week file says canopy, and a canopy is Indoors even if the week file says open-air.
+  const listedCanopy = { ...g, flags: { ...g.flags, stadium: { ...g.flags.stadium, type: 'canopy' } } };
+  assert.equal(V.venueRoof(entry(k).venue, listedCanopy), 'outdoor');
+  assert.equal(V.windView({ game: listedCanopy, entry: entry(k - 26 * H), now: k - 24 * H }).state, 'forecast');
+  assert.equal(V.windView({ game: g, entry: { ...entry(k - 26 * H), venue: sofi }, now: k - 24 * H }).state, 'indoor');
+  assert.equal(V.venueRoof(null, listedCanopy), 'canopy', 'without the server\'s venue the week file\'s stadium decides');
+  // The server's "indoor" counts only when no venue type is known; next to a known open-air type it is no current forecast, never "Indoors".
+  assert.deepEqual(V.windView({ game: { id: 'AAA-BBB', kickoff: g.kickoff, flags: {} }, entry: { kickoff: g.kickoff, venue: null, status: 'indoor', wind: null }, now: k - 24 * H }), { state: 'indoor' });
+  assert.deepEqual(V.windView({ game: g, entry: { ...entry(k - 26 * H), status: 'indoor', wind: null }, now: k - 24 * H }), { state: 'none', reason: 'unavailable' });
   assert.deepEqual(V.windView({ game: g, entry: null, now: null }), { state: 'none', reason: 'unavailable' });
   assert.deepEqual(V.windView({ game: g, entry: null, now: null, loading: true }), { state: 'loading' });
   assert.equal(V.windView({ game: g, entry: { ...entry(k - 125 * H), wind: null, status: 'not_yet' }, now: k - 121 * H }).state, 'not_yet');

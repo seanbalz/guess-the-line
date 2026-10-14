@@ -127,7 +127,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 
 ### 4.2 Gate M: applying a migration
 
-1. The migration PR merges only when it is next in the apply queue. Its file is stamped at merge, after the newest file on `main`. Filename order is apply order.
+1. The migration PR merges only when it is next in the apply queue. Its file is stamped at merge, after the newest file on `main`. Filename order is apply order, except where a file merged earlier sorts before a migration its "Apply after" names (section 6): M-06 (`20261015010000`) sorts before M-02 (`20261015030000`) and is still applied after it.
 2. Deploy anything that must exist first (error mapping, a route that reads both shapes).
 3. Sean says "apply M-xx".
 4. Read-only pre-check: the bodies being replaced match the repo's previous version (md5); new tables don't exist; nothing is half-applied.
@@ -172,6 +172,8 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 | `gtl_guess_locked_in` (new in M-01: a pick in a submitted ballot is locked in) | M-02, when it records per-game lock-ins |
 | `gtl_ballot_late` (new in M-01: reads `ballot.late` as `{deadline, minutes}`) | M-07, only if the stored Late marker takes another shape |
 | `gtl_feed_on_ballot` | M-07 |
+| `gtl_read_lines` (M-06: `mine.points` only for a submitted ballot, `mine.late` the ballot's marker) | M-07, for per-game lock-in and Late |
+| `gtl_read_guess_picks` (M-08: a removed member listed only with a submitted ballot or an opt-out; scores only submitted ballots; `late` the ballot's marker) | M-07, for per-game lock-in, scoring (D-41) and Late |
 | `gtl_read_social` | M-04 |
 | `gtl_begin_odds_collection`, `gtl_finish_odds_collection`, `gtl_begin_submission_odds_collection` (as built in stage 22; the two slate resolvers stay unchanged) | M-05 |
 | `gtl_read_bets`, `gtl_read_bets_board` | M-10 and M-12, then M-16 |
@@ -319,8 +321,8 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Sean sees: Home with this week's countdown, his status, who's in and his Spread rank.
 
 **13. Read-only Lines and game sheet**
-- Scope: `web/src/next/lines/{LinesBoard,GameSheet}.jsx`; pure `shared/lines-view.mjs`; `shared/trends-view.mjs` gains a per-game access function, `shortCard` and `boardTrends` (old callers switch in stage 17). Kickoff groups; "YOU −3" and "YOU 41" tags; a lock on each unsent market; his own line at the guess; at most 3 trend lines per board and 1 chip per card; the sheet header with team records in words (DP-16); You on this game; short trend cards (line trends locked with their market); weather and referee rows that hide cleanly on a 404; wind only in the sheet (D-34); "Line now arrives in a later update."
-- Tests: node `lines-view`, `trends-view` (per-game access, short cards, Week 6 board trends), `trends-week` (the week file holds no current line); vitest `wind-ui` (a closed row has no digits; times in PT); Playwright 390 `next-lines.spec.js` (groups, tags, a lock is an icon and never "—", the sheet opens and closes); `/wind/read` only when a sheet opens (call count no higher than the old app's).
+- Scope: `web/src/next/lines/{LinesBoard,GameSheet}.jsx`; pure `shared/lines-view.mjs`; `shared/trends-view.mjs` gains a per-game access function, `shortCard` and `boardTrends` (old callers switch in stage 17). Kickoff groups; "YOU −3" and "YOU 41" tags; a lock on each unsent market; his own line at the guess; at most 3 trend lines per board and 1 chip per card; the sheet header with team records in words (DP-16); You on this game; short trend cards (line trends locked with their market); weather and referee rows that hide cleanly on a 404; a weather row on every game from `shared/weather-view.mjs` `weatherRow` (D-45): the full card in the sheet with the Open-Meteo credit, "Indoors" for a dome or SoFi Stadium, "Roof may close" for a retractable roof with or without a forecast (`roofNote`), "No current forecast" otherwise; on the board at most one word chip per row from `weatherChip` ("Windy", "Rain likely" or "Snow likely"; no digits, no link; none for Indoors or no forecast), and every other forecast value only in the sheet (D-34 as amended by D-45). The chips need `/wind/read` on the board, and every read can refresh due games, so the board makes more reads than the old app, which reads only when a trends panel opens. Members on the board through a Sunday then approach the cap table's worst case ([TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34)): Weeks 14, 17 and 18 run out of daily calls unless Sean raises the cap or changes the tiers. "Line now arrives in a later update."
+- Tests: node `lines-view`, `trends-view` (per-game access, short cards, Week 6 board trends), `trends-week` (the week file holds no current line); vitest `wind-ui` (a closed row has no digits; the chip is one of the three words or none, never on an Indoors row; times in PT); Playwright 390 `next-lines.spec.js` (groups, tags, a lock is an icon and never "—", the sheet opens and closes, a chip and the sheet's full card with its credit); `/wind/read` once when the board shows a week, reused by the sheet through the old app's 5-minute cache, and re-read at TTL crossings only while a sheet is open, as the old panel does.
 - Sean sees: the Lines tab and game sheet on live games.
 
 ### Phase 2: the rules on the server (both apps follow them)
@@ -471,7 +473,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Sean sees: the Edge board after he sends.
 
 **33. Lines: line now and gate banner**
-- Scope: the middle line ("SEA −3") with "Updated … PT", or "Latest line" when older than 6 h; one gate banner per screen ("Finish Total picks", skip through `ForfeitDialog`); LIVE NOW and FINAL rows; the Late prefix on tags; the later-update footer goes.
+- Scope: the middle line ("SEA −3") with "Updated … PT", or "Latest line" when older than 6 h; one gate banner per screen ("Finish Total picks", skip through `ForfeitDialog`); LIVE NOW and FINAL rows; the Late prefix on tags; the later-update footer goes. `/lines/read` without a week reads only the newest published week, so on a Monday last week's unstarted game is read with its own season and week.
 - Tests: Playwright 390 `next-lines-gate.spec.js`: the leak scan at four moments (before a send; after the deadline with no ballot, before a Sunday kickoff; Spread sent, Total not; after "See picks now") across `/lines/*`, `/virtual-units`, `/community/history` and `/community/read`.
 - Sean sees: live lines after he sends a market.
 
@@ -888,7 +890,7 @@ Approvals that are not questions: applying the push migration (stage 2), every "
 | Critique point | Why not |
 |---|---|
 | Let a game added after a send take a pick until its kickoff (completeness 1) | After a send that market's lines are open, so a later pick could copy the line. Kept as Q1, with the opposite recommendation. |
-| Ask Sean about trend limits and wind on the board (completeness 7) | The approved prototype sets 3 trend lines per board and 1 chip per card. D-34 keeps forecast claims out of summaries, so wind stays in the sheet. |
+| Ask Sean about trend limits and wind on the board (completeness 7) | The approved prototype sets 3 trend lines per board and 1 chip per card. D-34 keeps forecast claims out of summaries, so wind stays in the sheet. Sean later ruled on the board (D-45, October 14): one word weather chip per row ("Windy", "Rain likely" or "Snow likely"); the values stay in the sheet. |
 | Ask about account deletion (completeness 39) | The redesign adds no deletion. It belongs to the Privacy PR (#62). |
 | Ask about the practice switch, Week 5 group scores, removed members' rank, the old heart, Notify me wording (completeness 44) | The rules answer them: D-35 cuts the switch, D-27 has one scoring function, D-23 keeps removed members with a flag. The rest are implementation choices. |
 | A feed post announcing "bets visible any time" (completeness 38) | No new post kind for notices. D-36 already rules it; a line on the old Virtual Units screen, How to play and the release note tell players before M-10. |

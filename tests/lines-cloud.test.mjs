@@ -70,6 +70,11 @@ test('request bodies: no week (the newest) or a season and week together, a game
     ['/lines/read', { userId: VIEWER }, 'Unexpected request field. Player identity comes from sign-in.'],
     ['/lines/read', { gameId: 'SEA-DEN' }, 'Unexpected request field. Player identity comes from sign-in.'],
     ['/lines/game', { gameId: 'SEA-DEN', p_user: VIEWER }, 'Unexpected request field. Player identity comes from sign-in.'],
+    // The time is the handler's clock, never the body's: a "now" after kickoff would open every cell of that game.
+    ['/lines/read', { now: '2026-10-01T00:00:00.000Z' }, 'Unexpected request field. Player identity comes from sign-in.'],
+    ['/lines/read', { season: 2026, week: 6, p_now: '2026-10-01T00:00:00.000Z' }, 'Unexpected request field. Player identity comes from sign-in.'],
+    ['/lines/game', { gameId: 'SEA-DEN', now: '2026-10-01T00:00:00.000Z' }, 'Unexpected request field. Player identity comes from sign-in.'],
+    ['/lines/game', { gameId: 'SEA-DEN', p_now: '2026-10-01T00:00:00.000Z' }, 'Unexpected request field. Player identity comes from sign-in.'],
     ['/lines/read', { season: 2026 }, 'Check the week and game, then try again.'],
     ['/lines/read', { week: 6 }, 'Check the week and game, then try again.'],
     ['/lines/read', { season: 2026, week: 0 }, 'Check the week and game, then try again.'],
