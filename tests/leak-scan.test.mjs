@@ -42,22 +42,6 @@ test('the viewer\'s own entries are exempt down to a nested entry that names ano
   assert.deepEqual(leakScan([{ user_id: VIEWER, value: 2.5 }, { actor_id: OTHER, value: 2.5 }], { viewer: VIEWER, secrets: SECRETS }).map(f => f.path), ['$[1].value']);
 });
 
-test('a secret used as an object key is a finding too; the viewer\'s own keys stay exempt', () => {
-  // Follow-up to the stage 3 review: only values were scanned, so a distribution keyed by a pick went unseen.
-  const reply = { distribution: { '-6.5': 1, '3': 2 }, byLine: { 'BUF -11.5': 'g1' }, mine: { userId: VIEWER, counts: { '2.5': 1 } } };
-  assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS }).map(f => [f.path, f.found]),
-    [['$.distribution["-6.5"] (key)', '-6.5'], ['$.byLine["BUF -11.5"] (key)', 'BUF -11.5']]);
-  assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS, exempt: p => p.startsWith('$.distribution') || p.startsWith('$.byLine') }), []);
-  // Ordinary keys (ids, dates, game ids, counts) never read as a half-point secret.
-  assert.deepEqual(leakScan({ '2026-10-11': 1, 'TB-DAL': 2, '00000000-0000-4000-8000-000000000011': 3, '14': 4, 'week6': 5 }, { viewer: VIEWER, secrets: SECRETS }), []);
-});
-
-test('the viewer\'s playerId at the top of a /state or /export reply never exempts the other members in it', () => {
-  // /state carries `playerId` (the viewer's roster id) beside every opponent's pick: it must not act as an owner key.
-  const state = { playerId: VIEWER, mode: 'guess_spread', games: [{ id: 'g1', prediction: -1.5, opponents: [{ id: OTHER, player: OTHER, value: -6.5 }] }] };
-  assert.deepEqual(leakScan(state, { viewer: VIEWER, secrets: SECRETS }).map(f => f.path), ['$.games[0].opponents[0].value']);
-});
-
 test('no false finding from counts, weeks, seasons, timestamps, ids or points; whole-number secrets are refused', () => {
   const reply = { season: 2026, week: 6, games: 14, likes: 3, weekPoints: 17, at: '2026-10-11T17:00:00.000Z',
     id: '00000000-0000-4000-8000-000000000011', ratio: 0.5, standings: [{ userId: OTHER, weekPoints: 9, seasonPoints: 95.8 }] };
@@ -98,6 +82,22 @@ async function storeLines(db, state, lines) {
   await db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) values($1,$2,'collect','succeeded',$3,now(),now()+interval '90 seconds',2,$4,$5,$6)", [key, ACCOUNTS.sean.id, randomUUID(), season, week, signature]);
   await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,$2,$3,$4,$5,$6)', [key, season, week, signature, payload, payload.fetchedAt]);
 }
+
+test('a secret used as an object key is a finding too; the viewer\'s own keys stay exempt', () => {
+  // Follow-up to the stage 3 review: only values were scanned, so a distribution keyed by a pick went unseen.
+  const reply = { distribution: { '-6.5': 1, '3': 2 }, byLine: { 'BUF -11.5': 'g1' }, mine: { userId: VIEWER, counts: { '2.5': 1 } } };
+  assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS }).map(f => [f.path, f.found]),
+    [['$.distribution["-6.5"] (key)', '-6.5'], ['$.byLine["BUF -11.5"] (key)', 'BUF -11.5']]);
+  assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS, exempt: p => p.startsWith('$.distribution') || p.startsWith('$.byLine') }), []);
+  // Ordinary keys (ids, dates, game ids, counts) never read as a half-point secret.
+  assert.deepEqual(leakScan({ '2026-10-11': 1, 'TB-DAL': 2, '00000000-0000-4000-8000-000000000011': 3, '14': 4, 'week6': 5 }, { viewer: VIEWER, secrets: SECRETS }), []);
+});
+
+test('the viewer\'s playerId at the top of a /state or /export reply never exempts the other members in it', () => {
+  // /state carries `playerId` (the viewer's roster id) beside every opponent's pick: it must not act as an owner key.
+  const state = { playerId: VIEWER, mode: 'guess_spread', games: [{ id: 'g1', prediction: -1.5, opponents: [{ id: OTHER, player: OTHER, value: -6.5 }] }] };
+  assert.deepEqual(leakScan(state, { viewer: VIEWER, secrets: SECRETS }).map(f => f.path), ['$.games[0].opponents[0].value']);
+});
 
 test('readersOn: a reader whose migration the hosted project does not have yet runs only on a schema that has it', () => {
   for (const [route, file] of Object.entries(READER_MIGRATIONS)) {
