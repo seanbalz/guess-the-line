@@ -276,7 +276,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 | 12 | Read-only Home | A | — | 11, 7 | Pages |
 | 13 | Read-only Lines and game sheet | D | — | 11, 7 | Pages |
 
-**First-look deploy:** one Pages deploy after 2 and 6 to 13 merge. Sean taps "Try the new app".
+**First-look deploy:** one Pages deploy after 2 and 6 to 13 merge. Sean taps "Try the new app". Until then a production build leaves the button out (`NEW_APP_OFFERED` in `web/src/TryNewApp.jsx`, on only with `VITE_GTL_OFFER_NEW_APP=1`, which the browser test configs set), so an earlier Pages deploy of main never shows the empty frame. The first-look PR turns it on for every member (D-39).
 
 **6. Tokens, fonts and styles**
 - Scope: `design/tokens-next.json`; `web/src/next/styles/{tokens,base,components}.css`, dark by default, light through `data-theme`; the D-38 section in `docs/BRAND_GUIDE.md`. Figtree, Big Shoulders Display and Barlow Condensed load from a link `NextApp` adds; `web/index.html`, its meta description and the manifest wait for stage 80.
