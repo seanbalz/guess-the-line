@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, CircleCheckBig, Clock3, Eye, Lock, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
 import { cloudApi, date } from './api';
+import { lockSentence } from './lineLock';
 
 const STAKES = [0.5, 1, 1.5, 2, 2.5, 3];
 const money = value => value == null ? '—' : Number(value) > 0 ? `+${value}` : `−${Math.abs(value)}`;
@@ -27,11 +28,8 @@ export function settledLabel(pick, game) {
 
 // Redesign stage 20 line lock (D-36, D-39): the server sends no book offer and no consensus for a market whose Guess the
 // Line pick this player has not locked in (today: submitted), sat out or seen kick off, and says so in `locked`. The
-// sentence follows the live rules the reply carries (the new app's copy.js lineLocked says the same).
-export const lockSentence = (market, rules) => {
-  const name = market === 'spread' ? 'Spread' : 'Total';
-  return rules?.sentFinal === true ? `Lock in your ${name} pick to see this line.` : `Submit your ${name} picks to see this line.`;
-};
+// sentence follows the live rules the reply carries (./lineLock.js, shared with the Bet Tracker's real-slip lock).
+export { lockSentence };
 // D-36: other players' Virtual Units bets become visible any time. Said here before the Bets read (M-10) makes it so.
 export const BETS_VISIBLE_NOTE = "Coming soon: everyone in the league will see each other's Virtual Units picks at any time, not only after kickoff.";
 

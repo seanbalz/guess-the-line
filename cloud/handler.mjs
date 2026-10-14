@@ -222,7 +222,8 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (request.method === 'POST') {
         body = await readJson(request);
       }
-      if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock }));
+      // Stage 21 (M-04): the slip replies carry the live rules, which word the real-slip line lock.
+      if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock, rules: () => readLiveRules(optionalRpc) }));
       if (Object.hasOwn(COMMUNITY_METHODS, route)) {
         const result = handleCommunity({ route, body, user, service: community, clock, pushConfigured, featureOff: featuresOff });
         return json(await (route === '/community/read' ? withRules(result) : result));

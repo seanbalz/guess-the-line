@@ -26,6 +26,7 @@ export const NOT_HOSTED = [
   20261014233000, // M-29 (stage 27a, D-40) "Save to Favorites" keeps a stored note: applied after Sean's "apply M-29".
   20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
   20261015020000, // M-08 guess_picks_reader (redesign stage 26): everyone's picks, applied after M-01 on Sean's "apply M-08".
+  20261015050000, // M-04 social_line_lock (redesign stage 21): the real-slip line gate, applied after M-01 on Sean's "apply M-04".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

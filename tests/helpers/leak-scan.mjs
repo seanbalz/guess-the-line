@@ -16,8 +16,9 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
 /**
  * The reader routes the scan covers, called as the viewer through the cloud handler: [route, method, body].
  * Keep the order stable; append a route in the stage that gates it. Stage 20 added /virtual-units (its line lock; the
- * world needs `virtualUnits: true`); stage 23 added /lines/*. Not yet here: /social/read with real slips (stage 21),
- * /community/picks (26), /league/* and /me/* (later).
+ * world needs `virtualUnits: true`); stage 23 added /lines/*; stage 21 added /social/read (real slips, gated from M-04;
+ * tests/social-line-lock.test.mjs scans it with slips posted at the stored lines). Not yet here: /community/picks (26),
+ * /league/* and /me/* (later).
  * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
  * /lines/game names the fixture world's first game (server/store.mjs seeds TB-DAL first; tests/lines-sql.test.mjs scans
@@ -38,6 +39,8 @@ export const READERS = Object.freeze([
   // Stage 23 (M-06): the gated lines readers.
   ['/lines/read', 'POST', {}],
   ['/lines/game', 'POST', { gameId: 'TB-DAL' }],
+  // Stage 21 (M-04): the shared real slips of the current published week, another player's spread and total legs gated.
+  ['/social/read', 'POST', {}],
 ]);
 
 /**
@@ -48,6 +51,8 @@ export const READERS = Object.freeze([
 export const READER_MIGRATIONS = Object.freeze({
   '/lines/read': '20261015010000_gtl_lines_read.sql',
   '/lines/game': '20261015010000_gtl_lines_read.sql',
+  // /social/read answers on HOSTED too, but another player's slip carries its lines until M-04 adds the gate.
+  '/social/read': '20261015050000_gtl_social_line_lock.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
