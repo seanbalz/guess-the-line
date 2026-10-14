@@ -315,7 +315,7 @@ test('M-03 skip and "See picks now" probes awaiting deploy pass only on the exac
   });
 });
 
-test('only the referee, D-34 wind, M-01 gate and live-rules, M-05, M-09 notes, M-06 lines, M-08 picks and M-03 forfeit pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+test('only the referee, D-34 wind, M-01 gate and live-rules, M-05, M-09 notes, M-06 lines, M-08 picks, M-02 lock-in and M-03 forfeit pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
   const referees = ['gtl_read_game_officials', 'gtl_set_game_official'];
   const winds = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
   const gate = ['gtl_guess_locked_in', 'gtl_guess_revealed', 'gtl_markets_visible', 'gtl_ballot_late', 'gtl_live_rules'];
@@ -326,18 +326,21 @@ test('only the referee, D-34 wind, M-01 gate and live-rules, M-05, M-09 notes, M
   const lines = ['gtl_read_lines', 'gtl_read_game_lines', 'gtl_book_quotes_from_snapshot', 'gtl_kickoff_line'];
   // M-08 (stage 26): the everyone's picks reader and its route.
   const picks = ['gtl_read_guess_picks'];
+  // M-02 (stage 18): the service-only lock-in helper, awaiting the apply.
+  const lockIn = ['gtl_ballot_locked_in'];
   // M-03 (stage 19): the forfeit writer, its reader and their market helper; the route, the gtl-api deploy.
   const forfeit = ['gtl_forfeit_markets', 'gtl_forfeit_guess_week', 'gtl_read_forfeit'];
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/personal/notes', 'gtl-api/personal/note', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', 'gtl-api/community/forfeit', ...[...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks, ...forfeit].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/personal/notes', 'gtl-api/personal/note', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', 'gtl-api/community/forfeit', ...[...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks, ...lockIn, ...forfeit].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  assert.equal(awaitingDeploy['rpc/gtl_ballot_locked_in'], 'migration 20261015030000_gtl_sent_picks_final.sql');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const rpc of gate) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261014223000_gtl_guess_gate_per_game.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
   assert.equal(awaitingDeploy['rpc/gtl_odds_carryover_slate'], 'migration 20261014221500_gtl_odds_open_weeks.sql');
-  const missing = async (url, request) => ([...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks, ...forfeit].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  const missing = async (url, request) => ([...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks, ...lockIn, ...forfeit].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
     : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|personal\/notes?|lines\/(read|game)|community\/(picks|forfeit))$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + winds.length + gate.length + monday.length + notes.length + lines.length + picks.length + forfeit.length + 9 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + gate.length + monday.length + notes.length + lines.length + picks.length + lockIn.length + forfeit.length + 9 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 

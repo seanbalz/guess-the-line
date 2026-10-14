@@ -65,6 +65,9 @@ export const rpcChecks = Object.freeze([
   // M-08, everyone's picks (20261015020000_gtl_guess_picks_reader.sql, redesign stage 26): one service-only reader behind
   // POST /community/picks. Awaiting deploy (below) until the migration is applied to the hosted project.
   ['gtl_read_guess_picks', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game: null, p_target: null, p_now: null }],
+  // M-02, sent picks final (20261015030000_gtl_sent_picks_final.sql, redesign stage 18): the service-only lock-in reading the
+  // writers, the guard and gtl_guess_locked_in share. Awaiting deploy (below) until the migration is applied to the hosted project.
+  ['gtl_ballot_locked_in', { p_ballot: {}, p_game: 'AAA-BBB' }],
   // M-03, skip and "See picks now" (20261015040000_gtl_guess_week_forfeit.sql, redesign stage 19): the writer behind
   // POST /community/forfeit, the reader /community/read carries as `forfeit`, and their market helper, all service-only.
   // Awaiting deploy (below) until the migration is applied to the hosted project. The probes name no real member and the
@@ -100,6 +103,8 @@ export const awaitingDeploy = Object.freeze({
   // M-08: remove these two with the release record of its hosted apply and the gtl-api deploy (Gate M step 8).
   'rpc/gtl_read_guess_picks': 'migration 20261015020000_gtl_guess_picks_reader.sql',
   'gtl-api/community/picks': 'the gtl-api deploy with /community/picks',
+  // M-02: remove this one with the release record of its hosted apply (Gate M step 8).
+  'rpc/gtl_ballot_locked_in': 'migration 20261015030000_gtl_sent_picks_final.sql',
   // M-03: remove these four with the release record of its hosted apply and the gtl-api deploy (Gate M step 8); that record
   // also adds 'week_forfeits' to the table probes above (a table probe has no awaiting state).
   'rpc/gtl_forfeit_markets': 'migration 20261015040000_gtl_guess_week_forfeit.sql',

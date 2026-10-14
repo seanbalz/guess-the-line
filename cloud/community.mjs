@@ -201,10 +201,15 @@ export function parseForfeit(raw) {
 export function readForfeit(optionalRpc, userId, now) {
   return readOptional(optionalRpc, 'gtl_read_forfeit', { p_user: userId, p_season: null, p_week: null, p_now: new Date(now).toISOString() }, { parse: parseForfeit, fallback: null });
 }
-/** Adds `forfeit` to a /community/read view when it answered for the same week the view shows; otherwise the view as it is. */
-export async function withForfeit(view, forfeit) {
+/**
+ * Adds `forfeit` to a /community/read view when it answered for the same week the view shows; otherwise the view as it is.
+ * `writerOff` (GTL_FEATURE_OFF names `forfeit`): the writer refuses before the database, so `open` reads false (no forfeit is
+ * possible now) and the rest of the field, the stored forfeit and each market, is kept as read.
+ */
+export async function withForfeit(view, forfeit, { writerOff = false } = {}) {
   const [feed, read] = await Promise.all([view, forfeit]);
-  return read && feed.week && read.season === feed.week.season && read.week === feed.week.week ? { ...feed, forfeit: read } : feed;
+  if (!read || !feed.week || read.season !== feed.week.season || read.week !== feed.week.week) return feed;
+  return { ...feed, forfeit: writerOff ? { ...read, open: false } : read };
 }
 
 /**

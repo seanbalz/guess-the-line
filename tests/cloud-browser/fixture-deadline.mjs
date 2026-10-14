@@ -2,6 +2,7 @@
 // week must be the current Pacific week. The deadline is 11:59 PM PT today, or 11:59 PM PT tomorrow when fewer than three hours
 // are left today, so a run late in the evening never sees the picks-due card turn urgent (inside two hours) or the deadline pass
 // mid-test. Sunday has no later day in its week, so a run after 8:59 PM PT on a Sunday still gets that night's deadline.
+// test-clock.mjs (GTL_TEST_NOW) runs a spec at a chosen time of day to check both cases.
 import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
 
 const DAY = 86_400_000;

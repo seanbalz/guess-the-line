@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, ChartSpline, Check, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
+import LegalLinks from './LegalLinks';
 import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
 import TeamFacts from './TeamFacts';
@@ -18,7 +19,7 @@ import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCo
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
 import { MODE, pickText, shortName, show, team } from './communityFormat';
 import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
-import { FINAL_LABEL, FINAL_SHORT, ballotFinal, pickFinal, sentFinal } from './sentFinal';
+import { FINAL_LABEL, FINAL_SHORT, LOCKED_MESSAGE, ballotFinal, isBallotLocked, pickFinal, sentFinal } from './sentFinal';
 import './community.css';
 
 const DAY = 86_400_000;
@@ -394,7 +395,25 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       setNotice(submit || submitted ? `${MODE[mode]} picks submitted.` : 'Draft saved.'); onSaved?.();
       if (submit && focusReceipt) refocus('.submit-receipt');
       return true;
-    } catch (e) { setFailure(describe(e, () => save(submit))); return false; } finally { setBusy(false); setSaving(null); }
+    } catch (e) {
+      if (isBallotLocked(e)) { await showFinal(); return false; }
+      setFailure(describe(e, () => save(submit))); return false;
+    } finally { setBusy(false); setSaving(null); }
+  }
+  // Redesign stage 18 (M-02): the server refused a change to a locked-in pick (GTL_BALLOT_LOCKED), because it was locked in on another
+  // device or this tab still held the rules from before M-02. The latest saved picks come in: a final pick shows as saved, and this
+  // tab's edits to picks that are still open stay on top of them. No Retry: the same save would be refused again.
+  async function showFinal() {
+    request.current = null;
+    try {
+      const latest = await load();
+      setDraft(dr => {
+        if (!dr) return null;
+        const fresh = picksFor(latest, dr.mode), saved = latest.ballots[dr.mode];
+        return { data: latest, mode: dr.mode, picks: Object.fromEntries(latest.games.map(g => [g.id, pickFinal(latest.rules, saved, g.id) ? fresh[g.id] : dr.picks[g.id] ?? fresh[g.id]])) };
+      });
+      setNotice(`${LOCKED_MESSAGE} Your saved picks are shown.`);
+    } catch (reload) { setFailure(describe(reload, loadLatest)); }
   }
   // "Load latest" after a conflict: the other device's ballot comes in and this screen's unsaved edits stay on top of it.
   async function loadLatest() {
@@ -580,7 +599,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         <button className="text-button" disabled={busy} onClick={() => act(load)}><RefreshCw size={16}/>Refresh</button>
         {/* Redesign stage 9 (D-38, D-39): every signed-in member can opt in to the new app on this device. */}
         <TryNewApp disabled={busy}/>
-        <button className="secondary" disabled={busy} onClick={onSignOut}>Sign out</button></div>
+        <button className="secondary" disabled={busy} onClick={onSignOut}>Sign out</button><LegalLinks/></div>
     </main>
   </div>;
 }

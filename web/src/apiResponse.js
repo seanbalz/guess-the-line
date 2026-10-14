@@ -3,7 +3,8 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
     this.status = status;
-    this.code = typeof code === 'string' && /^GTL_SUBMISSION_[A-Z_]+$/.test(code) ? code : null;
+    // Codes a screen acts on: the submission refusals, and M-02's GTL_BALLOT_LOCKED (a locked-in pick is final; reload).
+    this.code = typeof code === 'string' && (/^GTL_SUBMISSION_[A-Z_]+$/.test(code) || code === 'GTL_BALLOT_LOCKED') ? code : null;
   }
 }
 
@@ -29,7 +30,7 @@ export async function readResponse(response, isGameSave = false) {
   if (isGameSave && response.status >= 500 && !rejectedBeforeSave) throw new SaveUncertainError(response.status);
   // A coded submission refusal keeps the server's own sentence even when it mentions a "changed guess";
   // only an uncoded 409 about a changed revision is the other-device conflict.
-  if (!response.ok) throw new ApiError(response.status === 409 && isGameSave && !submissionCode && /changed|revision/i.test(data?.error || '')
+  if (!response.ok) throw new ApiError(response.status === 409 && isGameSave && !submissionCode && data?.code !== 'GTL_BALLOT_LOCKED' && /changed|revision/i.test(data?.error || '')
     ? 'Saved data changed in another group or on another device. Refresh the saved data, review your unsaved changes, then save again.'
     : data?.error || 'The game service is unavailable. Reload saved data to try again.', response.status, data?.code);
   if (isGameSave && (!data || typeof data !== 'object' || Array.isArray(data))) throw new SaveUncertainError(response.status);

@@ -256,3 +256,30 @@ test('solo submitted guesses are final once the live rules say so, and editable 
   for(const game of personal.games)await expect(page.getByLabel(`${game.id} Spread guess`)).toBeEnabled();
   await expect(page.getByRole('button',{name:'Review full ballot'})).toBeVisible();
 });
+
+// Redesign stage 18 (M-02): the day M-02 is applied while Solo still holds the rules from before it. The submitted Spread shows
+// editable (D-16); M-02 is applied and the live rules switch; the changed guess is refused with GTL_BALLOT_LOCKED. Solo says
+// "Sent picks are final." and reloads the saved ballot, final and read-only, instead of a generic failure.
+test.describe('stage 18 on the schema with M-02 applied mid-session', () => {
+  test.use({ schema: ALL.filter(file => file !== '20261015030000_gtl_sent_picks_final.sql') });
+  test('a Solo edit refused once M-02 is applied shows the final ballot with "Sent picks are final."',async({page,personal})=>{
+    await openSolo(page);
+    await submitSpread(page, personal);
+    const form=page.locator('.personal-form').filter({has:page.getByRole('heading',{name:'Guess the Spread'})});
+    await expect(form).toContainText('Submitted · editable until deadline');
+    const sent=(await personal.db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'",[id(1)])).rows[0].ballot;
+    // Sean's "apply M-02": the database rule changes, and gtl_live_rules now says sent picks are final.
+    await personal.db.exec(migrationSql('20261015030000_gtl_sent_picks_final.sql'));
+    personal.rules={sentFinal:true,lateWindow:'deadline',revealAt:'kickoff'};
+    const first=personal.games[0].id;
+    await page.getByLabel(`${first} Spread guess`).fill('-4');
+    await page.getByRole('button',{name:'Review full ballot'}).click();
+    await page.getByRole('button',{name:'Save changed Spread guesses'}).click();
+    await expect(page.getByRole('status').filter({hasText:'Sent picks are final. Your saved guesses are shown.'})).toBeVisible();
+    await expect(form).toContainText(/Submitted · final · \w{3} \d{1,2}, \d{1,2}:\d{2} [AP]M PT/);
+    for(const game of personal.games){await expect(page.getByLabel(`${game.id} Spread guess`)).toBeDisabled();await expect(page.getByLabel(`${game.id} Spread guess`)).toHaveValue('-3');}
+    await expect(page.getByRole('button',{name:'Review full ballot'})).toHaveCount(0);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    expect((await personal.db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'",[id(1)])).rows[0].ballot).toEqual(sent);
+  });
+});

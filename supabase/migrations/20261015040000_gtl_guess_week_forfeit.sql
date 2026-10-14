@@ -16,8 +16,9 @@
 -- argument list (gtl_read_community_history, M-01's body plus the D-41 change below). No trigger, existing table, row or table
 -- grant changes, nothing is dropped, and no writer other than the new one changes. Rollback:
 -- supabase/rollback/20261015040000_gtl_guess_week_forfeit.sql (M-01's history body back, and the service role's execute grant
--- on the two functions gtl-api calls taken back; the table and every row stay, D-23). Off switch for the writer: the gtl-api
--- secret GTL_FEATURE_OFF=forfeit (cloud/feature-off.mjs), which refuses POST /community/forfeit before it reaches the database.
+-- on the three new functions taken back: the two gtl-api calls and their market helper; the table and every row stay, D-23).
+-- Off switch for the writer: the gtl-api secret GTL_FEATURE_OFF=forfeit (cloud/feature-off.mjs), which refuses
+-- POST /community/forfeit before it reaches the database (and /community/read then reports the forfeit with open false).
 --
 -- What a forfeit writes, in one transaction (gtl_forfeit_guess_week):
 -- * A gtl_weekly_optouts row (the D-23 sit-out, final for the week) for every Guess market of that week the player has neither
@@ -107,6 +108,10 @@ $$;
 
 -- "Skip this week's Guess the Line" ('skip') or "See picks now" ('reveal'): sits out every market of the week the player has
 -- neither submitted nor sat out, records why, and audits it, all at once. Idempotent per player and week.
+-- The opt-out insert's "on conflict do nothing" guards a race with the old sit-out: gtl_sit_out_week takes no gtl_weekly_versions
+-- lock, so it can insert a market's opt-out after gtl_forfeit_markets has read that market as 'open' and before this insert. The
+-- insert then skips that market (once the sit-out commits) instead of failing on the opt-out primary key, and only the rows this
+-- forfeit inserted are returned, so its modes and audit row name only the markets it sat out (GTL_FORFEIT_NOTHING if none).
 create or replace function public.gtl_forfeit_guess_week(p_user uuid,p_season integer,p_week integer,p_reason text,p_now timestamptz default null)
 returns jsonb language plpgsql security invoker set search_path='' as $$
 declare sig jsonb; now_at timestamptz:=coalesce(p_now,clock_timestamp()); closes_at timestamptz; f public.gtl_week_forfeits; sat text[];

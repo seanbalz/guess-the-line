@@ -333,11 +333,11 @@ test('skip and "See picks now" (M-03): every market not submitted is sat out at 
 });
 
 // D-41 (Sean, October 14, 2026): each locked-in guess counts on its own, and the old "Sit out this week" stays allowed after
-// some games are locked in: it covers only the games not yet locked in, the same as Skip and "See picks now". M-02 (stage 18)
-// records per-game lock-ins; until it is on main, this suite stands in for it with a test-only gtl_guess_locked_in that reads a
-// ballot as M-02 does (a number pick, and a submitted ballot or a lockedAt time for that game), and writes lockedAt as M-02's
-// writers would. M-03 reads lock-in only through gtl_guess_locked_in, so the same cases run either way; once M-02 is on main
-// they lock in through the real /personal/ballot lockIn.
+// some games are locked in: it covers only the games not yet locked in, the same as Skip and "See picks now". M-02 (stage 18,
+// on main since PR #94) records per-game lock-ins, so these cases lock in through the real /personal/ballot lockIn. Without
+// M-02's file (an older checkout) the suite stands in for it with a test-only gtl_guess_locked_in that reads a ballot as M-02
+// does (a number pick, and a submitted ballot or a lockedAt time for that game), and writes lockedAt as M-02's writers would.
+// M-03 reads lock-in only through gtl_guess_locked_in, so the same cases run either way.
 const M02 = ALL.some(file => file.endsWith('_gtl_sent_picks_final.sql'));
 const LOCKED_IN_STAND_IN = `create or replace function public.gtl_guess_locked_in(p_user uuid,p_season integer,p_week integer,p_mode text,p_game text) returns boolean
 language sql stable security invoker set search_path='' as $$

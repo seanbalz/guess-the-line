@@ -148,6 +148,32 @@ test('the GTL_FEATURE_OFF off switch `forfeit` stops the writer before the datab
   assert.equal((await request(handlerWith('forfeit'), 'community/forfeit', { season: 2026, week: 7, reason: 'nope' })).status, 400);
 });
 
+test('while the off switch names `forfeit`, /community/read says no forfeit is possible now (open false) and keeps the rest of the field', async () => {
+  const handlerWith = featureOff => createCloudHandler({ authenticate, featureOff, clock: () => Date.parse(NOW),
+    optionalRpc: async name => (name === 'gtl_read_forfeit' ? structuredClone(READ) : FEATURE_OFF), community: { rpc: async () => structuredClone(FEED) } });
+  const read = async featureOff => {
+    const response = await request(handlerWith(featureOff), 'community/read', {});
+    assert.equal(response.status, 200, `GTL_FEATURE_OFF=${featureOff}: the feed stays on`);
+    return response.json();
+  };
+  assert.equal(READ.open, true, 'the fixture is a week where the database says a forfeit is still possible');
+  const on = await read(undefined);
+  assert.deepEqual(on.forfeit, READ);
+  for (const value of ['', 'picks', 'forfeits', 'lock-in', 'skip']) assert.deepEqual((await read(value)).forfeit, READ, `GTL_FEATURE_OFF=${value} leaves open as read`);
+  for (const value of ['forfeit', ' Forfeit ', 'picks, forfeit']) {
+    const off = await read(value);
+    // The ForfeitDialog would offer a button that can only meet the writer's 503; everything else in the field is as read.
+    assert.deepEqual(off.forfeit, { ...READ, open: false }, `GTL_FEATURE_OFF=${value}`);
+    assert.deepEqual({ ...off, forfeit: null }, { ...on, forfeit: null }, `GTL_FEATURE_OFF=${value}: the rest of the reply is unchanged`);
+  }
+  // A stored forfeit reads the same either way, and withForfeit adds no field it would not add with the switch off.
+  const stored = { ...READ, open: false, forfeit: { reason: 'skip', modes: ['guess_total'], createdAt: STORED.createdAt } };
+  assert.deepEqual(await withForfeit(Promise.resolve(FEED), Promise.resolve(stored), { writerOff: true }), { ...FEED, forfeit: stored });
+  assert.deepEqual(await withForfeit(Promise.resolve(FEED), Promise.resolve(READ), { writerOff: true }), { ...FEED, forfeit: { ...READ, open: false } });
+  assert.deepEqual(await withForfeit(Promise.resolve(FEED), Promise.resolve(null), { writerOff: true }), FEED);
+  assert.deepEqual(await withForfeit(Promise.resolve(FEED), Promise.resolve({ ...READ, week: 8 }), { writerOff: true }), FEED);
+});
+
 test('parseForfeit passes a well-formed read with its known keys only, and throws on anything else', () => {
   assert.deepEqual(parseForfeit(READ), READ);
   const stored = { ...READ, open: false, forfeit: { reason: 'reveal', modes: ['guess_total'], createdAt: STORED.createdAt },
