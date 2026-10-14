@@ -260,7 +260,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (Object.hasOwn(VIRTUAL_METHODS, route)) {
         const member = await storage.membership(user.id, leagueId);
         if (!member || member.active !== true) throw providerVirtualError('GTL_FORBIDDEN');
-        return json(await handleVirtualUnits({ route, body, user, leagueId, service: virtual, weekly, odds, clock }));
+        return json(await handleVirtualUnits({ route, body, user, leagueId, service: virtual, weekly, odds, optionalRpc, clock }));
       }
       if (!gameRoute) return json(await handleLobby({ route, method: request.method, body, user, leagueId, service: lobby, siteUrl }));
       if (request.method === 'POST') {
@@ -444,6 +444,17 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
         const response = await request('/rest/v1/rpc/gtl_save_virtual_units_pick', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_league: leagueId, p_revision: revision, p_body: body }) });
         if (!response.ok) { let message; try { message = (await response.json())?.message; } catch {} throw providerVirtualError(message); }
         return response.json();
+      },
+      // Redesign stage 20 line lock (cloud/line-lock.mjs): the newest published community week, the week
+      // /community/read shows, and today's per-market reveal gate (D-23) while M-01's gtl_markets_visible is missing.
+      async publishedWeek() {
+        const row = await rest('gtl_weekly_slates', { select: 'season,week', order: 'season.desc,week.desc', limit: '1' });
+        return row ? { season: row.season, week: row.week } : null;
+      },
+      async weekRevealed(userId, season, week, mode, now) {
+        const response = await request('/rest/v1/rpc/gtl_week_revealed', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_season: season, p_week: week, p_mode: mode, p_now: now }) });
+        if (!response.ok) throw new Error('Line gate unavailable.');
+        return (await response.json()) === true;
       },
       // D-26 settlement: the community commissioner check, the public finals file and the service-only RPC.
       async admin(userId) {

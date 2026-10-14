@@ -3,6 +3,7 @@ import { seed } from '../../server/store.mjs';
 import { createCloudHandler } from '../../cloud/handler.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { communityWorld, pgliteAvailable, sendBallot, signIn, storeBookLines } from './community-world.mjs';
 
 // D-26: the Virtual Units screen with settled, pending and voided picks. The real
 // cloud handler serves /state, /virtual-units and /virtual-units/settle over
@@ -138,4 +139,69 @@ test('the commissioner settles a week on demand from the screen; members never s
   await expect(page.locator('.stats-row')).toContainText('1–1–1');
   await expect(page.getByRole('button', { name: 'Settle finals', exact: true })).toHaveCount(0);
   expect(virtual.settleCalls).toHaveLength(1);
+});
+
+// Redesign stage 20 line lock (D-36, D-39) on the schema players have (HOSTED): the real handler and migrations on PGlite.
+// A market's book lines and consensus stay hidden until the player submits that market's Guess the Line picks (today a
+// market is submitted whole), sits out, or the game kicks off; their own saved picks always show in full. Fixture lines are
+// unusual half points so neither the page nor the network reply can carry them unnoticed.
+const LOCK_LINES = { spread: [-11.5, 13.5], total: [58.5, 31.5] };
+const lockSecrets = ['11.5', '13.5', '58.5', '31.5'];
+
+/** Community → Groups & games → Triple Threat → Virtual Units. Resolves to the /virtual-units reply the screen loaded. */
+async function openGroupVirtualUnits(page) {
+  await page.getByRole('button', { name: /Groups & games/ }).click();
+  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
+  await page.locator('.hub-game').filter({ hasText: 'Triple Threat' }).getByRole('button', { name: 'Open game' }).click();
+  await expect(page.getByRole('heading', { name: 'The weekly huddle.' })).toBeVisible();
+  const menu = page.getByRole('button', { name: 'Open navigation', exact: true });
+  if (await menu.isVisible()) await menu.click();
+  const loaded = page.waitForResponse(response => response.url().includes('/gtl-api/virtual-units'));
+  await page.getByRole('button', { name: 'Virtual Units', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: 'Virtual Units', exact: true })).toBeVisible();
+  return (await loaded).json();
+}
+
+base('line lock at 390px: every market is locked before a send, the Spread lines open with the Spread send and Total stays locked', async ({ page, baseURL }) => {
+  base.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { groupScreens: true, virtualUnits: true });
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const ids = world.state.games.map(game => game.id), byGame = values => Object.fromEntries(ids.map((id, i) => [id, values[i]]));
+    await storeBookLines(world, { spread: byGame(LOCK_LINES.spread), total: byGame(LOCK_LINES.total) });
+    await signIn(page, 'luke');
+    await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+    const reply = await openGroupVirtualUnits(page);
+    const text = JSON.stringify(reply);
+    for (const value of lockSecrets) expect(text.includes(value), `the /virtual-units reply carries ${value}`).toBe(false);
+    expect(reply.games.map(game => game.locked)).toEqual(ids.map(() => ({ spread: true, total: true })));
+
+    const locks = page.locator('.virtual-lock');
+    await expect(locks).toHaveCount(4);
+    await expect(locks.filter({ hasText: 'Submit your Spread picks to see this line.' })).toHaveCount(2);
+    await expect(locks.filter({ hasText: 'Submit your Total picks to see this line.' })).toHaveCount(2);
+    await expect(page.locator('.virtual-side-buttons')).toHaveCount(0);
+    await expect(page.locator('.virtual-consensus')).toHaveCount(0);
+    await expect(page.locator('.virtual-visibility-note')).toHaveText("Coming soon: everyone in the league will see each other's Virtual Units picks at any time, not only after kickoff.");
+    const body = await page.locator('.virtual-units').innerText();
+    for (const value of lockSecrets) expect(body.includes(value), `the screen shows ${value}`).toBe(false);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await locks.first().evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(12);
+    await page.screenshot({ path: '.local/previews/virtual-units-line-lock-390.png', fullPage: true });
+
+    // Luke submits his Spread picks (the old app's Picks, through the same route); Refresh lines opens the Spread lines only.
+    await sendBallot(world, 'luke', 'guess_spread', byGame([-6.5, 2.5]));
+    const refreshed = page.waitForResponse(response => response.url().includes('/gtl-api/virtual-units'));
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    const after = JSON.stringify(await (await refreshed).json());
+    expect(after.includes('11.5') && after.includes('13.5')).toBe(true);
+    expect(after.includes('58.5') || after.includes('31.5')).toBe(false);
+    await expect(locks).toHaveCount(2);
+    await expect(locks.filter({ hasText: 'Submit your Total picks to see this line.' })).toHaveCount(2);
+    const first = card(page, world.state.games[0]);
+    await expect(first.getByRole('button', { name: /^Dallas Cowboys -11\.5 \(−110\)/ })).toBeVisible();
+    await expect(first.locator('.virtual-consensus')).toContainText('Consensus: -11.5 · 3 books');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
 });

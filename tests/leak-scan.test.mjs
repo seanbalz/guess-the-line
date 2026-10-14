@@ -70,8 +70,9 @@ async function storeLines(db, state, lines) {
 }
 
 test('today\'s readers give a viewer who has not sent picks no line and no hidden pick; own entries stay visible', { skip: pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.' }, async t => {
-  // groupScreens: the group routes (/state, /export) read membership and the weekly state too.
-  const world = await createCommunityWorld({ troyBallots: false, groupScreens: true });
+  // groupScreens: the group routes (/state, /export) read membership and the weekly state too; virtualUnits: /virtual-units
+  // (stage 20) reads the same database, with the stored lines below as its book quotes.
+  const world = await createCommunityWorld({ troyBallots: false, groupScreens: true, virtualUnits: true });
   t.after(() => world.db.close());
   const { state } = world, ids = state.games.map(g => g.id);
   const map = values => Object.fromEntries(ids.map((g, i) => [g, values[i]]));
@@ -113,4 +114,8 @@ test('today\'s readers give a viewer who has not sent picks no line and no hidde
   const history = await read('luke', READERS[1]);
   assert.ok(leakScan(history, { viewer: ACCOUNTS.luke.id, secrets: lineSecrets(map(LINES.spread), { market: 'spread' }) }).length >= 2, 'the revealed Spread lines are found');
   assertNoLeak(history, { viewer: ACCOUNTS.luke.id, secrets: [...lineSecrets(map(LINES.total), { market: 'total' }), ...pickSecrets(map(TROY.total), { market: 'total', owner: 'troy' })] }, READERS[1][0]);
+  // And the old Virtual Units screen (stage 20): his Spread book lines open with his send; his Total lines stay locked.
+  const units = READERS.find(([route]) => route === '/virtual-units'), unitsReply = await read('luke', units);
+  assert.ok(leakScan(unitsReply, { viewer: ACCOUNTS.luke.id, secrets: lineSecrets(map(LINES.spread), { market: 'spread' }) }).length >= 2, 'the opened Spread lines are found');
+  assertNoLeak(unitsReply, { viewer: ACCOUNTS.luke.id, secrets: lineSecrets(map(LINES.total), { market: 'total' }) }, units[0]);
 });
