@@ -325,6 +325,8 @@ test('a second account in the same tab sees no drafts from the first', async ({ 
 
 test('axe in dark and light at 390 and 320: the switcher with invites, the name step, the access-pending and removed screens; 390 screenshots', async ({ page, baseURL }, testInfo) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  // Sixteen page loads and sixteen axe runs: more than the default 30 seconds on a busy runner.
+  test.setTimeout(120000);
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   try {
     const friends = await createGroup(world, 'sean', 'Fixture Friends');
