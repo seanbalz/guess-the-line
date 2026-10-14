@@ -166,7 +166,9 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
     {/* Persona audit #40: the final opt-out is a text link below the save bar, after Save draft and Review & submit in the tab order. */}
     {!closed && !submitted && cloudEnabled && data.ballotScope === 'weekly' && <SitOutWeek season={data.league.season} week={data.league.week} mode={data.mode} disabled={disabled || saving || !online} onDone={async () => { removeDraft(scope); lastCopy.current = null; setRecovery(null); setDirty(false); await refreshSaved?.(); }}/>}
     {data.revealed && <SourceNote data={data}/>}
-    {review && <Modal title={`${submitted ? 'Save changes to' : 'Submit'} your ${total ? 'total' : 'spread'} ballot?`} className="submit-review prediction-review" onClose={() => { if (!saving) setReview(false); }}>
+    {/* A closed or all-final ballot has nothing to review (the effect above closes the review); never render it for that one frame,
+        so a refusal that made the ballot final (stage 18, GTL_BALLOT_LOCKED) never offers a retry from the review. */}
+    {review && !frozen && <Modal title={`${submitted ? 'Save changes to' : 'Submit'} your ${total ? 'total' : 'spread'} ballot?`} className="submit-review prediction-review" onClose={() => { if (!saving) setReview(false); }}>
       <div className="callout"><LockKeyhole size={19}/><p>{submitted ? 'Save the current line for changed guesses only.' : `Save the line at your guess and reveal your ${total ? 'total' : 'spread'} analysis.`}</p></div>
       <p className="review-description">Review all {data.games.length} guesses. You can submit any time before the deadline: each guess is scored against the line stored when you save it.{finalRule && ` ${FINAL_RULE}`}</p>
       <div className="review-picks" role="list" tabIndex={0} aria-label="Predictions to submit">{data.games.map(game => <div key={game.id} role="listitem"><span>{game.awayCode} at {game.homeCode}</span><strong className="mono">{total ? fmt(Number(draft[game.id])) : signed(Number(draft[game.id]))}</strong></div>)}</div>
