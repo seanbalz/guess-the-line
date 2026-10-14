@@ -11,3 +11,6 @@
    its normal focused presentation remains available to keyboard users. */
 .hub-shell:has(.social-tracker)>.skip-link:not(:focus){clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap;padding:0}
 @media(max-width:640px){.social-performance>summary{padding:16px;font-size:14px}.social-performance>.social-charts{padding:0 12px 12px}}
+/* Redesign stage 21 (M-04; D-36, D-39): another player's leg whose line is closed to this player shows a lock, never a number. */
+.social-selection-locked strong{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.social-selection-locked strong>svg{color:var(--muted);flex-shrink:0}.social-locked-tag{font-size:12px;font-weight:500;line-height:1.4;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:2px 6px}.social-lock{margin:0 20px 16px;display:grid;gap:6px}.social-lock>p{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:var(--text)}.social-lock>p>svg{color:var(--muted);margin-top:2px;flex-shrink:0}.social-lock>.social-lock-note,.social-lock-note{font-size:12px;color:var(--muted)}.social-lock-note-alone{margin:0 20px 16px}
+@media(max-width:640px){.social-lock,.social-lock-note-alone{margin:0 16px 16px}}

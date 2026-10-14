@@ -8,7 +8,10 @@ const amount = value => Number.isFinite(value) ? Number(value.toFixed(3)).toLoca
 const units = value => Number.isFinite(value) ? `${amount(value)}u` : 'Units unknown';
 const odds = value => Number.isFinite(value) ? `${value > 0 ? '+' : '−'}${Math.abs(value)}` : 'Odds unknown';
 
+// Redesign stage 21 (M-04): a leg whose line is closed to this player arrives as `locked: true` with no line; it reads as
+// locked, never "—" or a number. This card lists the player's own bets, which the server never redacts.
 function selection(leg, games) {
+  if (leg.locked) return `${leg.selection || 'Line'} · line locked`;
   if (leg.selection) return leg.selection;
   const game = games.find(item => item.id === leg.gameId);
   const side = leg.side === 'home' ? game?.home : leg.side === 'away' ? game?.away : leg.side;
