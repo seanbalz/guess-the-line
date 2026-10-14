@@ -5,8 +5,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
-import { WIND_ATTRIBUTION, WIND_LICENSE_NOTE, WIND_METHODS, WIND_TIERS, handleWind, planWindRefresh, providerWindError, windTtlMinutes } from '../cloud/wind.mjs';
-import { createOpenMeteoProvider } from '../cloud/open-meteo.mjs';
+import { WIND_ATTRIBUTION, WIND_DAILY_CAP, WIND_LICENSE_NOTE, WIND_METHODS, WIND_TIERS, handleWind, planWindRefresh, providerWindError, windTtlMinutes } from '../cloud/wind.mjs';
+import { WIND_MAX_LOCATIONS, createOpenMeteoProvider } from '../cloud/open-meteo.mjs';
+import { venueFor, windVenue } from '../shared/wind-venues.mjs';
+import { windView } from '../shared/trends-view.mjs';
+import { parseCsvRows } from '../shared/trends.mjs';
+import { appCode, easternToUtc } from '../shared/nfl-schedule.mjs';
 import { privateResponse } from '../scripts/check-cloud-boundary.mjs';
 import { forecastFetch } from './fixtures/open-meteo/build.mjs';
 
@@ -100,12 +104,120 @@ test('planner tiers: 120 h + 1 s is not yet, 120 h is 6 h, 72 h is 3 h, 18 h is 
     assert.equal(plan(lead, ttlMin * 60_000 - 1), false, `just under ${ttlMin} min`);
     assert.equal(plan(lead, ttlMin * 60_000), true, `at ${ttlMin} min`);
   }
-  // Domes and canopies are never planned; the venue comes from the server mirror, never the request.
+  // Domes and SoFi's canopy are never planned (D-45: they say Indoors); the venue comes from the server mirror, never the request.
   const all = planWindRefresh({ season: 2026, week: 6, now: NOW, latest: {}, games: SLATES['2026:6'].map(g => ({ id: g.id, kickoff: g.kickoff * 1000 })) });
   assert.equal(all.length, 12);
-  assert.ok(!all.some(g => ['ARI-LAR', 'BUF-LV'].includes(g.gameId)));
+  assert.ok(!all.some(g => ['ARI-LAR', 'BUF-LV'].includes(g.gameId)), 'SoFi and the Las Vegas dome');
   assert.deepEqual(all.slice(0, 2).map(g => [g.gameId, g.venueId, g.latitude, g.longitude]), [['SEA-DEN', 'DEN00', 39.744, -105.02], ['HOU-JAX', 'LON00', 51.556, -0.28]]);
   assert.deepEqual(all.map(g => g.kickoff), [...all.map(g => g.kickoff)].sort(), 'kickoff order');
+});
+
+/** The 2026 regular season from the committed season file: [week, [{ id, kickoff }]] with kickoffs in ms. */
+function season2026() {
+  const { rows } = parseCsvRows(fs.readFileSync(new URL('../shared/trends/season-2026.csv', import.meta.url), 'utf8'));
+  const weeks = new Map();
+  for (const row of rows.filter(r => r.game_type === 'REG')) {
+    const week = Number(row.week);
+    if (!weeks.has(week)) weeks.set(week, []);
+    weeks.get(week).push({ id: `${appCode(row.away_team)}-${appCode(row.home_team)}`, kickoff: Date.parse(easternToUtc(row.gameday, row.gametime)) });
+  }
+  return [...weeks].sort((a, b) => a[0] - b[0]);
+}
+
+/**
+ * One week's Open-Meteo calls (locations) per UTC day with a reader every minute: every game is refreshed the moment the
+ * real planner calls it due, and each request counts its distinct locations, as gtl_begin_wind_fetch does. One open
+ * trends panel re-reads at every TTL crossing (nextWindRefresh), so one member on a Sunday is this case. The 60 s
+ * spacing is ignored (it can only lower the count). With `cap`, the SQL's daily cap applies: a request is trimmed to
+ * what is left (nearest kickoff first) and the rest of the UTC day is refused; `dark` then counts the minutes each
+ * fetched game within 120 h of kickoff has no current forecast (windView is not 'forecast').
+ */
+function simulateWeek(week, games, { cap = Infinity } = {}) {
+  const latest = new Map(), perDay = new Map(), dark = new Map();
+  let widest = 0;
+  const fetched = games.filter(g => windVenue(venueFor(2026, week, g.id)));
+  for (let now = Math.min(...games.map(g => g.kickoff)) - 120 * HOUR; now < Math.max(...games.map(g => g.kickoff)); now += 60_000) {
+    const due = planWindRefresh({ season: 2026, week, now, games, latest: Object.fromEntries([...latest].map(([id, at]) => [id, { fetchedAt: iso(at) }])) });
+    const day = iso(now).slice(0, 10), left = Math.min(cap - (perDay.get(day) ?? 0), WIND_MAX_LOCATIONS);
+    if (due.length && left > 0) {
+      const places = new Set();
+      for (const g of due) {
+        const place = `${g.latitude},${g.longitude}`;
+        if (!places.has(place) && places.size >= left) continue;
+        places.add(place); latest.set(g.gameId, now);
+      }
+      widest = Math.max(widest, places.size);
+      perDay.set(day, (perDay.get(day) ?? 0) + places.size);
+    }
+    if (cap === Infinity) continue;
+    for (const g of fetched) {
+      if (g.kickoff <= now || g.kickoff - now > 120 * HOUR) continue;
+      const venue = venueFor(2026, week, g.id), at = latest.get(g.id);
+      const entry = { kickoff: iso(g.kickoff), venue, wind: at === undefined ? null : { windMph: 5, fetchedAt: iso(at), forecastHour: iso(g.kickoff) } };
+      if (windView({ game: { id: g.id, flags: { stadium: venue } }, entry, now }).state !== 'forecast') dark.set(g.id, (dark.get(g.id) ?? 0) + 1);
+    }
+  }
+  const [day, calls] = [...perDay].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0];
+  return { day, calls, widest, fetched: fetched.length, dark };
+}
+
+/** An upper bound on one UTC day's calls for any reader timing: each fetched game refreshed as often as its TTLs allow from 00:00 UTC. */
+function dayBound(week, games, day) {
+  const start = Date.parse(`${day}T00:00:00Z`);
+  let total = 0;
+  for (const g of games.filter(g => windVenue(venueFor(2026, week, g.id)))) {
+    let last = null;
+    for (let t = start; t < Math.min(start + 24 * HOUR, g.kickoff); t += 60_000) {
+      const ttl = windTtlMinutes(g.kickoff - t);
+      if (ttl !== null && (last === null || t - last >= ttl * 60_000)) { total++; last = t; }
+    }
+  }
+  return total;
+}
+
+// D-45 cap math for the real 2026 schedule, Week 6 on (docs/TRENDS.md "Cap math" and D-45 print this table). SoFi
+// Stadium is Indoors and never fetched, so every number equals D-34's coverage.
+const CAP_TABLE = {
+  6: ['2026-10-18', 12, 178, 180], 7: ['2026-10-25', 11, 161, 163], 8: ['2026-11-01', 12, 191, 194], 9: ['2026-11-08', 12, 198, 203],
+  10: ['2026-11-15', 12, 187, 191], 11: ['2026-11-22', 11, 173, 176], 12: ['2026-11-29', 12, 155, 158], 13: ['2026-12-06', 11, 192, 196],
+  14: ['2026-12-13', 13, 210, 214], 15: ['2026-12-20', 12, 172, 174], 16: ['2026-12-27', 12, 146, 148], 17: ['2027-01-03', 15, 245, 248],
+  18: ['2027-01-10', 13, 234, 234],
+};
+
+test('D-45 cap math, real 2026 schedule: SoFi is never planned, and each week\'s busiest UTC day matches the documented table', () => {
+  assert.equal(WIND_DAILY_CAP, 200);
+  const season = season2026();
+  assert.equal(season.length, 18);
+  for (const [week, games] of season) {
+    for (const g of games) {
+      const due = planWindRefresh({ season: 2026, week, now: g.kickoff - HOUR, latest: {}, games: [g] });
+      assert.equal(due.length, windVenue(venueFor(2026, week, g.id)) ? 1 : 0, `${week} ${g.id}`);
+      if (venueFor(2026, week, g.id).type === 'canopy') assert.equal(due.length, 0, `SoFi is Indoors: ${week} ${g.id}`);
+    }
+  }
+  const table = {};
+  for (const [week, games] of season.filter(([week]) => week >= 6)) {
+    const peak = simulateWeek(week, games);
+    assert.ok(peak.widest <= WIND_MAX_LOCATIONS, 'one request never carries more than 16 locations');
+    table[week] = [peak.day, peak.fetched, peak.calls, dayBound(week, games, peak.day)];
+  }
+  assert.deepEqual(table, CAP_TABLE);
+  // The PR's first Week 6 figure: 178 calls on Sunday, October 18, two under the cap with a reader every minute.
+  assert.deepEqual(table[6].slice(2), [178, 180]);
+  assert.deepEqual(Object.keys(table).filter(week => table[week][2] > WIND_DAILY_CAP), ['14', '17', '18'], 'weeks over the cap under D-34 as well');
+});
+
+test('D-45 cap math: with the SQL cap, Weeks 14, 17 and 18 leave games without a current forecast; Weeks 8 and 9 never do', () => {
+  const season = new Map(season2026());
+  // Minutes each game spends without a current forecast in its last 120 h, from the cap's trims and refusals.
+  const darkOf = week => Object.fromEntries([...simulateWeek(week, season.get(week), { cap: WIND_DAILY_CAP }).dark].sort());
+  for (const week of [8, 9]) assert.deepEqual(darkOf(week), {}, `Week ${week}`);
+  assert.deepEqual(darkOf(14), { 'BUF-GB': 159, 'LAR-SF': 59, 'NYG-SEA': 59 });
+  assert.deepEqual(darkOf(17), { 'BUF-MIA': 59, 'DEN-NE': 59, 'DET-CHI': 299, 'HOU-GB': 284, 'IND-CLE': 59, 'LAR-TB': 119, 'LV-ARI': 299, 'MIN-NYJ': 59,
+    'NO-ATL': 59, 'NYG-DAL': 59, 'PHI-SF': 459, 'PIT-TEN': 59, 'SEA-CAR': 59, 'WAS-JAX': 59 });
+  // Week 18's kickoffs are placeholders in the season file (all sixteen at 1:00 PM ET); the NFL sets them late in the season.
+  assert.deepEqual(darkOf(18), { 'ATL-CAR': 59, 'CLE-CIN': 59, 'DAL-WAS': 119, 'DET-GB': 119, 'JAX-IND': 119, 'LAC-DEN': 119, 'LV-KC': 119, 'MIA-NE': 59,
+    'NYJ-BUF': 59, 'PHI-NYG': 119, 'PIT-BAL': 59, 'SF-ARI': 119, 'TEN-HOU': 119 });
 });
 
 test('a read fetches the due games once, stores them, and the next read is served from storage', async () => {
@@ -115,11 +227,14 @@ test('a read fetches the due games once, stores them, and the next read is serve
   const body = await response.json();
   assert.equal(body.refresh.outcome, 'fetched');
   assert.equal(w.fake.calls.length, 1, 'one Open-Meteo request for the whole week');
-  assert.equal(new URL(w.fake.calls[0].url).searchParams.get('latitude').split(',').length, 12);
+  const sent = new URL(w.fake.calls[0].url).searchParams.get('latitude').split(',');
+  assert.equal(sent.length, 12);
+  assert.ok(!sent.includes('33.953') && !sent.includes('36.091'), 'neither SoFi nor the Las Vegas dome is ever sent');
   assert.deepEqual(body.attribution, { ...WIND_ATTRIBUTION });
   assert.equal(body.asOf, iso(NOW));
   assert.equal(Object.keys(body.games).length, 14);
-  assert.deepEqual([body.games['ARI-LAR'].status, body.games['BUF-LV'].status, body.games['ARI-LAR'].wind], ['indoor', 'indoor', null]);
+  assert.deepEqual([body.games['BUF-LV'].status, body.games['BUF-LV'].wind, body.games['BUF-LV'].venue.type], ['indoor', null, 'dome']);
+  assert.deepEqual([body.games['ARI-LAR'].status, body.games['ARI-LAR'].venue.type, body.games['ARI-LAR'].wind], ['indoor', 'canopy', null]);
   const den = body.games['SEA-DEN'];
   assert.equal(den.status, 'forecast');
   assert.deepEqual(den.venue, { id: 'DEN00', name: 'Empower Field at Mile High', city: 'Denver', country: 'USA', type: 'outdoor' });
@@ -200,7 +315,7 @@ test('a begin or finish RPC failure still answers 200 with the stored data', asy
     const body = await response.json();
     assert.equal(body.refresh.outcome, 'unavailable');
     assert.equal(body.games['SEA-DEN'].status, 'none');
-    assert.equal(body.games['ARI-LAR'].status, 'indoor');
+    assert.deepEqual([body.games['BUF-LV'].status, body.games['ARI-LAR'].status], ['indoor', 'indoor']);
   }
 });
 

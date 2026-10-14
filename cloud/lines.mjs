@@ -1,7 +1,10 @@
 // Lines route group for the redesign (build plan, sections 3.1 and 3.3). Stage 4 wired it into cloud/handler.mjs
 // once; stage 23 (M-06, supabase/migrations/20261015010000_gtl_lines_read.sql) adds POST /lines/read and /lines/game:
 // the only safe way to read current lines, gated per game and market in SQL (D-36, D-39). A lines stage edits this
-// file and scripts/boundary/lines.mjs, not the handler.
+// file and scripts/boundary/lines.mjs. Stage 23 also changed two shared lines of cloud/handler.mjs: every redesign route
+// group (lines, bets, league, me) now gets the featureOff switch, and their shared RPC caller (groupRpc) turns PostgREST's
+// PGRST202 into GTL_FEATURE_OFF (only a group that maps that code, as this one does, answers "not available right now";
+// the others keep their generic error). A later change to that shared wiring is coordinated with the other lanes.
 //
 // The SQL gate decides what is open (gtl_markets_visible / gtl_guess_revealed: that game's kickoff, the viewer's own
 // lock-in of that game and market, or the viewer's sit-out). This module is the second defense: every reply is rebuilt
