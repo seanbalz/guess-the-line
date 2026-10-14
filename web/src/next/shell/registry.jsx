@@ -19,5 +19,5 @@ export const SCREENS = Object.freeze({
 /** Each layer id's component, with its owner (CONTRACT section 9). */
 export const LAYERS = Object.freeze({
   'sh.menu': MenuSheet, // me
-  'sh.switcher': SwitcherSheet, // league (stage 11 fills it)
+  'sh.switcher': SwitcherSheet, // league (stage 11)
 });

@@ -52,7 +52,8 @@ test('a device that chose the new app loads NextApp and none of the old app\'s s
   await expect(page.getByRole('heading', { name: 'Home', level: 1, exact: true })).toBeVisible();
   expect(loaded(fixture, 'NextApp')).toHaveLength(1);
   for (const name of ['App', 'GameHub', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
-  expect(fixture.apiRequests, 'the stage 10 shell calls no route yet').toHaveLength(0);
+  // Stage 11: the data layer reads the account (this fixture answers the Community read as undeployed); no writes.
+  expect(fixture.apiRequests).toEqual([{ pathname: '/functions/v1/gtl-api/lobby', method: 'GET' }]);
 });
 
 test('a delayed optional chunk shows a status and leaves the pick route usable', async ({ page, fixture }) => {
