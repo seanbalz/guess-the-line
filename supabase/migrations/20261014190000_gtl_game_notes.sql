@@ -12,7 +12,9 @@
 --     and a stored note always reads back whole. Saving the text already stored writes nothing.
 --   * The saved flag is kept: a note never changes an existing row's `saved`. A note on a game with no row creates
 --     the row with saved = true, because the old app shows a note only on a saved game; with false it would hide the
---     note and its "Save to Favorites" button would send an empty note over it.
+--     note and its "Save to Favorites" button would send an empty note over it. OPEN: this default awaits Sean's
+--     ruling ("Open choice for Sean" in docs/redesign/PRIVATE_NOTES.md). The change that records his D-entry sets the
+--     default and this comment to match, before the merge and before "apply M-09".
 --   * Each change appends a gtl_personal_events row (before and after, `{saved, notes}` as favorite/set writes them)
 --     and bumps the shared gtl_personal_versions revision, so an old-app screen opened before the change gets
 --     GTL_PERSONAL_CONFLICT instead of overwriting the note.
