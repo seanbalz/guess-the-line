@@ -369,8 +369,9 @@ for (const [mode, width] of [['guess_spread', 320], ['guess_total', 390]]) test(
 
 // Redesign stage 15 (D-37 as amended by D-39): the group ballot once the server's live rules make sent picks final (M-02 reports
 // sentFinal: true from gtl_live_rules, and /state and /ballot carry it). The ballot and its review say so before the submit; after it
-// the ballot reads SUBMITTED · FINAL with read-only chips and nothing to save, the other market stays a draft, the analysis, the rules
-// and the dashboard stop promising edits, and when the rules read falls back (a rollback) the same ballot is editable again.
+// the ballot reads SUBMITTED · FINAL with read-only chips and nothing to save, the other market stays a draft, the analysis, the rules,
+// the standings, Settings and the dashboard stop promising edits, and when the rules read falls back (a rollback) the same ballot is
+// editable again.
 const SENT_FINAL = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
 const FINAL_RULE = "Submitted picks are final: once you submit, you can't change them.";
 for (const [mode, width] of [['guess_total', 320], ['guess_spread', 390]]) test(`${mode} submitted guesses are final once the live rules say so at ${width}px`, async ({ page, hub }) => {
@@ -420,6 +421,30 @@ for (const [mode, width] of [['guess_total', 320], ['guess_spread', 390]]) test(
   await expect(rules).not.toContainText('You can edit until the deadline');
   await page.keyboard.press('Escape');
   await expect(rules).toHaveCount(0);
+  // So do the scoring note on this ballot, the standings, the dashboard's chart guide and the League rules in Settings: none of them
+  // describes saving a changed guess any more.
+  const policy = page.locator('.source-note').filter({ hasText: 'Scoring reference saved with each guess' });
+  await expect(policy).toContainText(FINAL_RULE);
+  await expect(policy).not.toContainText('Saving a changed guess');
+  await navigate('Leaderboard');
+  const reference = page.locator('.stat').filter({ hasText: 'Scoring reference' });
+  await expect(reference).toContainText('At submission');
+  await expect(reference).toContainText('Later line movement does not change points');
+  await expect(reference).not.toContainText('Changed guesses');
+  await navigate('Dashboard');
+  const guide = page.locator('.chart-guide');
+  await guide.locator('summary').click();
+  await expect(guide).toContainText('Your saved reference is the consensus captured when you submit.');
+  await expect(guide).not.toContainText('changed guess');
+  await navigate('Settings & setup');
+  const setting = name => page.locator('.settings-list > div').filter({ has: page.locator('dt', { hasText: name }) }).locator('dd');
+  await expect(setting('Prediction edits')).toContainText('Drafts change until you submit');
+  await expect(setting('Prediction edits')).toContainText('Submitted guesses are final');
+  await expect(setting('Prediction edits')).not.toContainText('Editable until deadline');
+  await expect(setting('Prediction edits')).not.toContainText('Changed guesses');
+  await expect(setting('Scoring reference')).toContainText('At submission');
+  await expect(setting('Scoring reference')).not.toContainText('or edit');
+  await navigate('My picks');
   // The other market is still a draft that changes freely, and its analysis gate states the rule.
   await page.getByRole('button', { name: otherLabel, exact: true }).click();
   await navigate('Edge board');
@@ -434,10 +459,16 @@ for (const [mode, width] of [['guess_total', 320], ['guess_spread', 390]]) test(
   await expect(page.locator('.visual-next-action')).not.toContainText('editable');
   // The rules read falls back to today's rules (M-02 rolled back): the submitted ballot is editable again on the next read.
   hub.rules = null;
-  await page.reload(); await navigate('My picks');
+  await page.reload(); await navigate('Settings & setup');
+  await expect(setting('Prediction edits')).toContainText('Editable until deadline');
+  await expect(setting('Prediction edits')).not.toContainText('Submitted guesses are final');
+  await expect(setting('Scoring reference')).toContainText('At submission or edit');
+  await navigate('My picks');
   await page.getByRole('button', { name: label, exact: true }).click();
   await expect(page.getByText('SUBMITTED · EDITABLE', { exact: true })).toBeVisible();
   await expectPickEnabled(page, entryLabel(MATCHUPS[0]));
+  await expect(policy).toContainText('Saving a changed guess before the deadline takes the line at that save');
+  await expect(policy).not.toContainText(FINAL_RULE);
   // An unsaved change made while edits were allowed, then the rule turns final: the tab copy stays readable but can no longer be
   // restored into the ballot, and the chips show the saved guess.
   const changed = total ? '50' : '-6';
