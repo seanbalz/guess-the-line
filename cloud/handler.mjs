@@ -1,6 +1,6 @@
 import { handlePersonal, PERSONAL_METHODS, PersonalError, providerPersonalError } from './personal.mjs';
 import { handleSocial, SOCIAL_METHODS, SocialError, providerSocialError } from './social.mjs';
-import { handleCommunity, COMMUNITY_METHODS, CommunityError, providerCommunityError } from './community.mjs';
+import { handleCommunity, COMMUNITY_METHODS, CommunityError, providerCommunityError, readForfeit, withForfeit } from './community.mjs';
 import { handleOfficials, OFFICIALS_METHODS, OfficialsError, providerOfficialsError } from './officials.mjs';
 import { NFLVERSE_SCHEDULE_URL } from '../shared/nfl-schedule.mjs';
 import { applyDecisionAnalysisView } from './decision-analysis.mjs';
@@ -40,6 +40,8 @@ const CORS = {
   'X-Content-Type-Options': 'nosniff',
 };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Community RPCs whose migration may not be applied yet: a missing function answers 503 "not available right now". */
+const OPTIONAL_COMMUNITY_RPCS = new Set(['gtl_read_guess_picks', 'gtl_forfeit_guess_week']);
 const SAFE_VALIDATION_ERRORS = new Set([
   'Unknown game mode.', 'Unknown prediction game.', 'Unknown matchup.', 'Invalid ballot.',
   'The prediction deadline has passed. Commissioner adjudication is required.',
@@ -228,10 +230,17 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (request.method === 'POST') {
         body = await readJson(request);
       }
-      if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock }));
+      // Stage 21 (M-04): the slip replies carry the live rules, which word the real-slip line lock.
+      if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock, rules: () => readLiveRules(optionalRpc) }));
       if (Object.hasOwn(COMMUNITY_METHODS, route)) {
-        const result = handleCommunity({ route, body, user, service: community, clock, pushConfigured, featureOff: featuresOff });
-        return json(await (route === '/community/read' ? withRules(result) : result));
+        if (route === '/community/read') {
+          // One clock reading for the feed and its `forfeit` (M-03, read through the optional-RPC wrapper alongside the feed).
+          // While GTL_FEATURE_OFF names `forfeit` the field says no forfeit is possible now (open false), since the writer refuses.
+          const at = clock();
+          const feed = handleCommunity({ route, body, user, service: community, clock: () => at, pushConfigured, featureOff: featuresOff });
+          return json(await withRules(withForfeit(feed, readForfeit(optionalRpc, user.id, at), { writerOff: featuresOff.has('forfeit') })));
+        }
+        return json(await handleCommunity({ route, body, user, service: community, clock, pushConfigured, featureOff: featuresOff }));
       }
       if (Object.hasOwn(OFFICIALS_METHODS, route)) return json(await handleOfficials({ route, body, user, service: officials }));
       if (Object.hasOwn(WIND_METHODS, route)) return json(await handleWind({ route, body, user, service: wind, uuid }));
@@ -505,8 +514,9 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
         if (!response.ok) {
           let message, code;
           try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Provider details remain private. */ }
-          // M-08's reader before "apply M-08" (PostgREST PGRST202) reads as off; every other community RPC answers as before.
-          if (name === 'gtl_read_guess_picks' && response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerCommunityError('GTL_FEATURE_OFF');
+          // M-08's reader before "apply M-08" and M-03's forfeit writer before "apply M-03" (PostgREST PGRST202) read as off;
+          // every other community RPC answers as before.
+          if (OPTIONAL_COMMUNITY_RPCS.has(name) && response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerCommunityError('GTL_FEATURE_OFF');
           throw providerCommunityError(message);
         }
         return response.json();

@@ -61,6 +61,8 @@ test('adapter authenticates with the user token then reads social RPC with serve
     calls.push({ path: url.pathname, headers: options.headers, method: options.method, body: options.body ? JSON.parse(options.body) : null });
     assert.equal(options.redirect, 'error');
     if (url.pathname === '/auth/v1/user') return Response.json({ id: id(2), role: 'authenticated', is_anonymous: false, email: 'sean@example.invalid', email_confirmed_at: confirmed ? '2026-10-01T00:00:00Z' : null, user_metadata: { id: id(1), commissioner: true } });
+    // Stage 21: the reply carries the live rules (cloud/live-rules.mjs); the function is missing here, as it is hosted today.
+    if (url.pathname === '/rest/v1/rpc/gtl_live_rules') return Response.json({ code: 'PGRST202', message: 'Could not find the function' }, { status: 404 });
     assert.equal(url.pathname, '/rest/v1/rpc/gtl_read_social');
     if (failure) return Response.json({ message: failure, detail: 'Never expose provider internal details' }, { status: 400 });
     const sourceState = emptySocialState();
@@ -71,9 +73,11 @@ test('adapter authenticates with the user token then reads social RPC with serve
   const request = payload => handler(new Request('https://fixture.invalid/functions/v1/gtl-api/social/read', { method: 'POST', headers: { Authorization: 'Bearer fixture-user-token', 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }));
   const response = await request({ season: 2026, week: 5 }); assert.equal(response.status, 200);
   const view = await response.json(); assert.equal(view.actorId, id(2)); assert.equal(view.entries[0].ownerId, id(1)); assert.equal(view.entries[0].canTail, true); assert.equal(response.headers.get('cache-control'), 'no-store');
-  assert.deepEqual(calls.map(call => call.path), ['/auth/v1/user', '/rest/v1/rpc/gtl_read_social']);
+  assert.deepEqual(calls.map(call => call.path).sort(), ['/auth/v1/user', '/rest/v1/rpc/gtl_live_rules', '/rest/v1/rpc/gtl_read_social']);
+  assert.deepEqual(view.rules, { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' }, 'today\'s rules while gtl_live_rules is missing');
   assert.deepEqual(calls[0].headers, { apikey: 'fixture-publishable', Authorization: 'Bearer fixture-user-token' });
-  assert.equal(calls[1].headers.apikey, 'fixture-server-secret'); assert.equal(calls[1].headers.Authorization, 'Bearer fixture-server-secret'); assert.equal(calls[1].body.p_user, id(2));
+  const socialCall = calls.find(call => call.path === '/rest/v1/rpc/gtl_read_social');
+  assert.equal(socialCall.headers.apikey, 'fixture-server-secret'); assert.equal(socialCall.headers.Authorization, 'Bearer fixture-server-secret'); assert.equal(socialCall.body.p_user, id(2));
   assert.equal(JSON.stringify(view).includes('fixture-server-secret'), false);
   confirmed = false; calls.length = 0; assert.equal((await request({})).status, 403); assert.deepEqual(calls.map(call => call.path), ['/auth/v1/user']);
   confirmed = true; calls.length = 0; assert.equal((await request({ p_user: id(1) })).status, 400); assert.deepEqual(calls.map(call => call.path), ['/auth/v1/user']);

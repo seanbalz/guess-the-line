@@ -5,12 +5,14 @@
 // hidden, including removed members' data.
 import { UUID_PATTERN } from './lobby.mjs';
 import { buildSlate, weekOpenAt } from '../shared/nfl-schedule.mjs';
+import { readOptional } from './optional-rpc.mjs';
 
 export class CommunityError extends Error {
   constructor(status, message) { super(message); this.name = 'CommunityError'; this.status = status; }
 }
 // /community/picks: everyone's Guess picks for a week and market, game by game (M-08, redesign build plan stage 26).
-export const COMMUNITY_METHODS = Object.fromEntries(['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks'].map(action => [`/community/${action}`, ['POST']]));
+// /community/forfeit: "Skip this week's Guess the Line" and "See picks now" (M-03, redesign build plan stage 19).
+export const COMMUNITY_METHODS = Object.fromEntries(['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks', 'forfeit'].map(action => [`/community/${action}`, ['POST']]));
 const ERRORS = {
   GTL_COMMUNITY_INVALID: [400, 'Check the post and try again.'],
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -21,6 +23,9 @@ const ERRORS = {
   // M-08 (stage 26): /community/picks while its reader is not on the hosted project yet (PostgREST PGRST202, see
   // createSupabaseAdapter) or while gtl-api's GTL_FEATURE_OFF secret names `picks` (cloud/feature-off.mjs).
   GTL_FEATURE_OFF: [503, 'This feature is not available right now.'],
+  // M-03 (stage 19): /community/forfeit at or after the week's last kickoff (D-39), and with nothing left to sit out.
+  GTL_FORFEIT_CLOSED: [409, 'Every game that week has kicked off, so its picks and lines are already open. Nothing was changed.'],
+  GTL_FORFEIT_NOTHING: [409, 'Your Spread and Total for that week are already submitted or sat out. Nothing was changed.'],
 };
 export const providerCommunityError = message => ERRORS[message] ? new CommunityError(...ERRORS[message]) : new Error('The community feed is unavailable.');
 const invalid = () => { throw providerCommunityError('GTL_COMMUNITY_INVALID'); };
@@ -200,6 +205,57 @@ function normalizePicks(raw, viewer) {
     mode: MODES.includes(raw.mode) ? raw.mode : null, now: text(raw.now), deadline: text(raw.deadline), games };
 }
 
+// "Skip this week's Guess the Line" and "See picks now" (M-03, redesign build plan stage 19; D-36, D-39, D-41, D-23). One forfeit
+// per player and week, until the week's last kickoff: it sits out (a D-23 opt-out) every market not yet submitted or sat out, and
+// a submitted market, or a guess already locked in, keeps counting. The database decides all of it; these filters pass only the
+// known keys of its answers.
+const FORFEIT_REASONS = ['skip', 'reveal'];
+const instant = value => typeof value === 'string' && Number.isFinite(Date.parse(value));
+const FORFEIT_MARKET_STATUSES = ['submitted', 'sat_out', 'open'];
+/** A stored forfeit, { reason, modes, createdAt }, or a throw. */
+function normalizeForfeitRecord(raw) {
+  if (!record(raw) || !FORFEIT_REASONS.includes(raw.reason) || !Array.isArray(raw.modes) || !raw.modes.length
+    || raw.modes.some(mode => !MODES.includes(mode)) || new Set(raw.modes).size !== raw.modes.length || !instant(raw.createdAt)) throw new Error('Invalid forfeit.');
+  return { reason: raw.reason, modes: MODES.filter(mode => raw.modes.includes(mode)), createdAt: raw.createdAt };
+}
+/**
+ * gtl_read_forfeit's answer for one week: { season, week, closesAt, open, forfeit, markets }. `open` says a forfeit is still
+ * possible now; `markets` says what one would do to each market ('submitted' keeps counting, 'sat_out' already, 'open' would be
+ * sat out), with `lockedIn` of its `games` locked in (those guesses keep counting, D-39, D-41). Anything else throws, and
+ * /community/read then leaves the field out.
+ */
+export function parseForfeit(raw) {
+  if (!record(raw) || !Number.isInteger(raw.season) || !Number.isInteger(raw.week) || !Array.isArray(raw.markets) || typeof raw.open !== 'boolean') throw new Error('Invalid forfeit.');
+  const count = value => Number.isInteger(value) && value >= 0 && value <= 64;
+  const markets = MODES.map(mode => {
+    const entries = raw.markets.filter(m => record(m) && m.mode === mode);
+    if (entries.length !== 1) throw new Error('Invalid forfeit.');
+    const { status, lockedIn, games } = entries[0];
+    if (!FORFEIT_MARKET_STATUSES.includes(status) || !count(lockedIn) || !count(games) || lockedIn > games) throw new Error('Invalid forfeit.');
+    return { mode, status, lockedIn, games };
+  });
+  if (raw.closesAt !== null && !instant(raw.closesAt)) throw new Error('Invalid forfeit.');
+  const forfeit = raw.forfeit === null ? null : normalizeForfeitRecord(raw.forfeit);
+  return { season: raw.season, week: raw.week, closesAt: raw.closesAt, open: raw.open && forfeit === null && markets.some(m => m.status === 'open'), forfeit, markets };
+}
+/**
+ * /community/read's `forfeit` (build plan section 3.3): read through the optional-RPC wrapper, so while gtl_read_forfeit is
+ * missing (before "apply M-03", or after its grant is revoked) or fails, it resolves to null and the reply is unchanged. Never rejects.
+ */
+export function readForfeit(optionalRpc, userId, now) {
+  return readOptional(optionalRpc, 'gtl_read_forfeit', { p_user: userId, p_season: null, p_week: null, p_now: new Date(now).toISOString() }, { parse: parseForfeit, fallback: null });
+}
+/**
+ * Adds `forfeit` to a /community/read view when it answered for the same week the view shows; otherwise the view as it is.
+ * `writerOff` (GTL_FEATURE_OFF names `forfeit`): the writer refuses before the database, so `open` reads false (no forfeit is
+ * possible now) and the rest of the field, the stored forfeit and each market, is kept as read.
+ */
+export async function withForfeit(view, forfeit, { writerOff = false } = {}) {
+  const [feed, read] = await Promise.all([view, forfeit]);
+  if (!read || !feed.week || read.season !== feed.week.season || read.week !== feed.week.week) return feed;
+  return { ...feed, forfeit: writerOff ? { ...read, open: false } : read };
+}
+
 /**
  * Picks due for the viewer: "not_open" before the week's Monday 00:00 PT open (D-24),
  * "urgent" inside two hours of the deadline, "closed" after it. A sat-out mode is never due (D-23).
@@ -296,6 +352,17 @@ export async function handleCommunity({ route, body = {}, user, service, clock =
     const result = await service.rpc('gtl_sit_out_week', { p_user: user.id, p_season: body.season, p_week: body.week, p_mode: body.mode, p_now: new Date(clock()).toISOString() });
     if (result?.satOut !== true) throw new Error('Invalid sit-out result.');
     return { season: body.season, week: body.week, mode: body.mode, satOut: true, replayed: result.replayed === true };
+  }
+  if (route === '/community/forfeit') {
+    // M-03 (stage 19): "Skip this week's Guess the Line" (reason 'skip') or "See picks now" ('reveal') for one week. The player
+    // comes from sign-in and the time from the handler clock; the database picks the markets, so the body names none.
+    fields(body, ['season', 'week', 'reason']);
+    if (!Number.isInteger(body.season) || body.season < 2000 || body.season > 2200 || !Number.isInteger(body.week) || body.week < 1 || body.week > 25 || !FORFEIT_REASONS.includes(body.reason)) invalid();
+    // Gate M off switch: GTL_FEATURE_OFF=forfeit stops the writer before it reaches the database (cloud/feature-off.mjs).
+    if (featureOff.has('forfeit')) throw providerCommunityError('GTL_FEATURE_OFF');
+    const result = await service.rpc('gtl_forfeit_guess_week', { p_user: user.id, p_season: body.season, p_week: body.week, p_reason: body.reason, p_now: new Date(clock()).toISOString() });
+    if (!record(result) || result.season !== body.season || result.week !== body.week || typeof result.replayed !== 'boolean') throw new Error('Invalid forfeit result.');
+    return { season: body.season, week: body.week, ...normalizeForfeitRecord(result), replayed: result.replayed };
   }
   if (route === '/community/interest') {
     fields(body, ['league', 'notify']);
