@@ -46,7 +46,10 @@ test('the legal pages are self-contained, accurate on the essentials and use onl
     for (const [hex] of html.matchAll(/#[0-9A-Fa-f]{6}\b/g)) assert.ok(allowed.has(hex.toUpperCase()), `${name}: ${hex} is not a design token color`);
   }
   const privacy = fs.readFileSync(path.join(pub, 'privacy.html'), 'utf8');
-  for (const phrase of ['Supabase', 'Cloudflare', 'Google', 'do not sell', 'Solo journal is private']) assert.ok(privacy.includes(phrase), `privacy mentions ${phrase}`);
+  for (const phrase of ['Supabase', 'Cloudflare', 'Google', 'Google Fonts', 'Open-Meteo', 'do not sell', 'Solo journal is private', 'notes on games']) assert.ok(privacy.includes(phrase), `privacy mentions ${phrase}`);
+  // D-42 (Sean, October 14, 2026: "Always keep the name"): a deleted account's past entries stay under the display name.
+  assert.match(privacy, /remove your sign-in details and email address; your past game entries stay under your display name/);
+  assert.doesNotMatch(privacy, /anonymous label|anonymi[sz]e/i, 'D-42: deletion never swaps the name for an anonymous label');
   const terms = fs.readFileSync(path.join(pub, 'terms.html'), 'utf8');
   for (const phrase of ['not a sportsbook', 'may be wrong, delayed or missing', 'as is']) assert.ok(terms.includes(phrase), `terms mentions ${phrase}`);
 });
@@ -62,6 +65,8 @@ test('the frontend email guard allows a contact address only as a mailto: link o
   const linked = '<a href="mailto:owner@realmail.co">owner@realmail.co</a>';
   assert.doesNotThrow(() => scan({ 'privacy.html': linked, 'terms.html': linked }));
   assert.throws(() => scan({ 'privacy.html': 'owner@realmail.co' }), /Non-example email/);
+  // D-42 ("allow it on those two pages"): each address must itself be a mailto: link; a linked one does not excuse another.
+  assert.throws(() => scan({ 'terms.html': `${linked} other@realmail.co` }), /Non-example email/);
   assert.throws(() => scan({ 'index.html': linked }), /Non-example email/);
   assert.throws(() => scan({ 'assets/privacy.html': linked }), /Non-example email/);
   const built = path.join(os.tmpdir(), `gtl-legal-built-${process.pid}`);

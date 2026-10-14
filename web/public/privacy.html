@@ -47,9 +47,9 @@ a:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4
 <li><strong>Profile.</strong> The display name you choose, which other players see.</li>
 <li><strong>Game entries.</strong> Your picks for each game mode, every saved edit with the time it was saved, the sportsbook reference a pick was scored against, sit-out choices and Betting Challenge selections.</li>
 <li><strong>Community activity.</strong> Posts, comments and likes you add to the community feed, games you create, invitations you send (including the invitee's email address) and leagues you ask to be notified about.</li>
-<li><strong>Records you choose to keep.</strong> Bet Tracker entries and Solo journal notes and forecasts that you decide to record.</li>
+<li><strong>Records you choose to keep.</strong> Bet Tracker entries, games you save and the private notes you write on a game, and Solo journal notes and forecasts that you decide to record.</li>
 <li><strong>Basic security records.</strong> Sign-in and access events kept by our authentication provider and an audit log of game access, such as when an invitation was accepted.</li>
-<li><strong>On your device only.</strong> Your theme choice, dashboard preferences and unsaved drafts are stored in your browser and are not sent to us.</li>
+<li><strong>On your device only.</strong> Your theme choice, dashboard preferences, whether trends are shown, whether you use the current app or the new one, and unsaved drafts are stored in your browser and are not sent to us.</li>
 </ul>
 <p>We do not use advertising, analytics or tracking cookies.</p>
 
@@ -58,9 +58,9 @@ a:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4
 
 <h2>Who can see what</h2>
 <ul>
-<li>Other members of a game see your display name, and they see your picks according to that game's reveal rules (for example, after you submit a full ballot or after kickoff).</li>
+<li>Other members of a game see your display name, and they see your picks according to the game's reveal rules. Spread and Total picks you have not submitted are drafts that only you see; a submitted pick is shown to another member only after they lock in their own pick for that NFL game or sit out the week, or once that NFL game's pick deadline has passed.</li>
 <li>Community posts, comments and likes are visible to members of the community.</li>
-<li>Your Solo journal is private to you.</li>
+<li>Your Solo journal is private to you, and so are your notes on games.</li>
 <li>Your email address is not shown to other players, except that the person who invited you already knows the address they invited.</li>
 <li>The commissioner can see game records needed to settle disputes and keep the competition fair.</li>
 </ul>
@@ -70,10 +70,11 @@ a:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4
 <ul>
 <li><strong>Supabase</strong> for sign-in and the database that stores accounts and game data.</li>
 <li><strong>Cloudflare</strong> to host and deliver the website.</li>
-<li><strong>Google</strong>, only if you choose Continue with Google.</li>
+<li><strong>Google</strong>, if you choose Continue with Google.</li>
+<li><strong>Google Fonts</strong>, which supplies the app's typefaces. Your browser downloads them from Google, which sees your IP address and browser details as with any web request, but no account or game information.</li>
 <li><strong>Your browser's push service</strong> (for example Apple, Google or Mozilla), only if you turn on reminders. It delivers the reminder to your device.</li>
 </ul>
-<p>Sportsbook lines are fetched from The Odds API. That request contains no information about you.</p>
+<p>Sportsbook lines are fetched from The Odds API, and kickoff weather forecasts from Open-Meteo, which our server asks about stadium locations only. Neither request contains any information about you.</p>
 
 <h2>No selling, no ads</h2>
 <p>We do not sell, rent or share your information for advertising or marketing, and we do not show ads.</p>
@@ -82,7 +83,7 @@ a:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4
 <p>Game entries are kept as part of the game's permanent record so that standings, history and scoring stay accurate and fair. Picks, edits and posts are not deleted, moved or hidden by the game itself, and a member who leaves or is removed from a community keeps their past entries in the record.</p>
 
 <h2>Your choices and requests</h2>
-<p>To ask for a copy of your data, to correct it, or to delete your account, email <a href="mailto:sbalsiger2@gmail.com">sbalsiger2@gmail.com</a> from the address on your account. When an account is deleted we remove your sign-in details and email address; past game entries may be kept under your display name or an anonymous label so the competition record stays complete.</p>
+<p>To ask for a copy of your data, to correct it, or to delete your account, email <a href="mailto:sbalsiger2@gmail.com">sbalsiger2@gmail.com</a> from the address on your account. When an account is deleted we remove your sign-in details and email address; your past game entries stay under your display name so the competition record stays complete.</p>
 
 <h2>Children</h2>
 <p>Guess The Line is meant for adults and is not directed to children under 13.</p>
