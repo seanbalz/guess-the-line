@@ -31,7 +31,7 @@ The one visibility exception is the Guess pick reveal gate, shared by the feed a
 
 | Route | Body | Result |
 |---|---|---|
-| `/community/read` | `{ before?: ISO time, limit?: 1–100 }` | members (with `removed`), week, optOuts (viewer's sat-out modes), due (with `satOut`), picksDue (sat-out modes excluded), submissions (with `satOut`), standings (with `satOut`), posts, rules (see [Live rules](#live-rules-field)) |
+| `/community/read` | `{ before?: ISO time, limit?: 1–100 }` | members (with `removed`), week, optOuts (viewer's sat-out modes), due (with `satOut`), picksDue (sat-out modes excluded), submissions (with `satOut`), standings (with `satOut`), posts, rules (see [Live rules](#live-rules-field)), pushConfigured (true only when `gtl-api` holds a valid VAPID public key, which is never sent; [WEB_PUSH_SETUP.md](WEB_PUSH_SETUP.md)) |
 | `/community/like` | `{ postId, like: true/false }` | likes, likedByMe |
 | `/community/comment` | `{ requestId, postId, body }` | id, replayed |
 | `/community/member` | `{ userId, member: true/false }` (commissioner only) | userId, member |

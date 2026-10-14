@@ -321,6 +321,24 @@ test('chips and segments are toggles that say which one is on', async ({ page })
   await expect(page.getByRole('list', { name: 'Total board' })).toBeVisible();
 });
 
+test('a keyboard-focused chip shows its whole focus ring above and below, inside the scrolling rail', async ({ page }) => {
+  // Follow-up to the stage 6 review: the rail scrolls, so it clips, and its old 2px padding cut off the ring's top and
+  // bottom (2px wide, 2px out from the chip).
+  await open(page);
+  await page.getByRole('button', { name: 'Seattle by 1', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  const ring = await page.evaluate(() => {
+    const chip = document.activeElement, rail = chip.closest('.gx-chip-rail'), s = getComputedStyle(chip);
+    const out = parseFloat(s.outlineWidth) + parseFloat(s.outlineOffset), c = chip.getBoundingClientRect(), r = rail.getBoundingClientRect();
+    return { label: chip.getAttribute('aria-label') || chip.textContent.trim(), focusVisible: chip.matches(':focus-visible'), style: s.outlineStyle, out,
+      above: c.top - out - r.top, below: r.bottom - (c.bottom + out) };
+  });
+  expect(ring).toMatchObject({ focusVisible: true, style: 'solid', out: 4 });
+  expect(ring.label).toMatch(/1\.5/);
+  expect(ring.above).toBeGreaterThanOrEqual(0);
+  expect(ring.below).toBeGreaterThanOrEqual(0);
+});
+
 test('a live countdown ticks, turns pending under two hours and says so once, politely', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Start a live countdown' }).click();

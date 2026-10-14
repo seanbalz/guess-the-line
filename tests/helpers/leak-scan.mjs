@@ -1,6 +1,11 @@
-// Leak scan (stage 3 of docs/REDESIGN_BUILD_PLAN.md): a deep scan of any reply for a line value or a hidden Guess
-// pick. The viewer's own entries are exempt: an object whose owner key (userId, actorId, ...) is the viewer, and
-// everything under it, until a nested object names another owner. A player's own entries are never redacted.
+// Leak scan (stage 3 of docs/REDESIGN_BUILD_PLAN.md): a deep scan of any reply, values and object keys, for a line
+// value or a hidden Guess pick. The viewer's own entries are exempt: an object whose owner key (userId, actorId, ...)
+// is the viewer, and everything under it, until a nested object names another owner. A player's own entries are never
+// redacted.
+//
+// `playerId` and `player` are not owner keys: /state and /export put the viewer's own playerId at the top of a reply
+// that also carries every other member's picks, so treating it as an owner would exempt the whole reply. A suite that
+// gives the viewer entries in such a reply exempts those paths with `exempt` instead.
 //
 // Fixtures give every line and every hidden pick an unusual half-point value that nothing else in a reply can equal
 // (no count, week, season, timestamp or id is a half-point number). A spread matches with either sign, because the
@@ -94,8 +99,13 @@ export function leakScan(reply, { viewer, secrets, ownerKeys = OWNER_KEYS, exemp
       const owner = ownerKeys.find(key => Object.hasOwn(node, key) && node[key] !== null && node[key] !== undefined);
       if (owner) own = String(node[owner]) === String(viewer);
     }
-    if (Array.isArray(node)) node.forEach((value, i) => walk(value, pathOf(path, i), own));
-    else for (const [key, value] of Object.entries(node)) walk(value, pathOf(path, key), own);
+    if (Array.isArray(node)) { node.forEach((value, i) => walk(value, pathOf(path, i), own)); return; }
+    for (const [key, value] of Object.entries(node)) {
+      const at = pathOf(path, key);
+      // Keys too: a secret used as a key (a count of picks keyed by "-6.5") leaks as much as one used as a value.
+      if (!own && !exempt(at, value)) for (const token of key.replace(ISO_TIME, ' ').match(NUMBER) || []) check(`${at} (key)`, Number(token), key);
+      walk(value, at, own);
+    }
   };
   walk(reply, '$', false);
   return findings;

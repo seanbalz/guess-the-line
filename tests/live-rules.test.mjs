@@ -26,8 +26,8 @@ const state = () => ({
 const feed = { viewer: USER, admin: false, members: [{ id: USER, displayName: 'Fixture One' }], week: { season: 2026, week: 6, deadline: '2026-10-16T00:15:00Z', games: 1 },
   due: [{ mode: 'guess_spread', submitted: false, filled: 0, games: 1 }], submissions: [], posts: [] };
 
-function app({ optionalRpc } = {}) {
-  let saved = { state: state(), revision: 0 };
+function app({ optionalRpc, initial = state() } = {}) {
+  let saved = { state: initial, revision: 0 };
   const calls = [];
   const handler = createCloudHandler({
     clock: () => NOW, uuid: () => '00000000-0000-4000-8000-0000000000ff', leagueId: LEAGUE,
@@ -39,6 +39,13 @@ function app({ optionalRpc } = {}) {
         if (revision !== saved.revision) return null;
         const engine = createEngine(saved.state, { clock: () => NOW, uuid: () => '00000000-0000-4000-8000-0000000000fe' });
         engine.saveBallot('two', mode, picks, submit);
+        saved = { state: engine.snapshot(), revision: revision + 1 };
+        return saved.revision;
+      },
+      async saveSelection(userId, leagueId, revision, selection) {
+        if (revision !== saved.revision) return null;
+        const engine = createEngine(saved.state, { clock: () => NOW, uuid: () => '00000000-0000-4000-8000-0000000000fd' });
+        engine.saveBet('two', selection);
         saved = { state: engine.snapshot(), revision: revision + 1 };
         return saved.revision;
       },
@@ -131,6 +138,21 @@ test('once gtl_live_rules exists, its answer is what every view carries', async 
     const { status, body } = await send(path, options);
     assert.equal(status, 200, path);
     assert.deepEqual(body.rules, LIVE, path);
+  }
+});
+
+test('/bet carries the rules too: its reply is the /state view for the Challenge', async () => {
+  // Follow-up to the stage 4 review: /ballot and /bet share the return line, but only /ballot was tested.
+  const sent = createEngine(state(), { clock: () => NOW, uuid: () => '00000000-0000-4000-8000-0000000000fc' });
+  sent.saveBallot('two', 'guess_spread', { 'SEA-DEN': -3 }, true); // a Challenge pick needs the matching Spread ballot sent
+  const bet = { revision: 0, gameId: 'SEA-DEN', market: 'spread', side: 'home', line: -3, odds: -110, source: 'Fixture book', quotedAt: new Date(NOW - 60_000).toISOString() };
+  for (const [optionalRpc, expected] of [[undefined, TODAYS_RULES], [async () => FEATURE_OFF, TODAYS_RULES], [async () => LIVE, LIVE]]) {
+    const { send, calls } = app({ optionalRpc, initial: sent.snapshot() });
+    const { status, body } = await send('/bet', { body: bet });
+    assert.equal(status, 200, JSON.stringify(body));
+    assert.equal(body.mode, 'betting_challenge');
+    assert.deepEqual(body.rules, expected);
+    assert.equal(calls.filter(([kind]) => kind === 'optional').length, optionalRpc ? 1 : 0, 'one rules read');
   }
 });
 

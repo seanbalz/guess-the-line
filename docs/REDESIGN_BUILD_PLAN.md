@@ -134,7 +134,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 5. Read-only score hash: every finished week's points per ballot (`gtl_ballot_pick_scores`) and every settled Virtual Units result. Anchors: Week 5 Sean 95.8, Steven 91.4, Ben 37.6.
 6. Apply through the Supabase MCP `apply_migration` or the SQL editor. Every migration is idempotent. After a timeout, rerun step 4 before any retry.
 7. Verify: each function byte-identical (md5 of `prosrc`); grants service-only; one `pg_proc` row per RPC; score hash unchanged unless the stage says scores move; for ballot write paths, the next scheduled odds collection succeeded; for slate triggers, the next `gtl_week_open_runs` row.
-8. Record the hosted version in the release record and the release checklist lists. Remove the file from `NOT_HOSTED`. Deploy what follows. Run `check:cloud`, then `--strict`. Remove `awaitingDeploy`.
+8. Record the hosted version in the release record and the release checklist lists. Move the file's version from `NOT_HOSTED` to `APPLIED` in `tests/migrations.mjs` (every file is in exactly one of the two). Deploy what follows. Run `check:cloud`, then `--strict`. Remove `awaitingDeploy`.
 9. Rollback ready before step 6: `supabase/rollback/<name>.sql` with the previous bodies, tested on PGlite. For new tables or written rows: an off switch (`GTL_FEATURE_OFF`), never a drop. M-13, M-21 and M-23 are fix-forward only.
 
 ### 4.3 Gate D: deploys
@@ -159,7 +159,7 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 6. M-13 (feed kinds) before any migration that writes a new post kind: M-15, M-17, M-22, M-23, M-25.
 7. Bets UI only after M-10 and M-11. Challenge UI only after M-15.
 8. Old-app edits to `web/src/CommunityHome.jsx` merge in this order: 2 → 15 → 9 → 17 → 25.
-9. One function, one open PR. The second PR waits and copies the newest body (checked by the md5 header test from stage 3):
+9. One function, one open PR. The second PR waits and copies the newest body (checked by the md5 header test from stage 3; the test sees only the header's md5, so the reviewer diffs the body against `node scripts/migration-functions.mjs --function NAME`):
 
 | Function | Replaced by, in order |
 |---|---|
@@ -252,7 +252,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 **3. Test and migration tooling**
 - Goal: CI tests the order the hosted project has, and no stage hand-edits a long list.
 - Scope:
-  - `tests/migrations.mjs`: `ALL` (read from the folder, sorted) and `HOSTED` (`ALL` minus a written `NOT_HOSTED` list, today only `20261013030000`). `community-world.mjs`, the old-app specs and `personas/harness.mjs` use `HOSTED`; new specs use `ALL`. Each migration PR adds its file to `NOT_HOSTED`; the apply record removes it.
+  - `tests/migrations.mjs`: `ALL` (read from the folder, sorted) and `HOSTED` (`ALL` minus a written `NOT_HOSTED` list, today only `20261013030000`). `community-world.mjs`, the old-app specs and `personas/harness.mjs` use `HOSTED`; new specs use `ALL`. Each migration PR adds its file to `NOT_HOSTED`; the apply record moves it to `APPLIED` (since the stage 3 review follow-up every file is in exactly one of the two, so a missing `NOT_HOSTED` line fails).
   - `scripts/migration-functions.mjs`: lists every `create or replace function` by file. A replacing migration carries a header with the md5 of the body it replaces; a node test fails on a stale copy.
   - A test that every `gtl_` RPC has exactly one `pg_proc` row.
   - `supabase/rollback/` convention, and a PGlite test that applies a migration, then its rollback, then reruns the old-app SQL suite.
@@ -409,7 +409,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Everyone sees (with stage 25): late picks in both apps.
 
 **25. Old app: late picks until kickoff**
-- Scope: `picksDue()` in `cloud/community.mjs` reads `rules.lateWindow` (a `late` state, `openGames`, `nextKickoff`, `closed` only when no game is open). The old Community Picks (`WeekPicks`), `PredictionEntry.jsx` and `PersonalWorkspace.jsx` go per game: "Closed at kickoff", the Late marker, no "extensions need commissioner review" (DP-22). Push text per Q9.
+- Scope: `picksDue()` in `cloud/community.mjs` reads `rules.lateWindow` (a `late` state, `openGames`, `nextKickoff`, `closed` only when no game is open). The old Community Picks (`WeekPicks`), `PredictionEntry.jsx` and `PersonalWorkspace.jsx` go per game: "Closed at kickoff", the Late marker, no "extensions need commissioner review" (DP-22). Push text per Q9: stage 2 already says "due" and names the markets still open ("Spread still open."); stage 25 counts the games still open, as D-39's example does ("Week 6 picks are due 5:15 PM PT. 9 games still open."), and rewords the old app's reminder copy that still says "before picks lock" (`REMIND_LABEL`, the Pick reminders panel, and the Settings checklist's Notifications row, which also reads "Opt-in" while `pushConfigured` is false).
 - Deploy before or with the M-07 apply; nothing changes until the rules reader says `kickoff`.
 - Tests: after-deadline cases in `prediction-*` and `community.spec.js`, built relative to the real now (database triggers keep the real clock): deadline now − 1 h, game A kicked off now − 30 min, game B kicks off now + 2 h, away from midnight UTC; phone persona.
 - Everyone sees: after Thursday's deadline, open games can still be picked and show "Late".

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { ALL, EXTENSION_ONLY, FILES, FIX_FORWARD, HOSTED, NOT_HOSTED, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL, APPLIED, EXTENSION_ONLY, FILES, FIX_FORWARD, HOSTED, NOT_HOSTED, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { parseFunctions } from '../scripts/migration-functions.mjs';
 
 // Stage 3 of docs/REDESIGN_BUILD_PLAN.md: one place holds the migration lists every PGlite test and spec applies.
 
@@ -30,6 +31,27 @@ test('HOSTED is ALL minus NOT_HOSTED, in the same order; every listed version na
   assert.ok(!HOSTED.includes('20261013030000_gtl_web_push_reminders.sql') && ALL.includes('20261013030000_gtl_web_push_reminders.sql'));
   assert.equal(HOSTED.length, ALL.length - NOT_HOSTED.length);
   for (const v of FIX_FORWARD) assert.ok(!fs.existsSync(`${ROLLBACK_DIR}${ALL.find(f => version(f) === v)}`), `${v} is fix-forward, so it has no rollback file`);
+});
+
+test('every repo migration is in exactly one of APPLIED and NOT_HOSTED, so a missing NOT_HOSTED line fails here', () => {
+  // Follow-up to the stage 3 review: HOSTED failed open (ALL minus a hand-written list), so a migration PR without its
+  // NOT_HOSTED line moved every old-app suite onto a schema players do not have.
+  assert.equal(new Set(APPLIED).size, APPLIED.length);
+  for (const v of APPLIED) assert.equal(ALL.filter(f => version(f) === v).length, 1, `APPLIED ${v} names no repo migration (or more than one)`);
+  for (const file of ALL) {
+    const listed = [APPLIED, NOT_HOSTED].filter(list => list.includes(version(file))).length;
+    assert.equal(listed, 1, `${file}: ${listed ? 'in both APPLIED and NOT_HOSTED' : 'in neither list: a new migration goes in NOT_HOSTED, and the apply record (Gate M step 8) moves it to APPLIED'}`);
+  }
+  assert.deepEqual(HOSTED, ALL.filter(f => APPLIED.includes(version(f))));
+  assert.deepEqual([...APPLIED].sort((a, b) => a - b), APPLIED, 'APPLIED stays in filename order');
+});
+
+test('the two files the hosted project applied out of filename order share no function, so the order makes no difference', () => {
+  // Stage 3 review: 20261013010000 went in (as 20261013040845) before 20261012234500 (as 20261013050416).
+  const names = file => new Set(parseFunctions(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'), file).map(fn => `${fn.schema}.${fn.name}`));
+  const [first, second] = ['20261012234500_gtl_game_officials.sql', '20261013010000_gtl_line_at_guess_reads.sql'].map(names);
+  assert.ok(first.size > 0 && second.size > 0);
+  assert.deepEqual([...first].filter(name => second.has(name)), []);
 });
 
 test('migrationSql reads the repo file byte for byte outside a rollback check', () => {

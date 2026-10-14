@@ -1,13 +1,17 @@
 // The migration lists every PGlite test and spec applies (stage 3 of docs/REDESIGN_BUILD_PLAN.md), so no stage
-// hand-edits a long list and CI tests the order the hosted project has.
+// hand-edits a long list. CI applies them in filename order. The hosted project applied two files the other way round
+// (20261013010000 as 20261013040845 before 20261012234500 as 20261013050416); they share no function, so the result is
+// the same.
 //
 //   ALL     every repo migration in filename (apply) order. New specs and suites use ALL.
 //   HOSTED  ALL minus NOT_HOSTED: the schema players actually have. community-world.mjs, the old-app specs,
 //           personas/harness.mjs and the old-app SQL suites use HOSTED (until stage 81).
 //
-// A migration PR adds its version to NOT_HOSTED; the apply record (Gate M step 8) removes it. A merged file that
-// Sean chose not to apply stays listed. The two files that install pg_cron and pg_net (hosted-only extensions,
-// no gtl_ object) are in neither list: PGlite cannot load them.
+// A migration PR adds its version to NOT_HOSTED; the apply record (Gate M step 8) moves it to APPLIED (at the end of
+// this file). Every file in ALL is in exactly one of the two lists (tests/migrations.test.mjs), so a PR that forgets its
+// NOT_HOSTED line fails instead of quietly moving the old-app suites onto a schema players do not have. A merged file
+// that Sean chose not to apply stays in NOT_HOSTED. The two files that install pg_cron and pg_net (hosted-only
+// extensions, no gtl_ object) are in neither list: PGlite cannot load them.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -54,3 +58,38 @@ export function migrationSql(file) {
   }
   return fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
 }
+
+/**
+ * Repo migrations applied to the hosted project, by repo version: with NOT_HOSTED, a closed list (tests/migrations.test.mjs
+ * fails on a file in neither or both). The hosted versions differ from the filenames; the release records and the release
+ * checklist's repair lists (docs/SOCIAL_COMMUNITY.md, step 2) map them.
+ */
+export const APPLIED = [
+  20261008164249, // gtl_private_cloud_state
+  20261008174007, // gtl_profiles_private_games_invites
+  20261008182836, // gtl_canonical_weekly_entries
+  20261008185715, // gtl_weekly_eligibility_rulings
+  20261008185738, // gtl_manual_odds_collection
+  20261008192528, // gtl_scoped_spread_benchmark
+  20261008200926, // gtl_twelve_hour_odds_refresh
+  20261008224444, // gtl_personal_workspace
+  20261008224735, // gtl_reviewed_quote_selections
+  20261008225401, // gtl_submission_time_scoring
+  20261008225607, // gtl_reviewed_final_results
+  20261008232055, // gtl_fresh_submission_odds
+  20261008240000, // gtl_virtual_units
+  20261009005145, // gtl_social_bet_tracker
+  20261009120000, // gtl_community_feed
+  20261009130000, // gtl_league_interest
+  20261009140000, // gtl_d23_data_rule
+  20261009150000, // gtl_auto_open_week
+  20261009160000, // gtl_ruled_ballot_import
+  20261009170000, // gtl_virtual_units_settlement
+  20261009190000, // gtl_virtual_units_save_isfinite
+  20261012213000, // gtl_submission_odds_window
+  20261012223000, // gtl_community_history
+  20261012230000, // gtl_submit_with_line_at_guess
+  20261012234500, // gtl_game_officials
+  20261013010000, // gtl_line_at_guess_reads
+  20261013060000, // gtl_wind_forecasts
+];
