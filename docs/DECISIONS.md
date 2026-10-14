@@ -1,5 +1,17 @@
 # Decision log
 
+## D-41 — each locked-in guess counts on its own; the old sit-out keeps them (October 14, 2026)
+
+Sean answered the two questions PR #94 (redesign stage 18, migration M-02) raised about D-39's per-game lock-in, choosing the recommended option each time.
+
+| Question | Ruling |
+|---|---|
+| A player locks in some of a week's games and never locks in the rest. Do the locked-in guesses score? | **Each counts alone.** Every locked-in guess (one game, one market) scores on its own; a game never locked in scores nothing. There is no market-level send (D-39). |
+| After some games are locked in, can the old app's "Sit out this week" (D-23) still be used? | **Yes, and the locked-in guesses keep counting.** The sit-out covers only the games not yet locked in, the same rule as D-39's "Skip" and "See picks now". |
+
+- **Where it is built.** Per-game scoring lands with stage 24 (M-07), when each game also closes at its own kickoff. Until then M-02 keeps its interim rule: the save that locks in the last game of a market is the send, and a partly locked-in market scores nothing. No player can reach the difference before stage 29 sends per-game lock-ins. The sit-out rule is built in M-03 (stage 19).
+- Nothing is applied or deployed by this entry.
+
 ## D-40 — a game note never makes a Favorite (October 14, 2026)
 
 Sean ruled in the cloud session, answering the "Open choice for Sean" that PR #83 (redesign stage 27, private notes server, migration M-09) raised in `docs/redesign/PRIVATE_NOTES.md`. He chose "No, and fix old Save": "The note doesn't create a Favorite (matches D-36: Favorites leave the screens). A small extra old-app change makes 'Save to Favorites' keep a stored note instead of overwriting it with a blank one."
