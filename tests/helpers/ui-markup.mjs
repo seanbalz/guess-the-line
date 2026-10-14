@@ -10,8 +10,11 @@
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
 const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
 
-/** Emoji and other pictographs; the allowed typographic marks (✓ ▲ ▼ ● ◆ · › ‹ − –) do not match. */
-export const EMOJI = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]/u;
+/**
+ * Emoji and other pictographs; the allowed typographic marks (✓ ▲ ▼ ● ◆ · › ‹ − –) do not match. The explicit marks
+ * (© ® ™ ↔–↙ ⏱ ★ ☆ ✔) keep the check the same on every Node: newer ICU builds drop some of them from Extended_Pictographic.
+ */
+export const EMOJI = /[\p{Extended_Pictographic}\p{Emoji_Presentation}\u00A9\u00AE\u2122\u2194-\u2199\u23F1\u2605\u2606\u2714\u{1F1E6}-\u{1F1FF}]/u;
 
 export function decode(text) {
   return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, code) => {
