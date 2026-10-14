@@ -190,16 +190,20 @@ test('the per-game gate (M-01): a lock-in opens that game and market, a kickoff 
     for (const p of luke.posts.filter(p => p.kind !== 'ballot_submitted')) assert.deepEqual([p.picks, p.picksHidden, p.hiddenGames, p.late], [null, false, null, null], p.kind);
   });
 
-  await t.test('the deployed handler keeps working on the new shape: a partly open post stays hidden until stage 17; null points read as 0', async () => {
-    clock = FIRST;
-    const read = await world.api('luke', 'community/read', {});
-    clock = null;
-    assert.equal(read.status, 200, JSON.stringify(read.body));
-    const spread = post(read.body, 'troy', 'guess_spread');
-    assert.deepEqual([spread.picksHidden, spread.picks, 'hiddenGames' in spread, 'late' in spread], [true, null, false, false], 'the old handler drops every pick of a hidden post');
-    assert.equal(standing(read.body, 'sean', 'guess_spread').weekPoints, 0, 'the old handler still maps null to 0');
-    const raw = await feed('sean', FIRST);
-    assert.equal(standing(raw, 'sean', 'guess_spread').weekPoints, null);
+  await t.test('through the handler (stage 17): a post carries its open games only and names the rest; no ballot reads null, never 0', async () => {
+    const read = async now => { clock = now; try { const reply = await world.api('luke', 'community/read', {}); assert.equal(reply.status, 200, JSON.stringify(reply.body)); return reply.body; } finally { clock = null; } };
+    const shape = p => [p.picksHidden, p.picks, p.hiddenGames, p.late];
+    const before = await read(NOW);
+    assert.deepEqual(shape(post(before, 'troy', 'guess_spread')), [true, null, sorted, null], 'nothing open yet: every game withheld and named');
+    assert.deepEqual(shape(post(before, 'troy', 'guess_total')), [false, map(TROY.total), [], null], 'Luke locked in Total: the whole post');
+    const first = await read(FIRST);
+    assert.deepEqual(shape(post(first, 'troy', 'guess_spread')), [true, { [ids[0]]: TROY.spread[0] }, sorted.filter(g => g !== ids[0]), null], 'the first kickoff opens the first game only');
+    assert.deepEqual(shape(post(await read(LAST), 'troy', 'guess_spread')), [false, map(TROY.spread), [], null]);
+    // DP-1: a sit-out has no ballot, so the board gets null (the old handler mapped it to 0); a sent ballot before any kickoff is 0 of 0.
+    const sat = standing(first, 'sean', 'guess_spread');
+    assert.deepEqual([sat.weekPoints, sat.seasonPoints, sat.satOut], [null, null, true]);
+    assert.deepEqual([standing(before, 'troy', 'guess_spread').weekPoints, standing(before, 'troy', 'guess_spread').weekScored], [0, 0]);
+    assert.deepEqual(before.submissions.filter(x => x.userId === id('troy')).map(x => x.late), [null, null]);
   });
 
   await t.test('standings: points count from each game\'s kickoff; no ballot is null, never 0; ordered nulls last', async () => {
@@ -261,13 +265,18 @@ test('the per-game gate (M-01): a lock-in opens that game and market, a kickoff 
     assert.deepEqual([entry(last, 'troy', 'guess_spread').picksHidden, entry(last, 'troy', 'guess_spread').picks.length, last.weeks.find(w => w.week === week).revealed], [false, 4, { guess_spread: true, guess_total: true }]);
   });
 
-  await t.test('the deployed handler drops a partly open History entry until stage 17', async () => {
+  await t.test('through the handler (stage 17): History shows a partly open entry game by game, the withheld rows with no number', async () => {
     clock = FIRST;
     const reply = await world.api('luke', 'community/history', {});
     clock = null;
     assert.equal(reply.status, 200, JSON.stringify(reply.body));
     const troy = entry(reply.body, 'troy', 'guess_spread');
-    assert.deepEqual([troy.picksHidden, troy.picks, 'hiddenGames' in troy], [true, null, false]);
+    assert.deepEqual([troy.picksHidden, troy.hiddenGames, Number(troy.weekPoints), troy.weekScored], [true, sorted.filter(g => g !== ids[0]), accuracy(TROY.spread[0], LINES.spread[0]), 1]);
+    assert.deepEqual(troy.picks.map(p => [p.gameId, p.guess, p.reference?.value ?? null, p.points, p.hidden]),
+      ids.map((g, i) => (i === 0 ? [g, TROY.spread[0], LINES.spread[0], accuracy(TROY.spread[0], LINES.spread[0]), false] : [g, null, null, null, true])));
+    const week5 = reply.body.weeks.find(w => w.week === week);
+    assert.deepEqual(week5.gate, Object.fromEntries(ids.map((g, i) => [g, { spread: i === 0, total: true }])), 'the viewer\'s own gate rides along');
+    assert.deepEqual([entry(reply.body, 'sean', 'guess_spread').status, entry(reply.body, 'sean', 'guess_spread').weekPoints], ['sat_out', null], 'a sit-out is null, never 0');
   });
 
   await t.test('leak scan: no hidden pick and no locked line in any reader, raw or through the handler, before and after the first kickoff', async () => {

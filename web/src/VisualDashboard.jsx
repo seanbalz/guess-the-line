@@ -81,8 +81,9 @@ export default function VisualDashboard({ data, benchmark, go, historyChart, pro
   const issue = warning || null;
   const showIssue = submitted && preferences.notices.dataIssues && issue;
   // Situational trends: line-free records for every game; a market's line-dependent records unlock with its ballot and are marked with this player's saved reference only.
-  const trendAccess = groupAccess(data), trendMarket = total ? 'total' : 'spread';
-  const trendProps = game => ({ season: data.league.season, week: data.league.week, gameId: game.id, away: game.awayCode, home: game.homeCode, access: trendAccess, savedLabel: 'your saved reference',
+  // Redesign stage 17 (D-39): each game's gate is its own (own lock-in, sit-out, or that game's kickoff; under today's rules also the deadline).
+  const trendMarket = total ? 'total' : 'spread';
+  const trendProps = game => ({ season: data.league.season, week: data.league.week, gameId: game.id, away: game.awayCode, home: game.homeCode, access: groupAccess(data, game.id), savedLabel: 'your saved reference',
     saved: submitted && reference(game) && finite(reference(game).value) ? { [trendMarket]: reference(game).value } : {} });
   return <div className="visual-dashboard" data-layout={preferences.layout} data-dashboard-motion={preferenceStatus.resolvedMotion}>
     {(showUpdate || showIssue) && <section className="dashboard-notices" aria-label="Dashboard notices"><h2><Bell size={18}/>Dashboard notices</h2>{showUpdate && <p className="market-update-notice" role="status">New saved market data · collected {date(updatedCapture)} PT. Compare the latest recorded values before reviewing a selection.</p>}{showIssue && <p>{issue}</p>}<small>Shown while this dashboard is open. Phone push, email and SMS are not connected.</small></section>}

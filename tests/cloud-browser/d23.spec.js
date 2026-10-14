@@ -114,13 +114,16 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     await page.setViewportSize({ width: 390, height: 900 });
     await signIn(page, 'luke');
     await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-    const troyRow = page.locator('.community-leaderboard tbody tr').filter({ hasText: 'Troy Fixture' });
+    // Redesign stage 17 (D-36, DP-2): Spread and Total are two boards, one row each.
+    const troyRow = page.getByRole('table', { name: 'Spread', exact: true }).locator('tbody tr').filter({ hasText: 'Troy Fixture' });
+    const troyTotalRow = page.getByRole('table', { name: 'Total', exact: true }).locator('tbody tr').filter({ hasText: 'Troy Fixture' });
     const byTroy = page.locator('.feed-post').filter({ has: page.locator('.feed-post-head', { hasText: 'Troy Fixture' }) });
     const spreadPost = page.locator('.feed-post').filter({ hasText: 'Troy Fixture submitted Week 5 Spread picks.' });
     const welcome = page.locator('.feed-post').filter({ hasText: 'Luke Fixture joined Guess The Line.' });
     await expect(troyRow).toHaveCount(1);
     await expect(troyRow).not.toContainText('Removed');
-    await expect(troyRow.locator('td')).toHaveText(['0', '0', '0', '0']);
+    await expect(troyRow.locator('td')).toHaveText(['0', '0']);
+    await expect(troyTotalRow.locator('td')).toHaveText(['0', '0']);
     await expect(page.locator('.feed-post')).toHaveCount(5);
     await expect(byTroy).toHaveCount(3);
     await expect(spreadPost).toContainText('Submit your Week 5 Spread picks to see these.');
@@ -137,7 +140,9 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     // Luke refreshes: Troy's posts, comment, submissions and standings row are all still there, the row flagged.
     await page.getByRole('button', { name: 'Refresh' }).click();
     await expect(troyRow).toContainText('Troy Fixture · Removed');
-    await expect(troyRow.locator('td')).toHaveText(['0', '0', '0', '0']);
+    await expect(troyTotalRow).toContainText('Troy Fixture · Removed');
+    await expect(troyRow.locator('td')).toHaveText(['0', '0']);
+    await expect(troyTotalRow.locator('td')).toHaveText(['0', '0']);
     await expect(page.locator('.feed-post')).toHaveCount(5);
     await expect(byTroy).toHaveCount(3);
     await expect(spreadPost).toContainText('Submit your Week 5 Spread picks to see these.');
@@ -169,7 +174,8 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     expect((await world.api('sean', 'community/member', { userId: troy.id, member: true })).body).toEqual({ userId: troy.id, member: true });
     await page.getByRole('button', { name: 'Refresh' }).click();
     await expect(page.locator('.feed-post')).toHaveCount(5);
-    await expect(page.locator('.community-leaderboard tbody tr').filter({ hasText: 'Troy Fixture' })).not.toContainText('Removed');
+    await expect(troyRow).not.toContainText('Removed');
+    await expect(troyTotalRow).not.toContainText('Removed');
     await expect(page.getByRole('alert')).toHaveCount(0);
     expect(errors).toEqual([]);
   } finally { await db.close(); }

@@ -1,6 +1,8 @@
 // D-21 community feed. One community of every profile; Guess picks inside posts are
-// already withheld by the database until the viewer submits the same ballot or sits
-// out that week's mode (D-23). Nothing else is hidden, including removed members' data.
+// already withheld by the database until that game and market is open to the viewer
+// (D-39 per game: the viewer's own lock-in, a sit-out (D-23) or that game's kickoff;
+// before M-01, the viewer's submission, a sit-out or the deadline). Nothing else is
+// hidden, including removed members' data.
 import { UUID_PATTERN } from './lobby.mjs';
 import { buildSlate, weekOpenAt } from '../shared/nfl-schedule.mjs';
 import { readOptional } from './optional-rpc.mjs';
@@ -34,6 +36,24 @@ const MODES = ['guess_spread', 'guess_total'];
 export const COMING_SOON_LEAGUES = ['nba', 'mlb', 'nhl', 'cfb', 'cbb'];
 const KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published'];
 
+// Redesign stage 17 (D-39, D-31, D-23; M-01). The database lets another member's pick through one game at a time and
+// names the games it withheld in `hiddenGames`; this filter is the second gate: a number under a withheld game never
+// passes, whatever the provider returned. The provider before M-01 sends `picksHidden` without `hiddenGames` (the whole
+// post hidden): then no pick passes, as before, and `hiddenGames` is null (which games is not known). A post that says it
+// is hidden but names no hidden game is read the same way. `picks` holds the shown games only, or null when none shows.
+const gameIds = value => (Array.isArray(value) ? [...new Set(value.filter(g => typeof g === 'string' && GAME_ID.test(g)))].sort() : null);
+function postPicks(p) {
+  const hidden = p.picksHidden === true, listed = gameIds(p.hiddenGames);
+  if (hidden && !listed?.length) return { picksHidden: true, picks: null, hiddenGames: null };
+  const withheld = new Set(listed || []);
+  const shown = record(p.picks) ? Object.entries(p.picks).filter(([gameId, value]) => GAME_ID.test(gameId) && !withheld.has(gameId) && finite(value) !== null) : null;
+  return { picksHidden: hidden || withheld.size > 0, picks: shown && (shown.length || !withheld.size) ? Object.fromEntries(shown) : null, hiddenGames: listed || [] };
+}
+// Points on the board: a number, or null when the provider says there is none (M-01: no submitted ballot that week or
+// season, a sit-out included, DP-1). Never 0 for "no ballot".
+const boardPoints = value => (typeof value === 'number' ? (Number.isFinite(value) ? value : null)
+  : typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value)) ? Number(value) : null);
+
 function normalize(raw) {
   if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.posts) || !Array.isArray(raw.due) || !Array.isArray(raw.submissions)) throw new Error('Invalid community feed.');
   const members = raw.members.map(m => ({ id: String(m.id), displayName: String(m.displayName), removed: m.removed === true }));
@@ -42,15 +62,16 @@ function normalize(raw) {
     mode: MODES.includes(p.mode) ? p.mode : null, createdAt: p.createdAt,
     likes: Number(p.likes) || 0, likedByMe: p.likedByMe === true,
     comments: (Array.isArray(p.comments) ? p.comments : []).map(c => ({ id: String(c.id), userId: String(c.userId), body: String(c.body), createdAt: c.createdAt })),
-    ...(p.kind === 'ballot_submitted' ? { picksHidden: p.picksHidden === true, picks: p.picksHidden === true || !record(p.picks) ? null : p.picks } : {}),
+    ...(p.kind === 'ballot_submitted' ? { ...postPicks(p), late: normalizeLate(p.late) } : {}),
     ...(p.kind.startsWith('bet_') ? { entryId: typeof p.payload?.entryId === 'string' ? p.payload.entryId : null } : {}),
     ...(p.kind === 'week_published' ? { games: Number(p.payload?.games) || 0, deadline: p.payload?.deadline ?? null } : {}),
   }));
   const week = record(raw.week) ? { season: raw.week.season, week: raw.week.week, deadline: raw.week.deadline, games: raw.week.games } : null;
   const due = raw.due.filter(d => MODES.includes(d.mode)).map(d => ({ mode: d.mode, submitted: d.submitted === true, satOut: d.satOut === true, filled: Number(d.filled) || 0, games: Number(d.games) || 0 }));
   const standings = (Array.isArray(raw.standings) ? raw.standings : []).filter(x => MODES.includes(x.mode)).map(x => ({ userId: String(x.userId), mode: x.mode,
-    weekPoints: Number(x.weekPoints) || 0, weekScored: Number(x.weekScored) || 0, seasonPoints: Number(x.seasonPoints) || 0, seasonScored: Number(x.seasonScored) || 0, weeksSubmitted: Number(x.weeksSubmitted) || 0, satOut: x.satOut === true }));
-  const submissions = raw.submissions.filter(s => MODES.includes(s.mode)).map(s => ({ userId: String(s.userId), mode: s.mode, submittedAt: s.submittedAt ?? null, satOut: s.satOut === true }));
+    weekPoints: boardPoints(x.weekPoints), weekScored: Number(x.weekScored) || 0, seasonPoints: boardPoints(x.seasonPoints), seasonScored: Number(x.seasonScored) || 0, weeksSubmitted: Number(x.weeksSubmitted) || 0, satOut: x.satOut === true }));
+  const submissions = raw.submissions.filter(s => MODES.includes(s.mode)).map(s => ({ userId: String(s.userId), mode: s.mode, submittedAt: s.submittedAt ?? null, satOut: s.satOut === true,
+    late: s.satOut === true ? null : normalizeLate(s.late) }));
   const optOuts = (Array.isArray(raw.optOuts) ? raw.optOuts : []).filter(m => MODES.includes(m));
   const interests = COMING_SOON_LEAGUES.filter(league => Array.isArray(raw.interests) && raw.interests.includes(league));
   const counts = record(raw.interestCounts) ? raw.interestCounts : {};
@@ -61,7 +82,8 @@ function normalize(raw) {
 // History (Sean's October 12, 2026 rulings): every member's guesses for every week and market with the
 // line at each guess and its points: the line saved with the guess (D-16/D-27) or ruled for it (D-25), else
 // the line at the guess resolved when read (basis 'line-at-guess'). The database already withholds another
-// member's guesses, reference values and per-pick points until the D-23 reveal, and returns the last change,
+// member's guesses, reference values and per-pick points until that game and market is open to the viewer
+// (M-01, per game; before it, the D-23 reveal of the whole market), and returns the last change,
 // the post-submission revision count and the provenance (derived from the private audit and provenance
 // columns) for the viewer's own ballots only; this filter is the second gate for both. A ballot that is not
 // eligible (a practice ballot without an eligible commissioner ruling, D-08) is listed with its guesses and
@@ -91,6 +113,30 @@ function normalizeReference(raw) {
     // False when the guess instant is the stored submittedAt of a ballot whose original submission time was not recorded.
     guessedAtKnown: typeof raw.guessedAtKnown === 'boolean' ? raw.guessedAtKnown : null };
 }
+function historyGate(raw) {
+  if (!record(raw)) return null;
+  return Object.fromEntries(Object.entries(raw).filter(([gameId, m]) => GAME_ID.test(gameId) && record(m)).map(([gameId, m]) => [gameId, { spread: m.spread === true, total: m.total === true }]));
+}
+// Redesign stage 17 (D-39, M-01): History per game and market. Another member's row for a withheld game (`hidden: true`, or
+// named in the entry's `hiddenGames`) carries no guess, line or points, whatever the provider returned; the rows the
+// database let through pass. The viewer's own rows are never redacted (D-23). The provider before M-01 hides a whole entry
+// (`picksHidden` without `hiddenGames`): then no row passes, as before, and `hiddenGames` is null. `picks` is null when no
+// row of another member shows.
+function historyPicks(e, own, eligible) {
+  const hidden = e.picksHidden === true, listed = gameIds(e.hiddenGames);
+  if (!Array.isArray(e.picks) || (hidden && !listed?.length)) return { picksHidden: hidden || !!listed?.length, picks: null, hiddenGames: hidden && !listed?.length ? null : listed || [] };
+  const withheld = new Set(listed || []);
+  let shown = 0;
+  const rows = e.picks.filter(record).map(p => {
+    const gameId = String(p.gameId);
+    if (!own && (p.hidden === true || withheld.has(gameId))) { withheld.add(gameId); return { gameId, guess: null, reference: null, points: null, scorable: false, hidden: true }; }
+    shown += 1;
+    // An ineligible ballot never scores (D-08), whatever the provider returned.
+    const points = eligible ? finite(p.points) : null;
+    return { gameId, guess: finite(p.guess), reference: normalizeReference(p.reference), points, scorable: points !== null, hidden: false };
+  });
+  return { picksHidden: hidden || withheld.size > 0, picks: !shown && withheld.size ? null : rows, hiddenGames: [...withheld].filter(g => GAME_ID.test(g)).sort() };
+}
 function normalizeHistory(raw, viewer) {
   if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.weeks)) throw new Error('Invalid community history.');
   const members = raw.members.map(m => ({ id: String(m.id), displayName: String(m.displayName), removed: m.removed === true }));
@@ -101,8 +147,11 @@ function normalizeHistory(raw, viewer) {
       status: r.status, home: finite(r.home), away: finite(r.away), source: text(r.source), observedAt: text(r.observedAt), settledAt: text(r.settledAt),
       origin: r.origin === 'commissioner_reported' ? 'commissioner_reported' : 'settlement' }])),
     revealed: { guess_spread: w.revealed?.guess_spread === true, guess_total: w.revealed?.guess_total === true },
+    // M-01: the viewer's own gate for every game of the week ({ gameId: { spread, total } }), null from a provider before it.
+    gate: historyGate(w.gate),
     entries: (Array.isArray(w.entries) ? w.entries : []).filter(e => record(e) && MODES.includes(e.mode) && HISTORY_STATUSES.includes(e.status)).map(e => {
-      const hidden = e.picksHidden === true, own = String(e.userId) === viewer, eligible = e.eligible !== false;
+      const own = String(e.userId) === viewer, eligible = e.eligible !== false;
+      const { picksHidden, picks, hiddenGames } = historyPicks(e, own, eligible);
       return { userId: String(e.userId), mode: e.mode, status: e.status, submittedAt: text(e.submittedAt), satOutAt: text(e.satOutAt),
         // False when the ballot's origin records that its original submission time is unavailable (its picks are compared at the stored time, labelled).
         submittedAtKnown: e.submittedAtKnown !== false,
@@ -112,14 +161,9 @@ function normalizeHistory(raw, viewer) {
         provenance: own && HISTORY_PROVENANCE.includes(e.provenance) ? e.provenance : null,
         scoringPolicy: e.scoringPolicy === 'submission-time' ? 'submission-time' : null,
         ruling: record(e.ruling) ? { decision: text(e.ruling.decision) ?? '', basis: text(e.ruling.basis) ?? '' } : null,
-        picksHidden: hidden,
-        // Never pass a hidden ballot's numbers through, whatever the provider returned (the /community/read rule).
-        picks: hidden || !Array.isArray(e.picks) ? null : e.picks.filter(record).map(p => {
-          // An ineligible ballot never scores (D-08), whatever the provider returned.
-          const points = eligible ? finite(p.points) : null;
-          return { gameId: String(p.gameId), guess: finite(p.guess), reference: normalizeReference(p.reference), points, scorable: points !== null };
-        }),
-        weekPoints: eligible ? Number(e.weekPoints) || 0 : 0, weekScored: eligible ? Number(e.weekScored) || 0 : 0, games: Number(e.games) || 0 };
+        picksHidden, picks, hiddenGames, late: e.status === 'sat_out' ? null : normalizeLate(e.late),
+        // M-01: null for a draft or a sit-out (no submitted ballot scores), never 0 (DP-1); an ineligible ballot never scores.
+        weekPoints: eligible ? boardPoints(e.weekPoints) : 0, weekScored: eligible ? Number(e.weekScored) || 0 : 0, games: Number(e.games) || 0 };
     }),
   }));
   const seasons = (Array.isArray(raw.seasons) ? raw.seasons : []).map(Number).filter(Number.isInteger);
