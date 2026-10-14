@@ -5,7 +5,7 @@ import { CLOSED_GATE, lineLockedSentence, lockedMarkets, parseMarketsVisible, re
 import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 import { TODAYS_RULES } from '../cloud/live-rules.mjs';
 import { assertNoLeak, leakScan, lineSecrets } from './helpers/leak-scan.mjs';
-import { ALL } from './migrations.mjs';
+import { ALL, HOSTED } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable, sendBallot, storeBookLines } from './cloud-browser/community-world.mjs';
 
 // Redesign build plan stage 20 (D-36 as amended by D-39): the line lock on the old Virtual Units routes. A game's Spread
@@ -327,11 +327,11 @@ test('HOSTED schema: locked before a send, Spread opens with a Spread send, Tota
     [[g1, 'spread', 'away', -7.5, 105, 2, 'FanDuel', Date.parse(terms.quotedAt)]]);
 });
 
-test('HOSTED schema: today\'s deadline opens every line (D-23); with M-01 each game waits for its own kickoff', { skip }, async t => {
+test('without M-01 (the schema before October 14) the deadline opens every line (D-23); with M-01 each game waits for its own kickoff', { skip }, async t => {
   // Half an hour after the deadline: the first game has kicked off, the second kicks off in half an hour.
   const late = state => Date.parse(state.league.deadline) + 30 * 60_000;
   let clockAt = Date.now();
-  const hosted = await linesWorld(t, { clock: () => clockAt });
+  const hosted = await linesWorld(t, { migrations: HOSTED.filter(file => file !== '20261014223000_gtl_guess_gate_per_game.sql'), clock: () => clockAt });
   clockAt = late(hosted.state);
   const [g0, g1] = hosted.ids;
   assert.deepEqual(locks(await hosted.units('luke')), { [g0]: { spread: false, total: false }, [g1]: { spread: false, total: false } });

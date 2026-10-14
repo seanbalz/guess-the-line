@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, MIGRATIONS_DIR, NOT_HOSTED, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, id as fixtureId, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 import { sendBallot, serviceSql, storeLines } from './helpers/guess-week.mjs';
@@ -48,7 +48,9 @@ test('M-03 is a repo file the hosted project does not have yet; it adds one tabl
   assert.match(sql, /^-- replaces public\.gtl_read_community_history md5 2ebcb46927105a7566670d279d12dcb6$/m);
   assert.equal(defined[3].args, history.args);
   assert.ok(fs.existsSync(path.join(ROLLBACK_DIR, MIGRATION)), 'supabase/rollback/ restores M-01\'s body (tests/rollback.test.mjs checks it); the writer\'s off switch is GTL_FEATURE_OFF=forfeit');
-  assert.deepEqual(REQUIRES[version(MIGRATION)], [version('20261014223000_gtl_guess_gate_per_game.sql')], 'the rollback check builds M-01 first');
+  // M-01 is hosted since October 14, 2026, so the rollback check needs no REQUIRES entry for it (tests/rollback.test.mjs).
+  assert.equal(REQUIRES[version(MIGRATION)], undefined);
+  assert.ok(HOSTED.includes('20261014223000_gtl_guess_gate_per_game.sql'));
   const statements = topLevel(sql).split(';').map(s => s.trim()).filter(Boolean).map(s => s.split(/\s+/).slice(0, 3).join(' ').toLowerCase());
   assert.deepEqual(statements, ['create table if', 'create index if', 'alter table public.gtl_week_forfeits', 'revoke all on', 'grant select,insert on',
     'create or replace', 'create or replace', 'create or replace', 'create or replace', 'revoke all on', 'grant execute on']);

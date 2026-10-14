@@ -94,12 +94,6 @@ export const workerChecks = Object.freeze([]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
 export const awaitingDeploy = Object.freeze({
-  // M-01: remove these five with the release record of its hosted apply (Gate M step 8).
-  'rpc/gtl_guess_locked_in': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_guess_revealed': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_markets_visible': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_ballot_late': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_live_rules': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
   // M-08: remove these two with the release record of its hosted apply and the gtl-api deploy (Gate M step 8).
   'rpc/gtl_read_guess_picks': 'migration 20261015020000_gtl_guess_picks_reader.sql',
   'gtl-api/community/picks': 'the gtl-api deploy with /community/picks',
