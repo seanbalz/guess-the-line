@@ -68,8 +68,11 @@ function apiCalls(page) {
   page.on('request', request => { const url = new URL(request.url()); if (url.origin === SUPABASE && url.pathname.startsWith('/functions/v1/')) calls.push(`${request.method()} ${url.pathname}`); });
   return calls;
 }
-/** What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` for Lines): the writes, of which browsing makes none. */
-const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal'].includes(call));
+/**
+ * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
+ * for its D-45 weather chips on Lines): the writes, of which browsing makes none.
+ */
+const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
