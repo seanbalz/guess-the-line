@@ -20,6 +20,7 @@ export const PRELUDE = 'create role anon;create role authenticated;create role s
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
   20261013030000, // D-28 web push: Sean's separate call (stage 2); two MCP applies timed out and nothing was applied.
+  20261014190000, // M-09 game_notes (redesign stage 27): private game notes, awaiting "apply M-09".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

@@ -13,6 +13,10 @@ export const rpcChecks = Object.freeze([
   ['gtl_read_personal', { p_user: missingId }],
   ['gtl_personal_history', { p_user: missingId, p_entry: missingId }],
   ['gtl_mutate_personal', { p_user: missingId, p_action: 'favorite/set', p_body: {} }],
+  // M-09 private game notes (20261014190000_gtl_game_notes.sql, redesign stage 27): two service-only RPCs.
+  // Awaiting deploy (below) until the migration is applied to the hosted project.
+  ['gtl_read_game_notes', { p_user: missingId, p_season: 2026, p_week: 5 }],
+  ['gtl_set_game_note', { p_user: missingId, p_request: missingId, p_season: 2026, p_week: 5, p_game: 'AAA-BBB', p_note: '', p_revision: 0 }],
   // D-28 web push reminders (20261013030000): device subscriptions and the reminder scheduler are service-only.
   ['gtl_push_subscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_p256dh: `B${'A'.repeat(86)}`, p_auth: 'A'.repeat(22) }],
   ['gtl_push_unsubscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check' }],
@@ -34,6 +38,9 @@ export const apiChecks = Object.freeze([
   ['journal/correct', {}],
   ['journal/archive', {}],
   ['journal/history', { entryId: missingId }],
+  // M-09 private notes routes (awaitingDeploy): signed-out probes prove only authentication protection.
+  ['personal/notes', {}],
+  ['personal/note', {}],
   ['push/status', {}],
   ['push/subscribe', {}],
   ['push/unsubscribe', {}],
@@ -44,4 +51,10 @@ export const workerChecks = Object.freeze([
   ['scheduled reminders', 'gtl-push-reminders', { runId: missingId }],
 ]);
 
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({
+  // M-09: remove these four with the release record of its hosted apply and the gtl-api deploy (Gate M step 8).
+  'rpc/gtl_read_game_notes': 'migration 20261014190000_gtl_game_notes.sql',
+  'rpc/gtl_set_game_note': 'migration 20261014190000_gtl_game_notes.sql',
+  'gtl-api/personal/notes': 'the gtl-api deploy with /personal/notes',
+  'gtl-api/personal/note': 'the gtl-api deploy with /personal/note',
+});
