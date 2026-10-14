@@ -270,7 +270,9 @@ itself calls no route; the data layer (stage 11, below) reads for it.
 shares them with every screen. It reads again on focus or a return to the tab (not
 within 15 seconds of the last read), when the browser comes back online and every 5
 minutes while the tab is in view; a read still on its way when the app closes is
-cancelled. A failed refresh keeps what is on screen. Writes (the name step's
+cancelled. A refresh keeps what is on screen while it runs (the failure card and
+"Not in the Community" included, with the keyboard focus in them), and a failed
+refresh keeps the last good copy. Writes (the name step's
 `/profile`, Join's `/invite/accept`) are sent once and never retried by themselves:
 a lost answer says to check first, keeps what was typed, and the reads refresh.
 
@@ -292,7 +294,8 @@ a lost answer says to check first, keeps what was typed, and the reads refresh.
   loses it.
 - **Sign in again:** a 401 from any read or write opens "Sign in again" over the
   screen without leaving it (the password here, or Google, which comes back to this
-  tab), so typed text stays. "Not now" closes it.
+  tab), so typed text stays. Signing in reads again what the 401 stopped. "Not now"
+  closes it.
 - **Guards:** an account the commissioner removed from the Community (its
   `/community/read` answers 403) sees "Not in the Community" in place of the tabs,
   with its groups one tap away; a saved league this account is not in shows "Your

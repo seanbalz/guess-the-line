@@ -177,10 +177,52 @@ test('a failed refresh keeps the last good copy and notes the error; 403 and 404
   assert.equal(store.get('lobby').data, null);
   assert.equal(store.get('lobby').error.status, 403);
   const again = store.refresh();
+  assert.equal(store.get('lobby').status, 'error', 'a failure stays on screen while it is read again');
+  assert.equal(store.get('lobby').loading, true);
   lobby.answer({ profile: { displayName: 'Avery' } });
   await again;
   assert.equal(store.get('lobby').status, 'ready');
   assert.equal(store.get('lobby').error, null);
+});
+
+test('a read that failed with no copy stays failed while it is read again; signing in again forgets its 401 and reads again', async () => {
+  const lobby = controlledSource();
+  const community = controlledSource();
+  const store = createDataStore({ lobby, community });
+  store.load('community');
+  community.fail(new ApiError('You are not in the community.', 403));
+  await tick();
+  // The removed-account screen and the focus in it stay while the Community is read again (focus, tick, back online).
+  const refusedAgain = store.refresh();
+  assert.equal(community.calls, 2);
+  assert.deepEqual([store.get('community').status, store.get('community').loading, store.get('community').error.status], ['error', true, 403]);
+  community.fail(new ApiError('You are not in the community.', 403));
+  await refusedAgain;
+  assert.deepEqual([store.get('community').status, store.get('community').loading], ['error', false]);
+
+  store.load('lobby');
+  lobby.fail(new ApiError('Sign in to continue.', 401));
+  await tick();
+  assert.equal(store.signInNeeded, true);
+  store.clearSignInNeeded();
+  assert.equal(store.get('lobby').status, 'error', '"Not now" keeps the failure, with Try again');
+  const tryAgain = store.refresh({ only: ['lobby'] });
+  assert.deepEqual([store.get('lobby').status, store.get('lobby').loading], ['error', true], 'Try again keeps the card, saying so');
+  lobby.fail(new ApiError('Sign in to continue.', 401));
+  await tryAgain;
+  assert.equal(store.signInNeeded, true);
+
+  const renewed = store.signedInAgain();
+  assert.equal(store.signInNeeded, false);
+  assert.deepEqual([store.get('lobby').status, store.get('lobby').error], ['loading', null], 'once signed in again, that 401 no longer holds');
+  assert.equal(store.get('community').status, 'error', 'any other failure stays until its answer comes');
+  assert.equal(store.get('community').loading, true);
+  assert.deepEqual([lobby.calls, community.calls], [3, 3], 'every read a screen asked for is read again');
+  lobby.answer({ profile: { displayName: 'Avery' } });
+  community.fail(new ApiError('You are not in the community.', 403));
+  await renewed;
+  assert.equal(store.get('lobby').status, 'ready');
+  assert.equal(store.get('community').status, 'error');
 });
 
 test('abort on unmount: every read on its way is cancelled and its answer dropped; a later load starts afresh', async () => {

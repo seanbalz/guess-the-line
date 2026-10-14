@@ -7,8 +7,9 @@ import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './c
 // Redesign build plan, stage 11: the data layer, the league switcher and the guards, at 390 x 844 (section 4.1). The real
 // app (main.jsx, AuthGate, the lazy NextApp) on the real handler with every migration (ALL) on local PGlite: only the
 // account's own leagues, kept across a reload; the access-pending screen; the Play counter; the name step; the saved invite
-// link and the invites sent to the account, with Join; an expired invite; a sign-in that ran out (401) while typing; an
-// account the commissioner removed from the Community; a second account in the same tab sees no drafts from the first.
+// link and the invites sent to the account, with Join; an expired invite; a sign-in that ran out (401) while typing or on
+// the first read; an account the commissioner removed from the Community, and the account failing to load, each kept on
+// screen with its focus through a refresh; a second account in the same tab sees no drafts from the first.
 // Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -90,6 +91,31 @@ async function invite(world, account, league, email) {
   expect(made.status).toBe(200);
   return new URL(made.body.inviteUrl).hash.replace('#invite=', '');
 }
+/**
+ * Holds the next request to `path` (a gtl-api route): `reached` resolves once it is on its way; `release()` lets it
+ * go on (to the routes set before) and resolves to its response.
+ */
+async function holdNext(page, path) {
+  const route = `/functions/v1/gtl-api/${path}`;
+  let reach, letGo;
+  const reached = new Promise(resolve => { reach = resolve; });
+  const released = new Promise(resolve => { letGo = resolve; });
+  await page.route(url => url.origin === SUPABASE && url.pathname === route, async held => {
+    reach();
+    await released;
+    await held.fallback();
+  }, { times: 1 });
+  const release = () => {
+    const answered = page.waitForResponse(response => new URL(response.url()).pathname === route);
+    letGo();
+    return answered;
+  };
+  return { reached, release };
+}
+/** Lets the page draw what it has (a frame, then the tasks after it). */
+const painted = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 50))));
+const focusedText = page => page.evaluate(() => document.activeElement?.textContent ?? null);
+
 const forgetName = (world, account) => world.db.query('delete from public.gtl_profiles where user_id=$1', [ACCOUNTS[account].id]);
 const draftKeys = page => page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.next.draft.')));
 
@@ -281,6 +307,31 @@ test('a sign-in that ran out (401): "Sign in again" keeps the typed name, signs 
   } finally { await world.db.close(); }
 });
 
+test('a 401 on the first /lobby asks to sign in again over the start screen; once signed in, the start screen shows until the app opens', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname === '/functions/v1/gtl-api/lobby', route => route.fulfill({
+      status: 401, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify({ error: 'Sign in to continue.' }),
+    }), { times: 1 });
+    await openNewApp(page, 'luke');
+    await expect(signInAgain(page)).toBeVisible();
+    await expect(page.getByText('Loading your leagues…')).toHaveCount(1);
+    await page.getByLabel('Password', { exact: true }).fill('test-password');
+    const held = await holdNext(page, 'lobby');
+    await signInAgain(page).getByRole('button', { name: 'Sign in', exact: true }).click();
+    await held.reached;
+    await painted(page);
+    // The 401 no longer holds once signed in again, so this read is a first load, not a failure being retried.
+    await expect(signInAgain(page)).toBeHidden();
+    expect(await title(page, 'Your account didn’t load').count()).toBe(0);
+    expect(await page.getByText('Loading your leagues…').count()).toBe(1);
+    expect((await held.release()).status()).toBe(200);
+    await expect(tabBar(page)).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('an account the commissioner removed from the Community sees why, keeps its groups, and the frame still works', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   const world = await communityWorld(page, baseURL, { migrations: ALL });
@@ -290,6 +341,22 @@ test('an account the commissioner removed from the Community sees why, keeps its
     await openNewApp(page, 'troy');
     await expect(title(page, 'Not in the Community')).toBeVisible();
     await expect(page.getByText('Everything you entered is kept.', { exact: false })).toBeVisible();
+
+    // A refresh (here back online) reads the Community again: the screen and the keyboard focus in it stay while it
+    // runs and after the refusal comes back.
+    const oldApp = page.getByRole('button', { name: 'Use the old app', exact: true });
+    await oldApp.focus();
+    const held = await holdNext(page, 'community/read');
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await held.reached;
+    await painted(page);
+    expect(await title(page, 'Not in the Community').count(), 'the screen stays while the Community is read again').toBe(1);
+    expect(await title(page, 'Home').count()).toBe(0);
+    expect(await focusedText(page)).toBe('Use the old app');
+    expect((await held.release()).status()).toBe(403);
+    await painted(page);
+    await expect(title(page, 'Not in the Community')).toBeVisible();
+    await expect(oldApp).toBeFocused();
     await expect(tab(page, 'Play')).toBeVisible();
     await tab(page, 'League').click();
     await expect(title(page, 'Not in the Community')).toBeVisible();
@@ -299,6 +366,51 @@ test('an account the commissioner removed from the Community sees why, keeps its
     await expect(title(page, 'League')).toBeVisible();
     await expect(pill(page)).toHaveAccessibleName('League: Triple Threat. Switch league');
     expect(writes(calls)).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('the account did not load: the card stays through Try again, saying so, with the focus on it; then the app opens', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  try {
+    // /lobby fails (the service is down) until the service comes back, just before Try again.
+    let down = true;
+    await page.route(url => url.origin === SUPABASE && url.pathname === '/functions/v1/gtl-api/lobby', route => (down ? route.fulfill({
+      status: 503, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify({ error: 'The game service is unavailable.' }),
+    }) : route.fallback()));
+    await openNewApp(page, 'luke');
+    const failed = title(page, 'Your account didn’t load');
+    await expect(failed).toBeVisible();
+    await expect(page.getByText('Check your connection, then try again. The old app works too.')).toBeVisible();
+    await phoneChecks(page);
+    await page.getByRole('button', { name: 'Try again', exact: true }).focus();
+
+    // A refresh (back online) while the service is still down: the card stays, says it is trying, and keeps the focus.
+    const refresh = await holdNext(page, 'lobby');
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await refresh.reached;
+    await painted(page);
+    expect(await failed.count(), 'the card stays while /lobby is read again').toBe(1);
+    expect(await page.getByText('Loading your leagues…').count()).toBe(0);
+    expect(await focusedText(page), 'the focus stays on the button, which says what is happening').toBe('Trying again…');
+    expect((await refresh.release()).status()).toBe(503);
+    await painted(page);
+    await expect(failed).toBeVisible();
+    expect(await focusedText(page)).toBe('Try again');
+
+    // The service is back: Try again, from the keyboard.
+    down = false;
+    const retry = await holdNext(page, 'lobby');
+    await page.keyboard.press('Enter');
+    await retry.reached;
+    await painted(page);
+    expect(await failed.count(), 'the card stays while Try again reads /lobby').toBe(1);
+    expect(await page.getByText('Loading your leagues…').count()).toBe(0);
+    expect(await focusedText(page)).toBe('Trying again…');
+    expect((await retry.release()).status()).toBe(200);
+    await expect(tabBar(page)).toBeVisible();
+    await expect(failed).toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

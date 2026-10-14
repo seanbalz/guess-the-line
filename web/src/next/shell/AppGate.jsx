@@ -30,7 +30,10 @@ function LeagueCover({ app }) {
   return <RemovedScreen hasGroups={app.leagues.length > 1} onLeagues={() => shell.openSheet('sh.switcher')} onOldApp={shell.toOldApp}/>;
 }
 
-/** True when the Community refuses this account: its read answered 403 (the commissioner removed it, D-23 keeps its data). */
+/**
+ * True when the Community refuses this account: its read answered 403 (the commissioner removed it, D-23 keeps its
+ * data). It stays true while that read runs again (a refresh), so the screen and the focus in it stay put.
+ */
 export const removedFromCommunity = community => community.status === 'error' && community.error?.status === 403;
 
 export function AppGate({ session, onSignOut }) {
@@ -43,7 +46,8 @@ export function AppGate({ session, onSignOut }) {
   // Sign out from a screen without the frame (its menu is not there yet). On failure the screen stays as it is.
   const signOut = () => Promise.resolve(onSignOut?.()).catch(() => {});
   if (lobby.status !== 'ready') {
-    // A 401 asks to sign in again first; once that prompt is closed, the card offers Try again.
+    // A 401 asks to sign in again first; once that prompt is closed, the card offers Try again. The card stays while
+    // any read of `/lobby` runs again (Try again, focus, back online), saying so, so the focus on it is kept.
     const failed = lobby.status === 'error' && !(lobby.error?.status === 401 && app.signIn.needed);
     const retry = async () => {
       if (retrying) return;
@@ -53,7 +57,7 @@ export function AppGate({ session, onSignOut }) {
     };
     return (
       <FrameRoot>
-        {failed ? <LoadFailed error={lobby.error} busy={retrying} onRetry={retry} onOldApp={toOldApp} onSignOut={signOut}/> : <StartScreen/>}
+        {failed ? <LoadFailed error={lobby.error} busy={retrying || lobby.loading} onRetry={retry} onOldApp={toOldApp} onSignOut={signOut}/> : <StartScreen/>}
         <SignInAgain/>
       </FrameRoot>
     );

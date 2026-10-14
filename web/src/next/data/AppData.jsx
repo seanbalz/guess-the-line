@@ -48,8 +48,7 @@ export function AppDataProvider({ session, sources, children }) {
   const token = session?.access_token;
   useEffect(() => {
     if (!store.signInNeeded) return;
-    store.clearSignInNeeded();
-    store.refresh();
+    store.signedInAgain();
   }, [token, store]);
 
   const [choice, setChoice] = useState(() => readLeagueChoice(accountId));
@@ -86,8 +85,7 @@ export function AppDataProvider({ session, sources, children }) {
       const { data, error } = await supabase.auth.signInWithPassword({ email: user.email, password });
       if (error) throw error;
       if (data?.user?.id !== accountId) throw new Error('That is a different account. Sign out first to switch accounts.');
-      store.clearSignInNeeded();
-      store.refresh();
+      store.signedInAgain();
     },
     /** Google leaves the page and comes back to it; typed text kept as a draft comes back with this account. */
     withGoogle: () => startGoogleSignIn(supabase, { url: supabaseUrl, key: publishableKey }),

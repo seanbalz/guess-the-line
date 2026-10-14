@@ -5,12 +5,14 @@
 // - One request for every consumer: a read already on its way is shared, and a read already loaded is not repeated
 //   unless a refresh asks for it.
 // - A refresh (on focus, every 5 minutes, back online, after a write or a fresh sign-in) reads again everything a
-//   screen has asked for. While it runs, the last good copy stays on screen.
+//   screen has asked for. While it runs, what is on screen stays: the last good copy, or for a read that failed with
+//   no copy, its failure (status 'error' with `loading` true), so a failure or removed-account screen and the focus in
+//   it stay put until the answer comes.
 // - A failed refresh keeps the last good copy and notes the error (shown as "may be out of date"), except a refusal
 //   that says the copy no longer applies (403, 404), which drops it. A read never retries by itself: the next focus,
 //   tick or Try again reads again.
 // - A 401 notes that the sign-in ran out (`signInNeeded`), so the app can ask the member to sign in again; reads and
-//   typed text stay as they are.
+//   typed text stay as they are. Signing in again (`signedInAgain()`) forgets that 401 and reads again.
 // - `abortAll()` (the app unmounting) cancels every read on its way; their answers are dropped.
 
 export const REFRESH_MS = 5 * 60_000;
@@ -43,12 +45,16 @@ export function createDataStore(sources, { now = Date.now } = {}) {
     return found;
   }
 
-  /** What a screen draws for one read: `{ status, data, error, at, loading }` (a stable object until the next change). */
+  /**
+   * What a screen draws for one read: `{ status, data, error, at, loading }` (a stable object until the next change).
+   * `status` is 'ready' with a copy, else 'error' once a read failed (also while it is read again: `loading` says so),
+   * else 'loading' once asked for, else 'idle'.
+   */
   function get(name) {
     if (views.has(name)) return views.get(name);
     const e = entry(name);
     const has = e.data !== undefined;
-    const status = has ? 'ready' : e.inflight ? 'loading' : e.error ? 'error' : e.requested ? 'loading' : 'idle';
+    const status = has ? 'ready' : e.error ? 'error' : e.inflight || e.requested ? 'loading' : 'idle';
     const view = Object.freeze({ status, data: has ? e.data : null, error: e.error, at: e.at, loading: !!e.inflight });
     views.set(name, view);
     return view;
@@ -85,6 +91,19 @@ export function createDataStore(sources, { now = Date.now } = {}) {
     return flight.promise;
   }
 
+  /**
+   * Reads again what screens have asked for (or `only` those names). `olderThan` (ms) skips a read whose last good
+   * copy is newer than that. A read already on its way is shared, not repeated.
+   */
+  function refresh({ only, olderThan } = {}) {
+    const wanted = (only ?? names).filter(name => entry(name).requested);
+    const due = wanted.filter(name => {
+      const e = entry(name);
+      return e.inflight || olderThan === undefined || e.at === null || now() - e.at >= olderThan;
+    });
+    return Promise.all(due.map(start));
+  }
+
   return {
     names,
     get,
@@ -95,18 +114,7 @@ export function createDataStore(sources, { now = Date.now } = {}) {
       if (e.data !== undefined) return Promise.resolve(get(name));
       return start(name);
     },
-    /**
-     * Reads again what screens have asked for (or `only` those names). `olderThan` (ms) skips a read whose last good
-     * copy is newer than that. A read already on its way is shared, not repeated.
-     */
-    refresh({ only, olderThan } = {}) {
-      const wanted = (only ?? names).filter(name => entry(name).requested);
-      const due = wanted.filter(name => {
-        const e = entry(name);
-        return e.inflight || olderThan === undefined || e.at === null || now() - e.at >= olderThan;
-      });
-      return Promise.all(due.map(start));
-    },
+    refresh,
     /** Cancels every read on its way (the app unmounting). Their answers are dropped; a later load starts afresh. */
     abortAll() {
       let changed = false;
@@ -125,11 +133,21 @@ export function createDataStore(sources, { now = Date.now } = {}) {
       signInNeeded = true;
       emit();
     },
-    /** The member signed in again (or dismissed the prompt): forget the 401 until the next one. */
+    /** The member dismissed the prompt: forget the 401 until the next one (a read it stopped still shows its failure). */
     clearSignInNeeded() {
       if (!signInNeeded) return;
       signInNeeded = false;
       emit();
+    },
+    /**
+     * The member signed in again: forget the 401, and the 401 of a read with no copy (that answer no longer holds, so
+     * it shows as loading, not failed), then read again everything a screen has asked for.
+     */
+    signedInAgain() {
+      signInNeeded = false;
+      for (const e of Object.values(entries)) if (e.data === undefined && e.error?.status === 401) e.error = null;
+      emit();
+      return refresh();
     },
     subscribe(listener) {
       listeners.add(listener);
