@@ -77,7 +77,7 @@ overwriting it with a blank one."
 
 ## Database
 
-Migration `supabase/migrations/20261014190000_gtl_game_notes.sql` (M-09) adds two service-only, security-invoker
+Migration `supabase/migrations/20261014224500_gtl_game_notes.sql` (M-09) adds two service-only, security-invoker
 functions with an empty search path, granted to `service_role` only:
 
 | Function | What it does |

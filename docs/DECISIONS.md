@@ -9,7 +9,7 @@ Sean ruled in the cloud session, answering the "Open choice for Sean" that PR #8
 - **The old app's "Save to Favorites".** It keeps a stored note instead of overwriting it with a blank one. The old app cannot see a note on a game that is not saved, so the fix is on the server: stage 27a (M-29, a separate PR) changes `gtl_mutate_personal` so that saving a game that is not saved, with an empty note, keeps the stored note. Stage 35 (notes in the game sheet) waits for M-29. Stage 27 does not change the old app.
 - **Why.** D-36 takes Favorites off the screens, so writing a note must not make a Favorite the player never asked for. And saving a game in the old app must not blank a note the player wrote, in either app. The audit keeps every earlier text either way (D-23).
 
-M-09 (`supabase/migrations/20261014190000_gtl_game_notes.sql`) follows this rule before it is merged or applied. Nothing is applied or deployed by this entry.
+M-09 (`supabase/migrations/20261014224500_gtl_game_notes.sql`) follows this rule before it is merged or applied. Nothing is applied or deployed by this entry.
 
 ## D-39 — per-game lock-in and the build plan answers (October 14, 2026)
 

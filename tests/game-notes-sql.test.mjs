@@ -8,13 +8,13 @@ import { catalog, parseFunctions, readMigrations, topLevel } from '../scripts/mi
 import { ACCOUNTS, createCommunityWorld, id, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { leakScan, pickSecrets, READERS } from './helpers/leak-scan.mjs';
 
-// Redesign build plan stage 27, M-09 (20261014190000_gtl_game_notes.sql): private notes per game (D-36 "notes stay",
+// Redesign build plan stage 27, M-09 (20261014224500_gtl_game_notes.sql): private notes per game (D-36 "notes stay",
 // D-39). Only the owner reads or writes a note; up to 2,000 characters, never cut; a note never makes a Favorite
 // (D-40: a first note creates an unsaved row, an existing row keeps its saved flag); every change audited and
 // bumping the shared personal revision. Runs on ALL (the hosted project does not have M-09 yet), on the
 // raw functions and through the real handler, on local PGlite only. Fixture accounts and text only, never real
 // player data.
-const MIGRATION = '20261014190000_gtl_game_notes.sql';
+const MIGRATION = '20261014224500_gtl_game_notes.sql';
 const NEW_RPCS = {
   'gtl_read_game_notes(uuid,integer,integer)': 'select public.gtl_read_game_notes($1)',
   'gtl_set_game_note(uuid,uuid,integer,integer,text,text,bigint)': "select public.gtl_set_game_note($1,gen_random_uuid(),2026,5,'TB-DAL','x',0)",

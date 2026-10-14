@@ -167,7 +167,7 @@ test('D-34 kickoff wind probes awaiting deploy pass only on the exact not-found 
 
 test('M-09 private notes probes awaiting deploy pass only on the exact not-found answer, are reported, and fail under --strict', async t => {
   const rpcs = ['gtl_read_game_notes', 'gtl_set_game_note'], routes = ['personal/notes', 'personal/note'];
-  for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261014190000_gtl_game_notes.sql', rpc);
+  for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261014224500_gtl_game_notes.sql', rpc);
   for (const route of routes) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
   const notesRpc = url => rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`));
   const notesRoute = url => /\/functions\/v1\/gtl-api\/personal\/notes?$/.test(url);
@@ -178,7 +178,7 @@ test('M-09 private notes probes awaiting deploy pass only on the exact not-found
     const lines = [];
     const result = await checkCloudBoundary({ ...options, fetchImpl: missing, log: line => lines.push(line) });
     assert.equal(result.awaiting.length, rpcs.length + routes.length * 2, 'two RPCs once; each route signed out and with an invalid session');
-    assert.ok(lines.some(line => /^anonymous gtl_set_game_note RPC: awaiting deploy \(404, not found\) until migration 20261014190000/.test(line)));
+    assert.ok(lines.some(line => /^anonymous gtl_set_game_note RPC: awaiting deploy \(404, not found\) until migration 20261014224500/.test(line)));
     assert.ok(lines.some(line => /^POST personal\/notes with invalid session: awaiting deploy/.test(line)));
     await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: missing, strict: true }), /gtl_read_game_notes RPC: unexpected 404/);
   });
