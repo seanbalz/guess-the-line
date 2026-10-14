@@ -14,6 +14,7 @@ import { providerCommunityError } from '../../cloud/community.mjs';
 import { providerOfficialsError } from '../../cloud/officials.mjs';
 import { providerWindError } from '../../cloud/wind.mjs';
 import { providerWeeklyError } from '../../cloud/weekly.mjs';
+import { providerLinesError } from '../../cloud/lines.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { openDeadline } from './fixture-deadline.mjs';
 
@@ -112,6 +113,9 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     officials: { rpc: rpc(providerOfficialsError) },
     // D-34 kickoff wind: the three wind RPCs on the same database; the provider is spec-owned (never a live Open-Meteo request).
     wind: { rpc: rpc(providerWindError), provider: wind },
+    // Redesign stage 23 (M-06): the gated lines readers. On a schema without M-06 (HOSTED today) their RPCs are missing,
+    // so /lines/* answer the generic 503 and every other route is unchanged.
+    lines: { rpc: rpc(providerLinesError) },
     // D-17: this fixture has no odds provider; the preflight reports eligible cached references (no spec here submits).
     odds: { rpc: (fn, args) => (fn === 'gtl_preflight_submission' ? Promise.resolve({ requiresReferences: false, ready: true }) : personalRpc(fn, args)) },
     storage: { async membership(userId, leagueId) {

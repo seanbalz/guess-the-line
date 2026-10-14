@@ -24,6 +24,7 @@ export const NOT_HOSTED = [
   20261014223000, // M-01 guess_gate_per_game (redesign stage 16): the per-game Guess reveal gate, awaiting "apply M-01".
   20261014221500, // M-05 (stage 22) Monday-night lines: applied alone on a Tuesday or Wednesday after Sean's "apply M-05".
   20261014233000, // M-29 (stage 27a, D-40) "Save to Favorites" keeps a stored note: applied after Sean's "apply M-29".
+  20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
