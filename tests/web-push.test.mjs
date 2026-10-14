@@ -50,18 +50,19 @@ test('due-player selection: no week, not open, more than two hours out, closed, 
   assert.equal(planReminders({ week: { season: 2026, week: 6, deadline: DEADLINE }, players }, inWindow).reason, null);
 });
 
-test('payload names the week, lock time and modes only: no pick, line, player or link', () => {
+test('payload names the week, due time and modes only (D-39: "due", not "lock"): no pick, line, player or link', () => {
   assert.equal(pacificClock(DEADLINE), '5:15 PM');
   assert.equal(pacificClock('2026-11-13T01:15:00Z'), '5:15 PM', 'PST');
   const one = reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: ['guess_spread'] });
-  assert.deepEqual(one, { title: 'Guess The Line', body: 'Week 6 picks lock at 5:15 PM PT. Spread still due.', tag: 'gtl-deadline-2026-6' });
-  assert.equal(reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: ['guess_total', 'guess_spread'] }).body, 'Week 6 picks lock at 5:15 PM PT. Spread and Total still due.');
-  assert.equal(reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: ['guess_total'] }).body, 'Week 6 picks lock at 5:15 PM PT. Total still due.');
+  assert.deepEqual(one, { title: 'Guess The Line', body: 'Week 6 picks are due 5:15 PM PT. Spread still open.', tag: 'gtl-deadline-2026-6' });
+  assert.equal(reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: ['guess_total', 'guess_spread'] }).body, 'Week 6 picks are due 5:15 PM PT. Spread and Total still open.');
+  assert.equal(reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: ['guess_total'] }).body, 'Week 6 picks are due 5:15 PM PT. Total still open.');
   assert.throws(() => reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: [] }));
-  // Every field is fixed text plus the week, the lock time and mode names: nothing else can carry a pick, a line or a player.
+  // Every field is fixed text plus the week, the due time and mode names: nothing else can carry a pick, a line or a player.
   for (const payload of [one, reminderPayload({ season: 2026, week: 18, deadline: '2027-01-09T21:30:00Z', modes: ['guess_spread', 'guess_total'] })]) {
     assert.deepEqual(Object.keys(payload), ['title', 'body', 'tag']);
-    assert.match(payload.body, /^Week \d{1,2} picks lock at \d{1,2}:\d{2} [AP]M PT\. (?:Spread|Total|Spread and Total) still due\.$/);
+    assert.match(payload.body, /^Week \d{1,2} picks are due \d{1,2}:\d{2} [AP]M PT\. (?:Spread|Total|Spread and Total) still open\.$/);
+    assert.doesNotMatch(payload.body, /lock/i, 'D-39: the reminder says "due", never "lock"');
     assert.match(payload.tag, /^gtl-deadline-\d{4}-\d{1,2}$/);
     assert.doesNotMatch(JSON.stringify(payload), /[+−]\d|\d\.5|over|under|http|@/i, 'no signed number, half point, side, URL or address');
   }
@@ -233,8 +234,8 @@ test('reminder worker: claim, mark before send, encrypted spoiler-free payload, 
     assert.match(headers.Authorization, /^vapid t=/);
     assert.equal(Number(headers.TTL), 5400, 'expires at the deadline');
   }
-  assert.equal(delivered.find(d => d.url === endpoints[0]).payload.body, 'Week 6 picks lock at 5:15 PM PT. Spread still due.');
-  assert.equal(delivered.find(d => d.url === endpoints[2]).payload.body, 'Week 6 picks lock at 5:15 PM PT. Spread and Total still due.');
+  assert.equal(delivered.find(d => d.url === endpoints[0]).payload.body, 'Week 6 picks are due 5:15 PM PT. Spread still open.');
+  assert.equal(delivered.find(d => d.url === endpoints[2]).payload.body, 'Week 6 picks are due 5:15 PM PT. Spread and Total still open.');
 
   // A second run in the same window sends nothing: the marks already exist.
   delivered.length = 0; calls.length = 0;

@@ -5,8 +5,11 @@ import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-w
 // migrations on PGlite for everything except /push/*, which a spec-owned mock answers.
 // PushManager, the service worker container and the permission prompt are mocked where a
 // test turns reminders on: headless Chrome has no push service to subscribe to.
+// Redesign stage 2 (push guard): the reminders show only when /community/read says pushConfigured,
+// which the handler sets only when it holds a valid VAPID public key (the key is never in that reply).
 const REMIND = 'Remind me 2 hours before picks lock';
 const PUBLIC_KEY = `B${'Q'.repeat(86)}`;
+const PUSH = { pushPublicKey: PUBLIC_KEY };
 
 async function mockPushRoutes(page) {
   const push = { subscribed: false, requests: [] };
@@ -53,7 +56,7 @@ async function openSettings(page) {
 
 test('no service worker is registered and no push request is made before the player opts in', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  const world = await communityWorld(page, baseURL, { groupScreens: true }), push = await mockPushRoutes(page);
+  const world = await communityWorld(page, baseURL, { groupScreens: true, ...PUSH }), push = await mockPushRoutes(page);
   try {
     await signIn(page, 'luke');
     await expect(page.locator('.picks-due')).toContainText('picks due');
@@ -70,7 +73,7 @@ for (const width of [320, 390, 1440]) for (const theme of ['light', 'dark']) tes
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await page.addInitScript(mockPushBrowser);
   await page.addInitScript(value => { try { localStorage.setItem('gtl.theme', value); } catch { /* Private mode. */ } }, theme);
-  const world = await communityWorld(page, baseURL), push = await mockPushRoutes(page);
+  const world = await communityWorld(page, baseURL, PUSH), push = await mockPushRoutes(page);
   try {
     await page.setViewportSize({ width, height: 900 });
     await signIn(page, 'luke');
@@ -91,7 +94,7 @@ for (const width of [320, 390, 1440]) for (const theme of ['light', 'dark']) tes
 test('turning reminders on from the picks-due card, then off from Settings', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await page.addInitScript(mockPushBrowser);
-  const world = await communityWorld(page, baseURL, { groupScreens: true }), push = await mockPushRoutes(page);
+  const world = await communityWorld(page, baseURL, { groupScreens: true, ...PUSH }), push = await mockPushRoutes(page);
   try {
     await page.setViewportSize({ width: 390, height: 900 });
     await signIn(page, 'luke');
@@ -125,7 +128,7 @@ test('an iPhone Safari tab without PushManager explains Add to Home Screen and i
     delete window.PushManager;
     Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1' });
   });
-  const world = await communityWorld(page, baseURL, { groupScreens: true }), push = await mockPushRoutes(page);
+  const world = await communityWorld(page, baseURL, { groupScreens: true, ...PUSH }), push = await mockPushRoutes(page);
   try {
     await page.setViewportSize({ width: 390, height: 900 });
     await signIn(page, 'luke');
@@ -135,6 +138,70 @@ test('an iPhone Safari tab without PushManager explains Add to Home Screen and i
     await expect(panel).toContainText('iOS 16.4 or later');
     await expect(panel).toContainText('Add to Home Screen');
     await expect(panel.getByRole('button')).toHaveCount(0);
+    expect(push.requests).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// Redesign stage 2 (push guard): until gtl-api holds a valid VAPID public key, /community/read says
+// pushConfigured: false and the old app shows no reminder control anywhere, so no player meets a
+// "Remind me" button that fails. Checked on a phone (390 × 844) in a push-capable browser and in an
+// iPhone Safari tab (which would otherwise show the Home Screen hint).
+const iPhoneTab = () => {
+  delete window.PushManager;
+  Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1' });
+};
+for (const [label, browser] of [['a push-capable browser', mockPushBrowser], ['an iPhone Safari tab', iPhoneTab]]) test(`push not configured: no reminder control on the picks-due card or in Settings, in ${label} at 390px`, async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await page.addInitScript(browser);
+  const world = await communityWorld(page, baseURL, { groupScreens: true }), push = await mockPushRoutes(page);
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const feedRead = page.waitForResponse(r => r.url().endsWith('/gtl-api/community/read') && r.request().method() === 'POST');
+    await signIn(page, 'luke');
+    expect((await (await feedRead).json()).pushConfigured).toBe(false);
+    await expect(page.locator('.picks-due')).toContainText('picks due');
+    await expect(page.locator('.picks-due').getByRole('button', { name: 'Make picks' })).toBeVisible();
+    await expect(page.locator('.picks-due .push-prompt')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: REMIND })).toHaveCount(0);
+    await expect(page.getByText('Reminders on iPhone')).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+    // Settings asks /community/read once (limit 1) and keeps the Pick reminders panel out.
+    const settingsRead = page.waitForResponse(r => r.url().endsWith('/gtl-api/community/read') && r.request().postDataJSON()?.limit === 1);
+    const panel = await openSettings(page);
+    expect((await (await settingsRead).json()).pushConfigured).toBe(false);
+    await expect(page.getByLabel('Color theme')).toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await expect(panel).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Pick reminders' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: REMIND })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+    // Nothing push-related ran: no service worker, no permission prompt, no /push/* request.
+    expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+    if (browser === mockPushBrowser) expect(await page.evaluate(() => window.__push)).toMatchObject({ registered: 0, subscribed: 0, permissionRequests: 0 });
+    expect(push.requests).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('push configured: /community/read says so and never carries the VAPID key', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, PUSH), push = await mockPushRoutes(page);
+  try {
+    const feedRead = page.waitForResponse(r => r.url().endsWith('/gtl-api/community/read') && r.request().method() === 'POST');
+    await signIn(page, 'luke');
+    const seen = await (await feedRead).text();
+    expect(JSON.parse(seen).pushConfigured).toBe(true);
+    expect(seen).not.toContain(PUBLIC_KEY);
+    for (const account of ['luke', 'troy', 'sean']) {
+      const { status, body } = await world.api(account, 'community/read', {});
+      expect(status).toBe(200);
+      expect(body.pushConfigured).toBe(true);
+      expect(JSON.stringify(body)).not.toContain(PUBLIC_KEY);
+    }
+    await expect(page.locator('.picks-due').getByRole('button', { name: REMIND, exact: true })).toBeVisible();
     expect(push.requests).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

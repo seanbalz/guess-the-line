@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BellOff, BellRing, LoaderCircle } from 'lucide-react';
 import { currentSubscription, disablePush, enablePush, pushEnvironment, pushStatus } from './webPush';
+import { communityApi } from './api';
 import './pushReminders.css';
 
 // D-28: one opt-in reminder, two hours before picks lock, by web push only.
@@ -43,8 +44,29 @@ export function usePushReminders() {
   };
 }
 
-/** Settings & setup, next to Install app. */
-export default function PushReminders() {
+/**
+ * Redesign stage 2 (push guard): whether gtl-api holds a valid VAPID key, from /community/read's `pushConfigured`
+ * (the key itself is never in that reply). `known` is the value a caller already read; without one, one small
+ * community read (limit 1) answers it. Anything but a true answer, including a failed read, hides the reminders.
+ */
+function usePushConfigured(known) {
+  const [read, setRead] = useState(false);
+  const asked = typeof known !== 'boolean';
+  useEffect(() => {
+    if (!asked) return undefined;
+    const controller = new AbortController();
+    communityApi('read', { limit: 1 }, controller.signal).then(feed => setRead(feed?.pushConfigured === true), () => setRead(false));
+    return () => controller.abort();
+  }, [asked]);
+  return asked ? read : known;
+}
+
+/** Settings & setup, next to Install app. Hidden until push really works (stage 2 push guard). */
+export default function PushReminders({ configured }) {
+  return usePushConfigured(configured) ? <PushReminderSettings/> : null;
+}
+
+function PushReminderSettings() {
   const { env, phase, message, error, enable, disable } = usePushReminders();
   const on = phase === 'on', busy = phase === 'busy' || phase === 'checking';
   return <section className="panel push-reminders" aria-labelledby="push-reminders-title">
@@ -64,8 +86,15 @@ export default function PushReminders() {
   </section>;
 }
 
-/** The one-line prompt on the Community picks-due card. Silent when reminders are on, blocked or impossible here. */
-export function PushReminderPrompt() {
+/**
+ * The one-line prompt on the Community picks-due card. Silent until /community/read says push is configured
+ * (stage 2 push guard), and when reminders are on, blocked or impossible here.
+ */
+export function PushReminderPrompt({ configured = false }) {
+  return configured === true ? <ReminderPrompt/> : null;
+}
+
+function ReminderPrompt() {
   const { env, phase, message, error, enable } = usePushReminders();
   if (env === 'needs-install') return <p className="push-prompt muted">Reminders on iPhone: add Guess The Line to your Home Screen first (iOS 16.4 or later).</p>;
   if (env !== 'supported') return null;

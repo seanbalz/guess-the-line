@@ -109,7 +109,7 @@ function WeekUnpublished() {
     <p>No week is open yet. Weeks open automatically Monday 12:00 AM PT once the schedule is published; picks due will show here.</p></section>;
 }
 
-function PicksDue({ due, all = [], onPick }) {
+function PicksDue({ due, all = [], push = false, onPick }) {
   if (!due || ['none', 'done'].includes(due.state)) return null;
   const closed = due.state === 'closed', notOpen = due.state === 'not_open';
   // Persona audit #15: a submitted market stays on the card with a check; a sat-out market is never due (D-23), so it is left off.
@@ -123,8 +123,9 @@ function PicksDue({ due, all = [], onPick }) {
     <Bell size={22} aria-hidden="true"/>
     <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2><p>{detail}</p></div>
     {!closed && !notOpen && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
-    {/* D-28: opt-in web push, one reminder 2 hours before the deadline; nothing is registered until the player asks. */}
-    {!closed && <PushReminderPrompt/>}
+    {/* D-28: opt-in web push, one reminder 2 hours before the deadline; nothing is registered until the player asks.
+        Stage 2 push guard: shown only when /community/read says push is configured. */}
+    {!closed && <PushReminderPrompt configured={push}/>}
   </section>;
 }
 
@@ -547,7 +548,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         : tab === 'history' ? <CommunityHistory accountId={accountId}/>
         : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
-        <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>
+        <PicksDue due={feed.picksDue} all={feed.due} push={feed.pushConfigured === true} onPick={() => goScreen('picks')}/>
         <Leaderboard feed={feed}/>
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}
         {feed.admin && feed.week && <RefereeAssignments season={feed.week.season} week={feed.week.week}/>}
