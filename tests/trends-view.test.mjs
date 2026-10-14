@@ -5,6 +5,8 @@ import * as V from '../shared/trends-view.mjs';
 import { T, build } from './trends-fixture.mjs';
 import { WIND_ATTRIBUTION, WIND_LICENSE_NOTE, WIND_TIERS } from '../cloud/wind.mjs';
 import { SEASONS, WIND_STADIUMS, venueFor, windVenue } from '../shared/wind-venues.mjs';
+import { lockedIn } from '../web/src/sentFinal.js';
+import { ballotLockedIn } from '../server/engine.mjs';
 
 const week = JSON.parse(fs.readFileSync(new URL('../shared/trends/2026-week-06.json', import.meta.url), 'utf8'));
 const game = id => week.games.find(g => g.id === id);
@@ -50,22 +52,94 @@ test('app spreads convert to the nflverse sign; a pick’em stays zero', () => {
   assert.equal(V.referenceValue(null), null);
 });
 
-test('reveal gating: each market unlocks only with its own ballot, sit-out or deadline; both needs both', () => {
+// Redesign stage 17 (D-39 per-game lock-in, D-31 kickoff, D-23 sit-out): one gate per game and market, the one M-01's
+// gtl_guess_revealed applies in SQL. Today's rules (no revealAt, or 'deadline') also open every game at the deadline; from
+// M-01 (`revealAt: 'kickoff'`) only each game's own kickoff does.
+test('reveal gating per game: a lock-in, a sit-out or that game\'s kickoff opens one game and market; both needs both', () => {
+  const M01 = { sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' }, TODAY = { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' };
+  const DEADLINE = '2026-10-16T00:15:00Z', FRIDAY = '2026-10-16T16:00:00Z', SUNDAY = '2026-10-18T17:00:00Z', BEFORE = '2026-10-15T20:00:00Z';
+  const ga = V.gameAccess;
+  const at = (now, rules, extra = {}) => ga({ kickoff: SUNDAY, deadline: DEADLINE, now, rules, ...extra });
+  assert.deepEqual(at(BEFORE, M01), { spread: false, total: false, revealAt: 'kickoff' });
+  assert.deepEqual(at(FRIDAY, TODAY), { spread: true, total: true, revealAt: 'deadline' }, 'today: the deadline opens every game');
+  assert.deepEqual(at(FRIDAY, undefined), { spread: true, total: true, revealAt: 'deadline' }, 'no rules read as today\'s');
+  assert.deepEqual(at(FRIDAY, M01), { spread: false, total: false, revealAt: 'kickoff' }, 'M-01: the deadline alone opens nothing');
+  assert.deepEqual(at(SUNDAY, M01), { spread: true, total: true, revealAt: 'kickoff' }, 'M-01: the game\'s own kickoff opens it, both markets');
+  assert.deepEqual(at(BEFORE, M01, { lockedIn: { spread: true } }), { spread: true, total: false, revealAt: 'kickoff' }, 'a Spread lock-in never opens Total');
+  assert.deepEqual(at(BEFORE, M01, { satOut: { total: true } }), { spread: false, total: true, revealAt: 'kickoff' });
+  assert.deepEqual(at(FRIDAY, { sentFinal: true, lateWindow: 'kickoff' }), { spread: false, total: false, revealAt: 'kickoff' }, 'a kickoff late window reveals at kickoff');
+  for (const [now, kickoff] of [[null, SUNDAY], ['not a time', SUNDAY], [SUNDAY, null], [SUNDAY, 'nope']]) {
+    assert.deepEqual(ga({ kickoff, deadline: DEADLINE, now, rules: M01 }), { spread: false, total: false, revealAt: 'kickoff' }, `an unreadable time never opens: ${now} ${kickoff}`);
+  }
+
+  // Community Picks: the /personal view. A pick in a submitted ballot is locked in (gtl_guess_locked_in); a draft is not.
+  const games = [{ id: 'SEA-DEN', kickoff: DEADLINE }, { id: 'HOU-JAX', kickoff: SUNDAY }];
+  const personal = (now, rules, ballots = {}) => ({ games, deadline: DEADLINE, now, rules, ballots });
   const ca = V.communityAccess;
-  assert.deepEqual(ca({ ballots: {} }), { spread: false, total: false });
-  assert.deepEqual(ca({ ballots: { guess_spread: { submittedAt: 'x' } } }), { spread: true, total: false });
-  assert.deepEqual(ca({ ballots: { guess_total: { submittedAt: 'x' } } }), { spread: false, total: true }, 'a Total submission never unlocks spread-gated trends');
-  assert.deepEqual(ca({ ballots: { guess_spread: { picks: { 'SEA-DEN': -3 } } } }), { spread: false, total: false }, 'a draft is not a submission');
-  assert.deepEqual(ca({ ballots: {}, optOuts: ['guess_total'] }), { spread: false, total: true });
-  assert.deepEqual(ca({ ballots: {}, closed: true }), { spread: true, total: true });
-  const ga = V.groupAccess;
-  assert.deepEqual(ga({ mode: 'guess_spread', revealed: true, marketAccess: { spread: true, total: false } }), { spread: true, total: false });
-  assert.deepEqual(ga({ mode: 'guess_total', revealed: false, marketAccess: { spread: false, total: false } }), { spread: false, total: false });
-  assert.deepEqual(ga({ mode: 'guess_total', revealed: true }), { spread: false, total: true });
-  assert.deepEqual(ga({ mode: 'betting_challenge', marketAccess: { spread: false, total: true } }), { spread: false, total: true });
-  assert.deepEqual(ga({ statuses: { guess_spread: { satOut: true }, guess_total: { lockReason: 'deadline' } } }), { spread: true, total: true });
+  assert.deepEqual(ca(personal(BEFORE, M01), 'SEA-DEN'), { spread: false, total: false, revealAt: 'kickoff' });
+  const sent = { guess_spread: { submittedAt: BEFORE, picks: { 'SEA-DEN': -3, 'HOU-JAX': 2.5 } } };
+  assert.deepEqual(ca(personal(BEFORE, M01, sent), 'HOU-JAX'), { spread: true, total: false, revealAt: 'kickoff' }, 'a Total submission never unlocks spread-gated trends, and the reverse');
+  assert.deepEqual(ca(personal(BEFORE, M01, { guess_spread: { picks: { 'HOU-JAX': 2.5 } } }), 'HOU-JAX').spread, false, 'a draft is not a lock-in');
+  assert.deepEqual(ca(personal(BEFORE, M01, { guess_spread: { submittedAt: BEFORE, picks: { 'SEA-DEN': -3 } } }), 'HOU-JAX').spread, false, 'no pick for that game: not locked in');
+  assert.deepEqual(ca(personal(BEFORE, M01), 'HOU-JAX', ['guess_total']), { spread: false, total: true, revealAt: 'kickoff' }, 'a sit-out opens its market');
+  assert.deepEqual([ca(personal(FRIDAY, M01), 'SEA-DEN'), ca(personal(FRIDAY, M01), 'HOU-JAX')], [{ spread: true, total: true, revealAt: 'kickoff' }, { spread: false, total: false, revealAt: 'kickoff' }],
+    'after Thursday\'s kickoff only Thursday\'s game is open');
+  assert.deepEqual(ca(personal(FRIDAY, TODAY), 'HOU-JAX'), { spread: true, total: true, revealAt: 'deadline' }, 'today the deadline opened the week');
+  assert.deepEqual(ca(personal(FRIDAY, M01), 'XX-YY'), { spread: false, total: false, revealAt: 'kickoff' }, 'a game not on the slate has no kickoff to open it');
+
+  // The group ballot and dashboard: the /state view (statuses, marketAccess, this mode's reveal).
+  const state = (now, rules, extra = {}) => ({ games, league: { deadline: DEADLINE }, now, rules, mode: 'guess_spread', revealed: false, marketAccess: { spread: false, total: false },
+    statuses: { guess_spread: { submittedAt: null, satOut: false, lockReason: null }, guess_total: { submittedAt: null, satOut: false, lockReason: null } }, ...extra });
+  const gr = V.groupAccess;
+  assert.deepEqual(gr(state(BEFORE, M01), 'HOU-JAX'), { spread: false, total: false, revealAt: 'kickoff' });
+  assert.deepEqual(gr(state(BEFORE, M01, { revealed: true, marketAccess: { spread: true, total: false } }), 'HOU-JAX'), { spread: true, total: false, revealAt: 'kickoff' });
+  assert.deepEqual(gr(state(BEFORE, M01, { mode: 'guess_total', revealed: true }), 'HOU-JAX'), { spread: false, total: true, revealAt: 'kickoff' });
+  assert.deepEqual(gr(state(BEFORE, M01, { mode: 'betting_challenge', marketAccess: { spread: false, total: true } }), 'HOU-JAX'), { spread: false, total: true, revealAt: 'kickoff' });
+  const lockedAtDeadline = { statuses: { guess_spread: { satOut: true }, guess_total: { submittedAt: null, lockReason: 'deadline' } } };
+  assert.deepEqual(gr(state(FRIDAY, M01, lockedAtDeadline), 'HOU-JAX'), { spread: true, total: false, revealAt: 'kickoff' }, 'M-01: the deadline lock no longer opens a game');
+  assert.deepEqual(gr(state(FRIDAY, TODAY, lockedAtDeadline), 'HOU-JAX'), { spread: true, total: true, revealAt: 'deadline' }, 'today it does');
+  assert.deepEqual(gr(state(FRIDAY, M01), 'SEA-DEN'), { spread: true, total: true, revealAt: 'kickoff' }, 'the kicked-off game opens for everyone');
   for (const [access, gate, open] of [[{ spread: true }, 'spread', true], [{ spread: true }, 'total', false], [{ spread: true }, 'both', false], [{ spread: true, total: true }, 'both', true], [{}, 'spread', false]]) {
     assert.equal(V.gateOpen(access, gate), open, `${JSON.stringify(access)} ${gate}`);
+  }
+});
+
+// Redesign stage 18 (M-02, D-39): the new app locks in one game at a time, recorded in the ballot's server-written lockedAt
+// with no submission. gtl_guess_locked_in (M-01's gate) counts it, so the old app opens that game's trends for its owner, on
+// Community Picks and on the group ballot and dashboard, and leaves the ballot's other games, still drafts, locked.
+test('per-game lock-in: a game lockedAt names opens its trends for its owner; the other games stay locked', () => {
+  const M01 = { sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' }, M02 = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
+  const DEADLINE = '2026-10-16T00:15:00Z', SUNDAY = '2026-10-18T17:00:00Z', BEFORE = '2026-10-15T20:00:00Z';
+  const games = [{ id: 'SEA-DEN', kickoff: DEADLINE }, { id: 'HOU-JAX', kickoff: SUNDAY }, { id: 'CHI-ATL', kickoff: SUNDAY }];
+  const draft = { submittedAt: null, picks: { 'SEA-DEN': -3, 'HOU-JAX': 2.5, 'CHI-ATL': -1 }, lockedAt: { 'HOU-JAX': '2026-10-15T19:00:00.000Z' } };
+  const personal = (rules, ballots) => ({ games, deadline: DEADLINE, now: BEFORE, rules, ballots });
+  for (const rules of [M01, M02]) {
+    const data = personal(rules, { guess_spread: draft });
+    assert.deepEqual(V.communityAccess(data, 'HOU-JAX'), { spread: true, total: false, revealAt: 'kickoff' }, 'the locked-in game opens, Spread only');
+    assert.deepEqual(['SEA-DEN', 'CHI-ATL'].map(id => V.communityAccess(data, id)), [{ spread: false, total: false, revealAt: 'kickoff' }, { spread: false, total: false, revealAt: 'kickoff' }],
+      'the ballot\'s other games are drafts and stay locked');
+    assert.deepEqual(V.communityAccess(personal(rules, { guess_total: draft }), 'HOU-JAX'), { spread: false, total: true, revealAt: 'kickoff' }, 'a Total lock-in opens Total only');
+  }
+  for (const [label, ballot] of [['a lockedAt time that is not a string', { ...draft, lockedAt: { 'HOU-JAX': true } }], ['lockedAt for a game with no pick', { ...draft, picks: { 'SEA-DEN': -3 } }],
+    ['lockedAt that is not an object', { ...draft, lockedAt: 'HOU-JAX' }]]) {
+    assert.equal(V.communityAccess(personal(M01, { guess_spread: ballot }), 'HOU-JAX').spread, false, label);
+  }
+  // The group ballot and dashboard (/state): the view's own mode reads its lockedAt the same way; the other market never opens.
+  const state = (mode, lockedAt, extra = {}) => ({ games: games.map(g => ({ ...g, prediction: draft.picks[g.id] })), league: { deadline: DEADLINE }, now: BEFORE, rules: M02,
+    mode, revealed: false, submittedAt: null, lockedAt, marketAccess: { spread: false, total: false },
+    statuses: { guess_spread: { submittedAt: null, satOut: false }, guess_total: { submittedAt: null, satOut: false } }, ...extra });
+  assert.deepEqual(['HOU-JAX', 'SEA-DEN', 'CHI-ATL'].map(id => V.groupAccess(state('guess_spread', draft.lockedAt), id).spread), [true, false, false], 'the group ballot opens the locked-in game only');
+  assert.deepEqual(V.groupAccess(state('guess_total', draft.lockedAt), 'HOU-JAX'), { spread: false, total: true, revealAt: 'kickoff' }, 'the view\'s own market only');
+  assert.equal(V.groupAccess(state('guess_spread', null), 'HOU-JAX').spread, false, 'no lockedAt: a draft');
+  assert.equal(V.groupAccess(state('guess_spread', draft.lockedAt, { games: games.map(g => ({ ...g, prediction: null })) }), 'HOU-JAX').spread, false, 'lockedAt with no pick');
+  // One reading: the old app's sentFinal.js lockedIn, the engine's ballotLockedIn and gtl_ballot_locked_in in SQL.
+  const submitted = { submittedAt: BEFORE, picks: { 'SEA-DEN': -3, 'HOU-JAX': 2.5 } };
+  for (const ballot of [draft, submitted, { ...draft, lockedAt: { 'HOU-JAX': 1 } }, { ...draft, picks: { 'HOU-JAX': '2.5' } }, { picks: { 'HOU-JAX': 2.5 } }, null, undefined]) {
+    for (const id of [...games.map(g => g.id), 'XX-YY']) {
+      const label = `${id} ${JSON.stringify(ballot)}`;
+      assert.equal(V.guessLockedIn(ballot, id), lockedIn(ballot, id), label);
+      assert.equal(V.guessLockedIn(ballot, id), ballotLockedIn(ballot, id), label);
+    }
   }
 });
 
