@@ -6,7 +6,7 @@ Sean ruled in the cloud session, answering the "Open choice for Sean" that PR #8
 
 - **A note on a game with no row.** A note written in the new app on a game the player has no Favorites row for creates that row as not saved (`saved = false`). The game does not join the old app's Favorites tab or History's saved games.
 - **A game that already has a row.** A note never changes its saved flag, either way: a saved game stays saved and an unsaved game stays unsaved.
-- **The old app's "Save to Favorites".** It keeps a stored note instead of sending a blank one over it. This is a small old-app change, built in its own old-app stage by a separate PR; stage 27 does not change the old app.
+- **The old app's "Save to Favorites".** It keeps a stored note instead of overwriting it with a blank one. The old app cannot see a note on a game that is not saved, so the fix is on the server: stage 27a (M-29, a separate PR) changes `gtl_mutate_personal` so that saving a game that is not saved, with an empty note, keeps the stored note. Stage 35 (notes in the game sheet) waits for M-29. Stage 27 does not change the old app.
 - **Why.** D-36 takes Favorites off the screens, so writing a note must not make a Favorite the player never asked for. And saving a game in the old app must not blank a note the player wrote, in either app. The audit keeps every earlier text either way (D-23).
 
 M-09 (`supabase/migrations/20261014190000_gtl_game_notes.sql`) follows this rule before it is merged or applied. Nothing is applied or deployed by this entry.

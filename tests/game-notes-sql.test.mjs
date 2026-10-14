@@ -191,7 +191,7 @@ test('M-09 SQL: private notes per game, never cut, the saved flag kept, every ch
     assert.deepEqual((await f.workspace(luke)).favorites, [], 'a note on an unsaved game makes no Favorite');
     [event] = (await f.events(luke)).slice(-1);
     assert.deepEqual([event.before_value, event.after_value], [{ saved: false, notes: 'New app note on a saved game.' }, { saved: false, notes: 'New app note.' }]);
-    // The old app saving the game with the stored note (what D-40's old-app stage sends) keeps the note and lists it.
+    // A favorite/set save that sends the stored note keeps it and lists the game.
     await f.favorite(luke, A, true, 'New app note.');
     assert.deepEqual((await f.workspace(luke)).favorites.map(x => [x.gameId, x.notes]), [[A, 'New app note.']]);
     const resaved = await f.set(luke, A, 'Newer app note.', (await f.note(luke, A)).revision);
@@ -309,8 +309,8 @@ test('through gtl-api: /personal/note and /personal/notes serve only the signed-
       assert.equal((await world.api(viewer, 'personal/note', { requestId: randomUUID(), season, week, gameId: A, note: 'x', revision: 0, [field]: ACCOUNTS.troy.id })).status, 400);
     }
   }
-  // The old app's /favorite/set saving the game with the stored note (what D-40's old-app stage sends) keeps the note
-  // and makes it a Favorite; the note's revision does not move, because its text did not change.
+  // A /favorite/set save that sends the stored note keeps it and makes the game a Favorite; the note's revision does
+  // not move, because its text did not change.
   const saveInOldApp = await world.api('troy', 'favorite/set', { requestId: randomUUID(), revision: solo.body.revision, season, week, gameId: A, saved: true, notes: NOTE });
   assert.equal(saveInOldApp.status, 200, JSON.stringify(saveInOldApp.body));
   assert.deepEqual((await world.api('troy', 'personal', undefined)).body.favorites.map(x => [x.gameId, x.notes]), [[A, NOTE]]);

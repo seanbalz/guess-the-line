@@ -7,13 +7,16 @@
 -- secret GTL_FEATURE_OFF=notes (cloud/feature-off.mjs): the writer refuses, every stored note stays readable (D-23).
 --
 -- A note is gtl_favorites.notes, the column the old app's Favorites card writes through
--- gtl_mutate_personal('favorite/set'), so a note written in either app shows in the other:
+-- gtl_mutate_personal('favorite/set'). A note written in either app shows in the other while the game is saved; a note
+-- on a game that is not saved shows only in the new app (D-40), because the old app shows a note only on a saved
+-- Favorite:
 --   * Up to 2,000 characters, stored exactly as typed. A longer note is refused (GTL_NOTE_TOO_LONG), never shortened,
 --     and a stored note always reads back whole. Saving the text already stored writes nothing.
 --   * A note never makes a Favorite (D-40). A note on a game with no row creates the row with saved = false, so the
 --     game does not join the old app's Favorites tab (gtl_read_personal lists saved rows only) or History's saved
 --     games. A note never changes an existing row's `saved`, either way. The old app's "Save to Favorites" keeping a
---     stored note instead of sending a blank one is D-40's separate old-app stage; nothing here depends on it.
+--     stored note instead of overwriting it with a blank one is D-40's separate stage 27a (M-29, a server change to
+--     gtl_mutate_personal); nothing here depends on it.
 --   * Each change appends a gtl_personal_events row (before and after, `{saved, notes}` as favorite/set writes them)
 --     and bumps the shared gtl_personal_versions revision, so an old-app screen opened before the change gets
 --     GTL_PERSONAL_CONFLICT instead of overwriting the note.

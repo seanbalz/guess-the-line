@@ -20,12 +20,17 @@ routes live in `cloud/personal.mjs` beside the old Solo routes.
 ## What a save does
 
 A note is the `notes` column of `gtl_favorites`, the same column the old app's Favorites card writes through
-`/favorite/set`, so a note written in either app shows in the other.
+`/favorite/set`. A note written in either app shows in the other while the game is saved; a note on a game that is not
+saved shows only in the new app (D-40), because the old app shows a note only on a saved Favorite.
 
 - **Up to 2,000 characters, never cut.** The route counts as a browser textarea's `maxLength` does (UTF-16 code
   units) and as `/favorite/set` does, so whatever either app saves, the other can save again, and it always fits the
   database's own 2,000-character check. A longer note is refused (400 "A note can be up to 2,000 characters."), never
   shortened. Spaces and line breaks are stored exactly as typed. A stored note always reads back whole.
+- **The old app trims.** `/favorite/set` trims spaces and line breaks at both ends of the note it sends, and the old
+  app sends a saved game's note with every removal of that game and every "Save private note". So if a note starts
+  or ends with spaces or line breaks, an old-app removal or note save stores it trimmed. That is a change to its text:
+  audited with the text before, and it moves the note's revision.
 - **A note never makes a Favorite (D-40).** A note on a game with no row creates the row as not saved. A note never
   saves or unsaves a game that already has a row. Favorites themselves leave the new app's screens (D-36); saved
   records stay readable in History (stage 74). See "A note on a game the player never saved" below.
@@ -37,7 +42,8 @@ A note is the `notes` column of `gtl_favorites`, the same column the old app's F
 - **Two devices.** A note's `revision` is the shared revision of the last change to its text, in either app (0 when
   it has none). A save names the revision it started from; if the text changed since, it is refused with 409 "This
   note changed on another device. Refresh before saving again." and nothing is written. Saving or removing a game in
-  the old app does not change its note's revision.
+  the old app moves its note's revision only when that save changes the note's text: the old app's trim (above), or,
+  until M-29 is applied, "Save to Favorites" blanking a note (below).
 - **Retries.** A request id replays its first answer; the same id with other content is refused
   (`GTL_PERSONAL_RETRY_CONFLICT`). The receipts are the personal workspace's own.
 
@@ -53,14 +59,18 @@ overwriting it with a blank one."
   returns the note whole.
 - **A row already there.** A note keeps its saved flag either way: a saved game stays saved and an unsaved one stays
   unsaved.
-- **The old app's "Save to Favorites" ships as its own stage.** Today the old card starts with an empty note for an
-  unsaved game (`FavoriteCard` in `web/src/PersonalWorkspace.jsx`), so saving that game sends a blank note over the
-  stored one. The audit keeps the text, but both apps then show the note as empty. The old app already does this
-  today for a game removed from Favorites and then saved again. D-40's small old-app change makes the button keep the
-  stored note. A separate PR builds it; this stage changes no old-app screen, and its merge and "apply M-09" do not
-  wait for it. Its server side already works: `/favorite/set` with `saved: true` and the stored note keeps the note
-  and lists the game (tested here). Note for that stage: `/favorite/set` trims spaces and line breaks at both ends of
-  a note, while `/personal/note` stores them as typed.
+- **The old app cannot see a note on a game that is not saved.** Its Favorites card (`FavoriteCard` in
+  `web/src/PersonalWorkspace.jsx`) shows a note box only for a saved Favorite, and it starts a game that is not saved
+  from an empty note: its data comes from `gtl_read_personal`, which lists saved games only, and the old app never
+  calls `/personal/notes`. So its "Save to Favorites" sends an empty note, and `/favorite/set` writes that over the
+  stored note. The audit keeps the text, but both apps then show the note as empty. The old app already does this
+  today for a game removed from Favorites and then saved again.
+- **The fix is stage 27a (M-29), a separate PR (#86).** It is a server change: migration
+  `20261014233000_gtl_favorite_keeps_note.sql` replaces `gtl_mutate_personal` so that a save that takes a game from
+  not saved to saved and sends an empty note keeps the stored note, exactly as stored, instead of overwriting it with
+  a blank one. It needs no `gtl-api` or Pages change. Its build plan edit makes stage 35 (notes in the game sheet)
+  wait for M-29 as well as M-09, so the game sheet's note box goes live only once the old app's Save keeps a stored
+  note. This stage changes no old-app screen, and its merge and "apply M-09" do not wait for stage 27a.
 - **Why.** D-36 takes Favorites off the screens, `docs/redesign/INVENTORY_HOMES.md` row 166 keeps saved games
   read-only in History, and the prototype's game sheet has "No favorites, no forecasts". A saved default would have
   made a Favorite the player never asked for; the old-app change keeps a "Save to Favorites" from blanking a note.
