@@ -432,6 +432,9 @@ test.describe('the shell harness', () => {
     await expect(toast).toBeVisible();
     await toast.getByRole('button', { name: 'Dismiss' }).click();
     await expect(toast).toHaveCount(0);
+    // The region resets in the effect after the toast leaves, a render later; wait for it before reading what was said.
+    await expect(region).toHaveText('');
+    await expect(region).toHaveAttribute('aria-live', 'polite');
     expect(await page.evaluate(() => window.__region.isConnected && window.__region === document.querySelector('.gx-sr-only[aria-live]')), 'the same element throughout').toBe(true);
     const said = (await page.evaluate(() => window.__said)).filter((entry, i, all) => entry !== all[i - 1]);
     expect(said).toEqual([

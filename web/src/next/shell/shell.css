@@ -146,6 +146,9 @@
 .gx-tab .gx-ic { color: var(--gx-text-3); }
 .gx-tab-icon { position: relative; display: block; width: 24px; height: 24px; }
 .gx-tab-label { font: 600 16px/20px var(--gx-font-body); }
+/* Five tabs share a 320 screen, 64 each. In a wider fallback face (DejaVu Sans) a bold 16px "League" is 65.5 wide, so
+   narrow phones step the label down a pixel (61.4); Figtree fits at 16 everywhere. */
+@media (max-width: 359.98px) { .gx-tab-label { font-size: 15px; } }
 .gx-tab--on { color: var(--gx-text-1); }
 .gx-tab--on .gx-tab-label { font-weight: 700; }
 .gx-tab--on .gx-ic { color: var(--gx-accent-ink); }
