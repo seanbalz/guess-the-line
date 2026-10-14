@@ -196,18 +196,21 @@ test('M-09 private notes probes awaiting deploy pass only on the exact not-found
   });
 });
 
-test('only the referee, D-34 wind and M-09 notes pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+test('only the referee, D-34 wind, M-05 and M-09 notes pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
   const referees = ['gtl_read_game_officials', 'gtl_set_game_official'];
   const winds = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
+  // M-05 (stage 22): service-only helper, awaiting its hosted apply.
+  const monday = ['gtl_odds_carryover_slate'];
   const notes = ['gtl_read_game_notes', 'gtl_set_game_note'];
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/personal/notes', 'gtl-api/personal/note', ...[...referees, ...winds, ...notes].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/personal/notes', 'gtl-api/personal/note', ...[...referees, ...winds, ...monday, ...notes].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
-  const missing = async (url, request) => ([...referees, ...winds, ...notes].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  assert.equal(awaitingDeploy['rpc/gtl_odds_carryover_slate'], 'migration 20261014221500_gtl_odds_open_weeks.sql');
+  const missing = async (url, request) => ([...referees, ...winds, ...monday, ...notes].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
     : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|personal\/notes?)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + winds.length + notes.length + 5 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + monday.length + notes.length + 5 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 

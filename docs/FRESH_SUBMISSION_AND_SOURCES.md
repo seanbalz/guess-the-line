@@ -116,6 +116,27 @@ scheduled claim and the schedule status read share one slate resolver
 (`gtl_odds_schedule_slate`), so a schedule row lagging the newest published week
 reads `slate_changed` in both.
 
+**Monday-night lines (M-05, D-39; built, not applied).** Migration
+`20261014221500_gtl_odds_open_weeks.sql` keeps collecting the previous published
+week's games that have not kicked off once the next week opens on Monday (the
+Monday night game, or two): `gtl_odds_carryover_slate` lists them, the scheduled
+and commissioner collections hand them to the adapter after the newest week's
+games, and they ride in the same free event check and the same two-credit odds
+request (spreads and totals, one region, three books; the cost does not depend on
+how many event ids the request names, and a reported cost above two credits still
+pauses the budget). The newest week's snapshot is stored exactly as before; the
+carried games are stored as a snapshot of their own week, so the line at a late
+save, pending references and the community reads of that week find them. Because
+`gtl_market_snapshots.id` names a collection, a zero-credit `collect` row
+(`reserved_credits` 0, `diagnostics.carryoverOf` = the provider collection)
+records that snapshot, and both begin RPCs count only collections that reserved
+credits toward the six a day. Submission-triggered collections still collect only
+the week being submitted. With no carried game (Tuesday to Sunday) every replaced
+function behaves exactly as before. Tests: `tests/odds-open-weeks-sql.test.mjs`
+and `tests/odds-provider.test.mjs`. Apply on a Tuesday or Wednesday; after the
+apply, check that the next scheduled collection succeeds, and copy the
+remaining-credit count into the release record weekly.
+
 The reviewed release applied the earlier dependencies and
 `supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql`, then deployed
 the API and dashboard. Its 130 live access-denial checks passed; the inspected
