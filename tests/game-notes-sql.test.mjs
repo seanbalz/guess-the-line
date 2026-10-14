@@ -11,7 +11,7 @@ import { leakScan, pickSecrets, READERS, withoutTimes } from './helpers/leak-sca
 // Redesign build plan stage 27, M-09 (20261014224500_gtl_game_notes.sql): private notes per game (D-36 "notes stay",
 // D-39). Only the owner reads or writes a note; up to 2,000 characters, never cut; a note never makes a Favorite
 // (D-40: a first note creates an unsaved row, an existing row keeps its saved flag); every change audited and
-// bumping the shared personal revision. Runs on ALL (the hosted project does not have M-09 yet), on the
+// bumping the shared personal revision. Runs on ALL (M-09 is hosted since October 14, 2026), on the
 // raw functions and through the real handler, on local PGlite only. Fixture accounts and text only, never real
 // player data.
 const MIGRATION = '20261014224500_gtl_game_notes.sql';
@@ -21,10 +21,10 @@ const NEW_RPCS = {
 };
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 
-test('M-09 is a repo file the hosted project does not have yet; it only adds two functions, so it has no header and no rollback', () => {
+test('M-09 is hosted since October 14, 2026 (hosted version 20261014224500); it only adds two functions, so it has no header and no rollback', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
-  assert.ok(!HOSTED.includes(MIGRATION));
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'removed from NOT_HOSTED by the October 14 apply record (Gate M step 8)');
+  assert.ok(HOSTED.includes(MIGRATION));
   const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8');
   assert.deepEqual(parseFunctions(sql, MIGRATION).map(fn => fn.name), ['gtl_read_game_notes', 'gtl_set_game_note']);
   const before = catalog(readMigrations(ALL.filter(file => file < MIGRATION))).latest;
@@ -323,8 +323,8 @@ test('through gtl-api: /personal/note and /personal/notes serve only the signed-
   assert.equal((await world.api('troy', 'personal/notes', {})).body.notes[0].note, NOTE);
 });
 
-test('without M-09 (the hosted schema today) the old personal routes answer as before and the notes routes fail closed', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED });
+test('without M-09 (the hosted schema before October 14) the old personal routes answer as before and the notes routes fail closed', { skip }, async t => {
+  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file !== MIGRATION) });
   t.after(() => world.db.close());
   const { season, week } = world.state.league, game = world.state.games[0].id;
   const home = await world.api('troy', 'personal', undefined);

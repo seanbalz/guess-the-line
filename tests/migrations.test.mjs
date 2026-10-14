@@ -26,9 +26,9 @@ test('HOSTED is ALL minus NOT_HOSTED, in the same order; every listed version na
     }
   }
   assert.deepEqual(HOSTED, ALL.filter(f => !NOT_HOSTED.includes(version(f))));
-  // Today only the web push migration is not on the hosted project (Sean's separate call, stage 2).
-  assert.ok(NOT_HOSTED.includes(20261013030000));
-  assert.ok(!HOSTED.includes('20261013030000_gtl_web_push_reminders.sql') && ALL.includes('20261013030000_gtl_web_push_reminders.sql'));
+  // The web push migration is hosted since October 14, 2026 (hosted version 20261013030000).
+  assert.ok(!NOT_HOSTED.includes(20261013030000));
+  assert.ok(HOSTED.includes('20261013030000_gtl_web_push_reminders.sql'));
   assert.equal(HOSTED.length, ALL.length - NOT_HOSTED.length);
   for (const v of FIX_FORWARD) assert.ok(!fs.existsSync(`${ROLLBACK_DIR}${ALL.find(f => version(f) === v)}`), `${v} is fix-forward, so it has no rollback file`);
 });
