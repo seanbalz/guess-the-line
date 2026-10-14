@@ -127,7 +127,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 
 ### 4.2 Gate M: applying a migration
 
-1. The migration PR merges only when it is next in the apply queue. Its file is stamped at merge, after the newest file on `main`. Filename order is apply order.
+1. The migration PR merges only when it is next in the apply queue. Its file is stamped at merge, after the newest file on `main`. Filename order is apply order, except where a file merged earlier sorts before a migration its "Apply after" names (section 6): M-06 (`20261015010000`) sorts before M-02 (`20261015030000`) and is still applied after it.
 2. Deploy anything that must exist first (error mapping, a route that reads both shapes).
 3. Sean says "apply M-xx".
 4. Read-only pre-check: the bodies being replaced match the repo's previous version (md5); new tables don't exist; nothing is half-applied.
@@ -172,6 +172,8 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 | `gtl_guess_locked_in` (new in M-01: a pick in a submitted ballot is locked in) | M-02, when it records per-game lock-ins |
 | `gtl_ballot_late` (new in M-01: reads `ballot.late` as `{deadline, minutes}`) | M-07, only if the stored Late marker takes another shape |
 | `gtl_feed_on_ballot` | M-07 |
+| `gtl_read_lines` (M-06: `mine.points` only for a submitted ballot, `mine.late` the ballot's marker) | M-07, for per-game lock-in and Late |
+| `gtl_read_guess_picks` (M-08: a removed member listed only with a submitted ballot or an opt-out; scores only submitted ballots; `late` the ballot's marker) | M-07, for per-game lock-in, scoring (D-41) and Late |
 | `gtl_read_social` | M-04 |
 | `gtl_begin_odds_collection`, `gtl_finish_odds_collection`, `gtl_begin_submission_odds_collection` (as built in stage 22; the two slate resolvers stay unchanged) | M-05 |
 | `gtl_read_bets`, `gtl_read_bets_board` | M-10 and M-12, then M-16 |
@@ -471,7 +473,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Sean sees: the Edge board after he sends.
 
 **33. Lines: line now and gate banner**
-- Scope: the middle line ("SEA −3") with "Updated … PT", or "Latest line" when older than 6 h; one gate banner per screen ("Finish Total picks", skip through `ForfeitDialog`); LIVE NOW and FINAL rows; the Late prefix on tags; the later-update footer goes.
+- Scope: the middle line ("SEA −3") with "Updated … PT", or "Latest line" when older than 6 h; one gate banner per screen ("Finish Total picks", skip through `ForfeitDialog`); LIVE NOW and FINAL rows; the Late prefix on tags; the later-update footer goes. `/lines/read` without a week reads only the newest published week, so on a Monday last week's unstarted game is read with its own season and week.
 - Tests: Playwright 390 `next-lines-gate.spec.js`: the leak scan at four moments (before a send; after the deadline with no ballot, before a Sunday kickoff; Spread sent, Total not; after "See picks now") across `/lines/*`, `/virtual-units`, `/community/history` and `/community/read`.
 - Sean sees: live lines after he sends a market.
 

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { CLOSED_GATE, lineLockedSentence, lockedMarkets, parseMarketsVisible, readLineGate } from '../cloud/line-lock.mjs';
 import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
+import { providerVirtualError } from '../cloud/virtual-units.mjs';
 import { TODAYS_RULES } from '../cloud/live-rules.mjs';
 import { assertNoLeak, leakScan, lineSecrets } from './helpers/leak-scan.mjs';
 import { ALL } from './migrations.mjs';
@@ -134,6 +135,11 @@ test('the lock sentence follows the live rules (the new app\'s copy.js lineLocke
   assert.equal(lineLockedSentence('spread', TODAYS_RULES), 'Submit your Spread picks to see this line.');
   assert.equal(lineLockedSentence('total', undefined), 'Submit your Total picks to see this line.');
   assert.equal(lineLockedSentence('total', { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' }), 'Lock in your Total pick to see this line.');
+  // One wording: a GTL_LINE_LOCKED from the database (none raises it today; the route words its own refusal) reads as the
+  // route's sentence under D-39, for no market in particular, never as a second explanation of the lock.
+  const fromDatabase = providerVirtualError('GTL_LINE_LOCKED');
+  assert.deepEqual([fromDatabase.status, fromDatabase.message], [409, 'Lock in your Guess the Line pick to see this line.']);
+  assert.equal(fromDatabase.message, lineLockedSentence(null, { sentFinal: true }));
 });
 
 test('/virtual-units before a send: no book offer and no consensus for either market, every market locked, own pick whole', async () => {
