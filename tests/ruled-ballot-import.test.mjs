@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { HOSTED, migrationSql } from './migrations.mjs';
 import { seed } from '../server/store.mjs';
 import { accuracy, round } from '../server/domain.mjs';
 import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
@@ -14,8 +15,9 @@ let PGlite;
 try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
 const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-// Every repo migration in filename order except the two that install pg_cron/pg_net (hosted-only extensions).
-const MIGRATIONS = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
+// The hosted migrations in filename order (tests/migrations.mjs). This old-app suite also reruns on HOSTED plus a new
+// migration and its rollback (tests/rollback.test.mjs).
+const MIGRATIONS = HOSTED;
 const SEAN = 30, TROY = 1, LUKE = 4, BEN = 2, NEW = 3;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const at = value => Date.parse(value);
@@ -83,7 +85,7 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
   await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
   const original = seed();
   for (const file of MIGRATIONS) {
-    await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    await db.exec(migrationSql(file));
     if (file === MIGRATIONS[0]) {
       await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', original]);
       for (const n of [SEAN, TROY, LUKE, BEN, NEW]) await db.query('insert into auth.users values($1)', [id(n)]);

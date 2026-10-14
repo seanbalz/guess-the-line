@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
+import { HOSTED, migrationSql } from './migrations.mjs';
 import { seed } from '../server/store.mjs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { OddsProviderError } from '../cloud/odds-provider.mjs';
@@ -10,12 +10,12 @@ const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; n
 
 // October 12, 2026 rulings (D-27): a player can submit or edit any time before the deadline; each changed guess is
 // scored against the newest stored line at its save, whatever its age, or, when no line is stored yet, the first
-// line collected after it, whenever its books last updated. Every repository migration runs in order (the two
-// hosted-extension files excepted) and requests go through the real gtl-api handler and Supabase adapter, whose REST
+// line collected after it, whenever its books last updated. Every hosted migration runs in order (HOSTED in
+// tests/migrations.mjs; this old-app suite also reruns with a new migration and its rollback) and requests go through the real gtl-api handler and Supabase adapter, whose REST
 // calls are answered by this in-process PGlite database. The odds provider is a stub: nothing here contacts a hosted project or a
 // provider, and every quote is synthetic.
 const NEW = '20261012230000_gtl_submit_with_line_at_guess.sql';
-const FILES = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql') && !/scheduler_extension/.test(f)).sort();
+const FILES = HOSTED;
 const BEFORE = FILES.filter(f => f < NEW), AFTER = FILES.filter(f => f > NEW);
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const iso = n => new Date(n).toISOString();
@@ -62,7 +62,7 @@ async function fixture(t, { legacy } = {}) {
   const users = [SEAN, STEVEN, TROY, LUKE, BEN];
   await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
   for (const file of BEFORE) {
-    await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+    await db.exec(migrationSql(file));
     if (file === BEFORE[0]) {
       await db.query("insert into public.gtl_leagues(id,state) values('sean-troy-luke',$1)", [seed()]);
       for (const n of users) await db.query('insert into auth.users values($1)', [id(n)]);
@@ -88,8 +88,8 @@ async function fixture(t, { legacy } = {}) {
     return key;
   };
   if (legacy) await legacy({ db, q, rpc, week6, signature, snapshot });
-  await db.exec(fs.readFileSync(`supabase/migrations/${NEW}`, 'utf8'));
-  for (const file of AFTER) await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+  await db.exec(migrationSql(NEW));
+  for (const file of AFTER) await db.exec(migrationSql(file));
 
   // The production wiring of supabase/functions/gtl-api/index.ts: createCloudHandler({ ...adapter, oddsProvider }).
   const log = [];
@@ -135,7 +135,10 @@ async function fixture(t, { legacy } = {}) {
   const count = async table => (await q(`select count(*)::int n from public.${table}`))[0].n;
   const budget = async () => (await q('select * from public.gtl_odds_budget'))[0];
   const outcomes = name => log.filter(entry => entry.name === name).map(entry => entry.outcome);
-  const standing = async (who, mode = 'guess_spread') => (await rpc('gtl_read_community', [id(who), null, 30, null])).standings.find(s => s.userId === id(who) && s.mode === mode);
+  // The board read after Week 6's last kickoff: M-01 (redesign stage 16) counts a game's points from its kickoff, and the earlier
+  // reader ignores the clock for points, so this reads the same totals with or without M-01 on HOSTED.
+  const afterKickoffs = new Date(Math.max(...week6.games.map(g => Date.parse(g.kickoff))) + 1000).toISOString();
+  const standing = async (who, mode = 'guess_spread') => (await rpc('gtl_read_community', [id(who), null, 30, afterKickoffs])).standings.find(s => s.userId === id(who) && s.mode === mode);
   const picks = (value = -3, games = week6.games) => Object.fromEntries(games.map(g => [g.id, value]));
   // A collection attempt that failed `ago` ms ago: it stored no line but holds the shared collect cooldown.
   const failedAttempt = async ago => {
@@ -150,7 +153,7 @@ async function fixture(t, { legacy } = {}) {
     const job = await rpc('gtl_begin_odds_collection', [id(SEAN), request, 'collect']);
     return rpc('gtl_finish_odds_collection', [id(SEAN), request, job.lease, payload(job.games, typeof line === 'function' ? line() : line), { remaining: 470, used: 30, last: 2 }, null]);
   };
-  return { db, q, rpc, as, week6, signature, snapshot, provider, log, call, read, submit, ballot, revision, count, budget, outcomes, standing, picks, failedAttempt, cooldownPassed, collect };
+  return { db, q, rpc, as, week6, signature, snapshot, provider, log, call, read, submit, ballot, revision, count, budget, outcomes, standing, afterKickoffs, picks, failedAttempt, cooldownPassed, collect };
 }
 
 // Lines collected after `savedAt` (the instant of a pending save) whose every book observation is at or after it.
@@ -407,7 +410,7 @@ test('6. replays stay idempotent: a retried submit returns its receipt and never
   // Re-applying the migration changes no function and no row.
   const dump = async () => (await f.q('select user_id,mode,ballot::text b,audit::text a from public.gtl_weekly_ballots order by user_id,mode')).map(Object.values);
   const before = await dump();
-  await f.db.exec(fs.readFileSync(`supabase/migrations/${NEW}`, 'utf8'));
+  await f.db.exec(migrationSql(NEW));
   assert.deepEqual(await dump(), before);
 });
 
@@ -456,7 +459,7 @@ test('7. rows stored before this migration stay byte for byte; legacy stale and 
   assert.equal(await f.rpc('gtl_resolve_pending_references', [2026, 6]), 0);
   assert.deepEqual(await dump(f.q, id(STEVEN)), legacy, 'no stored row of another player changed');
   // Scoring is unchanged for them: the old 'available' line scores, 'stale' and 'unavailable' stay unscored.
-  const standings = (await f.rpc('gtl_read_community', [id(SEAN), null, 30, null])).standings;
+  const standings = (await f.rpc('gtl_read_community', [id(SEAN), null, 30, f.afterKickoffs])).standings;
   const row = (who, mode) => standings.find(s => s.userId === id(who) && s.mode === mode);
   assert.equal(Number(row(TROY, 'guess_spread').weekScored), 14); assert.equal(Number(row(TROY, 'guess_spread').weekPoints), 14 * 9);
   assert.equal(Number(row(LUKE, 'guess_spread').weekScored), 0); assert.equal(Number(row(BEN, 'guess_total').weekScored), 0);
@@ -489,7 +492,7 @@ test('migration is idempotent, service-only and security invoker', { skip }, asy
     'gtl_finish_submission_odds_collection(uuid,uuid,uuid,jsonb,jsonb,text)', 'gtl_odds_schedule_slate(integer,integer,jsonb)', 'gtl_claim_odds_refresh(text,uuid)', 'gtl_read_odds_schedule(uuid,text)'];
   const defs = async () => Promise.all(sigs.map(async s => (await f.q('select pg_get_functiondef($1::regprocedure) d', [`public.${s}`]))[0].d));
   const before = await defs();
-  await f.db.exec(fs.readFileSync(`supabase/migrations/${NEW}`, 'utf8'));
+  await f.db.exec(migrationSql(NEW));
   assert.deepEqual(await defs(), before);
   for (const s of sigs) {
     for (const role of ['anon', 'authenticated']) assert.equal((await f.q('select has_function_privilege($1,$2,$3) ok', [role, `public.${s}`, 'EXECUTE']))[0].ok, false, s);

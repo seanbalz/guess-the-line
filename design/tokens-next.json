@@ -1,0 +1,212 @@
+{
+  "name": "Guess The Line",
+  "system": "D-38 redesign: Arena with three grafts",
+  "version": "2.0.0",
+  "status": "Approved with the D-38 prototype (canvas version 2), October 14, 2026. Used only by the new app in web/src/next. design/tokens.json stays for the old app.",
+  "css": {
+    "root": ".gx",
+    "classPrefix": "gx-",
+    "propertyPrefix": "--gx-",
+    "files": [
+      "web/src/next/styles/tokens.css",
+      "web/src/next/styles/base.css",
+      "web/src/next/styles/components.css"
+    ],
+    "themeAttribute": "data-theme",
+    "motionAttribute": "data-motion"
+  },
+  "webfonts": {
+    "stylesheet": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700;800&display=swap",
+    "preconnect": "https://fonts.gstatic.com",
+    "weights": {
+      "Barlow Condensed": [500, 600, 700],
+      "Big Shoulders Display": [700, 800],
+      "Figtree": [400, 500, 600, 700, 800]
+    }
+  },
+  "font": {
+    "display": "\"Big Shoulders Display\", Impact, \"Arial Narrow\", sans-serif",
+    "num": "\"Barlow Condensed\", \"Arial Narrow\", sans-serif",
+    "body": "Figtree, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+  },
+  "space": {
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "7": "32px",
+    "8": "40px",
+    "9": "48px",
+    "10": "64px"
+  },
+  "radius": {
+    "xs": "6px",
+    "sm": "10px",
+    "md": "16px",
+    "lg": "24px",
+    "pill": "999px"
+  },
+  "dur": {
+    "tap": "100ms",
+    "quick": "160ms",
+    "base": "240ms",
+    "exit": "200ms",
+    "big": "600ms",
+    "pulse": "1800ms"
+  },
+  "ease": {
+    "standard": "cubic-bezier(0.2, 0, 0, 1)",
+    "enter": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+    "exit": "cubic-bezier(0.3, 0, 0.8, 0.15)",
+    "pop": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+  },
+  "z": {
+    "content": "1",
+    "topbar": "20",
+    "tabbar": "30",
+    "dock": "35",
+    "sheet": "40",
+    "dialog": "45",
+    "popover": "48",
+    "toast": "50",
+    "overlay": "60"
+  },
+  "size": {
+    "touch": "44px",
+    "primary": "52px",
+    "topbar": "56px",
+    "tabbar": "64px",
+    "dock": "56px",
+    "gutter": "16px",
+    "content": "520px"
+  },
+  "av": {
+    "ink": "#0B1020",
+    "iris": "#B7ADFF",
+    "peach": "#FFB79E",
+    "sky": "#8FD8FF",
+    "mint": "#8FE6C0",
+    "butter": "#FFD97A",
+    "rose": "#FFA3BE",
+    "lilac": "#DDB3FF",
+    "sand": "#DCCDAE"
+  },
+  "type": {
+    "display": { "family": "display", "weight": 800, "size": "40px", "lineHeight": "40px", "transform": "uppercase", "tracking": "0.01em", "use": "Home hero line, celebration title. One per screen at most." },
+    "title": { "family": "display", "weight": 800, "size": "28px", "lineHeight": "32px", "transform": "uppercase", "tracking": "0.01em", "use": "The one screen title." },
+    "section": { "family": "display", "weight": 700, "size": "20px", "lineHeight": "24px", "transform": "uppercase", "tracking": "0.04em", "use": "Section heads, sheet and dialog titles." },
+    "team": { "family": "num", "weight": 700, "size": "20px", "lineHeight": "24px", "transform": "uppercase", "tracking": "0.02em", "tabular": true, "use": "Team abbreviations." },
+    "body": { "family": "body", "weight": 500, "size": "16px", "lineHeight": "24px", "use": "Reading text and inputs (16px stops iPhone zoom)." },
+    "strong": { "family": "body", "weight": 700, "size": "16px", "lineHeight": "24px", "use": "Names, button labels." },
+    "label": { "family": "body", "weight": 600, "size": "14px", "lineHeight": "20px", "tracking": "0.01em", "use": "Chip captions, small labels. Not for tappable text." },
+    "meta": { "family": "body", "weight": 500, "size": "13px", "lineHeight": "18px", "tracking": "0.01em", "use": "Kickoff, source and age." },
+    "micro": { "family": "body", "weight": 700, "size": "12px", "lineHeight": "16px", "transform": "uppercase", "tracking": "0.06em", "use": "Status pills and counters only. The floor." },
+    "n-xl": { "family": "num", "weight": 700, "size": "56px", "lineHeight": "56px", "tabular": true, "use": "Home countdown only." },
+    "n-l": { "family": "num", "weight": 700, "size": "32px", "lineHeight": "32px", "tabular": true, "use": "Final scores, your guess readout." },
+    "n-m": { "family": "num", "weight": 600, "size": "24px", "lineHeight": "28px", "tracking": "0.01em", "tabular": true, "use": "Lines on cards, board values." },
+    "n-s": { "family": "num", "weight": 600, "size": "18px", "lineHeight": "22px", "tracking": "0.01em", "tabular": true, "use": "Odds lines, chip numbers, small stats." },
+    "n-xs": { "family": "num", "weight": 600, "size": "16px", "lineHeight": "20px", "tracking": "0.01em", "tabular": true, "use": "Odds prices, to-win amounts." }
+  },
+  "themeColor": {
+    "dark": "#070B16",
+    "light": "#EEF1F6"
+  },
+  "themes": {
+    "dark": {
+      "colorScheme": "dark",
+      "color": {
+        "canvas": "#070B16",
+        "surface-1": "#111A2D",
+        "surface-2": "#1B253B",
+        "surface-3": "#26314B",
+        "border": "#303D57",
+        "border-strong": "#7A89A6",
+        "text-1": "#F5F7FB",
+        "text-2": "#BAC6D8",
+        "text-3": "#95A2BB",
+        "accent": "#B8F34B",
+        "accent-text": "#101B0A",
+        "accent-ink": "#B8F34B",
+        "accent-tint": "#283831",
+        "data": "#38BDF8",
+        "data-tint": "#17344D",
+        "win": "#34D399",
+        "win-tint": "#17383E",
+        "loss": "#FC7C8E",
+        "loss-tint": "#372A3D",
+        "pending": "#FBBF24",
+        "pending-tint": "#32312C",
+        "live": "#D08CFF",
+        "live-tint": "#332F53",
+        "on-state": "#070B16",
+        "focus": "#38BDF8",
+        "overlay": "#070B16CC",
+        "toast-bg": "#26314B",
+        "seg-on": "#26314B"
+      },
+      "effect": {
+        "e1": "inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.35)",
+        "e2": "0 8px 24px rgba(0, 0, 0, 0.45)",
+        "e3": "0 -16px 48px rgba(0, 0, 0, 0.6)",
+        "glow-accent": "0 0 0 1px rgba(184, 243, 75, 0.6), 0 0 20px rgba(184, 243, 75, 0.3)",
+        "glow-live": "0 0 0 1px rgba(208, 140, 255, 0.65), 0 0 18px rgba(208, 140, 255, 0.35)",
+        "glow-win": "0 0 0 1px rgba(52, 211, 153, 0.6), 0 0 24px rgba(52, 211, 153, 0.35)",
+        "lime-edge": "0 0 0 0 transparent",
+        "av-ring": "0 0 0 0 transparent",
+        "float-ring": "0 0 0 0 transparent",
+        "hero-shadow": "var(--gx-e1)",
+        "wash": "radial-gradient(120% 60% at 50% -10%, rgba(56, 189, 248, 0.1), transparent 60%)",
+        "yardlines": "repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 24px)"
+      }
+    },
+    "light": {
+      "colorScheme": "light",
+      "color": {
+        "canvas": "#EEF1F6",
+        "surface-1": "#FFFFFF",
+        "surface-2": "#F3F5F9",
+        "surface-3": "#E3E8F0",
+        "border": "#D3DAE5",
+        "border-strong": "#6E7D96",
+        "text-1": "#0B1020",
+        "text-2": "#3C4A63",
+        "text-3": "#526078",
+        "accent": "#B8F34B",
+        "accent-text": "#101B0A",
+        "accent-ink": "#3B6309",
+        "accent-tint": "#EAFBC9",
+        "data": "#03658A",
+        "data-tint": "#DBF3FE",
+        "win": "#067247",
+        "win-tint": "#DAF7ED",
+        "loss": "#B32643",
+        "loss-tint": "#FEE7EB",
+        "pending": "#8C5200",
+        "pending-tint": "#FEF3D8",
+        "live": "#7B2CBF",
+        "live-tint": "#F5E8FF",
+        "on-state": "#FFFFFF",
+        "focus": "#03658A",
+        "overlay": "#0B102099",
+        "toast-bg": "#FFFFFF",
+        "seg-on": "#FFFFFF"
+      },
+      "effect": {
+        "e1": "0 0 0 1px #D3DAE5, 0 1px 2px rgba(11, 16, 32, 0.06)",
+        "e2": "0 8px 24px rgba(11, 16, 32, 0.12)",
+        "e3": "0 -12px 40px rgba(11, 16, 32, 0.16)",
+        "glow-accent": "0 0 0 2px #3B6309",
+        "glow-live": "0 0 0 2px #7B2CBF",
+        "glow-win": "0 0 0 2px #067247",
+        "lime-edge": "inset 0 0 0 1px #3B6309",
+        "av-ring": "0 0 0 1px #D3DAE5",
+        "float-ring": "0 0 0 1px #6E7D96",
+        "hero-shadow": "var(--gx-e2)",
+        "wash": "none",
+        "yardlines": "none"
+      }
+    }
+  }
+}

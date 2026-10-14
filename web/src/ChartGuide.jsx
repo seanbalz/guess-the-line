@@ -1,7 +1,9 @@
 import React from 'react';
 import './chartGuide.css';
+import { sentFinal } from './sentFinal';
 
-export default function ChartGuide({ mode }) {
+// `rules` are the live Guess rules the view carries (redesign stage 15, D-37 and D-39).
+export default function ChartGuide({ mode, rules }) {
   if (!['guess_spread', 'guess_total'].includes(mode)) return null;
   const total = mode === 'guess_total';
   return <details className="chart-guide">
@@ -17,7 +19,7 @@ export default function ChartGuide({ mode }) {
       </div>
       <div>
         <dt>Saved reference vs current consensus</dt>
-        <dd>Your saved reference is the consensus captured at submission or with a changed guess saved before the deadline. Players can have different references. Current consensus is the latest collected number; later movement does not change your saved points.</dd>
+        <dd>{sentFinal(rules) ? 'Your saved reference is the consensus captured when you submit.' : 'Your saved reference is the consensus captured at submission or with a changed guess saved before the deadline.'} Players can have different references. Current consensus is the latest collected number; later movement does not change your saved points.</dd>
       </div>
       <div>
         <dt>Closer earns more accuracy points</dt>

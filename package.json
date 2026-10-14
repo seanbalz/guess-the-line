@@ -24,6 +24,8 @@
     "test:performance": "playwright test --config playwright.performance.config.js",
     "test:accessibility": "playwright test --config playwright.accessibility.config.js",
     "typecheck": "tsc --noEmit",
+    "trends": "node scripts/trends.mjs",
+    "trends:history": "node scripts/trends-history.mjs",
     "score": "tsx src/cli.ts"
   },
   "dependencies": {

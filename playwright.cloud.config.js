@@ -17,7 +17,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'node node_modules/vite/bin/vite.js build --mode cloud-test --outDir ../.local/cloud-test-dist && node node_modules/vite/bin/vite.js preview --mode cloud-test --outDir ../.local/cloud-test-dist --host 127.0.0.1 --port 5198 --strictPort',
-    env: { VITE_SUPABASE_URL: 'https://gtl-frontend-check.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_frontend_test_only' },
+    env: { VITE_SUPABASE_URL: 'https://gtl-frontend-check.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_frontend_test_only', VITE_GTL_OFFER_NEW_APP: '1' },
     url: 'http://127.0.0.1:5198',
     reuseExistingServer: false,
   },

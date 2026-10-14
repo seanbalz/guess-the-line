@@ -2,7 +2,7 @@
 // two hours before the open week's deadline (TNF kickoff, D-24) with a one-run
 // capability checked in SQL, the D-24 gtl-week-open pattern. Each player whose
 // Spread or Total ballot is neither submitted nor sat out (D-23) gets one push per
-// mode at most; the payload names the week, the lock time and the modes still due,
+// mode at most; the payload names the week, the due time and the modes still open,
 // never a pick, a line or another player (spoiler protection).
 import { readRunBody } from './odds-refresh.mjs';
 import { weekOpenAt } from '../shared/nfl-schedule.mjs';
@@ -48,13 +48,13 @@ export function pacificClock(instant) {
   return `${parts.hour}:${parts.minute} ${String(parts.dayPeriod).toUpperCase()}`;
 }
 
-/** The whole notification. Week number, lock time and mode names only. */
+/** The whole notification. Week number, due time and mode names only. D-39: the text says "due", not "lock". */
 export function reminderPayload({ season, week, deadline, modes }) {
   const names = REMINDER_MODES.filter(mode => modes.includes(mode)).map(mode => MODE_LABEL[mode]);
   if (!names.length) throw new Error('A reminder needs at least one mode.');
   return {
     title: 'Guess The Line',
-    body: `Week ${week} picks lock at ${pacificClock(deadline)} PT. ${names.join(' and ')} still due.`,
+    body: `Week ${week} picks are due ${pacificClock(deadline)} PT. ${names.join(' and ')} still open.`,
     tag: `gtl-deadline-${season}-${week}`,
   };
 }

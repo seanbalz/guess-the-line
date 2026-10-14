@@ -1,19 +1,25 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, Check, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
+import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, ChartSpline, Check, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import LegalLinks from './LegalLinks';
 import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
 import TeamFacts from './TeamFacts';
 import SitOutWeek from './SitOutWeek';
+import GameTrends from './GameTrends';
+import RefereeAssignments from './RefereeAssignments';
+import { useTrendsToggle } from './trendsData';
+import { communityAccess, referenceValue } from '../../shared/trends-view.mjs';
 import CommunityHistory from './CommunityHistory';
 import LineAtGuess from './LineAtGuess';
 import { PushReminderPrompt } from './PushReminders';
+import TryNewApp from './TryNewApp';
 import { cloudApi, communityApi, date } from './api';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
 import { MODE, pickText, shortName, show, team } from './communityFormat';
 import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
+import { FINAL_LABEL, FINAL_SHORT, ballotFinal, pickFinal, sentFinal } from './sentFinal';
 import './community.css';
 
 const DAY = 86_400_000;
@@ -36,13 +42,14 @@ const picksFor = (d, m) => Object.fromEntries(d.games.map(g => [g.id, d.ballots[
 // Persona audit #3: the market a bare #picks opens once the week is known. A market with unsaved picks waiting in this tab comes
 // first, so they are offered back instead of sitting behind the other market's button; then the feed's first market still due,
 // then the first the week itself still has open (unsubmitted, not sat out), then Spread. A closed or not-yet-open week offers no
-// copy back, so it opens the first market due as before.
+// copy back, so it opens the first market due as before; nor does a market whose picks are all final (redesign stage 15), where
+// a copy can no longer be saved.
 function chooseMarket(d, { accountId, initialMode, optOuts }) {
   const modes = Object.keys(MODE), due = modes.filter(m => !d.ballots[m]?.submittedAt && !optOuts.includes(m));
   const order = [...new Set([initialMode, ...due, ...modes].filter(Boolean))];
   const open = Date.parse(d.now) < Date.parse(d.deadline) && Date.parse(d.now) >= Date.parse(weekOpenAt(d.deadline));
   const waiting = open && order.find(m => {
-    if (optOuts.includes(m)) return false;
+    if (optOuts.includes(m) || ballotFinal(d.rules, d.ballots[m], d.games.map(g => g.id))) return false;
     const copy = readCommunityDraft(communityDraftScope({ accountId, season: d.season, week: d.week, mode: m }), d.games);
     return copy && communityPicksDiffer(copy.draft, picksFor(d, m));
   });
@@ -106,7 +113,7 @@ function WeekUnpublished() {
     <p>No week is open yet. Weeks open automatically Monday 12:00 AM PT once the schedule is published; picks due will show here.</p></section>;
 }
 
-function PicksDue({ due, all = [], onPick }) {
+function PicksDue({ due, all = [], push = false, onPick }) {
   if (!due || ['none', 'done'].includes(due.state)) return null;
   const closed = due.state === 'closed', notOpen = due.state === 'not_open';
   // Persona audit #15: a submitted market stays on the card with a check; a sat-out market is never due (D-23), so it is left off.
@@ -120,8 +127,9 @@ function PicksDue({ due, all = [], onPick }) {
     <Bell size={22} aria-hidden="true"/>
     <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2><p>{detail}</p></div>
     {!closed && !notOpen && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
-    {/* D-28: opt-in web push, one reminder 2 hours before the deadline; nothing is registered until the player asks. */}
-    {!closed && <PushReminderPrompt/>}
+    {/* D-28: opt-in web push, one reminder 2 hours before the deadline; nothing is registered until the player asks.
+        Stage 2 push guard: shown only when /community/read says push is configured. */}
+    {!closed && <PushReminderPrompt configured={push}/>}
   </section>;
 }
 
@@ -265,8 +273,10 @@ function RevealedPicks({ game, mode, season, week, feed, posts, own, closed }) {
 /** Persona audit #25: the receipt of a submitted ballot while the week is open. Its heading names the market and the count, the line
  * under it the submission time in PT (and the last change: a changed pick is re-referenced when saved, D-16), then what is still
  * due for the week with a button that opens it, the feed reveal for this market only (D-23) and "Edit picks". It is the ballot's
- * status whenever the market is shown; it takes focus only after an in-session submit (WeekPicks). */
-function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, onOther, onReveal, onEdit }) {
+ * status whenever the market is shown; it takes focus only after an in-session submit (WeekPicks).
+ * Redesign stage 15 (D-37, D-39): once the server's live rules say `sentFinal` (M-02), submitted picks are final. The line reads
+ * "Submitted · final" and there is no "Edit picks". A change made before then (D-16) keeps its time on the line (D-23). */
+function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, final = false, onOther, onReveal, onEdit }) {
   const changed = ballot.updatedAt && ballot.updatedAt !== ballot.submittedAt;
   const due = other.submitted ? 'Both ballots submitted. Nothing else is due this week.' : other.satOut ? `${MODE[other.mode]}: sat out (final). Nothing else is due this week.`
     : `${MODE[other.mode]}: ${other.filled}/${other.games} still due · ${dueText(deadline)}`;
@@ -274,12 +284,14 @@ function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, onOther
     <CircleCheck size={22} aria-hidden="true"/>
     <div>
       <h3 id={id}>{MODE[mode]} submitted · {count} {count === 1 ? 'pick' : 'picks'}</h3>
-      <p className="muted small">Submitted {date(ballot.submittedAt)} PT{changed ? ` · changed ${date(ballot.updatedAt)} PT` : ''}. Each pick is scored against the line stored when you saved it (shown on each game); a pick you change before the deadline takes the line at that save.</p>
+      <p className="muted small">{final ? `${FINAL_LABEL} · ${date(ballot.submittedAt)} PT` : `Submitted ${date(ballot.submittedAt)} PT`}{changed ? ` · changed ${date(ballot.updatedAt)} PT` : ''}. {final
+        ? "Each pick is scored against the line stored when you saved it (shown on each game). Submitted picks can't be changed."
+        : 'Each pick is scored against the line stored when you saved it (shown on each game); a pick you change before the deadline takes the line at that save.'}</p>
       <p className="receipt-due">{due}</p>
       <div className="receipt-actions">
         {!other.submitted && !other.satOut && <button type="button" className="primary" aria-disabled={busy || undefined} onClick={onOther}>Make {MODE[other.mode]} picks<ArrowRight size={16} aria-hidden="true"/></button>}
         <button type="button" className="secondary" onClick={onReveal}>See everyone's {MODE[mode]} picks</button>
-        <button type="button" className="secondary" onClick={onEdit}>Edit picks</button>
+        {!final && <button type="button" className="secondary" onClick={onEdit}>Edit picks</button>}
       </div>
     </div>
   </section>;
@@ -294,7 +306,8 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   const [busy, setBusy] = useState(false), [saving, setSaving] = useState(null), [error, setError] = useState(''), [unpublished, setUnpublished] = useState(false);
   const [notice, setNotice] = useState(''), [failure, setFailure] = useState(null), [hint, setHint] = useState(''), [recovery, setRecovery] = useState(null);
   const [dismissed, setDismissed] = useState(() => new Set(Object.keys(MODE).filter(m => { try { return localStorage.getItem(helpKey(m)) === 'off'; } catch { return false; } })));
-  const request = useRef(null), root = useRef(null), refocus = useRefocus(root), hintId = useId(), receiptId = useId();
+  const request = useRef(null), root = useRef(null), refocus = useRefocus(root), hintId = useId(), receiptId = useId(), finalId = useId();
+  const [showTrends, toggleTrends] = useTrendsToggle();
   // The save-bar button behind the latest request ("draft" or "submit"); a banner action hands focus back to it.
   const action = useRef('draft');
   const settled = useRef(currentMarket() !== null), latest = useRef(null);
@@ -344,7 +357,13 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   const ballot = data.ballots[mode], submitted = !!ballot?.submittedAt, closed = Date.parse(data.now) >= Date.parse(data.deadline);
   const opensAt = weekOpenAt(data.deadline), notOpen = Date.parse(data.now) < Date.parse(opensAt);
   const satOut = optOuts.includes(mode);
-  const editable = !closed && !notOpen && !satOut;
+  // Redesign stage 15 (D-37, D-39): once the server's live rules say `sentFinal` (M-02), each locked-in pick is final (today, a pick in
+  // the submitted ballot): its chips are read-only and a ballot with every pick locked in has nothing left to save. Until then
+  // `rules.sentFinal` is false and a submitted ballot stays editable until the deadline (D-16).
+  const finalRule = sentFinal(data.rules), isFinal = gameId => pickFinal(data.rules, ballot, gameId);
+  const allFinal = ballotFinal(data.rules, ballot, data.games.map(g => g.id));
+  const open = !closed && !notOpen && !satOut, editable = open && !allFinal;
+  const trendAccess = communityAccess({ ballots: data.ballots, optOuts, closed });
   const filled = Object.values(picks).filter(v => v !== '').length, remaining = data.games.length - filled;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
   // Persona audit #8: every save failure names the problem and offers the next step, beside the save bar. "Sign in again" unmounts
@@ -412,7 +431,7 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
     save(true);
   }
   const header = satOut ? "Sat out · others' picks visible" : notOpen ? `Not open yet · ${dueText(data.deadline)}`
-    : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline, { weekday: 'short' })} PT (${dueIn(data.deadline, data.now)})`}${submitted ? (closed ? ' · Submitted' : ' · Submitted, editable until the deadline') : ''}`;
+    : `${filled}/${data.games.length} picked · ${closed ? 'Closed' : `Due ${date(data.deadline, { weekday: 'short' })} PT (${dueIn(data.deadline, data.now)})`}${submitted ? (closed ? ' · Submitted' : finalRule ? ` · ${FINAL_LABEL}` : ' · Submitted, editable until the deadline') : ''}`;
   // The receipt's "still due" line reads the other market's saved ballot and opt-out (a sat-out market is never due, D-23).
   const otherMode = mode === 'guess_spread' ? 'guess_total' : 'guess_spread';
   const other = { mode: otherMode, submitted: !!data.ballots[otherMode]?.submittedAt, satOut: optOuts.includes(otherMode), games: data.games.length,
@@ -421,6 +440,9 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
     <div className="personal-actions" role="group" aria-label="Market">{Object.entries(MODE).map(([m, label]) =>
       <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} aria-disabled={busy || undefined} onClick={() => switchMode(m)}>
         {label}{data.ballots[m]?.submittedAt ? ' ✓' : optOuts.includes(m) ? ' · Sat out' : ''}</button>)}</div>
+    {/* Situational trends (October 12, 2026 ruling): off by default so each game keeps one Tab stop per chip row; the choice is kept on this device. */}
+    <div className="trends-toggle-row"><button type="button" className="secondary trends-toggle" aria-pressed={showTrends} onClick={toggleTrends}><ChartSpline size={16} aria-hidden="true"/>Show trends</button>
+      <span className="muted small">Past results by game situation. Reference only; trends never change scoring.</span></div>
     <p className="muted">Week {data.week} · {header}</p>
     {notOpen && <section className="panel week-not-open" role="status"><h3>{opensText(data.week, opensAt)}</h3><p>Nobody can pick before then. The schedule is below; the chips appear when the week opens.</p></section>}
     {/* Persona audit #41: the sat-out screen keeps its promise. The other members' picks for this market are on the cards below; once the
@@ -434,7 +456,7 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
     {/* The receipt is the submitted ballot's standing status; the recovery card below it carries this tab's unsaved edits on top of it.
         Neither moves focus on a reload or a market switch: the receipt takes focus only after an in-session submit (save), and the
         card's buttons hand focus to the first chip. */}
-    {submitted && editable && <SubmitReceipt id={receiptId} mode={mode} count={Object.values(picksFor(data, mode)).filter(v => v !== '').length} ballot={ballot} other={other} deadline={data.deadline} busy={busy}
+    {submitted && open && <SubmitReceipt id={receiptId} mode={mode} count={Object.values(picksFor(data, mode)).filter(v => v !== '').length} ballot={ballot} other={other} deadline={data.deadline} busy={busy} final={finalRule}
       onOther={() => switchMode(otherMode)} onReveal={() => onReveal?.(mode)} onEdit={() => root.current?.querySelector('.week-pick-list .chip:not(:disabled)')?.focus()}/>}
     {/* Persona audit #3: a tab copy that differs from the saved ballot is offered back, never applied silently and never called saved. */}
     {recovery && editable && <section className="panel picks-recovery" aria-label={`Unsaved ${MODE[mode]} picks`}>
@@ -451,7 +473,10 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       {submitted && <LineAtGuess reference={ballot.scoringReferences?.[g.id]} pick={ballot.picks?.[g.id]} spread={mode === 'guess_spread'}/>}
       {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
         : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
-        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
+        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable || isFinal(g.id)} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
+      {/* Line-dependent trends unlock per market (submitted, sat out or closed); bands are marked with this player's own saved line only. */}
+      {showTrends && <GameTrends season={data.season} week={data.week} gameId={g.id} away={g.awayCode} home={g.homeCode} level={4} access={trendAccess} savedLabel="your saved line"
+        saved={{ spread: referenceValue(data.ballots.guess_spread?.scoringReferences?.[g.id]), total: referenceValue(data.ballots.guess_total?.scoringReferences?.[g.id]) }}/>}
     </article>)}</div>
     {editable && <div className="save-bar">
       {failure && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{failure.message}</span>
@@ -460,10 +485,12 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       {/* Always mounted: a live region whose text changes is announced; one inserted with its text often is not. Submit is described by it. */}
       <p className="save-hint" id={hintId} role="status" aria-live="polite">{hint}</p>
       {/* Persona audit #24: the due time travels with the sticky bar, so the deadline is on screen wherever the player is scrolled. */}
-      <div className="save-status"><strong>{filled}/{data.games.length} ready</strong><span className="save-due">{dueShort(data.deadline, data.now)}</span></div>
+      {/* Redesign stage 15: while lock-in is final, the rule sits beside Submit and describes it, before anything is sent. */}
+      <div className="save-status"><strong>{filled}/{data.games.length} ready</strong><span className="save-due">{dueShort(data.deadline, data.now)}</span>
+        {finalRule && !submitted && <span className="save-final" id={finalId}>{FINAL_SHORT}</span>}</div>
       {/* Busy and nothing-to-save states are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…" and after. */}
       {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}
-      <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
+      <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={finalRule && !submitted ? `${hintId} ${finalId}` : hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
     {/* Persona audit #40: the final opt-out is a text link below the ballot, after Save draft and Submit in the tab order, not a button beside them.
         The opt-out clears the last save notice ("Draft saved.") so it does not sit under the sat-out note. */}
     {editable && !submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { removeCommunityDraft(scope); setNotice(''); refocus('.week-sat-out'); await load(); await onSatOut?.(); }}/>}
@@ -536,9 +563,10 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         : tab === 'history' ? <CommunityHistory accountId={accountId}/>
         : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
-        <PicksDue due={feed.picksDue} all={feed.due} onPick={() => goScreen('picks')}/>
+        <PicksDue due={feed.picksDue} all={feed.due} push={feed.pushConfigured === true} onPick={() => goScreen('picks')}/>
         <Leaderboard feed={feed}/>
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}
+        {feed.admin && feed.week && <RefereeAssignments season={feed.week.season} week={feed.week.week}/>}
         <section className="community-feed" aria-label="Activity feed" tabIndex={-1}>
           {posts.map(post => <Post key={post.id} post={post} name={name} busy={busy} onLike={like} onComment={comment}/>)}
           {!posts.length && <p className="panel">No activity yet.</p>}
@@ -551,6 +579,8 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
       <ThemeSelector/>
       <div className="hub-bottom"><span>Signed in as {displayName}. Everything here is shared with every member.</span>
         <button className="text-button" disabled={busy} onClick={() => act(load)}><RefreshCw size={16}/>Refresh</button>
+        {/* Redesign stage 9 (D-38, D-39): every signed-in member can opt in to the new app on this device. */}
+        <TryNewApp disabled={busy}/>
         <button className="secondary" disabled={busy} onClick={onSignOut}>Sign out</button><LegalLinks/></div>
     </main>
   </div>;

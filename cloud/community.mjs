@@ -7,7 +7,8 @@ import { buildSlate, weekOpenAt } from '../shared/nfl-schedule.mjs';
 export class CommunityError extends Error {
   constructor(status, message) { super(message); this.name = 'CommunityError'; this.status = status; }
 }
-export const COMMUNITY_METHODS = Object.fromEntries(['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open'].map(action => [`/community/${action}`, ['POST']]));
+// /community/picks: everyone's Guess picks for a week and market, game by game (M-08, redesign build plan stage 26).
+export const COMMUNITY_METHODS = Object.fromEntries(['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks'].map(action => [`/community/${action}`, ['POST']]));
 const ERRORS = {
   GTL_COMMUNITY_INVALID: [400, 'Check the post and try again.'],
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -15,6 +16,9 @@ const ERRORS = {
   GTL_COMMUNITY_CLOSED: [409, 'Picks for that week are closed. Sitting out is no longer possible.'],
   GTL_SLATE_CONFLICT: [409, 'A different schedule is already published for that week. Nothing was changed.'],
   GTL_COMMUNITY_RETRY_CONFLICT: [409, 'This request was already used for a different comment. Refresh before posting again.'],
+  // M-08 (stage 26): /community/picks while its reader is not on the hosted project yet (PostgREST PGRST202, see
+  // createSupabaseAdapter) or while gtl-api's GTL_FEATURE_OFF secret names `picks` (cloud/feature-off.mjs).
+  GTL_FEATURE_OFF: [503, 'This feature is not available right now.'],
 };
 export const providerCommunityError = message => ERRORS[message] ? new CommunityError(...ERRORS[message]) : new Error('The community feed is unavailable.');
 const invalid = () => { throw providerCommunityError('GTL_COMMUNITY_INVALID'); };
@@ -117,6 +121,41 @@ function normalizeHistory(raw, viewer) {
   return { viewer: String(raw.viewer), season: Number.isInteger(raw.season) ? raw.season : null, now: text(raw.now), seasons, members, weeks };
 }
 
+// Everyone's picks (M-08, redesign build plan stage 26; D-39, D-31, D-30, D-23). The database already withholds another
+// member's guess until it is locked in and that game and market is open to the viewer (M-01's gate), and returns the error,
+// points, shared rank and closest flag only from that game's kickoff; this filter is the second gate for both, whatever the
+// provider returned. The viewer's own guess always passes, a draft included (lockedIn tells it apart). A draft of anyone else
+// is never told apart from no ballot ('not_yet', no number), and no line value is ever part of this reply.
+const PICK_STATUSES = ['in', 'late', 'not_yet', 'sat_out'];
+const GAME_ID = /^[A-Z]{2,4}-[A-Z]{2,4}$/;
+function normalizeLate(raw) {
+  return record(raw) && finite(raw.minutes) !== null ? { deadline: text(raw.deadline), minutes: raw.minutes } : null;
+}
+function normalizePicks(raw, viewer) {
+  if (!record(raw) || !Array.isArray(raw.games)) throw new Error('Invalid picks.');
+  const games = raw.games.filter(g => record(g) && GAME_ID.test(g.gameId ?? '')).map(g => {
+    const started = g.started === true, open = g.open === true;
+    const rows = (Array.isArray(g.rows) ? g.rows : []).filter(r => record(r) && UUID_PATTERN.test(r.userId ?? '') && PICK_STATUSES.includes(r.status)).map(r => {
+      const own = r.userId.toLowerCase() === viewer.toLowerCase(), locked = r.status === 'in' || r.status === 'late';
+      // Another member's guess only while it is locked in and open to the viewer; the viewer's own always.
+      const shown = own || (locked && open && r.hidden !== true);
+      // From kickoff only, and only for a locked-in guess the viewer may see.
+      const error = started && locked && shown ? finite(r.error) : null;
+      const scored = error !== null;
+      return {
+        userId: r.userId, removed: r.removed === true, status: r.status, lockedIn: locked,
+        late: locked ? normalizeLate(r.late) : null, eligible: locked ? r.eligible !== false : null,
+        hidden: locked && !shown, pick: shown ? finite(r.pick) : null,
+        error, points: scored ? finite(r.points) : null, rank: scored && Number.isInteger(r.rank) && r.rank > 0 ? r.rank : null,
+        tied: scored && r.tied === true, closest: scored && r.closest === true,
+      };
+    });
+    return { gameId: g.gameId, kickoff: text(g.kickoff), started, open, rows };
+  });
+  return { viewer, season: Number.isInteger(raw.season) ? raw.season : null, week: Number.isInteger(raw.week) ? raw.week : null,
+    mode: MODES.includes(raw.mode) ? raw.mode : null, now: text(raw.now), deadline: text(raw.deadline), games };
+}
+
 /**
  * Picks due for the viewer: "not_open" before the week's Monday 00:00 PT open (D-24),
  * "urgent" inside two hours of the deadline, "closed" after it. A sat-out mode is never due (D-23).
@@ -131,17 +170,37 @@ export function picksDue(feed, now) {
   return { state, opensAt, deadline: feed.week.deadline, week: feed.week.week, modes: open, now: new Date(now).toISOString() };
 }
 
-export async function handleCommunity({ route, body = {}, user, service, clock = Date.now }) {
+/**
+ * `pushConfigured` (redesign stage 2, push guard): true only when gtl-api holds a valid VAPID public key.
+ * /community/read carries the boolean so the old app hides its reminder controls until push really works;
+ * the key itself is never part of this reply (only /push/status hands it over, on the player's tap).
+ */
+export async function handleCommunity({ route, body = {}, user, service, clock = Date.now, pushConfigured = false, featureOff = new Set() }) {
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new CommunityError(401, 'Sign in to continue.');
   if (!service?.rpc) throw new Error('The community feed is not configured.');
   if (!Object.hasOwn(COMMUNITY_METHODS, route)) invalid();
+  if (route === '/community/picks') {
+    // Everyone's picks for one week and market (M-08): every game, or one (gameId); every member, or one (userId, the
+    // League "See Kenny's picks" row). The viewer always comes from sign-in. Without season and week, the newest published week.
+    fields(body, ['season', 'week', 'mode', 'gameId', 'userId']);
+    if ((body.season === undefined) !== (body.week === undefined)) invalid();
+    if (body.season !== undefined && (!Number.isInteger(body.season) || body.season < 2000 || body.season > 2200 || !Number.isInteger(body.week) || body.week < 1 || body.week > 25)) invalid();
+    if (!MODES.includes(body.mode)) invalid();
+    if (body.gameId !== undefined && !GAME_ID.test(typeof body.gameId === 'string' ? body.gameId : '')) invalid();
+    if (body.userId !== undefined && !UUID_PATTERN.test(typeof body.userId === 'string' ? body.userId : '')) invalid();
+    // Gate M off switch: GTL_FEATURE_OFF=picks stops this reader before it reaches the database (cloud/feature-off.mjs).
+    if (featureOff.has('picks')) throw providerCommunityError('GTL_FEATURE_OFF');
+    const now = clock();
+    return normalizePicks(await service.rpc('gtl_read_guess_picks', { p_user: user.id, p_season: body.season ?? null, p_week: body.week ?? null,
+      p_mode: body.mode, p_game: body.gameId ?? null, p_target: body.userId ?? null, p_now: new Date(now).toISOString() }), user.id);
+  }
   if (route === '/community/read') {
     fields(body, ['before', 'limit']);
     if (body.before !== undefined && !Number.isFinite(Date.parse(body.before))) invalid();
     if (body.limit !== undefined && (!Number.isInteger(body.limit) || body.limit < 1 || body.limit > 100)) invalid();
     const now = clock();
     const feed = normalize(await service.rpc('gtl_read_community', { p_user: user.id, p_before: body.before ?? null, p_limit: body.limit ?? 30, p_now: new Date(now).toISOString() }));
-    return { ...feed, picksDue: picksDue(feed, now) };
+    return { ...feed, picksDue: picksDue(feed, now), pushConfigured: pushConfigured === true };
   }
   if (route === '/community/history') {
     fields(body, ['season']);

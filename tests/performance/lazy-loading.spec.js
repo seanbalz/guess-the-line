@@ -14,11 +14,12 @@ const noWrites = fixture => expect(fixture.apiRequests.filter(request => request
 test('sign-in, lobby, league and optional screens load only the code they use', async ({ page, fixture }) => {
   await page.goto('/');
   await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
-  for (const name of ['App', 'GameHub', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
+  for (const name of ['App', 'GameHub', 'NextApp', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
   expect(fixture.apiRequests).toHaveLength(0);
   await signIn(page);
   expect(loaded(fixture, 'GameHub')).toHaveLength(1);
-  for (const name of ['App', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
+  // Redesign stage 9: the old app never downloads the new app's chunk.
+  for (const name of ['App', 'NextApp', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
   expect(fixture.apiRequests.every(request => request.pathname.endsWith('/lobby'))).toBe(true);
   await page.getByRole('button', { name: 'Open game', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'The weekly huddle.', exact: true })).toBeVisible();
@@ -34,7 +35,24 @@ test('sign-in, lobby, league and optional screens load only the code they use', 
   await expect(page.getByRole('heading', { name: 'The bet feed', exact: true })).toBeVisible();
   expect(loaded(fixture, 'SocialBetTracker')).toHaveLength(1);
   expect(loaded(fixture, 'PersonalWorkspace')).toHaveLength(0);
+  expect(loaded(fixture, 'NextApp')).toHaveLength(0);
   noWrites(fixture);
+});
+
+// Redesign stage 9 (D-38, D-39): a device that chose the new app loads only its chunk, never the old app's screens.
+test('a device that chose the new app loads NextApp and none of the old app\'s screens', async ({ page, fixture }) => {
+  await page.addInitScript(() => { try { localStorage.setItem('gtl.app', 'next'); } catch { /* Private mode: the old app opens. */ } });
+  await page.goto('/');
+  await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
+  for (const name of ['App', 'GameHub', 'NextApp', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
+  await page.getByLabel('Email', { exact: true }).fill('player@example.test');
+  await page.getByLabel('Password', { exact: true }).fill('local-test-password');
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Home', level: 1, exact: true })).toBeVisible();
+  expect(loaded(fixture, 'NextApp')).toHaveLength(1);
+  for (const name of ['App', 'GameHub', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
+  expect(fixture.apiRequests, 'the stage 10 shell calls no route yet').toHaveLength(0);
 });
 
 test('a delayed optional chunk shows a status and leaves the pick route usable', async ({ page, fixture }) => {

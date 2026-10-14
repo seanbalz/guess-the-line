@@ -213,3 +213,54 @@ Open **Settings & setup → Appearance** for Light, Dark or System. The same con
 is on sign-in and My games. It remembers this browser/device’s choice, with Dark
 the default. Final brand approval remains separate. Current deployment and exact
 preservation/readback evidence are in [CLOUD_SETUP.md](CLOUD_SETUP.md).
+
+## The new app switch (redesign stage 9, D-38 and D-39)
+Every signed-in member sees **Try the new app** in the Community footer (D-39:
+the whole league, opt-in; no tester list) from the first-look deploy. Until then
+a production build leaves it out (`NEW_APP_OFFERED`, on only with
+`VITE_GTL_OFFER_NEW_APP=1`, which the browser test configs set). The choice is kept on this device
+(`gtl.app` in localStorage, `web/src/appView.js`) and the page reloads into the
+new app, a separate lazy chunk (`web/src/next/NextApp.jsx`, with its own CSS)
+that a device on the old app never downloads. **Use the old app** in the new app
+switches back. Every switch reloads the page, so the two apps never run together;
+both use the same sign-in, routes and tables, so a pick or bet made in one shows in
+the other. The switch is a convenience, not a security gate.
+
+- The default stays the old app until the flip (build plan stage 80). Nothing
+  saved, an unknown value or storage that throws all mean the default.
+- `?app=classic` always opens the old app and keeps that choice for this device.
+- If the new app's chunk cannot load, the old app opens in its place, the saved
+  choice is cleared and the footer says so.
+- If the browser refuses to save the choice, the old app stays open and the
+  footer says why.
+
+### The new app's frame (redesign stage 10)
+Since stage 10 the new app opens on its frame (`web/src/next/shell/`), which still
+reads and writes nothing and calls no route; the data layer arrives in stage 11.
+
+- **Top bar:** the Field monogram (Home), the league pill (Community until stage 11
+  reads your leagues; it opens "Your leagues", which sends groups and invites to the
+  old app for now) and your avatar, which opens the menu: **Appearance** (Dark, Light
+  or System, and Reduce motion), **Use the old app** and **Sign out**. Appearance
+  and Reduce motion are kept on this device under the old app's own keys
+  (`gtl.theme` and the motion choice in `gtl.dashboard.preferences.v1`), so both
+  apps always agree.
+- **Five tabs:** Home, Play, Bets, Lines and League, each with a "Coming next" card
+  that says what the tab is for and offers Use the old app. Each tab and page has
+  its own error card (Try again, Use the old app), so one failing screen never takes
+  the app down.
+- **Address and Back:** the tab is the address fragment (`#home`, `#play`, `#bets`,
+  `#lines`, `#league`), so a reload keeps the tab and Back moves between tabs. While
+  a sheet, dialog, page or celebration is open, the phone's Back button closes it
+  first. The old app's links still work: `#picks` (and `#picks-spread`,
+  `#picks-total`) open Play, `#feed` opens League, `#groups` opens "Your leagues".
+  Sign-in and invite fragments, `#main` and `#picks-due` are left alone.
+- **Layers:** one stack of sheets (a sub-view opens in place and keeps focus inside
+  the sheet), one dialog, one popover, celebrations one at a time, and toasts one at
+  a time 8 px above the tab bar or a dock bar, announced from one live region that
+  is always in the page. A layer that fails closes itself, even one hidden under
+  another sheet, and says so in a toast with Use the old app. An offline banner
+  shows at the top when the browser is offline.
+- Each tab has a slot file (`web/src/next/<tab>/index.js`: `homeTiles`, `counter`,
+  `sheetActions`) that Home, the tab bar and the game sheet read; all are empty at
+  stage 10.

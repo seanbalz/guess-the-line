@@ -1,6 +1,9 @@
 // Stage 1 of the dashboard design handoff (Sean's decision of October 12, 2026): Inter, Barlow Condensed
 // and IBM Plex Mono load from Google Fonts with font-display: swap; no font file is distributed, and
 // both content security policies allow exactly the two Google Fonts origins and nothing else new.
+// Redesign stage 6 (D-38): the new app adds Figtree, Big Shoulders Display and Barlow Condensed from
+// the same two origins when it mounts, so the policies stay exactly as they are. web/index.html keeps
+// the old app's fonts until the flip (stage 80).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,6 +12,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createServer } from '../server/index.mjs';
 import { createStore } from '../server/store.mjs';
+import { NEXT_FONT_ORIGIN, NEXT_FONT_STYLESHEET, addNextFontLinks } from '../web/src/next/styles/fonts.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -30,6 +34,39 @@ test('the font tokens keep the brand guide system fallbacks behind each webfont'
   assert.match(fonts.body, /^Inter, system-ui, -apple-system, Segoe UI, sans-serif$/);
   assert.match(fonts.display, /^Barlow Condensed, Impact, Arial Narrow, sans-serif$/);
   assert.match(fonts.mono, /^IBM Plex Mono, ui-monospace, SFMono-Regular, monospace$/);
+});
+
+test('the new app (D-38) loads Figtree, Big Shoulders Display and Barlow Condensed from Google Fonts with display=swap', () => {
+  const tokens = JSON.parse(read('design/tokens-next.json'));
+  assert.equal(NEXT_FONT_STYLESHEET, tokens.webfonts.stylesheet, 'fonts.js and tokens-next.json name the same stylesheet');
+  assert.equal(NEXT_FONT_ORIGIN, tokens.webfonts.preconnect);
+  const url = new URL(NEXT_FONT_STYLESHEET);
+  assert.equal(url.origin, 'https://fonts.googleapis.com');
+  assert.equal(url.pathname, '/css2');
+  const weights = Object.fromEntries(url.searchParams.getAll('family').map(value => {
+    const [family, axes] = value.split(':');
+    assert.match(axes, /^wght@\d{3}(;\d{3})*$/, `${family} asks for static weights only`);
+    return [family, axes.slice('wght@'.length).split(';').map(Number)];
+  }));
+  assert.deepEqual(Object.keys(weights).sort(), ['Barlow Condensed', 'Big Shoulders Display', 'Figtree']);
+  assert.deepEqual(weights, tokens.webfonts.weights);
+  assert.equal(url.searchParams.get('display'), 'swap');
+  assert.equal(NEXT_FONT_ORIGIN, 'https://fonts.gstatic.com');
+  // The old app's link is unchanged until the flip.
+  assert.doesNotMatch(read('web/index.html'), /Figtree|Big\+Shoulders/);
+});
+
+test('addNextFontLinks adds the preconnect and stylesheet once', () => {
+  const links = [];
+  const head = { querySelectorAll: () => links, appendChild: link => links.push(link) };
+  const doc = { head, createElement: () => { const attributes = new Map(); return { setAttribute: (name, value) => attributes.set(name, value), getAttribute: name => attributes.get(name) ?? null }; } };
+  assert.equal(addNextFontLinks(doc), 2);
+  assert.equal(addNextFontLinks(doc), 0, 'a second mount adds nothing');
+  assert.deepEqual(links.map(link => [link.getAttribute('rel'), link.getAttribute('href'), link.getAttribute('crossorigin')]), [
+    ['preconnect', 'https://fonts.gstatic.com', ''],
+    ['stylesheet', NEXT_FONT_STYLESHEET, null],
+  ]);
+  assert.equal(addNextFontLinks({}), 0, 'no document, no links');
 });
 
 test('the Pages and local content security policies allow only the two Google Fonts origins', async t => {

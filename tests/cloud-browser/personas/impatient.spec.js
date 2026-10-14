@@ -16,7 +16,8 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   persona.net.fail = endpoint => endpoint.startsWith('community/') ? { status: 503, body: { error: 'Service unavailable.' } } : null;
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-  const alert = page.getByRole('alert');
+  // The error banner, not the picks-due card: inside two hours of the fixture's 11:59 PM PT deadline that card is an alert too.
+  const alert = page.getByRole('alert').and(page.locator('.error-banner'));
   await expect(alert).toContainText('Service unavailable.');
   await expect(page.getByRole('heading', { name: 'My games', exact: true })).toHaveCount(0);
   await persona.shot('feed-503');

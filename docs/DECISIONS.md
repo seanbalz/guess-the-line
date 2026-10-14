@@ -1,5 +1,130 @@
 # Decision log
 
+## D-41 — each locked-in guess counts on its own; the old sit-out keeps them (October 14, 2026)
+
+Sean answered the two questions PR #94 (redesign stage 18, migration M-02) raised about D-39's per-game lock-in, choosing the recommended option each time.
+
+| Question | Ruling |
+|---|---|
+| A player locks in some of a week's games and never locks in the rest. Do the locked-in guesses score? | **Each counts alone.** Every locked-in guess (one game, one market) scores on its own; a game never locked in scores nothing. There is no market-level send (D-39). |
+| After some games are locked in, can the old app's "Sit out this week" (D-23) still be used? | **Yes, and the locked-in guesses keep counting.** The sit-out covers only the games not yet locked in, the same rule as D-39's "Skip" and "See picks now". |
+
+- **Where it is built.** Per-game scoring lands with stage 24 (M-07), when each game also closes at its own kickoff. Until then M-02 keeps its interim rule: the save that locks in the last game of a market is the send, and a partly locked-in market scores nothing. No player can reach the difference before stage 29 sends per-game lock-ins. The sit-out rule is built in M-03 (stage 19).
+- Nothing is applied or deployed by this entry.
+
+## D-40 — a game note never makes a Favorite (October 14, 2026)
+
+Sean ruled in the cloud session, answering the "Open choice for Sean" that PR #83 (redesign stage 27, private notes server, migration M-09) raised in `docs/redesign/PRIVATE_NOTES.md`. He chose "No, and fix old Save": "The note doesn't create a Favorite (matches D-36: Favorites leave the screens). A small extra old-app change makes 'Save to Favorites' keep a stored note instead of overwriting it with a blank one."
+
+- **A note on a game with no row.** A note written in the new app on a game the player has no Favorites row for creates that row as not saved (`saved = false`). The game does not join the old app's Favorites tab or History's saved games.
+- **A game that already has a row.** A note never changes its saved flag, either way: a saved game stays saved and an unsaved game stays unsaved.
+- **The old app's "Save to Favorites".** It keeps a stored note instead of overwriting it with a blank one. The old app cannot see a note on a game that is not saved, so the fix is on the server: stage 27a (M-29, a separate PR) changes `gtl_mutate_personal` so that saving a game that is not saved, with an empty note, keeps the stored note. Stage 35 (notes in the game sheet) waits for M-29. Stage 27 does not change the old app.
+- **Why.** D-36 takes Favorites off the screens, so writing a note must not make a Favorite the player never asked for. And saving a game in the old app must not blank a note the player wrote, in either app. The audit keeps every earlier text either way (D-23).
+
+M-09 (`supabase/migrations/20261014224500_gtl_game_notes.sql`) follows this rule before it is merged or applied. Nothing is applied or deployed by this entry.
+
+## D-39 — per-game lock-in and the build plan answers (October 14, 2026)
+
+Sean answered the build plan's open questions in the cloud session, one at a time.
+
+- **Per-game lock-in (amends D-36 and D-37).** Sean: "once you make a pick that game is revealed. you can change bets up until game start but you cannot guess the spread or total again once youve locked in that games guess". Each game's Spread guess and Total guess is locked in on its own and is final once locked in. Locking in a game's guess for a market opens, for that player, that game's line for that market and everyone's guesses for that game and market. The game's other market stays hidden until its own guess is locked in, and other games stay hidden. Unlocked guesses are drafts and change freely until that game's kickoff. Virtual Units bets and challenges keep D-18's edits until kickoff. This replaces D-37's market-level "sent" step and D-36's market-level line lock with a per-game one; the "Skip this week's Guess the Line" and "See picks now" buttons (D-36) still open everything after a warning and forfeit the rest of the week.
+
+| Question | Ruling |
+|---|---|
+| Skip or "See picks now" after Thursday's deadline | **Yes, until the last kickoff.** Guesses already locked in keep counting; only the rest of the week is forfeited. |
+| When the new pick rules go live | **Live in both apps once built.** The server switches both apps the same day; the old app's screens are updated to match. |
+| Monday-night lines after a new week opens | **Keep collecting games that haven't started** (same calls, no extra credits). |
+| Who tests the new app before it is the default | **Whole league, opt-in.** Every member sees "Try the new app" from the first look. |
+| Real slips | **Dollar stakes allowed on new slips; old slips keep their units; no conversion. A tail asks to confirm and cannot be undone.** |
+| Friend challenges | **Line may move up to 3 points either way, in half points; a voided challenge keeps weekly-minimum credit; taking the other side of your own book bet is allowed (play money), with a note on the slip.** |
+| The old private journal | **Read-only in History.** My bets holds Virtual Units bets and challenges only. |
+| Push reminder wording | **"Due", not "lock"** (for example "Week 6 picks are due 5:15 PM PT. 9 games still open."). |
+| When the new app becomes the default | Sean: "asap". Each stage ships as soon as it passes its gates; risky migrations still go one at a time with Sean's approval; the flip happens once all five tabs are done and checked on real data (D-38). |
+
+## D-38 — redesign prototype approved; rollout and deploys (October 14, 2026)
+
+Sean ruled in the cloud session, after reviewing the D-35 clickable prototype (canvas artifact "Guess The Line redesign prototype", version 2): "i like this design a lot", then answered:
+
+| Question | Ruling |
+|---|---|
+| Approval | **Approved; start the build.** The real app is built to match the prototype in staged PRs; changes can still be marked up on the prototype as the build goes. |
+| Rollout | **New app beside the old.** The new app is built as a separate view, first behind a "Try the new app" switch for Sean. The current app keeps working for everyone. When all five tabs are done and checked on real data, the new app becomes the default and the old one is retired; nothing a player entered is deleted, moved or hidden (D-23). |
+| Deploys | **Unarchive the "Cloud/local repo sync for Guess the Line" session on the Mac mini.** It deploys with the credentials it already holds, after green merges Sean approves, and runs the live checks. |
+
+## D-37 — sent Guess picks are final (October 14, 2026)
+
+Sean ruled in the cloud session, answering the conflict the D-35 prototype review found between D-16 and D-36: **sent picks are final**.
+
+- **Why it was needed.** D-36 opens a market's lines as soon as the player submits that market. If a submitted pick could still be edited until kickoff (D-16), a player could submit, read the line, and change each pick to match it exactly.
+- **Rule.** Drafts can change freely until submitted. Once a player submits a market (Spread or Total) for the week, that market's picks are final and its lines open for that player. Games not yet picked in a submitted market follow D-36 (each game closes at its kickoff; late saves carry the D-30 Late marker).
+- **Amends.** D-16's pre-deadline edits of a submitted ballot no longer apply to Guess the Spread or Guess the Total. Original submission times and revisions already stored are kept (D-16, D-23). Virtual Units bets and challenges keep D-18's edits until kickoff.
+
+Nothing is built or deployed by this entry; the D-35 prototype already follows it.
+
+## D-36 — Redesign rulings: real slips, boards, line lock, visibility (October 13, 2026)
+
+Sean answered these one at a time in the cloud session after the D-35 prototype spec raised them. Quotes are verbatim where Sean typed his own answer.
+
+| Question | Ruling |
+|---|---|
+| Shared real-money Bet Tracker | A **Real slips** section inside Bets, next to Place bets and My bets. Friends keep posting, tailing and following real slips there as today. It is kept apart from Virtual Units, never counts in any leaderboard, and GTL never moves money. |
+| Real slips in the feed | **Yes, as today**: posting or settling a real slip makes a feed post friends can react to, comment on and tail, marked "Real slip". |
+| Guess the Line board | **Two sub-tabs, Spread and Total**, each ranked on its own; the points are never combined (the existing rule). The Community board's hidden Spread + Total sort is a display defect to fix. |
+| Ties on a Guess the Line board | **Share the rank** (T-2). The old tiebreakers (total miss, then exact guesses) show as context on tap. |
+| Line lock | Sean: "Hide until you guess, or there’s a button that you confirm you are skipping this weeks guess the line and then it will show". A game's spread or total line stays hidden in Bets, Lines and challenges until the player submits that market's guesses, or confirms a skip of that week's Guess the Line (a D-23 sit-out, final for the week), after which the lines show. |
+| Late picks and the late window | Sean: "Picks are allowed until the game kicks off, you can view other people’s bets at any time". A Guess pick for a game is accepted until **that game's kickoff**; the D-30 15-minute window after kickoff is withdrawn. A pick saved after the week's deadline (TNF kickoff) still carries the D-30 Late marker. D-31's late-window guard no longer applies. |
+| Other players' bets | Virtual Units bets and challenges of other players are **visible at any time** (replaces D-18's "after kickoff unless shared earlier"). |
+| Other players' Guess the Line guesses | Sean: "Hidden until submit or kickoff, optional button to bypass but then you forego the guess the line game for that week with a warning after clicking that button". D-31 stands (visible after your own submission for that market or at that game's kickoff), plus an optional reveal button that, after a warning, forfeits that week's Guess the Line (a D-23 sit-out). |
+| Challenges and weekly qualification | Friend challenges **count toward** D-18's weekly minimum (3 bets or 3 units). |
+| Bets season board | Lists anyone who **qualified in at least one week**, ranked by season ROI, then net units, then wins (D-18, D-35). |
+| Edge board | Moves **into Play after you submit**: each game shows the line now and how far your guess was, with a sort by biggest gap. No separate screen. |
+| Solo extras | **Private notes** on a game stay (in the game detail sheet). Favorites and personal forecasts leave the screens; saved records stay readable in History (D-23). |
+| Other sports | One row, **"More sports, coming soon"** with Notify me, in the Me menu; off Home. |
+| Pick streak | A sit-out (including the skip above) **breaks** the Pick streak. Bets streaks are separate. |
+
+These rulings amend D-18 (bet visibility), D-30 (late window) and D-31 (late-window guard) as stated, and add to D-35. Visual choices (colors, type sizes, award names, prices on bet buttons) are reviewed on the prototype. Nothing here is built or deployed yet.
+
+## D-35 — Dashboard redesign direction (October 13, 2026)
+
+Sean (product owner), verbatim: "There are still some major items open. The formatting looks horrible, this is not an intuitive dashboard, this does not feel gamified, the formatting and spacing is poor, the design is poor, it’s super confusing, and the data doesn’t display properly and there’s too much information. It can be overwhelming and majorly confusing. Guess the line is a game, that part is social, there also should be areas to place bets, bet against friends, see lines, see trends, and everything in between."
+
+Answers given one question at a time in the cloud session, each the recommended option:
+
+| Question | Ruling |
+|---|---|
+| Bet currency | **Virtual Units** for all bets, including bets against friends. No real money moves; GTL stays non-commercial (D-34 basis). |
+| Home screen | **This week's game hub**: deadline countdown, your pick status, your rank and units, and one big next action (make picks, place a bet, answer a challenge). Everything else is one tap away. |
+| Look and feel | **Sleeper-style** social, card-based app; a **FanDuel-style market row and bet slip inside the Bets tab only**. |
+| Friend bets | **One-game challenge**: offer a side, line and units on one game to a friend or the whole league; whoever accepts takes the other side at the same line. |
+| Challenge line and standings | Starts at the **current best book line**, which the challenger can change before sending; acceptance allowed **until kickoff**; the result counts in both players' **Bets results and their head-to-head record**. |
+| Challenge payout | **Even money**: both risk the same units, the winner takes them, a push returns both stakes. No house cut. |
+| Game features | **Streaks, badges, weekly awards** (e.g. Bullseye for an exact guess, Sharp for beating the closing line; Best guess, Biggest upset, Worst beat). No levels or XP. |
+| Ways to play | **Two games**: Guess the Line (spread and total guesses, closest wins) and Bets (Virtual Units with friend challenges). Record-only Betting Challenge and Best Bets (D-15) leave the main screens; their past records stay visible in History (D-23). The private journal becomes "My bets" inside Bets. |
+| Standings | **Two leaderboards**, one per game, as two tabs on one League screen, each with its own weekly and season winner. |
+| Bets ranking | **D-18 unchanged**: ROI, then net units, then wins, with D-18's weekly qualification (3 picks or 3 units). No bankroll or cap. |
+| Bet types | **Spread and total** only (D-18), inside the free odds budget. No moneyline or parlays. |
+| Game card | **Minimal**: teams, kickoff, current spread and total, your guess or bet, at most one standout trend chip. Book lines, line movement, referee and full trends open on tap. |
+| Social | **League feed + reactions + comments**: automatic posts (picks revealed per D-31, bet and challenge results, badges, weekly awards), emoji reactions and comments. |
+| Leagues | **One app with a league switcher**: one set of tabs; picks and bets made once count in every league the player is in; the Community is the default league. |
+| Brand | **Keep the name and Field monogram; refresh colors, type and spacing** into a darker, higher-energy system. Dark is the default; light stays. |
+| Approval | **Clickable phone prototype first** (new app map and main screens), approved by Sean before the build, then staged PRs. The prototype uses public schedule and lines with sample picks only; no player's private picks. |
+
+Work items DASH-1 to DASH-12 track the redesign (app map, design system, game features, Bets, friend challenges, lines board, trends cards, data display fixes, cutting information, social, first-run, phone-first). DASH-1 (the app map, delivered as the prototype) is next. This ruling changes no scoring, settlement, pick or ballot rule and deploys nothing.
+
+## D-34 — Kickoff wind forecast from Open-Meteo (October 13, 2026)
+
+Sean (product owner), verbatim: "go ahead with the wind forecast too".
+
+- **Context.** Only one situational trend beat chance out of sample: strong observed kickoff wind (10+ mph) going Under. The committed card `total|g:g_wind10` in `shared/trends/2026-week-06.json` shows **Results 2018-2025 (period used to select this card): 282-196-5** (hit 0.590), permutation p 0.0099 (best score in each shuffled run), every game since 2002: 898-730-22, this season 6-6-0; the 15+ mph card `total|g:g_wind15` shows 91-68-2 for 2018-2025. The context given with the ruling said 282-197-5 / 58.9%, one game off; the app always renders the file's numbers and never hard-codes them. Until now the card could only apply after a game, because no forecast source was approved.
+- **Source.** Open-Meteo, <https://open-meteo.com>, forecast endpoint `https://api.open-meteo.com/v1/forecast`, no key. The server code (<https://github.com/open-meteo/open-meteo>) is AGPLv3; that does not reach GTL, which only calls the hosted API and ships none of its code.
+- **Licence.** Open-Meteo's README: "API data is offered under the Attribution 4.0 International license (CC BY 4.0)" and "Include an attribution link next to any location where Open-Meteo data is displayed". GTL shows "Weather data by Open-Meteo.com" linked to <https://open-meteo.com/>, the CC BY 4.0 link and the change note "Kickoff-hour values selected by GTL; wind direction shown as compass points" (one string, kept equal in `cloud/wind.mjs`, `shared/trends-view.mjs` and the SQL `license_note` by tests). It sits next to every forecast value: the wind card on Community Picks, the group ballot and the dashboard game detail, and the trends footer; Data connections names the source with both links. Collapsed summaries never carry forecast values or links.
+- **Non-commercial basis.** Open-Meteo's terms: the free API is "for non-commercial use", "Less than 10'000 API calls per day, 5'000 per hour and 600 per minute", and a qualifying example is "private or non-profit websites or apps that do not have subscriptions or advertising". GTL is a private, non-commercial friends' league with no subscriptions, ads, paid tiers or entry fees; the shared Bet Tracker records members' own real-money slips, but GTL itself takes no money. GTL caps itself at **200 Open-Meteo calls (locations) per UTC day**, failures included, enforced in SQL (2% of the free limit).
+- **What GTL does.** The hosted `gtl-api` Edge Function is the only caller; the browser never contacts Open-Meteo and the CSP is unchanged. On a member's read (`POST /wind/read`), the server refreshes outdoor and retractable-roof games of that published week that kick off within 120 h: 6 h TTL at 72–120 h, 3 h at 18–72 h, 1 h within 18 h, never after kickoff. Every published week is eligible, so Monday night's game keeps its hourly refresh after D-24 opens the next week on Monday. One multi-location request per refresh, single flight under an advisory lock and a 20 s lease, 60 s spacing, 15/60-minute and until-midnight backoff, and the daily cap (a request that would pass it is trimmed, nearest kickoff first). Values are the nearest model hour to kickoff for sustained wind, direction and temperature, and the hour containing kickoff for gusts and precipitation. Snapshots are append-only in three service-only tables; only stadium coordinates leave GTL, and no member id is stored with an attempt (the lease, spacing, budget and audit need none, so it would only log who opened a panel). Members only: signed-out, local and non-member views keep the "no current forecast" note.
+- **Guardrails.** Reference only. Forecasts never change scoring, pick deadlines, kickoff locks, sit-outs or the D-23 reveal; the route reads only the slate and the wind tables. They never enter static assets or the week file, and the frozen registry and week-file copy are superseded on screen only (registry sha256 unchanged).
+- **Honesty.** Using the record with a forecast has **not been backtested**, and the panel says so every time it shows forecast numbers, with the file's record label, the full history and this season. A 10 m wind forecast commonly misses by 6–8 mph from day two, so each value is labelled by lead time and a close-call note appears within 3 mph of 10 or 15 mph; the band sentence says what "would fit if this holds", never what to pick. The planned check, Open-Meteo's Previous Runs API (archived since January 2024) against 2024–2025 observed wind, could not be reached from GTL's build environment (egress 403) and is a follow-up from an environment with egress.
+- **Revisit triggers.** GTL adds subscriptions, ads, paid tiers, real-money entry fees, sportsbook affiliate or referral links, or sponsorships (commercial use under Open-Meteo's terms); usage approaches 10,000 calls a day; Open-Meteo changes its terms; the backtest result.
+- **Delivery.** Branch `claude/wind-forecast` (stacked on `claude/trends-engine`): `cloud/open-meteo.mjs`, `cloud/wind.mjs`, `shared/wind-venues.mjs`, the `cloud/handler.mjs` route and adapter, `web/src/WindForecast.jsx` and `web/src/windTimer.js`, the trends panel wiring, `scripts/check-cloud-boundary.mjs` probes (awaiting deploy) and migration `supabase/migrations/20261013060000_gtl_wind_forecasts.sql`, which is written and **not applied** to the hosted project. Shipping needs Sean's go for the hosted apply (Supabase MCP or SQL editor, never `db push`), a `gtl-api` deploy and a Pages deploy (either order; the panel falls back cleanly), then the post-deploy reachability check in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state). See [TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34).
+
 ## D-33 — the timed October 8 eDraft pages are reference lines for the Week 5 ballots saved without a line (October 13, 2026)
 
 - **October 13, 2026, about 02:20 UTC — Sean (product owner), in the cloud session:** "communicate with the other sessions to get things completed. you have full approval for deploying all recommendations". (D-28 to D-32 are reserved for rulings on other branches; this approval is recorded for branch `claude/week5-line-at-guess` as D-33.)
@@ -15,7 +140,24 @@
   - The six later ballots (Sean's and Steven's totals, TJ's and Cuh's spreads and totals) use hosted snapshot **`751dfb85`** (the 20:21 UTC collection), as before the import.
   - Ben's commissioner-ruled spread keeps its D-25 lines and **37.6**; Ben has no Week 5 Total ballot.
 - **Unchanged.** No ballot, pick, eligibility ruling or feed post is written: the import appends one `gtl_reference_line_imports` row and 15 `gtl_reference_lines` rows per page (idempotent per file and payload; corrected only by appending a void through `gtl_void_reference_line_import`, nothing deleted, D-23). Sean's Week 5 picks file and the three eDraft pages stay byte-identical.
-- **Release order: the hosted apply and the import run after this branch merges.** The prerequisite migrations are applied on the hosted project: `20261012223000_gtl_community_history.sql` as hosted version `20261013023146` and `20261012230000_gtl_submit_with_line_at_guess.sql` as `20261013023542`. `20261013010000_gtl_line_at_guess_reads.sql` is not yet applied and nothing is imported. After the merge: the read-only pre-flight, then the migration through the Supabase MCP or the SQL editor (never `db push`), then `node scripts/import-reference-lines.mjs --decision D-33 --actor <commissioner uuid> --sql` (or `--execute`), then the `gtl-api` and Pages deploys, in the order of the [release steps](SOCIAL_COMMUNITY.md#line-at-the-guess-and-d-08-eligibility--october-13-2026).
+- **Release order: the hosted apply and the import run after this branch merges.** The prerequisite migrations are applied on the hosted project: `20261012223000_gtl_community_history.sql` as hosted version `20261013023146` and `20261012230000_gtl_submit_with_line_at_guess.sql` as `20261013023542`. After the merge: the read-only pre-flight, then the migration through the Supabase MCP or the SQL editor (never `db push`), then `node scripts/import-reference-lines.mjs --decision D-33 --actor <commissioner uuid> --sql` (or `--execute`), then the `gtl-api` and Pages deploys, in the order of the [release steps](SOCIAL_COMMUNITY.md#line-at-the-guess-and-d-08-eligibility--october-13-2026).
+- **Done, October 13, 2026.** `20261013010000` applied hosted as `20261013040845` (byte-identical to `main`); both pages imported, 15 lines each; `gtl-api` v17 and Pages `9dd92b5b` deployed from `main` at `c1f3092`. Hosted Week 5 spreads read as expected: Sean 95.8, Steven 91.4 (10:03 ET page), Ben 37.6; the six later ballots on hosted snapshots. Record: [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md#october-13-second-deploy).
+
+## D-32 — Situational trends beside every game (October 12, 2026)
+
+- Sean, product owner, chose option A: "Preset trend cards from the free data on Picks and the dashboard. Referee trends use a referee you pick from a dropdown for each game once assignments come out".
+- He added: "it needs to be more than referee trends, home vs away trends, divisional games, totals, whether it is a night game/primetime game, the teams playing being from afc and nfc, one team traveling, coming off bye week rest, coming off a short week. these are just to name a couple of examples".
+- His follow-up the same day: "that is a shortsided trend list. you may be missing trends with the most statistical impact to the outcome. we need quality trends".
+- Delivery, on branch `claude/trends-engine`:
+  - Every trend is a frozen preset of at most two filters, ranked by an out-of-sample quality score and never by ROI or streak.
+  - Sean's families are always shown as context labelled "No proven edge".
+  - The only trend that beat chance out of sample (2018–2025) is strong wind at kickoff (10+ mph) → Under. It needs observed wind, so on an upcoming game it is a collapsed conditional note.
+  - Tier 2 cards are labelled "not proven". Tier 3 and entity records are shown both ways, with walk-forward card fields.
+  - Line-dependent records unlock only after the matching ballot is submitted, sat out or closed. Rows are marked only with the player's own saved line.
+  - The commissioner sets each game's referee from a dropdown in the commissioner area. Every member sees that referee's records, or "Referee not assigned yet". Any member can look up another referee on screen without saving it.
+- Trend cards are reference only and never change scoring. This ruling places them beside each game, so D-21's "no tips or analysis" line now covers the plain team-records line only.
+- Week files and panels ship with a Pages deploy. Shared referee assignments also need migration `20261012234500_gtl_game_officials.sql` (written, **not applied to the hosted project**) and a `gtl-api` deploy.
+- Details: [TRENDS.md](TRENDS.md).
 
 ## D-31 — when other players' picks become visible (October 12, 2026)
 
@@ -218,7 +360,6 @@ Sean requested removing text beside the logo and supplied the selected Field
 monogram screenshot. Use its rounded lime tile and dark original mark in product
 brand placements. Preserve the accessible name and browser title Guess The Line.
 This refines D-12 presentation without choosing new type or palette options.
-
 
 - **D-15 — October 8, 2026: separate Best Bets competition.** Sean confirmed optional games and confidence weighting belong to a separate Best Bets competition. Spread and Total keep existing full-slate accuracy rules. The numerical confidence budget, deadline, scoring and settlement rules remain undecided; planning documents are not shipped features.
 - **D-16 — earlier pending question, now answered below: submission-time versus common scoring reference.** Sean requested a global member leaderboard, stronger player comparisons, time-of-selection odds comparisons and actual stake/result/ROI tracking. The earlier question was whether to use a common benchmark or individual submission-time references. Its pending state is superseded by the following answer; global visibility/eligibility and journal privacy remain separate.

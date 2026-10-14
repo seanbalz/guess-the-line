@@ -1,0 +1,83 @@
+{
+ "about": "Data corrections and normalization rules for shared/trends.mjs. Each entry is a public-fact fix to the nflverse schedule file. Entries marked verify are from general knowledge and should be checked by the commissioner.",
+ "rules": {
+  "kickoffTwelveHourFix": true,
+  "derivedRoofForOverriddenVenues": true,
+  "nullWeatherForOverriddenVenues": true,
+  "neutralFromVenue": true,
+  "restFromSchedule": true,
+  "tzFromIana": true,
+  "westEarlyIncludesCentral": true,
+  "teamTraitsFromVenueTable": true,
+  "excludePlayoffByes": true,
+  "afterWeeknightByDays": true,
+  "intlBackToBackTravel": true,
+  "homeMarketExcludesNeutral": true,
+  "streakFromHomeStadium": true
+ },
+ "ruleNotes": {
+  "kickoffTwelveHourFix": "2000-2005 night games carry 12-hour times such as 09:00; a kickoff before 11:00 ET at a US venue gets +12 hours.",
+  "derivedRoofForOverriddenVenues": "When a game's stadium is overridden, its roof comes from the venue table type (a retractable roof is unknown) and its surface is unknown, instead of the designated home team's US stadium values.",
+  "nullWeatherForOverriddenVenues": "When a game's stadium is overridden, temperature and wind are blanked unless verified (verifiedWeather). The file records weather only for games actually played outdoors, which suggests these values describe the real venue, but that is not verified.",
+  "neutralFromVenue": "A game is neutral when it is not played at the home team's season home stadium (Toronto, relocations, Super Bowls); a Super Bowl at a team's own stadium is a home game for that team.",
+  "restFromSchedule": "Rest is the number of days since the team's previous scheduled game of the same season, skipping no-contest games; the first game of a season has no rest value.",
+  "tzFromIana": "Time zones crossed use each zone's UTC offset on the game date (daylight time included), not standard offsets.",
+  "westEarlyIncludesCentral": "A Pacific or Arizona team at a kickoff before 14:00 ET in the Eastern or Central zone counts as a west-coast early game.",
+  "teamTraitsFromVenueTable": "A team's dome trait comes from its season home stadium's venue type; its grass trait from the most common non-blank home surface, falling back to the previous season.",
+  "excludePlayoffByes": "Off-a-bye trends count regular-season games only (a playoff seeding bye is confounded with team strength).",
+  "afterWeeknightByDays": "After a Monday-night game means the previous game was played on a Monday, Tuesday or Wednesday; after a Thursday game means Thursday or Friday.",
+  "intlBackToBackTravel": "When a team's previous game was abroad and this game is abroad too, travel is measured from the previous venue.",
+  "homeMarketExcludesNeutral": "Home-versus-road ATS records exclude neutral-site games.",
+  "streakFromHomeStadium": "Road and home streaks (second and third straight road game, home after two road games, third straight home game) count games played away from the team's own season home stadium, including neutral and international sites, instead of the travel distance. A team playing a second straight game abroad is not traveling that week but is still on a road streak, and a short trip to a nearby opponent (Bay Area, Baltimore and Washington, Los Angeles) is still a road game; a team playing at its own shared home stadium (Giants and Jets) is at home."
+ },
+ "kickoff": {
+  "london2130": {
+   "to": "09:30",
+   "games": ["2017_03_BAL_JAX", "2017_04_NO_MIA", "2017_08_MIN_CLE", "2018_07_TEN_LAC", "2018_08_PHI_JAX"],
+   "note": "London morning games stored as 21:30; they kicked off at 09:30 ET (14:30 London)."
+  }
+ },
+ "venueOverrides": {
+  "2025_01_KC_LAC": {"stadium": "SAO00", "verify": true, "note": "Sao Paulo, Friday night opener; file lists SoFi Stadium."},
+  "2025_04_MIN_PIT": {"stadium": "DUB00", "verify": true, "note": "Dublin, Croke Park; file lists Acrisure Stadium."},
+  "2025_05_MIN_CLE": {"stadium": "LON02", "verify": true, "note": "London, Tottenham; file lists the Cleveland stadium."},
+  "2025_06_DEN_NYJ": {"stadium": "LON02", "verify": true, "note": "London, Tottenham; file lists MetLife Stadium."},
+  "2025_07_LA_JAX": {"stadium": "LON00", "verify": true, "note": "London, Wembley; file lists the Jacksonville stadium."},
+  "2025_10_ATL_IND": {"stadium": "BER00", "verify": true, "note": "Berlin, Olympiastadion; file lists Lucas Oil Stadium (closed roof)."},
+  "2025_11_WAS_MIA": {"stadium": "MAD01", "verify": true, "note": "Madrid, Bernabeu; file lists Hard Rock Stadium."},
+  "2026_05_PHI_JAX": {"stadium": "LON02", "verify": false, "note": "File names Tottenham Hotspur Stadium but carries the Jacksonville stadium id."}
+ },
+ "verifiedWeather": [],
+ "roofOverrides": {
+  "MEL00": {"roof": "outdoors", "verify": true, "note": "Melbourne Cricket Ground has no roof over the field; file lists dome."},
+  "PAR00": {"roof": "outdoors", "verify": true, "note": "Stade de France has no roof over the field; file lists dome."},
+  "MUN01": {"roof": "outdoors", "verify": true, "note": "Allianz Arena has no roof over the field; file lists dome."},
+  "RIO00": {"roof": "outdoors", "verify": true, "note": "Maracana has no retractable roof; file lists open."}
+ },
+ "refereeAliases": {
+  "Adrian Hall": "Adrian Hill",
+  "Al Riveron": "Alberto Riveron",
+  "Bill Carolo": "Bill Carollo",
+  "Bill Vinocich": "Bill Vinovich",
+  "Billy Leavy": "Bill Leavy",
+  "Bradley Rogers": "Brad Rogers",
+  "Dick Hantag": "Dick Hantak",
+  "Gene Stetatore": "Gene Steratore",
+  "Gerald Austin": "Gerry Austin",
+  "John Perry": "John Parry",
+  "Michael Carey": "Mike Carey",
+  "Ronald Torbert": "Ron Torbert",
+  "Tom Corrente": "Tony Corrente"
+ },
+ "qbIdMerge": {
+  "00-0031076": {"to": "00-0024226", "note": "Jay Cutler, one game (2017_17_BUF_MIA) under a second id."},
+  "00-0032792": {"to": "00-0029567", "note": "Nick Foles, one game (2017_17_DAL_PHI) under a second id."},
+  "00-0029623": {"to": "00-0031266", "note": "Zach Mettenberger, one game (2015_17_TEN_IND) under a second id."},
+  "00-0035752": {"to": "00-0035228", "note": "Kyler Murray, one game (2020_17_ARI_LA) under a second id."}
+ },
+ "qbNameNote": "A quarterback's display name is the most frequent name recorded for the id (fixes 'Justin Herbery', 'Kurt Waner', and 'Cam Newton' recorded for Kyle Allen's id in 2019_08_CAR_SF and 2019_09_TEN_CAR).",
+ "noContest": {
+  "2022_17_BUF_CIN": "Suspended and not resumed (absent from the file). Listed so rest and pending checks never wait on it."
+ },
+ "surfaceGroups": {"grass": ["grass", "dessograss"]}
+}

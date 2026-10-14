@@ -13,12 +13,15 @@ import { providerPersonalError } from '../../../cloud/personal.mjs';
 import { providerLobbyError } from '../../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../../cloud/community.mjs';
 import { providerWeeklyError } from '../../../cloud/weekly.mjs';
-import { pacificDate, pacificToUtc, weekOpenAt } from '../../../shared/nfl-schedule.mjs';
+import { FEATURE_OFF } from '../../../cloud/optional-rpc.mjs';
+import { weekOpenAt } from '../../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../../fixtures/webfonts.mjs';
+import { openDeadline } from '../fixture-deadline.mjs';
+import { HOSTED, PRELUDE, migrationSql } from '../../migrations.mjs';
 
 const DAY = 86_400_000;
-/** D-24: a week opens Monday 00:00 PT, so an open fixture week must be the current Pacific week. Deadline 11:59 PM PT today. */
-export const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
+// D-24: an open fixture week must be the current Pacific week (fixture-deadline.mjs: 11:59 PM PT today, or tomorrow late at night).
+export { openDeadline, dueDay } from '../fixture-deadline.mjs';
 /** A published week whose Monday is still ahead: Thursday ~5:15 PM PT in the week after next. */
 export const futureDeadline = () => new Date(Date.parse(weekOpenAt(Date.now() + 10 * DAY)) + 3 * DAY + 17.25 * 3_600_000).toISOString();
 
@@ -27,11 +30,8 @@ try { ({ PGlite } = await import('../../../.local/sql-check/node_modules/@electr
 export const pgliteAvailable = !!PGlite;
 
 export const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-export const MIGRATIONS = ['20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
-  '20261008185715_gtl_weekly_eligibility_rulings.sql', '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql',
-  '20261008200926_gtl_twelve_hour_odds_refresh.sql', '20261008224444_gtl_personal_workspace.sql', '20261008225401_gtl_submission_time_scoring.sql',
-  '20261008232055_gtl_fresh_submission_odds.sql', '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql',
-  '20261009130000_gtl_league_interest.sql', '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql'];
+// The old app on the schema players actually have (tests/migrations.mjs).
+export const MIGRATIONS = HOSTED;
 export const SUPABASE = 'https://gtl-frontend-check.supabase.co';
 export const PREVIEWS = '.local/previews/personas';
 export const FINDINGS = '.local/personas/findings.json';
@@ -43,8 +43,8 @@ const cleared = new Set();
 /** Builds the database and world for one persona run. */
 async function buildWorld({ games = 14, deadline = openDeadline(), slate = true, profile = true, members = ['Troy Fixture', 'Luke Fixture'] } = {}) {
   const db = new PGlite();
-  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
-  await db.exec(fs.readFileSync(`supabase/migrations/${MIGRATIONS[0]}`, 'utf8'));
+  await db.exec(PRELUDE);
+  await db.exec(migrationSql(MIGRATIONS[0]));
   const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0, games);
   state.league.deadline = deadline;
   // Keep every kickoff after the deadline so the slate stays internally consistent.
@@ -53,7 +53,7 @@ async function buildWorld({ games = 14, deadline = openDeadline(), slate = true,
   if (slate) await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);
   const users = [id(1), ...members.map((_, i) => id(i + 2))];
   await db.query(`insert into auth.users values ${users.map((_, i) => `($${i + 1})`).join(',')}`, users);
-  for (const file of MIGRATIONS.slice(1)) await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+  for (const file of MIGRATIONS.slice(1)) await db.exec(migrationSql(file));
   const profiles = [...(profile ? [[id(1), 'Ben Fixture']] : []), ...members.map((name, i) => [id(i + 2), name])];
   for (const [userId, name] of profiles) await db.query('insert into public.gtl_profiles(user_id,display_name) values($1,$2)', [userId, name]);
   if (slate) await freshQuotes(db, state);
@@ -82,8 +82,11 @@ export const test = base.extend({
     const findings = [], errors = [], axeLog = [], seenAxe = new Set();
     let db = null, state = null, lastScreenshot = '';
     const net = { delay: 0, offline: false, fail: null, expireSession: false, quotesUnavailable: false, requests: [] };
+    // The live Guess rules (build plan section 3.4) reach the screens as `rules` through the handler's optional-RPC read. The hosted
+    // schema has no gtl_live_rules, so by default the read is "feature off" and every view carries today's rules, as for players.
+    // A spec sets persona.rules (for example M-02's { sentFinal: true, ... }) to see the screens under a rule that is not live yet.
     const persona = {
-      name, findings, errors, net, get db() { return db; }, get state() { return state; },
+      name, findings, errors, net, rules: null, get db() { return db; }, get state() { return state; },
       user: { id: id(1), aud: 'authenticated', role: 'authenticated', email: 'ben@example.test', app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-10-01T00:00:00Z' },
       async start(options = {}) {
         ({ db, state } = await buildWorld(options));
@@ -101,6 +104,7 @@ export const test = base.extend({
         const oddsRpc = (fn, args) => fn === 'gtl_preflight_submission' ? Promise.resolve(net.quotesUnavailable ? { requiresReferences: true, ready: false } : { requiresReferences: false, ready: true }) : personalRpc(fn, args);
         persona.handler = createCloudHandler({ authenticate: async value => value === token && !net.expireSession ? { ...persona.user, emailConfirmed: true } : null,
           social: { rpc: rpc(providerSocialError) }, personal: { rpc: rpc(providerPersonalError) }, lobby: { rpc: rpc(providerLobbyError) }, community: { rpc: rpc(providerCommunityError) }, odds: { rpc: oddsRpc },
+          optionalRpc: async name => (name === 'gtl_live_rules' && persona.rules ? structuredClone(persona.rules) : FEATURE_OFF),
           // Group game screens read membership and weekly state from the same local database.
           storage: { async membership(userId, leagueId) { return (await db.query('select player_id,active,role from public.gtl_memberships where user_id=$1 and league_id=$2 and active limit 1', [userId, leagueId])).rows[0] || null; } },
           weekly: {

@@ -1,13 +1,13 @@
 # Web push reminders — setup for Sean (D-28)
 
-Owner: Sean Balsiger · Version 1 · Updated 2026-10-12 · Decision [D-28](DECISIONS.md)
+Owner: Sean Balsiger · Version 2 · Updated 2026-10-14 · Decision [D-28](DECISIONS.md)
 
-**Status: built and tested locally, nothing switched on.** The code is on `main` once its pull request merges. The migration is **not applied** to the hosted project, `gtl-push-reminders` is **not deployed**, `gtl-api` does not yet carry the push routes, no VAPID key exists and no cron job is registered. Until you finish the steps below, nobody can turn reminders on: the Settings button answers "Reminders are not switched on for Guess The Line yet."
+**Status: built and tested locally, nothing switched on.** The code is on `main` once its pull request merges. The migration is **not applied** to the hosted project, `gtl-push-reminders` is **not deployed**, `gtl-api` does not yet carry the push routes, no VAPID key exists and no cron job is registered. Until you finish the steps below, nobody can turn reminders on. **Push guard (redesign stage 2, October 14):** `/community/read` carries `pushConfigured`, true only when `gtl-api` holds a valid `VAPID_PUBLIC_KEY` (the key itself is never in that reply). While it is false the picks-due card and Settings & setup show no reminder control at all, so nobody meets a "Remind me" button that fails.
 
 ## What it does
 
 - **One reminder, web push only.** A player whose Spread or Total ballot for the open week is neither submitted nor sat out (D-23) gets one notification 2 hours before that week's deadline (TNF kickoff, D-24). No email, no SMS, no line-movement alerts.
-- **Text on the lock screen:** `Week 6 picks lock at 5:15 PM PT. Spread still due.` (or `Total`, or `Spread and Total`). It never shows a pick, a line, a score or another player. Tapping it opens the app at the Picks screen (`/#picks`).
+- **Text on the lock screen:** `Week 6 picks are due 5:15 PM PT. Spread still open.` (or `Total`, or `Spread and Total`; D-39: "due", not "lock"). It never shows a pick, a line, a score or another player. Tapping it opens the app at the Picks screen (`/#picks`).
 - **Opt-in per device.** Settings & setup → **Pick reminders**, next to Install app, or the one line **Remind me 2 hours before picks lock** on the Community picks-due card. Nothing is registered and nothing is sent to the server until the player taps it. **Turn off reminders** unsubscribes the device, deletes its server row and unregisters the service worker.
 - **At most once.** Each reminder is written to `gtl_push_reminders_sent` (player, season, week, mode, kind) before it is sent, so a retry or an overlapping run never sends it twice. A push service answer of 404/410 removes the dead subscription; five failures in a row disable it.
 - **iPhone and iPad:** iOS 16.4 or later, and only from the Home Screen app (Safari → Share → Add to Home Screen, then open Guess The Line from the Home Screen). In a Safari tab the app explains this instead of offering the button.
@@ -40,6 +40,8 @@ Do these from the Mac mini on an up-to-date `main` (`git pull && npm ci`). Never
    - `VAPID_SUBJECT` = `mailto:` followed by an address you read (an `https://` URL also works). Push services use it to contact the sender.
 
    Both functions read them at run time: `gtl-api` hands the public key to the browser; `gtl-push-reminders` signs with the private key.
+
+   `VAPID_PUBLIC_KEY` is also the switch for the reminder controls (push guard): once `gtl-api` reads a valid one, the picks-due card and Settings & setup offer "Remind me". To keep them hidden until steps 3 to 6 are done, set `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` now and `VAPID_PUBLIC_KEY` after step 6.
 
 3. **Apply the migration** through the Supabase MCP (`apply_migration`, name `gtl_web_push_reminders`, with the contents of `supabase/migrations/20261013030000_gtl_web_push_reminders.sql`) or paste it into the SQL editor. Apply files in repo order: it is numbered after the D-27 file `20261012230000_gtl_submit_with_line_at_guess.sql` and the other October 12–13 files, so apply those first. It reads only a ballot's `submittedAt`, the D-23 opt-outs and the published slate, and changes none of them. The hosted version will differ from the filename; add it to the two `migration repair` lists in the release checklist.
 

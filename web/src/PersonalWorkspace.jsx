@@ -6,6 +6,7 @@ import { TeamMatchup } from './TeamIdentity';
 import { cloudApi, date, signed } from './api';
 import LineAtGuess from './LineAtGuess';
 import { JOURNAL_CURRENCIES, JOURNAL_OUTCOMES, decimalToMinor, minorToDecimal } from '../../shared/journal-performance.mjs';
+import { FINAL_LABEL, FINAL_RULE, ballotFinal, pickFinal, sentFinal } from './sentFinal';
 import { soloDraftScope, soloSavedPicks, soloPicksDiffer, readSoloDraft, writeSoloDraft, removeSoloDraft, mergeSoloDraft } from './soloDraft';
 import './personalWorkspace.css';
 
@@ -44,6 +45,9 @@ function GuessForm({ data, accountId, mode, save, busy, onDirty }) {
   }, [data.now, data.deadline]);
   const submitted = !!ballot?.submittedAt;
   const closed = !Number.isFinite(now) || !Number.isFinite(Date.parse(data.deadline)) || now >= Date.parse(data.deadline);
+  // Redesign stage 15 (D-37, D-39): once the server's live rules say `sentFinal` (M-02), each locked-in guess is final (today, a guess in
+  // the submitted ballot): its field is read-only, and a ballot with every guess locked in has nothing left to review or save.
+  const finalRule = sentFinal(data.rules), isFinal = id => pickFinal(data.rules, ballot, id), allFinal = ballotFinal(data.rules, ballot, data.games.map(game => game.id));
   const unresolved = Object.keys(conflicts).length > 0;
   const changed = soloPicksDiffer(picks, base) || unresolved;
   useEffect(() => { onDirty('guess', changed && !closed); return () => onDirty('guess', false); }, [changed, closed, onDirty]);
@@ -56,7 +60,7 @@ function GuessForm({ data, accountId, mode, save, busy, onDirty }) {
       : 'Tab recovery is unavailable. Keep this page open until your account save succeeds.');
   }, [picks, base, scope, changed, recovery, unresolved, conflicts]);
   const count = Object.values(picks).filter(value => value !== '').length;
-  const blocked = busy || closed || !!recovery || unresolved;
+  const blocked = busy || closed || allFinal || !!recovery || unresolved;
   const body = submit => ({ season: data.season, week: data.week, mode, weeklyRevision: data.weeklyRevision, picks: Object.fromEntries(Object.entries(picks).filter(([, value]) => value !== '').map(([key, value]) => [key, Number(value)])), submit });
   const resolve = (id, value) => {
     setReview(false); setPicks(previous => ({ ...previous, [id]: value }));
@@ -65,24 +69,24 @@ function GuessForm({ data, accountId, mode, save, busy, onDirty }) {
   return <form className="personal-form" onSubmit={event => { event.preventDefault(); if (!blocked) setReview(true); }}>
     <h2>Guess the {modeName(mode)}</h2>
     <p className="muted">These are your shared weekly competition guesses. {mode === 'guess_spread' ? 'Enter the sportsbook spread from the home team’s perspective.' : 'Enter the sportsbook combined points total.'}</p>
-    <p>{closed ? 'The prediction deadline has passed.' : submitted ? `Submitted · editable until deadline · ${date(ballot.submittedAt)} PT` : `${count} of ${data.games.length} entered · Deadline ${date(data.deadline)} PT`}</p>
+    <p>{closed ? 'The prediction deadline has passed.' : submitted ? `${finalRule ? FINAL_LABEL : 'Submitted · editable until deadline'} · ${date(ballot.submittedAt)} PT` : `${count} of ${data.games.length} entered · Deadline ${date(data.deadline)} PT`}</p>
     {ballot?.originPractice && <p className="auth-notice">This ballot retains its original practice history.</p>}
     {recovery && <section className="personal-review" aria-label="Unsaved Solo recovery"><h3>Unsaved {modeName(mode)} guesses found</h3>
       <p>This copy is from this tab, saved {date(recovery.updatedAt)} PT. It has not been saved to your account or submitted.</p>
-      {closed ? <p>The deadline has passed. You can read or discard this copy, but cannot restore it for editing or submission.</p> : <p>Restore your unsaved guesses or discard this copy to use the latest account values. Changes already saved to your account will be compared before anything is replaced.</p>}
-      <details open={closed}><summary>View recovery copy</summary><ul>{data.games.filter(game => recovery.draft[game.id] !== '').map(game => <li key={game.id}>{game.awayCode} at {game.homeCode}: {mode === 'guess_spread' ? signed(Number(recovery.draft[game.id])) : recovery.draft[game.id]}</li>)}</ul></details>
-      <div className="personal-actions">{!closed && <button type="button" className="primary" disabled={busy} onClick={() => { const restored = mergeSoloDraft(recovery.base, recovery.draft, base); recoveryBase.current = recovery.base; setPicks(restored.picks); setConflicts(restored.conflicts); setRecovery(null); setReview(false); setFocusTarget(Object.keys(restored.conflicts)[0] || data.games.find(game => recovery.draft[game.id] !== recovery.base[game.id])?.id || data.games[0]?.id); }}>Restore unsaved guesses</button>}<button type="button" className="secondary" disabled={busy} onClick={() => { removeSoloDraft(scope); setRecovery(null); setRecoveryStatus('Recovery copy discarded. Showing your account values.'); }}>Discard recovery copy</button></div>
+      {closed ? <p>The deadline has passed. You can read or discard this copy, but cannot restore it for editing or submission.</p> : allFinal ? <p>Your submitted guesses are final. You can read or discard this copy, but cannot restore it.</p> : <p>Restore your unsaved guesses or discard this copy to use the latest account values. Changes already saved to your account will be compared before anything is replaced.</p>}
+      <details open={closed || allFinal}><summary>View recovery copy</summary><ul>{data.games.filter(game => recovery.draft[game.id] !== '').map(game => <li key={game.id}>{game.awayCode} at {game.homeCode}: {mode === 'guess_spread' ? signed(Number(recovery.draft[game.id])) : recovery.draft[game.id]}</li>)}</ul></details>
+      <div className="personal-actions">{!closed && !allFinal && <button type="button" className="primary" disabled={busy} onClick={() => { const restored = mergeSoloDraft(recovery.base, recovery.draft, base); recoveryBase.current = recovery.base; setPicks(restored.picks); setConflicts(restored.conflicts); setRecovery(null); setReview(false); setFocusTarget(Object.keys(restored.conflicts)[0] || data.games.find(game => recovery.draft[game.id] !== recovery.base[game.id])?.id || data.games[0]?.id); }}>Restore unsaved guesses</button>}<button type="button" className="secondary" disabled={busy} onClick={() => { removeSoloDraft(scope); setRecovery(null); setRecoveryStatus('Recovery copy discarded. Showing your account values.'); }}>Discard recovery copy</button></div>
     </section>}
     {!recovery && recoveryStatus && <p className="auth-notice">{recoveryStatus}</p>}
     {closed && changed && <p className="auth-notice">Your unsaved guesses remain in this tab for reference only. They were not submitted.</p>}
     {unresolved && <p role="alert">Some guesses were also changed in your account. Choose which value to keep for each highlighted matchup before saving.</p>}
     <div className="personal-matchups">{data.games.map(game => <div className="personal-matchup" key={game.id}>
       <div><TeamMatchup game={game} compact/><small>{date(game.kickoff)} PT</small>{submitted && <LineAtGuess reference={ballot.scoringReferences?.[game.id]} pick={ballot.picks[game.id]} spread={mode === 'guess_spread'}/>}</div>
-      <div><label>Your {modeName(mode).toLowerCase()} guess for {game.id}<input ref={element => { inputRefs.current[game.id] = element; }} aria-label={`${game.id} ${modeName(mode)} guess`} type="number" inputMode="decimal" step="0.5" min={mode === 'guess_spread' ? -100 : 0} max={mode === 'guess_spread' ? 100 : 200} value={picks[game.id]} disabled={busy || closed || !!recovery} onChange={event => resolve(game.id, event.target.value)}/></label>
+      <div><label>Your {modeName(mode).toLowerCase()} guess for {game.id}<input ref={element => { inputRefs.current[game.id] = element; }} aria-label={`${game.id} ${modeName(mode)} guess`} type="number" inputMode="decimal" step="0.5" min={mode === 'guess_spread' ? -100 : 0} max={mode === 'guess_spread' ? 100 : 200} value={picks[game.id]} disabled={busy || closed || !!recovery || isFinal(game.id)} onChange={event => resolve(game.id, event.target.value)}/></label>
       {conflicts[game.id] && <div className="auth-notice" role="group" aria-label={`${game.id} recovery conflict`}><p>Recovered: {conflicts[game.id].recovered || 'Blank'} · Account: {conflicts[game.id].saved || 'Blank'}</p><div className="personal-actions"><button type="button" className="secondary" disabled={busy || closed} onClick={() => resolve(game.id, conflicts[game.id].recovered)}>Use recovered guess</button><button type="button" className="secondary" disabled={busy || closed} onClick={() => resolve(game.id, conflicts[game.id].saved)}>Keep account guess</button></div></div>}</div>
     </div>)}</div>
-    {!closed && <div className="personal-actions">{!submitted && <button type="button" className="secondary" disabled={blocked} onClick={() => save('personal/ballot', body(false), 'Draft saved to your account.')}>Save draft</button>}<button className="primary" disabled={blocked || count !== data.games.length}>Review full ballot</button></div>}
-    {review && !closed && <section className="personal-review" aria-label="Review full ballot"><h3>{submitted ? 'Save changed' : 'Submit'} {modeName(mode)} guesses?</h3><p>These {count} guesses are reused in every group you join. You may edit until the deadline. Each changed guess is scored against the line stored when you save it; unchanged guesses keep theirs. We try to refresh the line first, but you can always submit before the deadline. If no line is stored yet, the first line collected after your guess is used.</p><div className="personal-actions"><button type="button" className="primary" disabled={blocked} onClick={() => save('personal/ballot', body(true), `${modeName(mode)} ballot saved with scoring references.`)}>{submitted ? 'Save changed' : 'Submit'} {modeName(mode)} guesses</button><button type="button" className="secondary" disabled={busy} onClick={() => setReview(false)}>Keep editing</button></div></section>}
+    {!closed && !allFinal && <div className="personal-actions">{!submitted && <button type="button" className="secondary" disabled={blocked} onClick={() => save('personal/ballot', body(false), 'Draft saved to your account.')}>Save draft</button>}<button className="primary" disabled={blocked || count !== data.games.length}>Review full ballot</button></div>}
+    {review && !closed && !allFinal && <section className="personal-review" aria-label="Review full ballot"><h3>{submitted ? 'Save changed' : 'Submit'} {modeName(mode)} guesses?</h3><p>These {count} guesses are reused in every group you join. {finalRule ? `${FINAL_RULE} Each guess is scored against the line stored when you submit it.` : 'You may edit until the deadline. Each changed guess is scored against the line stored when you save it; unchanged guesses keep theirs.'} We try to refresh the line first, but you can always submit before the deadline. If no line is stored yet, the first line collected after your guess is used.</p><div className="personal-actions"><button type="button" className="primary" disabled={blocked} onClick={() => save('personal/ballot', body(true), `${modeName(mode)} ballot saved with scoring references.`)}>{submitted ? 'Save changed' : 'Submit'} {modeName(mode)} guesses</button><button type="button" className="secondary" disabled={busy} onClick={() => setReview(false)}>Keep editing</button></div></section>}
   </form>;
 }
 

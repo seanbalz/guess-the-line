@@ -1,6 +1,6 @@
 // Persona (a): first-time player who has never made a spread pick. Reads the Picks tab cold.
 // Questions: is it clear what −3 means, which team, what "total" means, what is due and when?
-import { test, expect, pgliteAvailable } from './harness.mjs';
+import { test, expect, pgliteAvailable, dueDay } from './harness.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -184,8 +184,8 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   const deadline = persona.state.league.deadline, pt = { timeZone: 'America/Los_Angeles' };
   const dueLong = new Date(deadline).toLocaleString('en-US', { ...pt, weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
   const dueShort = new Date(deadline).toLocaleString('en-US', { ...pt, weekday: 'short', hour: 'numeric', minute: '2-digit' });
-  expect(status).toBe(`Week 5 · 1/14 picked · Due ${dueLong} PT (today)`);
-  await expect(page.locator('.save-bar .save-due')).toHaveText(`Due ${dueShort} PT (today)`);
+  expect(status).toBe(`Week 5 · 1/14 picked · Due ${dueLong} PT (${dueDay(deadline)})`);
+  await expect(page.locator('.save-bar .save-due')).toHaveText(`Due ${dueShort} PT (${dueDay(deadline)})`);
   await expect(page.locator('.save-bar strong')).toHaveText('1/14 ready');
   // Quick win 4 (#6): Submit stays enabled with one of fourteen picked and explains what is missing instead of saving.
   const submit = page.getByRole('button', { name: 'Submit Total' });

@@ -1,0 +1,223 @@
+/* Guess The Line, D-38 base styles for the new app (web/src/next).
+   Load order: tokens.css, base.css, components.css. Every rule is scoped to the .gx root.
+
+   The old app's styles.css is loaded on every page (main.jsx imports it), and several of its
+   rules target bare elements (button, a, input, h2, main, footer, table ...). The "Old app
+   isolation" block cancels them inside .gx. Each override is only as specific as it must be to
+   beat the old rule, so the gx- classes in components.css (loaded after this file) still win. */
+
+/* ===== root ===== */
+.gx {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--gx-wash) no-repeat top / 100% 320px, var(--gx-canvas);
+  color: var(--gx-text-1);
+  font: 500 16px/24px var(--gx-font-body);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  text-wrap: pretty;
+}
+.gx,
+.gx *,
+.gx *::before,
+.gx *::after {
+  box-sizing: border-box;
+}
+:where(.gx) :where(p, h1, h2, h3, h4, h5, h6, ul, ol, li, figure, blockquote, dl, dd) {
+  margin: 0;
+  padding: 0;
+}
+:where(.gx) :where(ul, ol) {
+  list-style: none;
+}
+:where(.gx) :where(img, video, canvas) {
+  display: block;
+  max-width: 100%;
+}
+
+/* Focus: a 2px ring with a 2px gap, on every focusable element (keyboard only). */
+.gx :focus-visible {
+  outline: 2px solid var(--gx-focus);
+  outline-offset: 2px;
+}
+
+.gx-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== old app isolation (styles.css element rules) ===== */
+.gx :where(h1, h2, h3, h4, h5, h6) {
+  font: inherit;
+  letter-spacing: inherit;
+}
+.gx :where(small) {
+  font-size: inherit;
+}
+.gx :where(strong, b) {
+  font-weight: 700;
+}
+.gx :where(a) {
+  color: var(--gx-data);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.gx :where(button) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: none;
+}
+/* styles.css: button:disabled (0,1,1), button:hover:not(:disabled) (0,2,1), button:active:not(:disabled) (0,2,1). */
+.gx :where(button):disabled {
+  opacity: 1;
+  cursor: default;
+}
+.gx :where(button):hover:not(:disabled) {
+  filter: none;
+}
+.gx :where(button):active:not(:disabled) {
+  transform: none;
+}
+.gx :where(input, select, textarea) {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  touch-action: manipulation;
+}
+.gx :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  min-height: var(--gx-size-touch);
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-1);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-1);
+}
+.gx :where(textarea) {
+  padding: 12px 16px;
+}
+.gx :where(input, textarea)::placeholder {
+  color: var(--gx-text-3);
+  opacity: 1;
+}
+.gx :where(main) {
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+.gx :where(footer) {
+  display: block;
+  gap: normal;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+.gx :where(footer) :where(button) {
+  display: revert;
+  align-items: normal;
+  gap: normal;
+  min-height: auto;
+}
+/* styles.css hides footer > span:nth-child(2) below 960px (0,1,2); nothing in the new app is hidden
+   that way (D-23). Lay out footer children with a div, since this rule wins over a class on a span. */
+.gx :where(footer) > :where(span):nth-child(2) {
+  display: revert;
+}
+.gx :where(table) {
+  width: auto;
+  border-collapse: collapse;
+  text-align: inherit;
+  white-space: normal;
+}
+.gx :where(th, td) {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+}
+
+/* ===== motion: keyframes animate transform and opacity only ===== */
+@keyframes gx-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes gx-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes gx-rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes gx-pop-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes gx-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes gx-live-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.gx-anim-pop {
+  animation: gx-pop var(--gx-dur-quick) var(--gx-ease-pop);
+}
+.gx-anim-fade {
+  animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard);
+}
+.gx-anim-rise {
+  animation: gx-rise-in var(--gx-dur-base) var(--gx-ease-enter);
+}
+
+/* Reduced motion: the device setting, or data-motion="reduce" on the .gx root (the app's own
+   setting). Nothing animates or transitions; values show their final state at once. ::backdrop
+   gets its own rule so a browser without it still applies the rest. */
+@media (prefers-reduced-motion: reduce) {
+  .gx *,
+  .gx *::before,
+  .gx *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .gx *::backdrop {
+    animation: none !important;
+  }
+}
+.gx[data-motion="reduce"] *,
+.gx[data-motion="reduce"] *::before,
+.gx[data-motion="reduce"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+.gx[data-motion="reduce"] *::backdrop {
+  animation: none !important;
+}
