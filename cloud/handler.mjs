@@ -22,6 +22,13 @@ import { handleVirtualUnits, VIRTUAL_METHODS, VirtualUnitsError, providerVirtual
 import { handleWind, WIND_METHODS, WindError, providerWindError } from './wind.mjs';
 import { createOpenMeteoProvider } from './open-meteo.mjs';
 import { handlePush, PUSH_METHODS, PushError, providerPushError, validVapidPublicKey } from './push.mjs';
+// Redesign route groups and the optional-RPC reader (build plan, stage 4).
+import { handleLines, LINES_METHODS, LinesError, providerLinesError } from './lines.mjs';
+import { handleBets, BETS_METHODS, BetsError, providerBetsError } from './bets.mjs';
+import { handleLeague, LEAGUE_METHODS, LeagueError, providerLeagueError } from './league.mjs';
+import { handleMe, ME_METHODS, MeError, providerMeError } from './me.mjs';
+import { createOptionalRpc } from './optional-rpc.mjs';
+import { readLiveRules } from './live-rules.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const CORS = {
@@ -45,6 +52,27 @@ const SAFE_VALIDATION_ERRORS = new Set([
   'Invalid selection.', 'Choose a spread or total market.',
   'You sat out this week for that market. Its picks are closed.',
 ]);
+
+/**
+ * The redesign's route groups (build plan, sections 3.1 and 3.3), wired here once. Each module owns its methods
+ * map, handler and error map, so a later stage edits only its own module. Group routes take POST JSON bodies
+ * and no query parameters; each handler gets the signed-in user, its own service and the optional-RPC reader.
+ */
+const ROUTE_GROUPS = Object.freeze([
+  Object.freeze({ service: 'lines', methods: LINES_METHODS, handle: handleLines, Error: LinesError }),
+  Object.freeze({ service: 'bets', methods: BETS_METHODS, handle: handleBets, Error: BetsError }),
+  Object.freeze({ service: 'league', methods: LEAGUE_METHODS, handle: handleLeague, Error: LeagueError }),
+  Object.freeze({ service: 'me', methods: ME_METHODS, handle: handleMe, Error: MeError }),
+]);
+const GAME_METHODS = Object.freeze({ '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'] });
+/** Every module's methods map; a route belongs to exactly one (tests/route-modules.test.mjs). */
+export const ROUTE_MODULES = Object.freeze({
+  game: GAME_METHODS, lobby: LOBBY_METHODS, personal: PERSONAL_METHODS, social: SOCIAL_METHODS, community: COMMUNITY_METHODS,
+  officials: OFFICIALS_METHODS, results: RESULTS_METHODS, odds: ODDS_METHODS, benchmark: BENCHMARK_METHODS, virtual: VIRTUAL_METHODS,
+  wind: WIND_METHODS, push: PUSH_METHODS, ...Object.fromEntries(ROUTE_GROUPS.map(group => [group.service, group.methods])),
+});
+/** The merged route map: route → allowed methods. */
+export const ROUTE_METHODS = Object.freeze(Object.assign({}, ...Object.values(ROUTE_MODULES)));
 
 class RequestError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -95,10 +123,17 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, league, me, optionalRpc, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
+  const groupServices = { lines, bets, league, me };
+  // The live Guess rules ride along with the views both apps render (build plan, section 3.4). The read never
+  // rejects: while gtl_live_rules is missing, or cannot be read, the field carries today's rules.
+  async function withRules(view, rules = readLiveRules(optionalRpc)) {
+    const [result, live] = await Promise.all([view, rules]);
+    return { ...result, rules: live };
+  }
   // October 12, 2026: a refresh is attempted when useful and never required; commit() is the authority.
   async function submitWithFreshOdds(user, intent, commit) {
     if (!odds?.rpc) return commit();
@@ -161,7 +196,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
     try {
       const url = new URL(request.url);
       const route = url.pathname.replace(/^\/(?:functions\/v1\/)?gtl-api(?=\/)/, '');
-      const methods = { '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'], ...LOBBY_METHODS, ...PERSONAL_METHODS, ...SOCIAL_METHODS, ...COMMUNITY_METHODS, ...OFFICIALS_METHODS, ...RESULTS_METHODS, ...ODDS_METHODS, ...BENCHMARK_METHODS, ...VIRTUAL_METHODS, ...WIND_METHODS, ...PUSH_METHODS };
+      const methods = ROUTE_METHODS;
       if (!Object.hasOwn(methods, route)) return json({ error: 'Not found.' }, 404);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
       if (!methods[route].includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: [...methods[route], 'OPTIONS'].join(', ') });
@@ -185,16 +220,25 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
         body = await readJson(request);
       }
       if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock }));
-      if (Object.hasOwn(COMMUNITY_METHODS, route)) return json(await handleCommunity({ route, body, user, service: community, clock, pushConfigured }));
+      if (Object.hasOwn(COMMUNITY_METHODS, route)) {
+        const result = handleCommunity({ route, body, user, service: community, clock, pushConfigured });
+        return json(await (route === '/community/read' ? withRules(result) : result));
+      }
       if (Object.hasOwn(OFFICIALS_METHODS, route)) return json(await handleOfficials({ route, body, user, service: officials }));
       if (Object.hasOwn(WIND_METHODS, route)) return json(await handleWind({ route, body, user, service: wind, uuid }));
       if (Object.hasOwn(PUSH_METHODS, route)) return json(await handlePush({ route, body, user, service: push, publicKey: pushPublicKey }));
-      if (Object.hasOwn(PERSONAL_METHODS, route)) return json(await handlePersonal({ route, body, user, service: personal, clock,
-        submitBallot: (payload, commit) => submitWithFreshOdds(user, {
-          season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
-          picks: payload.picks, submit: payload.submit, personalRevision: payload.revision, requestId: payload.requestId,
-        }, commit),
-      }));
+      if (Object.hasOwn(PERSONAL_METHODS, route)) {
+        const result = handlePersonal({ route, body, user, service: personal, clock,
+          submitBallot: (payload, commit) => submitWithFreshOdds(user, {
+            season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
+            picks: payload.picks, submit: payload.submit, personalRevision: payload.revision, requestId: payload.requestId,
+          }, commit),
+        });
+        // /personal/read is /personal for a chosen week; both replies replace the same view on the client.
+        return json(await (route === '/personal' || route === '/personal/read' ? withRules(result) : result));
+      }
+      const group = ROUTE_GROUPS.find(candidate => Object.hasOwn(candidate.methods, route));
+      if (group) return json(await group.handle({ route, method: request.method, body, user, service: groupServices[group.service], clock, uuid, optionalRpc }));
       if (Object.hasOwn(RESULTS_METHODS, route)) {
         const commissioner = await storage.membership(user.id, 'sean-troy-luke');
         if (!commissioner || commissioner.active !== true || commissioner.player_id !== 'sean' || commissioner.role !== 'commissioner') throw providerResultError('GTL_RESULT_FORBIDDEN');
@@ -223,13 +267,16 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       }
       const member = await storage.membership(user.id, leagueId);
       if (!member || member.active !== true || typeof member.player_id !== 'string') fail(403, 'Your account has not been added to this league.');
+      // The /state view, and the /ballot and /bet replies that replace it on the client, carry the live rules;
+      // the read starts here so it runs alongside the reads below. It never rejects.
+      const rules = route === '/export' ? null : readLiveRules(optionalRpc);
       let saved = await weekly.load(user.id, leagueId);
       if (!saved) fail(503, 'League data is not available yet.');
       if (saved.state?.league?.id !== leagueId || !Number.isSafeInteger(saved.revision) || saved.revision < 0) throw new Error('Invalid stored league.');
       if (!saved.state.league.roster.some(player => player.id === member.player_id)) fail(403, 'Your account has not been added to this league.');
       saved = await loadResultState(saved, user.id, leagueId);
       const engine = createEngine(saved.state, { clock, uuid });
-      if (route === '/state') return json(await marketView(resultView(weeklyView(engine.view(member.player_id, mode), saved), saved, member, leagueId), user.id, leagueId));
+      if (route === '/state') return json(await withRules(marketView(resultView(weeklyView(engine.view(member.player_id, mode), saved), saved, member, leagueId), user.id, leagueId), rules));
       if (route === '/export') return json(weeklyView(engine.export(member.player_id), saved));
       if (body.revision !== saved.revision) fail(409, 'Your weekly entries changed on another device or in another group. Refresh before saving again.');
 
@@ -253,9 +300,9 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       // Re-read the authoritative database timestamp, provenance, and shared revision.
       const refreshed = await loadResultState(await weekly.load(user.id, leagueId), user.id, leagueId);
       const freshEngine = createEngine(refreshed.state, { clock, uuid });
-      return json(await marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId));
+      return json(await withRules(marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId), rules));
     } catch (error) {
-      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError || error instanceof PushError) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
+      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError || error instanceof PushError || ROUTE_GROUPS.some(group => error instanceof group.Error)) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
       // Provider payloads and internal errors may contain secrets or private state.
       return json({ error: 'The saved data service is temporarily unavailable. Please try again.' }, 503);
     }
@@ -293,7 +340,25 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     }
     return response.json();
   }
+  // One service-only RPC caller per redesign route group, mapped through that group's own error map (stage 4).
+  function groupRpc(providerError) {
+    return {
+      async rpc(name, body) {
+        if (typeof name !== 'string' || !/^gtl_[a-z0-9_]{1,60}$/.test(name)) throw new Error('Invalid operation.');
+        const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
+        if (!response.ok) {
+          let message;
+          try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
+          throw providerError(message);
+        }
+        return response.json();
+      },
+    };
+  }
   return {
+    lines: groupRpc(providerLinesError), bets: groupRpc(providerBetsError), league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
+    // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
+    optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {
       const response = await request('/auth/v1/user', { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } });
       if ([401, 403].includes(response.status)) return null;

@@ -31,7 +31,7 @@ The one visibility exception is the Guess pick reveal gate, shared by the feed a
 
 | Route | Body | Result |
 |---|---|---|
-| `/community/read` | `{ before?: ISO time, limit?: 1–100 }` | members (with `removed`), week, optOuts (viewer's sat-out modes), due (with `satOut`), picksDue (sat-out modes excluded), submissions (with `satOut`), standings (with `satOut`), posts |
+| `/community/read` | `{ before?: ISO time, limit?: 1–100 }` | members (with `removed`), week, optOuts (viewer's sat-out modes), due (with `satOut`), picksDue (sat-out modes excluded), submissions (with `satOut`), standings (with `satOut`), posts, rules (see [Live rules](#live-rules-field)) |
 | `/community/like` | `{ postId, like: true/false }` | likes, likedByMe |
 | `/community/comment` | `{ requestId, postId, body }` | id, replayed |
 | `/community/member` | `{ userId, member: true/false }` (commissioner only) | userId, member |
@@ -45,6 +45,10 @@ The one visibility exception is the Guess pick reveal gate, shared by the feed a
 | `/wind/read` | `{ season, week }` (any community member) | D-34 kickoff wind forecast: `{ season, week, asOf, published, refresh: { outcome }, attribution, games: { [gameId]: { kickoff, venue, status, wind } } }`; due games of any published week within 120 h of kickoff are refreshed from Open-Meteo first, and a refresh failure never fails the read. Reference only; never changes scoring. Ships with the next `gtl-api` deploy and needs migration `20261013060000_gtl_wind_forecasts.sql`; see [TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34) |
 
 The handler passes the request time to the database, so the deadline reveal, the sit-out cutoff and the picks-due state use one clock. It also strips pick values from any post marked hidden. `picksDue` carries `opensAt` (the week's Monday 00:00 PT) alongside `deadline`. Group game screens read opt-outs through `gtl_read_weekly_state` (`state.optOuts`), and the league engine's reveal gate honors them; the local workspace keeps the same shape in `.local/state.json` through `POST /api/sit-out`, although the local UI does not offer the button.
+
+### Live rules field
+
+Redesign build plan stage 4 (section 3.4): `/community/read`, `/personal`, `/personal/read` and `/state` carry `rules: { sentFinal, lateWindow }`, and so do the `/ballot` and `/bet` replies, which are the `/state` view. It is read from the service-only `gtl_live_rules()` through `cloud/optional-rpc.mjs`, which treats PostgREST's `PGRST202` (function not found) as "feature off". The function does not exist yet, so every reply carries today's rules, `{ sentFinal: false, lateWindow: 'deadline' }`: a guess can be changed until the week's deadline (D-16) and picks close at the deadline (D-24). A missing or failing read never fails the route; it answers as before. The future rule is D-39's per-game lock-in: M-02 (stage 18) creates the function with `sentFinal: true`, meaning each game's Spread or Total guess is final once locked in, and locking it in opens that game's line and everyone's guesses for that game and market (there is no market-level send); M-07 (stage 24) switches `lateWindow` to `'kickoff'` (D-36). The field only lets both apps describe the live rule; the SQL writers enforce it.
 
 ## Community history — October 12, 2026
 
@@ -265,13 +269,13 @@ October 13, 2026 addition: migration `20261013010000_gtl_line_at_guess_reads.sql
 - Before both ship, the panel falls back to the weekly file, and the commissioner panel says saving needs the next deploy.
 
 *Boundary check while these are pending.*
-- The referee pieces do not hold a deploy. Until `20261012234500` is applied and `/officials/read` and `/officials/set` are deployed, the check reports the two referee RPCs and the two `/officials` routes as "awaiting deploy, not verified" (they are the only entries in `awaitingDeploy` in `scripts/check-cloud-boundary.mjs`). Only the exact not-found answer is accepted for them; any other answer must still be a denial, and every other probe still runs.
+- The referee pieces do not hold a deploy. Until `20261012234500` is applied and `/officials/read` and `/officials/set` are deployed, the check reports the two referee RPCs and the two `/officials` routes as "awaiting deploy, not verified" (listed in `awaitingDeploy` in `scripts/boundary/lines.mjs`, which `scripts/check-cloud-boundary.mjs` joins). Only the exact not-found answer is accepted for them; any other answer must still be a denial, and every other probe still runs.
 - After the referee migration and the `gtl-api` deploy, run `node scripts/check-cloud-boundary.mjs --strict`, which fails while anything is awaiting deploy, then remove those entries in the change that records the hosted version.
 
 *October 13, 2026 — kickoff wind forecast, D-34 (branch `claude/wind-forecast`, stacked on `claude/trends-engine`):* not deployed.
 - Migration `20261013060000_gtl_wind_forecasts.sql` is **applied to the hosted project on October 13 as `20261013072206`** through the Supabase MCP (all three functions byte-identical to `main`, the three tables insert-only for `service_role` behind RLS). The `gtl-api` and Pages deploys that carry `/wind/read` and the panel are still to come.
 - A `gtl-api` deploy ships `/wind/read` (no new secret or env var: Open-Meteo has no key; `verify_jwt` stays true), and a Pages deploy ships the panel. Either order works: before both, the panel keeps its "no current forecast" note (a 404 is remembered for the visit).
-- `check:cloud` lists the three wind RPCs and `/wind/read` in `awaitingDeploy`, like the referee pieces and for the same reason (both builds fall back cleanly). After the migration and the `gtl-api` deploy, run `node scripts/check-cloud-boundary.mjs --strict`; then, in the release-record change, remove the four wind entries and add `gtl_wind_fetches`, `gtl_wind_fetch_outcomes` and `gtl_wind_forecasts` to the table probes.
+- `check:cloud` lists the three wind RPCs and `/wind/read` in `awaitingDeploy`, like the referee pieces and for the same reason (both builds fall back cleanly). After the migration and the `gtl-api` deploy, run `node scripts/check-cloud-boundary.mjs --strict`; then, in the release-record change, remove the four wind entries from `scripts/boundary/lines.mjs` and add `gtl_wind_fetches`, `gtl_wind_fetch_outcomes` and `gtl_wind_forecasts` to its table probes.
 - **Post-deploy hosted reachability check** (the first real Open-Meteo response; nothing in CI can reach it). A signed-in community member opens Picks → Show trends → an outdoor game of a published week within 120 h of kickoff. Then, as an authorized read-only SQL step:
   - `select f.started_at, f.locations, o.status, o.error_code, o.http_status, o.stored from public.gtl_wind_fetches f left join public.gtl_wind_fetch_outcomes o on o.fetch_id = f.id order by f.started_at desc limit 5;`
   - `select game_id, venue_id, forecast_hour, wind_mph, gust_mph, wind_direction_deg, temperature_f, precipitation_probability, fetched_at from public.gtl_wind_forecasts order by id desc limit 15;`

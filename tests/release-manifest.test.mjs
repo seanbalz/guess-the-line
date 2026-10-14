@@ -10,6 +10,8 @@ test('release fingerprint changes with gateway/deployment config while compiled 
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   for (const directory of ['cloud', 'server', 'shared', 'config', 'design', 'web/src', 'web/public', 'supabase/functions', 'supabase/migrations', 'scripts', '.local/cloud-dist']) fs.mkdirSync(path.join(root, directory), { recursive: true });
   for (const name of ['release-manifest.mjs', 'check-cloud-boundary.mjs']) fs.copyFileSync(new URL(`../scripts/${name}`, import.meta.url), path.join(root, 'scripts', name));
+  // check-cloud-boundary.mjs joins the per-area probe lists in scripts/boundary/ (redesign build plan, stage 4).
+  fs.cpSync(new URL('../scripts/boundary', import.meta.url), path.join(root, 'scripts', 'boundary'), { recursive: true });
   for (const name of ['package.json', 'package-lock.json', 'vite.config.js', 'web/index.html']) fs.writeFileSync(path.join(root, name), '{}');
   fs.writeFileSync(path.join(root, 'supabase/config.toml'), '[functions.gtl-api]\nverify_jwt = true\n');
   fs.writeFileSync(path.join(root, 'wrangler.jsonc'), '{"pages_build_output_dir":".local/cloud-dist"}');
