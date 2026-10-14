@@ -88,7 +88,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 ### 3.4 The server is the authority
 
 - SQL and the handler decide: when each pick closes, the D-37 lock, the line lock, who sees whose picks and bets, qualification, ranks and settlement.
-- `gtl_live_rules()` (created in M-02, updated in M-07) returns `{sentFinal, lateWindow}`. `/community/read`, `/personal` and `/state` carry it as `rules`. When the function is missing, the wrapper returns today's rules. The old app's buttons, `picksDue()` and the new app's banners all read it.
+- `gtl_live_rules()` (created in M-01 or M-02, whichever is applied first; updated by the other and by M-07) returns `{sentFinal, lateWindow, revealAt}`. `revealAt` says when the clock opens a game's line and everyone's picks: `'deadline'` today (D-23: the deadline opens the whole week for everyone), `'kickoff'` from M-01 (each game at its own kickoff). `/community/read`, `/personal` and `/state` carry it as `rules`. When the function is missing, the wrapper returns today's rules, `{sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline'}`. The old app's buttons, `picksDue()` and the new app's banners all read it.
 - The new app's `rules.js` only draws banners. A lock that exists only in the client can be read in the network tab.
 
 ### 3.5 Old and new side by side
@@ -164,7 +164,7 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 | `gtl_read_community` | M-01, M-21 |
 | `gtl_read_community_history`, `gtl_week_revealed` | M-01 |
 | `gtl_mutate_personal`, `gtl_save_weekly_ballot`, `gtl_guard_fresh_submission` | M-02, M-07 |
-| `gtl_live_rules` (new) | M-02, M-07 |
+| `gtl_live_rules` (new) | M-01, M-02, M-07 |
 | `gtl_feed_on_ballot` | M-07 |
 | `gtl_read_social` | M-04 |
 | `gtl_odds_collection_slate`, `gtl_odds_schedule_slate` | M-05 |
@@ -348,7 +348,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 
 **16. Per-game gate in SQL (M-01)**
 - Goal: one reveal gate per game and market; points count from kickoff; no ballot is never 0.
-- Scope: new `gtl_guess_revealed(viewer, season, week, mode, game, now)` and `gtl_markets_visible`; replace `gtl_read_community` (same argument list), `gtl_read_community_history` (per-game gate; his own unsent draft lines hidden) and `gtl_week_revealed` (its deadline clause becomes "that game has kicked off", which closes the deadline reveal before late picks exist). Standings count kicked-off games only; `weekPoints` is null with no ballot (the handler still maps it to 0 until stage 17); posts dated in the future are left out; `late` is read from the ballot (null until written). No paging change.
+- Scope: new `gtl_guess_revealed(viewer, season, week, mode, game, now)` and `gtl_markets_visible`; replace `gtl_read_community` (same argument list), `gtl_read_community_history` (per-game gate; his own unsent draft lines hidden) and `gtl_week_revealed` (its deadline clause becomes "that game has kicked off", which closes the deadline reveal before late picks exist). Standings count kicked-off games only; `weekPoints` is null with no ballot (the handler still maps it to 0 until stage 17); posts dated in the future are left out; `late` is read from the ballot (null until written). No paging change. `gtl_live_rules()` reports `revealAt: 'kickoff'` from this apply (section 3.4), so the new app stops opening every game at the deadline; if M-02 has not created the function yet, M-01 creates it with today's other two fields, and whichever of M-01 and M-02 is applied second keeps the other's field.
 - Tests: SQL `guess-reveal-per-game-sql` (per game and market; a send or sit-out reveals; one kickoff opens one game; drafts never show; null for no ballot); `history-draft-lines-sql`; the one-overload test; update `community-sql` and `community-history-sql`.
 - Sean sees: nothing until stage 17.
 
@@ -360,7 +360,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 
 **18. Sent picks final in SQL (M-02)**
 - Goal: once a market is sent, no pick in it can change or be added, through any writer.
-- Scope: `gtl_mutate_personal`, `gtl_save_weekly_ballot` and the `gtl_guard_fresh_submission` trigger refuse any change to `picks` after `submittedAt` with `GTL_BALLOT_LOCKED` (409, "Sent picks are final."). Still allowed: D-27 pending-line resolution and the D-25 ruled import. Stored `submittedAt` and old `ballot_edited` events stay. New `gtl_live_rules()` returns `{sentFinal: true, lateWindow: 'deadline'}`. Mirror in `server/engine.mjs` `saveBallot`; the new copy in `SAFE_VALIDATION_ERRORS` and `cloud/personal.mjs`, deployed before the apply. The PR lists all four ballot triggers (`gtl_fresh_submission_guard`, `gtl_feed_on_ballot`, `gtl_optout_ballot_guard`, `gtl_ballot_window`) as changed or unchanged. RULES.md "Drafts and submission"; AGENTS.md pointer updated.
+- Scope: `gtl_mutate_personal`, `gtl_save_weekly_ballot` and the `gtl_guard_fresh_submission` trigger refuse any change to `picks` after `submittedAt` with `GTL_BALLOT_LOCKED` (409, "Sent picks are final."). Still allowed: D-27 pending-line resolution and the D-25 ruled import. Stored `submittedAt` and old `ballot_edited` events stay. New `gtl_live_rules()` returns `{sentFinal: true, lateWindow: 'deadline', revealAt}`, with `revealAt: 'kickoff'` once M-01 is applied, else `'deadline'`. Mirror in `server/engine.mjs` `saveBallot`; the new copy in `SAFE_VALIDATION_ERRORS` and `cloud/personal.mjs`, deployed before the apply. The PR lists all four ballot triggers (`gtl_fresh_submission_guard`, `gtl_feed_on_ballot`, `gtl_optout_ballot_guard`, `gtl_ballot_window`) as changed or unchanged. RULES.md "Drafts and submission"; AGENTS.md pointer updated.
 - Window: after a Thursday deadline and before Monday 00:00 PT, so the next week opens under D-37. First window Fri Oct 16 to Sat Oct 17 if ready; else Fri Oct 23 to Sat Oct 24.
 - Tests: SQL `guess-write-rules-sql` (refused through both RPCs and a direct update; adding a pick to a sent market refused per Q1; pending resolution allowed; ruled import unchanged; old edited ballots score the same); a scheduled collection that resolves a pending line on a sent ballot commits; update `fresh-submission-handler`, `submission-scoring-sql`, `submission-scoring-local`, `submission-line-at-guess-sql`, `line-at-guess-sql`, `engine`, `store` and `http`.
 - Everyone sees: stage 15's screens switch on; a direct edit call is refused.

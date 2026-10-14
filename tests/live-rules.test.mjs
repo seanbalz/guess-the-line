@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { createEngine } from '../server/engine.mjs';
 import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
-import { LATE_WINDOWS, TODAYS_RULES, parseLiveRules, readLiveRules } from '../cloud/live-rules.mjs';
+import { LATE_WINDOWS, REVEAL_TIMES, TODAYS_RULES, parseLiveRules, readLiveRules } from '../cloud/live-rules.mjs';
 
 // Redesign build plan, stage 4: /community/read, /personal, /personal/read and /state (and the /ballot and /bet
 // replies, which are the /state view) carry `rules`. gtl_live_rules does not exist yet (M-02 creates it), so
@@ -12,7 +12,7 @@ import { LATE_WINDOWS, TODAYS_RULES, parseLiveRules, readLiveRules } from '../cl
 const USER = '00000000-0000-4000-8000-00000000000a';
 const LEAGUE = `g_${'a'.repeat(32)}`;
 const NOW = Date.parse('2026-10-14T16:00:00Z');
-const LIVE = { sentFinal: true, lateWindow: 'kickoff' };
+const LIVE = { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff' };
 const notFound = () => Response.json({ code: 'PGRST202', message: 'Could not find the function public.gtl_live_rules without parameters in the schema cache' }, { status: 404 });
 
 const state = () => ({
@@ -62,18 +62,32 @@ const routes = [
   ['/ballot', { body: { revision: 0, picks: { 'SEA-DEN': -3 } } }],
 ];
 
-test('today\'s rules: picks stay editable until the deadline, and they close at the deadline', () => {
-  assert.deepEqual(TODAYS_RULES, { sentFinal: false, lateWindow: 'deadline' });
+test('today\'s rules: picks stay editable until the deadline, they close at the deadline, and the deadline opens the week', () => {
+  assert.deepEqual(TODAYS_RULES, { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' });
   assert.ok(Object.isFrozen(TODAYS_RULES));
   assert.deepEqual(LATE_WINDOWS, ['deadline', 'kickoff']);
+  assert.deepEqual(REVEAL_TIMES, ['deadline', 'kickoff']);
 });
 
 test('parseLiveRules passes only a well-formed answer and only the known keys', () => {
   assert.deepEqual(parseLiveRules({ sentFinal: true, lateWindow: 'kickoff', extra: 'dropped' }), LIVE);
   assert.deepEqual(parseLiveRules({ sentFinal: false, lateWindow: 'deadline' }), TODAYS_RULES);
-  for (const raw of [null, [], 'rules', {}, { sentFinal: 'true', lateWindow: 'kickoff' }, { sentFinal: true }, { sentFinal: true, lateWindow: 'game' }, { sentFinal: 1, lateWindow: 'deadline' }]) {
+  for (const raw of [null, [], 'rules', {}, { sentFinal: 'true', lateWindow: 'kickoff' }, { sentFinal: true }, { sentFinal: true, lateWindow: 'game' }, { sentFinal: 1, lateWindow: 'deadline' },
+    { sentFinal: false, lateWindow: 'deadline', revealAt: 'game' }, { sentFinal: false, lateWindow: 'deadline', revealAt: 1 }]) {
     assert.throws(() => parseLiveRules(raw), /Invalid live rules/, JSON.stringify(raw));
   }
+});
+
+test('revealAt: the deadline opens the week until M-01 reports each game\'s kickoff; a kickoff late window always reveals at kickoff', () => {
+  // M-02's planned answer without the key, and a SQL null: the deadline still opens the week (D-23).
+  assert.deepEqual(parseLiveRules({ sentFinal: true, lateWindow: 'deadline' }), { sentFinal: true, lateWindow: 'deadline', revealAt: 'deadline' });
+  assert.deepEqual(parseLiveRules({ sentFinal: false, lateWindow: 'deadline', revealAt: null }), TODAYS_RULES);
+  // M-01 applied, nothing else yet: picks still close at the deadline, but each game opens at its kickoff.
+  const m01 = { sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' };
+  assert.deepEqual(parseLiveRules(m01), m01);
+  // M-07 is applied only after M-01: a kickoff late window never reveals at the deadline.
+  assert.deepEqual(parseLiveRules({ sentFinal: true, lateWindow: 'kickoff' }), LIVE);
+  assert.deepEqual(parseLiveRules({ sentFinal: true, lateWindow: 'kickoff', revealAt: 'deadline' }), LIVE);
 });
 
 test('readLiveRules returns today\'s rules while the function is missing, unreadable or not configured, and never rejects', async () => {
