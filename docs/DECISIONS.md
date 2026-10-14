@@ -1,5 +1,23 @@
 # Decision log
 
+## D-39 — per-game lock-in and the build plan answers (October 14, 2026)
+
+Sean answered the build plan's open questions in the cloud session, one at a time.
+
+- **Per-game lock-in (amends D-36 and D-37).** Sean: "once you make a pick that game is revealed. you can change bets up until game start but you cannot guess the spread or total again once youve locked in that games guess". Each game's Spread guess and Total guess is locked in on its own and is final once locked in. Locking in a game's guess for a market opens, for that player, that game's line for that market and everyone's guesses for that game and market. The game's other market stays hidden until its own guess is locked in, and other games stay hidden. Unlocked guesses are drafts and change freely until that game's kickoff. Virtual Units bets and challenges keep D-18's edits until kickoff. This replaces D-37's market-level "sent" step and D-36's market-level line lock with a per-game one; the "Skip this week's Guess the Line" and "See picks now" buttons (D-36) still open everything after a warning and forfeit the rest of the week.
+
+| Question | Ruling |
+|---|---|
+| Skip or "See picks now" after Thursday's deadline | **Yes, until the last kickoff.** Guesses already locked in keep counting; only the rest of the week is forfeited. |
+| When the new pick rules go live | **Live in both apps once built.** The server switches both apps the same day; the old app's screens are updated to match. |
+| Monday-night lines after a new week opens | **Keep collecting games that haven't started** (same calls, no extra credits). |
+| Who tests the new app before it is the default | **Whole league, opt-in.** Every member sees "Try the new app" from the first look. |
+| Real slips | **Dollar stakes allowed on new slips; old slips keep their units; no conversion. A tail asks to confirm and cannot be undone.** |
+| Friend challenges | **Line may move up to 3 points either way, in half points; a voided challenge keeps weekly-minimum credit; taking the other side of your own book bet is allowed (play money), with a note on the slip.** |
+| The old private journal | **Read-only in History.** My bets holds Virtual Units bets and challenges only. |
+| Push reminder wording | **"Due", not "lock"** (for example "Week 6 picks are due 5:15 PM PT. 9 games still open."). |
+| When the new app becomes the default | Sean: "asap". Each stage ships as soon as it passes its gates; risky migrations still go one at a time with Sean's approval; the flip happens once all five tabs are done and checked on real data (D-38). |
+
 ## D-38 — redesign prototype approved; rollout and deploys (October 14, 2026)
 
 Sean ruled in the cloud session, after reviewing the D-35 clickable prototype (canvas artifact "Guess The Line redesign prototype", version 2): "i like this design a lot", then answered:
