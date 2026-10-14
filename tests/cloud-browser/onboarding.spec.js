@@ -1014,20 +1014,22 @@ test('selected identity and three dashboard layouts render real arrangements wit
   await expect(page.locator('.auth-card .gtl-brand')).toHaveText('');
   const selectedPath = 'M86 20H54L32 40v33h54V46H60v12h13v3H46V46l16-14h24z';
   await expect(page.locator('.auth-card .gtl-yardline-mark path').first()).toHaveAttribute('d', selectedPath);
-  // D-44: the G alone in the theme green (lime in the default dark theme), with no tile or shadow behind it.
-  const fieldIcon = page.locator('.auth-card .gtl-field-icon');
-  await expect(fieldIcon).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)'); await expect(fieldIcon).toHaveCSS('box-shadow', 'none'); await expect(fieldIcon).toHaveCSS('color', 'rgb(184, 243, 75)');
+  // D-44: the G alone in the theme green (lime in the default dark theme), with no tile or shadow behind it or on its svg.
+  const noTile = async scope => { for (const part of ['.gtl-field-icon', '.gtl-yardline-mark']) { const node = page.locator(`${scope} ${part}`); await expect(node).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)'); await expect(node).toHaveCSS('background-image', 'none'); await expect(node).toHaveCSS('box-shadow', 'none'); await expect(node).toHaveCSS('color', 'rgb(184, 243, 75)'); } };
+  await noTile('.auth-card');
   const favicon = await page.request.get('/favicon.svg');
   expect(favicon.ok()).toBe(true); const faviconSvg = await favicon.text(); expect(faviconSvg).toContain(selectedPath); expect(faviconSvg).not.toContain('<rect');
   await signIn(page);
   await expect(page.locator('.hub-header .gtl-brand').getByRole('img', { name: 'Guess The Line', exact: true })).toBeVisible();
   await expect(page.locator('.hub-header .gtl-brand-wordmark')).toHaveCount(0);
   await expect(page.locator('.hub-header .gtl-brand')).toHaveText('');
+  await noTile('.hub-header');
   await page.getByRole('button', { name: 'Open game', exact: true }).click();
   await expect(page.locator('.sidebar .gtl-brand').getByRole('img', { name: 'Guess The Line', exact: true })).toBeVisible();
   await expect(page.locator('.sidebar .gtl-brand-wordmark')).toHaveCount(0);
   await expect(page.locator('.sidebar .gtl-brand')).toHaveText('');
   await expect(page.locator('.sidebar .gtl-yardline-mark path').first()).toHaveAttribute('d', selectedPath);
+  await noTile('.sidebar');
   await expect(page.locator('.accuracy-row strong')).toHaveText(['26 / 30', '28 / 30']);
   for (const [id, label] of presentationLayouts) {
     await chooseDashboardLayout(page, id, label);
@@ -1418,7 +1420,7 @@ test('dashboard matchup filter follows season and week across groups without ret
 test('install manifest and device guidance add no subscriptions or private caches',async({page,hub})=>{
  hub.profile='Avery Chen';hub.addGame();await page.setViewportSize({width:320,height:844});await page.goto('/');await signIn(page);await page.getByRole('button',{name:'Open game',exact:true}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name:'Settings & setup',exact:true}).click();
  const panel=page.getByRole('region',{name:'Add Guess The Line to your device'});await expect(panel).toContainText('Installation does not enable notifications');await panel.locator('summary').click();await expect(panel).toContainText('Add to Home Screen');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- const response=await page.request.get('/manifest.webmanifest');expect(response.ok()).toBe(true);const manifest=await response.json();expect(manifest.start_url).toBe('/');expect(manifest.display).toBe('standalone');expect(manifest.icons.map(icon=>icon.sizes)).toEqual(['192x192','512x512']);for(const icon of manifest.icons)expect((await page.request.get(icon.src)).ok()).toBe(true);
+ const response=await page.request.get('/manifest.webmanifest');expect(response.ok()).toBe(true);const manifest=await response.json();expect(manifest.start_url).toBe('/');expect(manifest.display).toBe('standalone');expect(manifest.icons.map(icon=>`${icon.sizes} ${icon.purpose}`)).toEqual(['192x192 any','512x512 any','192x192 maskable','512x512 maskable']);for(const icon of manifest.icons)expect((await page.request.get(icon.src)).ok()).toBe(true);
  expect(await page.evaluate(()=>caches.keys())).toEqual([]);expect(await page.evaluate(async()=>navigator.serviceWorker?(await navigator.serviceWorker.getRegistrations()).length:0)).toBe(0);expect(hub.requests.some(request=>/push|subscription|notification/.test(request.endpoint))).toBe(false);await page.screenshot({path:'.local/previews/install-guide-320.png',fullPage:false});
 });
 test('fresh named-book receipt prefills explicit Challenge review and preserves exact provider timestamp',async({page,hub})=>{

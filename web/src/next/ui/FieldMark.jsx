@@ -2,8 +2,8 @@
 // (lime in dark, deep green in light), on a transparent background with no tile. The G's two paths are the exact
 // original study geometry of `YardlineMark` in web/src/Brand.jsx (tests/next-ui.test.jsx checks they stay equal), and
 // the viewBox is the G's own bounds, so the G fills the box; this copy exists so the new app does not load the old
-// app's brand.css. Top bar (32, the link home), system posts at avatar size (24 to 56). Decorative by default; with
-// `label` it is an image named "Guess The Line".
+// app's brand.css. Top bar (32, the link home), the start screen (80) and the load-failed screen (56). Decorative by
+// default; with `label` it is an image named "Guess The Line".
 import { cx, imgA11y, oneOf } from './cx.js';
 
 export const FIELD_MARK_SIZES = Object.freeze([24, 32, 40, 56, 80]);

@@ -650,7 +650,7 @@ describe('TeamMark (D-22 marks, sized for DP-27) and the Field monogram', () => 
     clean(<FieldMark label="Guess The Line"/>);
   });
 
-  it('D-44: the G stands alone in accent-ink, with no tile, edge or shadow, at every size and in system posts', () => {
+  it('D-44: the G stands alone in accent-ink, with no tile, edge or shadow, at every size and as a system avatar', () => {
     const css = readFileSync(join(ROOT, 'web/src/next/styles/components.css'), 'utf8');
     const rule = selector => css.match(new RegExp(`\\n${selector.replace(/[.-]/g, '\\$&')} \\{([^}]*)\\}`))[1].split(';').map(d => d.trim()).filter(Boolean);
     const tile = decls => decls.filter(d => /^(background|box-shadow|border|outline)/.test(d));
@@ -658,7 +658,11 @@ describe('TeamMark (D-22 marks, sized for DP-27) and the Field monogram', () => 
     expect(tile(mono)).toEqual([]);
     expect(mono).toEqual(expect.arrayContaining(['color: var(--gx-accent-ink)', 'width: 32px', 'height: 32px']));
     for (const size of ui.FIELD_MARK_SIZES.filter(size => size !== 32)) expect(rule(`.gx-mono--${size}`)).toEqual([`width: ${size}px`, `height: ${size}px`]);
-    expect(rule('.gx-av-sys')).toEqual(['background: none', 'color: var(--gx-accent-ink)', 'box-shadow: none']);
+    // .gx-av-sys (no component uses it yet) also wins inside an avatar stack, whose ring rules come first: the
+    // compound .gx-av.gx-av-sys matches .gx-card .gx-av-stack .gx-av (0,3,0) and comes later.
+    expect(rule('.gx-av-sys,\n.gx-av-stack .gx-av.gx-av-sys')).toEqual(['background: none', 'color: var(--gx-accent-ink)', 'box-shadow: none']);
+    expect(css.indexOf('\n.gx-av-sys,')).toBeGreaterThan(css.indexOf('\n.gx-sheet .gx-av-stack .gx-av {'));
+    expect(css.indexOf('\n.gx-sheet .gx-av-stack .gx-av {')).toBeGreaterThan(0);
     // Forced colors draws a border on controls and boxes; around the logo it would read as the old tile.
     const start = css.indexOf('@media (forced-colors: active) {');
     expect(start).toBeGreaterThan(0);

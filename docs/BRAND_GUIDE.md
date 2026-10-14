@@ -26,8 +26,11 @@ G's two paths stay exactly as selected; the svg is framed by the G's own bounds
 (`22 20 81 53`), so the G fills the box the tile used to fill and every box keeps
 its size. The favicon is deep green and turns lime in a dark browser tab
 (`prefers-color-scheme` inside the file). The PNG icons (home screen, manifest,
-notifications) are the lime G on a transparent background with a 12% margin.
-This overrides the tile and shadow above. Google's consent screen shows no logo.
+notification badge) are the lime G on a transparent background with a 12% margin.
+Where the system draws the icon on a shape or card of its own (Android's
+launcher, a push notification), the maskable icons and the notification icon put
+the G on a navy `#0B1020` square, inside the 80% safe zone. This overrides the
+tile and shadow above. Google's consent screen shows no logo.
 
 ## Identity background
 Working wordmark: **GUESS THE LINE**. Short label: **GTL**. Tagline: **Call the number. Own the board.** Brand mark direction: custom stylized G/L monogram integrated with a yard-line / ascending line chart. Use only original vector assets. Team logos may be shown when properly licensed/authorized; otherwise use team abbreviations in custom shields. Do not substitute league or sportsbook marks as our brand.

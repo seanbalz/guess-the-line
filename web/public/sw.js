@@ -14,7 +14,9 @@ self.addEventListener('push', event => {
   event.waitUntil(self.registration.showNotification(text(data.title, 'Guess The Line', 60), {
     body: text(data.body, 'Your picks are due soon.', 160),
     tag: text(data.tag, 'gtl-reminder', 64),
-    icon: '/app-icon-192.png',
+    // The icon is the G on its navy square (14.39:1), so it reads on a light or a dark notification card; the badge
+    // is the transparent G, which Android reads as a mask (D-44).
+    icon: '/app-icon-maskable-192.png',
     badge: '/app-icon-192.png',
   }));
 });
