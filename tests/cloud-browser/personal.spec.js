@@ -5,17 +5,19 @@ import { providerPersonalError } from '../../cloud/personal.mjs';
 import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
-import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
+import { ALL, HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const test = base.extend({
-  personal: async ({ page, baseURL }, use) => {
+  // The migrations to apply: HOSTED unless a block names another list (the D-40 block below uses ALL).
+  schema: [HOSTED, { option: true }],
+  personal: async ({ page, baseURL, schema }, use) => {
     test.skip(!PGlite, 'Local PGlite is required; never connects to hosted data.');
     const db = new PGlite(), report = { errors: [], requests: [], oddsCalls: [], failAfterCommit: false };
     await db.exec(PRELUDE);
-    // The old app on the schema players actually have (tests/migrations.mjs).
-    const migrations = HOSTED;
+    // The old app on the schema players actually have (tests/migrations.mjs), unless the block sets `schema`.
+    const migrations = schema;
     await db.exec(migrationSql(migrations[0]));
     // D-24 on the hosted schema: a ballot saves only in an open week (Monday 12:00 AM PT to the deadline), so the
     // fixture week is the current Pacific week with its deadline at 11:59 PM PT today and kickoffs after it.
@@ -169,4 +171,46 @@ test('unsaved Solo guesses stay on screen when navigation discard is declined',a
   page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Favorites',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Favorites and private notes'})).toBeVisible();
   expect((await personal.db.query('select count(*)::int n from public.gtl_weekly_ballots')).rows[0].n).toBe(0);
+});
+
+// Stage 27a (M-29, D-40): "Save to Favorites" keeps a note already stored for the game. M-29 is not on the hosted
+// project yet, so this block runs the old app on every migration (ALL).
+test.describe('D-40 on the schema with M-29', () => {
+  test.use({ schema: ALL });
+  test('390px: Save to Favorites brings back the note of a game removed and saved again, and of a game never saved', async ({ page, personal }) => {
+    await page.setViewportSize({ width: 390, height: 844 }); await openSolo(page);
+    const [first, second] = personal.games, status = page.getByRole('status');
+    await page.getByRole('button', { name: `Save ${first.id} to Favorites` }).click();
+    await expect(status).toContainText('Saved to Favorites');
+    await page.getByLabel(`Private note for ${first.id}`).fill('Kept through a remove');
+    await page.getByRole('button', { name: 'Save private note' }).click();
+    await expect(status).toContainText('Private note saved');
+    await page.getByRole('button', { name: `Remove ${first.id} from Favorites` }).click();
+    await expect(status).toContainText('Removed from Favorites');
+    await expect(page.getByLabel(`Private note for ${first.id}`)).toHaveCount(0);
+    await page.getByRole('button', { name: `Save ${first.id} to Favorites` }).click();
+    await expect(status).toContainText('Saved to Favorites');
+    await expect(page.getByLabel(`Private note for ${first.id}`)).toHaveValue('Kept through a remove');
+    // A note stored on a game the player never saved: the row the new app's game sheet leaves under D-40.
+    const note = 'From the game sheet\nsecond line';
+    await personal.db.query('insert into public.gtl_favorites(user_id,season,week,game_id,saved,notes) values($1,2026,5,$2,false,$3)', [id(1), second.id, note]);
+    await page.reload();
+    await expect(page.getByRole('button', { name: `Save ${second.id} to Favorites` })).toBeVisible();
+    await expect(page.getByLabel(`Private note for ${second.id}`)).toHaveCount(0);
+    await page.getByRole('button', { name: `Save ${second.id} to Favorites` }).click();
+    await expect(status).toContainText('Saved to Favorites');
+    await expect(page.getByLabel(`Private note for ${second.id}`)).toHaveValue(note);
+    await page.reload();
+    await expect(page.getByLabel(`Private note for ${first.id}`)).toHaveValue('Kept through a remove');
+    await expect(page.getByLabel(`Private note for ${second.id}`)).toHaveValue(note);
+    // The app still sends an empty note; the server keeps the stored one, and the audit has before and after (D-23).
+    const saves = personal.requests.filter(req => req.route.endsWith('/favorite/set'));
+    expect(saves.map(req => [req.body.gameId, req.body.saved, req.body.notes])).toEqual([
+      [first.id, true, ''], [first.id, true, 'Kept through a remove'], [first.id, false, 'Kept through a remove'], [first.id, true, ''], [second.id, true, ''],
+    ]);
+    const events = (await personal.db.query('select target,before_value,after_value from public.gtl_personal_events order by revision')).rows;
+    expect(events.at(-2)).toEqual({ target: `2026/5/${first.id}`, before_value: { saved: false, notes: 'Kept through a remove' }, after_value: { saved: true, notes: 'Kept through a remove' } });
+    expect(events.at(-1)).toEqual({ target: `2026/5/${second.id}`, before_value: { saved: false, notes: note }, after_value: { saved: true, notes: note } });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
 });

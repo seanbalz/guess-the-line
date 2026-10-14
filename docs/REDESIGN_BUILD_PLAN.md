@@ -42,7 +42,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 
 ## 2. The short version
 
-- **81 stages, 28 migrations, 5 lanes, build waves 0 to 12, then the flip.** Each stage is one reviewable PR (stage 78 is a short series of identical pages).
+- **81 stages (plus stage 27a, D-40), 29 migrations, 5 lanes, build waves 0 to 12, then the flip.** Each stage is one reviewable PR (stage 78 is a short series of identical pages).
 - **The new app lives in `web/src/next/`** as one lazy chunk. Players never download it. A per-device switch, opt-in for every league member (D-39).
 - **Stage 2 (push guard) goes out with the next deploy of `main`.** Otherwise players get a "Remind me" button that fails.
 - **Rules land on the server first.** The database reports which rule is live (`gtl_live_rules`), and both apps follow it. So a deploy can never put a screen ahead of its rule, and a rollback switches the screens back.
@@ -163,7 +163,8 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 |---|---|
 | `gtl_read_community` | M-01, M-21 |
 | `gtl_read_community_history`, `gtl_week_revealed` | M-01 |
-| `gtl_mutate_personal`, `gtl_save_weekly_ballot`, `gtl_guard_fresh_submission` | M-02, M-07 |
+| `gtl_mutate_personal` | M-29, then M-02, M-07 |
+| `gtl_save_weekly_ballot`, `gtl_guard_fresh_submission` | M-02, M-07 |
 | `gtl_live_rules` (new) | M-01, M-02, M-07 |
 | `gtl_feed_on_ballot` | M-07 |
 | `gtl_read_social` | M-04 |
@@ -209,6 +210,7 @@ M-numbers are names. The apply order is the calendar in section 8. Real files ar
 | M-26 | 70 | `features_schedule` | Features job, off | Medium | any | M-25 |
 | M-27 | 72 | `me_history` | Own changes, older records | Low | any | M-01, M-03 |
 | M-28 | 75 | `me_export` | Export my data | Low | any | M-27 |
+| M-29 | 27a | `favorite_keeps_note` | Old app's "Save to Favorites" keeps a stored note (D-40) | Low (copies the Solo ballot path unchanged) | any quiet day | — |
 
 Not in this ledger: the push migration `20261013030000` is in the repo but not hosted. Its apply is Sean's separate call (stage 2).
 
@@ -334,6 +336,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 | 25 | Old app: late picks until kickoff | B | — | 24, 17 | with M-07 |
 | 26 | Everyone's picks reader | B | M-08 | 16, 4 | M-01 |
 | 27 | Private notes server | D | M-09 | 4 | — |
+| 27a | Old app: Save keeps a stored note | D | M-29 | 3 | — |
 
 **14. Best price fix**
 - Goal: fix two proven bugs: a tie at one line is broken by "closest to −110" instead of the better price, and a book missing from the newest snapshot falls back to its oldest kept quote.
@@ -415,6 +418,12 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Scope: `gtl_read_game_notes`, `gtl_set_game_note` (up to 2,000 characters; an old note is never cut; the `saved` flag kept; each change audited and bumps the shared revision). `POST /personal/notes`, `/personal/note`.
 - Tests: SQL `game-notes-sql`; handler `personal-workspace`; no other user can read a note.
 
+**27a. Old app: Save keeps a stored note (M-29, D-40)**
+- Goal: under D-40 a note written in the new app never makes the game a Favorite, and the old app's Favorites tab lists saved games only. Its "Save to Favorites" button sends an empty note, which until now replaced a note already stored for the game (also after a game was removed from Favorites and saved again).
+- Scope: replace `gtl_mutate_personal` (same argument list; only the `favorite/set` branch changes): a save that takes a game from not saved, or no row, to saved and sends an empty note keeps the stored note, exactly as stored. Every other save writes the note it sends, so an edit of a saved game's note to empty still clears it. One audit row per save with before and after; receipts, request-id replay and revision conflicts unchanged; no new error code. No gtl-api or Pages change. Works with or without M-09. `supabase/rollback/` restores the previous body.
+- Tests: SQL `favorite-keeps-note-sql` (every save compared with the previous body; retries, conflicts, the audit, the route); `personal.spec.js` on `ALL` (a game removed and saved again, and a note on a game never saved).
+- Everyone sees (after M-29): a note comes back when its game is saved again.
+
 ### Phase 3: Play, Home, Lines and Me come alive
 
 | # | Stage | Lane | Migration | Build after | Live after |
@@ -426,7 +435,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 | 32 | Edge board and results | B | — | 29, 23 | M-06 |
 | 33 | Lines: line now and gate banner | D | — | 13, 23, 30 | M-06 |
 | 34 | Game sheet in full | D | — | 33, 31 | M-06, M-08 |
-| 35 | Notes in the game sheet | D | — | 34, 27 | M-09 |
+| 35 | Notes in the game sheet | D | — | 34, 27 | M-09, M-29 |
 | 36 | Home: next action, first run, other weeks | A | — | 12, 29 | — |
 | 37 | Me: menu and Settings | A | — | 11 | — |
 | 38 | Me: info pages | A | — | 37 | — |
@@ -736,7 +745,7 @@ Stages in one wave are built at the same time by different lanes. A wave ends wh
 |---|---|---|---|---|---|
 | 0 | 2 | 1 | | | |
 | 1 | 6 | 15, 16 | 14 | 3, 4 | 5, 7 |
-| 2 | 8, 9 | 18, 19 | 20 | 22, 27 | 48, 49 |
+| 2 | 8, 9 | 18, 19 | 20 | 22, 27, 27a | 48, 49 |
 | 3 | 10 | 17, 26 | 21 | 23 | 57 |
 | 4 | 11 | 24 | 40 | 68 | 61 |
 | 5 | 12, 37 | 25, 28 | 41, 42 | 13 | 62, 63 |
