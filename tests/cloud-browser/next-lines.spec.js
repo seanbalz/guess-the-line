@@ -15,7 +15,8 @@ import { randomUUID } from 'node:crypto';
 // markets. Checked: the kickoff groups, the "YOU" tags, a lock is an icon and never "—", the game sheet and the All trends
 // sheet open and close with Back, the top trends with their records and sample sizes, the weather row (closed with no
 // digits, times in PT), the referee row, the 404 fallbacks, /wind/read only once a sheet opens, no writes, the leak scan on
-// the rendered page, axe in Light and Dark, and the phone rules. Fictional accounts only; never contacts hosted data.
+// the rendered page (its text and attributes), axe in Light and Dark, and the phone rules measured in CI's fallback font
+// (ciFonts). Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -47,8 +48,25 @@ async function settle(page) {
   await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))));
 }
 
+/**
+ * The app's fonts never load here (the tests block Google Fonts), so the text falls back to the system font: DejaVu Sans
+ * on the Ubuntu CI runner, often a narrower one (Inter) on a laptop. A label that fits in Inter can clip in DejaVu Sans
+ * (it did: "SPREAD" in a fixed 56px box). Draw every font token in DejaVu Sans wherever it is installed, so a local run
+ * measures what CI measures.
+ */
+async function ciFonts(page) {
+  await page.evaluate(() => {
+    if (document.getElementById('ci-fonts')) return;
+    const style = document.createElement('style');
+    style.id = 'ci-fonts';
+    style.textContent = 'html .gx { --gx-font-body: "DejaVu Sans", sans-serif; --gx-font-num: "DejaVu Sans", sans-serif; --gx-font-display: "DejaVu Sans", sans-serif; }';
+    document.head.append(style);
+  });
+}
+
 /** Phone rules for everything under `root` (section 4.1): no side scroll, 44px targets, no text under 12px, nothing clipped. */
 async function phoneChecks(page, root = '.gx') {
+  await ciFonts(page);
   await settle(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no side scroll').toBe(true);
   const report = await page.locator(root).first().evaluate(scope => {
@@ -128,8 +146,16 @@ async function noLeak(page, world, where) {
     ...lineSecrets(LINES.spread, { market: 'spread' }), { value: FORGED_SPREAD_LINE, kind: 'line', market: 'spread', label: 'forged locked Spread line' },
   ];
   expect(secrets.length).toBeGreaterThan(5);
-  const text = await page.evaluate(() => document.body.innerText);
-  assertNoLeak({ text }, { viewer: ACCOUNTS.luke.id, secrets }, where);
+  // What a viewer or a screen reader can reach: the text and every attribute (aria-label, title, data-*, href, ...), but
+  // not an svg's drawing data or the layout's own style and class values, which are not content.
+  const { text, attributes } = await page.evaluate(() => ({
+    text: document.body.innerText,
+    attributes: [...document.body.querySelectorAll('*')].flatMap(el => [...el.attributes]
+      .filter(a => (el.closest('svg') ? a.name === 'aria-label' : a.name !== 'style' && a.name !== 'class'))
+      .map(a => `${a.name}=${a.value}`)),
+  }));
+  expect(attributes.some(a => a.startsWith('aria-label=')), 'the scan reads attributes').toBe(true);
+  assertNoLeak({ text, attributes }, { viewer: ACCOUNTS.luke.id, secrets }, where);
 }
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
@@ -290,7 +316,7 @@ test('the weather and referee rows hide cleanly when their routes answer 404', a
   } finally { await world.db.close(); }
 });
 
-test('axe in Light and Dark at 390 and 320 on the board, the game sheet and All trends; 390 screenshots', async ({ page, baseURL }, testInfo) => {
+test('axe in Light and Dark at 390, 320 and 1440 on the board, the game sheet and All trends; 390 screenshots', async ({ page, baseURL }, testInfo) => {
   const { world } = await lukesWeek(page, baseURL);
   try {
     await openLines(page);
@@ -301,7 +327,7 @@ test('axe in Light and Dark at 390 and 320 on the board, the game sheet and All 
       await page.goto('/#lines');
       await expect(card(page, 'SEA-DEN')).toBeVisible();
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-      for (const width of [390, 320]) {
+      for (const width of [390, 320, 1440]) {
         await page.setViewportSize({ width, height: 844 });
         await phoneChecks(page);
         found[`board ${theme} ${width}`] = await axe(page);

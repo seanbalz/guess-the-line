@@ -71,7 +71,8 @@
 /* ----- game sheet ----- */
 /* The sheet body scrolls; its blocks keep their own height (a flush card hides overflow, so it could shrink to nothing). */
 .gx-l-sheet .gx-sheet-body > * { flex-shrink: 0; }
-.gx-l-ylab { flex: none; width: 56px; }
+/* At least 56px, never a fixed width: in a wide fallback font (DejaVu Sans while Figtree has not loaded) "SPREAD" needs 58px. */
+.gx-l-ylab { flex: none; min-width: 56px; }
 .gx-l-ysub { display: flex; align-items: flex-start; gap: 4px; }
 .gx-l-ysub .gx-ic { margin-top: 3px; color: var(--gx-text-3); }
 .gx-l-tcard { display: flex; flex-direction: column; gap: 8px; }
