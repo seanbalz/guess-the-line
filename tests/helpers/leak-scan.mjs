@@ -57,6 +57,15 @@ export const READER_MIGRATIONS = Object.freeze({
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
 
+/**
+ * A reader's reply as the scan should read it. A reply is addressed to its viewer, so an owner key at its root names the
+ * viewer, not the owner of everything in it: /social/* replies carry `actorId` beside every player's slips and the
+ * counts and selection rows built from them, which the scan would otherwise read as the viewer's own. The root's owner
+ * keys come off; every entry inside still names its own owner. (Of today's READERS only /social/read has one.)
+ */
+export const readerReply = reply => (reply !== null && typeof reply === 'object' && !Array.isArray(reply)
+  ? Object.fromEntries(Object.entries(reply).filter(([key]) => !OWNER_KEYS.includes(key))) : reply);
+
 const NUMBER = /[+-]?(?:\d+\.\d+|\d+|\.\d+)/g;
 // ISO times (observedAt, kickoff, ...) are not lines, but their seconds can read as one: "...:31.500Z" is 31.5.
 const ISO_TIME = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?/g;

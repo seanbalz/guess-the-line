@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { createCloudHandler } from '../cloud/handler.mjs';
 import { handleSocial, legLocked, redactSocialWeek, socialGate } from '../cloud/social.mjs';
 import { applySocialMutation, emptySocialState } from '../shared/social-bets.mjs';
-import { assertNoLeak, leakScan, lineSecrets, READERS, READER_MIGRATIONS, readersOn } from './helpers/leak-scan.mjs';
+import { assertNoLeak, leakScan, lineSecrets, READERS, READER_MIGRATIONS, readerReply, readersOn } from './helpers/leak-scan.mjs';
 import { ALL, HOSTED, NOT_HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable, sendBallot, storeBookLines } from './cloud-browser/community-world.mjs';
 
@@ -64,7 +64,7 @@ function service(answer) {
     throw new Error(`unexpected ${name}`);
   } };
 }
-const read = async (options = {}, { clock = NOW, rules } = {}) => handleSocial({ route: '/social/read', body: {}, user: { id: VIEWER }, service: service(() => raw(options)), clock: () => clock, ...(rules ? { rules: () => rules } : {}) });
+const read = async (options = {}, { clock = NOW, rules, body = {} } = {}) => handleSocial({ route: '/social/read', body, user: { id: VIEWER }, service: service(() => raw(options)), clock: () => clock, ...(rules ? { rules: () => rules } : {}) });
 const entry = (reply, key) => reply.entries.find(e => e.id === WEEK_STATE.ids[key]);
 const tailBody = (sourceEntryId, requestId = randomUUID()) => ({ season: SEASON, week: WEEK, weekRevision: WEEK_STATE.state.audit.length, requestId, sourceEntryId, odds: -105, stakeUnits: 1, source: 'Viewer book', quotedAt });
 
@@ -108,6 +108,14 @@ test('a closed gate: no line of another player\'s slip anywhere in the reply; lo
   // Records, ROI and the selection chart still count every slip; the chart names the side, never the hidden line.
   assert.equal(reply.summary.bets, 5);
   assert.ok(reply.selectionBreakdown.some(row => row.label === `${A.id} · BUF` && row.count === 2), 'the single and the corrected slip, without their line');
+  // The reply names its viewer at the root (actorId), which the scan reads as "all of this is the viewer's": the strict scan
+  // takes that off (readerReply), so the counts, chart and selection rows built from the other player's slips are scanned
+  // too. Filtered to that player, so no row is the viewer's own.
+  const others = await read({}, { body: { filters: { playerId: OTHER } } });
+  assert.equal(others.entries.length, 4);
+  assertNoLeak(readerReply(others), { viewer: VIEWER, secrets: SECRETS }, '/social/read, the other player\'s slips, root included');
+  const whole = await read({ noGate: true }, { body: { filters: { playerId: OTHER } } });
+  assert.ok(leakScan(readerReply(whole), { viewer: VIEWER, secrets: SECRETS }).some(f => f.path.startsWith('$.selectionBreakdown')), 'the strict scan reaches the selection rows');
   assert.deepEqual(reply.rules, { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' });
 });
 
@@ -250,11 +258,18 @@ const slip = (reply, id) => reply.entries.find(e => e.id === id);
 test('ALL (M-04 applied): no reader gives Luke a line before he locks in; a Spread send opens Spread only; a sit-out opens Total; Tail follows', { skip }, async t => {
   const f = await slipsWorld(t, ALL);
   // The full leak gate for this viewer: every reader the schema serves, /social/read included, with Troy's slips in the week.
+  // Luke has no slip yet, so nothing in a reply is his own: each reply is scanned root included (readerReply).
   for (const reader of readersOn(ALL)) {
     const [route, method, body] = reader, reply = await f.world.api('luke', route.slice(1), method === 'GET' ? undefined : body);
     assert.equal(reply.status, 200, `${route}: ${JSON.stringify(reply.body)}`);
-    assertNoLeak(reply.body, { viewer: ACCOUNTS.luke.id, secrets: f.secrets }, route);
+    assertNoLeak(readerReply(reply.body), { viewer: ACCOUNTS.luke.id, secrets: f.secrets }, route);
   }
+  // A slip change answers with the same projection: Luke's own prop slip (no Guess the Line line) gets Troy's legs locked.
+  const prop = await f.world.api('luke', 'social/create', { season: f.season, week: f.week, weekRevision: (await f.social('luke')).weekRevision, requestId: randomUUID(), kind: 'single',
+    legs: [{ gameId: f.g0, market: 'prop', side: 'Fixture Receiver', selection: 'Fixture Receiver over 77.5 receiving yards', line: 77.5 }], odds: -110, stakeUnits: 1, source: 'Fixture book' });
+  assert.equal(prop.status, 200, JSON.stringify(prop.body));
+  assertNoLeak(readerReply(prop.body), { viewer: ACCOUNTS.luke.id, secrets: f.secrets }, '/social/create reply');
+  assert.equal(slip(prop.body, f.spreadSlip).locked, true);
   const before = await f.social('luke');
   assert.deepEqual([slip(before, f.spreadSlip).locked, slip(before, f.spreadSlip).canTail, slip(before, f.spreadSlip).noteHidden], [true, false, true]);
   assert.deepEqual(before.rules, { sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' }, 'M-01 is in ALL');
@@ -275,6 +290,7 @@ test('ALL (M-04 applied): no reader gives Luke a line before he locks in; a Spre
   assertNoLeak(spread, { viewer: ACCOUNTS.luke.id, secrets: lineSecrets(f.lines.total, { market: 'total' }) }, '/social/read after a Spread send');
   const tailed = await f.tail('luke', f.spreadSlip);
   assert.equal(tailed.status, 200, JSON.stringify(tailed.body));
+  assertNoLeak(readerReply(tailed.body), { viewer: ACCOUNTS.luke.id, secrets: lineSecrets(f.lines.total, { market: 'total' }) }, '/social/tail reply after a Spread send');
   assert.equal((await f.tail('luke', f.parlaySlip)).status, 409);
 
   const satOut = await f.world.api('luke', 'community/sit-out', { season: f.season, week: f.week, mode: 'guess_total' });

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS, READER_MIGRATIONS, readersOn } from './helpers/leak-scan.mjs';
+import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS, READER_MIGRATIONS, readerReply, readersOn } from './helpers/leak-scan.mjs';
 import { ACCOUNTS, MIGRATIONS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { ALL, HOSTED } from './migrations.mjs';
 
@@ -40,6 +40,17 @@ test('the viewer\'s own entries are exempt down to a nested entry that names ano
   assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS, exempt: p => p.endsWith('.comments') }), []);
   // Snake case owners count too.
   assert.deepEqual(leakScan([{ user_id: VIEWER, value: 2.5 }, { actor_id: OTHER, value: 2.5 }], { viewer: VIEWER, secrets: SECRETS }).map(f => f.path), ['$[1].value']);
+});
+
+test('readerReply: an owner key at a reply\'s root names its viewer, so it comes off; entries keep their owners', () => {
+  // /social/read answers { actorId: viewer, entries: [...], selectionBreakdown: [...] }: read as is, the root would make
+  // every aggregate the viewer's own (stage 21).
+  const reply = { actorId: VIEWER, entries: [{ ownerId: OTHER, legs: [{ line: null }] }, { ownerId: VIEWER, legs: [{ line: -11.5 }] }],
+    selectionBreakdown: [{ label: 'g1 · BUF -11.5', count: 1 }] };
+  assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS }), [], 'the root exemption hides the selection row');
+  assert.deepEqual(leakScan(readerReply(reply), { viewer: VIEWER, secrets: SECRETS }).map(f => f.path), ['$.selectionBreakdown[0].label']);
+  assert.deepEqual(readerReply({ user_id: VIEWER, x: 1 }), { x: 1 });
+  for (const value of [null, [1.5], 'text', 2.5]) assert.deepEqual(readerReply(value), value);
 });
 
 test('no false finding from counts, weeks, seasons, timestamps, ids or points; whole-number secrets are refused', () => {
@@ -118,7 +129,7 @@ test('today\'s readers give a viewer who has not sent picks no line and no hidde
   };
   // Luke has not sent or sat out: no line, no Troy pick, in any reader.
   // Every reader the hosted schema serves (readersOn: a reader whose migration is not hosted yet runs in its own suite on ALL).
-  for (const reader of readersOn(MIGRATIONS)) assertNoLeak(await read('luke', reader), { viewer: ACCOUNTS.luke.id, secrets: secrets('luke') }, reader[0]);
+  for (const reader of readersOn(MIGRATIONS)) assertNoLeak(readerReply(await read('luke', reader)), { viewer: ACCOUNTS.luke.id, secrets: secrets('luke') }, reader[0]);
   // The scan is not vacuous: Troy's own reply carries his picks, which only the owner exemption clears.
   const own = await read('troy', READERS[0]);
   const troyPicks = [...pickSecrets(map(TROY.spread), { market: 'spread', owner: 'troy' }), ...pickSecrets(map(TROY.total), { market: 'total', owner: 'troy' })];

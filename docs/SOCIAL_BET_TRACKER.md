@@ -71,8 +71,12 @@ off.
 - **Tests.** `tests/social-line-lock.test.mjs`: gate, redaction, Tail, the
   handler, and PGlite on `ALL`, on `ALL` without M-04 (the deploy before the apply)
   and on `HOSTED`. With M-04, every reader in the leak scan's `READERS`, now
-  including `/social/read`, gives a player who has not locked in no line. Also
-  the 390 px real-slip case in `tests/cloud-browser/social-no-league.spec.js`.
+  including `/social/read`, gives a player who has not locked in no line, and so
+  do the slip-change replies. A `/social` reply names its viewer at the root
+  (`actorId`), so the scan reads it through `readerReply`, which takes that name
+  off: the counts, chart and selection rows built from other players' slips are
+  scanned too. Also the 390 px real-slip case in
+  `tests/cloud-browser/social-no-league.spec.js`.
 
 ## Accounting and scope
 

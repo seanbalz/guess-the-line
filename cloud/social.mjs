@@ -1,6 +1,6 @@
 import { applySocialMutation, emptySocialState, socialView, SocialError } from '../shared/social-bets.mjs';
 import { UUID_PATTERN } from './lobby.mjs';
-import { lineLockedSentence, parseMarketsVisible } from './line-lock.mjs';
+import { LINE_MARKETS, lineLockedSentence, parseMarketsVisible } from './line-lock.mjs';
 import { TODAYS_RULES } from './live-rules.mjs';
 export { SocialError } from '../shared/social-bets.mjs';
 
@@ -47,7 +47,6 @@ function canonicalGames(games, season, week) {
 // closed to the viewer and the game has not kicked off: no line, and a selection text without one. The viewer's own slips are never
 // redacted (D-23). A slip with a locked leg also holds back its free-text note and its change reasons, which can carry the line,
 // and cannot be tailed (a tail copies the legs, lines included, into the viewer's own slip).
-export const LINE_MARKETS = Object.freeze(['spread', 'total']);
 const CLOSED = Object.freeze(Object.create(null));
 /** A week's gate: null when the week carries none (today's behavior), CLOSED when it does not parse. */
 export function socialGate(week) {

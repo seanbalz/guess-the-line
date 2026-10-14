@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { seed } from '../../server/store.mjs';
 import { createCloudHandler } from '../../cloud/handler.mjs';
 import { handleSocial, providerSocialError } from '../../cloud/social.mjs';
@@ -9,6 +10,26 @@ import { ALL, HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+/** Phone checks under `root`: no side scroll, 44 px targets, no text under 12 px, nothing clipped or off screen. */
+async function phoneChecks(page, root) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no side scroll').toBe(true);
+  const report = await page.locator(root).first().evaluate(scope => {
+    const visible = el => el.getClientRects().length > 0;
+    const targets = [...scope.querySelectorAll('button,a[href],input,select,summary,[role=button]')].filter(visible)
+      .map(el => { const r = el.getBoundingClientRect(); return { text: el.textContent.trim().slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) }; })
+      .filter(r => r.w < 44 || r.h < 44);
+    const small = [], clipped = [];
+    for (const el of [scope, ...scope.querySelectorAll('*')]) {
+      if (!visible(el) || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
+      if (el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
+      if (el.getBoundingClientRect().right > innerWidth + 0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+    }
+    return { targets, small, clipped };
+  });
+  expect(report).toEqual({ targets: [], small: [], clipped: [] });
+}
 
 test('a signed-in player without a league opens shared Bet Tracker while Solo notes stay private', async ({ page, baseURL }) => {
   test.skip(!PGlite, 'Local PGlite required; never contacts hosted data.');
@@ -160,6 +181,24 @@ test('real slips: a locked leg shows no line and Tail waits until the player sit
     for (const item of responses.filter(r => r.path.endsWith('/social/read'))) expect(item.text.includes('6.5')).toBe(false);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: '.local/previews/social-line-lock-390.png', fullPage: true });
+    // The locked card in both palettes at 390 and 320: phone checks and axe (build plan section 4.1, UI stages).
+    const found = {}, surface = {};
+    for (const theme of ['dark', 'light']) {
+      // The Appearance control on this screen (web/src/Theme.jsx) sets the palette's variables and data-theme.
+      await page.getByRole('combobox', { name: 'Color theme' }).selectOption(theme);
+      for (const width of [390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await phoneChecks(page, '.social-bet-card:has([data-locked="true"])');
+        surface[theme] = await troy.evaluate(el => getComputedStyle(el).backgroundColor);
+        const result = await new AxeBuilder({ page }).include('.social-feed').withTags(AXE_TAGS).analyze();
+        found[`${theme} ${width}`] = result.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`);
+        await page.screenshot({ path: `.local/previews/social-line-lock-${theme}-${width}.png`, fullPage: true });
+      }
+    }
+    expect(found).toEqual({ 'dark 390': [], 'dark 320': [], 'light 390': [], 'light 320': [] });
+    expect(surface.dark, 'the two palettes differ').not.toBe(surface.light);
+    await page.setViewportSize({ width: 390, height: 844 });
     // A sit-out of Week 6 Spread (D-23) opens that line: Troy's leg, note and Tail come back.
     await db.query("insert into public.gtl_weekly_optouts(user_id,season,week,mode) values($1,2026,6,'guess_spread')", [id(1)]);
     await page.getByRole('button', { name: 'Refresh bet tracker', exact: true }).click();
