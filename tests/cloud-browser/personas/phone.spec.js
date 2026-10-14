@@ -1,6 +1,6 @@
 // Persona (b): casual phone user at 390px on a slow connection (every request delayed),
 // interrupted mid-ballot: tab switch, reload, back button. Does the draft survive?
-import { test, expect, pgliteAvailable, id } from './harness.mjs';
+import { test, expect, pgliteAvailable, id, dueDay } from './harness.mjs';
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
@@ -52,7 +52,7 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   const bar = page.locator('.save-bar');
   const deadline = persona.state.league.deadline;
   const dueShort = new Date(deadline).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', hour: 'numeric', minute: '2-digit' });
-  await expect(bar.locator('.save-due')).toHaveText(`Due ${dueShort} PT (today)`);
+  await expect(bar.locator('.save-due')).toHaveText(`Due ${dueShort} PT (${dueDay(deadline)})`);
   const bottomOf = async locator => { const box = await locator.boundingBox(); return box.y + box.height; };
   const lastCard = cards.last();
   await lastCard.evaluate(el => el.scrollIntoView({ block: 'end' }));
