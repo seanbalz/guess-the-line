@@ -1159,6 +1159,9 @@ for (const width of [320, 390, 1440]) for (const theme of ['light', 'dark']) tes
     await expect(logo).toHaveCount(1);
     await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(matchup.locator('.team-identity').nth(index)).toHaveAttribute('data-logo-status', 'trademark-identification');
+    // D-46 backing: a light-neutral circle (token text #F8FAFC) in Dark, none in Light.
+    const backing = await matchup.locator('.team-identity').nth(index).evaluate(node => { const style = getComputedStyle(node); return [style.backgroundColor, style.borderTopLeftRadius]; });
+    expect(backing).toEqual([theme === 'dark' ? 'rgb(248, 250, 252)' : 'rgba(0, 0, 0, 0)', '50%']);
   }
   await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveCount(0);
   await expect(matchup.locator('[data-logo-status="original"]')).toHaveCount(0);
@@ -1178,6 +1181,8 @@ test('dashboard team logo that fails to load falls back to the team badge, then 
   await expect(badge).toHaveCount(1);
   await expect.poll(() => badge.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
   await expect(matchup.locator('.team-identity').first()).toHaveAttribute('data-logo-status', 'original');
+  // Badges keep their own look: no D-46 backing circle.
+  expect(await matchup.locator('.team-identity').first().evaluate(node => getComputedStyle(node).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
   await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('DAL');
   await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
 });

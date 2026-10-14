@@ -4,7 +4,8 @@ import { resolveTeamBadge, resolveTeamMark, teamAliases as aliases } from './tea
 
 // Official team logos (D-46) for all 32 teams. If a logo fails to load, the team's
 // original Guess The Line badge replaces it where one exists, then the abbreviation.
-// Records live in docs/TEAM_LOGO_SOURCES.md.
+// Records live in docs/TEAM_LOGO_SOURCES.md. Official logos sit on a round light-neutral
+// backing in Dark and on no backing in Light (teamIdentity.css, D-46).
 
 const sizes = { small: 24, medium: 32, large: 48 };
 

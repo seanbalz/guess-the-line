@@ -21,6 +21,21 @@
   box-shadow: none;
 }
 
+/* D-46 official logos: in Dark a subtle light-neutral circle (the token text color, #F8FAFC) sits behind
+   every official logo so navy and black marks read on the dark canvas. In Light the circle is transparent:
+   a light backing would not separate the mostly-white marks (KC, PIT, TEN) and a dark one would sink the
+   navy marks. One rule for all 32; badges and the letter fallback are unchanged. */
+.team-identity--logo[data-logo-status="trademark-identification"] {
+  box-sizing: border-box;
+  padding: 8%;
+  border-radius: 50%;
+  background: var(--text);
+}
+
+:root[data-theme="light"] .team-identity--logo[data-logo-status="trademark-identification"] {
+  background: transparent;
+}
+
 .team-identity--logo img {
   display: block;
   width: 100%;

@@ -894,6 +894,23 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   opacity: 0;
 }
 .gx-team--loaded .gx-team-img { opacity: 1; }
+/* D-46 official logos: a round chip inside the tile. In Dark the chip is the light neutral text-1 so navy and black
+   marks read; in Light it is transparent (a light chip would not separate the mostly-white KC, PIT and TEN marks and
+   a dark one would sink the navy ones). One rule for all 32 teams; badges and letters keep the plain tile. */
+.gx-team[data-mark="trademark-identification"] .gx-team-img {
+  top: 2px;
+  left: 50%;
+  width: auto;
+  height: calc(100% - 4px);
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--gx-text-1);
+  translate: -50% 0;
+}
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-team[data-mark="trademark-identification"] .gx-team-img,
+.gx[data-theme="light"] .gx-team[data-mark="trademark-identification"] .gx-team-img { background: transparent; }
 .gx-team--loaded .gx-team-code { visibility: hidden; }
 /* The Field monogram (D-44): the Yardline G alone in accent-ink (lime in dark, deep green in light) on a transparent
    background, with no tile, edge or shadow (Brand.jsx geometry). The box keeps its size, so nothing around it moves. */

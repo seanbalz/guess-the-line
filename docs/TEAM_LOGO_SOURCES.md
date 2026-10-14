@@ -65,6 +65,29 @@ Measured on each original's opaque pixels against the page canvas from `design/t
 - **Dark theme:** ARI (37% under 1.5:1, 76% under 3:1), CAR (77% under 1.5:1, 80% under 3:1), DAL (72% under 1.5:1, 73% under 3:1), HOU (50% under 1.5:1, 51% under 3:1), IND (7% under 1.5:1, 74% under 3:1), LAR (0% under 1.5:1, 100% under 3:1), LV (58% under 1.5:1, 60% under 3:1), NYG (100% under 1.5:1, 100% under 3:1), NYJ (0% under 1.5:1, 100% under 3:1), WAS (58% under 1.5:1, 61% under 3:1).
 - **Light theme:** KC (57% under 1.5:1, 60% under 3:1), PIT (51% under 1.5:1, 85% under 3:1), TEN (35% under 1.5:1, 82% under 3:1).
 
+#### Backing chip (approved by Sean, October 14, 2026: "Yes I want that")
+
+One rule for all 32 official logos, with no per-team cases. **In Dark**, each logo sits on a round light-neutral chip with small padding:
+- Old app: token `text` `#F8FAFC` (`design/tokens.json` `colors.text`), with 8% padding (`web/src/teamIdentity.css`).
+- New app: `--gx-text-1` `#F5F7FB`, with 2 px padding inside the tile (`web/src/next/styles/components.css`).
+
+**In Light** the chip is transparent. Badges and the letter fallback are unchanged.
+
+The same measurement against the Dark chip leaves:
+- Old app (`#F8FAFC`): KC (57% / 60%), PIT (51% / 85%) and TEN (35% / 82%).
+- New app (`#F5F7FB`): KC (57% / 60%), LAC (55% / 64%), PIT (51% / 85%) and TEN (35% / 84%).
+
+All 10 Dark-canvas flags above (ARI, CAR, DAL, HOU, IND, LAR, LV, NYG, NYJ, WAS) clear.
+
+In Light, measured on the page: KC, PIT and TEN stay flagged, as above. Against the new app's tile (`--gx-surface-2` `#F3F5F9`), LAC (55% / 64%) is flagged too.
+
+No token-based neutral chip clears KC, PIT and TEN without flagging others:
+- Every light token leaves KC and PIT flagged.
+- The mid-gray `#95A2BB` still flags TEN and newly flags CLE, DET and LAC (and MIA, SF and TB). The mid-gray `#7A89A6` still flags TEN, newly flags CLE, DET and LAC, and also flags BUF, LAR and NYJ.
+- A dark chip flags the navy and black marks.
+
+These three logos are mostly white or light fields drawn inside dark outlines, so a light backing is not added in Light.
+
 ## Original badges
 
 *Since D-46 (October 14, 2026) no badge displays by default: every team shows its official logo, and a team's badge shows only if that logo fails to load. The badge files and their records below are unchanged.*

@@ -1,6 +1,7 @@
 // A team mark (D-46; design system 7.5): the team's official logo from the team-mark registry, in a 24, 32 or 48px
 // square tile with a 1px ring. If the logo fails to load, the team's original Guess The Line badge (D-22) replaces it
-// where one exists; otherwise, or if that fails too, the letters stay.
+// where one exists; otherwise, or if that fails too, the letters stay. An official logo sits on a round chip, light
+// neutral in Dark and transparent in Light (components.css, `data-mark="trademark-identification"`).
 //
 // DP-27: the tile is sized before anything loads (its CSS box plus width and height on the image, so nothing moves)
 // and shows the team's abbreviation until the image has loaded and decoded off the main thread (decoding="async",
