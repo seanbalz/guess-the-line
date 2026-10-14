@@ -29,6 +29,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 |---|---|
 | Lock-in (stages 15, 16, 17, 18, 19, 24, 25, 26, 28–31) | Per game, not per market. Each game's Spread or Total guess is final once locked in, and locking it in opens that game's line for that market and everyone's guesses for that game and market. There is no market-level "send". M-02 enforces "a locked-in guess cannot change" per game and market; the reveal and the line lock key on the player's locked-in guess for that game and market (plus kickoff, skip and "See picks now"). Unlocked guesses stay drafts until kickoff. |
 | Skip and "See picks now" (stage 19) | Allowed until the last kickoff; locked-in guesses keep counting. |
+| Scoring a partly locked-in week (stages 18, 19, 24; D-41) | Each locked-in guess scores on its own; a game never locked in scores nothing. Built with M-07 (stage 24); until then M-02 counts a market once its last game is locked in. The old D-23 sit-out after a lock-in covers only the rest of the week, and the locked-in guesses keep counting (M-03). |
 | Rule timing (stages 24, 25) | Live in both apps once built, the same day. |
 | Monday-night lines (stage 22) | Yes. |
 | Testers (stages 9, 49) | Whole league, opt-in. "Try the new app" shows to every signed-in member from the first look. Stage 49 and M-14 (tester list) are dropped. |
