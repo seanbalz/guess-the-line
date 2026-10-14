@@ -207,13 +207,16 @@ test('unknown actions and malformed layers leave the state as it is', () => {
   }
 });
 
-test('the tab slot files: every tab and Me has homeTiles, counter and sheetActions, all empty at stage 10', () => {
+test('the tab slot files: every tab and Me has homeTiles, counter and sheetActions, empty until each slot\'s own stage', () => {
   assert.deepEqual(Object.keys(SLOTS).sort(), ['bets', 'home', 'league', 'lines', 'me', 'play']);
   for (const [tab, slot] of Object.entries(SLOTS)) {
     assert.deepEqual(Object.keys(slot).sort(), ['counter', 'homeTiles', 'sheetActions'], tab);
     assert.ok(Array.isArray(slot.homeTiles) && Object.isFrozen(slot.homeTiles), `${tab} homeTiles`);
     assert.ok(Array.isArray(slot.sheetActions) && Object.isFrozen(slot.sheetActions), `${tab} sheetActions`);
     assert.ok(slot.counter === null || typeof slot.counter === 'function', `${tab} counter`);
+    // Stage 11 fills Play's counter (tests/next-data.test.mjs); every other slot is still empty.
+    if (tab !== 'play') assert.equal(slot.counter, null, `${tab} counter`);
+    assert.equal(slot.homeTiles.length + slot.sheetActions.length, 0, `${tab} tiles and actions`);
     // A slot file is data only: it imports nothing, so a lane edits its own folder without touching another's.
     assert.doesNotMatch(readFileSync(new URL(`../web/src/next/${tab}/index.js`, import.meta.url), 'utf8'), /^\s*import\b/m, `${tab}/index.js`);
   }

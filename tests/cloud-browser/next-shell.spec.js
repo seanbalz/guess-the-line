@@ -10,7 +10,8 @@ import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-w
 // Redesign build plan, stage 10: the shell frame, at 390 x 844 (section 4.1).
 // Part 1 runs the real app (main.jsx, AuthGate, the lazy NextApp) on the real handler with every migration (ALL) on
 // local PGlite: the tabs, the address and Back, a reload, the old app's links, the avatar menu, no unexpected origins,
-// no route called at all (stage 10 reads and writes nothing), axe and screenshots.
+// no writes while browsing (since stage 11 the data layer reads /lobby and /community/read, nothing else), axe and
+// screenshots.
 // Part 2 mounts the same Shell in a test harness (tests/fixtures/next-shell/harness.jsx, bundled here with Vite and
 // served from a fake origin) with test screens and layers for what the stage 10 tabs do not use yet: the dock, a tab
 // and a layer that throw, the dialog, toast and sheet fixes the stage 8 review asked for, popover, overlay and page.
@@ -22,7 +23,8 @@ const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const OLD = 'Use the old app';
 const TABS = ['Home', 'Play', 'Bets', 'Lines', 'League'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
-const tab = (page, name) => tabBar(page).getByRole('button', { name, exact: true });
+// A tab by its label; its name may add the counter's words ("Play, 2 ballots due", stage 11).
+const tab = (page, name) => tabBar(page).getByRole('button', { name: new RegExp(`^${name}(, .+)?$`) });
 const title = (page, name) => page.getByRole('heading', { name, level: 1, exact: true });
 const sheet = (page, name) => page.getByRole('dialog', { name, exact: true });
 const inside = (page, selector) => page.evaluate(sel => !!document.activeElement?.closest(sel), selector);
@@ -60,12 +62,14 @@ async function axe(page) {
   return result.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`);
 }
 
-/** Every request to gtl-api from now on: stage 10 calls none. */
+/** Every request to gtl-api from now on. */
 function apiCalls(page) {
   const calls = [];
   page.on('request', request => { const url = new URL(request.url()); if (url.origin === SUPABASE && url.pathname.startsWith('/functions/v1/')) calls.push(`${request.method()} ${url.pathname}`); });
   return calls;
 }
+/** What is left of `calls` after the two shared reads (stage 11): the writes, of which browsing makes none. */
+const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -91,7 +95,7 @@ test.describe('the real app', () => {
     const { world, calls } = await openNewApp(page, baseURL);
     try {
       await expect(title(page, 'Home')).toBeVisible();
-      await expect(tabBar(page).getByRole('button')).toHaveText(TABS);
+      await expect(tabBar(page).locator('.gx-tab-label')).toHaveText(TABS);
       await expect(tab(page, 'Home')).toHaveAttribute('aria-current', 'page');
       await expect(page.getByRole('button', { name: 'League: Community. Switch league' })).toContainText('Community');
       await expect(page.getByRole('button', { name: 'Your menu' })).toBeVisible();
@@ -121,7 +125,7 @@ test.describe('the real app', () => {
       await expect(title(page, 'League')).toBeVisible();
       await page.goForward();
       await expect(title(page, 'Home')).toBeVisible();
-      expect(calls, 'stage 10 reads and writes nothing').toEqual([]);
+      expect(writes(calls), 'browsing writes nothing').toEqual([]);
       expect(world.errors, 'no unexpected origins and no page errors').toEqual([]);
     } finally { await world.db.close(); }
   });
@@ -154,7 +158,7 @@ test.describe('the real app', () => {
         await expect(title(page, 'Home')).toBeVisible();
         expect(new URL(page.url()).hash).toBe('#home');
       }
-      expect(calls).toEqual([]);
+      expect(writes(calls)).toEqual([]);
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
   });
@@ -209,7 +213,7 @@ test.describe('the real app', () => {
       await page.keyboard.press('Escape');
       await expect(menu).toHaveCount(0);
 
-      expect(calls, 'the new app reads and writes nothing').toEqual([]);
+      expect(writes(calls), 'the menu writes nothing').toEqual([]);
 
       // Use the old app from the menu.
       await avatar.click();
@@ -263,7 +267,7 @@ test.describe('the real app', () => {
         await page.setViewportSize({ width: 390, height: 844 });
       }
       expect(found).toEqual(Object.fromEntries(Object.keys(found).map(key => [key, []])));
-      expect(calls).toEqual([]);
+      expect(writes(calls)).toEqual([]);
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
   });
