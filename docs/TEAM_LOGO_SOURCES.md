@@ -1,10 +1,10 @@
 # Transparent NFL team marks — source register
 
-Reviewed: October 8, 2026 · Updated: October 9, 2026 (D-22 original badges, PR #17) · Owner: team-logo workflow agent
+Reviewed: October 8, 2026 · Updated: October 9, 2026 (D-22 original badges, PR #17) · Commons recheck for the 17 badge teams: October 14, 2026 (no eligible primary mark found; coverage unchanged) · Owner: team-logo workflow agent
 
 ## Implemented coverage
 
-**All 32 teams now show a team mark in `TeamIdentity` (D-22, October 9, 2026).** 15 teams use reviewed official transparent marks (13 SVGs and two PNGs): the 13 recorded on October 8 plus the current Jets and Bills marks, which the October 8 follow-up found under different eligible Commons file records and which the October 9 reconciliation activates. These are small matchup identifiers, never Guess The Line branding, and the files are unchanged from their recorded Wikimedia Commons versions. The other 17 teams use [original Guess The Line badges](#original-badges), which are not official marks. The official mark always takes precedence when one is registered (BUF and NYJ keep their badge files registered as fallbacks that the official mark overrides); the abbreviation fallback remains only for an image that fails to load. Chicago uses its recognizable wishbone C secondary mark, not the bear-head primary.
+**All 32 teams now show a team mark in `TeamIdentity` (D-22, October 9, 2026).** Coverage as of October 14, 2026: **15 official, 17 original badges**; the [October 14 Commons recheck](#october-14-2026-commons-recheck) found no public-domain file of the current primary mark for any of the 17. 15 teams use reviewed official transparent marks (13 SVGs and two PNGs): the 13 recorded on October 8 plus the current Jets and Bills marks, which the October 8 follow-up found under different eligible Commons file records and which the October 9 reconciliation activates. These are small matchup identifiers, never Guess The Line branding, and the files are unchanged from their recorded Wikimedia Commons versions. The other 17 teams use [original Guess The Line badges](#original-badges), which are not official marks. The official mark always takes precedence when one is registered (BUF and NYJ keep their badge files registered as fallbacks that the official mark overrides); the abbreviation fallback remains only for an image that fails to load. Chicago uses its recognizable wishbone C secondary mark, not the bear-head primary.
 
 The follow-up's open question, whether to revise the repository's verified-rights restriction for the remaining teams, was answered by D-22: those teams show original badges instead. No blanket NFL license or production release is inferred.
 
@@ -144,7 +144,7 @@ Uploaded by Opertinicy at en.wikipedia.
 
 ## Remaining official-mark coverage and concrete next step
 
-The 19 teams below display original GTL badges (see [Original badges](#original-badges)); this section concerns only whether an official mark could later replace a badge.
+The 17 teams below display original GTL badges (see [Original badges](#original-badges)); this section concerns only whether an official mark could later replace a badge.
 
 File-level records for **ARI, ATL, BAL, CAR, CLE, DEN, DET, HOU, JAX, LV, MIA, MIN, NE, PHI, SEA, TB and TEN** label their artwork copyrighted and show Wikipedia-specific fair-use rationales. Those rationales do not themselves grant redistribution permission to this app. `remaining-sources.json` preserves the exact earlier page revisions, including the superseded BUF/NYJ checks, and lists the 17 still missing teams. No artwork for these 17 teams is activated. Official-source candidates and current-logo comparisons are kept only in the ignored local review directory.
 
@@ -153,6 +153,32 @@ The old Rams SVG filename in nflverse metadata is stale. The replacement above w
 For each remaining team, the next eligible input is either a file-specific public-domain/free-artwork record covering the actual mark, or the rightsholder's applicable permission for this small team-identification use. This is an asset-level gap, not a claim that all team references require a paid license. Do not silently use an unrelated historic logo, an unverified recoloring, a software library's MIT notice, or an ESPN/CDN URL as a substitute.
 
 The earlier 2019 Jets wordmark was not substituted. The current 2024 mark above was found in the follow-up and is now active.
+
+### October 14, 2026 Commons recheck
+
+Rechecked from the Mac mini, which has Commons access, through the Commons API. Each team's File-namespace search results, title-prefix listing, `<Team> logos` category and `Category:Logos of National Football League teams` were reviewed, and each en.wikipedia primary-logo filename was looked up on Commons. **None of those 17 filenames exists on Commons.** The Commons log shows two earlier uploads under those names that were deleted: `Miami Dolphins logo.svg` (January 27, 2025, "No permission") and `New England Patriots logo.svg` (January 5, 2012, copyright violation, "Sport club logo. Not text only"). The en.wikipedia records were read again and still say copyrighted and fair use; the revisions are in `remaining-sources.json`. Candidate Commons records were read individually (imageinfo, extmetadata and the latest description revision). Commons does hold public-domain (`PD-textlogo`) wordmarks for all 17 teams and letter or alternate marks for four of them, but the rule for this register is the team's current **primary** mark, so none of them was activated. Nothing was downloaded, and coverage stays at 15 official marks and 17 badges.
+
+| Team | Result | Reason (Commons record) |
+| --- | --- | --- |
+| ARI | keeps badge | `Arizona Cardinals logo (2005).png` (rev `801428135`, `PD-textlogo`) is, per its own description, the wordmark logo used since 2005, not the cardinal-head primary. The only other public-domain file is a wordmark. |
+| ATL | keeps badge | Only wordmarks (`Atlanta Falcons wordmark.svg` and colour variants) are public domain; the falcon primary is fair use on en.wikipedia only. |
+| BAL | keeps badge | `Baltimore Ravens B.png` (rev `1117313713`, `PD-textlogo`) is, per its own description, the alternate B logo. The other public-domain file is a wordmark, and the raven-head primary is fair use only. |
+| CAR | keeps badge | Only wordmarks are public domain; the panther-head primary is fair use only. |
+| CLE | keeps badge | `Cleveland Browns B.svg` (rev `1121194696`, `PD-textlogo`) is the letter-B secondary mark, and `Cleveland Browns (c. 2006).png` (rev `1121194754`, `PD-textlogo`) is a wordmark. The helmet primary is fair use only. |
+| DEN | keeps badge | Only wordmarks are public domain; the horse-head primary is fair use only. |
+| DET | keeps badge | Only wordmarks and a 1961–1969 logo exist; the current lion primary is fair use only. |
+| HOU | keeps badge | Only wordmarks (including the 2024 wordmark) are public domain; the bull-head primary is fair use only. |
+| JAX | keeps badge | Only wordmarks are public domain; the jaguar-head primary is fair use only. |
+| LV | keeps badge | Only a wordmark is public domain; the shield primary is fair use only. |
+| MIA | keeps badge | Only wordmarks are public domain; the dolphin primary is fair use only, and a Commons upload under that name was deleted for lack of permission. |
+| MIN | keeps badge | `Minnesota Vikings V logo.png` (rev `372846498`, `PD-textlogo`) is, per its own description, the alternative logo used since 1998. The Viking-head primary is fair use only. |
+| NE | keeps badge | `New England Patriots NE logo.png` (rev `1151524577`, `PD-textlogo`) is a letter mark, not the primary. The primary was deleted from Commons in 2012 as a copyright violation. |
+| PHI | keeps badge | Only wordmarks (including the 2022–present wordmark) are public domain; the eagle-head primary is fair use only. |
+| SEA | keeps badge | Only wordmarks are public domain; the seahawk-head primary is fair use only. |
+| TB | keeps badge | Only wordmarks are public domain; the flag primary is fair use only. |
+| TEN | keeps badge | `Tennessee Titans 2026 leaked logo.svg` (rev `1209625381`, `PD-textlogo`) is a third-party vectorization of an allegedly leaked image sourced from a Reddit preview. It is not the team's published file, and its own record says "if real". The official 2026 primary is fair use only (`Tennessee Titans Logo 2026.svg`, en.wikipedia rev `1344542162`). |
+
+The secondary and letter marks above (BAL B, CLE B, MIN V, NE letter mark) are public domain on Commons. If Sean ever wants them, as with Chicago's wishbone C, that needs a product decision first. None of them is used here.
 
 ## Original badges
 
@@ -186,7 +212,7 @@ Added October 9, 2026 under product-owner decision **D-22** (every team shows a 
 | TB | `#D50A0A` | `#34302B` | white |
 | TEN | `#0C2340` | `#4B92DB` | white |
 
-**Follow-up:** the official-mark rights check for the 17 badge-only teams could not be repeated from the October 9 cloud session because `commons.wikimedia.org` is blocked by that environment's network policy; it needs a machine with Commons access. The October 8 findings above remain the latest record; BUF and NYJ were resolved by that follow-up. If an eligible official mark is later verified for any of these teams, add the file, its `sources.json` record and its `approvedTeamLogos` entry together (`tests/team-marks.test.mjs` checks all three against each other); `teamMarks` then prefers the official mark over the badge automatically.
+**Follow-up:** the official-mark rights check for the 17 badge-only teams could not be repeated from the October 9 cloud session because that environment's network policy blocks `commons.wikimedia.org`. It was repeated from the Mac mini on October 14, 2026 ([recheck](#october-14-2026-commons-recheck)), and no eligible primary mark was found. BUF and NYJ were resolved by the October 8 follow-up. If an eligible official mark is later verified for any of these teams, add the file, its `sources.json` record and its `approvedTeamLogos` entry together (`tests/team-marks.test.mjs` checks all three against each other); `teamMarks` then prefers the official mark over the badge automatically.
 
 ## Follow-up 15-team validation
 

@@ -1,28 +1,43 @@
 {
-  "checkedAt": "2026-10-08",
+  "checkedAt": "2026-10-14",
   "downloaded": false,
-  "scope": "Historical file-specific records checked before the October 8 follow-up. These Wikipedia fair-use rationales do not grant permission. Different eligible Commons versions for BUF and NYJ are now active; see sources.json.",
+  "scope": "Historical file-specific records checked before the October 8 follow-up, rechecked October 14, 2026. These Wikipedia fair-use rationales do not grant permission. Different eligible Commons versions for BUF and NYJ are now active; see sources.json. The October 14 Commons review (commonsReview2026_10_14) found no public-domain file of the current primary mark for any remaining team.",
   "files": [
     {
       "file": "File:Arizona Cardinals logo.svg",
       "sourceRevision": 1306634725,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Arizona_Cardinals_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306634725,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Atlanta Falcons logo.svg",
       "sourceRevision": 1306633090,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Atlanta_Falcons_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306633090,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Baltimore Ravens logo.svg",
       "sourceRevision": 1306628399,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Baltimore_Ravens_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306628399,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Buffalo Bills logo.svg",
@@ -36,70 +51,144 @@
       "sourceRevision": 1306633360,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Carolina_Panthers_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306633360,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Cleveland Browns logo.svg",
       "sourceRevision": 1344999509,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Cleveland_Browns_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1344999509,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Denver Broncos logo.svg",
       "sourceRevision": 1306630611,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Denver_Broncos_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306630611,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Detroit Lions logo.svg",
       "sourceRevision": 1280654261,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Detroit_Lions_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1280654261,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Houston Texans logo.svg",
       "sourceRevision": 1314556056,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Houston_Texans_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1314556056,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Jacksonville Jaguars logo.svg",
       "sourceRevision": 1306630202,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Jacksonville_Jaguars_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306630202,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Las Vegas Raiders logo.svg",
       "sourceRevision": 1209097283,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Las_Vegas_Raiders_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1209097283,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Miami Dolphins logo.svg",
       "sourceRevision": 1231146641,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Miami_Dolphins_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1231146641,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)",
+      "commonsLog": [
+        {
+          "action": "delete",
+          "timestamp": "2025-01-27T05:22:38Z",
+          "comment": "No permission since 19 January 2025"
+        },
+        {
+          "action": "upload",
+          "timestamp": "2025-01-18T08:03:11Z",
+          "comment": "{{Information\n|Description=\n|Source=\n|Date=\n|Author=\n|Permission=\n|other_versions=\n}}"
+        }
+      ]
     },
     {
       "file": "File:Minnesota Vikings logo.svg",
       "sourceRevision": 1306632841,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Minnesota_Vikings_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306632841,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:New England Patriots logo.svg",
       "sourceRevision": 1306627668,
       "sourcePage": "https://en.wikipedia.org/wiki/File:New_England_Patriots_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306627668,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)",
+      "commonsLog": [
+        {
+          "action": "delete",
+          "timestamp": "2012-01-05T16:53:13Z",
+          "comment": "[[COM:L|Copyright violation]]: Sport club logo. Not text only"
+        },
+        {
+          "action": "upload",
+          "timestamp": "2012-01-04T15:25:18Z",
+          "comment": "{{Information\n|Description    ={{pt|1=Logo do New England Patriots}}\n|Source         =http://en.wikipedia.org/wiki/New_England_Patriots\n|Aut"
+        }
+      ]
     },
     {
       "file": "File:New York Jets logo.svg",
@@ -113,28 +202,48 @@
       "sourceRevision": 1306631790,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Philadelphia_Eagles_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306631790,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Seattle Seahawks logo.svg",
       "sourceRevision": 1306635426,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Seattle_Seahawks_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306635426,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Tampa Bay Buccaneers logo.svg",
       "sourceRevision": 1306634593,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Tampa_Bay_Buccaneers_logo.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1306634593,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     },
     {
       "file": "File:Tennessee Titans Logo 2026.svg",
       "sourceRevision": 1344542162,
       "sourcePage": "https://en.wikipedia.org/wiki/File:Tennessee_Titans_Logo_2026.svg",
       "copyrighted": "True",
-      "license": "Fair use"
+      "license": "Fair use",
+      "recheckedAt": "2026-10-14",
+      "recheckedRevision": 1344542162,
+      "recheckedCopyrighted": "True",
+      "recheckedLicense": "Fair use",
+      "commonsFilePage": "missing (no file with this name on Wikimedia Commons)"
     }
   ],
   "supersededTeams": [
@@ -159,5 +268,214 @@
     "SEA",
     "TB",
     "TEN"
-  ]
+  ],
+  "commonsReview2026_10_14": {
+    "method": "Commons API: full-text and title-prefix searches in the File namespace, membership of each team's \"<Team> logos\" category and of \"Category:Logos of National Football League teams\", and an exact-name lookup of each en.wikipedia primary-logo filename on Commons (all missing). Candidate records read individually (imageinfo + extmetadata + latest description revision). Nothing was downloaded.",
+    "result": "No remaining team has a public-domain Commons file of its current primary mark. All 17 keep their original GTL badges.",
+    "wordmarkNote": "Wordmark revisions without a listed descriptionRevision were identified from search/category listings with LicenseShortName \"Public domain\"; they were not read individually because a wordmark is not the primary mark.",
+    "teams": {
+      "ARI": [
+        {
+          "file": "File:Arizona Cardinals logo (2005).png",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Arizona_Cardinals_logo_(2005).png",
+          "descriptionRevision": 801428135,
+          "licenseTemplate": "PD-textlogo",
+          "rejectedBecause": "its own description calls it the wordmark logo (2005 to present), not the cardinal-head primary mark"
+        },
+        {
+          "file": "File:Arizona Cardinals wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Arizona_Cardinals_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "ATL": [
+        {
+          "file": "File:Atlanta Falcons wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Atlanta_Falcons_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "BAL": [
+        {
+          "file": "File:Baltimore Ravens B.png",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Baltimore_Ravens_B.png",
+          "descriptionRevision": 1117313713,
+          "licenseTemplate": "PD-textlogo",
+          "rejectedBecause": "its own description calls it the alternate B logo, not the primary raven-head mark"
+        },
+        {
+          "file": "File:Baltimore Ravens wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Baltimore_Ravens_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "CAR": [
+        {
+          "file": "File:Carolina Panthers wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Carolina_Panthers_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "CLE": [
+        {
+          "file": "File:Cleveland Browns B.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Cleveland_Browns_B.svg",
+          "descriptionRevision": 1121194696,
+          "licenseTemplate": "PD-textlogo",
+          "rejectedBecause": "letter B secondary mark, not the helmet primary mark"
+        },
+        {
+          "file": "File:Cleveland Browns (c. 2006).png",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Cleveland_Browns_(c._2006).png",
+          "descriptionRevision": 1121194754,
+          "licenseTemplate": "PD-textlogo",
+          "rejectedBecause": "its own description calls it the wordmark used since 2006"
+        },
+        {
+          "file": "File:Cleveland Browns wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Cleveland_Browns_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "DEN": [
+        {
+          "file": "File:Denver Broncos wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Denver_Broncos_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "DET": [
+        {
+          "file": "File:Detroit Lions wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Detroit_Lions_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "HOU": [
+        {
+          "file": "File:Houston Texans wordmark logo 2024.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Houston_Texans_wordmark_logo_2024.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "JAX": [
+        {
+          "file": "File:Jacksonville Jaguars wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Jacksonville_Jaguars_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "LV": [
+        {
+          "file": "File:Las Vegas Raiders wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Las_Vegas_Raiders_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "MIA": [
+        {
+          "file": "File:Miami Dolphins wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Miami_Dolphins_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "MIN": [
+        {
+          "file": "File:Minnesota Vikings V logo.png",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Minnesota_Vikings_V_logo.png",
+          "descriptionRevision": 372846498,
+          "licenseTemplate": "PD-textlogo",
+          "rejectedBecause": "its own description calls it the alternative logo since 1998, not the Viking-head primary mark"
+        },
+        {
+          "file": "File:Minnesota Vikings wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Minnesota_Vikings_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "NE": [
+        {
+          "file": "File:New England Patriots NE logo.png",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:New_England_Patriots_NE_logo.png",
+          "descriptionRevision": 1151524577,
+          "licenseTemplate": "PD-textlogo",
+          "rejectedBecause": "NE letter mark, not the current primary mark"
+        },
+        {
+          "file": "File:New England Patriots wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:New_England_Patriots_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "PHI": [
+        {
+          "file": "File:Philadelphia Eagles wordmark (2022–present).svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Philadelphia_Eagles_wordmark_(2022–present).svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "SEA": [
+        {
+          "file": "File:Seattle Seahawks wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Seattle_Seahawks_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "TB": [
+        {
+          "file": "File:Tampa Bay Buccaneers wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Tampa_Bay_Buccaneers_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ],
+      "TEN": [
+        {
+          "file": "File:Tennessee Titans 2026 leaked logo.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Tennessee_Titans_2026_leaked_logo.svg",
+          "descriptionRevision": 1209625381,
+          "licenseTemplate": "PD-textlogo",
+          "rejectedBecause": "a third-party vectorization of an allegedly leaked image sourced from a Reddit preview, not the team's published file; its own record says \"if real\""
+        },
+        {
+          "file": "File:Tennessee Titans wordmark.svg",
+          "sourcePage": "https://commons.wikimedia.org/wiki/File:Tennessee_Titans_wordmark.svg",
+          "descriptionRevision": null,
+          "licenseTemplate": "Public domain",
+          "rejectedBecause": "wordmark only, not the primary mark"
+        }
+      ]
+    }
+  }
 }
