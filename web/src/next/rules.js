@@ -12,12 +12,13 @@
 // - `draft`: an unlocked pick. It changes freely until the game closes and nobody else sees it.
 // - `lockedIn`: final once locked in (when the live rules say `sentFinal`). Locking it in opens, for this player,
 //   that game's line for that market and everyone's picks for that game and market. The other market and other
-//   games stay hidden until their own lock-in. Points show from kickoff.
+//   games stay hidden until their own lock-in. Points show from kickoff. Under today's rules a market is
+//   submitted whole (every game picked) and that opens the whole market.
 // - `closed`: the game closed (at its kickoff; at the deadline under today's rules) without a locked-in pick. Any
 //   draft stays stored and is shown to its owner only (D-23); it never counts.
 // - `forfeited`: the player skipped the week or used "See picks now" (or sat out the market, D-23) before the
 //   game closed. Everything opens; picks already locked in keep counting.
-// Kickoff opens a game's line and picks for everyone.
+// Kickoff opens a game's line and picks for everyone; under today's rules the deadline opens the whole week.
 //
 // Live rules (`rules` on /community/read, /personal and /state; cloud/live-rules.mjs):
 // - `sentFinal: true` (M-02): a locked-in pick is final. `false` (today, D-16): a sent pick can still change until
@@ -25,22 +26,31 @@
 // - `lateWindow: 'kickoff'` (M-07): each game closes at its own kickoff and a pick locked in after the deadline
 //   carries the Late marker (D-36, D-30). `'deadline'` (today, D-24): every game closes at the deadline, or at its
 //   kickoff if that is earlier.
+// - `revealAt: 'kickoff'` (M-01): the clock opens each game at its own kickoff. `'deadline'` (today, D-23): the
+//   week's deadline, the first kickoff (D-24), opens every game of both markets for everyone
+//   (`gtl_week_revealed`). A kickoff late window always reveals at kickoff (M-07 is applied only after M-01).
 // Today's server sends a market as one submission; the data layer gives each of that ballot's picks its
 // `submittedAt` as `lockedAt`, which is how this model reads it.
 import { SEP, fmtLate, toMs, toNumber } from './format.js';
 import * as copy from './copy.js';
 
 /** What the server's rules mean while `gtl_live_rules` is missing (equal to cloud/live-rules.mjs `TODAYS_RULES`). */
-export const TODAYS_RULES = Object.freeze({ sentFinal: false, lateWindow: 'deadline' });
+export const TODAYS_RULES = Object.freeze({ sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' });
 export const LATE_WINDOWS = Object.freeze(['deadline', 'kickoff']);
+export const REVEAL_TIMES = Object.freeze(['deadline', 'kickoff']);
 export const MARKETS = Object.freeze(['spread', 'total']);
 export const GUESS_STATES = Object.freeze(['open', 'draft', 'lockedIn', 'closed', 'forfeited']);
 export const FORFEIT_REASONS = Object.freeze(['skip', 'reveal', 'sitOut']);
 
-/** The server's `rules` field, checked; anything malformed or missing reads as today's rules. */
+/**
+ * The server's `rules` field, checked the way cloud/live-rules.mjs `parseLiveRules` checks the function's answer:
+ * anything malformed or missing reads as today's rules; a missing `revealAt` reads as 'deadline', and a kickoff
+ * late window always reveals at kickoff.
+ */
 export function liveRules(raw) {
-  if (raw && typeof raw === 'object' && !Array.isArray(raw) && typeof raw.sentFinal === 'boolean' && LATE_WINDOWS.includes(raw.lateWindow)) {
-    return { sentFinal: raw.sentFinal, lateWindow: raw.lateWindow };
+  if (raw && typeof raw === 'object' && !Array.isArray(raw) && typeof raw.sentFinal === 'boolean' && LATE_WINDOWS.includes(raw.lateWindow)
+    && (raw.revealAt == null || REVEAL_TIMES.includes(raw.revealAt))) {
+    return { sentFinal: raw.sentFinal, lateWindow: raw.lateWindow, revealAt: raw.lateWindow === 'kickoff' ? 'kickoff' : raw.revealAt ?? 'deadline' };
   }
   return { ...TODAYS_RULES };
 }
@@ -113,7 +123,9 @@ export function guessState({ kickoff, deadline = null, entry = null, forfeit = n
   else state = 'open';
 
   const final = lockedIn && live.sentFinal;
-  const revealed = lockedIn || out !== null || kickedOff;
+  // Today (`revealAt: 'deadline'`) the deadline opens the whole week for everyone; from M-01 only kickoff does.
+  const clockOpened = kickedOff || (live.revealAt === 'deadline' && dl !== null && at >= dl);
+  const revealed = lockedIn || out !== null || clockOpened;
   const pickable = state === 'open' || state === 'draft';
   const closedAtKickoff = state === 'closed' && close !== null && close === ko;
   const lateMinutes = lockedIn && own.late ? own.late.minutes : null;
@@ -140,7 +152,9 @@ export function guessState({ kickoff, deadline = null, entry = null, forfeit = n
     final,
     counts: lockedIn,
     canEdit: pickable || (lockedIn && !final && !isClosed),
-    canLockIn: state === 'draft',
+    // One game locks in on its own only under D-39 (`sentFinal`). Today a market is submitted whole, and only
+    // once every game has a pick: marketSummary() sets this for the drafts of a complete market.
+    canLockIn: state === 'draft' && live.sentFinal,
     // After the deadline, while each game stays open until its kickoff (M-07), a pick locked in now is Late.
     wouldBeLate: pickable && live.lateWindow === 'kickoff' && dl !== null && at >= dl,
     late: lockedIn && own.late !== null,
@@ -205,6 +219,11 @@ export function marketSummary({ market, games = [], entries = {}, forfeit = null
   const left = count.open + count.draft;
   const picked = count.lockedIn + count.draft;
   const possible = count.lockedIn + left;
+  // Every game has a pick (a draft or a sent one): today's server takes a submission only then (GTL_BALLOT_INCOMPLETE).
+  const complete = total > 0 && picked === total;
+  if (!live.sentFinal && complete) {
+    for (const id of Object.keys(perGame)) if (perGame[id].state === 'draft') perGame[id].canLockIn = true;
+  }
   const phase = out ? 'forfeited' : left > 0 ? (wouldBeLate ? 'late' : 'open') : 'done';
   const summary = {
     market,
@@ -218,6 +237,9 @@ export function marketSummary({ market, games = [], entries = {}, forfeit = null
     left,
     picked,
     possible,
+    complete,
+    // Whether any draft can be locked in now (today: the whole market, submitted at once).
+    canLockIn: Object.values(perGame).some(s => s.canLockIn),
     closedNoPick: count.closed,
     forfeited: count.forfeited,
     hidden,
@@ -276,8 +298,8 @@ export function gateBanner(week, market) {
     name: m.name,
     locked,
     open: !locked,
-    sentence: !locked ? '' : m.left > 0 ? copy.lineLockedBanner(market) : copy.linesAtKickoff(market),
-    cellSentence: copy.lineLocked(market),
+    sentence: !locked ? '' : m.left > 0 ? copy.lineLockedBanner(market, week.rules) : copy.linesAtKickoff(market),
+    cellSentence: copy.lineLocked(market, week.rules),
     ctaLabel: locked && m.left > 0 ? copy.gateCta({ market, picked: m.picked, missing: m.missing, drafts: m.drafts, sentFinal: week.rules.sentFinal }) : '',
     firstGame: locked ? m.firstMissing ?? m.firstLeft : null,
     canSkip: locked && week.canForfeit,

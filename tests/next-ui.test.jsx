@@ -322,12 +322,14 @@ describe('GateBanner and the lock (D-36 line lock, D-39 per-game lock-in)', () =
     expect(html(<GateBanner gate={null}/>)).toBe('<div class="gx"></div>');
   });
 
+  // D-39 per-game lock-in (after M-01, M-02 and M-07); without rules, copy reads as today's rules.
+  const LOCK_IN = Object.freeze({ sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff' });
   it('a hidden cell is a lock with the sentence as its name, never "—"', () => {
     expect(() => html(<LockCell/>)).toThrow(/accessible name/);
-    const cell = one(<LockCell label={copy.lineLocked('spread')}/>, byClass('gx-lock-cell'));
+    const cell = one(<LockCell label={copy.lineLocked('spread', LOCK_IN)}/>, byClass('gx-lock-cell'));
     expect(cell.attrs).toMatchObject({ role: 'img', 'aria-label': 'Lock in your Spread pick to see this line.' });
     expect(html(<LockCell label="x"/>)).not.toContain('—');
-    expect(text(<LockLine>{copy.lineLocked('total')}</LockLine>)).toBe('Lock in your Total pick to see this line.');
+    expect(text(<LockLine>{copy.lineLocked('total', LOCK_IN)}</LockLine>)).toBe('Lock in your Total pick to see this line.');
   });
 });
 
