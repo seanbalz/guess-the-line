@@ -395,9 +395,8 @@ test('the account did not load: the card stays through Try again, saying so, wit
     expect(await page.getByText('Loading your leagues…').count()).toBe(0);
     expect(await focusedText(page), 'the focus stays on the button, which says what is happening').toBe('Trying again…');
     expect((await refresh.release()).status()).toBe(503);
-    await painted(page);
     await expect(failed).toBeVisible();
-    expect(await focusedText(page)).toBe('Try again');
+    await expect.poll(() => focusedText(page), { message: 'the focus is still on the button once the answer is in' }).toBe('Try again');
 
     // The service is back: Try again, from the keyboard.
     down = false;
