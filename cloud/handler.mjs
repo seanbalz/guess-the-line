@@ -27,7 +27,8 @@ import { handleLines, LINES_METHODS, LinesError, providerLinesError } from './li
 import { handleBets, BETS_METHODS, BetsError, providerBetsError } from './bets.mjs';
 import { handleLeague, LEAGUE_METHODS, LeagueError, providerLeagueError } from './league.mjs';
 import { handleMe, ME_METHODS, MeError, providerMeError } from './me.mjs';
-import { createOptionalRpc } from './optional-rpc.mjs';
+import { createOptionalRpc, FUNCTION_NOT_FOUND } from './optional-rpc.mjs';
+import { parseFeatureOff } from './feature-off.mjs';
 import { readLiveRules } from './live-rules.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
@@ -123,10 +124,12 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, league, me, optionalRpc, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, league, me, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
+  // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
+  const featuresOff = parseFeatureOff(featureOff);
   const groupServices = { lines, bets, league, me };
   // The live Guess rules ride along with the views both apps render (build plan, section 3.4). The read never
   // rejects: while gtl_live_rules is missing, or cannot be read, the field carries today's rules.
@@ -228,7 +231,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (Object.hasOwn(WIND_METHODS, route)) return json(await handleWind({ route, body, user, service: wind, uuid }));
       if (Object.hasOwn(PUSH_METHODS, route)) return json(await handlePush({ route, body, user, service: push, publicKey: pushPublicKey }));
       if (Object.hasOwn(PERSONAL_METHODS, route)) {
-        const result = handlePersonal({ route, body, user, service: personal, clock,
+        const result = handlePersonal({ route, body, user, service: personal, clock, featureOff: featuresOff,
           submitBallot: (payload, commit) => submitWithFreshOdds(user, {
             season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
             picks: payload.picks, submit: payload.submit, personalRevision: payload.revision, requestId: payload.requestId,
@@ -535,9 +538,11 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
       async rpc(name, body) {
         const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!response.ok) {
-          let message;
-          try { message = (await response.json())?.message; } catch { /* Private provider response is never returned. */ }
+          let message, code;
+          try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Private provider response is never returned. */ }
           if (message === 'GTL_SUBMISSION_ODDS_REQUIRED') throw new SubmissionOddsError('GTL_SUBMISSION_QUOTES_REQUIRED');
+          // A personal RPC the hosted project does not have yet (the M-09 notes RPCs before "apply M-09") reads as off.
+          if (response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerPersonalError('GTL_FEATURE_OFF');
           throw providerPersonalError(message);
         }
         return response.json();

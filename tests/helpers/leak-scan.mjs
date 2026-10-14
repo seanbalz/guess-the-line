@@ -17,6 +17,8 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
  * The reader routes the scan covers, called as the viewer through the cloud handler: [route, method, body].
  * Keep the order stable; append a route in the stage that gates it. Not yet here: /virtual-units (stage 20, its line
  * lock), /social/read with real slips (stage 21), /lines/* (23), /community/picks (26), /league/* and /me/* (later).
+ * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
+ * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
  */
 export const READERS = Object.freeze([
   ['/community/read', 'POST', {}],

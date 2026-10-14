@@ -170,3 +170,80 @@ test('Solo D16 captures actual saved quote evidence and edits only the changed r
   await f.mutate('personal/ballot',{season:2026,week:5,mode:'guess_spread',weeklyRevision:2,picks:changed.picks,submit:true});
   assert.deepEqual((await f.read()).ballots.guess_spread.scoringReferences,changed.scoringReferences);
 });
+
+// Redesign build plan stage 27 (M-09): the private notes routes. The SQL side is tests/game-notes-sql.test.mjs.
+test('notes routes: only the signed-in owner, exact fields, the note passed as typed and never cut', async () => {
+  const calls = [];
+  const service = { rpc: async (name, args) => { calls.push({ name, args }); return { ok: true }; } };
+  const invoke = (route, body, options = {}) => handlePersonal({ route, body, user, service, ...options });
+  const base = { requestId: id(40), season: 2026, week: 6, gameId: 'SEA-JAX', note: '  Two spaces, a tab\t and a line\nbreak stay.\r\n', revision: 7 };
+  await invoke('/personal/notes', {});
+  await invoke('/personal/notes', { season: 2026, week: 6 });
+  await invoke('/personal/note', base);
+  assert.deepEqual(calls, [
+    { name: 'gtl_read_game_notes', args: { p_user: user.id, p_season: null, p_week: null } },
+    { name: 'gtl_read_game_notes', args: { p_user: user.id, p_season: 2026, p_week: 6 } },
+    { name: 'gtl_set_game_note', args: { p_user: user.id, p_request: id(40), p_season: 2026, p_week: 6, p_game: 'SEA-JAX', p_note: base.note, p_revision: 7 } },
+  ]);
+  calls.length = 0;
+  // The limit counts as a textarea's maxLength does (UTF-16 code units), the same as the old /favorite/set route.
+  await invoke('/personal/note', { ...base, note: 'x'.repeat(2000) });
+  await invoke('/personal/note', { ...base, note: '\u{1F3C8}'.repeat(1000) });
+  await invoke('/personal/note', { ...base, note: '' });
+  assert.equal(calls.length, 3);
+  for (const note of ['x'.repeat(2001), '\u{1F3C8}'.repeat(1001)]) {
+    await assert.rejects(() => invoke('/personal/note', { ...base, note }), error => error.status === 400 && error.message === 'A note can be up to 2,000 characters.');
+  }
+  const refused = [
+    ['/personal/notes', { season: 2026 }], ['/personal/notes', { week: 6 }], ['/personal/notes', { season: '2026', week: 6 }],
+    ...['userId', 'ownerId', 'owner', 'saved', 'notes', 'role'].flatMap(field => [['/personal/notes', { [field]: id(2) }], ['/personal/note', { ...base, [field]: id(2) }]]),
+    ...['requestId', 'season', 'week', 'gameId', 'note', 'revision'].map(field => ['/personal/note', { ...base, [field]: undefined }]),
+    ['/personal/note', { ...base, requestId: 'not-a-uuid' }], ['/personal/note', { ...base, revision: -1 }], ['/personal/note', { ...base, revision: 1.5 }],
+    ['/personal/note', { ...base, revision: '7' }], ['/personal/note', { ...base, gameId: 'sea-jax' }], ['/personal/note', { ...base, note: null }],
+    ['/personal/note', { ...base, note: ['x'] }], ['/personal/note', { ...base, note: 'bell \u0007' }], ['/personal/note', { ...base, note: 'nul \u0000' }],
+    ['/personal/note', { ...base, note: 'lone \uD800 surrogate' }], ['/personal/note', { ...base, note: 'lone \uDC00 surrogate' }],
+  ];
+  for (const [route, body] of refused) {
+    await assert.rejects(() => invoke(route, JSON.parse(JSON.stringify(body))), error => error.status === 400, `${route} ${JSON.stringify(body)}`);
+  }
+  assert.equal(calls.length, 3, 'refused requests never reach the database');
+});
+
+test('notes errors are mapped before the SQL can raise them; a missing RPC reads as off, never as a database detail', async () => {
+  assert.deepEqual(['GTL_NOTE_TOO_LONG', 'GTL_NOTE_CONFLICT', 'GTL_FEATURE_OFF'].map(code => [providerPersonalError(code).status, providerPersonalError(code).code]),
+    [[400, 'GTL_NOTE_TOO_LONG'], [409, 'GTL_NOTE_CONFLICT'], [503, 'GTL_FEATURE_OFF']]);
+  assert.equal(providerPersonalError('GTL_NOTE_CONFLICT').message, 'This note changed on another device. Refresh before saving again.');
+  assert.equal(providerPersonalError('GTL_FEATURE_OFF').message, 'This feature is not available right now. Nothing you saved is lost.');
+  // The Supabase adapter: PostgREST's PGRST202 (the function is not on the hosted project yet) is GTL_FEATURE_OFF.
+  const answers = [
+    Response.json({ code: 'PGRST202', message: 'Could not find the function public.gtl_read_game_notes(p_user) in the schema cache' }, { status: 404 }),
+    Response.json({ code: 'P0001', message: 'GTL_NOTE_CONFLICT' }, { status: 400 }),
+    Response.json({ code: 'PGRST202', message: 'secret detail' }, { status: 400 }),
+    Response.json({ code: '42501', message: 'permission denied for function gtl_set_game_note' }, { status: 401 }),
+  ];
+  const { personal } = await import('../cloud/handler.mjs').then(({ createSupabaseAdapter }) => createSupabaseAdapter({ url: 'https://project.supabase.co', anonKey: 'public-test-key', serviceRoleKey: 'server-test-secret', fetchImpl: async () => answers.shift() }));
+  await assert.rejects(() => personal.rpc('gtl_read_game_notes', {}), error => error.status === 503 && error.code === 'GTL_FEATURE_OFF');
+  await assert.rejects(() => personal.rpc('gtl_set_game_note', {}), error => error.status === 409 && error.code === 'GTL_NOTE_CONFLICT');
+  for (let i = 0; i < 2; i++) await assert.rejects(() => personal.rpc('gtl_set_game_note', {}), error => !error.status && error.message === 'Personal workspace unavailable.');
+});
+
+test('the GTL_FEATURE_OFF off switch stops note saves only; reads and every other personal route keep working', async () => {
+  const calls = [];
+  const request = (handler, path, body) => handler(new Request(`https://app.invalid/gtl-api/${path}`, { method: 'POST', headers: { authorization: 'Bearer valid', 'content-type': 'application/json' }, body: JSON.stringify(body) }));
+  const handlerWith = featureOff => createCloudHandler({ authenticate: async () => user, featureOff, personal: { rpc: async (name, args) => { calls.push(name); return { ok: true, name, args }; } } });
+  const note = { requestId: id(41), season: 2026, week: 6, gameId: 'SEA-JAX', note: 'Kept.', revision: 0 };
+  for (const value of [undefined, '', 'note', 'other,features', 42]) {
+    const response = await request(handlerWith(value), 'personal/note', note);
+    assert.equal(response.status, 200, `GTL_FEATURE_OFF=${value} leaves notes on`);
+  }
+  for (const value of ['notes', ' Notes ', 'other, notes']) {
+    calls.length = 0;
+    const handler = handlerWith(value);
+    const off = await request(handler, 'personal/note', note);
+    assert.deepEqual([off.status, await off.json()], [503, { error: 'This feature is not available right now. Nothing you saved is lost.' }]);
+    assert.deepEqual(calls, [], 'the writer is never called while off');
+    assert.equal((await request(handler, 'personal/notes', {})).status, 200, 'reads stay on');
+    assert.equal((await request(handler, 'favorite/set', { requestId: id(42), revision: 0, season: 2026, week: 6, gameId: 'SEA-JAX', saved: true, notes: '' })).status, 200, 'the old Favorites route is not switched');
+    assert.deepEqual(calls, ['gtl_read_game_notes', 'gtl_mutate_personal']);
+  }
+});
