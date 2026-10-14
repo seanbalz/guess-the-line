@@ -13,13 +13,14 @@ import { providerPersonalError } from '../../../cloud/personal.mjs';
 import { providerLobbyError } from '../../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../../cloud/community.mjs';
 import { providerWeeklyError } from '../../../cloud/weekly.mjs';
-import { pacificDate, pacificToUtc, weekOpenAt } from '../../../shared/nfl-schedule.mjs';
+import { weekOpenAt } from '../../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../../fixtures/webfonts.mjs';
+import { openDeadline } from '../fixture-deadline.mjs';
 import { HOSTED, PRELUDE, migrationSql } from '../../migrations.mjs';
 
 const DAY = 86_400_000;
-/** D-24: a week opens Monday 00:00 PT, so an open fixture week must be the current Pacific week. Deadline 11:59 PM PT today. */
-export const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
+// D-24: an open fixture week must be the current Pacific week (fixture-deadline.mjs: 11:59 PM PT today, or tomorrow late at night).
+export { openDeadline, dueDay } from '../fixture-deadline.mjs';
 /** A published week whose Monday is still ahead: Thursday ~5:15 PM PT in the week after next. */
 export const futureDeadline = () => new Date(Date.parse(weekOpenAt(Date.now() + 10 * DAY)) + 3 * DAY + 17.25 * 3_600_000).toISOString();
 

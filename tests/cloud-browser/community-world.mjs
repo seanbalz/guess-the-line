@@ -14,8 +14,8 @@ import { providerCommunityError } from '../../cloud/community.mjs';
 import { providerOfficialsError } from '../../cloud/officials.mjs';
 import { providerWindError } from '../../cloud/wind.mjs';
 import { providerWeeklyError } from '../../cloud/weekly.mjs';
-import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { openDeadline } from './fixture-deadline.mjs';
 
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip in each spec. */ }
@@ -24,8 +24,8 @@ export const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 export const SUPABASE = 'https://gtl-frontend-check.supabase.co';
 // The old-app specs run on the schema players actually have: HOSTED from tests/migrations.mjs. A new spec passes ALL.
 export const MIGRATIONS = HOSTED;
-/** D-24: an open fixture week must be the current Pacific week; its TNF deadline is 11:59 PM PT today. */
-export const openDeadline = () => pacificToUtc(pacificDate(Date.now()).date, '23:59');
+// D-24: an open fixture week must be the current Pacific week (fixture-deadline.mjs: 11:59 PM PT today, or tomorrow late at night).
+export { openDeadline } from './fixture-deadline.mjs';
 export const ACCOUNTS = {
   luke: { id: id(1), email: 'luke@example.test', name: 'Luke Fixture', player: 'luke', role: 'player' },
   troy: { id: id(2), email: 'troy@example.test', name: 'Troy Fixture', player: 'troy', role: 'player' },
