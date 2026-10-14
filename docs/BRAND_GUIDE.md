@@ -16,6 +16,19 @@ tile, including its soft shadow. Keep the accessible name and browser title
 the underlying selected original geometry and other provisional categories stay
 unchanged.
 
+**October 14, 2026 (D-44): the G alone, on a transparent background.** Sean asked
+for "the G with a more subtle backgroud like transparent and green logo". The
+mark is now the Yardline G by itself, with no tile, rounded rectangle or shadow
+behind it, in the theme green: lime `#B8F34B` on dark surfaces and deep green
+`#3B6309` on light ones (`primaryForeground`; `accent-ink` in the new app), so the
+G keeps at least 3:1 against what it sits on (lime on white is only 1.32:1). The
+G's two paths stay exactly as selected; the svg is framed by the G's own bounds
+(`22 20 81 53`), so the G fills the box the tile used to fill and every box keeps
+its size. The favicon is deep green and turns lime in a dark browser tab
+(`prefers-color-scheme` inside the file). The PNG icons (home screen, manifest,
+notifications) are the lime G on a transparent background with a 12% margin.
+This overrides the tile and shadow above. Google's consent screen shows no logo.
+
 ## Identity background
 Working wordmark: **GUESS THE LINE**. Short label: **GTL**. Tagline: **Call the number. Own the board.** Brand mark direction: custom stylized G/L monogram integrated with a yard-line / ascending line chart. Use only original vector assets. Team logos may be shown when properly licensed/authorized; otherwise use team abbreviations in custom shields. Do not substitute league or sportsbook marks as our brand.
 
@@ -78,7 +91,7 @@ Sources of truth, in this order:
 - `tests/next-tokens.test.mjs`: the gate for every stylesheet under `web/src/next/` (prefix, tokens defined in both themes, CSS equal to the JSON, contrast, font floor, tabular numbers, reduced motion, no hard-coded colors).
 
 ### What stays and what changes
-- **Stays:** the name **Guess The Line**, the Field monogram (dark Yardline G on the rounded lime tile, `Brand.jsx`), Electric Lime `#B8F34B` for the one primary action, cyan for data in dark mode, dark as the default with Light and System per device, and every data-integrity rule above.
+- **Stays:** the name **Guess The Line**, the Field monogram (since D-44 the Yardline G alone in `accent-ink` on a transparent background, with no tile; `Brand.jsx` geometry), Electric Lime `#B8F34B` for the one primary action, cyan for data in dark mode, dark as the default with Light and System per device, and every data-integrity rule above.
 - **Darker navy** (D-35 "darker"): canvas `#070B16` instead of Midnight `#0B1020`; surfaces one step darker on the same hue. Browser theme color `#070B16` dark, `#EEF1F6` light.
 - **Type:** Figtree replaces Inter for reading text; Big Shoulders Display for words only (titles, 20px and up); Barlow Condensed for every number and team abbreviation. IBM Plex Mono is not used.
 - **Violet means live** (`#D08CFF` dark, `#7B2CBF` light), for games in progress only. It is the color most distinct from loss for color-blind players.
@@ -102,7 +115,7 @@ Tints are solid colors (the state color mixed into surface-1), so contrast is pr
 | `text-3` | `#95A2BB` | `#526078` | Meta and icons only |
 | `accent` | `#B8F34B` | `#B8F34B` | Lime fill: the primary button, your selection, the active tab marker |
 | `accent-text` | `#101B0A` | `#101B0A` | Text and icons on lime |
-| `accent-ink` | `#B8F34B` | `#3B6309` | Lime as text or an edge on a surface; in light, the 1px edge of every lime fill |
+| `accent-ink` | `#B8F34B` | `#3B6309` | Lime as text or an edge on a surface; in light, the 1px edge of every lime fill; the logo (D-44) |
 | `accent-tint` | `#283831` | `#EAFBC9` | Your row, your tag, your reaction |
 | `data` / `data-tint` | `#38BDF8` / `#17344D` | `#03658A` / `#DBF3FE` | Links, line movement, charts, info |
 | `win` / `win-tint` | `#34D399` / `#17383E` | `#067247` / `#DAF7ED` | Win, cover, rank up |

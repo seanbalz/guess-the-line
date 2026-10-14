@@ -28,5 +28,5 @@ export { Dialog } from './Dialog.jsx';
 export { Toast, toastDuration, TOAST_TONES, TOAST_MS } from './Toast.jsx';
 export { Overlay } from './Overlay.jsx';
 export { TeamMark, teamCode, TEAM_MARK_SIZES } from './TeamMark.jsx';
-export { FieldMark, FIELD_MARK_SIZES, YARDLINE_G_PATHS } from './FieldMark.jsx';
+export { FieldMark, FIELD_MARK_SIZES, YARDLINE_G_PATHS, YARDLINE_G_VIEWBOX } from './FieldMark.jsx';
 export { useModal, tabbables } from './useModal.js';

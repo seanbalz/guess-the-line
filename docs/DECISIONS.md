@@ -1,5 +1,24 @@
 # Decision log
 
+## D-44 — the logo is the green Yardline G on a transparent background (October 14, 2026)
+
+Sean asked, in the coordinating cloud session: "The logo needs to have a transparent background, also, let’s just make it the G with a more subtle backgroud like transparent and green logo" and "Let’s remove logo on brand but update the brand logo everywhere else".
+
+- **"Brand" is Google's consent screen.** Google's consent screen shows no app logo: the Mac mini session removes it on the Google Auth Platform Branding page, outside this repository, so a logo does not trigger Google's brand review. [GOOGLE_SIGN_IN_SETUP.md](GOOGLE_SIGN_IN_SETUP.md) already says to leave it empty. "Everywhere else" is every place the app shows its logo.
+- **The mark.** The Yardline G alone: no tile, no rounded rectangle, no shadow, nothing behind it. The G's two paths, with the four yard-line strokes, stay exactly as selected in D-12 and D-14. The svg is now framed by the G's own bounds (`22 20 81 53` instead of the study's `0 0 130 90`), so the G fills the box the tile used to fill; every box keeps its size, so nothing around it moves.
+- **Two greens, both existing tokens.** No token is added.
+
+| Surface | Green | Why |
+|---|---|---|
+| Dark: the dark theme, a dark browser tab, the PNG icons | Lime `#B8F34B` (`primaryForeground` and `accent-ink` in dark) | 14.39:1 on `#0B1020`, 14.94:1 on the new app's `#070B16`, 15.96:1 on black (iOS shows a transparent home-screen icon on black). |
+| Light: the light theme, a light browser tab | Deep green `#3B6309` (`primaryForeground` and `accent-ink` in light) | Lime on white is only 1.32:1. Deep green is 7.06:1 on white, 6.75:1 on the old light canvas and 6.24:1 on the new one, above the 3:1 WCAG 1.4.11 asks of a graphic. |
+
+- **Where it changed.** `web/public/favicon.svg` (deep green, lime when the browser is in dark mode, through `prefers-color-scheme` inside the file); `web/public/app-icon.svg` (the lime G with a 12% margin, the source of the PNGs); `app-icon-180.png` (iPhone home screen), `app-icon-192.png` (manifest, notification icon and badge) and `app-icon-512.png` (manifest), now RGBA with transparent corners; the old app's mark (`Brand.jsx`, `brand.css`: sign-in card, lobby headers, sidebar) in `--primaryForeground`; the new app's `FieldMark` (top bar, start and load-failed screens, system posts at 24 to 56) and `.gx-av-sys` in `--gx-accent-ink`; the Brand Lab's applied app-icon study. Forced-colors mode no longer draws a border around the mark, and the unused `.brand-mark` tile rule is removed.
+- **Unchanged.** The asset file names, `web/index.html`, the manifest's `purpose: "any"` (a transparent icon is not maskable) and its navy `background_color` and `theme_color`; the accessible name and browser title Guess The Line; the name Field monogram for the icon-only mark (D-14).
+- **Known limit.** The PNG icons stay lime, so where a system puts them on a light card (a light notification, an Android launcher's white circle) the G is low contrast.
+- `tests/brand-mark.test.mjs` checks the files (RGBA, transparent corners and margin, lime G, centered; both SVGs draw only the two paths, with no tile) and the old app's mark; `tests/next-ui.test.jsx` checks `FieldMark`.
+- Nothing is applied or deployed by this entry.
+
 ## D-43 — slip notes, the old sit-out window and locked-in guesses in History (October 14, 2026)
 
 Sean answered the questions PR #98 (redesign stage 21, M-04) and PR #99 (stage 19, M-03) raised, in the cloud session.

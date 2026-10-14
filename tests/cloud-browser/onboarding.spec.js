@@ -1014,8 +1014,11 @@ test('selected identity and three dashboard layouts render real arrangements wit
   await expect(page.locator('.auth-card .gtl-brand')).toHaveText('');
   const selectedPath = 'M86 20H54L32 40v33h54V46H60v12h13v3H46V46l16-14h24z';
   await expect(page.locator('.auth-card .gtl-yardline-mark path').first()).toHaveAttribute('d', selectedPath);
+  // D-44: the G alone in the theme green (lime in the default dark theme), with no tile or shadow behind it.
+  const fieldIcon = page.locator('.auth-card .gtl-field-icon');
+  await expect(fieldIcon).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)'); await expect(fieldIcon).toHaveCSS('box-shadow', 'none'); await expect(fieldIcon).toHaveCSS('color', 'rgb(184, 243, 75)');
   const favicon = await page.request.get('/favicon.svg');
-  expect(favicon.ok()).toBe(true); expect(await favicon.text()).toContain(selectedPath);
+  expect(favicon.ok()).toBe(true); const faviconSvg = await favicon.text(); expect(faviconSvg).toContain(selectedPath); expect(faviconSvg).not.toContain('<rect');
   await signIn(page);
   await expect(page.locator('.hub-header .gtl-brand').getByRole('img', { name: 'Guess The Line', exact: true })).toBeVisible();
   await expect(page.locator('.hub-header .gtl-brand-wordmark')).toHaveCount(0);
