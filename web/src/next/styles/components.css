@@ -829,6 +829,86 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   box-shadow: var(--gx-float-ring), var(--gx-e2);
 }
 
+/* ===== stage 8 components (web/src/next/ui): countdown, gate actions, team mark, Field monogram ===== */
+/* Countdown tiles (design system 7.14, prototype C5). At least 64 x 88; a wider fallback font widens the tile
+   instead of clipping its digits. A digit that just changed rises in; seconds swap without motion. */
+.gx-cd { display: flex; gap: 8px; }
+.gx-cd-tile {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 64px;
+  height: 88px;
+  padding: 0 4px;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border);
+  white-space: nowrap;
+}
+.gx-cd-tick { display: block; animation: gx-rise-in var(--gx-dur-quick) var(--gx-ease-enter); }
+.gx-cd-done { display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--gx-text-1); }
+.gx-cd-done .gx-ic { color: var(--gx-text-3); }
+/* The gate banner's way in and skip: text buttons in a column, aligned with the sentence above. */
+.gx-gate-acts { display: flex; flex-direction: column; align-items: flex-start; margin-left: -8px; }
+/* Team mark (D-22, DP-27): a square tile with a 1px ring; the abbreviation shows until the image has decoded. A wider
+   fallback font widens the tile around the letters instead of clipping them; the tile's size never changes on load. */
+.gx-team {
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 2px;
+  overflow: hidden;
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-1);
+}
+.gx-team--24 { min-width: 24px; height: 24px; }
+.gx-team--48 { min-width: 48px; height: 48px; border-radius: var(--gx-radius-sm); }
+.gx-team-code {
+  font: 700 13px/1 var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gx-team--24 .gx-team-code { font-size: 12px; letter-spacing: 0; text-transform: uppercase; }
+.gx-team--48 .gx-team-code { font-size: 16px; }
+.gx-team-img {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  object-fit: contain;
+  opacity: 0;
+}
+.gx-team--loaded .gx-team-img { opacity: 1; }
+.gx-team--loaded .gx-team-code { visibility: hidden; }
+/* The Field monogram: the dark Yardline G on the rounded lime tile (Brand.jsx geometry); 1px accent-ink edge in light. */
+.gx-mono {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 24%;
+  background: var(--gx-accent);
+  color: var(--gx-accent-text);
+  box-shadow: var(--gx-lime-edge);
+}
+.gx-mono--24 { width: 24px; height: 24px; }
+.gx-mono--40 { width: 40px; height: 40px; }
+.gx-mono--56 { width: 56px; height: 56px; }
+.gx-mono--80 { width: 80px; height: 80px; }
+.gx-mono-svg { display: block; width: 90%; height: auto; }
+
 /* ===== forced colors (Windows high contrast): glows and inset outlines drop, so draw real borders ===== */
 @media (forced-colors: active) {
   .gx-btn--primary,
@@ -845,7 +925,10 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   .gx-toast,
   .gx-popover,
   .gx-sheet,
-  .gx-dialog {
+  .gx-dialog,
+  .gx-cd-tile,
+  .gx-team,
+  .gx-mono {
     border: 1px solid CanvasText;
   }
   .gx-chip--on,

@@ -170,4 +170,5 @@ Durations: tap 100ms, quick 160ms, base 240ms (sheets in), exit 200ms, big 600ms
 1. Use the `gx-` classes and `--gx-` tokens. Every class starts with `gx-` (screen classes too, for example `gx-home-hero`) and every selector stays under the `.gx` root. Never use the old app's custom properties inside `.gx`.
 2. No hex, rgb or named colors outside `tokens.css`. A new color is a new token in `design/tokens-next.json` and `tokens.css`, in both themes, and must pass the contrast test.
 3. Load `tokens.css`, `base.css` and `components.css` in that order. `base.css` cancels the old app's element rules (`styles.css` is loaded on every page); keep element selectors inside `:where()`.
-4. Any deviation from this section needs a recorded decision.
+4. Build screens from the React components in `web/src/next/ui/` (stage 8: Text, Button, IconButton, Card, List, Row, Pill, Tag, Chip, ChipRail, Segmented, GateBanner, LockLine, Countdown, Rank, Meter, Badge, Strip, Sheet, Dialog, Toast, Overlay, TeamMark, the Field monogram and Lucide icons). They only draw what they are given; the server and `web/src/next/rules.js` decide what is hidden. Check a screen's markup with `tests/helpers/ui-markup.mjs` (gx- classes, accessible names, every svg hidden or labelled, emoji only inside `data-emoji-ok`).
+5. Any deviation from this section needs a recorded decision.
