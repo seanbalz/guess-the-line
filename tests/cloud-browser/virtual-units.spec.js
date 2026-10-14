@@ -147,6 +147,8 @@ test('the commissioner settles a week on demand from the screen; members never s
 // unusual half points so neither the page nor the network reply can carry them unnoticed.
 const LOCK_LINES = { spread: [-11.5, 13.5], total: [58.5, 31.5] };
 const lockSecrets = ['11.5', '13.5', '58.5', '31.5'];
+// The reply's ISO times (observedAt, collectedAt) can contain a secret's digits ("13:31:31.512Z" holds "31.5"): drop them first.
+const withoutTimes = text => text.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?/g, '');
 
 /** Community → Groups & games → Triple Threat → Virtual Units. Resolves to the /virtual-units reply the screen loaded. */
 async function openGroupVirtualUnits(page) {
@@ -172,7 +174,7 @@ base('line lock at 390px: every market is locked before a send, the Spread lines
     await signIn(page, 'luke');
     await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
     const reply = await openGroupVirtualUnits(page);
-    const text = JSON.stringify(reply);
+    const text = withoutTimes(JSON.stringify(reply));
     for (const value of lockSecrets) expect(text.includes(value), `the /virtual-units reply carries ${value}`).toBe(false);
     expect(reply.games.map(game => game.locked)).toEqual(ids.map(() => ({ spread: true, total: true })));
 
@@ -193,7 +195,7 @@ base('line lock at 390px: every market is locked before a send, the Spread lines
     await sendBallot(world, 'luke', 'guess_spread', byGame([-6.5, 2.5]));
     const refreshed = page.waitForResponse(response => response.url().includes('/gtl-api/virtual-units'));
     await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
-    const after = JSON.stringify(await (await refreshed).json());
+    const after = withoutTimes(JSON.stringify(await (await refreshed).json()));
     expect(after.includes('11.5') && after.includes('13.5')).toBe(true);
     expect(after.includes('58.5') || after.includes('31.5')).toBe(false);
     await expect(locks).toHaveCount(2);
