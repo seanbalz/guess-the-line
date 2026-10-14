@@ -235,12 +235,11 @@ the other. The switch is a convenience, not a security gate.
   footer says why.
 
 ### The new app's frame (redesign stage 10)
-Since stage 10 the new app opens on its frame (`web/src/next/shell/`), which still
-reads and writes nothing and calls no route; the data layer arrives in stage 11.
+Since stage 10 the new app opens on its frame (`web/src/next/shell/`). The frame
+itself calls no route; the data layer (stage 11, below) reads for it.
 
-- **Top bar:** the Field monogram (Home), the league pill (Community until stage 11
-  reads your leagues; it opens "Your leagues", which sends groups and invites to the
-  old app for now) and your avatar, which opens the menu: **Appearance** (Dark, Light
+- **Top bar:** the Field monogram (Home), the league pill (the league showing; it
+  opens "Your leagues", stage 11) and your avatar, which opens the menu: **Appearance** (Dark, Light
   or System, and Reduce motion), **Use the old app** and **Sign out**. Appearance
   and Reduce motion are kept on this device under the old app's own keys
   (`gtl.theme` and the motion choice in `gtl.dashboard.preferences.v1`), so both
@@ -262,5 +261,45 @@ reads and writes nothing and calls no route; the data layer arrives in stage 11.
   another sheet, and says so in a toast with Use the old app. An offline banner
   shows at the top when the browser is offline.
 - Each tab has a slot file (`web/src/next/<tab>/index.js`: `homeTiles`, `counter`,
-  `sheetActions`) that Home, the tab bar and the game sheet read; all are empty at
-  stage 10.
+  `sheetActions`) that Home, the tab bar and the game sheet read; all were empty at
+  stage 10, and Play's counter arrived in stage 11.
+
+### The new app's data, leagues and guards (redesign stage 11)
+`web/src/next/data/AppData.jsx` reads `/lobby` and, once the account has a name,
+`/community/read` (the same call the old Community home makes), once each, and
+shares them with every screen. It reads again on focus or a return to the tab (not
+within 15 seconds of the last read), when the browser comes back online and every 5
+minutes while the tab is in view; a read still on its way when the app closes is
+cancelled. A failed refresh keeps what is on screen. Writes (the name step's
+`/profile`, Join's `/invite/accept`) are sent once and never retried by themselves:
+a lost answer says to check first, keeps what was typed, and the reads refresh.
+
+- **Your leagues** (the league pill, or the old `#groups` link): invitations first,
+  then the Community and this account's groups (only its own: `/lobby` lists its
+  active memberships and the invites sent to its email). Tapping a league shows it
+  ("Showing …"; the boards and feed that follow it arrive in their own stages); the
+  choice is kept per account on this device (`gtl.next.league.v1.<account>` in
+  localStorage), so a reload keeps it. Creating a
+  league and inviting friends stay in the old app until stage 59.
+- **Invites:** an invite link opened before signing in is kept in this tab (as in
+  the old app) and opens Your leagues after sign-in, with **Join** and **Dismiss**;
+  invites sent to the account's email show there with **Join**. A refused or
+  expired invite shows the server's own words.
+- **Name step:** until the account has a display name, "First, what should we call
+  you?" is the whole screen (1 to 60 characters, saved through `/profile`, the old
+  app's route). What was typed is kept as a draft in this tab
+  (`web/src/nextDrafts.js`, under the account), so a reload or a lost answer never
+  loses it.
+- **Sign in again:** a 401 from any read or write opens "Sign in again" over the
+  screen without leaving it (the password here, or Google, which comes back to this
+  tab), so typed text stays. "Not now" closes it.
+- **Guards:** an account the commissioner removed from the Community (its
+  `/community/read` answers 403) sees "Not in the Community" in place of the tabs,
+  with its groups one tap away; a saved league this account is not in shows "Your
+  spot is pending" with Switch to Community. The bars keep working on both.
+- **Drafts and accounts:** AuthGate clears the new app's drafts with the old app's on
+  every account change, sign-out included, so a second account in the same tab sees
+  nothing the first one typed.
+- **Play counter:** ballots still due this week (0, 1 or 2), from the server's own
+  `picksDue` on `/community/read`, the field the old Picks tab counts ("Play, 1
+  ballot due").

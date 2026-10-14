@@ -35,7 +35,7 @@ export const SHELL_COPY = Object.freeze({
   failHelp: 'Try again, or use the old app. Your picks and bets are safe.',
   tryAgain: 'Try again',
   signOutFailed: 'We could not sign you out. Please try again.',
-  // Stage 10 reads no data yet; the league switcher arrives with the data layer (stage 11).
+  // The league the pill names when the frame is given none (a test harness); the app passes the league showing.
   defaultLeague: 'Community',
 });
 

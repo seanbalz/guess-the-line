@@ -6,6 +6,7 @@ import Brand from './Brand';
 import { clearTabDrafts } from './predictionDraft';
 import { clearSoloDrafts } from './soloDraft';
 import { clearCommunityDrafts } from './communityDraft';
+import { clearNextDrafts } from './nextDrafts';
 import { pendingInvitation } from './invitations';
 import { oauthReturnError, startGoogleSignIn } from './oauth';
 
@@ -14,7 +15,8 @@ export default function AuthGate({ children }) {
   const lastAccount = useRef(null);
   function accountChanged(nextSession) {
     const next = nextSession?.user?.id || null;
-    if (lastAccount.current && lastAccount.current !== next) { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); }
+    // Redesign stage 11: the new app's typed-text drafts go with the old app's, so another account never sees them.
+    if (lastAccount.current && lastAccount.current !== next) { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); clearNextDrafts(); }
     lastAccount.current = next;
   }
   const [loading, setLoading] = useState(true);

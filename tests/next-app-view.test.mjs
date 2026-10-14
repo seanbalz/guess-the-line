@@ -168,7 +168,13 @@ test('main.jsx loads NextApp and GameHub lazily, never both, behind the fallback
 
 test('the new app imports nothing from the old app\'s screens, and the old screens never import the new app', () => {
   // Shared modules with no React, CSS or screen code: the per-device choice and the D-22 team mark registry (stage 8 TeamMark).
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js']);
+  // Stage 11 (the data layer): the routes both apps call (api.js, build plan section 3.3), the one Supabase client
+  // (auth.js, for "Sign in again"), the invite link saved in this tab (invitations.js), Google sign-in (oauth.js) and the
+  // new app's typed-text drafts, which AuthGate clears (nextDrafts.js).
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js']);
+  for (const shared of allowed) {
+    assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
+  }
   // Stage 10: the theme and the reduced-motion choice belong to the device, so both apps use the same state on the same
   // keys: the ThemeProvider main.jsx wraps both apps in (gtl.theme) and the motion preference (gtl.dashboard.preferences.v1).
   // Only these named hooks, never a component or a default import.
