@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS } from './helpers/leak-scan.mjs';
-import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
+import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS, READER_MIGRATIONS, readersOn } from './helpers/leak-scan.mjs';
+import { ACCOUNTS, MIGRATIONS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
+import { ALL, HOSTED } from './migrations.mjs';
 
 // Stage 3 of docs/REDESIGN_BUILD_PLAN.md: the leak scan, first on synthetic replies, then on today's readers
 // through the real handler and the HOSTED migrations on PGlite. Fixture accounts and values only.
@@ -49,6 +50,13 @@ test('no false finding from counts, weeks, seasons, timestamps, ids or points; w
   assert.throws(() => leakScan(reply, { viewer: VIEWER, secrets: [{ value: 'x' }] }), /numeric/);
 });
 
+test('a timestamp whose seconds read like a secret is never a finding; the same number in words still is', () => {
+  const secrets = [{ value: 31.5, kind: 'line', market: 'total', label: 'Total' }];
+  // toISOString always writes milliseconds, so 31.5 seconds past a minute is "…:31.500Z", which Number() reads as 31.5.
+  assert.deepEqual(leakScan({ observedAt: '2026-10-14T13:31:31.500Z', at: '2026-10-14T13:31:31.5Z', local: '2026-10-14T06:31:31.500-07:00' }, { viewer: VIEWER, secrets }), []);
+  assert.equal(leakScan({ note: 'Total 31.5 at 2026-10-14T13:31:31.500Z' }, { viewer: VIEWER, secrets }).length, 1);
+});
+
 // Unusual half points: no count, date or score in a reply can equal them. Two games: spread and total each.
 const LINES = { spread: [-11.5, 13.5], total: [58.5, 31.5] };
 const TROY = { spread: [-6.5, 2.5], total: [37.5, 61.5] };
@@ -68,6 +76,17 @@ async function storeLines(db, state, lines) {
   await db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) values($1,$2,'collect','succeeded',$3,now(),now()+interval '90 seconds',2,$4,$5,$6)", [key, ACCOUNTS.sean.id, randomUUID(), season, week, signature]);
   await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,$2,$3,$4,$5,$6)', [key, season, week, signature, payload, payload.fetchedAt]);
 }
+
+test('readersOn: a reader whose migration the hosted project does not have yet runs only on a schema that has it', () => {
+  for (const [route, file] of Object.entries(READER_MIGRATIONS)) {
+    assert.ok(READERS.some(([r]) => r === route), `${route} is a reader`);
+    assert.ok(ALL.includes(file), `${route}: ${file} is a repo migration`);
+  }
+  const hosted = readersOn(HOSTED).map(([route]) => route), all = readersOn(ALL).map(([route]) => route);
+  assert.deepEqual(all, READERS.map(([route]) => route), 'ALL serves every reader');
+  assert.deepEqual(hosted, READERS.map(([route]) => route).filter(route => !Object.hasOwn(READER_MIGRATIONS, route) || HOSTED.includes(READER_MIGRATIONS[route])));
+  assert.ok(hosted.includes('/community/read') && hosted.includes('/export'), 'today\'s readers stay on HOSTED');
+});
 
 test('today\'s readers give a viewer who has not sent picks no line and no hidden pick; own entries stay visible', { skip: pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.' }, async t => {
   // groupScreens: the group routes (/state, /export) read membership and the weekly state too; virtualUnits: /virtual-units
@@ -98,7 +117,8 @@ test('today\'s readers give a viewer who has not sent picks no line and no hidde
     return reply.body;
   };
   // Luke has not sent or sat out: no line, no Troy pick, in any reader.
-  for (const reader of READERS) assertNoLeak(await read('luke', reader), { viewer: ACCOUNTS.luke.id, secrets: secrets('luke') }, reader[0]);
+  // Every reader the hosted schema serves (readersOn: a reader whose migration is not hosted yet runs in its own suite on ALL).
+  for (const reader of readersOn(MIGRATIONS)) assertNoLeak(await read('luke', reader), { viewer: ACCOUNTS.luke.id, secrets: secrets('luke') }, reader[0]);
   // The scan is not vacuous: Troy's own reply carries his picks, which only the owner exemption clears.
   const own = await read('troy', READERS[0]);
   const troyPicks = [...pickSecrets(map(TROY.spread), { market: 'spread', owner: 'troy' }), ...pickSecrets(map(TROY.total), { market: 'total', owner: 'troy' })];

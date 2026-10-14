@@ -16,10 +16,12 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
 /**
  * The reader routes the scan covers, called as the viewer through the cloud handler: [route, method, body].
  * Keep the order stable; append a route in the stage that gates it. Stage 20 added /virtual-units (its line lock; the
- * world needs `virtualUnits: true`). Not yet here: /social/read with real slips (stage 21), /lines/* (23), /community/picks
- * (26), /league/* and /me/* (later).
+ * world needs `virtualUnits: true`); stage 23 added /lines/*. Not yet here: /social/read with real slips (stage 21),
+ * /community/picks (26), /league/* and /me/* (later).
  * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
+ * /lines/game names the fixture world's first game (server/store.mjs seeds TB-DAL first; tests/lines-sql.test.mjs scans
+ * every game).
  */
 export const READERS = Object.freeze([
   ['/community/read', 'POST', {}],
@@ -30,9 +32,26 @@ export const READERS = Object.freeze([
   ['/state?mode=guess_total', 'GET'],
   ['/export', 'GET'],
   ['/virtual-units', 'GET'],
+  // Stage 23 (M-06): the gated lines readers.
+  ['/lines/read', 'POST', {}],
+  ['/lines/game', 'POST', { gameId: 'TB-DAL' }],
 ]);
 
+/**
+ * Readers whose RPCs are in a migration the hosted project does not have yet: route → migration file. A suite built on
+ * HOSTED skips them and a suite on ALL runs them (readersOn); the apply record removes the entry with the file's
+ * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
+ */
+export const READER_MIGRATIONS = Object.freeze({
+  '/lines/read': '20261015010000_gtl_lines_read.sql',
+  '/lines/game': '20261015010000_gtl_lines_read.sql',
+});
+/** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
+export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
+
 const NUMBER = /[+-]?(?:\d+\.\d+|\d+|\.\d+)/g;
+// ISO times (observedAt, kickoff, ...) are not lines, but their seconds can read as one: "...:31.500Z" is 31.5.
+const ISO_TIME = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?/g;
 const pathOf = (parent, key) => (typeof key === 'number' ? `${parent}[${key}]` : /^[A-Za-z_$][\w$]*$/.test(key) ? `${parent}.${key}` : `${parent}[${JSON.stringify(key)}]`);
 
 /**
@@ -60,7 +79,7 @@ export function leakScan(reply, { viewer, secrets, ownerKeys = OWNER_KEYS, exemp
     if (exempt(path, node)) return;
     if (typeof node === 'number') { if (!own) check(path, node, node); return; }
     if (typeof node === 'string') {
-      if (!own) for (const token of node.match(NUMBER) || []) check(path, Number(token), node);
+      if (!own) for (const token of node.replace(ISO_TIME, ' ').match(NUMBER) || []) check(path, Number(token), node);
       return;
     }
     if (node === null || typeof node !== 'object' || seen.has(node)) return;

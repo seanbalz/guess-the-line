@@ -1,5 +1,6 @@
 // Boundary probes for lines and game facts: odds collection, market snapshots, the scheduled refresh,
-// game referees and the kickoff wind forecast. Joined by scripts/check-cloud-boundary.mjs (see guess.mjs).
+// game referees, the kickoff wind forecast and the redesign's gated lines readers (M-06). Joined by
+// scripts/check-cloud-boundary.mjs (see guess.mjs).
 import { missingId, missingLeague } from './fixtures.mjs';
 
 export const tables = Object.freeze(['odds_budget', 'odds_collections', 'market_snapshots', 'odds_schedule', 'odds_refresh_runs']);
@@ -25,6 +26,12 @@ export const rpcChecks = Object.freeze([
   ['gtl_read_wind_forecasts', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_begin_wind_fetch', { p_user: missingId, p_request: missingId, p_season: 2026, p_week: 6, p_games: [] }],
   ['gtl_finish_wind_fetch', { p_request: missingId, p_lease: missingId, p_status: 'failed', p_error: 'WIND_UNAVAILABLE', p_http: null, p_rows: null }],
+  // M-06 lines readers (20261015010000_gtl_lines_read.sql, redesign stage 23): two readers gated per game and market and
+  // two helpers, all service-only. Awaiting deploy (below) until the migration is applied to the hosted project.
+  ['gtl_read_lines', { p_user: missingId, p_season: 2026, p_week: 6, p_now: null }],
+  ['gtl_read_game_lines', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_now: null }],
+  ['gtl_book_quotes_from_snapshot', { p_payload: {}, p_game: {}, p_market: 'spread' }],
+  ['gtl_kickoff_line', { p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_market: 'spread' }],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -36,6 +43,9 @@ export const apiChecks = Object.freeze([
   ['officials/set', {}],
   // D-34 kickoff wind route (awaitingDeploy): signed-out probes prove only authentication protection.
   ['wind/read', {}],
+  // M-06 lines routes (awaitingDeploy): signed-out probes prove only authentication protection.
+  ['lines/read', {}],
+  ['lines/game', {}],
 ]);
 
 export const workerChecks = Object.freeze([
@@ -54,4 +64,12 @@ export const awaitingDeploy = Object.freeze({
   'gtl-api/wind/read': 'the gtl-api deploy with /wind/read',
   // M-05 (stage 22): remove with the release record of the hosted apply (Gate M step 8).
   'rpc/gtl_odds_carryover_slate': 'migration 20261014221500_gtl_odds_open_weeks.sql',
+  // M-06 (stage 23): the routes ship with the gtl-api deploy that maps the codes (before the apply); remove the routes with
+  // that deploy's release record and the RPCs with the apply's (Gate M step 8).
+  'rpc/gtl_read_lines': 'migration 20261015010000_gtl_lines_read.sql',
+  'rpc/gtl_read_game_lines': 'migration 20261015010000_gtl_lines_read.sql',
+  'rpc/gtl_book_quotes_from_snapshot': 'migration 20261015010000_gtl_lines_read.sql',
+  'rpc/gtl_kickoff_line': 'migration 20261015010000_gtl_lines_read.sql',
+  'gtl-api/lines/read': 'the gtl-api deploy with /lines/read',
+  'gtl-api/lines/game': 'the gtl-api deploy with /lines/game',
 });

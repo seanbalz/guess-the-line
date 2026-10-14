@@ -241,7 +241,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
         return json(await (route === '/personal' || route === '/personal/read' ? withRules(result) : result));
       }
       const group = ROUTE_GROUPS.find(candidate => Object.hasOwn(candidate.methods, route));
-      if (group) return json(await group.handle({ route, method: request.method, body, user, service: groupServices[group.service], clock, uuid, optionalRpc }));
+      if (group) return json(await group.handle({ route, method: request.method, body, user, service: groupServices[group.service], clock, uuid, optionalRpc, featureOff: featuresOff }));
       if (Object.hasOwn(RESULTS_METHODS, route)) {
         const commissioner = await storage.membership(user.id, 'sean-troy-luke');
         if (!commissioner || commissioner.active !== true || commissioner.player_id !== 'sean' || commissioner.role !== 'commissioner') throw providerResultError('GTL_RESULT_FORBIDDEN');
@@ -350,8 +350,10 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
         if (typeof name !== 'string' || !/^gtl_[a-z0-9_]{1,60}$/.test(name)) throw new Error('Invalid operation.');
         const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!response.ok) {
-          let message;
-          try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
+          let message, code;
+          try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Provider details remain private. */ }
+          // A group RPC the hosted project does not have yet (its migration not applied, or rolled back) reads as off.
+          if (response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerError('GTL_FEATURE_OFF');
           throw providerError(message);
         }
         return response.json();

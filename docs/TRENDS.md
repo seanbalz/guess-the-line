@@ -66,6 +66,27 @@ The week file never carries this week's line, odds, weather or referee: unplayed
 - A Total submission never unlocks a spread-gated record, and the reverse; "both" needs both markets.
 - After a market unlocks, the rows that fit this game are marked "This game" (text and `aria-current`, not color alone) using **only the player's own saved line** for that market (the saved scoring reference on Picks and the group ballot, the saved reference on the dashboard). Without a held line the tables stay unmarked.
 
+## Lines reader (M-06)
+
+Redesign build plan stage 23. The new app's Lines tab, game sheet and Edge board read current lines only through two `gtl-api` routes, gated per game and market in SQL. Sean's D-39 (October 14, 2026): "once you make a pick that game is revealed. you can change bets up until game start but you cannot guess the spread or total again once youve locked in that games guess". A game's line for a market opens for a player when that player locks in that game's guess for that market, when they sit out that market for the week (from M-03 also a skip or "See picks now", D-36), or at that game's kickoff for everyone (D-31). The other market and the other games stay locked.
+
+**Database.** Migration `20261015010000_gtl_lines_read.sql` (M-06) adds four service-only, security-invoker functions and changes nothing else (no table, row, trigger or existing function):
+
+| Function | What it answers |
+|---|---|
+| `gtl_read_lines(viewer, season, week, now)` | Every game of a published week (the newest when no week is named), in kickoff order: teams, kickoff, `started`, the final (the D-26 settlement or a commissioner-reported final, as History shows it), and per market `{ visible }` with, when open, the newest qualifying line stored by `now` (`value`, `capturedAt`, `observedAt`, `bookCount`, `source`). The viewer's own row per market (`mine`): the guess (a draft too), `lockedIn`, `satOut`, the Late marker, the line at the guess only once that market is open, and points from kickoff for a submitted eligible ballot. An unknown week answers `published: false`. |
+| `gtl_read_game_lines(viewer, season, week, game, now)` | One game. Per open market: the newest qualifying line, its three named books with both American prices (from the same collection), movement (every qualifying line stored by `now`, the newest 48, oldest first) and, from kickoff, the kickoff line. |
+| `gtl_book_quotes_from_snapshot(payload, game, market)` | The three named books of one stored collection, each with its line, both prices (a whole number from 100 to 10000 either way, else null) and observation time, only when that game and market's line qualifies there. |
+| `gtl_kickoff_line(season, week, game, market)` | The newest qualifying line captured in the 12 hours before kickoff (inclusive), from collections already stored; else null. It never starts a collection. |
+
+Every line comes from `gtl_line_from_snapshot`, the D-16/D-27 three-book validator, unchanged: a collection with two books, or captured at or after kickoff, is skipped. The gate is M-01's `gtl_markets_visible` / `gtl_guess_revealed`, which ask `gtl_guess_locked_in`, so when M-02 records per-game lock-ins it opens exactly the game locked in with no change here. A closed cell is `{ visible: false }` with no other key, and nothing about it is computed. No reply carries a raw payload, a provider or provider event id, or a snapshot id.
+
+**Routes.** `POST /lines/read` (`{}` or `{ season, week }`) and `POST /lines/game` (`{ gameId }`, optionally with `season` and `week`), signed in, identity from sign-in only. `cloud/lines.mjs` rebuilds each reply from a fixed list of keys and turns any market whose `visible` is not exactly `true` into `{ visible: false }`, so a key SQL sent under a closed market never leaves the server; the viewer's own guess always comes back, its line and points only under an open market. Refusals: `GTL_LINES_INVALID` (400, "Check the week and game, then try again."), `GTL_COMMUNITY_MEMBER` (403), and 503 "Lines are not available right now." while M-06 is not applied (PostgREST's function-not-found) or when the off switch is on. The web wrapper is `linesApi('read' | 'game')` in `web/src/api.js`; no screen calls it until stages 32 to 34.
+
+**Release.** Merge, then the `gtl-api` deploy that maps the codes (until the apply both routes answer 503), then "apply M-06" on a Tuesday or Wednesday, after M-01 and M-02 are applied and stage 20 is live (build plan, sections 5 and 6). Before M-02 a guess in a submitted ballot can still change until the deadline (D-16), so opening its line on a send would let a player match the line. There is no rollback file, because nothing is replaced: the off switch is the `gtl-api` secret `GTL_FEATURE_OFF=lines` (both routes refuse and read nothing); a database-side stop, with Sean's OK, is revoking the service role's execute grant on the two readers. Until the apply the four functions and the two routes are in `awaitingDeploy` (`scripts/boundary/lines.mjs`), the file is in `NOT_HOSTED`, and the leak scan runs `/lines/*` on `ALL` only (`READER_MIGRATIONS` in `tests/helpers/leak-scan.mjs`); the apply record removes all three.
+
+**Tests.** `tests/lines-sql.test.mjs` (PGlite, `ALL`): no value key before a lock-in; Spread open while Total stays locked; a sit-out opens that market and a draft opens nothing; one kickoff opens one game; the newest qualifying collection, a two-book one skipped; following a per-game `gtl_guess_locked_in`; the kickoff-line window, books and prices, movement over time and its cap of 48; finals; refusals (malformed, unknown game, non-member, removed member, `anon` and `authenticated`); no raw keys; the leak scan across `/lines/*` and every other reader at three moments; `/lines/*` answering 503 on `HOSTED`. `tests/lines-cloud.test.mjs`: the projection against forged replies, request validation, error mapping, the off switch and the adapter.
+
 ## Referees
 
 No free, licensed feed publishes referee assignments before games; the schedule file fills `referee` only after a game is played. So a person enters them.
@@ -158,11 +179,12 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
 - The frontend falls back cleanly, so the two can ship in either order.
 - After both are live, run `node scripts/check-cloud-boundary.mjs --strict` (every probe must deny, none awaiting deploy), then remove the four `awaitingDeploy` entries from `scripts/boundary/lines.mjs` in the change that records the hosted migration version.
 - **Kickoff wind forecast (D-34): not deployed.** Migration `20261013060000_gtl_wind_forecasts.sql` is applied to the hosted project on October 13 as `20261013072206` (all three functions byte-identical to `main`); it still needs a `gtl-api` deploy and a Pages deploy, in either order. Until then `check:cloud` lists the three wind RPCs and `/wind/read` as awaiting deploy for the same reason as the referee pieces (both builds fall back cleanly); after both, run `--strict`, remove the four wind entries, add the three wind tables to the table probes, and run the hosted reachability check in [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state).
+- **Lines reader (M-06, redesign stage 23): not deployed, not applied.** `scripts/boundary/lines.mjs` also lists its four functions and the two `/lines` routes in `awaitingDeploy`; the order is the `gtl-api` deploy, then Sean's "apply M-06" ([Lines reader](#lines-reader-m-06), Release).
 
 ## Limits
 
 - Forecast wind only, at the kickoff hour, for outdoor and retractable venues; temperature, precipitation and other weather trends still need observed data; using the wind record with a forecast is not backtested.
-- No opening lines or line movement.
+- No opening lines or line movement in the trend records (the lines reader gives the game sheet each game's movement and kickoff line, [above](#lines-reader-m-06)).
 - Tier 2 is "not proven" as a group.
 - Starting quarterbacks for upcoming games are nflverse's expected starters (provisional).
 - Retractable roofs are unknown until game day.
