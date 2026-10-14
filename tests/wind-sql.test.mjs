@@ -29,7 +29,7 @@ const FUNCTIONS = ['gtl_begin_wind_fetch', 'gtl_finish_wind_fetch', 'gtl_read_wi
 // Week 6 venue points from shared/wind-venues.mjs (the SQL never sees the venue table).
 const VENUES = { 'SEA-DEN': ['DEN00', 39.744, -105.02], 'PIT-TB': ['TAM00', 27.976, -82.503], 'NYJ-NE': ['BOS00', 42.091, -71.264], 'HOU-JAX': ['LON00', 51.556, -0.28],
   'LAC-KC': ['KAN00', 39.049, -94.484], 'DAL-GB': ['GNB00', 44.501, -88.062], 'WAS-SF': ['SFO01', 37.403, -121.97], 'BAL-CLE': ['CLE00', 41.506, -81.7],
-  'CAR-PHI': ['PHI00', 39.901, -75.168], 'NO-NYG': ['NYC01', 40.813, -74.074], 'ARI-LAR': ['LAX01', 33.953, -118.339] };
+  'CAR-PHI': ['PHI00', 39.901, -75.168], 'NO-NYG': ['NYC01', 40.813, -74.074], 'ARI-LAR': ['LAX01', 33.953, -118.339], 'BUF-LV': ['VEG00', 36.091, -115.184] };
 
 /** Wind rows anchored to the UTC day must never straddle midnight: wait out the first and last two minutes of a UTC day. */
 async function awayFromMidnight() {
@@ -52,7 +52,7 @@ async function fixture(t) {
   }
   // Week 6 with kickoffs relative to now (whole seconds, as published slates store them).
   const base = Math.floor(Date.now() / 1000);
-  const leads = { 'SEA-DEN': 10, 'PIT-TB': 20, 'NYJ-NE': 30, 'HOU-JAX': 40, 'LAC-KC': 50, 'DAL-GB': 60, 'WAS-SF': 70, 'BAL-CLE': 100, 'CAR-PHI': 130, 'NO-NYG': -1, 'ARI-LAR': 20 };
+  const leads = { 'SEA-DEN': 10, 'PIT-TB': 20, 'NYJ-NE': 30, 'HOU-JAX': 40, 'LAC-KC': 50, 'DAL-GB': 60, 'WAS-SF': 70, 'BAL-CLE': 100, 'CAR-PHI': 130, 'NO-NYG': -1, 'ARI-LAR': 20, 'BUF-LV': 25 };
   const kickoffs = Object.fromEntries(Object.entries(leads).map(([game, h]) => [game, base + h * HOUR]));
   const slate = (season, week, games) => db.query('insert into public.gtl_weekly_slates values($1,$2,$3)', [season, week,
     { season, week, deadline: Math.min(...games.map(([, k]) => k)), games: games.map(([gid, k]) => ({ id: gid, away: gid.split('-')[0], home: gid.split('-')[1], kickoff: k })) }]);
@@ -388,13 +388,14 @@ test('append-only snapshots, the newest per game, isolation from scoring tables,
   assert.equal(body.refresh.outcome, 'fetched');
   assert.equal(fake.calls.length, 1);
   const sent = new URL(fake.calls[0].url).searchParams.get('latitude').split(',');
-  assert.equal(sent.length, 8, 'outdoor games within 120 h that have not kicked off: no canopy, no kicked-off game, nothing past 120 h');
-  assert.deepEqual([body.games['SEA-DEN'].status, body.games['SEA-DEN'].wind.windMph, body.games['ARI-LAR'].status, body.games['CAR-PHI'].status, body.games['NO-NYG'].status],
-    ['forecast', 14.2, 'indoor', 'not_yet', 'none']);
+  assert.equal(sent.length, 9, 'outdoor and canopy games within 120 h that have not kicked off (D-45): no dome, no kicked-off game, nothing past 120 h');
+  assert.ok(sent.includes('33.953') && !sent.includes('36.091'), 'SoFi is sent; the Las Vegas dome is not');
+  assert.deepEqual([body.games['SEA-DEN'].status, body.games['SEA-DEN'].wind.windMph, body.games['ARI-LAR'].status, body.games['BUF-LV'].status, body.games['CAR-PHI'].status, body.games['NO-NYG'].status],
+    ['forecast', 14.2, 'forecast', 'indoor', 'not_yet', 'none']);
   const again = await handleWind({ route: '/wind/read', body: { season: 2026, week: 6 }, user, service });
   assert.ok(['not_due', 'cooldown'].includes(again.refresh.outcome));
   assert.equal(fake.calls.length, 1, 'the second read makes no request');
-  assert.deepEqual([await f.count('gtl_wind_fetches'), await f.count('gtl_wind_forecasts')], [1, 8]);
+  assert.deepEqual([await f.count('gtl_wind_fetches'), await f.count('gtl_wind_forecasts')], [1, 9]);
   await assert.rejects(() => handleWind({ route: '/wind/read', body: { season: 2026, week: 6 }, user: { id: id(STRANGER) }, service }), error => error.status === 403);
   const after = Object.fromEntries(await Promise.all(scoring.map(async table => [table, await f.count(table)])));
   assert.deepEqual(after, before, 'no ballot, version, audit, feed, market or slate row was written');

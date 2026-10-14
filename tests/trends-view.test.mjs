@@ -241,7 +241,7 @@ test('the browser trend modules stay pure: no engine, history, auth or network i
   assert.doesNotMatch(src('shared/trends-view.mjs'), /^\s*import\s/m, 'shared/trends-view.mjs imports nothing');
   for (const file of ['web/src/TrendsView.jsx', 'web/src/TrendCard.jsx', 'web/src/WindForecast.jsx', 'web/src/windTimer.js']) assert.doesNotMatch(src(file), /from '\.\/(auth|api|trendsData)/, file);
   // The wind card imports only React and the pure view helpers; the timer only the pure helpers.
-  assert.deepEqual([...src('web/src/WindForecast.jsx').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['react', '../../shared/trends-view.mjs']);
+  assert.deepEqual([...src('web/src/WindForecast.jsx').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['react', '../../shared/trends-view.mjs', '../../shared/weather-view.mjs']);
   assert.deepEqual([...src('web/src/windTimer.js').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['../../shared/trends-view.mjs']);
   for (const file of fs.readdirSync(new URL('../web/src/', import.meta.url))) {
     if (!/\.(jsx?|mjs)$/.test(file)) continue;
@@ -302,7 +302,14 @@ test('D-34 windView: indoor, loading, not yet, forecast, stale, final and invali
   const entry = (fetchedAt, extra = {}) => ({ kickoff: g.kickoff, venue: { id: 'DEN00', name: 'Empower Field at Mile High', city: 'Denver', country: 'USA', type: 'outdoor' }, status: 'forecast',
     wind: { windMph: 12.3, fetchedAt: new Date(fetchedAt).toISOString(), forecastHour: '2026-10-16T00:00:00.000Z', ...extra } });
   assert.equal(V.windView({ game: game('BUF-LV'), entry: null, now: k }).state, 'indoor');
-  assert.equal(V.windView({ game: game('ARI-LAR'), entry: null, now: k }).state, 'indoor', 'a canopy counts as indoors');
+  // D-45: SoFi's canopy is fetched like an open stadium, although the week file's nflverse roof says "dome".
+  assert.equal(game('ARI-LAR').flags.roof, 'dome');
+  assert.deepEqual(V.windView({ game: game('ARI-LAR'), entry: null, now: k }), { state: 'none', reason: 'unavailable' }, 'a canopy is not indoors');
+  const lar = Date.parse(game('ARI-LAR').kickoff), sofi = { id: 'LAX01', name: 'SoFi Stadium', city: 'Inglewood', country: 'USA', type: 'canopy' };
+  const canopy = V.windView({ game: game('ARI-LAR'), entry: { ...entry(lar - 26 * H), kickoff: game('ARI-LAR').kickoff, venue: sofi }, now: lar - 24 * H });
+  assert.deepEqual([canopy.state, canopy.canopy, canopy.retractable], ['forecast', true, false]);
+  // A server from before D-45 still calls SoFi "indoor" with no snapshot: that reads as no current forecast, never "Indoors".
+  assert.deepEqual(V.windView({ game: game('ARI-LAR'), entry: { kickoff: game('ARI-LAR').kickoff, venue: sofi, status: 'indoor', wind: null }, now: lar - 24 * H }), { state: 'none', reason: 'unavailable' });
   assert.deepEqual(V.windView({ game: g, entry: null, now: null }), { state: 'none', reason: 'unavailable' });
   assert.deepEqual(V.windView({ game: g, entry: null, now: null, loading: true }), { state: 'loading' });
   assert.equal(V.windView({ game: g, entry: { ...entry(k - 125 * H), wind: null, status: 'not_yet' }, now: k - 121 * H }).state, 'not_yet');

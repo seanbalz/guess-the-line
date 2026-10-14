@@ -68,8 +68,8 @@ export function parseWindRead(raw) {
 
 /**
  * Pure planner: the games to fetch now, from the read's slate, its newest snapshots and the database
- * clock. Each game maps to a venue from the server mirror (never from the client); domes, canopies and
- * unknown venues, kicked-off games and games more than 120 h out are skipped; a game is due when it
+ * clock. Each game maps to a venue from the server mirror (never from the client); domes and unknown
+ * venues (D-45), kicked-off games and games more than 120 h out are skipped; a game is due when it
  * has no snapshot for this kickoff or its newest snapshot is at least the TTL for the current lead old.
  * Sorted by kickoff then venue; trimmed to 16 locations, nearest kickoff first.
  */

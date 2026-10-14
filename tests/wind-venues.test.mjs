@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { SEASONS, WIND_STADIUMS, venueFor, windVenue } from '../shared/wind-venues.mjs';
+import { SEASONS, WIND_STADIUMS, WIND_VENUE_TYPES, venueFor, windVenue } from '../shared/wind-venues.mjs';
 import { parseCsvRows } from '../shared/trends.mjs';
 import { appCode } from '../shared/nfl-schedule.mjs';
 
@@ -56,14 +56,19 @@ test('every committed week file agrees: venueFor(season, week, game) is the game
   }
 });
 
-test('domes and canopies are never fetched; retractable roofs are kept; international sites use their own coordinates', () => {
-  for (const [week, id] of [[6, 'ARI-LAR'], [6, 'BUF-LV'], [10, 'NE-DET']]) {
+test('D-45: domes are never fetched; the SoFi canopy and retractable roofs are; international sites use their own coordinates', () => {
+  assert.deepEqual(WIND_VENUE_TYPES, ['outdoor', 'canopy', 'retractable']);
+  for (const [week, id] of [[6, 'BUF-LV'], [10, 'NE-DET']]) {
     const venue = venueFor(2026, week, id);
     if (id === 'NE-DET') { assert.equal(venue.id, 'MUN01'); assert.equal(windVenue(venue), true, 'Munich is open-air, not the Detroit dome'); continue; }
     assert.equal(windVenue(venue), false, id);
   }
-  assert.equal(venueFor(2026, 6, 'ARI-LAR').id, 'LAX01');
   assert.equal(venueFor(2026, 6, 'BUF-LV').id, 'VEG00');
+  assert.deepEqual([venueFor(2026, 6, 'ARI-LAR').id, venueFor(2026, 6, 'ARI-LAR').type, windVenue(venueFor(2026, 6, 'ARI-LAR'))], ['LAX01', 'canopy', true]);
+  // Every venue type: the four domes (Detroit, Minneapolis, New Orleans, Las Vegas) are the only stadiums never fetched.
+  const never = Object.entries(WIND_STADIUMS).filter(([, stadium]) => !windVenue(stadium)).map(([id, stadium]) => [id, stadium.type]);
+  assert.deepEqual(never, [['DET00', 'dome'], ['MIN01', 'dome'], ['NOR00', 'dome'], ['VEG00', 'dome']]);
+  assert.equal(windVenue({ type: 'closed' }), false, 'an unknown type is never fetched');
   for (const [week, id, stadium] of [[6, 'CHI-ATL', 'ATL97'], [6, 'TEN-IND', 'IND00'], [9, 'CIN-ATL', 'MAD01']]) {
     const venue = venueFor(2026, week, id);
     assert.deepEqual([venue.id, venue.type, windVenue(venue)], [stadium, 'retractable', true], id);
