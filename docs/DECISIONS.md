@@ -1,5 +1,15 @@
 # Decision log
 
+## D-37 — sent Guess picks are final (October 14, 2026)
+
+Sean ruled in the cloud session, answering the conflict the D-35 prototype review found between D-16 and D-36: **sent picks are final**.
+
+- **Why it was needed.** D-36 opens a market's lines as soon as the player submits that market. If a submitted pick could still be edited until kickoff (D-16), a player could submit, read the line, and change each pick to match it exactly.
+- **Rule.** Drafts can change freely until submitted. Once a player submits a market (Spread or Total) for the week, that market's picks are final and its lines open for that player. Games not yet picked in a submitted market follow D-36 (each game closes at its kickoff; late saves carry the D-30 Late marker).
+- **Amends.** D-16's pre-deadline edits of a submitted ballot no longer apply to Guess the Spread or Guess the Total. Original submission times and revisions already stored are kept (D-16, D-23). Virtual Units bets and challenges keep D-18's edits until kickoff.
+
+Nothing is built or deployed by this entry; the D-35 prototype already follows it.
+
 ## D-36 — Redesign rulings: real slips, boards, line lock, visibility (October 13, 2026)
 
 Sean answered these one at a time in the cloud session after the D-35 prototype spec raised them. Quotes are verbatim where Sean typed his own answer.
