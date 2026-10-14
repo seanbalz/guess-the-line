@@ -242,6 +242,15 @@ test.describe('the real app', () => {
         await load(page, '#play');
         await expect(title(page, 'Play')).toBeVisible();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        // D-44: the top bar's logo is the G alone in the theme's accent-ink, with no tile, edge or shadow behind it or
+        // on its svg.
+        for (const part of ['.gx-mono', '.gx-mono-svg']) {
+          const mark = page.locator(`.gx-topbar ${part}`);
+          await expect(mark).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+          await expect(mark).toHaveCSS('background-image', 'none');
+          await expect(mark).toHaveCSS('box-shadow', 'none');
+          await expect(mark).toHaveCSS('color', theme === 'dark' ? 'rgb(184, 243, 75)' : 'rgb(59, 99, 9)');
+        }
         for (const width of [390, 320]) {
           await page.setViewportSize({ width, height: 844 });
           await phoneChecks(page);
