@@ -353,8 +353,10 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 .gx-card .gx-av-stack .gx-av,
 .gx-sheet .gx-av-stack .gx-av { box-shadow: 0 0 0 2px var(--gx-surface-1); }
 .gx-av-more { margin-left: 6px; font-size: 13px; line-height: 18px; color: var(--gx-text-2); }
-/* System posts (week opened, kickoff, recap) use the Field monogram tile at avatar size. */
-.gx-av-sys { background: var(--gx-accent); color: var(--gx-accent-text); }
+/* For system posts (week opened, kickoff, recap): the Field monogram at avatar size, the G alone in accent-ink, with no
+   fill or ring behind it, in an avatar stack too (D-44). No component uses it yet. */
+.gx-av-sys,
+.gx-av-stack .gx-av.gx-av-sys { background: none; color: var(--gx-accent-ink); box-shadow: none; }
 
 /* ===== pills, tags, dots, counters ===== */
 .gx-pill {
@@ -893,17 +895,15 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 }
 .gx-team--loaded .gx-team-img { opacity: 1; }
 .gx-team--loaded .gx-team-code { visibility: hidden; }
-/* The Field monogram: the dark Yardline G on the rounded lime tile (Brand.jsx geometry); 1px accent-ink edge in light. */
+/* The Field monogram (D-44): the Yardline G alone in accent-ink (lime in dark, deep green in light) on a transparent
+   background, with no tile, edge or shadow (Brand.jsx geometry). The box keeps its size, so nothing around it moves. */
 .gx-mono {
   flex: none;
   display: inline-grid;
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: 24%;
-  background: var(--gx-accent);
-  color: var(--gx-accent-text);
-  box-shadow: var(--gx-lime-edge);
+  color: var(--gx-accent-ink);
 }
 .gx-mono--24 { width: 24px; height: 24px; }
 .gx-mono--40 { width: 40px; height: 40px; }
@@ -976,8 +976,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   .gx-dialog,
   .gx-switch,
   .gx-cd-tile,
-  .gx-team,
-  .gx-mono {
+  .gx-team {
     border: 1px solid CanvasText;
   }
   .gx-chip--on,

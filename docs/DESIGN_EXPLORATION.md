@@ -76,4 +76,6 @@ Sean explicitly selected Primary logo option 01 **Yardline G** and App icon opti
 Sean supplied the selected Field monogram screenshot and requested icon-only
 product branding, with no site-name text beside the mark. D-14 applies that
 rounded lime tile and dark original glyph across the sidebar, sign-in and lobby.
-The browser title and accessible name stay Guess The Line.
+The browser title and accessible name stay Guess The Line. D-44 (October 14,
+2026) removes the tile: the G stands alone in the theme green on a transparent
+background.
