@@ -55,6 +55,8 @@ export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOw
 const NUMBER = /[+-]?(?:\d+\.\d+|\d+|\.\d+)/g;
 // ISO times (observedAt, kickoff, ...) are not lines, but their seconds can read as one: "...:31.500Z" is 31.5.
 const ISO_TIME = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?/g;
+/** A reply's text with its ISO times blanked, for substring checks that look for a secret number: "…:41.512Z" contains "41.5". */
+export const withoutTimes = text => String(text).replace(ISO_TIME, ' ');
 const pathOf = (parent, key) => (typeof key === 'number' ? `${parent}[${key}]` : /^[A-Za-z_$][\w$]*$/.test(key) ? `${parent}.${key}` : `${parent}[${JSON.stringify(key)}]`);
 
 /**
