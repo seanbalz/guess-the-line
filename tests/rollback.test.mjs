@@ -102,7 +102,7 @@ test('the rollback convention: each file names a migration, restores exactly the
 test('the old-app SQL suites take HOSTED and migrationSql from tests/migrations.mjs', () => {
   for (const suite of OLD_APP_SQL_SUITES) {
     const source = fs.readFileSync(suite, 'utf8');
-    assert.match(source, /import \{ HOSTED, migrationSql \} from '\.\/migrations\.mjs';/, suite);
+    assert.match(source, /import \{ HOSTED, (?:PRELUDE, )?migrationSql \} from '\.\/migrations\.mjs';/, suite);
     assert.doesNotMatch(source, /readFileSync\(`supabase\/migrations/, `${suite} reads a migration without migrationSql`);
   }
 });
