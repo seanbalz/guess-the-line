@@ -85,6 +85,9 @@ test('community history: every player, week and market with the line at each gue
   // its rollback (tests/rollback.test.mjs), so it reads which readers are installed: points are checked after every kickoff
   // (AFTER; the earlier readers ignore the clock for points), and each expectation M-01 changes is written for both.
   const PER_GAME = (await db.query("select count(*)::int n from pg_proc where proname='gtl_read_community_history' and prosrc like '%gtl_markets_visible%'")).rows[0].n === 1;
+  // M-02 (20261015030000_gtl_sent_picks_final.sql, redesign stage 18) makes a sent guess final in every writer. Once HOSTED has
+  // it, a D-16 edit of a sent ballot is refused, so the revisions case below checks that refusal instead of making the edit.
+  const SENT_FINAL = (await db.query("select count(*)::int n from pg_proc where proname='gtl_save_weekly_ballot' and prosrc like '%GTL_BALLOT_LOCKED%'")).rows[0].n === 1;
   const AFTER = Math.max(...state.games.map(g => at(g.kickoff))) + 1000;
   let serial = 500;
   const snapshot = async (captured, spread = -3.5, total = 44.5) => {
@@ -226,12 +229,14 @@ test('community history: every player, week and market with the line at each gue
     const before = entry(await history(TROY), TROY, 'guess_spread');
     assert.deepEqual([before.revisions, at(before.updatedAt)], [0, at(before.submittedAt)]);
     // Troy re-submits with one pick changed: the original submission time is kept (D-16) and the change is one ballot_edited event.
-    assert.equal(await rpc('gtl_save_weekly_ballot', { p_user: id(TROY), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 1, p_picks: { ...full(-3), [gameIds[0]]: -4 }, p_submit: true }), 2);
+    // From M-02 on the sent guess is final: the edit is refused and nothing is stored (no revision, the guess as sent).
+    const edit = () => rpc('gtl_save_weekly_ballot', { p_user: id(TROY), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 1, p_picks: { ...full(-3), [gameIds[0]]: -4 }, p_submit: true });
+    if (SENT_FINAL) await assert.rejects(edit, /GTL_BALLOT_LOCKED/); else assert.equal(await edit(), 2);
     const audit = (await db.query('select audit from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [id(TROY), 'guess_spread'])).rows[0].audit;
-    assert.deepEqual(audit.map(e => e.type), ['ballot_submitted', 'ballot_edited']);
+    assert.deepEqual(audit.map(e => e.type), SENT_FINAL ? ['ballot_submitted'] : ['ballot_submitted', 'ballot_edited']);
     const troy = entry(await history(TROY, AFTER), TROY, 'guess_spread');
     assert.deepEqual([troy.revisions, troy.provenance, at(troy.submittedAt), at(troy.updatedAt) > at(troy.submittedAt), troy.picks[0].guess, troy.picks[0].points, troy.weekPoints],
-      [1, 'group', at(before.submittedAt), true, -4, accuracy(-4, -3.5), 135]);
+      SENT_FINAL ? [0, 'group', at(before.submittedAt), false, -3, accuracy(-3, -3.5), 15 * accuracy(-3, -3.5)] : [1, 'group', at(before.submittedAt), true, -4, accuracy(-4, -3.5), 135]);
     // Luke has neither submitted Spread nor sat out, so Troy's Spread stays hidden; Troy's Total is revealed. Either way the fields
     // derived from the private audit and provenance columns are null for another member, as the group reader and the feed keep them.
     const luke = await history(LUKE);

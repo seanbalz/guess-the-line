@@ -15,7 +15,7 @@ import { BENCHMARK_METHODS, BenchmarkError, handleBenchmarkFreeze, providerBench
 import { createEngine } from '../server/engine.mjs';
 import { MODES } from '../server/domain.mjs';
 import { handleOddsCollection, ODDS_METHODS, OddsCollectionError, providerCollectionError } from './odds-collection.mjs';
-import { weeklyView, WeeklyError, providerWeeklyError } from './weekly.mjs';
+import { weeklyView, WeeklyError, providerWeeklyError, BALLOT_LOCKED, BALLOT_LOCKED_MESSAGE } from './weekly.mjs';
 import { handleLobby, LOBBY_METHODS, LobbyError, normalizeEmail, providerLobbyError } from './lobby.mjs';
 import { handleVirtualUnits, VIRTUAL_METHODS, VirtualUnitsError, providerVirtualError } from './virtual-units.mjs';
 // Kickoff wind forecast (D-34): the member read route and the server-only Open-Meteo provider.
@@ -43,7 +43,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SAFE_VALIDATION_ERRORS = new Set([
   'Unknown game mode.', 'Unknown prediction game.', 'Unknown matchup.', 'Invalid ballot.',
   'The prediction deadline has passed. Commissioner adjudication is required.',
-  'This ballot is submitted and permanently locked. Competition guesses cannot be changed.',
+  // M-02 (redesign stage 18): the engine mirror's refusal of a change to a locked-in guess, answered 409 with its code.
+  'Sent picks are final.',
   'Enter a number in half-point increments.', 'Combined points must be between 0 and 200.',
   'Spread must be between −100 and +100.', 'Choose a spread side or an over/under side.',
   'Enter American odds, such as −110 or +120.', 'A named quote source is required.',
@@ -76,9 +77,14 @@ export const ROUTE_MODULES = Object.freeze({
 export const ROUTE_METHODS = Object.freeze(Object.assign({}, ...Object.values(ROUTE_MODULES)));
 
 class RequestError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message, code) { super(message); this.status = status; if (code) this.code = code; }
 }
-const fail = (status, message) => { throw new RequestError(status, message); };
+/**
+ * Refusal codes a reply carries beside its sentence, so a client can act on them (build plan stage 18): GTL_BALLOT_LOCKED
+ * tells both apps the picks they hold are older than the final ones, and they reload instead of offering a retry.
+ */
+const PUBLIC_CODES = new Set([BALLOT_LOCKED]);
+const fail = (status, message, code) => { throw new RequestError(status, message, code); };
 const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.stringify(value), {
   status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', ...extraHeaders },
 });
@@ -278,7 +284,9 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (saved.state?.league?.id !== leagueId || !Number.isSafeInteger(saved.revision) || saved.revision < 0) throw new Error('Invalid stored league.');
       if (!saved.state.league.roster.some(player => player.id === member.player_id)) fail(403, 'Your account has not been added to this league.');
       saved = await loadResultState(saved, user.id, leagueId);
-      const engine = createEngine(saved.state, { clock, uuid });
+      // M-02 mirror (stage 18): the engine refuses a change to a locked-in guess only once the live rules say sent picks are
+      // final, so this deploy never runs ahead of the database rule.
+      const engine = createEngine(saved.state, { clock, uuid, sentFinal: request.method === 'POST' && (await rules)?.sentFinal === true });
       if (route === '/state') return json(await withRules(marketView(resultView(weeklyView(engine.view(member.player_id, mode), saved), saved, member, leagueId), user.id, leagueId), rules));
       if (route === '/export') return json(weeklyView(engine.export(member.player_id), saved));
       if (body.revision !== saved.revision) fail(409, 'Your weekly entries changed on another device or in another group. Refresh before saving again.');
@@ -288,6 +296,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
           ? engine.saveBallot(member.player_id, mode, body.picks, body.submit ?? false)
           : engine.saveBet(member.player_id, body);
       } catch (error) {
+        if (error?.message === BALLOT_LOCKED_MESSAGE) fail(409, error.message, BALLOT_LOCKED);
         if (SAFE_VALIDATION_ERRORS.has(error?.message) || /^Complete all \d{1,4} predictions before submitting\.$/.test(error?.message || '')) fail(400, error.message);
         throw error;
       }
@@ -305,7 +314,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       const freshEngine = createEngine(refreshed.state, { clock, uuid });
       return json(await withRules(marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId), rules));
     } catch (error) {
-      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError || error instanceof PushError || ROUTE_GROUPS.some(group => error instanceof group.Error)) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : {}) }, error.status);
+      if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError || error instanceof PushError || ROUTE_GROUPS.some(group => error instanceof group.Error)) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : PUBLIC_CODES.has(error.code) ? { code: error.code } : {}) }, error.status);
       // Provider payloads and internal errors may contain secrets or private state.
       return json({ error: 'The saved data service is temporarily unavailable. Please try again.' }, 503);
     }

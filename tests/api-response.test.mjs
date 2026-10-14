@@ -76,3 +76,14 @@ test('failed read requests never masquerade as uncertain saves', async () => {
   await assert.rejects(requestResponse(async () => { throw network; }), error => error === network);
   await assert.rejects(readResponse(new Response('unreadable')), error => !error.uncertain && /Reload saved data/.test(error.message));
 });
+
+test('the final-pick refusal keeps its code and sentence, so a screen reloads instead of offering a conflict or a retry (stage 18)', async () => {
+  await assert.rejects(readResponse(json({ error: 'Sent picks are final.', code: 'GTL_BALLOT_LOCKED' }, 409), true), error => {
+    assert.deepEqual([error.message, error.code, error.status, error.uncertain], ['Sent picks are final.', 'GTL_BALLOT_LOCKED', 409, undefined]);
+    return true;
+  });
+  // Without its code (a gtl-api deployed before stage 18) the same 409 reads as before; any other code is dropped.
+  await assert.rejects(readResponse(json({ error: 'This ballot is submitted and permanently locked.' }, 409), true), error => error.code === null && error.status === 409);
+  await assert.rejects(readResponse(json({ error: 'Your weekly ballot changed in another group or on another device.', code: 'GTL_WEEKLY_CONFLICT' }, 409), true),
+    error => error.code === null && /another group or on another device/.test(error.message));
+});

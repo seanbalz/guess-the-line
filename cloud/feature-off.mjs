@@ -12,6 +12,7 @@
 export const FEATURES = Object.freeze({
   notes: 'POST /personal/note: private game notes (M-09, redesign stage 27)',
   lines: 'POST /lines/read and /lines/game: the gated lines readers (M-06, redesign stage 23)',
+  'lock-in': 'POST /personal/ballot with lockIn: the per-game lock-in on a draft (M-02, redesign stage 18); a whole-market send keeps working',
 });
 
 /** The set of known feature names the secret turns off (empty when it is unset or names nothing known). */

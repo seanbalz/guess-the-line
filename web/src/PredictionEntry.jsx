@@ -25,7 +25,8 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   // Redesign stage 15 (D-37, D-39): once the server's live rules say `sentFinal` (M-02), each locked-in guess is final (today, a guess in
   // the submitted ballot). Its chips are read-only, and a ballot with every guess locked in offers no "Review & save changes". Until
   // then `rules.sentFinal` is false and a submitted ballot stays editable until the deadline (D-16).
-  const finalRule = sentFinal(data.rules), savedBallot = { submittedAt: data.submittedAt, picks: Object.fromEntries(data.games.map(game => [game.id, game.prediction])) };
+  // Redesign stage 18 (M-02): `lockedAt` names the games locked in on their own (the new app's per-game lock-in); they are final too.
+  const finalRule = sentFinal(data.rules), savedBallot = { submittedAt: data.submittedAt, lockedAt: data.lockedAt, picks: Object.fromEntries(data.games.map(game => [game.id, game.prediction])) };
   const isFinal = id => pickFinal(data.rules, savedBallot, id), allFinal = ballotFinal(data.rules, savedBallot, data.games.map(game => game.id));
   // The browser clock closes the ballot when the deadline passes during this session, before the
   // next server read confirms it. The server stays authoritative when it already reported the ballot
@@ -63,6 +64,8 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   useEffect(() => {
     const saved = draftFromGames(data.games);
     const merged = frozen ? { draft: saved, conflicts: {} } : mergeDraft(baseline.current, current.current, saved);
+    // A pick that became final since this tab's edits began (M-02) shows as saved, with no conflict to resolve.
+    if (!frozen) for (const game of data.games) if (isFinal(game.id)) { merged.draft[game.id] = saved[game.id]; delete merged.conflicts[game.id]; }
     setDraft(merged.draft); setFieldConflicts(old => ({ ...old, ...merged.conflicts })); baseline.current = saved;
     if (frozen) {
       if (satOut) { removeDraft(scope); lastCopy.current = null; setRecovery(null); }
