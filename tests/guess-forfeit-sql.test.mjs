@@ -502,11 +502,13 @@ test('D-41: after some games are locked in, the old sit-out and a forfeit cover 
     locked.luke.guess_spread.push(0);
     const T2 = Math.ceil(Date.now() / 1000) * 1000 + 1000;
     assert.ok(T2 < kickoff[0]);
-    // Per game in the database, as a sent ballot; the route still drops every guess of an entry with a hidden one (stage 17 reads hiddenGames).
+    // Per game in the database, as a sent ballot, and through the route (stage 17 reads hiddenGames): g1 shows, g2 is a hidden row with no number.
     const [raw] = await rawEntry('luke', 'troy', 'guess_spread', T2);
     assert.deepEqual([raw.status, raw.picksHidden, raw.hiddenGames, raw.picks.map(p => [p.gameId, p.hidden, p.guess])], ['sat_out', true, [ids[1]], [[ids[0], false, -5.5], [ids[1], true, null]]]);
     const [spread] = entries(await history('luke', T2), 'troy', 'guess_spread');
-    assert.deepEqual([spread.status, spread.picksHidden, spread.picks], ['sat_out', true, null]);
+    assert.deepEqual([spread.status, spread.picksHidden, spread.hiddenGames, spread.picks.map(p => [p.gameId, p.hidden, p.guess, p.reference, p.points])],
+      ['sat_out', true, [ids[1]], [[ids[0], false, -5.5, spread.picks[0].reference, null], [ids[1], true, null, null, null]]]);
+    assert.ok(Number.isFinite(spread.picks[0].reference?.value), 'an open game carries its saved line');
     for (const viewer of ['luke', 'troy', 'sean']) await scan(viewer, T2, 'after Luke locks in g1');
   });
 
