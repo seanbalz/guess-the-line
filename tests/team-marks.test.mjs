@@ -1,75 +1,106 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { approvedTeamLogos, originalTeamBadges, teamMarks, resolveTeamMark } from '../web/src/teamLogoRegistry.js';
+import { approvedTeamLogos, originalTeamBadges, teamMarks, resolveTeamMark, resolveTeamBadge, TEAM_TRADEMARK_NOTICE } from '../web/src/teamLogoRegistry.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicDir = path.join(root, 'web/public');
 const allTeams = 'ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LAC LAR LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN WAS'.split(' ');
-const officialTeams = 'CHI CIN DAL GB IND KC LAC NO NYG PIT SF WAS LAR BUF NYJ'.split(' ');
+// D-22 badges stay registered; since D-46 they are only the fallback when a team's official logo fails to load.
 const badgeTeams = 'ARI ATL BAL BUF CAR CLE DEN DET HOU JAX LV MIA MIN NE NYJ PHI SEA TB TEN'.split(' ');
-// BUF and NYJ gained reviewed official marks after their badges were drawn; the badge stays registered as a fallback.
-const badgeOnlyTeams = badgeTeams.filter(code => !officialTeams.includes(code));
 const sources = JSON.parse(readFileSync(path.join(publicDir, 'team-logos/sources.json'), 'utf8'));
+const remaining = JSON.parse(readFileSync(path.join(publicDir, 'team-logos/remaining-sources.json'), 'utf8'));
+const notice = 'NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.';
 
-test('all 32 NFL team codes resolve to a local team mark', () => {
+// Minimal PNG reader: IHDR size and color type, so the transparency check needs no image library.
+function pngHeader(bytes) {
+  assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  assert.equal(bytes.subarray(12, 16).toString('latin1'), 'IHDR');
+  return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), bitDepth: bytes[24], colorType: bytes[25] };
+}
+
+test('all 32 NFL team codes resolve to their official D-46 logo', () => {
   assert.equal(allTeams.length, 32);
   assert.equal(Object.keys(teamMarks).length, 32);
+  assert.deepEqual(Object.keys(approvedTeamLogos).sort(), [...allTeams].sort());
   for (const code of allTeams) {
     const mark = resolveTeamMark(code);
-    assert.ok(mark, `${code} has no mark`);
+    assert.equal(mark, approvedTeamLogos[code], `${code}: official logo`);
+    assert.deepEqual({ ...mark }, {
+      src: `/team-logos/${code.toLowerCase()}.png`,
+      rightsStatus: 'trademark-identification',
+      transparent: true,
+      rightsReference: 'docs/TEAM_LOGO_SOURCES.md#official-logos-d-46',
+    });
     assert.ok(existsSync(path.join(publicDir, mark.src)), `${code} file missing: ${mark.src}`);
-    assert.equal(mark.transparent, true);
   }
   assert.equal(resolveTeamMark('XYZ'), null);
   assert.equal(resolveTeamMark('constructor'), null);
+  assert.equal(TEAM_TRADEMARK_NOTICE, notice);
 });
 
 test('aliases keep resolving to the canonical team', () => {
   assert.equal(resolveTeamMark('LA'), approvedTeamLogos.LAR);
   assert.equal(resolveTeamMark('WSH'), approvedTeamLogos.WAS);
-  assert.equal(resolveTeamMark('JAC'), originalTeamBadges.JAX);
-  assert.equal(resolveTeamMark(' sea '), originalTeamBadges.SEA);
+  assert.equal(resolveTeamMark('JAC'), approvedTeamLogos.JAX);
+  assert.equal(resolveTeamMark(' sea '), approvedTeamLogos.SEA);
+  assert.equal(resolveTeamBadge('JAC'), originalTeamBadges.JAX);
+  assert.equal(resolveTeamBadge(' sea '), originalTeamBadges.SEA);
 });
 
-test('official reviewed marks take precedence and stay byte-identical to their recorded sources', () => {
-  assert.deepEqual(Object.keys(approvedTeamLogos).sort(), [...officialTeams].sort());
-  for (const code of officialTeams) {
-    const mark = resolveTeamMark(code);
-    assert.equal(mark, approvedTeamLogos[code]);
-    assert.equal(mark.rightsStatus, 'approved');
-    assert.equal(mark.rightsReference, `docs/TEAM_LOGO_SOURCES.md#${code.toLowerCase()}`);
+test('every shipped logo matches its sources.json record: one source, 128px transparent PNG, hashes recorded', () => {
+  assert.deepEqual(sources.coverage, { active: 32, totalTeams: 32 });
+  assert.equal(sources.sourceIndex.url, 'https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv');
+  assert.deepEqual(Object.keys(sources.assets).sort(), [...allTeams].sort());
+  for (const code of allTeams) {
     const record = sources.assets[code];
-    assert.ok(record, `${code} missing from sources.json`);
+    const mark = approvedTeamLogos[code];
     assert.equal(mark.src, `/team-logos/${record.file}`);
+    assert.match(record.sourceUrl, /^https:\/\/a\.espncdn\.com\/i\/teamlogos\/nfl\/500(?:-dark)?\/[a-z]+\.png$/);
+    assert.equal(record.sourceIndexRow.team_abbr, code);
+    assert.equal(record.sourceIndexRow.column, 'team_logo_espn');
+    assert.match(record.original.sha256, /^[0-9a-f]{64}$/);
+    assert.equal(record.trademarkNotice, notice);
+    assert.equal(record.licensed, false);
+    assert.equal(record.transparent, true);
+    assert.deepEqual(record.cornerAlpha, [0, 0, 0, 0]);
     const bytes = readFileSync(path.join(publicDir, mark.src));
     assert.equal(bytes.length, record.bytes);
-    assert.equal(createHash('sha256').update(bytes).digest('hex'), record.sha256, `${code} official file changed`);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), record.sha256, `${code} shipped file changed`);
+    const header = pngHeader(bytes);
+    assert.deepEqual([header.width, header.height], [record.width, record.height]);
+    assert.ok(Math.max(header.width, header.height) === 128, `${code}: shipped at 128px`);
+    assert.equal(header.colorType, 6, `${code}: RGBA`);
+    // Downscale only: aspect ratio kept.
+    assert.ok(Math.abs(header.width / header.height - record.original.width / record.original.height) < 0.02);
   }
+  // Every PNG beside the badges directory is a registered logo; no old SVG marks remain.
+  const files = readdirSync(path.join(publicDir, 'team-logos')).filter(name => /\.(png|svg|webp)$/.test(name)).sort();
+  assert.deepEqual(files, allTeams.map(code => `${code.toLowerCase()}.png`).sort());
+  assert.deepEqual(remaining.remainingTeams, []);
+  assert.equal(remaining.remainingCount, 0);
 });
 
-test('the 17 teams without an official mark use original GTL badges with the documented rights reference', () => {
+test('original GTL badges stay registered as the load-failure fallback with the documented rights reference', () => {
   assert.deepEqual(Object.keys(originalTeamBadges).sort(), [...badgeTeams].sort());
-  assert.equal(badgeOnlyTeams.length, 17);
-  for (const code of badgeTeams.filter(team => officialTeams.includes(team))) {
-    assert.equal(resolveTeamMark(code), approvedTeamLogos[code], `${code}: the official mark takes precedence over the badge`);
-    assert.equal(originalTeamBadges[code].src, `/team-logos/badges/${code.toLowerCase()}.svg`);
-  }
-  for (const code of badgeOnlyTeams) {
-    assert.equal(approvedTeamLogos[code], undefined);
-    const mark = resolveTeamMark(code);
-    assert.deepEqual({ ...mark }, {
+  for (const code of badgeTeams) {
+    assert.equal(resolveTeamMark(code), approvedTeamLogos[code], `${code}: the official logo takes precedence over the badge`);
+    assert.deepEqual({ ...resolveTeamBadge(code) }, {
       src: `/team-logos/badges/${code.toLowerCase()}.svg`,
       rightsStatus: 'original',
       transparent: true,
       rightsReference: 'docs/TEAM_LOGO_SOURCES.md#original-badges',
     });
   }
+  for (const code of allTeams.filter(team => !badgeTeams.includes(team))) assert.equal(resolveTeamBadge(code), null);
+  assert.equal(resolveTeamBadge('XYZ'), null);
   const doc = readFileSync(path.join(root, 'docs/TEAM_LOGO_SOURCES.md'), 'utf8');
   assert.match(doc, /^## Original badges$/m);
+  assert.match(doc, /^## Official logos \(D-46\)$/m);
+  assert.ok(doc.includes(notice));
 });
 
 test('badge SVGs are small, self-contained, script-free and labelled with their abbreviation', () => {

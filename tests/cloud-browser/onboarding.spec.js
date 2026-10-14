@@ -1141,32 +1141,51 @@ test('dashboard notices report only newly received newer snapshots and honor ind
   expect(hub.requests.filter(request => request.endpoint.startsWith('odds/'))).toHaveLength(0);
 });
 
-test('dashboard team identifiers load approved local artwork and retain names with an accessible fallback', async ({ page, hub }) => {
+for (const width of [320, 390, 1440]) for (const theme of ['light', 'dark']) test(`dashboard team identifiers load the official local logos (D-46) and retain names with an accessible fallback at ${width}px ${theme}`, async ({ page, hub }) => {
   presentationGame(hub);
   await page.clock.install({ time: new Date(hub.serverNow) });
-  await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto('/'); await page.getByLabel('Color theme').selectOption(theme); await signIn(page);
+  await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
-  const logo = matchup.locator('img[src="/team-logos/dal.svg"]');
-  await expect(logo).toHaveCount(1);
-  await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(matchup.locator('.team-identity').nth(1)).toHaveAttribute('data-logo-status', 'approved');
-  const badge = matchup.locator('img[src="/team-logos/badges/tb.svg"]');
-  await expect(badge).toHaveCount(1);
-  await expect.poll(() => badge.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(matchup.locator('.team-identity').first()).toHaveAttribute('data-logo-status', 'original');
+  for (const [index, file] of [[0, 'tb.png'], [1, 'dal.png']]) {
+    const logo = matchup.locator(`img[src="/team-logos/${file}"]`);
+    await expect(logo).toHaveCount(1);
+    await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+    await expect(matchup.locator('.team-identity').nth(index)).toHaveAttribute('data-logo-status', 'trademark-identification');
+  }
   await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveCount(0);
+  await expect(matchup.locator('[data-logo-status="original"]')).toHaveCount(0);
   await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
   for (const mark of await matchup.locator('.team-identity').all()) await expect(mark).toHaveAttribute('aria-hidden', 'true');
 });
 
-test('dashboard team badge keeps the abbreviation fallback when its image fails to load', async ({ page, hub }) => {
+test('dashboard team logo that fails to load falls back to the team badge, then to the abbreviation', async ({ page, hub }) => {
   presentationGame(hub);
+  await page.route('**/team-logos/tb.png', route => route.abort());
+  await page.route('**/team-logos/dal.png', route => route.abort());
+  await page.clock.install({ time: new Date(hub.serverNow) });
+  await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
+  // Tampa Bay has an original GTL badge (D-22); Dallas does not, so it shows its letters.
+  const badge = matchup.locator('img[src="/team-logos/badges/tb.svg"]');
+  await expect(badge).toHaveCount(1);
+  await expect.poll(() => badge.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(matchup.locator('.team-identity').first()).toHaveAttribute('data-logo-status', 'original');
+  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('DAL');
+  await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
+});
+
+test('dashboard team keeps the abbreviation fallback when its logo and its badge both fail to load', async ({ page, hub }) => {
+  presentationGame(hub);
+  await page.route('**/team-logos/tb.png', route => route.abort());
   await page.route('**/team-logos/badges/tb.svg', route => route.abort());
   await page.clock.install({ time: new Date(hub.serverNow) });
   await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
   const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
   await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('TB');
-  await expect(matchup.locator('img[src="/team-logos/dal.svg"]')).toHaveCount(1);
+  await expect(matchup.locator('img[src="/team-logos/dal.png"]')).toHaveCount(1);
   await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
 });
 

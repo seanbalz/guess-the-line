@@ -1,27 +1,24 @@
-// Reviewed unmodified local artwork. Source, copyright and trademark records:
-// docs/TEAM_LOGO_SOURCES.md and public/team-logos/sources.json.
-// Approval is limited to small team identifiers, not Guess The Line branding.
-export const approvedTeamLogos = Object.freeze({
-  BUF: Object.freeze({ src: '/team-logos/buf.png', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#buf' }),
-  CHI: Object.freeze({ src: '/team-logos/chi.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#chi' }),
-  CIN: Object.freeze({ src: '/team-logos/cin.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#cin' }),
-  DAL: Object.freeze({ src: '/team-logos/dal.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#dal' }),
-  GB: Object.freeze({ src: '/team-logos/gb.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#gb' }),
-  IND: Object.freeze({ src: '/team-logos/ind.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#ind' }),
-  KC: Object.freeze({ src: '/team-logos/kc.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#kc' }),
-  LAC: Object.freeze({ src: '/team-logos/lac.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#lac' }),
-  NO: Object.freeze({ src: '/team-logos/no.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#no' }),
-  NYJ: Object.freeze({ src: '/team-logos/nyj.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#nyj' }),
-  NYG: Object.freeze({ src: '/team-logos/nyg.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#nyg' }),
-  PIT: Object.freeze({ src: '/team-logos/pit.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#pit' }),
-  SF: Object.freeze({ src: '/team-logos/sf.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#sf' }),
-  WAS: Object.freeze({ src: '/team-logos/was.svg', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#was' }),
-  LAR: Object.freeze({ src: '/team-logos/lar.png', rightsStatus: 'approved', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#lar' }),
+// Official team logos for all 32 teams (D-46, October 14, 2026). Self-hosted 128px downscaled copies of the ESPN CDN
+// images listed in the nflverse teams file, each verified transparent (alpha channel, transparent corners). Used only
+// to identify a team next to its name, under the trademark notice below; not licensed, no endorsement. Records:
+// docs/TEAM_LOGO_SOURCES.md#official-logos-d-46 and public/team-logos/sources.json.
+export const TEAM_TRADEMARK_NOTICE = 'NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.';
+
+const official = code => Object.freeze({
+  src: `/team-logos/${code.toLowerCase()}.png`,
+  rightsStatus: 'trademark-identification',
+  transparent: true,
+  rightsReference: 'docs/TEAM_LOGO_SOURCES.md#official-logos-d-46',
 });
 
-// Original Guess The Line badges for teams without a reviewed official mark (D-22).
-// GTL artwork using factual team colors and abbreviations; not official marks and
-// no NFL/team endorsement. See docs/TEAM_LOGO_SOURCES.md#original-badges.
+export const approvedTeamLogos = Object.freeze(Object.fromEntries(
+  'ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LAC LAR LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN WAS'
+    .split(' ').map(code => [code, official(code)]),
+));
+
+// Original Guess The Line badges (D-22). Since D-46 every team has an official logo; a team's badge, where one was
+// drawn, is the fallback shown when that logo fails to load. GTL artwork using factual team colors and abbreviations;
+// not official marks. See docs/TEAM_LOGO_SOURCES.md#original-badges.
 export const originalTeamBadges = Object.freeze({
   ARI: Object.freeze({ src: '/team-logos/badges/ari.svg', rightsStatus: 'original', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#original-badges' }),
   ATL: Object.freeze({ src: '/team-logos/badges/atl.svg', rightsStatus: 'original', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#original-badges' }),
@@ -44,18 +41,35 @@ export const originalTeamBadges = Object.freeze({
   TEN: Object.freeze({ src: '/team-logos/badges/ten.svg', rightsStatus: 'original', transparent: true, rightsReference: 'docs/TEAM_LOGO_SOURCES.md#original-badges' }),
 });
 
-/** Official reviewed mark when one exists, otherwise the original GTL badge. */
+/** Official logo when one exists, otherwise the original GTL badge. */
 export const teamMarks = Object.freeze({ ...originalTeamBadges, ...approvedTeamLogos });
 
 export const teamAliases = Object.freeze({ JAC: 'JAX', LA: 'LAR', WSH: 'WAS' });
 const markSource = /^\/team-logos\/(?:badges\/)?[a-z0-9-]+\.(svg|png|webp)$/;
 
-/** Returns the local, reviewed mark for a team code (aliases accepted), or null. */
-export function resolveTeamMark(code) {
+function canonicalCode(code) {
   const label = typeof code === 'string' ? code.trim().toUpperCase() : '';
-  const candidate = Object.hasOwn(teamMarks, teamAliases[label] || label) ? teamMarks[teamAliases[label] || label] : null;
-  const reviewed = candidate?.rightsStatus === 'approved' || (candidate?.rightsStatus === 'original' && candidate.src.startsWith('/team-logos/badges/'));
-  return reviewed && candidate.transparent === true && candidate.rightsReference && markSource.test(candidate.src) ? candidate : null;
+  return teamAliases[label] || label;
+}
+
+function usable(candidate) {
+  const badge = typeof candidate?.src === 'string' && candidate.src.startsWith('/team-logos/badges/');
+  const reviewed = (candidate?.rightsStatus === 'trademark-identification' && !badge) || (candidate?.rightsStatus === 'original' && badge);
+  return Boolean(reviewed && candidate.transparent === true && candidate.rightsReference && markSource.test(candidate.src));
+}
+
+/** Returns the local mark for a team code (aliases accepted), or null. */
+export function resolveTeamMark(code) {
+  const key = canonicalCode(code);
+  const candidate = Object.hasOwn(teamMarks, key) ? teamMarks[key] : null;
+  return usable(candidate) ? candidate : null;
+}
+
+/** The original GTL badge for a team code (aliases accepted), shown when its official logo fails to load, or null. */
+export function resolveTeamBadge(code) {
+  const key = canonicalCode(code);
+  const candidate = Object.hasOwn(originalTeamBadges, key) ? originalTeamBadges[key] : null;
+  return candidate?.rightsStatus === 'original' && usable(candidate) ? candidate : null;
 }
 
 export default approvedTeamLogos;

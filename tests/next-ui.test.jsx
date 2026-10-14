@@ -11,7 +11,7 @@ import * as ui from '../web/src/next/ui/index.js';
 import { gateBanner, weekSummary } from '../web/src/next/rules.js';
 import * as copy from '../web/src/next/copy.js';
 import { countdown } from '../web/src/next/format.js';
-import { teamMarks } from '../web/src/teamLogoRegistry.js';
+import { approvedTeamLogos, teamMarks } from '../web/src/teamLogoRegistry.js';
 import { EMOJI, markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
 const {
@@ -59,7 +59,7 @@ describe('the markup checker (tests/helpers/ui-markup.mjs)', () => {
       '<dialog class="gx-dialog"><p>x</p></dialog>': 'dialog has no accessible name',
       '<div role="dialog" aria-labelledby="nope">x</div>': 'missing id nope',
       '<p aria-describedby="gone">x</p>': 'missing id gone',
-      '<img src="/team-logos/kc.svg"/>': 'img without alt',
+      '<img src="/team-logos/kc.png"/>': 'img without alt',
       '<div role="group"><button type="button">A</button></div>': 'group has no accessible name',
       '<div role="timer">2d</div>': 'timer has no accessible name',
     };
@@ -577,7 +577,7 @@ describe('Sheet, Dialog, Toast, Overlay', () => {
   });
 });
 
-describe('TeamMark (D-22 marks, sized for DP-27) and the Field monogram', () => {
+describe('TeamMark (D-46 official logos, D-22 badge fallback, sized for DP-27) and the Field monogram', () => {
   it('every team resolves to its registered mark in a fixed box, with the code shown until the image decodes', () => {
     expect(Object.keys(teamMarks)).toHaveLength(32);
     for (const [code, mark] of Object.entries(teamMarks)) {
@@ -593,11 +593,14 @@ describe('TeamMark (D-22 marks, sized for DP-27) and the Field monogram', () => 
     }
   });
 
-  it('keeps the two heavy PNGs (DP-27) on their recorded files, sized like every other mark', () => {
-    for (const code of ['BUF', 'LAR']) {
-      const img = one(<TeamMark code={code} size={24} decorative/>, n => n.tag === 'img');
+  it('shows the official D-46 logo for every team, as a local PNG sized like every other mark', () => {
+    expect(Object.keys(approvedTeamLogos)).toHaveLength(32);
+    for (const code of Object.keys(approvedTeamLogos)) {
+      const node = <TeamMark code={code} size={24} decorative/>;
+      const img = one(node, n => n.tag === 'img');
       expect(img.attrs.src).toBe(`/team-logos/${code.toLowerCase()}.png`);
       expect([img.attrs.width, img.attrs.height]).toEqual(['24', '24']);
+      expect(one(node, byClass('gx-team')).attrs['data-mark']).toBe('trademark-identification');
     }
   });
 

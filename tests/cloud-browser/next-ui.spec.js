@@ -338,7 +338,7 @@ test('a live countdown ticks, turns pending under two hours and says so once, po
 test('DP-27: a slow team mark shows its letters in a box that never changes size, then the mark; a failed one keeps its letters', async ({ page }) => {
   let release;
   const held = new Promise(resolve => { release = resolve; });
-  await open(page, { hold: { '/team-logos/buf.png': held }, fail: ['/team-logos/kc.svg'] });
+  await open(page, { hold: { '/team-logos/buf.png': held }, fail: ['/team-logos/kc.png'] });
   const bills = page.getByRole('img', { name: 'Buffalo Bills' });
   await bills.scrollIntoViewIfNeeded();
   await expect(bills).toBeVisible();
@@ -353,13 +353,27 @@ test('DP-27: a slow team mark shows its letters in a box that never changes size
   await expect(bills).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
   await expect(bills.locator('.gx-team-code')).toBeHidden();
   expect(await size()).toEqual(before);
-  expect(await bills.locator('img').evaluate(img => [img.naturalWidth, img.getAttribute('width'), img.getAttribute('decoding')])).toEqual([3840, '48', 'async']);
+  expect(await bills.locator('img').evaluate(img => [img.naturalWidth, img.getAttribute('width'), img.getAttribute('decoding')])).toEqual([128, '48', 'async']);
 
   const chiefs = page.getByRole('img', { name: 'Kansas City Chiefs' });
   await expect(chiefs).toHaveAttribute('data-mark', 'letters');
   await expect(chiefs.locator('img')).toHaveCount(0);
   await expect(chiefs.locator('.gx-team-code')).toHaveText('KC');
   await expect(chiefs.locator('.gx-team-code')).toBeVisible();
+});
+
+test('D-46: an official logo that fails to load is replaced by the team\'s original badge', async ({ page }) => {
+  await open(page, { fail: ['/team-logos/sea.png'] });
+  const every = page.getByRole('group', { name: 'Every team' });
+  const seahawks = every.getByRole('img', { name: 'SEA', exact: true });
+  await seahawks.scrollIntoViewIfNeeded();
+  await expect(seahawks).toHaveAttribute('data-mark', 'original');
+  await expect(seahawks.locator('img')).toHaveAttribute('src', '/team-logos/badges/sea.svg');
+  await expect(seahawks).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
+  const broncos = every.getByRole('img', { name: 'DEN', exact: true });
+  await expect(broncos).toHaveAttribute('data-mark', 'trademark-identification');
+  await expect(broncos.locator('img')).toHaveAttribute('src', '/team-logos/den.png');
+  await expect(broncos).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
 });
 
 test('reduced motion stops the kit\'s motion', async ({ page }) => {

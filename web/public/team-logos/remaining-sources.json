@@ -1,4 +1,7 @@
 {
+  "supersededBy": "D-46 (October 14, 2026): official logos for all 32 teams, self-hosted from the ESPN CDN images listed in the nflverse teams file, used only to identify teams next to their names under a trademark notice. See sources.json and docs/TEAM_LOGO_SOURCES.md.",
+  "remainingTeams": [],
+  "remainingCount": 0,
   "checkedAt": "2026-10-14",
   "downloaded": false,
   "scope": "Historical file-specific records checked before the October 8 follow-up, rechecked October 14, 2026. These Wikipedia fair-use rationales do not grant permission. Different eligible Commons versions for BUF and NYJ are now active; see sources.json. The October 14 Commons review (commonsReview2026_10_14) found no public-domain file of the current primary mark for any remaining team.",
@@ -250,25 +253,6 @@
     "BUF",
     "NYJ"
   ],
-  "remainingTeams": [
-    "ARI",
-    "ATL",
-    "BAL",
-    "CAR",
-    "CLE",
-    "DEN",
-    "DET",
-    "HOU",
-    "JAX",
-    "LV",
-    "MIA",
-    "MIN",
-    "NE",
-    "PHI",
-    "SEA",
-    "TB",
-    "TEN"
-  ],
   "commonsReview2026_10_14": {
     "method": "Commons API: full-text and title-prefix searches in the File namespace, membership of each team's \"<Team> logos\" category and of \"Category:Logos of National Football League teams\", and an exact-name lookup of each en.wikipedia primary-logo filename on Commons (all missing). Candidate records read individually (imageinfo + extmetadata + latest description revision). Nothing was downloaded.",
     "result": "No remaining team has a public-domain Commons file of its current primary mark. All 17 keep their original GTL badges.",
@@ -477,5 +461,24 @@
         }
       ]
     }
-  }
+  },
+  "remainingTeamsBeforeD46": [
+    "ARI",
+    "ATL",
+    "BAL",
+    "CAR",
+    "CLE",
+    "DEN",
+    "DET",
+    "HOU",
+    "JAX",
+    "LV",
+    "MIA",
+    "MIN",
+    "NE",
+    "PHI",
+    "SEA",
+    "TB",
+    "TEN"
+  ]
 }

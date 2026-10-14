@@ -1,5 +1,19 @@
 # Decision log
 
+## D-46 — official logos for all 32 teams (October 14, 2026)
+
+Sean answered two questions in the Mac mini session.
+
+| Question | Ruling |
+|---|---|
+| Switch all 32 teams to ESPN's official logos, shown next to each team's name with a trademark notice? | **"Yes"** |
+| What should the 17 teams show? (options: keep badges / 4 letter marks / redesign badges) | **"Find all logos for all nfl teams and use them"** |
+
+- **Supersedes D-22's public-domain-only rule for team marks.** Team marks no longer need a public-domain file record. All 32 teams, including the 15 that had public-domain Commons marks, now show their official logo from one source. The [D-22](#d-22--coming-soon-leagues-and-team-marks-october-9-2026) original badges stay in `web/public/team-logos/badges/` and show only when a team's logo fails to load.
+- **Basis and limits.** The marks are used only to identify teams next to their names. They carry the trademark notice "NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement." (Terms page, "Team names and logos"). They are not licensed, and no NFL or team endorsement is claimed. No team mark becomes Guess The Line branding, the app icon or advertising.
+- **Source.** The logo PNGs come from ESPN's CDN (`a.espncdn.com`), listed in the `team_logo_espn` column of the nflverse teams file (`teams_colors_logos.csv`). They are self-hosted, never hotlinked, as 128 px downscaled copies with nothing else changed: no recolor, no crop, aspect ratio and transparency kept. Every file's source URL, fetch time and SHA-256 (original and shipped) are in `web/public/team-logos/sources.json` and the [register](TEAM_LOGO_SOURCES.md#official-logos-d-46).
+- Nothing is applied or deployed by this entry.
+
 ## D-43 — slip notes, the old sit-out window and locked-in guesses in History (October 14, 2026)
 
 Sean answered the questions PR #98 (redesign stage 21, M-04) and PR #99 (stage 19, M-03) raised, in the cloud session.
