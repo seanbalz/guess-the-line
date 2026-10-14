@@ -169,10 +169,23 @@ test('main.jsx loads NextApp and GameHub lazily, never both, behind the fallback
 test('the new app imports nothing from the old app\'s screens, and the old screens never import the new app', () => {
   // Shared modules with no React, CSS or screen code: the per-device choice and the D-22 team mark registry (stage 8 TeamMark).
   const allowed = new Set(['appView.js', 'teamLogoRegistry.js']);
+  // Stage 10: the theme and the reduced-motion choice belong to the device, so both apps use the same state on the same
+  // keys: the ThemeProvider main.jsx wraps both apps in (gtl.theme) and the motion preference (gtl.dashboard.preferences.v1).
+  // Only these named hooks, never a component or a default import.
+  const namedOnly = { 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'] };
   for (const file of filesUnder('web/src/next')) {
-    for (const spec of importsOf(read(file))) {
+    const text = read(file);
+    for (const spec of importsOf(text)) {
       if (!spec.startsWith('.')) continue;
       const target = path.relative(path.join(root, 'web/src'), path.resolve(path.join(root, path.dirname(file)), spec));
+      if (namedOnly[target]) {
+        const statements = [...text.matchAll(/import\s+([^;]*?)\s+from\s*['"]([^'"]+)['"]/g)].filter(m => m[2] === spec);
+        for (const [, clause] of statements) {
+          const names = clause.match(/^\{([^}]*)\}$/)?.[1].split(',').map(name => name.trim()).filter(Boolean);
+          assert.ok(names && names.every(name => namedOnly[target].includes(name)), `${file} imports ${clause} from ${spec}; only ${namedOnly[target].join(', ')}`);
+        }
+        continue;
+      }
       assert.ok(target.startsWith('next') || allowed.has(target), `${file} imports ${spec} from the old app`);
     }
   }

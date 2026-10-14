@@ -5,8 +5,8 @@ import { SUPABASE, communityWorld, pgliteAvailable, signIn, switchAccount } from
 
 // Redesign build plan, stage 9: the switch (section 3.2; D-38, D-39), on the real Community home with the real
 // handler and every migration (ALL) on local PGlite, at 390 x 844. "Try the new app" is in the Community footer
-// for every signed-in member; the choice is kept on this device and the page reloads into the lazy NextApp
-// placeholder; "Use the old app" comes back; a blocked chunk falls back to the old app; ?app=classic always
+// for every signed-in member; the choice is kept on this device and the page reloads into the lazy NextApp (the
+// stage 10 shell); "Use the old app" comes back; a blocked chunk falls back to the old app; ?app=classic always
 // forces the old app; storage that refuses the choice keeps the old app and says so. Never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -14,7 +14,15 @@ const TRY = 'Try the new app', OLD = 'Use the old app';
 const NOTE = { blocked: 'This browser isn’t saving settings, so the new app can’t open here.', fellBack: 'The new app couldn’t open, so you’re back in the current app.' };
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const communityHome = page => page.getByRole('heading', { name: 'Community', exact: true });
-const newApp = page => page.getByRole('heading', { name: 'The new app', exact: true });
+// The new app's frame (stage 10): its tab bar, on Home.
+const newApp = page => page.getByRole('navigation', { name: 'Main' });
+/** Who the new app's menu says is signed in, read from the avatar menu (then closed again). */
+async function signedInAs(page) {
+  await page.getByRole('button', { name: 'Your menu' }).click();
+  const text = await page.getByRole('dialog', { name: 'Menu' }).locator('p').first().textContent();
+  await page.keyboard.press('Escape');
+  return text;
+}
 const tryButton = page => page.locator('.hub-bottom').getByRole('button', { name: TRY, exact: true });
 const saved = page => page.evaluate(() => localStorage.getItem('gtl.app'));
 /** Script and style files this document loaded (resource timing, so a reload starts a fresh list). */
@@ -77,7 +85,7 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     // A reload keeps the device's choice.
     await page.reload();
     await expect(newApp(page)).toBeVisible();
-    expect(calls, 'the placeholder reads and writes nothing').toEqual([]);
+    expect(calls, 'the new app reads and writes nothing yet (stage 10)').toEqual([]);
 
     await page.getByRole('button', { name: OLD, exact: true }).click();
     await expect(communityHome(page)).toBeVisible();
@@ -102,13 +110,14 @@ test('every signed-in member sees the button, the commissioner and players alike
     await expect(tryButton(page)).toBeVisible();
     await tryButton(page).click();
     await expect(newApp(page)).toBeVisible();
-    await expect(page.locator('.gx')).toContainText('Signed in as troy@example.test');
+    expect(await signedInAs(page)).toBe('Signed in as troy@example.test');
+    await page.getByRole('button', { name: 'Your menu' }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Your games. Any device.' })).toBeVisible();
     // The choice belongs to the device, not the account: the next member on this device lands in the new app too.
     await signIn(page, 'luke', { navigate: false });
     await expect(newApp(page)).toBeVisible();
-    await expect(page.locator('.gx')).toContainText('Signed in as luke@example.test');
+    expect(await signedInAs(page)).toBe('Signed in as luke@example.test');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

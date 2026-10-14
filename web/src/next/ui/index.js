@@ -14,6 +14,7 @@ export { Tag } from './Tag.jsx';
 export { Chip } from './Chip.jsx';
 export { ChipRail } from './ChipRail.jsx';
 export { Segmented } from './Segmented.jsx';
+export { Switch } from './Switch.jsx';
 export { GateBanner } from './GateBanner.jsx';
 export { LockLine, LockCell } from './LockLine.jsx';
 export { Countdown, countdownMilestone, COUNTDOWN_ANNOUNCEMENTS } from './Countdown.jsx';

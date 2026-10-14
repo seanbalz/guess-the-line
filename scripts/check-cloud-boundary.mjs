@@ -40,13 +40,16 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * scripts/boundary/me.mjs lists M-09's private notes pieces (redesign stage 27): its two RPCs and the /personal/notes and
  * /personal/note routes. Nothing calls them until the new app's note field (stage 35), and a gtl-api deploy before the
  * apply answers those routes 503 "not available right now", so neither order fails check:cloud on them alone.
+ * scripts/boundary/lines.mjs also lists M-06's lines readers (redesign stage 23): its four RPCs and the /lines/read and
+ * /lines/game routes. The gtl-api deploy comes first (until the apply both routes answer 503 "not available right now"),
+ * nothing calls them until stages 32 to 34, and the private-key pattern below includes the lines reply keys.
  * scripts/boundary/guess.mjs also lists M-08's everyone's picks pieces (redesign stage 26): gtl_read_guess_picks and the
  * /community/picks route. Nothing calls them until the new app's Everyone's picks (stage 31), and a gtl-api deploy before
  * the apply answers the route 503 "not available right now", so neither order fails check:cloud on them alone.
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
-export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
+export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess)"\s*:/;
 const notDeployed = (key, status, result) => Object.hasOwn(awaitingDeploy, key) && status === 404
   && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : result?.error === 'Not found.' && Object.keys(result).length === 1);
 

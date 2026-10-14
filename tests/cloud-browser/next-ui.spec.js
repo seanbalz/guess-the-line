@@ -215,6 +215,27 @@ test('a sheet takes focus, keeps Tab inside, backs out of a sub-view and returns
   await expect(opener).toBeFocused();
 });
 
+test('stage 10 fix: a sub-view that opens in place keeps focus in the sheet, so Tab stays inside and Escape still closes it', async ({ page }) => {
+  await open(page);
+  const opener = page.getByRole('button', { name: 'Open the game sheet' });
+  await opener.click();
+  // The row that opens the sub-view goes away with the main view; focus must not fall to the page.
+  await page.getByRole('button', { name: /Everyone's picks/ }).press('Enter');
+  const sub = page.getByRole('dialog', { name: "Everyone's picks" });
+  await expect(sub).toBeVisible();
+  await expect(sub).toBeFocused();
+  for (let i = 0; i < 5; i += 1) {
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => !!document.activeElement.closest('.gx-sheet'))).toBe(true);
+  }
+  // Back to the main view the same way: the back button goes away too.
+  await page.getByRole('button', { name: 'SEA @ DEN', exact: true }).press('Enter');
+  await expect(page.getByRole('dialog', { name: 'SEA @ DEN' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});
+
 test('a native dialog opens modally, starts on the safe choice, and closes on Escape or a choice', async ({ page }) => {
   await open(page);
   const opener = page.getByRole('button', { name: 'Skip this week', exact: true }).first();

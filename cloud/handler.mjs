@@ -241,7 +241,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
         return json(await (route === '/personal' || route === '/personal/read' ? withRules(result) : result));
       }
       const group = ROUTE_GROUPS.find(candidate => Object.hasOwn(candidate.methods, route));
-      if (group) return json(await group.handle({ route, method: request.method, body, user, service: groupServices[group.service], clock, uuid, optionalRpc }));
+      if (group) return json(await group.handle({ route, method: request.method, body, user, service: groupServices[group.service], clock, uuid, optionalRpc, featureOff: featuresOff }));
       if (Object.hasOwn(RESULTS_METHODS, route)) {
         const commissioner = await storage.membership(user.id, 'sean-troy-luke');
         if (!commissioner || commissioner.active !== true || commissioner.player_id !== 'sean' || commissioner.role !== 'commissioner') throw providerResultError('GTL_RESULT_FORBIDDEN');
@@ -260,7 +260,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (Object.hasOwn(VIRTUAL_METHODS, route)) {
         const member = await storage.membership(user.id, leagueId);
         if (!member || member.active !== true) throw providerVirtualError('GTL_FORBIDDEN');
-        return json(await handleVirtualUnits({ route, body, user, leagueId, service: virtual, weekly, odds, clock }));
+        return json(await handleVirtualUnits({ route, body, user, leagueId, service: virtual, weekly, odds, optionalRpc, clock }));
       }
       if (!gameRoute) return json(await handleLobby({ route, method: request.method, body, user, leagueId, service: lobby, siteUrl }));
       if (request.method === 'POST') {
@@ -350,8 +350,10 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
         if (typeof name !== 'string' || !/^gtl_[a-z0-9_]{1,60}$/.test(name)) throw new Error('Invalid operation.');
         const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!response.ok) {
-          let message;
-          try { message = (await response.json())?.message; } catch { /* Provider details remain private. */ }
+          let message, code;
+          try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Provider details remain private. */ }
+          // A group RPC the hosted project does not have yet (its migration not applied, or rolled back) reads as off.
+          if (response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerError('GTL_FEATURE_OFF');
           throw providerError(message);
         }
         return response.json();
@@ -444,6 +446,17 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
         const response = await request('/rest/v1/rpc/gtl_save_virtual_units_pick', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_league: leagueId, p_revision: revision, p_body: body }) });
         if (!response.ok) { let message; try { message = (await response.json())?.message; } catch {} throw providerVirtualError(message); }
         return response.json();
+      },
+      // Redesign stage 20 line lock (cloud/line-lock.mjs): the newest published community week, the week
+      // /community/read shows, and today's per-market reveal gate (D-23) while M-01's gtl_markets_visible is missing.
+      async publishedWeek() {
+        const row = await rest('gtl_weekly_slates', { select: 'season,week', order: 'season.desc,week.desc', limit: '1' });
+        return row ? { season: row.season, week: row.week } : null;
+      },
+      async weekRevealed(userId, season, week, mode, now) {
+        const response = await request('/rest/v1/rpc/gtl_week_revealed', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_season: season, p_week: week, p_mode: mode, p_now: now }) });
+        if (!response.ok) throw new Error('Line gate unavailable.');
+        return (await response.json()) === true;
       },
       // D-26 settlement: the community commissioner check, the public finals file and the service-only RPC.
       async admin(userId) {

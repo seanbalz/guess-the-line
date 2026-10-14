@@ -234,5 +234,33 @@ the other. The switch is a convenience, not a security gate.
 - If the browser refuses to save the choice, the old app stays open and the
   footer says why.
 
-At stage 9 the new app is an empty frame (Use the old app, Sign out) that reads
-and writes nothing; the shell arrives in stage 10 and the data layer in stage 11.
+### The new app's frame (redesign stage 10)
+Since stage 10 the new app opens on its frame (`web/src/next/shell/`), which still
+reads and writes nothing and calls no route; the data layer arrives in stage 11.
+
+- **Top bar:** the Field monogram (Home), the league pill (Community until stage 11
+  reads your leagues; it opens "Your leagues", which sends groups and invites to the
+  old app for now) and your avatar, which opens the menu: **Appearance** (Dark, Light
+  or System, and Reduce motion), **Use the old app** and **Sign out**. Appearance
+  and Reduce motion are kept on this device under the old app's own keys
+  (`gtl.theme` and the motion choice in `gtl.dashboard.preferences.v1`), so both
+  apps always agree.
+- **Five tabs:** Home, Play, Bets, Lines and League, each with a "Coming next" card
+  that says what the tab is for and offers Use the old app. Each tab and page has
+  its own error card (Try again, Use the old app), so one failing screen never takes
+  the app down.
+- **Address and Back:** the tab is the address fragment (`#home`, `#play`, `#bets`,
+  `#lines`, `#league`), so a reload keeps the tab and Back moves between tabs. While
+  a sheet, dialog, page or celebration is open, the phone's Back button closes it
+  first. The old app's links still work: `#picks` (and `#picks-spread`,
+  `#picks-total`) open Play, `#feed` opens League, `#groups` opens "Your leagues".
+  Sign-in and invite fragments, `#main` and `#picks-due` are left alone.
+- **Layers:** one stack of sheets (a sub-view opens in place and keeps focus inside
+  the sheet), one dialog, one popover, celebrations one at a time, and toasts one at
+  a time 8 px above the tab bar or a dock bar, announced from one live region that
+  is always in the page. A layer that fails closes itself, even one hidden under
+  another sheet, and says so in a toast with Use the old app. An offline banner
+  shows at the top when the browser is offline.
+- Each tab has a slot file (`web/src/next/<tab>/index.js`: `homeTiles`, `counter`,
+  `sheetActions`) that Home, the tab bar and the game sheet read; all are empty at
+  stage 10.

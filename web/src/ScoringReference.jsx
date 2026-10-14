@@ -2,6 +2,7 @@ import React from 'react';
 import SportsbookSources from './SportsbookSources';
 import { date, fmt, signed } from './api';
 import { availableScoringReference, finite, lineLabel, pendingScoringReference, referenceAgeText, referenceTime, submissionTimeScoring } from './scoringReferences';
+import { FINAL_RULE, sentFinal } from './sentFinal';
 import './scoringReferences.css';
 // "Line at your guess: −3.5 at 2:11 PM" with its age. A pending guess waits for the first line after it.
 // Only references stored before October 12, 2026 can still read 'stale' or 'unavailable'; they stay unscored.
@@ -31,5 +32,5 @@ export function CurrentConsensus({ data, game }) {
 }
 export function ScoringPolicyNote({ data }) {
   if (!data.revealed || !submissionTimeScoring(data)) return null;
-  return <div className="source-note"><div><strong>Scoring reference saved with each guess</strong><p>Points compare each guess with the line stored when you saved it, shown with its time and age. We try to refresh the line when you save, but you can always submit before the deadline. A guess saved before any line was stored uses the first line collected after it. Saving a changed guess before the deadline takes the line at that save; unchanged guesses keep theirs. Guesses saved before October 12, 2026 without a scored reference stay unscored. Current consensus is shown separately.</p></div></div>;
+  return <div className="source-note"><div><strong>Scoring reference saved with each guess</strong><p>Points compare each guess with the line stored when you saved it, shown with its time and age. We try to refresh the line when you save, but you can always submit before the deadline. A guess saved before any line was stored uses the first line collected after it. {/* Redesign stage 15 (D-37, D-39): no changed guess to save once the live rules make submitted guesses final. */}{sentFinal(data.rules) ? FINAL_RULE : 'Saving a changed guess before the deadline takes the line at that save; unchanged guesses keep theirs.'} Guesses saved before October 12, 2026 without a scored reference stay unscored. Current consensus is shown separately.</p></div></div>;
 }

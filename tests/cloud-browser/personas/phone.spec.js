@@ -207,3 +207,54 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   expect((await draftKeys(page)).filter(key => key !== benKey)).toEqual([`${DRAFT_PREFIX}v1.${encodeURIComponent(id(2))}.${persona.state.league.season}.${persona.state.league.week}.guess_spread`]);
   expect(await persona.noOverflow()).toBe(true);
 });
+
+// Redesign stage 15 (D-37 as amended by D-39) at 390px: once the server's live rules make sent picks final (M-02; the harness answers
+// the gtl_live_rules read the hosted schema does not have yet), the rule shows on the sticky bar before a submit. Here the ballot is
+// submitted from another device while this phone holds an unsaved change: Picks then opens the market still due instead of offering
+// a copy that can no longer be saved, and the submitted market reads "Submitted · final" with no Edit picks, no save bar and
+// read-only chips showing the saved picks, all inside the phone's width.
+test('phone: sent picks are final once the server says so, at 390px', async ({ page, persona }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await persona.start();
+  persona.rules = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
+  const minus3 = Object.fromEntries(persona.state.games.map(game => [game.id, -3]));
+  await persona.saveBallot('guess_spread', minus3, false);
+  await persona.signIn();
+  await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
+  const cards = page.locator('.week-pick'), bar = page.locator('.save-bar'), nav = page.getByRole('navigation', { name: 'Community sections' });
+  await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3');
+  await expect(bar.locator('.save-final')).toHaveText('Submitted picks are final.');
+  // The taller bar still stops above the last card (persona audit #24).
+  const bottomOf = async locator => { const box = await locator.boundingBox(); return box.y + box.height; };
+  await cards.last().evaluate(el => el.scrollIntoView({ block: 'end' }));
+  expect(await bottomOf(cards.last())).toBeLessThanOrEqual((await bar.boundingBox()).y + 1);
+  expect(await persona.noOverflow()).toBe(true);
+  await persona.shot('final-rule-bar');
+  // An unsaved change on this phone, then the same account submits the saved -3 ballot from another device.
+  await pick(cards.first(), 'Cowboys', '−4');
+  await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −4');
+  expect(await draftKeys(page)).toHaveLength(1);
+  await persona.saveBallot('guess_spread', minus3, true);
+  await nav.getByRole('button', { name: 'Feed', exact: true }).click();
+  await page.reload();
+  await expect(page.locator('.picks-due')).toContainText('Spread ✓ submitted');
+  await nav.getByRole('button', { name: /^Picks/ }).click();
+  // The Spread copy is final now and cannot be saved, so Picks opens Total, the market still due.
+  await expect(cards.first().locator('.number-chip').first()).toBeVisible();
+  expect(hash(page)).toBe('#picks-total');
+  await page.getByRole('group', { name: 'Market' }).getByRole('button', { name: 'Spread ✓' }).click();
+  const receipt = page.getByRole('region', { name: 'Spread submitted · 14 picks' });
+  await expect(receipt).toContainText(/Submitted · final · \w{3} \d{1,2}, \d{1,2}:\d{2} [AP]M PT\./);
+  await expect(receipt.getByRole('button', { name: 'Edit picks' })).toHaveCount(0);
+  await expect(page.locator('.week-picks .save-bar')).toHaveCount(0);
+  await expect(page.locator('.picks-recovery')).toHaveCount(0);
+  await expect(page.locator('.week-pick .chip:not(:disabled)')).toHaveCount(0);
+  await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3');
+  await expect(page.locator('.week-picks > p.muted')).toContainText('· Submitted · final');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await persona.shot('submitted-final');
+  await persona.axe('submitted-final');
+  expect(await persona.noOverflow()).toBe(true);
+  // The receipt's remaining actions keep thumb-sized targets.
+  expect((await persona.smallTargets('submitted-final')).filter(target => ['Make Total picks', "See everyone's Spread picks"].includes(target.text))).toEqual([]);
+});

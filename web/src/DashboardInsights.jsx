@@ -65,6 +65,6 @@ export default function DashboardInsights({ data, games, trend, embedded = false
     <div id={`${id}-${active}-panel`} role="tabpanel" aria-labelledby={`${id}-${active}-tab`} tabIndex={0} className="insights-view">
       {active === 'points' ? <Points model={model}/> : active === 'mix' ? <AccuracyMix model={model}/> : <div className="insights-trend"><p className="insights-caption">Recorded market movement · separate from your saved scoring references. Points do not move with this chart.</p>{!model.visibleGames.length ? <p className="insights-caption">Choose a dashboard game to view its recorded history.</p> : React.isValidElement(trend) ? React.cloneElement(trend, { matchups: model.visibleGames }) : trend}</div>}
     </div>
-    <ChartGuide mode={data.mode}/>
+    <ChartGuide mode={data.mode} rules={data.rules}/>
   </section>;
 }

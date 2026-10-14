@@ -2,9 +2,9 @@
 // never by attribute. An icon is decoration beside its own words (aria-hidden) unless it is given a label, which makes
 // it an image with that name. Screens import their glyphs from here, so the set stays small and tree-shaken.
 import {
-  ArrowDownUp, Bell, ChartLine, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock, Copy, Diamond, Eye,
-  House, Info, LogOut, Lock, MessageCircle, Minus, Pencil, Plus, Receipt, Settings, Target, Ticket, TriangleAlert,
-  Trophy, UserPlus, Users, X,
+  ArrowDownUp, ArrowLeftRight, Bell, ChartLine, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock, Copy,
+  Diamond, Eye, House, Info, LogOut, Lock, MessageCircle, Minus, Palette, Pencil, Plus, Receipt, Settings, Target, Ticket,
+  TriangleAlert, Trophy, UserPlus, Users, X,
 } from 'lucide-react';
 import { cx } from './cx.js';
 
@@ -41,6 +41,8 @@ export const icons = Object.freeze({
   ticket: Ticket,
   chart: ChartLine,
   trophy: Trophy,
+  palette: Palette,
+  swap: ArrowLeftRight,
 });
 
 /**

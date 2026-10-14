@@ -15,6 +15,7 @@ import GameTrends from './GameTrends';
 import { groupAccess } from '../../shared/trends-view.mjs';
 import './visualLayouts.css';
 import { refreshLabel, refreshWarning, sourceAge } from './marketStatus';
+import { sentFinal } from './sentFinal';
 
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 export default function VisualDashboard({ data, benchmark, go, historyChart, provenance }) {
@@ -50,6 +51,8 @@ export default function VisualDashboard({ data, benchmark, go, historyChart, pro
   }, [noticeScope, marketCapture]);
   const deadline = data.league.deadline;
   const closed = Boolean(deadline) && Date.parse(data.now || new Date().toISOString()) >= Date.parse(deadline);
+  // Redesign stage 15 (D-37, D-39): once the live rules make submitted guesses final (M-02), a ballot that is in is no longer editable.
+  const picksFinal = sentFinal(data.rules);
   const market = id => { const state = data.statuses?.[id] || {}; return { satOut: Boolean(state.satOut), submitted: Boolean(state.submittedAt), filled: state.filled || 0 }; };
   const record = own.betRecord;
   const tiles = [
@@ -65,8 +68,8 @@ export default function VisualDashboard({ data, benchmark, go, historyChart, pro
   // Real deadline only (never a manufactured countdown).
   const nextAction = !deadline ? (due.length ? `Next: your ${due.join(' and ')} ballot${due.length > 1 ? 's' : ''}.` : 'Both ballots are in.')
     : closed ? `Picks closed ${date(deadline)} PT.`
-    : due.length ? `Next: ${due.join(' and ')} ballot${due.length > 1 ? 's' : ''} due ${date(deadline)} PT.${kept.length ? ` ${kept.join(' and ')} ${kept.length > 1 ? 'are' : 'is'} in · editable until then.` : ''}`
-    : `Both ballots are in · editable until ${date(deadline)} PT.`;
+    : due.length ? `Next: ${due.join(' and ')} ballot${due.length > 1 ? 's' : ''} due ${date(deadline)} PT.${kept.length ? ` ${kept.join(' and ')} ${kept.length > 1 ? 'are' : 'is'} in · ${picksFinal ? 'final' : 'editable until then'}.` : ''}`
+    : `Both ballots are in · ${picksFinal ? 'final' : `editable until ${date(deadline)} PT`}.`;
   const measurable = games.some(game => players.some(player => gap(game, player) !== null));
   const pending = players.filter(player => player.id !== own.id && !player.submitted).map(player => player.name.split(' ')[0]);
   const emptyReasons = [
