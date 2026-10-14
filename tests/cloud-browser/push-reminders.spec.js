@@ -188,6 +188,8 @@ for (const [label, browser] of [['a push-capable browser', mockPushBrowser], ['a
 
 test('push configured: /community/read says so and never carries the VAPID key', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  // The prompt only renders in a browser that supports push; CI's headless Chromium does not, so mock it.
+  await page.addInitScript(mockPushBrowser);
   const world = await communityWorld(page, baseURL, PUSH), push = await mockPushRoutes(page);
   try {
     const feedRead = page.waitForResponse(r => r.url().endsWith('/gtl-api/community/read') && r.request().method() === 'POST');
