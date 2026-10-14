@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS, READER_MIGRATIONS, readersOn } from './helpers/leak-scan.mjs';
+import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS, READER_MIGRATIONS, readersOn, withoutTimes } from './helpers/leak-scan.mjs';
 import { ACCOUNTS, MIGRATIONS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { ALL, HOSTED } from './migrations.mjs';
 
@@ -55,6 +55,12 @@ test('a timestamp whose seconds read like a secret is never a finding; the same 
   // toISOString always writes milliseconds, so 31.5 seconds past a minute is "…:31.500Z", which Number() reads as 31.5.
   assert.deepEqual(leakScan({ observedAt: '2026-10-14T13:31:31.500Z', at: '2026-10-14T13:31:31.5Z', local: '2026-10-14T06:31:31.500-07:00' }, { viewer: VIEWER, secrets }), []);
   assert.equal(leakScan({ note: 'Total 31.5 at 2026-10-14T13:31:31.500Z' }, { viewer: VIEWER, secrets }).length, 1);
+});
+
+test('withoutTimes blanks ISO times so a substring check never reads a timestamp as a secret; other numbers stay', () => {
+  const text = withoutTimes(JSON.stringify({ at: '2026-10-14T17:58:41.512Z', local: '2026-10-14T10:58:41.5-07:00', note: 'lean 41.5' }));
+  assert.equal(text.match(/41\.5/g).length, 1, 'only the note keeps 41.5');
+  assert.ok(!withoutTimes('2026-10-14T17:58:41.512Z').includes('41.5'));
 });
 
 // Unusual half points: no count, date or score in a reply can equal them. Two games: spread and total each.

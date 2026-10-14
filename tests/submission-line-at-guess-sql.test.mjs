@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { HOSTED, migrationSql } from './migrations.mjs';
+import { parseFunctions } from '../scripts/migration-functions.mjs';
 import { seed } from '../server/store.mjs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { OddsProviderError } from '../cloud/odds-provider.mjs';
@@ -15,6 +16,9 @@ const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; n
 // calls are answered by this in-process PGlite database. The odds provider is a stub: nothing here contacts a hosted project or a
 // provider, and every quote is synthetic.
 const NEW = '20261012230000_gtl_submit_with_line_at_guess.sql';
+// M-02 (stage 18) makes a sent guess final in every writer. This suite runs on HOSTED, which gains M-02 once Sean applies it (and
+// reruns with M-02 and its rollback), so the two edit cases read which writer is installed.
+const sentFinal = async f => (await f.q("select count(*)::int n from pg_proc where proname='gtl_save_weekly_ballot' and prosrc like '%GTL_BALLOT_LOCKED%'"))[0].n === 1;
 const FILES = HOSTED;
 const BEFORE = FILES.filter(f => f < NEW), AFTER = FILES.filter(f => f > NEW);
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -235,6 +239,12 @@ test('2. daily cap, provider failure, budget guard, busy lease and cooldown: eve
   await f.failedAttempt(MINUTE);
   const changed = f.week6.games[3].id;
   res = await f.submit(STEVEN, { ...f.picks(-3), [changed]: -5 });
+  if (await sentFinal(f)) {
+    // From M-02 (stage 18) on, a sent guess is final: the edit is refused before any refresh and nothing is stored.
+    assert.deepEqual([res.status, res.body.code], [409, 'GTL_BALLOT_LOCKED']);
+    assert.deepEqual((await f.ballot(STEVEN)).ballot, steven);
+    return;
+  }
   assert.equal(res.status, 200, JSON.stringify(res.body)); assert.equal(f.outcomes('gtl_begin_submission_odds_collection').at(-1), 'GTL_ODDS_COOLDOWN');
   const edited = await f.ballot(STEVEN);
   assert.equal(edited.audit.at(-1).type, 'ballot_edited'); assert.deepEqual(edited.audit.at(-1).changedGameIds, [changed]);
@@ -467,6 +477,12 @@ test('7. rows stored before this migration stay byte for byte; legacy stale and 
   f.provider.mode = 'fail';
   const changed = f.week6.games[0].id;
   const edit = await f.submit(LUKE, { ...f.picks(-3), [changed]: -4 });
+  if (await sentFinal(f)) {
+    // From M-02 (stage 18) on, the stale ballot is final as stored: the edit is refused and every reference keeps its bytes.
+    assert.deepEqual([edit.status, edit.body.code], [409, 'GTL_BALLOT_LOCKED']);
+    assert.deepEqual(await refText(f.q, LUKE), lukeRefs);
+    return;
+  }
   assert.equal(edit.status, 200, JSON.stringify(edit.body));
   const after = await refText(f.q, LUKE);
   assert.equal(JSON.parse(after[changed]).basis, 'line_at_guess'); assert.equal(JSON.parse(after[changed]).status, 'available');
@@ -491,9 +507,16 @@ test('migration is idempotent, service-only and security invoker', { skip }, asy
     'gtl_save_weekly_ballot(uuid,text,text,bigint,jsonb,boolean)', 'gtl_mutate_personal(uuid,text,jsonb)', 'gtl_finish_odds_collection(uuid,uuid,uuid,jsonb,jsonb,text)',
     'gtl_finish_submission_odds_collection(uuid,uuid,uuid,jsonb,jsonb,text)', 'gtl_odds_schedule_slate(integer,integer,jsonb)', 'gtl_claim_odds_refresh(text,uuid)', 'gtl_read_odds_schedule(uuid,text)'];
   const defs = async () => Promise.all(sigs.map(async s => (await f.q('select pg_get_functiondef($1::regprocedure) d', [`public.${s}`]))[0].d));
+  // Rerunning this file changes no function that still holds its body. A later file that replaces one (M-05's
+  // gtl_finish_odds_collection, M-29's gtl_mutate_personal, M-02's three ballot writers, or a rollback check that restores
+  // one of those) is put back by a rerun, so a function is compared only while this file's body is the current one: on
+  // today's hosted schema, every one of them.
+  const own = new Map(parseFunctions(migrationSql(NEW), NEW).map(fn => [fn.name, fn.md5]));
+  const held = await Promise.all(sigs.map(async s => (await f.q('select md5(prosrc) m from pg_proc where oid=$1::regprocedure', [`public.${s}`]))[0].m === own.get(s.split('(')[0])));
+  assert.ok(held.filter(Boolean).length >= sigs.length - 4, 'at most the four functions later files replace hold another body');
   const before = await defs();
   await f.db.exec(migrationSql(NEW));
-  assert.deepEqual(await defs(), before);
+  assert.deepEqual((await defs()).filter((_, i) => held[i]), before.filter((_, i) => held[i]));
   for (const s of sigs) {
     for (const role of ['anon', 'authenticated']) assert.equal((await f.q('select has_function_privilege($1,$2,$3) ok', [role, `public.${s}`, 'EXECUTE']))[0].ok, false, s);
     assert.equal((await f.q('select has_function_privilege($1,$2,$3) ok', ['service_role', `public.${s}`, 'EXECUTE']))[0].ok, true, s);

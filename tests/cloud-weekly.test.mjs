@@ -174,7 +174,9 @@ test('migration fails closed for conflicting ballots, unmapped entries, and inco
 
 test('weekly provider errors expose only safe known messages',()=>{
   assert.equal(providerWeeklyError('GTL_WEEKLY_CONFLICT').status,409);
-  assert.equal(providerWeeklyError('GTL_BALLOT_LOCKED').status,400);
+  // M-02 (redesign stage 18): a change to a locked-in guess is a 409 with the final copy, and its code reaches the client.
+  assert.deepEqual([providerWeeklyError('GTL_BALLOT_LOCKED').status,providerWeeklyError('GTL_BALLOT_LOCKED').message,providerWeeklyError('GTL_BALLOT_LOCKED').code],[409,'Sent picks are final.','GTL_BALLOT_LOCKED']);
+  assert.equal(providerWeeklyError('GTL_WEEKLY_CONFLICT').code,undefined,'no other weekly code goes out');
   assert.equal(providerWeeklyError('database SECRET private pick -9.5').message,'Weekly storage request failed.');
 });
 

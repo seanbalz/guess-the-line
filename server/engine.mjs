@@ -89,9 +89,21 @@ function captureReference(state, game, mode, now) {
   return pendingReference(savedAt);
 }
 
+/** The engine mirror's refusal of a change to a locked-in guess (M-02, redesign stage 18; the SQL's GTL_BALLOT_LOCKED). */
+export const SENT_FINAL_MESSAGE = 'Sent picks are final.';
+
+/**
+ * Whether one ballot's guess for one game is locked in (D-37 as amended by D-39): a number pick in a submitted ballot, or one
+ * its lockedAt names. The same reading as gtl_ballot_locked_in (M-02) and web/src/sentFinal.js lockedIn().
+ */
+export const ballotLockedIn = (ballot, gameId) => Number.isFinite(ballot?.picks?.[gameId])
+  && (Boolean(ballot?.submittedAt) || typeof ballot?.lockedAt?.[gameId] === 'string');
+
 // Persistence and authenticated identity belong to the adapter. This engine only
 // operates on an isolated state snapshot and the roster identity supplied to it.
-export function createEngine(initialState, { clock = Date.now, uuid = () => globalThis.crypto.randomUUID() } = {}) {
+// sentFinal: the live rule M-02 turns on (gtl_live_rules); the cloud handler passes it for a save. While it is false the
+// engine keeps D-16's edits until the deadline, as the database does before M-02.
+export function createEngine(initialState, { clock = Date.now, uuid = () => globalThis.crypto.randomUUID(), sentFinal = false } = {}) {
   let state = structuredClone(initialState);
   if (state?.version !== 1) throw new Error('Unsupported local data version. Preserve the file before migrating.');
 
@@ -210,6 +222,8 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       })),
       statuses,
       submittedAt: own.submittedAt,
+      // M-02: the games locked in on their own (the new app's per-game lock-in), { gameId: time }, or null.
+      lockedAt: own.lockedAt && typeof own.lockedAt === 'object' && !Array.isArray(own.lockedAt) ? own.lockedAt : null,
       updatedAt: own.updatedAt || null,
       satOut: satOut(id, mode),
       revealed,
@@ -266,6 +280,9 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       if (!state.games.some(g => g.id === key)) throw new Error('Unknown matchup.');
       return [key, validatePrediction(mode, value)];
     }));
+    // M-02 mirror (D-37, D-39): once sent picks are final, a locked-in guess can neither change nor be left out.
+    const locked = gameId => sentFinal && ballotLockedIn(before, gameId);
+    if (Object.keys(before.picks || {}).some(gameId => locked(gameId) && valid[gameId] !== before.picks[gameId])) throw new Error(SENT_FINAL_MESSAGE);
     if ((submit || before.submittedAt) && Object.keys(valid).length !== state.games.length) {
       throw new Error(`Complete all ${state.games.length} predictions before submitting.`);
     }
@@ -275,12 +292,14 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     const submitted = !!before.submittedAt || submit;
     const changed = Object.keys(valid).filter(gameId => before.picks[gameId] !== valid[gameId]);
     const scoringReferences = structuredClone(before.scoringReferences || {});
-    const captureGames = submitted ? state.games.filter(game => !before.submittedAt || changed.includes(game.id)) : [];
+    // A send captures the line for each guess it locks in; one locked in earlier keeps its own (M-02).
+    const captureGames = submitted ? state.games.filter(game => !locked(game.id) && (!before.submittedAt || changed.includes(game.id))) : [];
     // Kickoff locks are unchanged; before October 12, 2026 the freshness rule enforced them implicitly.
     if (captureGames.some(game => now >= Date.parse(game.kickoff))) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
     for (const game of captureGames) scoringReferences[game.id] = captureReference(state, game, mode, now);
+    const lockedAt = sentFinal && captureGames.length ? { ...(before.lockedAt || {}), ...Object.fromEntries(captureGames.map(game => [game.id, timestamp])) } : before.lockedAt;
     next.ballots[id][mode] = { ...before, picks: valid, submittedAt: before.submittedAt || (submit ? timestamp : null), updatedAt: timestamp,
-      ...(submitted ? { scoringPolicy: 'submission-time', scoringReferences } : {}) };
+      ...(submitted ? { scoringPolicy: 'submission-time', scoringReferences } : {}), ...(lockedAt ? { lockedAt } : {}) };
     // October 12, 2026: a save is never refused for the age or absence of a line; the newest stored line or a
     // pending reference is saved. Cloud prevalidation still defers to its atomic database guard.
     next.audit.push({ id: uuid(), player: id, mode, type: before.submittedAt ? 'ballot_edited' : submit ? 'ballot_submitted' : 'ballot_saved', timestamp,

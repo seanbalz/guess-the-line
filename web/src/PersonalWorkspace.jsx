@@ -6,7 +6,7 @@ import { TeamMatchup } from './TeamIdentity';
 import { cloudApi, date, signed } from './api';
 import LineAtGuess from './LineAtGuess';
 import { JOURNAL_CURRENCIES, JOURNAL_OUTCOMES, decimalToMinor, minorToDecimal } from '../../shared/journal-performance.mjs';
-import { FINAL_LABEL, FINAL_RULE, ballotFinal, pickFinal, sentFinal } from './sentFinal';
+import { FINAL_LABEL, FINAL_RULE, LOCKED_MESSAGE, ballotFinal, isBallotLocked, pickFinal, sentFinal } from './sentFinal';
 import { soloDraftScope, soloSavedPicks, soloPicksDiffer, readSoloDraft, writeSoloDraft, removeSoloDraft, mergeSoloDraft } from './soloDraft';
 import './personalWorkspace.css';
 
@@ -62,6 +62,12 @@ function GuessForm({ data, accountId, mode, save, busy, onDirty }) {
   const count = Object.values(picks).filter(value => value !== '').length;
   const blocked = busy || closed || allFinal || !!recovery || unresolved;
   const body = submit => ({ season: data.season, week: data.week, mode, weeklyRevision: data.weeklyRevision, picks: Object.fromEntries(Object.entries(picks).filter(([, value]) => value !== '').map(([key, value]) => [key, Number(value)])), submit });
+  // Redesign stage 18 (M-02): a restored tab copy never puts a value on a final guess (one locked in since the copy was made).
+  const keepFinal = restored => {
+    const finalIds = data.games.map(game => game.id).filter(isFinal);
+    return { picks: { ...restored.picks, ...Object.fromEntries(finalIds.map(id => [id, base[id]])) },
+      conflicts: Object.fromEntries(Object.entries(restored.conflicts).filter(([id]) => !finalIds.includes(id))) };
+  };
   const resolve = (id, value) => {
     setReview(false); setPicks(previous => ({ ...previous, [id]: value }));
     setConflicts(previous => { const next = { ...previous }; delete next[id]; return next; });
@@ -75,7 +81,7 @@ function GuessForm({ data, accountId, mode, save, busy, onDirty }) {
       <p>This copy is from this tab, saved {date(recovery.updatedAt)} PT. It has not been saved to your account or submitted.</p>
       {closed ? <p>The deadline has passed. You can read or discard this copy, but cannot restore it for editing or submission.</p> : allFinal ? <p>Your submitted guesses are final. You can read or discard this copy, but cannot restore it.</p> : <p>Restore your unsaved guesses or discard this copy to use the latest account values. Changes already saved to your account will be compared before anything is replaced.</p>}
       <details open={closed || allFinal}><summary>View recovery copy</summary><ul>{data.games.filter(game => recovery.draft[game.id] !== '').map(game => <li key={game.id}>{game.awayCode} at {game.homeCode}: {mode === 'guess_spread' ? signed(Number(recovery.draft[game.id])) : recovery.draft[game.id]}</li>)}</ul></details>
-      <div className="personal-actions">{!closed && !allFinal && <button type="button" className="primary" disabled={busy} onClick={() => { const restored = mergeSoloDraft(recovery.base, recovery.draft, base); recoveryBase.current = recovery.base; setPicks(restored.picks); setConflicts(restored.conflicts); setRecovery(null); setReview(false); setFocusTarget(Object.keys(restored.conflicts)[0] || data.games.find(game => recovery.draft[game.id] !== recovery.base[game.id])?.id || data.games[0]?.id); }}>Restore unsaved guesses</button>}<button type="button" className="secondary" disabled={busy} onClick={() => { removeSoloDraft(scope); setRecovery(null); setRecoveryStatus('Recovery copy discarded. Showing your account values.'); }}>Discard recovery copy</button></div>
+      <div className="personal-actions">{!closed && !allFinal && <button type="button" className="primary" disabled={busy} onClick={() => { const restored = keepFinal(mergeSoloDraft(recovery.base, recovery.draft, base)); recoveryBase.current = recovery.base; setPicks(restored.picks); setConflicts(restored.conflicts); setRecovery(null); setReview(false); setFocusTarget(Object.keys(restored.conflicts)[0] || data.games.find(game => recovery.draft[game.id] !== recovery.base[game.id])?.id || data.games[0]?.id); }}>Restore unsaved guesses</button>}<button type="button" className="secondary" disabled={busy} onClick={() => { removeSoloDraft(scope); setRecovery(null); setRecoveryStatus('Recovery copy discarded. Showing your account values.'); }}>Discard recovery copy</button></div>
     </section>}
     {!recovery && recoveryStatus && <p className="auth-notice">{recoveryStatus}</p>}
     {closed && changed && <p className="auth-notice">Your unsaved guesses remain in this tab for reference only. They were not submitted.</p>}
@@ -183,6 +189,13 @@ export default function PersonalWorkspace({ accountId, onBack, onSignOut }) {
       if (route === 'personal/ballot') removeSoloDraft(soloDraftScope({ accountId, ...body }));
       request.current = null; setNotice(message); return true;
     } catch (e) {
+      // Redesign stage 18 (M-02): a change to a locked-in guess is refused (GTL_BALLOT_LOCKED). The saved ballot comes in and shows the
+      // final guesses; this tab's copy stays on offer for the guesses that are still open.
+      if (route === 'personal/ballot' && !acknowledged && isBallotLocked(e)) {
+        request.current = null;
+        try { await load(selection()); setReadVersion(version => version + 1); setNotice(`${LOCKED_MESSAGE} Your saved guesses are shown.`); } catch (reload) { setError(reload.message); }
+        return false;
+      }
       if (route === 'personal/ballot' && (e.uncertain || acknowledged)) {
         setUncertainSave(acknowledged ? 'acknowledged' : 'unknown');
         setError(acknowledged ? 'Your guesses were saved, but the latest account view could not load. Check saved guesses before editing again.' : e.message);
