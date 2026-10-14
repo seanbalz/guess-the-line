@@ -167,12 +167,13 @@ test('main.jsx loads NextApp and GameHub lazily, never both, behind the fallback
 });
 
 test('the new app imports nothing from the old app\'s screens, and the old screens never import the new app', () => {
-  const allowed = new Set(['../appView.js']);
+  // Shared modules with no React, CSS or screen code: the per-device choice and the D-22 team mark registry (stage 8 TeamMark).
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js']);
   for (const file of filesUnder('web/src/next')) {
     for (const spec of importsOf(read(file))) {
       if (!spec.startsWith('.')) continue;
       const target = path.relative(path.join(root, 'web/src'), path.resolve(path.join(root, path.dirname(file)), spec));
-      assert.ok(target.startsWith('next') || allowed.has(spec), `${file} imports ${spec} from the old app`);
+      assert.ok(target.startsWith('next') || allowed.has(target), `${file} imports ${spec} from the old app`);
     }
   }
   for (const file of fs.readdirSync(path.join(root, 'web/src')).filter(name => /\.(m?js|jsx)$/.test(name) && name !== 'main.jsx')) {
