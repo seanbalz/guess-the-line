@@ -22,6 +22,9 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
  * /lines/game names the fixture world's first game (server/store.mjs seeds TB-DAL first; tests/lines-sql.test.mjs scans
  * every game).
+ * /community/picks (stage 26, M-08) is scanned on ALL in tests/guess-picks-sql.test.mjs until M-08 is hosted (every viewer,
+ * both markets, one game and one member, before and after kickoffs); the apply record moves it here, so this list stays the
+ * routes that answer on HOSTED.
  */
 export const READERS = Object.freeze([
   ['/community/read', 'POST', {}],
