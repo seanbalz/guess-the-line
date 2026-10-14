@@ -40,7 +40,7 @@ test('the legal pages are self-contained, accurate on the essentials and use onl
     assert.doesNotMatch(html, /https?:\/\//, `${name}: no external resources or links`);
     assert.match(html, /<meta name="viewport"/);
     assert.match(html, /prefers-color-scheme:light/, `${name}: light theme follows the device`);
-    assert.match(html, /Effective October 12, 2026/);
+    assert.match(html, /Effective October 14, 2026/);
     assert.match(html, /mailto:sbalsiger2@gmail\.com/);
     assert.match(html, /href="\/"/, `${name}: links back to the app`);
     for (const [hex] of html.matchAll(/#[0-9A-Fa-f]{6}\b/g)) assert.ok(allowed.has(hex.toUpperCase()), `${name}: ${hex} is not a design token color`);
