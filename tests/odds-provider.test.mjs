@@ -233,3 +233,41 @@ test('provider HTTP diagnostics allowlist only numeric status and known code; ne
   const huge=mock({fetchOverride:()=>Response.json({error_code:'INVALID_COMMENCE_TIME_TO',padding:KEY.repeat(500)},{status:400})});
   await assert.rejects(()=>huge.collect(),e=>e.diagnostic.httpStatus===400&&e.diagnostic.code===null&&!JSON.stringify(e).includes(KEY));
 });
+
+test('stage 22 (M-05): a carried Monday game rides in the same two requests, with one more event ID and the same markets, region, books and cost',async()=>{
+  // Synthetic previous-week game that kicks off before the slate. Philadelphia plays it and again 62 hours later.
+  const carried={id:'KC-PHI',home:'Philadelphia Eagles',away:'Kansas City Chiefs',kickoff:'2026-10-08T23:15:00Z'};
+  const games=[...slate,carried];
+  const plain=mock(),plainResult=await plain.collect();
+  const app=mock({preflight:events(games),odds:prices(events(games))}),result=await app.collect({games});
+  assert.equal(app.requests.length,plain.requests.length);assert.equal(app.requests.length,2,'one free event check and one odds request');
+  const [check,odds]=app.requests,[plainCheck,plainOdds]=plain.requests;
+  assert.equal(check.url.pathname,plainCheck.url.pathname);assert.equal(odds.url.pathname,plainOdds.url.pathname);
+  for(const key of ['regions','markets','bookmakers','oddsFormat','dateFormat']) assert.equal(odds.url.searchParams.get(key),plainOdds.url.searchParams.get(key),key);
+  assert.deepEqual(odds.url.searchParams.get('eventIds').split(','),[...plainOdds.url.searchParams.get('eventIds').split(','),'event_15']);
+  // The free event window starts a day before the earliest kickoff, now the carried game's.
+  assert.equal(check.url.searchParams.get('commenceTimeFrom'),'2026-10-07T23:15:00Z');
+  assert.equal(check.url.searchParams.get('commenceTimeTo'),plainCheck.url.searchParams.get('commenceTimeTo'));
+  assert.deepEqual(result.quota,plainResult.quota,'the same reported and estimated cost: two credits');
+  assert.equal(result.games.length,16);
+  const game=result.games.at(-1);
+  assert.equal(game.gameId,'KC-PHI');assert.equal(game.matchStatus,'matched');
+  assert.equal(game.markets.spread.quotes.length,3);assert.equal(game.markets.total.quotes.length,3);
+  assert.deepEqual(result.games.slice(0,15).map(g=>[g.gameId,g.matchStatus]),plainResult.games.map(g=>[g.gameId,g.matchStatus]));
+});
+
+test('stage 22 (M-05): a team may appear twice only in games two days apart; a repeated game or a clash fails before any request',async()=>{
+  let calls=0;
+  const app=createOddsProvider({apiKey:KEY,clock:()=>NOW,fetchImpl:async()=>{calls++;return response([],0,500);}});
+  // Dallas also plays the slate's Thursday game an hour later.
+  const clash={id:'KC-DAL',home:'Dallas Cowboys',away:'Kansas City Chiefs',kickoff:'2026-10-08T23:15:00Z'};
+  await assert.rejects(()=>app.collect({games:[...slate,clash],remainingCredits:500}),e=>e.code==='ODDS_SLATE');
+  await assert.rejects(()=>app.preflight({games:[...slate,clash]}),e=>e.code==='ODDS_SLATE');
+  // Just under two days before Dallas's Thursday game, then exactly two days.
+  const close={...clash,kickoff:'2026-10-07T00:15:01Z'},apart={...clash,kickoff:'2026-10-07T00:15:00Z'};
+  await assert.rejects(()=>app.collect({games:[...slate,close],remainingCredits:500}),e=>e.code==='ODDS_SLATE');
+  await assert.rejects(()=>app.collect({games:[...slate,{...slate[3],id:'LV-NE2'}],remainingCredits:500}),e=>e.code==='ODDS_SLATE');
+  assert.equal(calls,0);
+  await app.preflight({games:[...slate,apart]});
+  assert.equal(calls,1);
+});

@@ -7,6 +7,8 @@ export const tables = Object.freeze(['odds_budget', 'odds_collections', 'market_
 export const rpcChecks = Object.freeze([
   // D-27 (20261012230000): the slate the scheduled collector reads; service-only.
   ['gtl_odds_schedule_slate', { p_season: 2026, p_week: 5, p_signature: {} }],
+  // M-05 (stage 22, 20261014221500): the previous week's unstarted games the collector keeps; service-only, awaiting the apply.
+  ['gtl_odds_carryover_slate', { p_at: null }],
   ['gtl_odds_commissioner', { p_user: missingId }],
   ['gtl_begin_odds_collection', { p_user: missingId, p_request: missingId, p_operation: 'preflight' }],
   ['gtl_finish_odds_collection', { p_user: missingId, p_request: missingId, p_lease: missingId, p_payload: null, p_quota: {}, p_error: null }],
@@ -50,4 +52,6 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_begin_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
   'rpc/gtl_finish_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
   'gtl-api/wind/read': 'the gtl-api deploy with /wind/read',
+  // M-05 (stage 22): remove with the release record of the hosted apply (Gate M step 8).
+  'rpc/gtl_odds_carryover_slate': 'migration 20261014221500_gtl_odds_open_weeks.sql',
 });
