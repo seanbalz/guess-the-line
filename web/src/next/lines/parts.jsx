@@ -31,7 +31,8 @@ export function ShortTrend({ card, rules, as = 'li', variant }) {
       <p className="gx-l-tnums">
         <span className="gx-sr-only">Record </span><span className="gx-n-s">{card.record}</span>
         <span className="gx-t-meta">{card.sample}</span>
-        {card.fits === true ? <span className="gx-t-meta">Fits this game at your line</span> : card.fits === null ? <span className="gx-t-meta">Fits only at some lines</span> : null}
+        {card.fits === true ? <span className="gx-t-meta">Fits this game at your line</span> : card.fits === null ? <span className="gx-t-meta">Fits only at some lines</span>
+          : card.fits === false ? <span className="gx-t-meta">Doesn’t fit this game at your line</span> : null}
       </p>
       <p className="gx-t-label gx-c-2">{card.tierLabel}</p>
       {card.notes?.map(note => <p className="gx-t-meta" key={note}>{note}</p>)}

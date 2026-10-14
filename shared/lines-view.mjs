@@ -39,9 +39,11 @@ export const LINES_COPY = Object.freeze({
   trends: 'Trends',
   allTrends: 'All trends',
   noTrend: 'No trend fits this game.',
-  trendsMissing: week => `Trends for Week ${week} publish after Monday night’s final.`,
+  trendsMissing: week => `Trends for ${Number.isInteger(week) ? `Week ${week}` : 'this week'} publish after Monday night’s final.`,
   trendsLoading: 'Loading trends…',
   trendsFailed: 'Trends didn’t load. Check your connection and try again.',
+  trendsNone: 'No trends for this game in this week’s file.',
+  notOnBoard: 'This game isn’t on this week’s board.',
   atYourGuess: 'at your guess',
   lineAtGuess: 'Line at your guess',
   linePending: 'Line at your guess: pending (the first line after you sent it)',
@@ -206,8 +208,8 @@ export function ownTags(game, states) {
   return tags;
 }
 
-function marketCell(personal, game, market, access, rules) {
-  if (access?.[market] !== true) return { open: false, lockLabel: `${LINES_COPY.lineHidden(market)}. ${copy.lineLocked(market, rules)}` };
+function marketCell(personal, game, market, access) {
+  if (access?.[market] !== true) return { open: false };
   const own = lineAtGuess(personal, game, market, access);
   return { open: true, line: own && !own.pending ? own.text : null };
 }
@@ -224,7 +226,7 @@ export function boardCard(personal, community, game, { chip = null, sameTime = t
   const away = teamOf(game.away), home = teamOf(game.home);
   const tags = ownTags(game, states);
   const late = MARKETS.map(m => states[m]).find(s => s?.late) ?? null;
-  const spread = marketCell(personal, game, 'spread', access, rules), total = marketCell(personal, game, 'total', access, rules);
+  const spread = marketCell(personal, game, 'spread', access), total = marketCell(personal, game, 'total', access);
   const time = `${fmtTime(game.kickoff)} PT`;
   const bits = [`${away.nick} at ${home.nick}, ${fmtWhen(game.kickoff)}`,
     spread.open ? (spread.line ? `Spread ${spread.line} ${LINES_COPY.atYourGuess}` : LINES_COPY.noLineYet('spread')) : LINES_COPY.lineHidden('spread'),
@@ -245,7 +247,7 @@ export function boardCard(personal, community, game, { chip = null, sameTime = t
  */
 export function linesBoard({ personal, community = null, trends = null } = {}) {
   const shown = weekOf(personal);
-  const games = gamesOf(personal), now = toMs(personal?.now);
+  const games = gamesOf(personal), now = toMs(personal?.now), deadline = toMs(personal?.deadline);
   const upcoming = games.filter(g => now === null || now < toMs(g.kickoff)), started = games.filter(g => now !== null && now >= toMs(g.kickoff));
   const names = TEAM_NAMES;
   const trendLines = trends && shown && trends.season === shown.season && trends.week === shown.week
@@ -258,7 +260,8 @@ export function linesBoard({ personal, community = null, trends = null } = {}) {
   return {
     season: shown?.season ?? null,
     week: shown?.week ?? null,
-    meta: shown ? `${copy.weekName(shown.week)}${personal?.deadline ? `${SEP}${copy.dueAt(fmtWhen(personal.deadline))}` : ''}` : '',
+    // "Due …" only while the deadline is still ahead by the server's clock; once it has passed the week name stands alone.
+    meta: shown ? `${copy.weekName(shown.week)}${deadline !== null && (now === null || now < deadline) ? `${SEP}${copy.dueAt(fmtWhen(deadline))}` : ''}` : '',
     groups,
     started: started.length ? { label: LINES_COPY.kickedOff, count: started.length, cards: started.map(game => boardCard(personal, community, game, { chip: null, sameTime: false })) } : null,
     trendLines: trendLines.length,
@@ -382,11 +385,25 @@ export function refereeRow(trends, gameId, officials) {
 }
 
 /**
+ * What a sheet says in place of its trends until they can show, true for each state: still loading, failed, no file
+ * for the week yet ("publish after Monday night’s final"), or a file that does not hold this game. Empty once ready.
+ */
+function trendsNotice(status, week) {
+  if (status === 'ready') return '';
+  if (status === 'error') return LINES_COPY.trendsFailed;
+  if (status === 'missing') return LINES_COPY.trendsMissing(week);
+  if (status === 'none') return LINES_COPY.trendsNone;
+  return LINES_COPY.trendsLoading;
+}
+
+/**
  * The game sheet's view: header, "You on this game", the top three trends for this game (strongest first, each with
  * its record and sample size; a line trend locked with its market) and the trends' status. `trends` is the week file
- * (or null) and `trendsStatus` its load state.
+ * (or null) and `trendsStatus` its load state (useTrendWeek's: 'idle', 'loading', 'ready', 'missing' or 'error'). With
+ * no file in hand the sheet never claims one is missing unless the load said so: 'idle', or 'ready' without a file,
+ * reads as still loading.
  */
-export function gameSheet({ personal, community = null, trends = null, trendsStatus = 'ready', records = null, gameId } = {}) {
+export function gameSheet({ personal, community = null, trends = null, trendsStatus = 'loading', records = null, gameId } = {}) {
   const shown = weekOf(personal);
   const game = gamesOf(personal).find(g => g.id === gameId) ?? null;
   if (!game) return null;
@@ -397,6 +414,7 @@ export function gameSheet({ personal, community = null, trends = null, trendsSta
   const saved = Object.fromEntries(MARKETS.map(market => [market, lineAtGuess(personal, game, market, access)?.value ?? null]));
   const found = trendsGame ? gameTrends(trends, game.id, { access, saved, names: TEAM_NAMES }) : null;
   const now = toMs(personal?.now);
+  const status = !trends ? (trendsStatus === 'missing' || trendsStatus === 'error' ? trendsStatus : 'loading') : sameWeek ? (trendsGame ? 'ready' : 'none') : 'missing';
   return {
     id: game.id,
     title: `${away.code} @ ${home.code}`,
@@ -409,11 +427,12 @@ export function gameSheet({ personal, community = null, trends = null, trendsSta
     saved,
     rules: liveRules(personal?.rules),
     trends: {
-      status: !trends ? trendsStatus : sameWeek ? (trendsGame ? 'ready' : 'none') : 'missing',
+      status,
       top: found?.top ?? [],
       count: found?.all.length ?? 0,
       empty: trendsGame && !found?.top.length ? LINES_COPY.noTrend : '',
       missing: shown ? LINES_COPY.trendsMissing(shown.week) : '',
+      notice: trendsNotice(status, shown?.week),
     },
     trendsGame,
     footer: footer(),

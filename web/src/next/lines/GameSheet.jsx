@@ -56,7 +56,7 @@ export function GameSheet({ args }) {
   if (!view) {
     return (
       <Sheet title={LINES_COPY.title} onClose={shell.closeSheet} className="gx-l-sheet">
-        <Missing text={personal.data ? 'This game isn’t on this week’s board.' : LINES_COPY.loading}/>
+        <Missing text={personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}/>
       </Sheet>
     );
   }
@@ -81,11 +81,9 @@ export function GameSheet({ args }) {
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={trendsId} data-section="trends">
         <h3 className="gx-t-section" id={trendsId}>{LINES_COPY.trends}</h3>
-        {t.status === 'loading' || t.status === 'idle' ? <Missing text={LINES_COPY.trendsLoading}/>
-          : t.status === 'error' ? <Missing text={LINES_COPY.trendsFailed}/>
-            : t.status === 'missing' || t.status === 'none' ? <Missing text={t.missing}/>
-              : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game"/>
-                : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}
+        {t.notice ? <Missing text={t.notice}/>
+          : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game"/>
+            : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}
         {t.status === 'ready' && t.top.length ? <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p> : null}
       </section>
 

@@ -45,16 +45,18 @@ export function GroupBody({ group, rules }) {
 
 export function AllTrendsSheet({ args }) {
   const shell = useShell();
-  const { personal, community, trendsWeek, records, shown } = useLinesData();
-  const view = useMemo(() => (personal.data ? gameSheet({ personal: personal.data, community, trends: trendsWeek, records, gameId: args.game }) : null),
-    [personal.data, community, trendsWeek, records, args.game]);
+  const { personal, community, trends, trendsWeek, records, shown } = useLinesData();
+  // The sheet's own read of the week file starts as 'loading' (then answers from the shared cache): until it is
+  // ready the sheet says so, and never that the file is missing.
+  const view = useMemo(() => (personal.data ? gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, records, gameId: args.game }) : null),
+    [personal.data, community, trendsWeek, trends.status, records, args.game]);
   const officials = useOfficials(shown?.season, shown?.week, Boolean(view?.trendsGame));
   const all = useMemo(() => (view?.trendsGame ? allTrends(trendsWeek, view.id, { access: view.access, saved: view.saved, names: TEAM_NAMES,
     referee: refereeFor(trendsWeek, view.id, officials) }) : null), [view, trendsWeek, officials]);
   const back = { label: view?.title ?? LINES_COPY.title, onBack: shell.closeSheet };
   return (
     <Sheet title={LINES_COPY.allTrends} back={back} onClose={shell.closeSheet} closeLabel="Close All trends" tall className="gx-l-sheet">
-      {!all ? <p className="gx-t-body gx-c-2" role="status">{view ? view.trends.missing : LINES_COPY.loading}</p> : (
+      {!all ? <p className="gx-t-body gx-c-2" role="status">{view ? view.trends.notice || LINES_COPY.trendsLoading : personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}</p> : (
         <>
           <Card variant="flush">
             <List label="Trend groups">

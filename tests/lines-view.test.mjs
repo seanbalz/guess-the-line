@@ -56,8 +56,7 @@ test('a lock on every market closed to the viewer; his own line at the guess onc
   const board = L.linesBoard({ personal: p, community: community() });
   for (const c of board.groups.flatMap(g => g.cards)) {
     assert.equal(c.spread.open, false, `${c.id} Spread closed`);
-    assert.equal(c.spread.lockLabel, 'Spread line hidden. Submit your Spread picks to see this line.');
-    assert.equal(c.spread.line, undefined, 'a closed market carries no line at all');
+    assert.deepEqual(c.spread, { open: false }, 'a closed market carries no line at all');
     assert.equal(c.total.open, true, `${c.id} Total open`);
   }
   assert.equal(card(board, 'SEA-DEN').total.line, '43.5');
@@ -202,6 +201,32 @@ test('the game sheet: header, the top three trends strongest first with records 
   // No trends file for the week: the sheet says when it publishes; no game in the file: nothing to show.
   assert.equal(L.gameSheet({ personal: personal(), community: community(), trends: null, trendsStatus: 'missing', gameId: 'SEA-DEN' }).trends.missing, 'Trends for Week 6 publish after Monday night’s final.');
   assert.equal(L.gameSheet({ personal: personal(), community: community(), trends: week, gameId: 'XX-YY' }), null);
+});
+
+test('the trends notice is true for every load state: loading, failed, not published, not in the file, another week\'s file', () => {
+  const sheet = (trends, extra = {}) => L.gameSheet({ personal: personal(), community: community(), trends, gameId: 'SEA-DEN', ...extra });
+  const view = (trends, extra) => { const t = sheet(trends, extra).trends; return [t.status, t.notice, t.top.length]; };
+  const LOADING = ['loading', 'Loading trends…', 0];
+  // With no file in hand, only the load can say the file is missing: no status, 'idle' or even 'ready' reads as loading.
+  assert.deepEqual(view(null), LOADING);
+  for (const trendsStatus of ['idle', 'loading', 'ready']) assert.deepEqual(view(null, { trendsStatus }), LOADING, trendsStatus);
+  assert.deepEqual(view(null, { trendsStatus: 'error' }), ['error', 'Trends didn’t load. Check your connection and try again.', 0]);
+  assert.deepEqual(view(null, { trendsStatus: 'missing' }), ['missing', 'Trends for Week 6 publish after Monday night’s final.', 0]);
+  // The week's file is out but does not hold this game: it says that, not that the file is still to come.
+  const without = { ...week, games: week.games.filter(g => g.id !== 'SEA-DEN') };
+  assert.deepEqual(view(without, { trendsStatus: 'ready' }), ['none', 'No trends for this game in this week’s file.', 0]);
+  // Another week's file is never read for this game.
+  const other = sheet({ ...week, week: 7 }, { trendsStatus: 'ready' });
+  assert.deepEqual([other.trends.status, other.trends.notice, other.trends.top, other.trends.count, other.trendsGame], ['missing', 'Trends for Week 6 publish after Monday night’s final.', [], 0, null]);
+  assert.equal(other.when, 'Thu Oct 15 · 5:15 PM PT · Denver', 'no TNF or division flag from another week');
+  assert.deepEqual(view(week, { trendsStatus: 'ready' }).slice(0, 2), ['ready', '']);
+});
+
+test('the board says "Due" only while the deadline is ahead by the server\'s clock', () => {
+  assert.equal(L.linesBoard({ personal: personal(), community: community() }).meta, 'Week 6 · Due Thu 5:15 PM PT');
+  assert.equal(L.linesBoard({ personal: personal({ now: Date.parse(DEADLINE) }), community: community() }).meta, 'Week 6');
+  assert.equal(L.linesBoard({ personal: personal({ now: Date.parse(DEADLINE) + HOUR }), community: community() }).meta, 'Week 6');
+  assert.equal(L.linesBoard({ personal: { ...personal(), deadline: null }, community: community() }).meta, 'Week 6');
 });
 
 test('the leak rule: nothing on the board or in the sheets carries another player\'s pick or a closed market\'s line', () => {

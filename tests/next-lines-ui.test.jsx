@@ -10,14 +10,21 @@ import { bannedCopy } from '../shared/trends.mjs';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { allTrends } from '../shared/trends-view.mjs';
 import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
+import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 
-const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null }));
+const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false }));
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => state.lines }));
 vi.mock('../web/src/next/lines/trendsHooks.js', () => ({
   useOfficials: () => state.officials,
   useWind: () => state.wind ?? { loading: false, wind: null, now: null },
   useTrendWeek: () => ({ status: 'ready', week }),
 }));
+// `state.openRows` opens every row that opens in place, so a test can read the bodies a closed row keeps out of the markup.
+vi.mock('../web/src/next/lines/parts.jsx', async importOriginal => {
+  const parts = await importOriginal();
+  const { createElement } = await import('react');
+  return { ...parts, Expander: props => createElement(parts.Expander, { ...props, open: state.openRows || props.open }) };
+});
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { LinesBoard } = await import('../web/src/next/lines/LinesBoard.jsx');
@@ -49,7 +56,7 @@ const nodes = (html, test) => [...walk(parseMarkup(html))].filter(n => n.tag && 
 const attr = (name, value) => n => n.attrs[name] === value;
 const textOf = n => [...walk(n)].filter(x => x.text !== undefined).map(x => x.text).join(' ').replace(/\s+/g, ' ').trim();
 
-afterEach(() => { state.lines = null; state.wind = null; state.officials = null; });
+afterEach(() => { state.lines = null; state.wind = null; state.officials = null; state.openRows = false; });
 
 describe('the Lines board', () => {
   it('a lock is an icon on every closed market, never "—"; your tags; your own line at the guess; at most three trend lines', () => {
@@ -168,10 +175,119 @@ describe('the All trends sheet', () => {
     expect(text(team)).toContain('2024-09-08: DEN 20, SEA 26');
   });
 
+  it('says what is true while its own read of the week file loads, fails, finds no file, or finds a file without the game', () => {
+    // The sheet opens with its own read still loading (it then answers from the shared cache): it says so, never "publish after".
+    const said = lines => { state.lines = lines; const html = render(<AllTrendsSheet args={{ game: 'SEA-DEN' }}/>); expect(markupProblems(html)).toEqual([]); return nodes(html, attr('role', 'status')).map(textOf); };
+    expect(said({ ...data(), trends: { status: 'loading', week: null }, trendsWeek: null })).toEqual(['Loading trends…']);
+    expect(said({ ...data(), trends: { status: 'idle', week: null }, trendsWeek: null })).toEqual(['Loading trends…']);
+    expect(said({ ...data(), trends: { status: 'error', week: null }, trendsWeek: null })).toEqual(['Trends didn’t load. Check your connection and try again.']);
+    expect(said({ ...data(), trends: { status: 'missing', week: null }, trendsWeek: null })).toEqual(['Trends for Week 6 publish after Monday night’s final.']);
+    const without = { ...week, games: week.games.filter(g => g.id !== 'SEA-DEN') };
+    expect(said({ ...data(), trends: { status: 'ready', week: without }, trendsWeek: without })).toEqual(['No trends for this game in this week’s file.']);
+    expect(said({ ...data(), personal: { status: 'loading', data: null, error: null } })).toEqual(['Loading this week’s games…']);
+    // A game that is not on the board says so, here and in the game sheet.
+    state.lines = data();
+    expect(nodes(render(<AllTrendsSheet args={{ game: 'XX-YY' }}/>), attr('role', 'status')).map(textOf)).toEqual(['This game isn’t on this week’s board.']);
+    expect(nodes(render(<GameSheet args={{ game: 'XX-YY' }}/>), attr('role', 'status')).map(textOf)).toEqual(['This game isn’t on this week’s board.']);
+  });
+
+  it('the game sheet says a file without this game holds no trends for it, not that the file is still to come', () => {
+    const without = { ...week, games: week.games.filter(g => g.id !== 'SEA-DEN') };
+    state.lines = { ...data(), trends: { status: 'ready', week: without }, trendsWeek: without };
+    const html = render(<GameSheet args={{ game: 'SEA-DEN' }}/>);
+    expect(nodes(html, attr('role', 'status')).map(textOf)).toEqual(['No trends for this game in this week’s file.']);
+    expect(text(html)).not.toContain('publish after');
+    state.lines = { ...data(), trends: { status: 'loading', week: null }, trendsWeek: null };
+    expect(nodes(render(<GameSheet args={{ game: 'SEA-DEN' }}/>), attr('role', 'status')).map(textOf)).toEqual(['Loading trends…']);
+  });
+
+  it('a line record that does not fit this game at the viewer\'s line says so', () => {
+    const card = { key: 'r', kind: 'row', gate: 'total', locked: false, title: 'A total band', sentence: 'Overs hit 10 times and unders 12 since 2002.', record: '10–12', sample: '22 games', pct: null, tierLabel: 'No proven edge', notes: [] };
+    const fits = value => textOf(parseMarkup(render(<ShortTrend card={{ ...card, fits: value }} rules={TODAY}/>)));
+    expect(fits(true)).toContain('Fits this game at your line');
+    expect(fits(null)).toContain('Fits only at some lines');
+    expect(fits(false)).toContain('Doesn’t fit this game at your line');
+    expect(fits(undefined)).not.toMatch(/fit/i);
+  });
+
   it('a locked short trend never prints a number, whatever the market', () => {
     for (const gate of ['spread', 'total', 'both']) {
       const html = render(<ShortTrend card={{ key: 'x', kind: 'card', gate, locked: true, title: 'Line-based trend', strength: [3, -22] }} rules={TODAY}/>);
       expect(textOf(parseMarkup(html))).not.toMatch(/\d/);
     }
+  });
+});
+
+describe('the leak rule on the rendered markup, attributes included', () => {
+  const KICKOFF_RULES = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
+  const SEA_KICKOFF = Date.parse(week.games[0].kickoff);
+  // Forged replies: a saved line under every pick that is not locked in (the screen must never read one), and another
+  // player's picks in the Community week. Quarter points: no record, count, percent, time or trend title equals them.
+  const forgedSpread = Object.fromEntries(GAMES.map((g, i) => [g.id, 20.25 + i]));
+  const forgedTotal = Object.fromEntries(GAMES.map((g, i) => [g.id, 60.75 + i]));
+  const others = { spread: { 'SEA-DEN': 13.25, 'HOU-JAX': -17.75 }, total: { 'SEA-DEN': 49.25, 'NO-NYG': 38.75 } };
+  const refs = values => Object.fromEntries(Object.entries(values).map(([id, value]) => [id, ref(value)]));
+  const posts = [{ actorId: 'other', kind: 'ballot_submitted', mode: 'guess_spread', picks: others.spread }, { actorId: 'other', kind: 'ballot_submitted', mode: 'guess_total', picks: others.total }];
+  const otherSecrets = [...pickSecrets(others.spread, { market: 'spread', owner: 'other' }), ...pickSecrets(others.total, { market: 'total', owner: 'other' })];
+  const world = ({ now, ballots, optOuts = [] }) => {
+    const lines = data({ now, rules: KICKOFF_RULES });
+    return { ...lines, personal: { ...lines.personal, data: { ...lines.personal.data, ballots } }, community: { week: { season: 2026, week: 6 }, optOuts, posts } };
+  };
+  const STATES = {
+    // D-23 sit-out of the Spread under the D-39 rules: the Spread opens for the week; every Total is a draft, never locked in.
+    'sat out Spread': {
+      lines: world({ now: NOW, optOuts: ['guess_spread'], ballots: { guess_total: { picks: Object.fromEntries(GAMES.map(g => [g.id, 44])), scoringReferences: refs(forgedTotal) } } }),
+      secrets: [...lineSecrets(forgedTotal, { market: 'total' }), ...otherSecrets],
+    },
+    // After SEA @ DEN kicks off: that game opens for everyone; HOU @ JAX's Total is locked in (its own line shows); every
+    // other pick is a draft, so no other saved line shows anywhere, SEA @ DEN's included.
+    'after SEA @ DEN kicked off': {
+      lines: world({ now: SEA_KICKOFF + 30 * 60_000, ballots: {
+        guess_spread: { picks: Object.fromEntries(GAMES.map(g => [g.id, 3])), scoringReferences: refs(forgedSpread) },
+        guess_total: { picks: Object.fromEntries(GAMES.map(g => [g.id, 44])), lockedAt: { 'HOU-JAX': new Date(NOW).toISOString() }, scoringReferences: refs({ ...forgedTotal, 'HOU-JAX': 44.5 }) },
+      } }),
+      secrets: [...lineSecrets(forgedSpread, { market: 'spread' }), ...lineSecrets(Object.fromEntries(Object.entries(forgedTotal).filter(([id]) => id !== 'HOU-JAX')), { market: 'total' }), ...otherSecrets],
+    },
+  };
+  /** Every text and attribute value in the markup that a viewer or a screen reader can reach (an svg's drawing data is not text). */
+  const reachable = html => {
+    const out = [];
+    const visit = node => {
+      for (const child of node.children ?? []) {
+        if (child.text !== undefined) out.push(child.text);
+        else if (child.tag === 'svg') out.push(child.attrs['aria-label'] ?? '');
+        else { out.push(...Object.values(child.attrs)); visit(child); }
+      }
+    };
+    visit(parseMarkup(html));
+    return out;
+  };
+
+  it('the board, every game sheet and every All trends sheet, every row open, in the sat-out and after-kickoff states', () => {
+    for (const [name, { lines, secrets }] of Object.entries(STATES)) {
+      state.lines = lines;
+      state.openRows = true;
+      state.officials = { season: 2026, week: 6, assignments: { 'SEA-DEN': { referee: 'Shawn Hochuli', setAt: '2026-10-14T18:00:00Z', revision: 1 }, 'NO-NYG': { referee: 'Shawn Hochuli', setAt: '2026-10-14T18:00:00Z', revision: 1 } } };
+      const scan = (html, where) => { expect(markupProblems(html)).toEqual([]); assertNoLeak({ markup: reachable(html) }, { viewer: 'viewer', secrets }, `${name}: ${where}`); return html; };
+      scan(render(<LinesBoard/>), 'the board');
+      let trendItems = 0;
+      for (const { id } of GAMES) {
+        scan(render(<GameSheet args={{ game: id }}/>), `${id} sheet`);
+        trendItems += nodes(scan(render(<AllTrendsSheet args={{ game: id }}/>), `${id} All trends`), n => n.attrs['data-trend']).length;
+      }
+      expect(trendItems, 'every group body was in the markup').toBeGreaterThan(500);
+    }
+    // The scan reads attributes too (it is live): an aria-label with a forged line is found.
+    expect(leakScan({ markup: reachable('<div aria-label="Spread DEN −20.25 at your guess"></div>') }, { viewer: 'viewer', secrets: STATES['after SEA @ DEN kicked off'].secrets })).toHaveLength(1);
+  });
+
+  it('the after-kickoff state shows what it may: SEA @ DEN open, HOU @ JAX\'s own Total line, no other line', () => {
+    state.lines = STATES['after SEA @ DEN kicked off'].lines;
+    const html = render(<LinesBoard/>);
+    const cards = Object.fromEntries(nodes(html, n => n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
+    const cells = (id, kind) => [...walk(cards[id])].filter(n => n.attrs?.['data-cell'] === kind);
+    expect(cells('SEA-DEN', 'locked')).toHaveLength(0);
+    expect(cells('HOU-JAX', 'line').map(textOf)).toEqual(['44.5 at your guess']);
+    expect(cells('NO-NYG', 'locked')).toHaveLength(2);
   });
 });
