@@ -1,0 +1,92 @@
+/* Lines (redesign build plan stage 13; prototype frag-lines.css, review D3 and D16): the board by kickoff group, the
+   game sheet and the All trends sheet. Shared kit classes are composed, never restyled; everything here is gx-l-. */
+
+/* ----- board ----- */
+.gx-l-group { display: flex; flex-direction: column; gap: 12px; }
+.gx-l-ghead {
+  position: sticky;
+  top: calc(var(--gx-size-topbar) + 1px + env(safe-area-inset-top, 0px));
+  z-index: var(--gx-z-content);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  margin: -4px calc(-1 * var(--gx-size-gutter)) 0;
+  padding: 4px var(--gx-size-gutter) 0;
+  background: var(--gx-canvas);
+}
+.gx-l-ghead .gx-t-section { min-width: 0; }
+
+/* The game card (C6): two team rows, a hairline, the Total row with your tag, at most one chip. */
+.gx-l-card { flex-direction: column; align-items: stretch; gap: 0; padding: 8px 16px 12px; }
+.gx-l-chead { padding-top: 8px; }
+.gx-l-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-rows: 44px 44px;
+  align-items: center;
+  column-gap: 12px;
+}
+.gx-l-team { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.gx-l-team--2 { grid-row: 2; }
+.gx-l-tag1,
+.gx-l-tag2 { grid-column: 2; justify-self: end; }
+.gx-l-tag1 { grid-row: 1; }
+.gx-l-tag2 { grid-row: 2; }
+.gx-l-val {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 44px;
+  text-align: right;
+}
+.gx-l-lock { display: flex; align-items: center; justify-content: flex-end; min-width: 44px; min-height: 44px; color: var(--gx-text-3); }
+.gx-l-cfoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--gx-border);
+}
+.gx-l-trend {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+}
+.gx-l-trend .gx-ic { margin-top: 2px; }
+.gx-l-credits { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-top: 8px; }
+.gx-l-link { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* ----- game sheet ----- */
+/* The sheet body scrolls; its blocks keep their own height (a flush card hides overflow, so it could shrink to nothing). */
+.gx-l-sheet .gx-sheet-body > * { flex-shrink: 0; }
+.gx-l-ylab { flex: none; width: 56px; }
+.gx-l-ysub { display: flex; align-items: flex-start; gap: 4px; }
+.gx-l-ysub .gx-ic { margin-top: 3px; color: var(--gx-text-3); }
+.gx-l-tcard { display: flex; flex-direction: column; gap: 8px; }
+.gx-l-thead { display: flex; align-items: center; gap: 8px; }
+.gx-l-thead .gx-ic { color: var(--gx-text-3); }
+.gx-l-thead .gx-ic-fill { color: var(--gx-data); }
+.gx-l-tnums { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.gx-l-x { display: flex; flex-direction: column; background: var(--gx-surface-1); }
+.gx-l-xbody { display: flex; flex-direction: column; gap: 12px; padding: 4px 16px 16px; background: var(--gx-surface-1); }
+.gx-l-chev { transition: transform var(--gx-dur-quick) var(--gx-ease-standard); }
+.gx-l-chev--up { transform: rotate(180deg); }
+.gx-l-dl { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.gx-l-dl div { display: flex; flex-direction: column; gap: 0; }
+.gx-l-dl dd { margin: 0; }
+
+/* ----- All trends sheet ----- */
+.gx-l-agroup { display: flex; flex-direction: column; gap: 8px; }
+.gx-l-alist { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }

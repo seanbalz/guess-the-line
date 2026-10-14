@@ -23,6 +23,7 @@ The panel answers both:
 | Dashboard | A **Trends** button inside each matchup's drilldown; a standalone **Game trends** panel when the ballot is not yet submitted or "Matchup differences" is hidden | New dashboard section "Situational trends" (on by default) in Customize dashboard |
 | Dashboard → Data connections | "Situational trends · nflverse (CC BY 4.0)" source card | Credit, license and line source |
 | Community → Feed (commissioner only) | **Game referees (commissioner)** panel under "Preview / publish early" | One dropdown per published game; see [Referees](#referees) |
+| New app → Lines (redesign stage 13, behind "Try the new app") | At most three trend lines on the board; each game sheet's top three trends, the weather and referee rows, and **All trends** | The simplified trends of DASH-7; see [New app: simplified trends](#new-app-simplified-trends-dash-7) |
 
 Every **Trends** button is a disclosure (`aria-expanded`, `aria-controls`) named for its game ("Trends for SEA at DEN"); focus stays on it. The panel code and the week file load only when a player opens one.
 
@@ -65,6 +66,17 @@ The week file never carries this week's line, odds, weather or referee: unplayed
 - **Community Picks** reads the `/personal` view (`communityAccess`); the **group ballot and dashboard** read the `/state` view (`groupAccess`: the market's `marketAccess`, its submitted status, a sit-out, this mode's reveal, or for this mode a game the view's `lockedAt` names). Stage 13 (the new app's Lines) reuses `gameAccess`.
 - A Total submission never unlocks a spread-gated record, and the reverse; "both" needs both markets.
 - After a market unlocks, the rows that fit this game are marked "This game" (text and `aria-current`, not color alone) using **only the player's own saved line** for that market (the saved scoring reference on Picks and the group ballot, the saved reference on the dashboard). Without a held line the tables stay unmarked.
+
+## New app: simplified trends (DASH-7)
+
+Sean, October 14, 2026, asked "Trends page: what should we do with it?", chose "Build the simplified Trends now": "Per game: the top 3 trends in plain words, each with its record and sample size, plus wind, weather and referee rows and an All trends sheet. It follows the per-game gate and is visible only in the new app until first look." It is built in redesign stage 13 (`web/src/next/lines/`), with the All trends sheet pulled forward from stage 34. The old app's panels above are unchanged.
+
+- **Short cards** (`shortCard` in `shared/trends-view.mjs`): a title, one plain sentence, the record and the sample size ("Teams in the Texans’ spot covered 444 times and missed 364 since 2002." · 444–364–22 · 830 games), and the tier in words. A card's record is its registered side over every game since its first year (the file's `record`); a row is shown both ways ("Home teams covered … and road teams …", the file's `split`), never as a side with a record. Every number is read from the week file; nothing is computed that the file does not hold.
+- **The top three per game** (`gameTrends`): the Tier 2 and watch-list cards the engine fires on this game, strongest first as the engine defines it (the tier, then the quality score; never ROI or win rate). A line card joins only once its market is open and the viewer's own saved line shows that it fits. The Tier 1 wind card and the other weather cards need observed kickoff weather, so they sit in the weather row and the All trends sheet, never in the top three; cards that wait for an earlier final are listed there too.
+- **Board trend lines** (`boardTrends`): at most three on the whole board, one per card at most: each game's strongest card that needs no line, from the Consistent-not-proven tier or stronger, ordered by tier, then the most games in its record, then kickoff (prototype C23). Week 6: NO @ NYG, WAS @ SF and HOU @ JAX.
+- **Line trends lock with their market.** A trend needs a market open when the engine gates it (`gate` on the card or row) or, for a card, when its side is the favorite or the underdog (the prototype's review R9). While that market is closed for this game (`gameAccess`: the viewer's own lock-in, a sit-out or the game's kickoff, under the live rules the server reports), the card shows only "Line-based trend" and how it opens; it carries no title, record, sample size or percent.
+- **All trends** (`allTrends`): five groups (team, situational, line, weather, referee), each opening in place, every trend with its record and sample size, strongest first. It opens as its own sheet over the game sheet, so Back closes it.
+- **Weather and referee rows** (`shared/lines-view.mjs`): the kickoff wind forecast (D-34, read from `/wind/read` only when a game sheet opens, so no more requests than the old panel) is one row, closed by default with no digits; open, it gives the values, the times in Pacific time, the honesty note and the Open-Meteo credit. It is hidden for a dome, while loading and with no current forecast. The referee row shows only when a referee is known (the commissioner's assignment, else the week file's). A 404 from either route hides its row. The D-45 board weather chip plugs in at one place, `boardWeatherChip`; until it merges the board carries no weather.
 
 ## Lines reader (M-06)
 
@@ -212,6 +224,7 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
   - the empty state,
   - the expander,
   - the copy guard across all 14 games.
+- Simplified trends (redesign stage 13): `tests/trends-view.test.mjs` (per-game access, line gates, short cards, the top three, Week 6 board trends, All trends, locked cards with no number, the copy guard), `tests/trends-week.test.mjs` (the week file holds no current line), `tests/lines-view.test.mjs`, `tests/next-lines-ui.test.jsx`, `tests/wind-ui.test.jsx` (the new app's weather row) and `tests/cloud-browser/next-lines.spec.js`.
 - `tests/officials-cloud.test.mjs`: the route with an in-memory store, including the non-commissioner refusal before any write.
 - `tests/officials-sql.test.mjs`: the migration on PGlite (grants, RLS, invoker functions, refusals, revisions, history, audit, member reads).
 - Kickoff wind forecast (D-34):

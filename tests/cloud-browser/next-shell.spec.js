@@ -68,8 +68,8 @@ function apiCalls(page) {
   page.on('request', request => { const url = new URL(request.url()); if (url.origin === SUPABASE && url.pathname.startsWith('/functions/v1/')) calls.push(`${request.method()} ${url.pathname}`); });
   return calls;
 }
-/** What is left of `calls` after the two shared reads (stage 11): the writes, of which browsing makes none. */
-const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read'].includes(call));
+/** What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` for Lines): the writes, of which browsing makes none. */
+const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -106,8 +106,14 @@ test.describe('the real app', () => {
         await expect(title(page, name)).toBeVisible();
         await expect(tab(page, name)).toHaveAttribute('aria-current', 'page');
         await expect(tabBar(page).locator('[aria-current]')).toHaveCount(1);
-        await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toBeVisible();
-        await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
+        if (name === 'Lines') {
+          // Stage 13: Lines is the read-only board (tests/cloud-browser/next-lines.spec.js covers it).
+          await expect(page.locator('.gx-l-group').first()).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
+        } else {
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toBeVisible();
+          await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
+        }
         expect(new URL(page.url()).hash).toBe(`#${name.toLowerCase()}`);
         await phoneChecks(page);
       }

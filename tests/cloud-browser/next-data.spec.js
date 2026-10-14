@@ -14,7 +14,8 @@ import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './c
 test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const READS = ['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read'];
+// Stage 13: the Lines tab adds the viewer's own week (`/personal`), read once a Lines screen asks for it.
+const READS = ['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 const tab = (page, name) => tabBar(page).getByRole('button', { name, exact: true });
 const title = (page, name) => page.getByRole('heading', { name, level: 1, exact: true });
