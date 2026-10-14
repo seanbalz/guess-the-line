@@ -6,8 +6,8 @@ import zlib from 'node:zlib';
 
 // D-44: the logo is the Yardline G alone, in green, on a transparent background. These are the files a browser, a
 // home screen and a notification show (web/public), and the old app's mark (web/src/Brand.jsx, brand.css); the new
-// app's FieldMark is checked in tests/next-ui.test.jsx. The one exception is where the system draws the icon on a card
-// of its own: Android's maskable icon and the notification icon are the G on a navy square.
+// app's FieldMark is checked in tests/next-ui.test.jsx. Sean chose "Transparent everywhere" (October 14, 2026), so
+// Android's launcher and the push notification use the same transparent G: no maskable or navy icon.
 const root = path.resolve(import.meta.dirname, '..');
 const pub = path.join(root, 'web/public');
 const tokens = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens.json'), 'utf8'));
@@ -90,50 +90,22 @@ test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 1
     for (const hole of holes) assert.equal(png.pixel(...at(size, hole))[3], 0, `app-icon-${size}.png: nothing behind the G at ${hole}`);
     assert.ok(Math.abs(left - (size - 1 - right)) <= 1 && Math.abs(top - (size - 1 - bottom)) <= 1, `app-icon-${size}.png: the G is centered`);
   }
-  // The transparent icons are the "any" icons; the maskable ones are checked below. The theme and background colors
-  // stay the app's navy.
+  // The transparent icons are the only icons ("Transparent everywhere"); the theme and background colors stay the
+  // app's navy.
   const manifest = JSON.parse(fs.readFileSync(path.join(pub, 'manifest.webmanifest'), 'utf8'));
-  assert.deepEqual(manifest.icons.filter(icon => icon.purpose === 'any'), [192, 512].map(size => ({ src: `/app-icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })));
+  assert.deepEqual(manifest.icons, [192, 512].map(size => ({ src: `/app-icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })));
   assert.equal(manifest.background_color, navy);
   // iOS shows a transparent home-screen icon on black.
   assert.ok(contrast(lime, '#000000') >= 3);
 });
 
-test('Android and notifications get the G on a navy square: maskable icons inside the safe zone, and the notification icon', () => {
-  // Android draws a non-maskable icon inside a white circle, where the lime G is 1.32:1; a maskable icon fills the
-  // launcher's shape instead. The G stays inside the 80% safe zone, the circle every launcher shape keeps.
+test('Android and notifications use the same transparent G: no maskable or navy icon (Sean, "Transparent everywhere")', () => {
+  for (const name of ['app-icon-maskable.svg', 'app-icon-maskable-192.png', 'app-icon-maskable-512.png']) assert.ok(!fs.existsSync(path.join(pub, name)), `${name} is not shipped`);
   const manifest = JSON.parse(fs.readFileSync(path.join(pub, 'manifest.webmanifest'), 'utf8'));
-  assert.deepEqual(manifest.icons.filter(icon => icon.purpose !== 'any'), [192, 512].map(size => ({ src: `/app-icon-maskable-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'maskable' })));
-  const svg = fs.readFileSync(path.join(pub, 'app-icon-maskable.svg'), 'utf8');
-  assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 64 64"><title>Guess The Line<\/title><rect width="64" height="64" fill="([^"]+)"\/><svg /, 'a full-bleed square behind the G');
-  assert.equal(svg.match(/<rect [^>]*fill="([^"]+)"/)[1], navy, 'in the manifest\'s navy');
-  assert.deepEqual([...svg.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]), paths, 'the G\'s two paths, unchanged');
-  assert.match(svg, new RegExp(`<svg [^>]*viewBox="${viewBox}" color="${lime}"`), 'the lime G, framed as in Brand.jsx');
-  const at = placer('app-icon-maskable.svg'), [nr, ng, nb] = rgb(navy), [lr, lg, lb] = rgb(lime);
-  for (const size of [192, 512]) {
-    const png = readPng(path.join(pub, `app-icon-maskable-${size}.png`));
-    assert.deepEqual([png.width, png.height, png.depth, png.interlace], [size, size, 8, 0], `app-icon-maskable-${size}.png is ${size} x ${size}`);
-    assert.ok(png.pixel, `app-icon-maskable-${size}.png is RGB or RGBA`);
-    let lit = 0;
-    for (let y = 0; y < size; y += 1) for (let x = 0; x < size; x += 1) {
-      const [r, g, b, a] = png.pixel(x, y);
-      assert.equal(a, 255, `app-icon-maskable-${size}.png: ${x},${y} is opaque`);
-      // Navy, lime, or the anti-aliased blend of the two at the G's edge.
-      const t = (g - ng) / (lg - ng);
-      assert.ok(t >= -0.01 && t <= 1.01 && Math.abs(r - (nr + t * (lr - nr))) <= 3 && Math.abs(b - (nb + t * (lb - nb))) <= 3, `app-icon-maskable-${size}.png: ${x},${y} is rgb(${r}, ${g}, ${b})`);
-      if (g === ng) continue;
-      assert.ok(Math.hypot(x + 0.5 - size / 2, y + 0.5 - size / 2) <= size * 0.4, `app-icon-maskable-${size}.png: ${x},${y} is inside the safe zone`);
-      if (t > 0.99) lit += 1;
-    }
-    for (const [x, y] of [[0, 0], [size - 1, 0], [0, size - 1], [size - 1, size - 1]]) assert.deepEqual(png.pixel(x, y), [nr, ng, nb, 255], `app-icon-maskable-${size}.png corner ${x},${y} is navy`);
-    assert.ok(lit > size * size * 0.1, `app-icon-maskable-${size}.png: the G is drawn`);
-    for (const hole of holes) assert.deepEqual(png.pixel(...at(size, hole)), [nr, ng, nb, 255], `app-icon-maskable-${size}.png: only navy behind the G at ${hole}`);
-  }
-  // The notification icon is that square, so the G sits on navy on a light or a dark card; the badge stays the
-  // transparent G, which Android uses as a mask.
+  assert.ok(manifest.icons.every(icon => icon.purpose === 'any'), 'no maskable icon');
+  // The notification icon and badge are both the transparent G.
   const sw = fs.readFileSync(path.join(pub, 'sw.js'), 'utf8');
-  assert.match(sw, /\n {4}icon: '\/app-icon-maskable-192\.png',\n {4}badge: '\/app-icon-192\.png',\n/);
-  assert.ok(contrast(lime, navy) >= 3 && contrast(navy, '#FFFFFF') >= 3, 'the G on its square, and the square on a white card');
+  assert.match(sw, /\n {4}icon: '\/app-icon-192\.png',\n {4}badge: '\/app-icon-192\.png',\n/);
 });
 
 test('favicon.svg and app-icon.svg draw only the two G paths, centered, with no tile; the favicon is deep green in light and lime in dark', () => {
