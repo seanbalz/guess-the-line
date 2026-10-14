@@ -1,5 +1,7 @@
 import { bestOffer, newestPerBook } from '../shared/best-offer.mjs';
 import { settleVirtualUnitsWeek } from './virtual-settlement.mjs';
+import { LINE_MARKETS, lineLockedSentence, lockedMarkets, readLineGate } from './line-lock.mjs';
+import { readLiveRules } from './live-rules.mjs';
 
 const MARKETS = new Set(['spread','total']);
 const SIDES = { spread: new Set(['home','away']), total: new Set(['over','under']) };
@@ -15,6 +17,9 @@ const ERRORS = {
   GTL_VIRTUAL_CLOSED: [400, 'This matchup has started. Virtual picks and edits are closed.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your virtual picks changed on another device. Refresh before saving again.'],
   GTL_VIRTUAL_QUOTE: [409, 'That saved quote is no longer available. Review the latest offered line before confirming.'],
+  // Redesign stage 20 (D-36, D-39): the line lock. The route raises it itself, before any quote is compared, so a
+  // refusal never tells a player whether a line they guessed is on offer. The route words it per market and live rule.
+  GTL_LINE_LOCKED: [409, 'Make your Guess the Line pick for this game first. Its line opens once your pick is in, after a sit-out, or at kickoff.'],
   // D-26 settlement (commissioner route and script). A refused call settles nothing;
   // a file row for a game that is not on the slate is skipped and reported, not refused.
   GTL_VIRTUAL_FORBIDDEN: [403, 'Only the commissioner can settle Virtual Units.'],
@@ -76,10 +81,18 @@ function consensus(game, snapshot, market) {
   };
 }
 
-function decorate(payload, snapshot) {
-  const now = Date.now();
-  const games = (payload.games || []).map(game => ({ ...game, pacificDate: new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', month:'short', day:'numeric' }).format(new Date(game.kickoff)), offers: bestOffers(game, snapshot), consensus: { spread: consensus(game, snapshot, 'spread'), total: consensus(game, snapshot, 'total') } }));
-  return { ...payload, games, source: 'The Odds API saved named-book quotes', sourceUrl: 'https://the-odds-api.com/liveapi/guides/v4/', quoteCutoff: null, now: new Date(now).toISOString(), automaticResults: false };
+// Stage 20 line lock (cloud/line-lock.mjs): a locked market carries no book offer and no consensus, only
+// `locked: { spread, total }`. The player's own saved picks (`payload.picks`) always keep their full terms.
+function decorate(payload, snapshot, { gate, now, rules }) {
+  const games = (payload.games || []).map(game => {
+    const locked = lockedMarkets(game, { season: payload.season, week: payload.week, gate, now });
+    const open = LINE_MARKETS.filter(market => !locked[market]);
+    const offers = bestOffers(game, snapshot);
+    return { ...game, pacificDate: new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', month:'short', day:'numeric' }).format(new Date(game.kickoff)),
+      offers: Object.fromEntries(open.map(market => [market, offers[market]])),
+      consensus: Object.fromEntries(open.map(market => [market, consensus(game, snapshot, market)])), locked };
+  });
+  return { ...payload, games, source: 'The Odds API saved named-book quotes', sourceUrl: 'https://the-odds-api.com/liveapi/guides/v4/', quoteCutoff: null, now: new Date(now).toISOString(), automaticResults: false, rules };
 }
 
 /**
@@ -104,23 +117,33 @@ async function settleRoute({ body, user, service, clock }) {
   }
 }
 
-export async function handleVirtualUnits({ route, body, user, leagueId, service, weekly, odds, clock = Date.now }) {
+export async function handleVirtualUnits({ route, body, user, leagueId, service, weekly, odds, optionalRpc, clock = Date.now }) {
   if (route === '/virtual-units/settle') return settleRoute({ body, user, service, clock });
   if (!service?.read || !service?.save) throw new VirtualUnitsError(503, 'The virtual units service is not connected yet.');
+  // The live rules word the lock and decide whether today's gate may stand in for M-01's (cloud/line-lock.mjs).
+  // readLiveRules never rejects.
+  const gateAt = (now, rules) => readLineGate({ userId: user.id, service, optionalRpc, rules, now });
   if (route === '/virtual-units') {
-    const [payload, snapshot] = await Promise.all([service.read(user.id, leagueId), odds.marketSnapshot(user.id, leagueId).catch(() => null)]);
-    return decorate({ ...payload, quoteHistoryAvailable: Boolean(snapshot) }, snapshot);
+    const now = clock(), rules = readLiveRules(optionalRpc);
+    const [payload, snapshot, gate, live] = await Promise.all([service.read(user.id, leagueId), odds.marketSnapshot(user.id, leagueId).catch(() => null), gateAt(now, rules), rules]);
+    return decorate({ ...payload, quoteHistoryAvailable: Boolean(snapshot) }, snapshot, { gate, now, rules: live });
   }
   const pick = validateBody(body);
   const state = await weekly.load(user.id, leagueId);
   const game = state?.state?.games?.find(item => item.id === pick.gameId);
   if (!game) throw providerVirtualError('GTL_VIRTUAL_INVALID');
-  if (clock() >= Date.parse(game.kickoff)) throw providerVirtualError('GTL_VIRTUAL_CLOSED');
+  const now = clock();
+  if (now >= Date.parse(game.kickoff)) throw providerVirtualError('GTL_VIRTUAL_CLOSED');
+  // The line lock comes before the quote check: a locked market is refused whatever line and odds were sent.
+  const rules = readLiveRules(optionalRpc), gate = await gateAt(now, rules);
+  if (lockedMarkets(game, { season: state.state.league?.season, week: state.state.league?.week, gate, now })[pick.market]) {
+    throw new VirtualUnitsError(ERRORS.GTL_LINE_LOCKED[0], lineLockedSentence(pick.market, await rules));
+  }
   const snapshot = await odds.marketSnapshot(user.id, leagueId).catch(() => null);
   const offered = latestQuotes(snapshot, game, pick.market).flatMap(q => [pick.side].map(side => ({ ...q, line: Number(q.outcomes[side].line), odds: Number(q.outcomes[side].odds) })));
   const matched = offered.some(q => q.source === pick.source && q.line === pick.line && q.odds === pick.odds && q.observedAt === pick.quotedAt);
   if (!matched) throw providerVirtualError('GTL_VIRTUAL_QUOTE');
   const revision = state.revision;
   const next = await service.save(user.id, leagueId, revision, pick);
-  return handleVirtualUnits({ route:'/virtual-units', user, leagueId, service, weekly, odds, clock }).then(result => ({ ...result, saved:true, revision:next }));
+  return handleVirtualUnits({ route:'/virtual-units', user, leagueId, service, weekly, odds, optionalRpc, clock }).then(result => ({ ...result, saved:true, revision:next }));
 }

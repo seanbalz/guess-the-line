@@ -81,7 +81,8 @@ test('M-06 is a repo file the hosted project does not have yet; its readers join
 test('the lines readers (M-06): a cell opens per game and market on a lock-in, a sit-out or that game\'s kickoff; nothing else ever shows', { skip }, async t => {
   let clock = null;
   // groupScreens: the old group routes (/state, /export) in the leak scan list read membership and the weekly state too.
-  const world = await createCommunityWorld({ migrations: ALL, games: 4, troyBallots: false, groupScreens: true, clock: () => clock ?? second(Date.now()) });
+  // virtualUnits: /virtual-units is one of the READERS (stage 20).
+  const world = await createCommunityWorld({ migrations: ALL, games: 4, troyBallots: false, groupScreens: true, virtualUnits: true, clock: () => clock ?? second(Date.now()) });
   t.after(() => world.db.close());
   const { db, state } = world, ids = state.games.map(g => g.id), [A, B, C, D] = ids;
   const map = values => Object.fromEntries(ids.map((g, i) => [g, values[i]]));
@@ -388,7 +389,7 @@ test('the kickoff line, movement and named books with prices (M-06): the newest 
 });
 
 test('before the apply: on the hosted schema /lines/* answer the generic 503 and every other reader is unchanged', { skip }, async t => {
-  const world = await createCommunityWorld({ troyBallots: false, groupScreens: true });
+  const world = await createCommunityWorld({ troyBallots: false, groupScreens: true, virtualUnits: true });
   t.after(() => world.db.close());
   for (const [route, body] of [['lines/read', {}], ['lines/game', { gameId: 'TB-DAL' }]]) {
     assert.deepEqual(await world.api('luke', route, body), { status: 503, body: { error: 'The saved data service is temporarily unavailable. Please try again.' } }, route);
