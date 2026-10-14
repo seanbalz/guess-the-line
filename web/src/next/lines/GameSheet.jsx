@@ -104,7 +104,7 @@ export function GameSheet({ args }) {
               </Expander>
             ) : null}
             {t.status === 'ready' ? (
-              <Row key="all" title={LINES_COPY.allTrends} sub={t.count ? `${t.count} that fit this game, and every record` : 'Every record for this game'} chevron
+              <Row key="all" title={LINES_COPY.allTrends} sub={t.count ? `${t.count} ${t.count === 1 ? 'trend fits' : 'trends fit'} this game · every record` : 'Every record for this game'} chevron
                 onClick={() => shell.openSheet('sh.allTrends', { game: view.id })}/>
             ) : null}
           </List>
