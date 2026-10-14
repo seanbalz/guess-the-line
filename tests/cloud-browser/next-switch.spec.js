@@ -6,8 +6,9 @@ import { SUPABASE, communityWorld, pgliteAvailable, signIn, switchAccount } from
 // Redesign build plan, stage 9: the switch (section 3.2; D-38, D-39), on the real Community home with the real
 // handler and every migration (ALL) on local PGlite, at 390 x 844. "Try the new app" is in the Community footer
 // for every signed-in member; the choice is kept on this device and the page reloads into the lazy NextApp (the
-// stage 10 shell); "Use the old app" comes back; a blocked chunk falls back to the old app; ?app=classic always
-// forces the old app; storage that refuses the choice keeps the old app and says so. Never contacts hosted data.
+// stage 10 shell, reading through the stage 11 data layer); "Use the old app" comes back; a blocked chunk falls
+// back to the old app; ?app=classic always forces the old app; storage that refuses the choice keeps the old app and
+// says so. Never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
 const TRY = 'Try the new app', OLD = 'Use the old app';
@@ -85,7 +86,8 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     // A reload keeps the device's choice.
     await page.reload();
     await expect(newApp(page)).toBeVisible();
-    expect(calls, 'the new app reads and writes nothing yet (stage 10)').toEqual([]);
+    // Stage 11: the new app reads the account and the Community once per page load, and writes nothing.
+    expect(calls).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
 
     await page.getByRole('button', { name: OLD, exact: true }).click();
     await expect(communityHome(page)).toBeVisible();

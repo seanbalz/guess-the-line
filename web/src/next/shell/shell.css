@@ -1,4 +1,4 @@
-/* Guess The Line, D-38: the new app's frame (redesign build plan stage 10; prototype shell, CONTRACT section 2).
+/* Guess The Line, D-38: the new app's frame (redesign build plan stages 10 and 11; prototype shell, CONTRACT section 2).
    Top bar (56, sticky, never under the status bar), the page, the dock 8 above the tab bar, the tab bar (64 plus the
    home-indicator inset). On a phone the frame fills the screen; on a wider screen each bar keeps its color edge to edge
    and its contents in the 520 column. Loaded after components.css; every rule stays inside .gx. */
@@ -93,6 +93,38 @@
   box-shadow: inset 4px 0 0 var(--gx-loss), var(--gx-e1);
 }
 
+/* ===== screens without the frame (stage 11): the start screen, its failure card and the name step ===== */
+.gx-solo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  max-width: var(--gx-size-content);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(40px + env(safe-area-inset-bottom, 0px));
+}
+.gx-solo > .gx-mono { align-self: center; }
+.gx-solo > [role="status"] { text-align: center; }
+.gx-solo-brand { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+/* The heading takes focus only so a screen reader starts there; it is not a control, so it draws no ring. */
+.gx-solo-brand .gx-t-title:focus { outline: none; }
+.gx-solo-form { display: flex; flex-direction: column; gap: 8px; }
+.gx-solo-form > .gx-btn--primary { margin-top: 16px; }
+.gx-solo-end { align-self: center; }
+.gx-solo-card { align-items: stretch; }
+.gx-solo-card > .gx-ic,
+.gx-solo-card > .gx-btn--ghost-2 { align-self: flex-start; }
+/* A save that did not go through: the words in the body color, marked by the loss color's edge (never color alone). */
+.gx-solo-problem { padding-left: 12px; box-shadow: inset 3px 0 0 var(--gx-loss); }
+/* A labelled field: the label above its input. */
+.gx-field { display: flex; flex-direction: column; gap: 8px; }
+
+/* The switcher's league names: one line, then an ellipsis. */
+.gx-league-row-name { display: block; }
+
 /* The menu's Sign out: a grey text button at the bottom, aligned with the rows' words. */
 .gx-menu-signout { align-self: flex-start; margin-left: -8px; }
 
@@ -178,6 +210,7 @@
 @media (forced-colors: active) {
   .gx-league-pill,
   .gx-offline,
-  .gx-fail { border: 1px solid CanvasText; }
+  .gx-fail,
+  .gx-solo-problem { border: 1px solid CanvasText; }
   .gx-tab--on::before { forced-color-adjust: none; background: Highlight; }
 }

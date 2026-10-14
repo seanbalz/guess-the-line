@@ -156,6 +156,13 @@ describe('trends panel', () => {
     expect(text(html)).toContain('Find this game’s band with your saved line');
     expect(text(html)).toContain('Records that need both lines');
   });
+  it('a locked market says when it opens: after the deadline today, at this game\'s kickoff once the per-game gate is live (stage 17)', () => {
+    expect(text(render({ gameId: 'SEA-DEN', access: { spread: false, total: false, revealAt: 'deadline' } }))).toContain('or after the deadline. No line is shown before then.');
+    expect(text(render({ gameId: 'SEA-DEN', access: {} }))).toContain('or after the deadline. No line is shown before then.');
+    const t = text(render({ gameId: 'SEA-DEN', access: { spread: false, total: false, revealAt: 'kickoff' } }));
+    expect(t).toContain('or once this game kicks off. No line is shown before then.');
+    expect(t).not.toContain('after the deadline');
+  });
   it('a line held for a locked market is ignored', () => {
     const html = render({ gameId: 'SEA-DEN', access: {}, saved: { spread: -3, total: 47.5 } });
     expect(html).not.toContain('This game</strong>');

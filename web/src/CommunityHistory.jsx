@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useId, useState } from 'react';
-import { CalendarClock, LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-react';
+import { CalendarClock, LoaderCircle, LockKeyhole, RefreshCw, TriangleAlert } from 'lucide-react';
 import { communityApi, date } from './api';
 import { TeamMatchup } from './TeamIdentity';
-import { MODE, pickText, shortName, show } from './communityFormat';
+import { MODE, lateText, pickText, shortName, show } from './communityFormat';
 
 /**
  * Community history (Sean's rulings, October 12, 2026): every member's Spread and Total guesses for every week, each with the
@@ -12,9 +12,12 @@ import { MODE, pickText, shortName, show } from './communityFormat';
  * observed at or before it, else the first line stored after it and before kickoff, with its source, observation time and
  * how long before or after the guess it was observed. A ballot whose original submission time was not recorded is compared at
  * the submission time it stores, labelled as such. One player at a time, weeks newest first, both markets per week.
- * Another member's open-week guesses stay hidden until the viewer submits that market or sits out (the same reveal gate as the
- * feed); the week's points total is shared as it is on the leaderboard. The last change, the number of revisions after
- * submitting and where a ballot came from are the owner's alone, so another player's section shows the submission time only.
+ * Another member's open-week guesses stay hidden game by game until that game and market is open to the viewer (redesign stage
+ * 17, D-39: the viewer's own lock-in, a sit-out, or that game's kickoff; the same gate as the feed), and before the per-game gate
+ * (M-01) until the viewer submits that market or sits out; the week's points total is shared as it is on the leaderboard. Once
+ * the per-game gate is live a game's points count from its kickoff, so a sent guess reads "Scores at kickoff" until then. The
+ * last change, the number of revisions after submitting and where a ballot came from are the owner's alone, so another
+ * player's section shows the submission time only.
  * A practice ballot without an eligible commissioner ruling (D-08) is listed with its guesses and lines, labelled, and never
  * scored. Points come from the server.
  */
@@ -91,12 +94,21 @@ function Result({ result, game, mode }) {
 }
 
 const NOT_SCORED = { practice: 'Not scored · practice', 'ruled-ineligible': 'Not scored · not eligible' };
-const Points = ({ pick, entry }) => (entry && !entry.eligible ? <><strong className="mono">—</strong><small>{NOT_SCORED[entry.eligibility] || NOT_SCORED.practice}</small></>
-  : pick?.points === null || pick?.points === undefined ? <><strong className="mono">—</strong><small>Unscored</small></> : <><strong className="mono">{show(pick.points)}</strong><small>of 10</small></>);
+// Redesign stage 17: a sent guess whose game has not kicked off has a line but no points yet (points count from kickoff once the
+// per-game gate is live, M-01); it reads "Scores at kickoff", not "Unscored".
+const Points = ({ pick, entry, pending = false }) => (pick?.hidden ? <><strong className="mono">—</strong><small>Hidden</small></>
+  : entry && !entry.eligible ? <><strong className="mono">—</strong><small>{NOT_SCORED[entry.eligibility] || NOT_SCORED.practice}</small></>
+  : pick?.points === null || pick?.points === undefined ? <><strong className="mono">—</strong><small>{pending ? 'Scores at kickoff' : 'Unscored'}</small></> : <><strong className="mono">{show(pick.points)}</strong><small>of 10</small></>);
+// A game withheld from this viewer (redesign stage 17, D-39): a lock and the word, never a number.
+const Withheld = () => <span className="history-hidden"><LockKeyhole size={14} aria-hidden="true"/>Hidden</span>;
 const ELIGIBILITY = { practice: 'Practice ballot · listed, never scored', 'ruled-ineligible': 'Not eligible by commissioner ruling · listed, never scored', 'ruled-eligible': 'Counts by commissioner ruling' };
 
-function MarketHistory({ week, mode, entry, player, viewer }) {
+function MarketHistory({ week, mode, entry, player, viewer, now }) {
   const label = MODE[mode], games = week.games, max = games.length * 10, you = player.id === viewer;
+  // The per-game gate (M-01) is live when the server sends this viewer's gate for the week; then each game scores from its kickoff.
+  const perGame = !!week.gate, at = Date.parse(now);
+  const before = g => perGame && Number.isFinite(at) && !(Date.parse(g.kickoff) <= at);
+  const pending = (pick, g) => !!pick && !pick.hidden && entry?.status === 'submitted' && Number.isFinite(pick.reference?.value) && before(g);
   const heading = useId();
   let body;
   if (!entry) body = <p className="history-state muted">No {ballotNoun(mode)} ballot{week.closed ? '' : ' yet'}.</p>;
@@ -106,6 +118,8 @@ function MarketHistory({ week, mode, entry, player, viewer }) {
     const submitted = entry.submittedAtKnown === false ? `Submitted · original time not recorded (stored as ${date(entry.submittedAt)} PT)` : `Submitted ${date(entry.submittedAt)} PT`;
     const status = entry.status === 'draft' ? `Draft (not submitted)${week.closed ? ' · does not score' : ''}`
       : `${submitted}${changed ? ` · changed ${date(entry.updatedAt)} PT` : ''}${entry.revisions ? ` · ${plural(entry.revisions, 'revision')} after submitting` : ''}`;
+    // D-30: the stored Late marker shows wherever the picks do (written from M-07).
+    const late = entry.status === 'submitted' && entry.late ? lateText(entry.late) : '';
     const basis = entry.ruling ? `Commissioner-ruled (${entry.ruling.decision})` : entry.scoringPolicy === 'submission-time' ? 'Scored against the line saved with each guess (D-16)'
       : entry.status !== 'submitted' ? ''
       : entry.submittedAtKnown === false ? `No line was saved with these guesses and the original submission time was not recorded; each is ${entry.eligible ? 'scored against' : 'shown with'} the line at the stored submission time (the newest stored line observed at or before it, else the first line after it and before kickoff)`
@@ -114,29 +128,32 @@ function MarketHistory({ week, mode, entry, player, viewer }) {
     const summary = entry.status === 'draft' ? null
       : !entry.eligible ? <p className="history-points"><strong>{entry.eligibility === 'ruled-ineligible' ? 'Not eligible' : 'Practice'}</strong><span className="muted small">listed, not scored</span></p>
       : entry.weekScored ? <p className="history-points"><strong className="mono">{show(entry.weekPoints)} / {max} pts</strong><span className="muted small">{entry.weekScored} of {games.length} scored</span></p>
+      : games.length && games.every(before) ? <p className="history-points"><strong>No points yet</strong><span className="muted small">each game scores from its kickoff</span></p>
       : <p className="history-points"><strong>Unscored</strong><span className="muted small">no line stored for these guesses</span></p>;
     body = <>
-      <p className="history-status">{status}</p>
+      <p className="history-status">{status}{late && <span className="late-marker"> · {late}</span>}</p>
       {origin && <p className="history-status muted">{origin}</p>}
       {summary}
-      {entry.picksHidden ? <p className="history-state muted">Hidden until you submit your Week {week.week} {label} picks or sit out.</p> : <>
+      {entry.picksHidden && !entry.picks ? <p className="history-state muted">{!perGame ? `Hidden until you submit your Week ${week.week} ${label} picks or sit out.`
+        : week.closed ? "Hidden until each game's kickoff." : `Hidden until you submit your Week ${week.week} ${label} picks or sit out, or each game's kickoff.`}</p> : <>
+        {entry.picksHidden && <p className="history-state muted">{week.closed ? 'Games marked Hidden open at their kickoff.' : `Games marked Hidden open at their kickoff, or when you submit your Week ${week.week} ${label} picks or sit out.`}</p>}
         <div className="table-scroll comparison-table history-table" role="region" tabIndex={0} aria-labelledby={heading}>
           <table><caption className="sr-only">{player.displayName}'s Week {week.week} {label} guesses, the line at each guess, the final and the points</caption>
             <thead><tr><th scope="col">MATCHUP</th><th scope="col">GUESS</th><th scope="col">LINE AT GUESS</th><th scope="col">RESULT</th><th scope="col">POINTS</th></tr></thead>
             <tbody>{games.map(g => { const pick = entry.picks?.find(p => p.gameId === g.id); return <tr key={g.id}>
               <th scope="row"><TeamMatchup game={g} compact/><small>{date(g.kickoff)} PT</small></th>
-              <td><strong className="mono">{pickText(mode, g.awayCode, g.homeCode, pick?.guess)}</strong></td>
-              <td><HistoryLine reference={pick?.reference} mode={mode} game={g}/></td>
+              <td>{pick?.hidden ? <Withheld/> : <strong className="mono">{pickText(mode, g.awayCode, g.homeCode, pick?.guess)}</strong>}</td>
+              <td>{pick?.hidden ? <strong className="mono">—</strong> : <HistoryLine reference={pick?.reference} mode={mode} game={g}/>}</td>
               <td><Result result={week.results[g.id]} game={g} mode={mode}/></td>
-              <td><Points pick={pick} entry={entry}/></td></tr>; })}</tbody></table>
+              <td><Points pick={pick} entry={entry} pending={pending(pick, g)}/></td></tr>; })}</tbody></table>
         </div>
         <div className="comparison-mobile history-cards">{games.map(g => { const pick = entry.picks?.find(p => p.gameId === g.id); return <article key={g.id} aria-label={`${g.awayCode} at ${g.homeCode} ${label}`}>
           <TeamMatchup game={g}/><small>{date(g.kickoff)} PT</small>
           <dl>
-            <div><dt>Guess</dt><dd className="mono">{pickText(mode, g.awayCode, g.homeCode, pick?.guess)}</dd></div>
-            <div><dt>Line at guess</dt><dd><HistoryLine reference={pick?.reference} mode={mode} game={g}/></dd></div>
+            <div><dt>Guess</dt><dd className="mono">{pick?.hidden ? <Withheld/> : pickText(mode, g.awayCode, g.homeCode, pick?.guess)}</dd></div>
+            <div><dt>Line at guess</dt><dd>{pick?.hidden ? <strong className="mono">—</strong> : <HistoryLine reference={pick?.reference} mode={mode} game={g}/>}</dd></div>
             <div><dt>Result</dt><dd><Result result={week.results[g.id]} game={g} mode={mode}/></dd></div>
-            <div><dt>Points</dt><dd><Points pick={pick} entry={entry}/></dd></div>
+            <div><dt>Points</dt><dd><Points pick={pick} entry={entry} pending={pending(pick, g)}/></dd></div>
           </dl></article>; })}</div>
       </>}
     </>;
@@ -181,7 +198,7 @@ export default function CommunityHistory({ accountId }) {
     {chosen && data.weeks.map(week => <section key={`${week.season}-${week.week}`} className="panel history-week" aria-label={`Week ${week.week} history`}>
       <h2>Week {week.week} · {week.season}</h2>
       <p className="muted small">Picks due {date(week.deadline, { weekday: 'short' })} PT · {week.closed ? 'Closed' : 'Open'} · {plural(week.games.length, 'game')}</p>
-      {MODES.map(mode => <MarketHistory key={mode} week={week} mode={mode} player={chosen} viewer={data.viewer} entry={entryFor(week, chosen.id, mode)}/>)}
+      {MODES.map(mode => <MarketHistory key={mode} week={week} mode={mode} player={chosen} viewer={data.viewer} now={data.now} entry={entryFor(week, chosen.id, mode)}/>)}
     </section>)}
     <p className="muted small">Points are fixed when each pick is saved against that moment's consensus. A guess with no saved line is scored against the line at the guess: the newest stored line observed at or before it, else the first line after it and before kickoff. Practice ballots are listed, never scored. Sat out is recorded as sat out, never 0.</p>
   </section>;

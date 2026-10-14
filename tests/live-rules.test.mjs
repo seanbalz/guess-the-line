@@ -121,7 +121,8 @@ test('a missing gtl_live_rules (feature off) or a failing read leaves every rout
       assert.deepEqual(actual.body, expected.body, `${path}: the same reply as without the RPC`);
       assert.doesNotMatch(JSON.stringify(actual.body), /private failure/);
     }
-    assert.deepEqual(calls.filter(([kind]) => kind === 'optional').map(([, name, body]) => [name, body]), routes.map(() => ['gtl_live_rules', {}]), 'one read per view');
+    // /community/read also reads its `forfeit` (M-03, stage 19) through the same wrapper; tests/guess-forfeit-cloud.test.mjs covers it.
+    assert.deepEqual(calls.filter(([kind, name]) => kind === 'optional' && name === 'gtl_live_rules').map(([, name, body]) => [name, body]), routes.map(() => ['gtl_live_rules', {}]), 'one read per view');
   }
 });
 
