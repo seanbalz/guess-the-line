@@ -13,6 +13,8 @@ const pick = async (card, team, line) => { await card.getByRole('button', { name
 
 test('phone: slow network, interrupted ballot, reload and back button', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  // Every request waits 400 ms, so this journey takes 25 to 35 s: more than the config's 30 s default allows.
+  test.setTimeout(90_000);
   await persona.start();
   persona.net.delay = 400; // Slow-3G-like latency on every request, static and API.
   const t0 = Date.now();
