@@ -19,6 +19,9 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
  * lock), /social/read with real slips (stage 21), /lines/* (23), /community/picks (26), /league/* and /me/* (later).
  * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
+ * /community/picks (stage 26, M-08) is scanned on ALL in tests/guess-picks-sql.test.mjs until M-08 is hosted (every viewer,
+ * both markets, one game and one member, before and after kickoffs); the apply record moves it here, so this list stays the
+ * routes that answer on HOSTED.
  */
 export const READERS = Object.freeze([
   ['/community/read', 'POST', {}],

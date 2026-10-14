@@ -40,6 +40,9 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * scripts/boundary/me.mjs lists M-09's private notes pieces (redesign stage 27): its two RPCs and the /personal/notes and
  * /personal/note routes. Nothing calls them until the new app's note field (stage 35), and a gtl-api deploy before the
  * apply answers those routes 503 "not available right now", so neither order fails check:cloud on them alone.
+ * scripts/boundary/guess.mjs also lists M-08's everyone's picks pieces (redesign stage 26): gtl_read_guess_picks and the
+ * /community/picks route. Nothing calls them until the new app's Everyone's picks (stage 31), and a gtl-api deploy before
+ * the apply answers the route 503 "not available right now", so neither order fails check:cloud on them alone.
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
