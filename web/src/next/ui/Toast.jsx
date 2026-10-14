@@ -1,8 +1,9 @@
 // A toast (design system 7.16): one line at the bottom, 8 above the dock or tab bar, with one icon (a check for done,
 // an alert for a warning, a circled x for an error), an optional text action and a dismiss button. It leaves after 4 seconds
-// (6 with an action) and waits while a pointer or focus is on it; an error stays until dismissed and is announced at
-// once (role alert), the others politely (role status). The stage 10 host shows one at a time, keyed by toast, and
-// keeps the live region in place between toasts.
+// (6 with an action) and waits while a pointer or focus is on it; an error stays until dismissed. On its own a toast is
+// its own live region: an error is announced at once (role alert), the others politely (role status). A live region
+// that appears together with its words is not announced reliably, so the stage 10 toast host passes `live={false}`
+// and announces each toast in the one live region it keeps in place (web/src/next/shell/ToastHost.jsx).
 import { Check, CircleX, TriangleAlert, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from './Button.jsx';
@@ -25,9 +26,10 @@ export function toastDuration({ tone = 'done', actionLabel, duration } = {}) {
 
 /**
  * `<Toast text="Spread picks in · 15 of 15" onDismiss={next}/>`. `start` leads with a face (the rank-up toast); `extra`
- * follows the words (the Drive meter); `bottom` lifts it above a dock bar (a px value from the host).
+ * follows the words (the Drive meter); `bottom` lifts it above a dock bar (a px value; the stage 10 host uses the
+ * frame's dock space instead); `live={false}` drops its role when a host announces it.
  */
-export function Toast({ text, tone = 'done', actionLabel, onAction, onDismiss, duration, start, extra, bottom, dismissLabel = 'Dismiss', className }) {
+export function Toast({ text, tone = 'done', actionLabel, onAction, onDismiss, duration, start, extra, bottom, live = true, dismissLabel = 'Dismiss', className }) {
   const kind = oneOf(tone, TOAST_TONES, 'done');
   const ms = toastDuration({ tone: kind, actionLabel, duration });
   const dismiss = useRef(onDismiss);
@@ -49,7 +51,7 @@ export function Toast({ text, tone = 'done', actionLabel, onAction, onDismiss, d
   return (
     <div
       className={cx('gx-toast', className)}
-      role={kind === 'error' ? 'alert' : 'status'}
+      role={live ? (kind === 'error' ? 'alert' : 'status') : undefined}
       style={typeof bottom === 'number' ? { bottom: `${bottom}px` } : undefined}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}

@@ -3,8 +3,11 @@
 // parent ("‹ SEA @ DEN") with the sub-view's title at the top of the body. The body scrolls; an optional foot holds
 // the sheet's actions above the home indicator. Tapping the scrim or pressing Escape closes it; focus moves in on open,
 // stays inside while open and returns to the opener on close. The stage 10 host keeps one sheet showing at a time.
+// A sub-view opens in place (the same sheet, new `back` and `title`): the head swaps the title for the back button, so
+// whatever had focus may be gone. Each change of view moves focus to the panel, which reads the new title and keeps
+// Tab and Escape inside the sheet (stage 10 kit fix).
 import { ChevronLeft, X } from 'lucide-react';
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { Icon } from './Icon.jsx';
 import { IconButton } from './IconButton.jsx';
 import { cx } from './cx.js';
@@ -19,6 +22,13 @@ export function Sheet({ title, onClose, back, tall = false, footer, closeLabel =
   const panel = useRef(null);
   const titleId = useId();
   const onKeyDown = useModal(panel, { onEscape: onClose, initialFocusRef });
+  const view = back ? `sub ${back.label} ${title}` : 'main';
+  const shownView = useRef(view);
+  useEffect(() => {
+    if (shownView.current === view) return;
+    shownView.current = view;
+    panel.current?.focus({ preventScroll: true });
+  }, [view]);
   const heading = <h2 className={back ? 'gx-t-section' : 'gx-sheet-title'} id={titleId}>{title}</h2>;
   return (
     <div className="gx-layer gx-layer--sheet" onKeyDown={onKeyDown}>

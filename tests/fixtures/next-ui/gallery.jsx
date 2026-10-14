@@ -211,25 +211,34 @@ function Gallery() {
         </Section>
       </main>
 
-      {sheet === 'main' ? (
-        <Sheet title="SEA @ DEN" onClose={() => setSheet(null)} footer={<Button variant="primary" block onClick={record('sheet-primary')}>Guess this game</Button>}>
-          <div className="gx-hstack gx-gap-12">
-            <TeamMark code="SEA" name="Seattle Seahawks"/>
-            <TeamMark code="DEN" name="Denver Broncos"/>
-          </div>
-          <LockLine>{copy.lineLocked('spread')}</LockLine>
-          <Card variant="flush">
-            <List label="More">
-              <Row onClick={() => setSheet('sub')} chevron title="Everyone's picks" sub={copy.picksHidden('spread')}/>
-              <Row onClick={record('trends')} chevron title="All trends"/>
-            </List>
-          </Card>
-        </Sheet>
-      ) : null}
-      {sheet === 'sub' ? (
-        <Sheet title="Everyone's picks" back={{ label: 'SEA @ DEN', onBack: () => setSheet('main') }} onClose={() => setSheet(null)}>
-          <AvatarStack people={PEOPLE} label="6 are in"/>
-          <Button variant="ghost" onClick={record('see-now')}>{copy.SEE_PICKS_NOW}</Button>
+      {/* One sheet whose sub-view changes in place, as the stage 10 host draws it (the head swaps title and back). */}
+      {sheet ? (
+        <Sheet
+          title={sheet === 'sub' ? "Everyone's picks" : 'SEA @ DEN'}
+          back={sheet === 'sub' ? { label: 'SEA @ DEN', onBack: () => setSheet('main') } : undefined}
+          onClose={() => setSheet(null)}
+          footer={sheet === 'main' ? <Button variant="primary" block onClick={record('sheet-primary')}>Guess this game</Button> : undefined}
+        >
+          {sheet === 'sub' ? (
+            <>
+              <AvatarStack people={PEOPLE} label="6 are in"/>
+              <Button variant="ghost" onClick={record('see-now')}>{copy.SEE_PICKS_NOW}</Button>
+            </>
+          ) : (
+            <>
+              <div className="gx-hstack gx-gap-12">
+                <TeamMark code="SEA" name="Seattle Seahawks"/>
+                <TeamMark code="DEN" name="Denver Broncos"/>
+              </div>
+              <LockLine>{copy.lineLocked('spread')}</LockLine>
+              <Card variant="flush">
+                <List label="More">
+                  <Row onClick={() => setSheet('sub')} chevron title="Everyone's picks" sub={copy.picksHidden('spread')}/>
+                  <Row onClick={record('trends')} chevron title="All trends"/>
+                </List>
+              </Card>
+            </>
+          )}
         </Sheet>
       ) : null}
 

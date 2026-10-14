@@ -38,6 +38,10 @@ export function ThemeProvider({ children }) {
   return <ThemeContext.Provider value={{ preference, choose, saved }}>{children}</ThemeContext.Provider>;
 }
 
+/** The device's Light/Dark/System choice for the new app's Appearance (redesign stage 10): `{ preference, choose,
+ *  saved }`, the same state and `gtl.theme` key as the selector below, so both apps always agree. */
+export function useThemePreference() { return useContext(ThemeContext); }
+
 export default function ThemeSelector() {
   const { preference, choose, saved } = useContext(ThemeContext), id = useId();
   const Icon = preference === 'light' ? Sun : preference === 'system' ? Monitor : Moon;

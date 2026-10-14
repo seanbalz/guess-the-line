@@ -1,6 +1,8 @@
 // Focus handling for the new app's own modal layers (Sheet, Overlay; the native <dialog> does this itself):
 // on open, focus moves into the layer; Tab and Shift+Tab stay inside it; Escape asks it to close; on close, focus goes
-// back to whatever had it before. The stage 10 layer hosts stack these and make the page behind inert.
+// back to whatever had it before. The stage 10 layer hosts stack these and make the page behind inert. If what had focus
+// inside the layer goes away (a button that removes itself, a view that changes in place), focus would drop to the
+// page, where Escape and Tab no longer reach the layer: after each render the panel takes it back.
 import { useCallback, useEffect, useRef } from 'react';
 
 const FOCUSABLE = [
@@ -31,6 +33,12 @@ export function useModal(panelRef, { onEscape, initialFocusRef } = {}) {
     };
     // Once per opening: the layer mounts when it opens and unmounts when it closes.
   }, []);
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel || typeof document === 'undefined' || panel.closest('[inert], [hidden]')) return;
+    const active = document.activeElement;
+    if (!active || active === document.body || !active.isConnected) panel.focus({ preventScroll: true });
+  });
   return useCallback(event => {
     if (event.key === 'Escape') {
       if (typeof escape.current === 'function') {
