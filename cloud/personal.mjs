@@ -6,6 +6,8 @@ export const PERSONAL_METHODS = {
   '/personal': ['GET'], '/personal/read': ['POST'], '/personal/ballot': ['POST'],
   '/personal/forecast': ['POST'], '/favorite/set': ['POST'], '/journal/create': ['POST'],
   '/journal/correct': ['POST'], '/journal/archive': ['POST'], '/journal/history': ['POST'],
+  // M-09 private game notes (redesign stage 27): the owner's notes for a week, and one note's save.
+  '/personal/notes': ['POST'], '/personal/note': ['POST'],
 };
 const ERRORS = {
   GTL_PERSONAL_INVALID: [400, 'Check the entry fields and try again.'],
@@ -22,6 +24,11 @@ const ERRORS = {
   GTL_COMMUNITY_SAT_OUT: [409, 'You sat out this week for that market. Its picks are closed.'],
   GTL_BALLOT_INCOMPLETE: [400, 'Complete every prediction before submitting.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your weekly ballot changed in another group or on another device. Refresh and review before saving.'],
+  // M-09 private notes (stage 27), mapped before the SQL can raise them. GTL_FEATURE_OFF is also the answer while
+  // the hosted project does not have a personal RPC yet (PostgREST PGRST202, see createSupabaseAdapter).
+  GTL_NOTE_TOO_LONG: [400, 'A note can be up to 2,000 characters.'],
+  GTL_NOTE_CONFLICT: [409, 'This note changed on another device. Refresh before saving again.'],
+  GTL_FEATURE_OFF: [503, 'This feature is not available right now. Nothing you saved is lost.'],
 };
 export class PersonalError extends Error { constructor(status, message, code) { super(message); this.status = status; if (code) this.code = code; } }
 export const providerPersonalError = message => ERRORS[message] ? new PersonalError(...ERRORS[message], message) : new Error('Personal workspace unavailable.');
@@ -29,6 +36,13 @@ const invalid = () => { throw providerPersonalError('GTL_PERSONAL_INVALID'); };
 const fields = (body, allowed) => { if (!body || Array.isArray(body) || Object.keys(body).some(key => !allowed.includes(key))) invalid(); };
 const text = (value, max, min = 0) => typeof value === 'string' && value.trim().length >= min && value.length <= max && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(value);
 const revision = value => Number.isSafeInteger(value) && value >= 0 && value < Number.MAX_SAFE_INTEGER;
+/**
+ * A private note's limit, counted as the browser's textarea maxLength counts (UTF-16 code units) and as the old
+ * /favorite/set route does, so a note saved by either app can be saved again by the other. That is never more than
+ * the 2,000 characters the database allows, so a stored note always fits.
+ */
+export const NOTE_MAX = 2000;
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 function slate(body) { if (!Number.isInteger(body.season) || body.season < 2000 || body.season > 2200 || !Number.isInteger(body.week) || body.week < 1 || body.week > 25) invalid(); }
 function target(body) { slate(body); if (!/^[A-Z]{2,4}-[A-Z]{2,4}$/.test(body.gameId || '')) invalid(); }
 function marketValue(market, value) { if (!['spread', 'total'].includes(market) || !Number.isFinite(value) || value * 2 !== Math.trunc(value * 2) || (market === 'spread' ? value < -100 || value > 100 : value < 0 || value > 200)) invalid(); }
@@ -47,9 +61,27 @@ function journal(body, now) {
 }
 
 // Every user identity comes from the verified Auth boundary, never request JSON.
-export async function handlePersonal({ route, body = {}, user, service, clock = Date.now, submitBallot }) {
+// featureOff: the names gtl-api's GTL_FEATURE_OFF secret turns off (cloud/feature-off.mjs).
+export async function handlePersonal({ route, body = {}, user, service, clock = Date.now, submitBallot, featureOff = new Set() }) {
   if (!service) throw new Error('Personal workspace not configured.');
   const actor = { p_user: user.id };
+  // M-09 private notes (D-36): only the signed-in owner's notes, never another account's. A read without a week is
+  // the newest published week. A save carries the note's revision it started from and a request id; the note is
+  // stored exactly as typed (never trimmed or cut) and must fit NOTE_MAX.
+  if (route === '/personal/notes') {
+    fields(body, ['season', 'week']);
+    if (body.season !== undefined || body.week !== undefined) slate(body);
+    return service.rpc('gtl_read_game_notes', { ...actor, p_season: body.season ?? null, p_week: body.week ?? null });
+  }
+  if (route === '/personal/note') {
+    fields(body, ['requestId', 'season', 'week', 'gameId', 'note', 'revision']);
+    target(body);
+    if (!UUID_PATTERN.test(body.requestId || '') || !revision(body.revision) || typeof body.note !== 'string') invalid();
+    if (body.note.length > NOTE_MAX) throw providerPersonalError('GTL_NOTE_TOO_LONG');
+    if (!text(body.note, NOTE_MAX) || LONE_SURROGATE.test(body.note)) invalid();
+    if (featureOff.has('notes')) throw providerPersonalError('GTL_FEATURE_OFF');
+    return service.rpc('gtl_set_game_note', { ...actor, p_request: body.requestId, p_season: body.season, p_week: body.week, p_game: body.gameId, p_note: body.note, p_revision: body.revision });
+  }
   if (route === '/personal' || route === '/personal/read') {
     fields(body, ['season', 'week', 'cursor', 'includeArchived']);
     if (body.season !== undefined || body.week !== undefined) slate(body);

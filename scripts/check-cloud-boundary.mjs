@@ -25,19 +25,25 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
  * after the deploy, then remove the entries from their area file in the change that records the hosted version.
  *
- * Each area file lists its own pieces; today only scripts/boundary/lines.mjs has entries: the situational-trends
- * referee pieces and the D-34 kickoff wind pieces. Both the gtl-api
- * build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
+ * Each area file lists its own pieces; today scripts/boundary/lines.mjs has the situational-trends referee pieces, the
+ * D-34 kickoff wind pieces and M-05's carryover helper, and scripts/boundary/guess.mjs has M-01's four per-game gate
+ * helpers and gtl_live_rules (redesign stage 16: service-only SQL; no deployed route calls the helpers, and gtl-api reads
+ * gtl_live_rules through cloud/optional-rpc.mjs, which answers today's rules while it is missing, so the default check
+ * passes until Sean applies M-01).
+ * Both the gtl-api build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
  * "no current forecast" note), so a Pages-only deploy, or a gtl-api deploy before the migration is
  * applied, must not fail check:cloud on them alone; --strict runs after the migration and the gtl-api deploy.
  * The Community history readers (20261012223000), the D-27 line-at-guess helpers (20261012230000) and the
  * /community/history route are deliberately not listed: any of them that is missing fails the default
  * check with `unexpected 404`, which is the release checklist's gate for applying those migrations hosted
  * before the gtl-api deploy that needs them.
+ * scripts/boundary/me.mjs lists M-09's private notes pieces (redesign stage 27): its two RPCs and the /personal/notes and
+ * /personal/note routes. Nothing calls them until the new app's note field (stage 35), and a gtl-api deploy before the
+ * apply answers those routes 503 "not available right now", so neither order fails check:cloud on them alone.
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
-export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
+export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds)"\s*:/;
 const notDeployed = (key, status, result) => Object.hasOwn(awaitingDeploy, key) && status === 404
   && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : result?.error === 'Not found.' && Object.keys(result).length === 1);
 

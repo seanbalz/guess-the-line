@@ -166,6 +166,8 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 | `gtl_mutate_personal` | M-29, then M-02, M-07 |
 | `gtl_save_weekly_ballot`, `gtl_guard_fresh_submission` | M-02, M-07 |
 | `gtl_live_rules` (new) | M-01, M-02, M-07 |
+| `gtl_guess_locked_in` (new in M-01: a pick in a submitted ballot is locked in) | M-02, when it records per-game lock-ins |
+| `gtl_ballot_late` (new in M-01: reads `ballot.late` as `{deadline, minutes}`) | M-07, only if the stored Late marker takes another shape |
 | `gtl_feed_on_ballot` | M-07 |
 | `gtl_read_social` | M-04 |
 | `gtl_begin_odds_collection`, `gtl_finish_odds_collection`, `gtl_begin_submission_odds_collection` (as built in stage 22; the two slate resolvers stay unchanged) | M-05 |
