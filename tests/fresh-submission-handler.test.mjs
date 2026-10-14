@@ -8,6 +8,7 @@ import { providerWeeklyError } from '../cloud/weekly.mjs';
 import { providerPersonalError } from '../cloud/personal.mjs';
 import { OddsProviderError } from '../cloud/odds-provider.mjs';
 import { SubmissionOddsError } from '../cloud/submission-odds.mjs';
+import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 
 // Handler wiring tests with explicitly trusted in-memory RPC/commit fakes.
 // These verify sequencing and request boundaries, not SQL locks or hosted state.
@@ -82,6 +83,8 @@ function fixture(options = {}) {
   } };
   if (options.marketReadFails) odds.marketSnapshot = async () => { throw new Error('private provider response'); };
   const handler = createCloudHandler({
+    // The live rules (gtl_live_rules); without options.rules the function is missing, as on the hosted project today.
+    optionalRpc: async name => (name === 'gtl_live_rules' && options.rules ? options.rules : FEATURE_OFF),
     clock: () => now, uuid: () => id(++serial), authenticate: async () => authUser,
     storage: { membership: async (userId, leagueId) => { calls.membership.push({ userId, leagueId }); return member; } },
     weekly: {
@@ -187,6 +190,38 @@ test('a no-op submitted edit never refreshes original references or spends provi
   assert.equal(result.status, 200); assert.deepEqual(f.calls.required, [[]]);
   assert.equal(f.calls.paid, 0); assert.equal(f.calls.begin.length, 0);
   assert.deepEqual(f.state.ballots.troy.guess_spread.scoringReferences, before);
+});
+
+// Redesign stage 18 (M-02): once gtl_live_rules says sentFinal, the engine mirror refuses a change to a locked-in pick before any
+// preflight, provider spend or commit, with the code the old app reloads on; before that (today) the same edit saves (D-16).
+const FINAL_RULES = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
+test('sent picks are final once the live rules say so: the group ballot refuses an edit before any spend; an unchanged re-save passes', async () => {
+  const f = fixture({ submitted: true, rules: FINAL_RULES }), before = structuredClone(f.state);
+  const [first] = Object.keys(f.picks);
+  for (const patch of [{ picks: { ...f.picks, [first]: -4 } }, { picks: { ...f.picks, [first]: -4 }, submit: false }, { picks: { [first]: -3 }, submit: false }]) {
+    const result = await f.ballot(patch);
+    assert.deepEqual([result.status, result.body], [409, { error: 'Sent picks are final.', code: 'GTL_BALLOT_LOCKED' }], JSON.stringify(patch));
+  }
+  assert.deepEqual([f.calls.preflights.length, f.calls.commit, f.calls.paid], [0, 0, 0]); assert.deepEqual(f.state, before);
+  const same = await f.ballot();
+  assert.equal(same.status, 200, JSON.stringify(same.body)); assert.equal(same.body.rules.sentFinal, true);
+  // Today's rules (the function missing, or reporting sentFinal false): the mirror stays off and D-16's edit saves.
+  for (const rules of [undefined, { ...FINAL_RULES, sentFinal: false }]) {
+    const today = fixture({ submitted: true, rules });
+    const edited = await today.ballot({ picks: { ...today.picks, [first]: -4 } });
+    assert.equal(edited.status, 200, JSON.stringify(edited.body)); assert.equal(edited.body.rules.sentFinal, false);
+  }
+});
+
+test('the database refusal of a locked-in pick reaches both apps as a 409 with its code, never as an uncoded conflict', async () => {
+  const group = fixture({ commitError: providerWeeklyError('GTL_BALLOT_LOCKED') });
+  assert.deepEqual(await group.ballot(), { status: 409, body: { error: 'Sent picks are final.', code: 'GTL_BALLOT_LOCKED' } });
+  const solo = fixture({ commitError: providerPersonalError('GTL_BALLOT_LOCKED') });
+  assert.deepEqual(await solo.personal(), { status: 409, body: { error: 'Sent picks are final.', code: 'GTL_BALLOT_LOCKED' } });
+  // Every other refusal keeps its sentence only: no other database code leaves gtl-api.
+  const conflict = fixture({ commitError: providerPersonalError('GTL_PERSONAL_CONFLICT') });
+  const answer = await conflict.personal();
+  assert.equal(answer.status, 409); assert.equal('code' in answer.body, false);
 });
 
 test('authentication, membership, deadline, revision and malformed ballot fail before preflight or spend', async () => {

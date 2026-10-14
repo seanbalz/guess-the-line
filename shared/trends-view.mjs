@@ -41,8 +41,13 @@ const instant = value => {
  * 'deadline', as cloud/live-rules.mjs and web/src/next/rules.js read a missing or malformed answer.
  */
 export const revealTime = rules => (rules?.revealAt === 'kickoff' || rules?.lateWindow === 'kickoff' ? 'kickoff' : 'deadline');
-/** A game's pick is locked in: a number in a submitted ballot (`{ submittedAt, picks }`), as gtl_guess_locked_in reads it until M-02. */
-export const guessLockedIn = (ballot, gameId) => Boolean(ballot?.submittedAt) && finite(ballot?.picks?.[gameId]);
+/**
+ * A game's pick is locked in: a number in a submitted ballot, or one the ballot's `lockedAt` names (`{ submittedAt, picks,
+ * lockedAt }`; M-02 records each per-game lock-in there). The same reading as gtl_guess_locked_in (gtl_ballot_locked_in),
+ * the engine's ballotLockedIn and web/src/sentFinal.js lockedIn.
+ */
+export const guessLockedIn = (ballot, gameId) => finite(ballot?.picks?.[gameId])
+  && (Boolean(ballot?.submittedAt) || typeof ballot?.lockedAt?.[gameId] === 'string');
 
 /**
  * One game's gate for the viewer: `{ spread, total, revealAt }`. Pure and clock-free (the caller passes `now`, the
@@ -70,16 +75,18 @@ export function communityAccess(data = {}, gameId, optOuts = []) {
 
 /**
  * The group ballot and dashboard (the /state view: `games`, `league.deadline`, `now`, `rules`, `statuses`, `marketAccess`,
- * `mode`, `revealed`): one game's gate. The view holds no other-market picks, so a market counts as locked in for a game of
- * the slate once that market's weekly ballot is submitted (today a market is submitted whole, so every game in it is
- * locked in; `marketAccess` and this mode's `revealed` say the same).
+ * `mode`, `revealed`, `submittedAt`, `lockedAt`): one game's gate. The view holds no other-market picks, so a market counts
+ * as locked in for a game of the slate once that market's weekly ballot is submitted (a submission locks in every game in
+ * it; `marketAccess` and this mode's `revealed` say the same). For the view's own mode a game also counts once its pick
+ * (`games[].prediction`) is locked in on its own: M-02 records that in the view's `lockedAt` (guessLockedIn above).
  */
 export function groupAccess(data = {}, gameId) {
   const game = Array.isArray(data?.games) ? data.games.find(g => g?.id === gameId) : null;
   const by = fn => Object.fromEntries(Object.entries(MARKET_MODES).map(([market, mode]) => [market, fn(market, mode)]));
+  const own = { submittedAt: data?.submittedAt, lockedAt: data?.lockedAt, picks: { [gameId]: game?.prediction } };
   return gameAccess({ kickoff: game?.kickoff, deadline: data?.league?.deadline, now: data?.now, rules: data?.rules,
     lockedIn: by((market, mode) => !!game && (data?.marketAccess?.[market] === true || Boolean(data?.statuses?.[mode]?.submittedAt)
-      || (data?.mode === mode && data?.revealed === true))),
+      || (data?.mode === mode && (data?.revealed === true || guessLockedIn(own, gameId))))),
     satOut: by((market, mode) => data?.statuses?.[mode]?.satOut === true) });
 }
 export const gateOpen = (access, gate) => (gate === 'both' ? !!(access?.spread && access?.total) : !!access?.[gate]);

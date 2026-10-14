@@ -1,6 +1,7 @@
 import { validateJournalMoney, summarizeJournal } from '../shared/journal-performance.mjs';
 import { validatePersonalForecast } from '../server/personal-forecast.mjs';
 import { UUID_PATTERN } from './lobby.mjs';
+import { BALLOT_LOCKED_MESSAGE } from './weekly.mjs';
 
 export const PERSONAL_METHODS = {
   '/personal': ['GET'], '/personal/read': ['POST'], '/personal/ballot': ['POST'],
@@ -18,7 +19,8 @@ const ERRORS = {
   GTL_PERSONAL_PROFILE: [400, 'Open My games and save your display name first.'],
   GTL_PERSONAL_SLATE: [404, 'This week’s schedule is not available.'],
   GTL_MATCHING_BALLOT_REQUIRED: [403, 'Submit the matching Spread or Total ballot before recording a market selection.'],
-  GTL_BALLOT_LOCKED: [409, 'This ballot is submitted and permanently locked.'],
+  // M-02 (stage 18, D-37 as amended by D-39): a locked-in Spread or Total guess is final; mapped before the SQL raises it.
+  GTL_BALLOT_LOCKED: [409, BALLOT_LOCKED_MESSAGE],
   GTL_PREDICTION_CLOSED: [409, 'The prediction deadline has passed.'],
   GTL_PREDICTION_NOT_OPEN: [409, 'This week’s picks open Monday 12:00 AM PT.'],
   GTL_COMMUNITY_SAT_OUT: [409, 'You sat out this week for that market. Its picks are closed.'],
@@ -45,6 +47,14 @@ export const NOTE_MAX = 2000;
 const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 function slate(body) { if (!Number.isInteger(body.season) || body.season < 2000 || body.season > 2200 || !Number.isInteger(body.week) || body.week < 1 || body.week > 25) invalid(); }
 function target(body) { slate(body); if (!/^[A-Z]{2,4}-[A-Z]{2,4}$/.test(body.gameId || '')) invalid(); }
+/**
+ * M-02 lockIn (redesign stage 18): the games this /personal/ballot save locks in (D-39 per-game lock-in), distinct and each
+ * with a guess in the same save. The SQL checks the same and decides; a locked-in guess is final.
+ */
+function lockIn(body) {
+  if (!Array.isArray(body.lockIn) || body.lockIn.length > 32 || new Set(body.lockIn).size !== body.lockIn.length
+    || body.lockIn.some(id => typeof id !== 'string' || !/^[A-Z]{2,4}-[A-Z]{2,4}$/.test(id) || !Object.hasOwn(body.picks, id))) invalid();
+}
 function marketValue(market, value) { if (!['spread', 'total'].includes(market) || !Number.isFinite(value) || value * 2 !== Math.trunc(value * 2) || (market === 'spread' ? value < -100 || value > 100 : value < 0 || value > 200)) invalid(); }
 const entryFields = ['season', 'week', 'gameId', 'kind', 'market', 'side', 'line', 'odds', 'source', 'quotedAt', 'placedAt', 'notes', 'outcome', 'currency', 'stakeMinor', 'returnedMinor'];
 function journal(body, now) {
@@ -106,13 +116,16 @@ export async function handlePersonal({ route, body = {}, user, service, clock = 
     '/journal/archive': ['entryId', 'archived', 'reason'],
   }[route];
   if (!allowed) invalid();
-  fields(body, [...common, ...allowed]);
+  // M-02 (redesign stage 18, D-39): /personal/ballot also takes an optional lockIn, the games this save locks in.
+  fields(body, [...common, ...allowed, ...(route === '/personal/ballot' ? ['lockIn'] : [])]);
   if (!UUID_PATTERN.test(body.requestId || '') || !revision(body.revision)) invalid();
   const payload = { ...body };
   if (route === '/personal/ballot') {
     slate(payload);
     if (!['guess_spread', 'guess_total'].includes(body.mode) || !revision(body.weeklyRevision) || typeof body.submit !== 'boolean' || !body.picks || Array.isArray(body.picks) || typeof body.picks !== 'object' || Object.keys(body.picks).length > 32) invalid();
     for (const [key, value] of Object.entries(body.picks)) { if (!/^[A-Z]{2,4}-[A-Z]{2,4}$/.test(key)) invalid(); marketValue(body.mode === 'guess_spread' ? 'spread' : 'total', value); }
+    if (body.lockIn !== undefined) lockIn(body);
+    if (body.lockIn !== undefined && featureOff.has('lock-in')) throw providerPersonalError('GTL_FEATURE_OFF');
   } else if (route === '/personal/forecast') { target(payload); try { Object.assign(payload, validatePersonalForecast(body)); } catch { invalid(); } }
   else if (route === '/favorite/set') { target(payload); if (typeof body.saved !== 'boolean' || !text(body.notes, 2000)) invalid(); payload.notes = body.notes.trim(); }
   else if (route === '/journal/create' || route === '/journal/correct') journal(payload, clock());
@@ -120,7 +133,9 @@ export async function handlePersonal({ route, body = {}, user, service, clock = 
   if (route === '/journal/archive' && typeof body.archived !== 'boolean') invalid();
   const commit = () => service.rpc('gtl_mutate_personal', { ...actor, p_action: route.slice(1), p_body: payload });
   if (route !== '/personal/ballot') return commit();
-  try { return await (submitBallot ? submitBallot(payload, commit) : commit()); }
+  // A per-game lock-in saves the newest stored line (or the D-27 pending one) without a refresh first: the refresh path's
+  // intent has no lockIn, and the lock-in never depends on a refresh (October 12, 2026).
+  try { return await (submitBallot && payload.lockIn === undefined ? submitBallot(payload, commit) : commit()); }
   catch (error) {
     // D-24: name the week so the message matches the picks-due notice.
     if (error?.code === 'GTL_PREDICTION_NOT_OPEN') throw new PersonalError(error.status, `Week ${payload.week} picks open Monday 12:00 AM PT.`, error.code);

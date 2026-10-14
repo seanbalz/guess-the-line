@@ -3,7 +3,9 @@
 // submitted ballot is locked in and final, game by game, the same reading as M-01's gtl_guess_locked_in.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FINAL_LABEL, FINAL_RULE, FINAL_SHORT, ballotFinal, lockedIn, pickFinal, sentFinal } from '../web/src/sentFinal.js';
+import { BALLOT_LOCKED, FINAL_LABEL, FINAL_RULE, FINAL_SHORT, LOCKED_MESSAGE, ballotFinal, isBallotLocked, lockedIn, pickFinal, sentFinal } from '../web/src/sentFinal.js';
+import { SENT_FINAL_MESSAGE, ballotLockedIn } from '../server/engine.mjs';
+import { BALLOT_LOCKED as SERVER_CODE, BALLOT_LOCKED_MESSAGE } from '../cloud/weekly.mjs';
 import { TODAYS_RULES, parseLiveRules } from '../cloud/live-rules.mjs';
 
 const M02 = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
@@ -18,7 +20,7 @@ test('only a live sentFinal of exactly true makes a pick final; every other answ
   for (const rules of [undefined, null, {}, TODAYS_RULES, M01, { sentFinal: 'true' }, { sentFinal: 1 }, [], 'sentFinal']) assert.equal(sentFinal(rules), false, JSON.stringify(rules));
 });
 
-test('a pick is locked in only as a number in a submitted ballot (gtl_guess_locked_in today)', () => {
+test('a pick in a submitted ballot is locked in (every ballot the old app sends, and every one sent before M-02)', () => {
   for (const id of games) assert.equal(lockedIn(submitted, id), true, id);
   assert.equal(lockedIn(submitted, 'NYJ-DEN'), false, 'a game the ballot has no pick for');
   assert.equal(lockedIn(draft, 'TB-DAL'), false, 'a draft is never locked in');
@@ -55,4 +57,26 @@ test('the words the old app shows while sent picks are final', () => {
   assert.equal(FINAL_SHORT, 'Submitted picks are final.');
   assert.match(FINAL_RULE, /^Submitted picks are final: once you submit, you can't change them\.$/);
   for (const text of [FINAL_LABEL, FINAL_SHORT, FINAL_RULE]) assert.doesNotMatch(text, /lock|edit|until the deadline/i, 'D-39 "due, not lock"; no promise of edits');
+});
+
+// Redesign stage 18 (M-02): a pick is also locked in when the ballot's server-written lockedAt names its game (the new app's
+// per-game lock-in, D-39), with no submission; the old app, the engine mirror and gtl_ballot_locked_in read it the same way.
+test('per-game lock-in: a draft pick that lockedAt names is locked in; its other picks stay drafts', () => {
+  const locked = { submittedAt: null, picks: { 'TB-DAL': -3.5, 'PHI-JAX': 0 }, lockedAt: { 'TB-DAL': '2026-10-15T18:00:00.000Z' } };
+  assert.deepEqual(games.map(id => lockedIn(locked, id)), [true, false, false]);
+  assert.deepEqual(games.map(id => pickFinal(M02, locked, id)), [true, false, false], 'final once the live rules say so; the others change freely');
+  assert.deepEqual(games.map(id => pickFinal(TODAYS_RULES, locked, id)), [false, false, false]);
+  assert.equal(ballotFinal(M02, locked, games), false);
+  assert.equal(ballotFinal(M02, { ...locked, picks: { ...locked.picks, 'CIN-MIA': 2 }, lockedAt: Object.fromEntries(games.map(id => [id, 'x'])) }, games), true, 'every game locked in');
+  for (const [label, ballot] of [['a lockedAt time that is not a string', { ...locked, lockedAt: { 'TB-DAL': true } }], ['lockedAt for a game with no pick', { ...locked, picks: {} }],
+    ['lockedAt that is not an object', { ...locked, lockedAt: 'TB-DAL' }]]) assert.equal(lockedIn(ballot, 'TB-DAL'), false, label);
+  // One reading in the client and the engine mirror (and gtl_ballot_locked_in in SQL, tests/guess-write-rules-sql.test.mjs).
+  for (const ballot of [locked, submitted, draft, { ...locked, lockedAt: { 'TB-DAL': 1 } }, null]) for (const id of [...games, 'NYJ-DEN']) assert.equal(ballotLockedIn(ballot, id), lockedIn(ballot, id), `${id} ${JSON.stringify(ballot)}`);
+});
+
+test('the refusal of a change to a locked-in pick: its code and the server\'s sentence', () => {
+  assert.deepEqual([BALLOT_LOCKED, LOCKED_MESSAGE], ['GTL_BALLOT_LOCKED', 'Sent picks are final.']);
+  assert.deepEqual([SERVER_CODE, BALLOT_LOCKED_MESSAGE, SENT_FINAL_MESSAGE], [BALLOT_LOCKED, LOCKED_MESSAGE, LOCKED_MESSAGE], 'gtl-api, the engine mirror and the old app say the same');
+  assert.equal(isBallotLocked({ code: 'GTL_BALLOT_LOCKED', status: 409 }), true);
+  for (const error of [null, undefined, {}, { status: 409 }, { code: 'GTL_SUBMISSION_QUOTES_REQUIRED' }, { message: 'Sent picks are final.' }]) assert.equal(isBallotLocked(error), false, JSON.stringify(error));
 });

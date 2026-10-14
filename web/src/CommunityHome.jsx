@@ -19,7 +19,7 @@ import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCo
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
 import { MODE, lateText, pickText, shortName, show, team } from './communityFormat';
 import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
-import { FINAL_LABEL, FINAL_SHORT, ballotFinal, pickFinal, sentFinal } from './sentFinal';
+import { FINAL_LABEL, FINAL_SHORT, LOCKED_MESSAGE, ballotFinal, isBallotLocked, pickFinal, sentFinal } from './sentFinal';
 import { boardRows, dueState, postPicksView } from './communityBoard';
 import './community.css';
 
@@ -417,7 +417,25 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       setNotice(submit || submitted ? `${MODE[mode]} picks submitted.` : 'Draft saved.'); onSaved?.();
       if (submit && focusReceipt) refocus('.submit-receipt');
       return true;
-    } catch (e) { setFailure(describe(e, () => save(submit))); return false; } finally { setBusy(false); setSaving(null); }
+    } catch (e) {
+      if (isBallotLocked(e)) { await showFinal(); return false; }
+      setFailure(describe(e, () => save(submit))); return false;
+    } finally { setBusy(false); setSaving(null); }
+  }
+  // Redesign stage 18 (M-02): the server refused a change to a locked-in pick (GTL_BALLOT_LOCKED), because it was locked in on another
+  // device or this tab still held the rules from before M-02. The latest saved picks come in: a final pick shows as saved, and this
+  // tab's edits to picks that are still open stay on top of them. No Retry: the same save would be refused again.
+  async function showFinal() {
+    request.current = null;
+    try {
+      const latest = await load();
+      setDraft(dr => {
+        if (!dr) return null;
+        const fresh = picksFor(latest, dr.mode), saved = latest.ballots[dr.mode];
+        return { data: latest, mode: dr.mode, picks: Object.fromEntries(latest.games.map(g => [g.id, pickFinal(latest.rules, saved, g.id) ? fresh[g.id] : dr.picks[g.id] ?? fresh[g.id]])) };
+      });
+      setNotice(`${LOCKED_MESSAGE} Your saved picks are shown.`);
+    } catch (reload) { setFailure(describe(reload, loadLatest)); }
   }
   // "Load latest" after a conflict: the other device's ballot comes in and this screen's unsaved edits stay on top of it.
   async function loadLatest() {
