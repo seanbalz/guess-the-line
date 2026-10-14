@@ -1,6 +1,6 @@
 # Social community and feed — D-21 and D-23
 
-Owner: Sean Balsiger · Version 6 · Updated 2026-10-13 (line at the guess and D-08 eligibility in the community) · Decisions D-08, D-21, D-22, D-23, D-24, D-27
+Owner: Sean Balsiger · Version 7 · Updated 2026-10-14 (redesign stages 16 to 18, 20 and 26: the per-game reveal gate, the old app's per-game reveal, sent picks final, the Virtual Units line lock and the everyone's picks reader) · Decisions D-08, D-21, D-22, D-23, D-24, D-27, D-39
 
 ## What is built
 

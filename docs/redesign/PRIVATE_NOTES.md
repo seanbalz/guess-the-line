@@ -1,6 +1,6 @@
 # Private game notes: server (M-09)
 
-Owner: Sean Balsiger · Redesign build plan stage 27 · October 14, 2026 · Written and tested locally; not applied, not deployed.
+Owner: Sean Balsiger · Redesign build plan stage 27 · October 14, 2026 · Applied to the hosted project and deployed (`gtl-api` v18) on October 14, 2026, with M-29; see `docs/RELEASE_2026_10_09.md`, "October 14 deploy". No screen calls the routes until stage 35.
 
 D-36 keeps private notes ("Solo extras: private notes on a game stay, in the game detail sheet") and D-39 confirms the
 plan. This stage is the server half: a reader and a writer for one private note per game, used by the new app's game
@@ -43,7 +43,11 @@ saved shows only in the new app (D-40), because the old app shows a note only on
   it has none). A save names the revision it started from; if the text changed since, it is refused with 409 "This
   note changed on another device. Refresh before saving again." and nothing is written. Saving or removing a game in
   the old app moves its note's revision only when that save changes the note's text: the old app's trim (above), or,
-  until M-29 is applied, "Save to Favorites" blanking a note (below).
+  before M-29 was applied, "Save to Favorites" blanking a note (below). A save of the text already stored writes
+  nothing and answers with the note's own revision, which can be older than the shared one: the game sheet (stage 35)
+  keeps each note's revision from the note replies and never takes the shared revision from them. Each change does move
+  the shared revision, so an old-app Solo screen already open gets one "changed on another device" refusal, as it does
+  for a favorite saved on another device.
 - **Retries.** A request id replays its first answer; the same id with other content is refused
   (`GTL_PERSONAL_RETRY_CONFLICT`). The receipts are the personal workspace's own.
 
@@ -94,7 +98,9 @@ Nothing else changes: no table, column, trigger, row or table grant, and no func
 - **Off switch:** the `gtl-api` secret `GTL_FEATURE_OFF=notes` (`cloud/feature-off.mjs`). While it is set,
   `/personal/note` answers 503 "This feature is not available right now. Nothing you saved is lost." and never calls
   the database; `/personal/notes` and every stored note stay readable. Clearing the secret turns saves back on.
-  Setting or clearing it is a hosted change that needs Sean's OK; it changes no code and no row.
+  Setting or clearing it is a hosted change that needs Sean's OK; it changes no code and no row. Unknown names in the
+  secret are ignored (a typo never takes `gtl-api` down), so check the switch after each change: a signed-in POST to
+  `/personal/note` answers 503 with that sentence while it is set, and saves again once it is cleared.
 - **Before the apply:** a `gtl-api` deploy that has the routes answers both with the same 503 (PostgREST's "function
   not found", `PGRST202`, reads as off). No screen calls them until stage 35, and every old route answers as before.
 - **Release card:** the first-note default follows D-40, and its tests match. Merge needs Sean's OK. Then, in either
@@ -102,7 +108,9 @@ Nothing else changes: no table, column, trigger, row or table grant, and no func
   the Supabase MCP or the SQL editor, never `db push`, then the md5 of both bodies, the grants and one `pg_proc` row
   each), and the `gtl-api` deploy of this SHA. The release record then removes the file from `NOT_HOSTED` in
   `tests/migrations.mjs` and the four M-09 entries from `awaitingDeploy` in `scripts/boundary/me.mjs`, and
-  `check:cloud --strict` passes. Window: any (low risk, read and write of the owner's own rows only).
+  `check:cloud --strict` passes. Window: any (low risk, read and write of the owner's own rows only). With M-09 hosted,
+  `/personal/notes` is one of the leak scan's `READERS` (`tests/helpers/leak-scan.mjs`), so the cut-over leak gate
+  (build plan section 10) covers it.
 
 ## Tests
 
@@ -115,10 +123,13 @@ Nothing else changes: no table, column, trigger, row or table grant, and no func
   removals; stale saves refused in both directions; request-id replay; clearing keeps the row, its saved flag and the
   audit; the database refuses forged input from the trusted role; each account reads only its own rows. Through the
   real handler: a first note answers `saved: false` and `/personal` lists no Favorite; `/favorite/set` saving the game
-  with the stored note keeps it; the owner reads the note whole, and for the other two fixture accounts neither
-  `/personal/notes` nor any reader in the leak scan's list (`/community/read`, `/community/history`, `/personal`,
-  `/lobby`, `/state`, `/export`) carries the note's text or the half-point number inside it. On `HOSTED` (no M-09):
-  the old personal routes answer as before and both notes routes fail closed.
+  with the stored note keeps it; the owner reads the note whole, and for the other two fixture accounts no reader in
+  the leak scan's list (`READERS`, `/personal/notes` among them) carries the note's text or the half-point number
+  inside it, both while the game is not saved and once it is a saved Favorite. The old app's trim: a padded note kept
+  by "Save to Favorites" and then sent back by "Saved · Remove" is stored trimmed, audited with the text before, and
+  moves the note's revision, so a new-app save from the padded text is refused with 409. Without M-09 (the hosted
+  schema before October 14): the old personal routes answer as before and both notes routes fail closed.
 - `tests/personal-workspace.test.mjs`: route fields, the limit as a textarea counts it, refused input never reaching the
-  database, the error mapping, `PGRST202` as off, and the off switch.
+  database, the error mapping, `PGRST202` as off for the two notes RPCs only (a missing old Solo RPC stays an outage,
+  never "not available right now"), and the off switch.
 - `tests/feature-off.test.mjs`, `tests/cloud-boundary.test.mjs` (the M-09 probes awaiting deploy).
