@@ -1,0 +1,861 @@
+/* Guess The Line, D-38 shared component classes for the new app (web/src/next).
+   Ported from the approved prototype's shared classes (shell v1.2, CONTRACT section 11) with the
+   gx- prefix. Load after tokens.css and base.css. Compose these classes; screen styles add their
+   own gx-<screen>- classes and never restyle a shared class globally.
+   Lime (--gx-accent) is only for the one primary button in view, your selections, the active tab
+   and "you". Colors come from tokens only; numbers in Barlow Condensed are always tabular. */
+
+/* ===== type ===== */
+.gx-t-display {
+  font: 800 40px/40px var(--gx-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.gx-t-title {
+  font: 800 28px/32px var(--gx-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.gx-t-section {
+  font: 700 20px/24px var(--gx-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gx-t-team {
+  font: 700 20px/24px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.gx-t-body {
+  font: 500 16px/24px var(--gx-font-body);
+}
+.gx-t-strong {
+  font: 700 16px/24px var(--gx-font-body);
+}
+.gx-t-label {
+  font: 600 14px/20px var(--gx-font-body);
+  letter-spacing: 0.01em;
+}
+.gx-t-meta {
+  font: 500 13px/18px var(--gx-font-body);
+  letter-spacing: 0.01em;
+  color: var(--gx-text-2);
+}
+.gx-t-micro {
+  font: 700 12px/16px var(--gx-font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.gx-n-xl {
+  font: 700 56px/56px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
+.gx-n-l {
+  font: 700 32px/32px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
+.gx-n-m {
+  font: 600 24px/28px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+.gx-n-s {
+  font: 600 18px/22px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+.gx-n-xs {
+  font: 600 16px/20px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+/* After the type classes, so a font shorthand above cannot reset it. */
+.gx-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== color ===== */
+.gx-c-1 { color: var(--gx-text-1); }
+.gx-c-2 { color: var(--gx-text-2); }
+.gx-c-3 { color: var(--gx-text-3); }
+.gx-c-accent { color: var(--gx-accent-ink); }
+.gx-c-data { color: var(--gx-data); }
+.gx-c-win { color: var(--gx-win); }
+.gx-c-loss { color: var(--gx-loss); }
+.gx-c-pending { color: var(--gx-pending); }
+.gx-c-live { color: var(--gx-live); }
+
+/* ===== layout ===== */
+.gx-vstack { display: flex; flex-direction: column; }
+.gx-hstack { display: flex; flex-direction: row; align-items: center; }
+.gx-wrap { flex-wrap: wrap; }
+.gx-between { justify-content: space-between; }
+.gx-top { align-items: flex-start; }
+.gx-grow { flex: 1 1 auto; min-width: 0; }
+.gx-none { flex: none; }
+.gx-gap-2 { gap: 2px; }
+.gx-gap-4 { gap: 4px; }
+.gx-gap-8 { gap: 8px; }
+.gx-gap-12 { gap: 12px; }
+.gx-gap-16 { gap: 16px; }
+.gx-gap-24 { gap: 24px; }
+.gx-gap-32 { gap: 32px; }
+.gx-truncate { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-right { text-align: right; }
+/* One column, a 16px gutter, 24px between sections; centered at most 520 wide on larger screens. */
+.gx-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: var(--gx-size-content);
+  margin-inline: auto;
+  padding: 16px var(--gx-size-gutter) 32px;
+}
+.gx-screen--dock { padding-bottom: 128px; }
+.gx-screen-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.gx-screen-head .gx-icon-btn { margin: -6px -10px 0 0; }
+.gx-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 24px; }
+
+/* ===== icons (lucide or inline stroke svg; size with a class, never attributes) ===== */
+.gx-ic {
+  display: block;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gx-ic-12 { width: 12px; height: 12px; }
+.gx-ic-16 { width: 16px; height: 16px; }
+.gx-ic-20 { width: 20px; height: 20px; }
+.gx-ic-32 { width: 32px; height: 32px; }
+.gx-ic-fill { fill: currentColor; stroke: none; }
+
+/* ===== buttons ===== */
+.gx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--gx-size-touch);
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: 700 16px/20px var(--gx-font-body);
+  text-align: center;
+  text-decoration: none;
+  transition: transform var(--gx-dur-tap) var(--gx-ease-standard);
+}
+.gx-btn--primary {
+  min-height: var(--gx-size-primary);
+  background: var(--gx-accent);
+  color: var(--gx-accent-text);
+  box-shadow: var(--gx-lime-edge);
+}
+.gx-btn--secondary {
+  background: transparent;
+  color: var(--gx-text-1);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+}
+.gx-btn--danger {
+  background: transparent;
+  color: var(--gx-loss);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+}
+.gx-btn--ghost { padding: 0 8px; color: var(--gx-data); font-weight: 600; }
+.gx-btn--ghost-2 { padding: 0 8px; color: var(--gx-text-2); font-weight: 600; }
+.gx-btn--block { display: flex; width: 100%; }
+.gx-btn:disabled,
+.gx-btn--disabled {
+  background: var(--gx-surface-2);
+  color: var(--gx-text-3);
+  box-shadow: none;
+  cursor: default;
+}
+.gx-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--gx-size-touch);
+  height: var(--gx-size-touch);
+  padding: 0;
+  border: 0;
+  border-radius: var(--gx-radius-pill);
+  background: transparent;
+  color: var(--gx-text-2);
+}
+.gx-card-btn,
+.gx-row-btn {
+  display: flex;
+  width: 100%;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+.gx-link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 16px;
+  border: 0;
+  background: var(--gx-surface-1);
+  color: var(--gx-text-1);
+  font: 700 16px/24px var(--gx-font-body);
+  text-align: left;
+  text-decoration: none;
+}
+.gx-link-row .gx-ic { color: var(--gx-text-3); }
+.gx-sheet-back,
+.gx-back-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--gx-size-touch);
+  margin-left: -8px;
+  padding: 0 8px 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--gx-text-1);
+  font: 600 16px/20px var(--gx-font-body);
+  text-decoration: none;
+}
+.gx-sheet-back .gx-ic,
+.gx-back-btn .gx-ic { color: var(--gx-text-3); }
+/* Press: every button, chip, odds button and tappable card scales to 0.97. Same specificity as the
+   old-app reset in base.css and later in the cascade, so it wins. */
+.gx-btn:active:not(:disabled),
+.gx-chip:active:not(:disabled),
+.gx-mkt:active:not(:disabled),
+.gx-seg-btn:active:not(:disabled),
+.gx-card-btn:active:not(:disabled),
+.gx-row-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ===== form field ===== */
+.gx-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-1);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-1);
+  font: 500 16px/24px var(--gx-font-body);
+}
+textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
+.gx-input::placeholder { color: var(--gx-text-3); opacity: 1; }
+
+/* ===== cards and lists ===== */
+.gx-card {
+  padding: 16px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+  box-shadow: var(--gx-e1);
+}
+/* The Home hero: 24 radius, yard lines in dark (none in light). */
+.gx-card--hero {
+  padding: 20px;
+  border-radius: var(--gx-radius-lg);
+  background-image: var(--gx-yardlines);
+  box-shadow: var(--gx-hero-shadow);
+}
+.gx-card--flush { padding: 0; overflow: hidden; }
+.gx-card--flush :focus-visible { outline-offset: -3px; }
+.gx-card--tint { background: var(--gx-accent-tint); }
+.gx-card--wait { box-shadow: inset 4px 0 0 var(--gx-data), var(--gx-e1); }
+.gx-card--dashed { background: transparent; box-shadow: none; border: 1px dashed var(--gx-border-strong); }
+.gx-card--s2 { background: var(--gx-surface-2); box-shadow: none; }
+.gx-list { display: flex; flex-direction: column; gap: 1px; background: var(--gx-border); }
+.gx-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px;
+  background: var(--gx-surface-1);
+}
+.gx-row--44 { min-height: 44px; }
+.gx-row--64 { min-height: 64px; }
+.gx-row--72 { min-height: 72px; }
+.gx-row--you { background: var(--gx-accent-tint); box-shadow: inset 3px 0 0 var(--gx-accent-ink); }
+.gx-row--wait { box-shadow: inset 4px 0 0 var(--gx-data); }
+.gx-row-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.gx-row-title { font-weight: 700; font-size: 16px; line-height: 24px; }
+.gx-row-sub { font-size: 13px; line-height: 18px; color: var(--gx-text-2); }
+.gx-row-end { flex: none; display: flex; align-items: center; gap: 8px; text-align: right; }
+.gx-row .gx-chev,
+.gx-link-row .gx-chev { color: var(--gx-text-3); }
+.gx-divider { height: 1px; margin: 0; border: 0; background: var(--gx-border); }
+.gx-tip { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }
+/* Empty state: one sentence and one action. */
+.gx-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+}
+
+/* ===== avatars (faces first; fills are fixed per player, never by rank or result) ===== */
+.gx-av {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--gx-radius-pill);
+  color: var(--gx-av-ink);
+  font-family: var(--gx-font-body);
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+  box-shadow: var(--gx-av-ring);
+}
+.gx-av--24 { width: 24px; height: 24px; font-size: 12px; }
+.gx-av--32 { width: 32px; height: 32px; font-size: 13px; }
+.gx-av--36 { width: 36px; height: 36px; font-size: 14px; }
+.gx-av--40 { width: 40px; height: 40px; font-size: 16px; }
+.gx-av--56 { width: 56px; height: 56px; font-size: 22px; }
+.gx-av--80 { width: 80px; height: 80px; font-size: 32px; }
+.gx-av--96 { width: 96px; height: 96px; font-size: 38px; }
+.gx-av-iris { background: var(--gx-av-iris); }
+.gx-av-peach { background: var(--gx-av-peach); }
+.gx-av-sky { background: var(--gx-av-sky); }
+.gx-av-mint { background: var(--gx-av-mint); }
+.gx-av-butter { background: var(--gx-av-butter); }
+.gx-av-rose { background: var(--gx-av-rose); }
+.gx-av-lilac { background: var(--gx-av-lilac); }
+.gx-av-sand { background: var(--gx-av-sand); }
+.gx-av--you { box-shadow: 0 0 0 2px var(--gx-accent-ink); }
+.gx-av--anyone {
+  background: transparent;
+  color: var(--gx-text-2);
+  border: 1px dashed var(--gx-border-strong);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+}
+.gx-av-stack { display: inline-flex; align-items: center; padding-left: 7px; }
+.gx-av-stack .gx-av { margin-left: -7px; box-shadow: 0 0 0 2px var(--gx-canvas); }
+.gx-card .gx-av-stack .gx-av,
+.gx-sheet .gx-av-stack .gx-av { box-shadow: 0 0 0 2px var(--gx-surface-1); }
+.gx-av-more { margin-left: 6px; font-size: 13px; line-height: 18px; color: var(--gx-text-2); }
+/* System posts (week opened, kickoff, recap) use the Field monogram tile at avatar size. */
+.gx-av-sys { background: var(--gx-accent); color: var(--gx-accent-text); }
+
+/* ===== pills, tags, dots, counters ===== */
+.gx-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-surface-3);
+  color: var(--gx-text-2);
+  font: 700 12px/16px var(--gx-font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gx-pill--win { background: var(--gx-win-tint); color: var(--gx-win); }
+.gx-pill--loss { background: var(--gx-loss-tint); color: var(--gx-loss); }
+.gx-pill--pending { background: var(--gx-pending-tint); color: var(--gx-pending); }
+.gx-pill--live { background: var(--gx-live-tint); color: var(--gx-live); box-shadow: var(--gx-glow-live); }
+.gx-pill--data { background: var(--gx-data-tint); color: var(--gx-data); }
+.gx-pill--accent { background: var(--gx-accent-tint); color: var(--gx-accent-ink); }
+.gx-pill--real { background: var(--gx-pending-tint); color: var(--gx-pending); }
+.gx-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: currentColor;
+  animation: gx-live-pulse var(--gx-dur-pulse) ease-in-out infinite;
+}
+/* Your "YOU SEA −2.5" or "BET KC −8 · 1U" tag. */
+.gx-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-accent-tint);
+  color: var(--gx-text-1);
+  font: 600 16px/20px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gx-tag-k {
+  font: 700 12px/16px var(--gx-font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gx-accent-ink);
+}
+.gx-dot { display: inline-block; flex: none; width: 6px; height: 6px; border-radius: 3px; background: var(--gx-data); }
+.gx-dot--pending { background: var(--gx-pending); }
+.gx-dot--8 { width: 8px; height: 8px; border-radius: 4px; }
+/* Sits on a tab icon (position: relative); one per tab at most. */
+.gx-counter {
+  position: absolute;
+  top: -7px;
+  left: 15px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--gx-surface-3);
+  box-shadow: 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-1);
+  font: 700 12px/18px var(--gx-font-body);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ===== chips and segmented control ===== */
+.gx-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: var(--gx-size-touch);
+  height: var(--gx-size-touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-1);
+  font: 600 18px/22px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
+.gx-chip--text { font: 600 16px/20px var(--gx-font-body); }
+.gx-chip--48 { height: 48px; }
+.gx-chip--on {
+  background: var(--gx-accent);
+  color: var(--gx-accent-text);
+  box-shadow: var(--gx-glow-accent), var(--gx-lime-edge);
+}
+.gx-chip-rail {
+  display: flex;
+  gap: 8px;
+  padding: 2px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.gx-chip-rail::-webkit-scrollbar { display: none; }
+.gx-seg { display: flex; height: var(--gx-size-touch); padding: 0; gap: 0; border-radius: var(--gx-radius-pill); background: var(--gx-surface-2); }
+.gx-seg-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  height: var(--gx-size-touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--gx-radius-pill);
+  background: transparent;
+  color: var(--gx-text-2);
+  font: 600 16px/20px var(--gx-font-body);
+  white-space: nowrap;
+}
+.gx-seg-btn--on {
+  background: var(--gx-seg-on);
+  color: var(--gx-text-1);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 4px var(--gx-surface-2), inset 0 0 0 5px var(--gx-border-strong);
+}
+.gx-seg-btn--fit { flex: none; }
+
+/* ===== lock (a hidden market: an icon and a sentence, never "—") ===== */
+.gx-lock-line { display: flex; align-items: flex-start; gap: 8px; color: var(--gx-text-2); font: 500 16px/24px var(--gx-font-body); }
+.gx-lock-line .gx-ic { margin-top: 4px; color: var(--gx-text-3); }
+.gx-lock-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px dashed var(--gx-border-strong);
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+}
+.gx-lock-cell { display: grid; place-items: center; border: 1px dashed var(--gx-border-strong); border-radius: var(--gx-radius-sm); color: var(--gx-text-3); }
+
+/* ===== market (odds) button, Bets only: 113 x 52 at 390 ===== */
+.gx-mkt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 113px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-1);
+}
+.gx-mkt-line { font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx-mkt-price { font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-2); }
+.gx-mkt--on { background: var(--gx-accent); color: var(--gx-accent-text); box-shadow: var(--gx-glow-accent), var(--gx-lime-edge); }
+.gx-mkt--on .gx-mkt-price { color: var(--gx-accent-text); }
+.gx-mkt--yours { box-shadow: inset 0 0 0 2px var(--gx-accent-ink); }
+.gx-mkt-yours {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  font: 700 12px/16px var(--gx-font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gx-accent-ink);
+}
+.gx-mkt--none,
+.gx-mkt--locked {
+  background: transparent;
+  box-shadow: none;
+  border: 1px dashed var(--gx-border-strong);
+  color: var(--gx-text-3);
+  cursor: default;
+}
+
+/* ===== game feel: Drive meter, 3-bet meter, rank, movement, badges ===== */
+.gx-drive { display: inline-flex; align-items: center; gap: 2px; padding-left: 3px; }
+.gx-drive-seg { display: block; width: 10px; height: 14px; border-radius: 2px; transform: skewX(-20deg); box-shadow: inset 0 0 0 1px var(--gx-border-strong); }
+.gx-drive-seg--on { background: var(--gx-win); box-shadow: none; }
+.gx-meter3 { display: flex; gap: 4px; width: 100%; }
+.gx-meter3-seg { flex: 1 1 0; height: 6px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--gx-border-strong); }
+.gx-meter3-seg--on { background: var(--gx-win); box-shadow: none; }
+.gx-rank {
+  flex: none;
+  width: 32px;
+  font: 600 24px/28px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+/* Shared ranks read "T-2". */
+.gx-rank--t { font-size: 18px; }
+.gx-rank--1,
+.gx-rank--top {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  border-radius: var(--gx-radius-xs);
+  font-size: 18px;
+  text-align: center;
+}
+.gx-rank--1 { box-shadow: inset 0 0 0 2px var(--gx-accent-ink); }
+.gx-rank--top { box-shadow: inset 0 0 0 1px var(--gx-border-strong); }
+.gx-move { flex: none; width: 24px; font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx-move--up { color: var(--gx-win); }
+.gx-move--down { color: var(--gx-loss); }
+/* The "Pylon" badge: an original rounded tile with a corner stripe in the rarity ring color. */
+.gx-badge {
+  --gx-badge-ring: var(--gx-border-strong);
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--gx-surface-3);
+  color: var(--gx-text-1);
+  box-shadow: 0 0 0 2px var(--gx-badge-ring);
+  overflow: hidden;
+}
+.gx-badge::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+  background: var(--gx-badge-ring);
+}
+.gx-badge--uncommon { --gx-badge-ring: var(--gx-data); }
+.gx-badge--rare { --gx-badge-ring: var(--gx-accent-ink); }
+.gx-badge--epic {
+  --gx-badge-ring: var(--gx-accent-ink);
+  box-shadow: 0 0 0 2px var(--gx-badge-ring), 0 0 0 4px var(--gx-surface-1), 0 0 0 6px var(--gx-badge-ring);
+}
+.gx-badge--24 { width: 24px; height: 24px; border-radius: var(--gx-radius-xs); }
+.gx-badge--24::after { top: -5px; right: -5px; width: 9px; height: 9px; }
+.gx-badge--40 { width: 40px; height: 40px; border-radius: var(--gx-radius-sm); }
+.gx-badge--96 { width: 96px; height: 96px; border-radius: var(--gx-radius-lg); }
+.gx-badge--96::after { top: -14px; right: -14px; width: 28px; height: 28px; }
+.gx-badge--locked { background: var(--gx-surface-1); color: var(--gx-text-3); box-shadow: none; border: 2px dashed var(--gx-border-strong); }
+.gx-badge--locked::after { display: none; }
+
+/* ===== where everyone landed (the strip); positions come from the layout helper ===== */
+.gx-strip { position: relative; height: 72px; }
+.gx-strip-axis { position: absolute; left: 12px; right: 12px; bottom: 22px; height: 2px; border-radius: 1px; background: var(--gx-border-strong); }
+.gx-strip-tick {
+  position: absolute;
+  z-index: 2;
+  bottom: 12px;
+  width: 3px;
+  height: 36px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--gx-accent);
+  box-shadow: var(--gx-lime-edge);
+}
+.gx-strip-dot { position: absolute; transform: translateX(-50%); box-shadow: 0 0 0 2px var(--gx-surface-1); }
+.gx-strip-dot.gx-av--you { box-shadow: 0 0 0 2px var(--gx-accent-ink); }
+.gx-strip-lo,
+.gx-strip-hi { position: absolute; bottom: 0; white-space: nowrap; }
+.gx-strip-lo { left: 0; }
+.gx-strip-hi { right: 0; }
+.gx-strip--mini { position: relative; flex: none; width: 112px; height: 28px; }
+.gx-strip--mini .gx-strip-axis { bottom: 13px; }
+.gx-strip--mini .gx-strip-tick { bottom: 5px; height: 18px; }
+.gx-strip-pip { position: absolute; bottom: 8px; width: 12px; height: 12px; transform: translateX(-50%); box-shadow: 0 0 0 2px var(--gx-surface-1); }
+.gx-strip-pip--you { box-shadow: 0 0 0 2px var(--gx-accent-ink); }
+
+/* ===== layers: hosts, scrim, sheet, dialog, popover, toast, overlay, dock bar ===== */
+.gx-layer { position: fixed; inset: 0; }
+.gx-layer--sheet { z-index: var(--gx-z-sheet); }
+.gx-layer--dialog { z-index: var(--gx-z-dialog); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.gx-layer--popover { z-index: var(--gx-z-popover); }
+.gx-layer--overlay {
+  z-index: var(--gx-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--gx-overlay);
+  animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard);
+}
+.gx-scrim {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--gx-overlay);
+  animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard);
+}
+.gx-scrim--clear { background: transparent; animation: none; }
+/* Bottom sheet: never above the top bar; 520 wide at most, centered. */
+.gx-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--gx-size-content);
+  max-height: calc(100% - var(--gx-size-topbar) - env(safe-area-inset-top, 0px));
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: var(--gx-radius-lg) var(--gx-radius-lg) 0 0;
+  background: var(--gx-surface-2);
+  box-shadow: var(--gx-e3);
+  animation: gx-sheet-in var(--gx-dur-base) var(--gx-ease-enter);
+}
+.gx-sheet-grab { flex: none; position: relative; height: 20px; }
+.gx-sheet-grab::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  margin-left: -18px;
+  border-radius: 2px;
+  background: var(--gx-border-strong);
+}
+.gx-sheet-inner { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+/* Grows the sheet to its full height (the sheet's max-height caps it). */
+.gx-sheet-inner--tall { height: 100vh; }
+.gx-sheet-head { flex: none; display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 6px 8px 16px; }
+.gx-sheet-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: 700 20px/24px var(--gx-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gx-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.gx-sheet-body::-webkit-scrollbar { display: none; }
+.gx-sheet-foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--gx-border);
+  background: var(--gx-surface-2);
+}
+.gx-sheet .gx-row,
+.gx-sheet .gx-link-row { background: var(--gx-surface-1); }
+/* Dialog: a native <dialog> shown with showModal(). Only an open dialog gets a layout, since an
+   author display rule would otherwise show a closed one. */
+.gx-dialog {
+  width: 342px;
+  max-width: calc(100% - 48px);
+  max-height: calc(100% - 48px);
+  margin: auto;
+  padding: 24px;
+  overflow-y: auto;
+  border: 0;
+  border-radius: var(--gx-radius-lg);
+  background: var(--gx-surface-2);
+  color: var(--gx-text-1);
+  box-shadow: var(--gx-e2);
+}
+.gx-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: gx-pop-in var(--gx-dur-base) var(--gx-ease-pop);
+}
+.gx-dialog::backdrop {
+  background: var(--gx-overlay);
+  animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard);
+}
+.gx-dialog-title { font: 700 20px/24px var(--gx-font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+.gx-dialog-text { color: var(--gx-text-2); }
+.gx-dialog-actions { display: flex; flex-direction: column; gap: 8px; }
+/* Positioned by its owner (the reaction picker sits above the post it reacts to). */
+.gx-popover {
+  position: absolute;
+  display: flex;
+  justify-content: space-between;
+  gap: 0;
+  padding: 4px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-toast-bg);
+  box-shadow: var(--gx-float-ring), var(--gx-e2);
+  animation: gx-pop-in var(--gx-dur-quick) var(--gx-ease-pop);
+}
+/* 8 above the tab bar by default; the toast host moves it above a dock. */
+.gx-toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px);
+  z-index: var(--gx-z-toast);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(var(--gx-size-content) - 32px);
+  min-height: 48px;
+  margin-inline: auto;
+  padding: 8px 4px 8px 16px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-toast-bg);
+  box-shadow: var(--gx-float-ring), var(--gx-e2);
+  animation: gx-rise-in var(--gx-dur-base) var(--gx-ease-enter);
+}
+.gx-toast-text { flex: 1 1 auto; min-width: 0; font: 500 16px/22px var(--gx-font-body); }
+.gx-toast-check { color: var(--gx-win); }
+/* Celebrations sit in .gx-layer--overlay: a centered card, or a full-height panel. */
+.gx-ov-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 342px;
+  max-width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: var(--gx-radius-lg);
+  background: var(--gx-surface-2);
+  box-shadow: var(--gx-e2);
+  text-align: center;
+  animation: gx-pop-in var(--gx-dur-base) var(--gx-ease-pop);
+}
+.gx-ov-full {
+  position: absolute;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--gx-size-content);
+  margin-inline: auto;
+  border-radius: var(--gx-radius-lg) var(--gx-radius-lg) 0 0;
+  background: var(--gx-surface-2);
+  animation: gx-sheet-in var(--gx-dur-base) var(--gx-ease-enter);
+}
+/* Submit bar (Play) and slip bar (Bets). */
+.gx-dock-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--gx-size-dock);
+  margin: 0 8px;
+  padding: 6px 6px 6px 16px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-toast-bg);
+  box-shadow: var(--gx-float-ring), var(--gx-e2);
+}
+
+/* ===== forced colors (Windows high contrast): glows and inset outlines drop, so draw real borders ===== */
+@media (forced-colors: active) {
+  .gx-btn--primary,
+  .gx-btn--secondary,
+  .gx-btn--danger,
+  .gx-chip,
+  .gx-mkt,
+  .gx-seg,
+  .gx-card,
+  .gx-input,
+  .gx-pill,
+  .gx-tag,
+  .gx-dock-bar,
+  .gx-toast,
+  .gx-popover,
+  .gx-sheet,
+  .gx-dialog {
+    border: 1px solid CanvasText;
+  }
+  .gx-chip--on,
+  .gx-mkt--on,
+  .gx-seg-btn--on {
+    forced-color-adjust: none;
+    border: 2px solid CanvasText;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .gx-mkt--on .gx-mkt-price { color: HighlightText; }
+  .gx-row--you { border-left: 3px solid Highlight; }
+}
