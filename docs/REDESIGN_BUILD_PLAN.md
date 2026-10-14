@@ -162,7 +162,8 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 | Function | Replaced by, in order |
 |---|---|
 | `gtl_read_community` | M-01, M-21 |
-| `gtl_read_community_history`, `gtl_week_revealed` | M-01 |
+| `gtl_read_community_history` | M-01, then M-03 (D-41: a sat-out market's locked-in guesses) |
+| `gtl_week_revealed` | M-01 |
 | `gtl_mutate_personal` | M-29, then M-02, M-07 |
 | `gtl_save_weekly_ballot`, `gtl_guard_fresh_submission` | M-02, M-07 |
 | `gtl_live_rules` (new) | M-01, M-02, M-07 |

@@ -26,12 +26,23 @@ export const NOT_HOSTED = [
   20261014233000, // M-29 (stage 27a, D-40) "Save to Favorites" keeps a stored note: applied after Sean's "apply M-29".
   20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
   20261015020000, // M-08 guess_picks_reader (redesign stage 26): everyone's picks, applied after M-01 on Sean's "apply M-08".
+  20261015040000, // M-03 guess_week_forfeit (redesign stage 19): skip and "See picks now", applied after M-01 on "apply M-03".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
  */
 export const FIX_FORWARD = [];
+/**
+ * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan
+ * ledger's "Apply after" (section 6), for a migration whose functions or rollback call another unapplied file's functions.
+ * The rollback check (tests/rollback.test.mjs) builds HOSTED plus these before the checked migration, which is the schema the
+ * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
+ * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
+ */
+export const REQUIRES = Object.freeze({
+  20261015040000: [20261014223000], // M-03 (stage 19) after M-01: its new functions and its rollback's history body call M-01's gate.
+});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -39,12 +50,14 @@ export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith
 export const EXTENSION_ONLY = FILES.filter(file => /scheduler_extension/.test(file));
 
 // Rollback check (tests/rollback.test.mjs): GTL_ROLLBACK_CHECK={"migration":path,"rollback":path?} reruns a suite on
-// HOSTED plus that migration, with its rollback applied straight after it. Never set it by hand for a normal run.
+// HOSTED plus that migration (and the files it REQUIRES), with its rollback applied straight after it. Never set it by hand
+// for a normal run.
 const check = process.env.GTL_ROLLBACK_CHECK ? JSON.parse(process.env.GTL_ROLLBACK_CHECK) : null;
 const extra = check ? path.basename(check.migration) : null;
+const required = extra ? REQUIRES[version(extra)] ?? [] : [];
 
 export const ALL = [...new Set([...FILES.filter(file => !EXTENSION_ONLY.includes(file)), ...(extra ? [extra] : [])])].sort();
-export const HOSTED = ALL.filter(file => file === extra || !NOT_HOSTED.includes(version(file)));
+export const HOSTED = ALL.filter(file => file === extra || required.includes(version(file)) || !NOT_HOSTED.includes(version(file)));
 
 /** The SQL to apply for a file in ALL or HOSTED (in a rollback check, the checked migration followed by its rollback). */
 export function migrationSql(file) {

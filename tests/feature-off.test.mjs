@@ -6,9 +6,12 @@ import { FEATURES, parseFeatureOff } from '../cloud/feature-off.mjs';
 // Gate M off switches (redesign build plan, section 4.2 step 9): the gtl-api secret GTL_FEATURE_OFF names features
 // whose writers refuse. Stage 27 adds the first one, `notes` (M-09's POST /personal/note); stage 23 adds `lines` (M-06's two
 // readers, which open lines a player could not read before); stage 26 adds `picks`, the new reader M-08 opens
-// (POST /community/picks), whose rollback is switching it off.
+// (POST /community/picks), whose rollback is switching it off; stage 19 adds `forfeit`, M-03's writer (POST /community/forfeit),
+// which writes sit-outs and forfeit rows.
 test('GTL_FEATURE_OFF lists known feature names; anything else, or no secret, turns nothing off', () => {
-  assert.deepEqual(Object.keys(FEATURES), ['notes', 'lines', 'picks']);
+  assert.deepEqual(Object.keys(FEATURES), ['notes', 'lines', 'picks', 'forfeit']);
+  assert.deepEqual([...parseFeatureOff('Forfeit, picks')], ['forfeit', 'picks']);
+  assert.deepEqual([...parseFeatureOff('forfeits,skip,reveal')], [], 'only the exact name');
   assert.deepEqual([...parseFeatureOff('lines,notes')].sort(), ['lines', 'notes']);
   assert.ok(Object.isFrozen(FEATURES));
   assert.deepEqual([...parseFeatureOff('notes')], ['notes']);

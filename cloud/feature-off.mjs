@@ -4,7 +4,8 @@
 //
 // The switch is the gtl-api secret GTL_FEATURE_OFF: a comma-separated list of the feature names below. A listed
 // feature's writer refuses with GTL_FEATURE_OFF (503, "nothing you saved is lost"); its reads keep working and every
-// stored row stays. A listed reader that opens data (M-06's lines readers, M-08's everyone's picks) refuses with a 503
+// stored row stays (M-03's forfeit: the writer refuses, /community/read keeps reporting the stored forfeit, and every
+// sit-out it wrote keeps counting). A listed reader that opens data (M-06's lines readers, M-08's everyone's picks) refuses with a 503
 // too and reads nothing. Unknown names are ignored, never an error, so a typo cannot take gtl-api down. Setting or
 // clearing the secret is a hosted change that needs Sean's OK; it changes no code and no database row.
 
@@ -13,6 +14,7 @@ export const FEATURES = Object.freeze({
   notes: 'POST /personal/note: private game notes (M-09, redesign stage 27)',
   lines: 'POST /lines/read and /lines/game: the gated lines readers (M-06, redesign stage 23)',
   picks: 'POST /community/picks: everyone\'s Guess picks, game by game (M-08, redesign stage 26)',
+  forfeit: 'POST /community/forfeit: "Skip this week\'s Guess the Line" and "See picks now" (M-03, redesign stage 19)',
 });
 
 /** The set of known feature names the secret turns off (empty when it is unset or names nothing known). */

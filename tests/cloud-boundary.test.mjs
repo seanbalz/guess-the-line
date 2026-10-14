@@ -270,7 +270,52 @@ test('M-08 everyone\'s picks probes awaiting deploy pass only on the exact not-f
   });
 });
 
-test('only the referee, D-34 wind, M-01 gate and live-rules, M-05, M-09 notes, M-06 lines and M-08 picks pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+test('M-03 skip and "See picks now" probes awaiting deploy pass only on the exact not-found answer, are reported, and fail under --strict', async t => {
+  const rpcs = ['gtl_forfeit_markets', 'gtl_forfeit_guess_week', 'gtl_read_forfeit'];
+  for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261015040000_gtl_guess_week_forfeit.sql', rpc);
+  assert.equal(awaitingDeploy['gtl-api/community/forfeit'], 'the gtl-api deploy with /community/forfeit');
+  const forfeitRpc = url => rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`));
+  const forfeitRoute = url => url.endsWith('/functions/v1/gtl-api/community/forfeit');
+  const missing = async (url, request) => (forfeitRpc(url)
+    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
+    : forfeitRoute(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+  await t.test('the probes are anonymous and inert: no session, no real member, a reason the writer refuses', async () => {
+    const captured = [];
+    await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+    const calls = Object.fromEntries(rpcs.map(rpc => [rpc, captured.filter(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`))]));
+    for (const rpc of rpcs) {
+      assert.equal(calls[rpc].length, 1, rpc);
+      assert.equal(calls[rpc][0].request.headers.Authorization, undefined, rpc);
+      assert.equal(JSON.parse(calls[rpc][0].request.body).p_user, '00000000-0000-0000-0000-000000000000', rpc);
+    }
+    assert.equal(JSON.parse(calls.gtl_forfeit_guess_week[0].request.body).p_reason, 'boundary-check', 'not skip or reveal: the writer refuses it even if a grant were wrong');
+    const routes = captured.filter(({ url }) => forfeitRoute(url));
+    assert.deepEqual(routes.map(({ request }) => [request.method, request.headers.Authorization, JSON.parse(request.body)]),
+      [['POST', undefined, { season: 2026, week: 5, reason: 'skip' }], ['POST', 'Bearer invalid-test-token', { season: 2026, week: 5, reason: 'skip' }]]);
+  });
+  await t.test('before the apply and deploy: reported as awaiting, never as denied', async () => {
+    const lines = [];
+    const result = await checkCloudBoundary({ ...options, fetchImpl: missing, log: line => lines.push(line) });
+    assert.equal(result.awaiting.length, rpcs.length + 2, 'each RPC once; the route signed out and with an invalid session');
+    assert.ok(lines.some(line => /^anonymous gtl_forfeit_guess_week RPC: awaiting deploy \(404, not found\) until migration 20261015040000/.test(line)));
+    assert.ok(lines.some(line => /^POST community\/forfeit with invalid session: awaiting deploy/.test(line)));
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: missing, strict: true }), /gtl_forfeit_markets RPC: unexpected 404/);
+  });
+  await t.test('once applied and deployed they deny like every other probe', async () => {
+    const after = await checkCloudBoundary({ ...options, fetchImpl: denied });
+    assert.deepEqual([after.awaiting, after.denied], [[], after.checked]);
+  });
+  await t.test('any other 404, or a not-found answer carrying picks, still fails', async () => {
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/rest/v1/rpc/gtl_read_forfeit')
+      ? new Response(JSON.stringify({ code: '42883', message: 'Unavailable.' }), { status: 404 }) : denied(url, request)) }), /gtl_read_forfeit RPC: unexpected 404/);
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (forfeitRoute(url)
+      ? new Response(JSON.stringify({ error: 'Not found.', reason: 'skip' }), { status: 404 }) : denied(url, request)) }), /community\/forfeit without session: unexpected 404/);
+    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/rest/v1/rpc/gtl_forfeit_guess_week')
+      ? new Response(JSON.stringify({ code: 'PGRST202', picks: { 'AAA-BBB': -3.5 } }), { status: 404 }) : denied(url, request)) }), /private material in not-found response/);
+  });
+});
+
+test('only the referee, D-34 wind, M-01 gate and live-rules, M-05, M-09 notes, M-06 lines, M-08 picks and M-03 forfeit pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
   const referees = ['gtl_read_game_officials', 'gtl_set_game_official'];
   const winds = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
   const gate = ['gtl_guess_locked_in', 'gtl_guess_revealed', 'gtl_markets_visible', 'gtl_ballot_late', 'gtl_live_rules'];
@@ -281,16 +326,18 @@ test('only the referee, D-34 wind, M-01 gate and live-rules, M-05, M-09 notes, M
   const lines = ['gtl_read_lines', 'gtl_read_game_lines', 'gtl_book_quotes_from_snapshot', 'gtl_kickoff_line'];
   // M-08 (stage 26): the everyone's picks reader and its route.
   const picks = ['gtl_read_guess_picks'];
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/personal/notes', 'gtl-api/personal/note', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', ...[...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  // M-03 (stage 19): the forfeit writer, its reader and their market helper; the route, the gtl-api deploy.
+  const forfeit = ['gtl_forfeit_markets', 'gtl_forfeit_guess_week', 'gtl_read_forfeit'];
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/personal/notes', 'gtl-api/personal/note', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', 'gtl-api/community/forfeit', ...[...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks, ...forfeit].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const rpc of gate) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261014223000_gtl_guess_gate_per_game.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
   assert.equal(awaitingDeploy['rpc/gtl_odds_carryover_slate'], 'migration 20261014221500_gtl_odds_open_weeks.sql');
-  const missing = async (url, request) => ([...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  const missing = async (url, request) => ([...referees, ...winds, ...gate, ...monday, ...notes, ...lines, ...picks, ...forfeit].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|personal\/notes?|lines\/(read|game)|community\/picks)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|personal\/notes?|lines\/(read|game)|community\/(picks|forfeit))$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + winds.length + gate.length + monday.length + notes.length + lines.length + picks.length + 8 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + gate.length + monday.length + notes.length + lines.length + picks.length + forfeit.length + 9 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 

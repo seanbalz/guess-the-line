@@ -37,7 +37,9 @@ The same script prints the `-- replaces public.<name> md5 <hash>` header lines t
 1. The name matches a migration, the statements are only the allowed ones, every function the migration replaces
    is restored, and each restored body's md5 is the previous body's md5.
 2. On PGlite: `HOSTED`, then the migration, then the rollback. Every replaced function's `md5(prosrc)` is back to
-   the previous body, and what the migration added is still there.
+   the previous body, and what the migration added is still there. A migration that must follow a repo file the hosted
+   project does not have yet (its ledger "Apply after", such as M-03 after M-01) lists it in `REQUIRES` in
+   `tests/migrations.mjs`, and the check builds that file first, both here and for the suites in step 3.
 3. The old-app SQL suites rerun on that database (`GTL_ROLLBACK_CHECK`, read by `tests/migrations.mjs`).
 
 The same test runs a generated fixture (a migration that breaks `gtl_pick_points`, and its drafted rollback) to

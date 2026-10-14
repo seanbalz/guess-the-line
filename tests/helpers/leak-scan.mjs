@@ -25,6 +25,9 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
  * /community/picks (stage 26, M-08) is scanned on ALL in tests/guess-picks-sql.test.mjs until M-08 is hosted (every viewer,
  * both markets, one game and one member, before and after kickoffs); the apply record moves it here, so this list stays the
  * routes that answer on HOSTED.
+ * /community/read's `forfeit` field and /community/history's sat-out entries with locked-in guesses (stage 19, M-03, D-41) are
+ * scanned on ALL in tests/guess-forfeit-sql.test.mjs until M-03 is hosted (every viewer, before and after each kickoff, after a
+ * skip, a "See picks now" and the old sit-out); both routes are already in this list, so the apply record adds nothing here.
  */
 export const READERS = Object.freeze([
   ['/community/read', 'POST', {}],

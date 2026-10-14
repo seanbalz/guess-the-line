@@ -159,6 +159,6 @@ test('the GTL_FEATURE_OFF off switch `picks` stops /community/picks before the d
 
 test('the browser wrapper knows the route; no static asset carries a reader answer', () => {
   const api = fs.readFileSync(new URL('../web/src/api.js', import.meta.url), 'utf8');
-  assert.match(api, /\['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks'\]\.includes\(action\)/);
+  assert.match(api, /\['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks'(?:, '[a-z-]+')*\]\.includes\(action\)/);
   assert.doesNotMatch(api, /gtl_read_guess_picks/, 'the browser never names the service-only RPC');
 });
