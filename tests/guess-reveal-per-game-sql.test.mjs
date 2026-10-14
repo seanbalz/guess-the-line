@@ -1,11 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, ROLLBACK_DIR, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS } from './helpers/leak-scan.mjs';
 import { accuracy } from '../server/domain.mjs';
 import { sendBallot, serviceSql, storeLines } from './helpers/guess-week.mjs';
+import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
+import { TODAYS_RULES, parseLiveRules, readLiveRules } from '../cloud/live-rules.mjs';
+import { guessState, liveRules } from '../web/src/next/rules.js';
 
 // Redesign build plan stage 16, M-01 (20261014160000_gtl_guess_gate_per_game.sql): one Guess reveal gate per game and market
 // (D-39 per-game lock-in, D-31 kickoff, D-23 sit-out). Runs on ALL (the hosted project does not have M-01 yet), through the
@@ -22,13 +27,71 @@ const TROY = { spread: [-5.5, 2.5, 7.5, -12.5], total: [37.5, 61.5, 44.5, 49.5] 
 const LUKE = { total: [33.5, 55.5, 47.5, 41.5] };
 const SEAN = { total: [45.5, 39.5, 56.5, 29.5] };
 const NEW_RPCS = ['gtl_guess_locked_in(uuid,integer,integer,text,text)', 'gtl_guess_revealed(uuid,integer,integer,text,text,timestamptz)',
-  'gtl_markets_visible(uuid,integer,integer,timestamptz)', 'gtl_ballot_late(jsonb)'];
+  'gtl_markets_visible(uuid,integer,integer,timestamptz)', 'gtl_ballot_late(jsonb)', 'gtl_live_rules()'];
+// What gtl_live_rules() answers from M-01's apply: each game opens at its own kickoff; picks still close at the deadline and a
+// sent guess can still change until then (M-02 and M-07 change those two).
+const M01_RULES = Object.freeze({ sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' });
 const REPLACED = ['gtl_week_revealed(uuid,integer,integer,text,timestamptz)', 'gtl_read_community(uuid,timestamptz,integer,timestamptz)',
   'gtl_read_community_history(uuid,integer,timestamptz)'];
 
 test('M-01 is a repo file the hosted project does not have yet; its rollback restores the three bodies it replaces', () => {
   assert.ok(ALL.includes(MIGRATION));
   assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
+});
+
+test('gtl_live_rules (M-01): revealAt kickoff with today\'s other two fields; missing on the hosted schema, switched off by the rollback', { skip }, async t => {
+  const { PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js');
+  const db = new PGlite(); t.after(() => db.close());
+  const migration = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8'), rollback = fs.readFileSync(path.join(ROLLBACK_DIR, MIGRATION), 'utf8');
+  // gtl-api's optional read (cloud/optional-rpc.mjs) on PGlite: the service role, no argument; a missing function is what
+  // PostgREST answers with PGRST202 (feature off), and any other failure rejects.
+  const asked = [];
+  const optionalRpc = async (name, body) => {
+    asked.push([name, body]);
+    try {
+      return await db.transaction(async tx => { await tx.exec('set local role service_role'); return (await tx.query(`select public.${name}() value`)).rows[0].value; });
+    } catch (error) {
+      if (error.code === '42883') return FEATURE_OFF;
+      throw error;
+    }
+  };
+  const rows = async () => (await db.query("select p.prosecdef, p.provolatile, pg_get_function_identity_arguments(p.oid) args from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='gtl_live_rules'")).rows;
+  await db.exec(PRELUDE);
+  for (const file of HOSTED.filter(file => file < MIGRATION)) await db.exec(fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8'));
+
+  // The hosted schema today: no function, so every view carries today's rules and the deadline opens the week.
+  assert.deepEqual(await rows(), []);
+  assert.equal(await optionalRpc('gtl_live_rules', {}), FEATURE_OFF);
+  assert.deepEqual(await readLiveRules(optionalRpc), TODAYS_RULES);
+
+  await db.exec(migration);
+  assert.deepEqual(await rows(), [{ prosecdef: false, provolatile: 's', args: '' }], 'one invoker function, no argument');
+  assert.deepEqual(await optionalRpc('gtl_live_rules', {}), M01_RULES, 'the raw answer has exactly the three keys');
+  assert.deepEqual(parseLiveRules(M01_RULES), M01_RULES);
+  assert.deepEqual(await readLiveRules(optionalRpc), M01_RULES, 'what /community/read, /personal and /state carry as rules');
+  assert.deepEqual(liveRules(await readLiveRules(optionalRpc)), M01_RULES, 'what the new app reads');
+  assert.ok(asked.every(([name, body]) => name === 'gtl_live_rules' && Object.keys(body).length === 0), 'no player argument');
+  for (const role of ['anon', 'authenticated']) {
+    assert.equal((await db.query('select has_function_privilege($1,$2,$3) ok', [role, 'public.gtl_live_rules()', 'EXECUTE'])).rows[0].ok, false, role);
+    await assert.rejects(() => db.transaction(async tx => { await tx.exec(`set local role ${role}`); await tx.query('select public.gtl_live_rules()'); }), /permission denied/, role);
+  }
+  // The new app now matches the gate: on the Friday after a Thursday deadline, a Sunday game nobody has locked in stays hidden
+  // until its kickoff, where today's rules open it at the deadline (gtl_week_revealed before M-01).
+  const deadline = Date.parse('2026-10-16T00:15:00Z'), sunday = Date.parse('2026-10-18T17:00:00Z'), friday = Date.parse('2026-10-16T16:00:00Z');
+  const view = (rules, now = friday) => guessState({ kickoff: sunday, deadline, now, rules: liveRules(rules) });
+  assert.deepEqual([view(TODAYS_RULES).picksVisible, view(TODAYS_RULES).lineVisible], [true, true], 'today: the deadline opens it');
+  assert.deepEqual([view(M01_RULES).picksVisible, view(M01_RULES).lineVisible], [false, false], 'M-01: not before its kickoff');
+  assert.deepEqual([view(M01_RULES, sunday).picksVisible, view(M01_RULES, sunday).lineVisible], [true, true], 'M-01: its kickoff opens it');
+
+  // The rollback restores the deadline reveal and takes back the service role's grant: the function stays (never a drop), a
+  // read fails, and every view carries today's rules again. Reapplying the migration grants it again.
+  await db.exec(rollback);
+  assert.equal((await rows()).length, 1, 'gtl_live_rules stays after the rollback');
+  assert.equal((await db.query('select has_function_privilege($1,$2,$3) ok', ['service_role', 'public.gtl_live_rules()', 'EXECUTE'])).rows[0].ok, false);
+  await assert.rejects(() => optionalRpc('gtl_live_rules', {}), /permission denied/);
+  assert.deepEqual(await readLiveRules(optionalRpc), TODAYS_RULES);
+  await db.exec(migration);
+  assert.deepEqual(await readLiveRules(optionalRpc), M01_RULES);
 });
 
 test('the per-game gate (M-01): a lock-in opens that game and market, a kickoff opens one game, a sit-out opens the market; drafts never show', { skip }, async t => {

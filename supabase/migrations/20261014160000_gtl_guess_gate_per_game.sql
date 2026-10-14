@@ -22,6 +22,11 @@
 --   Stage 21 (real slips) and stage 23 (the lines reader) read it.
 -- * gtl_ballot_late(ballot): the Late marker stored on a ballot, { deadline, minutes }, or null. Nothing writes one until M-07
 --   (stage 24); it is read here so the feed and History carry it from the day it is written (D-30).
+-- * gtl_live_rules(): the live Guess rules (build plan section 3.4), { sentFinal: false, lateWindow: 'deadline',
+--   revealAt: 'kickoff' }. cloud/live-rules.mjs carries them as `rules` on /community/read, /personal and /state, and both apps
+--   follow them. revealAt is this file's field: from this apply the clock opens each game at its own kickoff, no longer the
+--   whole week at the deadline, so the new app's screens (web/src/next/rules.js) match the gate below. The other two fields
+--   are today's (D-16, D-24) until M-02 and M-07.
 --
 -- What this file replaces (same argument lists, same output fields, plus new ones):
 -- * gtl_week_revealed: the whole week and market is open to the viewer: a sit-out, or every game of the slate open through
@@ -46,7 +51,8 @@
 -- moved or hidden from its owner); the group screens' gtl_read_weekly_state (stage 17 moves their reveal).
 --
 -- Function-only and rerunnable: every definition is create or replace with an unchanged argument list, and the grants are
--- restated. Rollback: supabase/rollback/20261014160000_gtl_guess_gate_per_game.sql (the three previous bodies).
+-- restated. Rollback: supabase/rollback/20261014160000_gtl_guess_gate_per_game.sql (the three previous bodies, and a revoke
+-- that stops the service role reading gtl_live_rules, so every reply carries today's rules again).
 
 -- Today a pick in a submitted ballot is locked in. The ballot JSON is written only by the server (the writers take picks and a
 -- submit flag, never other keys), and no other field is read, so a client cannot mark a guess locked in without sending it.
@@ -82,6 +88,15 @@ create or replace function public.gtl_ballot_late(p_ballot jsonb) returns jsonb
 language sql immutable security invoker set search_path='' as $$
   select case when jsonb_typeof(p_ballot->'late')='object' and jsonb_typeof(p_ballot->'late'->'minutes')='number'
     then jsonb_build_object('deadline',p_ballot->'late'->'deadline','minutes',p_ballot->'late'->'minutes') end
+$$;
+
+-- The live Guess rules, the same for everyone (no argument, no player data). Created here because M-01 is applied before M-02
+-- (filename order is apply order, Gate M step 1). Each later file copies this body, changes only its own field and keeps the
+-- others: M-02 (stage 18) sets sentFinal true and M-07 (stage 24) sets lateWindow 'kickoff', both keeping revealAt 'kickoff'.
+-- Were M-02 to merge first, this file would be stamped after it and copy its body with revealAt 'kickoff' and its md5 header.
+create or replace function public.gtl_live_rules() returns jsonb
+language sql stable security invoker set search_path='' as $$
+  select jsonb_build_object('sentFinal',false,'lateWindow','deadline','revealAt','kickoff')
 $$;
 
 -- Body of 20261009140000 rewritten per game: a sit-out opens the week; otherwise every game of the slate must be open to the
@@ -296,12 +311,12 @@ end $$;
 
 -- create or replace keeps existing privileges; every grant is restated, and the new functions are service-only.
 revoke all on function public.gtl_guess_locked_in(uuid,integer,integer,text,text),public.gtl_guess_revealed(uuid,integer,integer,text,text,timestamptz),
-  public.gtl_markets_visible(uuid,integer,integer,timestamptz),public.gtl_ballot_late(jsonb),
+  public.gtl_markets_visible(uuid,integer,integer,timestamptz),public.gtl_ballot_late(jsonb),public.gtl_live_rules(),
   public.gtl_week_revealed(uuid,integer,integer,text,timestamptz),public.gtl_read_community(uuid,timestamptz,integer,timestamptz),
   public.gtl_read_community_history(uuid,integer,timestamptz)
   from public,anon,authenticated;
 grant execute on function public.gtl_guess_locked_in(uuid,integer,integer,text,text),public.gtl_guess_revealed(uuid,integer,integer,text,text,timestamptz),
-  public.gtl_markets_visible(uuid,integer,integer,timestamptz),public.gtl_ballot_late(jsonb),
+  public.gtl_markets_visible(uuid,integer,integer,timestamptz),public.gtl_ballot_late(jsonb),public.gtl_live_rules(),
   public.gtl_week_revealed(uuid,integer,integer,text,timestamptz),public.gtl_read_community(uuid,timestamptz,integer,timestamptz),
   public.gtl_read_community_history(uuid,integer,timestamptz)
   to service_role;

@@ -6,8 +6,9 @@ import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 import { LATE_WINDOWS, REVEAL_TIMES, TODAYS_RULES, parseLiveRules, readLiveRules } from '../cloud/live-rules.mjs';
 
 // Redesign build plan, stage 4: /community/read, /personal, /personal/read and /state (and the /ballot and /bet
-// replies, which are the /state view) carry `rules`. gtl_live_rules does not exist yet (M-02 creates it), so
-// every reply carries today's rules, and a missing or failing RPC never fails the route.
+// replies, which are the /state view) carry `rules`. The hosted project has no gtl_live_rules yet (M-01 creates it;
+// tests/guess-reveal-per-game-sql.test.mjs reads it on PGlite), so every reply carries today's rules, and a missing
+// or failing RPC never fails the route.
 // Fictional fixtures only: no real player, pick or line.
 const USER = '00000000-0000-4000-8000-00000000000a';
 const LEAGUE = `g_${'a'.repeat(32)}`;

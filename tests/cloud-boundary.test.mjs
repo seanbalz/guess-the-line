@@ -165,10 +165,10 @@ test('D-34 kickoff wind probes awaiting deploy pass only on the exact not-found 
   });
 });
 
-test('only the referee, D-34 wind and M-01 gate pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+test('only the referee, D-34 wind and M-01 gate and live-rules pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
   const referees = ['gtl_read_game_officials', 'gtl_set_game_official'];
   const winds = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
-  const gate = ['gtl_guess_locked_in', 'gtl_guess_revealed', 'gtl_markets_visible', 'gtl_ballot_late'];
+  const gate = ['gtl_guess_locked_in', 'gtl_guess_revealed', 'gtl_markets_visible', 'gtl_ballot_late', 'gtl_live_rules'];
   assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', ...[...referees, ...winds, ...gate].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const rpc of gate) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261014160000_gtl_guess_gate_per_game.sql', rpc);
