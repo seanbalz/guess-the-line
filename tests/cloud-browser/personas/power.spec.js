@@ -209,3 +209,88 @@ test('power user: keyboard-only ballot, tab counts, focus visibility and tap bud
   console.log(`power: 14-game Total ballot in ${totalPresses} key presses (${toSubmitTotal} to Submit)`);
   expect(await persona.noOverflow()).toBe(true);
 });
+
+// Redesign stage 15 (D-37 as amended by D-39): the same keyboard player once the server's live rules make sent picks final (M-02
+// reports sentFinal: true through gtl_live_rules; the hosted schema has no such function yet, so the harness answers the read).
+// Before the submit the rule sits beside Submit and describes it; after it, the submitted market says "Submitted · final" and
+// offers no edit at all, while the other market stays a draft that changes freely. When the rules read falls back (a rollback),
+// the same ballot is editable again: the screens follow the server, never the other way round.
+const SENT_FINAL = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
+
+test('power user: once sent picks are final, the submitted market offers no edit and the other stays a draft', async ({ page, persona }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await persona.start();
+  persona.rules = SENT_FINAL;
+  // A full Spread draft saved earlier on another device: this run is about submitting it.
+  await persona.saveBallot('guess_spread', Object.fromEntries(persona.state.games.map(game => [game.id, -3])), false);
+  await page.goto('/');
+  await persona.tabTo(f => f.tag === 'input' && f.name === '');
+  await page.keyboard.type('ben@example.test');
+  await page.keyboard.press('Tab'); await page.keyboard.type('test-password'); await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  expect(await persona.tabTo(f => f.name === 'Make picks')).toBeGreaterThan(0);
+  await page.keyboard.press('Enter');
+  const cards = page.locator('.week-pick'), bar = page.locator('.save-bar'), header = page.locator('.week-picks > p.muted');
+  await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3');
+  await expect(bar.locator('strong')).toHaveText('14/14 ready');
+  // Before anything is sent: the rule is on the bar and describes Submit, so a screen reader hears it on the button too.
+  const submit = bar.getByRole('button', { name: 'Submit Spread', exact: true });
+  await expect(bar.locator('.save-final')).toHaveText('Submitted picks are final.');
+  await expect(submit).toHaveAccessibleDescription(/Submitted picks are final\./);
+  await expect(header).not.toContainText('Submitted');
+  expect(await persona.tabTo(f => f.name === 'Submit Spread')).toBeGreaterThan(0);
+  const before = persona.net.requests.filter(r => r.endpoint === 'personal/ballot').length;
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('status').filter({ hasText: 'Spread picks submitted.' })).toBeVisible();
+  expect(persona.net.requests.filter(r => r.endpoint === 'personal/ballot').length).toBe(before + 1);
+  // After the send: the receipt takes focus and says final; no Edit picks, no Save changes, no save bar, and every chip is read-only.
+  const receipt = page.getByRole('region', { name: 'Spread submitted · 14 picks' });
+  await expect(receipt).toBeVisible();
+  expect(await receipt.evaluate(el => el.contains(document.activeElement))).toBe(true);
+  await expect(receipt).toContainText(/Submitted · final · \w{3} \d{1,2}, \d{1,2}:\d{2} [AP]M PT\./);
+  await expect(receipt).toContainText("Submitted picks can't be changed.");
+  await expect(receipt).not.toContainText('a pick you change before the deadline');
+  await expect(receipt.getByRole('button', { name: 'Edit picks' })).toHaveCount(0);
+  await expect(receipt.getByRole('button', { name: "See everyone's Spread picks" })).toBeVisible();
+  await expect(receipt.getByRole('button', { name: 'Make Total picks' })).toBeVisible();
+  await expect(header).toContainText('14/14 picked');
+  await expect(header).toContainText('· Submitted · final');
+  await expect(header).not.toContainText('editable');
+  await expect(page.locator('.week-picks .save-bar')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Save changes' })).toHaveCount(0);
+  await expect(page.locator('.week-pick .chip:disabled').first()).toBeVisible();
+  await expect(page.locator('.week-pick .chip:not(:disabled)')).toHaveCount(0);
+  await expect(cards.first().locator('.chip-summary')).toHaveText('Cowboys −3');
+  await expect(page.locator('.chip-help')).toHaveCount(0);
+  await persona.shot('submitted-final');
+  await persona.axe('submitted-final');
+  expect(await persona.noOverflow()).toBe(true);
+  // The other market is still a draft: its chips work and it can be saved as a draft, then changed again.
+  const market = page.getByRole('group', { name: 'Market' });
+  await expect(market.getByRole('button', { name: 'Spread ✓' })).toBeVisible();
+  const totalTab = market.getByRole('button', { name: 'Total', exact: true });
+  await totalTab.focus(); await page.keyboard.press('Enter');
+  await expect(totalTab).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.submit-receipt')).toHaveCount(0);
+  await expect(bar.locator('.save-final')).toHaveText('Submitted picks are final.');
+  await expect(bar.getByRole('button', { name: 'Submit Total', exact: true })).toHaveAccessibleDescription(/Submitted picks are final\./);
+  await cards.first().getByRole('radio', { name: '44', exact: true }).focus(); await page.keyboard.press('Enter');
+  await expect(cards.first().locator('.chip-summary')).toHaveText('44 total points');
+  await bar.getByRole('button', { name: 'Save draft' }).focus(); await page.keyboard.press('Enter');
+  await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
+  await cards.first().getByRole('radio', { name: '45', exact: true }).focus(); await page.keyboard.press('Enter');
+  await expect(cards.first().locator('.chip-summary')).toHaveText('45 total points');
+  await expect(page.locator('.week-pick .chip:not(:disabled)').first()).toBeVisible();
+  // The rules read falls back to today's rules (M-02 rolled back): on the next read the submitted Spread is editable again.
+  persona.rules = null;
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+  const spreadTab = page.getByRole('group', { name: 'Market' }).getByRole('button', { name: 'Spread ✓' });
+  await spreadTab.click();
+  await expect(receipt.getByRole('button', { name: 'Edit picks' })).toBeVisible();
+  await expect(receipt).not.toContainText('Submitted · final');
+  await expect(header).toContainText('Submitted, editable until the deadline');
+  await expect(page.getByRole('button', { name: 'Save changes' })).toBeVisible();
+  await expect(page.locator('.save-final')).toHaveCount(0);
+  await expect(cards.first().locator('.team-chip').first()).toBeEnabled();
+});

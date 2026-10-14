@@ -13,6 +13,7 @@ import { providerPersonalError } from '../../../cloud/personal.mjs';
 import { providerLobbyError } from '../../../cloud/lobby.mjs';
 import { providerCommunityError } from '../../../cloud/community.mjs';
 import { providerWeeklyError } from '../../../cloud/weekly.mjs';
+import { FEATURE_OFF } from '../../../cloud/optional-rpc.mjs';
 import { weekOpenAt } from '../../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../../fixtures/webfonts.mjs';
 import { openDeadline } from '../fixture-deadline.mjs';
@@ -81,8 +82,11 @@ export const test = base.extend({
     const findings = [], errors = [], axeLog = [], seenAxe = new Set();
     let db = null, state = null, lastScreenshot = '';
     const net = { delay: 0, offline: false, fail: null, expireSession: false, quotesUnavailable: false, requests: [] };
+    // The live Guess rules (build plan section 3.4) reach the screens as `rules` through the handler's optional-RPC read. The hosted
+    // schema has no gtl_live_rules, so by default the read is "feature off" and every view carries today's rules, as for players.
+    // A spec sets persona.rules (for example M-02's { sentFinal: true, ... }) to see the screens under a rule that is not live yet.
     const persona = {
-      name, findings, errors, net, get db() { return db; }, get state() { return state; },
+      name, findings, errors, net, rules: null, get db() { return db; }, get state() { return state; },
       user: { id: id(1), aud: 'authenticated', role: 'authenticated', email: 'ben@example.test', app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-10-01T00:00:00Z' },
       async start(options = {}) {
         ({ db, state } = await buildWorld(options));
@@ -100,6 +104,7 @@ export const test = base.extend({
         const oddsRpc = (fn, args) => fn === 'gtl_preflight_submission' ? Promise.resolve(net.quotesUnavailable ? { requiresReferences: true, ready: false } : { requiresReferences: false, ready: true }) : personalRpc(fn, args);
         persona.handler = createCloudHandler({ authenticate: async value => value === token && !net.expireSession ? { ...persona.user, emailConfirmed: true } : null,
           social: { rpc: rpc(providerSocialError) }, personal: { rpc: rpc(providerPersonalError) }, lobby: { rpc: rpc(providerLobbyError) }, community: { rpc: rpc(providerCommunityError) }, odds: { rpc: oddsRpc },
+          optionalRpc: async name => (name === 'gtl_live_rules' && persona.rules ? structuredClone(persona.rules) : FEATURE_OFF),
           // Group game screens read membership and weekly state from the same local database.
           storage: { async membership(userId, leagueId) { return (await db.query('select player_id,active,role from public.gtl_memberships where user_id=$1 and league_id=$2 and active limit 1', [userId, leagueId])).rows[0] || null; } },
           weekly: {

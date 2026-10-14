@@ -40,6 +40,8 @@ const test = base.extend({
         view.games = engine.view(accountId, mode).games.map(game => ({ ...game, analysisMarket: hub.marketOverlay.analysisMarkets?.[game.id] || null, lastMarketReference: hub.marketOverlay.lastMarketReferences?.[game.id] || null }));
       }
       if(hub.serverNow)view.now=hub.serverNow;
+      // The live Guess rules /state and /ballot carry (cloud/live-rules.mjs). Left unset, the reply has none and the app reads today's rules.
+      if(hub.rules)view.rules=structuredClone(hub.rules);
       if(hub.scoreComparisonHistory&&view.revealed)view.scoreComparisonHistory=hub.scoreComparisonHistory;
       if(hub.decisionAnalysis&&view.revealed)view.games=view.games.map(game=>({...game,decisionAnalysis:hub.decisionAnalysis[game.id]}));
       if(hub.viewPatch)Object.assign(view,hub.viewPatch(view));
@@ -363,6 +365,127 @@ for (const [mode, width] of [['guess_spread', 320], ['guess_total', 390]]) test(
   await page.getByRole('button', { name: label, exact: true }).click();
   await expectPickEnabled(page, entryLabel(MATCHUPS[0]));
   await expectPick(page, entryLabel(MATCHUPS[0]), total ? totalText(values[0]) : spreadText('TB', 'DAL', values[0]));
+});
+
+// Redesign stage 15 (D-37 as amended by D-39): the group ballot once the server's live rules make sent picks final (M-02 reports
+// sentFinal: true from gtl_live_rules, and /state and /ballot carry it). The ballot and its review say so before the submit; after it
+// the ballot reads SUBMITTED · FINAL with read-only chips and nothing to save, the other market stays a draft, the analysis, the rules,
+// the standings, Settings and the dashboard stop promising edits, and when the rules read falls back (a rollback) the same ballot is
+// editable again.
+const SENT_FINAL = { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' };
+const FINAL_RULE = "Submitted picks are final: once you submit, you can't change them.";
+for (const [mode, width] of [['guess_total', 320], ['guess_spread', 390]]) test(`${mode} submitted guesses are final once the live rules say so at ${width}px`, async ({ page, hub }) => {
+  const total = mode === 'guess_total', label = total ? 'Guess the Total' : 'Guess the Spread', otherLabel = total ? 'Guess the Spread' : 'Guess the Total';
+  hub.profile = 'Avery Chen'; hub.addGame(); hub.rules = SENT_FINAL;
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto('/'); await signIn(page);
+  await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  async function navigate(name) { await page.getByRole('button', { name: 'Open navigation', exact: true }).click(); await page.getByRole('button', { name, exact: true }).click(); }
+  await navigate('My picks');
+  await page.getByRole('button', { name: label, exact: true }).click();
+  const entryLabel = ([away, home]) => `${away} at ${home} ${total ? 'combined points' : 'home spread'}`;
+  const values = total ? ['44.5', '48', '46'] : ['-3.5', '2', '-1'];
+  const callout = page.locator('.callout').filter({ hasText: 'Deadline:' });
+  await expect(callout).toContainText(FINAL_RULE);
+  await expect(callout).not.toContainText('You may edit before the deadline');
+  for (const [index, matchup] of MATCHUPS.entries()) await (total ? pickTotal : pickSpread)(page, entryLabel(matchup), values[index]);
+  await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
+  const review = page.getByRole('dialog', { name: `Submit your ${total ? 'total' : 'spread'} ballot?` });
+  await expect(review).toContainText(FINAL_RULE);
+  await expect(review).toContainText('Drafts can change until you submit; submitted guesses are final.');
+  await expect(review).not.toContainText('You can edit until the deadline');
+  await review.getByRole('button', { name: 'Submit & reveal analysis' }).click();
+  await expect(page.getByRole('heading', { name: `Your ${total ? 'total' : 'spread'} analysis`, exact: true })).toBeVisible();
+  await expect(page.locator('.analysis-heading')).toContainText('Submitted guesses are final.');
+  await expect(page.locator('.analysis-heading')).not.toContainText('Edits are available');
+  // Back on the ballot: final, read-only, nothing to save; the saved guesses still show.
+  await page.getByRole('button', { name: 'Review your ballot' }).click();
+  await expect(page.getByText('SUBMITTED · FINAL', { exact: true })).toBeVisible();
+  await expect(page.getByText('SUBMITTED · EDITABLE', { exact: true })).toHaveCount(0);
+  for (const matchup of MATCHUPS) await expectPickEnabled(page, entryLabel(matchup), false);
+  await expectPick(page, entryLabel(MATCHUPS[0]), total ? totalText(values[0]) : spreadText('TB', 'DAL', values[0]));
+  await expect(callout).toContainText('Your submitted guesses are final.');
+  await expect(page.locator('.save-bar strong')).toHaveText('Submitted · final');
+  await expect(page.locator('.draft-save-state')).toContainText("Submitted guesses can't be changed.");
+  await expect(page.getByRole('button', { name: /^Review & (submit|save changes)/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Save draft', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Next game' })).toHaveCount(0);
+  await expect(page.locator('.save-bar').getByRole('button', { name: 'View analysis' })).toBeVisible();
+  expect(hub.requests.filter(request => request.endpoint === 'ballot').map(request => request.body.submit)).toEqual([true]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: `.local/previews/final-ballot-${width}.png`, fullPage: true });
+  // The rules modal states the live rule.
+  await page.getByRole('button', { name: 'Rules & scoring' }).click();
+  const rules = page.getByRole('dialog', { name: 'Three ways to play' });
+  await expect(rules).toContainText(FINAL_RULE);
+  await expect(rules).not.toContainText('You can edit until the deadline');
+  await page.keyboard.press('Escape');
+  await expect(rules).toHaveCount(0);
+  // So do the scoring note on this ballot, the standings, the dashboard's chart guide and the League rules in Settings: none of them
+  // describes saving a changed guess any more.
+  const policy = page.locator('.source-note').filter({ hasText: 'Scoring reference saved with each guess' });
+  await expect(policy).toContainText(FINAL_RULE);
+  await expect(policy).not.toContainText('Saving a changed guess');
+  await navigate('Leaderboard');
+  const reference = page.locator('.stat').filter({ hasText: 'Scoring reference' });
+  await expect(reference).toContainText('At submission');
+  await expect(reference).toContainText('Later line movement does not change points');
+  await expect(reference).not.toContainText('Changed guesses');
+  await navigate('Dashboard');
+  const guide = page.locator('.chart-guide');
+  await guide.locator('summary').click();
+  await expect(guide).toContainText('Your saved reference is the consensus captured when you submit.');
+  await expect(guide).not.toContainText('changed guess');
+  await navigate('Settings & setup');
+  const setting = name => page.locator('.settings-list > div').filter({ has: page.locator('dt', { hasText: name }) }).locator('dd');
+  await expect(setting('Prediction edits')).toContainText('Drafts change until you submit');
+  await expect(setting('Prediction edits')).toContainText('Submitted guesses are final');
+  await expect(setting('Prediction edits')).not.toContainText('Editable until deadline');
+  await expect(setting('Prediction edits')).not.toContainText('Changed guesses');
+  await expect(setting('Scoring reference')).toContainText('At submission');
+  await expect(setting('Scoring reference')).not.toContainText('or edit');
+  await navigate('My picks');
+  // The other market is still a draft that changes freely, and its analysis gate states the rule.
+  await page.getByRole('button', { name: otherLabel, exact: true }).click();
+  await navigate('Edge board');
+  await expect(page.getByRole('heading', { name: 'Your ballot comes first' })).toBeVisible();
+  await expect(page.locator('.empty')).toContainText(FINAL_RULE);
+  await page.getByRole('button', { name: 'Complete your ballot' }).click();
+  await expect(page.getByText('BLIND PREDICTIONS', { exact: true })).toBeVisible();
+  await expectPickEnabled(page, `TB at DAL ${total ? 'home spread' : 'combined points'}`);
+  // The dashboard no longer calls a ballot that is in "editable".
+  await navigate('Dashboard');
+  await expect(page.locator('.visual-next-action')).toContainText(`${total ? 'Total' : 'Spread'} is in · final.`);
+  await expect(page.locator('.visual-next-action')).not.toContainText('editable');
+  // The rules read falls back to today's rules (M-02 rolled back): the submitted ballot is editable again on the next read.
+  hub.rules = null;
+  await page.reload(); await navigate('Settings & setup');
+  await expect(setting('Prediction edits')).toContainText('Editable until deadline');
+  await expect(setting('Prediction edits')).not.toContainText('Submitted guesses are final');
+  await expect(setting('Scoring reference')).toContainText('At submission or edit');
+  await navigate('My picks');
+  await page.getByRole('button', { name: label, exact: true }).click();
+  await expect(page.getByText('SUBMITTED · EDITABLE', { exact: true })).toBeVisible();
+  await expectPickEnabled(page, entryLabel(MATCHUPS[0]));
+  await expect(policy).toContainText('Saving a changed guess before the deadline takes the line at that save');
+  await expect(policy).not.toContainText(FINAL_RULE);
+  // An unsaved change made while edits were allowed, then the rule turns final: the tab copy stays readable but can no longer be
+  // restored into the ballot, and the chips show the saved guess.
+  const changed = total ? '50' : '-6';
+  await (total ? pickTotal : pickSpread)(page, entryLabel(MATCHUPS[0]), changed);
+  await expectPick(page, entryLabel(MATCHUPS[0]), total ? totalText(changed) : spreadText('TB', 'DAL', changed));
+  hub.rules = SENT_FINAL;
+  page.once('dialog', dialog => dialog.accept());
+  await page.reload(); await navigate('My picks');
+  await page.getByRole('button', { name: label, exact: true }).click();
+  await expect(page.getByText('SUBMITTED · FINAL', { exact: true })).toBeVisible();
+  const copy = page.getByRole('region', { name: 'Expired prediction recovery' });
+  await expect(copy).toContainText('READ-ONLY · SUBMITTED · FINAL');
+  await expect(copy).toContainText('Editing and submission are closed.');
+  await expect(page.getByRole('button', { name: 'Restore tab draft' })).toHaveCount(0);
+  await expectPick(page, entryLabel(MATCHUPS[0]), total ? totalText(values[0]) : spreadText('TB', 'DAL', values[0]));
+  await expectPickEnabled(page, entryLabel(MATCHUPS[0]), false);
+  expect(hub.requests.filter(request => request.endpoint === 'ballot')).toHaveLength(1);
 });
 
 for (const width of [320, 390]) test(`Light and System appearance persist across account and game screens at ${width}px`, async ({ page, hub }) => {
