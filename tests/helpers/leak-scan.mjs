@@ -50,6 +50,8 @@ export const READER_MIGRATIONS = Object.freeze({
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
 
 const NUMBER = /[+-]?(?:\d+\.\d+|\d+|\.\d+)/g;
+// ISO times (observedAt, kickoff, ...) are not lines, but their seconds can read as one: "...:31.500Z" is 31.5.
+const ISO_TIME = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?/g;
 const pathOf = (parent, key) => (typeof key === 'number' ? `${parent}[${key}]` : /^[A-Za-z_$][\w$]*$/.test(key) ? `${parent}.${key}` : `${parent}[${JSON.stringify(key)}]`);
 
 /**
@@ -77,7 +79,7 @@ export function leakScan(reply, { viewer, secrets, ownerKeys = OWNER_KEYS, exemp
     if (exempt(path, node)) return;
     if (typeof node === 'number') { if (!own) check(path, node, node); return; }
     if (typeof node === 'string') {
-      if (!own) for (const token of node.match(NUMBER) || []) check(path, Number(token), node);
+      if (!own) for (const token of node.replace(ISO_TIME, ' ').match(NUMBER) || []) check(path, Number(token), node);
       return;
     }
     if (node === null || typeof node !== 'object' || seen.has(node)) return;

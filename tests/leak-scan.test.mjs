@@ -50,6 +50,13 @@ test('no false finding from counts, weeks, seasons, timestamps, ids or points; w
   assert.throws(() => leakScan(reply, { viewer: VIEWER, secrets: [{ value: 'x' }] }), /numeric/);
 });
 
+test('a timestamp whose seconds read like a secret is never a finding; the same number in words still is', () => {
+  const secrets = [{ value: 31.5, kind: 'line', market: 'total', label: 'Total' }];
+  // toISOString always writes milliseconds, so 31.5 seconds past a minute is "…:31.500Z", which Number() reads as 31.5.
+  assert.deepEqual(leakScan({ observedAt: '2026-10-14T13:31:31.500Z', at: '2026-10-14T13:31:31.5Z', local: '2026-10-14T06:31:31.500-07:00' }, { viewer: VIEWER, secrets }), []);
+  assert.equal(leakScan({ note: 'Total 31.5 at 2026-10-14T13:31:31.500Z' }, { viewer: VIEWER, secrets }).length, 1);
+});
+
 // Unusual half points: no count, date or score in a reply can equal them. Two games: spread and total each.
 const LINES = { spread: [-11.5, 13.5], total: [58.5, 31.5] };
 const TROY = { spread: [-6.5, 2.5], total: [37.5, 61.5] };
