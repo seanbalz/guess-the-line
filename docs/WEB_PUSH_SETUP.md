@@ -2,7 +2,7 @@
 
 Owner: Sean Balsiger · Version 3 · Updated 2026-10-14 · Decision [D-28](DECISIONS.md)
 
-**Status: built and tested locally, nothing switched on.** The code is on `main` once its pull request merges. The migration is **not applied** to the hosted project, `gtl-push-reminders` is **not deployed**, `gtl-api` does not yet carry the push routes, no VAPID key exists and no cron job is registered. Until you finish the steps below, nobody can turn reminders on. **Push guard (redesign stage 2, October 14):** `/community/read` carries `pushConfigured`, true only when `gtl-api` holds a valid `VAPID_PUBLIC_KEY` (the key itself is never in that reply). While it is false the picks-due card and Settings & setup show no reminder control at all, so nobody meets a "Remind me" button that fails.
+**Status: switched on October 14, 2026** ([release record](RELEASE_2026_10_09.md#october-14-deploy)): the migration is applied, `gtl-api` v18 and `gtl-push-reminders` v1 are deployed, all three VAPID secrets are set, the cron job is registered and the schedule row was enabled at 19:52 UTC. Not yet verified: Sean's iPhone receiving the Week 6 reminder. The steps below stay as the procedure for a rebuild or a key rotation. **Push guard (redesign stage 2, October 14):** `/community/read` carries `pushConfigured`, true only when `gtl-api` holds a valid `VAPID_PUBLIC_KEY` (the key itself is never in that reply). While it is false the picks-due card and Settings & setup show no reminder control at all, so nobody meets a "Remind me" button that fails.
 
 ## What it does
 

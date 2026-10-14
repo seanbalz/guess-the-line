@@ -88,5 +88,8 @@ export const APPLIED = [
   20261012230000, // gtl_submit_with_line_at_guess
   20261012234500, // gtl_game_officials
   20261013010000, // gtl_line_at_guess_reads
+  20261013030000, // gtl_web_push_reminders (D-28): hosted as 20261013030000 on October 14, 2026
   20261013060000, // gtl_wind_forecasts
+  20261014224500, // M-09 gtl_game_notes: hosted as 20261014224500 on October 14, 2026
+  20261014233000, // M-29 gtl_favorite_keeps_note: hosted as 20261014233000 on October 14, 2026
 ];
