@@ -52,9 +52,4 @@ export const workerChecks = Object.freeze([
 ]);
 
 export const awaitingDeploy = Object.freeze({
-  // M-09: remove these four with the release record of its hosted apply and the gtl-api deploy (Gate M step 8).
-  'rpc/gtl_read_game_notes': 'migration 20261014224500_gtl_game_notes.sql',
-  'rpc/gtl_set_game_note': 'migration 20261014224500_gtl_game_notes.sql',
-  'gtl-api/personal/notes': 'the gtl-api deploy with /personal/notes',
-  'gtl-api/personal/note': 'the gtl-api deploy with /personal/note',
 });
