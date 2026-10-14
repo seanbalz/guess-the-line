@@ -3,7 +3,7 @@
 // formatting. Pure ESM with no imports and no clock, so the React components and the node tests
 // share it and the eager bundle never pulls in the engine (shared/trends.mjs) or the history.
 // The week file never carries a current-week line; the only line used here is the viewer's own
-// saved line for a market whose ballot is already submitted, sat out or closed.
+// saved line for a game and market already open to the viewer (locked in, sat out, or opened by the clock).
 
 export const TRENDS_TOGGLE_KEY = 'gtl.trends.show';
 // The same strings as shared/trends.mjs TRENDS_SOURCE and LINE_SOURCE (a test keeps them equal).
@@ -20,18 +20,74 @@ export const weekKey = (season, week) => `${season}-${String(week).padStart(2, '
 export const appSpreadToNflverse = value => (finite(value) ? (value === 0 ? 0 : -value) : null);
 
 // ---------------------------------------------------------------------------
-// Reveal gating: a line-dependent trend unlocks only for the market whose ballot
-// is submitted, sat out (D-23) or past its deadline. A Total submission never
-// unlocks a spread-gated trend, and "both" needs both markets.
+// Reveal gating, per game and market (D-39 per-game lock-in, D-31 kickoff, D-23
+// sit-out; the gate M-01's gtl_guess_revealed applies in SQL). A line-dependent
+// trend for one game unlocks for a market when the viewer's own guess for that
+// game and market is locked in, when the viewer sat out that market for the week
+// (from M-03 a skip or "See picks now" writes the same sit-out), or when the clock
+// opens the game: its own kickoff once the live rules say `revealAt: 'kickoff'`
+// (M-01), else, under today's rules, also the week's deadline (D-23). A Total
+// lock-in never unlocks a spread-gated trend, and "both" needs both markets.
 // ---------------------------------------------------------------------------
-export function communityAccess({ ballots = {}, optOuts = [], closed = false } = {}) {
-  const open = mode => closed === true || !!ballots?.[mode]?.submittedAt || (Array.isArray(optOuts) && optOuts.includes(mode));
-  return { spread: open('guess_spread'), total: open('guess_total') };
+const MARKET_MODES = Object.freeze({ spread: 'guess_spread', total: 'guess_total' });
+const instant = value => {
+  if (value === null || value === undefined || value === '') return null;
+  const ms = typeof value === 'number' ? value : Date.parse(value);
+  return Number.isFinite(ms) ? ms : null;
+};
+/**
+ * When the clock opens a game, from the server's live rules (cloud/live-rules.mjs `rules`): 'kickoff' once M-01 says so
+ * (a kickoff late window always reveals at kickoff, M-07 being applied after M-01); anything else reads as today's
+ * 'deadline', as cloud/live-rules.mjs and web/src/next/rules.js read a missing or malformed answer.
+ */
+export const revealTime = rules => (rules?.revealAt === 'kickoff' || rules?.lateWindow === 'kickoff' ? 'kickoff' : 'deadline');
+/**
+ * A game's pick is locked in: a number in a submitted ballot, or one the ballot's `lockedAt` names (`{ submittedAt, picks,
+ * lockedAt }`; M-02 records each per-game lock-in there). The same reading as gtl_guess_locked_in (gtl_ballot_locked_in),
+ * the engine's ballotLockedIn and web/src/sentFinal.js lockedIn.
+ */
+export const guessLockedIn = (ballot, gameId) => finite(ballot?.picks?.[gameId])
+  && (Boolean(ballot?.submittedAt) || typeof ballot?.lockedAt?.[gameId] === 'string');
+
+/**
+ * One game's gate for the viewer: `{ spread, total, revealAt }`. Pure and clock-free (the caller passes `now`, the
+ * server's time). `lockedIn` and `satOut` are `{ spread, total }` booleans for this viewer and this game's week; a
+ * missing or unreadable kickoff or `now` never opens anything by the clock. Stage 13 (the new app's Lines) reuses it.
+ */
+export function gameAccess({ kickoff = null, deadline = null, now = null, rules = null, lockedIn = {}, satOut = {} } = {}) {
+  const at = instant(now), ko = instant(kickoff), dl = instant(deadline), revealAt = revealTime(rules);
+  const clock = at !== null && ((ko !== null && at >= ko) || (revealAt === 'deadline' && dl !== null && at >= dl));
+  const open = market => clock || lockedIn?.[market] === true || satOut?.[market] === true;
+  return { spread: open('spread'), total: open('total'), revealAt };
 }
-export function groupAccess(data = {}) {
-  const open = (mode, key) => data.marketAccess?.[key] === true || data.statuses?.[mode]?.satOut === true
-    || data.statuses?.[mode]?.lockReason === 'deadline' || (data.mode === mode && data.revealed === true);
-  return { spread: open('guess_spread', 'spread'), total: open('guess_total', 'total') };
+
+/**
+ * Community Picks (the /personal view: `games`, `deadline`, `now`, `rules`, `ballots`): one game's gate. `optOuts` is the
+ * viewer's sat-out modes for the week (/community/read).
+ */
+export function communityAccess(data = {}, gameId, optOuts = []) {
+  const game = Array.isArray(data?.games) ? data.games.find(g => g?.id === gameId) : null;
+  const sat = Array.isArray(optOuts) ? optOuts : [];
+  const by = fn => Object.fromEntries(Object.entries(MARKET_MODES).map(([market, mode]) => [market, fn(mode)]));
+  return gameAccess({ kickoff: game?.kickoff, deadline: data?.deadline, now: data?.now, rules: data?.rules,
+    lockedIn: by(mode => guessLockedIn(data?.ballots?.[mode], gameId)), satOut: by(mode => sat.includes(mode)) });
+}
+
+/**
+ * The group ballot and dashboard (the /state view: `games`, `league.deadline`, `now`, `rules`, `statuses`, `marketAccess`,
+ * `mode`, `revealed`, `submittedAt`, `lockedAt`): one game's gate. The view holds no other-market picks, so a market counts
+ * as locked in for a game of the slate once that market's weekly ballot is submitted (a submission locks in every game in
+ * it; `marketAccess` and this mode's `revealed` say the same). For the view's own mode a game also counts once its pick
+ * (`games[].prediction`) is locked in on its own: M-02 records that in the view's `lockedAt` (guessLockedIn above).
+ */
+export function groupAccess(data = {}, gameId) {
+  const game = Array.isArray(data?.games) ? data.games.find(g => g?.id === gameId) : null;
+  const by = fn => Object.fromEntries(Object.entries(MARKET_MODES).map(([market, mode]) => [market, fn(market, mode)]));
+  const own = { submittedAt: data?.submittedAt, lockedAt: data?.lockedAt, picks: { [gameId]: game?.prediction } };
+  return gameAccess({ kickoff: game?.kickoff, deadline: data?.league?.deadline, now: data?.now, rules: data?.rules,
+    lockedIn: by((market, mode) => !!game && (data?.marketAccess?.[market] === true || Boolean(data?.statuses?.[mode]?.submittedAt)
+      || (data?.mode === mode && (data?.revealed === true || guessLockedIn(own, gameId))))),
+    satOut: by((market, mode) => data?.statuses?.[mode]?.satOut === true) });
 }
 export const gateOpen = (access, gate) => (gate === 'both' ? !!(access?.spread && access?.total) : !!access?.[gate]);
 

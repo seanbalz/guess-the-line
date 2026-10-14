@@ -12,6 +12,9 @@
 .community-leaderboard th,.community-leaderboard td{padding:8px;text-align:right;border-bottom:1px solid var(--border)}
 .community-leaderboard th:first-child,.community-leaderboard td:first-child{text-align:left}
 .community-leaderboard tr.me th{color:var(--cyan)}
+/* Redesign stage 17 (D-36, DP-2): Spread and Total are two boards, each ranked on its own; side by side when there is room. */
+.leaderboard-boards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}
+.community-leaderboard caption{caption-side:top;text-align:left;font-weight:700;font-size:16px;padding:0 8px 4px}
 .community-feed,.week-pick-list{display:grid;gap:12px;margin-top:16px}
 .feed-post{display:grid;gap:8px}
 .feed-post-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -25,6 +28,11 @@
 .feed-comment-form input{flex:1;min-height:44px;padding:0 12px}
 .post-picks,.publish-preview{list-style:none;margin:0;padding:0;display:grid;gap:2px;font-size:13px}
 .post-picks li,.publish-preview li{display:flex;justify-content:space-between;gap:12px}
+/* Redesign stage 17 (D-39): a post's games still hidden from this viewer are counted with a lock, never shown. */
+.post-picks-hidden{display:flex;align-items:flex-start;gap:6px;margin:0}
+.post-picks-hidden svg{flex:none;margin-top:2px}
+/* D-30: the stored Late marker, in the pending colour plus its text, never colour alone. */
+.late-marker{color:var(--pending);font-weight:600}
 .publish-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
 .publish-fields input{min-height:44px;width:110px;padding:0 12px}
 .week-pick h3{font-size:16px}
@@ -142,6 +150,8 @@
 .history-cards dd{font-size:20px}
 .history-cards article>small{display:block;margin-top:4px;color:var(--muted)}
 .history-informational{color:var(--pending)}
+/* Redesign stage 17 (D-39): a game withheld from this viewer shows a lock and the word, never a number. */
+.history-hidden{display:inline-flex;align-items:center;gap:4px}
 @media (forced-colors:active){
   .history-informational{text-decoration:underline;text-underline-offset:3px}
 }

@@ -81,11 +81,12 @@ test('own History: an unlocked draft shows its guesses but never its line before
     }
   });
 
-  await t.test('through the deployed handler: the draft keeps its guesses, no line, and reads 0 points until stage 17', async () => {
+  await t.test('through the handler: the draft keeps its guesses, no line, and no points: null, never 0 (stage 17, DP-1)', async () => {
     const reply = await world.api('luke', 'community/history', {});
     assert.equal(reply.status, 200, JSON.stringify(reply.body));
     const draft = entry(reply.body, 'luke', 'guess_spread');
-    assert.deepEqual([draft.status, draft.weekPoints, draft.picks.map(p => [p.guess, p.reference, p.points])], ['draft', 0, ids.map((g, i) => [LUKE.spread[i], null, null])]);
+    assert.deepEqual([draft.status, draft.weekPoints, draft.picksHidden, draft.picks.map(p => [p.guess, p.reference, p.points, p.hidden])],
+      ['draft', null, false, ids.map((g, i) => [LUKE.spread[i], null, null, false])], 'the owner\'s own rows are never withheld');
     clock = FIRST;
     const later = await world.api('luke', 'community/history', {});
     clock = null;

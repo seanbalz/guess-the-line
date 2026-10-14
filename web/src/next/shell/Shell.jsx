@@ -2,10 +2,16 @@
 // page over it, with the offline banner on top), the dock, the tab bar, and the layer hosts above them (sheet, popover,
 // dialog, toast, overlay). It keeps the navigation state (state.js), the address and Back (router.js), the device's
 // theme and reduced-motion choices under the old app's keys, and an error boundary per tab and page. It reads no data
-// and calls no route yet: the data layer arrives in stage 11.
+// and calls no route itself: since stage 11 the data layer (web/src/next/data) reads and shares the data, and the app
+// gate (AppGate.jsx) hands the frame what it shows.
 //
 // Props: `session` and `onSignOut` from AuthGate. `screens` and `layers` default to the registry (registry.jsx); tests
-// pass their own. `leagueName` is what the league pill shows ("Community" until stage 11 reads your leagues).
+// pass their own. `league` is the league showing (`{ id, name }`; `leagueName` alone is enough for a test), `you`
+// the member as the frame names them (their saved display name), and `data` what each tab's counter reads (the tab
+// slot files). `cover` replaces the tab's screen and any page (the removed-account and access-pending screens), while
+// the bars still work. `initialLayer` opens one layer when the frame starts (the switcher for a saved invite link),
+// unless the address already opens one. `notice` (`{ key, text }`) shows as a toast once per key. `children` render
+// inside the frame's root, after the layers (the "sign in again" prompt).
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { switchApp } from '../../appView.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
@@ -16,7 +22,7 @@ import { DialogHost, OverlayHost, PageHost, PopoverHost, SheetHost } from './Lay
 import { ToastHost } from './ToastHost.jsx';
 import { LAYERS, SCREENS } from './registry.jsx';
 import { connectHistory, startPlace } from './router.js';
-import { initialState, layer, layerKind, modalOpen, reduce, visibleOverlay } from './state.js';
+import { hasLayers, initialState, layer, layerKind, modalOpen, reduce, visibleOverlay } from './state.js';
 import { SHELL_COPY } from './tabs.js';
 import './shell.css';
 
@@ -65,8 +71,11 @@ function useHeight(element) {
 
 const prefersReducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague }) {
-  const [state, dispatch] = useReducer(reduce, null, () => initialState(startPlace(window)));
+export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, children }) {
+  const [state, dispatch] = useReducer(reduce, null, () => {
+    const start = initialState(startPlace(window));
+    return initialLayer && layerKind(initialLayer) && !hasLayers(start) ? reduce(start, { type: 'open', layer: layer(initialLayer) }) : start;
+  });
   const [online, recheckOnline] = useOnline();
   const [preferences] = useDashboardPreferences();
   const reduceMotion = preferences.motion === 'reduced';
@@ -148,9 +157,20 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     };
   }, []);
 
-  const member = useMemo(() => memberOf(session), [session]);
-  const value = useMemo(() => ({ ...actions, state, dockHost, you: member, league: { name: leagueName }, offline: !online }),
-    [actions, state, dockHost, member, leagueName, online]);
+  const sessionMember = useMemo(() => memberOf(session), [session]);
+  const member = you ?? sessionMember;
+  const leagueId = shown?.id ?? 'community';
+  const leagueLabelName = shown?.name ?? leagueName;
+  const league = useMemo(() => ({ id: leagueId, name: leagueLabelName }), [leagueId, leagueLabelName]);
+  const value = useMemo(() => ({ ...actions, state, dockHost, you: member, league, offline: !online }),
+    [actions, state, dockHost, member, league, online]);
+
+  // A notice from outside the frame (the name just saved), once per key.
+  const noticeKey = notice?.key;
+  useEffect(() => {
+    if (noticeKey !== undefined && noticeKey !== null && notice?.text) actions.toast(notice.text);
+    // Once per key; the text belongs to that key.
+  }, [noticeKey, actions]);
 
   const toTop = () => window.scrollTo({ top: 0, behavior: reduceMotion || prefersReducedMotion() ? 'auto' : 'smooth' });
   // The tab already showing scrolls to its top (or closes its page); any other tab shows as it was left.
@@ -164,23 +184,26 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     <ShellContext.Provider value={value}>
       <div className="gx" data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
-          <TopBar leagueName={leagueName} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
+          <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
           <main className="gx-main" id="main">
             <OfflineBanner offline={!online} onRetry={onRetry}/>
-            {state.page ? <PageHost page={state.page} layers={layers}/> : (
+            {cover ? (
+              <Boundary resetKey="cover" fallback={reset => <FailCard title={SHELL_COPY.tabFailed} onRetry={reset} onOldApp={actions.toOldApp}/>}>{cover}</Boundary>
+            ) : state.page ? <PageHost page={state.page} layers={layers}/> : (
               <Boundary resetKey={state.tab} fallback={reset => <FailCard title={SHELL_COPY.tabFailed} onRetry={reset} onOldApp={actions.toOldApp}/>}>
                 {Screen ? <Screen tab={state.tab}/> : null}
               </Boundary>
             )}
           </main>
           <div className="gx-dock" ref={setDockHost}></div>
-          <TabBar current={state.tab} data={null} onTab={onTab}/>
+          <TabBar current={state.tab} data={data} onTab={onTab}/>
         </div>
         <SheetHost state={state} layers={layers} inert={!!visibleOverlay(state)}/>
         <PopoverHost state={state} layers={layers}/>
         <DialogHost state={state} layers={layers}/>
         <ToastHost state={state} onDismiss={actions.dismissToast}/>
         <OverlayHost state={state} layers={layers}/>
+        {children}
       </div>
     </ShellContext.Provider>
   );

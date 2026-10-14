@@ -230,10 +230,10 @@ test('community history route validates strictly, passes request time, keeps the
   // The last change, the revision count and the provenance come from the private audit and provenance columns: the viewer's own only, hidden or revealed.
   assert.deepEqual([hidden.updatedAt, hidden.revisions, hidden.provenance, revealed.updatedAt, revealed.revisions, revealed.provenance], [null, null, null, null, null, null], 'another member\'s own-only fields are stripped even if the provider returned them');
   assert.ok(!JSON.stringify([hidden, revealed]).includes('solo') && !JSON.stringify([hidden, revealed]).includes('2026-10-14T01'), 'no provenance or change time of another member');
-  assert.deepEqual([draft.status, draft.submittedAt, draft.updatedAt, draft.revisions, draft.provenance, draft.picksHidden, draft.picks], ['draft', null, '2026-10-15T22:00:00+00:00', 3, 'group', false, [{ gameId: 'SEA-DEN', guess: 41, reference: null, points: null, scorable: false }]], 'the viewer\'s own fields pass through');
+  assert.deepEqual([draft.status, draft.submittedAt, draft.updatedAt, draft.revisions, draft.provenance, draft.picksHidden, draft.picks], ['draft', null, '2026-10-15T22:00:00+00:00', 3, 'group', false, [{ gameId: 'SEA-DEN', guess: 41, reference: null, points: null, scorable: false, hidden: false }]], 'the viewer\'s own fields pass through');
   assert.deepEqual(revealed.picks, [{ gameId: 'SEA-DEN', guess: -3, points: null, scorable: false, reference: { basis: 'nearest-snapshot', label: 'nearest snapshot at submission', status: 'informational', value: -3.5, source: 'The Odds API · 3-book median',
     sourceUrl: null, snapshotId: OTHER, capturedAt: null, observedAt: '2026-10-13T23:50:00+00:00', savedAt: null, decision: null, reason: null, gapSeconds: 600, detail: null, priorSnapshotAt: null, nextSnapshotAt: null,
-    rule: null, origin: null, sourceFile: null, fileSha256: null, bookCount: null, guessedAt: null, guessedAtKnown: null } }], 'a non-https source link is dropped; an informational line never carries points');
+    rule: null, origin: null, sourceFile: null, fileSha256: null, bookCount: null, guessedAt: null, guessedAtKnown: null }, hidden: false }], 'a non-https source link is dropped; an informational line never carries points');
   assert.deepEqual([revealed.submittedAtKnown, revealed.eligible, revealed.eligibility], [true, true, 'standard'], 'absent fields read as a known submission time and a standard ballot');
   assert.deepEqual([satOut.status, satOut.satOutAt, satOut.picks, satOut.weekPoints], ['sat_out', '2026-10-13T00:00:00+00:00', null, 0]);
   await send({ season: 2026 });
@@ -288,4 +288,97 @@ test('community history passes the line at the guess through a whitelist and nev
   assert.deepEqual([own.submittedAtKnown, own.weekPoints, own.weekScored, own.picks[0].reference.basis, own.picks[0].reference.guessedAt, own.picks[0].reference.guessedAtKnown, own.picks[0].reference.gapSeconds, own.picks[0].points],
     [false, 9, 1, 'line-at-guess', '2026-10-08T07:33:00+00:00', false, -42066, 9], 'the line at the stored submission time passes, labelled');
   assert.deepEqual([own.picks[1].reference.basis, own.picks[1].reference.reason, own.picks[1].reference.guessedAt, own.picks[1].reference.guessedAtKnown, own.picks[1].points], ['none', 'submission-time-unavailable', null, false, null], 'an unreadable stored time has no line');
+});
+
+// Redesign stage 17 (D-39, D-31, D-23; DP-1): /community/read and /community/history read both shapes. The provider before M-01
+// hides a whole post or entry (picksHidden, no hiddenGames) and sends numbers for every standing; M-01 opens picks game by game,
+// names the withheld games, and sends null points for no ballot. The handler is the second gate either way.
+test('stage 17: the board keeps null for no ballot (DP-1), and a post passes its open games only, whatever the provider returned', async () => {
+  const A = '00000000-0000-4000-8000-0000000000a1', B = '00000000-0000-4000-8000-0000000000b2', POST = '00000000-0000-4000-8000-0000000000c3';
+  const base = { id: POST, actorId: A, kind: 'ballot_submitted', season: 2026, week: 6, mode: 'guess_spread', createdAt: '2026-10-14T00:00:00Z', likes: 0, likedByMe: false, comments: [], payload: {} };
+  const reply = async (posts, standings = [], submissions = []) => {
+    const app = createCloudHandler({
+      authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
+      storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden,
+      community: { rpc: async () => ({ ...feed, members: [{ id: USER, displayName: 'Ben' }, { id: A, displayName: 'A' }, { id: B, displayName: 'B' }], posts, standings, submissions }) },
+      clock: () => Date.parse('2026-10-15T23:00:00Z'),
+    });
+    const response = await app(new Request('https://fixture.invalid/community/read', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: '{}' }));
+    assert.equal(response.status, 200);
+    return response.json();
+  };
+  // DP-1: null stays null (M-01: no submitted ballot that week or season, a sit-out included); the old shape's numbers pass.
+  const board = await reply([], [
+    { userId: A, mode: 'guess_spread', weekPoints: null, weekScored: 0, seasonPoints: null, seasonScored: 0, weeksSubmitted: 0, satOut: true },
+    { userId: B, mode: 'guess_spread', weekPoints: 0, weekScored: 0, seasonPoints: 12.5, seasonScored: 2, weeksSubmitted: 1, satOut: false },
+    { userId: B, mode: 'guess_total', weekPoints: '7.25', weekScored: 1, seasonPoints: 'x', seasonScored: 1, weeksSubmitted: 1, satOut: false },
+  ], [{ userId: A, mode: 'guess_total', submittedAt: '2026-10-14T00:00:00Z', satOut: false, late: { deadline: '2026-10-16T00:15:00Z', minutes: 12, extra: 'never shown' } },
+    { userId: B, mode: 'guess_total', submittedAt: null, satOut: true, late: { minutes: 3 } }]);
+  assert.deepEqual(board.standings.map(s => [s.userId, s.mode, s.weekPoints, s.seasonPoints, s.satOut]),
+    [[A, 'guess_spread', null, null, true], [B, 'guess_spread', 0, 12.5, false], [B, 'guess_total', 7.25, null, false]], 'null is never read as 0; a number stays a number');
+  assert.deepEqual(board.submissions.map(s => s.late), [{ deadline: '2026-10-16T00:15:00Z', minutes: 12 }, null], 'the Late marker carries its two keys only; a sit-out has none');
+
+  const posts = await reply([
+    // M-01, partly open: one game shown, two withheld; the provider wrongly also sent a withheld game's number.
+    { ...base, picksHidden: true, picks: { 'SEA-DEN': -3.5, 'HOU-JAX': 7.5 }, hiddenGames: ['HOU-JAX', 'KC-LV'], late: { deadline: '2026-10-16T00:15:00Z', minutes: 12 } },
+    // M-01, every game withheld.
+    { ...base, id: '00000000-0000-4000-8000-0000000000c4', picksHidden: true, picks: null, hiddenGames: ['SEA-DEN', 'HOU-JAX'], late: null },
+    // Before M-01: a hidden post names no game; nothing passes, whatever the provider sent.
+    { ...base, id: '00000000-0000-4000-8000-0000000000c5', picksHidden: true, picks: { 'SEA-DEN': -2.5 } },
+    // Hidden but naming nothing (inconsistent): nothing passes.
+    { ...base, id: '00000000-0000-4000-8000-0000000000c6', picksHidden: true, picks: { 'SEA-DEN': -2.5 }, hiddenGames: [] },
+    // Open, but a withheld game named anyway (inconsistent): that game never passes, and the post says it is not whole.
+    { ...base, id: '00000000-0000-4000-8000-0000000000c7', picksHidden: false, picks: { 'SEA-DEN': -1.5, 'HOU-JAX': 9.5 }, hiddenGames: ['HOU-JAX'] },
+    // Fully open, old and new shape alike; junk keys and values never pass.
+    { ...base, id: '00000000-0000-4000-8000-0000000000c8', picksHidden: false, picks: { 'SEA-DEN': -4.5, '../x': 1, 'KC-LV': 'nope' }, hiddenGames: [] },
+    { ...base, id: '00000000-0000-4000-8000-0000000000c9', picksHidden: false, picks: { 'SEA-DEN': 0 } },
+  ]);
+  const shape = p => [p.picksHidden, p.picks, p.hiddenGames, p.late];
+  assert.deepEqual(posts.posts.map(shape), [
+    [true, { 'SEA-DEN': -3.5 }, ['HOU-JAX', 'KC-LV'], { deadline: '2026-10-16T00:15:00Z', minutes: 12 }],
+    [true, null, ['HOU-JAX', 'SEA-DEN'], null],
+    [true, null, null, null],
+    [true, null, null, null],
+    [true, { 'SEA-DEN': -1.5 }, ['HOU-JAX'], null],
+    [false, { 'SEA-DEN': -4.5 }, [], null],
+    [false, { 'SEA-DEN': 0 }, [], null],
+  ]);
+  const text = JSON.stringify(posts.posts);
+  for (const secret of ['7.5', '-2.5', '9.5', 'nope', '../x']) assert.equal(text.includes(secret), false, `${secret} never passes`);
+});
+
+test('stage 17: History passes another member\'s open rows and withholds the rest, row by row; the viewer\'s own rows are never withheld', async () => {
+  const OTHER = '00000000-0000-4000-8000-000000000002';
+  const row = (gameId, guess, extra = {}) => ({ gameId, guess, reference: { basis: 'saved', status: 'available', value: guess - 1 }, points: 8, scorable: true, ...extra });
+  const entries = [
+    // M-01, partly open: one row shown; the other withheld, though the provider sent its numbers.
+    { userId: OTHER, mode: 'guess_spread', status: 'submitted', submittedAt: '2026-10-14T00:00:00+00:00', picksHidden: true, hiddenGames: ['HOU-JAX'],
+      picks: [row('SEA-DEN', -3.5), row('HOU-JAX', 6.5, { hidden: true })], weekPoints: 8, weekScored: 1, games: 2, late: { deadline: '2026-10-16T00:15:00Z', minutes: 75 } },
+    // M-01, a row marked hidden but not named in hiddenGames still carries no number.
+    { userId: OTHER, mode: 'guess_total', status: 'submitted', submittedAt: '2026-10-14T00:00:00+00:00', picksHidden: false, hiddenGames: [],
+      picks: [row('SEA-DEN', 44.5), row('HOU-JAX', 51.5, { hidden: true })], weekPoints: 8, weekScored: 1, games: 2 },
+    // The viewer's own draft: never withheld; M-01 sends null points for a draft.
+    { userId: USER, mode: 'guess_spread', status: 'draft', submittedAt: null, picksHidden: false, hiddenGames: [], picks: [row('SEA-DEN', -2.5, { reference: null, points: null, scorable: false })], weekPoints: null, weekScored: 0, games: 2 },
+    // A sit-out: null points (M-01), never 0.
+    { userId: USER, mode: 'guess_total', status: 'sat_out', satOutAt: '2026-10-13T00:00:00+00:00', picksHidden: false, hiddenGames: [], picks: null, weekPoints: null, weekScored: 0, games: 2, late: { minutes: 5 } },
+  ];
+  const app = createCloudHandler({
+    authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
+    storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden,
+    community: { rpc: async () => ({ viewer: USER, season: 2026, now: '2026-10-15T23:00:00+00:00', seasons: [2026], members: [{ id: USER, displayName: 'Ben' }, { id: OTHER, displayName: 'Troy' }],
+      weeks: [{ season: 2026, week: 6, deadline: '2026-10-16T00:15:00+00:00', closed: false, games: [], results: {}, revealed: {}, gate: { 'SEA-DEN': { spread: true, total: true }, 'HOU-JAX': { spread: false, total: 'yes' }, bad: { spread: true } }, entries }] }) },
+    clock: () => Date.parse('2026-10-15T23:00:00Z'),
+  });
+  const response = await app(new Request('https://fixture.invalid/community/history', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: '{}' }));
+  assert.equal(response.status, 200);
+  const [week] = (await response.json()).weeks;
+  assert.deepEqual(week.gate, { 'SEA-DEN': { spread: true, total: true }, 'HOU-JAX': { spread: false, total: false } }, 'the viewer\'s gate: booleans only, game ids only');
+  const [partly, marked, draft, satOut] = week.entries;
+  assert.deepEqual([partly.picksHidden, partly.hiddenGames, partly.weekPoints, partly.late], [true, ['HOU-JAX'], 8, { deadline: '2026-10-16T00:15:00Z', minutes: 75 }]);
+  assert.deepEqual(partly.picks.map(p => [p.gameId, p.guess, p.reference?.value ?? null, p.points, p.hidden]), [['SEA-DEN', -3.5, -4.5, 8, false], ['HOU-JAX', null, null, null, true]]);
+  assert.deepEqual([marked.picksHidden, marked.hiddenGames, marked.picks.map(p => [p.guess, p.hidden])], [true, ['HOU-JAX'], [[44.5, false], [null, true]]]);
+  assert.deepEqual([draft.picksHidden, draft.weekPoints, draft.picks.map(p => [p.guess, p.hidden])], [false, null, [[-2.5, false]]]);
+  assert.deepEqual([satOut.weekPoints, satOut.picks, satOut.late], [null, null, null], 'a sit-out: null, never 0, and no Late marker');
+  const text = JSON.stringify(week.entries);
+  for (const secret of ['6.5', '5.5', '51.5', '50.5']) assert.equal(text.includes(secret), false, `${secret} never passes`);
 });
