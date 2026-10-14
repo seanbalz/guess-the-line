@@ -2,7 +2,7 @@
 
 Owner: Sean Balsiger
 Date: October 14, 2026
-Status: plan only. Nothing in this file is built, applied or deployed. Every merge, hosted apply and deploy still needs Sean's explicit OK.
+Status: plan only, updated for D-39 (Sean's answers to section 11). Nothing in this file is built, applied or deployed. Every merge, hosted apply and deploy still needs Sean's explicit OK.
 
 ---
 
@@ -21,10 +21,29 @@ Inputs: the approved prototype and its spec, the design system, the feature inve
 
 ---
 
+## D-39 changes to this plan (read first)
+
+Sean answered the open questions on October 14 (D-39). Where this section and a later one disagree, this section wins.
+
+| Topic | Change |
+|---|---|
+| Lock-in (stages 15, 16, 17, 18, 19, 24, 25, 26, 28–31) | Per game, not per market. Each game's Spread or Total guess is final once locked in, and locking it in opens that game's line for that market and everyone's guesses for that game and market. There is no market-level "send". M-02 enforces "a locked-in guess cannot change" per game and market; the reveal and the line lock key on the player's locked-in guess for that game and market (plus kickoff, skip and "See picks now"). Unlocked guesses stay drafts until kickoff. |
+| Skip and "See picks now" (stage 19) | Allowed until the last kickoff; locked-in guesses keep counting. |
+| Rule timing (stages 24, 25) | Live in both apps once built, the same day. |
+| Monday-night lines (stage 22) | Yes. |
+| Testers (stages 9, 49) | Whole league, opt-in. "Try the new app" shows to every signed-in member from the first look. Stage 49 and M-14 (tester list) are dropped. |
+| Real slips (stage 46) | Dollar stakes on new slips; no undo for a tail. |
+| Challenges (stages 50, 51) | Up to 3 points either way in half points; void keeps credit; hedging allowed with a note. |
+| Journal (stage 74) | Read-only in History. |
+| Push wording (stage 25) | "Due", not "lock". |
+| Calendar (section 8.2) | ASAP. Section 8.2 dates are no longer targets: every stage ships when it passes its gates, and each risky apply still gets its own quiet window and Sean's approval. |
+
+---
+
 ## 2. The short version
 
 - **81 stages, 28 migrations, 5 lanes, build waves 0 to 12, then the flip.** Each stage is one reviewable PR (stage 78 is a short series of identical pages).
-- **The new app lives in `web/src/next/`** as one lazy chunk. Players never download it. A per-device switch shows only to Sean (and one tester, Q5).
+- **The new app lives in `web/src/next/`** as one lazy chunk. Players never download it. A per-device switch, opt-in for every league member (D-39).
 - **Stage 2 (push guard) goes out with the next deploy of `main`.** Otherwise players get a "Remind me" button that fails.
 - **Rules land on the server first.** The database reports which rule is live (`gtl_live_rules`), and both apps follow it. So a deploy can never put a screen ahead of its rule, and a rollback switches the screens back.
 - **First look:** after wave 5, Sean opens the new frame with read-only Home and Lines on live data.
@@ -57,7 +76,7 @@ Inputs: the approved prototype and its spec, the design system, the feature inve
 - `main.jsx` keeps `ThemeProvider › AuthGate`. Inside AuthGate: `gtl.app = next` renders the lazy `NextApp`, anything else renders `GameHub`. The two never mount together. Every switch reloads the page.
 - `DEFAULT_APP = 'classic'` until stage 80. If storage fails, the default is used.
 - An outer error boundary around the lazy chunk clears `gtl.app` and renders the old app. `?app=classic` always forces the old app.
-- Old app: "Try the new app" in the Community footer, shown only to `admin` (and testers, Q5). New app: "Use the old app" in the menu, Settings and every error card.
+- Old app: "Try the new app" in the Community footer, shown to every signed-in member (D-39). New app: "Use the old app" in the menu, Settings and every error card.
 - The switch is a convenience, not a security gate. Both apps call the same routes under the same server rules.
 
 ### 3.3 Data and API
@@ -273,8 +292,8 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Tests: vitest `next-ui` (classes, accessible names, emoji only inside `data-emoji-ok`, every svg hidden or labelled).
 
 **9. The switch**
-- Scope: lazy `NextApp` in `main.jsx` (section 3.2); the outer fallback boundary and `?app=classic`; the footer button for `admin`; a placeholder `NextApp`.
-- Tests: node `next-app-view` (default, round trip, storage that throws, unknown value); Playwright 390 `next-switch.spec.js` (non-admin sees no button; admin switches and returns; a blocked chunk falls back to the old app); performance: the old app loads no `NextApp-*`, the new app loads no `GameHub-*`.
+- Scope: lazy `NextApp` in `main.jsx` (section 3.2); the outer fallback boundary and `?app=classic`; the footer button for every signed-in member (D-39); a placeholder `NextApp`.
+- Tests: node `next-app-view` (default, round trip, storage that throws, unknown value); Playwright 390 `next-switch.spec.js` (a signed-in member sees the button, switches and returns; a blocked chunk falls back to the old app); performance: the old app loads no `NextApp-*`, the new app loads no `GameHub-*`.
 - Sean sees: "Try the new app" and an empty frame.
 
 **10. Shell frame**
@@ -736,7 +755,7 @@ Stages in one wave are built at the same time by different lanes. A wave ends wh
 
 ### 8.2 Target calendar for hosted applies
 
-Targets only. Bold applies stand alone in their window. A slip moves everything after it.
+Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets only. Bold applies stand alone in their window. A slip moves everything after it.
 
 | Week (deadline) | Applies | Notes |
 |---|---|---|
@@ -833,26 +852,22 @@ Targets only. Bold applies stand alone in their window. A slip moves everything 
 
 ---
 
-## 11. Open questions for Sean
+## 11. Open questions for Sean (answered, D-39)
 
-Only questions the code and the decisions cannot answer. Ask one at a time, in this order. Each gets its own D-entry when answered.
-
-| # | Needed by | Question | Recommended answer |
-|---|---|---|---|
-| Q1 | Stage 18 (M-02) | D-37's last sentence: may a pick be added to a market after you send it? | **No.** A game that had kicked off when you sent stays closed. A game added to the slate after you sent reads "No pick" (unscored, never 0). Adding picks after the lines open brings back the copying problem D-37 closes. |
-| Q2 | Stage 19 (M-03) | May players skip, or use "See picks now", after Thursday's deadline while games are still open? D-23 refuses a sit-out after the deadline today. | **Yes, until the last kickoff,** for markets not yet sent. Late picks stay open, so the way out should too. The old "Sit out" keeps its rule. |
-| Q3 | Stages 24–25 (M-07) | Turn on "picks open until each kickoff" for everyone now (both apps the same day), or hold it until the new app is the default? | **Now,** on Tue Nov 3, both apps the same day. If you hold it, the new app hides its late states. |
-| Q4 | Stage 22 (M-05) | Let the twice-daily collector keep collecting last week's games that haven't started (same calls, no extra credits)? | **Yes.** Without it, Monday night lines go about 28 hours stale, late Monday picks score against Sunday's line, and Sharp can't grade the Monday game. |
-| Q5 | Stage 49 (M-14) | Who tests the new app with you before the default? Challenges need a second person to accept. | **You plus one named friend,** on a server tester list. Nobody else sees the switch until the flip. |
-| Q6 | Stage 46 | Real slips: may new slips carry a dollar stake (the prototype shows dollars; the tracker stores units)? And may a tail be undone? | **Dollars allowed on new slips;** old slips keep their units; nothing is converted. **No undo** for a tail; Tail opens a confirm instead. |
-| Q7 | Stages 50–51 (M-15, M-16) | Challenges: (a) how far may the challenger move the line? (b) do void challenges keep weekly-minimum credit like book bets? (c) may you take the other side of your own book bet? | (a) **Up to 3 points either way,** in half points. (b) **Yes,** same as book bets. (c) **Yes** (play money), with a note on the slip. |
-| Q8 | Stage 74 | D-35 says the private journal "becomes My bets", but the approved My bets holds only Virtual Units bets and challenges. Where do journal records go? | **Read-only in History.** My bets stays as approved. |
-| Q9 | Stage 25 | D-28's push text says picks "lock" at the deadline. Under D-36 they stay open until each kickoff. Change it? | **Yes:** "Week 6 picks are due 5:15 PM PT. Spread still open." |
-| Q10 | Now (calendar) | When should the new app become the default? | **Target Tue Dec 15** (after one full live week of checks). **Latest Tue Dec 29.** If not ready by then, keep the old default until the 2027 preseason and keep using the new app through the switch. |
+| # | Question | Sean's answer |
+|---|---|---|
+| Q1 | May a pick be added after sending? | Replaced by per-game lock-in: each game's guess is final once locked in and opens that game's line and friends' guesses for that market. |
+| Q2 | Skip or "See picks now" after Thursday's deadline? | Yes, until the last kickoff. |
+| Q3 | New pick rules now or at the flip? | Live in both apps once built. |
+| Q4 | Keep collecting Monday-night lines? | Yes. |
+| Q5 | Testers before the default? | Whole league, opt-in. |
+| Q6 | Real slips: dollars and tail undo? | Dollars allowed, no undo. |
+| Q7 | Challenges: line limit, void credit, hedging? | 3 points, yes, yes. |
+| Q8 | The private journal? | Read-only in History. |
+| Q9 | Push text "lock" or "due"? | "Due". |
+| Q10 | When does the new app become the default? | "asap". |
 
 Approvals that are not questions: applying the push migration (stage 2), every "apply M-xx", every deploy SHA, each cron enable, the flip.
-
----
 
 ## 12. Critique points rejected
 
