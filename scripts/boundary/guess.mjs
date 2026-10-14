@@ -55,8 +55,9 @@ export const rpcChecks = Object.freeze([
   ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
   ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
   // M-01, the per-game Guess reveal gate (20261014223000_gtl_guess_gate_per_game.sql, redesign stage 16): four service-only
-  // helpers and the live rules gtl-api reads through cloud/live-rules.mjs (section 3.4). Awaiting deploy (below) until the
-  // migration is applied to the hosted project.
+  // helpers and the live rules gtl-api reads through cloud/live-rules.mjs (section 3.4). Since stage 20, /virtual-units and
+  // /virtual-pick also read gtl_markets_visible through the optional-RPC caller (cloud/line-lock.mjs), which falls back to
+  // today's gate while it is missing. Awaiting deploy (below) until the migration is applied to the hosted project.
   ['gtl_guess_locked_in', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game: 'AAA-BBB' }],
   ['gtl_guess_revealed', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game: 'AAA-BBB', p_now: null }],
   ['gtl_markets_visible', { p_user: missingId, p_season: 2026, p_week: 5, p_now: null }],
