@@ -99,7 +99,8 @@ for (const width of [390, 1280]) test(`D-23: sitting out Spread from the group b
     const posts = Object.fromEntries(feed.posts.filter(p => p.kind === 'ballot_submitted').map(p => [p.mode, p]));
     expect([posts.guess_spread.picksHidden, posts.guess_spread.picks]).toEqual([false, troyPicks.guess_spread]);
     expect([posts.guess_total.picksHidden, posts.guess_total.picks]).toEqual([true, null]);
-    expect(feed.standings.find(s => s.userId === luke.id && s.mode === 'guess_spread')).toMatchObject({ satOut: true, weekPoints: 0 });
+    // M-01 (DP-1): a sit-out has no ballot, so its week and season points are null, never 0; the board reads "Sat out".
+    expect(feed.standings.find(s => s.userId === luke.id && s.mode === 'guess_spread')).toMatchObject({ satOut: true, weekPoints: null, seasonPoints: null });
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
@@ -124,9 +125,16 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     await expect(troyRow).not.toContainText('Removed');
     await expect(troyRow.locator('td')).toHaveText(['0', '0']);
     await expect(troyTotalRow.locator('td')).toHaveText(['0', '0']);
+    // M-01 (DP-1): Troy's sent ballots are 0 before any kickoff; Luke and Sean have no ballot, so their rows read "—", never 0.
+    for (const table of ['Spread', 'Total']) for (const who of ['Luke Fixture', 'Sean Fixture']) {
+      await expect(page.getByRole('table', { name: table, exact: true }).locator('tbody tr').filter({ hasText: who }).locator('td')).toHaveText(['—', '—']);
+    }
     await expect(page.locator('.feed-post')).toHaveCount(5);
     await expect(byTroy).toHaveCount(3);
-    await expect(spreadPost).toContainText('Submit your Week 5 Spread picks to see these.');
+    // M-01 (D-39, hosted since October 14, 2026): Troy's Spread opens to Luke game by game at kickoff, or once Luke locks in his
+    // Spread or sits out; the deadline alone opens nothing.
+    const hiddenSpread = "Submit your Week 5 Spread picks to see these, or wait for each game's kickoff.";
+    await expect(spreadPost.locator('.post-picks-hidden')).toHaveText(hiddenSpread);
     await expect(welcome.locator('.feed-comments')).toContainText('Troy Fixture Welcome aboard, Luke');
 
     // Only the commissioner can remove; a member's attempt is refused.
@@ -145,7 +153,7 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     await expect(troyTotalRow.locator('td')).toHaveText(['0', '0']);
     await expect(page.locator('.feed-post')).toHaveCount(5);
     await expect(byTroy).toHaveCount(3);
-    await expect(spreadPost).toContainText('Submit your Week 5 Spread picks to see these.');
+    await expect(spreadPost.locator('.post-picks-hidden')).toHaveText(hiddenSpread);
     await expect(welcome.locator('.feed-comments')).toContainText('Troy Fixture Welcome aboard, Luke');
     const troyJoined = page.locator('.feed-post').filter({ hasText: 'Troy Fixture joined Guess The Line.' });
     await troyJoined.getByRole('button', { name: /likes/ }).click();

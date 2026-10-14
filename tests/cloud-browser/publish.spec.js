@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { NFLVERSE_SCHEDULE_URL } from '../../shared/nfl-schedule.mjs';
-import { ACCOUNTS, communityWorld, pgliteAvailable, signIn, switchAccount } from './community-world.mjs';
+import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, switchAccount } from './community-world.mjs';
 
 // D-21/D-24 commissioner publish path: Community → Preview / publish early (fallback) →
 // Review schedule → Publish Week 6, on the real handler, migrations and PGlite. The public
 // schedule is a fixture with the 2026 Week 6 slate (nflverse games.csv columns; LA is the
 // Rams): 14 games, byes CIN/DET/MIA/MIN, TNF Thu 2026-10-15 8:15 PM ET SEA @ DEN.
 // Deterministic clock: Fri Oct 9 11:00 AM PT, so Week 5 (TNF Oct 8) is closed and Week 6
-// opens Monday Oct 12 12:00 AM PT. Database triggers keep the real clock; nothing here saves a ballot.
+// opens Monday Oct 12 12:00 AM PT. Database triggers keep the real clock; nothing here saves a ballot. The one row whose time
+// matters is the publish post: the feed (M-01, hosted since October 14, 2026) lists only posts dated at or before its reading
+// clock, so this world dates the post at CLOCK, when it publishes, as production writes and reads posts on one clock.
 const CLOCK = Date.parse('2026-10-09T18:00:00Z');
 const WEEK6 = [
   ['2026-10-15', '20:15', 'SEA', 'DEN'], ['2026-10-18', '09:30', 'HOU', 'JAX', 'Neutral'],
@@ -33,6 +35,15 @@ for (const width of [390, 1280]) test(`commissioner publishes Week 6 from the pu
   world.schedule = () => scheduleCsv();
   const slates = async () => (await db.query('select signature from public.gtl_weekly_slates where season=2026 and week=6')).rows.map(r => r.signature);
   const published = async () => (await db.query("select count(*)::int n from public.gtl_feed_posts where kind='week_published'")).rows[0].n;
+  // M-01: gtl_read_community leaves out posts dated after its p_now (CLOCK), and PGlite dates a new post with the real time, days
+  // later. This route runs before communityWorld's: it answers the publish through the same handler, then dates the new post at
+  // CLOCK before the reply, so the app's next read lists it.
+  await page.route(`${SUPABASE}/functions/v1/gtl-api/community/publish`, async route => {
+    const req = route.request();
+    const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));
+    await db.query("update public.gtl_feed_posts set created_at=$1 where kind='week_published' and created_at>$1", [new Date(CLOCK).toISOString()]);
+    return route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: await response.text() });
+  });
   try {
     await page.setViewportSize({ width, height: 900 });
     await signIn(page, 'sean');
@@ -67,6 +78,9 @@ for (const width of [390, 1280]) test(`commissioner publishes Week 6 from the pu
     const post = page.locator('.feed-post').filter({ hasText: 'opened Week 6' });
     await expect(post).toHaveCount(1);
     await expect(post).toContainText('Sean Fixture opened Week 6: 14 games, picks due Oct 15, 5:15 PM PT.');
+    // M-01: the three joined posts carry the real time, after CLOCK, so the feed read at CLOCK lists the publish post alone.
+    expect((await db.query("select count(*)::int n from public.gtl_feed_posts where kind='joined' and created_at>$1", [new Date(CLOCK).toISOString()])).rows[0].n).toBe(3);
+    await expect(page.locator('.feed-post')).toHaveCount(1);
     // D-24 status strip: not open until Monday 12:00 AM PT, no Make picks button, nothing due on the tab.
     const strip = page.locator('.picks-due');
     await expect(strip).toHaveClass(/not_open/);

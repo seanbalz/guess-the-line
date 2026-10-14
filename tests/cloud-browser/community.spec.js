@@ -32,7 +32,7 @@ async function fixture(page, baseURL, deadline) {
   const troyTotalPicks = { [state.games[0].id]: 44, [state.games[1].id]: 47.5 };
   for (const file of migrations.slice(1)) {
     await db.exec(migrationSql(file));
-    // Troy's pre-D-17 submitted Total ballot: its picks stay hidden from Ben until Ben submits or sits out (D-23).
+    // Troy's pre-D-17 submitted Total ballot: its picks stay hidden from Ben until Ben submits or sits out (D-23), or each game's kickoff (M-01).
     if (file === '20261008182836_gtl_canonical_weekly_entries.sql') {
       await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3)', [id(2), state.league.season, state.league.week]);
       await db.query('insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,$2,$3,$4,$5)',
@@ -90,7 +90,10 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     await expect(page.getByRole('table', { name: 'Total', exact: true })).toContainText('Troy Fixture');
     await expect(page.locator('.feed-post').filter({ hasText: 'Troy Fixture joined Guess The Line.' })).toBeVisible();
     const troyTotal = page.locator('.feed-post').filter({ hasText: 'Troy Fixture submitted Week 5 Total picks.' });
-    await expect(troyTotal).toContainText('Submit your Week 5 Total picks to see these.');
+    // M-01 (D-39, hosted since October 14, 2026): each game opens at its own kickoff, or once Ben locks in his Total or sits out;
+    // the deadline alone opens nothing, so the hidden post names both ways in.
+    const hiddenTotal = "Submit your Week 5 Total picks to see these, or wait for each game's kickoff.";
+    await expect(troyTotal.locator('.post-picks-hidden')).toHaveText(hiddenTotal);
     await expect(troyTotal).not.toContainText('47.5');
     await expect(page.getByText('Preview / publish early (fallback)')).toHaveCount(0);
 
@@ -151,9 +154,14 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     await expect(page.locator('.picks-due')).not.toContainText('Total');
     await expect(page.getByRole('button', { name: 'Picks (1 due)' })).toBeVisible();
     await expect(troyTotal.locator('.post-picks')).toContainText('47.5');
-    await expect(troyTotal).not.toContainText('Submit your Week 5 Total picks to see these.');
+    // M-01 counts a sit-out as open: the whole post shows and the hidden note is gone.
+    await expect(troyTotal).not.toContainText(hiddenTotal);
+    await expect(troyTotal.locator('.post-picks-hidden')).toHaveCount(0);
     await expect(page.getByRole('table', { name: 'Total', exact: true }).locator('tr.me')).toContainText('Sat out');
     await expect(page.getByRole('table', { name: 'Spread', exact: true })).not.toContainText('Sat out');
+    // M-01 (DP-1): a sit-out has no ballot, so Ben's Total season reads "—", never 0; his Spread is a draft, not a sent ballot: "—" twice.
+    await expect(page.getByRole('table', { name: 'Total', exact: true }).locator('tr.me td')).toHaveText(['Sat out', '—']);
+    await expect(page.getByRole('table', { name: 'Spread', exact: true }).locator('tr.me td')).toHaveText(['—', '—']);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/previews/sit-out-${width}.png`, fullPage: true });
 

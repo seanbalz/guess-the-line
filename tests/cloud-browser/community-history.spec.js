@@ -4,17 +4,19 @@ import { HOSTED } from '../migrations.mjs';
 
 // The Community History tab (Sean's October 12, 2026 rulings) on the real handler, the hosted migrations and PGlite. Luke views; Troy
 // has pre-D-17 Week 5 Spread and Total ballots with no saved line. Luke sees Troy's ballots as hidden until he sits out a
-// market (D-23). With no line stored anywhere, the revealed Total shows each guess with "No line stored" and stays unscored;
-// with a hosted collection and an imported reference line stored before Troy's guesses, each guess is scored against the line
-// at the guess, and Sean's practice ballot is listed and never scored (D-08). A ballot whose original submission time was not
-// recorded is compared at the submission time it stores, labelled. Below 720px the game rows are cards, not a table, and the
-// page never scrolls sideways.
-// The old app on the schema players actually have (tests/migrations.mjs).
+// market (D-23) or each game kicks off (M-01). With no line stored anywhere, the revealed Total shows each guess with "No line
+// stored" and stays unscored, also after kickoff; with a hosted collection and an imported reference line stored before Troy's
+// guesses, each guess is scored against the line at the guess from its game's kickoff (M-01), and Sean's practice ballot is listed
+// and never scored (D-08). A ballot whose original submission time was not recorded is compared at the submission time it stores,
+// labelled. Below 720px the game rows are cards, not a table, and the page never scrolls sideways.
+// The old app on the schema players actually have (tests/migrations.mjs): M-01 (the per-game gate, D-39) is hosted since
+// October 14, 2026. The handler clock is the real time until a test moves it past the last kickoff (clockAt).
 const MIGRATIONS = HOSTED;
 
 for (const width of [390, 1280]) test(`community history: player buttons, newest week first, hidden until revealed, no line invented at ${width}px`, async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  const world = await communityWorld(page, baseURL, { migrations: MIGRATIONS });
+  let clockAt = null;
+  const world = await communityWorld(page, baseURL, { migrations: MIGRATIONS, clock: () => clockAt ?? Date.now() });
   const { db, errors, state } = world;
   try {
     await page.setViewportSize({ width, height: 900 });
@@ -32,32 +34,52 @@ for (const width of [390, 1280]) test(`community history: player buttons, newest
 
     await players.getByRole('button', { name: 'Troy Fixture' }).click();
     await expect(players.getByRole('button', { name: 'Troy Fixture' })).toHaveAttribute('aria-pressed', 'true');
-    for (const market of ['Spread', 'Total']) await expect(week).toContainText(`Hidden until you submit your Week 5 ${market} picks or sit out.`);
+    // M-01 (D-39): another member's guess opens game by game at its kickoff, or once Luke locks in that market or sits out; the
+    // deadline alone opens nothing. Before the first kickoff the whole ballot is hidden and the note names both ways in.
+    const hidden = market => `Hidden until you submit your Week 5 ${market} picks or sit out, or each game's kickoff.`;
+    for (const market of ['Spread', 'Total']) await expect(week).toContainText(hidden(market));
     await expect(week).toContainText('Submitted Oct 8, 11:00 AM PT');
     await expect(week).not.toContainText('47.5');
     await expect(week).not.toContainText('2.5');
 
-    // Luke sits out Total from another device (D-23); Refresh reveals Troy's Total guesses. A pre-D-17 ballot has no saved line and no
-    // snapshot exists for the week, so each guess reads "No line stored" and the ballot stays unscored. Spread stays hidden.
+    // Luke sits out Total from another device (D-23; M-01 counts a sit-out as open); Refresh reveals Troy's Total guesses. A pre-D-17
+    // ballot has no saved line and no snapshot exists for the week, so each guess reads "No line stored" and is unscored; before the
+    // first kickoff the ballot has no points yet (M-01: a game's points count from its kickoff). Spread stays hidden.
     const satOut = await world.api('luke', 'community/sit-out', { season: state.league.season, week: state.league.week, mode: 'guess_total' });
     expect(satOut.status).toBe(200);
     await page.locator('.history-toolbar').getByRole('button', { name: 'Refresh' }).click();
-    const total = week.locator('.history-market').nth(1);
+    const total = week.locator('.history-market').nth(1), spread = week.locator('.history-market').nth(0);
     await expect(total).toContainText('Total · Troy Fixture');
-    await expect(total).toContainText('Unscoredno line stored for these guesses');
+    await expect(total).toContainText('No points yeteach game scores from its kickoff');
     await expect(total).toContainText('No line was saved with these guesses');
     const cells = total.locator(width < 720 ? '.history-cards dd.mono' : '.history-table tbody td:nth-child(2) strong');
     await expect(cells).toHaveText(['44', '47.5']);
     await expect(total).toContainText('No line stored');
+    // No line, so no "Scores at kickoff" either: each game's points read Unscored.
+    const totalPoints = total.locator(width < 720 ? '.history-cards dd' : '.history-table tbody td:nth-child(5)');
+    await expect(totalPoints.filter({ hasText: 'Unscored' })).toHaveCount(2);
+    await expect(total).not.toContainText('Scores at kickoff');
     await expect(total).not.toContainText('Hidden until');
-    await expect(week.locator('.history-market').nth(0)).toContainText('Hidden until you submit your Week 5 Spread picks or sit out.');
-    await expect(week.locator('.history-market').nth(0)).not.toContainText('2.5');
+    await expect(spread).toContainText(hidden('Spread'));
+    await expect(spread).not.toContainText('2.5');
     // Below 720px the game rows are cards; above it a table with 13px headers.
     await expect(total.locator('.history-table')).toBeVisible({ visible: width >= 720 });
     await expect(total.locator('.history-cards')).toBeVisible({ visible: width < 720 });
     if (width >= 720) expect(await total.locator('.history-table th[scope=col]').first().evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(13);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/previews/community-history-${width}.png`, fullPage: true });
+
+    // M-01: a minute after the last kickoff every game is open to everyone (D-31) and would score, but no line is stored, so the
+    // Total stays unscored and no line is invented; Troy's Spread guesses open too.
+    clockAt = Date.parse(state.games.at(-1).kickoff) + 60_000;
+    await page.locator('.history-toolbar').getByRole('button', { name: 'Refresh' }).click();
+    await expect(total).toContainText('Unscoredno line stored for these guesses');
+    await expect(cells).toHaveText(['44', '47.5']);
+    await expect(totalPoints.filter({ hasText: 'Unscored' })).toHaveCount(2);
+    await expect(total).not.toContainText('of 10');
+    await expect(spread).not.toContainText('Hidden until');
+    await expect(spread.locator(width < 720 ? '.history-cards dd.mono' : '.history-table tbody td:nth-child(2) strong')).toHaveText(['Cowboys −3', 'Eagles −2.5']);
+    clockAt = null;
 
     // Luke's own row records the opt-out as sat out, not zero.
     await players.getByRole('button', { name: 'Luke Fixture · You' }).click();
@@ -74,7 +96,8 @@ for (const width of [390, 1280]) test(`community history: player buttons, newest
 
 for (const width of [390, 1280]) test(`community history: the line at each guess with its source and gap, and a practice ballot listed but never scored at ${width}px`, async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  const world = await communityWorld(page, baseURL, { migrations: MIGRATIONS });
+  let clockAt = null;
+  const world = await communityWorld(page, baseURL, { migrations: MIGRATIONS, clock: () => clockAt ?? Date.now() });
   const { db, errors, state } = world;
   try {
     const { season, week } = state.league;
@@ -115,17 +138,29 @@ for (const width of [390, 1280]) test(`community history: the line at each guess
     const week5 = page.locator('.history-week').first();
     const spread = week5.locator('.history-market').nth(0), total = week5.locator('.history-market').nth(1);
     await expect(spread).toContainText('No line was saved with these guesses; each is scored against the line at the guess');
-    // Troy guessed −3 and 2.5 at 11:00 AM PT: the first game against the imported −2.5 (observed 4h 40m before; 9 points), the second against
-    // the hosted 1.5 (8 points). His Total guesses 44 and 47.5 meet the hosted 44.5 and 47.5 (9 + 10).
     await expect(spread).toContainText('Line at guess');
     await expect(spread).toContainText('eDraft consensus · 2026-week-05-fixture.json');
     await expect(spread).toContainText('Observed Oct 8, 6:20 AM PT · 4h 40m before the guess');
     await expect(spread).toContainText('The Odds API · 3-book median');
     await expect(spread).toContainText('Observed Oct 8, 4:59 AM PT · 6h 1m before the guess');
+    // M-01 (D-39): a game's points count from its kickoff. Before the first kickoff each guess shows its line at the guess and reads
+    // "Scores at kickoff", and neither ballot has points yet.
+    const pointCells = market => market.locator(width < 720 ? '.history-cards dd' : '.history-table tbody td:nth-child(5)');
+    for (const market of [spread, total]) {
+      await expect(market).toContainText('No points yeteach game scores from its kickoff');
+      await expect(pointCells(market).filter({ hasText: 'Scores at kickoff' })).toHaveCount(2);
+      await expect(market).not.toContainText('of 10');
+    }
+    // A minute after the last kickoff: Troy guessed −3 and 2.5 at 11:00 AM PT, the first game against the imported −2.5 (observed
+    // 4h 40m before; 9 points), the second against the hosted 1.5 (8 points). His Total guesses 44 and 47.5 meet the hosted 44.5
+    // and 47.5 (9 + 10).
+    clockAt = Date.parse(second.kickoff) + 60_000;
+    await page.locator('.history-toolbar').getByRole('button', { name: 'Refresh' }).click();
     await expect(spread).toContainText('17 / 20 pts');
     await expect(total).toContainText('19 / 20 pts');
-    const points = spread.locator(width < 720 ? '.history-cards dd' : '.history-table tbody td:nth-child(5)');
+    const points = pointCells(spread);
     await expect(points.filter({ hasText: 'of 10' })).toHaveCount(2);
+    await expect(spread).not.toContainText('Scores at kickoff');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 
     await players.getByRole('button', { name: 'Sean Fixture' }).click();
