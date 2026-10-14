@@ -272,7 +272,7 @@ test('ALL (M-04 applied): no reader gives Luke a line before he locks in; a Spre
   assert.equal(slip(prop.body, f.spreadSlip).locked, true);
   const before = await f.social('luke');
   assert.deepEqual([slip(before, f.spreadSlip).locked, slip(before, f.spreadSlip).canTail, slip(before, f.spreadSlip).noteHidden], [true, false, true]);
-  assert.deepEqual(before.rules, { sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' }, 'M-01 is in ALL');
+  assert.deepEqual(before.rules, { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' }, 'M-01 and M-02 are in ALL');
   // Troy's own reply carries his lines and his note: own slips are never redacted.
   const troy = await f.social('troy');
   assert.ok(leakScan(troy, { viewer: ACCOUNTS.luke.id, secrets: f.secrets }).length >= 3);
@@ -280,7 +280,7 @@ test('ALL (M-04 applied): no reader gives Luke a line before he locks in; a Spre
 
   const writes = await f.commits();
   const refused = await f.tail('luke', f.spreadSlip);
-  assert.deepEqual([refused.status, refused.body], [409, { error: 'Submit your Spread picks to see this line.' }]);
+  assert.deepEqual([refused.status, refused.body], [409, { error: 'Lock in your Spread pick to see this line.' }], 'worded with M-02\'s live rules');
   assert.equal(await f.commits(), writes, 'a refused tail writes nothing');
 
   await sendBallot(f.world, 'luke', 'guess_spread', f.map([-6.5, 2.5]));
