@@ -61,8 +61,8 @@ These are never shown as a side with a record, because a side chosen from the sa
 
 The week file never carries this week's line, odds, weather or referee: unplayed games are redacted before anything is computed. Line-dependent records (favorite and underdog splits, spread and total bands, key numbers, implied team totals, the last meeting against this total) stay behind the matching ballot:
 
-- **Community Picks**: a market unlocks when that ballot is submitted, the player sat out that market (D-23), or the deadline has passed.
-- **Group ballot and dashboard**: the market's `marketAccess`, a sit-out, the deadline, or this mode's reveal.
+- **Per game and market** (D-39, redesign stage 17; `gameAccess` in `shared/trends-view.mjs`, the gate M-01's `gtl_guess_revealed` applies in SQL): a game's market unlocks when the player's own guess for that game and market is locked in (today, a pick in a submitted ballot), the player sat out that market (D-23), or that game kicks off. Under today's rules (`rules.revealAt` is 'deadline' until M-01 is applied) the week's deadline also unlocks every game; from M-01 it does not, and the locked panel says the game opens "once this game kicks off".
+- **Community Picks** reads the `/personal` view (`communityAccess`); the **group ballot and dashboard** read the `/state` view (`groupAccess`: the market's `marketAccess`, its submitted status, a sit-out, or this mode's reveal). Stage 13 (the new app's Lines) reuses `gameAccess`.
 - A Total submission never unlocks a spread-gated record, and the reverse; "both" needs both markets.
 - After a market unlocks, the rows that fit this game are marked "This game" (text and `aria-current`, not color alone) using **only the player's own saved line** for that market (the saved scoring reference on Picks and the group ballot, the saved reference on the dashboard). Without a held line the tables stay unmarked.
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, ChartSpline, Check, CircleCheck, Heart, LoaderCircle, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
+import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, ChartSpline, Check, CircleCheck, Heart, LoaderCircle, LockKeyhole, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
@@ -16,9 +16,10 @@ import TryNewApp from './TryNewApp';
 import { cloudApi, communityApi, date } from './api';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
-import { MODE, pickText, shortName, show, team } from './communityFormat';
+import { MODE, lateText, pickText, shortName, show, team } from './communityFormat';
 import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import { FINAL_LABEL, FINAL_SHORT, ballotFinal, pickFinal, sentFinal } from './sentFinal';
+import { boardRows, dueState, postPicksView } from './communityBoard';
 import './community.css';
 
 const DAY = 86_400_000;
@@ -112,9 +113,12 @@ function WeekUnpublished() {
     <p>No week is open yet. Weeks open automatically Monday 12:00 AM PT once the schedule is published; picks due will show here.</p></section>;
 }
 
+// Redesign stage 17: a picks-due state this screen does not know (one a later gtl-api adds) reads as closed, so the card never
+// offers "Make picks" or a reminder for a state it cannot describe (communityBoard.js).
 function PicksDue({ due, all = [], push = false, onPick }) {
-  if (!due || ['none', 'done'].includes(due.state)) return null;
-  const closed = due.state === 'closed', notOpen = due.state === 'not_open';
+  const state = dueState(due);
+  if (!state) return null;
+  const closed = state === 'closed', notOpen = state === 'not_open';
   // Persona audit #15: a submitted market stays on the card with a check; a sat-out market is never due (D-23), so it is left off.
   const modes = all.length ? all.filter(m => !m.satOut) : due.modes;
   const stillDue = !closed && modes.some(m => m.submitted) ? ' still due' : '';
@@ -122,7 +126,7 @@ function PicksDue({ due, all = [], push = false, onPick }) {
   const counts = modes.map(m => `${MODE[m.mode]} ${m.submitted ? '✓ submitted' : closed ? (m.filled ? 'draft (not submitted)' : 'not submitted') : `${m.filled}/${m.games}${stillDue}`}`).join(' · ');
   // #43: before the open, no counts for a ballot nobody can touch; a relative hint and the due time instead. #13: the next Monday open after a closed week.
   const detail = notOpen ? `${inDays(due.opensAt, due.now)} · ${dueText(due.deadline)}` : closed ? `${counts} · Deadline passed · ${opensText(due.week + 1, nextOpenAt(due.deadline))}` : `${counts} · Due ${date(due.deadline)} PT`;
-  return <section id="picks-due" tabIndex={-1} className={`panel picks-due ${due.state}`} role={due.state === 'urgent' ? 'alert' : 'status'}>
+  return <section id="picks-due" tabIndex={-1} className={`panel picks-due ${state}`} role={state === 'urgent' ? 'alert' : 'status'}>
     <Bell size={22} aria-hidden="true"/>
     <div><h2>{notOpen ? opensText(due.week, due.opensAt) : closed ? `Week ${due.week} picks closed` : `Week ${due.week} picks due`}</h2><p>{detail}</p></div>
     {!closed && !notOpen && <button className="primary" onClick={onPick}>Make picks<ArrowRight size={17}/></button>}
@@ -132,23 +136,26 @@ function PicksDue({ due, all = [], push = false, onPick }) {
   </section>;
 }
 
+/**
+ * The Community board (redesign stage 17; D-36, DP-1, DP-2). Spread and Total are two tables, each ranked on its own by season
+ * points; their points are never added together. "—" means no submitted ballot (the server sends null, never 0); "Sat out" a final
+ * weekly opt-out (D-23). The week column is the published community week's (`feed.week`), the week the feed, the reveal gate and
+ * the old Virtual Units line lock (stage 20) follow. Once the per-game gate is live (`rules.revealAt` 'kickoff', M-01), a game's
+ * points count from its kickoff, so the week columns grow game by game.
+ */
 function Leaderboard({ feed }) {
   const name = id => feed.members.find(m => m.id === id)?.displayName || 'Former member';
-  const rows = feed.members.map(m => {
-    const get = mode => feed.standings.find(s => s.userId === m.id && s.mode === mode);
-    const spread = get('guess_spread'), total = get('guess_total');
-    return { id: m.id, removed: m.removed, spread, total, season: (spread?.seasonPoints || 0) + (total?.seasonPoints || 0) };
-  }).sort((a, b) => b.season - a.season || name(a.id).localeCompare(name(b.id)));
+  const weekLabel = feed.week ? `Week ${feed.week.week}` : 'Week';
   // D-23: a sat-out week reads "Sat out", never 0.
   const cell = (s, key) => (!s ? '—' : key === 'weekPoints' && s.satOut ? 'Sat out' : show(s[key]));
   return <section className="panel community-leaderboard" aria-label="Leaderboard">
     <div className="section-title"><h2>Leaderboard · {feed.week ? `${feed.week.season} season` : 'season'}</h2></div>
-    <div className="table-scroll"><table><caption className="sr-only">Spread and Total points by member</caption>
-      <thead><tr><th scope="col">Player</th><th scope="col">Spread wk</th><th scope="col">Spread season</th><th scope="col">Total wk</th><th scope="col">Total season</th></tr></thead>
-      <tbody>{rows.map(r => <tr key={r.id} className={r.id === feed.viewer ? 'me' : ''}><th scope="row">{name(r.id)}{r.removed && <small className="muted"> · Removed</small>}</th>
-        <td className="mono">{cell(r.spread, 'weekPoints')}</td><td className="mono">{cell(r.spread, 'seasonPoints')}</td>
-        <td className="mono">{cell(r.total, 'weekPoints')}</td><td className="mono">{cell(r.total, 'seasonPoints')}</td></tr>)}</tbody></table></div>
-    <p className="muted small">Points are fixed when each pick is saved against that moment's consensus. — means no submitted ballot; Sat out means a final weekly opt-out. Removed members keep their records. Challenge and Units records stay in each group.</p>
+    <div className="leaderboard-boards">{Object.entries(MODE).map(([mode, label]) => <div className="table-scroll" key={mode}>
+      <table data-mode={mode}><caption>{label}</caption>
+        <thead><tr><th scope="col">Player</th><th scope="col">{weekLabel}</th><th scope="col">Season</th></tr></thead>
+        <tbody>{boardRows(feed, mode, name).map(r => <tr key={r.id} className={r.id === feed.viewer ? 'me' : ''}><th scope="row">{name(r.id)}{r.removed && <small className="muted"> · Removed</small>}</th>
+          <td className="mono">{cell(r.standing, 'weekPoints')}</td><td className="mono">{cell(r.standing, 'seasonPoints')}</td></tr>)}</tbody></table></div>)}</div>
+    <p className="muted small">Spread and Total are ranked separately; their points are never added together. {feed.rules?.revealAt === 'kickoff' ? "Each game's points count from its kickoff, so week totals grow game by game. " : ''}Points are fixed when each pick is saved against that moment's consensus. — means no submitted ballot; Sat out means a final weekly opt-out. Removed members keep their records. Challenge and Units records stay in each group.</p>
   </section>;
 }
 
@@ -157,25 +164,37 @@ function PostText({ post, name }) {
   switch (post.kind) {
     case 'joined': return <p>{who} joined Guess The Line.</p>;
     case 'week_published': return <p>{who} opened <strong>Week {post.week}</strong>: {post.games} games, picks due {date(post.deadline)} PT.</p>;
-    case 'ballot_submitted': return <p>{who} submitted Week {post.week} {MODE[post.mode]} picks.</p>;
+    // D-30: a sent ballot's stored Late marker shows wherever its picks do (written from M-07).
+    case 'ballot_submitted': return <p>{who} submitted Week {post.week} {MODE[post.mode]} picks.{post.late && <span className="late-marker"> {lateText(post.late)}</span>}</p>;
     case 'bet_posted': return <p>{who} posted a bet in Bet Tracker.</p>;
     case 'bet_settled': return <p>{who} settled a Bet Tracker bet.</p>;
     default: return null;
   }
 }
 
-function PostPicks({ post }) {
-  if (post.kind !== 'ballot_submitted') return null;
-  if (post.picksHidden) return <p className="muted small">Submit your Week {post.week} {MODE[post.mode]} picks to see these.</p>;
+/**
+ * A sent ballot's picks in the feed (redesign stage 17; D-39, D-31, D-23). The server opens another member's picks game by game:
+ * each game shows once that game and market is open to the viewer (their own lock-in, a sit-out, or that game's kickoff) and the
+ * rest are counted, never shown. A server before the per-game gate hides a whole post (`hiddenGames` null): then the post says so.
+ */
+function PostPicks({ post, canSubmit = false }) {
+  const view = postPicksView(post);
+  if (!view) return null;
+  // What opens the rest: the viewer's own submission while that market is still due, else each game's kickoff (D-39, D-31).
+  const submit = `Submit your Week ${post.week} ${MODE[post.mode]} picks to see ${view.shown.length ? 'them now' : 'these'}`;
+  if (view.allHidden) return <p className="muted small post-picks-hidden"><LockKeyhole size={14} aria-hidden="true"/>{!view.perGame
+    ? `Submit your Week ${post.week} ${MODE[post.mode]} picks to see these.` : canSubmit ? `${submit}, or wait for each game's kickoff.` : "Hidden until each game's kickoff."}</p>;
   if (!post.picks) return null;
-  const entries = Object.entries(post.picks);
-  return <ul className="post-picks mono">{entries.map(([gameId, value]) => {
-    const [away, home] = gameId.split('-');
-    return <li key={gameId}><span>{away} @ {home}</span><span>{pickText(post.mode, away, home, value)}</span></li>;
-  })}</ul>;
+  return <>
+    <ul className="post-picks mono">{view.shown.map(([gameId, value]) => {
+      const [away, home] = gameId.split('-');
+      return <li key={gameId}><span>{away} @ {home}</span><span>{pickText(post.mode, away, home, value)}</span></li>;
+    })}</ul>
+    {view.hidden > 0 && <p className="muted small post-picks-hidden"><LockKeyhole size={14} aria-hidden="true"/>{view.hidden} more {view.hidden === 1 ? 'game is' : 'games are'} hidden until kickoff.{canSubmit ? ` ${submit}.` : ''}</p>}
+  </>;
 }
 
-function Post({ post, name, onLike, onComment, busy }) {
+function Post({ post, name, onLike, onComment, busy, canSubmit = false }) {
   const [draft, setDraft] = useState(''), [failure, setFailure] = useState(null), request = useRef(null), root = useRef(null), refocus = useRefocus(root);
   // Persona audit #26: an action error sits under the control that was tapped, with a Retry, instead of at the top of the feed.
   // Retry removes the banner it sits in, so focus returns to the control being retried.
@@ -190,7 +209,7 @@ function Post({ post, name, onLike, onComment, busy }) {
   // Persona audit #25: the receipt's "See everyone's <market> picks" lands on the first post for that market, so each post is a focus target.
   return <article ref={root} className="panel feed-post" data-post={post.id} tabIndex={-1}>
     <div className="feed-post-head"><PostText post={post} name={name}/><time className="muted small" dateTime={post.createdAt}>{date(post.createdAt)} PT</time></div>
-    <PostPicks post={post}/>
+    <PostPicks post={post} canSubmit={canSubmit}/>
     <div className="feed-actions">
       <button className={`text-button ${post.likedByMe ? 'liked' : ''}`} data-action="like" aria-pressed={post.likedByMe} aria-disabled={busy || undefined} onClick={() => run(() => onLike(post.id, !post.likedByMe), '[data-action="like"]')}><Heart size={17} fill={post.likedByMe ? 'currentColor' : 'none'}/>{post.likes}<span className="sr-only"> likes</span></button>
       <span className="muted small"><MessageCircle size={16}/>{post.comments.length}</span>
@@ -256,9 +275,10 @@ function RevealedPicks({ game, mode, season, week, feed, posts, own, closed }) {
     const status = feed.submissions.find(x => x.userId === m.id && x.mode === mode);
     const post = posts.find(p => p.kind === 'ballot_submitted' && p.actorId === m.id && p.season === season && p.week === week && p.mode === mode);
     const value = post?.picks?.[game.id];
-    const picked = Number.isFinite(value), submitted = !!status?.submittedAt;
+    // Redesign stage 17 (D-39): the server opens a post game by game; a game it withheld from this viewer reads "Hidden".
+    const picked = Number.isFinite(value), submitted = !!status?.submittedAt, withheld = !picked && !!post?.hiddenGames?.includes(game.id);
     return { id: m.id, name: m.displayName, removed: m.removed, value, picked, rank: picked ? 0 : status?.satOut ? 2 : submitted ? 1 : 3,
-      state: status?.satOut ? 'Sat out' : submitted ? 'Submitted · in the feed' : closed ? `No ${MODE[mode]} picks` : 'Not submitted yet' };
+      state: withheld ? 'Hidden' : status?.satOut ? 'Sat out' : submitted ? 'Submitted · in the feed' : closed ? `No ${MODE[mode]} picks` : 'Not submitted yet' };
   }).sort((a, b) => a.rank - b.rank);
   const ownValue = own === '' || own === undefined || own === null ? null : Number(own);
   return <ul className="revealed-picks" aria-label={`${team(game.awayCode)} at ${team(game.homeCode)} ${MODE[mode]} picks`}>
@@ -362,7 +382,9 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   const finalRule = sentFinal(data.rules), isFinal = gameId => pickFinal(data.rules, ballot, gameId);
   const allFinal = ballotFinal(data.rules, ballot, data.games.map(g => g.id));
   const open = !closed && !notOpen && !satOut, editable = open && !allFinal;
-  const trendAccess = communityAccess({ ballots: data.ballots, optOuts, closed });
+  // Redesign stage 17 (D-39): line-dependent trends unlock per game and market: this player's own lock-in, a sit-out, or that game's
+  // kickoff (under today's rules also the deadline), the gate M-01 applies in SQL.
+  const trendAccess = gameId => communityAccess(data, gameId, optOuts);
   const filled = Object.values(picks).filter(v => v !== '').length, remaining = data.games.length - filled;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
   // Persona audit #8: every save failure names the problem and offers the next step, beside the save bar. "Sign in again" unmounts
@@ -473,8 +495,8 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
         : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
         label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable || isFinal(g.id)} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
-      {/* Line-dependent trends unlock per market (submitted, sat out or closed); bands are marked with this player's own saved line only. */}
-      {showTrends && <GameTrends season={data.season} week={data.week} gameId={g.id} away={g.awayCode} home={g.homeCode} level={4} access={trendAccess} savedLabel="your saved line"
+      {/* Line-dependent trends unlock per game and market (locked in, sat out, or that game's kickoff); bands are marked with this player's own saved line only. */}
+      {showTrends && <GameTrends season={data.season} week={data.week} gameId={g.id} away={g.awayCode} home={g.homeCode} level={4} access={trendAccess(g.id)} savedLabel="your saved line"
         saved={{ spread: referenceValue(data.ballots.guess_spread?.scoringReferences?.[g.id]), total: referenceValue(data.ballots.guess_total?.scoringReferences?.[g.id]) }}/>}
     </article>)}</div>
     {editable && <div className="save-bar">
@@ -530,10 +552,14 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
     setOlder(o => [...o, ...result.posts]);
   });
   const posts = feed ? [...feed.posts, ...older] : [];
-  const due = feed?.picksDue && ['due', 'urgent'].includes(feed.picksDue.state) ? feed.picksDue.modes.length : 0;
-  const picksClosed = feed?.picksDue?.state === 'closed';
+  // Redesign stage 17: a picks-due state this screen does not know reads as closed (communityBoard.js).
+  const dueNow = dueState(feed?.picksDue);
+  const due = ['due', 'urgent'].includes(dueNow) ? feed.picksDue.modes.length : 0;
+  const picksClosed = dueNow === 'closed';
   // Persona audit #17: the skip link lands on the picks-due card when there is one, and says so (WCAG 2.4.4).
-  const dueCard = tab === 'feed' && !soon && feed?.picksDue && !['none', 'done'].includes(feed.picksDue.state);
+  const dueCard = tab === 'feed' && !soon && !!dueNow;
+  // A post's market can still be submitted by this viewer: its week is the open week and that market is still due.
+  const stillDue = post => due > 0 && post.season === feed.week?.season && post.week === feed.week?.week && feed.picksDue.modes.some(m => m.mode === post.mode);
   // The feed banner's Retry removes the banner: focus goes to main once the feed is back, or to the new banner's Retry.
   async function retryFeed() { refocus('[data-action="feed-retry"]'); if (await act(load)) { refocus(null); main.current?.focus(); } }
   // Persona audit #25: the receipt's "See everyone's Spread picks" opens the feed on its first Spread post (the reveal is per market,
@@ -567,7 +593,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         {feed.admin && <PublishWeek week={feed.week} onDone={async message => { setNotice(message); await load(); }}/>}
         {feed.admin && feed.week && <RefereeAssignments season={feed.week.season} week={feed.week.week}/>}
         <section className="community-feed" aria-label="Activity feed" tabIndex={-1}>
-          {posts.map(post => <Post key={post.id} post={post} name={name} busy={busy} onLike={like} onComment={comment}/>)}
+          {posts.map(post => <Post key={post.id} post={post} name={name} busy={busy} onLike={like} onComment={comment} canSubmit={stillDue(post)}/>)}
           {!posts.length && <p className="panel">No activity yet.</p>}
           {feed.posts.length >= 30 && <button className="secondary" disabled={busy} onClick={more}>Older activity</button>}
         </section>

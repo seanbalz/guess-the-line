@@ -83,7 +83,9 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     await signIn(page);
     await expect(page.locator('.picks-due')).toContainText('Week 5 picks due');
     await expect(page.locator('.picks-due')).toContainText('Spread 0/2 · Total 0/2');
-    await expect(page.getByRole('table')).toContainText('Troy Fixture');
+    // Redesign stage 17 (D-36, DP-2): Spread and Total are two boards, each ranked on its own.
+    await expect(page.getByRole('table', { name: 'Spread', exact: true })).toContainText('Troy Fixture');
+    await expect(page.getByRole('table', { name: 'Total', exact: true })).toContainText('Troy Fixture');
     await expect(page.locator('.feed-post').filter({ hasText: 'Troy Fixture joined Guess The Line.' })).toBeVisible();
     const troyTotal = page.locator('.feed-post').filter({ hasText: 'Troy Fixture submitted Week 5 Total picks.' });
     await expect(troyTotal).toContainText('Submit your Week 5 Total picks to see these.');
@@ -148,7 +150,8 @@ for (const width of [390, 1280]) test(`community home: feed, picks due, likes, c
     await expect(page.getByRole('button', { name: 'Picks (1 due)' })).toBeVisible();
     await expect(troyTotal.locator('.post-picks')).toContainText('47.5');
     await expect(troyTotal).not.toContainText('Submit your Week 5 Total picks to see these.');
-    await expect(page.getByRole('table')).toContainText('Sat out');
+    await expect(page.getByRole('table', { name: 'Total', exact: true }).locator('tr.me')).toContainText('Sat out');
+    await expect(page.getByRole('table', { name: 'Spread', exact: true })).not.toContainText('Sat out');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/previews/sit-out-${width}.png`, fullPage: true });
 

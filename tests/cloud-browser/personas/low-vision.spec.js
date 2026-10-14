@@ -18,9 +18,9 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   await persona.smallText('feed', { min: 13 });
   await persona.shot('feed-200');
   // The leaderboard table at 200%: column headers are 8px and the table scrolls sideways.
-  const tableScroll = await page.locator('.community-leaderboard .table-scroll').evaluate(el => el.scrollWidth > el.clientWidth);
+  const tableScroll = await page.locator('.community-leaderboard .table-scroll').first().evaluate(el => el.scrollWidth > el.clientWidth);
   const thSize = await page.locator('.community-leaderboard th').first().evaluate(el => getComputedStyle(el).fontSize);
-  persona.finding({ screen: 'feed-200', severity: 2, wcag: '1.4.4 (resize text), 1.4.10 (reflow)', experience: `At 200% zoom the leaderboard column headers are ${thSize} (so 16px on screen), five columns ${tableScroll ? 'need horizontal scrolling inside the card' : 'squeeze into the card'}, and "—" placeholders carry no label. A player with low vision cannot read "Spread wk / Spread season" without zooming further.`, fix: 'Set table headers to 13px minimum, abbreviate columns with visible full names on hover/focus, and stack the leaderboard as cards below 720px.' });
+  persona.finding({ screen: 'feed-200', severity: 2, wcag: '1.4.4 (resize text), 1.4.10 (reflow)', experience: `At 200% zoom the leaderboard column headers are ${thSize} (so 16px on screen), the Spread and Total boards' three columns each ${tableScroll ? 'need horizontal scrolling inside the card' : 'fit in the card'}, and "—" placeholders carry no label beyond the footnote.`, fix: 'Set table headers to 13px minimum, abbreviate columns with visible full names on hover/focus, and stack the leaderboard as cards below 720px.' });
 
   // Picks at 200%.
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();

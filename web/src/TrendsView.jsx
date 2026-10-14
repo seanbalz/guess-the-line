@@ -48,7 +48,7 @@ function GatedSection({ week, game, gate, access, lines, atoms, savedText, level
   const needs = gate === 'both' ? 'both your Spread and Total ballots' : `your ${MARKET[gate]} ballot`;
   if (!gateOpen(access, gate)) {
     return <Section level={level} className="trends-gated" title={gate === 'both' ? 'Unlocks after both ballots' : `Unlocks after your ${MARKET[gate]} ballot`}>
-      <p>{count} records for this game depend on the {gate === 'both' ? 'spread and the total together' : gate === 'spread' ? 'spread (favorite and underdog splits, spread bands and key numbers)' : 'total (total bands, key totals and the last meeting against this total)'}. They unlock after you submit or sit out {needs}, or after the deadline. No line is shown before then.</p>
+      <p>{count} records for this game depend on the {gate === 'both' ? 'spread and the total together' : gate === 'spread' ? 'spread (favorite and underdog splits, spread bands and key numbers)' : 'total (total bands, key totals and the last meeting against this total)'}. They unlock after you submit or sit out {needs}, or {access?.revealAt === 'kickoff' ? 'once this game kicks off' : 'after the deadline'}. No line is shown before then.</p>
     </Section>;
   }
   const marks = {};
