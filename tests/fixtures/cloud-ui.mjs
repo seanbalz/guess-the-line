@@ -43,10 +43,12 @@ export const test = base.extend({
       if (url.pathname === '/functions/v1/gtl-api/social/read') {
         expect(request.method()).toBe('POST'); expect(url.search).toBe('');
         const body = request.postDataJSON(), { season, week } = fixture.state.league;
-        expect(body.season).toBe(season); expect(body.week).toBe(week);
+        // The dashboard card names its week; the Bet Tracker reads the current published week (stage 21, DP-3), this fixture's week.
+        const named = body.season !== undefined;
+        if (named) { expect(body.season).toBe(season); expect(body.week).toBe(week); } else expect(body.week).toBeUndefined();
         if (body.filters) expect(body.filters).toEqual({ following: false, counts: 'all', includeParlays: true, includeTailed: true, includeTracked: true });
         return reply(await handleSocial({ route: '/social/read', body, user, service: { rpc: async (name, args) => {
-          expect(name).toBe('gtl_read_social'); expect(args).toEqual({ p_user: user.id, p_season: season, p_week: week, p_all: false });
+          expect(name).toBe('gtl_read_social'); expect(args).toEqual({ p_user: user.id, p_season: named ? season : null, p_week: named ? week : null, p_all: false });
           return { season, week, profiles: [{ id: user.id, displayName: 'Troy Jun' }], availableWeeks: [{ season, week }], following: [], weeks: [{ season, week, revision: 0, state: emptySocialState(), games: fixture.state.games }] };
         } } }));
       }
