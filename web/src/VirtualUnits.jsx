@@ -46,6 +46,20 @@ export default function VirtualUnits({ leagueId, onDirty }) {
     return result;
   }, [leagueId]);
   useEffect(() => { const controller = new AbortController(); setLoading(true); setError(''); load(controller.signal).catch(failure => { if (failure.name !== 'AbortError') setError(failure.message); }).finally(() => { if (!controller.signal.aborted) setLoading(false); }); return () => controller.abort(); }, [load]);
+  // Stage 20 line lock: a market that is locked in a newer reply (the community week moved past this group's week) shows no
+  // side, units or save button, so a selection in progress on it can never be saved. It is dropped, and the unsaved-changes
+  // flag clears when nothing else waits to be saved, so leaving the screen asks about nothing the player can see. It runs once
+  // per reply: a selection made after it is on an open market (a locked one has no buttons to choose with).
+  useEffect(() => {
+    if (!data) return;
+    const lockedNow = choice => data.games.find(game => game.id === choice.gameId)?.locked?.[choice.market] === true;
+    const keys = Object.keys(selections).filter(key => lockedNow(selections[key]));
+    if (!keys.length) return;
+    const next = { ...selections };
+    for (const key of keys) delete next[key];
+    setSelections(next);
+    if (!Object.keys(next).length) onDirty?.(false);
+  }, [data]);
   const picks = useMemo(() => Object.fromEntries((data?.picks || []).map(pick => [`${pick.gameId}:${pick.market}`, pick])), [data]);
   const settledCount = data ? data.summary.wins + data.summary.losses + data.summary.pushes : 0;
   const commissioner = Boolean(data && data.league?.id === 'sean-troy-luke' && data.league.roster?.some(player => player.id === data.playerId && player.role?.toLowerCase() === 'commissioner'));
