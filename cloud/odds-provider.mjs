@@ -47,15 +47,22 @@ const readQuota = headers => Object.fromEntries(['remaining', 'used', 'last'].ma
   const raw = headers.get(`x-requests-${key}`);
   return [key, raw !== null && /^\d{1,9}$/.test(raw) ? Number(raw) : null];
 }));
+// A team plays once a week, but one collection may also carry the previous week's games that have not kicked off
+// (a Monday night game after the next week opens; gtl_odds_carryover_slate), so the same team may appear twice only
+// in games at least two days apart. A repeated game or a team twice at about the same time still fails.
+const TEAM_GAP_MS = 2 * 86_400_000;
 function validateGames(input) {
   if (!Array.isArray(input) || input.length < 1 || input.length > 32) fail('ODDS_SLATE');
-  const ids = new Set(), teams = new Set();
+  const ids = new Set(), teams = new Map();
   return input.map(game => {
+    const kickoff = record(game) ? isoTime(game.kickoff) : NaN;
+    const clash = team => (teams.get(team) || []).some(other => Math.abs(other - kickoff) < TEAM_GAP_MS);
     if (!record(game) || !token(game.id) || ids.has(game.id) ||
       ![game.home, game.away].every(t => typeof t === 'string' && t.length >= 3 && t.length <= 80 && t.trim() === t) ||
-      game.home === game.away || teams.has(game.home) || teams.has(game.away) || !Number.isFinite(isoTime(game.kickoff))) fail('ODDS_SLATE');
-    ids.add(game.id); teams.add(game.home); teams.add(game.away);
-    return { id: game.id, home: game.home, away: game.away, kickoff: iso(isoTime(game.kickoff)) };
+      game.home === game.away || clash(game.home) || clash(game.away) || !Number.isFinite(kickoff)) fail('ODDS_SLATE');
+    ids.add(game.id);
+    for (const team of [game.home, game.away]) teams.set(team, [...(teams.get(team) || []), kickoff]);
+    return { id: game.id, home: game.home, away: game.away, kickoff: iso(kickoff) };
   });
 }
 function matchEvents(events, games, now) {
