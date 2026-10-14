@@ -1,5 +1,27 @@
 # Decision log
 
+## D-45 — weather on every game, and a weather chip on the board (October 14, 2026)
+
+Sean answered "Weather and wind forecast: what should change?" in the coordinating cloud session. He chose, verbatim: "Full weather on every game (Recommended)" — "Every game gets a weather row: open-air games show the kickoff forecast; domes and closed roofs say "Indoors" (retractable roofs say "Roof may close"). The new app's game sheet shows the full card; the board gets one small chip only when wind is 15+ mph or rain/snow is likely. Updates D-34 to allow that chip."
+
+- **What it changes in [D-34](#d-34--kickoff-wind-forecast-from-open-meteo-october-13-2026).** Forecast claims still stay out of every written summary: collapsed trend summaries, the trends intro, feed posts and notifications carry no forecast value or link. The one new board element is a word chip on a Lines board row, with no number and no link; the values and the Open-Meteo credit stay in the game sheet's full card. Everything else in D-34 stands: Open-Meteo is the only source, the CC BY 4.0 credit sits next to every value, only signed-in community members see forecasts, and the refresh tiers, single flight and daily cap are unchanged.
+- **Venue rules.**
+
+| Venue | Weather row | Fetched from Open-Meteo |
+|---|---|---|
+| Open air | The kickoff forecast | Yes |
+| Canopy (SoFi Stadium) | The kickoff forecast, labelled "Covered, open-sided stadium" | Yes, from this decision |
+| Retractable roof | The kickoff forecast and "Roof may close": it is the outside weather, and the team decides the roof on game day | Yes, as before |
+| Dome (Detroit, Minneapolis, New Orleans, Las Vegas) | "Indoors", with no numbers and no credit | Never |
+| A retractable roof the trends file records as closed | "Indoors" | Unchanged |
+| No stored forecast, more than 120 h out, a stale snapshot, the provider down, or signed out | "No current forecast" | — |
+
+- **The board chip.** At most one per row, and only for a current forecast: "Rain likely" or "Snow likely" when the kickoff-hour precipitation chance is 50% or more; otherwise "Windy" when the kickoff-hour sustained wind is 15 mph or more (gusts never count). Precipitation wins over Windy. "Snow likely" means a kickoff-hour temperature of 32 °F or colder: the stored Open-Meteo fields carry no weather code or snowfall, and adding one would need a migration, so with no temperature there is no precipitation chip. Thresholds use the unrounded stored values (14.9 mph is not Windy, 49% is not likely). "Indoors" and "No current forecast" rows never get a chip. A canopy or retractable stadium can, because the chip describes the outside weather.
+- **Cap math.** The cap stays 200 Open-Meteo calls (locations) per UTC day, failures included. Fetching SoFi adds one location in weeks an LA team is at home. Worst case, a reader every minute and every game refreshed the moment its TTL allows: Week 6 as published needs 196 calls on Sunday, October 18 (UTC), against 178 before this decision, so it stays under the cap. A heavy 16-game slate with no dome (possible before this decision too) would need 248 on its Sunday; the SQL then trims the request that would pass 200 (nearest kickoff first) and refuses the rest of that UTC day. In that worst case the budget runs out at about 14:05 UTC, and the afternoon games' last snapshots go stale, so they show "No current forecast" for up to five hours before kickoff. `tests/wind-cloud.test.mjs` computes both numbers with the real planner.
+- **Where it is built.** `shared/weather-view.mjs` (`weatherRow`, `weatherChip`), the fetched venue types in `shared/wind-venues.mjs`, the roof rule in `shared/trends-view.mjs`, and the old app's trends panel (`web/src/WindForecast.jsx`, `web/src/TrendsView.jsx`). The new app's Lines board and game sheet are redesign stage 13 ([build plan](REDESIGN_BUILD_PLAN.md)), not built yet; their scope now names the chip and the full card. No migration: the venue filter is gtl-api's planner, and `gtl_begin_wind_fetch` takes any game on the published slate. SoFi forecasts start with the next `gtl-api` deploy and the rows with the next Pages deploy, in either order.
+- **Unchanged.** Weather is reference only. It never changes scoring, picks, lines, line locks, kickoff locks or the D-23 reveal, and it is not gated because it reveals no line or pick. The old app's card keeps its Eastern times. See [TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34).
+- Nothing is applied or deployed by this entry.
+
 ## D-43 — slip notes, the old sit-out window and locked-in guesses in History (October 14, 2026)
 
 Sean answered the questions PR #98 (redesign stage 21, M-04) and PR #99 (stage 19, M-03) raised, in the cloud session.

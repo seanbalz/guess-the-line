@@ -1,6 +1,6 @@
 # Situational trends
 
-Owner: Sean Balsiger · Version 1 · Updated 2026-10-13 · Ruling of October 12, 2026, D-32 in [DECISIONS.md](DECISIONS.md)
+Owner: Sean Balsiger · Version 1 · Updated 2026-10-14 · Ruling of October 12, 2026, D-32 in [DECISIONS.md](DECISIONS.md)
 
 Trend cards show how NFL games in a given situation went against the line in the past. They sit next to each game on the Community Picks tab, on the group ballot and in the dashboard's game detail. **They are reference only: they never change GTL scoring, and they are not betting recommendations.**
 
@@ -12,7 +12,7 @@ The panel answers both:
 
 - **Quality first.** Every trend is a frozen preset (at most two filters) from a registry tested on 1,722 hypotheses. Each preset has an out-of-sample quality score, and the panel shows tiers in score order, never sorted by ROI, win rate, streak or last 10.
 - **Sean's families are always there,** as clearly labelled context with "No proven edge".
-- **Honest evidence.** Only one trend beat chance out of sample (2018–2025): strong wind at kickoff (10+ mph) went Under. Its record uses observed kickoff wind. Since D-34, signed-in community members see an Open-Meteo kickoff wind forecast for upcoming outdoor games above the card; using the record with a forecast has **not been backtested**, and the panel says so. Without a current forecast the card stays a collapsed note: "Applies only if kickoff wind is 10+ mph; no current forecast for this game". See [Kickoff wind forecast](#kickoff-wind-forecast-d-34).
+- **Honest evidence.** Only one trend beat chance out of sample (2018–2025): strong wind at kickoff (10+ mph) went Under. Its record uses observed kickoff wind. Since D-34, signed-in community members see an Open-Meteo kickoff forecast above the card, and since D-45 every game has a weather row; using the record with a forecast has **not been backtested**, and the panel says so. Without a current forecast the card stays a collapsed note: "Applies only if kickoff wind is 10+ mph; no current forecast for this game". See [Kickoff wind forecast](#kickoff-wind-forecast-d-34).
 
 ## Where it shows
 
@@ -29,7 +29,7 @@ Every **Trends** button is a disclosure (`aria-expanded`, `aria-controls`) named
 ## Panel contents, in order
 
 1. **Intro**: "Past results against nflverse lines. Reference only…" and the one-line evidence summary.
-2. **Strongest historical evidence**: the kickoff wind forecast (D-34) for outdoor and retractable-roof games, then the Tier 1 wind card, collapsed behind its condition; "Strong wind trends do not apply indoors" for domes.
+2. **Strongest historical evidence**: the game's weather row (D-34, D-45): the kickoff forecast card for open-air, canopy and retractable-roof games, "Indoors" for domes, or "no current forecast"; then the Tier 1 wind card, collapsed behind its condition. Domes add "Strong wind trends do not apply indoors"; SoFi Stadium, whose canopy the trend records count as a dome, adds "Strong wind trends do not apply here".
 3. **Consistent, not proven** (Tier 2): up to three cards that fit this game, de-duplicated, with conflicts flagged ("Conflicting trends") and same-side overlaps noted ("not independent confirmations"). The calibration note says the Tier 2 gate passes about as many trends on shuffled outcomes (13.3) as on real data (12).
 4. **Updates after the final**: when a team's previous game has no final yet (Week 6: BUF and LAR until the 2026_05_BUF_LA final).
 5. **Watch list** cards that fit.
@@ -113,9 +113,9 @@ No free, licensed feed publishes referee assignments before games; the schedule 
 
 ## Kickoff wind forecast (D-34)
 
-Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.md#d-34--kickoff-wind-forecast-from-open-meteo-october-13-2026)).
+Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.md#d-34--kickoff-wind-forecast-from-open-meteo-october-13-2026)). October 14, 2026: "Full weather on every game (Recommended)" ([D-45](DECISIONS.md#d-45--weather-on-every-game-and-a-weather-chip-on-the-board-october-14-2026)).
 
-**Where it shows.** Everywhere the trends panel mounts (Community Picks, the group ballot and the dashboard game detail), at the top of "Strongest historical evidence", for outdoor and retractable-roof games. It loads only when a signed-in community member opens a game's trends, so reads (and refreshes) happen only on use.
+**Where it shows.** Everywhere the trends panel mounts (Community Picks, the group ballot and the dashboard game detail), at the top of "Strongest historical evidence". Every game has one weather row (D-45): the forecast card, "Kickoff weather: Indoors" with the stadium for a dome, or "Kickoff weather: no current forecast for this game." It loads only when a signed-in community member opens a game's trends, so reads (and refreshes) happen only on use. Open-air, canopy (SoFi Stadium) and retractable-roof stadiums are fetched; domes never are. `shared/weather-view.mjs` (`weatherRow`) decides the row from the same freshness rules as the card.
 
 **States.**
 
@@ -123,10 +123,11 @@ Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.
 |---|---|---|
 | Forecast | A snapshot made before kickoff and no older than twice the TTL for the current lead | Stadium, sustained wind at kickoff with compass direction, gusts in the kickoff hour, temperature, precipitation chance, the time line (forecast hour, kickoff, age, how far ahead it was made, a confidence label), the band sentence, notes, the honesty note, the model line and the credit |
 | Final | After kickoff, the last snapshot if it was made within 2 h of kickoff (twice the 1 h TTL, the same rule as just before kickoff) | The same, titled "Final pre-kickoff forecast (fetched N min before kickoff)"; never called observed |
-| Not yet | More than 120 h before kickoff | "The kickoff forecast appears 5 days before kickoff." No numbers, no credit |
-| Fallback | No snapshot, a stale one, or no access (signed out, local mode, not a member, or not deployed) | The Tier 1 note "Applies only if kickoff wind is 10+ mph; no current forecast for this game", plus "The last forecast is out of date." for a stale one |
-| Retractable | A retractable roof | The forecast plus "Retractable roof: the wind matters only if the roof is open, which is decided on game day." |
-| Indoor | A dome, closed roof or canopy | Unchanged: "Strong wind trends do not apply indoors (dome or closed roof)." No request, numbers or credit |
+| Not yet | More than 120 h before kickoff | "Kickoff weather: no current forecast for this game. The kickoff forecast appears 5 days before kickoff." No numbers, no credit |
+| Fallback | No snapshot, a stale one, or no access (signed out, local mode, not a member, or not deployed) | "Kickoff weather: no current forecast for this game.", plus "The last forecast is out of date." for a stale one, and the Tier 1 note "Applies only if kickoff wind is 10+ mph; no current forecast for this game" |
+| Retractable | A retractable roof | The forecast, "Roof may close" (D-45) and "Retractable roof: the wind matters only if the roof is open, which is decided on game day." |
+| Canopy | SoFi Stadium (D-45) | The forecast and "Covered, open-sided stadium", without the band sentence and the record: the trend records count SoFi as a dome, so no wind card fits. The note says the forecast is for open ground and a roof covers the field. Below it: "Strong wind trends do not apply here: the trend records count this covered stadium as a dome." |
+| Indoor | A dome, or a retractable roof the trends file records as closed | "Kickoff weather: Indoors · " and the stadium (D-45), then "Strong wind trends do not apply indoors (dome or closed roof)." No request, numbers or credit |
 | Loading | The first read is in flight | "Loading kickoff forecast…" |
 
 **Lead tiers.** Refresh TTL 6 h at 72–120 h, 3 h at 18–72 h, 1 h within 18 h (the hourly HRRR runs at U.S. stadiums; abroad the same TTL only picks up a newer run sooner); never at or after kickoff. Confidence labels by how far ahead a snapshot was made: within 18 h "Short range: high-resolution model updated hourly" at a U.S. stadium and "Short range (within 18 h of kickoff)" anywhere else, within 48 h "Next-day guidance", within 72 h "Trend indicator only (2 to 3 days out)", within 120 h "Early outlook, low confidence (3 to 5 days out)". An open panel re-renders every minute from the server's `asOf` plus the time since the answer arrived (never the device's own date), asks again when an age crosses its TTL, at kickoff, when a game enters the 120 h window and when the tab becomes visible, so a stale forecast never stays on screen as fresh.
@@ -141,7 +142,11 @@ Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.
 
 **Not backtested.** The 10+ mph Under record was measured with observed kickoff wind. The honesty note, shown with every forecast, cites the file's own record label (Results 2018-2025 (period used to select this card): 282-196-5), the full history (898-730-22) and this season, says using it with a forecast has not been backtested, and that open-ground grid wind can differ from what reaches the field. Plan: from an environment with egress, compare Open-Meteo Previous Runs forecasts (T-24 h and T-48 h, archived since January 2024) with 2024–2025 observed wind and re-run the walk-forward split on forecast-qualified games.
 
-**Budget and single flight.** One multi-location GET per refresh (at most 16 locations; a shared stadium is sent once; Week 6 is 12 locations), one Open-Meteo call per location. `gtl_begin_wind_fetch` serializes every start under one advisory lock, refuses while a 20 s lease is live (`busy`), spaces starts 60 s apart (`cooldown`), backs off 15 minutes after a failure, 60 minutes after two in a row or an hourly rate limit, and until 00:00 UTC after the daily limit (`backoff`), re-checks which games are still due (`not_due`) and caps the UTC day at 200 calls (`budget`, trimming a request to what is left, nearest kickoff first). Readers who are refused are served what is stored, with its age. A request that dies mid-fetch costs its calls and backs off 15 minutes.
+**Budget and single flight.** One multi-location GET per refresh (at most 16 locations; a shared stadium is sent once; Week 6 is 13 locations since D-45 added SoFi), one Open-Meteo call per location. `gtl_begin_wind_fetch` serializes every start under one advisory lock, refuses while a 20 s lease is live (`busy`), spaces starts 60 s apart (`cooldown`), backs off 15 minutes after a failure, 60 minutes after two in a row or an hourly rate limit, and until 00:00 UTC after the daily limit (`backoff`), re-checks which games are still due (`not_due`) and caps the UTC day at 200 calls (`budget`, trimming a request to what is left, nearest kickoff first). Readers who are refused are served what is stored, with its age. A request that dies mid-fetch costs its calls and backs off 15 minutes.
+
+**Cap math (D-45).** The worst case is a reader every minute (an open panel asks again whenever an age crosses its TTL), with every game refreshed the moment its TTL allows. Week 6 as published then needs 196 calls on its busiest UTC day, Sunday, October 18 (178 before SoFi was added), under the cap of 200. A heavy 16-game slate with no dome would need 248 on its Sunday; the cap trims the request that would pass 200 (nearest kickoff first) and refuses the rest of that UTC day, so in that worst case the budget runs out at about 14:05 UTC and the afternoon games show "no current forecast" for up to five hours before kickoff. Such a slate was possible before D-45 too. `tests/wind-cloud.test.mjs` computes both numbers with the real planner.
+
+**Board chip (D-45).** The new app's Lines board shows at most one word chip per game, from `weatherChip` in `shared/weather-view.mjs`, and only for a current forecast: "Rain likely" or "Snow likely" when the kickoff-hour precipitation chance is 50% or more (precipitation wins), else "Windy" when the kickoff-hour sustained wind is 15 mph or more. Snow means a kickoff-hour temperature of 32 °F or colder, because the stored fields have no weather code or snowfall; with no temperature there is no precipitation chip. A chip has no digits and no link; the values and the credit are in the game sheet's full card. "Indoors" and "no current forecast" rows never get one. The board and sheet are redesign stage 13 and not built yet.
 
 **Superseded copy.** The frozen registry note and the week file's `windConditional`, `wind15Conditional`, `weatherConditional` and `evidence` strings still say "no forecast source". `shared/trends-view.mjs` (`WIND_COPY`, `WIND_CARD_NOTES`) supersedes them on screen only, so the registry sha256 and the week file are unchanged; the next registry carries the new note.
 
@@ -183,7 +188,8 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
 
 ## Limits
 
-- Forecast wind only, at the kickoff hour, for outdoor and retractable venues; temperature, precipitation and other weather trends still need observed data; using the wind record with a forecast is not backtested.
+- Forecast weather only at the kickoff hour, for every venue but a dome; temperature, precipitation and other weather trends still need observed data; using the wind record with a forecast is not backtested.
+- Snow is read from the kickoff-hour temperature (32 °F or colder) because no weather code or snowfall is stored; freezing rain reads as snow and wet snow just above freezing as rain.
 - No opening lines or line movement in the trend records (the lines reader gives the game sheet each game's movement and kickoff line, [above](#lines-reader-m-06)).
 - Tier 2 is "not proven" as a group.
 - Starting quarterbacks for upcoming games are nflverse's expected starters (provisional).
@@ -219,8 +225,9 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
   - `tests/wind-venues.test.mjs`: the stadium mirror against the venue table, the 2026 season file and every week file.
   - `tests/wind-cloud.test.mjs`: the route through the handler (planner tiers, one request for concurrent reads, failures as 200s with stored data, Monday night after the next week opens, refusals, no private keys, the adapter's headers).
   - `tests/wind-sql.test.mjs`: the migration on PGlite (grants, RLS, insert-only, single flight, spacing, backoff, the daily cap with trimming, row checks, replay, time zones, isolation from scoring tables, the route end to end).
-  - `tests/wind-ui.test.jsx`: every state, the credit next to every value, the honesty note from the file, and fake timers moving an open panel from forecast to out of date and to final.
-  - `tests/cloud-browser/wind.spec.js`: a member's panel with one Open-Meteo stand-in request for every panel and member, axe, a dome and a retractable roof, and a failed request. Run locally through a Playwright wrapper on ports 5398 (cloud) and 8990 (local), with its own output directories.
+  - `tests/wind-ui.test.jsx`: every state, the credit next to every value, the honesty note from the file, fake timers moving an open panel from forecast to out of date and to final, and (D-45) one weather row on every Week 6 panel, "Indoors", SoFi's canopy row and "Roof may close", with board chips that are words only.
+  - `tests/weather-view.test.mjs` (D-45): `weatherRow` for every roof type, closed roofs, unknown venues, missing, stale and final snapshots; `weatherChip` at 14.9/15.0 mph, 49/50% and 32 °F, precipitation over Windy, no digits, purity.
+  - `tests/cloud-browser/wind.spec.js`: a member's panel with one Open-Meteo stand-in request for every panel and member, axe, a dome and a retractable roof, a failed request, and (D-45) Indoors, SoFi and Atlanta at 320, 390 and 1440 px in Light and Dark with one request that never includes the Las Vegas dome. Run locally through a Playwright wrapper on ports 5398 (cloud) and 8990 (local), with its own output directories.
 - `tests/cloud-browser/trends.spec.js`:
   - the toggle and expander,
   - axe on the open panel,

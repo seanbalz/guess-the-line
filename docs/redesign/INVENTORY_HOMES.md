@@ -308,7 +308,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 |---|---|---|---|---|---|
 | 173 | Trends intro notes | Stage | 13, 34 | Game sheet trends; All trends | None |
 | 174 | Strongest historical evidence | Stage | 13 | The one trend chip per card; board trends | None |
-| 175 | Kickoff wind forecast | Stage | 13 | Game sheet weather row, times in PT (D-34, DP-7) | None |
+| 175 | Kickoff wind forecast | Stage | 13 | Game sheet weather row on every game, times in PT (D-34, D-45, DP-7); one word weather chip on the board row (D-45) | None |
 | 176 | Consistent, not proven | Stage | 34 | All trends | None |
 | 177 | Updates after the final | Cut, data kept | 81 | Leaves | None |
 | 178 | Watch list | Stage | 34 | All trends | None |
