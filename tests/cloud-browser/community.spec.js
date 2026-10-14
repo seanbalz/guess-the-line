@@ -8,6 +8,7 @@ import { providerCommunityError } from '../../cloud/community.mjs';
 import { weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { openDeadline } from './fixture-deadline.mjs';
+import { shiftBrowserClock } from './test-clock.mjs';
 import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
@@ -53,6 +54,7 @@ async function fixture(page, baseURL, deadline) {
     social: { rpc: rpc(providerSocialError) }, personal: { rpc: rpc(providerPersonalError) }, lobby: { rpc: rpc(providerLobbyError) }, community: { rpc: rpc(providerCommunityError) }, odds: { rpc: rpc(providerPersonalError) },
     storage: { membership() { throw new Error('Community routes must not require membership.'); } } });
   page.on('pageerror', error => errors.push(error.message));
+  await shiftBrowserClock(page);
   await page.route('**/*', async route => {
     const req = route.request(), url = new URL(req.url());
     if (url.origin === new URL(baseURL).origin) return route.continue();

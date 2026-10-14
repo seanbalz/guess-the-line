@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, ChartSpline, Check, CircleCheck, Heart, LoaderCircle, LockKeyhole, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
+import LegalLinks from './LegalLinks';
 import ThemeSelector from './Theme';
 import ChipPicker, { CHIP_HELP } from './ChipPicker';
 import TeamFacts from './TeamFacts';
@@ -606,7 +607,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         <button className="text-button" disabled={busy} onClick={() => act(load)}><RefreshCw size={16}/>Refresh</button>
         {/* Redesign stage 9 (D-38, D-39): every signed-in member can opt in to the new app on this device. */}
         <TryNewApp disabled={busy}/>
-        <button className="secondary" disabled={busy} onClick={onSignOut}>Sign out</button></div>
+        <button className="secondary" disabled={busy} onClick={onSignOut}>Sign out</button><LegalLinks/></div>
     </main>
   </div>;
 }

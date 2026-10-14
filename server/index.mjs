@@ -35,7 +35,9 @@ export function createServer(store = createStore(), { dist = path.resolve(import
       if(/^\/(data|server|\.local|\.git|docs|design)(\/|$)/.test(url.pathname)) return send(404,{error:'Not found.'});
       const requested = path.resolve(dist,'.'+decodeURIComponent(url.pathname));
       if(!requested.startsWith(dist+path.sep) && requested!==dist) return send(404,{error:'Not found.'});
-      const file=fs.existsSync(requested)&&fs.statSync(requested).isFile()?requested:path.join(dist,'index.html');
+      const isFile=candidate=>fs.existsSync(candidate)&&fs.statSync(candidate).isFile();
+      // Mirror Cloudflare Pages route matching: /privacy serves privacy.html before the SPA fallback.
+      const file=isFile(requested)?requested:!path.extname(requested)&&isFile(requested+'.html')?requested+'.html':path.join(dist,'index.html');
       if(!fs.existsSync(file)) return send(503,{error:'Run npm run build, or use the development preview on port 5173.'});
       const mime=mimeTypes[path.extname(file).toLowerCase()]||'application/octet-stream';
       res.writeHead(200,{'Content-Type':mime,'Cache-Control':file.endsWith('.html')?'no-cache':'public, max-age=3600'});fs.createReadStream(file).pipe(res);
