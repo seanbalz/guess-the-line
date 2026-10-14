@@ -17,6 +17,7 @@ import { FEATURE_OFF } from '../../../cloud/optional-rpc.mjs';
 import { weekOpenAt } from '../../../shared/nfl-schedule.mjs';
 import { isWebfont } from '../../fixtures/webfonts.mjs';
 import { openDeadline } from '../fixture-deadline.mjs';
+import { shiftBrowserClock } from '../test-clock.mjs';
 import { HOSTED, PRELUDE, migrationSql } from '../../migrations.mjs';
 
 const DAY = 86_400_000;
@@ -80,7 +81,8 @@ export const test = base.extend({
   persona: async ({ page, baseURL }, use, testInfo) => {
     const name = testInfo.titlePath[0].replace(/\.spec\.js$/, '').split('/').at(-1);
     const findings = [], errors = [], axeLog = [], seenAxe = new Set();
-    let db = null, state = null, lastScreenshot = '';
+    let db = null, state = null, lastScreenshot = '', ended = false;
+    const inflight = new Set();
     const net = { delay: 0, offline: false, fail: null, expireSession: false, quotesUnavailable: false, requests: [] };
     // The live Guess rules (build plan section 3.4) reach the screens as `rules` through the handler's optional-RPC read. The hosted
     // schema has no gtl_live_rules, so by default the read is "feature off" and every view carries today's rules, as for players.
@@ -90,6 +92,7 @@ export const test = base.extend({
       user: { id: id(1), aud: 'authenticated', role: 'authenticated', email: 'ben@example.test', app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-10-01T00:00:00Z' },
       async start(options = {}) {
         ({ db, state } = await buildWorld(options));
+        await shiftBrowserClock(page);
         const expires = Math.floor(Date.now() / 1000) + 3600;
         const token = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: persona.user.id, aud: 'authenticated', exp: expires })).toString('base64url')}.test`;
         const session = { access_token: token, refresh_token: 'test-only', expires_in: 3600, expires_at: expires, token_type: 'bearer', user: persona.user };
@@ -128,8 +131,14 @@ export const test = base.extend({
           if (net.offline === true || (typeof net.offline === 'function' && net.offline(endpoint))) return route.abort('internetdisconnected');
           const injected = net.fail?.(endpoint, req);
           if (injected) return reply(injected.status, injected.body);
-          const response = await persona.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));
-          return route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: await response.text() });
+          // Once the test has ended the database closes, but Playwright takes error-context.md's page snapshot only when the browser
+          // context closes, after that. A call arriving then stays pending, so the report shows the screen the test left (a phone
+          // timeout once read as a lobby failure) instead of a 503 from the closed database.
+          if (ended) return;
+          const call = persona.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }))
+            .then(async response => ({ status: response.status, headers: Object.fromEntries(response.headers), body: await response.text() }));
+          inflight.add(call);
+          try { return route.fulfill(await call); } finally { inflight.delete(call); }
         });
         persona.token = token;
         return { db, state, session };
@@ -259,6 +268,8 @@ export const test = base.extend({
     try { scans = JSON.parse(fs.readFileSync(AXE_LOG, 'utf8')); } catch { scans = []; }
     fs.writeFileSync(AXE_LOG, JSON.stringify([...scans.filter(scan => scan.persona !== name || cleared.has(`${name}:axe`)), ...axeLog], null, 2));
     cleared.add(`${name}:axe`);
+    ended = true;
+    await Promise.allSettled([...inflight]);
     if (db) await db.close();
     expect(errors, 'no page errors or unexpected external requests').toEqual([]);
   },

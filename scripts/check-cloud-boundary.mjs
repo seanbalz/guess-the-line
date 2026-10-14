@@ -111,13 +111,17 @@ const privateFilename = /^(?:\.env(?:\..*)?|\.dev\.vars(?:\..*)?|package(?:-lock
 const privateMaterial = /sb_secret_[A-Za-z0-9_-]{12,}|SUPABASE_SERVICE_ROLE_KEY|"originalPick"\s*:|"TB-DAL"\s*:\s*-9\.5|2026-week-05-[A-Za-z0-9_-]+\.json|data\/(?:picks|snapshots)\/|\.local\/state\.json|sourceMappingURL\s*=/;
 const emailPattern = /[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?\.)+[A-Z]{2,63}\b/gi;
 
-export function scanFrontend(dir) {
+// The public Privacy Policy and Terms pages must publish a contact address (Google OAuth consent requirement).
+// Only these two top-level static pages may carry an address, and only one that the same page links as mailto:.
+const publicContactPages = new Set(['privacy.html', 'terms.html']);
+
+export function scanFrontend(dir, top = true) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const file = path.join(dir, entry.name);
     assert.ok(!entry.isSymbolicLink(), 'Symbolic link in cloud frontend.');
     if (entry.isDirectory()) {
       assert.ok(!privateDirectories.has(entry.name), 'Private or source directory in cloud frontend.');
-      scanFrontend(file);
+      scanFrontend(file, false);
     } else {
       assert.ok(!privateFilename.test(entry.name), 'Private or source file in cloud frontend.');
       const text = fs.readFileSync(file, 'utf8');
@@ -129,7 +133,9 @@ export function scanFrontend(dir) {
       }
       // Generic contact detection: never embed a real recipient in this checker,
       // and never print matched addresses or file content, even on failure.
+      const contactPage = top && publicContactPages.has(entry.name);
       for (const [email] of text.matchAll(emailPattern)) {
+        if (contactPage && text.includes(`href="mailto:${email}"`)) continue;
         const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase();
         assert.ok(/(?:^|\.)example\.(?:com|net|org)$|\.(?:invalid|test|localhost)$/.test(domain), 'Non-example email address in cloud frontend.');
       }

@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, ROLLBACK_DIR, version } from './migrations.mjs';
 import { catalog, parseFunctions, readMigrations, topLevel } from '../scripts/migration-functions.mjs';
 import { ACCOUNTS, createCommunityWorld, id, pgliteAvailable } from './cloud-browser/community-world.mjs';
-import { leakScan, pickSecrets, READERS } from './helpers/leak-scan.mjs';
+import { leakScan, pickSecrets, READERS, withoutTimes } from './helpers/leak-scan.mjs';
 
 // Redesign build plan stage 27, M-09 (20261014224500_gtl_game_notes.sql): private notes per game (D-36 "notes stay",
 // D-39). Only the owner reads or writes a note; up to 2,000 characters, never cut; a note never makes a Favorite
@@ -300,7 +300,8 @@ test('through gtl-api: /personal/note and /personal/notes serve only the signed-
     for (const [route, method, body] of [...READERS, ['/personal/notes', 'POST', {}]]) {
       const reply = await world.api(viewer, route.slice(1), method === 'GET' ? undefined : body);
       assert.equal(reply.status, 200, `${viewer} ${route}: ${JSON.stringify(reply.body)}`);
-      const text = JSON.stringify(reply.body);
+      // Times are blanked first: a reply stamped "…:41.512Z" would otherwise read as the note's 41.5.
+      const text = withoutTimes(JSON.stringify(reply.body));
       assert.ok(!text.includes('Private note for the fixture') && !text.includes('41.5'), `${viewer} ${route} carries Troy's note`);
       assert.deepEqual(leakScan(reply.body, { viewer: ACCOUNTS[viewer].id, secrets }), [], `${viewer} ${route}`);
     }
