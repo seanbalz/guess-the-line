@@ -1,5 +1,31 @@
 # Decision log
 
+## D-42 — account deletion keeps the display name; public contact address on the legal pages (October 14, 2026)
+
+Sean answered, in the coordinating session, the two questions PR #62 (the public Privacy Policy and Terms of Service pages) asked him to confirm.
+
+| Question | Ruling |
+|---|---|
+| When a player asks to delete their account, what happens to their past game entries? The options were "keep the draft (name or anonymous label)", "Always keep the name" and "always anonymize". | **Always keep the name.** The sign-in details and email address are removed; past game entries stay under the player's display name so the competition record stays complete. |
+| CI's privacy check (`scripts/check-cloud-boundary.mjs`) refuses any real email address in the built site. May the Privacy and Terms pages publish the contact address? | **Allow it on those two pages.** Only the top-level `privacy.html` and `terms.html` may carry an address, and only as a `mailto:` link on the same page. A bare address, `index.html` and nested files still fail. |
+
+- **Fits [D-23](#d-23--user-data-is-never-deleted-moved-or-hidden-october-9-2026).** Nothing a player entered is deleted, moved or hidden, so a deletion removes only the sign-in details and email address. The picks, posts and records stay in the record, under the name they were made under, and nobody's entry is relabelled.
+- **Where it is.** `web/public/privacy.html` ("Your choices and requests") states the deletion rule, and both pages link the contact address as `mailto:`. `tests/legal-pages.test.mjs` checks the deletion sentence, that no "anonymous label" wording comes back, and the scanner's limits: a linked address passes only on the two top-level pages, while a bare or second unlinked address, `index.html` and nested copies fail.
+- **Unchanged.** Deletion is still a request by email, handled by hand; no deletion feature is built (the redesign adds none, build plan section 12). Every other file in the built site still refuses any real address.
+- Nothing is applied or deployed by this entry.
+
+## D-41 — each locked-in guess counts on its own; the old sit-out keeps them (October 14, 2026)
+
+Sean answered the two questions PR #94 (redesign stage 18, migration M-02) raised about D-39's per-game lock-in, choosing the recommended option each time.
+
+| Question | Ruling |
+|---|---|
+| A player locks in some of a week's games and never locks in the rest. Do the locked-in guesses score? | **Each counts alone.** Every locked-in guess (one game, one market) scores on its own; a game never locked in scores nothing. There is no market-level send (D-39). |
+| After some games are locked in, can the old app's "Sit out this week" (D-23) still be used? | **Yes, and the locked-in guesses keep counting.** The sit-out covers only the games not yet locked in, the same rule as D-39's "Skip" and "See picks now". |
+
+- **Where it is built.** Per-game scoring lands with stage 24 (M-07), when each game also closes at its own kickoff. Until then M-02 keeps its interim rule: the save that locks in the last game of a market is the send, and a partly locked-in market scores nothing. No player can reach the difference before stage 29 sends per-game lock-ins. The sit-out rule is built in M-03 (stage 19).
+- Nothing is applied or deployed by this entry.
+
 ## D-40 — a game note never makes a Favorite (October 14, 2026)
 
 Sean ruled in the cloud session, answering the "Open choice for Sean" that PR #83 (redesign stage 27, private notes server, migration M-09) raised in `docs/redesign/PRIVATE_NOTES.md`. He chose "No, and fix old Save": "The note doesn't create a Favorite (matches D-36: Favorites leave the screens). A small extra old-app change makes 'Save to Favorites' keep a stored note instead of overwriting it with a blank one."
