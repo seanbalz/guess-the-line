@@ -97,7 +97,7 @@ test('the gate follows the server\'s now and rules, never the device clock: dead
   assert.ok(otherWeek.groups.flatMap(g => g.cards).every(c => !c.total.open));
 });
 
-test('at most three trend lines on the board and one chip per card; the D-45 weather chip has one place to plug in', () => {
+test('at most three trend lines on the board and one chip per card: its trend line, else the D-45 weather word', () => {
   const board = L.linesBoard({ personal: personal(), community: community(), trends: week });
   const chips = board.groups.flatMap(g => g.cards).filter(c => c.chip);
   assert.equal(board.trendLines, 3);
@@ -106,7 +106,8 @@ test('at most three trend lines on the board and one chip per card; the D-45 wea
     ['NO-NYG', 'Teams in the Saints’ spot covered 54% since 2002', 'Not proven'],
     ['WAS-SF', 'Teams in the Commanders’ spot covered 54% since 2002', 'Not proven'],
   ]);
-  assert.equal(L.boardWeatherChip(GAMES[0]), null, 'D-34: until D-45 merges the board carries no weather');
+  assert.equal(L.boardWeatherChip(GAMES[0]), null, 'no /wind/read answer: no weather chip');
+  assert.ok(board.groups.flatMap(g => g.cards).every(c => c.chip?.kind !== 'weather'), 'no wind passed: no weather chips');
   assert.deepEqual(L.cardChip({ trend: { text: 'A', tier: 'Not proven' }, weather: { text: 'Windy' } }), { kind: 'trend', text: 'A', tier: 'Not proven' });
   assert.deepEqual(L.cardChip({ weather: { text: 'Windy' } }), { kind: 'weather', text: 'Windy' });
   assert.equal(L.cardChip({}), null);
@@ -116,6 +117,42 @@ test('at most three trend lines on the board and one chip per card; the D-45 wea
   assert.ok(later.started.cards.every(c => c.chip === null));
   // Another week's trends file is never used.
   assert.equal(L.linesBoard({ personal: personal(), community: community(), trends: { ...week, week: 7 } }).trendLines, 0);
+});
+
+/** A /wind/read answer for the week: a snapshot made 25 h before each kickoff for every fetched stadium (not the dome or SoFi). */
+function windWeek(values = () => ({})) {
+  const games = Object.fromEntries(week.games.map(g => {
+    const { id, name, city, country, type } = g.flags.stadium, indoor = ['dome', 'canopy'].includes(type), k = Date.parse(g.kickoff);
+    const snap = { windMph: 9.1, gustMph: 14.3, directionDeg: 200, temperatureF: 58.2, precipitationProbability: 10, forecastHour: iso(Math.round(k / HOUR) * HOUR), fetchedAt: iso(k - 25 * HOUR), ...values(g) };
+    return [g.id, { kickoff: g.kickoff, venue: { id, name, city, country, type }, status: indoor ? 'indoor' : 'forecast', wind: indoor ? null : snap }];
+  }));
+  return { season: 2026, week: 6, asOf: iso(KICKOFF['SEA-DEN'] - 24 * HOUR), games };
+}
+
+test('the D-45 board chip: one word from weather-view, never digits; a trend line keeps its place; Indoors, no forecast and another week get none', () => {
+  // Wind at SEA @ DEN (no trend line), rain at NO @ NYG (it has one), snow at DAL @ GB, wind at the Las Vegas dome.
+  const wind = windWeek(g => (g.id === 'SEA-DEN' ? { windMph: 15 } : g.id === 'NO-NYG' ? { precipitationProbability: 60 } : g.id === 'DAL-GB' ? { precipitationProbability: 55, temperatureF: 31.5 }
+    : g.id === 'BUF-LV' ? { windMph: 30 } : g.id === 'LAC-KC' ? { windMph: 14.9, precipitationProbability: 49 } : {}));
+  const at = KICKOFF['SEA-DEN'] - 24 * HOUR;
+  const board = L.linesBoard({ personal: personal({ now: at }), community: community(), trends: week, wind, windNow: at });
+  const chips = Object.fromEntries(board.groups.flatMap(g => g.cards).filter(c => c.chip).map(c => [c.id, c.chip.kind === 'weather' ? c.chip.text : 'trend']));
+  assert.deepEqual(chips, { 'SEA-DEN': 'Windy', 'HOU-JAX': 'trend', 'NO-NYG': 'trend', 'DAL-GB': 'Snow likely', 'WAS-SF': 'trend' });
+  assert.match(card(board, 'SEA-DEN').aria, /\. Kickoff weather: Windy\. Open game details$/);
+  for (const c of board.groups.flatMap(g => g.cards)) assert.doesNotMatch(c.chip?.kind === 'weather' ? c.chip.text : '', /\d/);
+  // The same answer for another week, or no server time for its age, gives no weather chip.
+  const other = L.linesBoard({ personal: personal({ now: at }), community: community(), trends: week, wind: { ...wind, week: 7 }, windNow: at });
+  assert.ok(other.groups.flatMap(g => g.cards).every(c => c.chip?.kind !== 'weather'));
+  const noClock = L.linesBoard({ personal: personal({ now: at }), community: community(), trends: week, wind, windNow: null });
+  assert.ok(noClock.groups.flatMap(g => g.cards).every(c => c.chip?.kind !== 'weather'));
+  // A stale snapshot (older than twice its TTL) is no current forecast: no chip.
+  const later = KICKOFF['SEA-DEN'] - 12 * HOUR;
+  assert.equal(card(L.linesBoard({ personal: personal({ now: later }), community: community(), wind, windNow: later }), 'SEA-DEN').chip, null);
+  // After kickoff the chip follows the final pre-kickoff forecast while the board shows the game; a trend line does not.
+  const finalWind = windWeek(g => (g.id === 'SEA-DEN' ? { windMph: 18.2, fetchedAt: iso(KICKOFF['SEA-DEN'] - 30 * 60_000) } : {}));
+  const after = KICKOFF['SEA-DEN'] + HOUR;
+  const kicked = L.linesBoard({ personal: personal({ now: after }), community: community(), trends: week, wind: finalWind, windNow: after });
+  assert.deepEqual(card(kicked, 'SEA-DEN').chip, { kind: 'weather', text: 'Windy' });
+  assert.ok(kicked.started.cards.every(c => c.chip === null || c.chip.kind === 'weather'));
 });
 
 test('You on this game: open, draft (with its lock), sent with the line at the guess, sat out, and closed with the draft kept for its owner', () => {
@@ -154,29 +191,42 @@ test('team records in words with the file\'s date (DP-16); another season shows 
 const venue = { name: 'Empower Field at Mile High', city: 'Denver', country: 'USA', type: 'outdoor' };
 const wind = (fetchedAt, values = {}) => ({ windMph: 14.2, gustMph: 27.5, directionDeg: 247, temperatureF: 49.3, precipitationProbability: 25, forecastHour: '2026-10-16T00:00:00.000Z', fetchedAt: iso(fetchedAt), ...values });
 
-test('the weather row: hidden for a dome, while loading and with no forecast; closed with no digits; open with values, PT times and the credit', () => {
+test('the weather row on every game (D-45): forecast closed with no digits, open with values, PT times and the credit; Indoors; no current forecast', () => {
   const sea = L.gamesOf(personal()).find(g => g.id === 'SEA-DEN'), now = KICKOFF['SEA-DEN'] - 20 * HOUR;
-  const row = entry => L.weatherRow({ game: sea, trendsGame: week.games[0], entry, now, season: 2026, week: 6, windCard: week.cards['total|g:g_wind10'] });
+  const row = entry => L.sheetWeatherRow({ game: sea, trendsGame: week.games[0], entry, now, season: 2026, week: 6, windCard: week.cards['total|g:g_wind10'] });
   const forecast = row({ kickoff: sea.kickoff, venue, status: 'forecast', wind: wind(now - HOUR) });
-  assert.equal(forecast.summary, 'Kickoff forecast');
+  assert.deepEqual([forecast.kind, forecast.state, forecast.summary], ['forecast', 'forecast', 'Kickoff forecast']);
   assert.doesNotMatch(`${forecast.title} ${forecast.summary}`, /\d/, 'a closed row carries no digits');
   assert.deepEqual(forecast.detail.values.map(v => v.value), ['14.2 mph from the WSW', 'up to 27.5 mph in the kickoff hour', '49.3 °F', '25%']);
   assert.match(forecast.detail.time, /^Forecast for the 5 PM PT hour \(kickoff 5:15 PM PT\) · updated 1 h ago · made 21 h before kickoff · /);
   assert.doesNotMatch(JSON.stringify(forecast.detail), /\bET\b/);
   assert.ok(forecast.detail.lines.some(line => line.includes('has not been backtested') && line.includes('282–196–5')));
   assert.deepEqual(forecast.detail.credit, { text: 'Weather data by Open-Meteo.com', url: 'https://open-meteo.com/', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', changes: 'Kickoff-hour values selected by GTL; wind direction shown as compass points' });
-  const final = L.weatherRow({ game: sea, trendsGame: week.games[0], entry: { kickoff: sea.kickoff, venue, status: 'forecast', wind: wind(KICKOFF['SEA-DEN'] - 30 * 60_000) }, now: KICKOFF['SEA-DEN'] + HOUR, season: 2026, week: 6 });
+  const final = L.sheetWeatherRow({ game: sea, trendsGame: week.games[0], entry: { kickoff: sea.kickoff, venue, status: 'forecast', wind: wind(KICKOFF['SEA-DEN'] - 30 * 60_000) }, now: KICKOFF['SEA-DEN'] + HOUR, season: 2026, week: 6 });
   assert.equal(final.summary, 'Final pre-kickoff forecast');
-  const notYet = L.weatherRow({ game: sea, trendsGame: week.games[0], entry: { kickoff: sea.kickoff, venue, status: 'none', wind: null }, now: KICKOFF['SEA-DEN'] - 6 * 24 * HOUR, season: 2026, week: 6 });
-  assert.equal(notYet.summary, 'Forecast appears closer to kickoff');
-  for (const r of [forecast, final, notYet]) assert.doesNotMatch(`${r.title} ${r.summary}`, /\d/);
-  // Hidden: no entry (a 404 or not deployed), loading, a stale snapshot, and a dome (no request, numbers or credit).
-  assert.equal(row(null), null);
-  assert.equal(L.weatherRow({ game: sea, trendsGame: week.games[0], entry: null, now, loading: true, season: 2026, week: 6 }), null);
-  assert.equal(row({ kickoff: sea.kickoff, venue, status: 'forecast', wind: wind(now - 10 * HOUR) }), null);
-  const lv = L.gamesOf(personal()).find(g => g.id === 'BUF-LV');
-  assert.equal(L.weatherRow({ game: lv, trendsGame: week.games.find(g => g.id === 'BUF-LV'), entry: null, now, season: 2026, week: 6 }), null);
-  assert.equal(L.weatherRow({ game: lv, entry: { kickoff: lv.kickoff, venue: { ...venue, type: 'dome' }, status: 'indoor', wind: null }, now, season: 2026, week: 6 }), null);
+  // No current forecast: more than 5 days out (open, it says when it appears), stale (it says so), none read (a 404, a
+  // failed read, signed out): "No current forecast", never a number.
+  const notYet = L.sheetWeatherRow({ game: sea, trendsGame: week.games[0], entry: { kickoff: sea.kickoff, venue, status: 'none', wind: null }, now: KICKOFF['SEA-DEN'] - 6 * 24 * HOUR, season: 2026, week: 6 });
+  assert.deepEqual([notYet.state, notYet.summary, notYet.detail], ['none', 'No current forecast', { lines: ['The kickoff forecast appears 5 days before kickoff.'] }]);
+  const stale = row({ kickoff: sea.kickoff, venue, status: 'forecast', wind: wind(now - 10 * HOUR) });
+  assert.deepEqual([stale.state, stale.summary, stale.detail], ['none', 'No current forecast', { lines: ['The last forecast is out of date.'] }]);
+  assert.deepEqual([row(null).state, row(null).summary, row(null).detail], ['none', 'No current forecast', null]);
+  const loading = L.sheetWeatherRow({ game: sea, trendsGame: week.games[0], entry: null, now: null, loading: true, season: 2026, week: 6 });
+  assert.deepEqual([loading.state, loading.summary, loading.detail], ['loading', 'Loading kickoff forecast…', null]);
+  // A dome and SoFi's canopy: Indoors and the stadium, nothing to open, no numbers or credit, loading or not.
+  const lv = L.gamesOf(personal()).find(g => g.id === 'BUF-LV'), sofi = L.gamesOf(personal()).find(g => g.id === 'ARI-LAR');
+  for (const r of [L.sheetWeatherRow({ game: lv, trendsGame: week.games.find(g => g.id === 'BUF-LV'), entry: null, now, loading: true, season: 2026, week: 6 }),
+    L.sheetWeatherRow({ game: lv, entry: { kickoff: lv.kickoff, venue: { ...venue, name: 'Allegiant Stadium', city: 'Las Vegas', type: 'dome' }, status: 'indoor', wind: null }, now, season: 2026, week: 6 })]) {
+    assert.deepEqual([r.kind, r.state, r.summary, r.detail], ['indoors', 'indoors', 'Indoors · Allegiant Stadium, Las Vegas', null]);
+  }
+  assert.equal(L.sheetWeatherRow({ game: sofi, entry: null, now, season: 2026, week: 6 }).summary, 'Indoors · SoFi Stadium, Inglewood', 'from the venue table when the file lacks the game');
+  // A retractable roof says "Roof may close" with or without a forecast.
+  const atl = L.gamesOf(personal()).find(g => g.id === 'CHI-ATL'), atlVenue = { name: 'Mercedes-Benz Stadium', city: 'Atlanta', country: 'USA', type: 'retractable' };
+  const atlNow = KICKOFF['CHI-ATL'] - 20 * HOUR;
+  const atlRow = entry => L.sheetWeatherRow({ game: atl, trendsGame: week.games.find(g => g.id === 'CHI-ATL'), entry, now: atlNow, season: 2026, week: 6 });
+  assert.equal(atlRow({ kickoff: atl.kickoff, venue: atlVenue, status: 'forecast', wind: { ...wind(atlNow - HOUR), forecastHour: iso(KICKOFF['CHI-ATL']) } }).summary, 'Kickoff forecast · Roof may close');
+  assert.equal(atlRow(null).summary, 'No current forecast · Roof may close');
+  for (const r of [forecast, final, notYet, stale, loading, atlRow(null)]) assert.doesNotMatch(`${r.title} ${r.summary}`, /\d/);
 });
 
 test('the game sheet: header, the top three trends strongest first with records and sample sizes, a locked line trend with no number', () => {
@@ -247,6 +297,6 @@ test('the leak rule: nothing on the board or in the sheets carries another playe
 test('lines-view stays pure: no React, DOM, storage, network or clock of its own', () => {
   const src = fs.readFileSync(new URL('../shared/lines-view.mjs', import.meta.url), 'utf8');
   assert.deepEqual([...src.matchAll(/^import [^;]*? from '([^']+)';$/gms)].map(m => m[1]),
-    ['./nfl-schedule.mjs', './wind-venues.mjs', './trends-view.mjs', '../web/src/next/format.js', '../web/src/next/copy.js', '../web/src/next/rules.js']);
+    ['./nfl-schedule.mjs', './wind-venues.mjs', './trends-view.mjs', './weather-view.mjs', '../web/src/next/format.js', '../web/src/next/copy.js', '../web/src/next/rules.js']);
   assert.doesNotMatch(src, /\b(Date\.now|new Date\(\)|fetch\(|localStorage|sessionStorage|document\.|window\.)/);
 });

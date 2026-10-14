@@ -78,12 +78,36 @@ describe('the Lines board', () => {
     const sea = cards.find(attr('data-game', 'SEA-DEN'));
     expect(textOf(sea)).toContain('You −4');
     expect(sea.attrs['aria-label']).toBe('Seahawks at Broncos, Thu 5:15 PM PT. Spread line hidden. Total 43.5 at your guess. Your spread pick SEA −4. Your total pick 44. Open game details');
-    const chips = nodes(html, n => n.attrs['data-chip']);
+    const chips = nodes(html, n => n.attrs['data-chip'] === 'trend');
     expect(chips.length).toBeLessThanOrEqual(3);
     for (const card of cards) expect([...walk(card)].filter(n => n.attrs?.['data-chip']).length).toBeLessThanOrEqual(1);
     expect(text(html)).toContain('Line now arrives in a later update.');
     // The forged line under the closed Spread (−11.5) never shows.
     expect(text(html)).not.toContain('11.5');
+  });
+
+  it('one weather word per card from the week\'s forecasts (D-45), never digits; a trend line keeps its place; none for a dome', () => {
+    state.lines = data();
+    const forecast = (id, values) => {
+      const g = week.games.find(x => x.id === id), k = Date.parse(g.kickoff);
+      return { kickoff: g.kickoff, venue: g.flags.stadium, status: 'forecast', wind: { windMph: 9, gustMph: 12, directionDeg: 180, temperatureF: 60, precipitationProbability: 10,
+        forecastHour: new Date(Math.round(k / HOUR) * HOUR).toISOString(), fetchedAt: new Date(NOW - HOUR).toISOString(), ...values } };
+    };
+    state.wind = { loading: false, now: NOW, wind: { season: 2026, week: 6, asOf: new Date(NOW).toISOString(), games: {
+      'SEA-DEN': forecast('SEA-DEN', { windMph: 21.3 }), 'NO-NYG': forecast('NO-NYG', { precipitationProbability: 80 }),
+      'BUF-LV': { kickoff: week.games.find(x => x.id === 'BUF-LV').kickoff, venue: { name: 'Allegiant Stadium', city: 'Las Vegas', country: 'USA', type: 'dome' }, status: 'indoor', wind: null },
+    } } };
+    const html = render(<LinesBoard/>);
+    expect(markupProblems(html)).toEqual([]);
+    const cards = Object.fromEntries(nodes(html, n => n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
+    const chip = id => [...walk(cards[id])].find(n => n.attrs?.['data-chip']);
+    expect(chip('SEA-DEN').attrs['data-chip']).toBe('weather');
+    expect(textOf(chip('SEA-DEN'))).toBe('Windy');
+    expect([...walk(chip('SEA-DEN'))].filter(n => n.tag === 'svg'), 'a weather word, not the trend diamond').toHaveLength(0);
+    expect(cards['SEA-DEN'].attrs['aria-label']).toContain('Kickoff weather: Windy.');
+    expect(chip('NO-NYG').attrs['data-chip'], 'its trend line keeps the one chip').toBe('trend');
+    expect(chip('BUF-LV')).toBeUndefined();
+    for (const node of nodes(html, attr('data-chip', 'weather'))) expect(textOf(node)).not.toMatch(/\d/);
   });
 
   it('says what is happening while the week loads, when it is not published and when the read fails', () => {
@@ -125,8 +149,10 @@ describe('the game sheet', () => {
       'Home team after an overtime game · NYG 57% Teams in the Saints’ spot covered 186 times and missed 142 since 2002. Record 186–142–13 341 games Watch list, no proven edge',
     ]);
     expect(bannedCopy(top.map(textOf).join(' '))).toEqual([]);
-    // No weather or referee row without data (here: no forecast read, no assignment); All trends is always there.
-    expect(nodes(nyg, attr('data-row', 'weather'))).toHaveLength(0);
+    // Every game has a weather row (D-45): with no forecast read it says so, with nothing to open; no referee row
+    // without an assignment; All trends is always there.
+    expect(nodes(nyg, attr('data-row', 'weather')).map(textOf)).toEqual(['Weather at kickoff No current forecast']);
+    expect(nodes(nyg, n => n.attrs['data-row'] === 'weather' && n.tag === 'button')).toHaveLength(0);
     expect(nodes(nyg, attr('data-row', 'referee'))).toHaveLength(0);
     expect(text(nyg)).toContain('All trends');
   });
@@ -134,7 +160,7 @@ describe('the game sheet', () => {
   it('the weather row is closed with no digits; the referee row names the assignment', () => {
     state.lines = data();
     const k = Date.parse(week.games[0].kickoff);
-    state.wind = { loading: false, now: NOW, wind: { asOf: new Date(NOW).toISOString(), games: { 'SEA-DEN': { kickoff: week.games[0].kickoff, status: 'forecast',
+    state.wind = { loading: false, now: NOW, wind: { season: 2026, week: 6, asOf: new Date(NOW).toISOString(), games: { 'SEA-DEN': { kickoff: week.games[0].kickoff, status: 'forecast',
       venue: { name: 'Empower Field at Mile High', city: 'Denver', country: 'USA', type: 'outdoor' },
       wind: { windMph: 16.4, gustMph: 31.2, directionDeg: 225, temperatureF: 57.2, precipitationProbability: 40, forecastHour: new Date(k - 15 * 60_000).toISOString(), fetchedAt: new Date(NOW - HOUR).toISOString() } } } } };
     state.officials = { season: 2026, week: 6, assignments: { 'SEA-DEN': { referee: 'Shawn Hochuli', setAt: '2026-10-14T18:00:00Z', revision: 1 } } };
@@ -145,6 +171,9 @@ describe('the game sheet', () => {
     expect(textOf(weather)).not.toMatch(/\d/);
     const referee = nodes(html, attr('data-row', 'referee'))[0];
     expect(textOf(referee)).toBe('Referee Shawn Hochuli');
+    // Another week's /wind/read answer is never read for this game.
+    state.wind = { ...state.wind, wind: { ...state.wind.wind, week: 7 } };
+    expect(nodes(render(<GameSheet args={{ game: 'SEA-DEN' }}/>), attr('data-row', 'weather')).map(textOf)).toEqual(['Weather at kickoff No current forecast']);
   });
 });
 

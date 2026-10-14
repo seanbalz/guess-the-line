@@ -1,14 +1,16 @@
 // The Lines tab, read-only (redesign build plan stage 13; prototype spec 3.4): every game of the week by kickoff group,
 // your own picks as tags beside the market they belong to ("YOU −3" on the favored team's row, "YOU 41" on the Total
 // row), a lock icon on every market still closed to you (never "—"), your own line at the guess once a market is open,
-// and at most three trend lines on the whole board (one chip per card at most). No current line until the lines readers
-// arrive ("Line now arrives in a later update."). Tapping a card opens its game sheet. Nothing here writes.
+// and at most three trend lines on the whole board (one chip per card at most: its trend line, else the D-45 weather
+// word "Windy", "Rain likely" or "Snow likely", from one `/wind/read` the sheets then reuse). No current line until the
+// lines readers arrive ("Line now arrives in a later update."). Tapping a card opens its game sheet. Nothing here writes.
 import { useId, useMemo } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { LINES_COPY, linesBoard } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
 import { Button, CardButton, Icon, Pill, Tag, TeamMark } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
+import { useWind } from './trendsHooks.js';
 import { Credits } from './parts.jsx';
 import './lines.css';
 
@@ -53,7 +55,7 @@ function GameCard({ card, onOpen }) {
       </span>
       {card.chip ? (
         <span className="gx-l-trend" data-chip={card.chip.kind}>
-          <Icon icon="diamond" size={16} fill className="gx-c-data"/>
+          {card.chip.kind === 'trend' ? <Icon icon="diamond" size={16} fill className="gx-c-data"/> : null}
           <span className="gx-t-label gx-c-2">{card.chip.tier ? `${card.chip.text} · ${card.chip.tier}` : card.chip.text}</span>
         </span>
       ) : null}
@@ -76,8 +78,10 @@ function Group({ label, time, cards, onOpen }) {
 
 export function LinesBoard() {
   const shell = useShell();
-  const { app, personal, community, trendsWeek } = useLinesData();
-  const board = useMemo(() => (personal.data ? linesBoard({ personal: personal.data, community, trends: trendsWeek }) : null), [personal.data, community, trendsWeek]);
+  const { app, personal, community, trendsWeek, shown } = useLinesData();
+  const wind = useWind(shown?.season, shown?.week, Boolean(shown), { watch: false });
+  const board = useMemo(() => (personal.data ? linesBoard({ personal: personal.data, community, trends: trendsWeek, wind: wind.wind, windNow: wind.now }) : null),
+    [personal.data, community, trendsWeek, wind.wind, wind.now]);
   const open = gameId => shell.openSheet('sh.game', { game: gameId });
   const head = (
     <div className="gx-vstack gx-gap-2">

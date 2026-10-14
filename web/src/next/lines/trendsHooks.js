@@ -1,8 +1,9 @@
 // The new app's hooks over the shared trends loaders (web/src/trendsLoaders.js, no React): the week file, the hosted
 // referee assignments and the kickoff wind forecasts (D-34). They match the old app's hooks in trendsData.js and share
-// its caches, so a game sheet makes no more `/wind/read` or `/officials/read` requests than the old trends panel does:
-// one per week, reused for five minutes by every sheet. Only the game sheet and the All trends sheet ask for the wind
-// and the referees, once they open; the board asks only for the week file (a same-origin chunk).
+// its caches: one `/wind/read` or `/officials/read` per week, reused for five minutes by the board and every sheet. The
+// board reads the wind once for its D-45 chips (build plan stage 13) and sets no timers; an open game sheet re-reads it
+// at TTL crossings, at kickoff and when the tab shows again, as the old trends panel does. The referees are read only
+// once a sheet opens.
 import { useCallback, useEffect, useState } from 'react';
 import { firstTrendWeek, loadOfficials, loadTrendWeek, loadWind, onOfficialsChange } from '../../trendsLoaders.js';
 import { watchWind, windNowFor } from '../../windTimer.js';
@@ -40,8 +41,11 @@ export function useOfficials(season, week, enabled = true) {
   return value;
 }
 
-/** `{ loading, wind, now }`: the week's kickoff forecasts and the server time for their ages, refreshed while open. */
-export function useWind(season, week, enabled = true) {
+/**
+ * `{ loading, wind, now }`: the week's kickoff forecasts and the server time for their ages. With `watch` (an open game
+ * sheet) it re-renders every minute and re-reads at TTL crossings; without it (the board) it reads once.
+ */
+export function useWind(season, week, enabled = true, { watch = true } = {}) {
   const [state, setState] = useState({ loading: enabled, result: null });
   const [attempt, setAttempt] = useState(0);
   const [, setTick] = useState(0);
@@ -53,8 +57,8 @@ export function useWind(season, week, enabled = true) {
     return () => { live = false; };
   }, [season, week, enabled, attempt]);
   useEffect(() => {
-    if (!enabled || !state.result) return undefined;
+    if (!enabled || !watch || !state.result) return undefined;
     return watchWind({ result: state.result, onTick: setTick, onRefetch: () => setAttempt(n => n + 1) });
-  }, [enabled, state.result]);
+  }, [enabled, watch, state.result]);
   return { loading: state.loading, wind: state.result?.data ?? null, now: windNowFor(state.result) };
 }

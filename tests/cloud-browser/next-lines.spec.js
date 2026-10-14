@@ -13,8 +13,9 @@ import { randomUUID } from 'node:crypto';
 // (ALL) on local PGlite. The fixture week uses four games of the committed 2026 Week 6 trends file. Luke has sent his Total
 // picks (so his Total lines at the guess show) and keeps Spread drafts (so every Spread line is locked); Troy has sent both
 // markets. Checked: the kickoff groups, the "YOU" tags, a lock is an icon and never "—", the game sheet and the All trends
-// sheet open and close with Back, the top trends with their records and sample sizes, the weather row (closed with no
-// digits, times in PT), the referee row, the 404 fallbacks, /wind/read only once a sheet opens, no writes, the leak scan on
+// sheet open and close with Back, the top trends with their records and sample sizes, the D-45 weather chip on the board
+// and the weather row in the sheet (closed with no digits, times in PT, the credit), the referee row, the 404 fallbacks,
+// one /wind/read for the board and every sheet, no writes, the leak scan on
 // the rendered page (its text and attributes), axe in Light and Dark, and the phone rules measured in CI's fallback font
 // (ciFonts). Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
@@ -36,7 +37,9 @@ const LUKE_TOTALS = { 'SEA-DEN': 41, 'HOU-JAX': 44, 'NO-NYG': 39, 'WAS-SF': 47 }
 const LUKE_SPREAD_DRAFT = { 'SEA-DEN': 4, 'HOU-JAX': -9 };
 // A forged reply: a saved line under Luke's locked Spread draft, which the screen must never read.
 const FORGED_SPREAD_LINE = 11.5;
-const VALUES = { '39.744': { wind_speed_10m: 14.2, wind_gusts_10m: 27.5, wind_direction_10m: 247, temperature_2m: 49.3, precipitation_probability: 25 } };
+// Denver's kickoff hour: rain likely (60%, 49.3 °F), so SEA @ DEN, the one fixture game with no board trend line, shows the
+// D-45 chip "Rain likely"; 14.2 mph stays under the Windy line.
+const VALUES = { '39.744': { wind_speed_10m: 14.2, wind_gusts_10m: 27.5, wind_direction_10m: 247, temperature_2m: 49.3, precipitation_probability: 60 } };
 
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 const tab = (page, name) => tabBar(page).getByRole('button', { name: new RegExp(`^${name}(, .+)?$`) });
@@ -187,18 +190,23 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     }
     for (const text of await page.locator('.gx-l-card [data-cell="locked"]').allInnerTexts()) expect(text).not.toContain('—');
     await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5 at your guess\. Your spread pick SEA −4\. Your total pick 41\./);
-    // Board trends: at most three on the board, one per card at most.
-    const chips = page.locator('.gx-l-trend');
+    // Board trends: at most three trend lines on the board; one chip per card at most (a trend line or a weather word).
+    const chips = page.locator('.gx-l-trend[data-chip="trend"]');
     expect(await chips.count()).toBeLessThanOrEqual(3);
     for (const id of GAMES) expect(await card(page, id).locator('.gx-l-trend').count()).toBeLessThanOrEqual(1);
     await expect(card(page, 'NO-NYG').locator('.gx-l-trend')).toHaveText('Teams in the Saints’ spot covered 54% since 2002 · Not proven');
+    // D-45: SEA @ DEN's one chip is the weather word from the stored forecast: no digits, no link, no trend diamond.
+    await expect(sea.locator('[data-chip="weather"]')).toHaveText('Rain likely');
+    await expect(sea.locator('[data-chip="weather"] svg, [data-chip="weather"] a')).toHaveCount(0);
+    await expect(sea).toHaveAttribute('aria-label', /Kickoff weather: Rain likely\./);
+    expect(await page.locator('[data-chip="weather"]').count()).toBe(1);
     await expect(page.getByText('Line now arrives in a later update.')).toBeVisible();
     await phoneChecks(page);
     await noLeak(page, world, 'the board');
 
-    expect(calls.filter(call => call === 'POST /wind/read'), 'the board never asks for the wind').toEqual([]);
+    expect(calls.filter(call => call === 'POST /wind/read'), 'the board reads the week\'s forecasts once, for its chips').toHaveLength(1);
     expect(calls.filter(call => !READS.includes(call)), 'browsing writes nothing').toEqual([]);
-    expect(fake.calls).toHaveLength(0);
+    expect(fake.calls).toHaveLength(1);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -228,7 +236,8 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     await expect(top.first()).toContainText('Line-based trend');
     expect(await top.first().innerText()).not.toMatch(/\d/);
 
-    // The weather row: closed by default with no digits; open, the values, times in PT and the Open-Meteo credit.
+    // The weather row: closed by default with no digits; open, the values, times in PT and the Open-Meteo credit. The
+    // sheet reuses the board's read (the old app's 5-minute cache): the provider was asked once.
     const weather = game.locator('[data-row="weather"]');
     await expect(weather.getByRole('button')).toHaveAttribute('aria-expanded', 'false');
     expect(await weather.getByRole('button').innerText()).not.toMatch(/\d/);
@@ -289,14 +298,14 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     await expect(londonTop.first()).toContainText('830 games');
     await page.goBack();
     await expect(london).toBeHidden();
-    expect(calls.filter(call => call === 'POST /wind/read'), 'one wind read for every sheet, no more than the old app makes').toHaveLength(1);
+    expect(calls.filter(call => call === 'POST /wind/read'), 'one wind read for the board and every sheet').toHaveLength(1);
     expect(calls.filter(call => !READS.includes(call)), 'browsing writes nothing').toEqual([]);
     expect(fake.calls).toHaveLength(1);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
 
-test('the weather and referee rows hide cleanly when their routes answer 404', async ({ page, baseURL }) => {
+test('a 404 from either route: the weather row says "No current forecast" (D-45) and the referee row hides; no error text', async ({ page, baseURL }) => {
   const { world } = await lukesWeek(page, baseURL, { forge: false });
   try {
     expect((await world.api('sean', 'officials/set', { season: 2026, week: 6, gameId: 'SEA-DEN', referee: 'Shawn Hochuli' })).status).toBe(200);
@@ -309,14 +318,19 @@ test('the weather and referee rows hide cleanly when their routes answer 404', a
     const game = sheet(page, 'SEA @ DEN');
     await expect(game).toBeVisible();
     await expect(game.getByRole('button', { name: /^All trends/ })).toBeVisible();
-    await expect(game.locator('[data-row="weather"]')).toHaveCount(0);
+    await expect(game.locator('[data-row="weather"]')).toHaveText(/^Weather at kickoff\s*No current forecast$/);
+    await expect(game.locator('[data-row="weather"] button, [data-row="weather"] a')).toHaveCount(0);
     await expect(game.locator('[data-row="referee"]')).toHaveCount(0);
     await expect(game).not.toContainText('Not found');
+    await page.goBack();
+    await expect(page.locator('[data-chip="weather"]'), 'no forecast, no board chip').toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
 
 test('axe in Light and Dark at 390, 320 and 1440 on the board, the game sheet and All trends; 390 screenshots', async ({ page, baseURL }, testInfo) => {
+  // Eighteen axe runs and phone checks (two themes, three widths, three screens), like next-data's axe sweep.
+  test.setTimeout(120000);
   const { world } = await lukesWeek(page, baseURL);
   try {
     await openLines(page);

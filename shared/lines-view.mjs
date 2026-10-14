@@ -13,9 +13,10 @@
 import { TEAM_NAMES } from './nfl-schedule.mjs';
 import { venueFor } from './wind-venues.mjs';
 import {
-  TRENDS_CREDIT, TRENDS_LICENSE_URL, TRENDS_SOURCE_URL, WIND_CHANGES, WIND_CREDIT, WIND_LICENSE, WIND_LICENSE_URL, WIND_SOURCE_URL,
+  TRENDS_CREDIT, TRENDS_LICENSE_URL, TRENDS_SOURCE_URL, WIND_CHANGES, WIND_COPY, WIND_CREDIT, WIND_LICENSE, WIND_LICENSE_URL, WIND_SOURCE_URL,
   boardTrends, communityAccess, compass, fmtAge, gameTrends, guessLockedIn, recordText, referenceValue, refereeFor, windView,
 } from './trends-view.mjs';
+import { WEATHER_INDOORS, WEATHER_NONE, weatherChip, weatherRow } from './weather-view.mjs';
 import { DASH, MINUS, PICKEM, SEP, fmtDate, fmtNum, fmtSpreadPick, fmtTime, fmtWhen, pacificParts, toMs } from '../web/src/next/format.js';
 import * as copy from '../web/src/next/copy.js';
 import { guessState, liveRules } from '../web/src/next/rules.js';
@@ -182,11 +183,25 @@ export function kickoffGroups(games, { season = null, week = null } = {}) {
 // The board
 // ---------------------------------------------------------------------------
 /**
- * The D-45 board weather chip ("Windy", "Rain likely", "Snow likely": one word, never digits, when kickoff wind is 15+
- * mph or precipitation is 50%+). This is the one place it plugs in. Until the D-45 branch (claude/weather-every-game)
- * merges, the board carries no weather at all: D-34 keeps the kickoff wind in the game sheet.
+ * The game shared/weather-view.mjs reads (D-45): the week file's game (its stadium and nflverse roof), else the kickoff
+ * and the venue table's stadium, so a game the file lacks still gets its roof.
  */
-export const boardWeatherChip = () => null;
+function weatherGame(game, { trendsGame = null, season = null, week = null } = {}) {
+  if (trendsGame) return trendsGame;
+  const venue = Number.isInteger(season) && Number.isInteger(week) ? venueFor(season, week, game.id) : null;
+  return { kickoff: game.kickoff, flags: { stadium: venue ? { id: venue.id, name: venue.name, city: venue.city, country: venue.country, type: venue.type } : null } };
+}
+
+/**
+ * The D-45 board weather chip: `{ text }` with "Windy", "Rain likely" or "Snow likely" (one word, never digits or a
+ * link) when the kickoff-hour wind is 15+ mph or precipitation is 50%+, else null (Indoors, no current forecast, no
+ * read). weather-view's weatherRow and weatherChip decide, so the board, the sheet and the old app agree. `entry` is
+ * /wind/read's game and `now` the server time for its age (windNowFor), never the device clock alone.
+ */
+export function boardWeatherChip(game, { trendsGame = null, entry = null, now = null, season = null, week = null } = {}) {
+  const text = weatherChip(weatherRow(weatherGame(game, { trendsGame, season, week }), entry?.venue ?? null, entry?.wind ?? null, now));
+  return text ? { text } : null;
+}
 
 /** A card's one chip (D-35: at most one standout chip per card): its board trend line, else the D-45 weather chip. */
 export function cardChip({ trend = null, weather = null } = {}) {
@@ -232,7 +247,7 @@ export function boardCard(personal, community, game, { chip = null, sameTime = t
     spread.open ? (spread.line ? `Spread ${spread.line} ${LINES_COPY.atYourGuess}` : LINES_COPY.noLineYet('spread')) : LINES_COPY.lineHidden('spread'),
     total.open ? (total.line ? `Total ${total.line} ${LINES_COPY.atYourGuess}` : LINES_COPY.noLineYet('total')) : LINES_COPY.lineHidden('total'),
     tags.away?.aria, tags.home?.aria, tags.total?.aria, late ? late.lateText : null,
-    chip?.kind === 'trend' ? `Trend: ${chip.text}${SEP}${chip.tier}` : chip?.kind === 'weather' ? chip.text : null, LINES_COPY.openDetails].filter(Boolean);
+    chip?.kind === 'trend' ? `Trend: ${chip.text}${SEP}${chip.tier}` : chip?.kind === 'weather' ? `Kickoff weather: ${chip.text}` : null, LINES_COPY.openDetails].filter(Boolean);
   return {
     id: game.id, matchup: `${away.code} @ ${home.code}`, away, home, kickoff: game.kickoff, time, showTime: !sameTime,
     started: now !== null && now >= toMs(game.kickoff),
@@ -243,16 +258,20 @@ export function boardCard(personal, community, game, { chip = null, sameTime = t
 /**
  * The board: `{ season, week, meta, groups: [{ key, label, time, cards }], started: { label, cards } | null, footer }`.
  * Games still to kick off sit in their kickoff group; the ones that kicked off follow in one group (LIVE NOW and FINAL
- * rows come with stage 33). At most three trend lines on the board, at most one chip per card.
+ * rows come with stage 33). At most three trend lines on the board, at most one chip per card. `wind` is the week's
+ * /wind/read answer and `windNow` the server time for its ages (D-45 chips; another week's answer is never read).
  */
-export function linesBoard({ personal, community = null, trends = null } = {}) {
+export function linesBoard({ personal, community = null, trends = null, wind = null, windNow = null } = {}) {
   const shown = weekOf(personal);
   const games = gamesOf(personal), now = toMs(personal?.now), deadline = toMs(personal?.deadline);
   const upcoming = games.filter(g => now === null || now < toMs(g.kickoff)), started = games.filter(g => now !== null && now >= toMs(g.kickoff));
   const names = TEAM_NAMES;
-  const trendLines = trends && shown && trends.season === shown.season && trends.week === shown.week
-    ? boardTrends(trends, { eligible: upcoming.map(g => g.id), names }) : [];
-  const chipFor = game => cardChip({ trend: trendLines.find(t => t.gameId === game.id) ?? null, weather: boardWeatherChip(game) });
+  const weekTrends = trends && shown && trends.season === shown.season && trends.week === shown.week ? trends : null;
+  const weekWind = shown && record(wind?.games) && wind.season === shown.season && wind.week === shown.week ? wind.games : null;
+  const trendLines = weekTrends ? boardTrends(weekTrends, { eligible: upcoming.map(g => g.id), names }) : [];
+  const weatherFor = game => boardWeatherChip(game, { trendsGame: weekTrends?.games?.find(g => g.id === game.id) ?? null,
+    entry: weekWind?.[game.id] ?? null, now: windNow, season: shown?.season ?? null, week: shown?.week ?? null });
+  const chipFor = game => cardChip({ trend: trendLines.find(t => t.gameId === game.id) ?? null, weather: weatherFor(game) });
   const groups = kickoffGroups(upcoming, shown ?? {}).map(group => ({
     key: group.key, label: group.label, time: group.time, count: group.count,
     cards: group.games.map(game => boardCard(personal, community, game, { chip: chipFor(game), sameTime: group.oneTime })),
@@ -263,7 +282,8 @@ export function linesBoard({ personal, community = null, trends = null } = {}) {
     // "Due …" only while the deadline is still ahead by the server's clock; once it has passed the week name stands alone.
     meta: shown ? `${copy.weekName(shown.week)}${deadline !== null && (now === null || now < deadline) ? `${SEP}${copy.dueAt(fmtWhen(deadline))}` : ''}` : '',
     groups,
-    started: started.length ? { label: LINES_COPY.kickedOff, count: started.length, cards: started.map(game => boardCard(personal, community, game, { chip: null, sameTime: false })) } : null,
+    // A game that kicked off keeps its weather chip from the final pre-kickoff forecast (D-45); trend lines are for games to come.
+    started: started.length ? { label: LINES_COPY.kickedOff, count: started.length, cards: started.map(game => boardCard(personal, community, game, { chip: cardChip({ weather: weatherFor(game) }), sameTime: false })) } : null,
     trendLines: trendLines.length,
     footer: footer(),
   };
@@ -331,17 +351,34 @@ export function youRows(personal, community, game) {
 }
 
 /**
- * The weather and wind row (D-34): hidden for a dome, while loading, and with no current forecast (a 404, a failed or
- * a stale read); otherwise a row that is closed by default. A closed row carries no digits, links or values (D-34:
- * collapsed summaries never carry forecast values); the open row carries the values, every time in Pacific time, the
- * honesty note and the Open-Meteo credit. `entry` is `/wind/read`'s game, `now` the server time for its ages.
+ * The game sheet's weather row, on every game (D-45; shared/weather-view.mjs weatherRow decides the kind):
+ * - forecast: closed by default with no digits, links or values (D-34): "Kickoff forecast" or "Final pre-kickoff
+ *   forecast", plus "Roof may close" for a retractable roof. Open, it gives the stadium, the values, every time in
+ *   Pacific time, the band and honesty notes and the Open-Meteo credit beside them.
+ * - indoors: a dome, SoFi Stadium's canopy or a closed roof: "Indoors" and the stadium; no numbers, no credit, nothing
+ *   to open.
+ * - none: "No current forecast" (and "Roof may close"); open, when it appears for a game more than 5 days out, or that
+ *   the last one is out of date. A 404, a failed read and a signed-out viewer read the same. Nothing is invented.
+ * - loading: while the read is in flight (never for an indoor game, which needs no read).
+ * `entry` is /wind/read's game and `now` the server time for its ages.
  */
-export function weatherRow({ game, trendsGame = null, entry = null, now = null, loading = false, season = null, week = null, windCard = null } = {}) {
-  const venue = Number.isInteger(season) && Number.isInteger(week) ? venueFor(season, week, game.id) : null;
-  const shape = trendsGame ?? { kickoff: game.kickoff, flags: { stadium: venue ? { type: venue.type } : null } };
-  const view = windView({ game: shape, entry, now, loading });
-  if (view.state === 'not_yet') return { state: 'not_yet', title: LINES_COPY.weather, summary: 'Forecast appears closer to kickoff', detail: { lines: ['The kickoff forecast appears 5 days before kickoff.'] } };
-  if (view.state !== 'forecast' && view.state !== 'final') return null;
+export function sheetWeatherRow({ game, trendsGame = null, entry = null, now = null, loading = false, season = null, week = null, windCard = null } = {}) {
+  const shape = weatherGame(game, { trendsGame, season, week });
+  const venue = entry?.venue ?? null, forecast = entry?.wind ?? null;
+  const row = weatherRow(shape, venue, forecast, now);
+  const base = { title: LINES_COPY.weather, kind: row.kind, roofNote: row.roofNote };
+  if (row.kind === 'indoors') {
+    const at = row.venue?.name ? `${row.venue.name}${row.venue.city ? `, ${row.venue.city}` : ''}` : null;
+    return { ...base, state: 'indoors', summary: [WEATHER_INDOORS, at].filter(Boolean).join(SEP), detail: null };
+  }
+  if (row.kind === 'none') {
+    if (loading) return { ...base, state: 'loading', summary: WIND_COPY.loading, detail: null };
+    const why = row.reason === 'not_yet' ? WIND_COPY.later : row.reason === 'stale' ? WIND_COPY.stale : null;
+    return { ...base, state: 'none', summary: [WEATHER_NONE, row.roofNote].filter(Boolean).join(SEP), detail: why ? { lines: [why] } : null };
+  }
+  // A current forecast: windView (the same call weatherRow made) gives the band, the close call and the ages.
+  const kickoff = toMs(shape.kickoff);
+  const view = windView({ game: shape, now, entry: { kickoff: kickoff === null ? null : new Date(kickoff).toISOString(), venue, wind: forecast } });
   const { wind, band } = view, final = view.state === 'final';
   const one = value => (value < 0 ? `${MINUS}${Math.abs(value).toFixed(1)}` : value.toFixed(1));
   const from = compass(wind.directionDeg);
@@ -358,9 +395,9 @@ export function weatherRow({ game, trendsGame = null, entry = null, now = null, 
   const selected = windCard?.selection?.rec;
   const recordNote = Array.isArray(selected) && selected.length === 3 ? ` (${windCard.selection.label}: ${recordText(...selected)})` : '';
   return {
+    ...base,
     state: view.state,
-    title: LINES_COPY.weather,
-    summary: final ? 'Final pre-kickoff forecast' : 'Kickoff forecast',
+    summary: [final ? 'Final pre-kickoff forecast' : 'Kickoff forecast', row.roofNote].filter(Boolean).join(SEP),
     detail: {
       place,
       values,

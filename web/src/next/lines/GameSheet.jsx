@@ -1,14 +1,15 @@
 // `sh.game`, one game read-only (redesign build plan stage 13; prototype spec 3.5; DASH-7). The header with the
 // kickoff and the team records in words (DP-16), "You on this game", the top three trends for this game in plain
 // words (each with its record and sample size, strongest first, a line trend locked with its market), then the
-// weather and wind row and the referee row (each hidden with no data, a 404 included) and "All trends", which opens
-// its own sheet over this one. The current line arrives with stage 33 ("Line now arrives in a later update.").
+// weather row on every game (D-45: the kickoff forecast, "Indoors" or "No current forecast"), the referee row (hidden
+// until a referee is known, a 404 included) and "All trends", which opens its own sheet over this one. The current line
+// arrives with stage 33 ("Line now arrives in a later update.").
 //
-// The kickoff wind forecast (`/wind/read`, D-34) and the referee assignments (`/officials/read`) are read only once this
-// sheet opens, through the old app's loaders, so the app makes no more wind requests than the old trends panel does
-// (one per week, reused for five minutes by every open sheet). Nothing here writes.
+// The kickoff wind forecast (`/wind/read`, D-34) comes through the old app's loaders and their 5-minute cache, so the
+// sheet reuses the board's read; while open it re-reads at TTL crossings, as the old trends panel does. The referee
+// assignments (`/officials/read`) are read once this sheet opens. Nothing here writes.
 import { useId, useMemo } from 'react';
-import { LINES_COPY, gameSheet, refereeRow, weatherRow } from '../../../../shared/lines-view.mjs';
+import { LINES_COPY, gameSheet, refereeRow, sheetWeatherRow } from '../../../../shared/lines-view.mjs';
 import { TRENDS_FOOTNOTE, WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-view.mjs';
 import { useOfficials, useWind } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
@@ -60,7 +61,8 @@ export function GameSheet({ args }) {
       </Sheet>
     );
   }
-  const weather = weatherRow({ game: view, trendsGame: view.trendsGame, entry: wind.wind?.games?.[view.id] ?? null, now: wind.now, loading: wind.loading,
+  const sameWeek = wind.wind?.season === shown?.season && wind.wind?.week === shown?.week;
+  const weather = sheetWeatherRow({ game: view, trendsGame: view.trendsGame, entry: sameWeek ? wind.wind?.games?.[view.id] ?? null : null, now: wind.now, loading: wind.loading,
     season: shown?.season, week: shown?.week, windCard: trendsWeek?.cards?.[WIND_CARD] ?? null });
   const referee = view.trendsGame ? refereeRow(trendsWeek, view.id, officials) : null;
   const refereeCards = referee ? refereeRows(trendsWeek, referee.name, view.trendsGame, { total: view.access.total ? view.saved.total : null })
@@ -87,27 +89,25 @@ export function GameSheet({ args }) {
         {t.status === 'ready' && t.top.length ? <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p> : null}
       </section>
 
-      {weather || referee || t.status === 'ready' ? (
-        <Card variant="flush">
-          <List label="More about this game">
-            {weather ? (
-              <Expander key="weather" title={weather.title} summary={weather.summary} data-row="weather">
-                <WeatherDetail row={weather}/>
-              </Expander>
-            ) : null}
-            {referee ? (
-              <Expander key="referee" title={LINES_COPY.referee} summary={referee.name} data-row="referee">
-                <p className="gx-t-meta">{referee.source}</p>
-                {refereeCards.length ? <TrendList cards={refereeCards} rules={view.rules} label={`${referee.name}’s records`} variant="s2"/> : <p className="gx-t-body gx-c-2">No referee records for {referee.name} in this file.</p>}
-              </Expander>
-            ) : null}
-            {t.status === 'ready' ? (
-              <Row key="all" title={LINES_COPY.allTrends} sub={t.count ? `${t.count} ${t.count === 1 ? 'trend fits' : 'trends fit'} this game · every record` : 'Every record for this game'} chevron
-                onClick={() => shell.openSheet('sh.allTrends', { game: view.id })}/>
-            ) : null}
-          </List>
-        </Card>
-      ) : null}
+      <Card variant="flush">
+        <List label="More about this game">
+          {weather.detail ? (
+            <Expander key="weather" title={weather.title} summary={weather.summary} data-row="weather" data-kind={weather.state}>
+              <WeatherDetail row={weather}/>
+            </Expander>
+          ) : <Row key="weather" title={weather.title} sub={weather.summary} data-row="weather" data-kind={weather.state}/>}
+          {referee ? (
+            <Expander key="referee" title={LINES_COPY.referee} summary={referee.name} data-row="referee">
+              <p className="gx-t-meta">{referee.source}</p>
+              {refereeCards.length ? <TrendList cards={refereeCards} rules={view.rules} label={`${referee.name}’s records`} variant="s2"/> : <p className="gx-t-body gx-c-2">No referee records for {referee.name} in this file.</p>}
+            </Expander>
+          ) : null}
+          {t.status === 'ready' ? (
+            <Row key="all" title={LINES_COPY.allTrends} sub={t.count ? `${t.count} ${t.count === 1 ? 'trend fits' : 'trends fit'} this game · every record` : 'Every record for this game'} chevron
+              onClick={() => shell.openSheet('sh.allTrends', { game: view.id })}/>
+          ) : null}
+        </List>
+      </Card>
 
       <Credits footer={view.footer}/>
     </Sheet>
