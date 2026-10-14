@@ -1,5 +1,16 @@
 # Decision log
 
+## D-40 — a game note never makes a Favorite (October 14, 2026)
+
+Sean ruled in the cloud session, answering the "Open choice for Sean" that PR #83 (redesign stage 27, private notes server, migration M-09) raised in `docs/redesign/PRIVATE_NOTES.md`. He chose "No, and fix old Save": "The note doesn't create a Favorite (matches D-36: Favorites leave the screens). A small extra old-app change makes 'Save to Favorites' keep a stored note instead of overwriting it with a blank one."
+
+- **A note on a game with no row.** A note written in the new app on a game the player has no Favorites row for creates that row as not saved (`saved = false`). The game does not join the old app's Favorites tab or History's saved games.
+- **A game that already has a row.** A note never changes its saved flag, either way: a saved game stays saved and an unsaved game stays unsaved.
+- **The old app's "Save to Favorites".** It keeps a stored note instead of sending a blank one over it. This is a small old-app change, built in its own old-app stage by a separate PR; stage 27 does not change the old app.
+- **Why.** D-36 takes Favorites off the screens, so writing a note must not make a Favorite the player never asked for. And saving a game in the old app must not blank a note the player wrote, in either app. The audit keeps every earlier text either way (D-23).
+
+M-09 (`supabase/migrations/20261014190000_gtl_game_notes.sql`) follows this rule before it is merged or applied. Nothing is applied or deployed by this entry.
+
 ## D-39 — per-game lock-in and the build plan answers (October 14, 2026)
 
 Sean answered the build plan's open questions in the cloud session, one at a time.

@@ -9,8 +9,9 @@ import { ACCOUNTS, createCommunityWorld, id, pgliteAvailable } from './cloud-bro
 import { leakScan, pickSecrets, READERS } from './helpers/leak-scan.mjs';
 
 // Redesign build plan stage 27, M-09 (20261014190000_gtl_game_notes.sql): private notes per game (D-36 "notes stay",
-// D-39). Only the owner reads or writes a note; up to 2,000 characters, never cut; the saved flag kept; every change
-// audited and bumping the shared personal revision. Runs on ALL (the hosted project does not have M-09 yet), on the
+// D-39). Only the owner reads or writes a note; up to 2,000 characters, never cut; a note never makes a Favorite
+// (D-40: a first note creates an unsaved row, an existing row keeps its saved flag); every change audited and
+// bumping the shared personal revision. Runs on ALL (the hosted project does not have M-09 yet), on the
 // raw functions and through the real handler, on local PGlite only. Fixture accounts and text only, never real
 // player data.
 const MIGRATION = '20261014190000_gtl_game_notes.sql';
@@ -55,7 +56,38 @@ async function notesWorld(t, options = {}) {
     p_body: { requestId: randomUUID(), revision: revision ?? (await workspace(name)).revision, season, week, gameId: game, saved, notes } });
   const events = async name => (await db.query("select revision::int,action,target,before_value,after_value from public.gtl_personal_events where user_id=$1 order by revision", [who(name)])).rows;
   const note = async (name, game) => (await read(name)).notes.find(n => n.gameId === game);
-  return { world, db, state, season, week, games, call, who, read, set, workspace, favorite, events, note };
+  /** Every row of every public table, by table, so a test can show that a save changed nothing it should not. */
+  const snapshot = async () => {
+    const tables = (await db.query("select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by table_name")).rows.map(r => r.table_name);
+    const rows = {};
+    for (const table of tables) rows[table] = (await db.query(`select coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text),'[]'::jsonb) v from public."${table}" t`)).rows[0].v;
+    return rows;
+  };
+  /** The tables whose rows differ between two snapshots, and the rows each one gained or lost. */
+  const diff = (before, after) => Object.fromEntries(Object.keys(after).filter(table => JSON.stringify(before[table]) !== JSON.stringify(after[table])).map(table => {
+    const has = (list, row) => list.some(other => JSON.stringify(other) === JSON.stringify(row));
+    return [table, { added: after[table].filter(row => !has(before[table], row)), removed: before[table].filter(row => !has(after[table], row)) }];
+  }));
+  return { world, db, state, season, week, games, call, who, read, set, workspace, favorite, events, note, snapshot, diff };
+}
+
+/** What one note save may change, and nothing else (D-40: no Favorite, no other row, no other table). */
+function assertOnlyTheNoteChanged(f, changes, { user, game, saved, notes, before }) {
+  assert.deepEqual(Object.keys(changes).sort(), ['gtl_favorites', 'gtl_personal_events', 'gtl_personal_receipts', 'gtl_personal_versions'], 'no other table changes');
+  const { added, removed } = changes.gtl_favorites;
+  assert.equal(added.length, 1, 'exactly one gtl_favorites row is written');
+  assert.deepEqual(removed.length, before ? 1 : 0, before ? 'the existing row is updated in place' : 'no row is replaced');
+  const [row] = added;
+  assert.deepEqual([row.user_id, row.season, row.week, row.game_id, row.saved, row.notes], [f.who(user), f.season, f.week, game, saved, notes]);
+  if (before) {
+    const [old] = removed;
+    assert.deepEqual([old.user_id, old.game_id, old.saved, old.created_at], [row.user_id, row.game_id, row.saved, row.created_at], 'the same row: its saved flag and creation time are kept');
+  }
+  assert.deepEqual(changes.gtl_personal_events.removed, [], 'the audit only grows (D-23)');
+  assert.deepEqual(changes.gtl_personal_events.added.map(e => [e.user_id, e.action, e.target, e.after_value]), [[f.who(user), 'personal/note', `${f.season}/${f.week}/${game}`, { saved, notes }]]);
+  assert.deepEqual(changes.gtl_personal_receipts.removed, []);
+  assert.deepEqual(changes.gtl_personal_receipts.added.map(r => [r.user_id, r.action]), [[f.who(user), 'personal/note']]);
+  assert.deepEqual(changes.gtl_personal_versions.added.map(v => v.user_id), [f.who(user)], 'only the owner\'s shared revision moves');
 }
 
 test('M-09 SQL: private notes per game, never cut, the saved flag kept, every change audited and bumping the shared revision', { skip }, async t => {
@@ -86,21 +118,23 @@ test('M-09 SQL: private notes per game, never cut, the saved flag kept, every ch
     await assert.rejects(() => f.read('troy', { p_season: f.season, p_week: 25 }), /GTL_PERSONAL_SLATE/);
   });
 
-  await t.test('a first note creates a saved row, is audited and bumps the shared revision; the old app shows it', async () => {
-    const before = (await f.workspace('troy')).revision;
-    const saved = await f.set('troy', A, 'Wind at kickoff.\nCheck the injury report.', 0);
+  await t.test('a first note creates an unsaved row (D-40), is audited and bumps the shared revision; it makes no Favorite and nothing else changes', async () => {
+    const before = (await f.workspace('troy')).revision, rows = await f.snapshot();
+    const text = 'Wind at kickoff.\nCheck the injury report.';
+    const saved = await f.set('troy', A, text, 0);
     assert.equal(saved.changed, true);
     assert.deepEqual({ gameId: saved.gameId, note: saved.note, saved: saved.saved, revision: saved.revision, ownerId: saved.ownerId },
-      { gameId: A, note: 'Wind at kickoff.\nCheck the injury report.', saved: true, revision: before + 1, ownerId: f.who('troy') });
+      { gameId: A, note: text, saved: false, revision: before + 1, ownerId: f.who('troy') });
+    assertOnlyTheNoteChanged(f, f.diff(rows, await f.snapshot()), { user: 'troy', game: A, saved: false, notes: text });
     assert.equal((await f.workspace('troy')).revision, before + 1, 'the shared personal revision moved');
     const [event] = (await f.events('troy')).slice(-1);
     assert.deepEqual(event, { revision: before + 1, action: 'personal/note', target: `${f.season}/${f.week}/${A}`, before_value: null,
-      after_value: { saved: true, notes: 'Wind at kickoff.\nCheck the injury report.' } });
+      after_value: { saved: false, notes: text } });
     const read = await f.note('troy', A);
-    assert.equal(read.note, saved.note); assert.equal(read.revision, saved.revision); assert.equal(read.saved, true);
+    assert.equal(read.note, saved.note); assert.equal(read.revision, saved.revision); assert.equal(read.saved, false);
     assert.equal(Date.parse(read.updatedAt), Date.parse(saved.updatedAt));
-    // The old app's Favorites tab reads the same row (a note lives on a saved game there).
-    assert.deepEqual((await f.workspace('troy')).favorites.map(x => [x.gameId, x.notes]), [[A, saved.note]]);
+    // The old reader lists saved rows only, so the note makes no Favorite in the old app (D-36, D-40).
+    assert.deepEqual((await f.workspace('troy')).favorites, [], 'the old app\'s Favorites tab does not list the game');
   });
 
   await t.test('2,000 characters fit and come back whole, spaces and line breaks as typed; 2,001 are refused, never shortened', async () => {
@@ -116,7 +150,9 @@ test('M-09 SQL: private notes per game, never cut, the saved flag kept, every ch
     // tests/personal-workspace.test.mjs, so whatever either app saves the other can save again).
     const wide = '\u{1F3C8}'.repeat(2000);
     const widened = await f.set('troy', B, wide, 0);
+    assert.equal(widened.saved, false, 'a first note on another game is not saved either (D-40)');
     assert.equal((await f.note('troy', B)).note, wide);
+    assert.deepEqual((await f.workspace('troy')).favorites, [], 'still no Favorite');
     await f.set('troy', B, 'Short again.', widened.revision);
     assert.equal((await f.note('troy', A)).note, full, 'a refused save leaves the stored note as it was');
   });
@@ -132,19 +168,33 @@ test('M-09 SQL: private notes per game, never cut, the saved flag kept, every ch
     assert.equal((await f.read('troy')).notes.some(n => n.gameId === C), false);
   });
 
-  await t.test('the saved flag is kept: a note never saves or unsaves a game the old app saved or removed', async () => {
+  await t.test('the saved flag is kept: a note never saves or unsaves a game the old app saved or removed (D-40)', async () => {
     const luke = 'luke';
+    // An existing saved row stays saved, and the old reader lists it with the new text.
     await f.favorite(luke, A, true, 'Old app note.');
-    await f.favorite(luke, A, false, 'Old app note.');
+    let rows = await f.snapshot();
+    const onSaved = await f.set(luke, A, 'New app note on a saved game.', (await f.note(luke, A)).revision);
+    assert.equal(onSaved.saved, true, 'still saved');
+    assertOnlyTheNoteChanged(f, f.diff(rows, await f.snapshot()), { user: luke, game: A, saved: true, notes: 'New app note on a saved game.', before: true });
+    assert.deepEqual((await f.workspace(luke)).favorites.map(x => [x.gameId, x.notes]), [[A, 'New app note on a saved game.']]);
+    let [event] = (await f.events(luke)).slice(-1);
+    assert.deepEqual([event.before_value, event.after_value], [{ saved: true, notes: 'Old app note.' }, { saved: true, notes: 'New app note on a saved game.' }]);
+    // An existing unsaved row (removed in the old app) stays unsaved, and the old reader still leaves it out.
+    await f.favorite(luke, A, false, 'New app note on a saved game.');
     assert.deepEqual((await f.workspace(luke)).favorites, [], 'the old app lists saved games only');
     const unsaved = await f.note(luke, A);
-    assert.deepEqual([unsaved.note, unsaved.saved], ['Old app note.', false], 'the notes reader hides nothing: the removed game keeps its note');
+    assert.deepEqual([unsaved.note, unsaved.saved], ['New app note on a saved game.', false], 'the notes reader hides nothing: the removed game keeps its note');
+    rows = await f.snapshot();
     const edited = await f.set(luke, A, 'New app note.', unsaved.revision);
     assert.equal(edited.saved, false, 'still not saved');
-    const [event] = (await f.events(luke)).slice(-1);
-    assert.deepEqual([event.before_value, event.after_value], [{ saved: false, notes: 'Old app note.' }, { saved: false, notes: 'New app note.' }]);
+    assertOnlyTheNoteChanged(f, f.diff(rows, await f.snapshot()), { user: luke, game: A, saved: false, notes: 'New app note.', before: true });
+    assert.deepEqual((await f.workspace(luke)).favorites, [], 'a note on an unsaved game makes no Favorite');
+    [event] = (await f.events(luke)).slice(-1);
+    assert.deepEqual([event.before_value, event.after_value], [{ saved: false, notes: 'New app note on a saved game.' }, { saved: false, notes: 'New app note.' }]);
+    // The old app saving the game with the stored note (what D-40's old-app stage sends) keeps the note and lists it.
     await f.favorite(luke, A, true, 'New app note.');
-    const resaved = await f.set(luke, A, 'Newer app note.', edited.revision);
+    assert.deepEqual((await f.workspace(luke)).favorites.map(x => [x.gameId, x.notes]), [[A, 'New app note.']]);
+    const resaved = await f.set(luke, A, 'Newer app note.', (await f.note(luke, A)).revision);
     assert.equal(resaved.saved, true, 'still saved');
     assert.deepEqual((await f.workspace(luke)).favorites.map(x => x.notes), ['Newer app note.']);
   });
@@ -185,8 +235,10 @@ test('M-09 SQL: private notes per game, never cut, the saved flag kept, every ch
 
   await t.test('clearing a note keeps the row and its saved flag, and the audit keeps every earlier text (D-23)', async () => {
     const current = await f.note('troy', A);
+    assert.equal(current.saved, false, 'the row the first note created is still not saved');
     const cleared = await f.set('troy', A, '', current.revision);
-    assert.deepEqual([cleared.changed, cleared.note, cleared.saved], [true, '', true]);
+    assert.deepEqual([cleared.changed, cleared.note, cleared.saved], [true, '', false]);
+    assert.deepEqual((await f.workspace('troy')).favorites.map(x => x.gameId).includes(A), false);
     assert.deepEqual((await f.read('troy')).notes.find(n => n.gameId === A).note, '');
     const texts = (await f.events('troy')).filter(e => e.target.endsWith(`/${A}`)).map(e => e.before_value?.notes);
     assert.ok(texts.includes('Wind at kickoff.\nCheck the injury report.') && texts.includes(current.note), 'every earlier note text is in the audit');
@@ -230,14 +282,15 @@ test('through gtl-api: /personal/note and /personal/notes serve only the signed-
 
   const saved = await world.api('troy', 'personal/note', { requestId: randomUUID(), season, week, gameId: A, note: NOTE, revision: 0 });
   assert.equal(saved.status, 200, JSON.stringify(saved.body));
-  assert.deepEqual([saved.body.note, saved.body.saved, saved.body.changed], [NOTE, true, true]);
+  assert.deepEqual([saved.body.note, saved.body.saved, saved.body.changed], [NOTE, false, true], 'a first note makes no Favorite (D-40)');
   const own = await world.api('troy', 'personal/notes', {});
   assert.equal(own.status, 200);
-  assert.deepEqual(own.body.notes.map(n => [n.gameId, n.note]), [[A, NOTE]], 'the owner reads the note whole');
+  assert.deepEqual(own.body.notes.map(n => [n.gameId, n.note, n.saved]), [[A, NOTE, false]], 'the owner reads the note whole');
   assert.equal(own.body.ownerId, ACCOUNTS.troy.id);
   assert.deepEqual(leakScan(own.body, { viewer: ACCOUNTS.troy.id, secrets }), [], 'the owner\'s own note is never a leak');
   assert.ok(leakScan(own.body, { viewer: ACCOUNTS.luke.id, secrets }).length > 0, 'the scan is not vacuous: the note carries the secret');
-  assert.equal((await world.api('troy', 'personal', undefined)).body.favorites[0].notes, NOTE, 'the old app\'s Solo screen shows it too');
+  const solo = await world.api('troy', 'personal', undefined);
+  assert.deepEqual(solo.body.favorites, [], 'the old app\'s Solo screen lists saved games only, so the note adds none');
 
   for (const viewer of ['luke', 'sean']) {
     const notes = await world.api(viewer, 'personal/notes', { season, week });
@@ -256,6 +309,12 @@ test('through gtl-api: /personal/note and /personal/notes serve only the signed-
       assert.equal((await world.api(viewer, 'personal/note', { requestId: randomUUID(), season, week, gameId: A, note: 'x', revision: 0, [field]: ACCOUNTS.troy.id })).status, 400);
     }
   }
+  // The old app's /favorite/set saving the game with the stored note (what D-40's old-app stage sends) keeps the note
+  // and makes it a Favorite; the note's revision does not move, because its text did not change.
+  const saveInOldApp = await world.api('troy', 'favorite/set', { requestId: randomUUID(), revision: solo.body.revision, season, week, gameId: A, saved: true, notes: NOTE });
+  assert.equal(saveInOldApp.status, 200, JSON.stringify(saveInOldApp.body));
+  assert.deepEqual((await world.api('troy', 'personal', undefined)).body.favorites.map(x => [x.gameId, x.notes]), [[A, NOTE]]);
+  assert.deepEqual((await world.api('troy', 'personal/notes', {})).body.notes.map(n => [n.note, n.saved, n.revision]), [[NOTE, true, saved.body.revision]]);
   // A stale save through the route is a 409 with the sentence the new app shows; the stored note stays.
   const stale = await world.api('troy', 'personal/note', { requestId: randomUUID(), season, week, gameId: A, note: 'Other device.', revision: 0 });
   assert.deepEqual([stale.status, stale.body], [409, { error: 'This note changed on another device. Refresh before saving again.' }]);

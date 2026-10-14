@@ -1,5 +1,5 @@
--- M-09 game_notes (redesign build plan stage 27; D-36 "notes stay", D-39): a private note on each game. Only the
--- owner reads or writes it. Local implementation only: applying it to the hosted project is Sean's "apply M-09".
+-- M-09 game_notes (redesign build plan stage 27; D-36 "notes stay", D-39, D-40): a private note on each game. Only
+-- the owner reads or writes it. Local implementation only: applying it to the hosted project is Sean's "apply M-09".
 --
 -- Additive. Two new service-only, security-invoker functions over the personal workspace tables of
 -- 20261008224444_gtl_personal_workspace.sql. No table, column, trigger or table grant changes and no function is
@@ -10,11 +10,10 @@
 -- gtl_mutate_personal('favorite/set'), so a note written in either app shows in the other:
 --   * Up to 2,000 characters, stored exactly as typed. A longer note is refused (GTL_NOTE_TOO_LONG), never shortened,
 --     and a stored note always reads back whole. Saving the text already stored writes nothing.
---   * The saved flag is kept: a note never changes an existing row's `saved`. A note on a game with no row creates
---     the row with saved = true, because the old app shows a note only on a saved game; with false it would hide the
---     note and its "Save to Favorites" button would send an empty note over it. OPEN: this default awaits Sean's
---     ruling ("Open choice for Sean" in docs/redesign/PRIVATE_NOTES.md). The change that records his D-entry sets the
---     default and this comment to match, before the merge and before "apply M-09".
+--   * A note never makes a Favorite (D-40). A note on a game with no row creates the row with saved = false, so the
+--     game does not join the old app's Favorites tab (gtl_read_personal lists saved rows only) or History's saved
+--     games. A note never changes an existing row's `saved`, either way. The old app's "Save to Favorites" keeping a
+--     stored note instead of sending a blank one is D-40's separate old-app stage; nothing here depends on it.
 --   * Each change appends a gtl_personal_events row (before and after, `{saved, notes}` as favorite/set writes them)
 --     and bumps the shared gtl_personal_versions revision, so an old-app screen opened before the change gets
 --     GTL_PERSONAL_CONFLICT instead of overwriting the note.
@@ -69,7 +68,7 @@ begin
   stamp:=clock_timestamp();
   if p_note is distinct from coalesce(old_row.notes,'') then
     if p_revision<>note_revision then raise exception 'GTL_NOTE_CONFLICT'; end if;
-    kept:=coalesce(old_row.saved,true);
+    kept:=coalesce(old_row.saved,false);
     insert into public.gtl_favorites(user_id,season,week,game_id,saved,notes,created_at,updated_at) values(p_user,p_season,p_week,p_game,kept,p_note,stamp,stamp)
       on conflict(user_id,season,week,game_id) do update set notes=excluded.notes,updated_at=excluded.updated_at;
     insert into public.gtl_personal_events(user_id,revision,action,target,before_value,after_value,reason,created_at)

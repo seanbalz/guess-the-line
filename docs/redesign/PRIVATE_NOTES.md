@@ -26,9 +26,9 @@ A note is the `notes` column of `gtl_favorites`, the same column the old app's F
   units) and as `/favorite/set` does, so whatever either app saves, the other can save again, and it always fits the
   database's own 2,000-character check. A longer note is refused (400 "A note can be up to 2,000 characters."), never
   shortened. Spaces and line breaks are stored exactly as typed. A stored note always reads back whole.
-- **The saved flag is kept.** A note never saves or unsaves a game that already has a row. A note on a game with no
-  row creates the row as saved for now. That default is not settled: see "Open choice for Sean" below. Favorites
-  themselves leave the new app's screens (D-36); saved records stay readable in History (stage 74).
+- **A note never makes a Favorite (D-40).** A note on a game with no row creates the row as not saved. A note never
+  saves or unsaves a game that already has a row. Favorites themselves leave the new app's screens (D-36); saved
+  records stay readable in History (stage 74). See "A note on a game the player never saved" below.
 - **Every change is audited and bumps the shared revision.** Each change appends a `gtl_personal_events` row with the
   text before and after (`{ saved, notes }`, the shape `/favorite/set` writes) and moves the shared
   `gtl_personal_versions` revision. An old-app Solo screen opened before the change gets its usual "changed on another
@@ -41,30 +41,29 @@ A note is the `notes` column of `gtl_favorites`, the same column the old app's F
 - **Retries.** A request id replays its first answer; the same id with other content is refused
   (`GTL_PERSONAL_RETRY_CONFLICT`). The receipts are the personal workspace's own.
 
-## Open choice for Sean: a note on a game the player never saved
+## A note on a game the player never saved (D-40)
 
-This blocks the merge and "apply M-09". Sean has not ruled. Under plan section 5 rule 2, his answer is recorded as
-its own D-entry in `docs/DECISIONS.md`, and the default below is set to match, before either step.
+Sean ruled on October 14, 2026 (D-40 in `docs/DECISIONS.md`): "The note doesn't create a Favorite (matches D-36:
+Favorites leave the screens). A small extra old-app change makes 'Save to Favorites' keep a stored note instead of
+overwriting it with a blank one."
 
-The migration currently has `kept:=coalesce(old_row.saved,true)`: a note on a game with no row creates the row as
-**saved**. The plan's stage 27 says "the `saved` flag kept". D-36 says Favorites leave the screens and saved records
-stay readable in History. `docs/redesign/INVENTORY_HOMES.md` row 166 has "saved games read-only in History". The
-prototype's game sheet has "No favorites, no forecasts". So a saved default makes a Favorite the player never saved.
-
-| | A: saved (the file today) | B: not saved (the plan's wording) |
-|---|---|---|
-| Old app's Favorites tab | The game shows there with the note, though the player never saved it. | The note does not show. The old reader (`gtl_read_personal`) lists saved games only. |
-| History's saved games (stage 74) | The game is listed as saved. | Not listed as a saved game. |
-| Old app's "Save to Favorites" on that game | The button reads "Saved · Remove". Removing it keeps the note. | The card starts with an empty note for an unsaved game (`FavoriteCard` in `web/src/PersonalWorkspace.jsx`), so saving it writes an empty note over the new app's note. The audit keeps the text, but both apps then show the note as empty. Today's old app already does this for a game removed from Favorites and then saved again. |
-
-A third way avoids both the unasked Favorite and the empty note: B, plus an old-app change so that "Save to
-Favorites" keeps a stored note. That changes the old app, so it needs its own stage.
-
-Changing the default later costs more at each step:
-- **Before "apply M-09":** one word in the migration (`true` to `false`), the test assertions that expect a first note
-  to be saved (`tests/game-notes-sql.test.mjs`), and this page.
-- **After the apply:** a replacing migration with the md5 `-- replaces` header and a `supabase/rollback/` file.
-- **After stage 35 ships:** rows already created keep their saved flag. They are not quietly reset (D-23).
+- **No row yet.** A note written in the new app on a game with no row creates the row with `saved = false`
+  (`kept:=coalesce(old_row.saved,false)` in the migration). The game does not join the old app's Favorites tab, whose
+  reader (`gtl_read_personal`) lists saved games only, or History's saved games (stage 74). `/personal/notes` still
+  returns the note whole.
+- **A row already there.** A note keeps its saved flag either way: a saved game stays saved and an unsaved one stays
+  unsaved.
+- **The old app's "Save to Favorites" ships as its own stage.** Today the old card starts with an empty note for an
+  unsaved game (`FavoriteCard` in `web/src/PersonalWorkspace.jsx`), so saving that game sends a blank note over the
+  stored one. The audit keeps the text, but both apps then show the note as empty. The old app already does this
+  today for a game removed from Favorites and then saved again. D-40's small old-app change makes the button keep the
+  stored note. A separate PR builds it; this stage changes no old-app screen, and its merge and "apply M-09" do not
+  wait for it. Its server side already works: `/favorite/set` with `saved: true` and the stored note keeps the note
+  and lists the game (tested here). Note for that stage: `/favorite/set` trims spaces and line breaks at both ends of
+  a note, while `/personal/note` stores them as typed.
+- **Why.** D-36 takes Favorites off the screens, `docs/redesign/INVENTORY_HOMES.md` row 166 keeps saved games
+  read-only in History, and the prototype's game sheet has "No favorites, no forecasts". A saved default would have
+  made a Favorite the player never asked for; the old-app change keeps a "Save to Favorites" from blanking a note.
 
 ## Database
 
@@ -88,25 +87,28 @@ Nothing else changes: no table, column, trigger, row or table grant, and no func
   Setting or clearing it is a hosted change that needs Sean's OK; it changes no code and no row.
 - **Before the apply:** a `gtl-api` deploy that has the routes answers both with the same 503 (PostgREST's "function
   not found", `PGRST202`, reads as off). No screen calls them until stage 35, and every old route answers as before.
-- **Release card:** first, Sean's ruling on the open choice above, recorded as a D-entry, with the default and its
-  tests set to match. Then merge (Sean's OK). Then, in either order: "apply M-09" (Gate M: read-only pre-check that
-  neither function exists yet, the score hash, the apply through the Supabase MCP or the SQL editor, never `db push`,
-  then the md5 of both bodies, the grants and one `pg_proc` row each), and the `gtl-api` deploy of this SHA. The
-  release record then removes the file from `NOT_HOSTED` in `tests/migrations.mjs` and the four M-09 entries from
-  `awaitingDeploy` in `scripts/boundary/me.mjs`, and `check:cloud --strict` passes. Window: any (low risk, read and
-  write of the owner's own rows only).
+- **Release card:** the first-note default follows D-40, and its tests match. Merge needs Sean's OK. Then, in either
+  order: "apply M-09" (Gate M: read-only pre-check that neither function exists yet, the score hash, the apply through
+  the Supabase MCP or the SQL editor, never `db push`, then the md5 of both bodies, the grants and one `pg_proc` row
+  each), and the `gtl-api` deploy of this SHA. The release record then removes the file from `NOT_HOSTED` in
+  `tests/migrations.mjs` and the four M-09 entries from `awaitingDeploy` in `scripts/boundary/me.mjs`, and
+  `check:cloud --strict` passes. Window: any (low risk, read and write of the owner's own rows only).
 
 ## Tests
 
 - `tests/game-notes-sql.test.mjs` (PGlite, on `ALL`): grants and invoker rights; the newest-week read; a first note
-  creates a saved row, is audited and bumps the shared revision, and the old Solo reader shows it; 2,000 characters
-  round-trip with spaces and line breaks, 2,001 are refused; an unchanged save writes nothing; the saved flag is kept
-  through old-app saves and removals; stale saves refused in both directions; request-id replay; clearing keeps the
+  creates an unsaved row (D-40), is audited and bumps the shared revision, and the old Solo reader
+  (`gtl_read_personal`) still lists saved games only, so it shows no Favorite; a before-and-after snapshot of every
+  public table shows a save changes only that one row, its event, its receipt and the owner's revision; 2,000
+  characters round-trip with spaces and line breaks, 2,001 are refused; an unchanged save writes nothing; an existing
+  saved row stays saved and an existing unsaved row stays unsaved through new-app notes and old-app saves and
+  removals; stale saves refused in both directions; request-id replay; clearing keeps the row, its saved flag and the
   audit; the database refuses forged input from the trusted role; each account reads only its own rows. Through the
-  real handler: the owner reads the note whole, and for the other two fixture accounts neither `/personal/notes` nor
-  any reader in the leak scan's list (`/community/read`, `/community/history`, `/personal`, `/lobby`, `/state`,
-  `/export`) carries the note's text or the half-point number inside it. On `HOSTED` (no M-09): the old personal
-  routes answer as before and both notes routes fail closed.
+  real handler: a first note answers `saved: false` and `/personal` lists no Favorite; `/favorite/set` saving the game
+  with the stored note keeps it; the owner reads the note whole, and for the other two fixture accounts neither
+  `/personal/notes` nor any reader in the leak scan's list (`/community/read`, `/community/history`, `/personal`,
+  `/lobby`, `/state`, `/export`) carries the note's text or the half-point number inside it. On `HOSTED` (no M-09):
+  the old personal routes answer as before and both notes routes fail closed.
 - `tests/personal-workspace.test.mjs`: route fields, the limit as a textarea counts it, refused input never reaching the
   database, the error mapping, `PGRST202` as off, and the off switch.
 - `tests/feature-off.test.mjs`, `tests/cloud-boundary.test.mjs` (the M-09 probes awaiting deploy).
