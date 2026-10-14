@@ -23,7 +23,6 @@ const VALUES = {
   '39.744': { wind_speed_10m: 14.2, wind_gusts_10m: 27.5, wind_direction_10m: 247, temperature_2m: 49.3, precipitation_probability: 25 },
   '51.556': { wind_speed_10m: 16.4, wind_gusts_10m: 31.2, wind_direction_10m: 225, temperature_2m: 57.2, precipitation_probability: 40 },
   '33.755': { wind_speed_10m: 12.1, wind_gusts_10m: 20.3, wind_direction_10m: 180, temperature_2m: 71.6, precipitation_probability: 5 },
-  '33.953': { wind_speed_10m: 9.4, wind_gusts_10m: 18.1, wind_direction_10m: 250, temperature_2m: 64.4, precipitation_probability: 60 },
 };
 const stub = (options = {}) => forecastFetch(point => ({ values: () => VALUES[point.latitude.toFixed(3)] ?? {} }), options);
 const openPanel = async (page, label) => {
@@ -124,9 +123,9 @@ test('wind: when Open-Meteo fails the panel keeps the fallback note, stores the 
   expect(world.errors).toEqual([]);
 });
 
-// D-45: every game gets a weather row. One world, one Open-Meteo request (SoFi and Atlanta, never the Las Vegas dome),
-// then each panel at 320, 390 and 1440 px in Light and Dark: no sideways scroll, axe clean, screenshots for review.
-test('weather on every game: Indoors, a covered open-sided stadium and "Roof may close" at 320, 390 and 1440 px in Light and Dark', async ({ page, baseURL }, testInfo) => {
+// D-45: every game gets a weather row. One world, one Open-Meteo request (Atlanta only: never the Las Vegas dome or
+// SoFi), then each panel at 320, 390 and 1440 px in Light and Dark: no sideways scroll, axe clean, screenshots for review.
+test('weather on every game: Indoors for a dome and for SoFi, and "Roof may close", at 320, 390 and 1440 px in Light and Dark', async ({ page, baseURL }, testInfo) => {
   test.setTimeout(180_000);
   const fake = stub();
   const world = await communityWorld(page, baseURL, { games: 3, prepare: week6(['BUF-LV', 'ARI-LAR', 'CHI-ATL']), troyBallots: false, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }) });
@@ -143,26 +142,25 @@ test('weather on every game: Indoors, a covered open-sided stadium and "Roof may
     await expect(dome.locator('.trend-weather[data-kind="indoors"]')).toHaveText('Kickoff weather: Indoors · Allegiant Stadium, Las Vegas');
     await expect(dome.locator('section.trend-wind')).toHaveCount(0);
     await expect(dome.getByRole('link', { name: 'Weather data by Open-Meteo.com' })).toHaveCount(0);
-    const covered = sofi.locator('section.trend-wind');
-    await expect(covered).toContainText('SoFi Stadium, Inglewood');
-    await expect(covered.locator('.trend-wind-roof')).toHaveText('Covered, open-sided stadium');
-    await expect(covered).toContainText('9.4 mph from the WSW');
-    await expect(covered).toContainText('Precipitation chance60%');
-    await expect(covered).not.toContainText('mph band');
-    await expect(covered.getByRole('link', { name: 'Weather data by Open-Meteo.com' })).toHaveAttribute('href', 'https://open-meteo.com/');
-    await expect(covered.getByRole('link', { name: 'CC BY 4.0' })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by/4.0/');
-    await expect(sofi).toContainText('Strong wind trends do not apply here: the trend records count this covered stadium as a dome.');
-    await expect(sofi).not.toContainText('Strong wind trends do not apply indoors');
-    await expect(atl.locator('section.trend-wind .trend-wind-roof')).toHaveText('Roof may close');
-    await expect(atl.locator('section.trend-wind').getByRole('link', { name: 'Weather data by Open-Meteo.com' })).toBeVisible();
+    await expect(sofi.locator('.trend-weather[data-kind="indoors"]')).toHaveText('Kickoff weather: Indoors · SoFi Stadium, Inglewood');
+    await expect(sofi.locator('section.trend-wind')).toHaveCount(0);
+    await expect(sofi.getByRole('link', { name: 'Weather data by Open-Meteo.com' })).toHaveCount(0);
+    await expect(sofi).toContainText('Strong wind trends do not apply indoors (dome or closed roof).');
+    const roof = atl.locator('section.trend-wind');
+    await expect(roof.locator('.trend-wind-roof')).toHaveText('Roof may close');
+    await expect(roof).toContainText('Mercedes-Benz Stadium, Atlanta');
+    await expect(roof.getByRole('link', { name: 'Weather data by Open-Meteo.com' })).toHaveAttribute('href', 'https://open-meteo.com/');
+    await expect(roof.getByRole('link', { name: 'CC BY 4.0' })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by/4.0/');
     for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: width < 720 ? 844 : 1000 });
-      await covered.scrollIntoViewIfNeeded();
+      await roof.scrollIntoViewIfNeeded();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}`).toBe(true);
-      for (const box of [await covered.boundingBox(), await dome.locator('.trend-weather').boundingBox()]) expect(box.x + box.width, `${theme} ${width}`).toBeLessThanOrEqual(width);
+      for (const box of [await roof.boundingBox(), await dome.locator('.trend-weather').boundingBox(), await sofi.locator('.trend-weather').boundingBox()]) {
+        expect(box.x + box.width, `${theme} ${width}`).toBeLessThanOrEqual(width);
+      }
       await page.screenshot({ path: testInfo.outputPath(`weather-${theme}-${width}.png`), fullPage: false });
-      await covered.screenshot({ path: `.local/previews/weather-sofi-${theme}-${width}.png` });
-      await dome.locator('.trend-weather').screenshot({ path: `.local/previews/weather-dome-${theme}-${width}.png` });
+      await roof.screenshot({ path: `.local/previews/weather-atl-${theme}-${width}.png` });
+      await sofi.locator('.trend-weather').screenshot({ path: `.local/previews/weather-sofi-${theme}-${width}.png` });
     }
     for (const label of ['Trends for BUF at LV', 'Trends for ARI at LAR', 'Trends for CHI at ATL']) {
       const axe = await new AxeBuilder({ page }).include(`#${await page.getByRole('button', { name: label, exact: true }).getAttribute('aria-controls')}`).analyze();
@@ -171,9 +169,7 @@ test('weather on every game: Indoors, a covered open-sided stadium and "Roof may
     await page.setViewportSize({ width: 1440, height: 1000 });
   }
   expect(fake.calls).toHaveLength(1);
-  const query = new URL(fake.calls[0].url).searchParams;
-  expect(query.get('latitude').split(',').sort()).toEqual(['33.755', '33.953']);
-  expect(query.get('latitude')).not.toContain('36.091');
-  expect((await world.db.query('select game_id from public.gtl_wind_forecasts order by game_id')).rows.map(r => r.game_id)).toEqual(['ARI-LAR', 'CHI-ATL']);
+  expect(new URL(fake.calls[0].url).searchParams.get('latitude')).toBe('33.755');
+  expect((await world.db.query('select game_id from public.gtl_wind_forecasts order by game_id')).rows.map(r => r.game_id)).toEqual(['CHI-ATL']);
   expect(world.errors).toEqual([]);
 });

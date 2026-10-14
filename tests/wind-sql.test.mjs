@@ -388,14 +388,14 @@ test('append-only snapshots, the newest per game, isolation from scoring tables,
   assert.equal(body.refresh.outcome, 'fetched');
   assert.equal(fake.calls.length, 1);
   const sent = new URL(fake.calls[0].url).searchParams.get('latitude').split(',');
-  assert.equal(sent.length, 9, 'outdoor and canopy games within 120 h that have not kicked off (D-45): no dome, no kicked-off game, nothing past 120 h');
-  assert.ok(sent.includes('33.953') && !sent.includes('36.091'), 'SoFi is sent; the Las Vegas dome is not');
+  assert.equal(sent.length, 8, 'outdoor games within 120 h that have not kicked off: no canopy, no dome (D-45: both Indoors), no kicked-off game, nothing past 120 h');
+  assert.ok(!sent.includes('33.953') && !sent.includes('36.091'), 'neither SoFi nor the Las Vegas dome is sent');
   assert.deepEqual([body.games['SEA-DEN'].status, body.games['SEA-DEN'].wind.windMph, body.games['ARI-LAR'].status, body.games['BUF-LV'].status, body.games['CAR-PHI'].status, body.games['NO-NYG'].status],
-    ['forecast', 14.2, 'forecast', 'indoor', 'not_yet', 'none']);
+    ['forecast', 14.2, 'indoor', 'indoor', 'not_yet', 'none']);
   const again = await handleWind({ route: '/wind/read', body: { season: 2026, week: 6 }, user, service });
   assert.ok(['not_due', 'cooldown'].includes(again.refresh.outcome));
   assert.equal(fake.calls.length, 1, 'the second read makes no request');
-  assert.deepEqual([await f.count('gtl_wind_fetches'), await f.count('gtl_wind_forecasts')], [1, 9]);
+  assert.deepEqual([await f.count('gtl_wind_fetches'), await f.count('gtl_wind_forecasts')], [1, 8]);
   await assert.rejects(() => handleWind({ route: '/wind/read', body: { season: 2026, week: 6 }, user: { id: id(STRANGER) }, service }), error => error.status === 403);
   const after = Object.fromEntries(await Promise.all(scoring.map(async table => [table, await f.count(table)])));
   assert.deepEqual(after, before, 'no ballot, version, audit, feed, market or slate row was written');

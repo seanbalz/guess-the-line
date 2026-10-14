@@ -114,8 +114,8 @@ function Entities({ week, game, level }) {
  * GTL scoring. `saved` is the viewer's own saved line per market in app convention, used only for a
  * market whose ballot is already submitted, sat out or closed. `wind` is the gtl-api /wind/read answer
  * (D-34) or null, and `windNow` the effective server time for its ages (asOf plus the time since it
- * arrived); without them every game but a dome keeps the "no current forecast" note. Every game has a
- * weather row (D-45): the forecast card, "Indoors", or that note.
+ * arrived); without them every game that is not Indoors keeps the "no current forecast" note. Every game
+ * has a weather row (D-45): the forecast card, "Indoors" (a dome, SoFi's canopy or a closed roof), or that note.
  */
 export default function TrendsView({ week, gameId, access = {}, saved = {}, savedLabel = 'your saved line', officials = null, wind = null, windNow = null, windLoading = false, level = 4 }) {
   const game = week?.games?.find(g => g.id === gameId);
@@ -140,7 +140,7 @@ export default function TrendsView({ week, gameId, access = {}, saved = {}, save
       <WindForecast view={forecast} row={weather} week={week} level={sub} trends={evidence.length > 0}/>
       {evidence.map(c => <details className="trend-conditional" key={c.card}><summary><strong>{cardOf(c.card).title}: {cardOf(c.card).sideLabel}</strong> <span>{windText(c.note) || WIND_COPY.weatherConditional}</span></summary>
         <TrendCard week={week} card={cardOf(c.card)} level={sub}/></details>)}
-      {!evidence.length && <p className="trend-note">{weather.roof === 'canopy' ? WIND_COPY.canopy : indoor ? WIND_COPY.indoor : 'No evidence-tier trend fits this game.'}</p>}
+      {!evidence.length && <p className="trend-note">{indoor ? WIND_COPY.indoor : 'No evidence-tier trend fits this game.'}</p>}
     </Section>
     {(game.tier2?.length > 0 || otherConditional.length > 0) && <Section title="Consistent, not proven" level={level} className="trends-tier2">
       <p className="trend-note">{week.copy.calibration}</p>

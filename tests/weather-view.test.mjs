@@ -29,31 +29,32 @@ const snapshot = (id, madeH, values = {}) => {
 const row = (id, values = {}, { madeH = 25, leadH = 24, place = venue(VENUE[id]) } = {}) => weatherRow(game(id), place, snapshot(id, madeH, values), kickoff(id) - leadH * H);
 const chip = values => weatherChip(row('SEA-DEN', values));
 
-test('D-45 every roof type: open air, canopy and retractable show the forecast with the credit; a dome says Indoors', () => {
+test('D-45 every roof type: open air and retractable show the forecast with the credit; a dome and SoFi\'s canopy say Indoors', () => {
   const credit = { text: WIND_ATTRIBUTION.text, url: WIND_ATTRIBUTION.url, license: WIND_ATTRIBUTION.license, licenseUrl: WIND_ATTRIBUTION.licenseUrl, changes: WIND_ATTRIBUTION.changes };
   const outdoor = row('SEA-DEN', { windMph: 14.2, directionDeg: 247, temperatureF: 49.3, precipitationProbability: 25 });
-  assert.deepEqual([outdoor.kind, outdoor.roof, outdoor.note, outdoor.reason], ['forecast', 'outdoor', null, null]);
+  assert.deepEqual([outdoor.kind, outdoor.roof, outdoor.note, outdoor.roofNote, outdoor.reason], ['forecast', 'outdoor', null, null, null]);
   assert.deepEqual(outdoor.credit, credit);
   assert.deepEqual(outdoor.venue, { name: 'Empower Field at Mile High', city: 'Denver', country: 'USA' });
   const v = outdoor.values;
   assert.deepEqual([v.windMph, v.gustMph, v.directionDeg, v.direction, v.temperatureF, v.precipitationProbability, v.precipitationIn], [14.2, 15, 247, 'WSW', 49.3, 25, 0]);
   assert.deepEqual([v.kickoff, v.ageMs, v.madeMs, v.final, v.confidence], [game('SEA-DEN').kickoff, H, 25 * H, false, 'Next-day guidance']);
-  // SoFi: the week file's nflverse roof says "dome", but the venue is a canopy, fetched and shown (D-45).
-  assert.equal(game('ARI-LAR').flags.roof, 'dome');
-  const canopy = row('ARI-LAR');
-  assert.deepEqual([canopy.kind, canopy.roof, canopy.note, canopy.venue.name], ['forecast', 'canopy', 'Covered, open-sided stadium', 'SoFi Stadium']);
-  assert.deepEqual(canopy.credit, credit);
   const roof = row('CHI-ATL');
-  assert.deepEqual([roof.kind, roof.roof, roof.note], ['forecast', 'retractable', 'Roof may close']);
+  assert.deepEqual([roof.kind, roof.roof, roof.note, roof.roofNote], ['forecast', 'retractable', 'Roof may close', 'Roof may close']);
   assert.deepEqual(roof.credit, credit);
   // A dome is Indoors even when a snapshot is passed: no values, no credit, no chip.
   const dome = row('BUF-LV', { windMph: 30, precipitationProbability: 90 });
-  assert.deepEqual(dome, { kind: 'indoors', roof: 'dome', note: 'Indoors', reason: null, venue: { name: 'Allegiant Stadium', city: 'Las Vegas', country: 'USA' }, values: null, credit: null });
+  assert.deepEqual(dome, { kind: 'indoors', roof: 'dome', note: 'Indoors', roofNote: null, reason: null, venue: { name: 'Allegiant Stadium', city: 'Las Vegas', country: 'USA' }, values: null, credit: null });
   assert.equal(weatherChip(dome), null);
+  // SoFi Stadium: a fixed roof over the field, which the week file's nflverse roof and the trend records count as a dome.
+  // Indoors (the builder's reading of "domes and closed roofs say Indoors"), never fetched, so never a value or a chip.
+  assert.equal(game('ARI-LAR').flags.roof, 'dome');
+  const canopy = row('ARI-LAR', { windMph: 30, precipitationProbability: 90 });
+  assert.deepEqual(canopy, { kind: 'indoors', roof: 'canopy', note: 'Indoors', roofNote: null, reason: null, venue: { name: 'SoFi Stadium', city: 'Inglewood', country: 'USA' }, values: null, credit: null });
+  assert.equal(weatherChip(canopy), null);
   // Without the server's venue the week file's stadium decides the roof.
-  assert.equal(weatherRow(game('BUF-LV'), null, null, null).kind, 'indoors');
+  assert.deepEqual(['BUF-LV', 'ARI-LAR'].map(id => weatherRow(game(id), null, null, null).kind), ['indoors', 'indoors']);
   assert.deepEqual(['SEA-DEN', 'ARI-LAR', 'CHI-ATL'].map(id => weatherRow(game(id), null, null, null).roof), ['outdoor', 'canopy', 'retractable']);
-  assert.deepEqual(W.WEATHER_ROOF_NOTES, { outdoor: null, canopy: 'Covered, open-sided stadium', retractable: 'Roof may close', dome: 'Indoors' });
+  assert.deepEqual(W.WEATHER_ROOF_NOTES, { outdoor: null, canopy: 'Indoors', retractable: 'Roof may close', dome: 'Indoors' });
 });
 
 test('D-45 closed roofs and unknown venues: a closed retractable roof is Indoors; an unknown venue never claims a roof', () => {
@@ -91,6 +92,22 @@ test('D-45 no current forecast: missing, signed out, beyond 120 h, stale, invali
   assert.deepEqual([sparse.kind, sparse.values.gustMph, sparse.values.temperatureF, sparse.values.precipitationProbability, sparse.values.direction], ['forecast', null, null, null, null]);
 });
 
+test('D-45 "Roof may close" on every retractable row, with or without a forecast; never on open air, Indoors or an unknown venue', () => {
+  const k = kickoff('CHI-ATL'), atl = venue('ATL97'), g = game('CHI-ATL');
+  const words = (forecast, now, place = atl) => { const r = weatherRow(g, place, forecast, now); return [r.kind, r.reason, r.roofNote]; };
+  assert.deepEqual(words(snapshot('CHI-ATL', 25), k - 24 * H), ['forecast', null, 'Roof may close']);
+  assert.deepEqual(words(null, k - 121 * H), ['none', 'not_yet', 'Roof may close'], 'more than 120 h out');
+  assert.deepEqual(words(snapshot('CHI-ATL', 25), null, null), ['none', 'unavailable', 'Roof may close'], 'signed out: the week file\'s stadium');
+  assert.deepEqual(words(snapshot('CHI-ATL', 40), k - 24 * H), ['none', 'stale', 'Roof may close']);
+  assert.deepEqual(words(snapshot('CHI-ATL', 1), k + H), ['forecast', null, 'Roof may close'], 'the final pre-kickoff forecast');
+  // The note on a no-forecast row stays "No current forecast"; the roof's words ride beside it.
+  assert.equal(weatherRow(g, atl, null, k - 24 * H).note, 'No current forecast');
+  const closed = { ...g, flags: { ...g.flags, roof: 'closed' } };
+  assert.deepEqual([weatherRow(closed, atl, null, k).kind, weatherRow(closed, atl, null, k).roofNote], ['indoors', null]);
+  assert.equal(weatherRow(game('SEA-DEN'), venue('DEN00'), null, kickoff('SEA-DEN')).roofNote, null);
+  assert.equal(weatherRow({ id: 'XXX-YYY', kickoff: g.kickoff }, null, null, k).roofNote, null);
+});
+
 test('D-45 after kickoff: the final pre-kickoff forecast still shows (and can carry a chip); an older one does not', () => {
   const k = kickoff('SEA-DEN'), den = venue('DEN00');
   const final = weatherRow(game('SEA-DEN'), den, snapshot('SEA-DEN', 1, { windMph: 18 }), k + H);
@@ -121,11 +138,12 @@ test('D-45 one chip only: precipitation wins over Windy; no temperature means no
   assert.equal(chip({ windMph: 5, temperatureF: null, precipitationProbability: 80 }), null);
   assert.equal(chip({ windMph: 22, temperatureF: 45, precipitationProbability: null }), 'Windy');
   assert.equal(chip({ windMph: 5, gustMph: 45, temperatureF: 45, precipitationProbability: 10 }), null, 'a gust is not sustained wind');
-  // Canopy and retractable stadiums show the outside weather, so they can carry a chip; a dome never does.
-  assert.equal(weatherChip(row('ARI-LAR', { windMph: 16 })), 'Windy');
+  // A retractable stadium shows the outside weather, so it can carry a chip; a dome and SoFi's canopy never do.
   assert.equal(weatherChip(row('CHI-ATL', { precipitationProbability: 70, temperatureF: 60 })), 'Rain likely');
+  assert.equal(weatherChip(row('ARI-LAR', { windMph: 16 })), null);
   for (const r of [null, undefined, {}, { kind: 'indoors', roof: 'dome', values: null }, { kind: 'none', roof: 'outdoor', values: null },
     { kind: 'forecast', roof: 'dome', values: { windMph: 30, precipitationProbability: 90, temperatureF: 50 } }, { kind: 'forecast', roof: 'outdoor', values: null },
+    { kind: 'forecast', roof: 'canopy', values: { windMph: 30, precipitationProbability: 90, temperatureF: 50 } },
     { kind: 'indoors', roof: 'retractable', values: { windMph: 30, precipitationProbability: 90, temperatureF: 50 } }, { kind: 'none', roof: 'outdoor', values: { windMph: 30 } }]) {
     assert.equal(weatherChip(r), null, JSON.stringify(r));
   }
@@ -145,16 +163,15 @@ test('D-45 chips are words only, never digits, for every value on a grid; the wo
   }
 });
 
-test('D-45 every Week 6 game gets exactly one kind of row, and only the dome is Indoors', () => {
+test('D-45 every Week 6 game gets exactly one kind of row, and only the dome and SoFi are Indoors', () => {
   const kinds = {};
   for (const g of week.games) {
     const k = Date.parse(g.kickoff), id = g.flags.stadium.id, place = venue(id);
     const fresh = weatherRow(g, place, { ...snapshot(g.id, 25) }, k - 24 * H);
     kinds[g.id] = [fresh.kind, fresh.roof];
-    assert.equal(weatherRow(g, place, null, null).kind, place.type === 'dome' ? 'indoors' : 'none', g.id);
+    assert.equal(weatherRow(g, place, null, null).kind, ['dome', 'canopy'].includes(place.type) ? 'indoors' : 'none', g.id);
   }
-  assert.deepEqual(Object.entries(kinds).filter(([, [kind]]) => kind !== 'forecast'), [['BUF-LV', ['indoors', 'dome']]]);
-  assert.deepEqual(kinds['ARI-LAR'], ['forecast', 'canopy']);
+  assert.deepEqual(Object.entries(kinds).filter(([, [kind]]) => kind !== 'forecast'), [['ARI-LAR', ['indoors', 'canopy']], ['BUF-LV', ['indoors', 'dome']]]);
 });
 
 test('D-45 the weather view is pure: no network, no clock, no input changes; it imports only the trends view helpers', () => {

@@ -32,23 +32,24 @@ const placeText = (venue, international = false) => (venue?.name ? `${venue.name
 
 /**
  * One game's weather row at the top of "Strongest historical evidence" (D-45: every game has one). A
- * forecast shows the full card; a dome or closed roof says "Indoors" with no numbers and no credit; no
- * current forecast says so. Presentational, fed by windView (shared/trends-view.mjs) for the card and
- * weatherRow (shared/weather-view.mjs) for the kind; a static region, not a live one. `trends` is true
- * when the wind trend cards can fit this game: only then does the card say what would fit if the
- * forecast holds (never what to pick) and cite the record, measured with observed wind and not
- * backtested on forecasts. Reference only.
+ * forecast shows the full card; a dome, SoFi's canopy or a closed roof says "Indoors" with no numbers
+ * and no credit; no current forecast says so. A retractable roof says "Roof may close" with or without
+ * a forecast. Presentational, fed by windView (shared/trends-view.mjs), which decides the state, and
+ * weatherRow (shared/weather-view.mjs), which gives the stadium and the roof's words; a static region,
+ * not a live one. `trends` is true when the wind trend cards can fit this game: only then does the card
+ * say what would fit if the forecast holds (never what to pick) and cite the record, measured with
+ * observed wind and not backtested on forecasts. Reference only.
  */
 export default function WindForecast({ view, row, week, level = 5, trends = true }) {
   const headingId = useId();
-  if (view.state === 'loading') return <p className="trend-note trend-weather" data-kind="none">{WIND_COPY.loading}</p>;
-  if (view.state === 'indoor' || row?.kind === 'indoors') {
+  if (view.state === 'loading') return <p className="trend-note trend-weather" data-kind="none">Kickoff weather: {WIND_COPY.loading}</p>;
+  if (view.state === 'indoor') {
     const at = placeText(row?.venue);
     return <p className="trend-weather" data-kind="indoors">Kickoff weather: <strong>{WEATHER_INDOORS}</strong>{at ? ` · ${at}` : ''}</p>;
   }
   if (view.state !== 'forecast' && view.state !== 'final') {
     return <p className="trend-note trend-weather" data-kind="none">Kickoff weather: no current forecast for this game.
-      {view.state === 'not_yet' ? ` ${WIND_COPY.later}` : view.reason === 'stale' ? ` ${WIND_COPY.stale}` : ''}</p>;
+      {row?.roofNote ? ` ${row.roofNote}.` : ''}{view.state === 'not_yet' ? ` ${WIND_COPY.later}` : view.reason === 'stale' ? ` ${WIND_COPY.stale}` : ''}</p>;
   }
   const { wind, venue, band } = view;
   const final = view.state === 'final';
@@ -58,7 +59,7 @@ export default function WindForecast({ view, row, week, level = 5, trends = true
   return <section className="trend-wind" data-state={view.state} aria-labelledby={headingId}>
     {React.createElement(`h${Math.min(6, Math.max(2, level))}`, { id: headingId }, title)}
     {place && <p className="trend-wind-place">{place}</p>}
-    {row?.note && <p className="trend-wind-roof">{row.note}</p>}
+    {row?.roofNote && <p className="trend-wind-roof">{row.roofNote}</p>}
     <dl className="trend-wind-values">
       <div><dt>Sustained wind at kickoff</dt><dd><span className="mono">{one(wind.windMph)} mph</span>{from ? ` from the ${from}` : ''}</dd></div>
       <div><dt>Gusts</dt><dd>{typeof wind.gustMph === 'number' ? <>up to <span className="mono">{one(wind.gustMph)} mph</span> in the kickoff hour</> : 'not available'}</dd></div>
@@ -72,7 +73,7 @@ export default function WindForecast({ view, row, week, level = 5, trends = true
     {final && trends && <p className="trend-note">Observed wind appears in next week’s trends file.</p>}
     {trends
       ? <p className="trend-wind-honesty">How far to trust this: {recordText(week)} was measured with observed kickoff wind. Using it with a forecast has not been backtested; the archive of past Open-Meteo forecasts that would allow that check could not be reached from GTL’s build environment. The forecast is for open ground at the stadium’s grid cell, and stadium walls can shelter the field. Reference only; never changes GTL scoring.</p>
-      : <p className="trend-wind-honesty">The forecast is for open ground at the stadium’s grid cell; a roof covers this field, so conditions on it can differ. Reference only; never changes GTL scoring.</p>}
+      : <p className="trend-wind-honesty">The forecast is for open ground at the stadium’s grid cell, and stadium walls can shelter the field. Reference only; never changes GTL scoring.</p>}
     <p className="trend-note">Model: Open-Meteo best match ({view.international ? 'European and global models' : 'U.S. stadiums: mainly NOAA HRRR and GFS'})</p>
     <WindCredit/>
   </section>;

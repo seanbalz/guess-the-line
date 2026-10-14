@@ -70,10 +70,10 @@ export const SEASONS = Object.freeze({
 
 const GAME = /^([A-Z]{2,3})-([A-Z]{2,3})$/;
 /**
- * Venue types whose kickoff weather is fetched (D-45): open stadiums, SoFi's canopy (covered, open-sided) and
- * retractable roofs (the forecast is the outside weather; the team decides the roof on game day). Domes never.
+ * Venue types whose kickoff weather is fetched: open stadiums and retractable roofs (decided on game day). Domes and
+ * SoFi Stadium's canopy (a fixed roof over the field) are never fetched; their weather row says "Indoors" (D-45).
  */
-export const WIND_VENUE_TYPES = Object.freeze(['outdoor', 'canopy', 'retractable']);
+export const WIND_VENUE_TYPES = Object.freeze(['outdoor', 'retractable']);
 
 /**
  * The stadium for a published game, or null for an unknown season, week or team. Returns
@@ -90,5 +90,5 @@ export function venueFor(season, week, gameId) {
   return { id, ...stadium, neutral: Boolean(neutral), international: stadium.country !== 'USA' };
 }
 
-/** True when this venue's kickoff weather is fetched: outdoor, canopy or retractable. Domes and unknown venues are never fetched. */
+/** True when this venue's kickoff weather is fetched: outdoor or retractable. Domes, canopies and unknown venues are never fetched. */
 export const windVenue = venue => Boolean(venue) && WIND_VENUE_TYPES.includes(venue.type);

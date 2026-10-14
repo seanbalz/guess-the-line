@@ -160,29 +160,48 @@ describe('kickoff wind forecast states', () => {
     // Signed out the week file's stadium still says Indoors.
     expect(text(render('BUF-LV', null, null))).toContain('Kickoff weather: Indoors · Allegiant Stadium, Las Vegas');
   });
-  it('SoFi (a canopy, D-45): the forecast, "Covered, open-sided stadium" and the credit, without the wind card band', () => {
+  it('SoFi (a canopy, D-45) says Indoors like a dome: never fetched, with no card, no numbers and no credit', () => {
     const k = kickoff('ARI-LAR'), now = k - 24 * HOUR;
-    const html = render('ARI-LAR', answer('ARI-LAR', now, snapshot('ARI-LAR', now - HOUR, { windMph: 9.4, precipitationProbability: 60, temperatureF: 64.4 })), now), t = text(html);
-    const section = /<section class="trend-wind"[\s\S]*?<\/section>/.exec(html)?.[0];
-    expect(section).toBeTruthy();
-    expect(section).toContain(CREDIT);
-    expect(section).toContain(LICENSE);
-    expect(section).toContain('<p class="trend-wind-roof">Covered, open-sided stadium</p>');
-    expect(t).toContain('SoFi Stadium, Inglewood');
-    expect(t).toContain('Sustained wind at kickoff 9.4 mph from the WSW');
-    expect(t).toContain('Precipitation chance 60%');
-    expect(t).toContain('a roof covers this field, so conditions on it can differ. Reference only; never changes GTL scoring.');
-    // The wind trend cards do not fit a stadium their records count as a dome: no band, no close call, no record.
-    expect(t).not.toMatch(/mph band|Below 10 mph|Within 3 mph|282-196-5/);
-    expect(t).toContain(WIND_COPY.canopy);
-    expect(t).not.toContain(WIND_COPY.indoor);
-    expect(/<footer class="trends-source">[\s\S]*?<\/footer>/.exec(html)[0]).toContain(CREDIT);
-    expect(bannedCopy(strip(t))).toEqual([]);
-    // Without a forecast SoFi says so; it is never called indoors.
-    const none = text(render('ARI-LAR', null, null));
-    expect(none).toContain('Kickoff weather: no current forecast for this game.');
-    expect(none).toContain(WIND_COPY.canopy);
-    expect(none).not.toContain('Indoors');
+    // The server answers "indoor" for SoFi; a snapshot passed by mistake is never shown either.
+    for (const wind of [null, snapshot('ARI-LAR', now - HOUR, { windMph: 9.4, precipitationProbability: 60 })]) {
+      const html = render('ARI-LAR', answer('ARI-LAR', now, wind, 'indoor'), now), t = text(html);
+      expect(t).toContain('Kickoff weather: Indoors · SoFi Stadium, Inglewood');
+      expect(t).toContain(WIND_COPY.indoor);
+      expect(html).not.toContain('trend-wind');
+      expect(html).not.toContain(CREDIT);
+      expect(t).not.toMatch(/mph from the|no current forecast|Roof may close/);
+      expect(bannedCopy(strip(t))).toEqual([]);
+    }
+    expect(text(render('ARI-LAR', null, null))).toContain('Kickoff weather: Indoors · SoFi Stadium, Inglewood');
+  });
+  it('with no venue type known anywhere, the server\'s "indoor" answer still reads Indoors (windView decides the state)', () => {
+    const k = kickoff('SEA-DEN'), now = k - 24 * HOUR;
+    const { stadium, ...flags } = game('SEA-DEN').flags;
+    const bare = { ...week, games: week.games.map(g => (g.id === 'SEA-DEN' ? { ...g, flags } : g)) };
+    const html = renderToStaticMarkup(<TrendsView week={bare} gameId="SEA-DEN" level={4} wind={answer('SEA-DEN', now, null, 'indoor', null)} windNow={now}/>), t = text(html);
+    expect(stadium.type).toBe('outdoor');
+    expect(html).toContain('<p class="trend-weather" data-kind="indoors">Kickoff weather: <strong>Indoors</strong></p>');
+    expect(t).not.toContain('no current forecast for this game.');
+    expect(html).not.toContain(CREDIT);
+  });
+  it('a retractable roof says "Roof may close" without a forecast too: signed out, more than 5 days out, or stale', () => {
+    const k = kickoff('CHI-ATL'), far = k - 121 * HOUR, now = k - 24 * HOUR;
+    expect(text(render('CHI-ATL', null, null))).toContain('Kickoff weather: no current forecast for this game. Roof may close.');
+    expect(text(render('CHI-ATL', answer('CHI-ATL', far, null, 'not_yet'), far)))
+      .toContain('Kickoff weather: no current forecast for this game. Roof may close. The kickoff forecast appears 5 days before kickoff.');
+    expect(text(render('CHI-ATL', answer('CHI-ATL', now, snapshot('CHI-ATL', now - 6 * HOUR - MIN)), now)))
+      .toContain('Kickoff weather: no current forecast for this game. Roof may close. The last forecast is out of date.');
+    expect(text(render('SEA-DEN', null, null))).not.toContain('Roof may close');
+  });
+  it('an open-air forecast that no wind card fits keeps the card and credit, without the band, the record or a roof claim', () => {
+    const k = kickoff('SEA-DEN'), now = k - 24 * HOUR;
+    const bare = { ...week, games: week.games.map(g => (g.id === 'SEA-DEN' ? { ...g, conditional: [] } : g)) };
+    const html = renderToStaticMarkup(<TrendsView week={bare} gameId="SEA-DEN" level={4} wind={answer('SEA-DEN', now, snapshot('SEA-DEN', now - HOUR))} windNow={now}/>), t = text(html);
+    expect(/<section class="trend-wind"[\s\S]*?<\/section>/.exec(html)?.[0]).toContain(CREDIT);
+    expect(t).toContain('Sustained wind at kickoff 14.2 mph from the WSW');
+    expect(t).toContain('The forecast is for open ground at the stadium’s grid cell, and stadium walls can shelter the field. Reference only; never changes GTL scoring.');
+    expect(t).not.toMatch(/roof covers|mph band|Within 3 mph|282-196-5/);
+    expect(t).toContain('No evidence-tier trend fits this game.');
   });
   it('without forecasts (signed out, local, not a member, not deployed) the note falls back; the old "no forecast source" text is gone', () => {
     const html = render('SEA-DEN', null, null), t = text(html);
@@ -197,7 +216,7 @@ describe('kickoff wind forecast states', () => {
   });
   it('while the read is in flight: a loading line, not the fallback numbers', () => {
     const t = text(render('SEA-DEN', null, null, { windLoading: true }));
-    expect(t).toContain('Loading kickoff forecast…');
+    expect(t).toContain('Kickoff weather: Loading kickoff forecast…');
     expect(t).toContain(WIND_COPY.windConditional);
   });
   it('a stale snapshot falls back and says the last forecast is out of date', () => {
@@ -248,15 +267,15 @@ describe('kickoff wind forecast states', () => {
 });
 
 describe('weather on every game (D-45)', () => {
-  /** A /wind/read answer for the whole week as the server sends it: a snapshot for every game but the dome. */
+  /** A /wind/read answer for the whole week as the server sends it: a snapshot for every game but the dome and SoFi. */
   const all = (now, values = () => ({})) => ({
     ...answer('SEA-DEN', now, null), games: Object.fromEntries(week.games.map(g => {
       const { id, name, city, country, type } = { id: g.flags.stadium.id, ...WIND_STADIUMS[g.flags.stadium.id] };
-      const dome = type === 'dome';
-      return [g.id, { kickoff: g.kickoff, venue: { id, name, city, country, type }, status: dome ? 'indoor' : 'forecast', wind: dome ? null : snapshot(g.id, Date.parse(g.kickoff) - 25 * HOUR, values(g)) }];
+      const indoor = ['dome', 'canopy'].includes(type);
+      return [g.id, { kickoff: g.kickoff, venue: { id, name, city, country, type }, status: indoor ? 'indoor' : 'forecast', wind: indoor ? null : snapshot(g.id, Date.parse(g.kickoff) - 25 * HOUR, values(g)) }];
     })),
   });
-  it('every Week 6 panel has exactly one weather row: thirteen forecast cards with the credit and one Indoors', () => {
+  it('every Week 6 panel has exactly one weather row: twelve forecast cards with the credit, and Indoors for the dome and SoFi', () => {
     const rows = {};
     for (const g of week.games) {
       const now = kickoff(g.id) - 24 * HOUR, html = render(g.id, all(now), now);
@@ -266,12 +285,12 @@ describe('weather on every game (D-45)', () => {
       if (cards) expect(/<section class="trend-wind"[\s\S]*?<\/section>/.exec(html)[0], g.id).toContain(CREDIT);
       else expect(html, g.id).not.toContain(CREDIT);
     }
-    expect(Object.entries(rows).filter(([, kind]) => kind !== 'forecast')).toEqual([['BUF-LV', 'indoors']]);
-    // Signed out: one row per game too, the dome Indoors and every other game the note.
+    expect(Object.entries(rows).filter(([, kind]) => kind !== 'forecast')).toEqual([['ARI-LAR', 'indoors'], ['BUF-LV', 'indoors']]);
+    // Signed out: one row per game too, the dome and SoFi Indoors and every other game the note.
     for (const g of week.games) {
       const html = render(g.id, null, null);
       expect(html.match(/class="(?:trend-note )?trend-weather"/g)?.length, g.id).toBe(1);
-      expect(text(html), g.id).toContain(g.id === 'BUF-LV' ? 'Kickoff weather: Indoors' : 'Kickoff weather: no current forecast for this game.');
+      expect(text(html), g.id).toContain(['BUF-LV', 'ARI-LAR'].includes(g.id) ? 'Kickoff weather: Indoors' : 'Kickoff weather: no current forecast for this game.');
     }
   });
   it('a board chip from the same rows is one word chip, never digits; Indoors and missing forecasts get none', () => {
@@ -283,7 +302,7 @@ describe('weather on every game (D-45)', () => {
     }));
     expect(Object.entries(chips).filter(([, chip]) => chip)).toEqual([['SEA-DEN', 'Windy'], ['NYJ-NE', 'Rain likely'], ['DAL-GB', 'Snow likely']]);
     for (const chip of Object.values(chips)) if (chip) { expect(Object.values(WEATHER_CHIPS)).toContain(chip); expect(chip).not.toMatch(/\d/); }
-    expect(chips['BUF-LV']).toBeNull();
+    expect([chips['BUF-LV'], chips['ARI-LAR']]).toEqual([null, null]);
     expect(weatherChip(weatherRow(game('SEA-DEN'), null, null, null))).toBeNull();
   });
 });
