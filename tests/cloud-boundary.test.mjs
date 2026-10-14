@@ -173,7 +173,7 @@ test('only the referee, D-34 wind, M-01 gate and live-rules, and M-05 pieces are
   const monday = ['gtl_odds_carryover_slate'];
   assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', ...[...referees, ...winds, ...gate, ...monday].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
-  for (const rpc of gate) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261014160000_gtl_guess_gate_per_game.sql', rpc);
+  for (const rpc of gate) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261014223000_gtl_guess_gate_per_game.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
   assert.equal(awaitingDeploy['rpc/gtl_odds_carryover_slate'], 'migration 20261014221500_gtl_odds_open_weeks.sql');
   const missing = async (url, request) => ([...referees, ...winds, ...gate, ...monday].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))

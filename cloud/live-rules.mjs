@@ -4,7 +4,7 @@
 // as `rules` (the /ballot and /bet replies are the /state view, so they carry it too). Both apps' buttons,
 // picksDue() and the new app's banners read it, so a deploy never puts a screen ahead of its rule and a
 // rollback switches the screens back. The hosted project does not have the function yet (M-01,
-// 20261014160000_gtl_guess_gate_per_game.sql, creates it; its rollback revokes the service role's read); until it
+// 20261014223000_gtl_guess_gate_per_game.sql, creates it; its rollback revokes the service role's read); until it
 // does, every reply carries today's rules. Screens only describe the rule: the SQL writers and readers enforce it
 // whatever a client shows.
 import { readOptional } from './optional-rpc.mjs';

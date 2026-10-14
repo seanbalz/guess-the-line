@@ -80,7 +80,7 @@ test('community history: every player, week and market with the line at each gue
   const week5 = h => h.weeks.find(w => w.season === 2026 && w.week === 5);
   const entry = (h, n, mode) => week5(h).entries.find(e => e.userId === id(n) && e.mode === mode);
   const signature = async () => (await db.query('select signature from public.gtl_weekly_slates where season=2026 and week=5')).rows[0].signature;
-  // M-01 (20261014160000_gtl_guess_gate_per_game.sql, redesign stage 16) opens each game and market on its own and counts a
+  // M-01 (20261014223000_gtl_guess_gate_per_game.sql, redesign stage 16) opens each game and market on its own and counts a
   // game's points from its kickoff. This suite runs on HOSTED, which gains M-01 once Sean applies it, and reruns with M-01 and
   // its rollback (tests/rollback.test.mjs), so it reads which readers are installed: points are checked after every kickoff
   // (AFTER; the earlier readers ignore the clock for points), and each expectation M-01 changes is written for both.

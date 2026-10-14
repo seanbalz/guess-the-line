@@ -12,7 +12,7 @@ try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 // A fixed list that ends before the fresh-submission guard, so the fixture can write submitted ballots directly: this suite
 // pins the D-21 to D-24 bodies of gtl_read_community and gtl_week_revealed (deadline reveal, sat-out standings at 0). M-01
-// (20261014160000, redesign stage 16) replaces both with the per-game gate; tests/guess-reveal-per-game-sql.test.mjs reruns
+// (20261014223000, redesign stage 16) replaces both with the per-game gate; tests/guess-reveal-per-game-sql.test.mjs reruns
 // these feed cases on ALL through the real save path (posts per market, sit-out, the deadline reveal that became a per-game
 // kickoff reveal, sat-out standings that became null, paging).
 const MIGRATIONS = [

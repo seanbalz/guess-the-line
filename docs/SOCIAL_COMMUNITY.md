@@ -54,7 +54,7 @@ Redesign build plan stage 4 (section 3.4): `/community/read`, `/personal`, `/per
 
 D-39 (Sean, October 14): "once you make a pick that game is revealed. you can change bets up until game start but you cannot guess the spread or total again once youve locked in that games guess". Each game's Spread guess and Total guess is locked in on its own; locking it in opens, for that player, that game's line for that market and everyone's guesses for that game and market. A game's kickoff opens it for everyone (D-31); a sit-out (D-23), and from M-03 a skip or "See picks now" (D-36), opens the rest of the week for that market. Unlocked guesses are drafts that only their owner sees.
 
-**Database.** Migration `20261014160000_gtl_guess_gate_per_game.sql` (M-01, redesign build plan stage 16) changes read paths only: no table, row, trigger, write path or table grant. Five new service-only, security-invoker functions:
+**Database.** Migration `20261014223000_gtl_guess_gate_per_game.sql` (M-01, redesign build plan stage 16) changes read paths only: no table, row, trigger, write path or table grant. Five new service-only, security-invoker functions:
 
 | Function | What it answers |
 |---|---|
@@ -64,7 +64,7 @@ D-39 (Sean, October 14): "once you make a pick that game is revealed. you can ch
 | `gtl_ballot_late(ballot)` | The stored Late marker `{ deadline, minutes }`, or null. Nothing writes one until M-07 (stage 24). |
 | `gtl_live_rules()` | The live rules ([Live rules field](#live-rules-field)): `{ sentFinal: false, lateWindow: 'deadline', revealAt: 'kickoff' }`. From the apply, `/community/read`, `/personal` and `/state` carry `revealAt: 'kickoff'`, so the new app opens each game at its own kickoff, as the gate does, instead of the whole week at the deadline. The other two fields stay today's. M-02 and M-07 copy this body and change only their own field. |
 
-It replaces three functions with unchanged argument lists (each `-- replaces` header names the md5 of the body it replaces; the rollback is `supabase/rollback/20261014160000_gtl_guess_gate_per_game.sql`, which restores the three bodies and revokes the service role's grant on `gtl_live_rules`, so every reply carries today's rules again):
+It replaces three functions with unchanged argument lists (each `-- replaces` header names the md5 of the body it replaces; the rollback is `supabase/rollback/20261014223000_gtl_guess_gate_per_game.sql`, which restores the three bodies and revokes the service role's grant on `gtl_live_rules`, so every reply carries today's rules again):
 
 - `gtl_week_revealed`: a sit-out, or every game of the slate open through `gtl_guess_revealed`. The deadline clause becomes each game's kickoff, so after Thursday's deadline a player who has not locked in Sunday's games no longer sees Sunday's guesses (this closes the deadline reveal before late picks exist, M-07).
 - `gtl_read_community`: a `ballot_submitted` post carries another member's pick for a game only while that pick is locked in and the game and market is open to the viewer; `picksHidden` is true while any of them is hidden and the new `hiddenGames` lists the hidden game ids. The viewer's own posts are never redacted. Standings count kicked-off games only; `weekPoints` is null without a submitted ballot that week and `seasonPoints` without one that season (sat out included), ordered last. Posts dated after the request time are left out; paging is unchanged. Posts and `submissions` carry `late`.

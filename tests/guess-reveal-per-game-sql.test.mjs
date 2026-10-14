@@ -12,14 +12,14 @@ import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 import { TODAYS_RULES, parseLiveRules, readLiveRules } from '../cloud/live-rules.mjs';
 import { guessState, liveRules } from '../web/src/next/rules.js';
 
-// Redesign build plan stage 16, M-01 (20261014160000_gtl_guess_gate_per_game.sql): one Guess reveal gate per game and market
+// Redesign build plan stage 16, M-01 (20261014223000_gtl_guess_gate_per_game.sql): one Guess reveal gate per game and market
 // (D-39 per-game lock-in, D-31 kickoff, D-23 sit-out). Runs on ALL (the hosted project does not have M-01 yet), through the
 // real handler and on the raw readers, on local PGlite only. Fixture accounts and values only, never real player data.
 //
 // The week: four games; the first kicks off at the deadline (as Thursday's game does), the rest an hour apart. Troy sends
 // Spread and Total, Luke sends Total only, Sean sits out Spread and keeps a Total draft. Every pick and line is an unusual
 // half point, and no two share a size within a market (a spread matches either sign), so the leak scan can name each one.
-const MIGRATION = '20261014160000_gtl_guess_gate_per_game.sql';
+const MIGRATION = '20261014223000_gtl_guess_gate_per_game.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const HOUR = 3_600_000;
 const LINES = { spread: [-11.5, 13.5, 6.5, -9.5], total: [58.5, 31.5, 52.5, 36.5] };

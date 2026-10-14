@@ -51,7 +51,7 @@
 -- moved or hidden from its owner); the group screens' gtl_read_weekly_state (stage 17 moves their reveal).
 --
 -- Function-only and rerunnable: every definition is create or replace with an unchanged argument list, and the grants are
--- restated. Rollback: supabase/rollback/20261014160000_gtl_guess_gate_per_game.sql (the three previous bodies, and a revoke
+-- restated. Rollback: supabase/rollback/20261014223000_gtl_guess_gate_per_game.sql (the three previous bodies, and a revoke
 -- that stops the service role reading gtl_live_rules, so every reply carries today's rules again).
 
 -- Today a pick in a submitted ballot is locked in. The ballot JSON is written only by the server (the writers take picks and a

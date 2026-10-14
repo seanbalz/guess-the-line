@@ -54,7 +54,7 @@ export const rpcChecks = Object.freeze([
   ['gtl_read_community_history', { p_user: missingId, p_season: null, p_now: null }],
   ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
   ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
-  // M-01, the per-game Guess reveal gate (20261014160000_gtl_guess_gate_per_game.sql, redesign stage 16): four service-only
+  // M-01, the per-game Guess reveal gate (20261014223000_gtl_guess_gate_per_game.sql, redesign stage 16): four service-only
   // helpers and the live rules gtl-api reads through cloud/live-rules.mjs (section 3.4). Awaiting deploy (below) until the
   // migration is applied to the hosted project.
   ['gtl_guess_locked_in', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game: 'AAA-BBB' }],
@@ -78,9 +78,9 @@ export const workerChecks = Object.freeze([]);
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
 export const awaitingDeploy = Object.freeze({
   // M-01: remove these five with the release record of its hosted apply (Gate M step 8).
-  'rpc/gtl_guess_locked_in': 'migration 20261014160000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_guess_revealed': 'migration 20261014160000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_markets_visible': 'migration 20261014160000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_ballot_late': 'migration 20261014160000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_live_rules': 'migration 20261014160000_gtl_guess_gate_per_game.sql',
+  'rpc/gtl_guess_locked_in': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
+  'rpc/gtl_guess_revealed': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
+  'rpc/gtl_markets_visible': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
+  'rpc/gtl_ballot_late': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
+  'rpc/gtl_live_rules': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
 });
