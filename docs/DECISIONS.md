@@ -1,5 +1,17 @@
 # Decision log
 
+## D-43 — slip notes, the old sit-out window and locked-in guesses in History (October 14, 2026)
+
+Sean answered the questions PR #98 (redesign stage 21, M-04) and PR #99 (stage 19, M-03) raised, in the cloud session.
+
+| Question | Ruling |
+|---|---|
+| While another player's slip leg is line-locked for the viewer, are the slip's free-text note and change reasons hidden too? (#98) | **Hidden until the line opens.** A note can carry the line ("took -6.5 early"); it shows once the viewer locks in, sits out, or the game kicks off. |
+| Does the old app's "Sit out this week" stay open until the last kickoff, like Skip and "See picks now"? (#99) | **Yes, open until the last kickoff too.** Both apps match. |
+| Does the old app's History show a sat-out market's locked-in guesses (D-41)? (#99) | **Yes, with per-game scoring.** From the day M-07 scores each locked-in guess on its own, the old History lists those guesses and their points, as the new app does (D-39: live in both apps). |
+| Does History show other players' locked-in guesses in a market that is neither sent nor sat out? (#99) | **Yes, gated per game, with M-07.** Each locked-in guess shows to another player once that game and market is open to them, the same rule as Everyone's picks (M-08). Unlocked drafts are never shown. It lands with per-game scoring so History and points change together. |
+
+- **Where it is built.** M-04 (#98) already holds notes back. M-07 (stage 24) moves the old sit-out (`gtl_sit_out_week`) to the last-kickoff window, replaces `gtl_read_community_history` again to list locked-in guesses per game, and lets D-27 pending-line resolution through for a sat-out market's locked-in guesses. Stage 25 updates the old app's sit-out button and History rows the same day.
 ## D-42 — account deletion keeps the display name; public contact address on the legal pages (October 14, 2026)
 
 Sean answered, in the coordinating session, the two questions PR #62 (the public Privacy Policy and Terms of Service pages) asked him to confirm.
