@@ -193,14 +193,21 @@ test.describe('the real app', () => {
       await expect(avatar).toBeFocused();
       await expect(title(page, 'Home')).toBeVisible();
 
-      // Keyboard: open, Tab to Appearance, Enter. The view changes in place and focus stays in the sheet.
+      // Keyboard: the menu wraps in both directions, then Profile precedes Appearance in the tab order.
+      // Appearance changes the view in place and focus stays in the sheet.
       await avatar.focus();
       await page.keyboard.press('Enter');
       await expect(menu).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Close' })).toBeFocused();
+      await page.keyboard.press('Shift+Tab');
+      await expect(menu.getByRole('button', { name: 'Sign out', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
-      await expect(page.getByRole('button', { name: 'Appearance' })).toBeFocused();
+      await expect(menu.getByRole('button', { name: 'Close' })).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(menu.getByRole('button', { name: 'Profile', exact: true })).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(menu.getByRole('button', { name: 'Appearance', exact: true })).toBeFocused();
       await page.keyboard.press('Enter');
       const appearance = sheet(page, 'Appearance');
       await expect(appearance).toBeVisible();

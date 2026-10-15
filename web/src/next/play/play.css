@@ -112,7 +112,11 @@
 }
 .gx .gx-live-play [class~="chip-picker"] { gap: var(--gx-space-4); }
 .gx .gx-live-play [class~="chip-row"] { gap: var(--gx-space-2); }
-.gx .gx-live-play [class~="chip-teams"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+.gx .gx-live-play [class~="chip-teams"] {
+  display: grid;
+  grid-template-columns: minmax(var(--gx-size-touch), 1fr) max-content minmax(var(--gx-size-touch), 1fr);
+  align-items: stretch;
+}
 .gx .gx-live-play .gx-play-entry button[class~="chip"] {
   padding: var(--gx-space-2);
   background: var(--gx-surface-1);
@@ -123,8 +127,7 @@
 .gx .gx-live-play .gx-play-entry button[class~="team-chip"] {
   min-width: 0;
   padding: var(--gx-space-4) var(--gx-space-1) var(--gx-space-2);
-  overflow-wrap: anywhere;
-  white-space: normal;
+  white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
 }

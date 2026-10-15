@@ -79,6 +79,59 @@ test('private notes preserve 2,000 UTF-16 characters, never create Favorites, cl
   } finally { await world.db.close(); }
 });
 
+test('a legacy 2,000-codepoint note reads whole, preserves an over-limit shortened draft through reload, and clears only on save', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL);
+  try {
+    const legacy = '🏈'.repeat(2000), shortened = '🏈'.repeat(1500);
+    expect([...legacy]).toHaveLength(2000);
+    expect(legacy).toHaveLength(4000);
+    // The existing SQL accepts 2,000 Unicode codepoints; the current API accepts 2,000 UTF-16 units.
+    // Seed through the real local RPC to represent an already-valid row, without changing the API contract.
+    const scope = target(world);
+    const seeded = await world.db.transaction(async tx => {
+      await tx.exec('set local role service_role');
+      return (await tx.query('select public.gtl_set_game_note($1,$2,$3,$4,$5,$6,$7) value',
+        [ACCOUNTS.luke.id, randomUUID(), scope.season, scope.week, scope.gameId, legacy, 0])).rows[0].value;
+    });
+    expect(seeded).toMatchObject({ note: legacy, changed: true });
+    const calls = writes(page);
+    await openNotes(page);
+    await expect(textbox(page)).toHaveValue(legacy);
+    const limitMessage = 'This note is longer than the current save limit. Its full text is kept. Shorten it or clear it before saving.';
+    await expect(note(page).getByText(limitMessage, { exact: true })).toBeVisible();
+    await expect(save(page)).toBeDisabled();
+    expect((await rows(world))[0].note).toBe(legacy);
+
+    // Delete part of the existing text: inserting a new over-limit value would hit native maxlength instead.
+    await textbox(page).focus();
+    await textbox(page).evaluate((element, start) => element.setSelectionRange(start, element.value.length), shortened.length);
+    await textbox(page).press('Backspace');
+    await expect(textbox(page)).toHaveValue(shortened);
+    await expect(save(page)).toBeDisabled();
+    expect(calls).toEqual([]);
+    await page.reload();
+    await openSheet(page);
+    await expect(textbox(page)).toHaveValue(shortened);
+    await expect(note(page).getByText(limitMessage, { exact: true })).toBeVisible();
+    await expect(save(page)).toBeDisabled();
+    expect((await rows(world))[0].note).toBe(legacy);
+    expect(calls).toEqual([]);
+
+    // Clearing is a deliberate edit followed by Save; neither read nor draft recovery writes anything.
+    await textbox(page).fill('');
+    await expect(save(page)).toBeEnabled();
+    await save(page).click();
+    await expect(note(page)).toContainText('Private note saved.');
+    await expect(save(page)).toBeDisabled();
+    expect(calls).toEqual([{ ...scope, requestId: expect.any(String), note: '', revision: seeded.revision }]);
+    expect((await rows(world))[0]).toMatchObject({ note: '', saved: false });
+    const events = (await world.db.query("select before_value,after_value from public.gtl_personal_events where user_id=$1 and action='personal/note' order by revision", [ACCOUNTS.luke.id])).rows;
+    expect(events).toHaveLength(2);
+    expect(events[1]).toMatchObject({ before_value: { notes: legacy }, after_value: { notes: '' } });
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('a conflict preserves the draft, and replaying an earlier receipt never replaces a newer saved note', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL);
   try {

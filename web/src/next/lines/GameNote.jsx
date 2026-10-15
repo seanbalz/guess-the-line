@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { cloudApi } from '../../api.js';
 import { useShell } from '../shell/context.js';
 import { Button, Icon } from '../ui/index.js';
-import { gameNoteDraftKey, gameNoteFromRead, readGameNoteDraft, validNoteReply, writeGameNoteDraft } from './gameNoteDraft.js';
+import { gameNoteDraftKey, gameNoteFromRead, NOTE_WRITE_MAX, noteFitsWriteLimit, readGameNoteDraft, validNoteReply, writeGameNoteDraft } from './gameNoteDraft.js';
 import './gameNote.css';
 
 /** M-09/M-29 are hosted. This writes only the signed-in owner's note, never a Favorite, ballot or feed entry. */
@@ -15,6 +15,7 @@ export function GameNote({ accountId, season, week, gameId, requestSignIn, onSav
   const [storageUnavailable, setStorageUnavailable] = useState(false);
   const dirtyKey = gameNoteDraftKey(scope);
   const pending = draft?.pending;
+  const tooLong = Boolean(draft && !noteFitsWriteLimit(draft.text));
   const conflict = Boolean(saved && draft && saved.revision !== draft.base.revision);
   const dirty = Boolean(draft && (draft.text !== draft.base.note || pending));
   const { setDirty } = shell;
@@ -57,7 +58,7 @@ export function GameNote({ accountId, season, week, gameId, requestSignIn, onSav
     finally { running.current = false; if (alive.current) setLoading(false); }
   }
   async function save(retry = false) {
-    if (running.current || !saved || !draft || loading || !retry && (pending || conflict || reviewRequired) || retry && (!pending || !checked)) return;
+    if (running.current || !saved || !draft || loading || !retry && (pending || conflict || reviewRequired || tooLong) || retry && (!pending || !checked)) return;
     const request = retry ? pending : { requestId: crypto.randomUUID(), season, week, gameId, note: draft.text, revision: draft.base.revision };
     running.current = true; setBusy(true); setError(''); setNotice(''); setChecked(false);
     keep({ ...draft, pending: request });
@@ -97,12 +98,13 @@ export function GameNote({ accountId, season, week, gameId, requestSignIn, onSav
     <header className="gx-game-note-head"><Icon icon="lock" size={20}/><div><h3 id={label} className="gx-t-section">Private game note</h3><p id={help} className="gx-t-meta gx-c-2">Only you see this. Your note stays with this game and week.</p></div></header>
     {loading && <p className="gx-t-meta gx-c-2" role="status">Loading your saved note…</p>}
     {error && <p className="gx-game-note-error gx-t-body" role="alert">{error}</p>}
-    {draft && <><label className="gx-game-note-label" htmlFor={`${label}-text`}>Your note</label><textarea id={`${label}-text`} aria-describedby={help} maxLength={2000} rows={5} value={draft.text} disabled={busy || loading || Boolean(pending) || !saved} onChange={event => { keep({ ...draft, text: event.target.value }); setNotice(''); }}/><p className="gx-game-note-count gx-t-meta gx-c-2">{draft.text.length.toLocaleString()} / 2,000 characters</p></>}
+    {draft && <><label className="gx-game-note-label" htmlFor={`${label}-text`}>Your note</label><textarea id={`${label}-text`} aria-describedby={tooLong ? `${help} ${label}-limit` : help} maxLength={NOTE_WRITE_MAX} rows={5} value={draft.text} disabled={busy || loading || Boolean(pending) || !saved} onChange={event => { keep({ ...draft, text: event.target.value }); setNotice(''); }}/><p className="gx-game-note-count gx-t-meta gx-c-2">{draft.text.length.toLocaleString()} / 2,000 characters</p></>}
+    {tooLong && <p id={`${label}-limit`} className="gx-t-body gx-c-2">This note is longer than the current save limit. Its full text is kept. Shorten it or clear it before saving.</p>}
     {notice && <p className="gx-t-body gx-c-2" role="status">{notice}</p>}
     {storageUnavailable && dirty && <p className="gx-t-meta gx-c-2">This browser cannot keep a recovery copy. Keep this page open until your note is saved.</p>}
     {(pending || conflict || reviewRequired) && <div className="gx-game-note-review"><p className="gx-t-body">{pending ? 'Your save is unconfirmed. Check the saved note first; retrying will use the same request.' : 'Your draft is preserved. Check the saved version, then choose which text to keep.'}</p>{saved && checked && <><h4 className="gx-t-strong">Saved note</h4><p className="gx-game-note-saved gx-t-body">{saved.note || 'No saved text.'}</p></>}{canReview && <div className="gx-game-note-actions"><Button onClick={() => accept(saved, 'Showing the saved version.')}>Use saved note</Button><Button onClick={() => { keep({ ...draft, base: saved }); setReviewRequired(false); setNotice('Your draft is ready. Save note to replace the saved version.'); }}>Keep editing my draft</Button></div>}</div>}
     <div className="gx-game-note-actions">
-      <Button variant="primary" disabled={!saved || !dirty || loading || busy || Boolean(pending) || conflict || reviewRequired} onClick={() => save()}>{busy ? 'Saving…' : 'Save note'}</Button>
+      <Button variant="primary" disabled={!saved || !dirty || loading || busy || Boolean(pending) || conflict || reviewRequired || tooLong} onClick={() => save()}>{busy ? 'Saving…' : 'Save note'}</Button>
       <Button disabled={busy || loading} onClick={checkSaved}>{pending || error || conflict || reviewRequired ? 'Check saved note' : 'Refresh note'}</Button>
       {pending && <Button disabled={!checked || busy || loading} onClick={() => save(true)}>Retry same save</Button>}
     </div>
