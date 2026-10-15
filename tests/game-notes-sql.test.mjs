@@ -293,18 +293,23 @@ test('through gtl-api: /personal/note and /personal/notes serve only the signed-
   const solo = await world.api('troy', 'personal', undefined);
   assert.deepEqual(solo.body.favorites, [], 'the old app\'s Solo screen lists saved games only, so the note adds none');
 
+  /** Every leak-scan reader (/personal/notes among them) as `viewer`: none carries Troy's note text or the number inside it. */
+  const scanReaders = async (viewer, when) => {
+    assert.ok(READERS.some(([route]) => route === '/personal/notes'), 'the leak scan covers /personal/notes since M-09 is hosted');
+    for (const [route, method, body] of READERS) {
+      const reply = await world.api(viewer, route.slice(1), method === 'GET' ? undefined : body);
+      assert.equal(reply.status, 200, `${viewer} ${route} ${when}: ${JSON.stringify(reply.body)}`);
+      // Times are blanked first: a reply stamped "…:41.512Z" would otherwise read as the note's 41.5.
+      const text = withoutTimes(JSON.stringify(reply.body));
+      assert.ok(!text.includes('Private note for the fixture') && !text.includes('41.5'), `${viewer} ${route} ${when} carries Troy's note`);
+      assert.deepEqual(leakScan(reply.body, { viewer: ACCOUNTS[viewer].id, secrets }), [], `${viewer} ${route} ${when}`);
+    }
+  };
   for (const viewer of ['luke', 'sean']) {
     const notes = await world.api(viewer, 'personal/notes', { season, week });
     assert.equal(notes.status, 200);
     assert.deepEqual(notes.body.notes, [], `${viewer} reads no note of Troy's`);
-    for (const [route, method, body] of [...READERS, ['/personal/notes', 'POST', {}]]) {
-      const reply = await world.api(viewer, route.slice(1), method === 'GET' ? undefined : body);
-      assert.equal(reply.status, 200, `${viewer} ${route}: ${JSON.stringify(reply.body)}`);
-      // Times are blanked first: a reply stamped "…:41.512Z" would otherwise read as the note's 41.5.
-      const text = withoutTimes(JSON.stringify(reply.body));
-      assert.ok(!text.includes('Private note for the fixture') && !text.includes('41.5'), `${viewer} ${route} carries Troy's note`);
-      assert.deepEqual(leakScan(reply.body, { viewer: ACCOUNTS[viewer].id, secrets }), [], `${viewer} ${route}`);
-    }
+    await scanReaders(viewer, 'while the game is not saved');
     // There is no way to name another account: identity comes from sign-in, and any other field is refused.
     for (const field of ['userId', 'ownerId', 'owner', 'user']) {
       assert.equal((await world.api(viewer, 'personal/notes', { season, week, [field]: ACCOUNTS.troy.id })).status, 400);
@@ -317,6 +322,8 @@ test('through gtl-api: /personal/note and /personal/notes serve only the signed-
   assert.equal(saveInOldApp.status, 200, JSON.stringify(saveInOldApp.body));
   assert.deepEqual((await world.api('troy', 'personal', undefined)).body.favorites.map(x => [x.gameId, x.notes]), [[A, NOTE]]);
   assert.deepEqual((await world.api('troy', 'personal/notes', {})).body.notes.map(n => [n.note, n.saved, n.revision]), [[NOTE, true, saved.body.revision]]);
+  // Now a saved Favorite, which /personal lists for its owner: still no other account's reader carries it.
+  for (const viewer of ['luke', 'sean']) await scanReaders(viewer, 'once the game is saved');
   // A stale save through the route is a 409 with the sentence the new app shows; the stored note stays.
   const stale = await world.api('troy', 'personal/note', { requestId: randomUUID(), season, week, gameId: A, note: 'Other device.', revision: 0 });
   assert.deepEqual([stale.status, stale.body], [409, { error: 'This note changed on another device. Refresh before saving again.' }]);
@@ -337,4 +344,35 @@ test('without M-09 (the hosted schema before October 14) the old personal routes
     assert.equal(reply.status, 503, route);
     assert.doesNotMatch(JSON.stringify(reply.body), /Old app only|gtl_|function/, `${route} gives no note and no database detail`);
   }
+});
+
+test('through gtl-api: the old app saves a note again trimmed; the trim is an audited change that moves the note\'s revision, so a stale new-app save is refused', { skip }, async t => {
+  // docs/redesign/PRIVATE_NOTES.md, "The old app trims": the new app stores a note exactly as typed; /favorite/set trims the
+  // note the old app sends, and its Favorites card sends a saved game's note with every removal.
+  const f = await notesWorld(t);
+  const { world, season, week } = f, [, B] = f.games;
+  const PADDED = '  Padded note for the fixture.\n\n', TRIMMED = 'Padded note for the fixture.';
+  const first = await world.api('troy', 'personal/note', { requestId: randomUUID(), season, week, gameId: B, note: PADDED, revision: 0 });
+  assert.equal(first.status, 200, JSON.stringify(first.body));
+  assert.deepEqual([first.body.note, first.body.saved], [PADDED, false], 'stored exactly as typed; no Favorite (D-40)');
+  // The old app's "Save to Favorites" sends an empty note for a game that is not saved; the stored note is kept as stored (M-29).
+  let solo = await world.api('troy', 'personal', undefined);
+  const save = await world.api('troy', 'favorite/set', { requestId: randomUUID(), revision: solo.body.revision, season, week, gameId: B, saved: true, notes: '' });
+  assert.equal(save.status, 200, JSON.stringify(save.body));
+  solo = await world.api('troy', 'personal', undefined);
+  assert.deepEqual(solo.body.favorites.map(x => [x.gameId, x.notes]), [[B, PADDED]], 'the old app now shows the note, spaces and line breaks included');
+  const kept = (await world.api('troy', 'personal/notes', {})).body.notes.find(n => n.gameId === B);
+  assert.deepEqual([kept.note, kept.revision], [PADDED, first.body.revision], 'keeping the note does not change its text or its revision');
+  // "Saved · Remove" sends the card's note, which is the stored one; /favorite/set stores it trimmed.
+  const removed = await world.api('troy', 'favorite/set', { requestId: randomUUID(), revision: solo.body.revision, season, week, gameId: B, saved: false, notes: PADDED });
+  assert.equal(removed.status, 200, JSON.stringify(removed.body));
+  const after = (await world.api('troy', 'personal/notes', {})).body.notes.find(n => n.gameId === B);
+  assert.deepEqual([after.note, after.saved], [TRIMMED, false]);
+  assert.ok(after.revision > kept.revision, 'the trim changes the text, so the note\'s revision moves');
+  const event = (await f.events('troy')).at(-1);
+  assert.deepEqual([event.before_value.notes, event.after_value.notes], [PADDED, TRIMMED], 'audited with the text before (D-23)');
+  // A new-app save that started from the padded note is refused, never written over the trimmed text.
+  const stale = await world.api('troy', 'personal/note', { requestId: randomUUID(), season, week, gameId: B, note: `${PADDED}More.`, revision: kept.revision });
+  assert.deepEqual([stale.status, stale.body], [409, { error: 'This note changed on another device. Refresh before saving again.' }]);
+  assert.equal((await world.api('troy', 'personal/notes', {})).body.notes.find(n => n.gameId === B).note, TRIMMED);
 });

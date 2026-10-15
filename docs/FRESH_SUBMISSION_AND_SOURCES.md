@@ -130,12 +130,34 @@ save, pending references and the community reads of that week find them. Because
 `gtl_market_snapshots.id` names a collection, a zero-credit `collect` row
 (`reserved_credits` 0, `diagnostics.carryoverOf` = the provider collection)
 records that snapshot, and both begin RPCs count only collections that reserved
-credits toward the six a day. Submission-triggered collections still collect only
+credits toward the six a day. Any ops or release-record query that counts a day's
+collections must count the same way (`reserved_credits = 2`), or the record rows
+read as extra collections. Submission-triggered collections still collect only
 the week being submitted. With no carried game (Tuesday to Sunday) every replaced
 function behaves exactly as before. Tests: `tests/odds-open-weeks-sql.test.mjs`
-and `tests/odds-provider.test.mjs`. Apply on a Tuesday or Wednesday; after the
-apply, check that the next scheduled collection succeeds, and copy the
-remaining-credit count into the release record weekly.
+and `tests/odds-provider.test.mjs`.
+
+Release order and checks for M-05:
+- Deploy first: `gtl-api` and `gtl-odds-refresh` built from a SHA that contains
+  stage 22's adapter (`cloud/odds-provider.mjs`). The adapter before it refuses a
+  team that appears twice, so with the migration applied every Monday collection
+  would fail with `ODDS_SLATE`, store no lines and still hold its two-credit
+  reservation. Before "apply M-05", confirm both deployed versions in the release
+  record.
+- Apply on a Tuesday or Wednesday, outside the scheduled runs (08:15 and 20:15
+  UTC) and never while the commissioner is running a manual collection: a game
+  postponed to Tuesday or Wednesday would give a collection that straddles the
+  apply two different game lists, and its finish would be refused after the
+  credits are spent.
+- After the apply, check that the next scheduled collection succeeds. On the
+  first Monday, check that a scheduled collection wrote the carried game's
+  snapshot: a `collect` row with `reserved_credits` 0 and `diagnostics.carryoverOf`.
+  The carried snapshot is stored best-effort (a failure there never fails this
+  week's collection and shows only in `gtl_odds_collections.diagnostics`), so each
+  Monday also check that no collection has a null
+  `diagnostics.carryover.snapshotId` while `diagnostics.carryover.availableQuotes`
+  is above 0.
+- Weekly, copy the remaining-credit count into the release record.
 
 The reviewed release applied the earlier dependencies and
 `supabase/migrations/20261008232055_gtl_fresh_submission_odds.sql`, then deployed
