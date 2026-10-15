@@ -62,6 +62,10 @@ test('community account-week Bets read, group reuse, qualification, and game/mar
   assert.deepEqual(closed.qualification.find(row => row.userId === USER('troy')).units, 1.5);
   assert.deepEqual(closed.qualification.find(row => row.userId === USER('troy')).qualified, false);
   assert.equal((await read('troy')).bets[0].selection.line, -13.5, 'owner always sees saved terms');
+  const afterKickoff = await sql('gtl_read_bets', { p_user: USER('luke'), p_season: season, p_week: week,
+    p_league: null, p_now: new Date(Date.parse(state.games[0].kickoff) + 1000).toISOString() });
+  assert.equal(afterKickoff.bets[0].selection.line, -13.5, 'kickoff opens this game without a Guess lock-in');
+  assert.equal(afterKickoff.markets[game].total.visible, true, 'kickoff opens the other market of this game too');
 
   const second = structuredClone(state);
   second.league.id = 'second-group';
