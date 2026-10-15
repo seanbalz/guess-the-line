@@ -30,6 +30,9 @@ begin
     then raise exception 'GTL_BETS_INVALID'; end if;
   if p_league is not null and not exists(select 1 from public.gtl_leagues where id=p_league)
     then raise exception 'GTL_BETS_INVALID'; end if;
+  if p_league is not null and not exists(select 1 from public.gtl_memberships
+      where league_id=p_league and user_id=p_user and active)
+    then raise exception 'GTL_BETS_INVALID'; end if;
   if p_season is null then
     select season,week,signature into s,w,sig from public.gtl_weekly_slates order by season desc,week desc limit 1;
   else

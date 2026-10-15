@@ -80,6 +80,10 @@ test('community account-week Bets read, group reuse, qualification, and game/mar
   await db.query('insert into public.gtl_leagues(id,state,created_by) values($1,$2,$3)', ['second-group', second, USER('sean')]);
   await db.query("insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,'second-group',$2,'player')",
     [USER('troy'), `u_${USER('troy').replaceAll('-', '')}`]);
+  await assert.rejects(read('luke', 'second-group'), /GTL_BETS_INVALID/,
+    'a community player outside the private league cannot inspect its roster');
+  await db.query("insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,'second-group',$2,'player')",
+    [USER('luke'), `u_${USER('luke').replaceAll('-', '')}`]);
   assert.equal((await read('luke', 'sean-troy-luke')).bets.length, 1);
   assert.equal((await read('luke', 'second-group')).bets.length, 1, 'same account bet appears in both group filters');
 

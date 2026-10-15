@@ -101,7 +101,8 @@ Status: built and locally tested in a separate branch; not applied or deployed.
 Owner: Codex. Dependency: hosted M-04 line gate, then Sean's explicit M-10
 apply approval and deploy SHA under the [redesign gates](../docs/REDESIGN_BUILD_PLAN.md).
 The current community week is independent of a private group's week. A group
-filters the roster; account bets appear in each group containing their owner.
+filters the roster for its members; account bets appear in each group containing
+their owner. Community-only players can read the community card without a group.
 Friends' bets show immediately with side and units, while each saved line and price follows the
 viewer's per-game, per-market M-01 gate; the owner's receipts never close.
 Open market buttons use the newest retained named-book quote per book, then
