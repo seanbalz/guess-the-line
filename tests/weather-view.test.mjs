@@ -25,7 +25,7 @@ const snapshot = (id, madeH, values = {}) => {
     fetchedAt: new Date(k - madeH * H).toISOString(), gridLatitude: 39.75, gridLongitude: -105.03, elevationM: 1609, model: 'best_match',
     source: 'Open-Meteo forecast API', sourceUrl: 'https://api.open-meteo.com/v1/forecast?latitude=39.744', ...values };
 };
-/** The row a day before kickoff with a snapshot made 25 h out (fresh: the TTL at 24 h is 3 h). */
+/** The row a day before kickoff with a snapshot made 25 h out (current: under D-47 it falls due at the 12 h checkpoint). */
 const row = (id, values = {}, { madeH = 25, leadH = 24, place = venue(VENUE[id]) } = {}) => weatherRow(game(id), place, snapshot(id, madeH, values), kickoff(id) - leadH * H);
 const chip = values => weatherChip(row('SEA-DEN', values));
 
@@ -78,9 +78,17 @@ test('D-45 no current forecast: missing, signed out, beyond 120 h, stale, invali
   assert.deepEqual(none(undefined, k - 24 * H), ['No current forecast', 'unavailable']);
   assert.deepEqual(none(snapshot('SEA-DEN', 25), null), ['No current forecast', 'unavailable'], 'no server clock (signed out, local, not deployed)');
   assert.deepEqual(none(null, k - 121 * H), ['No current forecast', 'not_yet']);
-  // Twice the TTL for the lead: 3 h at 24 h out, so 6 h is the last fresh age.
-  assert.equal(weatherRow(game('SEA-DEN'), den, snapshot('SEA-DEN', 30), k - 24 * H).kind, 'forecast');
-  assert.deepEqual(none({ ...snapshot('SEA-DEN', 30), fetchedAt: new Date(k - 30 * H - 1).toISOString() }, k - 24 * H), ['No current forecast', 'stale']);
+  // D-47: current until an hour past its due time. A day out, a snapshot made 49 h before kickoff fell due 25 h out (24 h
+  // after it was made), so it is current through 24 h out and stale a millisecond later; one made 30 h out is current
+  // until an hour past the 12 h checkpoint.
+  assert.equal(weatherRow(game('SEA-DEN'), den, snapshot('SEA-DEN', 49), k - 24 * H).kind, 'forecast');
+  assert.deepEqual(none({ ...snapshot('SEA-DEN', 49), fetchedAt: new Date(k - 49 * H - 1).toISOString() }, k - 24 * H), ['No current forecast', 'stale']);
+  assert.equal(weatherRow(game('SEA-DEN'), den, snapshot('SEA-DEN', 30), k - 11 * H).kind, 'forecast');
+  assert.deepEqual(none(snapshot('SEA-DEN', 30), k - 11 * H + 1), ['No current forecast', 'stale']);
+  // A missed 2 h checkpoint: the 12 h forecast stops being current an hour later and is never the final one.
+  assert.equal(weatherRow(game('SEA-DEN'), den, snapshot('SEA-DEN', 12), k - H).kind, 'forecast');
+  assert.deepEqual(none(snapshot('SEA-DEN', 12), k - H + 1), ['No current forecast', 'stale']);
+  assert.deepEqual(none(snapshot('SEA-DEN', 12), k + H), ['No current forecast', 'stale']);
   for (const bad of [{ windMph: null }, { windMph: Number.NaN }, { windMph: '12' }, { fetchedAt: 'yesterday' }, { forecastHour: null }]) {
     assert.deepEqual(none({ ...snapshot('SEA-DEN', 25), ...bad }, k - 24 * H), ['No current forecast', 'unavailable'], JSON.stringify(bad));
   }
@@ -98,7 +106,7 @@ test('D-45 "Roof may close" on every retractable row, with or without a forecast
   assert.deepEqual(words(snapshot('CHI-ATL', 25), k - 24 * H), ['forecast', null, 'Roof may close']);
   assert.deepEqual(words(null, k - 121 * H), ['none', 'not_yet', 'Roof may close'], 'more than 120 h out');
   assert.deepEqual(words(snapshot('CHI-ATL', 25), null, null), ['none', 'unavailable', 'Roof may close'], 'signed out: the week file\'s stadium');
-  assert.deepEqual(words(snapshot('CHI-ATL', 40), k - 24 * H), ['none', 'stale', 'Roof may close']);
+  assert.deepEqual(words(snapshot('CHI-ATL', 50), k - 24 * H), ['none', 'stale', 'Roof may close']);
   assert.deepEqual(words(snapshot('CHI-ATL', 1), k + H), ['forecast', null, 'Roof may close'], 'the final pre-kickoff forecast');
   // The note on a no-forecast row stays "No current forecast"; the roof's words ride beside it.
   assert.equal(weatherRow(g, atl, null, k - 24 * H).note, 'No current forecast');

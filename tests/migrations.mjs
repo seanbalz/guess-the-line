@@ -28,6 +28,7 @@ export const NOT_HOSTED = [
   20261015030000, // M-02 sent_picks_final (redesign stage 18): locked-in picks are final, applied alone (Fri-Sat) on "apply M-02".
   20261015040000, // M-03 guess_week_forfeit (redesign stage 19): skip and "See picks now", applied after M-01 on "apply M-03".
   20261015050000, // M-04 social_line_lock (redesign stage 21): the real-slip line gate, applied after M-01 on Sean's "apply M-04".
+  20261015120000, // D-47 wind_refresh_schedule: weather every 24 h, then 12 h and 2 h before kickoff; Gate M apply on Sean's approval.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

@@ -2,9 +2,11 @@
 // Pure ESM with no network and no clock: the caller passes `now` (the server's asOf plus the time
 // since the answer arrived, as trends-view.mjs windClock computes it). The old app's trends panel and
 // the new app's game sheet show weatherRow; the new app's Lines board shows at most one weatherChip per
-// row. Freshness, the 120 h horizon and the final pre-kickoff rule are windView's (D-34), so every
-// screen agrees on when a forecast shows. Reference only: nothing here reads or changes picks, lines,
-// scores, deadlines, kickoff locks or the D-23 reveal.
+// row. Freshness, the 120 h horizon and the final pre-kickoff rule are windView's, so every screen
+// agrees on when a forecast shows: under D-47 a snapshot is current until an hour past the time it falls
+// due on the refresh schedule (24 h after it was taken, 12 h and 2 h before kickoff; windCurrent), and
+// after kickoff only one taken 2 h or less before kickoff is the final pre-kickoff forecast. Reference
+// only: nothing here reads or changes picks, lines, scores, deadlines, kickoff locks or the D-23 reveal.
 import {
   WIND_CHANGES, WIND_CREDIT, WIND_LICENSE, WIND_LICENSE_URL, WIND_SOURCE_URL, compass, indoorsFor, venueRoof, windView,
 } from './trends-view.mjs';
@@ -36,8 +38,9 @@ const place = venue => (venue && typeof venue.name === 'string'
  * - forecast: a current kickoff forecast (windView's 'forecast', or 'final' after kickoff, with no end time). `note` is
  *   the roof's words ("Roof may close", or null outdoors) and `credit` the Open-Meteo CC BY 4.0 credit.
  * - indoors: a dome, SoFi Stadium's canopy or a closed roof: `note` "Indoors", no values, no credit, and never a chip.
- * - none: no current forecast (`note` "No current forecast"; `reason`: 'not_yet' beyond 120 h, 'stale', or
- *   'unavailable' for missing, invalid, provider down, signed out or not deployed). Never an invented value.
+ * - none: no current forecast (`note` "No current forecast"; `reason`: 'not_yet' beyond 120 h, 'stale' for a snapshot
+ *   more than an hour past its D-47 due time, or 'unavailable' for missing, invalid, provider down, signed out or not
+ *   deployed). Never an invented value.
  * `roofNote` is the roof's words on a forecast or no-forecast row ("Roof may close" for a retractable roof, else null),
  * so every screen can say it without a forecast. `roof` is 'outdoor', 'canopy', 'retractable' or 'dome', or null for an
  * unknown venue. `venue` is the server's stadium ({ type, name, city, country }) or null for the week file's;
