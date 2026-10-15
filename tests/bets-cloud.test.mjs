@@ -26,6 +26,10 @@ test('Bets read is an authenticated POST with server-owned identity and clock', 
   await assert.rejects(handleBets({ route: '/bets/read', body: {}, user: USER, service, featureOff: new Set(['bets']) }),
     error => error instanceof BetsError && error.status === 503);
   assert.equal(calls.length, 1, 'off switch refuses before SQL');
+  await assert.rejects(handleBets({ route: '/bets/recommendations', body: {}, user: USER,
+    service: { ...service, recommendationState: async () => ({}) }, featureOff: new Set(['bets']) }),
+    error => error instanceof BetsError && error.status === 403);
+  assert.equal(calls[1][0], 'gtl_community_member', 'the new reader switch does not disable existing recommendations');
 });
 
 test('Bets projection drops forged opponent terms and every hidden offer, while preserving own receipt', () => {

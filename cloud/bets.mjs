@@ -191,7 +191,8 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new BetsError(401, 'Sign in to continue.');
   if (!Object.hasOwn(BETS_METHODS, route)) throw new BetsError(404, 'Not found.');
   if (!service?.rpc) throw new Error('Bets are not configured.');
-  if (featureOff.has('bets') || (route !== '/bets/read' && featureOff.has('recommendations'))) fail('GTL_FEATURE_OFF');
+  if ((route === '/bets/read' && featureOff.has('bets'))
+    || (route !== '/bets/read' && featureOff.has('recommendations'))) fail('GTL_FEATURE_OFF');
   if (!record(body)) fail('GTL_VIRTUAL_INVALID');
   if (route === '/bets/read') {
     if (Object.keys(body).some(key => !['season','week','leagueId'].includes(key))
