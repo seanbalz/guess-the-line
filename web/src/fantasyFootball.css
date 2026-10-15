@@ -49,7 +49,7 @@
 .fantasy-scoring-rules dd { margin: 0; white-space: nowrap; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
 .fantasy-sources { display: grid; gap: var(--space-3); list-style: none; padding: 0; overflow-wrap: anywhere; }
 .fantasy-sources .fantasy-meta { display: block; }
-.fantasy-sources a { color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
+.fantasy-sources a { display: inline-flex; align-items: center; max-width: 100%; min-height: var(--touch-target); padding: var(--space-2) 0; font-size: var(--text-body); line-height: var(--leading-body); color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
 .fantasy-empty { display: grid; justify-items: start; gap: var(--space-4); padding: var(--space-4); font-size: var(--text-body); line-height: var(--leading-body); }
 .fantasy-status { padding: var(--space-4); color: var(--muted); font-size: var(--text-body); line-height: var(--leading-body); }
 .fantasy-football :is(summary, input, select, button, a):focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }

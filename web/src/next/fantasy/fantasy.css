@@ -41,7 +41,7 @@
 .gx .gx-fantasy-scoring-rules :where(dd) { margin: 0; white-space: nowrap; font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 .gx .gx-fantasy-sources { display: grid; gap: var(--gx-space-3); list-style: none; padding: 0; overflow-wrap: anywhere; }
 .gx .gx-fantasy-sources .gx-fantasy-meta { display: block; }
-.gx .gx-fantasy-sources :where(a) { color: var(--gx-data); text-decoration: underline; text-underline-offset: 3px; }
+.gx .gx-fantasy-sources :where(a) { display: inline-flex; align-items: center; max-width: 100%; min-height: var(--gx-size-touch); padding: var(--gx-space-2) 0; font: 500 16px/24px var(--gx-font-body); color: var(--gx-data); text-decoration: underline; text-underline-offset: 3px; }
 .gx .gx-fantasy-empty { display: grid; justify-items: start; gap: var(--gx-space-4); font: 500 16px/24px var(--gx-font-body); }
 .gx .gx-fantasy-status { padding: var(--gx-space-4); color: var(--gx-text-2); font: 500 16px/24px var(--gx-font-body); }
 .gx .gx-fantasy :where(summary, input, select, button, a):focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }

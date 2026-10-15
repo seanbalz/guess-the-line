@@ -33,12 +33,12 @@ async function layout(page, screen) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal page overflow').toBe(true);
   const problems = await screen.evaluate(scope => {
     const issues = [];
-    for (const el of scope.querySelectorAll('select,input,button,summary')) {
+    for (const el of scope.querySelectorAll('select,input,button,summary,a[href]')) {
       if (!el.getClientRects().length) continue;
       const target = el.type === 'checkbox' ? el.closest('label') : el;
       const bounds = target.getBoundingClientRect();
       if (bounds.width < 43.5 || bounds.height < 43.5) issues.push(`${el.tagName} ${el.textContent.trim().slice(0, 24)}: ${bounds.width}×${bounds.height}`);
-      if (el.matches('select,input:not([type=checkbox]),button') && parseFloat(getComputedStyle(el).fontSize) < 16) issues.push(`${el.tagName}: text under 16px`);
+      if (el.matches('select,input:not([type=checkbox]),button,a[href]') && parseFloat(getComputedStyle(el).fontSize) < 16) issues.push(`${el.tagName}: text under 16px`);
     }
     return issues;
   });
@@ -136,6 +136,14 @@ test.describe('fantasy rankings', () => {
           await list(screen).locator('summary').first().scrollIntoViewIfNeeded();
           await page.screenshot({ path: testInfo.outputPath(`fantasy-${app}-${width}-${theme}.png`) });
           await screen.getByRole('button', { name: 'Reset filters', exact: true }).first().click();
+          if (width === 320) {
+            const method = screen.locator('summary').filter({ hasText: 'Method, scoring & sources' });
+            await method.click();
+            await screen.getByRole('link', { name: snapshot.sources[0].name, exact: true }).scrollIntoViewIfNeeded();
+            await layout(page, screen);
+            await page.screenshot({ path: testInfo.outputPath(`fantasy-${app}-sources-320-${theme}.png`) });
+            await method.click();
+          }
         }
       }
       expect(world.errors).toEqual([]);
