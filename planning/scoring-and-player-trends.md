@@ -1,10 +1,29 @@
 # Guess The Line — scoring and player trends backlog
 
-Owner: Sean Balsiger · Version 4 · October 15, 2026
+Owner: Sean Balsiger · Version 5 · October 15, 2026
 
-Status: requested work and product discovery, not implemented or deployed by this document.
-Delivery owners are not assigned and no delivery dates are committed. Lanes below
-refer to the existing redesign plan, not active workers.
+Status: core scoring implemented and checked locally; hosted rollout and Trends discovery remain.
+No delivery dates are committed. Current implementation owners and verification
+state are recorded in the active checkpoint below.
+
+## Active implementation checkpoint — October 15
+
+Sean requested “Continue with recommendations” after the prioritized status review.
+Work is isolated on `codex/per-game-scoring`, based on `main` at `e5dfda1`.
+Codex owns the core implementation and verification, with parallel SQL, UI and
+independent review lanes. This is not a release authorization or a hosted change.
+The original working checkout and its planning edits are preserved.
+
+| Scope | Current owner | State | Evidence / exit |
+| --- | --- | --- | --- |
+| 01–02, 08: locks, immediate personal scores, shared standings | Codex SQL and API lanes | Implemented locally; local checks pass | M-07 migration and adversarial SQL/engine/API tests; hosted gates remain |
+| 03–05: receipt, weekly scoring, filters | Codex UI lane | Local browser checks pass; phone acceptance pending | Shared per-game editor; weekly score page; mobile/theme/recovery tests |
+| 09: core acceptance | Codex integration and independent review | Local checks pass; release/device acceptance pending | [Release checklist](../docs/PER_GAME_SCORING_RELEASE.md); no live completion claim |
+| 06–07: player Trends metrics and charts | Unassigned | Open; decisions Q-03 onward remain | Separate acceptance checkpoint after core scoring |
+
+The task table below expands this checkpoint. The pre-implementation evidence
+section preserves its dated source snapshot; no row is released until the hosted
+evidence and required acceptance exist.
 
 ## Confirmed scope
 
@@ -62,7 +81,7 @@ proposed Lines tables in the October 14 release record. The scoring entry and it
 cross-references are therefore D-50. No scoring or weather requirement was combined
 or discarded to resolve the identifier collision.
 
-## Repository evidence reconciled October 15
+## Repository evidence at the pre-implementation reconciliation
 
 Evidence was checked against `main` at `1df92bd59cfb6af0a2a64c1d9fa6925b8caa244d`.
 This is a source review and review of recorded releases, not a fresh hosted audit.
@@ -82,21 +101,22 @@ reconciliation does not change that deployed source or activate pending migratio
 
 ## Task register
 
-All items were reviewed October 15, 2026. Owner “TBD” is an explicit assignment gap;
-Sean owns product decisions only. P0 means correctness/privacy before release; P1
-means the requested experience. None of these rows claims completion.
+Updated October 15, 2026 for the isolated implementation workstream. Codex owns the
+core code and local checks; Sean owns product decisions and release approval.
+Owner “TBD” is an assignment gap for later work. P0 means correctness/privacy before
+release; P1 means the requested experience. No row claims hosted completion.
 
 | ID | Priority | Task | State | Suggested lane / owner | Dependencies | Target |
 |---|---|---|---|---|---|---|
-| SCORE-NEXT-01 | P0 | Finish permanent per-game lock-in across every save path | Open; M-02 built, activation and full flow pending | B / TBD | Existing stages 15, 18, 24–25, 28–31 | Not scheduled |
-| SCORE-NEXT-02 | P0 | Count available per-game points immediately at lock-in | Open; timing amendment | B / TBD | SCORE-NEXT-01; stage 24/M-07; SCORE-NEXT-08 for shared reads | Not scheduled |
-| SCORE-NEXT-03 | P0 | Show a durable lock-in receipt and refresh weekly scoring | Open | B + A / TBD | SCORE-NEXT-02; per-game entry | Not scheduled |
-| SCORE-NEXT-04 | P1 | Add a clear weekly scoring destination and navigation | Open | A + E / TBD | SCORE-NEXT-02/03; stages 57–58, 72–73 | Not scheduled |
-| SCORE-NEXT-05 | P1 | Filter scoring by season, week, market, team and matchup | Open; filter semantics specified below | A + B / TBD | SCORE-NEXT-04; canonical game identity | Not scheduled |
+| SCORE-NEXT-01 | P0 | Finish permanent per-game lock-in across every save path | Implemented locally; activation pending | Codex SQL/API/UI | Existing stages 15, 18, 24–25, 28–31 | Not scheduled |
+| SCORE-NEXT-02 | P0 | Count available per-game points immediately at lock-in | Implemented locally; activation pending | Codex SQL/API | SCORE-NEXT-01; stage 24/M-07; SCORE-NEXT-08 for shared reads | Not scheduled |
+| SCORE-NEXT-03 | P0 | Show a durable lock-in receipt and refresh weekly scoring | Implemented locally; device acceptance pending | Codex UI/API | SCORE-NEXT-02; per-game entry | Not scheduled |
+| SCORE-NEXT-04 | P1 | Add a clear weekly scoring destination and navigation | Implemented locally; visual/device acceptance pending | Codex UI | SCORE-NEXT-02/03; stages 57–58, 72–73 | Not scheduled |
+| SCORE-NEXT-05 | P1 | Filter scoring by season, week, market, team and matchup | Implemented locally; visual/device acceptance pending | Codex UI | SCORE-NEXT-04; canonical game identity | Not scheduled |
 | SCORE-NEXT-06 | P1 | Define and compute accuracy and bias metrics from scored guesses | Open; accuracy/bias focus confirmed by Q-01 | B + E / TBD | SCORE-NEXT-02/05/08; Q-03a–Q-03c | Not scheduled |
 | SCORE-NEXT-07 | P1 | Build the accuracy and bias Trends page with drill-down evidence | Open; focus confirmed, comparisons/audience in discovery | A + E / TBD | SCORE-NEXT-06; Q-03a–Q-03c, Q-04 | Not scheduled |
-| SCORE-NEXT-08 | P0 | Implement confirmed shared score visibility and protect hidden games | Open; Q-02 policy confirmed, implementation pending | B / TBD | Existing D-39 reveal gates; Q-02 confirmed | Not scheduled |
-| SCORE-NEXT-09 | P0 | Verify core scoring first, then Trends in its own release | Open; two acceptance checkpoints | Integration / TBD | Core: 01–05/08; Trends: 06–07 when ready; existing release gates | Not scheduled |
+| SCORE-NEXT-08 | P0 | Implement confirmed shared score visibility and protect hidden games | Implemented locally; hosted readback pending | Codex SQL/API/review | Existing D-39 reveal gates; Q-02 confirmed | Not scheduled |
+| SCORE-NEXT-09 | P0 | Verify core scoring first, then Trends in its own release | Core local checks pass; release and Trends checks remain | Codex integration | Core: 01–05/08; Trends: 06–07 when ready; existing release gates | Not scheduled |
 
 ### SCORE-NEXT-01 — permanent lock-in
 

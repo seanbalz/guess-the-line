@@ -50,7 +50,9 @@ export default function VisualDashboard({ data, benchmark, go, historyChart, pro
     seenCapture.current = {scope: noticeScope, capture: marketCapture};
   }, [noticeScope, marketCapture]);
   const deadline = data.league.deadline;
-  const closed = Boolean(deadline) && Date.parse(data.now || new Date().toISOString()) >= Date.parse(deadline);
+  const perGame = data.rules?.perGameScoring === true;
+  const now = Date.parse(data.now || new Date().toISOString());
+  const closed = perGame ? data.games.every(game => Date.parse(game.kickoff) <= now) : Boolean(deadline) && now >= Date.parse(deadline);
   // Redesign stage 15 (D-37, D-39): once the live rules make submitted guesses final (M-02), a ballot that is in is no longer editable.
   const picksFinal = sentFinal(data.rules);
   const market = id => { const state = data.statuses?.[id] || {}; return { satOut: Boolean(state.satOut), submitted: Boolean(state.submittedAt), filled: state.filled || 0 }; };
@@ -66,7 +68,10 @@ export default function VisualDashboard({ data, benchmark, go, historyChart, pro
   const due = tiles.filter(item => item.due).map(item => item.title);
   const kept = tiles.filter(item => item.done && item.id !== 'betting_challenge').map(item => item.title);
   // Real deadline only (never a manufactured countdown).
-  const nextAction = !deadline ? (due.length ? `Next: your ${due.join(' and ')} ballot${due.length > 1 ? 's' : ''}.` : 'Both ballots are in.')
+  const nextAction = perGame ? closed ? 'All games have kicked off. Your saved guesses and scores remain available.'
+    : due.length ? `Next: your remaining ${due.join(' and ')} guesses. Each game stays open until its own kickoff.`
+    : 'Your guesses are locked in or sat out. Saved scores remain available.'
+    : !deadline ? (due.length ? `Next: your ${due.join(' and ')} ballot${due.length > 1 ? 's' : ''}.` : 'Both ballots are in.')
     : closed ? `Picks closed ${date(deadline)} PT.`
     : due.length ? `Next: ${due.join(' and ')} ballot${due.length > 1 ? 's' : ''} due ${date(deadline)} PT.${kept.length ? ` ${kept.join(' and ')} ${kept.length > 1 ? 'are' : 'is'} in · ${picksFinal ? 'final' : 'editable until then'}.` : ''}`
     : `Both ballots are in · ${picksFinal ? 'final' : `editable until ${date(deadline)} PT`}.`;
@@ -91,7 +96,7 @@ export default function VisualDashboard({ data, benchmark, go, historyChart, pro
     <section className="panel visual-scoreboard" aria-label={timestamped ? `${marketName} submission-time accuracy comparison` : total ? 'Total provisional accuracy comparison' : benchmark ? 'Spread scoring benchmark' : 'Spread accuracy comparison'}>
       <div className="visual-panel-heading"><div><span className="eyebrow">WEEK {data.league.week} · {marketName.toUpperCase()}</span><h2>Accuracy matchup</h2></div><span className={`badge ${status === 'FROZEN' ? 'lime' : 'amber'}`}>{status}</span></div>
       <div className="visual-source-line"><span>{timestamped ? 'Each guess uses its saved scoring reference' : analysis ? `Provisional ${marketName.toLowerCase()} comparison · Not official scoring` : benchmark ? `${benchmark.status === 'frozen' ? 'Frozen' : 'Provisional'} spread benchmark` : data.snapshot ? 'Historical accuracy reference' : 'Accuracy reference pending'}</span><span>{timestamped ? 'Market updates do not change points' : capturedAt ? `Collected ${sourceAge(capturedAt, data.now)}` : 'Quotes pending'}{(analysis?.stale || benchmark?.stale && benchmark.status !== 'frozen') ? ' · Stale saved reference' : ''}</span></div>
-      {!submitted ? <div className="visual-locked"><LockKeyhole size={24}/><h3>Your ballot comes first</h3><p>Submit your {marketName} ballot to reveal its available references and player comparison.</p><button className="primary" onClick={() => go('picks', mode)}>Open {marketName.toLowerCase()} ballot <ArrowRight size={16}/></button></div> : timestamped ? <DashboardInsights data={data} games={filterStatus.visibleGames} trend={preferences.modules.history ? historyChart : null} embedded/> : <div className="accuracy-bars" aria-label="Player accuracy bars">{players.map(player => {
+      {!submitted ? <div className="visual-locked"><LockKeyhole size={24}/><h3>{perGame ? 'Your per-game scores' : 'Your ballot comes first'}</h3><p>{perGame ? 'Open My picks for each locked guess, its saved line and available points. Other games can stay drafts.' : <>Submit your {marketName} ballot to reveal its available references and player comparison.</>}</p><button className="primary" onClick={() => go('picks', mode)}>Open {marketName.toLowerCase()} ballot <ArrowRight size={16}/></button></div> : timestamped ? <DashboardInsights data={data} games={filterStatus.visibleGames} trend={preferences.modules.history ? historyChart : null} embedded/> : <div className="accuracy-bars" aria-label="Player accuracy bars">{players.map(player => {
         const value = player.submitted && finite(player.points) ? player.points : null;
         return <details className="accuracy-player" key={player.id}>
           <summary aria-label={`Expand ${player.name} accuracy details`}><span className="accuracy-row"><span>{player.name}{player.id === data.playerId && <small>YOU</small>}{player.officialEligible===false&&<small>Practice · No official score</small>}</span><strong className={player.id === data.playerId ? 'score-number' : ''}>{fmt(value)}<small> / {data.maxPoints}</small></strong></span><span className="accuracy-track" aria-hidden="true">{value !== null && <i className={player.id === data.playerId ? 'own' : ''} style={{ width: `${Math.min(100, Math.max(0, value / Math.max(1, data.maxPoints) * 100))}%` }}/>}</span><span className="accuracy-caption">{value === null ? player.submitted ? 'Score unavailable' : 'Ballot not submitted' : `${value} accuracy points`}<ChevronDown size={16}/></span></summary>

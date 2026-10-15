@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Bookmark, Check, LoaderCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import Brand from './Brand';
 import ThemeSelector from './Theme';
@@ -16,7 +16,12 @@ const localTime = value => {
   const d = new Date(value || Date.now());
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 };
-function GuessForm({ data, accountId, mode, save, busy, onDirty }) {
+const PerGameLegacy = lazy(() => import('./next/play/PerGameLegacy.jsx'));
+function GuessForm(props) {
+  if (props.data.rules?.sentFinal === true && props.data.rules?.lateWindow === 'kickoff' && props.data.rules?.perGameScoring === true) return <Suspense fallback={<p role="status">Loading per-game picks…</p>}><PerGameLegacy accountId={props.accountId} initialData={props.data} mode={props.mode} onMode={props.onMode} onSaved={props.onSaved} setDirty={props.onDirty}/></Suspense>;
+  return <LegacyGuessForm {...props}/>;
+}
+function LegacyGuessForm({ data, accountId, mode, save, busy, onDirty }) {
   const ballot = data.ballots[mode];
   const scope = soloDraftScope({ accountId, season: data.season, week: data.week, mode });
   const [base] = useState(() => soloSavedPicks(data.games, ballot));
@@ -217,7 +222,7 @@ export default function PersonalWorkspace({ accountId, onBack, onSignOut }) {
       {!data ? <div className="panel">{error ? <button className="secondary" onClick={() => refresh(undefined)} disabled={busy}>Try again</button> : <p role="status"><LoaderCircle className="spin"/>Loading your private workspace…</p>}</div> : <>
         <div className="personal-toolbar"><label>Season and week<select value={`${data.season}/${data.week}`} disabled={busy} onChange={event => { if (!discard()) return; const [season,week] = event.target.value.split('/').map(Number); dirtyForms.current.clear(); setDirty(false); setEditing(null); setHistory(null); refresh({ season, week, includeArchived }); }}>{data.slates.map(s => <option key={`${s.season}/${s.week}`} value={`${s.season}/${s.week}`}>{s.season} · Week {s.week}</option>)}</select></label><button className="secondary" disabled={busy} onClick={() => { if (!discard()) return; dirtyForms.current.clear(); setDirty(false); setEditing(null); setHistory(null); refresh(); }}><RefreshCw size={17}/>Refresh saved data</button></div>
         <nav className="personal-tabs" aria-label="Personal activities">{[['favorites','Favorites'],['guesses','Guesses'],['journal','Journal']].map(([key,label]) => <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => { if (tab === key || !discard()) return; setTab(key); setEditing(null); setHistory(null); }} disabled={busy}>{label}</button>)}</nav>
-        {tab === 'guesses' && <section className="panel"><div className="personal-actions" aria-label="Guess market">{['guess_spread','guess_total'].map(m => <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy} onClick={() => { if (mode !== m && !discard()) return; setMode(m); }}>{modeName(m)}</button>)}</div><GuessForm key={`${accountId}/${data.season}/${data.week}/${mode}/${data.weeklyRevision}/${readVersion}`} data={data} accountId={accountId} mode={mode} busy={busy || uncertainSave} save={save} onDirty={onDirty}/></section>}
+        {tab === 'guesses' && <section className="panel"><div className="personal-actions" aria-label="Guess market">{['guess_spread','guess_total'].map(m => <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} disabled={busy} onClick={() => { if (mode !== m && !discard()) return; setMode(m); }}>{modeName(m)}</button>)}</div><GuessForm key={`${accountId}/${data.season}/${data.week}/${mode}/${data.weeklyRevision}/${readVersion}`} data={data} accountId={accountId} mode={mode} busy={busy || uncertainSave} save={save} onDirty={onDirty} onMode={setMode} onSaved={() => load(selection())}/></section>}
         {tab === 'favorites' && <section><div className="personal-toolbar"><div><h2>Favorites and private notes</h2><p className="muted">Neutral matchups stay available before you submit. Saving never enters a contest.</p></div><label className="personal-check"><input type="checkbox" checked={onlySaved} onChange={e => { if (discard()) setOnlySaved(e.target.checked); }}/>Saved only ({data.favorites.length})</label></div><div className="personal-cards">{data.games.filter(g => !onlySaved || data.favorites.some(f => f.gameId === g.id)).map(game => <FavoriteCard key={`${data.season}/${data.week}/${game.id}/${data.favorites.find(f => f.gameId === game.id)?.updatedAt || ''}`} game={game} favorite={data.favorites.find(f => f.gameId === game.id)} data={data} save={save} busy={busy} onDirty={onDirty}/>)}</div>{onlySaved && !data.favorites.length && <p className="panel">No Favorites yet. Turn off Saved only to browse the slate.</p>}</section>}
         {tab === 'journal' && <section>
           <div className="personal-toolbar"><div><h2>Private journal</h2><p className="muted">Manual records with an audit history. Results are not independently settled.</p></div><button className="primary" disabled={busy} onClick={() => { if (!discard()) return; setHistory(null); setEditing({}); }}>Add record</button></div>

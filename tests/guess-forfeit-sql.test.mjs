@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL as FUTURE_MIGRATIONS, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, id as fixtureId, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 import { sendBallot, serviceSql, storeLines } from './helpers/guess-week.mjs';
@@ -22,6 +22,9 @@ import { accuracy } from '../server/domain.mjs';
 // draft; Luke keeps drafts in both markets; Sean submits both. Dana sat out Spread with the old "Sit out"; Finn and Gina have no
 // ballot; Eve is removed. Every pick and line is an unusual half point and no two share a size within a market, so the leak scan
 // can name each one; every point total is then a whole number.
+// This suite proves the pre-M-07 stage contract; M-07 has its own full-stack SQL suite.
+const ALL = FUTURE_MIGRATIONS.filter(file => file < '20261015190710_gtl_guess_write_window.sql');
+
 const MIGRATION = '20261015040000_gtl_guess_week_forfeit.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const HOUR = 3_600_000;

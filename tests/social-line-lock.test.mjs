@@ -272,7 +272,7 @@ test('ALL (M-04 applied): no reader gives Luke a line before he locks in; a Spre
   assert.equal(slip(prop.body, f.spreadSlip).locked, true);
   const before = await f.social('luke');
   assert.deepEqual([slip(before, f.spreadSlip).locked, slip(before, f.spreadSlip).canTail, slip(before, f.spreadSlip).noteHidden], [true, false, true]);
-  assert.deepEqual(before.rules, { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' }, 'M-01 and M-02 are in ALL');
+  assert.deepEqual(before.rules, { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring:true }, 'ALL has M-07 while the per-game privacy gate stays intact');
   // Troy's own reply carries his lines and his note: own slips are never redacted.
   const troy = await f.social('troy');
   assert.ok(leakScan(troy, { viewer: ACCOUNTS.luke.id, secrets: f.secrets }).length >= 3);

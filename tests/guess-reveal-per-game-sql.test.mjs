@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, ROLLBACK_DIR, version } from './migrations.mjs';
+import { ALL as FUTURE_MIGRATIONS, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, ROLLBACK_DIR, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS } from './helpers/leak-scan.mjs';
 import { accuracy } from '../server/domain.mjs';
@@ -19,6 +19,9 @@ import { guessState, liveRules } from '../web/src/next/rules.js';
 // The week: four games; the first kicks off at the deadline (as Thursday's game does), the rest an hour apart. Troy sends
 // Spread and Total, Luke sends Total only, Sean sits out Spread and keeps a Total draft. Every pick and line is an unusual
 // half point, and no two share a size within a market (a spread matches either sign), so the leak scan can name each one.
+// This suite proves the pre-M-07 stage contract; M-07 has its own full-stack SQL suite.
+const ALL = FUTURE_MIGRATIONS.filter(file => file < '20261015190710_gtl_guess_write_window.sql');
+
 const MIGRATION = '20261014223000_gtl_guess_gate_per_game.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const HOUR = 3_600_000;
@@ -39,7 +42,7 @@ test('M-01 is hosted since October 14, 2026 (hosted version 20261014223000); its
   assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'removed from NOT_HOSTED by the October 14 apply record (Gate M step 8)');
 });
 
-test('gtl_live_rules (M-01): revealAt kickoff with today\'s other two fields; missing on the hosted schema, switched off by the rollback', { skip }, async t => {
+test('gtl_live_rules (M-01): revealAt kickoff with today\'s other two fields; missing on the old schema, explicitly restored by the rollback', { skip }, async t => {
   const { PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js');
   const db = new PGlite(); t.after(() => db.close());
   const migration = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8'), rollback = fs.readFileSync(path.join(ROLLBACK_DIR, MIGRATION), 'utf8');
@@ -83,13 +86,13 @@ test('gtl_live_rules (M-01): revealAt kickoff with today\'s other two fields; mi
   assert.deepEqual([view(M01_RULES).picksVisible, view(M01_RULES).lineVisible], [false, false], 'M-01: not before its kickoff');
   assert.deepEqual([view(M01_RULES, sunday).picksVisible, view(M01_RULES, sunday).lineVisible], [true, true], 'M-01: its kickoff opens it');
 
-  // The rollback restores the deadline reveal and takes back the service role's grant: the function stays (never a drop), a
-  // read fails, and every view carries today's rules again. Reapplying the migration grants it again.
+  // The rollback keeps the rules endpoint readable and explicitly describes the restored deadline reveal.
+  // Arbitrary permission/transport failures still fail closed; rollback is not simulated by an error.
   await db.exec(rollback);
   assert.equal((await rows()).length, 1, 'gtl_live_rules stays after the rollback');
-  assert.equal((await db.query('select has_function_privilege($1,$2,$3) ok', ['service_role', 'public.gtl_live_rules()', 'EXECUTE'])).rows[0].ok, false);
-  await assert.rejects(() => optionalRpc('gtl_live_rules', {}), /permission denied/);
-  assert.deepEqual(await readLiveRules(optionalRpc), TODAYS_RULES);
+  assert.equal((await db.query('select has_function_privilege($1,$2,$3) ok', ['service_role', 'public.gtl_live_rules()', 'EXECUTE'])).rows[0].ok, true);
+  assert.deepEqual(await optionalRpc('gtl_live_rules', {}),TODAYS_RULES);
+  assert.deepEqual(await readLiveRules(optionalRpc),TODAYS_RULES);
   await db.exec(migration);
   assert.deepEqual(await readLiveRules(optionalRpc), M01_RULES);
 });

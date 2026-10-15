@@ -87,7 +87,9 @@ test('community history: every player, week and market with the line at each gue
   const PER_GAME = (await db.query("select count(*)::int n from pg_proc where proname='gtl_read_community_history' and prosrc like '%gtl_markets_visible%'")).rows[0].n === 1;
   // M-02 (20261015030000_gtl_sent_picks_final.sql, redesign stage 18) makes a sent guess final in every writer. Once HOSTED has
   // it, a D-16 edit of a sent ballot is refused, so the revisions case below checks that refusal instead of making the edit.
-  const SENT_FINAL = (await db.query("select count(*)::int n from pg_proc where proname='gtl_save_weekly_ballot' and prosrc like '%GTL_BALLOT_LOCKED%'")).rows[0].n === 1;
+  const hasRules=(await db.query("select to_regprocedure('public.gtl_live_rules()') is not null present")).rows[0].present;
+  const rules=hasRules?(await db.query('select public.gtl_live_rules() rules')).rows[0].rules:{};
+  const SENT_FINAL=rules.sentFinal===true, IMMEDIATE=rules.perGameScoring===true;
   const AFTER = Math.max(...state.games.map(g => at(g.kickoff))) + 1000;
   let serial = 500;
   const snapshot = async (captured, spread = -3.5, total = 44.5) => {
@@ -193,7 +195,7 @@ test('community history: every player, week and market with the line at each gue
     assert.deepEqual(week5(luke).revealed, { guess_spread: false, guess_total: false });
     const spread = entry(luke, TROY, 'guess_spread'), total = entry(luke, TROY, 'guess_total');
     // Totals are shared as on the leaderboard; under M-01 no game has kicked off yet, so no point counts.
-    assert.deepEqual([spread.picksHidden, spread.picks, spread.weekPoints, spread.weekScored, spread.status, at(spread.submittedAt) > 0], [true, null, PER_GAME ? 0 : 135, PER_GAME ? 0 : 15, 'submitted', true]);
+    assert.deepEqual([spread.picksHidden, spread.picks, spread.weekPoints, spread.weekScored, spread.status, at(spread.submittedAt) > 0], [true, null, IMMEDIATE ? null : PER_GAME ? 0 : 135, PER_GAME ? 0 : 15, 'submitted', true]);
     assert.deepEqual([total.picksHidden, total.picks], [true, null]);
     assert.ok(!JSON.stringify(luke).includes('"guess":'), 'no guess value anywhere in the hidden payload');
     assert.equal(entry(luke, LUKE, 'guess_spread'), undefined, 'nothing of Luke\'s yet');
@@ -203,9 +205,9 @@ test('community history: every player, week and market with the line at each gue
     assert.deepEqual(week5(luke).revealed, { guess_spread: false, guess_total: true });
     assert.deepEqual([entry(luke, TROY, 'guess_spread').picksHidden, entry(luke, TROY, 'guess_spread').picks], [true, null], 'sitting out Total reveals Total only');
     const revealed = entry(luke, TROY, 'guess_total');
-    assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.picks[0].guess, revealed.picks[0].reference.basis, revealed.picks[0].reference.value, revealed.picks[0].points], [false, 15, 44, 'line-at-guess', 44.5, PER_GAME ? null : accuracy(44, 44.5)], 'under M-01 points count from kickoff');
+    assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.picks[0].guess, revealed.picks[0].reference.basis, revealed.picks[0].reference.value, revealed.picks[0].points], [false, 15, 44, 'line-at-guess', 44.5, PER_GAME && !IMMEDIATE ? null : accuracy(44, 44.5)], 'under M-01 points count from kickoff');
     const own = entry(luke, LUKE, 'guess_total');
-    assert.deepEqual([own.status, own.picksHidden, own.picks, own.weekPoints, own.weekScored, at(own.satOutAt)], ['sat_out', false, null, PER_GAME ? null : 0, 0, now], 'a sat-out week is recorded as sat out, not zero');
+    assert.deepEqual([own.status, own.picksHidden, own.picks, own.weekPoints, own.weekScored, at(own.satOutAt)], ['sat_out', false, null, PER_GAME ? null : 0, 0, IMMEDIATE ? at(own.satOutAt) : now], 'a sat-out week is recorded as sat out, not zero');
     const troy = await history(TROY);
     assert.deepEqual([entry(troy, TROY, 'guess_spread').picksHidden, entry(troy, SEAN, 'guess_spread').picksHidden, entry(troy, TROY, 'guess_total').picksHidden], [false, false, false], 'own submission reveals that market for everyone');
     const closed = await history(LUKE, at(state.league.deadline));
@@ -257,7 +259,7 @@ test('community history: every player, week and market with the line at each gue
     const luke = await history(LUKE);
     const own = week5(luke).entries.filter(e => e.userId === id(LUKE) && e.mode === 'guess_spread');
     assert.equal(own.length, 1, 'one entry per member and market');
-    assert.deepEqual([own[0].status, own[0].picks, own[0].weekPoints, own[0].weekScored, at(own[0].satOutAt)], ['sat_out', null, PER_GAME ? null : 0, 0, now + 1000], 'the final sit-out wins over the draft saved before it');
+    assert.deepEqual([own[0].status, own[0].picks, own[0].weekPoints, own[0].weekScored, at(own[0].satOutAt)], ['sat_out', null, PER_GAME ? null : 0, 0, IMMEDIATE ? at(own[0].satOutAt) : now + 1000], 'the final sit-out wins over the draft saved before it');
     assert.deepEqual(await row(), draftRow, 'the draft stays stored exactly as it was');
     assert.deepEqual(week5(luke).revealed, { guess_spread: true, guess_total: true });
     assert.deepEqual([entry(luke, TROY, 'guess_spread').picksHidden, entry(luke, TROY, 'guess_spread').revisions], [false, null], 'sitting out reveals Troy\'s Spread guesses; the revision count stays Troy\'s own');

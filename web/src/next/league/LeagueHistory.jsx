@@ -3,10 +3,12 @@ import { useState } from 'react';
 import { communityApi, date } from '../../api.js';
 import { HistoryLine } from '../../CommunityHistory.jsx';
 import { MODE, lateText, pickText, show } from '../../communityFormat.js';
-import { Card, Segmented } from '../ui/index.js';
+import { Button, Card, Segmented } from '../ui/index.js';
+import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from './useLeagueRead.jsx';
 
 export function LeagueHistory({ app }) {
+  const shell = useShell();
   const [season, setSeason] = useState(null), [player, setPlayer] = useState(app.accountId), [mode, setMode] = useState('guess_spread');
   const read = useLeagueRead(`${app.accountId}:history:${season || 'latest'}`, signal => communityApi('history', season ? { season } : {}, signal), error => {
     if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['community'] });
@@ -16,6 +18,7 @@ export function LeagueHistory({ app }) {
   const data = read.data, members = data.members || [], selected = members.find(member => member.id === player) || members.find(member => member.id === data.viewer) || members[0];
   return <section className="gx-vstack gx-gap-16" aria-label="Community history">
     <h2 className="gx-t-section">Community history</h2>
+    <Button variant="ghost" onClick={() => shell.go('play', { section: 'score', season: data.season, week: null })}>Your weekly score</Button>
     <p className="gx-t-body gx-c-2">Saved guesses and their original references. Games the server withholds stay hidden.</p>
     {(data.seasons || []).length > 1 && <label className="gx-vstack gx-gap-8 gx-t-body">Season<select className="gx-input" value={data.season} onChange={event => setSeason(Number(event.target.value))}>{data.seasons.map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
     {selected && <label className="gx-vstack gx-gap-8 gx-t-body">Player<select className="gx-input" value={selected.id} onChange={event => setPlayer(event.target.value)}>{members.map(member => <option key={member.id} value={member.id}>{member.displayName}{member.removed ? ' · Removed' : ''}</option>)}</select></label>}
