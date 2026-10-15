@@ -319,7 +319,7 @@ function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, final =
 
 // Play reuses this live ballot workflow. Its navigation adapter keeps the new shell's address and market state
 // separate from the classic #picks history; omitted adapters preserve the original Community behavior.
-export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onSignInAgain, onReveal, initialMode, feed, posts = [], marketNavigation }) {
+export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onSignInAgain, onReveal, initialMode, feed, posts = [], marketNavigation, presentation }) {
   // Persona audit #3: the Picks history entry carries its market (#picks-spread, #picks-total), so a reload, Back or Forward reopens
   // the market that was open, with its unsaved picks offered back. A bare entry (the Picks tab, "Make picks") is settled by
   // chooseMarket in the same render the week arrives, so no other market's chips ever show first; the choice is written back
@@ -481,6 +481,8 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
   const otherMode = mode === 'guess_spread' ? 'guess_total' : 'guess_spread';
   const other = { mode: otherMode, submitted: !!data.ballots[otherMode]?.submittedAt, satOut: optOuts.includes(otherMode), games: data.games.length,
     filled: Object.values(picksFor(data, otherMode)).filter(v => v !== '').length };
+  const SaveDock = presentation?.SaveDock || 'div';
+  const HelpCard = presentation?.HelpCard;
   return <section ref={root} className="week-picks">
     <div className="personal-actions" role="group" aria-label="Market">{Object.entries(MODE).map(([m, label]) =>
       <button key={m} className={mode === m ? 'primary' : 'secondary'} aria-pressed={mode === m} aria-disabled={busy || undefined} onClick={() => switchMode(m)}>
@@ -509,21 +511,26 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
       <p>{edits} {edits === 1 ? 'pick' : 'picks'} from {date(recovery.updatedAt)} PT, kept on this device only: not saved to your account and not submitted. Restore puts them on top of your latest saved picks.</p>
       <div className="picks-recovery-actions"><button type="button" className="primary" aria-disabled={busy || undefined} onClick={restoreRecovery}>Restore picks</button><button type="button" className="secondary" aria-disabled={busy || undefined} onClick={discardRecovery}>Discard</button></div>
     </section>}
-    {!dismissed.has(mode) && editable && <div className="chip-help" role="note"><p>{CHIP_HELP[mode]}</p>
-      <button type="button" className="text-button" aria-label="Got it, hide this tip" onClick={dismissHelp}>Got it</button></div>}
-    <div className="week-pick-list">{data.games.map(g => <article className="panel week-pick" key={g.id}>
-      <h3>{team(g.awayCode)} @ {team(g.homeCode)}</h3>
-      <p className="muted small">{date(g.kickoff)} PT</p>
-      <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>
-      {submitted && <LineAtGuess reference={ballot.scoringReferences?.[g.id]} pick={ballot.picks?.[g.id]} spread={mode === 'guess_spread'}/>}
-      {satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
-        : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
-        label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable || isFinal(g.id)} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>}
-      {/* Line-dependent trends unlock per game and market (locked in, sat out, or that game's kickoff); bands are marked with this player's own saved line only. */}
-      {showTrends && <GameTrends season={data.season} week={data.week} gameId={g.id} away={g.awayCode} home={g.homeCode} level={4} access={trendAccess(g.id)} savedLabel="your saved line"
-        saved={{ spread: referenceValue(data.ballots.guess_spread?.scoringReferences?.[g.id]), total: referenceValue(data.ballots.guess_total?.scoringReferences?.[g.id]) }}/>}
-    </article>)}</div>
-    {editable && <div className="save-bar">
+    {!dismissed.has(mode) && editable && (HelpCard ? <HelpCard mode={mode} help={CHIP_HELP[mode]} onDismiss={dismissHelp}/>
+      : <div className="chip-help" role="note"><p>{CHIP_HELP[mode]}</p>
+        <button type="button" className="text-button" aria-label="Got it, hide this tip" onClick={dismissHelp}>Got it</button></div>)}
+    <div className="week-pick-list">{data.games.map(g => {
+      // Only the new app supplies a presentation. The same controls, gates and writer state serve both views.
+      const title = `${team(g.awayCode)} @ ${team(g.homeCode)}`, kickoff = `${date(g.kickoff)} PT`;
+      const facts = <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>;
+      const reference = submitted ? <LineAtGuess reference={ballot.scoringReferences?.[g.id]} pick={ballot.picks?.[g.id]} spread={mode === 'guess_spread'}/> : null;
+      const picker = satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
+        : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)} teamLabels={presentation?.teamLabels?.(g)}
+          label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable || isFinal(g.id)} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>;
+      // The access gate still owns line-dependent trends, whether details are expanded or collapsed.
+      const trends = showTrends ? <GameTrends season={data.season} week={data.week} gameId={g.id} away={g.awayCode} home={g.homeCode} level={4} access={trendAccess(g.id)} savedLabel="your saved line"
+        saved={{ spread: referenceValue(data.ballots.guess_spread?.scoringReferences?.[g.id]), total: referenceValue(data.ballots.guess_total?.scoringReferences?.[g.id]) }}/> : null;
+      const Card = presentation?.GameCard;
+      return Card ? <Card key={g.id} game={g} title={title} kickoff={kickoff} facts={facts} reference={reference} picker={picker} trends={trends}
+        picked={picks[g.id] !== ''} changed={String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? '')} submitted={submitted} satOut={satOut} notOpen={notOpen}/>
+        : <article className="panel week-pick" key={g.id}><h3>{title}</h3><p className="muted small">{kickoff}</p>{facts}{reference}{picker}{trends}</article>;
+    })}</div>
+    {editable && <SaveDock className="save-bar">
       {failure && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{failure.message}</span>
         {!!failure.actions.length && <div className="banner-actions">{failure.actions.map(([label, fn]) => <button key={label} type="button" className="text-button" aria-disabled={busy || undefined} onClick={() => { refocus(`[data-action="${action.current}"]`); fn(); }}>{label}</button>)}</div>}</div>}
       {notice && <p className="auth-notice save-notice" role="status">{notice}</p>}
@@ -535,7 +542,7 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
         {finalRule && !submitted && <span className="save-final" id={finalId}>{FINAL_SHORT}</span>}</div>
       {/* Busy and nothing-to-save states are aria-disabled, not disabled, so the pressed button keeps focus while it reads "Saving…" and after. */}
       {!submitted && <button className="secondary" data-action="draft" aria-disabled={busy || !dirty || undefined} onClick={() => { if (!busy && dirty) save(false); }}>{saving === 'draft' ? <><LoaderCircle className="spin" size={16}/>Saving…</> : 'Save draft'}</button>}
-      <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={finalRule && !submitted ? `${hintId} ${finalId}` : hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></div>}
+      <button className="primary" data-action="submit" aria-disabled={busy || (submitted && !dirty) || undefined} aria-describedby={finalRule && !submitted ? `${hintId} ${finalId}` : hintId} onClick={() => { if (!busy && !(submitted && !dirty)) submitOrExplain(); }}>{saving === 'submit' ? 'Submitting…' : submitted ? 'Save changes' : `Submit ${MODE[mode]}`}</button></SaveDock>}
     {/* Persona audit #40: the final opt-out is a text link below the ballot, after Save draft and Submit in the tab order, not a button beside them.
         The opt-out clears the last save notice ("Draft saved.") so it does not sit under the sat-out note. */}
     {editable && !submitted && <SitOutWeek season={data.season} week={data.week} mode={mode} busy={busy} onDone={async () => { removeCommunityDraft(scope); setNotice(''); refocus('.week-sat-out'); await load(); await onSatOut?.(); }}/>}

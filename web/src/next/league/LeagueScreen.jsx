@@ -54,6 +54,7 @@ function postText(post) {
 
 function FeedPost({ post, feed, app, onSaved }) {
   const key = draftKey(app.accountId, post.id), [draft, setDraft] = useState(() => readDraft(key));
+  const [replyOpen, setReplyOpen] = useState(() => Boolean(readDraft(key).body));
   const [busy, setBusy] = useState(false), [problem, setProblem] = useState(''), [notice, setNotice] = useState('');
   const pending = useRef(false), current = useRef(draft);
   const name = id => feed.members?.find(member => member.id === id)?.displayName || 'Former member';
@@ -79,12 +80,15 @@ function FeedPost({ post, feed, app, onSaved }) {
     if (await mutate('comment', { postId: post.id, body: sent.body.trim(), requestId: sent.requestId })) change('');
   }
   return <Card as="article" className="gx-vstack gx-gap-12 gx-league-post" data-post={post.id} aria-label={`${name(post.actorId)} activity`}>
-    <div className="gx-hstack gx-gap-12 gx-top"><Avatar id={post.actorId} name={name(post.actorId)}/><div className="gx-grow"><p className="gx-t-body"><strong>{name(post.actorId)}</strong> {postText(post)}</p><p className="gx-t-meta gx-c-2"><time dateTime={post.createdAt}>{date(post.createdAt)} PT</time></p></div></div>
+    <div className="gx-league-post-head"><Avatar id={post.actorId} name={name(post.actorId)} size={40}/><div className="gx-grow"><p className="gx-t-strong">{name(post.actorId)}</p><p className="gx-t-body gx-c-2">{postText(post)}</p><p className="gx-t-meta gx-c-3"><time dateTime={post.createdAt}>{date(post.createdAt)} PT</time></p></div></div>
     {picks?.shown.length > 0 && <ul className="gx-league-picks gx-t-body">{picks.shown.map(([id, value]) => { const [away, home] = id.split('-'); return <li key={id}><span>{away} at {home}</span><span className="gx-n-s">{pickText(post.mode, away, home, value)}</span></li>; })}</ul>}
     {picks && (picks.allHidden || picks.hidden > 0) && <p className="gx-t-body gx-c-2">{picks.hidden ? `${picks.hidden} games hidden` : 'Picks hidden'}. Your submission or each game's kickoff opens the permitted picks.</p>}
-    <Button variant="ghost" aria-pressed={post.likedByMe === true} aria-disabled={busy || undefined} onClick={() => mutate('like', { postId: post.id, like: !post.likedByMe })}>{post.likedByMe ? 'Unlike' : 'Like'} · {post.likes || 0}</Button>
-    {(post.comments || []).length > 0 && <ul className="gx-league-comments gx-vstack gx-gap-8" aria-label="Comments">{post.comments.map(comment => <li key={comment.id} className="gx-t-body"><strong>{name(comment.userId)}</strong> {comment.body}</li>)}</ul>}
-    <form className="gx-vstack gx-gap-8" onSubmit={comment}>
+    <div className="gx-league-post-actions">
+      <Button variant="ghost" aria-pressed={post.likedByMe === true} aria-disabled={busy || undefined} onClick={() => mutate('like', { postId: post.id, like: !post.likedByMe })}>{post.likedByMe ? 'Unlike' : 'Like'} · {post.likes || 0}</Button>
+      <Button variant="ghost-2" icon="message" aria-expanded={replyOpen} aria-controls={`gx-reply-${post.id}`} onClick={() => setReplyOpen(value => !value)}>{replyOpen ? 'Close reply' : 'Write a comment'}</Button>
+    </div>
+    {(post.comments || []).length > 0 && <ul className="gx-league-comments gx-vstack gx-gap-12" aria-label="Comments">{post.comments.map(comment => <li key={comment.id} className="gx-league-comment"><Avatar id={comment.userId} name={name(comment.userId)} size={24}/><div className="gx-t-body"><strong>{name(comment.userId)}</strong> {comment.body}</div></li>)}</ul>}
+    <form id={`gx-reply-${post.id}`} className="gx-league-reply gx-vstack gx-gap-8" onSubmit={comment} hidden={!replyOpen}>
       <label className="gx-t-body" htmlFor={`gx-comment-${post.id}`}>Comment</label>
       <textarea className="gx-input" id={`gx-comment-${post.id}`} maxLength={500} value={draft.body} readOnly={busy} onChange={event => change(event.target.value)}/>
       <Button type="submit" aria-disabled={busy || !draft.body.trim() || undefined}>{busy ? 'Saving…' : 'Post comment'}</Button>
@@ -164,8 +168,8 @@ export function LeagueScreen() {
   const section = ['board', 'history', 'feed'].includes(view.view) ? view.view : 'feed';
   const community = app.league.community === true, feed = app.community.data;
   return <div className="gx-screen gx-league">
-    <div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">League</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>Your leagues</Button></div>
-    <p className="gx-t-body gx-c-2">{app.league.name}</p>
+    <div className="gx-league-heading"><div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">League</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>Your leagues</Button></div>
+      <p className="gx-t-body gx-c-2">{app.league.name}</p></div>
     {community && <Segmented label="League sections" options={[{ value: 'feed', label: 'Feed' }, { value: 'board', label: 'Boards' }, { value: 'history', label: 'History' }]} value={section} onChange={value => shell.setView('league', { view: value })}/>}
     {(!community || section === 'board') && <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => shell.setView('league', { market: value })}/>}
     {!community ? <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} mode={mode}/>

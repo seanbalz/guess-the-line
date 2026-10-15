@@ -1,5 +1,23 @@
 # Social community and feed — D-21 and D-23
 
+**Current status:** the [October 14 version 2 release](RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows)
+records Pages `b29836da` from `8ecde62` and API v23 with JWT verification. Community
+feed, comments/likes, separate market boards and history are live in the opt-in
+League tab. M-01 is hosted: live rules are `{revealAt: "kickoff", sentFinal: false,
+lateWindow: "deadline"}`. Whole-market Guess submission and D-16 editing remain;
+M-02 is not applied. M-09/M-29 and push setup are hosted under the
+[October 14 apply records](RELEASE_2026_10_09.md#october-14-deploy); actual phone
+reminder delivery still needs acceptance. The [completion register](COMPLETION_REGISTER.md)
+tracks the unapplied migrations and remaining work. Current section-formatting,
+profile and private-note UI changes are pending, not deployed.
+
+## Historical implementation and release notes
+
+The dated sections below preserve their original implementation state and API
+contracts. Earlier “not deployed,” “M-01 not applied,” missing-live-rules and
+push-pending statements are superseded by the release evidence above; planned
+migrations and later redesign capabilities are not thereby marked complete.
+
 Owner: Sean Balsiger · Version 7 · Updated 2026-10-14 (redesign stages 16 to 18, 20 and 26: the per-game reveal gate, the old app's per-game reveal, sent picks final, the Virtual Units line lock and the everyone's picks reader) · Decisions D-08, D-21, D-22, D-23, D-24, D-27, D-39
 
 ## What is built

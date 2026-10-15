@@ -1,15 +1,275 @@
-/* The classic save bar stays above the new app's fixed navigation. The shared workflow stylesheet supplies
-   token-based control styling for the reused editor; this offset belongs only to Play. */
-.gx .gx-live-play :where([class~="save-bar"]) {
-  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px);
-  z-index: var(--gx-z-dock);
-}
-.gx .gx-live-play :where([class~="personal-actions"]) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.gx .gx-live-play :where([class~="week-pick-list"]) {
+/* Native Play presentation, scoped to the new app. The shared ballot still owns all rules and writes. */
+.gx .gx-live-play {
+  --gx-play-dock-height: 0px;
   display: grid;
-  gap: 16px;
+  gap: var(--gx-space-3);
 }
+.gx .gx-live-play > .gx-t-body { margin-bottom: var(--gx-space-3); }
+.gx .gx-live-play [class~="week-picks"] { min-width: 0; }
+.gx .gx-live-play [class~="personal-actions"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gx-space-1);
+  padding: var(--gx-space-1);
+  border: 1px solid var(--gx-border);
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-surface-2);
+}
+.gx .gx-live-play [class~="personal-actions"] button {
+  border-color: transparent;
+  border-radius: var(--gx-radius-pill);
+  background: transparent;
+  color: var(--gx-text-2);
+}
+.gx .gx-live-play [class~="personal-actions"] button[aria-pressed="true"] {
+  background: var(--gx-seg-on);
+  color: var(--gx-text-1);
+  border-color: var(--gx-border-strong);
+  box-shadow: var(--gx-e1);
+}
+.gx .gx-live-play [class~="trends-toggle-row"] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--gx-space-3);
+  align-items: center;
+  margin-block: var(--gx-space-4);
+}
+.gx .gx-live-play [class~="trends-toggle-row"] > span { font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-live-play [class~="week-picks"] > p[class~="muted"] {
+  margin-block: var(--gx-space-4);
+  color: var(--gx-text-2);
+  font: 500 13px/20px var(--gx-font-body);
+}
+.gx .gx-live-play [class~="chip-help"] {
+  align-items: center;
+  gap: var(--gx-space-3);
+  margin-block: var(--gx-space-4);
+  padding: var(--gx-space-3);
+  border: 1px solid var(--gx-border);
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-data-tint);
+  font: 500 16px/24px var(--gx-font-body);
+}
+.gx .gx-live-play [class~="week-pick-list"] {
+  display: grid;
+  gap: var(--gx-space-4);
+  margin-top: var(--gx-space-6);
+  padding-bottom: calc(var(--gx-play-dock-height) + var(--gx-space-4));
+}
+.gx .gx-live-play .gx-play-game {
+  display: grid;
+  gap: var(--gx-space-4);
+  margin: 0;
+  padding: var(--gx-space-4);
+  border: 1px solid var(--gx-border);
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+  box-shadow: var(--gx-e1);
+  overflow: visible;
+}
+.gx .gx-live-play .gx-play-game-head { display: grid; gap: var(--gx-space-4); }
+.gx .gx-live-play .gx-play-game-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gx-space-2);
+  color: var(--gx-text-2);
+  font: 500 13px/18px var(--gx-font-body);
+}
+.gx .gx-live-play .gx-play-pick-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gx-space-1);
+  padding: var(--gx-space-1) var(--gx-space-2);
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-surface-3);
+  color: var(--gx-text-2);
+  font: 700 12px/16px var(--gx-font-body);
+  text-transform: uppercase;
+}
+.gx .gx-live-play .gx-play-game[data-picked] .gx-play-pick-state {
+  background: var(--gx-accent-tint);
+  color: var(--gx-accent-ink);
+}
+.gx .gx-live-play .gx-play-matchup {
+  display: grid;
+  gap: var(--gx-space-2);
+  font: 700 16px/24px var(--gx-font-body);
+}
+.gx .gx-live-play .gx-play-matchup > span {
+  display: flex;
+  align-items: center;
+  gap: var(--gx-space-3);
+  min-width: 0;
+}
+.gx .gx-live-play .gx-play-matchup small { color: var(--gx-text-3); font-weight: 500; }
+.gx .gx-live-play .gx-play-entry {
+  padding: var(--gx-space-3);
+  border: 1px solid var(--gx-border);
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+}
+.gx .gx-live-play [class~="chip-picker"] { gap: var(--gx-space-4); }
+.gx .gx-live-play [class~="chip-row"] { gap: var(--gx-space-2); }
+.gx .gx-live-play [class~="chip-teams"] {
+  display: grid;
+  grid-template-columns: minmax(var(--gx-size-touch), 1fr) max-content minmax(var(--gx-size-touch), 1fr);
+  align-items: stretch;
+}
+.gx .gx-live-play .gx-play-entry button[class~="chip"] {
+  padding: var(--gx-space-2);
+  background: var(--gx-surface-1);
+  border: 1px solid var(--gx-border-strong);
+  color: var(--gx-text-1);
+  border-radius: var(--gx-radius-sm);
+}
+.gx .gx-live-play .gx-play-entry button[class~="team-chip"] {
+  min-width: 0;
+  padding: var(--gx-space-4) var(--gx-space-1) var(--gx-space-2);
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+/* Full team names stay in the matchup and accessible name; abbreviations fit the favorite controls. */
+.gx .gx-live-play .gx-play-entry button[class~="team-chip"]:not([data-side="pickem"]) {
+  font: 700 20px/24px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
+.gx .gx-live-play .gx-play-entry button[class~="selected"] {
+  background: var(--gx-accent);
+  border-color: var(--gx-accent-ink);
+  color: var(--gx-accent-text);
+  box-shadow: var(--gx-lime-edge);
+}
+.gx .gx-live-play [class~="team-chip"] [class~="chip-check"] { top: 2px; right: 2px; left: auto; margin: 0; transform: none; }
+.gx .gx-live-play .gx-play-entry button:disabled {
+  background: var(--gx-surface-3);
+  color: var(--gx-text-2);
+}
+.gx .gx-live-play .gx-play-entry button[class~="selected"]:disabled {
+  background: var(--gx-accent-tint);
+  color: var(--gx-accent-ink);
+}
+.gx .gx-live-play [class~="chip-numbers"] {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.gx .gx-live-play [class~="chip-row-head"],
+.gx .gx-live-play [class~="chip-typed-wrap"] { grid-column: 1 / -1; }
+.gx .gx-live-play [class~="chip-row-label"] { font: 600 13px/18px var(--gx-font-body); }
+.gx .gx-live-play [class~="number-chip"] {
+  min-width: var(--gx-size-touch);
+  font: 600 18px/22px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
+.gx .gx-live-play [class~="number-chip"] [class~="chip-check"] { display: none; }
+.gx .gx-live-play [class~="number-chip"][aria-checked="true"] { outline: 2px solid var(--gx-accent-ink); outline-offset: 2px; }
+.gx .gx-live-play [class~="chip-call"] { color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-live-play [class~="chip-fine"] {
+  display: grid;
+  grid-template-columns: var(--gx-size-touch) minmax(0, 1fr) var(--gx-size-touch);
+  gap: var(--gx-space-2);
+  padding-top: var(--gx-space-3);
+  border-top: 1px solid var(--gx-border);
+}
+.gx .gx-live-play [class~="chip-summary"] {
+  color: var(--gx-text-1);
+  font: 600 24px/28px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.gx .gx-live-play .gx-play-reference {
+  padding: var(--gx-space-3);
+  border-left: 2px solid var(--gx-data);
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-data-tint);
+}
+.gx .gx-live-play .gx-play-reference [class~="line-at-guess"] {
+  display: block;
+  color: var(--gx-text-2);
+  font: 500 13px/20px var(--gx-font-body);
+}
+.gx .gx-live-play .gx-play-reference strong { color: var(--gx-text-1); font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-live-play .gx-play-details { border-top: 1px solid var(--gx-border); }
+.gx .gx-live-play .gx-play-details summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gx-space-2);
+  min-height: var(--gx-size-touch);
+  color: var(--gx-data);
+  font: 600 16px/24px var(--gx-font-body);
+  cursor: pointer;
+  list-style: none;
+}
+.gx .gx-live-play .gx-play-details summary::-webkit-details-marker { display: none; }
+.gx .gx-live-play .gx-play-details[open] summary svg { rotate: 180deg; }
+.gx .gx-live-play .gx-play-details-body {
+  padding: var(--gx-space-3);
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-surface-2);
+}
+.gx .gx-live-play [class~="team-facts"] {
+  margin: 0;
+  gap: var(--gx-space-2);
+  color: var(--gx-text-2);
+  font: 500 13px/18px var(--gx-font-body);
+}
+.gx .gx-live-play [class~="team-facts"] small { color: var(--gx-text-3); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-live-play .gx-play-save-dock {
+  position: sticky;
+  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + var(--gx-space-2));
+  z-index: var(--gx-z-dock);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gx-space-2);
+  padding: var(--gx-space-3);
+  margin-top: var(--gx-space-4);
+  border: 1px solid var(--gx-border-strong);
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+  box-shadow: var(--gx-e2);
+}
+.gx .gx-live-play .gx-play-save-dock > :not(button) { grid-column: 1 / -1; }
+.gx .gx-live-play .gx-play-save-dock > button { min-height: var(--gx-size-primary); }
+.gx .gx-live-play .gx-play-save-dock > button:only-of-type { grid-column: 1 / -1; }
+.gx .gx-live-play .gx-play-save-dock [class~="save-status"] { gap: var(--gx-space-1); margin: 0; }
+.gx .gx-live-play .gx-play-save-dock [class~="save-status"] strong { font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-live-play .gx-play-save-dock [class~="save-due"] { font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-live-play :is(button, summary, input) {
+  scroll-margin-top: calc(var(--gx-size-topbar) + var(--gx-space-4));
+  scroll-margin-bottom: calc(var(--gx-play-dock-height) + var(--gx-size-tabbar) + var(--gx-space-6));
+}
+@media (max-width: 360px) {
+  .gx .gx-live-play [class~="chip-numbers"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .gx .gx-live-play [class~="trends-toggle-row"] { grid-template-columns: minmax(0, 1fr); }
+  .gx .gx-live-play [class~="chip-help"] { flex-wrap: wrap; }
+}
+
+.gx .gx-live-play .gx-play-help {
+  margin-block: var(--gx-space-3);
+  padding: var(--gx-space-3);
+  border: 1px solid var(--gx-border);
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+}
+.gx .gx-live-play .gx-play-help summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gx-space-2);
+  min-height: var(--gx-size-touch);
+  color: var(--gx-data);
+  font: 600 16px/24px var(--gx-font-body);
+  list-style: none;
+  cursor: pointer;
+}
+.gx .gx-live-play .gx-play-help summary::-webkit-details-marker { display: none; }
+.gx .gx-live-play .gx-play-help summary small {
+  display: block;
+  color: var(--gx-text-2);
+  font: 500 13px/18px var(--gx-font-body);
+}
+.gx .gx-live-play .gx-play-help[open] summary svg { rotate: 180deg; }
+.gx .gx-live-play .gx-play-help-body { display: grid; gap: var(--gx-space-3); padding-top: var(--gx-space-3); }

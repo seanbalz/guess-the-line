@@ -27,7 +27,7 @@
   color: var(--gx-text-1);
   font-family: var(--gx-font-body);
 }
-.gx .gx-live-workflow button {
+.gx .gx-live-workflow button:not([class*="gx-"]) {
   min-height: var(--gx-size-touch);
   min-width: var(--gx-size-touch);
   padding: 8px 12px;
@@ -38,9 +38,7 @@
   font: 600 16px/24px var(--gx-font-body);
   white-space: normal;
 }
-.gx .gx-live-workflow button.primary,
-.gx .gx-live-workflow button[aria-pressed="true"],
-.gx .gx-live-workflow button.active {
+.gx .gx-live-workflow button.primary:not([class*="gx-"]) {
   background: var(--gx-accent);
   color: var(--gx-accent-text);
   border-color: var(--gx-accent-ink);
@@ -50,7 +48,13 @@
   background: var(--gx-accent-tint);
   color: var(--gx-accent-ink);
 }
-.gx .gx-live-workflow button:disabled {
+.gx .gx-live-workflow button[aria-pressed="true"]:not([class*="gx-"]),
+.gx .gx-live-workflow button.active:not([class*="gx-"]) {
+  border-color: var(--gx-accent-ink);
+  background: var(--gx-accent-tint);
+  color: var(--gx-accent-ink);
+}
+.gx .gx-live-workflow button:disabled:not([class*="gx-"]) {
   background: var(--gx-surface-3);
   color: var(--gx-text-2);
   cursor: not-allowed;
@@ -59,12 +63,20 @@
   max-width: 100%;
   min-width: 0;
 }
-.gx .gx-live-workflow :is(h2, h3) {
+.gx .gx-live-workflow :is(h2, h3):not([class*="gx-"]) {
   font: 700 20px/28px var(--gx-font-display);
 }
 .gx .gx-live-workflow p {
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+.gx .gx-live-workflow :is(fieldset, legend) { min-width: 0; }
+.gx .gx-live-workflow fieldset { margin: 0; }
+.gx .gx-live-workflow :is(label, input, select, textarea) { font-family: var(--gx-font-body); }
+.gx .gx-live-workflow :is(.panel, .social-card, .virtual-card) {
+  border-color: var(--gx-border);
+  background: var(--gx-surface-1);
+  box-shadow: var(--gx-e1);
 }
 .gx .gx-live-workflow :is(small, .source-note, .muted) {
   color: var(--gx-text-2);

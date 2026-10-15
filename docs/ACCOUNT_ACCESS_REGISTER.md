@@ -1,4 +1,20 @@
-# Current access evidence — October 8, 2026
+# GTL — current access status pointer
+
+The [October 14 version 2 release](RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows)
+records the latest verified manual release: Pages `b29836da` from `8ecde62`,
+API v23 with JWT verification, and five working opt-in tabs. The repository is
+public; unauthenticated access to private player data remains prohibited.
+M-01, M-09/M-29 and the push setup are hosted, as recorded in the
+[October 14 apply entries](RELEASE_2026_10_09.md#october-14-deploy). Push is enabled;
+actual iPhone delivery, general signup/recovery delivery and second-device
+acceptance remain open. Automatic GitHub-to-Pages deployment is not established.
+
+Use the [completion register](COMPLETION_REGISTER.md) for remaining work and
+approval gates. Pending frontend formatting, profile and private-note changes
+are not a new live release. The frozen planning tracker and acquisition entries
+below are historical evidence, not current integration or completion status.
+
+## Historical access evidence — October 8, 2026
 
 Read the latest `docs/CLOUD_SETUP.md` release entry and
 `planning/project-tracker.json` for current status. Historical acquisition tables

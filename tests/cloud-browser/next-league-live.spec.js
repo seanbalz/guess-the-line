@@ -35,7 +35,7 @@ async function phone(page) {
   expect(audit.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(' ')).join(', ')}`)).toEqual([]);
 }
 
-test('Community feed hides unrevealed guesses, saves likes and comments, and boards work at phone widths in both themes', async ({ page, baseURL }) => {
+test('Community feed hides unrevealed guesses, saves likes and comments, and boards work at phone widths in both themes', async ({ page, baseURL }, testInfo) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
   const world = await communityWorld(page, baseURL, { groupScreens: true, optionalRpc: true });
   try {
@@ -45,7 +45,12 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
     await expect(region(page)).not.toContainText('2.5');
     await spreadPost(page).getByRole('button', { name: /^Like/ }).click();
     await expect(spreadPost(page).getByRole('button', { name: /^Unlike/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(spreadPost(page).getByLabel('Comment', { exact: true })).toBeHidden();
+    await spreadPost(page).getByRole('button', { name: 'Write a comment' }).click();
     await spreadPost(page).getByLabel('Comment', { exact: true }).fill('Good luck this week');
+    await spreadPost(page).getByRole('button', { name: 'Close reply' }).click();
+    await spreadPost(page).getByRole('button', { name: 'Write a comment' }).click();
+    await expect(spreadPost(page).getByLabel('Comment', { exact: true })).toHaveValue('Good luck this week');
     await spreadPost(page).getByRole('button', { name: 'Post comment' }).click();
     await expect(spreadPost(page).getByRole('list', { name: 'Comments' })).toContainText('Luke Fixture Good luck this week');
     await expect(spreadPost(page).getByLabel('Comment', { exact: true })).toHaveValue('');
@@ -57,6 +62,7 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
       for (const width of [390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         await phone(page);
+        if (width === 390) await page.screenshot({ path: testInfo.outputPath(`league-feed-${theme}.png`), fullPage: true });
         await section(page, 'Boards').click();
         await page.getByRole('group', { name: 'Standings market' }).getByRole('button', { name: 'Spread', exact: true }).click();
         await expect(page.getByRole('list', { name: 'Spread season standings' })).toContainText('Troy Fixture');
@@ -64,6 +70,7 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
         await page.getByRole('group', { name: 'Standings market' }).getByRole('button', { name: 'Total', exact: true }).click();
         await expect(page.getByRole('list', { name: 'Total season standings' })).toBeVisible();
         await phone(page);
+        if (width === 390) await page.screenshot({ path: testInfo.outputPath(`league-board-${theme}.png`), fullPage: true });
         await section(page, 'Feed').click();
       }
     }
@@ -84,11 +91,13 @@ test('an uncertain comment keeps its text and request id across a reload; retry 
       expect(saved.status).toBe(200);
       await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Reply unavailable' }) });
     }, { times: 1 });
+    await spreadPost(page).getByRole('button', { name: 'Write a comment' }).click();
     await spreadPost(page).getByLabel('Comment', { exact: true }).fill('Keep this draft');
     await spreadPost(page).getByRole('button', { name: 'Post comment' }).click();
     await expect(spreadPost(page).getByRole('alert')).toContainText('could not confirm');
     await expect(spreadPost(page).getByLabel('Comment', { exact: true })).toHaveValue('Keep this draft');
     await page.reload();
+    await expect(spreadPost(page).getByLabel('Comment', { exact: true })).toBeVisible();
     await expect(spreadPost(page).getByLabel('Comment', { exact: true })).toHaveValue('Keep this draft');
     await spreadPost(page).getByRole('button', { name: 'Post comment' }).click();
     await expect(spreadPost(page).getByLabel('Comment', { exact: true })).toHaveValue('');
@@ -189,6 +198,7 @@ test('an older-feed refusal immediately removes loaded activity while the main r
     await page.getByRole('button', { name: 'Older activity' }).click();
     await expect(page.locator('.gx-league-post')).toHaveCount(60);
     const olderPost = page.locator('.gx-league-post').last();
+    await olderPost.getByRole('button', { name: 'Write a comment' }).click();
     await olderPost.getByLabel('Comment', { exact: true }).fill('Still here on an older post');
     await olderPost.getByRole('button', { name: 'Post comment' }).click();
     await expect(olderPost.getByRole('list', { name: 'Comments' })).toContainText('Still here on an older post');
