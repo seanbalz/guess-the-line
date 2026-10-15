@@ -1,14 +1,15 @@
 # Guess The Line
 
-**Latest verified release — October 14, 2026, late evening Pacific:** frontend
-`b29836da` is live from `main` at `8ecde62`. All five tabs in **Try the new app**
-now open working screens: Home, Play, Bets, Lines and League. Play uses the
-existing whole-market ballots; Bets and League use the existing hosted workflows.
+**Latest verified deployment — October 15, 2026, 1:38 AM Pacific:** frontend
+`fc7f3cd2` is live from `main` at `d71a988`. It adds section-formatting improvements,
+profile editing and private game notes to **Try the new app**. All five tabs use
+the existing hosted workflows; Play keeps whole-market ballots and deadline edits.
 The original app remains the default, API v23 is unchanged, and no database
 migration was applied. M-02 and the full redesign cutover retain their separate
-gates. See the [version 2 release record](docs/RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows)
+gates. See the [October 15 release record](docs/RELEASE_2026_10_15.md)
 for exact source, checks, live observations and rollback, and the
 [workflow scope](docs/ALL_TABS_LIVE_WORKFLOWS.md) for remaining boundaries.
+Issue #126 remains open for Sean's real-phone visual acceptance.
 
 The [current completion register](docs/COMPLETION_REGISTER.md) tracks each app
 section's remaining formatting, implementation and acceptance work, plus backend,
@@ -16,7 +17,7 @@ account and release dependencies. It keeps the historical tracker unchanged.
 
 ## Earlier release notes
 
-The dated notes below describe earlier states. Use the October 14 record above
+The dated notes below describe earlier states. Use the October 15 record above
 for the latest verified deployment and pending migration status.
 
 **October 9, 2026 (D-21..D-25) — on `main` at `597ab59`, partly deployed:** PRs #10–#26

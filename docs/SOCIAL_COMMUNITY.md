@@ -1,15 +1,15 @@
 # Social community and feed — D-21 and D-23
 
-**Current status:** the [October 14 version 2 release](RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows)
-records Pages `b29836da` from `8ecde62` and API v23 with JWT verification. Community
+**Current status:** the [October 15 release](RELEASE_2026_10_15.md)
+records Pages `fc7f3cd2` from `d71a988` and API v23 with JWT verification. Community
 feed, comments/likes, separate market boards and history are live in the opt-in
 League tab. M-01 is hosted: live rules are `{revealAt: "kickoff", sentFinal: false,
 lateWindow: "deadline"}`. Whole-market Guess submission and D-16 editing remain;
 M-02 is not applied. M-09/M-29 and push setup are hosted under the
 [October 14 apply records](RELEASE_2026_10_09.md#october-14-deploy); actual phone
 reminder delivery still needs acceptance. The [completion register](COMPLETION_REGISTER.md)
-tracks the unapplied migrations and remaining work. Current section-formatting,
-profile and private-note UI changes are pending, not deployed.
+tracks the unapplied migrations and remaining work. Section formatting, profile
+editing and private-note UI are deployed; real-phone acceptance remains open.
 
 ## Historical implementation and release notes
 

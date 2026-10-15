@@ -17,8 +17,9 @@ the implementation and its boundaries.
 | League | Community activity, likes, comments, separate market standings and history; selected private group's weekly standings | Community data is explicitly global. Private rosters and standings come only from that group's authenticated state route |
 
 Me also includes an explicit display-name editor through the existing profile
-route. The October 15 formatting, profile and note changes require their own
-[release verification](RELEASE_2026_10_15.md); implementation alone is not deployment.
+route. The October 15 formatting, profile and note changes shipped as Pages
+`fc7f3cd2` from `d71a988`; the [release record](RELEASE_2026_10_15.md) separates
+deployment evidence, fixture-based save checks and remaining real-phone acceptance.
 
 ## Rules and release scope
 
