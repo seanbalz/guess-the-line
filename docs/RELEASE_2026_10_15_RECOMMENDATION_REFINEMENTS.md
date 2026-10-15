@@ -58,6 +58,13 @@ exact final release SHA must be recorded before publication. The source at
 and the cloud build/privacy scan, and has the same frontend digest
 `5a386fea5c39c452b9d0b63bf19aeab0f1693bf7709e460bb5435bafb55a641f`.
 It does not yet include the subsequently merged per-game source `bb4f20a`.
+That intermediate source also passed 1,400 Node tests, 184 Vitest tests and all
+23 focused browser cases (17 recommendation and six classic Virtual Units).
+The subsequent integration commit `6a483d45a775e1282075a3b8b96aefafc2e222e4`
+includes main at `bb4f20a095de61ac283b62cfee819d533470fa39`; its single rules-table
+conflict retains both the updated scoring implementation state and D-51's
+recommendation rules. Integrated checks are tracked on PR #140. Source
+synchronization does not apply the per-game migrations or activate their rules.
 
 | Check | Current evidence | Exit condition |
 | --- | --- | --- |
