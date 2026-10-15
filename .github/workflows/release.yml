@@ -1,0 +1,173 @@
+name: Shared production release
+run-name: "${{ inputs.mode }} · ${{ inputs.target }} · ${{ inputs.source_sha }}"
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Check source only, read protected live readiness, or deploy
+        type: choice
+        options: [check-only, readiness, deploy]
+        default: check-only
+        required: true
+      source_sha:
+        description: Full 40-character commit SHA reachable from main
+        type: string
+        required: true
+      target:
+        description: One component, or backward-compatible API then frontend
+        type: choice
+        options: [frontend, api, api-and-frontend]
+        default: frontend
+        required: true
+      release_card:
+        description: Repository release card URL with exact SHA, order, migration review and rollback
+        type: string
+      migration_history_sha256:
+        description: Reviewed 64-character digest from the protected readiness report (deploy only)
+        type: string
+      compatibility_reviewed:
+        description: Release card confirms component compatibility and separately authorized migration boundaries
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: gtl-production-release
+  cancel-in-progress: false
+env:
+  RELEASE_SHA: ${{ inputs.source_sha }}
+  RELEASE_TARGET: ${{ inputs.target }}
+  RELEASE_MODE: ${{ inputs.mode }}
+  RELEASE_CARD: ${{ inputs.release_card }}
+  RELEASE_HISTORY_SHA256: ${{ inputs.migration_history_sha256 }}
+  RELEASE_COMPATIBLE: ${{ inputs.compatibility_reviewed }}
+
+jobs:
+  source:
+    name: Verify exact source and CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Reject non-main dispatch and invalid input
+        run: node --input-type=module -e "import { validateRequest } from './control/scripts/release-preflight.mjs'; validateRequest(process.env)"
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          path: source
+          persist-credentials: false
+      - name: Require successful main push CI on the exact release commit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node control/scripts/release-preflight.mjs source --source source --out evidence/source.json
+      - name: Check-only result
+        if: inputs.mode == 'check-only'
+        run: |
+          echo 'Source and exact-commit CI verified. No protected credentials were requested, no hosted readiness was checked, and nothing was deployed.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Required production configuration is listed in docs/SHARED_DEPLOYMENT.md. Use readiness after environment setup to verify hosted state.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-source-${{ github.run_id }}
+          path: evidence/source.json
+          retention-days: 30
+
+  production:
+    name: "${{ inputs.mode }} · ${{ inputs.target }} · ${{ inputs.source_sha }}"
+    needs: source
+    if: inputs.mode != 'check-only' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: source/package-lock.json
+      - name: Require environment configuration (names only on failure)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node control/scripts/release-preflight.mjs configuration --source source
+      - name: Install the committed CLI and build dependencies
+        working-directory: source
+        run: npm ci
+      - name: Build, scan and fingerprint exact release source
+        working-directory: source
+        run: |
+          npm run build:cloud
+          node scripts/check-cloud-boundary.mjs --bundle-only
+          node scripts/release-manifest.mjs
+      - name: Recheck exact source and CI after environment approval
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node control/scripts/release-preflight.mjs source --source source --out evidence/source.json
+      - name: Read-only hosted preflight and quiet-window check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node control/scripts/release-preflight.mjs live --source source --out evidence/before.json
+      - name: Deploy only the API (JWT verification remains enabled)
+        if: inputs.mode == 'deploy' && inputs.target != 'frontend'
+        working-directory: source
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: ./node_modules/.bin/supabase functions deploy gtl-api --project-ref "$SUPABASE_PROJECT_REF" --use-api
+      - name: Deploy only the scanned frontend
+        if: inputs.mode == 'deploy' && inputs.target != 'api'
+        working-directory: source
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: ./node_modules/.bin/wrangler pages deploy .local/cloud-dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$RELEASE_SHA" --commit-dirty=false
+      - name: Verify live metadata, unchanged migration history, boundaries and frontend bytes
+        if: inputs.mode == 'deploy'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node control/scripts/release-preflight.mjs verify --source source --before evidence/before.json --out evidence/verified.json
+      - name: Record the scope of this run
+        if: always()
+        run: |
+          echo "Mode: $RELEASE_MODE. Source: $RELEASE_SHA. Target: $RELEASE_TARGET." >> "$GITHUB_STEP_SUMMARY"
+          echo 'Review the result of every step and the evidence artifact. No database migrations, collector changes or app-default flip are performed. A failed post-deploy check may follow a successful deployment; investigate before retrying.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Signed-in acceptance and real-phone verification remain separate. Record successful deployment identifiers in a dated repository release record.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Save allowlisted release evidence (no credentials or private state)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-evidence-${{ github.run_id }}
+          path: |
+            evidence/source.json
+            evidence/before.json
+            evidence/verified.json
+            source/.local/release-manifest.json
+          include-hidden-files: true
+          retention-days: 30
