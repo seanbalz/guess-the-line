@@ -25,7 +25,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
-  20261015143006, // D-48 current-week recommended virtual pick: additive writer; release apply pending.
   20261014221500, // M-05 (stage 22) Monday-night lines: applied alone on a Tuesday or Wednesday after Sean's "apply M-05".
   20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
   20261015020000, // M-08 guess_picks_reader (redesign stage 26): everyone's picks, applied after M-01 on Sean's "apply M-08".
@@ -107,4 +106,5 @@ export const APPLIED = [
   20261014223000, // M-01 gtl_guess_gate_per_game: hosted as 20261014223000 on October 14, 2026
   20261014224500, // M-09 gtl_game_notes: hosted as 20261014224500 on October 14, 2026
   20261014233000, // M-29 gtl_favorite_keeps_note: hosted as 20261014233000 on October 14, 2026
+  20261015143006, // D-48 recommended virtual pick: hosted as 20261015143006 on October 15, 2026.
 ];
