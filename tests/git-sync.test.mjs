@@ -1,17 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, chmodSync } from 'node:fs';
+import childProcess, { execFileSync } from 'node:child_process';
+import { syncBuiltinESMExports } from 'node:module';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { syncCheckout } from '../scripts/git-sync.mjs';
 
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'gtl-git-sync-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  // Git/Windows can briefly retain handles after a child exits; still fail if
+  // the fixture cannot be removed after bounded retries. Async rm also avoids
+  // the rmSync EPERM retry bug in older Node 24 releases (nodejs/node#64016).
+  t.after(() => rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
   const remote = join(root, 'remote.git'), local = join(root, 'local'), other = join(root, 'other');
+  const globalConfig = join(root, 'empty-git-config'); writeFileSync(globalConfig, '');
   const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' } }).trim();
+    stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: globalConfig } }).trim();
   git(root, 'init', '--bare', '--initial-branch=main', remote);
   mkdirSync(local);
   git(local, 'init', '--initial-branch=main');
@@ -89,15 +95,19 @@ test('incoming tracked file cannot overwrite ignored local state', t => {
   assert.equal(readFileSync(join(f.local, 'local-state.txt'), 'utf8'), 'private local state');
 });
 test('local edits during remote verification prevent a false synced report', t => {
-  const f = fixture(t), bin = join(f.root, 'bin'); mkdirSync(bin);
-  const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
-  const shim = join(bin, 'git');
-  writeFileSync(shim, `#!${process.execPath}\nconst {spawnSync}=require('node:child_process');\nconst {writeFileSync}=require('node:fs');\nconst args=process.argv.slice(2);\nconst r=spawnSync(${JSON.stringify(realGit)},args,{stdio:'inherit'});\nif(args[0]==='ls-remote')writeFileSync(${JSON.stringify(join(f.local, 'base.txt'))},'concurrent edit');\nprocess.exit(r.status ?? 1);\n`);
-  chmodSync(shim, 0o755);
-  const oldPath = process.env.PATH;
+  const f = fixture(t), run = execFileSync;
+  // Keep every real Git operation; introduce the edit at its network boundary
+  // without a Unix PATH shim, executable shebang or platform command lookup.
+  const hook = t.mock.method(childProcess, 'execFileSync', (file, args, options) => {
+    const result = run(file, args, options);
+    if (file === 'git' && args[0] === 'ls-remote' && options.cwd === f.local) {
+      writeFileSync(join(f.local, 'base.txt'), 'concurrent edit');
+    }
+    return result;
+  });
+  syncBuiltinESMExports();
   try {
-    process.env.PATH = `${bin}:${oldPath}`;
     const r = f.check('check'); assert.equal(r.synced, false); assert.equal(r.changed.length, 1);
     assert.match(r.blockers.join(' '), /appeared/);
-  } finally { process.env.PATH = oldPath; }
+  } finally { hook.mock.restore(); syncBuiltinESMExports(); }
 });

@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { build } from 'esbuild';
+import { fileURLToPath } from 'node:url';
 
-const compiled = await build({ entryPoints: [new URL('../web/src/SportsbookSources.jsx', import.meta.url).pathname], bundle: true, write: false, platform: 'node', format: 'esm', loader: { '.css': 'empty' } });
+const compiled = await build({ entryPoints: [fileURLToPath(new URL('../web/src/SportsbookSources.jsx', import.meta.url))], bundle: true, write: false, platform: 'node', format: 'esm', loader: { '.css': 'empty' } });
 const { default: SportsbookSources } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const observedAt = '2026-10-08T18:00:12.000Z';
 const collectedAt = '2026-10-08T18:01:34.000Z';

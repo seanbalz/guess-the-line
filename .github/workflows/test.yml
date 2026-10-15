@@ -9,6 +9,18 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  windows-portability:
+    name: Windows portability
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify Git synchronization, private recovery and UI paths on Windows
+        run: node --test tests/git-sync.test.mjs tests/local-recovery.test.mjs tests/sportsbook-sources-ui.test.mjs
   test:
     name: Typecheck and test
     runs-on: ubuntu-latest
