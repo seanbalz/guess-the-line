@@ -94,8 +94,8 @@ test('gtl_live_rules (M-02): sentFinal true, lateWindow deadline; revealAt is M-
     catch (error) { if (error.code === '42883') return FEATURE_OFF; throw error; }
   };
   await db.exec(PRELUDE);
-  // The hosted schema today has neither M-01 nor M-02: today's rules.
-  for (const file of HOSTED) await db.exec(migrationSql(file));
+  // The schema before October 14, 2026 had neither M-01 nor M-02: the deadline rules.
+  for (const file of HOSTED.filter(file => file !== M01)) await db.exec(migrationSql(file));
   assert.deepEqual(await readLiveRules(optionalRpc), TODAYS_RULES);
   // M-02 applied without M-01 (out of order): a working function that keeps today's deadline reveal.
   await db.exec(migrationSql(M02));

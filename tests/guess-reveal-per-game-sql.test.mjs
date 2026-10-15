@@ -34,9 +34,9 @@ const M01_RULES = Object.freeze({ sentFinal: false, lateWindow: 'deadline', reve
 const REPLACED = ['gtl_week_revealed(uuid,integer,integer,text,timestamptz)', 'gtl_read_community(uuid,timestamptz,integer,timestamptz)',
   'gtl_read_community_history(uuid,integer,timestamptz)'];
 
-test('M-01 is a repo file the hosted project does not have yet; its rollback restores the three bodies it replaces', () => {
+test('M-01 is hosted since October 14, 2026 (hosted version 20261014223000); its rollback restores the three bodies it replaces', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'removed from NOT_HOSTED by the October 14 apply record (Gate M step 8)');
 });
 
 test('gtl_live_rules (M-01): revealAt kickoff with today\'s other two fields; missing on the hosted schema, switched off by the rollback', { skip }, async t => {
