@@ -1,5 +1,30 @@
 # Decision log
 
+## D-48 — recommendations from your own guesses (October 15, 2026)
+
+Sean requested deployment of a Recommended section in Bets, then revised its
+initial three-point cutoff: “make it a red yellow green situation” and
+“it recommends the top 3 bets and then from there you can expand the table”.
+
+Show both sides relative to the player’s own submitted or locked-in Spread/Total
+guess and the accessible current consensus. Rank all positive discrepancies,
+including those below three points, show the top three first, and expand the rest.
+Green is favorable to that guess, red is against it, and yellow is a small gap or
+near match. The implementation chooses a one-point boundary for green/red; this
+is a display rule, not a validated model threshold. Show text and signed points
+with every color. Adding a suggestion prepares a Virtual Units card for explicit
+review and placement; it does not place a real-money wager or overwrite a pick.
+
+This authorizes a simple guess-based suggestion without a predictive model.
+It amends earlier wording that no recommendation can be generated from gaps;
+the gap still establishes neither a probability nor positive expected value.
+Recommendations use the current Community week and the player’s own picks,
+independent of private-league membership or its older week. The narrow placement
+path adds a service-only writer; it does not apply the pending redesign migrations.
+Scoring, reveal gates, quote provenance and free-data limits are unchanged.
+See [the feature contract](RECOMMENDED_BETS.md). D-47 remains reserved by the
+weather-schedule draft. Implementation and deployment require their own evidence.
+
 ## D-46 — official logos for all 32 teams (October 14, 2026)
 
 Sean answered two questions in the Mac mini session.

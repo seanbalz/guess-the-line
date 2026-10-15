@@ -1,0 +1,55 @@
+/* Shared with the classic Virtual Units screen; liveWorkflows.css maps these semantic tokens to D-38. */
+.recommended-view-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.recommended-view-tabs button { min-height: var(--touch-target, 44px); font-size: 16px; }
+.recommended-view-tabs [aria-pressed="true"] { color: var(--primaryForeground, var(--primary)); border-color: var(--primaryForeground, var(--primary)); }
+.recommended-bets { display: grid; gap: 16px; min-width: 0; }
+.recommended-week-select { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; margin-bottom: 16px; color: var(--muted); font-size: 16px; }
+.recommended-week-select select { width: 100%; min-width: 0; min-height: var(--touch-target, 44px); font-size: 16px; }
+.recommended-list-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.recommended-list-heading h3 { font-size: 20px; }
+.recommended-list-heading > span, .recommended-coverage { color: var(--muted); font-size: 13px; }
+.recommended-bet-list { display: grid; gap: 16px; }
+.recommended-bet-card, .recommended-pending-review { min-width: 0; overflow: hidden; padding: 16px; }
+.recommended-card-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.recommended-card-heading h3 { font-size: 20px; line-height: 1.4; margin-top: 4px; }
+.recommended-card-heading p, .recommended-market-label { color: var(--muted); font-size: 13px; }
+.recommended-market-label { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.recommended-gap { flex-shrink: 0; color: var(--cyan); font-family: var(--font-mono); font-size: 18px; font-variant-numeric: tabular-nums; }
+.recommended-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 8px; }
+.recommended-comparison > div { min-width: 0; }
+.recommended-comparison dt { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.recommended-comparison dd { margin: 4px 0 0; color: var(--text); font-family: var(--font-mono); font-size: 24px; line-height: 28px; font-variant-numeric: tabular-nums; }
+.recommended-source { color: var(--muted); font-size: 13px; line-height: 18px; overflow-wrap: anywhere; }
+.recommended-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.recommended-side { display: grid; align-content: start; gap: 4px; padding: 12px; border: 1px solid currentColor; border-radius: var(--radius-control, 8px); min-width: 0; }
+.recommended-side > strong { font-size: 16px; color: var(--text); overflow-wrap: anywhere; }
+.recommended-side > span { display: flex; align-items: center; gap: 4px; font-size: 13px; line-height: 18px; }
+.recommended-side > small { color: inherit; font-family: var(--font-mono); font-size: 16px; font-variant-numeric: tabular-nums; }
+.recommended-side.recommended-green { color: var(--win); }
+.recommended-side.recommended-red { color: var(--loss); }
+.recommended-side.recommended-yellow { color: var(--pending); }
+.recommended-action { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.recommended-action > p { flex: 1 1 220px; font-size: 16px; }
+.recommended-action small { display: block; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.recommended-action > button, .recommended-expand { min-height: var(--touch-target, 44px); font-size: 16px; }
+.recommended-saved { padding-top: 12px; color: var(--muted); font-size: 13px; }
+.recommended-review { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+.recommended-review > p { color: var(--primaryForeground, var(--primary)); font-size: 16px; }
+.recommended-review .virtual-market { padding: 12px 0 0; border-top: 0; }
+.virtual-selected-quote { padding: 12px; margin: 12px 0; border: 1px solid var(--primaryForeground, var(--primary)); border-radius: var(--radius-control, 8px); color: var(--text); font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
+.recommended-empty { display: grid; justify-items: start; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-card, 12px); color: var(--muted); }
+.recommended-expand { width: 100%; justify-content: center; }
+.recommended-pending-review { display: grid; gap: 12px; }
+.recommended-closed { display: flex; gap: 8px; align-items: flex-start; color: var(--pending); font-size: 16px; }
+.recommended-closed > svg { margin-top: 4px; }
+.recommended-saved-card { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+.recommended-saved-card ul { display: grid; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.recommended-saved-card li { display: grid; gap: 8px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card, 12px); }
+.recommended-saved-card li > p { font-size: 16px; }
+.recommended-saved-card li > .recommended-source { font-size: 13px; }
+.recommended-saved-result { color: var(--text); }
+@media (max-width: 520px) {
+  .recommended-action > button { width: 100%; justify-content: center; }
+  .recommended-side { padding: 8px; }
+  .recommended-review .virtual-side-buttons { grid-template-columns: minmax(0, 1fr); }
+}

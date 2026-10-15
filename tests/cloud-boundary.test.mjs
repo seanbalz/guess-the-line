@@ -310,7 +310,7 @@ test('M-03 skip and "See picks now" probes awaiting deploy pass only on the exac
   });
 });
 
-test('only the referee, D-34 wind, M-05, M-06 lines, M-08 picks, M-02 lock-in and M-03 forfeit pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
+test('only the registered rollout pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
   const referees = ['gtl_read_game_officials', 'gtl_set_game_official'];
   const winds = ['gtl_read_wind_forecasts', 'gtl_begin_wind_fetch', 'gtl_finish_wind_fetch'];
   // M-01's gate and live-rules are hosted since October 14, 2026 and no longer awaiting.
@@ -325,16 +325,17 @@ test('only the referee, D-34 wind, M-05, M-06 lines, M-08 picks, M-02 lock-in an
   const lockIn = ['gtl_ballot_locked_in'];
   // M-03 (stage 19): the forfeit writer, its reader and their market helper; the route, the gtl-api deploy.
   const forfeit = ['gtl_forfeit_markets', 'gtl_forfeit_guess_week', 'gtl_read_forfeit'];
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', 'gtl-api/community/forfeit', ...[...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  const recommendations = ['gtl_save_recommended_virtual_pick'];
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', 'gtl-api/community/forfeit', 'gtl-api/bets/recommendations', 'gtl-api/bets/recommendations/place', ...[...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit, ...recommendations].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   assert.equal(awaitingDeploy['rpc/gtl_ballot_locked_in'], 'migration 20261015030000_gtl_sent_picks_final.sql');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
   assert.equal(awaitingDeploy['rpc/gtl_odds_carryover_slate'], 'migration 20261014221500_gtl_odds_open_weeks.sql');
-  const missing = async (url, request) => ([...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  const missing = async (url, request) => ([...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit, ...recommendations].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|lines\/(read|game)|community\/(picks|forfeit))$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|lines\/(read|game)|community\/(picks|forfeit)|bets\/recommendations(?:\/place)?)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + winds.length + monday.length + lines.length + picks.length + lockIn.length + forfeit.length + 7 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + monday.length + lines.length + picks.length + lockIn.length + forfeit.length + recommendations.length + 9 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 
