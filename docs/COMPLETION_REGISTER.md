@@ -1,6 +1,6 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Version 2 · Evidence reviewed October 15, 2026 (Pacific)
+Owner: Sean Balsiger · Version 3 · Evidence reviewed October 15, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and
 acceptance work. Its deployed source baseline is `main` at `b883c77`; later
@@ -16,6 +16,16 @@ profile and private-note changes. Both retain their acceptance limits. The
 current-status headers in [cloud setup](CLOUD_SETUP.md),
 [account access](ACCOUNT_ACCESS_REGISTER.md) and [social community](SOCIAL_COMMUNITY.md)
 were published with PR #127; their archived entries remain unchanged.
+
+## Active scoring implementation — October 15
+
+The `codex/per-game-scoring` workstream implements the confirmed D-50 core:
+per-game lock-in, immediate personal points, kickoff-based shared standings,
+receipts and weekly score navigation/filtering. Its **local checks pass; hosted
+activation and physical-phone acceptance remain pending**. [Implementation and release checklist](PER_GAME_SCORING_RELEASE.md)
+records the owners, checks and remaining gates. The nine-row
+[scoring backlog](../planning/scoring-and-player-trends.md) remains the detailed
+scope; Trends metrics and comparison decisions are a later checkpoint.
 
 ## Verified delivery baseline
 
@@ -85,7 +95,7 @@ adapter is a [documented exception][scope], not the finished prototype replaceme
 
 ## Backend and release dependencies
 
-These six merged migrations remain in `NOT_HOSTED`. Their code is not proof their
+The six previously merged migrations and the local M-07 implementation remain in `NOT_HOSTED`. Their code is not proof their
 behavior is live. Each apply follows [Gate M][gates]: explicit approval, prior-body
 and historical **score** hashes, tested rollback/off switch, function/grant
 readback, recorded hosted version and the applicable live checks. A ballot-content
@@ -100,8 +110,8 @@ generic `npx supabase db push` against this project.**
 | M-05 Monday-night collection | Implemented, not hosted / Unassigned | Apply alone in the approved Tuesday–Wednesday window; verify current plus previous unstarted games within the existing free budget. | [Migrations][migrations], [plan][plan] | Gate M; next scheduled collection succeeds with correct coverage and quota accounting. |
 | M-06 current-line readers | Implemented, not hosted / Unassigned | M-01, M-02, M-04 and stages 20/21 live; connect stages 32/33 after those dependencies. | [Migrations][migrations], [plan][plan] | Gate M; permitted current/book/kickoff lines show and hidden lines remain absent from responses. |
 | M-08 everyone's picks reader | Implemented, not hosted / Unassigned | M-01; corresponding UI and M-07 per-game scoring adaptation remain separate. | [Migrations][migrations], [plan][plan] | Gate M; per-game visibility, removed-member records and score labels verified. |
-| M-07 per-game saving/scoring | Unbuilt / Unassigned | M-01/M-02/M-05 and compatible old-app code; implement D-39/D-41/D-43 in both apps together (stages 24/25). | [Decisions][decisions], [plan][plan] | Each locked guess scores independently; drafts close at kickoff; sit-out/history preserve locked guesses; gates and tests pass. |
-| Immediate personal scoring and player trends (D-50) | Requirements reconciled; implementation open / Unassigned | Nine SCORE-NEXT tasks retain permanent per-game lock-in, immediate available personal points, weekly score browsing/filters and accuracy/bias trends. Q-02 adds games to shared weekly/season boards only from kickoff; metric details remain open. Existing migration and privacy gates apply. | [Recovered planning and provenance](../planning/scoring-and-player-trends.md), [D-50][decisions] | Each task's acceptance conditions pass with hosted/phone evidence where required; imported planning is not delivery. |
+| M-07 per-game saving/scoring | Implemented locally; checks pass / Codex SQL, API and UI lanes | Pending M-02/M-03/M-04/M-05/M-06/M-08 and compatible app release; explicit apply window remains. Both apps follow the server capability. | [Implementation checklist](PER_GAME_SCORING_RELEASE.md), [plan][plan] | Each locked guess scores independently; drafts close at kickoff; sit-out/history preserve locked guesses; gates and tests pass. |
+| Immediate personal scoring and player trends (D-50) | Core implemented locally; Trends discovery open / Codex core lanes; Trends unassigned | Lock-in, immediate personal points, weekly score browsing/filters and kickoff-only shared standings pass local checks; hosted and device acceptance remain. Trends metrics, samples, periods and audience remain decisions. Existing migration and privacy gates apply. | [Recovered planning and provenance](../planning/scoring-and-player-trends.md), [D-50][decisions] | Each task's acceptance conditions pass with hosted/phone evidence where required; imported planning is not delivery. |
 | Remaining redesign services | Unbuilt / Unassigned | Account-level Bets, friend challenges, league/social features, awards, history/export and their jobs need the staged APIs/SQL in phases 4–6. Follow D-39 amendments, including the dropped tester-list stage. | [Plan][plan] | Each capability has code, tests, hosted evidence and its matching screen; a planned migration number alone is not completion. |
 | D-47 weather schedule | Implemented on draft PR, not hosted / Unassigned | [PR #123][weather] at `a2b5270`; review/reconcile with current main. Compatible Pages first, then its separately approved migration/API sequence. | [PR release card][weather] | Green reviewed head, merge, ordered deployment/apply and readback; no claim of the new schedule before that. |
 

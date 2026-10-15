@@ -322,7 +322,7 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // M-08 (stage 26): the everyone's picks reader and its route.
   const picks = ['gtl_read_guess_picks'];
   // M-02 (stage 18): the service-only lock-in helper, awaiting the apply.
-  const lockIn = ['gtl_ballot_locked_in'];
+  const lockIn = ['gtl_ballot_locked_in', 'gtl_ballot_has_locked', 'gtl_guess_game_open', 'gtl_guess_late', 'gtl_prepare_guess_ballot', 'gtl_resolution_before_kickoff', 'gtl_valid_pending_resolution', 'gtl_guess_score_receipt'];
   // M-03 (stage 19): the forfeit writer, its reader and their market helper; the route, the gtl-api deploy.
   const forfeit = ['gtl_forfeit_markets', 'gtl_forfeit_guess_week', 'gtl_read_forfeit'];
   // D-48 recommendations writer and routes are hosted since October 15, 2026.

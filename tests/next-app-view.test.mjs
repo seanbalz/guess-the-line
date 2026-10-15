@@ -166,14 +166,15 @@ test('main.jsx loads NextApp and GameHub lazily, never both, behind the fallback
   assert.match(main, /if \(view !== 'next'\) return <Classic/);
 });
 
-test('the new app keeps its own shell and allows only the documented live workflow adapters; old screens never import the new app', () => {
+test('the apps keep separate shells and allow only documented workflow and pick-control adapters', () => {
   // Shared modules with no React, CSS or screen code: the per-device choice and the D-22 team mark registry (stage 8 TeamMark).
   // Stage 11 (the data layer): the routes both apps call (api.js, build plan section 3.3), the one Supabase client
   // (auth.js, for "Sign in again"), the invite link saved in this tab (invitations.js), Google sign-in (oauth.js) and the
   // new app's typed-text drafts, which AuthGate clears (nextDrafts.js).
   // Stage 13 (Lines): the trends loaders and the wind timer, both free of React, which the old trends panel's hooks also
   // use, so both apps share one cache and one request per week.
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js']);
+  // Stage 25 retains the classic recovery copies using the same pure account/week draft helpers.
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js']);
   for (const shared of allowed) {
     assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
   }
@@ -186,6 +187,8 @@ test('the new app keeps its own shell and allows only the documented live workfl
   const adapters = {
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
     'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
+    // The existing D-21 chip control is reused, never a classic screen or shell.
+    'web/src/next/play/PerGamePlay.jsx': ['ChipPicker.jsx'],
   };
   for (const file of filesUnder('web/src/next')) {
     const text = read(file);
@@ -212,8 +215,17 @@ test('the new app keeps its own shell and allows only the documented live workfl
     }
   }
   for (const file of fs.readdirSync(path.join(root, 'web/src')).filter(name => /\.(m?js|jsx)$/.test(name) && name !== 'main.jsx')) {
-    for (const spec of importsOf(read(`web/src/${file}`))) assert.ok(!spec.startsWith('./next/'), `web/src/${file} imports ${spec}`);
+    const text = read(`web/src/${file}`);
+    for (const spec of importsOf(text)) {
+      if (['CommunityHome.jsx', 'PersonalWorkspace.jsx'].includes(file) && spec === './next/play/PerGameLegacy.jsx') {
+        assert.match(text, /const PerGameLegacy = lazy\(\(\) => import\('\.\/next\/play\/PerGameLegacy\.jsx'\)\)/);
+        assert.match(text, /rules\?\.sentFinal === true && [^\n]*rules\?\.lateWindow === 'kickoff' && [^\n]*rules\?\.perGameScoring === true/);
+        continue;
+      }
+      assert.ok(!spec.startsWith('./next/'), `web/src/${file} imports ${spec}`);
+    }
   }
+  assert.doesNotMatch(read('web/src/next/play/PerGameLegacy.jsx'), /from ['"][^'"]*(NextApp|shell\/context|AppData)/, 'the compatibility wrapper never mounts or depends on the new shell');
 });
 
 test('"Try the new app" is in the Community footer for every signed-in member, not behind a role or a list (D-39)', () => {
