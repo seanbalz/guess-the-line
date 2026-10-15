@@ -171,7 +171,9 @@ test('the new app imports nothing from the old app\'s screens, and the old scree
   // Stage 11 (the data layer): the routes both apps call (api.js, build plan section 3.3), the one Supabase client
   // (auth.js, for "Sign in again"), the invite link saved in this tab (invitations.js), Google sign-in (oauth.js) and the
   // new app's typed-text drafts, which AuthGate clears (nextDrafts.js).
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js']);
+  // Stage 13 (Lines): the trends loaders and the wind timer, both free of React, which the old trends panel's hooks also
+  // use, so both apps share one cache and one request per week.
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'windTimer.js']);
   for (const shared of allowed) {
     assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
   }
@@ -192,6 +194,11 @@ test('the new app imports nothing from the old app\'s screens, and the old scree
         }
         continue;
       }
+      // The repo's shared modules (shared/, pure ESM and JSON the server and both apps read) are not the old app.
+      if (target.startsWith(`..${path.sep}..${path.sep}shared${path.sep}`)) {
+        assert.doesNotMatch(read(path.join('shared', target.split(path.sep).slice(3).join(path.sep))), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${target} stays free of React and CSS`);
+        continue;
+      }
       assert.ok(target.startsWith('next') || allowed.has(target), `${file} imports ${spec} from the old app`);
     }
   }
@@ -210,14 +217,14 @@ test('"Try the new app" is in the Community footer for every signed-in member, n
   assert.doesNotMatch(button, /admin|commissioner|tester|\.role\b/i, 'no gate: D-39 opens it to the whole league');
 });
 
-test('"Try the new app" stays out of production builds until the first-look PR turns it on; every browser test build shows it', () => {
+test('since the first look, "Try the new app" is in every build unless VITE_GTL_OFFER_NEW_APP=0 withdraws it; every browser test build shows it', () => {
   const button = read('web/src/TryNewApp.jsx');
-  assert.match(button, /export const NEW_APP_OFFERED = import\.meta\.env\?\.VITE_GTL_OFFER_NEW_APP === '1';/);
+  assert.match(button, /export const NEW_APP_OFFERED = import\.meta\.env\?\.VITE_GTL_OFFER_NEW_APP !== '0';/);
   assert.match(button, /if \(!NEW_APP_OFFERED\) return null;/);
   for (const config of ['playwright.cloud.config.js', 'playwright.performance.config.js', 'playwright.accessibility.config.js']) {
     assert.match(read(config), /VITE_GTL_OFFER_NEW_APP: '1'/, `${config} builds with the button`);
   }
   for (const file of fs.readdirSync(root).filter(name => /^\.env/.test(name))) {
-    assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8'), /VITE_GTL_OFFER_NEW_APP/, `${file} must not turn the button on before the first look`);
+    assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8'), /VITE_GTL_OFFER_NEW_APP\s*=\s*0/, `${file} must not withdraw the button`);
   }
 });

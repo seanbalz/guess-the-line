@@ -4,6 +4,9 @@
 import { ComingNext } from './Frame.jsx';
 import { MenuSheet } from '../me/MenuSheet.jsx';
 import { SwitcherSheet } from '../league/SwitcherSheet.jsx';
+import { LinesBoard } from '../lines/LinesBoard.jsx';
+import { GameSheet } from '../lines/GameSheet.jsx';
+import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
 
 const coming = tab => Object.assign(() => <ComingNext tab={tab}/>, { displayName: `ComingNext(${tab})` });
 
@@ -12,7 +15,7 @@ export const SCREENS = Object.freeze({
   home: coming('home'),
   play: coming('play'),
   bets: coming('bets'),
-  lines: coming('lines'),
+  lines: LinesBoard, // stage 13: read-only Lines and game sheet
   league: coming('league'),
 });
 
@@ -20,4 +23,6 @@ export const SCREENS = Object.freeze({
 export const LAYERS = Object.freeze({
   'sh.menu': MenuSheet, // me
   'sh.switcher': SwitcherSheet, // league (stage 11)
+  'sh.game': GameSheet, // lines (stage 13): one game, read-only
+  'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
 });

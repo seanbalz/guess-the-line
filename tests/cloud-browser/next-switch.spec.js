@@ -229,3 +229,66 @@ test('axe in dark and light at 390 and 320: the new-app frame and the old footer
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+/** Records the text each `.try-new-app-note` holds when it is put on the page (reset on every page load). */
+async function recordNoteInsertions(page) {
+  await page.addInitScript(() => {
+    window.__notesInserted = [];
+    const record = node => {
+      if (node.nodeType !== 1) return;
+      for (const el of [node, ...node.querySelectorAll('.try-new-app-note')]) if (el.matches('.try-new-app-note')) window.__notesInserted.push(el.textContent);
+    };
+    new MutationObserver(changes => { for (const change of changes) change.addedNodes.forEach(record); }).observe(document, { childList: true, subtree: true });
+  });
+}
+
+test('after a fallback the note is on the page before its words arrive, so a screen reader announces why the old app came back', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  await recordNoteInsertions(page);
+  await page.route('**/assets/NextApp-*.js', route => route.abort('failed'));
+  try {
+    await signIn(page, 'luke');
+    await expect(communityHome(page)).toBeVisible();
+    await tryButton(page).click();
+    const note = page.locator('.try-new-app-note');
+    await expect(note).toHaveText(new RegExp(`^${NOTE.fellBack}`));
+    await expect(note).toHaveAttribute('role', 'status');
+    // A status region that appears with its words already in it is not announced reliably: it must arrive empty, then change.
+    const inserted = await page.evaluate(() => window.__notesInserted);
+    expect(inserted.length, 'the note was put on the page after the reload').toBeGreaterThan(0);
+    expect(inserted.filter(text => text !== ''), 'every insertion was empty').toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a new app that throws while rendering, after its chunk has loaded, falls back to the old app the same way', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  // The chunk is served and runs (it loads the real chunk too), but its root component throws while rendering: a bug outside
+  // the shell's own error boundaries. main.jsx's outer boundary must catch it like a chunk that never loaded.
+  let served = 0;
+  await page.route('**/assets/NextApp-*.js', route => {
+    served += 1;
+    const real = new URL(route.request().url());
+    real.searchParams.set('loaded', '1');
+    return route.fulfill({ contentType: 'text/javascript', body: `import ${JSON.stringify(real.href)};\nexport default function NextApp() { throw new Error('The new app failed while rendering (fixture).'); }\n` });
+  });
+  try {
+    await signIn(page, 'luke');
+    await expect(communityHome(page)).toBeVisible();
+    await tryButton(page).click();
+    await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.fellBack}`));
+    await expect(communityHome(page)).toBeVisible();
+    await expect(page.locator('.gx')).toHaveCount(0);
+    expect(served, 'the new app\'s chunk was served').toBeGreaterThan(0);
+    expect(await saved(page), 'the fallback clears gtl.app').toBeNull();
+    // A reload stays in the old app: the choice is gone, so the failing chunk is never asked for again.
+    served = 0;
+    await page.reload();
+    await expect(communityHome(page)).toBeVisible();
+    await expect(page.locator('.try-new-app-note')).toHaveText('');
+    expect(served).toBe(0);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});

@@ -216,9 +216,9 @@ preservation/readback evidence are in [CLOUD_SETUP.md](CLOUD_SETUP.md).
 
 ## The new app switch (redesign stage 9, D-38 and D-39)
 Every signed-in member sees **Try the new app** in the Community footer (D-39:
-the whole league, opt-in; no tester list) from the first-look deploy. Until then
-a production build leaves it out (`NEW_APP_OFFERED`, on only with
-`VITE_GTL_OFFER_NEW_APP=1`, which the browser test configs set). The choice is kept on this device
+the whole league, opt-in; no tester list) since the first-look deploy of October 14, 2026.
+A build with `VITE_GTL_OFFER_NEW_APP=0` leaves it out (`NEW_APP_OFFERED`), the off
+switch if the new app has to be withdrawn without a code change. The choice is kept on this device
 (`gtl.app` in localStorage, `web/src/appView.js`) and the page reloads into the
 new app, a separate lazy chunk (`web/src/next/NextApp.jsx`, with its own CSS)
 that a device on the old app never downloads. **Use the old app** in the new app

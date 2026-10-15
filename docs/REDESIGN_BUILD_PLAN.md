@@ -285,7 +285,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 | 12 | Read-only Home | A | — | 11, 7 | Pages |
 | 13 | Read-only Lines and game sheet | D | — | 11, 7 | Pages |
 
-**First-look deploy:** one Pages deploy after 2 and 6 to 13 merge. Sean taps "Try the new app". Until then a production build leaves the button out (`NEW_APP_OFFERED` in `web/src/TryNewApp.jsx`, on only with `VITE_GTL_OFFER_NEW_APP=1`, which the browser test configs set), so an earlier Pages deploy of main never shows the empty frame. The first-look PR turns it on for every member (D-39).
+**First-look deploy:** one Pages deploy after 2 and 6 to 13 merge. Sean taps "Try the new app". Until then a production build leaves the button out (`NEW_APP_OFFERED` in `web/src/TryNewApp.jsx`, on only with `VITE_GTL_OFFER_NEW_APP=1`, which the browser test configs set), so an earlier Pages deploy of main never shows the empty frame. The first-look PR turns it on for every member (D-39). *October 14, 2026:* done, on Sean's "live and ready to test in the next hour", with stages 2, 6 to 11 and 13 merged and stage 12 (Home) still to come: Home shows "Coming next" until stage 12 lands. `VITE_GTL_OFFER_NEW_APP=0` is the build-time off switch.
 
 **6. Tokens, fonts and styles**
 - Scope: `design/tokens-next.json`; `web/src/next/styles/{tokens,base,components}.css`, dark by default, light through `data-theme`; the D-38 section in `docs/BRAND_GUIDE.md`. Figtree, Big Shoulders Display and Barlow Condensed load from a link `NextApp` adds; `web/index.html`, its meta description and the manifest wait for stage 80.
@@ -394,8 +394,9 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 
 **22. Monday-night lines (M-05)**
 - Goal: after the next week opens on Monday, the Monday night game keeps a fresh line and gets a kickoff line, so late Monday picks score against a current line (D-27, D-36) and Sharp can grade it.
-- Scope: `gtl_odds_collection_slate` and `gtl_odds_schedule_slate` also serve games of the previous published week that have not kicked off. Same provider calls and markets, no extra credits. If that is not possible at zero extra credits, stop and ask Sean.
-- Tests: the same number of provider requests and markets per collection; the Oct 12 `slate_changed` case stays green; 50 draft autosaves start 0 collections; late sends never pass 6 collections a UTC day; a static check that no new module calls the provider or the collect RPCs. After the apply, the next scheduled collection succeeds; weekly, copy the remaining-credit count into the release record.
+- Scope (as built): the scheduled and commissioner collections also collect the previous published week's games that have not kicked off. A new `gtl_odds_carryover_slate` lists them; `gtl_begin_odds_collection`, `gtl_finish_odds_collection` and `gtl_begin_submission_odds_collection` are replaced (section 5, rule 9) to hand them to the adapter after the newest week's games and to store them as a snapshot of their own week. The two slate resolvers, `gtl_odds_collection_slate` and `gtl_odds_schedule_slate`, stay unchanged, because `gtl_claim_odds_refresh` compares their game count with the schedule row. Same provider calls and markets, no extra credits. If that is not possible at zero extra credits, stop and ask Sean.
+- Deploy before the apply: `gtl-api` and `gtl-odds-refresh` with this stage's adapter. The adapter before it refuses a team that appears twice, so every Monday collection would fail with `ODDS_SLATE`, store no lines and still hold its two-credit reservation. Gate M step 2 checks that both deployed versions were built from a SHA that contains this stage.
+- Tests: the same number of provider requests and markets per collection; the Oct 12 `slate_changed` case stays green; 50 draft autosaves start 0 collections; late sends never pass 6 collections a UTC day; a static check that no new module calls the provider or the collect RPCs. After the apply, the next scheduled collection succeeds, and on the first Monday after it a scheduled collection writes the carried game's snapshot (a `collect` row with `reserved_credits` 0 and `diagnostics.carryoverOf`); weekly, copy the remaining-credit count into the release record.
 - Sean sees: Monday night lines stay fresh on Monday.
 
 **23. Lines reader (M-06)**
@@ -482,7 +483,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Tests: vitest `next-lines-ui` (a lock is an icon, a missing value is "—"); Playwright 390 `next-game-sheet.spec.js`.
 
 **35. Notes in the game sheet**
-- Scope: the note in `GameSheet.jsx`, labelled "Only you see this."
+- Scope: the note in `GameSheet.jsx`, labelled "Only you see this." Each note keeps its own `revision` from the `/personal/notes` and `/personal/note` replies (a save that changes nothing answers with the note's revision, not the shared one).
 - Tests: Playwright 390 `next-notes.spec.js` (survives a reload; another user never sees it).
 
 **36. Home: next action, first run, other weeks**
@@ -832,8 +833,8 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 
 - [ ] **All five tabs done:** Home (12, 36), Play (28–32), Bets (43–47, 53, 54), Lines (13, 33–35), League (58–60, 64–67, 71). Me, History, export, sign-in and commissioner tools too (37–39, 72–77), because every retired screen needs a home first.
 - [ ] **No slot left empty:** every `homeTiles`, `counter` and `sheetActions` entry the prototype shows is on, each with the test that proves it.
-- [ ] **Every migration applied and deployed:** M-01 to M-28 byte-identical and recorded; `NOT_HOSTED` holds only what Sean chose not to apply; no `awaitingDeploy` left for shipped routes; live `check:cloud --strict` passes.
-- [ ] **Leak gate:** the scan passes at all four moments across every route that can carry a line or a hidden pick: `/lines/*`, `/bets/*`, `/challenges/*`, `/virtual-units`, `/virtual-pick`, `/social/*`, `/league/feed`, `/league/comments`, `/league/player`, `/community/read`, `/community/history`, `/community/picks`, `/personal`, `/personal/ballot`, `/state`, `/ballot`, `/export`, `/me/*`, `/lobby`, and push payloads. A live spot check on Sean's account agrees.
+- [ ] **Every migration applied and deployed:** M-01 to M-29 byte-identical and recorded; `NOT_HOSTED` holds only what Sean chose not to apply; no `awaitingDeploy` left for shipped routes; live `check:cloud --strict` passes.
+- [ ] **Leak gate:** the scan passes at all four moments across every route that can carry a line or a hidden pick: `/lines/*`, `/bets/*`, `/challenges/*`, `/virtual-units`, `/virtual-pick`, `/social/*`, `/league/feed`, `/league/comments`, `/league/player`, `/community/read`, `/community/history`, `/community/picks`, `/personal`, `/personal/notes`, `/personal/ballot`, `/state`, `/ballot`, `/export`, `/me/*`, `/lobby`, and push payloads. A live spot check on Sean's account agrees.
 - [ ] **Scores did not move:** the hosted score hash matches the last recorded one.
 - [ ] **Real-data check on Sean's account, one full live week:**
   - [ ] Home: countdown, status, who's in; ranks match `gtl_ballot_pick_scores` (not the old board's order, DP-2).
