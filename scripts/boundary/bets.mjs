@@ -30,7 +30,4 @@ export const apiChecks = Object.freeze([
 export const workerChecks = Object.freeze([]);
 
 export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_save_recommended_virtual_pick': 'the additive current-account recommendations placement migration',
-  'gtl-api/bets/recommendations': 'the gtl-api deploy with current-account recommendations',
-  'gtl-api/bets/recommendations/place': 'the gtl-api deploy with current-account recommendations placement',
 });

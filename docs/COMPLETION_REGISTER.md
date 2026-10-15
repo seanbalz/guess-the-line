@@ -1,17 +1,18 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Version 1 · Evidence reviewed October 15, 2026 (Pacific)
+Owner: Sean Balsiger · Version 2 · Evidence reviewed October 15, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and
-acceptance work. Its deployed source baseline is `main` at `d71a988`; later
+acceptance work. Its deployed source baseline is `main` at `b883c77`; later
 documentation commits record that release without changing its source. It summarizes the
 [build plan][plan], rather than replacing its dependencies or numbered decisions.
 Implementation owners below are **unassigned** unless named. Sean owns product
 decisions and visual/phone acceptance. No delivery dates or completion percentage
 are committed here.
 
-The [October 15 release record](RELEASE_2026_10_15.md) records deployed formatting,
-profile and private-note changes, their checks and outstanding acceptance. The
+The [recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md) adds D-48 to
+the [earlier October 15 release](RELEASE_2026_10_15.md), which records formatting,
+profile and private-note changes. Both retain their acceptance limits. The
 current-status headers in [cloud setup](CLOUD_SETUP.md),
 [account access](ACCOUNT_ACCESS_REGISTER.md) and [social community](SOCIAL_COMMUNITY.md)
 were published with PR #127; their archived entries remain unchanged.
@@ -19,15 +20,16 @@ were published with PR #127; their archived entries remain unchanged.
 ## Verified delivery baseline
 
 All five opt-in tabs—Home, Play, Bets, Lines and League—are live through the
-[existing hosted workflows][scope]. The [October 15 release][release]
-records Pages `fc7f3cd2-7a5a-461c-9aaa-fc5bc0247aa4` from
-`d71a988dd118c0e9bce69d112dfc6b1b87507d74`, with 92/92 served assets matching the
-production and immutable URLs. API v23 remains active with JWT verification.
-All four required checks passed; this frontend release applied no SQL. The
-read-only signed-in production walkthrough completed at 08:51:39 UTC in a
-390 × 844 browser viewport, including the five tabs, profile/notes and old-app
-roundtrip. No player-data writes were made. Fixture-based save tests remain
-separate evidence from production writes or actual iPhone acceptance.
+[existing hosted workflows][scope]. The [latest October 15 release][release]
+records Pages `ed3fb50b-388b-4330-8767-8bd08adb9255` from
+`b883c7742979d133720ed931c520821fdc4a13b5`, with 93/93 served assets matching the
+production and immutable URLs. API v24 is active with JWT verification.
+All four required checks passed. The single additive D-48 writer was applied;
+the six pending redesign migrations remain unapplied. The signed-in read-only
+walkthrough verified the current-week top three, expansion, 390px layout and
+older-week view-only state. No production pick was saved. The earlier release
+retains its five-tab/profile/notes walkthrough evidence. Fictional-account save
+tests do not establish production placement or physical iPhone acceptance.
 
 The old app remains the default and available as a fallback. Hosted Guess rules
 remain `{revealAt: "kickoff", sentFinal: false, lateWindow: "deadline"}`:
@@ -73,7 +75,7 @@ adapter is a [documented exception][scope], not the finished prototype replaceme
 | Home | Partial / Unassigned | Weekly status, separate market ranks and Play navigation are live. Refine card hierarchy/spacing; finish first-run, next-action, other-week and later feature states (stage 36). | [Release][release], [plan][plan] | V; correct empty/unscored/zero states and the planned week transitions on real data. |
 | Play | Partial / Unassigned | Live drafts, whole-market submission, permitted edits, sit-out and receipts. Card spacing, compact details/help, readable team controls and measured save-dock clearance shipped October 15; #126 acceptance remains. Per-game lock-in, skip/reveal, everyone's picks and Edge/results need their server gates (stages 28–32). | [Release][release], [scope][scope], [#126][visual] | V; existing save/recovery/privacy regressions pass; later per-game flows ship only with matching hosted rules. |
 | Bets | Partial / Unassigned | Live tracker, corrections, reported results, following/history and selected-group Virtual Units. Form, summary, amount and action styling shipped October 15; visual acceptance remains. Account-level placement/boards, friend challenges and planned native replacement screens remain (stages 40–56). | [Release][release], [plan][plan] | V; Community/group scope stays explicit; old records remain readable; new paths pass their apply and settlement gates. |
-| Recommended bets (D-48) | Implemented; release validation in progress / Codex task | Top three guess-based discrepancies, expandable remainder, both-side traffic lights and explicit Virtual Units card review. Current Community week and own picks, independent of private-league week; two additive API routes and one new service-only writer. | [Feature contract](RECOMMENDED_BETS.md) | Tests and release evidence, no draft/locked-line disclosure, no silent bet write or replacement; phone acceptance remains separate. |
+| Recommended bets (D-48) | Shipped live; phone acceptance pending / Unassigned | Top three guess-based discrepancies, expandable remainder, both-side traffic lights and explicit Virtual Units card review. Current Community week and own picks, independent of private-league week; two additive API routes and one new service-only writer. | [Feature contract](RECOMMENDED_BETS.md), [release][release] | Live reads and fixture save tests passed; actual production placement and phone acceptance remain separate. Preserve draft/locked-line privacy and explicit placement. |
 | Lines / game details | Partial / Unassigned | Live schedule, own references, records, trends and weather. Private-note editor shipped October 15 using hosted M-09/M-29, including recovery and existing long-note compatibility. Current sportsbook lines, book offers/movement and everyone's picks still need stages 32–34 and M-06/M-08. | [Release][release], [scope][scope], [migration inventory][migrations] | V; note save/recovery/conflict/privacy checks pass; remove later-update messages only when their gated readers are live; source/age and hidden-market checks pass. |
 | League | Partial / Unassigned | Live Community feed, comments/likes, market boards/history and private weekly boards. Feed/reference styling and collapsible replies retaining drafts shipped October 15; visual acceptance remains. Native creation/invitations, season/Bets boards, new reactions/embeds and player/features screens remain (stages 57–71). | [Release][release], [plan][plan] | V; no combined Spread/Total rank; private data clears on scope changes; every retained post/record stays reachable. |
 | Me / Settings / sign-in | Partial / Unassigned | Appearance including Reduce motion, sign-out and old-app access are live. The profile editor shipped October 15 with save/recovery and account-change protection. Expanded settings, information/legal/source pages, reminders/install and sign-in presentation remain (stages 37–39, 76); OAuth delivery is tracked below. | [Release][release], [scope][scope], [plan][plan] | V; profile save/recovery and account-isolation checks pass; settings persist as documented; accessible auth and install paths work without implying unconfigured services work. |
@@ -138,7 +140,7 @@ Sources: current repository and GitHub issue/PR inspection at the baseline above
 dated release records establish deployment. Private Status Board contents and
 unpublished work outside this checkout were not reconciled in this register.
 
-[release]: RELEASE_2026_10_15.md
+[release]: RELEASE_2026_10_15_RECOMMENDATIONS.md
 [scope]: ALL_TABS_LIVE_WORKFLOWS.md
 [plan]: REDESIGN_BUILD_PLAN.md
 [gates]: REDESIGN_BUILD_PLAN.md#4-gates
