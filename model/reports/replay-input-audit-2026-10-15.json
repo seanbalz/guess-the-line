@@ -1,6 +1,6 @@
 {
   "version": "gtl-replay-input-and-reconstruction-audit-1",
-  "recordedAt": "2026-10-15T16:23:39.857258+00:00",
+  "recordedAt": "2026-10-15T16:58:24.941193+00:00",
   "status": "research_only",
   "publicationReady": false,
   "generationAllowed": false,
@@ -391,7 +391,7 @@
     "version": "gtl-current-source-audit-1"
   },
   "observedReconstruction": {
-    "auditSha256": "2320edfca23056583ceb3a4d012611483cb996e1e140d0f3a68c4523dfa60b12",
+    "auditSha256": "cd3f5e38d385493cc1b7433dc144a6b2d3928ef15443317934bad9491c99b4dc",
     "version": "gtl-observed-reconstruction-1",
     "seasons": [
       {
@@ -787,7 +787,12 @@
       }
     ],
     "independentlyReconciledPlayerGames": 0,
-    "implementationSha256": "6cd8b02077a220ba2e0cbc690874cd8d7e7f8d3ae434fefa2f21371aae0db15b"
+    "implementationSha256": "349d85e369624d8cb88e3dfc5be34c7e660dd5a969ca2c4686d0666dfa8cb823",
+    "structuralCompletenessChecks": [
+      "Canonical schedule identity, competition and date are checked before scope or future-row exclusions.",
+      "Exactly one valid Q4/OT END_GAME record is required; only validated non-football comments may follow.",
+      "At least one undeleted on-field event is required. These checks do not prove every upstream row exists."
+    ]
   },
   "limitations": [
     "Aggregate source/reconstruction evidence only, not a forecast or full-game engine evaluation.",

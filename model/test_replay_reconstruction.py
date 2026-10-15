@@ -36,6 +36,12 @@ def nonpass(**changes):
                 passing_yards='', receiving_yards='', **changes)
 
 
+def end(**changes):
+    row = nonpass(play_id='99', order_sequence='99', qtr='4', play_type='', play_type_nfl='END_GAME')
+    row.update(changes)
+    return row
+
+
 def schedule(home=0, away=0):
     return [dict(id='2026_01_BUF_SEA', season=2026, week=1, gameType='REG', gameDate='2026-09-13',
                  homeTeamId='SEA', awayTeamId='BUF', homeScore=home, awayScore=away, resultStatus='reported_final')]
@@ -197,14 +203,14 @@ class ReconstructionTests(unittest.TestCase):
         second = play(play_id='10', order_sequence='2', passing_yards='12', receiving_yards='12',
                       touchdown='1', pass_touchdown='1', td_team='BUF', td_player_id=WR,
                       home_score='0', away_score='6')
-        rows = [second, first]; saved = copy.deepcopy(rows)
+        rows = [second, first, end(away_score='6')]; saved = copy.deepcopy(rows)
         report = r.audit_rows(rows, 2026, NOW, schedule(0, 6))
         game = report['games'][0]
         self.assertEqual(game['score'], {'home': 0, 'away': 6})
         self.assertTrue(game['scheduleComparison']['fullyReconstructedMatch'])
         self.assertTrue(game['sourceFinalSupportedSubtotalMatches'])
         self.assertEqual(report['summary']['sourceFinalSubtotalMismatchGames'], 0)
-        self.assertEqual([e['playId'] for e in game['events']], [20, 10])
+        self.assertEqual([e['playId'] for e in game['events']], [20, 10, 99])
         totals = [{p['playerId']: p for p in e['changedPlayerKnownTotals']} for e in game['events']]
         self.assertEqual(totals[0][QB]['passingYards'], 8)
         self.assertEqual(totals[1][QB]['passingYards'], 20)
@@ -218,7 +224,7 @@ class ReconstructionTests(unittest.TestCase):
 
     def test_missing_scoring_flags_never_get_zero_certification_even_if_schedule_matches(self):
         row = nonpass(play_type='kickoff', touchdown='')
-        game = r.audit_rows([row], 2026, NOW, schedule())['games'][0]
+        game = r.audit_rows([row, end()], 2026, NOW, schedule())['games'][0]
         self.assertIsNone(game['score'])
         self.assertEqual(game['knownScoreSubtotal'], {'home': 0, 'away': 0})
         self.assertTrue(game['scheduleComparison']['supportedSubtotalMatches'])
@@ -237,9 +243,7 @@ class ReconstructionTests(unittest.TestCase):
     def test_contradictory_final_checkpoint_or_schedule_withholds_complete_score(self):
         cases = [(play(home_score='99'), schedule(), 'source_final_score_mismatch'),
                  (play(posteam_score_post='7'), schedule(), 'source_checkpoint_mismatch'),
-                 (play(), schedule(0, 7), 'schedule_final_score_mismatch'),
-                 (play(), [{**schedule()[0], 'gameDate': '2026-09-14'}], 'schedule_identity_mismatch'),
-                 (play(), [], 'schedule_game_missing')]
+                 (play(), schedule(0, 7), 'schedule_final_score_mismatch')]
         for row, comparison, gap in cases:
             with self.subTest(gap=gap):
                 report = r.audit_rows([row], 2026, NOW, comparison)
@@ -257,6 +261,100 @@ class ReconstructionTests(unittest.TestCase):
         self.assertEqual(report['games'][0]['id'], '2026_01_BUF_LAR')
         self.assertEqual(report['games'][0]['sourceGameId'], '2026_01_BUF_LA')
         self.assertEqual(report['summary']['excludedRows'], {'outside_regular_season': 1, 'future_or_same_day_game': 1})
+
+    def test_known_regular_season_row_cannot_hide_as_postseason(self):
+        rows = [play(), play(play_id='2', order_sequence='2', season_type='POST'), end()]
+        report = r.audit_rows(rows, 2026, NOW, schedule())
+        self.assertEqual(report['summary']['excludedRows'], {})
+        self.assertEqual(report['unassignedRejectedRows'], [{'rowIndex': 1, 'reason': 'schedule_competition_mismatch'}])
+        game = report['games'][0]
+        self.assertIsNone(game['score'])
+        self.assertIsNone(game['playerStats'])
+        self.assertEqual(len(game['knownPlayerStatSubtotals']), 2)
+        # A distinct, canonical POST game remains an explicit scope exclusion.
+        post = play(game_id='2026_19_BUF_SEA', week='19', season_type='POST')
+        post_schedule = {**schedule()[0], 'id': '2026_19_BUF_SEA', 'week': 19, 'gameType': 'WC'}
+        valid = r.audit_rows([play(), end(), post], 2026, NOW, schedule() + [post_schedule])
+        self.assertEqual(valid['summary']['excludedRows'], {'outside_regular_season': 1})
+        self.assertEqual(valid['unassignedRejectedRows'], [])
+        self.assertIsNotNone(valid['games'][0]['playerStats'])
+
+    def test_contradictory_administrative_markers_do_not_score_or_hide_player_events(self):
+        cases = [play(play_type_nfl='END_GAME'), play(play_type='', play_type_nfl='END_GAME'),
+                 end(passer_player_id=QB), end(passing_yards='3'), end(touchdown='1')]
+        for row in cases:
+            with self.subTest(row=row):
+                game = r.audit_rows([row], 2026, NOW, schedule())['games'][0]
+                self.assertIsNone(game['score'])
+                self.assertIsNone(game['playerStats'])
+                self.assertEqual(game['knownPlayerStatSubtotals'], [])
+                self.assertEqual(game['eventCoverage']['validEndMarkers'], 0)
+                self.assertTrue(any(reason.startswith('administrative_') for reason in game['scoreGaps']))
+                self.assertTrue(any(reason.startswith('administrative_') for reason in game['playerStatGaps']))
+
+    def test_known_completed_game_cannot_hide_a_row_behind_a_future_or_wrong_source_date(self):
+        for day in ('2026-10-15', '2026-10-16', '2026-09-14'):
+            with self.subTest(day=day):
+                rows = [play(), play(play_id='2', order_sequence='2', game_date=day), end()]
+                report = r.audit_rows(rows, 2026, NOW, schedule())
+                self.assertEqual(report['summary']['excludedRows'], {})
+                self.assertEqual(report['unassignedRejectedRows'], [{'rowIndex': 1, 'reason': 'schedule_game_date_mismatch'}])
+                self.assertIsNone(report['games'][0]['score'])
+                self.assertIsNone(report['games'][0]['playerStats'])
+        future = play(game_id='2026_07_BUF_SEA', week='7', game_date='2026-10-20')
+        future_schedule = {**schedule()[0], 'id': future['game_id'], 'week': 7,
+                           'gameDate': future['game_date'], 'resultStatus': 'unplayed', 'homeScore': None, 'awayScore': None}
+        report = r.audit_rows([play(), end(), future], 2026, NOW, schedule() + [future_schedule])
+        self.assertEqual(report['summary']['excludedRows'], {'future_or_same_day_game': 1})
+        self.assertEqual(report['unassignedRejectedRows'], [])
+        self.assertIsNotNone(report['games'][0]['playerStats'])
+        # Even when every supplied row has the bad date, no game is certified.
+        mismatch = r.audit_rows([play(game_date='2026-09-14')], 2026, NOW, schedule())
+        self.assertEqual(mismatch['games'], [])
+        self.assertEqual(mismatch['summary']['fullyReconstructedScoreGames'], 0)
+
+    def test_unknown_full_schedule_identity_is_a_gap_before_every_scope_exclusion(self):
+        for changes in ({'week': '2', 'game_id': '2026_02_BUF_SEA'},
+                        {'week': '19', 'game_id': '2026_19_BUF_SEA', 'season_type': 'POST'},
+                        {'week': '7', 'game_id': '2026_07_BUF_SEA', 'game_date': '2026-10-20'}):
+            with self.subTest(changes=changes):
+                report = r.audit_rows([play(), end(), play(**changes)], 2026, NOW, schedule())
+                self.assertEqual(report['summary']['excludedRows'], {})
+                self.assertEqual(report['unassignedRejectedRows'], [{'rowIndex': 2, 'reason': 'unknown_schedule_game'}])
+                self.assertIsNone(report['games'][0]['playerStats'])
+                self.assertIsNone(report['games'][0]['score'])
+        empty = r.audit_rows([play()], 2026, NOW, [])
+        self.assertEqual(empty['games'], [])
+        self.assertEqual(empty['unassignedRejectedRows'], [{'rowIndex': 0, 'reason': 'unknown_schedule_game'}])
+        for change in ({'week': 2}, {'season': 2025}, {'homeTeamId': 'KC'}):
+            mismatch = r.audit_rows([play()], 2026, NOW, [{**schedule()[0], **change}])
+            self.assertEqual(mismatch['games'], [])
+            self.assertEqual(mismatch['unassignedRejectedRows'][0]['reason'], 'schedule_identity_mismatch')
+
+    def test_full_totals_require_one_valid_final_marker_and_observed_onfield_events(self):
+        cases = [([play()], 'missing_or_multiple_valid_end_game_markers'),
+                 ([end()], 'no_onfield_events'),
+                 ([play(), {**end(), 'qtr': '1'}], 'missing_or_multiple_valid_end_game_markers'),
+                 ([play(), end(), {**end(), 'play_id': '100', 'order_sequence': '100'}], 'missing_or_multiple_valid_end_game_markers'),
+                 ([{**end(), 'order_sequence': '0'}, play()], 'event_after_end_game'),
+                 ([play(), end(), end(play_id='100', order_sequence='100', play_type='no_play', play_type_nfl='PENALTY')], 'event_after_end_game'),
+                 ([play(), end(), end(play_id='100', order_sequence='100', play_type_nfl='END_HALF')], 'event_after_end_game')]
+        for rows, reason in cases:
+            with self.subTest(reason=reason, rows=rows):
+                game = r.audit_rows(rows, 2026, NOW, schedule())['games'][0]
+                self.assertIsNone(game['score'])
+                self.assertIsNone(game['playerStats'])
+                self.assertIn(reason, game['scoreGaps'])
+                self.assertIn(reason, game['playerStatGaps'])
+                self.assertFalse(game['eventCoverage']['complete'])
+        complete = r.audit_rows([play(), end()], 2026, NOW, schedule())['games'][0]
+        self.assertEqual(complete['score'], {'home': 0, 'away': 0})
+        self.assertEqual(complete['eventCoverage'], {'validEndMarkers': 1, 'onfieldRows': 1, 'complete': True, 'gaps': []})
+        self.assertEqual(complete['playerStatisticsStatus'], 'reconstructed_not_independently_reconciled')
+        comment = end(play_id='100', order_sequence='100', play_type_nfl='COMMENT')
+        trailing = r.audit_rows([play(), end(), comment], 2026, NOW, schedule())['games'][0]
+        self.assertTrue(trailing['eventCoverage']['complete'])
+        self.assertEqual(trailing['playerStats'], complete['playerStats'])
 
     def test_invalid_identity_and_order_are_retained_as_gaps(self):
         report = r.audit_rows([play(), play(game_id='2026_01_BUF_KC'), play(play_id='3', order_sequence='NaN')], 2026, NOW)

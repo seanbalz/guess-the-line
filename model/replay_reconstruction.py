@@ -83,27 +83,58 @@ def player(value, key):
 
 
 def administrative(row):
-    return row['play_type'] == '' and row['play_type_nfl'] in ADMIN_TYPES
+    if row['play_type_nfl'] not in ADMIN_TYPES:
+        return False
+    require(row['play_type'] == '', 'administrative_type_conflict')
+    require(not any(flag(row, key, True) == 1 for key in (
+        'penalty', 'aborted_play', 'touchdown', 'pass_touchdown', 'rush_touchdown',
+        'return_touchdown', 'safety', 'extra_point_attempt', 'two_point_attempt',
+        'field_goal_attempt', 'defensive_two_point_conv', 'defensive_extra_point_conv',
+        'pass_attempt', 'rush_attempt', 'sack', 'complete_pass', 'interception',
+        'fumble', 'fumble_lost', 'lateral_reception', 'lateral_rush', 'lateral_recovery', 'lateral_return')),
+        'administrative_football_conflict')
+    require(all(row[key] in NULLS for key in (
+        'passer_player_id', 'receiver_player_id', 'rusher_player_id', 'td_player_id',
+        'lateral_receiver_player_id', 'lateral_rusher_player_id', 'td_team',
+        'field_goal_result', 'extra_point_result', 'two_point_conv_result')),
+        'administrative_actor_or_result_conflict')
+    require(all(number(row[key], key, -100, 100, True) in (None, 0) for key in (
+        'passing_yards', 'rushing_yards', 'receiving_yards',
+        'lateral_receiving_yards', 'lateral_rushing_yards')),
+        'administrative_yardage_conflict')
+    return True
 
 
-def identity(row, season, cutoff):
+def identity(row, season, cutoff, scheduled_games=None):
     require(number(row['season'], 'season', 2022, 2026) == season, 'different_season')
-    if row['season_type'] == 'POST':
-        raise Withheld('outside_regular_season')
-    require(row['season_type'] == 'REG', 'invalid_season_type')
-    week = number(row['week'], 'week', 1, 18)
+    require(row['season_type'] in ('REG', 'POST'), 'invalid_season_type')
+    week = number(row['week'], 'week', 1, 22)
     home, away = team(row['home_team']), team(row['away_team'])
     require(home != away, 'identical_teams')
     parts = row['game_id'].split('_') if isinstance(row['game_id'], str) else []
     require(len(parts) == 4 and parts[:2] == [str(season), f'{week:02d}'], 'invalid_source_game_id')
     require(team(parts[2]) == away and team(parts[3]) == home, 'source_game_team_mismatch')
+    canonical_id = f'{season}_{week:02d}_{away}_{home}'
+    scheduled_game = (scheduled_games or {}).get(canonical_id)
+    require(scheduled_games is None or scheduled_game is not None, 'unknown_schedule_game')
+    scheduled_type = ('REG' if scheduled_game['gameType'] == 'REG' else 'POST') if scheduled_game else None
+    require(scheduled_type is None or scheduled_type == row['season_type'], 'schedule_competition_mismatch')
+    require(scheduled_game is None or all((
+        scheduled_game['season'] == season, scheduled_game['week'] == week,
+        scheduled_game['homeTeamId'] == home, scheduled_game['awayTeamId'] == away)), 'schedule_identity_mismatch')
     try:
         day = dt.date.fromisoformat(row['game_date'])
     except (TypeError, ValueError):
         raise Withheld('invalid_game_date') from None
     require(day.year in (season, season + 1), 'date_outside_season')
+    require(scheduled_game is None or day.isoformat() == scheduled_game['gameDate'], 'schedule_game_date_mismatch')
+    # Reconcile the complete identity BEFORE every scope exclusion. Corrupted
+    # dates/competition and unknown games must remain gaps, not hidden omissions.
+    if row['season_type'] == 'POST':
+        raise Withheld('outside_regular_season')
+    require(week <= 18, 'regular_season_week_out_of_range')
     require(day < cutoff.date(), 'future_or_same_day_game')
-    return {'id': f'{season}_{week:02d}_{away}_{home}', 'sourceGameId': row['game_id'],
+    return {'id': canonical_id, 'sourceGameId': row['game_id'],
             'season': season, 'week': week, 'gameDate': day.isoformat(), 'homeTeamId': home, 'awayTeamId': away}
 
 
@@ -294,10 +325,15 @@ def audit_rows(rows, season, as_of, schedule_games=None):
     if any(not isinstance(row[key], str) for row in rows for key in FIELDS):
         raise ValueError('Reconstruction inputs must retain the source CSV string types')
     grouped, rejected, excluded = {}, [], collections.Counter()
+    scheduled_games = {} if schedule_games is not None else None
+    for game in schedule_games or []:
+        if game['id'] in scheduled_games:
+            raise ValueError('Duplicate canonical schedule comparison game')
+        scheduled_games[game['id']] = game
     for index, original in enumerate(rows):
         row = {key: original[key] for key in FIELDS}
         try:
-            meta = identity(row, season, cutoff)
+            meta = identity(row, season, cutoff, scheduled_games)
         except (Withheld, TypeError) as error:
             reason = str(error) if isinstance(error, Withheld) else 'invalid_identity_type'
             if reason in ('outside_regular_season', 'future_or_same_day_game'):
@@ -323,6 +359,7 @@ def audit_rows(rows, season, as_of, schedule_games=None):
         stats, events, bad_order = {}, [], False
         score_gaps, stat_gaps = collections.Counter(), collections.Counter()
         source_finals, checkpoint_mismatches = set(), []
+        end_orders, onfield_orders, terminal_orders = [], [], []
         if group['identityConflict']:
             score_gaps['conflicting_game_metadata'] += 1
             stat_gaps['conflicting_game_metadata'] += 1
@@ -363,6 +400,22 @@ def audit_rows(rows, season, as_of, schedule_games=None):
                 stat_gaps[individual['reason']] += 1
             for reason in individual['gaps']:
                 stat_gaps[reason] += 1
+            if scoring.get('reason') == 'administrative_row' and individual.get('reason') == 'administrative_row' and row['play_type_nfl'] == 'END_GAME':
+                if quarter in (4, 5):
+                    end_orders.append(order)
+                else:
+                    score_gaps['end_game_before_final_period'] += 1
+                    stat_gaps['end_game_before_final_period'] += 1
+            if row['play_type'] not in ('', 'no_play') and row['play_deleted'] == '0':
+                onfield_orders.append(order)
+            # Only a validated non-football comment may follow the final marker.
+            # A later no_play can still contain a scored try/penalty, and another
+            # period/game administration event contradicts terminal placement.
+            trailing_comment = (row['play_type_nfl'] == 'COMMENT'
+                and scoring.get('reason') == 'administrative_row'
+                and individual.get('reason') == 'administrative_row')
+            if row['play_deleted'] == '0' and row['play_type_nfl'] != 'END_GAME' and not trailing_comment:
+                terminal_orders.append(order)
             changed = []
             for delta in individual['delta']:
                 key = (delta['teamId'], delta['playerId'])
@@ -383,6 +436,16 @@ def audit_rows(rows, season, as_of, schedule_games=None):
             events.append({'playId': play_id, 'orderSequence': order, 'quarter': quarter, 'playType': row['play_type'],
                            'scoring': scoring, 'statistics': individual, 'knownScoreSubtotal': dict(points),
                            'changedPlayerKnownTotals': changed})
+        coverage_gaps = []
+        if len(end_orders) != 1:
+            coverage_gaps.append('missing_or_multiple_valid_end_game_markers')
+        if not onfield_orders:
+            coverage_gaps.append('no_onfield_events')
+        if end_orders and any(order > min(end_orders) for order in terminal_orders):
+            coverage_gaps.append('event_after_end_game')
+        for reason in coverage_gaps:
+            score_gaps[reason] += 1
+            stat_gaps[reason] += 1
         if len(source_finals) != 1:
             score_gaps['missing_or_conflicting_source_final_scores'] += 1
         known_score = {'home': points[teams[0]], 'away': points[teams[1]]}
@@ -405,6 +468,8 @@ def audit_rows(rows, season, as_of, schedule_games=None):
         player_complete = not stat_gaps and not rejected
         known_stats = sorted(stats.values(), key=lambda r: (r['teamId'], r['playerId']))
         results.append({**meta, 'rowCount': len(game_rows), 'orderingComplete': not bad_order,
+                        'eventCoverage': {'validEndMarkers': len(end_orders), 'onfieldRows': len(onfield_orders),
+                            'complete': not coverage_gaps, 'gaps': coverage_gaps},
                         'overtimeRowCount': sum(r[2] > 4 for r in ordered),
                         'scoreStatus': 'reconstructed' if score_complete else 'withheld',
                         'score': known_score if score_complete else None, 'knownScoreSubtotal': known_score,
