@@ -313,9 +313,11 @@ compound scoring, unknown competition labels and the real cached-input CLI.
 Brand-document QA and whitespace checks pass. GitHub checks and release state
 are tracked separately; local test success is not a deployment.
 
-The following usage/evaluation/administration stage passes **158 integrated
-Python tests**, **43 focused JavaScript tests**, and the application suites
-of **1,335 Node tests plus 184 Vitest tests**, with no skips. Independent review
+The following usage/evaluation/administration stage, combined with the shared
+sync/release work in main at `44015103`, passes **158 integrated Python tests**,
+**64 focused JavaScript tests**, and the application suites of **1,356 Node tests
+plus 184 Vitest tests**, with no skips. The focused checks cover replay/clock
+behavior and the new sync/release safeguards. Independent review
 checked usage attribution and completeness, clock boundaries, paired-score
 metrics, equal per-game evaluation weight and declaration timing. The cached
 usage and baseline runs are repeatable; publication remains disabled. These
