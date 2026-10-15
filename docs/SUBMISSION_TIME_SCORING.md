@@ -1,4 +1,21 @@
-# Submission-time scoring — D-16
+# Submission-time scoring — D-16, amended by D-27, D-39 and D-50
+
+**October 15, 2026 — current required behavior (D-50):** each game's Spread or
+Total guess is final once locked in (D-39). Its available server-selected scoring
+reference establishes points immediately in that player's personal score for the
+competition week, even before kickoff and with the rest of the week still in draft (D-41). The
+kickoff-only readers and partial-ballot restrictions still need the work recorded
+in the [scoring and player trends backlog](../planning/scoring-and-player-trends.md).
+D-27 pending references remain pending, never zero. Other-player per-game scores
+follow the existing reveal permissions. Q-02 is confirmed in the preserved local
+follow-up: shared weekly and season standings add each game at kickoff, including
+the viewer's own board row; personal weekly points update immediately. Label the
+two scopes and explain own contributions awaiting kickoff without changing their
+saved points or reference.
+These requirements are preserved from the local planning record at `e5a45f6`,
+including its Q-02 follow-up captured at 16:19 UTC on October 15;
+see D-50 for the identifier reconciliation and provenance. This records
+requirements, not a release. The edit-after-submission and full-ballot wording below describes earlier behavior and is superseded by D-39.
 
 Owner: Sean Balsiger. Decision recorded October 8, 2026. Deployed in Pages
 `2106725d` / API v14 with JWT verification enabled. See the
