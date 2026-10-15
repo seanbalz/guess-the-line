@@ -4,7 +4,7 @@ import { ALL } from '../migrations.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // Redesign build plan stage 17 (D-39 per-game lock-in, D-31 kickoff, D-23, D-36, DP-1, DP-2): the old app on the per-game gate,
-// with the real handler and every migration (ALL, so M-01 is applied) on local PGlite, and the live rules read from the database
+// with the real handler and the pre-M-07 migrations (including M-01) on local PGlite, and live rules read from the database
 // (`revealAt: 'kickoff'`). At 390 x 844. Fixture accounts and values only; never contacts hosted data.
 //
 // The week: 2026 Week 6 (the committed trends file's week), two games. Its deadline was half an hour ago, so the first game has
@@ -15,6 +15,9 @@ test.use({ viewport: { width: 390, height: 844 } });
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+// Stage 17 verifies M-01 reveal and the original classic trends editor. M-07's replacement entry/scoring
+// surface is exercised separately in next-per-game-scoring.spec.js; keep this historical regression intact.
+const BEFORE_M07 = ALL.filter(file => file !== '20261015190710_gtl_guess_write_window.sql');
 const WEEK6 = state => {
   state.league.season = 2026; state.league.week = 6;
   const [a, b] = state.games;
@@ -66,7 +69,7 @@ async function axe(page, label) {
 
 test('stage 17: the old app opens picks game by game at kickoff, shows "—" for no ballot and ranks Spread and Total apart', async ({ page, baseURL }) => {
   const deadline = new Date(Date.now() - 30 * 60_000).toISOString();
-  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, prepare: WEEK6, deadline, games: 2 });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_M07, optionalRpc: true, prepare: WEEK6, deadline, games: 2 });
   const { db, errors } = world;
   try {
     await seedWeek5(db);

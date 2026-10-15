@@ -261,7 +261,9 @@ test('solo submitted guesses are final once the live rules say so, and editable 
 // editable (D-16); M-02 is applied and the live rules switch; the changed guess is refused with GTL_BALLOT_LOCKED. Solo says
 // "Sent picks are final." and reloads the saved ballot, final and read-only, instead of a generic failure.
 test.describe('stage 18 on the schema with M-02 applied mid-session', () => {
-  test.use({ schema: ALL.filter(file => file !== '20261015030000_gtl_sent_picks_final.sql') });
+  // Begin before both immutable-writer migrations, then apply M-02 alone below. M-07 would already make
+  // sent guesses final before the transition this historical Solo test is meant to exercise.
+  test.use({ schema: ALL.filter(file => !['20261015030000_gtl_sent_picks_final.sql', '20261015190710_gtl_guess_write_window.sql'].includes(file)) });
   test('a Solo edit refused once M-02 is applied shows the final ballot with "Sent picks are final."',async({page,personal})=>{
     await openSolo(page);
     await submitSpread(page, personal);
