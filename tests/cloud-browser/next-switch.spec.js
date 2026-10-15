@@ -25,6 +25,11 @@ async function signedInAs(page) {
   return text;
 }
 const tryButton = page => page.locator('.hub-bottom').getByRole('button', { name: TRY, exact: true });
+/** The new app's "Use the old app": in the avatar menu (section 3.2), since stage 12 replaced Home's "coming next" card. */
+async function oldAppButton(page) {
+  await page.getByRole('button', { name: 'Your menu' }).click();
+  return page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: OLD, exact: true });
+}
 const saved = page => page.evaluate(() => localStorage.getItem('gtl.app'));
 /** Script and style files this document loaded (resource timing, so a reload starts a fresh list). */
 const assets = page => page.evaluate(() => performance.getEntriesByType('resource').map(entry => new URL(entry.name).pathname).filter(p => /\/assets\/[^/]+\.(js|css)$/.test(p)));
@@ -46,7 +51,8 @@ async function phoneChecks(page, root) {
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      // Screen-reader-only text (the kit's .gx-sr-only, since stage 12's Home ranks) is clipped by design, as the later specs read it.
+      if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       if (el.getBoundingClientRect().right > innerWidth + 0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
@@ -80,7 +86,8 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     expect(named(loaded, 'NextApp').length, 'the new app is its own chunk and stylesheet').toBe(2);
     expect(named(loaded, 'GameHub'), 'the new app never downloads the old one').toEqual([]);
     await expect(page.locator('.gx')).toHaveCount(1);
-    await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
+    await expect(await oldAppButton(page)).toBeVisible();
+    await page.keyboard.press('Escape');
     await phoneChecks(page, '.gx');
 
     // A reload keeps the device's choice.
@@ -89,7 +96,7 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     // Stage 11: the new app reads the account and the Community once per page load, and writes nothing.
     expect(calls).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
 
-    await page.getByRole('button', { name: OLD, exact: true }).click();
+    await (await oldAppButton(page)).click();
     await expect(communityHome(page)).toBeVisible();
     expect(await saved(page)).toBe('classic');
     await expect(page.locator('.gx')).toHaveCount(0);
@@ -222,7 +229,7 @@ test('axe in dark and light at 390 and 320: the new-app frame and the old footer
         await testInfo.attach(`new-app-${theme}-${width}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
       }
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByRole('button', { name: OLD, exact: true }).click();
+      await (await oldAppButton(page)).click();
       await expect(communityHome(page)).toBeVisible();
     }
     expect(found).toEqual(Object.fromEntries(Object.keys(found).map(key => [key, []])));

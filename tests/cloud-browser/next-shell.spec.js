@@ -113,6 +113,10 @@ test.describe('the real app', () => {
           // Stage 13: Lines is the read-only board (tests/cloud-browser/next-lines.spec.js covers it).
           await expect(page.locator('.gx-l-group').first()).toBeVisible();
           await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
+        } else if (name === 'Home') {
+          // Stage 12: Home is the read-only hero and tiles (tests/cloud-browser/next-home.spec.js covers it).
+          await expect(page.locator('[data-home="hero"]')).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
         } else {
           await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toBeVisible();
           await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
