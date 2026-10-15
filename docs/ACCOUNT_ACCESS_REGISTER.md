@@ -1,7 +1,7 @@
 # GTL — current access status pointer
 
-The [October 14 version 2 release](RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows)
-records the latest verified manual release: Pages `b29836da` from `8ecde62`,
+The [October 15 release](RELEASE_2026_10_15.md)
+records the latest verified manual deployment: Pages `fc7f3cd2` from `d71a988`,
 API v23 with JWT verification, and five working opt-in tabs. The repository is
 public; unauthenticated access to private player data remains prohibited.
 M-01, M-09/M-29 and the push setup are hosted, as recorded in the
@@ -10,8 +10,9 @@ actual iPhone delivery, general signup/recovery delivery and second-device
 acceptance remain open. Automatic GitHub-to-Pages deployment is not established.
 
 Use the [completion register](COMPLETION_REGISTER.md) for remaining work and
-approval gates. Pending frontend formatting, profile and private-note changes
-are not a new live release. The frozen planning tracker and acquisition entries
+approval gates. Frontend formatting, profile editing and private notes are now
+deployed; that does not establish general account-delivery or phone acceptance.
+The frozen planning tracker and acquisition entries
 below are historical evidence, not current integration or completion status.
 
 ## Historical access evidence — October 8, 2026

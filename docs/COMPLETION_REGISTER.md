@@ -3,30 +3,31 @@
 Owner: Sean Balsiger · Version 1 · Evidence reviewed October 15, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and
-acceptance work. Its source baseline is `main` at `5cf8065`; changes being prepared
-on `codex/finish-section-formatting` are not counted as shipped. It summarizes the
+acceptance work. Its deployed source baseline is `main` at `d71a988`; later
+documentation commits record that release without changing its source. It summarizes the
 [build plan][plan], rather than replacing its dependencies or numbered decisions.
 Implementation owners below are **unassigned** unless named. Sean owns product
 decisions and visual/phone acceptance. No delivery dates or completion percentage
 are committed here.
 
-The [October 15 release card](RELEASE_2026_10_15.md) tracks the pending formatting,
-profile and private-note work and its checks. None is counted as live yet. The
+The [October 15 release record](RELEASE_2026_10_15.md) records deployed formatting,
+profile and private-note changes, their checks and outstanding acceptance. The
 current-status headers in [cloud setup](CLOUD_SETUP.md),
 [account access](ACCOUNT_ACCESS_REGISTER.md) and [social community](SOCIAL_COMMUNITY.md)
-are implemented in this branch and pending publication; their archived entries
-remain unchanged.
+were published with PR #127; their archived entries remain unchanged.
 
 ## Verified delivery baseline
 
 All five opt-in tabs—Home, Play, Bets, Lines and League—are live through the
-[existing hosted workflows][scope]. The [October 14 version 2 release][release]
-records Pages `b29836da-c09a-4b16-91ea-462c63a210fa` from
-`8ecde625ac1d2bccc714e6e93fdfc5aa24c42b52`, with 92/92 served assets matching the
+[existing hosted workflows][scope]. The [October 15 release][release]
+records Pages `fc7f3cd2-7a5a-461c-9aaa-fc5bc0247aa4` from
+`d71a988dd118c0e9bce69d112dfc6b1b87507d74`, with 92/92 served assets matching the
 production and immutable URLs. API v23 remains active with JWT verification.
 All four required checks passed; this frontend release applied no SQL. The
-production walkthrough was read-only; fixture-based save tests are separate
-evidence from production writes or real-phone acceptance.
+read-only signed-in production walkthrough completed at 08:51:39 UTC in a
+390 × 844 browser viewport, including the five tabs, profile/notes and old-app
+roundtrip. No player-data writes were made. Fixture-based save tests remain
+separate evidence from production writes or actual iPhone acceptance.
 
 The old app remains the default and available as a fallback. Hosted Guess rules
 remain `{revealAt: "kickoff", sentFinal: false, lateWindow: "deadline"}`:
@@ -70,12 +71,13 @@ adapter is a [documented exception][scope], not the finished prototype replaceme
 | Work | State / implementation owner | Remaining work and dependency | Evidence | Exit condition |
 | --- | --- | --- | --- | --- |
 | Home | Partial / Unassigned | Weekly status, separate market ranks and Play navigation are live. Refine card hierarchy/spacing; finish first-run, next-action, other-week and later feature states (stage 36). | [Release][release], [plan][plan] | V; correct empty/unscored/zero states and the planned week transitions on real data. |
-| Play | Partial / Unassigned | Live drafts, whole-market submission, permitted edits, sit-out and receipts. Start #126 here: padding, shorter visible metadata hierarchy, aligned chips/summary/actions and save-bar clearance. Per-game lock-in, skip/reveal, everyone's picks and Edge/results need their server gates (stages 28–32). | [Scope][scope], [#126][visual] | V; existing save/recovery/privacy regressions pass; later per-game flows ship only with matching hosted rules. |
-| Bets | Partial / Unassigned | Live tracker, corrections, reported results, following/history and selected-group Virtual Units. Refine forms, slip summaries, amounts and action hierarchy. Account-level placement/boards, friend challenges and planned native replacement screens remain (stages 40–56). | [Release][release], [plan][plan] | V; Community/group scope stays explicit; old records remain readable; new paths pass their apply and settlement gates. |
-| Lines / game details | Partial / Unassigned | Live schedule, own references, records, trends and weather. Refine row alignment and sheet hierarchy. Current sportsbook lines, book offers/movement and everyone's picks need stages 32–34 and M-06/M-08. The private-note editor uses already-hosted M-09/M-29 independently; its current implementation is pending validation and release. | [Scope][scope], [migration inventory][migrations] | V; note save/recovery/conflict/privacy checks pass; remove later-update messages only when their gated readers are live; source/age and hidden-market checks pass. |
-| League | Partial / Unassigned | Live Community feed, comments/likes, market boards/history and private weekly boards. Refine board columns, ranks, feed spacing and states. Native creation/invitations, season/Bets boards, new reactions/embeds and player/features screens remain (stages 57–71). | [Release][release], [plan][plan] | V; no combined Spread/Total rank; private data clears on scope changes; every retained post/record stays reachable. |
-| Me / Settings / sign-in | Partial / Unassigned | Appearance including Reduce motion, sign-out and old-app access are live. The new profile editor is pending validation and release. Expanded settings, information/legal/source pages, reminders/install and sign-in presentation remain (stages 37–39, 76); OAuth delivery is tracked below. | [Scope][scope], [plan][plan] | V; profile save/recovery and account-isolation checks pass; settings persist as documented; accessible auth and install paths work without implying unconfigured services work. |
+| Play | Partial / Unassigned | Live drafts, whole-market submission, permitted edits, sit-out and receipts. Card spacing, compact details/help, readable team controls and measured save-dock clearance shipped October 15; #126 acceptance remains. Per-game lock-in, skip/reveal, everyone's picks and Edge/results need their server gates (stages 28–32). | [Release][release], [scope][scope], [#126][visual] | V; existing save/recovery/privacy regressions pass; later per-game flows ship only with matching hosted rules. |
+| Bets | Partial / Unassigned | Live tracker, corrections, reported results, following/history and selected-group Virtual Units. Form, summary, amount and action styling shipped October 15; visual acceptance remains. Account-level placement/boards, friend challenges and planned native replacement screens remain (stages 40–56). | [Release][release], [plan][plan] | V; Community/group scope stays explicit; old records remain readable; new paths pass their apply and settlement gates. |
+| Lines / game details | Partial / Unassigned | Live schedule, own references, records, trends and weather. Private-note editor shipped October 15 using hosted M-09/M-29, including recovery and existing long-note compatibility. Current sportsbook lines, book offers/movement and everyone's picks still need stages 32–34 and M-06/M-08. | [Release][release], [scope][scope], [migration inventory][migrations] | V; note save/recovery/conflict/privacy checks pass; remove later-update messages only when their gated readers are live; source/age and hidden-market checks pass. |
+| League | Partial / Unassigned | Live Community feed, comments/likes, market boards/history and private weekly boards. Feed/reference styling and collapsible replies retaining drafts shipped October 15; visual acceptance remains. Native creation/invitations, season/Bets boards, new reactions/embeds and player/features screens remain (stages 57–71). | [Release][release], [plan][plan] | V; no combined Spread/Total rank; private data clears on scope changes; every retained post/record stays reachable. |
+| Me / Settings / sign-in | Partial / Unassigned | Appearance including Reduce motion, sign-out and old-app access are live. The profile editor shipped October 15 with save/recovery and account-change protection. Expanded settings, information/legal/source pages, reminders/install and sign-in presentation remain (stages 37–39, 76); OAuth delivery is tracked below. | [Release][release], [scope][scope], [plan][plan] | V; profile save/recovery and account-isolation checks pass; settings persist as documented; accessible auth and install paths work without implying unconfigured services work. |
 | History / export / commissioner tools | Partial / Unassigned | Community history is live; other records and tools remain in the old app. Build the native destinations for revisions, journal/forecasts, old Challenge/group records, export and commissioner pages (stages 72–78). | [Inventory homes][homes], [plan][plan] | V; owner-only data/export remains private; all preserved entries have working destinations before retirement. |
+| Simulated-game section | Requested; unbuilt / Unassigned | New user request tracked in #128. The linked X video returned 403; no frames, caption, audio or behavior were verified. Reference review and scope agreement remain dependencies. This is outside the October 15 release. | [Backlog task #128](https://github.com/seanbalz/guess-the-lines-repo/issues/128), [user-supplied reference](https://x.com/rotobot_ai/status/2110512433282625965/video/1?s=46) | Reference reviewed, scope and acceptance criteria agreed, then implementation tested and released with its own evidence before any live claim. |
 | Brand and shared formatting | Partial; acceptance pending / Unassigned | Retain Guess The Line and the approved G identity; use current D-38 type, spacing, surfaces and motion consistently. Record any further brand decision separately from #126's formatting work. | [Brand guide][brand], [tokens][tokens], [#126][visual] | V across all sections; no unauthorized new brand direction, copied marks or fabricated decorative data. |
 
 ## Backend and release dependencies
@@ -128,14 +130,14 @@ available, without claiming an unverified synchronization.
 | --- | --- | --- | --- |
 | Issues #1–#9 | Partial / Unassigned | [Open issues](https://github.com/seanbalz/guess-the-lines-repo/issues): October 8 starter bodies contain obsolete rules and service assumptions. #1/#3/#7 are closure/supersession candidates; split remaining work from #2/#4/#5/#6/#8 and replace #9's outdated provider premise. | Review each original scope, link delivered evidence and successor tasks, then record completed, superseded or deferred precisely. No closures are implied by this register. |
 | Issue #126 | Acceptance pending / Sean | [Photo 1 defect and visual criteria][visual]; section work above. | V accepted and linked to the actual release; functional tests alone cannot close it. |
-| Stale current-status documentation | Partial / Unassigned | `CLOUD_SETUP.md`, `ACCOUNT_ACCESS_REGISTER.md`, `SOCIAL_COMMUNITY.md` and some rule/status notes predate later release evidence. | Reconcile current headers against dated release/readback evidence; retain clearly labelled history. This register does not rewrite those files. |
+| Stale current-status documentation | Partial / Unassigned | Current headers in `CLOUD_SETUP.md`, `ACCOUNT_ACCESS_REGISTER.md` and `SOCIAL_COMMUNITY.md` were reconciled in PR #127; this evidence update points them at the October 15 deployment. Other historical rule/status notes have not all been reconciled. | Keep current pointers aligned with dated evidence and retain labelled history; reconcile remaining conflicts individually. |
 | Update this register | Partial / Unassigned | A merged PR, hosted apply/deploy or acceptance result changes a row. | Record the specific evidence and new state together. Do not mark local work live or an external setup complete from a plan. |
 
 Sources: current repository and GitHub issue/PR inspection at the baseline above;
 dated release records establish deployment. Private Status Board contents and
 unpublished work outside this checkout were not reconciled in this register.
 
-[release]: RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows
+[release]: RELEASE_2026_10_15.md
 [scope]: ALL_TABS_LIVE_WORKFLOWS.md
 [plan]: REDESIGN_BUILD_PLAN.md
 [gates]: REDESIGN_BUILD_PLAN.md#4-gates

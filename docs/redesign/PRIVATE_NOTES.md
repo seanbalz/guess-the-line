@@ -1,6 +1,6 @@
 # Private game notes: server (M-09)
 
-Owner: Sean Balsiger · Redesign build plan stages 27 and 35 · Updated October 15, 2026 · Server applied to the hosted project and deployed (`gtl-api` v18) on October 14, 2026, with M-29; see `docs/RELEASE_2026_10_09.md`, "October 14 deploy". The stage 35 editor is now implemented; its frontend deployment and live acceptance are recorded separately in the dated release record.
+Owner: Sean Balsiger · Redesign build plan stages 27 and 35 · Updated October 15, 2026 · Server applied to the hosted project and deployed (`gtl-api` v18) on October 14, 2026, with M-29; see `docs/RELEASE_2026_10_09.md`, "October 14 deploy". The stage 35 editor shipped October 15 as Pages `fc7f3cd2` from `d71a988`; [release evidence](../RELEASE_2026_10_15.md) keeps fixture-based save checks and remaining real-phone acceptance separate.
 
 D-36 keeps private notes ("Solo extras: private notes on a game stay, in the game detail sheet") and D-39 confirms the
 plan. This stage is the server half: a reader and a writer for one private note per game, used by the new app's game

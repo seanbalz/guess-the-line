@@ -1,14 +1,15 @@
 # Guess The Line — shared access setup
 
-**Current status:** the [October 14 version 2 release](RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows)
-records Pages `b29836da` from `8ecde62`, with all five opt-in tabs using hosted
+**Current status:** the [October 15 release](RELEASE_2026_10_15.md)
+records Pages `fc7f3cd2` from `d71a988`, with all five opt-in tabs using hosted
 workflows and API v23 active with JWT verification. The old app remains the
 default. M-01 is hosted; M-02 is not applied, so Guess edits still follow D-16.
 The [October 14 apply record](RELEASE_2026_10_09.md#october-14-deploy) records
 M-09/M-29 and the push migration/VAPID setup; its later entry records the enabled
 push schedule. Actual phone reminder delivery remains an acceptance check.
 Use the [completion register](COMPLETION_REGISTER.md) for current gaps and gates;
-the section-formatting, profile and note-screen work in progress is not shipped.
+section formatting, profile editing and private notes are deployed, with phone
+acceptance still open.
 
 ## Historical setup record
 
