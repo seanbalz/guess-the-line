@@ -3,18 +3,41 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { backupLocalState, verifyLocalBackup, restoreLocalDrill } from '../scripts/local-recovery.mjs';
 import { createEngine } from '../server/engine.mjs';
 
 const fixture = () => ({ version: 1, league: { id: 'synthetic', season: 2026, week: 5, roster: [{ id: 'one', name: 'Fixture' }], deadline: '2026-10-09T00:15:00Z' }, games: [{ id: 'A-B', away: 'A', home: 'B', kickoff: '2026-10-09T00:15:00Z' }], ballots: { one: { guess_total: { submittedAt: null, picks: { 'A-B': 45.5 } } } }, bets: {}, results: {}, history: [], audit: [{ action: 'fixture' }], archivedCount: 0, frozen: {} });
 function setup(t) { const dir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'gtl-recovery-')); t.after(() => fs.rmSync(dir, { recursive: true, force: true })); const source = path.join(dir, 'state.json'); fs.writeFileSync(source, JSON.stringify(fixture())); return { dir, source, backups: path.join(dir, 'backups') }; }
 
+function windowsAcl(file) {
+  const script = `$ErrorActionPreference='Stop'; $p=$env:GTL_TEST_ACL_PATH; $a=if([System.IO.Directory]::Exists($p)){[System.IO.Directory]::GetAccessControl($p)}else{[System.IO.File]::GetAccessControl($p)}; @{ owner=$a.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; user=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; rules=@($a.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier]) | ForEach-Object { @{sid=$_.IdentityReference.Value; type=$_.AccessControlType.ToString(); rights=[int]$_.FileSystemRights} }) } | ConvertTo-Json -Depth 4 -Compress`;
+  return JSON.parse(execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')], {
+    encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, GTL_TEST_ACL_PATH: file },
+  }));
+}
+function assertPrivate(file, mode) {
+  if (process.platform !== 'win32') return assert.equal(fs.statSync(file).mode & 0o777, mode);
+  const acl = windowsAcl(file);
+  assert.equal(acl.owner, acl.user);
+  const grants = acl.rules.filter(rule => rule.type === 'Allow');
+  assert.ok(grants.length > 0);
+  assert.ok(grants.every(rule => [acl.user, 'S-1-5-18', 'S-1-5-32-544'].includes(rule.sid)), JSON.stringify(acl));
+}
+function shareDirectory(directory) {
+  if (process.platform === 'win32') {
+    execFileSync('icacls.exe', [directory, '/grant', '*S-1-1-0:(OI)(CI)(RX)'], { windowsHide: true });
+  } else fs.chmodSync(directory, 0o755);
+}
+
 test('versioned private backup restores exact drafts/audit into isolated state without changing source', t => {
   const { dir, source, backups } = setup(t), original = fs.readFileSync(source, 'utf8');
   const result = backupLocalState(source, backups);
-  assert.equal(fs.statSync(backups).mode & 0o777, 0o700);
-  assert.equal(fs.statSync(result.file).mode & 0o777, 0o600);
+  assertPrivate(backups, 0o700);
+  assertPrivate(result.file, 0o600);
   const restored = restoreLocalDrill(result.file, path.join(dir, 'drill'));
+  assertPrivate(path.dirname(restored.file), 0o700);
+  assertPrivate(restored.file, 0o600);
   assert.deepEqual(JSON.parse(fs.readFileSync(restored.file)), fixture());
   assert.equal(fs.readFileSync(source, 'utf8'), original);
   assert.equal(result.stateSha256, restored.stateSha256);
@@ -45,13 +68,36 @@ test('credential-shaped fields and values never enter a backup', t => {
 });
 test('symbolic inputs, output aliases and shared backup directories fail closed', t => {
   const { dir, source, backups } = setup(t), alias = path.join(dir, 'alias');
-  fs.symlinkSync(source, alias);
-  assert.throws(() => backupLocalState(alias, backups), /Symbolic/);
+  // A directory junction exercises the same alias boundary without requiring
+  // Windows Developer Mode or the file-symlink privilege.
+  const linkType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(dir, alias, linkType);
+  assert.throws(() => backupLocalState(path.join(alias, 'state.json'), backups), /Symbolic/);
   fs.mkdirSync(backups, { mode: 0o755 });
-  fs.chmodSync(backups, 0o755);
+  shareDirectory(backups);
   assert.throws(() => backupLocalState(source, backups), /private/);
-  const outputAlias = path.join(dir, 'output-alias'); fs.symlinkSync(backups, outputAlias);
+  assert.deepEqual(fs.readdirSync(backups), []);
+  const outputAlias = path.join(dir, 'output-alias'); fs.symlinkSync(backups, outputAlias, linkType);
   assert.throws(() => backupLocalState(source, outputAlias), /Symbolic/);
+});
+
+test('a reusable private destination is rechecked after permissions become shared', t => {
+  const { source, backups } = setup(t);
+  const first = backupLocalState(source, backups), before = fs.readFileSync(first.file);
+  shareDirectory(backups);
+  assert.throws(() => backupLocalState(source, backups), /private/);
+  assert.deepEqual(fs.readdirSync(backups), [path.basename(first.file)]);
+  assert.deepEqual(fs.readFileSync(first.file), before);
+});
+
+test('private recovery supports nested literal paths with spaces and shell metacharacters', t => {
+  const { dir, source } = setup(t);
+  const backups = path.join(dir, "space ' & $(literal) 🧪", 'nested', 'backups');
+  const first = backupLocalState(source, backups);
+  assertPrivate(first.file, 0o600);
+  const second = backupLocalState(source, backups);
+  assert.notEqual(first.file, second.file);
+  assert.deepEqual(verifyLocalBackup(second.file).state, fixture());
 });
 
 test('D16 quote evidence, captured scoring references and audit survive an exact recovery round trip', t => {

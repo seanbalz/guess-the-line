@@ -8,8 +8,17 @@ checks; no production restore, remote CI run or new release is claimed here.
 `scripts/local-recovery.mjs` supports the owner-only Node preview state, version 1.
 It preserves ballots, submission timestamps, selected quotes, frozen references,
 history (including D-16 consensus evidence) and audits as one private, hash-checked JSON envelope. It rejects unknown
-versions, credential-shaped content and symbolic paths. Backups use mode 0600
-inside a 0700 directory. It checks the serialized envelope and restored state against
+versions, credential-shaped content and symbolic paths. On macOS/Linux, backups use
+mode 0600 inside a 0700 directory. On Windows, built-in Windows PowerShell creates
+the destination with a protected owner-only access-control list before writing;
+backup and restored files inherit that access. Existing Windows destinations must
+be owned by the current user, disable inherited grants and grant inheritable full
+control to that user; only the user, SYSTEM and Administrators may have allow rules.
+Shared destinations are rejected rather than having their permissions changed.
+If PowerShell or filesystem ACL support is unavailable, recovery fails before
+writing data. Windows `chmod` mode bits do not establish privacy; the implementation
+uses [CreateDirectoryW security attributes](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createdirectoryw)
+and reads the resulting ACL back. It checks the serialized envelope and restored state against
 the 50 MiB limit before writing, then reads the backup back to verify it. It never
 initializes missing state or contacts a service.
 
