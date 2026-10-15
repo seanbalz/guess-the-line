@@ -4,8 +4,8 @@ import { resolveTeamBadge, resolveTeamMark, teamAliases as aliases } from './tea
 
 // Official team logos (D-46) for all 32 teams. If a logo fails to load, the team's
 // original Guess The Line badge replaces it where one exists, then the abbreviation.
-// Records live in docs/TEAM_LOGO_SOURCES.md. Official logos sit on a round light-neutral
-// backing in Dark and on no backing in Light (teamIdentity.css, D-46).
+// Records live in docs/TEAM_LOGO_SOURCES.md. Official logos sit directly on the page, with
+// no backing circle in either theme (D-46).
 
 const sizes = { small: 24, medium: 32, large: 48 };
 
@@ -21,7 +21,6 @@ function IdentityMark({ code, name, size, primary, badge, decorative }) {
     aria-label={decorative ? undefined : name}
     aria-hidden={decorative || undefined}
     data-logo-status={hasLogo ? asset.rightsStatus : 'fallback'}
-    data-logo-backing={hasLogo && asset.backing === 'dark' ? 'dark' : undefined}
   >
     {hasLogo ? <img key={asset.src} src={asset.src} width={size} height={size} alt="" decoding="async" draggable="false" onError={() => setStep(current => current + 1)}/> : <span aria-hidden="true">{code}</span>}
   </span>;

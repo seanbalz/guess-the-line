@@ -21,30 +21,7 @@
   box-shadow: none;
 }
 
-/* D-46 official logos: in Dark a subtle light-neutral circle (the token text color, #F8FAFC) sits behind
-   every official logo so navy and black marks read on the dark canvas. In Light the circle is transparent:
-   a light backing would not separate the mostly-white marks (KC, PIT, TEN) and a dark one would sink the
-   navy marks. One rule for all 32; badges and the letter fallback are unchanged. */
-.team-identity--logo[data-logo-status="trademark-identification"] {
-  box-sizing: border-box;
-  padding: 8%;
-  border-radius: 50%;
-  background: var(--text);
-}
-
-:root[data-theme="light"] .team-identity--logo[data-logo-status="trademark-identification"] {
-  background: transparent;
-}
-
-/* Backing override (registry `backing: 'dark'`: KC, LAC, PIT, TEN, chosen by measurement): the mostly-white logos
-   sit on a dark chip in both themes, the canvas token (#0B1020) in Dark and the text token (#0B1020) in Light. */
-.team-identity--logo[data-logo-status="trademark-identification"][data-logo-backing="dark"] {
-  background: var(--canvas);
-}
-
-:root[data-theme="light"] .team-identity--logo[data-logo-status="trademark-identification"][data-logo-backing="dark"] {
-  background: var(--text);
-}
+/* D-46 official logos sit directly on the page in both themes, with no backing circle (Sean, October 15, 2026). */
 
 .team-identity--logo img {
   display: block;

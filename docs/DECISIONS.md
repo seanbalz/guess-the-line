@@ -21,6 +21,7 @@ Sean answered two questions in the Mac mini session.
   - **What they get:** a round dark chip with the same padding in both themes. The chip is the canvas token in Dark (`#0B1020` old app, `#070B16` new app) and the text token `#0B1020` in Light. All four measure better on it in Dark too.
   - **Everyone else:** keeps the default rule.
   - **Result:** no logo is flagged in either theme or app. See the [override table](TEAM_LOGO_SOURCES.md#backing-override).
+- **Backing removed** (Sean, October 15, 2026, Mac mini session: "Remove the black background behind some of the logos. They does not need any of them"). Supersedes both the backing chip and the backing override above: every official logo sits directly on the page, or in the new app's tile, with no chip in either theme. `darkBackingTeams`, the `backing` registry field and the chip CSS are removed. The contrast notes in the register remain as history: some marks (for example NYG and CAR on Dark, KC, PIT and TEN on Light) have low contrast against the page, accepted by this ruling.
 - Nothing is applied or deployed by this entry.
 
 ## D-45 — weather on every game, and a weather chip on the board (October 14, 2026)

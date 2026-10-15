@@ -88,6 +88,10 @@ No token-based neutral chip clears KC, PIT and TEN without flagging others:
 
 These three logos are mostly white or light fields drawn inside dark outlines, so a light backing is not added in Light; the [backing override](#backing-override) below handles them.
 
+#### Backing removed (October 15, 2026)
+
+Sean: "Remove the black background behind some of the logos. They does not need any of them". No official logo has a backing chip any more, in either theme or app; the sections below are kept as the history of the measurement.
+
 #### Backing override
 
 Approved by Sean on October 14, 2026: "Move forward with rec".
