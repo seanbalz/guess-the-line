@@ -66,7 +66,7 @@ subsequent model version.
 | Gate | Required evidence | Current state |
 | --- | --- | --- |
 | Input rights | Exact files, fields, producer lineage, applicable grant and attribution; free use within that scope | Exact CC BY 4.0 release grant supports the recorded local factual-field research; production review remains open, without asserting a second NFL grant is required |
-| Current coverage | Canonical completed games, team/week completeness, roster membership and availability, timestamps and missing/stale rejection | Completed 2022–2026 games reconcile to the approved schedule at the October 15 cutoff with no missing/extra IDs or factual mismatches; current roster availability and historical input vintages remain unverified |
+| Current coverage | Canonical completed games, team/week completeness, roster membership and availability, timestamps and missing/stale rejection | Verified schedule/current-source adapters and a sealed pregame input contract are implemented. Completed 2022–2026 games reconcile to the schedule. Current game-day availability, player usage and historical input vintages remain unverified |
 | Football engine | Score/clock/possession/stat consistency, special teams, penalties, safeties, conversion tries and current overtime rules | Strict research ledger implemented; unsupported plays fail explicitly. Full NFL support is incomplete |
 | Player model | Current roster-bound participation/usage, injuries and substitutions or stated measurable limitations | Not implemented |
 | Whole-game evaluation | Untouched chronological games; score and player-stat distributions, calibration, baselines and rare-event checks | Not implemented; measured next-play research below does not pass this gate |
@@ -132,7 +132,81 @@ frequencies, normalized input hashes and exclusions. Raw inputs, normalized
 rows and retrieval receipts remain in ignored `.local/replay-data/`; no
 individual game projection is published. Public issue #128 remains open.
 
-## Local verification
+## Current inputs and observed reconstruction — October 15 continuation
+
+PR [#131](https://github.com/seanbalz/guess-the-lines-repo/pull/131) merged the
+isolated viewer and next-play baseline after its four required checks passed.
+The next implementation stage adds verified schedule, weekly roster, injury and
+depth-chart adapters, a sealed pregame matchup contract and observed-event
+reconstruction. These modules are offline research tools with no app route.
+
+The [aggregate input audit](../model/reports/replay-input-audit-2026-10-15.json)
+records exact source and metadata hashes. The schedule contains 1,411 games in
+the reviewed seasons: 1,218 reported finals and 193 unplayed games. Future scores
+remain null. Scheduled Eastern times normalize to UTC; ambiguous IDs, partial
+scores, invalid times and altered receipts fail validation. Re-fetching old
+bytes cannot give them a new source freshness date. Earlier observations of
+identical republished bytes retain their separately verified receipt reference.
+
+The current audit retains 15,319 weekly roster rows across available weeks,
+1,697 injury rows and 2,292 rows from the latest depth snapshot per team.
+Seven roster rows lack stable player IDs; six current depth rows have missing
+or invalid identity/name fields. Those rows are quarantined. The retained
+Week 6 roster scope covers 28 scheduled teams, but an `ACT` roster status is
+not a confirmed game-day active list. Blank injury designations and absent
+reports remain unknown. Original row publication/revision times are unavailable;
+the first verified local observation is used conservatively, without backdating.
+
+The matchup builder derives teams, week and kickoff from the verified schedule,
+removes final-score labels, joins players by stable identity and records any
+missing role, availability or usage facts. Its versioned freshness policy and
+rule-implementation hash are sealed with the sources. The rulebook URL is a
+reference to the selected edition; the code hash does not certify complete
+implementation of that rulebook. A sealed snapshot always remains withheld
+from generation and publication at this stage.
+
+The verified SEA–DEN input smoke check contains 159 roster records, including
+non-active membership. It reports 153 unknown availability states and 36 missing
+roles; these are not 159 eligible participants. Three exact, reviewed name
+variants retain their stable IDs and original source names. The repeated run
+produces the same snapshot hash with zero unresolved identity joins, while
+generation and publication remain disabled.
+
+Observed play reconstruction uses scoring flags and scoring actors, dedicated
+individual yardage fields, conversion exclusions, and explicit lateral gaps.
+It does not fill missing flags with zero. Its results are:
+
+| Regular season | Games | Known score subtotals match schedule | Complete scoring reconstruction | Player-stat games without identified attribution gaps |
+| --- | ---: | ---: | ---: | ---: |
+| 2022 | 271 | 271 | 222 | 247 |
+| 2023 | 272 | 272 | 231 | 254 |
+| 2024 | 272 | 272 | 211 | 246 |
+| 2025 | 272 | 272 | 210 | 252 |
+| 2026 through Week 5 | 79 | 79 | 68 | 73 |
+
+All 1,166 known score subtotals match, with no missing or extra schedule game
+IDs and no internal post-play score-checkpoint mismatches. Only 942 games have
+complete scoring reconstruction: 244 source rows lack scoring flags across
+the remaining 224 games. The individual-stat counts are **not independently
+verified box-score totals**. Known gaps include lateral chains whose intermediate
+actors are unavailable. Internal PBP checkpoints and the
+[nflverse player-stat export](https://nflreadr.nflverse.com/news/index.html)
+are not independent evidence: that export uses
+[statistics calculated from PBP](https://nflfastr.com/reference/calculate_stats.html).
+No full-game forecast accuracy is established by these reconstruction checks.
+
+A separate manual spot-check against the
+[official Raiders–Patriots Week 5 gamebook](https://www.patriots.com/news/gamebook-raiders-at-patriots-week-5)
+matched all 83 implemented numeric cells across 32 category rows and 22 players,
+with zero differences. The PDF supplies no GSIS identifiers, so the local audit
+records the manually reviewed team/name joins to the pinned roster. One lateral
+attribution gap remains withheld even though its end total matches. This single
+game does not certify the other games or every intermediate event. The document
+has a media-use restriction; no redistribution, automated input feed or product
+display permission is inferred. Only the audit summary and source hash are
+committed, with the factual comparison kept local.
+
+## Initial local verification — PR #131
 
 - Full application suites: 1,272 Node tests and 184 Vitest tests pass, with no
   skipped tests. This includes 20 replay ledger tests and 10 viewer render tests.
@@ -145,12 +219,21 @@ individual game projection is published. Public issue #128 remains open.
   and axe. Browser fixtures contain invented test-only plays and are not model
   evidence or real NFL replay results.
 - Typecheck and brand QA pass. No production route imports the viewer.
-- The cloud boundary check passes, and all 93 build files are byte-identical
-  to the October 15 production-source build at `d71a988`. This work adds no
+- At PR #131's isolated source head, the cloud boundary check passed and all 93 build files were byte-identical
+  to the October 15 production-source build at `d71a988`. That comparison predates
+  the independently merged recommended-bets changes and is not a comparison of
+  today's combined main branch. The replay work adds no
   replay, fixture or model data to the website bundle and requires no deployment.
 
 These checks establish the isolated implementation, not full-game model
 accuracy, phone acceptance or a production replay release.
+
+The continuation's integrated model suite passes **97 Python tests with no
+skips**, including schedule, current-source, matchup and reconstruction cases.
+Independent reviews covered timestamp/receipt integrity, unavailable inputs,
+compound scoring, unknown competition labels and the real cached-input CLI.
+Brand-document QA and whitespace checks pass. GitHub checks and release state
+are tracked separately; local test success is not a deployment.
 
 ## Reproduction
 
@@ -161,6 +244,10 @@ per-game research output remain under ignored `.local/replay-data/`.
 ```sh
 python3 -m unittest discover -s model -p 'test_replay_*.py' -v
 node --test tests/simulation-replay.test.mjs
+python3 model/replay_schedule.py audit
+python3 model/replay_current_sources.py audit
+python3 model/replay_matchup.py --help
+python3 model/replay_reconstruction.py --seasons 2022 2023 2024 2025 2026
 ```
 
 Publication remains blocked in code; there is no flag that turns this
