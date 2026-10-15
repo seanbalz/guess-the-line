@@ -45,7 +45,7 @@ async function phoneChecks(page, root = '.gx') {
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      if (!visible(el) || el.closest('.gx-sr-only, .sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
