@@ -4,6 +4,7 @@ import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs'
 import { createEngine } from '../server/engine.mjs';
 import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 import { LATE_WINDOWS, REVEAL_TIMES, TODAYS_RULES, parseLiveRules, readLiveRules } from '../cloud/live-rules.mjs';
+import { emptySocialState } from '../shared/social-bets.mjs';
 
 // Redesign build plan, stage 4: /community/read, /personal, /personal/read and /state (and the /ballot and /bet
 // replies, which are the /state view) carry `rules`. The hosted project has no gtl_live_rules yet (M-01 creates it;
@@ -52,6 +53,13 @@ function app({ optionalRpc, initial = state() } = {}) {
     },
     community: { rpc: async name => { calls.push(['community', name]); return feed; } },
     personal: { rpc: async name => { calls.push(['personal', name]); return { scope: 'account_private', season: 2026, week: 6 }; } },
+    social: { rpc: async (name, body) => {
+      calls.push(['social', name, body]);
+      assert.equal(name, 'gtl_read_social');
+      return { season: initial.league.season, week: initial.league.week, profiles: [], following: [],
+        availableWeeks: [{ season: initial.league.season, week: initial.league.week }],
+        weeks: [{ season: initial.league.season, week: initial.league.week, games: initial.games, revision: 0, state: emptySocialState() }] };
+    } },
     ...(optionalRpc ? { optionalRpc: async (name, body) => { calls.push(['optional', name, body]); return optionalRpc(name, body); } } : {}),
   });
   const send = async (path, { method = 'POST', body = method === 'POST' ? {} : undefined } = {}) => {
@@ -161,6 +169,9 @@ test('routes that are not views carry no rules and make no rules read', async ()
   const { send, calls } = app({ optionalRpc: async () => LIVE });
   const exported = await send('/export', { method: 'GET' });
   assert.equal(exported.status, 200); assert.equal(Object.hasOwn(exported.body, 'rules'), false);
+  assert.equal(exported.body.socialBets.historyScope, 'all'); assert.deepEqual(exported.body.socialBets.entries, []);
+  assert.equal(Object.hasOwn(exported.body.socialBets, 'rules'), false);
+  assert.deepEqual(calls.filter(([kind]) => kind === 'social'), [['social', 'gtl_read_social', { p_user: USER, p_season: null, p_week: null, p_all: true }]]);
   const liked = await send('/community/like', { body: { postId: '00000000-0000-4000-8000-000000000009', like: true } });
   assert.equal(liked.status, 200); assert.equal(Object.hasOwn(liked.body, 'rules'), false);
   assert.equal(calls.filter(([kind]) => kind === 'optional').length, 0);
