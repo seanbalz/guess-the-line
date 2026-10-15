@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { createEngine } from '../server/engine.mjs';
 import { seed } from '../server/store.mjs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
+import { emptySocialState } from '../shared/social-bets.mjs';
 
 const NOW = Date.parse('2026-10-08T16:00:00Z');
 const USERS = { sean: '00000000-0000-4000-8000-000000000001', troy: '00000000-0000-4000-8000-000000000002', luke: '00000000-0000-4000-8000-000000000003' };
@@ -16,6 +17,8 @@ function setup({ clock = () => NOW, initial = seed(), memberOverride, authentica
   let saved = { state: structuredClone(initial), revision: 0 }, serial = 0;
   const calls = { auth: 0, member: 0, load: 0, cas: 0 };
   const handler = createCloudHandler({ clock, uuid: () => `audit-${++serial}`,
+    social: { rpc: async () => ({ season: initial.league.season, week: initial.league.week, profiles: [], following: [],
+      availableWeeks: [{ season: initial.league.season, week: initial.league.week }], weeks: [{ season: initial.league.season, week: initial.league.week, games: initial.games, revision: 0, state: emptySocialState() }] }) },
     // This identity/revision suite assumes a successful trusted source check.
     // Actual stale-source failure and SQL atomicity have dedicated suites.
     odds: { rpc: async name => { assert.equal(name, 'gtl_preflight_submission'); return { requiresReferences: true, ready: true }; } },

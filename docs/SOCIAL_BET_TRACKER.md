@@ -11,6 +11,11 @@ documented in [the release record](RELEASE_2026_10_08.md); the sixteen supplied
 tickets are now mapped to live accounts, as recorded in the
 [audited import](SOCIAL_BET_IMPORT_2026_10_08.md).
 
+**October 15 follow-up:** Troy's fourteen imported singles now carry explicitly
+labeled −110 accounting assumptions; their original unknown odds remain in
+history. The complete shared-bet export is implemented locally and awaits an
+allowed API release window. See [collected bets and export evidence](BET_COLLECTION_2026_10_15.md).
+
 ## Confirmed behavior
 
 - Deliberately shared singles and parlays are visible to all signed-in players,

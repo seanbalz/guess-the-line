@@ -19,7 +19,7 @@ export function createServer(store = createStore(), { dist = path.resolve(import
         if(req.headers.origin && req.headers.origin !== `http://${req.headers.host}` && !/^http:\/\/(localhost|127\.0\.0\.1):5173$/.test(req.headers.origin)) return send(403,{error:'Untrusted origin.'});
         const player=url.searchParams.get('player') || 'sean', mode=url.searchParams.get('mode') || 'guess_spread';
         if(req.method==='GET' && url.pathname==='/api/state') return send(200,store.view(player,mode));
-        if(req.method==='GET' && url.pathname==='/api/export') return send(200,store.export(player));
+        if(req.method==='GET' && url.pathname==='/api/export') return send(200,await store.export(player));
         if(req.method==='POST') {
           if(!req.headers.origin || req.headers['content-type']!=='application/json') return send(403,{error:'Same-origin JSON requests are required.'});
           let raw=''; for await(const part of req) {raw+=part;if(raw.length>32000) return send(413,{error:'Request too large.'});}
