@@ -18,6 +18,47 @@ Use the [shared release workflow](SHARED_DEPLOYMENT.md) once its required secret
 
 ## Verification register
 
+### October 15 deployment request and fresh preflight
+
+Sean subsequently requested **“Deploy”**, authorizing this recommendation release
+and its necessary additive edit writer. A one-time exception to the active
+Thursday freeze was requested separately and remains unanswered. No hosted
+mutation has occurred in this release attempt. The separate per-game scoring
+release must be sequenced with this release; its M-02/M-08/M-07 activation is not
+included in a recommendation-only exception.
+
+At **20:31 UTC / 1:31 PM Pacific**, a SELECT-only hosted preflight confirmed:
+
+- Published Week 6 has 14 games; Thursday kickoff is **5:15 PM Pacific**. The
+  shared workflow's actual quiet-window function rejects starts through
+  **11:15 PM Pacific**, with 11:16 PM the first whole-minute start, subject to
+  another fresh check. No release is scheduled by this record.
+- The new edit function and migration history row are absent. The existing
+  placement function has one signature, source MD5
+  `da5c1747a0c095b4ff37a4b56053802a`, security invoker, and service-role-only
+  execution. The expected new edit source MD5 is
+  `aaadb107e60b096438ac01ed54d7126c` (local PGlite evidence).
+- Historical ballots: 9, MD5 `f25cea85d98688f716412725258396b3`;
+  historical scores: 9, MD5 `a94e272b5a29042e747ce92bc7a3b7ee`.
+  All virtual picks, settled results and settlement ledger rows are each zero,
+  MD5 `d751713988987e9331980363e24189ce`. These match the prior release baseline.
+- Migration history: 34 rows, MD5 `a7b67824af41f4c8ea638c9c42a6e654`;
+  the six unrelated pending redesign migrations remain absent.
+- API v24 remains ACTIVE with JWT verification. The existing project-isolated
+  Cloudflare login confirms Pages `ed3fb50b-388b-4330-8767-8bd08adb9255` from
+  `b883c77`; public entry HTML/JS/CSS match that immutable deployment. This
+  three-file readback is not a new all-assets release verification.
+
+The reviewed PR head `3985acb06e45fbeaa4d873ef2a26caa967713121` passed all five
+CI checks, including 1,388 Node, 184 Vitest, 41 local browser, **254 cloud
+browser**, 16 persona, four performance and seven accessibility tests. Main
+advanced during deployment preparation; integrated-source verification and its
+exact final release SHA must be recorded before publication. The source at
+`7845c8f97ef46c9c7275773a2a2365e3df8de078` includes `c60ab49`, passes typecheck
+and the cloud build/privacy scan, and has the same frontend digest
+`5a386fea5c39c452b9d0b63bf19aeab0f1693bf7709e460bb5435bafb55a641f`.
+It does not yet include the subsequently merged per-game source `bb4f20a`.
+
 | Check | Current evidence | Exit condition |
 | --- | --- | --- |
 | Logic | 24 helper tests passed, including offered-line ranking, consensus matches, and forecast fail-closed gates | Actual offer direction, consensus separation, actionable rank and forecast gate cases pass |
