@@ -71,6 +71,17 @@ not public access. See the
 No service credential is stored in frontend configuration. Edge Functions use
 their platform-provided server environment.
 
+**Off switches (`GTL_FEATURE_OFF`).** The `gtl-api` secret `GTL_FEATURE_OFF` is a
+comma-separated list of feature names; the names and the writer or reader each
+one stops are `FEATURES` in `cloud/feature-off.mjs` (redesign build plan, Gate M
+step 9). A listed writer answers 503 "This feature is not available right now.
+Nothing you saved is lost."; stored rows stay and nothing is deleted (D-23).
+Unknown names are ignored, so a typo never takes `gtl-api` down, and a typo also
+leaves the feature on: after setting or clearing the secret, call the switched
+route as a signed-in player and check the 503 (or, once cleared, a normal
+answer). For example, `GTL_FEATURE_OFF=notes` turns off `POST /personal/note`.
+Setting or clearing the secret is a hosted change that needs Sean's OK.
+
 Each game save must match the latest account/week revision. A transactional RPC
 locks that revision and rejects stale saves with 409; refresh merges untouched fields while preserving
 the player's unsaved changes for review. Picks, quote immutability, deadline

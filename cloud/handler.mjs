@@ -330,6 +330,9 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
   };
 }
 
+/** Personal RPCs whose migration may be missing on the hosted project (M-09's notes): PostgREST's PGRST202 reads as off. */
+const OPTIONAL_PERSONAL_RPCS = new Set(['gtl_read_game_notes', 'gtl_set_game_note']);
+
 /** Native HTTP adapter. Service-role credentials never leave the server. */
 export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl = fetch, clock = Date.now }) {
   const base = new URL(url);
@@ -575,8 +578,9 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           let message, code;
           try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Private provider response is never returned. */ }
           if (message === 'GTL_SUBMISSION_ODDS_REQUIRED') throw new SubmissionOddsError('GTL_SUBMISSION_QUOTES_REQUIRED');
-          // A personal RPC the hosted project does not have yet (the M-09 notes RPCs before "apply M-09") reads as off.
-          if (response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerPersonalError('GTL_FEATURE_OFF');
+          // A notes RPC the hosted project does not have (M-09 before "apply M-09", or rolled back) reads as off. Any other
+          // personal RPC answers as before: a missing old Solo function is an outage, never "not available right now".
+          if (OPTIONAL_PERSONAL_RPCS.has(name) && response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerPersonalError('GTL_FEATURE_OFF');
           throw providerPersonalError(message);
         }
         return response.json();

@@ -232,6 +232,12 @@ describe('Text, Button, IconButton, Icon', () => {
     expect(classes(one(<Icon icon="diamond" fill/>, n => n.tag === 'svg'))).toContain('gx-ic-fill');
     expect(() => html(<Icon icon="not-an-icon"/>)).toThrow(/Unknown icon/);
     for (const key of Object.keys(ui.icons)) clean(<Icon icon={key}/>);
+    // CONTRACT section 12: never stroke or size attributes; .gx-ic sets width, height, fill, stroke and the line caps.
+    for (const node of [<Icon icon="lock" size={16}/>, <Icon icon="alert" label="Warning"/>, <Icon icon="diamond" size={32} fill/>]) {
+      const svg = one(node, n => n.tag === 'svg');
+      expect(Object.keys(svg.attrs).filter(name => /^(width|height|fill|stroke(-.*)?)$/.test(name))).toEqual([]);
+      expect(svg.attrs.viewBox ?? svg.attrs.viewbox).toBe('0 0 24 24');
+    }
   });
 });
 
@@ -249,6 +255,14 @@ describe('Card, List, Row', () => {
     expect(list.attrs).toMatchObject({ class: 'gx-list', role: 'list', 'aria-label': 'Board' });
     expect(list.children.map(c => c.tag)).toEqual(['li', 'li']);
     expect([...walk(tree(<List ordered><Row title="A"/></List>))].some(n => n.tag === 'ol')).toBe(true);
+    // Text and number children are rows too, each keyed by its place: React warns about no list key.
+    const warnings = [], warn = console.error;
+    console.error = (...args) => { warnings.push(args.map(String).join(' ')); };
+    try {
+      const mixed = [...walk(tree(<List label="Mixed">{'First'}<Row title="B"/>{3}</List>))].find(n => n.tag === 'ul');
+      expect(mixed.children.map(c => c.tag)).toEqual(['li', 'li', 'li']);
+    } finally { console.error = warn; }
+    expect(warnings.filter(w => /unique "key"/.test(w))).toEqual([]);
   });
 
   it('Row is a div, a button with onClick or a link with href, with its size and state classes', () => {

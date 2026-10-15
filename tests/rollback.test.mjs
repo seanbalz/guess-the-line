@@ -126,14 +126,17 @@ test('the old-app SQL suites take HOSTED and migrationSql from tests/migrations.
 });
 
 for (const file of ROLLBACKS) {
-  test(`${file}: HOSTED, the migration, then its rollback restores every replaced body; the old-app SQL suites pass`, { skip }, async () => {
+  test(`${file}: HOSTED, the migration, then its rollback restores every replaced body; the old-app SQL suites pass with the migration and after its rollback`, { skip }, async () => {
     const migration = path.join(MIGRATIONS_DIR, file), rollback = path.join(ROLLBACK_DIR, file);
     const { replaced, added } = review(migration, fs.readFileSync(rollback, 'utf8'));
     const { restored, overloads } = await applyWithRollback(migration, fs.readFileSync(rollback, 'utf8'));
     assert.deepEqual(overloads, []);
     for (const [k, prev] of replaced) assert.equal(restored.get(k), prev.md5, `${k} is back to the body from ${prev.file}`);
     for (const k of added) assert.ok(restored.has(k), `${k} (added by the migration) stays after the rollback`);
-    const run = await rerunSuites({ migration, rollback });
+    // Both at once. With the migration and no rollback is the schema the old-app suites (on HOSTED) get once it is applied: a
+    // branch a suite keeps for the new body (community-history-sql's PER_GAME for M-01) runs nowhere else before the apply.
+    const [applied, run] = await Promise.all([rerunSuites({ migration }), rerunSuites({ migration, rollback })]);
+    assert.ok(applied.status === 0 && applied.fail === 0 && applied.skipped === 0 && applied.pass > 0, `old-app SQL suites with the migration applied:\n${applied.tail}`);
     assert.ok(run.status === 0 && run.fail === 0 && run.skipped === 0 && run.pass > 0, `old-app SQL suites after the rollback:\n${run.tail}`);
   });
 }

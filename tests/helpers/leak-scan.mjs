@@ -34,6 +34,9 @@ export const READERS = Object.freeze([
   ['/community/read', 'POST', {}],
   ['/community/history', 'POST', {}],
   ['/personal', 'GET'],
+  // Stage 27 (M-09): the owner's private game notes, here since M-09 was hosted (October 14, 2026). It returns only the
+  // signed-in owner's notes (`ownerId`); tests/game-notes-sql.test.mjs scans every reader here for another account's note.
+  ['/personal/notes', 'POST', {}],
   ['/lobby', 'GET'],
   ['/state?mode=guess_spread', 'GET'],
   ['/state?mode=guess_total', 'GET'],
