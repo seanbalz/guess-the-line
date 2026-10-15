@@ -18,10 +18,15 @@ import { COMMUNITY, currentLeague, leagueRows, pendingInvites, readLeagueChoice,
 
 const AppDataContext = createContext(null);
 
-/** The two shared reads. `/community/read` is the same call the old app's Community home makes. */
+/**
+ * The shared reads. `/community/read` is the same call the old app's Community home makes. `/personal` (stage 13, the
+ * Lines tab) is the viewer's own week, the same call the old app's Community Picks makes: it is read only once a screen
+ * asks for it (useSharedRead), then shared and kept fresh with the others.
+ */
 export const apiSources = () => ({
   lobby: signal => cloudApi('lobby', undefined, { signal }),
   community: signal => communityApi('read', {}, signal),
+  personal: signal => cloudApi('personal', undefined, { signal }),
 });
 
 export function AppDataProvider({ session, sources, children }) {
@@ -60,6 +65,10 @@ export function AppDataProvider({ session, sources, children }) {
 
   const [savedInvite, setSavedInvite] = useState(pendingInvitation);
   const dismissSavedInvite = useCallback(() => { clearInvitation(); setSavedInvite(''); }, []);
+
+  /** Starts a shared read a screen needs (once; later calls share it), and what it holds now. */
+  const loadRead = useCallback(name => store.load(name), [store]);
+  const readOf = useCallback(name => store.get(name), [store]);
 
   const saveName = useCallback(displayName => write('profile', () => cloudApi('profile', { displayName }, { save: true }), { refresh: ['lobby'] }), [write]);
 
@@ -109,9 +118,22 @@ export function AppDataProvider({ session, sources, children }) {
     saveName,
     join,
     refresh: options => store.refresh(options),
+    loadRead,
+    readOf,
     signIn,
   };
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
+}
+
+/**
+ * `const personal = useSharedRead('personal')`: a read only some screens need, asked for when the screen mounts. One
+ * request for every screen that shows it; refreshed with the others (focus, every 5 minutes, back online).
+ */
+export function useSharedRead(name) {
+  const app = useAppData();
+  const { loadRead } = app;
+  useEffect(() => { loadRead(name); }, [loadRead, name]);
+  return app.readOf(name);
 }
 
 /** `const app = useAppData()`: the shared reads, the league showing and the stage 11 writes (AppDataProvider). */
