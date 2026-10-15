@@ -125,11 +125,16 @@ describe('the Lines board', () => {
 describe('the game sheet', () => {
   it('header, You on this game, the top trends with records and sample sizes, and a locked line trend with no number', () => {
     state.lines = data();
+    // Pin this header fixture so refreshed public records cannot invalidate the expected copy.
+    state.lines.records = {
+      season: 2026, retrieved_at: '2026-10-15T01:00:00Z',
+      teams: { SEA: { overall: { w: 3, l: 2, t: 0 } }, DEN: { overall: { w: 2, l: 2, t: 1 } } },
+    };
     const sea = render(<GameSheet args={{ game: 'SEA-DEN' }}/>);
     expect(markupProblems(sea)).toEqual([]);
     const t = text(sea);
     expect(t).toContain('Thu Oct 15 · 5:15 PM PT · TNF · Denver');
-    expect(t).toMatch(/Seahawks \d+–\d+ · Broncos \d+–\d+ · Records as of Thu Oct 8/);
+    expect(t).toContain('Seahawks 3–2 · Broncos 2–2–1 · Records as of Wed Oct 14');
     expect(t).toContain('Draft SEA −4');
     expect(t).toContain('Submit your Spread picks to see this line.');
     expect(t).toContain('Submitted 44');
