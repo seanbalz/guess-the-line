@@ -34,9 +34,9 @@ const M01_RULES = Object.freeze({ sentFinal: false, lateWindow: 'deadline', reve
 const REPLACED = ['gtl_week_revealed(uuid,integer,integer,text,timestamptz)', 'gtl_read_community(uuid,timestamptz,integer,timestamptz)',
   'gtl_read_community_history(uuid,integer,timestamptz)'];
 
-test('M-01 is a repo file the hosted project does not have yet; its rollback restores the three bodies it replaces', () => {
+test('M-01 is hosted since October 14, 2026 (hosted version 20261014223000); its rollback restores the three bodies it replaces', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'removed from NOT_HOSTED by the October 14 apply record (Gate M step 8)');
 });
 
 test('gtl_live_rules (M-01): revealAt kickoff with today\'s other two fields; missing on the hosted schema, switched off by the rollback', { skip }, async t => {
@@ -305,6 +305,32 @@ test('the per-game gate (M-01): a lock-in opens that game and market, a kickoff 
       assertNoLeak(await feed(who, LAST), { viewer: id(who), secrets: seanTotals }, `${who} feed after the last kickoff`);
       assertNoLeak(await history(who, LAST), { viewer: id(who), secrets: seanTotals }, `${who} history after the last kickoff`);
     }
+  });
+
+  await t.test('leak scan as a viewer who holds an unlocked draft: Sean\'s Total draft opens no other member\'s Total pick or line, game by game until kickoff', async () => {
+    // Luke, the viewer above, holds no draft. Sean holds a Total draft (and sat out Spread, which opens his Spread): a draft is
+    // not a lock-in, so Troy's and Luke's sent Totals and every Total line stay hidden from him until each game's kickoff.
+    const hiddenTotal = (from = 0) => {
+      const after = values => Object.fromEntries(ids.slice(from).map(g => [g, values[ids.indexOf(g)]]));
+      return [...pickSecrets(after(TROY.total), { market: 'total', owner: 'troy' }), ...pickSecrets(after(LUKE.total), { market: 'total', owner: 'luke' }),
+        ...lineSecrets(after(LINES.total), { market: 'total' })];
+    };
+    for (const [now, from] of [[NOW, 0], [FIRST, 1]]) {
+      for (const reply of [await feed('sean', now), await history('sean', now)]) assertNoLeak(reply, { viewer: id('sean'), secrets: hiddenTotal(from) }, `raw at ${iso(now)}`);
+      clock = now;
+      try {
+        for (const reader of READERS.filter(([route]) => route.startsWith('/community/'))) {
+          const reply = await world.api('sean', reader[0].slice(1), reader[2]);
+          assert.equal(reply.status, 200, JSON.stringify(reply.body));
+          assertNoLeak(reply.body, { viewer: id('sean'), secrets: hiddenTotal(from) }, `${reader[0]} at ${iso(now)}`);
+        }
+      } finally { clock = null; }
+    }
+    // Not vacuous: the first kickoff opens the first game's Total for Sean, so Troy's and Luke's picks and its line reach him.
+    const first = [...pickSecrets({ [ids[0]]: TROY.total[0] }, { market: 'total', owner: 'troy' }), ...pickSecrets({ [ids[0]]: LUKE.total[0] }, { market: 'total', owner: 'luke' }),
+      ...lineSecrets({ [ids[0]]: LINES.total[0] }, { market: 'total' })];
+    assert.ok(leakScan(await feed('sean', FIRST), { viewer: id('sean'), secrets: first }).length >= 2, 'both opened picks are in the feed');
+    assert.ok(leakScan(await history('sean', FIRST), { viewer: id('sean'), secrets: first }).length >= 3, 'both opened picks and their line are in History');
   });
 
   await t.test('the Late marker is read from the ballot: only { deadline, minutes }, null until written', async () => {

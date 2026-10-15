@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { CLOSED_GATE, lineLockedSentence, lockedMarkets, parseMarketsVisible, readLineGate } from '../cloud/line-lock.mjs';
 import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
+import { providerVirtualError } from '../cloud/virtual-units.mjs';
 import { TODAYS_RULES } from '../cloud/live-rules.mjs';
 import { assertNoLeak, leakScan, lineSecrets } from './helpers/leak-scan.mjs';
-import { ALL } from './migrations.mjs';
+import { ALL, HOSTED } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable, sendBallot, storeBookLines } from './cloud-browser/community-world.mjs';
 
 // Redesign build plan stage 20 (D-36 as amended by D-39): the line lock on the old Virtual Units routes. A game's Spread
@@ -134,6 +135,11 @@ test('the lock sentence follows the live rules (the new app\'s copy.js lineLocke
   assert.equal(lineLockedSentence('spread', TODAYS_RULES), 'Submit your Spread picks to see this line.');
   assert.equal(lineLockedSentence('total', undefined), 'Submit your Total picks to see this line.');
   assert.equal(lineLockedSentence('total', { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' }), 'Lock in your Total pick to see this line.');
+  // One wording: a GTL_LINE_LOCKED from the database (none raises it today; the route words its own refusal) reads as the
+  // route's sentence under D-39, for no market in particular, never as a second explanation of the lock.
+  const fromDatabase = providerVirtualError('GTL_LINE_LOCKED');
+  assert.deepEqual([fromDatabase.status, fromDatabase.message], [409, 'Lock in your Guess the Line pick to see this line.']);
+  assert.equal(fromDatabase.message, lineLockedSentence(null, { sentFinal: true }));
 });
 
 test('/virtual-units before a send: no book offer and no consensus for either market, every market locked, own pick whole', async () => {
@@ -327,11 +333,11 @@ test('HOSTED schema: locked before a send, Spread opens with a Spread send, Tota
     [[g1, 'spread', 'away', -7.5, 105, 2, 'FanDuel', Date.parse(terms.quotedAt)]]);
 });
 
-test('HOSTED schema: today\'s deadline opens every line (D-23); with M-01 each game waits for its own kickoff', { skip }, async t => {
+test('without M-01 (the schema before October 14) the deadline opens every line (D-23); with M-01 each game waits for its own kickoff', { skip }, async t => {
   // Half an hour after the deadline: the first game has kicked off, the second kicks off in half an hour.
   const late = state => Date.parse(state.league.deadline) + 30 * 60_000;
   let clockAt = Date.now();
-  const hosted = await linesWorld(t, { clock: () => clockAt });
+  const hosted = await linesWorld(t, { migrations: HOSTED.filter(file => file !== '20261014223000_gtl_guess_gate_per_game.sql'), clock: () => clockAt });
   clockAt = late(hosted.state);
   const [g0, g1] = hosted.ids;
   assert.deepEqual(locks(await hosted.units('luke')), { [g0]: { spread: false, total: false }, [g1]: { spread: false, total: false } });

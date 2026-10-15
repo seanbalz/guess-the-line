@@ -8,10 +8,12 @@
 --
 -- These are the only readers of current lines for the new app. Every cell is gated per game and market by M-01's
 -- gtl_markets_visible / gtl_guess_revealed, which ask gtl_guess_locked_in: when M-02 (stage 18) records per-game lock-ins and
--- replaces that one body, a lock-in opens exactly that game and market here, with no change to this file. A closed cell is
--- { visible: false } and carries no other key: no value, time, book, price, movement or kickoff line, and nothing about it is
--- computed. Lines come only from gtl_line_from_snapshot (the D-16/D-27 three-book validator, unchanged); a reply never carries
--- a raw payload, a provider id, a provider event id or a snapshot id.
+-- replaces that one body, a lock-in opens exactly that game and market here, with no change to the gate in this file. Two
+-- fields of `mine` still read the ballot as a whole: points need a submitted ballot (submittedAt) and the Late marker is the
+-- ballot's (gtl_ballot_late); M-07 (stage 24) revisits both (build plan section 5 rule 9). A closed cell is { visible: false }
+-- and carries no other key: no value, time, book, price, movement or kickoff line, and nothing about it is computed. Lines
+-- come only from gtl_line_from_snapshot (the D-16/D-27 three-book validator, unchanged); a reply never carries a raw payload,
+-- a provider id, a provider event id or a snapshot id.
 --
 -- What this file adds (four service-only, security-invoker functions):
 -- * gtl_book_quotes_from_snapshot(payload, game, market): the three named books of one stored snapshot, each with its line, its
@@ -40,9 +42,10 @@
 -- switch is gtl-api's GTL_FEATURE_OFF=lines (cloud/feature-off.mjs): both routes refuse and nothing is read; a database-side
 -- stop, with Sean's OK, is revoking the service role's execute grant on the two readers.
 --
--- Apply (Gate M; build plan sections 5 and 6): after M-01 and M-02 are applied and stage 20 is live, and after the gtl-api
--- deploy that maps this file's codes. Before M-02, a guess in a submitted ballot can still be edited until the deadline (D-16),
--- so opening its line on a send would let a player match the line.
+-- Apply (Gate M; build plan sections 5 and 6): after M-01, M-02 and M-04 are applied and stages 20 and 21 are live, and after
+-- the gtl-api deploy that maps this file's codes. Before M-02, a guess in a submitted ballot can still be edited until the
+-- deadline (D-16), so opening its line on a send would let a player match the line. This file sorts before M-02's
+-- (20261015030000_gtl_sent_picks_final.sql), so filename order is not its apply order: apply M-02 first all the same.
 
 -- The three named books of one stored snapshot for a game and market whose line qualifies there, each with its two prices.
 create or replace function public.gtl_book_quotes_from_snapshot(p_payload jsonb,p_game jsonb,p_market text) returns jsonb

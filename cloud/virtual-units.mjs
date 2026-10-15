@@ -18,8 +18,9 @@ const ERRORS = {
   GTL_WEEKLY_CONFLICT: [409, 'Your virtual picks changed on another device. Refresh before saving again.'],
   GTL_VIRTUAL_QUOTE: [409, 'That saved quote is no longer available. Review the latest offered line before confirming.'],
   // Redesign stage 20 (D-36, D-39): the line lock. The route raises it itself, before any quote is compared, so a
-  // refusal never tells a player whether a line they guessed is on offer. The route words it per market and live rule.
-  GTL_LINE_LOCKED: [409, 'Make your Guess the Line pick for this game first. Its line opens once your pick is in, after a sit-out, or at kickoff.'],
+  // refusal never tells a player whether a line they guessed is on offer. The route words it per market and live rule
+  // (lineLockedSentence); this entry, for a database refusal that names no market, is the same sentence under D-39.
+  GTL_LINE_LOCKED: [409, lineLockedSentence(null, { sentFinal: true })],
   // D-26 settlement (commissioner route and script). A refused call settles nothing;
   // a file row for a game that is not on the slate is skipped and reported, not refused.
   GTL_VIRTUAL_FORBIDDEN: [403, 'Only the commissioner can settle Virtual Units.'],

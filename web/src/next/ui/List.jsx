@@ -8,7 +8,8 @@ export function List({ ordered = false, label, className, children, ...rest }) {
   // role="list" keeps the list semantics that Safari drops from a list styled with list-style: none.
   return (
     <Tag className={cx('gx-list', className)} role="list" aria-label={label} {...rest}>
-      {Children.toArray(children).map(child => <li key={child.key}>{child}</li>)}
+      {/* toArray keys each element; a text or number child has no key, so it takes its place in the list. */}
+      {Children.toArray(children).map((child, i) => <li key={child?.key ?? `text-${i}`}>{child}</li>)}
     </Tag>
   );
 }

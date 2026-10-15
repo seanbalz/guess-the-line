@@ -55,8 +55,9 @@ export const rpcChecks = Object.freeze([
   ['gtl_history_reference', { p_season: 2026, p_week: 5, p_signature: {}, p_game: {}, p_market: 'spread', p_submitted: null }],
   ['gtl_pick_points', { p_guess: 0, p_reference: 0 }],
   // M-01, the per-game Guess reveal gate (20261014223000_gtl_guess_gate_per_game.sql, redesign stage 16): four service-only
-  // helpers and the live rules gtl-api reads through cloud/live-rules.mjs (section 3.4). Awaiting deploy (below) until the
-  // migration is applied to the hosted project.
+  // helpers and the live rules gtl-api reads through cloud/live-rules.mjs (section 3.4). Since stage 20, /virtual-units and
+  // /virtual-pick also read gtl_markets_visible through the optional-RPC caller (cloud/line-lock.mjs), which falls back to
+  // today's gate while it is missing. Awaiting deploy (below) until the migration is applied to the hosted project.
   ['gtl_guess_locked_in', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game: 'AAA-BBB' }],
   ['gtl_guess_revealed', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game: 'AAA-BBB', p_now: null }],
   ['gtl_markets_visible', { p_user: missingId, p_season: 2026, p_week: 5, p_now: null }],
@@ -68,6 +69,13 @@ export const rpcChecks = Object.freeze([
   // M-02, sent picks final (20261015030000_gtl_sent_picks_final.sql, redesign stage 18): the service-only lock-in reading the
   // writers, the guard and gtl_guess_locked_in share. Awaiting deploy (below) until the migration is applied to the hosted project.
   ['gtl_ballot_locked_in', { p_ballot: {}, p_game: 'AAA-BBB' }],
+  // M-03, skip and "See picks now" (20261015040000_gtl_guess_week_forfeit.sql, redesign stage 19): the writer behind
+  // POST /community/forfeit, the reader /community/read carries as `forfeit`, and their market helper, all service-only.
+  // Awaiting deploy (below) until the migration is applied to the hosted project. The probes name no real member and the
+  // writer's reason is invalid, so even a wrongly granted call would refuse before writing.
+  ['gtl_forfeit_markets', { p_user: missingId, p_season: 2026, p_week: 5 }],
+  ['gtl_forfeit_guess_week', { p_user: missingId, p_season: 2026, p_week: 5, p_reason: 'boundary-check', p_now: null }],
+  ['gtl_read_forfeit', { p_user: missingId, p_season: 2026, p_week: 5, p_now: null }],
 ]);
 
 /** [gtl-api route, body or undefined for GET]: each is called signed out and with an invalid session and must answer 401. */
@@ -75,6 +83,8 @@ export const apiChecks = Object.freeze([
   ['community/history', {}],
   // M-08 (awaitingDeploy until the gtl-api deploy that carries it): signed-out probes prove only authentication protection.
   ['community/picks', { mode: 'guess_spread' }],
+  // M-03 (awaitingDeploy until the gtl-api deploy that carries it): signed-out probes prove only authentication protection.
+  ['community/forfeit', { season: 2026, week: 5, reason: 'skip' }],
   ['state?mode=guess_spread', undefined],
   [`benchmark/freeze?league=${missingLeague}`, { requestId: missingId, actualKickoff: null, sourceURL: 'https://example.invalid/boundary-check' }],
   ['results/review', {}],
@@ -85,15 +95,15 @@ export const workerChecks = Object.freeze([]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
 export const awaitingDeploy = Object.freeze({
-  // M-01: remove these five with the release record of its hosted apply (Gate M step 8).
-  'rpc/gtl_guess_locked_in': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_guess_revealed': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_markets_visible': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_ballot_late': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
-  'rpc/gtl_live_rules': 'migration 20261014223000_gtl_guess_gate_per_game.sql',
   // M-08: remove these two with the release record of its hosted apply and the gtl-api deploy (Gate M step 8).
   'rpc/gtl_read_guess_picks': 'migration 20261015020000_gtl_guess_picks_reader.sql',
   'gtl-api/community/picks': 'the gtl-api deploy with /community/picks',
   // M-02: remove this one with the release record of its hosted apply (Gate M step 8).
   'rpc/gtl_ballot_locked_in': 'migration 20261015030000_gtl_sent_picks_final.sql',
+  // M-03: remove these four with the release record of its hosted apply and the gtl-api deploy (Gate M step 8); that record
+  // also adds 'week_forfeits' to the table probes above (a table probe has no awaiting state).
+  'rpc/gtl_forfeit_markets': 'migration 20261015040000_gtl_guess_week_forfeit.sql',
+  'rpc/gtl_forfeit_guess_week': 'migration 20261015040000_gtl_guess_week_forfeit.sql',
+  'rpc/gtl_read_forfeit': 'migration 20261015040000_gtl_guess_week_forfeit.sql',
+  'gtl-api/community/forfeit': 'the gtl-api deploy with /community/forfeit',
 });

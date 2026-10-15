@@ -1,6 +1,6 @@
 # Guess The Line — social Bet Tracker
 
-Owner: Sean Balsiger · Version 1 · October 8, 2026 · Decision D-19
+Owner: Sean Balsiger · Version 2 · October 14, 2026 · Decisions D-19, D-36, D-39
 
 **Status: deployed; supplied tickets imported and verified.** Bet Tracker and
 Unit Betting read the same hosted records. The main Dashboard includes a **Your
@@ -23,13 +23,60 @@ tickets are now mapped to live accounts, as recorded in the
   week. A parlay is one bet, one stake and one combined price, with expandable
   legs. Correlated legs are never multiplied to manufacture a parlay price.
 - Follow players, review their history, or tail a pending selection before every
-  leg's scheduled kickoff. A tail creates the follower's own record and ancestry;
+  leg's scheduled kickoff, once every leg's line is open to you (the line lock
+  below). A tail creates the follower's own record and ancestry;
   it requires their own reviewed price, stake, source and quote time. It does not
   place a sportsbook wager or inherit the original player's result.
 - Player, week/history, kind, market, result, origin, following, team and inclusion
   filters apply consistently to records, ROI, comparisons and charts. Comparison
   switches can exclude parlays, tailed bets or tracked tickets from that view.
   Owner exclusion is saved; comparison filters do not rewrite other users' bets.
+
+## Line lock on real slips (redesign stage 21, M-04) — October 14, 2026
+
+D-36 keeps real slips inside Bets "as today" and hides a game's spread or total
+line until the player submits that market or skips the week; D-39 makes the lock
+per game. Another player's slip stays visible, but each of its spread and total
+legs comes back without its line until the viewer locks in their Guess the Line
+pick for that game and market (today: submits that market's ballot), sits out that
+market for the week (from M-03 also a skip or "See picks now"), or the game kicks
+off.
+
+- **Database.** `20261015050000_gtl_social_line_lock.sql` (M-04) replaces
+  `gtl_read_social` with the same arguments and adds `gate` to every week it
+  returns: M-01's `gtl_markets_visible` for the viewer, `{ gameId: { spread, total } }`.
+  Nothing else changes. Its rollback,
+  `supabase/rollback/20261015050000_gtl_social_line_lock.sql`, restores the
+  previous body. Apply it after M-01.
+- **Handler.** `cloud/social.mjs` redacts each locked leg of another player's slip
+  to `{ gameId, market, side, line: null, selection, locked: true }`. The selection
+  names the team or Over/Under and never the line. The slip also gets
+  `locked: true`, `lockedMarkets` and `canTail: false`, and its note and change
+  reasons (which can carry the line) wait with it (`noteHidden`). Earlier versions
+  in its history are redacted the same way. A Tail of a slip with a locked leg is
+  refused with 409 and the lock sentence ("Submit your Spread picks to see this
+  line.", or "Lock in your Spread pick to see this line." once `rules.sentFinal`)
+  before anything is written; an exact retry of a tail already saved replays as
+  before. Player props are never locked. The viewer's own slips are never
+  redacted. A week without `gate` (M-04 not applied, or rolled back) is shown
+  exactly as before. Replies carry the live `rules`.
+- **Screens.** Bet Tracker shows a lock and "Line locked" on a locked leg, the
+  lock sentence, "The ticket note shows with the line." when a note waits, and a
+  disabled Tail ("Tail opens with the line."). The Your betting week card lists
+  only the player's own bets, which are never locked; it reads a locked leg as
+  locked all the same. Bet Tracker now opens on the current published week (DP-3)
+  instead of a fixed Week 5 or a group's league week. The week picker still
+  reaches every past week, and the card keeps its group's week until the new
+  app's Bets tab (stage 46).
+- **Tests.** `tests/social-line-lock.test.mjs`: gate, redaction, Tail, the
+  handler, and PGlite on `ALL`, on `ALL` without M-04 (the deploy before the apply)
+  and on `HOSTED`. With M-04, every reader in the leak scan's `READERS`, now
+  including `/social/read`, gives a player who has not locked in no line, and so
+  do the slip-change replies. A `/social` reply names its viewer at the root
+  (`actorId`), so the scan reads it through `readerReply`, which takes that name
+  off: the counts, chart and selection rows built from other players' slips are
+  scanned too. Also the 390 px real-slip case in
+  `tests/cloud-browser/social-no-league.spec.js`.
 
 ## Accounting and scope
 

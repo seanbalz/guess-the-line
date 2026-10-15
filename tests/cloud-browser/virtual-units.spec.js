@@ -207,3 +207,46 @@ base('line lock at 390px: every market is locked before a send, the Spread lines
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+// Review follow-up (stage 20): a market that locks again on a refresh. The community publishes the next week while this group
+// still shows its own (nothing advances a group's week), so the group's games lock until their kickoff (cloud/line-lock.mjs).
+// A side Luke had chosen on the open Spread market has no save button any more: the selection is dropped, and leaving the
+// screen asks nothing about changes he can no longer see or save.
+base('a market that locks again on a refresh drops the selection in progress, and leaving asks about nothing', async ({ page, baseURL }) => {
+  base.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { groupScreens: true, virtualUnits: true });
+  const dialogs = [];
+  page.on('dialog', dialog => { dialogs.push(dialog.message()); dialog.dismiss(); });
+  try {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const ids = world.state.games.map(game => game.id), byGame = values => Object.fromEntries(ids.map((id, i) => [id, values[i]]));
+    await storeBookLines(world, { spread: byGame(LOCK_LINES.spread), total: byGame(LOCK_LINES.total) });
+    await sendBallot(world, 'luke', 'guess_spread', byGame([-6.5, 2.5]));
+    await signIn(page, 'luke');
+    await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+    const reply = await openGroupVirtualUnits(page);
+    expect(reply.games.map(game => game.locked)).toEqual(ids.map(() => ({ spread: false, total: true })));
+    const first = card(page, world.state.games[0]);
+    await first.getByRole('button', { name: /^Dallas Cowboys -11\.5 \(−110\)/ }).click();
+    await expect(first.getByText('Ready to save')).toBeVisible();
+    await expect(first.getByRole('button', { name: 'Place virtual pick' })).toBeVisible();
+
+    // The community moves on to the next week; this group's week does not.
+    const { season, week } = world.state.league, next = week + 1;
+    const kickoff = Math.floor(Date.parse(world.state.league.deadline) / 1000) + 7 * 86_400;
+    await world.db.query('insert into public.gtl_weekly_slates(season,week,signature) values($1,$2,$3)', [season, next,
+      { season, week: next, deadline: kickoff, games: [{ id: 'KC-LV', away: 'KC', home: 'LV', kickoff }] }]);
+    const refreshed = page.waitForResponse(response => response.url().includes('/gtl-api/virtual-units'));
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    expect((await (await refreshed).json()).games.map(game => game.locked)).toEqual(ids.map(() => ({ spread: true, total: true })));
+    await expect(page.locator('.virtual-lock')).toHaveCount(4);
+    await expect(first.getByText('Ready to save')).toHaveCount(0);
+    await expect(page.locator('.virtual-save')).toHaveCount(0);
+
+    // Nothing is left to save, so the game's other screens open without "You have unsaved changes".
+    await page.getByRole('button', { name: 'Leaderboard', exact: true }).first().click();
+    await expect(page.getByRole('heading', { name: /standings$/ })).toBeVisible();
+    expect(dialogs).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});

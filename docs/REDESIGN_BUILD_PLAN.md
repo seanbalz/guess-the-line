@@ -127,7 +127,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 
 ### 4.2 Gate M: applying a migration
 
-1. The migration PR merges only when it is next in the apply queue. Its file is stamped at merge, after the newest file on `main`. Filename order is apply order.
+1. The migration PR merges only when it is next in the apply queue. Its file is stamped at merge, after the newest file on `main`. Filename order is apply order, except where a file merged earlier sorts before a migration its "Apply after" names (section 6): M-06 (`20261015010000`) sorts before M-02 (`20261015030000`) and is still applied after it.
 2. Deploy anything that must exist first (error mapping, a route that reads both shapes).
 3. Sean says "apply M-xx".
 4. Read-only pre-check: the bodies being replaced match the repo's previous version (md5); new tables don't exist; nothing is half-applied.
@@ -164,13 +164,16 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 | Function | Replaced by, in order |
 |---|---|
 | `gtl_read_community` | M-01, M-21 |
-| `gtl_read_community_history`, `gtl_week_revealed` | M-01 |
+| `gtl_read_community_history` | M-01, then M-03 (D-41: a sat-out market's locked-in guesses) |
+| `gtl_week_revealed` | M-01 |
 | `gtl_mutate_personal` | M-29, then M-02, M-07 |
 | `gtl_save_weekly_ballot`, `gtl_guard_fresh_submission` | M-02, M-07 |
 | `gtl_live_rules` (new) | M-01, M-02, M-07 |
 | `gtl_guess_locked_in` (new in M-01: a pick in a submitted ballot is locked in) | M-02, when it records per-game lock-ins |
 | `gtl_ballot_late` (new in M-01: reads `ballot.late` as `{deadline, minutes}`) | M-07, only if the stored Late marker takes another shape |
 | `gtl_feed_on_ballot` | M-07 |
+| `gtl_read_lines` (M-06: `mine.points` only for a submitted ballot, `mine.late` the ballot's marker) | M-07, for per-game lock-in and Late |
+| `gtl_read_guess_picks` (M-08: a removed member listed only with a submitted ballot or an opt-out; scores only submitted ballots; `late` the ballot's marker) | M-07, for per-game lock-in, scoring (D-41) and Late |
 | `gtl_read_social` | M-04 |
 | `gtl_begin_odds_collection`, `gtl_finish_odds_collection`, `gtl_begin_submission_odds_collection` (as built in stage 22; the two slate resolvers stay unchanged) | M-05 |
 | `gtl_read_bets`, `gtl_read_bets_board` | M-10 and M-12, then M-16 |
@@ -282,7 +285,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 | 12 | Read-only Home | A | — | 11, 7 | Pages |
 | 13 | Read-only Lines and game sheet | D | — | 11, 7 | Pages |
 
-**First-look deploy:** one Pages deploy after 2 and 6 to 13 merge. Sean taps "Try the new app". Until then a production build leaves the button out (`NEW_APP_OFFERED` in `web/src/TryNewApp.jsx`, on only with `VITE_GTL_OFFER_NEW_APP=1`, which the browser test configs set), so an earlier Pages deploy of main never shows the empty frame. The first-look PR turns it on for every member (D-39).
+**First-look deploy:** one Pages deploy after 2 and 6 to 13 merge. Sean taps "Try the new app". Until then a production build leaves the button out (`NEW_APP_OFFERED` in `web/src/TryNewApp.jsx`, on only with `VITE_GTL_OFFER_NEW_APP=1`, which the browser test configs set), so an earlier Pages deploy of main never shows the empty frame. The first-look PR turns it on for every member (D-39). *October 14, 2026:* done, on Sean's "live and ready to test in the next hour", with stages 2, 6 to 11 and 13 merged and stage 12 (Home) still to come: Home shows "Coming next" until stage 12 lands. `VITE_GTL_OFFER_NEW_APP=0` is the build-time off switch.
 
 **6. Tokens, fonts and styles**
 - Scope: `design/tokens-next.json`; `web/src/next/styles/{tokens,base,components}.css`, dark by default, light through `data-theme`; the D-38 section in `docs/BRAND_GUIDE.md`. Figtree, Big Shoulders Display and Barlow Condensed load from a link `NextApp` adds; `web/index.html`, its meta description and the manifest wait for stage 80.
@@ -318,8 +321,8 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Sean sees: Home with this week's countdown, his status, who's in and his Spread rank.
 
 **13. Read-only Lines and game sheet**
-- Scope: `web/src/next/lines/{LinesBoard,GameSheet}.jsx`; pure `shared/lines-view.mjs`; `shared/trends-view.mjs` gains a per-game access function, `shortCard` and `boardTrends` (old callers switch in stage 17). Kickoff groups; "YOU −3" and "YOU 41" tags; a lock on each unsent market; his own line at the guess; at most 3 trend lines per board and 1 chip per card; the sheet header with team records in words (DP-16); You on this game; short trend cards (line trends locked with their market); weather and referee rows that hide cleanly on a 404; wind only in the sheet (D-34); "Line now arrives in a later update."
-- Tests: node `lines-view`, `trends-view` (per-game access, short cards, Week 6 board trends), `trends-week` (the week file holds no current line); vitest `wind-ui` (a closed row has no digits; times in PT); Playwright 390 `next-lines.spec.js` (groups, tags, a lock is an icon and never "—", the sheet opens and closes); `/wind/read` only when a sheet opens (call count no higher than the old app's).
+- Scope: `web/src/next/lines/{LinesBoard,GameSheet}.jsx`; pure `shared/lines-view.mjs`; `shared/trends-view.mjs` gains a per-game access function, `shortCard` and `boardTrends` (old callers switch in stage 17). Kickoff groups; "YOU −3" and "YOU 41" tags; a lock on each unsent market; his own line at the guess; at most 3 trend lines per board and 1 chip per card; the sheet header with team records in words (DP-16); You on this game; short trend cards (line trends locked with their market); weather and referee rows that hide cleanly on a 404; a weather row on every game from `shared/weather-view.mjs` `weatherRow` (D-45): the full card in the sheet with the Open-Meteo credit, "Indoors" for a dome or SoFi Stadium, "Roof may close" for a retractable roof with or without a forecast (`roofNote`), "No current forecast" otherwise; on the board at most one word chip per row from `weatherChip` ("Windy", "Rain likely" or "Snow likely"; no digits, no link; none for Indoors or no forecast), and every other forecast value only in the sheet (D-34 as amended by D-45). The chips need `/wind/read` on the board, and every read can refresh due games, so the board makes more reads than the old app, which reads only when a trends panel opens. Members on the board through a Sunday then approach the cap table's worst case ([TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34)): Weeks 14, 17 and 18 run out of daily calls unless Sean raises the cap or changes the tiers. "Line now arrives in a later update."
+- Tests: node `lines-view`, `trends-view` (per-game access, short cards, Week 6 board trends), `trends-week` (the week file holds no current line); vitest `wind-ui` (a closed row has no digits; the chip is one of the three words or none, never on an Indoors row; times in PT); Playwright 390 `next-lines.spec.js` (groups, tags, a lock is an icon and never "—", the sheet opens and closes, a chip and the sheet's full card with its credit); `/wind/read` once when the board shows a week, reused by the sheet through the old app's 5-minute cache, and re-read at TTL crossings only while a sheet is open, as the old panel does.
 - Sean sees: the Lines tab and game sheet on live games.
 
 ### Phase 2: the rules on the server (both apps follow them)
@@ -391,8 +394,9 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 
 **22. Monday-night lines (M-05)**
 - Goal: after the next week opens on Monday, the Monday night game keeps a fresh line and gets a kickoff line, so late Monday picks score against a current line (D-27, D-36) and Sharp can grade it.
-- Scope: `gtl_odds_collection_slate` and `gtl_odds_schedule_slate` also serve games of the previous published week that have not kicked off. Same provider calls and markets, no extra credits. If that is not possible at zero extra credits, stop and ask Sean.
-- Tests: the same number of provider requests and markets per collection; the Oct 12 `slate_changed` case stays green; 50 draft autosaves start 0 collections; late sends never pass 6 collections a UTC day; a static check that no new module calls the provider or the collect RPCs. After the apply, the next scheduled collection succeeds; weekly, copy the remaining-credit count into the release record.
+- Scope (as built): the scheduled and commissioner collections also collect the previous published week's games that have not kicked off. A new `gtl_odds_carryover_slate` lists them; `gtl_begin_odds_collection`, `gtl_finish_odds_collection` and `gtl_begin_submission_odds_collection` are replaced (section 5, rule 9) to hand them to the adapter after the newest week's games and to store them as a snapshot of their own week. The two slate resolvers, `gtl_odds_collection_slate` and `gtl_odds_schedule_slate`, stay unchanged, because `gtl_claim_odds_refresh` compares their game count with the schedule row. Same provider calls and markets, no extra credits. If that is not possible at zero extra credits, stop and ask Sean.
+- Deploy before the apply: `gtl-api` and `gtl-odds-refresh` with this stage's adapter. The adapter before it refuses a team that appears twice, so every Monday collection would fail with `ODDS_SLATE`, store no lines and still hold its two-credit reservation. Gate M step 2 checks that both deployed versions were built from a SHA that contains this stage.
+- Tests: the same number of provider requests and markets per collection; the Oct 12 `slate_changed` case stays green; 50 draft autosaves start 0 collections; late sends never pass 6 collections a UTC day; a static check that no new module calls the provider or the collect RPCs. After the apply, the next scheduled collection succeeds, and on the first Monday after it a scheduled collection writes the carried game's snapshot (a `collect` row with `reserved_credits` 0 and `diagnostics.carryoverOf`); weekly, copy the remaining-credit count into the release record.
 - Sean sees: Monday night lines stay fresh on Monday.
 
 **23. Lines reader (M-06)**
@@ -470,7 +474,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Sean sees: the Edge board after he sends.
 
 **33. Lines: line now and gate banner**
-- Scope: the middle line ("SEA −3") with "Updated … PT", or "Latest line" when older than 6 h; one gate banner per screen ("Finish Total picks", skip through `ForfeitDialog`); LIVE NOW and FINAL rows; the Late prefix on tags; the later-update footer goes.
+- Scope: the middle line ("SEA −3") with "Updated … PT", or "Latest line" when older than 6 h; one gate banner per screen ("Finish Total picks", skip through `ForfeitDialog`); LIVE NOW and FINAL rows; the Late prefix on tags; the later-update footer goes. `/lines/read` without a week reads only the newest published week, so on a Monday last week's unstarted game is read with its own season and week.
 - Tests: Playwright 390 `next-lines-gate.spec.js`: the leak scan at four moments (before a send; after the deadline with no ballot, before a Sunday kickoff; Spread sent, Total not; after "See picks now") across `/lines/*`, `/virtual-units`, `/community/history` and `/community/read`.
 - Sean sees: live lines after he sends a market.
 
@@ -479,7 +483,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Tests: vitest `next-lines-ui` (a lock is an icon, a missing value is "—"); Playwright 390 `next-game-sheet.spec.js`.
 
 **35. Notes in the game sheet**
-- Scope: the note in `GameSheet.jsx`, labelled "Only you see this."
+- Scope: the note in `GameSheet.jsx`, labelled "Only you see this." Each note keeps its own `revision` from the `/personal/notes` and `/personal/note` replies (a save that changes nothing answers with the note's revision, not the shared one).
 - Tests: Playwright 390 `next-notes.spec.js` (survives a reload; another user never sees it).
 
 **36. Home: next action, first run, other weeks**
@@ -829,8 +833,8 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 
 - [ ] **All five tabs done:** Home (12, 36), Play (28–32), Bets (43–47, 53, 54), Lines (13, 33–35), League (58–60, 64–67, 71). Me, History, export, sign-in and commissioner tools too (37–39, 72–77), because every retired screen needs a home first.
 - [ ] **No slot left empty:** every `homeTiles`, `counter` and `sheetActions` entry the prototype shows is on, each with the test that proves it.
-- [ ] **Every migration applied and deployed:** M-01 to M-28 byte-identical and recorded; `NOT_HOSTED` holds only what Sean chose not to apply; no `awaitingDeploy` left for shipped routes; live `check:cloud --strict` passes.
-- [ ] **Leak gate:** the scan passes at all four moments across every route that can carry a line or a hidden pick: `/lines/*`, `/bets/*`, `/challenges/*`, `/virtual-units`, `/virtual-pick`, `/social/*`, `/league/feed`, `/league/comments`, `/league/player`, `/community/read`, `/community/history`, `/community/picks`, `/personal`, `/personal/ballot`, `/state`, `/ballot`, `/export`, `/me/*`, `/lobby`, and push payloads. A live spot check on Sean's account agrees.
+- [ ] **Every migration applied and deployed:** M-01 to M-29 byte-identical and recorded; `NOT_HOSTED` holds only what Sean chose not to apply; no `awaitingDeploy` left for shipped routes; live `check:cloud --strict` passes.
+- [ ] **Leak gate:** the scan passes at all four moments across every route that can carry a line or a hidden pick: `/lines/*`, `/bets/*`, `/challenges/*`, `/virtual-units`, `/virtual-pick`, `/social/*`, `/league/feed`, `/league/comments`, `/league/player`, `/community/read`, `/community/history`, `/community/picks`, `/personal`, `/personal/notes`, `/personal/ballot`, `/state`, `/ballot`, `/export`, `/me/*`, `/lobby`, and push payloads. A live spot check on Sean's account agrees.
 - [ ] **Scores did not move:** the hosted score hash matches the last recorded one.
 - [ ] **Real-data check on Sean's account, one full live week:**
   - [ ] Home: countdown, status, who's in; ranks match `gtl_ballot_pick_scores` (not the old board's order, DP-2).
@@ -887,7 +891,7 @@ Approvals that are not questions: applying the push migration (stage 2), every "
 | Critique point | Why not |
 |---|---|
 | Let a game added after a send take a pick until its kickoff (completeness 1) | After a send that market's lines are open, so a later pick could copy the line. Kept as Q1, with the opposite recommendation. |
-| Ask Sean about trend limits and wind on the board (completeness 7) | The approved prototype sets 3 trend lines per board and 1 chip per card. D-34 keeps forecast claims out of summaries, so wind stays in the sheet. |
+| Ask Sean about trend limits and wind on the board (completeness 7) | The approved prototype sets 3 trend lines per board and 1 chip per card. D-34 keeps forecast claims out of summaries, so wind stays in the sheet. Sean later ruled on the board (D-45, October 14): one word weather chip per row ("Windy", "Rain likely" or "Snow likely"); the values stay in the sheet. |
 | Ask about account deletion (completeness 39) | The redesign adds no deletion. It belongs to the Privacy PR (#62). |
 | Ask about the practice switch, Week 5 group scores, removed members' rank, the old heart, Notify me wording (completeness 44) | The rules answer them: D-35 cuts the switch, D-27 has one scoring function, D-23 keeps removed members with a flag. The rest are implementation choices. |
 | A feed post announcing "bets visible any time" (completeness 38) | No new post kind for notices. D-36 already rules it; a line on the old Virtual Units screen, How to play and the release note tell players before M-10. |

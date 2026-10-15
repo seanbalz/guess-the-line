@@ -68,8 +68,11 @@ function apiCalls(page) {
   page.on('request', request => { const url = new URL(request.url()); if (url.origin === SUPABASE && url.pathname.startsWith('/functions/v1/')) calls.push(`${request.method()} ${url.pathname}`); });
   return calls;
 }
-/** What is left of `calls` after the two shared reads (stage 11): the writes, of which browsing makes none. */
-const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read'].includes(call));
+/**
+ * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
+ * for its D-45 weather chips on Lines): the writes, of which browsing makes none.
+ */
+const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -106,8 +109,18 @@ test.describe('the real app', () => {
         await expect(title(page, name)).toBeVisible();
         await expect(tab(page, name)).toHaveAttribute('aria-current', 'page');
         await expect(tabBar(page).locator('[aria-current]')).toHaveCount(1);
-        await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toBeVisible();
-        await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
+        if (name === 'Lines') {
+          // Stage 13: Lines is the read-only board (tests/cloud-browser/next-lines.spec.js covers it).
+          await expect(page.locator('.gx-l-group').first()).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
+        } else if (name === 'Home') {
+          // Stage 12: Home is the read-only hero and tiles (tests/cloud-browser/next-home.spec.js covers it).
+          await expect(page.locator('[data-home="hero"]')).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
+        } else {
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toBeVisible();
+          await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
+        }
         expect(new URL(page.url()).hash).toBe(`#${name.toLowerCase()}`);
         await phoneChecks(page);
       }
@@ -242,6 +255,15 @@ test.describe('the real app', () => {
         await load(page, '#play');
         await expect(title(page, 'Play')).toBeVisible();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        // D-44: the top bar's logo is the G alone in the theme's accent-ink, with no tile, edge or shadow behind it or
+        // on its svg.
+        for (const part of ['.gx-mono', '.gx-mono-svg']) {
+          const mark = page.locator(`.gx-topbar ${part}`);
+          await expect(mark).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+          await expect(mark).toHaveCSS('background-image', 'none');
+          await expect(mark).toHaveCSS('box-shadow', 'none');
+          await expect(mark).toHaveCSS('color', theme === 'dark' ? 'rgb(184, 243, 75)' : 'rgb(59, 99, 9)');
+        }
         for (const width of [390, 320]) {
           await page.setViewportSize({ width, height: 844 });
           await phoneChecks(page);

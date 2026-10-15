@@ -1014,17 +1014,22 @@ test('selected identity and three dashboard layouts render real arrangements wit
   await expect(page.locator('.auth-card .gtl-brand')).toHaveText('');
   const selectedPath = 'M86 20H54L32 40v33h54V46H60v12h13v3H46V46l16-14h24z';
   await expect(page.locator('.auth-card .gtl-yardline-mark path').first()).toHaveAttribute('d', selectedPath);
+  // D-44: the G alone in the theme green (lime in the default dark theme), with no tile or shadow behind it or on its svg.
+  const noTile = async scope => { for (const part of ['.gtl-field-icon', '.gtl-yardline-mark']) { const node = page.locator(`${scope} ${part}`); await expect(node).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)'); await expect(node).toHaveCSS('background-image', 'none'); await expect(node).toHaveCSS('box-shadow', 'none'); await expect(node).toHaveCSS('color', 'rgb(184, 243, 75)'); } };
+  await noTile('.auth-card');
   const favicon = await page.request.get('/favicon.svg');
-  expect(favicon.ok()).toBe(true); expect(await favicon.text()).toContain(selectedPath);
+  expect(favicon.ok()).toBe(true); const faviconSvg = await favicon.text(); expect(faviconSvg).toContain(selectedPath); expect(faviconSvg).not.toContain('<rect');
   await signIn(page);
   await expect(page.locator('.hub-header .gtl-brand').getByRole('img', { name: 'Guess The Line', exact: true })).toBeVisible();
   await expect(page.locator('.hub-header .gtl-brand-wordmark')).toHaveCount(0);
   await expect(page.locator('.hub-header .gtl-brand')).toHaveText('');
+  await noTile('.hub-header');
   await page.getByRole('button', { name: 'Open game', exact: true }).click();
   await expect(page.locator('.sidebar .gtl-brand').getByRole('img', { name: 'Guess The Line', exact: true })).toBeVisible();
   await expect(page.locator('.sidebar .gtl-brand-wordmark')).toHaveCount(0);
   await expect(page.locator('.sidebar .gtl-brand')).toHaveText('');
   await expect(page.locator('.sidebar .gtl-yardline-mark path').first()).toHaveAttribute('d', selectedPath);
+  await noTile('.sidebar');
   await expect(page.locator('.accuracy-row strong')).toHaveText(['26 / 30', '28 / 30']);
   for (const [id, label] of presentationLayouts) {
     await chooseDashboardLayout(page, id, label);
@@ -1141,32 +1146,56 @@ test('dashboard notices report only newly received newer snapshots and honor ind
   expect(hub.requests.filter(request => request.endpoint.startsWith('odds/'))).toHaveLength(0);
 });
 
-test('dashboard team identifiers load approved local artwork and retain names with an accessible fallback', async ({ page, hub }) => {
+for (const width of [320, 390, 1440]) for (const theme of ['light', 'dark']) test(`dashboard team identifiers load the official local logos (D-46) and retain names with an accessible fallback at ${width}px ${theme}`, async ({ page, hub }) => {
   presentationGame(hub);
   await page.clock.install({ time: new Date(hub.serverNow) });
-  await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto('/'); await page.getByLabel('Color theme').selectOption(theme); await signIn(page);
+  await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
-  const logo = matchup.locator('img[src="/team-logos/dal.svg"]');
-  await expect(logo).toHaveCount(1);
-  await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(matchup.locator('.team-identity').nth(1)).toHaveAttribute('data-logo-status', 'approved');
-  const badge = matchup.locator('img[src="/team-logos/badges/tb.svg"]');
-  await expect(badge).toHaveCount(1);
-  await expect.poll(() => badge.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(matchup.locator('.team-identity').first()).toHaveAttribute('data-logo-status', 'original');
+  for (const [index, file] of [[0, 'tb.png'], [1, 'dal.png']]) {
+    const logo = matchup.locator(`img[src="/team-logos/${file}"]`);
+    await expect(logo).toHaveCount(1);
+    await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+    await expect(matchup.locator('.team-identity').nth(index)).toHaveAttribute('data-logo-status', 'trademark-identification');
+    // D-46 backing: a light-neutral circle (token text #F8FAFC) in Dark, none in Light.
+    const backing = await matchup.locator('.team-identity').nth(index).evaluate(node => { const style = getComputedStyle(node); return [style.backgroundColor, style.borderTopLeftRadius]; });
+    expect(backing).toEqual([theme === 'dark' ? 'rgb(248, 250, 252)' : 'rgba(0, 0, 0, 0)', '50%']);
+  }
   await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveCount(0);
+  await expect(matchup.locator('[data-logo-status="original"]')).toHaveCount(0);
   await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
   for (const mark of await matchup.locator('.team-identity').all()) await expect(mark).toHaveAttribute('aria-hidden', 'true');
 });
 
-test('dashboard team badge keeps the abbreviation fallback when its image fails to load', async ({ page, hub }) => {
+test('dashboard team logo that fails to load falls back to the team badge, then to the abbreviation', async ({ page, hub }) => {
   presentationGame(hub);
+  await page.route('**/team-logos/tb.png', route => route.abort());
+  await page.route('**/team-logos/dal.png', route => route.abort());
+  await page.clock.install({ time: new Date(hub.serverNow) });
+  await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
+  const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
+  // Tampa Bay has an original GTL badge (D-22); Dallas does not, so it shows its letters.
+  const badge = matchup.locator('img[src="/team-logos/badges/tb.svg"]');
+  await expect(badge).toHaveCount(1);
+  await expect.poll(() => badge.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(matchup.locator('.team-identity').first()).toHaveAttribute('data-logo-status', 'original');
+  // Badges keep their own look: no D-46 backing circle.
+  expect(await matchup.locator('.team-identity').first().evaluate(node => getComputedStyle(node).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+  await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('DAL');
+  await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
+});
+
+test('dashboard team keeps the abbreviation fallback when its logo and its badge both fail to load', async ({ page, hub }) => {
+  presentationGame(hub);
+  await page.route('**/team-logos/tb.png', route => route.abort());
   await page.route('**/team-logos/badges/tb.svg', route => route.abort());
   await page.clock.install({ time: new Date(hub.serverNow) });
   await page.goto('/'); await signIn(page); await page.getByRole('button', { name: 'Open game', exact: true }).click();
   const matchup = page.getByLabel('Expand TB at DAL gap details', { exact: true }).locator('.team-matchup');
   await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveText('TB');
-  await expect(matchup.locator('img[src="/team-logos/dal.svg"]')).toHaveCount(1);
+  await expect(matchup.locator('img[src="/team-logos/dal.png"]')).toHaveCount(1);
   await expect(matchup.locator('.team-matchup__accessible-name')).toHaveText(['Tampa Bay Buccaneers', 'Dallas Cowboys']);
 });
 
@@ -1415,7 +1444,7 @@ test('dashboard matchup filter follows season and week across groups without ret
 test('install manifest and device guidance add no subscriptions or private caches',async({page,hub})=>{
  hub.profile='Avery Chen';hub.addGame();await page.setViewportSize({width:320,height:844});await page.goto('/');await signIn(page);await page.getByRole('button',{name:'Open game',exact:true}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name:'Settings & setup',exact:true}).click();
  const panel=page.getByRole('region',{name:'Add Guess The Line to your device'});await expect(panel).toContainText('Installation does not enable notifications');await panel.locator('summary').click();await expect(panel).toContainText('Add to Home Screen');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- const response=await page.request.get('/manifest.webmanifest');expect(response.ok()).toBe(true);const manifest=await response.json();expect(manifest.start_url).toBe('/');expect(manifest.display).toBe('standalone');expect(manifest.icons.map(icon=>icon.sizes)).toEqual(['192x192','512x512']);for(const icon of manifest.icons)expect((await page.request.get(icon.src)).ok()).toBe(true);
+ const response=await page.request.get('/manifest.webmanifest');expect(response.ok()).toBe(true);const manifest=await response.json();expect(manifest.start_url).toBe('/');expect(manifest.display).toBe('standalone');expect(manifest.icons.map(icon=>`${icon.sizes} ${icon.purpose}`)).toEqual(['192x192 any','512x512 any']);for(const icon of manifest.icons)expect((await page.request.get(icon.src)).ok()).toBe(true);
  expect(await page.evaluate(()=>caches.keys())).toEqual([]);expect(await page.evaluate(async()=>navigator.serviceWorker?(await navigator.serviceWorker.getRegistrations()).length:0)).toBe(0);expect(hub.requests.some(request=>/push|subscription|notification/.test(request.endpoint))).toBe(false);await page.screenshot({path:'.local/previews/install-guide-320.png',fullPage:false});
 });
 test('fresh named-book receipt prefills explicit Challenge review and preserves exact provider timestamp',async({page,hub})=>{

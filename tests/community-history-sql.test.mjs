@@ -205,7 +205,7 @@ test('community history: every player, week and market with the line at each gue
     const revealed = entry(luke, TROY, 'guess_total');
     assert.deepEqual([revealed.picksHidden, revealed.picks.length, revealed.picks[0].guess, revealed.picks[0].reference.basis, revealed.picks[0].reference.value, revealed.picks[0].points], [false, 15, 44, 'line-at-guess', 44.5, PER_GAME ? null : accuracy(44, 44.5)], 'under M-01 points count from kickoff');
     const own = entry(luke, LUKE, 'guess_total');
-    assert.deepEqual([own.status, own.picksHidden, own.picks, own.weekPoints, own.weekScored, at(own.satOutAt)], ['sat_out', false, null, 0, 0, now], 'a sat-out week is recorded as sat out, not zero');
+    assert.deepEqual([own.status, own.picksHidden, own.picks, own.weekPoints, own.weekScored, at(own.satOutAt)], ['sat_out', false, null, PER_GAME ? null : 0, 0, now], 'a sat-out week is recorded as sat out, not zero');
     const troy = await history(TROY);
     assert.deepEqual([entry(troy, TROY, 'guess_spread').picksHidden, entry(troy, SEAN, 'guess_spread').picksHidden, entry(troy, TROY, 'guess_total').picksHidden], [false, false, false], 'own submission reveals that market for everyone');
     const closed = await history(LUKE, at(state.league.deadline));
@@ -220,7 +220,7 @@ test('community history: every player, week and market with the line at each gue
     // A draft is the owner's alone and never scores.
     await rpc('gtl_save_weekly_ballot', { p_user: id(LUKE), p_league: 'sean-troy-luke', p_mode: 'guess_spread', p_revision: 0, p_picks: { 'TB-DAL': -7 }, p_submit: false });
     const draft = entry(await history(LUKE), LUKE, 'guess_spread');
-    assert.deepEqual([draft.status, draft.picksHidden, draft.picks.length, draft.picks[0].guess, draft.picks[0].reference, draft.picks[0].points, draft.picks[1].guess, draft.weekPoints, draft.weekScored], ['draft', false, 15, -7, null, null, null, 0, 0]);
+    assert.deepEqual([draft.status, draft.picksHidden, draft.picks.length, draft.picks[0].guess, draft.picks[0].reference, draft.picks[0].points, draft.picks[1].guess, draft.weekPoints, draft.weekScored], ['draft', false, 15, -7, null, null, null, PER_GAME ? null : 0, 0]);
     assert.equal(entry(await history(TROY), LUKE, 'guess_spread'), undefined, 'another member never sees a draft');
     assert.deepEqual((await read(TROY)).submissions.filter(s => s.userId === id(LUKE)).map(s => s.mode), ['guess_total'], 'the feed still lists only the opt-out');
   });
@@ -257,7 +257,7 @@ test('community history: every player, week and market with the line at each gue
     const luke = await history(LUKE);
     const own = week5(luke).entries.filter(e => e.userId === id(LUKE) && e.mode === 'guess_spread');
     assert.equal(own.length, 1, 'one entry per member and market');
-    assert.deepEqual([own[0].status, own[0].picks, own[0].weekPoints, own[0].weekScored, at(own[0].satOutAt)], ['sat_out', null, 0, 0, now + 1000], 'the final sit-out wins over the draft saved before it');
+    assert.deepEqual([own[0].status, own[0].picks, own[0].weekPoints, own[0].weekScored, at(own[0].satOutAt)], ['sat_out', null, PER_GAME ? null : 0, 0, now + 1000], 'the final sit-out wins over the draft saved before it');
     assert.deepEqual(await row(), draftRow, 'the draft stays stored exactly as it was');
     assert.deepEqual(week5(luke).revealed, { guess_spread: true, guess_total: true });
     assert.deepEqual([entry(luke, TROY, 'guess_spread').picksHidden, entry(luke, TROY, 'guess_spread').revisions], [false, null], 'sitting out reveals Troy\'s Spread guesses; the revision count stays Troy\'s own');

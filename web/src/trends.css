@@ -132,8 +132,11 @@
 .trends-data-source h3{font-size:16px}
 /* Kickoff wind forecast (D-34): a static region at the top of "Strongest historical evidence". Theme tokens only; 13px metadata; one column below 720px; 44px link targets. */
 .trends-panel .trend-wind{display:grid;gap:8px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:12px;min-width:0}
-.trend-wind-place,.trend-wind-time,.trend-wind-honesty,.trend-wind-credit,.trend-wind-later{font-size:13px;color:var(--muted)}
-.trend-wind-band{font-weight:600;color:var(--text)}
+.trend-wind-place,.trend-wind-time,.trend-wind-honesty,.trend-wind-credit{font-size:13px;color:var(--muted)}
+.trend-wind-band,.trend-wind-roof{font-weight:600;color:var(--text)}
+/* The weather row (D-45) when there is no forecast card: "Indoors" or "no current forecast", one line that wraps. */
+.trend-weather{overflow-wrap:anywhere}
+.trend-weather[data-kind="indoors"]{font-size:14px;color:var(--text)}
 .trends-panel .trend-wind-values{display:grid;grid-template-columns:minmax(0,1fr);gap:8px 12px;margin:0}
 .trends-panel .trend-wind-values>div{display:grid;gap:2px;min-width:0}
 .trends-panel .trend-wind-values dt{font-size:13px;color:var(--muted)}

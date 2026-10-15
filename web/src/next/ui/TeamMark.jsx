@@ -1,17 +1,15 @@
-// A team mark (D-22; design system 7.5): the reviewed official mark or the original Guess The Line badge from the
-// team-mark registry, in a 24, 32 or 48px square tile with a 1px ring (so full-color marks and flat badges sit at the
-// same weight).
+// A team mark (D-46; design system 7.5): the team's official logo from the team-mark registry, in a 24, 32 or 48px
+// square tile with a 1px ring. If the logo fails to load, the team's original Guess The Line badge (D-22) replaces it
+// where one exists; otherwise, or if that fails too, the letters stay. An official logo sits on a round chip, light
+// neutral in Dark and transparent in Light (components.css, `data-mark="trademark-identification"`).
 //
-// DP-27 (the 3840 x 2564 Bills and 1920 x 1379 Rams PNGs decode late, so rows showed no mark for up to 2.5 s): the tile
-// is sized before anything loads (its CSS box plus width and height on the image, so nothing moves) and shows the
-// team's abbreviation until the image has loaded and decoded off the main thread (decoding="async", then decode()).
-// Only then does the mark replace the letters, so a row is never blank and never jumps. An image that fails keeps the
-// letters. With a wider fallback font the tile widens around the letters rather than clipping them, the same before
-// and after the mark loads. The files themselves stay byte-identical to their recorded sources
-// (docs/TEAM_LOGO_SOURCES.md); a downscaled copy of the two PNGs would be an altered file and needs its own rights
-// record first.
+// DP-27: the tile is sized before anything loads (its CSS box plus width and height on the image, so nothing moves)
+// and shows the team's abbreviation until the image has loaded and decoded off the main thread (decoding="async",
+// then decode()). Only then does the mark replace the letters, so a row is never blank and never jumps. With a wider
+// fallback font the tile widens around the letters rather than clipping them, the same before and after the mark
+// loads. Since D-46 the files are 128px downscaled copies recorded in docs/TEAM_LOGO_SOURCES.md.
 import { useState } from 'react';
-import { resolveTeamMark, teamAliases } from '../../teamLogoRegistry.js';
+import { resolveTeamBadge, resolveTeamMark, teamAliases } from '../../teamLogoRegistry.js';
 import { cx, oneOf } from './cx.js';
 
 export const TEAM_MARK_SIZES = Object.freeze([24, 32, 48]);
@@ -43,19 +41,23 @@ function MarkImage({ src, size, onReady, onFail }) {
   );
 }
 
-function Mark({ code, name, size, asset, decorative, className, rest }) {
-  const [state, setState] = useState('loading');
-  const showImage = asset && state !== 'failed';
+function Mark({ code, name, size, primary, badge, decorative, className, rest }) {
+  // The official logo, then (if it fails to load) the team's original badge where one exists, then the letters.
+  const chain = [primary, badge].filter((item, index, list) => item && list.findIndex(other => other?.src === item.src) === index);
+  const [step, setStep] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const asset = chain[step] || null;
   const a11y = decorative ? { 'aria-hidden': 'true' } : { role: 'img', 'aria-label': name };
   return (
     <span
-      className={cx('gx-team', `gx-team--${size}`, state === 'loaded' && 'gx-team--loaded', className)}
-      data-mark={asset ? (state === 'failed' ? 'letters' : asset.rightsStatus) : 'letters'}
+      className={cx('gx-team', `gx-team--${size}`, asset && loaded && 'gx-team--loaded', className)}
+      data-mark={asset ? asset.rightsStatus : 'letters'}
+      data-backing={asset?.backing === 'dark' ? 'dark' : undefined}
       {...a11y}
       {...rest}
     >
       <span className="gx-team-code" aria-hidden="true">{code}</span>
-      {showImage ? <MarkImage src={asset.src} size={size} onReady={() => setState('loaded')} onFail={() => setState('failed')}/> : null}
+      {asset ? <MarkImage key={asset.src} src={asset.src} size={size} onReady={() => setLoaded(true)} onFail={() => { setLoaded(false); setStep(current => current + 1); }}/> : null}
     </span>
   );
 }
@@ -67,8 +69,9 @@ function Mark({ code, name, size, asset, decorative, className, rest }) {
 export function TeamMark({ code, name, size = 32, decorative = false, className, ...rest }) {
   const label = teamCode(code);
   const asset = label === '—' ? null : resolveTeamMark(label);
+  const badge = label === '—' ? null : resolveTeamBadge(label);
   const px = oneOf(size, TEAM_MARK_SIZES, 32);
   const accessibleName = typeof name === 'string' && name.trim() ? name.trim() : label === '—' ? 'Team unavailable' : label;
   // A new team (or a new file) starts over in the loading state.
-  return <Mark key={`${label}:${asset?.src ?? 'letters'}`} code={label} name={accessibleName} size={px} asset={asset} decorative={decorative} className={className} rest={rest}/>;
+  return <Mark key={`${label}:${asset?.src ?? 'letters'}`} code={label} name={accessibleName} size={px} primary={asset} badge={badge} decorative={decorative} className={className} rest={rest}/>;
 }

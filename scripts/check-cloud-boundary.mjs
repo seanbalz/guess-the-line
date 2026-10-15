@@ -27,9 +27,11 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  *
  * Each area file lists its own pieces; today scripts/boundary/lines.mjs has the situational-trends referee pieces, the
  * D-34 kickoff wind pieces and M-05's carryover helper, and scripts/boundary/guess.mjs has M-01's four per-game gate
- * helpers and gtl_live_rules (redesign stage 16: service-only SQL; no deployed route calls the helpers, and gtl-api reads
- * gtl_live_rules through cloud/optional-rpc.mjs, which answers today's rules while it is missing, so the default check
- * passes until Sean applies M-01).
+ * helpers and gtl_live_rules (redesign stage 16: service-only SQL). gtl-api reads gtl_live_rules, and since stage 20
+ * /virtual-units and /virtual-pick read gtl_markets_visible, through cloud/optional-rpc.mjs: where M-01 is not applied
+ * (PGRST202) the rules read as today's and the line gate falls back to today's hosted gtl_week_revealed
+ * (cloud/line-lock.mjs), so the same gtl-api build passes the default check before and after the M-01 apply. No deployed
+ * route calls the other three helpers.
  * Both the gtl-api build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
  * "no current forecast" note), so a Pages-only deploy, or a gtl-api deploy before the migration is
  * applied, must not fail check:cloud on them alone; --strict runs after the migration and the gtl-api deploy.
@@ -46,6 +48,11 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * scripts/boundary/guess.mjs also lists M-08's everyone's picks pieces (redesign stage 26): gtl_read_guess_picks and the
  * /community/picks route. Nothing calls them until the new app's Everyone's picks (stage 31), and a gtl-api deploy before
  * the apply answers the route 503 "not available right now", so neither order fails check:cloud on them alone.
+ * scripts/boundary/guess.mjs also lists M-03's skip and "See picks now" pieces (redesign stage 19): gtl_forfeit_markets,
+ * gtl_forfeit_guess_week, gtl_read_forfeit and the /community/forfeit route. Nothing calls the route until the new app's
+ * ForfeitDialog (stage 30); a gtl-api deploy before the apply answers it 503 "not available right now" and leaves
+ * /community/read without `forfeit`, so neither order fails check:cloud on them alone. Its table, gtl_week_forfeits, joins
+ * the table probes with the apply record, as the D-34 wind tables did.
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 

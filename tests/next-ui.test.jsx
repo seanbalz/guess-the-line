@@ -11,7 +11,7 @@ import * as ui from '../web/src/next/ui/index.js';
 import { gateBanner, weekSummary } from '../web/src/next/rules.js';
 import * as copy from '../web/src/next/copy.js';
 import { countdown } from '../web/src/next/format.js';
-import { teamMarks } from '../web/src/teamLogoRegistry.js';
+import { approvedTeamLogos, teamMarks } from '../web/src/teamLogoRegistry.js';
 import { EMOJI, markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
 const {
@@ -34,6 +34,21 @@ const byClass = cls => n => (n.attrs.class ?? '').split(/\s+/).includes(cls);
 const classes = n => (n.attrs.class ?? '').split(/\s+/).filter(Boolean);
 const text = node => nameFrom(tree(node)).replace(/\s+/g, ' ').trim();
 const clean = node => expect(markupProblems(html(node))).toEqual([]);
+/** The bounds of SVG paths drawn with M, L, H, V and Z (absolute or relative), as a viewBox: "x y width height". */
+const pathBounds = ds => {
+  const xs = [], ys = [];
+  for (const d of ds) {
+    let x = 0, y = 0;
+    for (const [, cmd, args] of d.matchAll(/([MLHVZmlhvz])([^MLHVZmlhvz]*)/g)) {
+      const n = (args.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number), rel = cmd === cmd.toLowerCase(), pair = /[ml]/i.test(cmd);
+      for (let i = 0; i < n.length; i += pair ? 2 : 1) {
+        if (pair) { x = (rel ? x : 0) + n[i]; y = (rel ? y : 0) + n[i + 1]; } else if (/h/i.test(cmd)) x = (rel ? x : 0) + n[i]; else y = (rel ? y : 0) + n[i];
+        xs.push(x); ys.push(y);
+      }
+    }
+  }
+  return `${Math.min(...xs)} ${Math.min(...ys)} ${Math.max(...xs) - Math.min(...xs)} ${Math.max(...ys) - Math.min(...ys)}`;
+};
 
 const HOUR = 3_600_000, MIN = 60_000, DAY = 24 * HOUR;
 const NOW = Date.parse('2026-10-13T20:03:00Z'); // Tue Oct 13, 1:03 PM PT
@@ -59,7 +74,7 @@ describe('the markup checker (tests/helpers/ui-markup.mjs)', () => {
       '<dialog class="gx-dialog"><p>x</p></dialog>': 'dialog has no accessible name',
       '<div role="dialog" aria-labelledby="nope">x</div>': 'missing id nope',
       '<p aria-describedby="gone">x</p>': 'missing id gone',
-      '<img src="/team-logos/kc.svg"/>': 'img without alt',
+      '<img src="/team-logos/kc.png"/>': 'img without alt',
       '<div role="group"><button type="button">A</button></div>': 'group has no accessible name',
       '<div role="timer">2d</div>': 'timer has no accessible name',
     };
@@ -217,6 +232,12 @@ describe('Text, Button, IconButton, Icon', () => {
     expect(classes(one(<Icon icon="diamond" fill/>, n => n.tag === 'svg'))).toContain('gx-ic-fill');
     expect(() => html(<Icon icon="not-an-icon"/>)).toThrow(/Unknown icon/);
     for (const key of Object.keys(ui.icons)) clean(<Icon icon={key}/>);
+    // CONTRACT section 12: never stroke or size attributes; .gx-ic sets width, height, fill, stroke and the line caps.
+    for (const node of [<Icon icon="lock" size={16}/>, <Icon icon="alert" label="Warning"/>, <Icon icon="diamond" size={32} fill/>]) {
+      const svg = one(node, n => n.tag === 'svg');
+      expect(Object.keys(svg.attrs).filter(name => /^(width|height|fill|stroke(-.*)?)$/.test(name))).toEqual([]);
+      expect(svg.attrs.viewBox ?? svg.attrs.viewbox).toBe('0 0 24 24');
+    }
   });
 });
 
@@ -234,6 +255,14 @@ describe('Card, List, Row', () => {
     expect(list.attrs).toMatchObject({ class: 'gx-list', role: 'list', 'aria-label': 'Board' });
     expect(list.children.map(c => c.tag)).toEqual(['li', 'li']);
     expect([...walk(tree(<List ordered><Row title="A"/></List>))].some(n => n.tag === 'ol')).toBe(true);
+    // Text and number children are rows too, each keyed by its place: React warns about no list key.
+    const warnings = [], warn = console.error;
+    console.error = (...args) => { warnings.push(args.map(String).join(' ')); };
+    try {
+      const mixed = [...walk(tree(<List label="Mixed">{'First'}<Row title="B"/>{3}</List>))].find(n => n.tag === 'ul');
+      expect(mixed.children.map(c => c.tag)).toEqual(['li', 'li', 'li']);
+    } finally { console.error = warn; }
+    expect(warnings.filter(w => /unique "key"/.test(w))).toEqual([]);
   });
 
   it('Row is a div, a button with onClick or a link with href, with its size and state classes', () => {
@@ -577,7 +606,7 @@ describe('Sheet, Dialog, Toast, Overlay', () => {
   });
 });
 
-describe('TeamMark (D-22 marks, sized for DP-27) and the Field monogram', () => {
+describe('TeamMark (D-46 official logos, D-22 badge fallback, sized for DP-27) and the Field monogram', () => {
   it('every team resolves to its registered mark in a fixed box, with the code shown until the image decodes', () => {
     expect(Object.keys(teamMarks)).toHaveLength(32);
     for (const [code, mark] of Object.entries(teamMarks)) {
@@ -593,11 +622,15 @@ describe('TeamMark (D-22 marks, sized for DP-27) and the Field monogram', () => 
     }
   });
 
-  it('keeps the two heavy PNGs (DP-27) on their recorded files, sized like every other mark', () => {
-    for (const code of ['BUF', 'LAR']) {
-      const img = one(<TeamMark code={code} size={24} decorative/>, n => n.tag === 'img');
+  it('shows the official D-46 logo for every team, as a local PNG sized like every other mark', () => {
+    expect(Object.keys(approvedTeamLogos)).toHaveLength(32);
+    for (const code of Object.keys(approvedTeamLogos)) {
+      const node = <TeamMark code={code} size={24} decorative/>;
+      const img = one(node, n => n.tag === 'img');
       expect(img.attrs.src).toBe(`/team-logos/${code.toLowerCase()}.png`);
       expect([img.attrs.width, img.attrs.height]).toEqual(['24', '24']);
+      expect(one(node, byClass('gx-team')).attrs['data-mark']).toBe('trademark-identification');
+      expect(one(node, byClass('gx-team')).attrs['data-backing']).toBe(['KC', 'LAC', 'PIT', 'TEN'].includes(code) ? 'dark' : undefined);
     }
   });
 
@@ -620,18 +653,41 @@ describe('TeamMark (D-22 marks, sized for DP-27) and the Field monogram', () => 
     clean(<TeamMark code="KC" name="Kansas City Chiefs" size={48}/>);
   });
 
-  it('the Field monogram draws Brand.jsx\'s exact Yardline G on the lime tile', () => {
+  it('the Field monogram draws Brand.jsx\'s exact Yardline G, framed by the G\'s own bounds', () => {
     const brand = readFileSync(join(ROOT, 'web/src/Brand.jsx'), 'utf8');
     const paths = [...brand.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);
     expect(paths).toEqual([ui.YARDLINE_G_PATHS.g, ui.YARDLINE_G_PATHS.yards]);
-    expect(brand).toContain('viewBox="0 0 130 90"');
+    expect(pathBounds(paths)).toBe(ui.YARDLINE_G_VIEWBOX);
+    expect(brand).toContain(`viewBox="${ui.YARDLINE_G_VIEWBOX}"`);
     const node = <FieldMark size={40}/>;
     expect(classes(one(node, byClass('gx-mono')))).toEqual(['gx-mono', 'gx-mono--40']);
-    expect(one(node, n => n.tag === 'svg').attrs.viewbox).toBe('0 0 130 90');
+    expect(one(node, n => n.tag === 'svg').attrs.viewbox).toBe(ui.YARDLINE_G_VIEWBOX);
     expect(els(node, n => n.tag === 'path').map(p => p.attrs.d)).toEqual(paths);
     expect(one(node, byClass('gx-mono')).attrs['aria-hidden']).toBe('true');
     expect(one(<FieldMark label="Guess The Line"/>, byClass('gx-mono')).attrs).toMatchObject({ role: 'img', 'aria-label': 'Guess The Line' });
     clean(<FieldMark label="Guess The Line"/>);
+  });
+
+  it('D-44: the G stands alone in accent-ink, with no tile, edge or shadow, at every size and as a system avatar', () => {
+    const css = readFileSync(join(ROOT, 'web/src/next/styles/components.css'), 'utf8');
+    const rule = selector => css.match(new RegExp(`\\n${selector.replace(/[.-]/g, '\\$&')} \\{([^}]*)\\}`))[1].split(';').map(d => d.trim()).filter(Boolean);
+    const tile = decls => decls.filter(d => /^(background|box-shadow|border|outline)/.test(d));
+    const mono = rule('.gx-mono');
+    expect(tile(mono)).toEqual([]);
+    expect(mono).toEqual(expect.arrayContaining(['color: var(--gx-accent-ink)', 'width: 32px', 'height: 32px']));
+    for (const size of ui.FIELD_MARK_SIZES.filter(size => size !== 32)) expect(rule(`.gx-mono--${size}`)).toEqual([`width: ${size}px`, `height: ${size}px`]);
+    // .gx-av-sys (no component uses it yet) also wins inside an avatar stack, whose ring rules come first: the
+    // compound .gx-av.gx-av-sys matches .gx-card .gx-av-stack .gx-av (0,3,0) and comes later.
+    expect(rule('.gx-av-sys,\n.gx-av-stack .gx-av.gx-av-sys')).toEqual(['background: none', 'color: var(--gx-accent-ink)', 'box-shadow: none']);
+    expect(css.indexOf('\n.gx-av-sys,')).toBeGreaterThan(css.indexOf('\n.gx-sheet .gx-av-stack .gx-av {'));
+    expect(css.indexOf('\n.gx-sheet .gx-av-stack .gx-av {')).toBeGreaterThan(0);
+    // Forced colors draws a border on controls and boxes; around the logo it would read as the old tile.
+    const start = css.indexOf('@media (forced-colors: active) {');
+    expect(start).toBeGreaterThan(0);
+    let end = css.indexOf('{', start) + 1;
+    for (let depth = 1; depth > 0; end += 1) depth += css[end] === '{' ? 1 : css[end] === '}' ? -1 : 0;
+    expect(css.slice(start, end)).toMatch(/\.gx-team \{/);
+    expect(css.slice(start, end)).not.toMatch(/\.gx-mono\b/);
   });
 });
 

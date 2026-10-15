@@ -225,6 +225,13 @@ test('notes errors are mapped before the SQL can raise them; a missing RPC reads
   await assert.rejects(() => personal.rpc('gtl_read_game_notes', {}), error => error.status === 503 && error.code === 'GTL_FEATURE_OFF');
   await assert.rejects(() => personal.rpc('gtl_set_game_note', {}), error => error.status === 409 && error.code === 'GTL_NOTE_CONFLICT');
   for (let i = 0; i < 2; i++) await assert.rejects(() => personal.rpc('gtl_set_game_note', {}), error => !error.status && error.message === 'Personal workspace unavailable.');
+  // Only the notes RPCs read PGRST202 as off. A missing old Solo function is an outage, never "not available right now.
+  // Nothing you saved is lost."
+  for (const name of ['gtl_read_personal', 'gtl_mutate_personal', 'gtl_personal_history']) {
+    const { personal: old } = await import('../cloud/handler.mjs').then(({ createSupabaseAdapter }) => createSupabaseAdapter({ url: 'https://project.supabase.co', anonKey: 'public-test-key', serviceRoleKey: 'server-test-secret',
+      fetchImpl: async () => Response.json({ code: 'PGRST202', message: `Could not find the function public.${name} in the schema cache` }, { status: 404 }) }));
+    await assert.rejects(() => old.rpc(name, {}), error => !error.status && error.code !== 'GTL_FEATURE_OFF' && error.message === 'Personal workspace unavailable.', name);
+  }
 });
 
 test('the GTL_FEATURE_OFF off switch stops note saves only; reads and every other personal route keep working', async () => {

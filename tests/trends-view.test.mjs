@@ -241,7 +241,7 @@ test('the browser trend modules stay pure: no engine, history, auth or network i
   assert.doesNotMatch(src('shared/trends-view.mjs'), /^\s*import\s/m, 'shared/trends-view.mjs imports nothing');
   for (const file of ['web/src/TrendsView.jsx', 'web/src/TrendCard.jsx', 'web/src/WindForecast.jsx', 'web/src/windTimer.js']) assert.doesNotMatch(src(file), /from '\.\/(auth|api|trendsData)/, file);
   // The wind card imports only React and the pure view helpers; the timer only the pure helpers.
-  assert.deepEqual([...src('web/src/WindForecast.jsx').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['react', '../../shared/trends-view.mjs']);
+  assert.deepEqual([...src('web/src/WindForecast.jsx').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['react', '../../shared/trends-view.mjs', '../../shared/weather-view.mjs']);
   assert.deepEqual([...src('web/src/windTimer.js').matchAll(/from '([^']+)'/g)].map(m => m[1]), ['../../shared/trends-view.mjs']);
   for (const file of fs.readdirSync(new URL('../web/src/', import.meta.url))) {
     if (!/\.(jsx?|mjs)$/.test(file)) continue;
@@ -302,7 +302,21 @@ test('D-34 windView: indoor, loading, not yet, forecast, stale, final and invali
   const entry = (fetchedAt, extra = {}) => ({ kickoff: g.kickoff, venue: { id: 'DEN00', name: 'Empower Field at Mile High', city: 'Denver', country: 'USA', type: 'outdoor' }, status: 'forecast',
     wind: { windMph: 12.3, fetchedAt: new Date(fetchedAt).toISOString(), forecastHour: '2026-10-16T00:00:00.000Z', ...extra } });
   assert.equal(V.windView({ game: game('BUF-LV'), entry: null, now: k }).state, 'indoor');
+  // D-45: SoFi's canopy (a fixed roof over the field) is Indoors with or without the server's venue, even if a snapshot is passed.
+  assert.equal(game('ARI-LAR').flags.roof, 'dome');
   assert.equal(V.windView({ game: game('ARI-LAR'), entry: null, now: k }).state, 'indoor', 'a canopy counts as indoors');
+  const lar = Date.parse(game('ARI-LAR').kickoff), sofi = { id: 'LAX01', name: 'SoFi Stadium', city: 'Inglewood', country: 'USA', type: 'canopy' };
+  assert.deepEqual(V.windView({ game: game('ARI-LAR'), entry: { ...entry(lar - 26 * H), kickoff: game('ARI-LAR').kickoff, venue: sofi }, now: lar - 24 * H }), { state: 'indoor' });
+  // The server's venue decides the roof, not the week file's stadium: an open-air venue shows its forecast even if the
+  // week file says canopy, and a canopy is Indoors even if the week file says open-air.
+  const listedCanopy = { ...g, flags: { ...g.flags, stadium: { ...g.flags.stadium, type: 'canopy' } } };
+  assert.equal(V.venueRoof(entry(k).venue, listedCanopy), 'outdoor');
+  assert.equal(V.windView({ game: listedCanopy, entry: entry(k - 26 * H), now: k - 24 * H }).state, 'forecast');
+  assert.equal(V.windView({ game: g, entry: { ...entry(k - 26 * H), venue: sofi }, now: k - 24 * H }).state, 'indoor');
+  assert.equal(V.venueRoof(null, listedCanopy), 'canopy', 'without the server\'s venue the week file\'s stadium decides');
+  // The server's "indoor" counts only when no venue type is known; next to a known open-air type it is no current forecast, never "Indoors".
+  assert.deepEqual(V.windView({ game: { id: 'AAA-BBB', kickoff: g.kickoff, flags: {} }, entry: { kickoff: g.kickoff, venue: null, status: 'indoor', wind: null }, now: k - 24 * H }), { state: 'indoor' });
+  assert.deepEqual(V.windView({ game: g, entry: { ...entry(k - 26 * H), status: 'indoor', wind: null }, now: k - 24 * H }), { state: 'none', reason: 'unavailable' });
   assert.deepEqual(V.windView({ game: g, entry: null, now: null }), { state: 'none', reason: 'unavailable' });
   assert.deepEqual(V.windView({ game: g, entry: null, now: null, loading: true }), { state: 'loading' });
   assert.equal(V.windView({ game: g, entry: { ...entry(k - 125 * H), wind: null, status: 'not_yet' }, now: k - 121 * H }).state, 'not_yet');
@@ -367,4 +381,182 @@ test('D-34 nextWindRefresh: the TTL crossing, kickoff, entering the window, and 
   assert.equal(V.nextWindRefresh(data({ a: { ...at(now), status: 'indoor' } }), now), null);
   assert.equal(V.nextWindRefresh(data({ a: at(k - 3 * H) }), k + 1), null, 'nothing after kickoff');
   assert.equal(V.nextWindRefresh(null, now), null);
+});
+
+// ---------------------------------------------------------------------------
+// DASH-7 "Trends, simplified" (redesign build plan stage 13): per-game access, short cards, the board's trend lines,
+// the top three per game and the All trends groups, all read from the committed Week 6 file.
+// ---------------------------------------------------------------------------
+const NAMES = { SEA: 'Seattle Seahawks', DEN: 'Denver Broncos', HOU: 'Houston Texans', JAX: 'Jacksonville Jaguars', NO: 'New Orleans Saints', NYG: 'New York Giants',
+  WAS: 'Washington Commanders', SF: 'San Francisco 49ers', CAR: 'Carolina Panthers', PHI: 'Philadelphia Eagles', LAC: 'Los Angeles Chargers', KC: 'Kansas City Chiefs',
+  DAL: 'Dallas Cowboys', GB: 'Green Bay Packers', BUF: 'Buffalo Bills', LV: 'Las Vegas Raiders', ARI: 'Arizona Cardinals', LAR: 'Los Angeles Rams', CHI: 'Chicago Bears',
+  ATL: 'Atlanta Falcons', BAL: 'Baltimore Ravens', CLE: 'Cleveland Browns', NYJ: 'New York Jets', NE: 'New England Patriots', PIT: 'Pittsburgh Steelers', TB: 'Tampa Bay Buccaneers',
+  TEN: 'Tennessee Titans', IND: 'Indianapolis Colts' };
+const CLOSED = Object.freeze({ spread: false, total: false }), OPEN = Object.freeze({ spread: true, total: true });
+
+test('per-game access for the new app: the server\'s rules and now, one game\'s lock-in, a sit-out; the line gate of each trend', () => {
+  const games = week.games.map(g => ({ id: g.id, kickoff: g.kickoff }));
+  const view = (extra = {}) => ({ games, deadline: games[0].kickoff, now: '2026-10-15T20:00:00Z', rules: { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' }, ballots: {}, ...extra });
+  assert.deepEqual(V.communityAccess(view(), 'SEA-DEN'), { spread: false, total: false, revealAt: 'kickoff' });
+  // One game locked in for one market opens that game and market only.
+  const locked = view({ ballots: { guess_spread: { picks: { 'SEA-DEN': 2.5, 'HOU-JAX': 3 }, lockedAt: { 'SEA-DEN': '2026-10-15T19:00:00Z' } } } });
+  assert.deepEqual([V.communityAccess(locked, 'SEA-DEN').spread, V.communityAccess(locked, 'SEA-DEN').total, V.communityAccess(locked, 'HOU-JAX').spread], [true, false, false]);
+  // The clock: SEA @ DEN's kickoff opens SEA @ DEN; under today's rules the deadline opens every game.
+  assert.deepEqual(V.communityAccess(view({ now: '2026-10-16T00:15:00Z' }), 'SEA-DEN'), { spread: true, total: true, revealAt: 'kickoff' });
+  assert.deepEqual(V.communityAccess(view({ now: '2026-10-16T00:15:00Z' }), 'HOU-JAX'), { spread: false, total: false, revealAt: 'kickoff' });
+  assert.equal(V.communityAccess(view({ now: '2026-10-16T00:15:00Z', rules: null }), 'HOU-JAX').spread, true);
+  assert.deepEqual(V.communityAccess(view(), 'SEA-DEN', ['guess_total']), { spread: false, total: true, revealAt: 'kickoff' });
+  // The engine's own gate for a card or row; a favorite-or-underdog card also waits for the Spread (prototype review R9).
+  assert.equal(V.lineGate(week, 'team_ats|t:t_mkt_down3+role:dog'), 'spread');
+  assert.equal(V.lineGate(week, 'fav_ats|g:g_fav_tt_ge28+g:g_indoor'), 'both');
+  assert.equal(V.lineGate(week, 'fav_ats|g:g_altitude'), 'spread');
+  assert.equal(V.lineGate(week, 'team_ats|team:SEA+role:fav'), 'spread');
+  assert.equal(V.lineGate(week, 'total|ref:Adrian Hill+g:g_t_le37'), 'total');
+  assert.equal(V.lineGate(week, 'team_ats|t:t_ats_season_hot'), null);
+  assert.equal(V.lineGate(week, 'fav_ats|g:g_all'), null, 'a two-sided row names no side, so it needs no line');
+  assert.equal(V.lineGate(week, 'total|g:g_wind10'), null);
+});
+
+test('short cards: plain words, the file\'s own record and sample size, the tier in words; rows both ways', () => {
+  const nyg = game('NO-NYG');
+  const hot = V.shortCard(week, nyg.tier2[0], { game: nyg, access: CLOSED, names: NAMES });
+  const record = week.cards['team_ats|t:t_ats_season_hot'].record;
+  assert.deepEqual([hot.title, hot.sentence, hot.record, hot.sample, hot.games, hot.pct, hot.tierLabel], ['Covering almost every week this season · NYG',
+    `Teams in the Saints’ spot covered ${record.W} times and missed ${record.L} since 2002.`, `${record.W}–${record.L}–${record.P}`, `${record.W + record.L + record.P} games`,
+    record.W + record.L + record.P, Math.round((100 * record.W) / (record.W + record.L)), 'Consistent, not proven']);
+  // Backing the team with the trait names that team's spot (HOU, side A); fading it names its opponent (NO for NYG, side B).
+  assert.match(V.shortCard(week, game('HOU-JAX').tier2[0], { game: game('HOU-JAX'), names: NAMES }).sentence, /^Teams in the Texans’ spot covered 444 times and missed 364 since 2002\.$/);
+  assert.equal(V.shortCard(week, { card: 'total|g:g_wind10' }, { names: NAMES }).sentence, 'The Under hit 898 times and missed 730 in games like this since 2002.');
+  assert.equal(V.shortCard(week, { card: 'fav_ats|g:g_altitude' }, { access: OPEN }).sentence, 'Underdogs in this spot covered 117 times and missed 89 since 2002.');
+  assert.equal(V.shortCard(week, { card: 'home_ats|g:g_home_fav+g:g_s_3' }, { access: OPEN }).sentence, 'Road teams in this spot covered 298 times and missed 237 since 2002.');
+  assert.equal(V.shortCard(week, { card: 'total_rev|g:g_totrev' }).sentence, 'Under after high-scoring starts and Over after low-scoring starts: right 830 times and wrong 724 since 2002.');
+  // Rows are shown both ways (never as a side with a record), with their own years and sample size.
+  const all = V.shortCard(week, { id: 'home_ats|g:g_all' });
+  const [a, b, p] = week.rows['home_ats|g:g_all'].split;
+  assert.deepEqual([all.kind, all.pct, all.record, all.sample, all.tierLabel], ['row', null, V.recordText(a, b, p), V.sampleText(a + b + p), 'No proven edge']);
+  assert.equal(all.sentence, `Home teams covered ${a.toLocaleString('en-US')} times and road teams ${b.toLocaleString('en-US')} since 2002 (${p} pushes).`);
+  assert.match(V.shortCard(week, { id: 'team_ats|coach:Sean Payton', team: 'DEN' }, { names: NAMES }).sentence, /^The coach’s teams covered 170 times and their opponents 143 since 2006 \(4 pushes\)\.$/);
+  assert.match(V.shortCard(week, { id: 'su|team:SEA+venue:road', team: 'SEA' }, { names: NAMES }).sentence, /^The Seahawks won 101 and lost 104 since 2002 \(1 tie\)\.$/);
+  assert.equal(V.recordText(8, 3), '8–3');
+  assert.equal(V.sampleText(11), '11 games');
+  assert.equal(V.sampleText(1), '1 game');
+  assert.equal(V.recordText(3087, 3217, 170), '3,087–3,217–170');
+  assert.equal(V.shortCard(week, { card: 'nope' }), null);
+});
+
+test('a locked line trend carries no title, record, sample size or number at all', () => {
+  for (const ref of [{ card: 'fav_ats|g:g_altitude' }, { card: 'team_ats|t:t_mkt_down3+role:dog', team: 'DEN' }, { id: 'team_ats|team:SEA+role:fav', team: 'SEA' }, { card: 'fav_ats|g:g_fav_tt_ge28+g:g_indoor' }]) {
+    const locked = V.shortCard(week, ref, { access: CLOSED, names: NAMES });
+    assert.deepEqual(Object.keys(locked).sort(), ['gate', 'key', 'kind', 'locked', 'strength', 'title']);
+    assert.equal(locked.locked, true);
+    assert.equal(locked.title, V.LINE_TREND_TITLE);
+    assert.doesNotMatch(locked.title, /\d/);
+  }
+  // "both" needs both markets open.
+  assert.equal(V.shortCard(week, { card: 'fav_ats|g:g_fav_tt_ge28+g:g_indoor' }, { access: { spread: true, total: false } }).locked, true);
+  assert.equal(V.shortCard(week, { card: 'fav_ats|g:g_fav_tt_ge28+g:g_indoor' }, { access: OPEN }).locked, false);
+});
+
+test('the top three per game, strongest first as the engine defines it: the tier, then the quality score', () => {
+  const top = id => V.gameTrends(week, id, { access: CLOSED, names: NAMES }).top;
+  assert.deepEqual(top('NO-NYG').map(c => c.key), ['team_ats|t:t_ats_season_hot@NYG', 'total_rev|g:g_totrev@', 'team_ats|t:t_after_ot+role:home@NYG']);
+  const scores = top('NO-NYG').map(c => c.strength);
+  assert.deepEqual(scores, [[1, -44.3], [2, -37.1], [2, -36.9]]);
+  assert.deepEqual(top('CAR-PHI').map(c => c.key), ['team_ats|t:t_ats_season_cold@PHI', 'total_rev|g:g_totrev@']);
+  // Every game: at most three, sorted, never a Tier 1 or weather card (they need observed weather), never a pending card.
+  for (const g of week.games) {
+    const { top: t, all } = V.gameTrends(week, g.id, { access: OPEN, saved: { spread: -3, total: 44 }, names: NAMES });
+    assert.ok(t.length <= 3 && t.every((c, i) => i === 0 || c.strength[0] > t[i - 1].strength[0] || (c.strength[0] === t[i - 1].strength[0] && c.strength[1] >= t[i - 1].strength[1])), g.id);
+    assert.deepEqual(t, all.slice(0, 3));
+    assert.ok(all.every(c => !['total|g:g_wind10', 'total|g:g_wind15'].includes(c.id)), `${g.id}: no weather card`);
+    assert.ok(all.every(c => !(g.pendingCards || []).some(p => p.card === c.id && (p.team || null) === c.team)), `${g.id}: no pending card`);
+    // A line card whose fit this screen cannot tell (the market re-rating needs earlier lines) never claims a place.
+    assert.ok(all.every(c => c.id !== 'team_ats|t:t_mkt_down3+role:dog'), `${g.id}: no line card of unknown fit`);
+  }
+  // A line card joins only once its market is open and the viewer's own saved line shows it fits: an indoor game with a big
+  // favorite team total fits at −7 and 52 ((52 + 7) / 2 = 29.5), not at −3 and 44.
+  const fits = V.gameTrends(week, 'BUF-LV', { access: OPEN, saved: { spread: 7, total: 52 }, names: NAMES }).all.map(c => c.id);
+  assert.ok(fits.includes('fav_ats|g:g_fav_tt_ge28+g:g_indoor'));
+  assert.ok(!V.gameTrends(week, 'BUF-LV', { access: OPEN, saved: { spread: 3, total: 44 }, names: NAMES }).all.some(c => c.id === 'fav_ats|g:g_fav_tt_ge28+g:g_indoor'));
+  assert.ok(!V.gameTrends(week, 'BUF-LV', { access: CLOSED, saved: { spread: 7, total: 52 }, names: NAMES }).all.some(c => c.id === 'fav_ats|g:g_fav_tt_ge28+g:g_indoor'), 'never while closed');
+  // The favorite-or-underdog card stays in its place, locked, while the Spread is closed.
+  assert.deepEqual(V.gameTrends(week, 'SEA-DEN', { access: CLOSED }).top.map(c => [c.locked, c.gate]), [[true, 'spread']]);
+  assert.deepEqual(V.gameTrends(week, 'nope'), { game: null, all: [], top: [] });
+});
+
+test('Week 6 board trends: at most three, Consistent-not-proven or stronger, most games, then kickoff; none that needs a line', () => {
+  assert.deepEqual(V.boardTrends(week, { names: NAMES }), [
+    { gameId: 'NO-NYG', text: 'Teams in the Saints’ spot covered 54% since 2002', tier: 'Not proven', key: 'team_ats|t:t_ats_season_hot@NYG' },
+    { gameId: 'WAS-SF', text: 'Teams in the Commanders’ spot covered 54% since 2002', tier: 'Not proven', key: 'team_ats|t:t_ats_season_hot@SF' },
+    { gameId: 'HOU-JAX', text: 'Teams in the Texans’ spot covered 55% since 2002', tier: 'Not proven', key: 'team_ats|t:t_ats_season_cold@HOU' },
+  ]);
+  assert.deepEqual(V.boardTrends(week, { names: NAMES, eligible: ['SEA-DEN', 'CAR-PHI', 'LAC-KC', 'DAL-GB'] }).map(t => t.gameId), ['CAR-PHI', 'LAC-KC', 'DAL-GB']);
+  assert.deepEqual(V.boardTrends(week, { eligible: ['SEA-DEN', 'BUF-LV', 'ARI-LAR', 'BAL-CLE', 'NYJ-NE'] }), [], 'watch-list, line and pending trends never reach the board');
+  assert.deepEqual(V.boardTrends(null), []);
+});
+
+test('All trends: team, situational, line, weather and referee groups; every item with its record and sample size; locks show no numbers', () => {
+  const closed = V.allTrends(week, 'SEA-DEN', { access: CLOSED, names: NAMES });
+  assert.deepEqual(closed.groups.map(g => g.key), ['team', 'situational', 'line', 'weather', 'referee']);
+  const by = Object.fromEntries(closed.groups.map(g => [g.key, g]));
+  assert.ok(by.team.items.length >= 10 && by.team.meetings.length === 1);
+  for (const item of [...by.team.items, ...by.situational.items, ...by.weather.items].filter(i => !i.locked)) {
+    assert.match(item.record, /^[\d,]+–[\d,]+(–[\d,]+)?$/, item.key);
+    assert.match(item.sample, /^[\d,]+ games?$/, item.key);
+    assert.ok(item.sentence && item.title, item.key);
+  }
+  assert.deepEqual(by.line.items, [], 'nothing line-based while both markets are closed');
+  assert.deepEqual(by.line.locks, ['spread', 'total']);
+  assert.ok(by.situational.items[0].locked, 'the underdog card keeps its place, locked');
+  assert.deepEqual(by.weather.items.map(i => i.id), ['total|g:g_wind10', 'total|g:g_wind15']);
+  assert.deepEqual(by.weather.items[0].notes, ['Applies only if kickoff wind is 10+ mph; no current forecast for this game']);
+  assert.deepEqual(by.referee.notes, ['Referee not assigned yet. Crews are announced during game week, and the commissioner enters them.']);
+  // Open, with the viewer's own saved lines: the line rows that fit are marked, and the band of his own total joins.
+  const open = Object.fromEntries(V.allTrends(week, 'SEA-DEN', { access: OPEN, saved: { spread: -3, total: 44 }, names: NAMES, referee: { name: 'Shawn Hochuli' } }).groups.map(g => [g.key, g]));
+  assert.deepEqual(open.line.locks, []);
+  assert.ok(open.line.items.some(i => i.id === 'team_ats|team:DEN+role:fav' && i.fits === true));
+  assert.ok(open.line.items.some(i => i.id === 'team_ats|team:SEA+role:fav' && i.fits === false));
+  assert.ok(open.line.items.some(i => i.id === 'total|g:g_t_44_465' && i.fits === true));
+  assert.ok(!open.line.items.some(i => ['total|g:g_t_le37', 'total|g:g_t_51p', 'home_ats|g:g_home_fav_7p'].includes(i.id)), 'only the bands that hold his own saved lines');
+  assert.equal(open.referee.name, 'Shawn Hochuli');
+  assert.ok(open.referee.items.length >= 3 && open.referee.items.every(i => /^Shawn Hochuli: /.test(i.title) && /games?$/.test(i.sample)));
+  // A dome says the wind records do not apply indoors.
+  assert.ok(V.allTrends(week, 'BUF-LV', { access: CLOSED }).groups.find(g => g.key === 'weather').notes.includes(V.WIND_COPY.indoor));
+  // A game with an earlier game still to be scored says so.
+  assert.match(V.allTrends(week, 'ARI-LAR', { access: CLOSED }).groups.find(g => g.key === 'situational').notes[0], /^LAR has an earlier game without a final score/);
+  assert.deepEqual(V.allTrends(week, 'nope'), { game: null, groups: [] });
+});
+
+test('the short cards pass the copy guard on every Week 6 game and both markets open or closed', () => {
+  const words = [];
+  for (const g of week.games) for (const access of [CLOSED, OPEN]) {
+    const all = V.allTrends(week, g.id, { access, saved: { spread: -3, total: 44 }, names: NAMES, referee: { name: 'Shawn Hochuli' } });
+    for (const group of all.groups) for (const item of group.items) if (!item.locked) words.push(item.title, item.sentence, item.tierLabel, ...(item.notes || []));
+    for (const card of V.gameTrends(week, g.id, { access, names: NAMES }).all) if (!card.locked) words.push(card.title, card.sentence, card.tierLabel);
+  }
+  words.push(...V.boardTrends(week, { names: NAMES }).map(t => `${t.text} · ${t.tier}`), ...Object.values(V.TIER_WORDS), V.TRENDS_FOOTNOTE, V.LINE_TREND_TITLE);
+  const names = new Set([...week.refereeOptions, ...week.games.flatMap(g => [...Object.values(g.entities.qbs), ...Object.values(g.entities.coaches)].map(e => e.name))]);
+  const strip = value => [...names].reduce((out, name) => out.split(name).join(' '), value);
+  assert.deepEqual(T.bannedCopy(strip(words.join('\n'))), []);
+  assert.ok(words.every(w => typeof w === 'string' && w.length > 0 && !/undefined|NaN|null/.test(w)));
+});
+
+test('strength puts the tier before the score: a Tier 2 card outranks a higher-scoring watch-list card', () => {
+  const fake = {
+    season: 2026,
+    cards: {
+      'total|g:a': { id: 'total|g:a', title: 'Tier two', market: 'total', sideRule: 'A', tier: 2, watch: false, score: { score: 41 }, record: { W: 8, L: 3, P: 0 }, years: [2002, 2025] },
+      'total|g:b': { id: 'total|g:b', title: 'Watch list', market: 'total', sideRule: 'B', tier: 3, watch: true, score: { score: 60 }, record: { W: 30, L: 20, P: 1 }, years: [2002, 2025] },
+      'total|g:c': { id: 'total|g:c', title: 'Tier two, lower', market: 'total', sideRule: 'A', tier: 2, watch: false, score: { score: 40.5 }, record: { W: 5, L: 4, P: 0 }, years: [2002, 2025] },
+      'total|g:d': { id: 'total|g:d', title: 'Watch list, lower', market: 'total', sideRule: 'B', tier: 3, watch: true, score: { score: 20 }, record: { W: 9, L: 8, P: 0 }, years: [2002, 2025] },
+    },
+    rows: {},
+    games: [{ id: 'AAA-BBB', away: 'AAA', home: 'BBB', kickoff: '2026-10-18T17:00:00Z', tier2: [{ card: 'total|g:c' }, { card: 'total|g:a' }], watch: [{ card: 'total|g:d' }, { card: 'total|g:b' }], gatedCards: {} }],
+  };
+  const { top, all } = V.gameTrends(fake, 'AAA-BBB', { access: CLOSED });
+  assert.equal(all.length, 4);
+  assert.equal(top.length, 3, 'three at most');
+  assert.deepEqual(top.map(c => [c.title, c.record, c.sample]), [['Tier two', '8–3', '11 games'], ['Tier two, lower', '5–4', '9 games'], ['Watch list', '30–20–1', '51 games']]);
+  assert.deepEqual(top.map(c => c.strength), [[1, -41], [1, -40.5], [2, -60]]);
+  assert.equal(top[0].sentence, 'The Over hit 8 times and missed 3 in games like this since 2002.');
 });

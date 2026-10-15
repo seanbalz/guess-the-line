@@ -12,7 +12,7 @@ import '../../../web/src/next/styles/base.css';
 import '../../../web/src/next/styles/components.css';
 import { ThemeProvider } from '../../../web/src/Theme.jsx';
 import { Shell } from '../../../web/src/next/shell/Shell.jsx';
-import { Dock } from '../../../web/src/next/shell/Frame.jsx';
+import { ComingNext, Dock } from '../../../web/src/next/shell/Frame.jsx';
 import { useShell } from '../../../web/src/next/shell/context.js';
 import { LAYERS, SCREENS } from '../../../web/src/next/shell/registry.jsx';
 import { Button, Dialog, Overlay, Sheet } from '../../../web/src/next/ui/index.js';
@@ -146,7 +146,8 @@ function TestPage({ args }) {
   );
 }
 
-const screens = { ...SCREENS, home: TestHome, play: TestPlay };
+// Lines (stage 13) reads the app's data layer, which this harness does not mount; tests/cloud-browser/next-lines.spec.js covers it.
+const screens = { ...SCREENS, home: TestHome, play: TestPlay, lines: () => <ComingNext tab="lines"/> };
 const layers = { ...LAYERS, 'sh.test': TestSheet, 'sh.broken': BrokenSheet, 'sh.fragile': FragileSheet, 'dlg.busy': BusyDialog, 'ov.test': TestOverlay, 'pop.test': TestPopover, 'page.test': TestPage };
 const session = { user: { id: 'acct-3', email: 'casey@example.test', user_metadata: { full_name: 'Casey Moore' } } };
 async function onSignOut() {

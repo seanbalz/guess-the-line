@@ -25,6 +25,11 @@ async function signedInAs(page) {
   return text;
 }
 const tryButton = page => page.locator('.hub-bottom').getByRole('button', { name: TRY, exact: true });
+/** The new app's "Use the old app": in the avatar menu (section 3.2), since stage 12 replaced Home's "coming next" card. */
+async function oldAppButton(page) {
+  await page.getByRole('button', { name: 'Your menu' }).click();
+  return page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: OLD, exact: true });
+}
 const saved = page => page.evaluate(() => localStorage.getItem('gtl.app'));
 /** Script and style files this document loaded (resource timing, so a reload starts a fresh list). */
 const assets = page => page.evaluate(() => performance.getEntriesByType('resource').map(entry => new URL(entry.name).pathname).filter(p => /\/assets\/[^/]+\.(js|css)$/.test(p)));
@@ -46,7 +51,8 @@ async function phoneChecks(page, root) {
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      // Screen-reader-only text (the kit's .gx-sr-only, since stage 12's Home ranks) is clipped by design, as the later specs read it.
+      if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       if (el.getBoundingClientRect().right > innerWidth + 0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
@@ -80,7 +86,8 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     expect(named(loaded, 'NextApp').length, 'the new app is its own chunk and stylesheet').toBe(2);
     expect(named(loaded, 'GameHub'), 'the new app never downloads the old one').toEqual([]);
     await expect(page.locator('.gx')).toHaveCount(1);
-    await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
+    await expect(await oldAppButton(page)).toBeVisible();
+    await page.keyboard.press('Escape');
     await phoneChecks(page, '.gx');
 
     // A reload keeps the device's choice.
@@ -89,7 +96,7 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     // Stage 11: the new app reads the account and the Community once per page load, and writes nothing.
     expect(calls).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
 
-    await page.getByRole('button', { name: OLD, exact: true }).click();
+    await (await oldAppButton(page)).click();
     await expect(communityHome(page)).toBeVisible();
     expect(await saved(page)).toBe('classic');
     await expect(page.locator('.gx')).toHaveCount(0);
@@ -222,10 +229,73 @@ test('axe in dark and light at 390 and 320: the new-app frame and the old footer
         await testInfo.attach(`new-app-${theme}-${width}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
       }
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByRole('button', { name: OLD, exact: true }).click();
+      await (await oldAppButton(page)).click();
       await expect(communityHome(page)).toBeVisible();
     }
     expect(found).toEqual(Object.fromEntries(Object.keys(found).map(key => [key, []])));
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+/** Records the text each `.try-new-app-note` holds when it is put on the page (reset on every page load). */
+async function recordNoteInsertions(page) {
+  await page.addInitScript(() => {
+    window.__notesInserted = [];
+    const record = node => {
+      if (node.nodeType !== 1) return;
+      for (const el of [node, ...node.querySelectorAll('.try-new-app-note')]) if (el.matches('.try-new-app-note')) window.__notesInserted.push(el.textContent);
+    };
+    new MutationObserver(changes => { for (const change of changes) change.addedNodes.forEach(record); }).observe(document, { childList: true, subtree: true });
+  });
+}
+
+test('after a fallback the note is on the page before its words arrive, so a screen reader announces why the old app came back', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  await recordNoteInsertions(page);
+  await page.route('**/assets/NextApp-*.js', route => route.abort('failed'));
+  try {
+    await signIn(page, 'luke');
+    await expect(communityHome(page)).toBeVisible();
+    await tryButton(page).click();
+    const note = page.locator('.try-new-app-note');
+    await expect(note).toHaveText(new RegExp(`^${NOTE.fellBack}`));
+    await expect(note).toHaveAttribute('role', 'status');
+    // A status region that appears with its words already in it is not announced reliably: it must arrive empty, then change.
+    const inserted = await page.evaluate(() => window.__notesInserted);
+    expect(inserted.length, 'the note was put on the page after the reload').toBeGreaterThan(0);
+    expect(inserted.filter(text => text !== ''), 'every insertion was empty').toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a new app that throws while rendering, after its chunk has loaded, falls back to the old app the same way', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  // The chunk is served and runs (it loads the real chunk too), but its root component throws while rendering: a bug outside
+  // the shell's own error boundaries. main.jsx's outer boundary must catch it like a chunk that never loaded.
+  let served = 0;
+  await page.route('**/assets/NextApp-*.js', route => {
+    served += 1;
+    const real = new URL(route.request().url());
+    real.searchParams.set('loaded', '1');
+    return route.fulfill({ contentType: 'text/javascript', body: `import ${JSON.stringify(real.href)};\nexport default function NextApp() { throw new Error('The new app failed while rendering (fixture).'); }\n` });
+  });
+  try {
+    await signIn(page, 'luke');
+    await expect(communityHome(page)).toBeVisible();
+    await tryButton(page).click();
+    await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.fellBack}`));
+    await expect(communityHome(page)).toBeVisible();
+    await expect(page.locator('.gx')).toHaveCount(0);
+    expect(served, 'the new app\'s chunk was served').toBeGreaterThan(0);
+    expect(await saved(page), 'the fallback clears gtl.app').toBeNull();
+    // A reload stays in the old app: the choice is gone, so the failing chunk is never asked for again.
+    served = 0;
+    await page.reload();
+    await expect(communityHome(page)).toBeVisible();
+    await expect(page.locator('.try-new-app-note')).toHaveText('');
+    expect(served).toBe(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

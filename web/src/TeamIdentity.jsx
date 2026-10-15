@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import './teamIdentity.css';
-import { resolveTeamMark, teamAliases as aliases } from './teamLogoRegistry.js';
+import { resolveTeamBadge, resolveTeamMark, teamAliases as aliases } from './teamLogoRegistry.js';
 
-// Reviewed official marks take precedence; teams without one use an original
-// Guess The Line badge. Records live in docs/TEAM_LOGO_SOURCES.md.
+// Official team logos (D-46) for all 32 teams. If a logo fails to load, the team's
+// original Guess The Line badge replaces it where one exists, then the abbreviation.
+// Records live in docs/TEAM_LOGO_SOURCES.md. Official logos sit on a round light-neutral
+// backing in Dark and on no backing in Light (teamIdentity.css, D-46).
 
 const sizes = { small: 24, medium: 32, large: 48 };
 
-function IdentityMark({ code, name, size, asset, decorative }) {
-  const [failed, setFailed] = useState(false);
-  const hasLogo = Boolean(asset && !failed);
+function IdentityMark({ code, name, size, primary, badge, decorative }) {
+  const chain = [primary, badge].filter((item, index, list) => item && list.findIndex(other => other?.src === item.src) === index);
+  const [step, setStep] = useState(0);
+  const asset = chain[step] || null;
+  const hasLogo = Boolean(asset);
   return <span
     className={`team-identity ${hasLogo ? 'team-identity--logo' : 'team-identity--fallback'}`}
     style={{ '--team-identity-size': `${size}px` }}
@@ -17,19 +21,21 @@ function IdentityMark({ code, name, size, asset, decorative }) {
     aria-label={decorative ? undefined : name}
     aria-hidden={decorative || undefined}
     data-logo-status={hasLogo ? asset.rightsStatus : 'fallback'}
+    data-logo-backing={hasLogo && asset.backing === 'dark' ? 'dark' : undefined}
   >
-    {hasLogo ? <img src={asset.src} width={size} height={size} alt="" decoding="async" draggable="false" onError={() => setFailed(true)}/> : <span aria-hidden="true">{code}</span>}
+    {hasLogo ? <img key={asset.src} src={asset.src} width={size} height={size} alt="" decoding="async" draggable="false" onError={() => setStep(current => current + 1)}/> : <span aria-hidden="true">{code}</span>}
   </span>;
 }
 
-/** Compact team identity: official reviewed mark, else original GTL badge, else abbreviation on image failure. */
+/** Compact team identity: official logo, else (or if it fails to load) original GTL badge, else abbreviation. */
 export function TeamIdentity({ code, name, size = 'medium', decorative = false }) {
   const label = typeof code === 'string' && /^[a-z]{2,4}$/i.test(code.trim()) ? code.trim().toUpperCase() : '—';
   const canonical = aliases[label] || label;
   const dimension = sizes[size] || (typeof size === 'number' && Number.isFinite(size) ? Math.min(64, Math.max(24, size)) : sizes.medium);
   const asset = label === '—' ? null : resolveTeamMark(canonical);
+  const badge = label === '—' ? null : resolveTeamBadge(canonical);
   const accessibleName = typeof name === 'string' && name.trim() ? name.trim() : label === '—' ? 'Team unavailable' : label;
-  return <IdentityMark key={`${canonical}:${asset?.src || 'fallback'}`} code={label} name={accessibleName} size={dimension} asset={asset} decorative={decorative}/>;
+  return <IdentityMark key={`${canonical}:${asset?.src || 'fallback'}`} code={label} name={accessibleName} size={dimension} primary={asset} badge={badge} decorative={decorative}/>;
 }
 
 /** Shared home/away presentation for ballot rows, detail cards and gap bars. */

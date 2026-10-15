@@ -18,22 +18,33 @@ import { fileURLToPath } from 'node:url';
 
 export const MIGRATIONS_DIR = fileURLToPath(new URL('../supabase/migrations/', import.meta.url));
 export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', import.meta.url));
-/** The PGlite stand-in for the Supabase roles and auth schema that every migration expects. */
-export const PRELUDE = 'create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;';
+/** The PGlite stand-in for the Supabase roles and auth schema that every migration expects. Supabase databases run in
+ *  UTC, but PGlite starts in a fixed offset taken from the host (Etc/GMT+8 on a Mac in Pacific time), which changes how a
+ *  timestamptz reads in a jsonb reply ("…-08:00" instead of "…+00:00"); the session is set to UTC as on the hosted project and CI. */
+export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;";
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
-  20261014223000, // M-01 guess_gate_per_game (redesign stage 16): the per-game Guess reveal gate, awaiting "apply M-01".
   20261014221500, // M-05 (stage 22) Monday-night lines: applied alone on a Tuesday or Wednesday after Sean's "apply M-05".
   20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
   20261015020000, // M-08 guess_picks_reader (redesign stage 26): everyone's picks, applied after M-01 on Sean's "apply M-08".
   20261015030000, // M-02 sent_picks_final (redesign stage 18): locked-in picks are final, applied alone (Fri-Sat) on "apply M-02".
+  20261015040000, // M-03 guess_week_forfeit (redesign stage 19): skip and "See picks now", applied after M-01 on "apply M-03".
+  20261015050000, // M-04 social_line_lock (redesign stage 21): the real-slip line gate, applied after M-01 on Sean's "apply M-04".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
  */
 export const FIX_FORWARD = [];
+/**
+ * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan
+ * ledger's "Apply after" (section 6), for a migration whose functions or rollback call another unapplied file's functions.
+ * The rollback check (tests/rollback.test.mjs) builds HOSTED plus these before the checked migration, which is the schema the
+ * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
+ * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
+ */
+export const REQUIRES = Object.freeze({});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -41,12 +52,14 @@ export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith
 export const EXTENSION_ONLY = FILES.filter(file => /scheduler_extension/.test(file));
 
 // Rollback check (tests/rollback.test.mjs): GTL_ROLLBACK_CHECK={"migration":path,"rollback":path?} reruns a suite on
-// HOSTED plus that migration, with its rollback applied straight after it. Never set it by hand for a normal run.
+// HOSTED plus that migration (and the files it REQUIRES), with its rollback applied straight after it. Never set it by hand
+// for a normal run.
 const check = process.env.GTL_ROLLBACK_CHECK ? JSON.parse(process.env.GTL_ROLLBACK_CHECK) : null;
 const extra = check ? path.basename(check.migration) : null;
+const required = extra ? REQUIRES[version(extra)] ?? [] : [];
 
 export const ALL = [...new Set([...FILES.filter(file => !EXTENSION_ONLY.includes(file)), ...(extra ? [extra] : [])])].sort();
-export const HOSTED = ALL.filter(file => file === extra || !NOT_HOSTED.includes(version(file)));
+export const HOSTED = ALL.filter(file => file === extra || required.includes(version(file)) || !NOT_HOSTED.includes(version(file)));
 
 /** The SQL to apply for a file in ALL or HOSTED (in a rollback check, the checked migration followed by its rollback). */
 export function migrationSql(file) {
@@ -90,6 +103,7 @@ export const APPLIED = [
   20261013010000, // gtl_line_at_guess_reads
   20261013030000, // gtl_web_push_reminders (D-28): hosted as 20261013030000 on October 14, 2026
   20261013060000, // gtl_wind_forecasts
+  20261014223000, // M-01 gtl_guess_gate_per_game: hosted as 20261014223000 on October 14, 2026
   20261014224500, // M-09 gtl_game_notes: hosted as 20261014224500 on October 14, 2026
   20261014233000, // M-29 gtl_favorite_keeps_note: hosted as 20261014233000 on October 14, 2026
 ];

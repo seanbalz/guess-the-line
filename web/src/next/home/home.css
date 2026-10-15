@@ -1,0 +1,27 @@
+/* Home (redesign build plan stage 12; prototype spec 1.2): the hero, who's in and the two rank tiles. Shared kit
+   classes are composed, never restyled; everything here is gx-h-. Colors and sizes come from the kit's own classes. */
+
+/* ----- hero ----- */
+.gx-h-hero { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+.gx-h-hero .gx-btn--block { align-self: stretch; }
+.gx-h-cd { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+/* Three tiles fit the hero at 320 in the app's fonts; a wider fallback font wraps the last tile under the others
+   instead of pushing it out of the card. */
+.gx-h-cd .gx-cd { flex-wrap: wrap; }
+/* One status line per market, no bullets. */
+.gx-h-status { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+
+/* ----- who's in ----- */
+.gx-h-who { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gx-h-who > .gx-vstack { min-width: 0; }
+
+/* ----- rank tiles ----- */
+.gx-h-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.gx-h-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+/* The kit's rank is laid out for a board row (32 wide, right-aligned). In a tile it sits at the left and grows with
+   its words, so "T-2" in a wide fallback font never leaves its ring. */
+.gx-h-tile .gx-rank { width: auto; margin-left: 0; text-align: left; }
+.gx-h-tile .gx-rank--1,
+.gx-h-tile .gx-rank--top { width: auto; min-width: 28px; padding: 0 6px; }
+/* A long leader's name in the chase line breaks rather than widening the tile. */
+.gx-h-tile .gx-t-meta { overflow-wrap: anywhere; }
