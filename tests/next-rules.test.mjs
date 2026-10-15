@@ -239,6 +239,12 @@ test('sat out: skip and "See picks now" forfeit the rest of the week; locked-in 
   assert.equal(sitOut.label, 'Sat out');
   assert.equal(sitOut.lineVisible, true, 'a D-23 sit-out opens that market');
   assert.equal(R.guessState({ kickoff: KO.G4, deadline: DEADLINE, forfeit: { reason: 'other' }, now: TUE, rules: LIVE }).label, 'Sat out');
+
+  // The forfeit's time decides whether a game had already closed (stage 7 review): G1 closed at Thursday's kickoff,
+  // before a Sunday skip, so it stays "closed". Without the time nothing can tell, which is why the data layer must
+  // pass the server's `at` (guessState's JSDoc).
+  assert.equal(R.guessState({ kickoff: KO.G1, deadline: DEADLINE, forfeit: { reason: 'skip', at: SUN }, now: SUN, rules: LIVE }).state, 'closed');
+  assert.equal(R.guessState({ kickoff: KO.G1, deadline: DEADLINE, forfeit: { reason: 'skip' }, now: SUN, rules: LIVE }).state, 'forfeited');
 });
 
 test('market summaries: one status line that Home, Play and History share', () => {

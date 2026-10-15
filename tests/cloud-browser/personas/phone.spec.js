@@ -15,6 +15,14 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   // Every request waits 400 ms, so this journey takes 25 to 35 s: more than the config's 30 s default allows.
   test.setTimeout(90_000);
+  // A push-capable phone that has not been asked yet: CI's chrome-headless-shell has no PushManager and denies
+  // notifications, and either one alone makes the old app hide "Remind me" whatever the server says, so the push guard
+  // check below would pass vacuously there. Nothing here subscribes or asks for permission.
+  await page.addInitScript(() => {
+    if (!('PushManager' in window)) window.PushManager = function PushManager() {};
+    if (!('Notification' in window)) window.Notification = { requestPermission: async () => 'default' };
+    Object.defineProperty(window.Notification, 'permission', { configurable: true, get: () => 'default' });
+  });
   await persona.start();
   persona.net.delay = 400; // Slow-3G-like latency on every request, static and API.
   const t0 = Date.now();
@@ -24,7 +32,9 @@ test('phone: slow network, interrupted ballot, reload and back button', async ({
   const sawLoading = await loading.isVisible().catch(() => false);
   await expect(page.locator('.picks-due')).toBeVisible({ timeout: 15000 });
   const toFeed = Date.now() - t0;
-  // Redesign stage 2 (push guard): this fixture's server holds no VAPID key, so the card offers no "Remind me" button that would fail.
+  // Redesign stage 2 (push guard): this fixture's server holds no VAPID key, so the card offers no "Remind me" button that would fail,
+  // although this browser supports push.
+  expect(await page.evaluate(() => window.isSecureContext && 'serviceWorker' in navigator && 'PushManager' in window && Notification.permission === 'default')).toBe(true);
   await expect(page.locator('.picks-due').getByRole('button', { name: /^Remind me/ })).toHaveCount(0);
   await expect(page.locator('.picks-due .push-prompt')).toHaveCount(0);
   persona.finding({ screen: 'feed-slow', severity: 4, experience: `With 400 ms added to every request the home screen took ${(toFeed / 1000).toFixed(1)} s from tapping Sign in to the picks-due card. During that time the player sees "${sawLoading ? 'Loading the feed…' : 'nothing (the loading line was too brief to see)'}" under the title; the header, theme card and league switcher render first, so the page looks finished before the feed arrives.`, fix: 'Show skeleton rows for the picks-due card, leaderboard and three posts instead of a one-line status; keep the chrome from settling before the content.' });

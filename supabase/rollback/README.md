@@ -30,6 +30,11 @@ It copies, for every function the migration replaces, the newest earlier definit
 The same script prints the `-- replaces public.<name> md5 <hash>` header lines the migration itself needs
 (`--headers`).
 
+A header proves only which body its author meant to replace, not that the migration's body was rebuilt on it. When
+a stale-copy failure tells you to update a header, copy the newest body first (`--function <name>` shows it), reapply
+your change to it, and only then paste the new md5: pasting the `--headers` output alone passes the check and silently
+reverts the change the other PR made. Reviewers diff the replaced body against `--function <name>` for the same reason.
+
 ## What the test checks
 
 `tests/rollback.test.mjs`, for every file here:

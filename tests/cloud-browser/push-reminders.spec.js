@@ -176,6 +176,9 @@ for (const [label, browser] of [['a push-capable browser', mockPushBrowser], ['a
     await expect(panel).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Pick reminders' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: REMIND })).toHaveCount(0);
+    // Follow-up to the stage 2 review: no other Settings text points at the hidden panel (Install app said "below").
+    await expect(page.getByRole('region', { name: 'Add Guess The Line to your device' })).toContainText('Installation does not enable notifications');
+    await expect(page.getByText(/Pick reminders/)).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 
     // Nothing push-related ran: no service worker, no permission prompt, no /push/* request.
@@ -183,6 +186,33 @@ for (const [label, browser] of [['a push-capable browser', mockPushBrowser], ['a
     if (browser === mockPushBrowser) expect(await page.evaluate(() => window.__push)).toMatchObject({ registered: 0, subscribed: 0, permissionRequests: 0 });
     expect(push.requests).toEqual([]);
     expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('push configured, but the Settings read fails: the Pick reminders panel stays out', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await page.addInitScript(mockPushBrowser);
+  const world = await communityWorld(page, baseURL, { groupScreens: true, ...PUSH }), push = await mockPushRoutes(page);
+  try {
+    await signIn(page, 'luke');
+    await expect(page.locator('.picks-due').getByRole('button', { name: REMIND })).toBeVisible();
+    // Only Settings' own small read (limit 1) fails; it is the one place the panel learns pushConfigured.
+    let refused = 0;
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/community/read`, route => {
+      if (route.request().postDataJSON()?.limit !== 1) return route.fallback();
+      refused += 1;
+      return route.fulfill({ status: 503, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify({ error: 'Service unavailable.' }) });
+    });
+    const failed = page.waitForResponse(r => r.url().endsWith('/gtl-api/community/read') && r.status() === 503);
+    const panel = await openSettings(page);
+    await failed;
+    expect(refused).toBe(1);
+    await expect(page.getByLabel('Color theme')).toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await expect(panel).toHaveCount(0);
+    await expect(page.getByRole('button', { name: REMIND })).toHaveCount(0);
+    expect(await page.evaluate(() => window.__push)).toMatchObject({ registered: 0, subscribed: 0, permissionRequests: 0 });
+    expect(push.requests.filter(r => r.action !== 'status')).toEqual([]);
   } finally { await world.db.close(); }
 });
 

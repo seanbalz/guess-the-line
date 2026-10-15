@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { HOSTED, migrationSql } from './migrations.mjs';
+import { HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
 import { seed } from '../server/store.mjs';
 import { accuracy, round } from '../server/domain.mjs';
 import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
@@ -82,7 +82,7 @@ test('--execute posts the payload to the service-role RPC and resolves the commi
 
 test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to the function, community-only effect', { skip }, async t => {
   const db = new PGlite(); t.after(() => db.close());
-  await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
+  await db.exec(PRELUDE);
   const original = seed();
   for (const file of MIGRATIONS) {
     await db.exec(migrationSql(file));

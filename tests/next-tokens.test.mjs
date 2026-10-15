@@ -202,6 +202,13 @@ test('contrast: text and icons at least 4.5:1, control edges and focus at least 
   // The tightest pairs the design system recorded (design-final section 4) still hold.
   assert.equal(contrast(tokens.themes.dark.color['text-3'], tokens.themes.dark.color['accent-tint']).toFixed(2), '4.80');
   assert.equal(contrast(tokens.themes.light.color.win, tokens.themes.light.color['surface-3']).toFixed(2), '4.87');
+  // The brand guide's reason for the light lime edge quotes lime's range on the light surfaces (stage 6 review: it
+  // left out surface-3); keep it equal to the tokens.
+  const light = tokens.themes.light.color;
+  const lime = ['canvas', 'surface-1', 'surface-2', 'surface-3'].map(surface => contrast(light.accent, light[surface]));
+  const range = `${Math.min(...lime).toFixed(2)} to ${Math.max(...lime).toFixed(2)}:1`;
+  assert.equal(range, '1.07 to 1.32:1');
+  assert.ok(read('docs/BRAND_GUIDE.md').includes(`lime on the light surfaces is only ${range}`), `docs/BRAND_GUIDE.md says lime on the light surfaces is ${range}`);
 });
 
 test('gx- prefix: every class, custom property and keyframe is gx-, and every selector stays inside .gx', () => {
@@ -249,6 +256,21 @@ test('fonts: every weight used is one the Google Fonts link loads, and Big Shoul
     for (const weight of weights) assert.ok(tokens.webfonts.weights[familyName(familyKey)].includes(weight), `${rule.file}: ${rule.selector} uses ${familyName(familyKey)} ${weight}, which is not loaded`);
     if (/\.gx-n-|\.gx-rank|\.gx-mkt-(line|price)|\.gx-chip\b|\.gx-counter/.test(rule.selector)) assert.notEqual(familyKey, 'display', `${rule.selector} sets numbers in Big Shoulders`);
   }
+  // A rule that sets only a weight takes its family from the class it styles: `.gx-btn--ghost` from `.gx-btn`,
+  // `.gx-tab--on .gx-tab-label` from `.gx-tab-label`. So a weight-only modifier on a Barlow class needs a Barlow weight.
+  const familyOf = className => styleRules.filter(rule => rule.selectors.includes(className))
+    .map(rule => [...rule.decls].reverse().find(d => (d.prop === 'font' || d.prop === 'font-family') && d.value !== 'inherit')?.value.match(/var\(--gx-font-(\w+)\)/)?.[1]).filter(Boolean);
+  let weightOnly = 0;
+  for (const rule of styleRules) {
+    if (rule.decls.some(d => d.prop === 'font' || d.prop === 'font-family')) continue;
+    for (const { value } of rule.decls.filter(d => d.prop === 'font-weight')) for (const selector of rule.selectors) {
+      const last = selector.trim().split(/[\s>+~]+/).at(-1);
+      const families = (last.match(/\.gx-[\w-]+/g) || []).flatMap(cls => [...new Set([cls, cls.replace(/--[\w-]+$/, '')])].flatMap(familyOf));
+      weightOnly += 1;
+      for (const key of families.length ? families : ['body']) assert.ok(tokens.webfonts.weights[familyName(key)].includes(Number(value)), `${rule.file}: ${selector} sets ${familyName(key)} to ${value}, which is not loaded`);
+    }
+  }
+  assert.ok(weightOnly >= 5, 'the weight-only rules were found');
 });
 
 test('tabular numbers: every Barlow Condensed rule sets tabular-nums after its font shorthand', () => {
@@ -282,16 +304,26 @@ test('type classes equal the JSON type scale', () => {
   }
 });
 
+// Every CSS named color (CSS Color 4), so a literal like `teal` fails as surely as `white`.
+const NAMED_COLORS = Object.freeze('aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen'.split(' '));
+
 test('colors come from tokens: no hex, rgb or named colors outside tokens.css', () => {
+  assert.equal(NAMED_COLORS.length, 148);
   const colorProps = /^(color|background|background-color|background-image|border|border-(top|right|bottom|left)(-color)?|border-color|outline|outline-color|box-shadow|text-shadow|fill|stroke|caret-color|accent-color|text-decoration-color|column-rule|filter)$/;
-  const literal = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(|\b(white|black|red|green|blue|gray|grey|yellow|orange|purple|pink|lime|navy|cyan|aqua|silver)\b/i;
+  const literal = new RegExp(`#[0-9a-f]{3,8}\\b|\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\\(|(?<![\\w-])(${NAMED_COLORS.join('|')})(?![\\w-])`, 'i');
   for (const rule of styleRules) for (const decl of rule.decls) if (colorProps.test(decl.prop)) assert.doesNotMatch(decl.value.replace(/var\(--[\w-]+\)/g, 'var()'), literal, `${rule.file}: ${rule.selector} ${decl.prop}: ${decl.value}`);
+  // The pattern itself catches what the old short list missed.
+  for (const value of ['teal', '1px solid tan', 'inset 0 0 0 1px rebeccapurple']) assert.match(value, literal, value);
+  for (const value of ['var()', 'none', 'transparent', 'currentColor', 'inset 0 0 0 1px var()']) assert.doesNotMatch(value, literal, value);
 });
 
 test('motion: keyframes animate only transform and opacity, and reduced motion stops everything', () => {
   for (const [name, { frames }] of allKeyframes) for (const frame of frames) for (const { prop } of frame.decls) assert.ok(['transform', 'opacity'].includes(prop), `@keyframes ${name} animates ${prop}`);
   for (const rule of allRules) for (const decl of rule.decls) {
     if (decl.prop === 'transition' && decl.value !== 'none') for (const part of splitTopLevel(decl.value, ',')) assert.match(part, /^(transform|opacity)\s/, `${rule.file}: ${rule.selector} transitions ${part}`);
+    // The longhands too: only transform and opacity move, and an animation name is a defined @keyframes.
+    if (decl.prop === 'transition-property' && decl.value !== 'none') for (const part of splitTopLevel(decl.value, ',')) assert.ok(['transform', 'opacity'].includes(part), `${rule.file}: ${rule.selector} transitions ${part}`);
+    if (decl.prop === 'animation-name' && decl.value !== 'none') for (const part of splitTopLevel(decl.value, ',')) assert.ok(allKeyframes.has(part), `${rule.file}: ${rule.selector} runs @keyframes ${part}, which is not defined`);
     if (decl.prop === 'animation' && decl.value !== 'none') {
       const name = decl.value.split(/\s+/).find(token => /^[a-z]/i.test(token) && !/^(ease|linear|infinite|alternate|forwards|backwards|both|step|var)/.test(token));
       assert.ok(allKeyframes.has(name), `${rule.file}: ${rule.selector} runs @keyframes ${name}, which is not defined`);
@@ -307,6 +339,31 @@ test('motion: keyframes animate only transform and opacity, and reduced motion s
   assert.ok(allRules.some(rule => rule.decls.some(d => d.prop === 'animation' && d.value.startsWith('gx-live-pulse'))), 'the LIVE dot is the one loop');
 });
 
+test('press, dialog and transforms: the claims the browser would otherwise have to check', () => {
+  const components = allRules.filter(rule => rule.file === `${stylesDir}/components.css`);
+  // The press scale (0.97) has the old-app reset's specificity only with :not(:disabled); without it the reset wins.
+  const press = components.filter(rule => rule.decls.some(d => d.prop === 'transform' && d.value === 'scale(0.97)'));
+  assert.equal(press.length, 1);
+  assert.ok(press[0].selectors.length >= 6);
+  for (const selector of press[0].selectors) assert.match(selector, /^\.gx-[\w-]+:active:not\(:disabled\)$/, selector);
+  // A closed <dialog> stays hidden: only [open] gets a display.
+  const dialog = components.filter(rule => rule.selectors.includes('.gx-dialog'));
+  assert.ok(dialog.length > 0 && dialog.every(rule => rule.context.length > 0 || !rule.decls.some(d => d.prop === 'display')), '.gx-dialog sets no display of its own');
+  assert.ok(components.some(rule => rule.selectors.includes('.gx-dialog[open]') && rule.decls.some(d => d.prop === 'display' && d.value === 'flex')));
+  // A pressed button loses every `transform` (base.css), so nothing centers itself with one: use `translate`. A
+  // pseudo-element (the switch knob) is never the pressed button, so its transform stays.
+  for (const rule of styleRules) for (const selector of rule.selectors) for (const decl of rule.decls) {
+    if (decl.prop === 'transform' && /translate/.test(decl.value) && !/::[\w-]+$/.test(selector)) assert.fail(`${rule.file}: ${selector} moves with transform: ${decl.value}; use the translate property, which the press reset leaves alone`);
+  }
+  assert.ok(styleRules.some(rule => rule.selectors.includes('.gx-strip-dot') && rule.decls.some(d => d.prop === 'translate' && d.value === '-50% 0')), 'a strip dot centers with translate');
+  // A scrolling rail clips, so it pads at least the ring (2px wide + 2px gap) around a focused chip.
+  const rail = components.find(rule => rule.selector === '.gx-chip-rail');
+  assert.equal(rail.decls.find(d => d.prop === 'padding')?.value, '4px');
+  // The layout utilities match the prototype contract (section 11).
+  const gaps = components.map(rule => rule.selector.match(/^\.gx-gap-(\d+)$/)?.[1]).filter(Boolean).map(Number);
+  assert.deepEqual(gaps, [2, 4, 6, 8, 12, 16, 24, 32]);
+});
+
 test('the old app\'s element rules are cancelled inside .gx without beating the gx- classes', () => {
   const base = allRules.filter(rule => rule.file === `${stylesDir}/base.css`);
   const has = (selector, prop, value) => base.some(rule => rule.selectors.includes(selector) && rule.decls.some(d => d.prop === prop && (value === undefined || d.value === value)));
@@ -319,6 +376,16 @@ test('the old app\'s element rules are cancelled inside .gx without beating the 
   assert.ok(has('.gx :where(th, td)', 'font', 'inherit'));
   assert.ok(has('.gx :where(main)', 'padding', '0'));
   assert.ok(has('.gx :focus-visible', 'outline', '2px solid var(--gx-focus)'));
+  assert.ok(has('.gx :focus-visible', 'outline-offset', '2px'), 'the ring keeps its 2px gap');
+  // styles.css: small{font-size:12px}, strong{font-weight:600}, input,select{background,border}, table and footer layout.
+  assert.ok(has('.gx :where(small)', 'font-size', 'inherit'));
+  assert.ok(has('.gx :where(strong, b)', 'font-weight', '700'));
+  assert.ok(has('.gx :where(input, select, textarea)', 'font', 'inherit'));
+  for (const [prop, value] of [['background', 'none'], ['border', '0']]) assert.ok(has('.gx :where(input, select, textarea)', prop, value), `checkboxes, radios and ranges drop the old input ${prop}`);
+  assert.ok(has('.gx :where(table)', 'border-collapse', 'collapse'));
+  assert.ok(has('.gx :where(footer)', 'display', 'block'));
+  assert.ok(has('.gx :where(footer) > :where(span)', 'display', 'revert'), 'footer > span is not the old flex row');
+  assert.ok(has('.gx :where(footer) > :where(span):nth-child(2)', 'display', 'revert'), 'the second footer span is not hidden');
   // Element selectors in base.css sit inside :where(), so a base rule is never more specific than
   // .gx plus pseudo-classes and a gx- class loaded later still wins.
   const withoutWhere = selector => {

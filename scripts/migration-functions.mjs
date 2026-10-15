@@ -16,7 +16,7 @@
 //   node scripts/migration-functions.mjs --latest           each function's newest body md5 (Gate M steps 4 and 7)
 //   node scripts/migration-functions.mjs --headers FILE     the header lines FILE needs (FILE may be a draft path)
 //   node scripts/migration-functions.mjs --rollback FILE    a supabase/rollback/ draft: the bodies FILE replaces
-//   node scripts/migration-functions.mjs --check            exit 1 on a missing, stale or stray header
+//   node scripts/migration-functions.mjs --check            exit 1 on a missing, stale or stray header, or a back-dated file
 //   add --json for machine-readable output
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,6 +26,43 @@ import { fileURLToPath } from 'node:url';
 export const MIGRATIONS_DIR = fileURLToPath(new URL('../supabase/migrations/', import.meta.url));
 /** The newest migration on main when the header rule started. Files at or before it are grandfathered. */
 export const HEADERS_FROM = 20261013060000;
+/**
+ * The files that were on main at or before HEADERS_FROM, by name. The header and rollback rules exempt a file by its
+ * version, so a new file stamped at or before the cut-off would skip both; checkCutoff refuses any such file that is
+ * not one of these (Gate M step 1 stamps a new file after the newest file on main).
+ */
+export const GRANDFATHERED = Object.freeze([
+  '20261008164249_gtl_private_cloud_state.sql',
+  '20261008174007_gtl_profiles_private_games_invites.sql',
+  '20261008182836_gtl_canonical_weekly_entries.sql',
+  '20261008185715_gtl_weekly_eligibility_rulings.sql',
+  '20261008185738_gtl_manual_odds_collection.sql',
+  '20261008192528_gtl_scoped_spread_benchmark.sql',
+  '20261008200926_gtl_twelve_hour_odds_refresh.sql',
+  '20261008201000_gtl_hosted_scheduler_extensions.sql',
+  '20261008201526_gtl_scheduler_extension_privacy.sql',
+  '20261008224444_gtl_personal_workspace.sql',
+  '20261008224735_gtl_reviewed_quote_selections.sql',
+  '20261008225401_gtl_submission_time_scoring.sql',
+  '20261008225607_gtl_reviewed_final_results.sql',
+  '20261008232055_gtl_fresh_submission_odds.sql',
+  '20261008240000_gtl_virtual_units.sql',
+  '20261009005145_gtl_social_bet_tracker.sql',
+  '20261009120000_gtl_community_feed.sql',
+  '20261009130000_gtl_league_interest.sql',
+  '20261009140000_gtl_d23_data_rule.sql',
+  '20261009150000_gtl_auto_open_week.sql',
+  '20261009160000_gtl_ruled_ballot_import.sql',
+  '20261009170000_gtl_virtual_units_settlement.sql',
+  '20261009190000_gtl_virtual_units_save_isfinite.sql',
+  '20261012213000_gtl_submission_odds_window.sql',
+  '20261012223000_gtl_community_history.sql',
+  '20261012230000_gtl_submit_with_line_at_guess.sql',
+  '20261012234500_gtl_game_officials.sql',
+  '20261013010000_gtl_line_at_guess_reads.sql',
+  '20261013030000_gtl_web_push_reminders.sql',
+  '20261013060000_gtl_wind_forecasts.sql',
+]);
 export const md5 = text => createHash('md5').update(text).digest('hex');
 export const version = file => Number(path.basename(file).slice(0, 14));
 
@@ -146,6 +183,17 @@ export function readMigrations(names = fs.readdirSync(MIGRATIONS_DIR).filter(f =
   return names.map(file => ({ file, sql: fs.readFileSync(path.join(dir, file), 'utf8') }));
 }
 
+/** A file at or before the cut-off that is not one of the grandfathered files: a new migration back-dated past the rules. */
+export function checkCutoff(names, { from = HEADERS_FROM, grandfathered = GRANDFATHERED } = {}) {
+  return names.map(name => path.basename(name)).filter(name => version(name) <= from && !grandfathered.includes(name))
+    .map(name => `${name}: stamped at or before the header cut-off ${from}, so the header and rollback rules would skip it. Stamp it after the newest file on main (Gate M step 1).`);
+}
+
+/** Everything `--check` refuses for a catalog: back-dated files, then missing, stale or stray headers. */
+export function checkRepo(cat) {
+  return [...checkCutoff(cat.files.map(f => f.file)), ...checkHeaders(cat)];
+}
+
 /** Missing, stale or stray `-- replaces` headers. Files at or before `from` are checked only for stray or stale headers. */
 export function checkHeaders({ files }, { from = HEADERS_FROM } = {}) {
   const problems = [];
@@ -199,7 +247,7 @@ function main(argv) {
   }
   const cat = catalog(readMigrations());
   if (argv.includes('--check')) {
-    const problems = checkHeaders(cat);
+    const problems = checkRepo(cat);
     print({ problems }, () => problems.join('\n') || `Headers OK across ${cat.files.length} migrations.`);
     return problems.length ? 1 : 0;
   }

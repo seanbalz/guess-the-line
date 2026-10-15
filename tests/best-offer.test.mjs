@@ -1,9 +1,11 @@
 // D-18 best price (shared/best-offer.mjs). Fixture quotes only: books, lines and
-// prices are made up for these tests, except the Week 6 SEA −3 case, which repeats
-// the two prices the build plan (docs/REDESIGN_BUILD_PLAN.md, stage 14) records.
+// prices are made up for these tests, except the Week 6 SEA −3 case: the build plan
+// (docs/REDESIGN_BUILD_PLAN.md, stage 14) records "SEA −3 picks BetMGM −102", and
+// FanDuel −106 is the price the old closest-to-−110 rule preferred that day (from the
+// stage 14 planning notes). Both are public market prices, not player data.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bestOffer, compareOffers, decimalPayout, newestPerBook } from '../shared/best-offer.mjs';
+import { bestOffer, compareOffers, decimalPayout, newestPerBook, usableOffer } from '../shared/best-offer.mjs';
 
 const at = hour => new Date(Date.UTC(2099, 9, 8, hour)).toISOString();
 const offer = (book, line, odds, observedAt = at(10)) => ({ book, line, odds, observedAt });
@@ -55,6 +57,18 @@ test('Week 6 build-plan case: SEA -3 picks BetMGM -102 over FanDuel -106', () =>
   assert.equal(best.line, -3);
 });
 
+test('the comparator takes only a known market and side, and only usable offers compete', () => {
+  // Follow-up to the stage 14 review: compareOffers is exported for the Lines tab, so an unknown market no longer
+  // falls back to the spread rules and an invalid price is the caller's to filter (usableOffer), as bestOffer does.
+  for (const [market, side] of [['moneyline', 'home'], ['spread', 'over'], ['total', 'home'], [undefined, undefined]]) {
+    assert.throws(() => compareOffers(market, side), /Unknown market side/, `${market} ${side}`);
+    assert.throws(() => bestOffer([offer('fanduel', -3, -110)], market, side), /Unknown market side/);
+  }
+  for (const [market, side] of [['spread', 'home'], ['spread', 'away'], ['total', 'over'], ['total', 'under']]) assert.equal(typeof compareOffers(market, side), 'function');
+  assert.equal(usableOffer(offer('fanduel', -3, -110)), true);
+  for (const bad of [null, undefined, { line: -3, odds: -110 }, offer('fanduel', Number.NaN, -110), offer('fanduel', -3, 50), offer('fanduel', -3, '−110')]) assert.equal(usableOffer(bad), false, JSON.stringify(bad));
+});
+
 test('offers without a usable line or price never count, and no offers gives null', () => {
   assert.equal(bestOffer([], 'spread', 'home'), null);
   assert.equal(bestOffer(undefined, 'spread', 'home'), null);
@@ -80,6 +94,15 @@ test('a book missing from the newest snapshot uses its newest older quote, not i
 test('a book in the newest snapshot keeps that quote even when an older one was a better price', () => {
   const kept = newestPerBook([quote('fanduel', at(12), at(12), { odds: -120 }), quote('fanduel', at(8), at(8), { odds: 100 })], kickoff);
   assert.deepEqual(kept.map(item => item.odds), [-120]);
+});
+
+test('the latest snapshot comes before the latest observation: its quote wins even when it was observed earlier', () => {
+  // Follow-up to the stage 14 review: every other fixture observes at its capture time, so swapping the two
+  // comparisons in newestPerBook passed. Here the latest snapshot (12:00) carries FanDuel's quote observed at 9:00,
+  // and an earlier snapshot (11:00) carried a quote observed at 10:00: the latest snapshot's quote is the one kept.
+  const kept = newestPerBook([quote('fanduel', at(11), at(10), { id: 'earlier-snapshot' }), quote('fanduel', at(12), at(9), { id: 'latest-snapshot' })], kickoff);
+  assert.deepEqual(kept.map(item => item.id), ['latest-snapshot']);
+  assert.deepEqual(newestPerBook([quote('fanduel', at(12), at(9), { id: 'latest-snapshot' }), quote('fanduel', at(11), at(10), { id: 'earlier-snapshot' })], kickoff).map(item => item.id), ['latest-snapshot']);
 });
 
 test('within one snapshot the later observation, then the later collection, wins; a full tie keeps the first seen', () => {
