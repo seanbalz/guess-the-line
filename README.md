@@ -1,5 +1,19 @@
 # Guess The Line
 
+**Latest verified release — October 14, 2026, evening Pacific:** frontend
+`fa406a83` and authenticated API v23 are live from `main` at `48f48dd`. This ships
+the recovered review fixes, team records through Week 5 and the corrected Home
+scoring status. The optional new-app preview has read-only Home and Lines; Play,
+Bets and League are still being built. The original app remains the default.
+No database migration was applied in this release. See the
+[October 14 release record](docs/RELEASE_2026_10_14.md) for checks, exact source,
+rollback references and remaining gates.
+
+## Earlier release notes
+
+The dated notes below describe earlier states. Use the October 14 record above
+for the latest verified deployment and pending migration status.
+
 **October 9, 2026 (D-21..D-25) — on `main` at `597ab59`, partly deployed:** PRs #10–#26
 add the one-community social feed with a shared leaderboard and chip pick entry
 (D-21), coming-soon leagues and a mark for all 32 teams (D-22), the never-delete
@@ -21,7 +35,7 @@ panels need a Pages deploy. Shared referee assignments also need migration
 and a `gtl-api` deploy. Until then the referee comes from the weekly trends file or reads "Referee
 not assigned yet". See [docs/TRENDS.md](docs/TRENDS.md).
 
-**Latest verified release (October 12, 2026):** Pages `06c71c14` and authenticated
+**Earlier verified release (October 12, 2026):** Pages `06c71c14` and authenticated
 API v15, built from `main` at `17c22b5`, are deployed at [Guess The Line](https://guess-the-line.pages.dev), with
 JWT verification enabled; see the [release record](docs/RELEASE_2026_10_09.md). The
 October 8 release (Pages `2106725d`, API v14) included individual submission/edit-time
