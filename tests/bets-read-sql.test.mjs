@@ -93,4 +93,12 @@ test('community account-week Bets read, group reuse, qualification, and game/mar
   assert.equal(api.body.bets[0].selection.line, -13.5);
   assert.equal(api.body.markets[game].total.visible, false);
   assert.equal(api.body.markets[game].spread.offers.home.book, 'betmgm', 'stable best-offer tie break');
+  const nextSpread = Object.fromEntries(state.games.map(g => [g.id, -12.5]));
+  await storeBookLines(world, { spread: nextSpread, total }, { capturedAt: Date.now() - 20_000 });
+  const updated = await world.api('luke', 'bets/read', {});
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.markets[game].spread.offers.home.line, -12.5,
+    'the button follows the newest retained named-book quote');
+  assert.equal(updated.body.bets[0].selection.line, -13.5,
+    'a placed pick keeps its exact saved line until the owner edits it');
 });
