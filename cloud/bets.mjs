@@ -3,7 +3,7 @@
 // quotes; they never collect odds. The old group Virtual Units routes are unchanged.
 import { UUID_PATTERN } from './lobby.mjs';
 import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
-import { decorateVirtualUnits } from './virtual-units.mjs';
+import { bookKeyForSource, decorateVirtualUnits } from './virtual-units.mjs';
 import { parseMarketsVisible } from './line-lock.mjs';
 import { readLiveRules } from './live-rules.mjs';
 
@@ -11,7 +11,7 @@ export class BetsError extends Error {
   constructor(status, message) { super(message); this.name = 'BetsError'; this.status = status; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
-export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'] });
+export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'], '/bets/recommendations/edit': ['POST'] });
 /** Database refusal code → [status, sentence]. A code is mapped here, and deployed, before the SQL can raise it. */
 const ERRORS = Object.freeze({
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -21,10 +21,12 @@ const ERRORS = Object.freeze({
   GTL_BETS_WEEK: [409, 'The published week changed. Refresh recommendations before saving.'],
   GTL_VIRTUAL_INVALID: [400, 'Choose a valid side, unit amount and saved named-book quote.'],
   GTL_VIRTUAL_CLOSED: [409, 'This matchup has started. Virtual picks are closed.'],
-  GTL_VIRTUAL_QUOTE: [409, 'That saved quote changed. Refresh recommendations and review its terms.'],
+  GTL_VIRTUAL_QUOTE: [409, 'That saved quote is no longer current. Refresh recommendations and explicitly choose the updated quote.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your picks changed on another device. Refresh before saving.'],
   GTL_LINE_LOCKED: [409, 'Submit or lock in your guess for this game and market before placing a pick.'],
   GTL_VIRTUAL_EXISTS: [409, 'You already have this matchup and market on your virtual card.'],
+  GTL_VIRTUAL_MISSING: [409, 'That virtual pick is no longer available. Refresh your card before editing.'],
+  GTL_VIRTUAL_SETTLED: [409, 'That virtual pick has a result and cannot be edited.'],
 });
 export const providerBetsError = message => (Object.hasOwn(ERRORS, message) ? new BetsError(...ERRORS[message]) : new Error('Bets are unavailable.'));
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -58,12 +60,22 @@ function personalView(raw, games, now, rules, ownerId) {
       lockedAt: Object.fromEntries(games.filter(game => time(ballot?.lockedAt?.[game.id])).map(game => [game.id, ballot.lockedAt[game.id]])),
     }];
   }));
-  return { ownerId, season: raw.season, week: raw.week, now: new Date(now).toISOString(), weeklyRevision: Number.isSafeInteger(raw.weeklyRevision) ? raw.weeklyRevision : 0, games, ballots, rules };
+  const ids = new Set(games.map(game => game.id));
+  const forecasts = (Array.isArray(raw.forecasts) ? raw.forecasts : []).filter(row => record(row) && ids.has(row.gameId)
+    && MARKETS.includes(row.market) && finite(row.value) && Number.isInteger(row.value * 2)
+    && row.value >= (row.market === 'spread' ? -100 : 0) && row.value <= (row.market === 'spread' ? 100 : 200)
+    && time(row.savedAt) && Date.parse(row.savedAt) <= now
+    && (row.season == null || row.season === raw.season) && (row.week == null || row.week === raw.week))
+    .map(row => ({ gameId: row.gameId, market: row.market, value: row.value, savedAt: row.savedAt,
+      revision: Number.isSafeInteger(row.revision) && row.revision >= 0 ? row.revision : null }));
+  return { ownerId, season: raw.season, week: raw.week, now: new Date(now).toISOString(),
+    personalRevision: Number.isSafeInteger(raw.revision) && raw.revision >= 0 ? raw.revision : null,
+    weeklyRevision: Number.isSafeInteger(raw.weeklyRevision) ? raw.weeklyRevision : 0, games, ballots, forecasts, rules };
 }
 
 function selectionView(raw) {
   return { gameId: text(raw?.gameId), market: text(raw?.market), side: text(raw?.side), line: finite(raw?.line) ? raw.line : null,
-    odds: finite(raw?.odds) ? raw.odds : null, units: finite(raw?.units) ? raw.units : null, source: text(raw?.source),
+    odds: finite(raw?.odds) ? raw.odds : null, units: finite(raw?.units) ? raw.units : null, source: text(raw?.source), book: bookKeyForSource(raw?.source),
     quotedAt: time(raw?.quotedAt), selectedAt: time(raw?.selectedAt) };
 }
 function resultView(raw) {
@@ -117,7 +129,7 @@ export async function readRecommendations({ user, service, clock = Date.now, opt
   const virtual = decorateVirtualUnits({ season: raw.season, week: raw.week, revision: personal.weeklyRevision, games, picks, results, summary,
     settlement: { lastSettledAt, settledGames: Object.keys(results).length, settledPicks: picks.length - summary.pending, pendingPicks: summary.pending },
     quoteHistoryAvailable: Boolean(stored.snapshot), scope: current ? 'account_current' : 'account_history', playerId: user.id, current,
-  }, stored.snapshot, { gate, now, rules });
+  }, stored.snapshot, { gate, now, rules, includeQuoteQuality: true });
   // Drop provider payload/outcomes: only a visible market's exact named-book terms leave the server.
   virtual.games = virtual.games.map(game => ({ ...game, offers: Object.fromEntries(Object.entries(game.offers).map(([market, sides]) => [market,
     Object.fromEntries(Object.entries(sides).map(([side, offer]) => [side, offerView(offer)])),
@@ -133,6 +145,14 @@ function validatePlace(body) {
     || !Number.isInteger(body.odds) || Math.abs(body.odds) < 100 || Math.abs(body.odds) > 10000
     || !finite(body.units) || body.units <= 0 || !Number.isInteger(body.units * 2) || typeof body.source !== 'string' || !time(body.quotedAt)) fail('GTL_VIRTUAL_INVALID');
 }
+function validateEdit(body) {
+  if (Object.hasOwn(body, 'updateQuote') && typeof body.updateQuote !== 'boolean') fail('GTL_VIRTUAL_INVALID');
+  if (body.updateQuote === true) { const { updateQuote, ...quote } = body; validatePlace(quote); return; }
+  const keys = ['season', 'week', 'revision', 'gameId', 'market', 'units', 'updateQuote'];
+  if (!scope(body) || !Number.isSafeInteger(body.revision) || body.revision < 0 || Object.keys(body).some(key => !keys.includes(key))
+    || typeof body.gameId !== 'string' || !/^[A-Z]{2,3}-[A-Z]{2,3}$/.test(body.gameId) || !MARKETS.includes(body.market)
+    || !finite(body.units) || body.units <= 0 || !Number.isInteger(body.units * 2)) fail('GTL_VIRTUAL_INVALID');
+}
 
 /** The handler calls this only for a route in BETS_METHODS, after sign-in and email confirmation. */
 export async function handleBets({ route, body = {}, user, service, clock = Date.now, optionalRpc, featureOff = new Set() }) {
@@ -140,13 +160,15 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
   if (!Object.hasOwn(BETS_METHODS, route)) throw new BetsError(404, 'Not found.');
   if (!service?.rpc || typeof service.recommendationState !== 'function') throw new Error('Bets are not configured.');
   if (featureOff.has('recommendations') || featureOff.has('bets')) fail('GTL_FEATURE_OFF');
+  if (route === '/bets/recommendations/edit' && featureOff.has('recommendation-edits')) fail('GTL_FEATURE_OFF');
   if (!record(body)) fail('GTL_VIRTUAL_INVALID');
   if (route === '/bets/recommendations') {
     const keys = Object.keys(body);
     if (keys.length && (keys.length !== 2 || !keys.includes('season') || !keys.includes('week') || !scope(body))) throw new BetsError(400, 'Choose a published season and week. Player identity comes from sign-in.');
     return readRecommendations({ user, service, clock, optionalRpc, selectedWeek: keys.length ? { season: body.season, week: body.week } : null });
   }
-  validatePlace(body);
+  const editing = route === '/bets/recommendations/edit';
+  if (editing) validateEdit(body); else validatePlace(body);
   const current = await readRecommendations({ user, service, clock, optionalRpc });
   if (!sameWeek(body, current.virtual)) fail('GTL_BETS_WEEK');
   if (body.revision !== current.virtual.revision) fail('GTL_WEEKLY_CONFLICT');
@@ -154,12 +176,20 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
   if (!game) fail('GTL_VIRTUAL_INVALID');
   if (clock() >= Date.parse(game.kickoff) || current.virtual.results[game.id]) fail('GTL_VIRTUAL_CLOSED');
   if (game.locked[body.market]) fail('GTL_LINE_LOCKED');
-  if (current.virtual.picks.some(pick => pick.gameId === game.id && pick.market === body.market)) fail('GTL_VIRTUAL_EXISTS');
-  const offer = game.offers[body.market]?.[body.side];
-  if (!offer || offer.book !== body.source || offer.line !== body.line || offer.odds !== body.odds || Date.parse(offer.observedAt) !== Date.parse(body.quotedAt)) fail('GTL_VIRTUAL_QUOTE');
-  // The additive writer repeats membership, current week, gate, quote, revision and kickoff
-  // checks atomically. It never replaces another saved pick; old group edits stay on their old route.
-  await service.rpc('gtl_save_recommended_virtual_pick', { p_user: user.id, p_season: body.season, p_week: body.week, p_revision: body.revision,
-    p_body: { gameId: body.gameId, market: body.market, side: body.side, line: offer.line, odds: offer.odds, units: body.units, source: offer.source, quotedAt: offer.observedAt } });
+  const existing = current.virtual.picks.find(pick => pick.gameId === game.id && pick.market === body.market);
+  if (editing && !existing) fail('GTL_VIRTUAL_MISSING');
+  if (!editing && existing) fail('GTL_VIRTUAL_EXISTS');
+  if (editing && (existing.status !== 'pending' || existing.result)) fail('GTL_VIRTUAL_SETTLED');
+  let pickBody = { gameId: body.gameId, market: body.market, units: body.units };
+  if (!editing || body.updateQuote === true) {
+    const offer = game.offers[body.market]?.[body.side];
+    if (!offer || offer.book !== body.source || offer.line !== body.line || offer.odds !== body.odds || Date.parse(offer.observedAt) !== Date.parse(body.quotedAt)) fail('GTL_VIRTUAL_QUOTE');
+    pickBody = { ...pickBody, side: body.side, line: offer.line, odds: offer.odds, source: offer.source, quotedAt: offer.observedAt,
+      ...(editing ? { updateQuote: true } : {}) };
+  }
+  // Additive writers repeat membership, week, gate, revision and kickoff checks atomically.
+  // Placement is new-only; an explicit edit requires an existing pending pick and audits its before/after terms.
+  await service.rpc(editing ? 'gtl_edit_recommended_virtual_pick' : 'gtl_save_recommended_virtual_pick', {
+    p_user: user.id, p_season: body.season, p_week: body.week, p_revision: body.revision, p_body: pickBody });
   return readRecommendations({ user, service, clock, optionalRpc });
 }

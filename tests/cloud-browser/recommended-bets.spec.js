@@ -1,58 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, sendBallot, storeBookLines } from './community-world.mjs';
-import { HOSTED } from '../migrations.mjs';
+import { ACCOUNTS, SUPABASE, pgliteAvailable, sendBallot, storeBookLines } from './community-world.mjs';
+import { cards, fixture, openRecommended, picksCount, placements, requests } from './recommendation-world.mjs';
 
 // These recommendations use fictional saved guesses, retained three-book quotes, the hosted schema plus this
 // release's additive writer on PGlite. The network fixture rejects unmocked external traffic; no real bet is placed.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
-
-const view = (page, name) => page.getByRole('group', { name: 'Bets view' }).getByRole('button', { name, exact: true });
-const cards = page => page.locator('.recommended-bet-card');
-function requests(page) {
-  const calls = [];
-  page.on('request', request => {
-    const url = new URL(request.url());
-    if (url.origin === SUPABASE && url.pathname.includes('/gtl-api/')) calls.push({
-      path: url.pathname.split('/gtl-api/')[1], query: url.search,
-      body: request.method() === 'POST' ? request.postDataJSON() : null,
-    });
-  });
-  return calls;
-}
-const placements = calls => calls.filter(call => call.path === 'bets/recommendations/place');
-const picksCount = async world => Number((await world.db.query('select count(*) as n from public.gtl_virtual_units_picks where user_id=$1', [ACCOUNTS.luke.id])).rows[0].n);
-const migrations = [...new Set([...HOSTED, '20261015143006_gtl_recommended_virtual_pick.sql'])].sort();
-
-async function fixture(page, baseURL, { games = 4, spread = true, total = true } = {}) {
-  const world = await communityWorld(page, baseURL, { games, groupScreens: true, virtualUnits: true, optionalRpc: true, migrations });
-  world.lines = {
-    spread: Object.fromEntries(world.state.games.map(game => [game.id, -3.5])),
-    total: Object.fromEntries(world.state.games.map(game => [game.id, 44.5])),
-  };
-  world.observedAt = await storeBookLines(world, world.lines);
-  world.guesses = {
-    spread: Object.fromEntries(world.state.games.map((game, i) => [game.id, [-10, -7, -5, -3][i]])),
-    total: Object.fromEntries(world.state.games.map((game, i) => [game.id, [55, 49, 43, 44.5][i]])),
-  };
-  if (spread) await sendBallot(world, 'luke', 'guess_spread', world.guesses.spread);
-  if (total) await sendBallot(world, 'luke', 'guess_total', world.guesses.total);
-  return world;
-}
-
-async function openRecommended(page) {
-  await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
-  await page.goto('/#bets');
-  await signIn(page, 'luke', { navigate: false });
-  await expect(page.getByRole('heading', { name: 'Bets', level: 1, exact: true })).toBeVisible();
-  await view(page, 'Recommended').click();
-  await expect(page.locator('.virtual-units')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Refresh lines', exact: true })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Choose league', exact: true })).toHaveCount(0);
-}
 
 async function publishNextWeek(world) {
   const { season, week } = world.state.league;
@@ -92,12 +48,17 @@ test('saved guesses rank the top three; expanding retains small gaps and both si
     expect(placements(calls)).toEqual([]);
     expect(await picksCount(world)).toBe(0);
     await page.screenshot({ path: '.local/previews/recommended-bets-top3-dark-390.png', fullPage: true });
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await page.screenshot({ path: `.local/previews/recommended-refinements-${theme}-390-viewport.png` });
+    }
+    await page.evaluate(() => document.documentElement.dataset.theme = 'dark');
 
     await page.getByRole('button', { name: /Show all/i }).click();
     await expect(cards(page)).toHaveCount(7);
     await expect(cards(page).last().locator('[data-value-color="yellow"]')).toHaveCount(2);
     await expect(cards(page).last()).toContainText('Small gap');
-    await expect(cards(page).last()).toContainText('0.5 pt gap');
+    await expect(cards(page).last()).toContainText('+0.5 pt at book');
     expect(calls.filter(call => call.path === 'bets/recommendations').at(-1)?.body).toEqual({});
     expect(calls.some(call => call.path.startsWith('odds/') || call.path === 'virtual-units' || call.path === 'virtual-pick')).toBe(false);
 
@@ -138,8 +99,10 @@ test('Add to card only prepares the retained quote; explicit placement saves one
       source: 'betmgm', quotedAt: world.observedAt,
     } });
     await expect.poll(() => picksCount(world)).toBe(1);
-    await expect(cards(page).first()).toContainText(/Already on your card|On your card|Already saved/);
-    await expect(cards(page).first().getByRole('button', { name: 'Already on your card', exact: true })).toBeDisabled();
+    await expect(page.getByRole('region', { name: 'Your virtual card', exact: true })).toContainText('Over 44.5 (−110) · 1U');
+    await page.getByRole('button', { name: /Show all/i }).click();
+    await expect(page.locator(`.recommended-bet-card[data-game-id="${firstGame.id}"][data-market="total"]`).getByRole('button', { name: 'Already on your card', exact: true })).toBeDisabled();
+    await page.getByRole('button', { name: /Show top 3/i }).click();
     await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
     await expect(cards(page)).toHaveCount(3);
     expect(placements(calls)).toHaveLength(1);
@@ -174,7 +137,7 @@ test('draft guesses and locked markets never generate recommendations, including
     await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
     await expect(cards(page)).toHaveCount(0);
     await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText(`Week ${week + 1}`);
-    await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText('No differences to show yet');
+    await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText('No new picks are available');
     expect(placements(calls)).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -330,7 +293,7 @@ test('the week selector keeps the player’s older saved card readable after Com
     const weekSelect = page.getByRole('combobox', { name: 'Recommendation week', exact: true });
     await expect(weekSelect).toHaveValue('current');
     await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText(`Week ${next.week}`);
-    await expect(page.getByRole('region', { name: 'Your virtual card', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'Your virtual card', exact: true }).locator('li')).toHaveCount(0);
     await weekSelect.selectOption(`${season}:${week}`);
     await expect(page.locator('.virtual-units')).toContainText('View only · older week');
     const saved = page.getByRole('region', { name: 'Your virtual card', exact: true });
@@ -349,7 +312,7 @@ test('the week selector keeps the player’s older saved card readable after Com
     expect((await world.db.query("select state from public.gtl_leagues where id='sean-troy-luke'")).rows[0].state.league.week).toBe(week);
     await weekSelect.selectOption('current');
     await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText(`Week ${next.week}`);
-    await expect(saved).toHaveCount(0);
+    await expect(saved.locator('li')).toHaveCount(0);
     expect(placements(calls)).toHaveLength(1);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

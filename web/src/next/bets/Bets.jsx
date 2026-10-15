@@ -27,7 +27,7 @@ export function Bets() {
     shell.setView('bets', { view: next });
   }
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title">
-    <header className="gx-bets-heading"><h1 id="gx-bets-title" className="gx-t-title">Bets</h1><p className="gx-t-body gx-c-2">Track tickets you placed elsewhere, or play with Virtual Units.</p></header>
+    <header className="gx-bets-heading"><h1 id="gx-bets-title" className="gx-t-title">Bets</h1>{view !== 'recommended' && <p className="gx-t-body gx-c-2">Track tickets you placed elsewhere, or play with Virtual Units.</p>}</header>
     <div className="gx-bets-views" role="group" aria-label="Bets view">
       <Button icon={NotebookPen} aria-pressed={view === 'tracked'} onClick={() => choose('tracked')}>Tracked bets</Button>
       <Button icon={ListFilter} aria-pressed={view === 'recommended'} onClick={() => choose('recommended')}>Recommended</Button>
@@ -37,7 +37,6 @@ export function Bets() {
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Tracked bets are shared with all signed-in players, including when you select a private league. Results are player reported.</span></p>
       <DeferredScreen label="tracked bets"><SocialBetTracker key={app.accountId} player={app.accountId} embedded onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : view === 'recommended' ? <>
-      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Coins} size={18}/><span>Your current week's submitted guesses. Add a suggestion to review its Virtual Units stake before placing it.</span></p>
       <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : privateLeague ? <>
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Showing {league.name}. Your account’s Virtual Units picks are reused across your leagues.</span></p>

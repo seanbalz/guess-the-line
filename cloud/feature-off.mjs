@@ -16,7 +16,8 @@ export const FEATURES = Object.freeze({
   picks: 'POST /community/picks: everyone\'s Guess picks, game by game (M-08, redesign stage 26)',
   'lock-in': 'POST /personal/ballot with lockIn: the per-game lock-in on a draft (M-02, redesign stage 18); a whole-market send keeps working',
   forfeit: 'POST /community/forfeit: "Skip this week\'s Guess the Line" and "See picks now" (M-03, redesign stage 19)',
-  recommendations: 'POST /bets/recommendations and /bets/recommendations/place: current-account recommendation reads and new Virtual Units picks',
+  recommendations: 'POST /bets/recommendations, /bets/recommendations/place and /bets/recommendations/edit: current-account recommendation reads and Virtual Units picks',
+  'recommendation-edits': 'POST /bets/recommendations/edit: explicit current-account Virtual Units pick edits',
 });
 
 /** The set of known feature names the secret turns off (empty when it is unset or names nothing known). */

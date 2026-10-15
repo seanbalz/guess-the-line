@@ -6,6 +6,7 @@ import { readLiveRules } from './live-rules.mjs';
 const MARKETS = new Set(['spread','total']);
 const SIDES = { spread: new Set(['home','away']), total: new Set(['over','under']) };
 const BOOKS = { draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', betrivers: 'BetRivers', betonlineag: 'BetOnline.ag', betus: 'BetUS', bovada: 'Bovada', lowvig: 'LowVig.ag', mybookieag: 'MyBookie.ag' };
+export const bookKeyForSource = source => Object.keys(BOOKS).find(key => BOOKS[key] === source) ?? null;
 const point = (value, market) => Number.isFinite(value) && Number.isInteger(value * 2) && value >= (market === 'total' ? 0 : -100) && value <= (market === 'total' ? 200 : 100);
 const odds = value => Number.isInteger(value) && Math.abs(value) >= 100 && Math.abs(value) <= 10000;
 const iso = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : null;
@@ -68,7 +69,7 @@ function bestOffers(game, snapshot) {
   }));
 }
 
-function consensus(game, snapshot, market) {
+function consensus(game, snapshot, market, includeQuoteQuality = false) {
   const quotes = latestQuotes(snapshot, game, market);
   if (!quotes.length) return null;
   const values = quotes.map(quote => Number(quote.value)).sort((a, b) => a - b);
@@ -79,19 +80,26 @@ function consensus(game, snapshot, market) {
     source: 'Latest retained named-book median',
     books: quotes.length,
     observedAt: new Date(Math.min(...quotes.map(quote => Date.parse(quote.observedAt)))).toISOString(),
+    ...(includeQuoteQuality ? {
+      oldestObservedAt: new Date(Math.min(...quotes.map(quote => Date.parse(quote.observedAt)))).toISOString(),
+      newestObservedAt: new Date(Math.max(...quotes.map(quote => Date.parse(quote.observedAt)))).toISOString(),
+      oldestCollectedAt: new Date(Math.min(...quotes.map(quote => Date.parse(quote.collectedAt)))).toISOString(),
+      newestCollectedAt: new Date(Math.max(...quotes.map(quote => Date.parse(quote.collectedAt)))).toISOString(),
+      minValue: values[0], maxValue: values.at(-1),
+    } : {}),
   };
 }
 
 // Stage 20 line lock (cloud/line-lock.mjs): a locked market carries no book offer and no consensus, only
 // `locked: { spread, total }`. The player's own saved picks (`payload.picks`) always keep their full terms.
-export function decorateVirtualUnits(payload, snapshot, { gate, now, rules }) {
+export function decorateVirtualUnits(payload, snapshot, { gate, now, rules, includeQuoteQuality = false }) {
   const games = (payload.games || []).map(game => {
     const locked = lockedMarkets(game, { season: payload.season, week: payload.week, gate, now });
     const open = LINE_MARKETS.filter(market => !locked[market]);
     const offers = bestOffers(game, snapshot);
     return { ...game, pacificDate: new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', month:'short', day:'numeric' }).format(new Date(game.kickoff)),
       offers: Object.fromEntries(open.map(market => [market, offers[market]])),
-      consensus: Object.fromEntries(open.map(market => [market, consensus(game, snapshot, market)])), locked };
+      consensus: Object.fromEntries(open.map(market => [market, consensus(game, snapshot, market, includeQuoteQuality)])), locked };
   });
   return { ...payload, games, source: 'The Odds API saved named-book quotes', sourceUrl: 'https://the-odds-api.com/liveapi/guides/v4/', quoteCutoff: null, now: new Date(now).toISOString(), automaticResults: false, rules };
 }

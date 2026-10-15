@@ -375,9 +375,9 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Provider details remain private. */ }
           // A group RPC the hosted project does not have yet (its migration not applied, or rolled back) reads as off.
           if (response.status === 404 && code === FUNCTION_NOT_FOUND) {
-            // The recommendations writer is the only new Bets RPC with an off
-            // response. Preserve the untouched future Bets routes' generic error.
-            if (providerError === providerBetsError && name !== 'gtl_save_recommended_virtual_pick') throw providerError();
+            // Recommendation placement/edit writers have explicit off responses.
+            // Preserve the untouched future Bets routes' generic error.
+            if (providerError === providerBetsError && !['gtl_save_recommended_virtual_pick', 'gtl_edit_recommended_virtual_pick'].includes(name)) throw providerError();
             throw providerError('GTL_FEATURE_OFF');
           }
           throw providerError(message);

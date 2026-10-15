@@ -13,6 +13,7 @@ export const rpcChecks = Object.freeze([
   ['gtl_read_virtual_units', { p_user: missingId, p_league: missingLeague }],
   ['gtl_save_virtual_units_pick', { p_user: missingId, p_league: missingLeague, p_revision: 0, p_body: {} }],
   ['gtl_save_recommended_virtual_pick', { p_user: missingId, p_season: 2026, p_week: 6, p_revision: 0, p_body: {} }],
+  ['gtl_edit_recommended_virtual_pick', { p_user: missingId, p_season: 2026, p_week: 6, p_revision: 0, p_body: {} }],
   // D-18 save-path helper added by 20261009190000; service-only like the function that calls it.
   ['gtl_numeric_is_finite', { p_value: 1 }],
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
@@ -25,9 +26,12 @@ export const apiChecks = Object.freeze([
   ['virtual-units/settle', {}],
   ['bets/recommendations', {}],
   ['bets/recommendations/place', {}],
+  ['bets/recommendations/edit', {}],
 ]);
 
 export const workerChecks = Object.freeze([]);
 
 export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_edit_recommended_virtual_pick': 'migration 20261015190955_gtl_edit_recommended_virtual_pick.sql',
+  'gtl-api/bets/recommendations/edit': 'the gtl-api deploy with explicit recommendation edits',
 });

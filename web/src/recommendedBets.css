@@ -3,18 +3,31 @@
 .recommended-view-tabs button { min-height: var(--touch-target, 44px); font-size: 16px; }
 .recommended-view-tabs [aria-pressed="true"] { color: var(--primaryForeground, var(--primary)); border-color: var(--primaryForeground, var(--primary)); }
 .recommended-bets { display: grid; gap: 16px; min-width: 0; }
-.recommended-week-select { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; margin-bottom: 16px; color: var(--muted); font-size: 16px; }
+.recommended-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.recommended-week-select { display: grid; min-width: 0; gap: 4px; margin: 0; color: var(--muted); font-size: 13px; }
 .recommended-week-select select { width: 100%; min-width: 0; min-height: var(--touch-target, 44px); font-size: 16px; }
+.recommended-refresh { grid-column: 1 / -1; justify-self: end; min-height: var(--touch-target, 44px); font-size: 16px; }
+.recommended-explanation { margin-bottom: 12px; color: var(--muted); font-size: 13px; line-height: 18px; }
+.recommended-explanation summary { min-height: var(--touch-target, 44px); display: flex; align-items: center; cursor: pointer; font-size: 16px; color: var(--cyan); }
+.recommended-explanation p { margin-bottom: 8px; }
+.recommendation-forecast-editor { margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-card, 12px); background: var(--surface); }
+.recommendation-forecast-editor > summary { min-height: var(--touch-target, 44px); display: flex; align-items: center; font-size: 16px; color: var(--cyan); cursor: pointer; }
+.recommendation-forecast-editor > p { font-size: 13px; line-height: 18px; margin: 8px 0; }
+.recommendation-forecast-editor .personal-form { display: grid; gap: 12px; padding: 0; }
+.recommendation-forecast-editor label { display: grid; min-width: 0; gap: 4px; font-size: 16px; }
+.recommendation-forecast-editor input, .recommendation-forecast-editor select, .recommendation-forecast-editor button { width: 100%; min-height: var(--touch-target, 44px); font-size: 16px; }
+.recommendation-forecast-editor .personal-actions { display: grid; gap: 8px; }
+.recommendation-forecast-editor .personal-form > p { font-size: 13px; line-height: 18px; }
 .recommended-list-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .recommended-list-heading h3 { font-size: 20px; }
 .recommended-list-heading > span, .recommended-coverage { color: var(--muted); font-size: 13px; }
 .recommended-bet-list { display: grid; gap: 16px; }
 .recommended-bet-card, .recommended-pending-review { min-width: 0; overflow: hidden; padding: 16px; }
 .recommended-card-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
-.recommended-card-heading h3 { font-size: 20px; line-height: 1.4; margin-top: 4px; }
+.recommended-card-heading h3 { font-size: 18px; line-height: 22px; margin-top: 4px; }
 .recommended-card-heading p, .recommended-market-label { color: var(--muted); font-size: 13px; }
 .recommended-market-label { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
-.recommended-gap { flex-shrink: 0; color: var(--cyan); font-family: var(--font-mono); font-size: 18px; font-variant-numeric: tabular-nums; }
+.recommended-gap { flex-shrink: 0; color: var(--cyan); font-family: var(--font-mono); font-size: 16px; font-variant-numeric: tabular-nums; }
 .recommended-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 8px; }
 .recommended-comparison > div { min-width: 0; }
 .recommended-comparison dt { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
@@ -28,6 +41,27 @@
 .recommended-side.recommended-green { color: var(--win); }
 .recommended-side.recommended-red { color: var(--loss); }
 .recommended-side.recommended-yellow { color: var(--pending); }
+.recommended-side.recommended-unavailable { color: var(--muted); }
+.recommended-side-summary { margin: 8px 0; }
+.recommended-side-summary .recommended-side { grid-template-columns: 1fr auto; gap: 4px 8px; padding: 8px; }
+.recommended-side-summary .recommended-side > span { grid-column: 1 / -1; grid-row: 2; font-size: 13px; }
+.recommended-side-summary .recommended-side > strong, .recommended-side-summary .recommended-side > small { font-size: 16px; }
+.recommended-selection-summary { font-size: 16px; line-height: 24px; }
+.recommended-quote-quality { margin: 4px 0 8px; }
+.recommended-row-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.recommended-row-actions > button, .recommended-review-actions > button, .recommended-quote-update > button, .recommended-saved-card button { min-height: var(--touch-target, 44px); font-size: 16px; justify-content: center; }
+.recommended-details { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.recommended-details > p + p { margin-top: 8px; }
+.recommended-review-actions { display: grid; gap: 8px; margin-top: 12px; }
+.recommended-review-actions .virtual-save { margin-top: 0; }
+.virtual-units .virtual-unit-buttons > button { min-height: var(--touch-target, 44px); }
+.recommended-quote-update { display: grid; gap: 8px; padding: 12px; margin-bottom: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-control, 8px); }
+.recommended-quote-update > p { font-size: 16px; line-height: 24px; }
+.recommended-quote-update > .recommended-source { font-size: 13px; line-height: 18px; }
+.recommended-card-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.recommended-card-stats .stat { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 8px; }
+.recommended-card-stats .stat strong { margin: 0; font-size: 24px; }
+.recommended-card-stats .stat small { font-size: 13px; overflow-wrap: anywhere; }
 .recommended-action { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .recommended-action > p { flex: 1 1 220px; font-size: 16px; }
 .recommended-action small { display: block; font-size: 13px; color: var(--muted); margin-top: 8px; }
@@ -52,4 +86,9 @@
   .recommended-action > button { width: 100%; justify-content: center; }
   .recommended-side { padding: 8px; }
   .recommended-review .virtual-side-buttons { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 360px) {
+  .recommended-side-summary .recommended-side { grid-template-columns: minmax(0, 1fr); }
+  .recommended-side-summary .recommended-side > strong { white-space: nowrap; overflow-wrap: normal; }
+  .recommended-side-summary .recommended-side > small { grid-row: 3; }
 }

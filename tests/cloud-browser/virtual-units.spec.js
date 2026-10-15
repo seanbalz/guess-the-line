@@ -203,6 +203,19 @@ base('line lock at 390px: every market is locked before a send, the Spread lines
     const first = card(page, world.state.games[0]);
     await expect(first.getByRole('button', { name: /^Dallas Cowboys -11\.5 \(−110\)/ })).toBeVisible();
     await expect(first.locator('.virtual-consensus')).toContainText('Consensus: -11.5 · 3 books');
+    // The shared Market controls also keep a classic All games selection's quote
+    // intact when only its units change, and removing it never writes a pick.
+    await first.getByRole('button', { name: /^Dallas Cowboys -11\.5 \(−110\)/ }).click();
+    const selected = first.locator('.virtual-selected-quote');
+    const originalQuote = await selected.innerText();
+    await first.getByRole('button', { name: '2U', exact: true }).click();
+    await expect(selected).toHaveText(originalQuote.replace(' · 1U · ', ' · 2U · '));
+    await first.getByRole('button', { name: 'Increase units', exact: true }).click();
+    await expect(selected).toHaveText(originalQuote.replace(' · 1U · ', ' · 2.5U · '));
+    await first.getByRole('button', { name: 'Remove from card', exact: true }).click();
+    await expect(selected).toHaveCount(0);
+    await expect(first.getByRole('button', { name: 'Place virtual pick', exact: true })).toHaveCount(0);
+    expect(Number((await world.db.query('select count(*) as n from public.gtl_virtual_units_picks')).rows[0].n)).toBe(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

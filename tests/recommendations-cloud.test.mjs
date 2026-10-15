@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { handleBets, providerBetsError } from '../cloud/bets.mjs';
 import { parseFeatureOff } from '../cloud/feature-off.mjs';
+import { decorateVirtualUnits } from '../cloud/virtual-units.mjs';
+import { readResponse } from '../web/src/apiResponse.js';
 
 const USER = { id: '11111111-1111-4111-8111-111111111111', email: 'fixture@example.test', emailConfirmed: true };
 const AT = '2099-10-08T15:00:00.000Z', KICKOFF = '2099-10-08T20:00:00.000Z', NOW = Date.parse('2099-10-08T18:00:00.000Z');
@@ -24,6 +26,13 @@ function fixture({ member = true, gate = { [GAME.id]: { spread: true, total: fal
       if (name === 'gtl_markets_visible') return gate;
       if (name === 'gtl_save_recommended_virtual_pick') {
         stored.picks.push({ game_id: body.p_body.gameId, market: body.p_body.market, selection: body.p_body, status: 'pending' }); raw.weeklyRevision += 1;
+        return raw.weeklyRevision;
+      }
+      if (name === 'gtl_edit_recommended_virtual_pick') {
+        const pick = stored.picks.find(pick => pick.game_id === body.p_body.gameId && pick.market === body.p_body.market);
+        assert.ok(pick, 'edits never silently insert a new pick');
+        const { updateQuote, ...change } = body.p_body;
+        pick.selection = { ...pick.selection, ...change }; raw.weeklyRevision += 1;
         return raw.weeklyRevision;
       }
       assert.fail(`Unexpected RPC ${name}`);
@@ -163,7 +172,7 @@ test('invalid place data and rollout switch never reach the database', async () 
 });
 
 test('provider maps safe recommendation refusal codes and does not expose unknown database errors', () => {
-  for (const code of ['GTL_VIRTUAL_EXISTS', 'GTL_BETS_WEEK', 'GTL_WEEKLY_CONFLICT', 'GTL_VIRTUAL_CLOSED', 'GTL_VIRTUAL_QUOTE', 'GTL_LINE_LOCKED']) assert.equal(providerBetsError(code).status, 409);
+  for (const code of ['GTL_VIRTUAL_EXISTS', 'GTL_VIRTUAL_MISSING', 'GTL_VIRTUAL_SETTLED', 'GTL_BETS_WEEK', 'GTL_WEEKLY_CONFLICT', 'GTL_VIRTUAL_CLOSED', 'GTL_VIRTUAL_QUOTE', 'GTL_LINE_LOCKED']) assert.equal(providerBetsError(code).status, 409);
   assert.equal(providerBetsError('GTL_FEATURE_OFF').status, 503);
   assert.equal(providerBetsError('secret error').message, 'Bets are unavailable.');
 });
@@ -190,4 +199,102 @@ test('adapter reads exact signature and week, only authenticated owner picks, ne
 test('missing additive placement function maps to feature unavailable rather than pretending a save', async () => {
   const adapter = createSupabaseAdapter({ url: 'https://fixture.supabase.co', anonKey: 'public-fixture', serviceRoleKey: 'private-fixture', fetchImpl: async () => Response.json({ code: 'PGRST202' }, { status: 404 }) });
   await assert.rejects(adapter.bets.rpc('gtl_save_recommended_virtual_pick', {}), error => error.status === 503 && error.message === 'Recommendations are not available right now.');
+  await assert.rejects(adapter.bets.rpc('gtl_edit_recommended_virtual_pick', {}), error => error.status === 503 && error.message === 'Recommendations are not available right now.');
+});
+
+test('own forecasts are bounded and sanitized, carry real personal revisions, and never unlock a hidden line', async () => {
+  const f = fixture(); f.raw.revision = 7;
+  const valid = { gameId: GAME.id, market: 'total', value: 49.5, savedAt: AT, revision: 3 };
+  f.raw.forecasts = [{ ...valid, private: 'forecast-secret', season: 2099, week: 6 },
+    { ...valid, week: 5 }, { ...valid, value: 49.25 }, { ...valid, value: '49.5' }, { ...valid, market: 'moneyline' },
+    { ...valid, gameId: 'OTHER-GAME' }, { ...valid, savedAt: 'bad' }, { ...valid, savedAt: '2100-01-01T00:00:00Z' }];
+  const result = await (await f.request()).json();
+  assert.equal(result.personal.personalRevision, 7);
+  assert.deepEqual(result.personal.forecasts, [valid]);
+  assert.equal(result.virtual.games[0].locked.total, true);
+  assert.equal(result.virtual.games[0].offers.total, undefined);
+  assert.doesNotMatch(JSON.stringify(result), /forecast-secret/);
+  delete f.raw.revision; delete f.raw.forecasts[0].revision;
+  const absent = await (await f.request()).json();
+  assert.equal(absent.personal.personalRevision, null);
+  assert.equal(absent.personal.forecasts[0].revision, null);
+});
+
+test('recommendation consensus exposes retained quote ranges without changing the old Virtual Units response', async () => {
+  const snapshot = structuredClone(SNAPSHOT), quotes = snapshot.payload.games[0].markets.spread.quotes;
+  quotes[0].providerObservedAt = '2099-10-08T14:00:00.000Z'; quotes[0].value = -4.5;
+  quotes[1].value = -2.5;
+  const f = fixture({ snapshot }), result = await (await f.request()).json();
+  assert.deepEqual(result.virtual.games[0].consensus.spread, { value: -3.5, source: 'Latest retained named-book median', books: 3,
+    observedAt: '2099-10-08T14:00:00.000Z', oldestObservedAt: '2099-10-08T14:00:00.000Z', newestObservedAt: AT,
+    oldestCollectedAt: AT, newestCollectedAt: AT, minValue: -4.5, maxValue: -2.5 });
+  const old = decorateVirtualUnits({ season: 2099, week: 6, games: [GAME] }, snapshot,
+    { gate: { season: 2099, week: 6, games: { [GAME.id]: { spread: true, total: false } } }, now: NOW, rules: {} });
+  assert.equal(old.games[0].consensus.spread.oldestObservedAt, undefined);
+  assert.deepEqual(Object.keys(old.games[0].consensus.spread).sort(), ['value', 'source', 'books', 'observedAt'].sort());
+});
+
+const savedPick = (extra = {}) => ({ game_id: GAME.id, market: 'spread', status: 'pending', result: null,
+  selection: { gameId: GAME.id, market: 'spread', side: 'home', line: -4, odds: -115, units: 1, source: 'DraftKings', quotedAt: AT, selectedAt: AT }, ...extra });
+const edit = (extra = {}) => ({ season: 2099, week: 6, revision: 0, gameId: GAME.id, market: 'spread', units: 2, ...extra });
+test('explicit units-only edits preserve saved quote terms even when no current quote is available', async () => {
+  const original = savedPick(), f = fixture({ snapshot: null, picks: [original] });
+  const response = await f.request(edit(), 'bets/recommendations/edit');
+  assert.equal(response.status, 200, await response.clone().text());
+  assert.deepEqual(f.calls.find(([name]) => name === 'gtl_edit_recommended_virtual_pick')[1], {
+    p_user: USER.id, p_season: 2099, p_week: 6, p_revision: 0, p_body: { gameId: GAME.id, market: 'spread', units: 2 } });
+  const result = await response.json();
+  assert.deepEqual(result.virtual.picks[0].selection, { ...original.selection, units: 2, book: 'draftkings' });
+  assert.equal(result.virtual.revision, 1);
+  assert.equal(f.calls.some(([name]) => name === 'gtl_save_recommended_virtual_pick'), false);
+});
+
+test('an explicitly chosen updated quote and side must match the current named book exactly', async () => {
+  const f = fixture({ picks: [savedPick()] });
+  const body = { ...placement({ side: 'away', line: 3.5, units: 2 }), updateQuote: true };
+  const response = await f.request(body, 'bets/recommendations/edit');
+  assert.equal(response.status, 200);
+  assert.deepEqual(f.calls.find(([name]) => name === 'gtl_edit_recommended_virtual_pick')[1].p_body,
+    { gameId: GAME.id, market: 'spread', side: 'away', line: 3.5, odds: -110, units: 2, source: 'BetMGM', quotedAt: AT, updateQuote: true });
+  const stale = fixture({ picks: [savedPick()] });
+  assert.equal((await stale.request({ ...body, line: 4 }, 'bets/recommendations/edit')).status, 409);
+  assert.equal(stale.calls.some(([name]) => name === 'gtl_edit_recommended_virtual_pick'), false);
+});
+
+test('edit refuses missing, settled, wrong-week, stale-revision or hidden picks and implicit quote changes', async () => {
+  for (const [config, change, expected] of [
+    [{}, {}, 409], [{ picks: [savedPick({ status: 'win' })] }, {}, 409],
+    [{ picks: [savedPick()] }, { week: 5 }, 409], [{ picks: [savedPick()] }, { revision: 2 }, 409],
+    [{ picks: [savedPick()], gate: {} }, {}, 409], [{ picks: [savedPick()] }, { side: 'away' }, 400],
+    [{ picks: [savedPick()] }, { line: -3.5 }, 400], [{ picks: [savedPick()] }, { updateQuote: null }, 400],
+    [{ picks: [savedPick()] }, { units: 0 }, 400], [{ picks: [savedPick()] }, { userId: USER.id }, 400],
+  ]) {
+    const f = fixture(config), response = await f.request(edit(change), 'bets/recommendations/edit');
+    assert.equal(response.status, expected, JSON.stringify(change));
+    assert.equal(f.calls.some(([name]) => name === 'gtl_edit_recommended_virtual_pick'), false);
+  }
+  const f = fixture({ picks: [savedPick()] });
+  await assert.rejects(handleBets({ route: '/bets/recommendations/edit', body: edit(), user: USER, service: f.service, featureOff: parseFeatureOff('recommendations') }), error => error.status === 503);
+  assert.equal(f.calls.length, 0);
+});
+
+test('the recommendation-edits off switch stops only editing before any database read', async () => {
+  const f = fixture({ picks: [savedPick()] }), featureOff = parseFeatureOff('recommendation-edits');
+  await assert.rejects(handleBets({ route: '/bets/recommendations/edit', body: edit(), user: USER, service: f.service, featureOff }), error => error.status === 503);
+  assert.equal(f.calls.length, 0);
+  assert.equal((await handleBets({ route: '/bets/recommendations', user: USER, service: f.service, featureOff, clock: () => NOW })).virtual.picks.length, 1);
+  const empty = fixture();
+  assert.equal((await handleBets({ route: '/bets/recommendations/place', body: placement(), user: USER, service: empty.service, featureOff, clock: () => NOW })).virtual.picks.length, 1);
+});
+
+test('stale quote errors keep their explicit quote-review instruction through the client response layer', async () => {
+  const f = fixture({ picks: [savedPick()] });
+  const response = await f.request({ ...placement({ line: -4 }), updateQuote: true }, 'bets/recommendations/edit');
+  assert.equal(response.status, 409);
+  await assert.rejects(readResponse(response, true), error => {
+    assert.equal(error.status, 409);
+    assert.equal(error.message, 'That saved quote is no longer current. Refresh recommendations and explicitly choose the updated quote.');
+    assert.doesNotMatch(error.message, /another device|another group/);
+    return true;
+  });
 });

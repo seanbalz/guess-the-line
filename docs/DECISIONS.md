@@ -1,5 +1,19 @@
 # Decision log
 
+## D-51 — recommendation refinements and optional personal forecasts (October 15, 2026)
+
+Sean approved the seven recommendations from the feature review with “Move forward with recs.” This amends D-48 without changing competition scoring, reveal rules or the old-app default.
+
+- Rank **actionable, unsaved** suggestions first. Show up to three; keep saved and unavailable comparisons accessible in the expanded view. Do not manufacture three actionable picks when fewer qualify.
+- Use the actual retained named-book offer for side, gap and traffic-light color. Show the consensus comparison separately. A matching consensus can still leave a favorable book offer. Existing D-18 line-before-odds selection remains; gaps are not a probability or proven expected value.
+- Keep reviewed terms when units change or a refresh returns another quote. Adopting a different side or “Use updated quote” is explicit. Every unsaved review can be removed.
+- Offer an optional **personal forecast** comparison basis, using the existing private forecast records and audited save path. A sportsbook-line guess remains the default. Missing forecasts never silently fall back; forecasts do not bypass the own submitted/locked guess and market-visibility gates or alter scored guesses.
+- Show retained quote age, book count and observation range. The descriptive 12-hour age label follows the ordinary collection cadence; it is not a new expiry rule, confidence score or claim of a live price. D-18 still permits retained quotes before kickoff.
+- Let the owner explicitly edit an existing pending current-week Virtual Units pick before kickoff, independent of an older private-league week. Units-only edits preserve saved terms. Quote changes require explicit review; shared revision checks, atomic kickoff checks and before/after audits remain mandatory.
+- Show the selected week's W-L-P, net units and settled-stake ROI, with pending/void pick counts and settlement status explicit. Compact rows expose detailed comparisons on demand; preserve phone accessibility and source labels.
+
+The new service-only edit function is an additive migration, separate from M-02/M-03/M-04/M-05/M-06/M-08 and the full account Bets redesign. Publication must satisfy the existing release gates. Implementation, tests, apply and deployment have separate evidence in the [refinement release card](RELEASE_2026_10_15_RECOMMENDATION_REFINEMENTS.md).
+
 ## D-50 — immediate per-game scoring, score browsing and player trends (October 15, 2026)
 
 Sean requested: "You should not be able to make guesses or change saves for guesses after you lock in that games guesses" and scoring "should immediately show for that weeks scoring", with week/team/game filters and a user trend page. These requirements and the Q-01 answer below are preserved from the local planning record on source checkout `e5a45f6`; Q-02 is preserved from that active checkout's follow-up record captured at 16:19 UTC on October 15; the synchronization review did not retrieve the original conversation. This entry adds the [repo backlog and targeted discovery queue](../planning/scoring-and-player-trends.md), without implementing or deploying the requirements. The local record called this D-47; that number belongs to the weather-schedule draft, D-48 is the recommendations decision, and D-49 is referenced for proposed Lines tables. This reconciled entry uses D-50; it grants no new product or deployment approval.
