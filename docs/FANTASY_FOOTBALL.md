@@ -141,7 +141,7 @@ validation targets, and no deployment or scheduled refresh was performed.
 
 ## Cloud release preparation — October 15, 2026
 
-Sean requested “Add on cloud too” after reviewing the local feature. The release
+Sean requested “Add on cloud too” after the local implementation checkpoint. The release
 is frontend only: no API deployment, migration, collector, cron, data budget or
 app-default change. Preparation was isolated from the original active checkout.
 
@@ -163,3 +163,33 @@ reviewed Fantasy commit should join the serialized production release rather
 than overwrite a newer deployment. Deployment ID, source SHA, served-file hashes
 and post-deploy results must be recorded before this document calls it live.
 Rollback is the previously selected Pages deployment; preserve hosted data.
+
+
+### Integrated release candidate
+
+[PR #143](https://github.com/seanbalz/guess-the-lines-repo/pull/143) integrates
+current main through `bb4f20a` and preserves its capability-gated legacy scoring
+flow. The Fantasy diff remains 29 files with no API or migration change. At
+implementation SHA `4211847c5fcb09dd47600bfbc0c2a5da26d18163`, the branch matched
+its remote with zero ahead, behind or changed files.
+
+The integrated candidate passed typecheck, 69 focused Node checks, eight render
+checks, brand QA, production build/bundle scan, and all five scoped browser tests
+(four Fantasy suites and six-tab navigation/history). Browser coverage includes
+320/390/1280px, dark/light themes, keyboard focus, axe, scoring/filter/ROS/trend
+behavior and 44px source links. These are local synthetic-account tests, not
+production sign-in or physical-phone acceptance.
+
+Its clean-source manifest records source SHA-256
+`0e77db217c905094c834654209c27daefbabb3d1bab304dc16b75953b654ee21`
+and frontend SHA-256
+`1a006b90947a0ce15498cf9de327e18c26459550f637f73acacd75c33c1c2586`
+(96 build artifacts). This manifest is a prepared build, not deployment evidence.
+GitHub PR checks were still running when this entry was written.
+
+At 1:38 PM Pacific on October 15, the Gate D Thursday freeze was active. The
+shared production workflow also checks the published game's broader quiet
+window; it has no bypass input. The active release task was already awaiting a
+one-time timing decision. No competing upload, API deploy or migration apply was
+started by this task. Merge/green CI alone must not be described as the Fantasy
+tab being available on the production site.
