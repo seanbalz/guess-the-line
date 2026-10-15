@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { APP_SWITCH_COPY, appFellBack, switchApp } from './appView.js';
 
@@ -13,7 +13,11 @@ export const NEW_APP_OFFERED = import.meta.env?.VITE_GTL_OFFER_NEW_APP === '1';
  *  open on this page and the old app came back in its place (main.jsx's fallback). */
 export default function TryNewApp({ disabled = false }) {
   const [blocked, setBlocked] = useState(false);
-  const note = blocked ? APP_SWITCH_COPY.storageBlocked : appFellBack() ? APP_SWITCH_COPY.fellBack : '';
+  // The fallback sentence goes in after the note is on the page: a status region that appears with its words already in it
+  // is not announced reliably, so it mounts empty and then changes.
+  const [fellBack, setFellBack] = useState(false);
+  useEffect(() => { if (NEW_APP_OFFERED && appFellBack()) setFellBack(true); }, []);
+  const note = blocked ? APP_SWITCH_COPY.storageBlocked : fellBack ? APP_SWITCH_COPY.fellBack : '';
   if (!NEW_APP_OFFERED) return null;
   return <div className="try-new-app">
     <button type="button" className="secondary" disabled={disabled} onClick={() => setBlocked(!switchApp('next'))}>{APP_SWITCH_COPY.tryNew}<ArrowRight size={16} aria-hidden="true"/></button>
