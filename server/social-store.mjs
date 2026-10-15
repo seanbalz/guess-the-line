@@ -32,7 +32,7 @@ export function createSocialStore(file, { slates, profiles, clock = Date.now, in
       if (!actorId || !slate) throw new Error('The supplied bet intake needs a matching player and schedule.');
       const current = next.weeks[key] ?? { revision: 0, state: emptySocialState() };
       current.state = applySocialMutation(current.state, { actorId, action: 'create', body, games: slate.games, now: clock() });
-      current.revision += 1; next.weeks[key] = current;
+      current.revision += 1; next.weeks[key] = { ...current, games: slate.games };
     }
     persist(next);
   }
@@ -40,12 +40,24 @@ export function createSocialStore(file, { slates, profiles, clock = Date.now, in
   const service = { async rpc(name, args) {
     if (!known(args.p_user)) throw new SocialError(403, 'Unknown local player.');
     if (name === 'gtl_read_social') {
-      const available = [...slates].sort((a, b) => b.season - a.season || b.week - a.week);
+      const catalog = new Map(slates.map(slate => [`${slate.season}-${slate.week}`, slate]));
+      // Retain each saved week's schedule when the local preview advances to a new week.
+      // Older files without that metadata must not silently omit their saved bets from an all-history export.
+      for (const [key, savedWeek] of Object.entries(saved.weeks)) {
+        if (catalog.has(key)) continue;
+        const [season, week] = key.split('-').map(Number);
+        if (!Array.isArray(savedWeek.games)) {
+          if (args.p_all) throw new SocialError(503, 'An older shared bet schedule is unavailable. Restore its schedule before exporting all bets.');
+          continue;
+        }
+        catalog.set(key, { season, week, games: savedWeek.games });
+      }
+      const available = [...catalog.values()].sort((a, b) => b.season - a.season || b.week - a.week);
       const selected = args.p_all ? available : available.filter(s => s.season === (args.p_season ?? available[0]?.season) && s.week === (args.p_week ?? available[0]?.week));
       if (!selected.length) throw new SocialError(404, 'This week’s schedule is unavailable.');
       return { season: selected[0].season, week: selected[0].week, profiles, following: saved.follows[args.p_user] ?? [],
         availableWeeks: available.map(({ season, week }) => ({ season, week })),
-        weeks: selected.map(s => ({ ...s, ...(saved.weeks[`${s.season}-${s.week}`] ?? { revision: 0, state: emptySocialState() }) })) };
+        weeks: selected.map(s => ({ ...(saved.weeks[`${s.season}-${s.week}`] ?? { revision: 0, state: emptySocialState() }), ...s })) };
     }
     if (name === 'gtl_commit_social') {
       const key = `${args.p_season}-${args.p_week}`, existing = saved.receipts.find(r => r.actorId === args.p_user && r.requestId === args.p_request_id);
@@ -57,7 +69,8 @@ export function createSocialStore(file, { slates, profiles, clock = Date.now, in
       const current = saved.weeks[key] ?? { revision: 0, state: emptySocialState() };
       if (current.revision !== args.p_expected_revision) throw new SocialError(409, 'Shared bets changed on another device. Refresh and review before saving again.');
       const next = structuredClone(saved), revision = current.revision + 1;
-      next.weeks[key] = { revision, state: args.p_state };
+      const games = slates.find(slate => slate.season === args.p_season && slate.week === args.p_week)?.games ?? current.games;
+      next.weeks[key] = { revision, state: args.p_state, games };
       next.receipts.push({ actorId: args.p_user, requestId: args.p_request_id, signature: fingerprint });
       persist(next); return { revision, replayed: false };
     }

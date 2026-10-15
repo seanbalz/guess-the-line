@@ -207,7 +207,7 @@ test('/community/read carries `forfeit` only when gtl_read_forfeit answers well-
   assert.equal(Object.hasOwn(baseline.body, 'forfeit'), false, 'no optional-RPC reader configured: no field');
   const answers = {
     missing: async () => FEATURE_OFF,
-    failing: async () => { throw new Error('GTL private failure 44.5'); },
+    failing: async name => { if (name === 'gtl_read_forfeit') throw new Error('GTL private failure 44.5'); return FEATURE_OFF; },
     malformed: async name => (name === 'gtl_read_forfeit' ? { ...READ, markets: [] } : FEATURE_OFF),
     'another week': async name => (name === 'gtl_read_forfeit' ? { ...READ, week: 8 } : FEATURE_OFF),
     'another season': async name => (name === 'gtl_read_forfeit' ? { ...READ, season: 2027 } : FEATURE_OFF),
@@ -226,11 +226,12 @@ test('/community/read carries `forfeit` only when gtl_read_forfeit answers well-
   const reply = await read();
   assert.deepEqual(reply, { status: 200, body: { ...baseline.body, forfeit: READ } });
   // Not the viewer's to see without a week: no field when the feed has no published week.
-  const empty = createCloudHandler({ authenticate, clock: () => Date.parse(NOW), community: { rpc: async () => ({ ...FEED, week: null, due: [] }) }, optionalRpc: async () => ({ ...READ }) });
+  const empty = createCloudHandler({ authenticate, clock: () => Date.parse(NOW), community: { rpc: async () => ({ ...FEED, week: null, due: [] }) }, optionalRpc: async name => name === 'gtl_read_forfeit' ? { ...READ } : FEATURE_OFF });
   const noWeek = await request(empty, 'community/read', {});
+  assert.equal(noWeek.status, 200);
   assert.equal(Object.hasOwn(await noWeek.json(), 'forfeit'), false);
   // A refused read is refused exactly as before.
-  const refused = await request(createCloudHandler({ authenticate, community: { rpc: async () => FEED }, optionalRpc: async () => READ }), 'community/read', { extra: 1 });
+  const refused = await request(createCloudHandler({ authenticate, community: { rpc: async () => FEED }, optionalRpc: async name => name === 'gtl_read_forfeit' ? READ : FEATURE_OFF }), 'community/read', { extra: 1 });
   assert.deepEqual([refused.status, await refused.json()], [400, { error: 'Check the post and try again.' }]);
 });
 

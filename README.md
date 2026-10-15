@@ -1,19 +1,28 @@
 # Guess The Line
 
-**Latest verified deployment — October 15, 2026, 1:38 AM Pacific:** frontend
-`fc7f3cd2` is live from `main` at `d71a988`. It adds section-formatting improvements,
-profile editing and private game notes to **Try the new app**. All five tabs use
-the existing hosted workflows; Play keeps whole-market ballots and deadline edits.
-The original app remains the default, API v23 is unchanged, and no database
-migration was applied. M-02 and the full redesign cutover retain their separate
-gates. See the [October 15 release record](docs/RELEASE_2026_10_15.md)
-for exact source, checks, live observations and rollback, and the
-[workflow scope](docs/ALL_TABS_LIVE_WORKFLOWS.md) for remaining boundaries.
+**Latest verified deployment — October 15, 2026, 8:14 AM Pacific:** Pages
+`ed3fb50b` and API v24 are live from `main` at `b883c77`. **Recommended bets**
+compares your submitted Spread and Total guesses with collected lines, shows
+both sides in red/yellow/green, and ranks the top three with an expandable list.
+Add to card prepares a Virtual Units pick for explicit review and placement.
+Find it under Bets in **Try the new app**, or Virtual Units in the original app.
+The original app remains the default. Only the additive D-48 writer was applied;
+M-02 and the other pending redesign migrations retain their separate gates.
+See the [recommendations release record](docs/RELEASE_2026_10_15_RECOMMENDATIONS.md)
+for exact source, checks, live observations and rollback, the
+[earlier October 15 release](docs/RELEASE_2026_10_15.md) for formatting/profile/notes,
+and the [workflow scope](docs/ALL_TABS_LIVE_WORKFLOWS.md) for remaining boundaries.
 Issue #126 remains open for Sean's real-phone visual acceptance.
 
 The [current completion register](docs/COMPLETION_REGISTER.md) tracks each app
 section's remaining formatting, implementation and acceptance work, plus backend,
 account and release dependencies. It keeps the historical tracker unchanged.
+
+For local and cloud work, follow the [repository sync workflow](docs/REPOSITORY_SYNC.md)
+and run `npm run sync:check` at handoff. The [shared deployment workflow](docs/SHARED_DEPLOYMENT.md)
+uses an explicit source commit and separate production approval; pushing code
+does not deploy it. Reconciled local [scoring and player trends planning](planning/scoring-and-player-trends.md)
+is recorded as D-50, with implementation and unanswered product questions still open.
 
 ## Earlier release notes
 

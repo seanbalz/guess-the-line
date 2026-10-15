@@ -28,6 +28,7 @@ export const sentFinal = rules => rules?.sentFinal === true;
 
 /** Whether one game's pick is locked in: a number in a submitted ballot, or one its `lockedAt` names (`{ submittedAt, picks, lockedAt }`). */
 export const lockedIn = (ballot, gameId) => Number.isFinite(ballot?.picks?.[gameId])
+  && !ballot?.closedAtKickoff?.includes(gameId)
   && (Boolean(ballot?.submittedAt) || typeof ballot?.lockedAt?.[gameId] === 'string');
 
 /** Whether one game's pick is final: locked in, under live rules that make it final. */

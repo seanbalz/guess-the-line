@@ -17,7 +17,7 @@ const LINES = { spread: [-11.5, 13.5, 6.5], total: [58.5, 31.5, 52.5] };
 const LUKE = { spread: [-4.5, 3.5, 8.5], total: [33.5, 55.5, 47.5] };
 const TROY = { total: [37.5, 61.5, 44.5] };
 
-test('own History: an unlocked draft shows its guesses but never its line before kickoff, and never scores; a sent guess shows its line and scores from kickoff', { skip }, async t => {
+test('own History: an unlocked draft shows its guesses but never its line before kickoff, and never scores; a locked guess shows its line and scores immediately', { skip }, async t => {
   let clock = null;
   const world = await createCommunityWorld({ migrations: ALL, games: 3, troyBallots: false, clock: () => clock ?? Date.now() });
   t.after(() => world.db.close());
@@ -35,7 +35,11 @@ test('own History: an unlocked draft shows its guesses but never its line before
   await sendBallot(world, 'troy', 'guess_total', map(TROY.total));
   // A line stored with each of Luke's draft Spread guesses (see the header): the reader must not hand it back.
   const refs = Object.fromEntries(ids.map((g, i) => [g, { status: 'available', value: LINES.spread[i], basis: 'line_at_guess', snapshotId: snapshot, savedAt: iso(Date.now() - 500), observedAt: iso(Date.now() - 2000), ageSeconds: 1 }]));
-  await db.query("update public.gtl_weekly_ballots set ballot=ballot||jsonb_build_object('scoringReferences',$1::jsonb) where user_id=$2 and season=$3 and week=$4 and mode='guess_spread'", [refs, id('luke'), season, week]);
+  const inject=()=>db.query("update public.gtl_weekly_ballots set ballot=ballot||jsonb_build_object('scoringReferences',$1::jsonb) where user_id=$2 and season=$3 and week=$4 and mode='guess_spread'", [refs, id('luke'), season, week]);
+  await assert.rejects(inject,/GTL_SUBMISSION_ODDS_REQUIRED/,'M-07 refuses to forge a reference on a draft');
+  // Emulate a historical import solely for read-boundary QA; production writers never permit this shape.
+  await db.exec('alter table public.gtl_weekly_ballots disable trigger gtl_fresh_submission_guard');
+  try { await inject(); } finally { await db.exec('alter table public.gtl_weekly_ballots enable trigger gtl_fresh_submission_guard'); }
   const row = (await db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'", [id('luke')])).rows[0].ballot;
   assert.deepEqual([row.submittedAt ?? null, Object.keys(row.scoringReferences).length], [null, 3], 'a draft carrying stored lines');
   const NOW = Date.now(), FIRST = kickoff[0], LAST = kickoff[2];
@@ -53,10 +57,10 @@ test('own History: an unlocked draft shows its guesses but never its line before
     assert.deepEqual(reply.weeks.find(w => w.week === week).gate, Object.fromEntries(ids.map(g => [g, { spread: false, total: true }])), 'a draft locks nothing in');
   });
 
-  await t.test('a sent guess is locked in: its line comes back at once, its points from kickoff', async () => {
+  await t.test('a sent guess is locked in: its line and personal points come back at once', async () => {
     const sent = entry(await history('luke', NOW), 'luke', 'guess_total');
-    assert.deepEqual([sent.status, sent.weekPoints, sent.weekScored], ['submitted', 0, 0]);
-    assert.deepEqual(sent.picks.map(p => [p.guess, p.reference.value, p.points]), ids.map((g, i) => [LUKE.total[i], LINES.total[i], null]));
+    assert.deepEqual([sent.status, sent.weekPoints, sent.weekScored], ['submitted', ids.reduce((sum,g,i)=>sum+accuracy(LUKE.total[i],LINES.total[i]),0), 3]);
+    assert.deepEqual(sent.picks.map(p => [p.guess, p.reference.value, p.points]), ids.map((g, i) => [LUKE.total[i], LINES.total[i], accuracy(LUKE.total[i],LINES.total[i])]));
     const after = entry(await history('luke', LAST), 'luke', 'guess_total');
     assert.deepEqual(after.picks.map(p => Number(p.points)), ids.map((g, i) => accuracy(LUKE.total[i], LINES.total[i])));
     assert.equal(Number(after.weekPoints), Math.round(ids.reduce((sum, g, i) => sum + accuracy(LUKE.total[i], LINES.total[i]), 0) * 100) / 100);

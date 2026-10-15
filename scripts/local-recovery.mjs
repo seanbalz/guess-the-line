@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createEngine } from '../server/engine.mjs';
+import { makePrivateDirectory } from './private-directory.mjs';
 
 const format = 'guess-the-line-local-backup-v1';
 const maxBytes = 50 * 1024 * 1024;
@@ -78,8 +79,7 @@ export function backupLocalState(sourceFile, backupDirectory, clock = Date.now, 
   serializeBounded(state, limit);
   const serialized = serializeBounded(payload, limit);
   noSymlinkComponents(backupDirectory);
-  fs.mkdirSync(backupDirectory, { recursive: true, mode: 0o700 });
-  requireThat((fs.statSync(backupDirectory).mode & 0o077) === 0, 'Backup directory must be private (mode 0700).');
+  makePrivateDirectory(backupDirectory, { recursive: true });
   const file = path.join(backupDirectory, `${createdAt.replaceAll(':', '-')}-${randomUUID()}.json`);
   fs.writeFileSync(file, serialized, { flag: 'wx', mode: 0o600 });
   verifyLocalBackup(file, options);
@@ -103,7 +103,7 @@ export function restoreLocalDrill(backupFile, newDirectory, options = {}) {
   const serialized = serializeBounded(backup.state, limit);
   noSymlinkComponents(newDirectory);
   requireThat(!fs.existsSync(newDirectory), 'Restore drills require a new directory; existing files are never overwritten.');
-  fs.mkdirSync(newDirectory, { mode: 0o700 });
+  makePrivateDirectory(newDirectory, { exclusive: true });
   const file = path.join(newDirectory, 'state.json');
   fs.writeFileSync(file, serialized, { flag: 'wx', mode: 0o600 });
   requireThat(digest(readJSON(file, limit)) === backup.stateSha256, 'Restored state failed readback verification.');

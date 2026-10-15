@@ -69,6 +69,14 @@ export const rpcChecks = Object.freeze([
   // M-02, sent picks final (20261015030000_gtl_sent_picks_final.sql, redesign stage 18): the service-only lock-in reading the
   // writers, the guard and gtl_guess_locked_in share. Awaiting deploy (below) until the migration is applied to the hosted project.
   ['gtl_ballot_locked_in', { p_ballot: {}, p_game: 'AAA-BBB' }],
+  // M-07 helpers are service-only, including the own-score reader; never browser callable.
+  ['gtl_ballot_has_locked', { p_ballot: {} }],
+  ['gtl_guess_game_open', { p_season: 2026, p_week: 5, p_game: 'AAA-BBB', p_now: null }],
+  ['gtl_guess_late', { p_ballot: {}, p_game: 'AAA-BBB' }],
+  ['gtl_prepare_guess_ballot', { p_season: 2026, p_week: 5, p_mode: 'invalid', p_prior: {}, p_picks: {}, p_submit: false, p_lock_in: [], p_stamp: null }],
+  ['gtl_resolution_before_kickoff', { p_season: 2026, p_week: 5, p_game: 'AAA-BBB', p_ref: {} }],
+  ['gtl_valid_pending_resolution', { p_season: 2026, p_week: 5, p_mode: 'invalid', p_before: {}, p_after: {} }],
+  ['gtl_guess_score_receipt', { p_user: missingId, p_season: 2026, p_week: 5, p_mode: 'invalid', p_now: null }],
   // M-03, skip and "See picks now" (20261015040000_gtl_guess_week_forfeit.sql, redesign stage 19): the writer behind
   // POST /community/forfeit, the reader /community/read carries as `forfeit`, and their market helper, all service-only.
   // Awaiting deploy (below) until the migration is applied to the hosted project. The probes name no real member and the
@@ -95,6 +103,9 @@ export const workerChecks = Object.freeze([]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
 export const awaitingDeploy = Object.freeze({
+  ...Object.fromEntries(['gtl_ballot_has_locked', 'gtl_guess_game_open', 'gtl_guess_late', 'gtl_prepare_guess_ballot',
+    'gtl_resolution_before_kickoff', 'gtl_valid_pending_resolution', 'gtl_guess_score_receipt']
+    .map(name => [`rpc/${name}`, 'migration 20261015190710_gtl_guess_write_window.sql'])),
   // M-08: remove these two with the release record of its hosted apply and the gtl-api deploy (Gate M step 8).
   'rpc/gtl_read_guess_picks': 'migration 20261015020000_gtl_guess_picks_reader.sql',
   'gtl-api/community/picks': 'the gtl-api deploy with /community/picks',

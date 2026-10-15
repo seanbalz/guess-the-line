@@ -32,3 +32,75 @@ canonical game identity, final status, and observation/available-at timestamps.
 An outside forecast adapter is a separate source with its own permission,
 version and input-dependence record. Neither path may overwrite locked guesses
 or merge Spread and Total reveal gates.
+
+## Animated NFL replay research (October 15, 2026)
+
+Sean selected a real NFL replay with score, clock, player statistics and captions,
+with the data/model work finished before results are published. See
+[scope, measured research and publication gates](../docs/SIMULATED_GAME_REPLAY.md).
+
+`replay_sources.py` audits fixed public nflverse release URLs and retains hash
+receipts, field-filtered snapshots and coverage under `.local/replay-data/`.
+It is separate from the pinned FiveThirtyEight baseline above. Run `--help`
+for the `fetch`, `audit` and research-export options. `replay_model.py` evaluates
+normalized PBP locally with fixed chronological splits; it cannot generate or
+publish a complete game. Research fixtures do not ship with the frontend.
+
+```sh
+python3 model/replay_sources.py --help
+python3 -m unittest discover -s model -p 'test_replay_*.py' -v
+```
+
+`replay_schedule.py` verifies the exact schedule release and preserves unknown
+future scores. `replay_current_sources.py` captures and audits the fixed 2026
+weekly-roster, injury and depth-chart assets. Both keep their raw bytes, release
+metadata and receipts under `.local/replay-data/`. A new observation cannot be
+backdated to a provider timestamp or an old cache file's modification time.
+
+`replay_matchup.py` seals a selected schedule matchup, source references, current
+player facts, cutoff, freshness policy and rule implementation version. Scores
+are omitted from pregame inputs. Missing availability, roles and usage remain
+explicit; a successful snapshot still forbids game generation and publication.
+The freshness policy is a named research choice, not a verified availability
+guarantee. Current source files cannot recreate an earlier historical input feed.
+
+`replay_reconstruction.py` derives scores and the requested individual statistics
+from observed regular-season plays, including compound scoring and separate try
+rules. It compares scores with schedule labels and retains unresolved events.
+Matching known subtotals are not proof of a complete game. Player totals still
+need a separately verified box-score comparison; nflverse's player-stat export
+is itself calculated from PBP and cannot establish independent source truth.
+
+`replay_usage.py` audits passing/rushing attempts and identified targets in prior
+completed games against the sealed matchup's exact sources. Same-day and future
+games are excluded. Known subtotals, unresolved attribution, historical event
+teams and missing appearance denominators remain explicit. It produces neither
+usage shares nor player forecasts. Its analysis policy can be recorded after
+the input cutoff only with that fact disclosed; it is not preregistration.
+
+`replay_evaluation.py` supplies empirical CRPS, Brier, paired score/margin/total
+metrics, intervals and frozen-player denominator handling. Protocol validation
+checks declaration timing and five artifact hashes, not substantive eligibility,
+baseline bytes or real outcomes. No whole-game evaluation or publication approval
+is established by these helpers.
+
+`replay_game_baseline.py` evaluates an exact empirical distribution of intact
+prior-date home/away final-score pairs. Its fixed 2024/2025 rolling-origin cohorts
+are development evidence from today's corrected schedule, not historically
+available inputs or untouched validation. It is a league-wide comparison only;
+no team/player-conditioned forecast or replay is generated. Aggregate metrics
+can be reviewed publicly; individual game results and distributions stay local.
+
+```sh
+python3 model/replay_schedule.py fetch
+python3 model/replay_current_sources.py fetch --source all
+python3 model/replay_schedule.py audit
+python3 model/replay_current_sources.py audit
+python3 model/replay_matchup.py --help
+python3 model/replay_reconstruction.py --seasons 2026
+python3 model/replay_usage.py --help
+python3 model/replay_game_baseline.py --help
+```
+
+Only aggregate research evidence belongs in `model/reports/`. These commands do
+not register a website route, deploy anything, or produce a real matchup result.

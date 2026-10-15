@@ -2,7 +2,7 @@
 
 Owner: Sean Balsiger · Version 1 · October 15, 2026
 
-Status: implemented and under release validation; production deployment is not yet verified.
+Status: deployed October 15, 2026 as Pages `ed3fb50b` / API v24, with the additive writer applied. See the [release record](RELEASE_2026_10_15_RECOMMENDATIONS.md) for checks and live readback; physical-phone acceptance remains separate.
 
 Sean requested a Recommended tab in Bets using his own Spread and Total guesses.
 He then replaced the proposed three-point cutoff with a red/yellow/green comparison,

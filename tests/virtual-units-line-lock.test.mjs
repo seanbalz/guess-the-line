@@ -345,8 +345,8 @@ test('without M-01 (the schema before October 14) the deadline opens every line 
   let clockAll = Date.now();
   const m01 = await linesWorld(t, { migrations: ALL, optionalRpc: true, clock: () => clockAll });
   const before = await m01.units('luke');
-  // ALL also has M-02 (stage 18), so a sent guess is final; M-01's field is the kickoff reveal.
-  assert.deepEqual(before.rules, { sentFinal: true, lateWindow: 'deadline', revealAt: 'kickoff' }, 'M-01 reports the kickoff reveal');
+  // ALL includes M-07: immutable per-game guesses and kickoff windows preserve M-01's reveal boundary.
+  assert.deepEqual(before.rules, { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring:true }, 'M-07 preserves the per-game reveal gate');
   await m01.send('luke', 'guess_spread', m01.map([-6.5, 2.5]));
   assert.deepEqual(locks(await m01.units('luke')), { [g0]: { spread: false, total: true }, [g1]: { spread: false, total: true } }, 'a locked-in game opens its market');
   clockAll = late(m01.state);

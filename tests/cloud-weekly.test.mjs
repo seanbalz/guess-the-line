@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { seed } from '../server/store.mjs';
 import { createCloudHandler } from '../cloud/handler.mjs';
 import { providerWeeklyError } from '../cloud/weekly.mjs';
+import { emptySocialState } from '../shared/social-bets.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
 const migrations = ['20261008164249_gtl_private_cloud_state.sql','20261008174007_gtl_profiles_private_games_invites.sql','20261008182836_gtl_canonical_weekly_entries.sql'].map(f => fs.readFileSync(`supabase/migrations/${f}`, 'utf8'));
@@ -110,6 +111,7 @@ test('canonical weekly SQL and authenticated API preserve one record across grou
     assert.equal(joined.state.audit.length,0);
     assert.equal(joined.state.ballots[player(1)].guess_spread.origin,undefined);
     const handler=createCloudHandler({
+      social:{rpc:async()=>({season:2099,week:5,profiles:[],following:[],availableWeeks:[{season:2099,week:5}],weeks:[{season:2099,week:5,games:[],revision:0,state:emptySocialState()}]})},
       authenticate:async token=>({id:id(Number(token)),email:`user${token}@example.invalid`,emailConfirmed:true}),
       storage:{membership:async(user,league)=>(await f.db.query('select player_id,active from public.gtl_memberships where user_id=$1 and league_id=$2',[user,league])).rows[0]},
       weekly:{load:(u,l)=>f.rpc('gtl_read_weekly_state',[u,l])},

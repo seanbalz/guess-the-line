@@ -1,33 +1,45 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Version 1 · Evidence reviewed October 15, 2026 (Pacific)
+Owner: Sean Balsiger · Version 3 · Evidence reviewed October 15, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and
-acceptance work. Its deployed source baseline is `main` at `d71a988`; later
+acceptance work. Its deployed source baseline is `main` at `b883c77`; later
 documentation commits record that release without changing its source. It summarizes the
 [build plan][plan], rather than replacing its dependencies or numbered decisions.
 Implementation owners below are **unassigned** unless named. Sean owns product
 decisions and visual/phone acceptance. No delivery dates or completion percentage
 are committed here.
 
-The [October 15 release record](RELEASE_2026_10_15.md) records deployed formatting,
-profile and private-note changes, their checks and outstanding acceptance. The
+The [recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md) adds D-48 to
+the [earlier October 15 release](RELEASE_2026_10_15.md), which records formatting,
+profile and private-note changes. Both retain their acceptance limits. The
 current-status headers in [cloud setup](CLOUD_SETUP.md),
 [account access](ACCOUNT_ACCESS_REGISTER.md) and [social community](SOCIAL_COMMUNITY.md)
 were published with PR #127; their archived entries remain unchanged.
 
+## Active scoring implementation — October 15
+
+The `codex/per-game-scoring` workstream implements the confirmed D-50 core:
+per-game lock-in, immediate personal points, kickoff-based shared standings,
+receipts and weekly score navigation/filtering. Its **local checks pass; hosted
+activation and physical-phone acceptance remain pending**. [Implementation and release checklist](PER_GAME_SCORING_RELEASE.md)
+records the owners, checks and remaining gates. The nine-row
+[scoring backlog](../planning/scoring-and-player-trends.md) remains the detailed
+scope; Trends metrics and comparison decisions are a later checkpoint.
+
 ## Verified delivery baseline
 
 All five opt-in tabs—Home, Play, Bets, Lines and League—are live through the
-[existing hosted workflows][scope]. The [October 15 release][release]
-records Pages `fc7f3cd2-7a5a-461c-9aaa-fc5bc0247aa4` from
-`d71a988dd118c0e9bce69d112dfc6b1b87507d74`, with 92/92 served assets matching the
-production and immutable URLs. API v23 remains active with JWT verification.
-All four required checks passed; this frontend release applied no SQL. The
-read-only signed-in production walkthrough completed at 08:51:39 UTC in a
-390 × 844 browser viewport, including the five tabs, profile/notes and old-app
-roundtrip. No player-data writes were made. Fixture-based save tests remain
-separate evidence from production writes or actual iPhone acceptance.
+[existing hosted workflows][scope]. The [latest October 15 release][release]
+records Pages `ed3fb50b-388b-4330-8767-8bd08adb9255` from
+`b883c7742979d133720ed931c520821fdc4a13b5`, with 93/93 served assets matching the
+production and immutable URLs. API v24 is active with JWT verification.
+All four required checks passed. The single additive D-48 writer was applied;
+the six pending redesign migrations remain unapplied. The signed-in read-only
+walkthrough verified the current-week top three, expansion, 390px layout and
+older-week view-only state. No production pick was saved. The earlier release
+retains its five-tab/profile/notes walkthrough evidence. Fictional-account save
+tests do not establish production placement or physical iPhone acceptance.
 
 The old app remains the default and available as a fallback. Hosted Guess rules
 remain `{revealAt: "kickoff", sentFinal: false, lateWindow: "deadline"}`:
@@ -73,17 +85,17 @@ adapter is a [documented exception][scope], not the finished prototype replaceme
 | Home | Partial / Unassigned | Weekly status, separate market ranks and Play navigation are live. Refine card hierarchy/spacing; finish first-run, next-action, other-week and later feature states (stage 36). | [Release][release], [plan][plan] | V; correct empty/unscored/zero states and the planned week transitions on real data. |
 | Play | Partial / Unassigned | Live drafts, whole-market submission, permitted edits, sit-out and receipts. Card spacing, compact details/help, readable team controls and measured save-dock clearance shipped October 15; #126 acceptance remains. Per-game lock-in, skip/reveal, everyone's picks and Edge/results need their server gates (stages 28–32). | [Release][release], [scope][scope], [#126][visual] | V; existing save/recovery/privacy regressions pass; later per-game flows ship only with matching hosted rules. |
 | Bets | Partial / Unassigned | Live tracker, corrections, reported results, following/history and selected-group Virtual Units. Form, summary, amount and action styling shipped October 15; visual acceptance remains. Account-level placement/boards, friend challenges and planned native replacement screens remain (stages 40–56). | [Release][release], [plan][plan] | V; Community/group scope stays explicit; old records remain readable; new paths pass their apply and settlement gates. |
-| Recommended bets (D-48) | Implemented; release validation in progress / Codex task | Top three guess-based discrepancies, expandable remainder, both-side traffic lights and explicit Virtual Units card review. Current Community week and own picks, independent of private-league week; two additive API routes and one new service-only writer. | [Feature contract](RECOMMENDED_BETS.md) | Tests and release evidence, no draft/locked-line disclosure, no silent bet write or replacement; phone acceptance remains separate. |
+| Recommended bets (D-48) | Shipped live; phone acceptance pending / Unassigned | Top three guess-based discrepancies, expandable remainder, both-side traffic lights and explicit Virtual Units card review. Current Community week and own picks, independent of private-league week; two additive API routes and one new service-only writer. | [Feature contract](RECOMMENDED_BETS.md), [release][release] | Live reads and fixture save tests passed; actual production placement and phone acceptance remain separate. Preserve draft/locked-line privacy and explicit placement. |
 | Lines / game details | Partial / Unassigned | Live schedule, own references, records, trends and weather. Private-note editor shipped October 15 using hosted M-09/M-29, including recovery and existing long-note compatibility. Current sportsbook lines, book offers/movement and everyone's picks still need stages 32–34 and M-06/M-08. | [Release][release], [scope][scope], [migration inventory][migrations] | V; note save/recovery/conflict/privacy checks pass; remove later-update messages only when their gated readers are live; source/age and hidden-market checks pass. |
 | League | Partial / Unassigned | Live Community feed, comments/likes, market boards/history and private weekly boards. Feed/reference styling and collapsible replies retaining drafts shipped October 15; visual acceptance remains. Native creation/invitations, season/Bets boards, new reactions/embeds and player/features screens remain (stages 57–71). | [Release][release], [plan][plan] | V; no combined Spread/Total rank; private data clears on scope changes; every retained post/record stays reachable. |
 | Me / Settings / sign-in | Partial / Unassigned | Appearance including Reduce motion, sign-out and old-app access are live. The profile editor shipped October 15 with save/recovery and account-change protection. Expanded settings, information/legal/source pages, reminders/install and sign-in presentation remain (stages 37–39, 76); OAuth delivery is tracked below. | [Release][release], [scope][scope], [plan][plan] | V; profile save/recovery and account-isolation checks pass; settings persist as documented; accessible auth and install paths work without implying unconfigured services work. |
 | History / export / commissioner tools | Partial / Unassigned | Community history is live; other records and tools remain in the old app. Build the native destinations for revisions, journal/forecasts, old Challenge/group records, export and commissioner pages (stages 72–78). | [Inventory homes][homes], [plan][plan] | V; owner-only data/export remains private; all preserved entries have working destinations before retirement. |
-| Simulated-game section | Requested; unbuilt / Unassigned | New user request tracked in #128. The exact reference was reviewed in the browser: animated football-field replay with score/clock, player statistics and play captions. The author describes a representative run from 2,000 simulations; its model and data claims are not independently validated. GTL design, free data and simulation-method decisions remain. This is outside the October 15 release. | [Backlog task #128](https://github.com/seanbalz/guess-the-lines-repo/issues/128), [user-supplied reference](https://x.com/rotobot_ai/status/2110512433282625965/video/1?s=46) | GTL scope and acceptance criteria agreed, then implementation tested and released with its own evidence before any live claim. |
+| Simulated-game section | In progress; unreleased / Codex, Sean acceptance | Sean selected animated replay with score/clock/player stats/captions and real NFL teams/players, with data/model checks before publication. PR #131 merged the viewer/research foundation; PRs #135 and #136 add verified matchup inputs, stricter observed reconstruction, prior-game usage audits, 2026 clock administration, evaluation metrics and a league-wide score-pair baseline. The baseline evaluates 544 historical development games; it does not validate the proposed team/player simulator. Availability, full live-play/player generation, prospective evaluation, serving and acceptance remain open. | [Task #128](https://github.com/seanbalz/guess-the-lines-repo/issues/128), [implementation and gates](SIMULATED_GAME_REPLAY.md), [aggregate baseline](../model/reports/replay-paired-score-baseline-2026-10-15.json) | Reviewed real inputs, complete model/rules and held-out evaluation; authenticated delivery and mobile acceptance; exact-source release evidence. No replay result is live. |
 | Brand and shared formatting | Partial; acceptance pending / Unassigned | Retain Guess The Line and the approved G identity; use current D-38 type, spacing, surfaces and motion consistently. Record any further brand decision separately from #126's formatting work. | [Brand guide][brand], [tokens][tokens], [#126][visual] | V across all sections; no unauthorized new brand direction, copied marks or fabricated decorative data. |
 
 ## Backend and release dependencies
 
-These six merged migrations remain in `NOT_HOSTED`. Their code is not proof their
+The six previously merged migrations and the local M-07 implementation remain in `NOT_HOSTED`. Their code is not proof their
 behavior is live. Each apply follows [Gate M][gates]: explicit approval, prior-body
 and historical **score** hashes, tested rollback/off switch, function/grant
 readback, recorded hosted version and the applicable live checks. A ballot-content
@@ -98,7 +110,8 @@ generic `npx supabase db push` against this project.**
 | M-05 Monday-night collection | Implemented, not hosted / Unassigned | Apply alone in the approved Tuesday–Wednesday window; verify current plus previous unstarted games within the existing free budget. | [Migrations][migrations], [plan][plan] | Gate M; next scheduled collection succeeds with correct coverage and quota accounting. |
 | M-06 current-line readers | Implemented, not hosted / Unassigned | M-01, M-02, M-04 and stages 20/21 live; connect stages 32/33 after those dependencies. | [Migrations][migrations], [plan][plan] | Gate M; permitted current/book/kickoff lines show and hidden lines remain absent from responses. |
 | M-08 everyone's picks reader | Implemented, not hosted / Unassigned | M-01; corresponding UI and M-07 per-game scoring adaptation remain separate. | [Migrations][migrations], [plan][plan] | Gate M; per-game visibility, removed-member records and score labels verified. |
-| M-07 per-game saving/scoring | Unbuilt / Unassigned | M-01/M-02/M-05 and compatible old-app code; implement D-39/D-41/D-43 in both apps together (stages 24/25). | [Decisions][decisions], [plan][plan] | Each locked guess scores independently; drafts close at kickoff; sit-out/history preserve locked guesses; gates and tests pass. |
+| M-07 per-game saving/scoring | Implemented locally; checks pass / Codex SQL, API and UI lanes | Pending M-02/M-03/M-04/M-05/M-06/M-08 and compatible app release; explicit apply window remains. Both apps follow the server capability. | [Implementation checklist](PER_GAME_SCORING_RELEASE.md), [plan][plan] | Each locked guess scores independently; drafts close at kickoff; sit-out/history preserve locked guesses; gates and tests pass. |
+| Immediate personal scoring and player trends (D-50) | Core implemented locally; Trends discovery open / Codex core lanes; Trends unassigned | Lock-in, immediate personal points, weekly score browsing/filters and kickoff-only shared standings pass local checks; hosted and device acceptance remain. Trends metrics, samples, periods and audience remain decisions. Existing migration and privacy gates apply. | [Recovered planning and provenance](../planning/scoring-and-player-trends.md), [D-50][decisions] | Each task's acceptance conditions pass with hosted/phone evidence where required; imported planning is not delivery. |
 | Remaining redesign services | Unbuilt / Unassigned | Account-level Bets, friend challenges, league/social features, awards, history/export and their jobs need the staged APIs/SQL in phases 4–6. Follow D-39 amendments, including the dropped tester-list stage. | [Plan][plan] | Each capability has code, tests, hosted evidence and its matching screen; a planned migration number alone is not completion. |
 | D-47 weather schedule | Implemented on draft PR, not hosted / Unassigned | [PR #123][weather] at `a2b5270`; review/reconcile with current main. Compatible Pages first, then its separately approved migration/API sequence. | [PR release card][weather] | Green reviewed head, merge, ordered deployment/apply and readback; no claim of the new schedule before that. |
 
@@ -113,7 +126,7 @@ generic `npx supabase db push` against this project.**
 | Free odds, models and outside feeds | Partial; requires decision / Unassigned | The Odds API is connected. TheRundown's proposed free multiplayer use is not cleared in the provider record. Outside projections/splits/sharp feeds need rights and data; the historical GTL model is not a verified current forecast. | [Provider evaluation](ODDS_PROVIDER_EVALUATION.md), [model validation](MODEL_VALIDATION.md) | Only permitted, sourced, timestamped inputs ship; current model validation supports every forecast claim, or the feature stays unavailable. |
 | Native iPhone application | Requires decision; unbuilt / Unassigned | Mobile web/Home Screen use is separate. No Swift/Xcode client is established in this repository; native distribution and any paid membership need their own scope/budget decision. | [Issue #5](https://github.com/seanbalz/guess-the-lines-repo/issues/5), [access register](ACCOUNT_ACCESS_REGISTER.md) | An explicit native deliverable is built and device/distribution tested, or its deferral is recorded. Do not count the PWA as native delivery. |
 | Current GitHub → live release | Shipped live / Unassigned | Latest release used the Mac mini's manual deploy after green checks. Future changes still need an exact SHA, preflight, build, permitted deploy window and asset/backend readback. | [Release][release], [Gate D][gates] | Each new release has its own dated source, checks, hosted evidence and rollback reference. |
-| Automatic GitHub → application deployment | Requires decision / Unassigned | No automatic GitHub-to-Pages deployment is established by the manual release. Decide whether to add a protected pipeline consistent with migration/deploy gates. | [Access register](ACCOUNT_ACCESS_REGISTER.md), [release][release] | If requested, verify the actual merge-to-deploy path and failure/rollback behavior; otherwise retain the documented manual process. |
+| Shared GitHub → application deployment | Setup in progress / Codex; Sean owns release approval | Sean authorized the recommended shared path October 15. A manual exact-commit workflow is being added; the production environment and main-only restriction are configured with Sean as reviewer and public project variables populated. Supabase and Cloudflare deployment secrets and the first hosted workflow run remain outstanding. No merge-triggered deploy or database apply is enabled. | [Shared deployment setup](SHARED_DEPLOYMENT.md), [release][release] | Workflow merged, required secrets provisioned securely, check-only and approved release evidence verified, including failure/rollback behavior. Current Mac mini release path remains available. |
 | Production and full-week acceptance | Acceptance pending / Sean | Complete the planned flows, then run one full live week with real entries/results, both market gates, Monday coverage, privacy, notes/history and relevant jobs. Phone checks remain distinct from browser fixtures. | [Cutover checklist][cutover] | Full-week evidence, Sean's phone acceptance, required CI, unchanged preserved data and strict live checks pass; pending shipped-route checks are resolved. |
 | New default | Requires decision / Sean | Complete the cutover checklist, supporting screens and inventory destinations; obtain Sean's approval. The present five-tab bridge does not satisfy that checklist by itself. | [Cutover checklist][cutover] | Approved small default-switch PR, permitted deployment, retained fallback and verified rollback. |
 | Old-app retirement | Unbuilt; acceptance pending / Unassigned | After the approved flip, at least **two full weeks** on the new default without a blocking bug; native commissioner/history/export destinations and Sean's OK. | [Retirement checklist](REDESIGN_BUILD_PLAN.md#retiring-the-old-app-stage-81-later-with-seans-ok) | All retained records reachable; safe removal of old screens only, no deleted tables/records; server retirement handled separately. |
@@ -133,12 +146,14 @@ available, without claiming an unverified synchronization.
 | Issue #126 | Acceptance pending / Sean | [Photo 1 defect and visual criteria][visual]; section work above. | V accepted and linked to the actual release; functional tests alone cannot close it. |
 | Stale current-status documentation | Partial / Unassigned | Current headers in `CLOUD_SETUP.md`, `ACCOUNT_ACCESS_REGISTER.md` and `SOCIAL_COMMUNITY.md` were reconciled in PR #127; this evidence update points them at the October 15 deployment. `RULES.md` now records hosted M-01 and the frozen public tracker, and `AGENT_HANDOFF.md` separates the current handoff from its preserved October 8 text. Other historical rule/status notes have not all been reconciled. | Keep current pointers aligned with dated evidence and retain labelled history; reconcile remaining conflicts individually. |
 | Update this register | Partial / Unassigned | A merged PR, hosted apply/deploy or acceptance result changes a row. | Record the specific evidence and new state together. Do not mark local work live or an external setup complete from a plan. |
+| Local/cloud repository handoff | Implemented; verification required per checkout / Each task owner | Use a separate worktree, reviewed commits/pushes and `npm run sync:check`. Six local planning files were preserved and reconciled in the shared-sync branch; the original shared checkout remains untouched. | [Sync workflow and recovery](REPOSITORY_SYNC.md) | At each handoff, matching local/remote branch commits, 0 ahead/behind and no unpublished files; separately report PR merge, deployment and private artifacts. |
+| Windows development and local recovery | Implemented; verification required per checkout / Codex | Local recovery uses protected Windows ACLs, preserving POSIX permissions on macOS/Linux. Git race and UI tests use portable execution/paths; a Windows CI job covers the affected suites. | [Recovery contract](OPERATIONS_RUNBOOK.md#local-recovery); 30 focused tests passed on Windows Node 24, including independent read-only review. | Green full suite and PR checks; verify each machine against the merged commit with `npm run sync:check`. Local recovery and source sync do not establish hosted restore or deployment. |
 
 Sources: current repository and GitHub issue/PR inspection at the baseline above;
 dated release records establish deployment. Private Status Board contents and
 unpublished work outside this checkout were not reconciled in this register.
 
-[release]: RELEASE_2026_10_15.md
+[release]: RELEASE_2026_10_15_RECOMMENDATIONS.md
 [scope]: ALL_TABS_LIVE_WORKFLOWS.md
 [plan]: REDESIGN_BUILD_PLAN.md
 [gates]: REDESIGN_BUILD_PLAN.md#4-gates

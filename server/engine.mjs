@@ -28,7 +28,7 @@ const sourceMetadata = row => typeof row?.source === 'string' && row.source.trim
 // scored whatever its age. A first line after the guess must be collected after it; its book observations may precede
 // the save (D-17 keeps them within five minutes of the collection), and ageSeconds is then positive.
 // Stored 'stale' and 'unavailable' references keep value null and stay unscored.
-function savedReference(ballot, game, mode, now) {
+function savedReference(ballot, game, mode, now, perGameScoring = false) {
   const ref = ballot.scoringReferences?.[game.id];
   if (!ref) return missingReference();
   const safe = Object.fromEntries(['status', 'value', 'source', 'sourceUrl', 'snapshotId', 'capturedAt', 'observedAt', 'savedAt', 'reason', 'basis', 'ageSeconds']
@@ -37,11 +37,12 @@ function savedReference(ballot, game, mode, now) {
   if (ref.status !== 'available') return { ...missingReference(ref.reason, ref.savedAt || null), ...safe, value: null };
   const saved = Date.parse(ref.savedAt), captured = Date.parse(ref.capturedAt), observed = Date.parse(ref.observedAt), kickoff = Date.parse(game.kickoff);
   const firstAfter = ref.basis === 'first_line_after_submission';
-  const submitted = Date.parse(ballot.submittedAt), updated = Date.parse(ballot.updatedAt || ballot.submittedAt);
+  const lockTime = perGameScoring && ballot.lockedAt?.[game.id];
+  const submitted = Date.parse(lockTime || ballot.submittedAt), updated = Date.parse(ballot.updatedAt || lockTime || ballot.submittedAt);
   let validValue = false;
   try { validatePrediction(mode, ref.value); validValue = true; } catch { /* Invalid evidence is unscored. */ }
-  if (!validValue || ![saved, captured, observed, submitted, updated, now].every(Number.isFinite)
-    || saved > now || saved < submitted || saved > updated || observed > captured
+  if (!validValue || ![saved, captured, observed, submitted, updated, now, kickoff].every(Number.isFinite)
+    || saved > now || saved < submitted || saved > updated || (lockTime && saved !== submitted) || observed > captured
     || (firstAfter ? captured <= saved || captured > now : captured > saved)
     || saved >= kickoff || captured >= kickoff
     || typeof ref.source !== 'string' || !ref.source.trim() || typeof ref.snapshotId !== 'string' || !ref.snapshotId
@@ -97,13 +98,14 @@ export const SENT_FINAL_MESSAGE = 'Sent picks are final.';
  * its lockedAt names. The same reading as gtl_ballot_locked_in (M-02) and web/src/sentFinal.js lockedIn().
  */
 export const ballotLockedIn = (ballot, gameId) => Number.isFinite(ballot?.picks?.[gameId])
-  && (Boolean(ballot?.submittedAt) || typeof ballot?.lockedAt?.[gameId] === 'string');
+  && !(Array.isArray(ballot?.closedAtKickoff) && ballot.closedAtKickoff.includes(gameId))
+  && (typeof ballot?.lockedAt?.[gameId] === 'string' || Boolean(ballot?.submittedAt));
 
 // Persistence and authenticated identity belong to the adapter. This engine only
 // operates on an isolated state snapshot and the roster identity supplied to it.
 // sentFinal: the live rule M-02 turns on (gtl_live_rules); the cloud handler passes it for a save. While it is false the
 // engine keeps D-16's edits until the deadline, as the database does before M-02.
-export function createEngine(initialState, { clock = Date.now, uuid = () => globalThis.crypto.randomUUID(), sentFinal = false } = {}) {
+export function createEngine(initialState, { clock = Date.now, uuid = () => globalThis.crypto.randomUUID(), sentFinal = false, perGameScoring = false, lateWindow = 'deadline', eligibility = {} } = {}) {
   let state = structuredClone(initialState);
   if (state?.version !== 1) throw new Error('Unsupported local data version. Preserve the file before migrating.');
 
@@ -112,13 +114,14 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
   }
 
   const ballot = (id, mode) => state.ballots[id]?.[mode] || { picks: {}, submittedAt: null };
-  // D-23: a final weekly opt-out ("Sit out this week") forfeits that mode's score and
-  // satisfies the reveal gate exactly like a submitted ballot. Cloud reads supply
+  // D-23: a final weekly opt-out reveals the market. Under D-41 it forfeits only games
+  // not already locked in; locked-in guesses keep counting. Cloud reads supply
   // state.optOuts from gtl_weekly_optouts; the local workspace stores it in state.
   const satOut = (id, mode) => Array.isArray(state.optOuts?.[id]) && state.optOuts[id].includes(mode);
   function lockReason(id, mode) {
     if (!['guess_spread', 'guess_total'].includes(mode)) return null;
-    return clock() >= Date.parse(state.league.deadline) ? 'deadline' : null;
+    const due = lateWindow === 'kickoff' ? Math.max(...state.games.map(g => Date.parse(g.kickoff))) : Date.parse(state.league.deadline);
+    return clock() >= due ? 'deadline' : null;
   }
 
   function view(id, mode = 'guess_spread') {
@@ -133,9 +136,13 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     const marketHistory = predictionMode ? [...(mode === 'guess_spread' ? state.history : []), ...(state.consensusHistory || []).filter(row => row.mode === mode)]
       .filter(sourceMetadata).filter(row => Date.parse(row.capturedAt) <= now).sort((a, b) => Date.parse(a.capturedAt) - Date.parse(b.capturedAt)) : [];
     const latest = marketHistory.at(-1);
-    const priced = revealed && predictionMode;
+    const started = game => now >= Date.parse(game.kickoff);
+    const gameRevealed = game => perGameScoring ? ballotLockedIn(own, game.id) || satOut(id, mode) || started(game) : revealed;
+    const eligible = who => !perGameScoring || (state.league.practice !== true && eligibility[who]?.[mode] !== false);
+    const priced = predictionMode && (perGameScoring ? state.games.some(gameRevealed) : revealed);
     const references = Object.fromEntries(state.league.roster.map(p => [p.id, Object.fromEntries(state.games.map(g => [g.id,
-      priced && ballot(p.id, mode).submittedAt ? savedReference(ballot(p.id, mode), g, mode, now) : null,
+      priced && gameRevealed(g) && (perGameScoring ? ballotLockedIn(ballot(p.id, mode), g.id) : ballot(p.id, mode).submittedAt)
+        ? savedReference(ballot(p.id, mode), g, mode, now, perGameScoring) : null,
     ]))]));
     const currentConsensus = game => {
       const row = [...marketHistory].reverse().find(row => Number.isFinite(row.games?.[game.id]?.value));
@@ -155,14 +162,16 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     const standings = state.league.roster.map(p => {
       const b = ballot(p.id, mode);
       const visible = p.id === id || revealed;
-      const values = priced && b.submittedAt && visible
-        ? state.games.map(g => accuracy(b.picks[g.id], references[p.id][g.id]?.value))
-        : [];
-      const all = values.length === state.games.length && values.every(v => v !== null);
+      const scoringGames = perGameScoring ? state.games.filter(g => started(g) && ballotLockedIn(b, g.id)) : state.games;
+      const values = perGameScoring ? eligible(p.id) ? scoringGames.map(g => accuracy(b.picks[g.id], references[p.id][g.id]?.value)) : []
+        : priced && b.submittedAt && visible ? scoringGames.map(g => accuracy(b.picks[g.id], references[p.id][g.id]?.value)) : [];
+      const all = perGameScoring ? values.some(v => v !== null) : values.length === state.games.length && values.every(v => v !== null);
       const record = { W: 0, L: 0, T: 0 };
       let compared = 0;
-      if (priced && state.league.roster.length >= 2 && state.league.roster.every(p => ballot(p.id, mode).submittedAt)) {
+      if (priced && state.league.roster.length >= 2 && state.league.roster.every(p => perGameScoring
+        ? state.games.every(g => ballotLockedIn(ballot(p.id, mode), g.id)) : ballot(p.id, mode).submittedAt)) {
         for (const game of state.games) {
+          if (perGameScoring && (!started(game) || !state.league.roster.every(p => eligible(p.id) && ballotLockedIn(ballot(p.id, mode), game.id)))) continue;
           const errors = Object.fromEntries(state.league.roster.map(p => {
             const pick = ballot(p.id, mode).picks[game.id], reference = references[p.id][game.id]?.value;
             return [p.id, Number.isFinite(pick) && Number.isFinite(reference) ? round(Math.abs(pick - reference)) : null];
@@ -187,7 +196,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
         points: all ? round(values.reduce((a, b) => a + b, 0)) : null,
         exact: all ? values.filter(v => v === 10).length : null,
         scoredGames: values.filter(v => v !== null).length,
-        error: all ? round(state.games.reduce((n, g) => n + Math.abs(b.picks[g.id] - references[p.id][g.id].value), 0)) : null,
+        error: all ? round(scoringGames.filter(g => Number.isFinite(references[p.id][g.id]?.value)).reduce((n, g) => n + Math.abs(b.picks[g.id] - references[p.id][g.id].value), 0)) : null,
         record: compared ? record : null,
         betRecord,
         winRate: winRate(betRecord),
@@ -197,6 +206,10 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       ? (b.winRate ?? -1) - (a.winRate ?? -1) || b.betRecord.W - a.betRecord.W
       : (b.points ?? -1) - (a.points ?? -1) || (a.error ?? Infinity) - (b.error ?? Infinity) || (b.exact ?? -1) - (a.exact ?? -1));
 
+    const ownScored = state.games.filter(g => eligible(id) && Number.isFinite(references[id][g.id]?.value));
+    const ownLocked = state.games.filter(g => ballotLockedIn(own, g.id));
+    const ownPending = ownLocked.filter(g => references[id][g.id]?.status === 'pending');
+    const ownPoints = ownScored.length ? round(ownScored.reduce((n, g) => n + accuracy(own.picks[g.id], references[id][g.id].value), 0)) : null;
     return structuredClone({
       now: new Date(now).toISOString(),
       playerId: id,
@@ -206,17 +219,19 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       games: state.games.map(g => ({
         ...g,
         prediction: own.picks[g.id] ?? null,
-        market: priced ? references[id][g.id]?.value ?? null : null,
-        scoringReference: priced ? references[id][g.id] : null,
-        currentConsensus: priced ? currentConsensus(g) : null,
-        points: priced ? accuracy(own.picks[g.id], references[id][g.id]?.value) : null,
-        previousMarket: priced ? marketHistory.at(-2)?.games[g.id]?.value ?? null : null,
-        opponents: revealed ? state.league.roster.filter(p => p.id !== id).map(p => ({
+        market: priced && gameRevealed(g) ? references[id][g.id]?.value ?? null : null,
+        scoringReference: priced && gameRevealed(g) ? references[id][g.id] : null,
+        currentConsensus: priced && gameRevealed(g) ? currentConsensus(g) : null,
+        points: priced && gameRevealed(g) && eligible(id) ? accuracy(own.picks[g.id], references[id][g.id]?.value) : null,
+        previousMarket: priced && gameRevealed(g) ? marketHistory.at(-2)?.games[g.id]?.value ?? null : null,
+        ...(perGameScoring ? { revealed: gameRevealed(g), lockedIn: ballotLockedIn(own, g.id), started: started(g),
+          scoringStatus: !ballotLockedIn(own, g.id) ? satOut(id, mode) ? 'skipped' : 'draft' : !eligible(id) ? 'ineligible' : references[id][g.id]?.status === 'available' ? 'scored' : references[id][g.id]?.status === 'pending' ? 'pending' : 'unavailable' } : {}),
+        opponents: gameRevealed(g) ? state.league.roster.filter(p => p.id !== id).map(p => ({
           id: p.id,
           name: p.name,
-          value: ballot(p.id, mode).submittedAt ? ballot(p.id, mode).picks[g.id] ?? null : null,
-          scoringReference: ballot(p.id, mode).submittedAt ? references[p.id][g.id] : null,
-          points: ballot(p.id, mode).submittedAt ? accuracy(ballot(p.id, mode).picks[g.id], references[p.id][g.id]?.value) : null,
+          value: (perGameScoring ? ballotLockedIn(ballot(p.id, mode), g.id) : ballot(p.id, mode).submittedAt) ? ballot(p.id, mode).picks[g.id] ?? null : null,
+          scoringReference: references[p.id][g.id],
+          points: eligible(p.id) ? accuracy(ballot(p.id, mode).picks[g.id], references[p.id][g.id]?.value) : null,
         })) : [],
         bet: state.bets[id]?.[g.id] ? { ...state.bets[id][g.id], result: gradeBet(state.bets[id][g.id], state.results[g.id]) } : null,
       })),
@@ -224,9 +239,10 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       submittedAt: own.submittedAt,
       // M-02: the games locked in on their own (the new app's per-game lock-in), { gameId: time }, or null.
       lockedAt: own.lockedAt && typeof own.lockedAt === 'object' && !Array.isArray(own.lockedAt) ? own.lockedAt : null,
+      ...(perGameScoring ? { closedAtKickoff: Array.isArray(own.closedAtKickoff) ? own.closedAtKickoff : [] } : {}),
       updatedAt: own.updatedAt || null,
       satOut: satOut(id, mode),
-      revealed,
+      revealed: perGameScoring && predictionMode ? state.games.every(gameRevealed) : revealed,
       standings,
       history: priced && mode === 'guess_spread' && id === 'sean' ? state.history.map(({ games, ...s }) => s) : [],
       // Publish only market observations after this mode's submission gate.
@@ -244,7 +260,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
         sourceUrl: s.sourceUrl,
         verified: false,
         status: 'historical',
-        games: Object.fromEntries(state.games.filter(g => Number.isFinite(s.games?.[g.id]?.value))
+        games: Object.fromEntries(state.games.filter(g => gameRevealed(g) && Number.isFinite(s.games?.[g.id]?.value))
           .map(g => [g.id, { value: s.games[g.id].value }])),
       })) : [],
       snapshot: priced && latest ? {
@@ -256,7 +272,9 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
         status: now - Date.parse(latest.quotedAt) > 6 * 3600_000 ? 'stale' : 'historical',
         verified: false,
       } : null,
-      score: standings.find(p => p.id === id)?.points ?? null,
+      score: perGameScoring && predictionMode ? ownPoints : standings.find(p => p.id === id)?.points ?? null,
+      ...(perGameScoring && predictionMode ? { scoreSummary: { points: ownPoints, scoredGames: ownScored.length, lockedGames: ownLocked.length, pendingGames: ownPending.length, remainingGames: state.games.length - ownLocked.length,
+        standingsPoints: standings.find(p => p.id === id)?.points ?? null, awaitingKickoffPoints: round(ownScored.filter(g => !started(g)).reduce((n, g) => n + accuracy(own.picks[g.id], references[id][g.id].value), 0)), basis: 'personal-locked-in', standingsBasis: 'started-games' } } : {}),
       maxPoints: state.games.length * 10,
       archivedCount: state.archivedCount,
       revisionCount: state.audit.filter(a => a.player === id && a.mode === mode && a.type !== 'reference_resolved').length,
@@ -273,7 +291,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     player(id);
     if (!['guess_spread', 'guess_total'].includes(mode)) throw new Error('Unknown prediction game.');
     const before = ballot(id, mode), now = clock();
-    if (now >= Date.parse(state.league.deadline)) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
+    if (lateWindow !== 'kickoff' && now >= Date.parse(state.league.deadline)) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
     if (satOut(id, mode)) throw new Error('You sat out this week for that market. Its picks are closed.');
     if (!picks || typeof picks !== 'object' || Array.isArray(picks)) throw new Error('Invalid ballot.');
     const valid = Object.fromEntries(Object.entries(picks).map(([key, value]) => {
@@ -281,9 +299,16 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
       return [key, validatePrediction(mode, value)];
     }));
     // M-02 mirror (D-37, D-39): once sent picks are final, a locked-in guess can neither change nor be left out.
-    const locked = gameId => sentFinal && ballotLockedIn(before, gameId);
+    const locked = gameId => (sentFinal || perGameScoring) && ballotLockedIn(before, gameId);
     if (Object.keys(before.picks || {}).some(gameId => locked(gameId) && valid[gameId] !== before.picks[gameId])) throw new Error(SENT_FINAL_MESSAGE);
-    if ((submit || before.submittedAt) && Object.keys(valid).length !== state.games.length) {
+    if (lateWindow === 'kickoff') for (const game of state.games) {
+      if (now < Date.parse(game.kickoff)) continue;
+      if (Object.hasOwn(valid, game.id) && valid[game.id] !== before.picks[game.id]) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
+      // An old full-ballot screen may omit a game that started. Preserve its draft instead of deleting it (D-23).
+      if (Object.hasOwn(before.picks, game.id)) valid[game.id] = before.picks[game.id];
+    }
+    const requiredGames = perGameScoring ? state.games.filter(g => now < Date.parse(g.kickoff)) : state.games;
+    if ((submit || before.submittedAt) && requiredGames.some(g => !Object.hasOwn(valid, g.id))) {
       throw new Error(`Complete all ${state.games.length} predictions before submitting.`);
     }
     const next = structuredClone(state);
@@ -293,13 +318,16 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     const changed = Object.keys(valid).filter(gameId => before.picks[gameId] !== valid[gameId]);
     const scoringReferences = structuredClone(before.scoringReferences || {});
     // A send captures the line for each guess it locks in; one locked in earlier keeps its own (M-02).
-    const captureGames = submitted ? state.games.filter(game => !locked(game.id) && (!before.submittedAt || changed.includes(game.id))) : [];
+    const captureGames = submitted ? state.games.filter(game => !locked(game.id) && Object.hasOwn(valid, game.id)
+      && (!perGameScoring || now < Date.parse(game.kickoff)) && (!before.submittedAt || changed.includes(game.id))) : [];
     // Kickoff locks are unchanged; before October 12, 2026 the freshness rule enforced them implicitly.
     if (captureGames.some(game => now >= Date.parse(game.kickoff))) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
     for (const game of captureGames) scoringReferences[game.id] = captureReference(state, game, mode, now);
-    const lockedAt = sentFinal && captureGames.length ? { ...(before.lockedAt || {}), ...Object.fromEntries(captureGames.map(game => [game.id, timestamp])) } : before.lockedAt;
+    const lockedAt = (sentFinal || perGameScoring) && captureGames.length ? { ...(before.lockedAt || {}), ...Object.fromEntries(captureGames.map(game => [game.id, timestamp])) } : before.lockedAt;
     next.ballots[id][mode] = { ...before, picks: valid, submittedAt: before.submittedAt || (submit ? timestamp : null), updatedAt: timestamp,
-      ...(submitted ? { scoringPolicy: 'submission-time', scoringReferences } : {}), ...(lockedAt ? { lockedAt } : {}) };
+      ...(submitted ? { scoringPolicy: 'submission-time', scoringReferences } : {}), ...(lockedAt ? { lockedAt } : {}),
+      ...(perGameScoring ? { guessRule: 'per-game-v1' } : {}),
+      ...(perGameScoring && submit ? { closedAtKickoff: state.games.filter(g => now >= Date.parse(g.kickoff) && !locked(g.id)).map(g => g.id) } : {}) };
     // October 12, 2026: a save is never refused for the age or absence of a line; the newest stored line or a
     // pending reference is saved. Cloud prevalidation still defers to its atomic database guard.
     next.audit.push({ id: uuid(), player: id, mode, type: before.submittedAt ? 'ballot_edited' : submit ? 'ballot_submitted' : 'ballot_saved', timestamp,
@@ -309,13 +337,42 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
     return view(id, mode);
   }
 
+  // Local mirror of M-07's single-game writer. The adapter still owns the atomic revision check and persistence.
+  function lockGuess(id, mode, gameId, value) {
+    player(id);
+    if (!perGameScoring) throw new Error('Per-game lock-in is not available yet.');
+    if (!['guess_spread', 'guess_total'].includes(mode)) throw new Error('Unknown prediction game.');
+    const game = state.games.find(g => g.id === gameId);
+    if (!game) throw new Error('Unknown matchup.');
+    const pick = validatePrediction(mode, value), before = ballot(id, mode), now = clock();
+    if (ballotLockedIn(before, gameId)) {
+      if (before.picks[gameId] !== pick) throw new Error(SENT_FINAL_MESSAGE);
+      return view(id, mode); // A lost-response retry does not replace the receipt or add an audit entry.
+    }
+    if (satOut(id, mode)) throw new Error('You sat out this week for that market. Its picks are closed.');
+    if (now >= Date.parse(game.kickoff) || (lateWindow !== 'kickoff' && now >= Date.parse(state.league.deadline))) {
+      throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
+    }
+    const timestamp = new Date(now).toISOString(), reference = captureReference(state, game, mode, now), next = structuredClone(state);
+    next.ballots[id] ||= {};
+    next.ballots[id][mode] = { ...before, picks: { ...before.picks, [gameId]: pick }, updatedAt: timestamp,
+      lockedAt: { ...(before.lockedAt || {}), [gameId]: timestamp }, scoringPolicy: 'submission-time', guessRule: 'per-game-v1',
+      scoringReferences: { ...(before.scoringReferences || {}), [gameId]: reference } };
+    next.audit.push({ id: uuid(), player: id, mode, type: 'guess_locked_in', gameId, timestamp,
+      before: before.picks, after: next.ballots[id][mode].picks, changedGameIds: [gameId],
+      beforeScoringReferences: structuredClone(before.scoringReferences || {}),
+      afterScoringReferences: structuredClone(next.ballots[id][mode].scoringReferences) });
+    state = next;
+    return view(id, mode);
+  }
+
   // Final for the week and mode: no draft or submission may follow, nothing is scored as zero.
   function sitOut(id, mode) {
     player(id);
     if (!['guess_spread', 'guess_total'].includes(mode)) throw new Error('Unknown prediction game.');
     const now = clock();
-    if (now >= Date.parse(state.league.deadline)) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
-    if (ballot(id, mode).submittedAt) throw new Error('This ballot is already submitted. Sitting out is not possible.');
+    if (lockReason(id, mode)) throw new Error('The prediction deadline has passed. Commissioner adjudication is required.');
+    if (!perGameScoring && ballot(id, mode).submittedAt) throw new Error('This ballot is already submitted. Sitting out is not possible.');
     if (!satOut(id, mode)) {
       const next = structuredClone(state);
       next.optOuts ||= {};
@@ -349,6 +406,7 @@ export function createEngine(initialState, { clock = Date.now, uuid = () => glob
   return {
     view,
     saveBallot,
+    lockGuess,
     sitOut,
     saveBet,
     export(id) {

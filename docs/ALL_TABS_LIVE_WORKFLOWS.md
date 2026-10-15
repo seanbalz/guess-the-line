@@ -55,6 +55,18 @@ provenance remains identical to the established history screen.
 Native new components continue to follow `design/tokens-next.json` and the strict
 new-app token tests. The classic app keeps its existing styles.
 
+Stage 25 adds a narrow, capability-gated exception for per-game entry. The native
+`PerGamePlay` editor reuses only the existing D-21 `ChipPicker` control and the pure
+`communityDraft`/`soloDraft` recovery helpers. Classic `CommunityHome` and
+`PersonalWorkspace` lazily load only `PerGameLegacy` when the server reports
+`sentFinal: true`, `lateWindow: kickoff` and `perGameScoring: true`. That wrapper
+mounts the same editor inside `.gx.gx-legacy-per-game` with D-38 scoped tokens,
+base styles and `.gx-live-play` chip styles; it has no new-app shell or data-provider
+dependency. Existing classic screen styles remain outside that root. The exact
+imports and capability gates are allowlisted in `next-app-view.test.mjs`; arbitrary
+cross-app screen imports remain forbidden. This implementation does not establish
+that M-07 is applied or that per-game entry is enabled on the hosted site.
+
 ## Data protection and save recovery
 
 - Play keeps account/week/market draft recovery and the existing revision and

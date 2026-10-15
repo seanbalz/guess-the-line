@@ -87,3 +87,14 @@ test('the final-pick refusal keeps its code and sentence, so a screen reloads in
   await assert.rejects(readResponse(json({ error: 'Your weekly ballot changed in another group or on another device.', code: 'GTL_WEEKLY_CONFLICT' }, 409), true),
     error => error.code === null && /another group or on another device/.test(error.message));
 });
+
+
+test('a kickoff refusal retains its code and triggers saved-state reconciliation rather than a revision conflict', async () => {
+  await assert.rejects(readResponse(json({ error: 'This game has started. Its saved guess cannot be changed.', code: 'GTL_GAME_CLOSED' }, 409), true), error => {
+    assert.equal(error.code, 'GTL_GAME_CLOSED');
+    assert.equal(error.status, 409);
+    assert.match(error.message, /game has started/);
+    assert.notEqual(error.uncertain, true);
+    return true;
+  });
+});
