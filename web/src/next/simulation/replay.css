@@ -1,0 +1,56 @@
+/* Original read-only field and replay, using D-38 tokens. No simulated state is styled as a live game. */
+.gx .gx-sim-replay { display: grid; gap: var(--gx-space-4); min-width: 0; }
+.gx .gx-sim-header { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-3); }
+.gx .gx-sim-header > :last-child { text-align: right; }
+.gx .gx-sim-replay :where(p, h2, h3, dl, dd) { margin: 0; }
+.gx .gx-sim-scorecard { display: grid; gap: var(--gx-space-4); min-width: 0; }
+.gx .gx-sim-score-teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-6); }
+.gx .gx-sim-score-team { display: grid; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-sim-score-line { display: flex; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-sim-clock { display: flex; justify-content: center; align-items: center; gap: var(--gx-space-4); border-top: 1px solid var(--gx-border); padding-top: var(--gx-space-3); }
+.gx .gx-sim-field-block { display: grid; gap: var(--gx-space-2); }
+.gx .gx-sim-field-caption { display: grid; gap: var(--gx-space-1); }
+.gx .gx-sim-field-caption > :last-child { display: flex; align-items: center; gap: var(--gx-space-1); }
+.gx .gx-sim-field { display: block; width: 100%; height: auto; overflow: visible; }
+.gx .gx-sim-turf { fill: var(--gx-surface-2); stroke: var(--gx-border-strong); stroke-width: 1; }
+.gx .gx-sim-endzone { fill: none; stroke: var(--gx-border-strong); stroke-width: 2; }
+.gx .gx-sim-yardline { stroke: var(--gx-border); stroke-width: 1; }
+.gx .gx-sim-hash { stroke: var(--gx-border-strong); stroke-width: 1; }
+.gx .gx-sim-direction { fill: none; stroke: var(--gx-text-3); stroke-width: 2; }
+.gx .gx-sim-ball { transition: transform var(--gx-dur-big) var(--gx-ease-standard); }
+.gx .gx-sim-line-of-scrimmage { stroke: var(--gx-data); stroke-width: 2; stroke-dasharray: 4 4; }
+.gx .gx-sim-ball-shape { fill: var(--gx-data); stroke: var(--gx-surface-1); stroke-width: 2; }
+.gx .gx-sim-ball-laces { stroke: var(--gx-surface-1); stroke-width: 1.5; }
+.gx .gx-sim-position { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-sim-play { display: grid; gap: var(--gx-space-2); padding: var(--gx-space-4); border-left: 2px solid var(--gx-data); background: var(--gx-data-tint); border-radius: var(--gx-radius-sm); }
+.gx .gx-sim-controls { display: grid; gap: var(--gx-space-3); }
+.gx .gx-sim-transport { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-sim-transport > .gx-btn { flex: 1 1 auto; min-width: var(--gx-size-touch); padding-inline: var(--gx-space-2); }
+.gx .gx-sim-secondary-controls { display: flex; justify-content: space-between; align-items: center; gap: var(--gx-space-3); }
+.gx .gx-sim-speed { display: flex; align-items: center; gap: var(--gx-space-2); font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-sim-speed :where(select) { width: auto; min-width: var(--gx-size-touch); font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-sim-stats { display: grid; gap: var(--gx-space-3); padding-top: var(--gx-space-2); }
+.gx .gx-sim-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-sim-player-list { display: grid; gap: var(--gx-space-2); }
+.gx .gx-sim-player { min-width: 0; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); background: var(--gx-surface-1); box-shadow: var(--gx-e1); }
+.gx .gx-sim-player > :where(summary) { display: grid; gap: var(--gx-space-3); min-height: var(--gx-size-touch); padding: var(--gx-space-4); list-style: none; cursor: pointer; }
+.gx .gx-sim-player > :where(summary)::-webkit-details-marker { display: none; }
+.gx .gx-sim-player-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--gx-space-3); }
+.gx .gx-sim-player-heading > :first-child { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-sim-player-team { display: flex; align-items: center; flex: none; gap: var(--gx-space-2); }
+.gx .gx-sim-yard-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-sim-yard-stats > :where(span) { display: grid; gap: var(--gx-space-1); }
+.gx .gx-sim-extra-stats { display: grid; gap: var(--gx-space-2); padding: var(--gx-space-4); border-top: 1px solid var(--gx-border); }
+.gx .gx-sim-extra-stats > :where(div) { display: flex; justify-content: space-between; gap: var(--gx-space-3); }
+.gx .gx-sim-provenance { border-top: 1px solid var(--gx-border); }
+.gx .gx-sim-provenance > :where(summary) { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-height: var(--gx-size-touch); padding-block: var(--gx-space-3); list-style: none; cursor: pointer; color: var(--gx-data); }
+.gx .gx-sim-provenance > :where(summary)::-webkit-details-marker { display: none; }
+.gx .gx-sim-provenance :where(dl) { display: grid; gap: var(--gx-space-3); padding-block: var(--gx-space-3); }
+.gx .gx-sim-provenance :where(dt) { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-sim-provenance :where(dd) { overflow-wrap: anywhere; }
+.gx .gx-sim-unavailable { display: grid; gap: var(--gx-space-3); }
+.gx .gx-sim-research { display: grid; justify-items: start; gap: var(--gx-space-2); }
+@media (prefers-reduced-motion: reduce) {
+  .gx .gx-sim-ball { transition: none; }
+}
+.gx[data-motion="reduce"] .gx-sim-ball { transition: none; }

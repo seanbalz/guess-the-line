@@ -57,6 +57,32 @@
       "fieldsUsed": ["game_id", "season", "game_type", "week", "gameday", "weekday", "gametime", "away_team", "away_score", "home_team", "home_score", "location", "overtime", "away_rest", "home_rest", "away_moneyline", "home_moneyline", "spread_line", "away_spread_odds", "home_spread_odds", "total_line", "under_odds", "over_odds", "div_game", "roof", "surface", "temp", "wind", "away_qb_id", "home_qb_id", "away_qb_name", "home_qb_name", "away_coach", "home_coach", "referee", "stadium_id"],
       "attribution": "Data: nflverse; schedules maintained by Lee Sharpe (CC BY 4.0), modified",
       "use": "Situational trend records (shared/trends.mjs): derived aggregates and public game facts only; unplayed games are redacted before use. Same content as the unlicensed nfldata raw file (in 1999-2025 only five '-0' spreads differ)."
+    },
+    {
+      "id": "nflverse-pbp-replay-research",
+      "status": "approved_local_retrospective_research_not_published",
+      "publisher": "nflverse contributors",
+      "url": "https://github.com/nflverse/nflverse-data/releases/tag/pbp",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+      "reviewedAt": "2026-10-15",
+      "permissionEvidence": "The exact nflverse-data release repository and nflverse-pbp producer explicitly publish CC BY 4.0. Local research uses an allowlisted factual subset. No additional applicable restriction was established for this distributor download; original NFL service-term applicability remains uncertain, not an asserted requirement for a second grant.",
+      "fieldsUsed": "model/replay_sources.py PBP_FIELDS; no narrative, odds, EPA/WP or provider model outputs",
+      "attribution": "Data: nflverse contributors (CC BY 4.0), filtered and normalized by Guess The Line; link source release and licence.",
+      "use": "Local source audit and retrospective next-play research only. Raw/normalized files and hash receipts stay under .local/replay-data. Full-game/player validation and the production publication review remain incomplete. Current snapshots do not reconstruct original availability or revision timestamps."
+    },
+    {
+      "id": "nflverse-rosters-replay-research",
+      "status": "approved_local_source_audit_not_published",
+      "publisher": "nflverse contributors",
+      "url": "https://github.com/nflverse/nflverse-data/releases/tag/rosters",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+      "reviewedAt": "2026-10-15",
+      "permissionEvidence": "Exact release CC BY 4.0 recorded for a factual identity subset. Producer lineage includes NFL NGS/Shield and enrichment; downstream applicability of those service terms is not established. No player image, biography, trademark or endorsement grant is inferred.",
+      "fieldsUsed": "model/replay_sources.py ROSTER_FIELDS; no headshots or biography",
+      "attribution": "Data: nflverse contributors (CC BY 4.0), filtered and normalized by Guess The Line; link source release and licence.",
+      "use": "Local identity/coverage audit only. Mixed latest-row weeks and an ACT status do not prove current matchup availability. No future-roster player allocation or published player forecast."
     }
   ]
 }
