@@ -16,7 +16,8 @@ test.use({ viewport: { width: 390, height: 844 } });
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 // Stage 13: the Lines tab adds the viewer's own week (`/personal`), read once a Lines screen asks for it, and the week's
 // kickoff forecasts (`/wind/read`, read once by the board for its D-45 weather chips).
-const READS = ['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read'];
+// The functional League tab reads the selected private group's authenticated state.
+const READS = ['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'GET /functions/v1/gtl-api/state'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 const tab = (page, name) => tabBar(page).getByRole('button', { name, exact: true });
 const title = (page, name) => page.getByRole('heading', { name, level: 1, exact: true });
@@ -336,7 +337,7 @@ test('a 401 on the first /lobby asks to sign in again over the start screen; onc
 
 test('an account the commissioner removed from the Community sees why, keeps its groups, and the frame still works', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  const world = await communityWorld(page, baseURL, { migrations: ALL, groupScreens: true });
   try {
     expect((await world.api('sean', 'community/member', { userId: ACCOUNTS.troy.id, member: false })).body).toEqual({ userId: ACCOUNTS.troy.id, member: false });
     const calls = apiCalls(page);
@@ -367,6 +368,7 @@ test('an account the commissioner removed from the Community sees why, keeps its
     await leagueRow(page, 'Triple Threat').click();
     await expect(title(page, 'League')).toBeVisible();
     await expect(pill(page)).toHaveAccessibleName('League: Triple Threat. Switch league');
+    await expect(page.getByRole('list', { name: 'Private group members' })).toContainText('Troy Jun');
     expect(writes(calls)).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
