@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { APP_SWITCH_COPY, appFellBack, switchApp } from './appView.js';
 
-// Until the first-look deploy (build plan Phase 1: one Pages deploy after stages 2 and 6 to 13), a production build leaves the
-// button out, so a deploy of main never offers the empty frame. Builds with VITE_GTL_OFFER_NEW_APP=1 show it (the browser
-// test configs set it); the first-look PR turns it on for every member (D-39).
-export const NEW_APP_OFFERED = import.meta.env?.VITE_GTL_OFFER_NEW_APP === '1';
+// The first look (build plan Phase 1, October 14, 2026): every build offers the button to every signed-in member (D-39).
+// A build with VITE_GTL_OFFER_NEW_APP=0 leaves it out, the off switch if the new app has to be withdrawn from the
+// Community footer without a code change; a device that already chose the new app keeps it (appView.js).
+export const NEW_APP_OFFERED = import.meta.env?.VITE_GTL_OFFER_NEW_APP !== '0';
 
 /** D-38, D-39 (redesign build plan stage 9): "Try the new app" in the Community footer, for every signed-in member.
  *  The choice is kept on this device and the page reloads into the new app. The note below the button is an
