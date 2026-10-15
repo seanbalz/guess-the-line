@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { ALL, NOT_HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, id, pgliteAvailable, storeBookLines } from './cloud-browser/community-world.mjs';
 import { serviceSql } from './helpers/guess-week.mjs';
@@ -112,4 +113,17 @@ test('community account-week Bets read, group reuse, qualification, and game/mar
     'the button follows the newest retained named-book quote');
   assert.equal(updated.body.bets[0].selection.line, -13.5,
     'a placed pick keeps its exact saved line until the owner edits it');
+  const signature = (await db.query('select signature from public.gtl_weekly_slates where season=$1 and week=$2', [season, week])).rows[0].signature;
+  for (let n = 0; n < 21; n += 1) {
+    const key = randomUUID();
+    const captured = new Date(Date.now() - 19_000 + n * 500).toISOString();
+    await db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) values($1,$2,'collect','succeeded',$3,now(),now()+interval '90 seconds',2,$4,$5,$6)",
+      [key, USER('sean'), randomUUID(), season, week, signature]);
+    await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,$2,$3,$4,$5,$6)',
+      [key, season, week, signature, { games: [] }, captured]);
+  }
+  const afterOmissions = await world.api('luke', 'bets/read', {});
+  assert.equal(afterOmissions.status, 200);
+  assert.equal(afterOmissions.body.markets[game].spread.offers.home.line, -12.5,
+    '21 newer incomplete saves do not make the last valid named-book quote unavailable');
 });

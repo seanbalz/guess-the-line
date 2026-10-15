@@ -139,7 +139,7 @@ begin
   kickoff:=to_timestamp((g->>'kickoff')::double precision);
   for snap in select created_at,payload from public.gtl_market_snapshots
     where season=s and week=w and slate_signature=sig and created_at<=now_at
-    order by created_at desc,id desc limit 20 loop
+    order by created_at desc,id desc loop
     row_game:=null;
     for q in select x from jsonb_array_elements(snap.payload->'games') x loop
       begin
