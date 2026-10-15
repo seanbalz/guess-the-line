@@ -185,7 +185,7 @@ test('the new app keeps its own shell and allows only the documented live workfl
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
-    'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx'],
+    'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
   };
   for (const file of filesUnder('web/src/next')) {
     const text = read(file);

@@ -6,6 +6,7 @@ import { useAppData } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { useShell } from '../shell/context.js';
 import { Button } from '../ui/index.js';
+import { playPresentation } from './PlayPresentation.jsx';
 import './play.css';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
@@ -37,7 +38,7 @@ export function Play() {
   return (
     <div className="gx-screen gx-live-workflow gx-live-play">
       <h1 className="gx-t-title">Play</h1>
-      <p className="gx-t-body gx-c-2">Your Spread and Total picks are shared across your leagues. Each market has its own ballot and score.</p>
+      <p className="gx-t-body gx-c-2">Guess the line. Submit a complete Spread or Total ballot when you’re ready.</p>
       {!feed ? (
         <section className="gx-empty" role={app.community.status === 'error' ? 'alert' : 'status'}>
           <p className="gx-t-body">{app.community.status === 'error' ? 'Your picks could not be loaded.' : 'Loading your picks…'}</p>
@@ -52,6 +53,7 @@ export function Play() {
           optOuts={feed.optOuts ?? []}
           initialMode={feed.picksDue?.modes?.[0]?.mode}
           marketNavigation={marketNavigation}
+          presentation={playPresentation}
           onSaved={refreshBallot}
           onSatOut={refreshBallot}
           onSignInAgain={requestSignIn}

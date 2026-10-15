@@ -126,6 +126,8 @@
 .gx-league-row-name { display: block; }
 
 /* The menu's Sign out: a grey text button at the bottom, aligned with the rows' words. */
+.gx .gx-menu-account { display: flex; align-items: center; gap: var(--gx-space-4); }
+.gx .gx-menu-account > div { min-width: 0; overflow-wrap: anywhere; display: flex; flex-direction: column; gap: var(--gx-space-1); }
 .gx-menu-signout { align-self: flex-start; margin-left: -8px; }
 
 /* ===== the dock (Play's submit bar, Bets' slip bar): 8 above the tab bar; only its bars take taps ===== */

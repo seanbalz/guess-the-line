@@ -10,6 +10,10 @@ gates. See the [version 2 release record](docs/RELEASE_2026_10_14.md#version-2-a
 for exact source, checks, live observations and rollback, and the
 [workflow scope](docs/ALL_TABS_LIVE_WORKFLOWS.md) for remaining boundaries.
 
+The [current completion register](docs/COMPLETION_REGISTER.md) tracks each app
+section's remaining formatting, implementation and acceptance work, plus backend,
+account and release dependencies. It keeps the historical tracker unchanged.
+
 ## Earlier release notes
 
 The dated notes below describe earlier states. Use the October 14 record above

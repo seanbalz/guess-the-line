@@ -1,0 +1,136 @@
+/* Bets-only presentation for the existing hosted editors. Like liveWorkflows.css, this adapter lives
+   outside next/ because it addresses legacy class names. All values use the new app's tokens and every
+   selector requires its Bets screen; the classic tracker and Virtual Units keep their existing styles. */
+.gx .gx-bets :is(.social-tracker, .virtual-units, .social-content, .virtual-game-grid) {
+  display: grid;
+  gap: var(--gx-space-5);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+.gx .gx-bets :is(.social-heading, .page-heading) {
+  display: grid;
+  gap: var(--gx-space-4);
+  margin: 0;
+}
+.gx .gx-bets :is(.social-heading, .page-heading) > div:first-child { display: grid; gap: var(--gx-space-2); }
+.gx .gx-bets :is(.social-heading, .page-heading) h2 { margin: 0; font: 700 24px/28px var(--gx-font-display); text-transform: uppercase; letter-spacing: .04em; }
+.gx .gx-bets :is(.social-heading, .page-heading) p { font: 500 16px/24px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets :is(.social-eyebrow, .eyebrow) { display: flex; align-items: center; gap: var(--gx-space-2); color: var(--gx-text-3); font: 700 12px/16px var(--gx-font-body); letter-spacing: .06em; }
+.gx .gx-bets .social-heading .social-eyebrow { font: 700 12px/16px var(--gx-font-body); color: var(--gx-text-3); }
+.gx .gx-bets .social-heading > button { width: 100%; min-height: var(--gx-size-primary); margin: 0; }
+.gx .gx-bets :is(.social-visibility, .source-note, .virtual-settlement-note, .virtual-lock) { display: flex; align-items: flex-start; gap: var(--gx-space-2); margin: 0; font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets :is(.social-visibility, .source-note, .virtual-settlement-note, .virtual-lock) > svg { flex: 0 0 auto; margin-top: 1px; }
+.gx .gx-bets .source-note { padding: var(--gx-space-4); background: var(--gx-surface-1); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-sm); }
+.gx .gx-bets .heading-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); margin: 0; }
+.gx .gx-bets .heading-actions > button { flex: 1 1 140px; }
+.gx .gx-bets :is(.social-tabs, .social-choice) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); padding: 0; border: 0; }
+.gx .gx-bets .social-tabs button { min-width: 0; padding: var(--gx-space-3) var(--gx-space-2); font-size: 16px; background: var(--gx-surface-1); }
+.gx .gx-bets :is(.social-tabs, .social-choice) button[aria-pressed="true"] { background: var(--gx-accent-tint); border-color: var(--gx-accent-ink); color: var(--gx-accent-ink); }
+.gx .gx-bets .social-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) var(--gx-size-touch); gap: var(--gx-space-4) var(--gx-space-3); padding: var(--gx-space-4); background: var(--gx-surface-1); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); }
+.gx .gx-bets .social-toolbar > label { grid-column: 1 / -1; }
+.gx .gx-bets .social-toolbar > .secondary { justify-self: stretch; }
+.gx .gx-bets :is(.social-tracker, .social-modal) label { display: grid; gap: var(--gx-space-2); color: var(--gx-text-2); font: 600 16px/24px var(--gx-font-body); }
+.gx .gx-bets :is(input, select, textarea) { width: 100%; min-width: 0; font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-bets :is(input:not([type="checkbox"]), select, textarea) { padding: var(--gx-space-3); border: 1px solid var(--gx-border-strong); background: var(--gx-surface-2); box-shadow: none; border-radius: var(--gx-radius-sm); color: var(--gx-text-1); }
+.gx .gx-bets select { padding-inline-end: var(--gx-space-7); }
+.gx .gx-bets :is(input, select, textarea):disabled { color: var(--gx-text-2); background: var(--gx-surface-3); opacity: 1; }
+.gx .gx-bets .social-check { font-size: 16px !important; }
+.gx .gx-bets :is(.social-check, .social-scope .social-check) { align-items: center !important; }
+.gx .gx-bets .social-check input[type="checkbox"] { accent-color: var(--gx-accent-ink); }
+.gx .gx-bets :is(.panel, .social-bet-card) { min-width: 0; background: var(--gx-surface-1); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); box-shadow: none; }
+.gx .gx-bets .social-filters { padding: 0; }
+.gx .gx-bets :is(.social-filters, .social-performance) > summary { display: flex; align-items: center; gap: var(--gx-space-3); padding: var(--gx-space-4); min-height: var(--gx-size-primary); font: 600 16px/24px var(--gx-font-body); }
+.gx .gx-bets :is(.social-filters, .social-performance) > summary > span { min-width: 0; }
+.gx .gx-bets :is(.social-filters, .social-performance) > summary > svg { flex: 0 0 auto; }
+.gx .gx-bets :is(.social-filter-body, .social-form) { display: grid; gap: var(--gx-space-5); padding: var(--gx-space-4); }
+.gx .gx-bets :is(.social-filter-grid, .social-form-grid) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gx-space-4); }
+.gx .gx-bets .social-scope { display: grid; gap: var(--gx-space-2); border-color: var(--gx-border); padding-top: var(--gx-space-4); }
+.gx .gx-bets .social-scope > strong { font-size: 16px; color: var(--gx-text-1); }
+.gx .gx-bets :is(.social-help, .social-data-note) { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets :is(.social-metrics, .virtual-units .stats-row) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); margin: 0; }
+.gx .gx-bets :is(.social-metrics > div, .stat) { display: flex; flex-direction: column; align-items: flex-start; gap: var(--gx-space-2); min-width: 0; padding: var(--gx-space-4); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); background: var(--gx-surface-1); }
+.gx .gx-bets :is(.social-metrics span, .social-metrics small, .stat > span, .stat > small) { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets :is(.social-metrics strong, .stat > strong) { margin: 0; font: 700 32px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; overflow-wrap: anywhere; }
+.gx .gx-bets .stat:last-child > strong { font: 700 16px/24px var(--gx-font-body); }
+.gx .gx-bets :is(.social-positive, .virtual-result.lime) { color: var(--gx-win); }
+.gx .gx-bets :is(.social-negative, .virtual-result.loss) { color: var(--gx-loss); }
+.gx .gx-bets :is(.social-charts, .social-feed) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gx-space-4); }
+.gx .gx-bets .social-chart { padding: var(--gx-space-4); }
+.gx .gx-bets :is(.social-chart h3, .social-section-heading h2) { font: 700 20px/24px var(--gx-font-display); text-transform: uppercase; letter-spacing: .04em; }
+.gx .gx-bets :is(.social-chart > p, .social-chart-empty, .social-empty p) { font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-bets .social-chart > svg { min-height: 0; }
+.gx .gx-bets .social-chart text { font: 500 16px var(--gx-font-num); }
+.gx .gx-bets .social-chart-empty { min-height: 120px; border-color: var(--gx-border-strong); padding: var(--gx-space-4); }
+.gx .gx-bets .social-chart summary { font-size: 16px; }
+.gx .gx-bets .social-section-heading { align-items: flex-start; gap: var(--gx-space-2); }
+.gx .gx-bets .social-section-heading p { margin-top: var(--gx-space-1); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-bets .social-card-head { gap: var(--gx-space-3); padding: var(--gx-space-4); flex-wrap: wrap; }
+.gx .gx-bets .social-player { flex: 1 1 150px; gap: var(--gx-space-3); }
+.gx .gx-bets .social-player strong { font: 700 16px/24px var(--gx-font-body); }
+.gx .gx-bets .social-player > div > span { font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-bets .social-avatar { width: var(--gx-space-8); height: var(--gx-space-8); border-color: var(--gx-border); background: var(--gx-surface-3); color: var(--gx-text-1); font: 700 16px/24px var(--gx-font-body); }
+.gx .gx-bets .social-follow { font-size: 16px !important; padding: var(--gx-space-2) var(--gx-space-3); }
+.gx .gx-bets .social-card-title { gap: var(--gx-space-2); padding: 0 var(--gx-space-4) var(--gx-space-4); flex-wrap: wrap; }
+.gx .gx-bets .social-status { font: 700 12px/16px var(--gx-font-body); letter-spacing: .06em; border-radius: var(--gx-radius-xs); padding: var(--gx-space-1) var(--gx-space-2); }
+.gx .gx-bets .social-status.win { background: var(--gx-win-tint); color: var(--gx-win); border-color: var(--gx-win); }
+.gx .gx-bets .social-status.loss { background: var(--gx-loss-tint); color: var(--gx-loss); border-color: var(--gx-loss); }
+.gx .gx-bets .social-status.pending { background: var(--gx-pending-tint); color: var(--gx-pending); border-color: var(--gx-pending); }
+.gx .gx-bets .social-selection strong { font: 700 18px/24px var(--gx-font-body); }
+.gx .gx-bets .social-selection small { font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-bets :is(.social-bet-numbers dd, .social-record-key) { font: 600 20px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-bets :is(.social-return, .social-lineage, .social-audit > div, .social-ticket-note) { font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-bets .social-card-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gx-space-3); padding: 0 var(--gx-space-4) var(--gx-space-4); }
+.gx .gx-bets .social-card-actions > button.primary { background: var(--gx-surface-2); color: var(--gx-data); border-color: var(--gx-border-strong); font-size: 16px; }
+.gx .gx-bets .social-audit > summary { padding: var(--gx-space-3) var(--gx-space-4); font-size: 16px; }
+.gx .gx-bets .social-owner-actions > button { flex: 1 1 120px; font-size: 16px; }
+.gx .gx-bets .social-table-scroll table { width: max-content; min-width: 100%; }
+.gx .gx-bets .social-table-scroll :is(th, td) { max-width: 220px; padding: var(--gx-space-3) var(--gx-space-4); font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-bets .social-table-scroll th { font-weight: 700; }
+.gx .gx-bets .social-table-scroll caption { font: 500 13px/18px var(--gx-font-body); padding: var(--gx-space-3) var(--gx-space-4); }
+.gx .gx-bets .social-table-scroll button { font-size: 16px; }
+.gx .gx-bets .social-empty { padding: var(--gx-space-7) var(--gx-space-4); gap: var(--gx-space-4); }
+.gx .gx-bets .social-empty > button { width: 100%; }
+.gx .gx-bets :is(.social-alert, .error-banner, .social-notice, .auth-notice, .social-recovery) { display: grid; gap: var(--gx-space-3); margin: 0; padding: var(--gx-space-4); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-bets :is(.social-alert, .error-banner) { color: var(--gx-loss); border-color: var(--gx-loss); background: var(--gx-loss-tint); }
+.gx .gx-bets :is(.social-notice, .auth-notice) { color: var(--gx-win); border-color: var(--gx-win); background: var(--gx-win-tint); }
+.gx .gx-bets .error-banner button { margin: 0; white-space: normal; }
+.gx .gx-bets .social-modal { width: var(--gx-size-content); max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: var(--gx-radius-lg); background: var(--gx-surface-1); box-shadow: var(--gx-e3); }
+.gx .gx-bets .social-modal-head { padding: var(--gx-space-4); gap: var(--gx-space-3); background: var(--gx-surface-1); border-color: var(--gx-border); }
+.gx .gx-bets .social-modal-head h2 { font: 700 24px/28px var(--gx-font-display); text-transform: uppercase; }
+.gx .gx-bets .social-modal-head button { flex: 0 0 var(--gx-size-touch); }
+.gx .gx-bets .social-audience { color: var(--gx-data); border-color: var(--gx-data); background: var(--gx-data-tint); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-bets .social-audience svg { flex-shrink: 0; }
+.gx .gx-bets .social-leg-editor { padding: var(--gx-space-4); background: var(--gx-surface-1); border-color: var(--gx-border); border-radius: var(--gx-radius-md); }
+.gx .gx-bets .social-leg-editor legend { font-size: 16px; color: var(--gx-text-1); }
+.gx .gx-bets .social-form-footer { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gx-space-3); padding-top: var(--gx-space-4); padding-bottom: env(safe-area-inset-bottom); }
+.gx .gx-bets .social-form-footer button.primary { min-height: var(--gx-size-primary); }
+.gx .gx-bets .virtual-game-card { overflow: hidden; }
+.gx .gx-bets .virtual-game-card .panel-heading { display: flex; align-items: flex-start; gap: var(--gx-space-3); padding: var(--gx-space-4); background: var(--gx-surface-2); }
+.gx .gx-bets .virtual-game-card .panel-heading > div { min-width: 0; flex: 1 1 180px; }
+.gx .gx-bets .virtual-game-card .panel-heading h2 { font: 700 20px/24px var(--gx-font-body); }
+.gx .gx-bets .virtual-game-card .panel-heading p { margin-top: var(--gx-space-2); font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets .virtual-market { display: grid; gap: var(--gx-space-4); padding: var(--gx-space-4); border-top: 1px solid var(--gx-border); }
+.gx .gx-bets .virtual-market-heading { display: grid; gap: var(--gx-space-2); justify-items: start; }
+.gx .gx-bets .virtual-market-heading > div { display: grid; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-bets .virtual-market-heading h3 { font: 700 20px/24px var(--gx-font-display); text-transform: uppercase; letter-spacing: .04em; }
+.gx .gx-bets .virtual-market-heading p { font: 500 16px/24px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets .virtual-market-heading .virtual-consensus { font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-bets .virtual-side-buttons { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gx-space-2); }
+.gx .gx-bets .virtual-side-buttons button { display: grid; gap: var(--gx-space-2); width: 100%; padding: var(--gx-space-3); text-align: start; justify-content: start; font: 700 16px/24px var(--gx-font-body); }
+.gx .gx-bets .virtual-side-buttons button small { display: block; color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-bets .virtual-side-buttons button.primary { color: var(--gx-accent-ink); background: var(--gx-accent-tint); border-color: var(--gx-accent-ink); }
+.gx .gx-bets .virtual-unit-buttons { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-bets .virtual-unit-buttons > :is(button, span) { min-width: 0; padding: var(--gx-space-2) var(--gx-space-1); font: 600 18px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-bets .virtual-unit-buttons > span { text-align: center; }
+.gx .gx-bets .virtual-save { width: 100%; min-height: var(--gx-size-primary); }
+.gx .gx-bets .virtual-result { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); margin: 0; }
+.gx .gx-bets .badge { display: inline-flex; align-items: center; gap: var(--gx-space-1); max-width: 100%; padding: var(--gx-space-1) var(--gx-space-2); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-xs); background: var(--gx-surface-3); color: var(--gx-text-2); font: 700 12px/16px var(--gx-font-body); letter-spacing: .06em; }
+.gx .gx-bets .badge.lime { border-color: var(--gx-accent-ink); color: var(--gx-accent-ink); background: var(--gx-accent-tint); }
+.gx .gx-bets .badge.amber { border-color: var(--gx-pending); color: var(--gx-pending); background: var(--gx-pending-tint); }
+@media (max-width: 359px) {
+  .gx .gx-bets :is(.social-metrics > div, .stat) { padding: var(--gx-space-3); }
+  .gx .gx-bets .social-player { flex-basis: 100%; }
+  .gx .gx-bets .social-follow { width: 100%; justify-content: center; }
+}
