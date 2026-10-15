@@ -193,3 +193,12 @@ window; it has no bypass input. The active release task was already awaiting a
 one-time timing decision. No competing upload, API deploy or migration apply was
 started by this task. Merge/green CI alone must not be described as the Fantasy
 tab being available on the production site.
+
+The separate HOSTED-migration Play suite passed all four local browser cases:
+legacy full-market submission/editing, no `lockIn` writes, recoverable drafts and
+retry requests, independent sit-outs and the Thursday deadline. CI then found
+that the classic app's keyboard navigation budget still counted three Community
+tabs. The new fourth tab adds one expected stop; the budget and explanatory text
+were updated from 12 to 13, with all focus and ballot-entry assertions retained.
+That complete keyboard-only journey passed locally. The final PR includes this
+additional test file (30 files total); fresh CI remains required.
