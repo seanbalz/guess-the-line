@@ -18,6 +18,12 @@ The [current completion register](docs/COMPLETION_REGISTER.md) tracks each app
 section's remaining formatting, implementation and acceptance work, plus backend,
 account and release dependencies. It keeps the historical tracker unchanged.
 
+For local and cloud work, follow the [repository sync workflow](docs/REPOSITORY_SYNC.md)
+and run `npm run sync:check` at handoff. The [shared deployment workflow](docs/SHARED_DEPLOYMENT.md)
+uses an explicit source commit and separate production approval; pushing code
+does not deploy it. Reconciled local [scoring and player trends planning](planning/scoring-and-player-trends.md)
+is recorded as D-50, with implementation and unanswered product questions still open.
+
 ## Earlier release notes
 
 The dated notes below describe earlier states. Use the October 15 record above
