@@ -17,6 +17,10 @@ Sean answered two questions in the Mac mini session.
   - **Light:** no chip, because no neutral token separates the mostly-white KC, PIT and TEN marks without sinking others.
   - **Badges and letters:** unchanged.
   - Measurements are in [the register](TEAM_LOGO_SOURCES.md#backing-chip-approved-by-sean-october-14-2026-yes-i-want-that).
+- **Backing override** (Sean: "Move forward with rec"). The measurement picked **KC, LAC, PIT and TEN** for `backing: 'dark'` in the registry. They are the logos whose default backing was flagged in Light in either app, and which the dark chip clears.
+  - **What they get:** a round dark chip with the same padding in both themes. The chip is the canvas token in Dark (`#0B1020` old app, `#070B16` new app) and the text token `#0B1020` in Light. All four measure better on it in Dark too.
+  - **Everyone else:** keeps the default rule.
+  - **Result:** no logo is flagged in either theme or app. See the [override table](TEAM_LOGO_SOURCES.md#backing-override).
 - Nothing is applied or deployed by this entry.
 
 ## D-45 — weather on every game, and a weather chip on the board (October 14, 2026)

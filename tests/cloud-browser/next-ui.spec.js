@@ -377,11 +377,14 @@ test('D-46: an official logo that fails to load is replaced by the team\'s origi
   expect(await seahawks.locator('img').evaluate(img => getComputedStyle(img).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
 });
 
-for (const theme of ['dark', 'light']) test(`D-46: official logos sit on a round chip, light neutral in Dark and transparent in Light (${theme})`, async ({ page }) => {
+for (const theme of ['dark', 'light']) test(`D-46: official logos sit on a round chip, light neutral in Dark and transparent in Light, and the measured overrides on a dark chip (${theme})`, async ({ page }) => {
   await open(page, { theme });
   const every = page.getByRole('group', { name: 'Every team' });
   await every.scrollIntoViewIfNeeded();
-  for (const code of ['NYG', 'KC', 'PIT', 'TEN', 'CAR']) {
+  const chipColor = code => ['KC', 'LAC', 'PIT', 'TEN'].includes(code)
+    ? (theme === 'dark' ? 'rgb(7, 11, 22)' : 'rgb(11, 16, 32)')
+    : (theme === 'dark' ? 'rgb(245, 247, 251)' : 'rgba(0, 0, 0, 0)');
+  for (const code of ['NYG', 'KC', 'LAC', 'PIT', 'TEN', 'CAR']) {
     const mark = every.getByRole('img', { name: code, exact: true });
     await expect(mark).toHaveAttribute('data-mark', 'trademark-identification');
     await expect(mark).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
@@ -389,7 +392,7 @@ for (const theme of ['dark', 'light']) test(`D-46: official logos sit on a round
       const style = getComputedStyle(img), box = img.getBoundingClientRect(), tile = img.parentElement.getBoundingClientRect();
       return { background: style.backgroundColor, radius: style.borderTopLeftRadius, square: Math.abs(box.width - box.height) < 0.5, inside: box.left >= tile.left && box.right <= tile.right && box.top >= tile.top && box.bottom <= tile.bottom };
     });
-    expect(chip).toEqual({ background: theme === 'dark' ? 'rgb(245, 247, 251)' : 'rgba(0, 0, 0, 0)', radius: '50%', square: true, inside: true });
+    expect(chip, code).toEqual({ background: chipColor(code), radius: '50%', square: true, inside: true });
   }
 });
 

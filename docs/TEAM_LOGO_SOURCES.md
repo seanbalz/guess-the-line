@@ -86,7 +86,74 @@ No token-based neutral chip clears KC, PIT and TEN without flagging others:
 - The mid-gray `#95A2BB` still flags TEN and newly flags CLE, DET and LAC (and MIA, SF and TB). The mid-gray `#7A89A6` still flags TEN, newly flags CLE, DET and LAC, and also flags BUF, LAR and NYJ.
 - A dark chip flags the navy and black marks.
 
-These three logos are mostly white or light fields drawn inside dark outlines, so a light backing is not added in Light.
+These three logos are mostly white or light fields drawn inside dark outlines, so a light backing is not added in Light; the [backing override](#backing-override) below handles them.
+
+#### Backing override
+
+Approved by Sean on October 14, 2026: "Move forward with rec".
+
+`backing: 'dark'` in `web/src/teamLogoRegistry.js` (`darkBackingTeams`) puts a logo on a dark chip in both themes. The chip has the same size and padding as the light chip. The colors:
+
+| App | Dark | Light |
+|---|---|---|
+| Old | `--canvas` `#0B1020` | `--text` `#0B1020` |
+| New | `--gx-canvas` `#070B16` | `--gx-text-1` `#0B1020` |
+
+**How the teams were chosen** (measured, not chosen by eye):
+1. A logo gets the override when its default backing is flagged in Light in either app, and the dark chip is not flagged in Light in either app.
+2. In Dark, an override logo then takes the dark chip only where that measures better than the light chip. The measure is the share under 1.5:1 plus the share under 3:1.
+
+The result is **KC, LAC, PIT and TEN**. All four measure better on the dark chip in Dark too:
+
+| Team | Light chip or transparent (Dark / Light) | Dark chip (Dark / Light) |
+|---|---|---|
+| KC | 57% / 60%, flagged | 20% / 24% |
+| LAC | New app only: 55% / 64%, flagged. Old app: 18% / 63%, not flagged | 0% / 0% |
+| PIT | 51% / 85%, flagged | 5% / 9% |
+| TEN | 35% / 82–84%, flagged | 0% / 0% |
+
+Every other logo keeps the default rule.
+
+**All 32 teams with the backing they now get.** Each cell is the share of opaque pixels under 1.5:1 / under 3:1. The backgrounds measured:
+- **Old app.** Dark: `#F8FAFC` chip, or `#0B1020` for overrides. Light: page `#F8FAFC`, or the `#0B1020` chip.
+- **New app.** Dark: `#F5F7FB` chip, or `#070B16` for overrides. Light: tile `#F3F5F9`, or the `#0B1020` chip.
+
+**Nothing is flagged in either theme in either app.**
+
+| Team | Backing | Old Dark | Old Light | New Dark | New Light |
+|---|---|---|---|---|---|
+| ARI | default | 16% / 21% | 16% / 21% | 17% / 21% | 17% / 21% |
+| ATL | default | 23% / 45% | 23% / 45% | 23% / 45% | 23% / 45% |
+| BAL | default | 26% / 32% | 26% / 32% | 26% / 34% | 26% / 35% |
+| BUF | default | 20% / 23% | 20% / 23% | 20% / 24% | 20% / 24% |
+| CAR | default | 0% / 3% | 0% / 3% | 0% / 6% | 0% / 6% |
+| CHI | default | 7% / 8% | 7% / 8% | 7% / 8% | 7% / 8% |
+| CIN | default | 23% / 25% | 23% / 25% | 23% / 25% | 23% / 25% |
+| CLE | default | 29% / 33% | 29% / 33% | 29% / 33% | 29% / 33% |
+| DAL | default | 22% / 25% | 22% / 25% | 22% / 25% | 22% / 25% |
+| DEN | default | 44% / 47% | 44% / 47% | 44% / 47% | 44% / 47% |
+| DET | default | 20% / 38% | 20% / 38% | 20% / 39% | 20% / 39% |
+| GB | default | 44% / 52% | 44% / 52% | 46% / 52% | 46% / 52% |
+| HOU | default | 28% / 30% | 28% / 30% | 28% / 31% | 28% / 31% |
+| IND | default | 23% / 25% | 23% / 25% | 23% / 25% | 23% / 25% |
+| JAX | default | 20% / 38% | 20% / 38% | 20% / 40% | 20% / 40% |
+| KC | dark chip | 20% / 24% | 20% / 24% | 20% / 24% | 20% / 24% |
+| LAC | dark chip | 0% / 0% | 0% / 0% | 0% / 0% | 0% / 0% |
+| LAR | default | 0% / 0% | 0% / 0% | 0% / 0% | 0% / 0% |
+| LV | default | 28% / 37% | 28% / 37% | 28% / 37% | 28% / 37% |
+| MIA | default | 43% / 49% | 43% / 49% | 43% / 49% | 43% / 50% |
+| MIN | default | 29% / 62% | 29% / 62% | 49% / 62% | 49% / 62% |
+| NE | default | 30% / 40% | 30% / 40% | 30% / 40% | 30% / 40% |
+| NO | default | 11% / 50% | 11% / 50% | 14% / 50% | 14% / 50% |
+| NYG | default | 0% / 0% | 0% / 0% | 0% / 0% | 0% / 0% |
+| NYJ | default | 0% / 0% | 0% / 0% | 0% / 0% | 0% / 0% |
+| PHI | default | 31% / 55% | 31% / 55% | 31% / 55% | 31% / 55% |
+| PIT | dark chip | 5% / 9% | 5% / 9% | 5% / 9% | 5% / 9% |
+| SEA | default | 34% / 53% | 34% / 53% | 34% / 53% | 34% / 53% |
+| SF | default | 23% / 31% | 23% / 31% | 23% / 32% | 23% / 32% |
+| TB | default | 9% / 21% | 9% / 21% | 9% / 21% | 9% / 21% |
+| TEN | dark chip | 0% / 0% | 0% / 0% | 0% / 0% | 0% / 0% |
+| WAS | default | 0% / 37% | 0% / 37% | 6% / 37% | 6% / 37% |
 
 ## Original badges
 

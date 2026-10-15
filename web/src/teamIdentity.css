@@ -36,6 +36,16 @@
   background: transparent;
 }
 
+/* Backing override (registry `backing: 'dark'`: KC, LAC, PIT, TEN, chosen by measurement): the mostly-white logos
+   sit on a dark chip in both themes, the canvas token (#0B1020) in Dark and the text token (#0B1020) in Light. */
+.team-identity--logo[data-logo-status="trademark-identification"][data-logo-backing="dark"] {
+  background: var(--canvas);
+}
+
+:root[data-theme="light"] .team-identity--logo[data-logo-status="trademark-identification"][data-logo-backing="dark"] {
+  background: var(--text);
+}
+
 .team-identity--logo img {
   display: block;
   width: 100%;

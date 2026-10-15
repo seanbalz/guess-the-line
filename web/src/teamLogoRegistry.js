@@ -4,11 +4,17 @@
 // docs/TEAM_LOGO_SOURCES.md#official-logos-d-46 and public/team-logos/sources.json.
 export const TEAM_TRADEMARK_NOTICE = 'NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.';
 
+// Backing override (D-46, Sean: "Move forward with rec"): these logos are mostly white or light fields, so they sit
+// on the dark chip in both themes instead of the default (light chip in Dark, none in Light). Chosen from the
+// contrast measurement in docs/TEAM_LOGO_SOURCES.md#backing-override, not by eye.
+export const darkBackingTeams = Object.freeze(['KC', 'LAC', 'PIT', 'TEN']);
+
 const official = code => Object.freeze({
   src: `/team-logos/${code.toLowerCase()}.png`,
   rightsStatus: 'trademark-identification',
   transparent: true,
   rightsReference: 'docs/TEAM_LOGO_SOURCES.md#official-logos-d-46',
+  ...(darkBackingTeams.includes(code) ? { backing: 'dark' } : {}),
 });
 
 export const approvedTeamLogos = Object.freeze(Object.fromEntries(

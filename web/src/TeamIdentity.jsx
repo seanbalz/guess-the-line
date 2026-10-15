@@ -21,6 +21,7 @@ function IdentityMark({ code, name, size, primary, badge, decorative }) {
     aria-label={decorative ? undefined : name}
     aria-hidden={decorative || undefined}
     data-logo-status={hasLogo ? asset.rightsStatus : 'fallback'}
+    data-logo-backing={hasLogo && asset.backing === 'dark' ? 'dark' : undefined}
   >
     {hasLogo ? <img key={asset.src} src={asset.src} width={size} height={size} alt="" decoding="async" draggable="false" onError={() => setStep(current => current + 1)}/> : <span aria-hidden="true">{code}</span>}
   </span>;
