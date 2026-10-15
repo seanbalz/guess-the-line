@@ -26,6 +26,7 @@ export const HOME_COPY = Object.freeze({
   spreadRank: 'Spread rank',
   totalRank: 'Total rank',
   noBallot: 'No ballot yet',
+  notScored: 'Not scored yet',
   // Each status line takes the market's label ("Spread"); a mode id ("guess_spread") reads as its label too.
   statusDraft: (filled, games, mode) => `${labelOf(mode)} ${filled} of ${games} picked`,
   statusSent: mode => `${labelOf(mode)} sent`,
