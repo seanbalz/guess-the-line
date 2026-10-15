@@ -155,19 +155,29 @@ export default function SocialBetTracker({ player, initialView = 'feed', onDirty
   // none and the server answers with the newest published week (the week /community/read shows), never a fixed Week 5.
   const [selectedWeek, setSelectedWeek] = useState(null), [currentWeek, setCurrentWeek] = useState(null);
   const shownWeek = selectedWeek ?? currentWeek;
-  const [filters, setFilters] = useState(defaultFilters), [data, setData] = useState(null), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [editor, setEditor] = useState(null), [editorError, setEditorError] = useState(''), [allHistory, setAllHistory] = useState(false);
+  const [filters, setFilters] = useState(defaultFilters), [storedData, setStoredData] = useState(null), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [editor, setEditor] = useState(null), [editorError, setEditorError] = useState(''), [allHistory, setAllHistory] = useState(false);
   const [editorDirty, setEditorDirty] = useState(false), [uncertain, setUncertain] = useState(false), [reviewed, setReviewed] = useState(false), [checking, setChecking] = useState(false);
   const pendingSave = useRef(null);
   const request = useRef(null), requestSignature = useRef(''), requestEnvelope = useRef(null), refreshId = useRef(0);
-  const actorId = data?.actorId || (typeof player === 'string' ? player : player?.id);
-  const effectiveFilters = useMemo(() => Object.fromEntries(Object.entries({ ...filters, ...(tab === 'myweek' ? { playerId: actorId || '' } : {}) }).filter(([, value]) => value !== '' && value !== undefined)), [filters, tab, actorId]);
+  const [resolvedActor, setResolvedActor] = useState(null);
+  const suppliedPlayerId = typeof player === 'string' ? player : player?.id;
+  const data = storedData && storedData.playerId === suppliedPlayerId ? storedData.data : null;
+  // Hosted players already have UUIDs; local preview slugs must be resolved by the reader first.
+  const actorId = (resolvedActor && resolvedActor.playerId === suppliedPlayerId ? resolvedActor.actorId : null) || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(suppliedPlayerId || '') ? suppliedPlayerId : null);
+  const weekPlayerId = tab === 'myweek' ? actorId || '' : undefined;
+  const effectiveFilters = useMemo(() => Object.fromEntries(Object.entries({ ...filters, ...(weekPlayerId !== undefined ? { playerId: weekPlayerId } : {}) }).filter(([, value]) => value !== '' && value !== undefined)), [filters, weekPlayerId]);
   const load = useCallback(async signal => {
     let result;
     try { result = await socialApi('read', { ...(allHistory ? { allHistory: true } : selectedWeek ?? {}), filters: effectiveFilters }, player, signal); }
-    catch (failure) { if (failure.status === 401 && !failure.uncertain) onSignInAgain?.(); if (failure.status === 403 || failure.status === 404) setData(null); throw failure; }
-    if (!signal?.aborted) { setData(result); if (!allHistory && !selectedWeek && Number.isInteger(result?.season) && Number.isInteger(result?.week)) setCurrentWeek({ season: result.season, week: result.week }); }
+    catch (failure) { if (failure.status === 401 && !failure.uncertain) onSignInAgain?.(); if (failure.status === 403 || failure.status === 404) setStoredData(null); throw failure; }
+    if (!signal?.aborted) {
+      setResolvedActor({ playerId: suppliedPlayerId, actorId: result.actorId });
+      // Resolving a local identity triggers the filtered read; never draw Everyone as My week.
+      if (weekPlayerId === undefined || weekPlayerId === result.actorId) setStoredData({ playerId: suppliedPlayerId, data: result });
+      if (!allHistory && !selectedWeek && Number.isInteger(result?.season) && Number.isInteger(result?.week)) setCurrentWeek({ season: result.season, week: result.week });
+    }
     return result;
-  }, [selectedWeek, effectiveFilters, allHistory, player, onSignInAgain]);
+  }, [selectedWeek, effectiveFilters, allHistory, player, onSignInAgain, weekPlayerId, suppliedPlayerId]);
   useEffect(() => { const controller = new AbortController(); setLoading(true); setError(''); load(controller.signal).catch(failure => { if (failure.name !== 'AbortError') setError(failure.message); }).finally(() => { if (!controller.signal.aborted) setLoading(false); }); return () => controller.abort(); }, [load]);
   useEffect(() => { setTab(initialView === 'units' ? 'myweek' : 'feed'); }, [initialView]);
   useEffect(() => { onDirty?.(editorDirty || busy || uncertain); }, [editorDirty, busy, uncertain, onDirty]);
