@@ -8,6 +8,9 @@
 //   added to the tab's name ("Play, 1 ballot due"); null (or a count of 0) shows nothing.
 // - sheetActions: `[{ id, order, label, show(game, data), run(game, shell) }]`, buttons on the game sheet's action bar.
 // Home draws the hero and reads the other tabs' homeTiles; it never has a counter (prototype spec 1.2).
+// Stage 12 (Home.jsx) draws the hero (the countdown, the status lines, one action), who's in and the Spread and Total
+// rank tiles itself, then the other tabs' tiles in `order`; its own homeTiles stays empty, since Home is the one tab
+// that never contributes a tile to Home.
 export const homeTiles = Object.freeze([]);
 export const counter = null;
 export const sheetActions = Object.freeze([]);

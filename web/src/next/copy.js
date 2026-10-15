@@ -76,6 +76,12 @@ export const closedDraft = (pickText, { rules, atKickoff = rules?.lateWindow ===
 /** Home's countdown heading: "Week 6 picks due in" (D-39: due, not lock). */
 export const dueIn = week => `${weekName(week)} picks due in`;
 
+/** Home while the Community read it shares is still on its way (stage 12). */
+export const HOME_LOADING = 'Loading this week…';
+
+/** A rank tile's points, to one decimal: "10.0 pts", "9.5 pts". Never for a missing value (DP-1 draws "—" and says why). */
+export const pointsLine = points => `${Number(points).toFixed(1)} pts`;
+
 /** "Due Thu 5:15 PM PT" */
 export const dueAt = when => `Due ${when}`;
 
