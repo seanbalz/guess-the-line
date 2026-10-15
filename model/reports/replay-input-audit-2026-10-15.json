@@ -1,0 +1,873 @@
+{
+  "version": "gtl-replay-input-and-reconstruction-audit-1",
+  "recordedAt": "2026-10-15T16:23:39.857258+00:00",
+  "status": "research_only",
+  "publicationReady": false,
+  "generationAllowed": false,
+  "schedule": {
+    "asOf": "2026-10-15T16:23:39.857258+00:00",
+    "sourceRef": {
+      "assetId": 644189933,
+      "assetUpdatedAt": "2026-10-15T14:51:40Z",
+      "bytes": 2184481,
+      "metadataSha256": "cdf6bb121ffde9c8446b22e738aac23f2d0c54e9d30303011ca24a75892a43f9",
+      "retrievedAt": "2026-10-15T14:54:41.339775+00:00",
+      "sha256": "0c3cecffef439ea0a8045e2f2a72fde1bd014492a46aeec197968e1689b16d67",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+      "id": "nflverse-release-schedules",
+      "firstObservedAt": "2026-10-15T14:54:41.339775+00:00",
+      "publishedAt": null,
+      "earliestObservationRef": {
+        "sha256": "0c3cecffef439ea0a8045e2f2a72fde1bd014492a46aeec197968e1689b16d67",
+        "receiptSha256": "547c3d4a348d6f5b6f771601368e281ae9e023970335ffb9b8ffedd6584ca192",
+        "metadataSha256": "cdf6bb121ffde9c8446b22e738aac23f2d0c54e9d30303011ca24a75892a43f9",
+        "assetUpdatedAt": "2026-10-15T14:51:40Z",
+        "retrievedAt": "2026-10-15T14:54:41.339775+00:00"
+      },
+      "gamesSha256": "2eec9aaec7b1e25d15f64657b230d2b4cde5fb143c3849bfac860b3473ffc0aa",
+      "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+      "attribution": "nflverse; schedules maintained by Lee Sharpe (CC BY 4.0), filtered and normalized by GTL"
+    },
+    "games": 1411,
+    "reportedFinal": 1218,
+    "unplayed": 193,
+    "unknownKickoffs": 0
+  },
+  "currentSources": {
+    "auditSha256": "62f7db4b4b4f1a9d9444a35dfd8abac90f732bf324699fb10ea5a52a0bd2ff38",
+    "asOf": "2026-10-15T16:15:02.242545+00:00",
+    "coverage": {
+      "depth_charts": {
+        "acceptedRows": 2292,
+        "complete": false,
+        "extraSourceFieldsExcluded": [
+          "espn_id",
+          "pos_name"
+        ],
+        "gameDayAvailabilityVerified": false,
+        "identityField": "gsis_id",
+        "latestProviderTimestampByTeam": {
+          "ARI": "2026-10-15T12:37:05+00:00",
+          "ATL": "2026-10-15T12:37:05+00:00",
+          "BAL": "2026-10-15T12:37:05+00:00",
+          "BUF": "2026-10-15T12:37:05+00:00",
+          "CAR": "2026-10-15T12:37:05+00:00",
+          "CHI": "2026-10-15T12:37:05+00:00",
+          "CIN": "2026-10-15T12:37:05+00:00",
+          "CLE": "2026-10-15T12:37:05+00:00",
+          "DAL": "2026-10-15T12:37:05+00:00",
+          "DEN": "2026-10-15T12:37:05+00:00",
+          "DET": "2026-10-15T12:37:05+00:00",
+          "GB": "2026-10-15T12:37:05+00:00",
+          "HOU": "2026-10-15T12:37:05+00:00",
+          "IND": "2026-10-15T12:37:05+00:00",
+          "JAX": "2026-10-15T12:37:05+00:00",
+          "KC": "2026-10-15T12:37:05+00:00",
+          "LAC": "2026-10-15T12:37:05+00:00",
+          "LAR": "2026-10-15T12:37:05+00:00",
+          "LV": "2026-10-15T12:37:05+00:00",
+          "MIA": "2026-10-15T12:37:05+00:00",
+          "MIN": "2026-10-15T12:37:05+00:00",
+          "NE": "2026-10-15T12:37:05+00:00",
+          "NO": "2026-10-15T12:37:05+00:00",
+          "NYG": "2026-10-15T12:37:05+00:00",
+          "NYJ": "2026-10-15T12:37:05+00:00",
+          "PHI": "2026-10-15T12:37:05+00:00",
+          "PIT": "2026-10-15T12:37:05+00:00",
+          "SEA": "2026-10-15T12:37:05+00:00",
+          "SF": "2026-10-15T12:37:05+00:00",
+          "TB": "2026-10-15T12:37:05+00:00",
+          "TEN": "2026-10-15T12:37:05+00:00",
+          "WAS": "2026-10-15T12:37:05+00:00"
+        },
+        "missingValues": {
+          "gsis_id": 5
+        },
+        "omissions": {
+          "older_depth_snapshot": 652369
+        },
+        "originalPublicationTimestampKnown": false,
+        "rawRows": 654667,
+        "rejectedByTeam": {
+          "JAX": 1,
+          "LAR": 1,
+          "NYG": 1,
+          "PHI": 1,
+          "PIT": 1,
+          "SF": 1
+        },
+        "rejectedRows": 6,
+        "rejections": {
+          "invalid_player_name": 3,
+          "missing_or_invalid_player_id": 3
+        },
+        "rowsByTeam": {
+          "ARI": 73,
+          "ATL": 74,
+          "BAL": 70,
+          "BUF": 65,
+          "CAR": 79,
+          "CHI": 72,
+          "CIN": 64,
+          "CLE": 72,
+          "DAL": 70,
+          "DEN": 72,
+          "DET": 70,
+          "GB": 77,
+          "HOU": 79,
+          "IND": 69,
+          "JAX": 73,
+          "KC": 72,
+          "LAC": 74,
+          "LAR": 68,
+          "LV": 70,
+          "MIA": 69,
+          "MIN": 66,
+          "NE": 78,
+          "NO": 74,
+          "NYG": 76,
+          "NYJ": 71,
+          "PHI": 72,
+          "PIT": 72,
+          "SEA": 68,
+          "SF": 77,
+          "TB": 64,
+          "TEN": 68,
+          "WAS": 74
+        },
+        "rowsByWeek": {},
+        "schemaDrift": false,
+        "unexpectedSourceFields": []
+      },
+      "injuries": {
+        "acceptedRows": 1697,
+        "complete": true,
+        "extraSourceFieldsExcluded": [
+          "first_name",
+          "last_name",
+          "practice_primary_injury",
+          "practice_secondary_injury",
+          "report_primary_injury",
+          "report_secondary_injury",
+          "season_type"
+        ],
+        "gameDayAvailabilityVerified": false,
+        "identityField": "gsis_id",
+        "latestProviderTimestampByTeam": {},
+        "missingValues": {
+          "practice_status": 2,
+          "report_status": 1090
+        },
+        "omissions": {},
+        "originalPublicationTimestampKnown": false,
+        "rawRows": 1697,
+        "rejectedByTeam": {},
+        "rejectedRows": 0,
+        "rejections": {},
+        "rowsByTeam": {
+          "ARI": 54,
+          "ATL": 52,
+          "BAL": 71,
+          "BUF": 47,
+          "CAR": 40,
+          "CHI": 54,
+          "CIN": 40,
+          "CLE": 54,
+          "DAL": 41,
+          "DEN": 29,
+          "DET": 30,
+          "GB": 62,
+          "HOU": 66,
+          "IND": 62,
+          "JAX": 47,
+          "KC": 49,
+          "LAC": 83,
+          "LAR": 60,
+          "LV": 50,
+          "MIA": 46,
+          "MIN": 39,
+          "NE": 61,
+          "NO": 65,
+          "NYG": 55,
+          "NYJ": 50,
+          "PHI": 74,
+          "PIT": 34,
+          "SEA": 60,
+          "SF": 55,
+          "TB": 53,
+          "TEN": 37,
+          "WAS": 77
+        },
+        "rowsByWeek": {
+          "1": 182,
+          "2": 251,
+          "3": 301,
+          "4": 318,
+          "5": 361,
+          "6": 284
+        },
+        "schemaDrift": false,
+        "unexpectedSourceFields": []
+      },
+      "weekly_rosters": {
+        "acceptedRows": 15319,
+        "complete": false,
+        "extraSourceFieldsExcluded": [
+          "birth_date",
+          "college",
+          "depth_chart_position",
+          "draft_club",
+          "draft_number",
+          "entry_year",
+          "esb_id",
+          "espn_id",
+          "fantasy_data_id",
+          "first_name",
+          "football_name",
+          "gsis_it_id",
+          "headshot_url",
+          "height",
+          "jersey_number",
+          "last_name",
+          "ngs_position",
+          "pff_id",
+          "pfr_id",
+          "rookie_year",
+          "rotowire_id",
+          "sleeper_id",
+          "smart_id",
+          "sportradar_id",
+          "status_description_abbr",
+          "weight",
+          "yahoo_id",
+          "years_exp"
+        ],
+        "gameDayAvailabilityVerified": false,
+        "identityField": "gsis_id",
+        "latestProviderTimestampByTeam": {},
+        "missingValues": {
+          "gsis_id": 7
+        },
+        "omissions": {},
+        "originalPublicationTimestampKnown": false,
+        "rawRows": 15326,
+        "rejectedByTeam": {
+          "LAC": 1,
+          "NYJ": 6
+        },
+        "rejectedRows": 7,
+        "rejections": {
+          "missing_or_invalid_player_id": 7
+        },
+        "rowsByTeam": {
+          "ARI": 499,
+          "ATL": 493,
+          "BAL": 494,
+          "BUF": 458,
+          "CAR": 425,
+          "CHI": 511,
+          "CIN": 375,
+          "CLE": 517,
+          "DAL": 495,
+          "DEN": 479,
+          "DET": 413,
+          "GB": 499,
+          "HOU": 530,
+          "IND": 478,
+          "JAX": 502,
+          "KC": 402,
+          "LAC": 482,
+          "LAR": 483,
+          "LV": 498,
+          "MIA": 414,
+          "MIN": 425,
+          "NE": 508,
+          "NO": 526,
+          "NYG": 491,
+          "NYJ": 493,
+          "PHI": 484,
+          "PIT": 479,
+          "SEA": 490,
+          "SF": 529,
+          "TB": 462,
+          "TEN": 493,
+          "WAS": 492
+        },
+        "rowsByWeek": {
+          "1": 2962,
+          "2": 2527,
+          "3": 2543,
+          "4": 2575,
+          "5": 2435,
+          "6": 2277
+        },
+        "schemaDrift": false,
+        "unexpectedSourceFields": []
+      }
+    },
+    "limitations": [
+      "ACT is roster membership, not game-day availability. Blank/absent injury status is unknown.",
+      "Injury/designation records are not a final game-day inactive list.",
+      "firstObservedAt is this receipt observation; original publication time and earlier cache availability are unknown.",
+      "Depth dt is a provider snapshot timestamp; only the latest per-team chart is retained, not asserted participation.",
+      "Schema drift, quarantined identities and missing team/week coverage require explicit review.",
+      "No game-day availability, player usage, calibrated model or production publication readiness is established."
+    ],
+    "productionReady": false,
+    "provenance": [
+      {
+        "assetId": 643830221,
+        "assetUpdatedAt": "2026-10-15T12:40:20Z",
+        "bytes": 501517,
+        "coverageAsOf": null,
+        "firstObservedAt": "2026-10-15T16:10:58.451840+00:00",
+        "id": "current:b5fb98e7b9151c56dc9d5b6e94edf7ec491196b29b0926afbcaf6a6e257bed35",
+        "metadataSha256": "eef7ef5607015c8d0cde73e9b2e7e7b2db89243ec59cc38b4fdcb57776734b81",
+        "publishedAt": null,
+        "recordsSha256": "8740eb9600ff0d7edc5542700fe28ec4f377aa268a91adbe7c1067d618837c7c",
+        "retrievedAt": "2026-10-15T16:10:58.451840+00:00",
+        "revisionAt": null,
+        "scope": "local_source_audit_and_research",
+        "season": 2026,
+        "sha256": "13c0ea7bb3915d8c79b613437c8988b6c2a85c090cd5b8148706f429868c6a7a",
+        "source": "weekly_rosters",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_2026.csv.gz",
+        "version": "gtl-current-source-audit-1"
+      },
+      {
+        "assetId": 643822028,
+        "assetUpdatedAt": "2026-10-15T12:37:02Z",
+        "bytes": 35235,
+        "coverageAsOf": null,
+        "firstObservedAt": "2026-10-15T16:10:58.531953+00:00",
+        "id": "current:144220c097bf824ca55ce0574f3cddde1c804cca8ffe10608b003ca20153ed43",
+        "metadataSha256": "1ce5bbe6928eb007a0ff1690d0fa3a01b32a92954ac557146bf61cce07b3a282",
+        "publishedAt": null,
+        "recordsSha256": "080f953f948c9f624828ac8c3df35f48ad3c4b292e9234b782de3868f7416f33",
+        "retrievedAt": "2026-10-15T16:10:58.531953+00:00",
+        "revisionAt": null,
+        "scope": "local_source_audit_and_research",
+        "season": 2026,
+        "sha256": "fa46bd7ddb6f0e67ce10857b223e5685d063b21304df9e18085cc17b5953bc24",
+        "source": "injuries",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_2026.csv.gz",
+        "version": "gtl-current-source-audit-1"
+      },
+      {
+        "assetId": 643822538,
+        "assetUpdatedAt": "2026-10-15T12:37:16Z",
+        "bytes": 12717902,
+        "coverageAsOf": null,
+        "firstObservedAt": "2026-10-15T16:10:58.921080+00:00",
+        "id": "current:d7a1d3ead97b24e8ea7619cd5a67ff8d5bab8af43dae7dbdd3f0f64c658b0c7b",
+        "metadataSha256": "762bc3b3af4268dd0f027781b5afc69e8733193a3a95c067dc543cf8d6f94eed",
+        "publishedAt": null,
+        "recordsSha256": "7599b7ee806420a8e98e70f40c727d7bb0017099d4e084b79c6cb4751a04f9aa",
+        "retrievedAt": "2026-10-15T16:10:58.921080+00:00",
+        "revisionAt": null,
+        "scope": "local_source_audit_and_research",
+        "season": 2026,
+        "sha256": "db268e9bbbef322047cdba1e5ebc1caacfb9d267616ac9ca8b71d8056eb728d7",
+        "source": "depth_charts",
+        "url": "https://github.com/nflverse/nflverse-data/releases/download/depth_charts/depth_charts_2026.csv.gz",
+        "version": "gtl-current-source-audit-1"
+      }
+    ],
+    "publishable": false,
+    "rights": {
+      "attribution": "nflverse contributors, CC BY 4.0; source release links retained. Guess The Line filters fields, normalizes team codes, and selects current depth snapshots.",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+      "limitation": "No additional applicable restriction is asserted merely because a second NFL grant is absent. Production field-use review and matchup/player validation remain incomplete. No images, narrative, trademark or endorsement rights are inferred.",
+      "scope": "local_source_audit_and_research"
+    },
+    "scope": "local_source_audit_and_research",
+    "season": 2026,
+    "sourceStatus": {
+      "depth_charts": "available",
+      "injuries": "available",
+      "weekly_rosters": "available"
+    },
+    "version": "gtl-current-source-audit-1"
+  },
+  "observedReconstruction": {
+    "auditSha256": "2320edfca23056583ceb3a4d012611483cb996e1e140d0f3a68c4523dfa60b12",
+    "version": "gtl-observed-reconstruction-1",
+    "seasons": [
+      {
+        "season": 2022,
+        "asOf": "2026-10-15T16:27:26.017075+00:00",
+        "sourceRef": {
+          "assetId": 354728863,
+          "assetUpdatedAt": "2026-02-12T10:25:24Z",
+          "bytes": 19093961,
+          "fieldSource": {
+            "filename": "play_by_play_{season}.csv.gz",
+            "producer": "https://github.com/nflverse/nflverse-pbp/blob/master/R/update_pbp.R",
+            "tag": "pbp",
+            "upstreamEvidence": "https://github.com/nflverse/nflfastR/blob/master/R/helper_scrape_nfl.R"
+          },
+          "metadataSha256": "603d5733521c72a8ed9264b4327715afcb34434a5def2b12a9f8ccb836a83770",
+          "retrievedAt": "2026-10-15T14:38:11.836944+00:00",
+          "rights": {
+            "permittedScopes": [
+              "local_source_audit"
+            ],
+            "publisherTermsUrl": "https://nflreadr.nflverse.com/#terms-of-use",
+            "reason": "nflverse explicitly publishes these releases under CC BY 4.0. GTL has not yet recorded a review of this field subset for published replays. Upstream applicability remains uncertain; absence of an additional NFL grant is not proof the distributor licence is insufficient.",
+            "repositoryLicense": "CC-BY-4.0",
+            "repositoryLicenseUrl": "https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md",
+            "requiredAttribution": "nflverse contributors; source release URL; CC BY 4.0 link; identify GTL field filtering, normalization and derived outputs.",
+            "status": "replay_use_not_yet_reviewed",
+            "upstreamObservation": "PBP derives from NFL game-detail/plays; roster identities derive from NFL NGS or Shield plus enrichment. NFL terms govern NFL Services. Whether those terms bind a recipient of factual fields from this distributor is not established.",
+            "upstreamTermsUrl": "https://www.nfl.com/legal/terms/"
+          },
+          "season": 2022,
+          "sha256": "0c69a71eb39498956c7b1d5c1ca52ce7fe679934a95d1af249facb5ea9829ea4",
+          "source": "pbp",
+          "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2022.csv.gz",
+          "version": "gtl-replay-source-audit-1"
+        },
+        "summary": {
+          "excludedRows": {
+            "outside_regular_season": 2277
+          },
+          "fullyReconstructedScheduleMatches": 222,
+          "fullyReconstructedScoreGames": 222,
+          "independentlyReconciledPlayerGames": 0,
+          "missingPbpGameIds": [],
+          "observedRegularSeasonGames": 271,
+          "playerStatisticGamesWithoutKnownGaps": 247,
+          "scheduleExpectedGames": 271,
+          "scheduleSubtotalMismatchGames": 0,
+          "scoreGapCountsByReason": {
+            "missing_or_invalid_touchdown": 53
+          },
+          "scoringEventsByCategory": {
+            "extra_point": 1123,
+            "field_goal": 903,
+            "other_touchdown": 10,
+            "passing_touchdown": 750,
+            "return_touchdown": 68,
+            "rushing_touchdown": 487,
+            "safety": 13,
+            "two_point_conversion": 56
+          },
+          "sourceCheckpointMismatchCount": 0,
+          "sourceFinalSubtotalMismatchGames": 0,
+          "sourceRows": 49434,
+          "statisticExclusions": {
+            "administrative_row": 1375,
+            "conversion_no_scrimmage_statistics": 1305,
+            "no_play_no_individual_statistics": 4372,
+            "special_teams_outside_requested_statistics": 5960
+          },
+          "statisticGapCountsByReason": {
+            "lateral_chain_intermediate_receivers_unverified": 14,
+            "lateral_chain_intermediate_rushers_unverified": 2,
+            "missing_or_invalid_two_point_attempt": 9,
+            "nonlateral_passing_receiving_yard_mismatch": 1
+          },
+          "supportedScoreSubtotalMatches": 271,
+          "unassignedRejectedRows": 0,
+          "unexpectedPbpGameIds": []
+        }
+      },
+      {
+        "season": 2023,
+        "asOf": "2026-10-15T16:27:26.017075+00:00",
+        "sourceRef": {
+          "assetId": 354728691,
+          "assetUpdatedAt": "2026-02-12T10:24:52Z",
+          "bytes": 19169807,
+          "fieldSource": {
+            "filename": "play_by_play_{season}.csv.gz",
+            "producer": "https://github.com/nflverse/nflverse-pbp/blob/master/R/update_pbp.R",
+            "tag": "pbp",
+            "upstreamEvidence": "https://github.com/nflverse/nflfastR/blob/master/R/helper_scrape_nfl.R"
+          },
+          "metadataSha256": "603d5733521c72a8ed9264b4327715afcb34434a5def2b12a9f8ccb836a83770",
+          "retrievedAt": "2026-10-15T14:38:35.044978+00:00",
+          "rights": {
+            "permittedScopes": [
+              "local_source_audit"
+            ],
+            "publisherTermsUrl": "https://nflreadr.nflverse.com/#terms-of-use",
+            "reason": "nflverse explicitly publishes these releases under CC BY 4.0. GTL has not yet recorded a review of this field subset for published replays. Upstream applicability remains uncertain; absence of an additional NFL grant is not proof the distributor licence is insufficient.",
+            "repositoryLicense": "CC-BY-4.0",
+            "repositoryLicenseUrl": "https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md",
+            "requiredAttribution": "nflverse contributors; source release URL; CC BY 4.0 link; identify GTL field filtering, normalization and derived outputs.",
+            "status": "replay_use_not_yet_reviewed",
+            "upstreamObservation": "PBP derives from NFL game-detail/plays; roster identities derive from NFL NGS or Shield plus enrichment. NFL terms govern NFL Services. Whether those terms bind a recipient of factual fields from this distributor is not established.",
+            "upstreamTermsUrl": "https://www.nfl.com/legal/terms/"
+          },
+          "season": 2023,
+          "sha256": "4649804ee0f0a40b41e51ec75a1ce921949d7fab5459213488656b92f78560e8",
+          "source": "pbp",
+          "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2023.csv.gz",
+          "version": "gtl-replay-source-audit-1"
+        },
+        "summary": {
+          "excludedRows": {
+            "outside_regular_season": 2266
+          },
+          "fullyReconstructedScheduleMatches": 231,
+          "fullyReconstructedScoreGames": 231,
+          "independentlyReconciledPlayerGames": 0,
+          "missingPbpGameIds": [],
+          "observedRegularSeasonGames": 272,
+          "playerStatisticGamesWithoutKnownGaps": 254,
+          "scheduleExpectedGames": 272,
+          "scheduleSubtotalMismatchGames": 0,
+          "scoreGapCountsByReason": {
+            "missing_or_invalid_touchdown": 43
+          },
+          "scoringEventsByCategory": {
+            "defensive_try_return": 1,
+            "extra_point": 1121,
+            "field_goal": 911,
+            "other_touchdown": 3,
+            "passing_touchdown": 754,
+            "return_touchdown": 75,
+            "rushing_touchdown": 470,
+            "safety": 17,
+            "two_point_conversion": 70
+          },
+          "sourceCheckpointMismatchCount": 0,
+          "sourceFinalSubtotalMismatchGames": 0,
+          "sourceRows": 49665,
+          "statisticExclusions": {
+            "administrative_row": 1377,
+            "conversion_no_scrimmage_statistics": 1290,
+            "no_play_no_individual_statistics": 4371,
+            "special_teams_outside_requested_statistics": 6021
+          },
+          "statisticGapCountsByReason": {
+            "lateral_chain_intermediate_receivers_unverified": 8,
+            "lateral_chain_intermediate_rushers_unverified": 2,
+            "missing_or_invalid_two_point_attempt": 8,
+            "unclassified_statistics_event": 1
+          },
+          "supportedScoreSubtotalMatches": 272,
+          "unassignedRejectedRows": 0,
+          "unexpectedPbpGameIds": []
+        }
+      },
+      {
+        "season": 2024,
+        "asOf": "2026-10-15T16:27:26.017075+00:00",
+        "sourceRef": {
+          "assetId": 512957856,
+          "assetUpdatedAt": "2026-08-13T12:26:27Z",
+          "bytes": 19362351,
+          "fieldSource": {
+            "filename": "play_by_play_{season}.csv.gz",
+            "producer": "https://github.com/nflverse/nflverse-pbp/blob/master/R/update_pbp.R",
+            "tag": "pbp",
+            "upstreamEvidence": "https://github.com/nflverse/nflfastR/blob/master/R/helper_scrape_nfl.R"
+          },
+          "metadataSha256": "603d5733521c72a8ed9264b4327715afcb34434a5def2b12a9f8ccb836a83770",
+          "retrievedAt": "2026-10-15T14:39:05.706224+00:00",
+          "rights": {
+            "permittedScopes": [
+              "local_source_audit"
+            ],
+            "publisherTermsUrl": "https://nflreadr.nflverse.com/#terms-of-use",
+            "reason": "nflverse explicitly publishes these releases under CC BY 4.0. GTL has not yet recorded a review of this field subset for published replays. Upstream applicability remains uncertain; absence of an additional NFL grant is not proof the distributor licence is insufficient.",
+            "repositoryLicense": "CC-BY-4.0",
+            "repositoryLicenseUrl": "https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md",
+            "requiredAttribution": "nflverse contributors; source release URL; CC BY 4.0 link; identify GTL field filtering, normalization and derived outputs.",
+            "status": "replay_use_not_yet_reviewed",
+            "upstreamObservation": "PBP derives from NFL game-detail/plays; roster identities derive from NFL NGS or Shield plus enrichment. NFL terms govern NFL Services. Whether those terms bind a recipient of factual fields from this distributor is not established.",
+            "upstreamTermsUrl": "https://www.nfl.com/legal/terms/"
+          },
+          "season": 2024,
+          "sha256": "23370d5d10f8104d80d46a1fc5e61f4f6f5a3263fe96fe2dd629913cfcb08c06",
+          "source": "pbp",
+          "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2024.csv.gz",
+          "version": "gtl-replay-source-audit-1"
+        },
+        "summary": {
+          "excludedRows": {
+            "outside_regular_season": 2218
+          },
+          "fullyReconstructedScheduleMatches": 211,
+          "fullyReconstructedScoreGames": 211,
+          "independentlyReconciledPlayerGames": 0,
+          "missingPbpGameIds": [],
+          "observedRegularSeasonGames": 272,
+          "playerStatisticGamesWithoutKnownGaps": 246,
+          "scheduleExpectedGames": 272,
+          "scheduleSubtotalMismatchGames": 0,
+          "scoreGapCountsByReason": {
+            "missing_or_invalid_touchdown": 70
+          },
+          "scoringEventsByCategory": {
+            "defensive_try_return": 1,
+            "extra_point": 1189,
+            "field_goal": 937,
+            "other_touchdown": 9,
+            "passing_touchdown": 809,
+            "return_touchdown": 58,
+            "rushing_touchdown": 511,
+            "safety": 15,
+            "two_point_conversion": 55
+          },
+          "sourceCheckpointMismatchCount": 0,
+          "sourceFinalSubtotalMismatchGames": 0,
+          "sourceRows": 49492,
+          "statisticExclusions": {
+            "administrative_row": 1380,
+            "conversion_no_scrimmage_statistics": 1376,
+            "no_play_no_individual_statistics": 4732,
+            "special_teams_outside_requested_statistics": 5971
+          },
+          "statisticGapCountsByReason": {
+            "lateral_chain_intermediate_receivers_unverified": 20,
+            "lateral_chain_intermediate_rushers_unverified": 3,
+            "missing_or_invalid_two_point_attempt": 4
+          },
+          "supportedScoreSubtotalMatches": 272,
+          "unassignedRejectedRows": 0,
+          "unexpectedPbpGameIds": []
+        }
+      },
+      {
+        "season": 2025,
+        "asOf": "2026-10-15T16:27:26.017075+00:00",
+        "sourceRef": {
+          "assetId": 512957609,
+          "assetUpdatedAt": "2026-08-13T12:26:09Z",
+          "bytes": 19105296,
+          "fieldSource": {
+            "filename": "play_by_play_{season}.csv.gz",
+            "producer": "https://github.com/nflverse/nflverse-pbp/blob/master/R/update_pbp.R",
+            "tag": "pbp",
+            "upstreamEvidence": "https://github.com/nflverse/nflfastR/blob/master/R/helper_scrape_nfl.R"
+          },
+          "metadataSha256": "011d69643d0740ab2aecd74de2bdf2807203f299a66f667230eedf45dd095728",
+          "retrievedAt": "2026-10-15T14:39:21.359992+00:00",
+          "rights": {
+            "permittedScopes": [
+              "local_source_audit"
+            ],
+            "publisherTermsUrl": "https://nflreadr.nflverse.com/#terms-of-use",
+            "reason": "nflverse explicitly publishes these releases under CC BY 4.0. GTL has not yet recorded a review of this field subset for published replays. Upstream applicability remains uncertain; absence of an additional NFL grant is not proof the distributor licence is insufficient.",
+            "repositoryLicense": "CC-BY-4.0",
+            "repositoryLicenseUrl": "https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md",
+            "requiredAttribution": "nflverse contributors; source release URL; CC BY 4.0 link; identify GTL field filtering, normalization and derived outputs.",
+            "status": "replay_use_not_yet_reviewed",
+            "upstreamObservation": "PBP derives from NFL game-detail/plays; roster identities derive from NFL NGS or Shield plus enrichment. NFL terms govern NFL Services. Whether those terms bind a recipient of factual fields from this distributor is not established.",
+            "upstreamTermsUrl": "https://www.nfl.com/legal/terms/"
+          },
+          "season": 2025,
+          "sha256": "2f135887790a013fd004e609e37096bb4816d5cc80b9f19122e1bad478961978",
+          "source": "pbp",
+          "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2025.csv.gz",
+          "version": "gtl-replay-source-audit-1"
+        },
+        "summary": {
+          "excludedRows": {
+            "outside_regular_season": 2319
+          },
+          "fullyReconstructedScheduleMatches": 210,
+          "fullyReconstructedScoreGames": 210,
+          "independentlyReconciledPlayerGames": 0,
+          "missingPbpGameIds": [],
+          "observedRegularSeasonGames": 272,
+          "playerStatisticGamesWithoutKnownGaps": 252,
+          "scheduleExpectedGames": 272,
+          "scheduleSubtotalMismatchGames": 0,
+          "scoreGapCountsByReason": {
+            "missing_or_invalid_touchdown": 66
+          },
+          "scoringEventsByCategory": {
+            "defensive_try_return": 2,
+            "extra_point": 1210,
+            "field_goal": 931,
+            "other_touchdown": 7,
+            "passing_touchdown": 811,
+            "return_touchdown": 67,
+            "rushing_touchdown": 510,
+            "safety": 12,
+            "two_point_conversion": 59
+          },
+          "sourceCheckpointMismatchCount": 0,
+          "sourceFinalSubtotalMismatchGames": 0,
+          "sourceRows": 48771,
+          "statisticExclusions": {
+            "administrative_row": 1378,
+            "conversion_no_scrimmage_statistics": 1390,
+            "no_play_no_individual_statistics": 4538,
+            "special_teams_outside_requested_statistics": 5820
+          },
+          "statisticGapCountsByReason": {
+            "lateral_chain_intermediate_receivers_unverified": 18,
+            "lateral_chain_intermediate_rushers_unverified": 1,
+            "missing_or_invalid_two_point_attempt": 1
+          },
+          "supportedScoreSubtotalMatches": 272,
+          "unassignedRejectedRows": 0,
+          "unexpectedPbpGameIds": []
+        }
+      },
+      {
+        "season": 2026,
+        "asOf": "2026-10-15T16:27:26.017075+00:00",
+        "sourceRef": {
+          "assetId": 644074063,
+          "assetUpdatedAt": "2026-10-15T14:09:56Z",
+          "bytes": 5434245,
+          "fieldSource": {
+            "filename": "play_by_play_{season}.csv.gz",
+            "producer": "https://github.com/nflverse/nflverse-pbp/blob/master/R/update_pbp.R",
+            "tag": "pbp",
+            "upstreamEvidence": "https://github.com/nflverse/nflfastR/blob/master/R/helper_scrape_nfl.R"
+          },
+          "metadataSha256": "1957abdb4a7cf76fd392dd01189a2112ca9e7d605ed0160928f86495a371cf3e",
+          "retrievedAt": "2026-10-15T14:39:30.678561+00:00",
+          "rights": {
+            "permittedScopes": [
+              "local_source_audit"
+            ],
+            "publisherTermsUrl": "https://nflreadr.nflverse.com/#terms-of-use",
+            "reason": "nflverse explicitly publishes these releases under CC BY 4.0. GTL has not yet recorded a review of this field subset for published replays. Upstream applicability remains uncertain; absence of an additional NFL grant is not proof the distributor licence is insufficient.",
+            "repositoryLicense": "CC-BY-4.0",
+            "repositoryLicenseUrl": "https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md",
+            "requiredAttribution": "nflverse contributors; source release URL; CC BY 4.0 link; identify GTL field filtering, normalization and derived outputs.",
+            "status": "replay_use_not_yet_reviewed",
+            "upstreamObservation": "PBP derives from NFL game-detail/plays; roster identities derive from NFL NGS or Shield plus enrichment. NFL terms govern NFL Services. Whether those terms bind a recipient of factual fields from this distributor is not established.",
+            "upstreamTermsUrl": "https://www.nfl.com/legal/terms/"
+          },
+          "season": 2026,
+          "sha256": "f6dca321749fc6ddbfa32cfb85c9818ab2b270ceae64a45299a46e9251cbd8fb",
+          "source": "pbp",
+          "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2026.csv.gz",
+          "version": "gtl-replay-source-audit-1"
+        },
+        "summary": {
+          "excludedRows": {},
+          "fullyReconstructedScheduleMatches": 68,
+          "fullyReconstructedScoreGames": 68,
+          "independentlyReconciledPlayerGames": 0,
+          "missingPbpGameIds": [],
+          "observedRegularSeasonGames": 79,
+          "playerStatisticGamesWithoutKnownGaps": 73,
+          "scheduleExpectedGames": 79,
+          "scheduleSubtotalMismatchGames": 0,
+          "scoreGapCountsByReason": {
+            "missing_or_invalid_touchdown": 12
+          },
+          "scoringEventsByCategory": {
+            "extra_point": 354,
+            "field_goal": 274,
+            "passing_touchdown": 246,
+            "return_touchdown": 12,
+            "rushing_touchdown": 153,
+            "safety": 1,
+            "two_point_conversion": 20
+          },
+          "sourceCheckpointMismatchCount": 0,
+          "sourceFinalSubtotalMismatchGames": 0,
+          "sourceRows": 13842,
+          "statisticExclusions": {
+            "administrative_row": 404,
+            "conversion_no_scrimmage_statistics": 410,
+            "no_play_no_individual_statistics": 1478,
+            "special_teams_outside_requested_statistics": 1742
+          },
+          "statisticGapCountsByReason": {
+            "lateral_chain_intermediate_receivers_unverified": 5,
+            "missing_or_invalid_two_point_attempt": 1
+          },
+          "supportedScoreSubtotalMatches": 79,
+          "unassignedRejectedRows": 0,
+          "unexpectedPbpGameIds": []
+        }
+      }
+    ],
+    "independentlyReconciledPlayerGames": 0,
+    "implementationSha256": "6cd8b02077a220ba2e0cbc690874cd8d7e7f8d3ae434fefa2f21371aae0db15b"
+  },
+  "limitations": [
+    "Aggregate source/reconstruction evidence only, not a forecast or full-game engine evaluation.",
+    "Matching supported score subtotals do not certify games with unresolved source events.",
+    "ACT and blank or absent injury status do not certify game-day availability; usage is not modeled.",
+    "PBP-derived player-stat exports are not independent box-score ground truth.",
+    "All inspected historical seasons are development evidence for subsequent model versions.",
+    "No production reader, published replay, game-day acceptance or deployment is established."
+  ],
+  "attribution": "nflverse contributors, CC BY 4.0. Factual fields filtered and normalized by Guess The Line; https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+  "officialGamebookSpotCheck": {
+    "version": "gtl-official-gamebook-local-sample-1",
+    "checkedAt": "2026-10-15T16:24:14.827948+00:00",
+    "gameId": "2026_05_LV_NE",
+    "scope": "local_numeric_validation_only",
+    "officialSource": {
+      "bytes": 334052,
+      "headers": {
+        "Content-Type": "application/pdf",
+        "ETag": "\"c261894d9bde9da9e119f83ef78220b6\"",
+        "Last-Modified": "Sun, 11 Oct 2026 20:58:40 GMT"
+      },
+      "listingUrl": "https://www.patriots.com/news/gamebook-raiders-at-patriots-week-5",
+      "retrievedAt": "2026-10-15T16:22:32.070199+00:00",
+      "rightsNotice": "NFL gamebook media-coverage use restriction; no redistribution or dataset publication authorized",
+      "scope": "local_numeric_validation_only",
+      "sha256": "4626f04e6e09cec90ade663f4a229927ccec70c30752323bd18996b7ab4ab288",
+      "url": "https://static.clubs.nfl.com/image/upload/patriots/g8tkar00hbedzj8chzs0.pdf"
+    },
+    "pageNumber": 3,
+    "statCategoryRows": 32,
+    "playersCompared": 22,
+    "numericCellsCompared": 83,
+    "mismatchCount": 0,
+    "independentOfNflverseAggregation": true,
+    "reconstructionGaps": {
+      "lateral_chain_intermediate_receivers_unverified": 1
+    },
+    "limitations": [
+      "One game, manually transcribed factual cells; no coverage or accuracy claim for all games.",
+      "Official PDF contains no GSIS IDs. IDs joined via pinned weekly roster using manually reviewed team+initial+surname, including explicit suffix differences; independent ID verification remains unavailable.",
+      "All listed passing/rushing/receiving actors checked for implemented yard/TD/reception fields. Attempts, completions, sacks, longest gains, targets and other statistics are outside implemented comparison.",
+      "One recorded lateral-chain gap remains withheld in reconstruction; matching this official end total does not independently verify every event or all possible intermediate actors.",
+      "Gamebook carries media-coverage-only restriction; no permission for reproduction, public dataset, automated ingestion or product display inferred. No PDF, narrative, or numeric dataset is published.",
+      "The reconstruction artifact pins the exact compared data. The code hash was observed during this audit, not asserted to be the producer hash of the earlier artifact."
+    ],
+    "publicationReady": false,
+    "localAuditSha256": "87a971cd13392924665b88a40fee44af1a5c1581021a9a6bec78b5d13f104616",
+    "fullyCertifiedGames": 0
+  },
+  "matchupSnapshotSmoke": {
+    "artifactSha256": "09c8d14be0d5a4e8084eb94bd86c1f1b7649d7dbaf6a93a89851efdd0cf57af6",
+    "generationAllowed": false,
+    "inputCutoff": "2026-10-15T16:24:27.289626Z",
+    "matchup": "2026_06_SEA_DEN",
+    "missingRoles": 36,
+    "players": 159,
+    "playersByTeam": {
+      "DEN": 79,
+      "SEA": 80
+    },
+    "publicationReady": false,
+    "snapshotSha256": "a750d4fe91201cd9ab3978bc69f025fdb03b659a90852d72dff9ec34c89ce2b5",
+    "status": "withheld",
+    "unknownAvailability": 153,
+    "unresolvedReferences": 0,
+    "withholdingReasons": [
+      "complete_rules_unvalidated",
+      "game_day_availability_unverified",
+      "player_roles_missing",
+      "production_reader_unimplemented",
+      "source_coverage_incomplete:depth_charts",
+      "source_coverage_incomplete:weekly_rosters",
+      "source_records_quarantined:depth_charts",
+      "source_records_quarantined:weekly_rosters",
+      "usage_inputs_missing",
+      "whole_game_model_unvalidated"
+    ],
+    "identityResolutions": 3,
+    "recipeSha256": "4dc48f9c411307bfde2264c68c9c2cd5135eb82eb772a4fb13d7457dd8de2dfa",
+    "limitation": "Roster records include non-active membership and do not describe 159 eligible game-day participants."
+  }
+}

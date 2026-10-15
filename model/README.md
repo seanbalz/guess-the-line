@@ -50,3 +50,35 @@ publish a complete game. Research fixtures do not ship with the frontend.
 python3 model/replay_sources.py --help
 python3 -m unittest discover -s model -p 'test_replay_*.py' -v
 ```
+
+`replay_schedule.py` verifies the exact schedule release and preserves unknown
+future scores. `replay_current_sources.py` captures and audits the fixed 2026
+weekly-roster, injury and depth-chart assets. Both keep their raw bytes, release
+metadata and receipts under `.local/replay-data/`. A new observation cannot be
+backdated to a provider timestamp or an old cache file's modification time.
+
+`replay_matchup.py` seals a selected schedule matchup, source references, current
+player facts, cutoff, freshness policy and rule implementation version. Scores
+are omitted from pregame inputs. Missing availability, roles and usage remain
+explicit; a successful snapshot still forbids game generation and publication.
+The freshness policy is a named research choice, not a verified availability
+guarantee. Current source files cannot recreate an earlier historical input feed.
+
+`replay_reconstruction.py` derives scores and the requested individual statistics
+from observed regular-season plays, including compound scoring and separate try
+rules. It compares scores with schedule labels and retains unresolved events.
+Matching known subtotals are not proof of a complete game. Player totals still
+need a separately verified box-score comparison; nflverse's player-stat export
+is itself calculated from PBP and cannot establish independent source truth.
+
+```sh
+python3 model/replay_schedule.py fetch
+python3 model/replay_current_sources.py fetch --source all
+python3 model/replay_schedule.py audit
+python3 model/replay_current_sources.py audit
+python3 model/replay_matchup.py --help
+python3 model/replay_reconstruction.py --seasons 2026
+```
+
+Only aggregate research evidence belongs in `model/reports/`. These commands do
+not register a website route, deploy anything, or produce a real matchup result.
