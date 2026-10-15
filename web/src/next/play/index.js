@@ -7,7 +7,9 @@
 // - counter: `(data) => null | { count, label } | { dot: true, label }`, the tab bar's counter or dot and the words
 //   added to the tab's name ("Play, 1 ballot due"); null (or a count of 0) shows nothing.
 // - sheetActions: `[{ id, order, label, show(game, data), run(game, shell) }]`, buttons on the game sheet's action bar.
-export const homeTiles = Object.freeze([]);
+import { lazy } from 'react';
+const ScoreHomeTile = lazy(() => import('./ScoreHomeTile.jsx').then(module => ({ default: module.ScoreHomeTile })));
+export const homeTiles = Object.freeze([{ id: 'play.weekly-score', order: 10, Tile: ScoreHomeTile }]);
 
 /**
  * Stage 11 (prototype spec 1.2): ballots still due this week, 0, 1 or 2, from the server's own `picksDue` on
@@ -17,8 +19,8 @@ export const homeTiles = Object.freeze([]);
  */
 export function counter(data) {
   const due = data?.community?.picksDue;
-  if (!due || (due.state !== 'due' && due.state !== 'urgent') || !Array.isArray(due.modes)) return null;
-  const count = due.modes.length;
+  if (!due || !['due', 'urgent', 'late'].includes(due.state) || !Array.isArray(due.modes)) return null;
+  const count = due.state === 'late' ? due.modes.filter(mode => Number.isInteger(mode.openGames) && mode.openGames > 0).length : due.modes.length;
   if (count < 1) return null;
   return { count, label: count === 1 ? '1 ballot due' : `${count} ballots due` };
 }

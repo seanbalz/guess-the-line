@@ -85,7 +85,7 @@ class RequestError extends Error {
  * Refusal codes a reply carries beside its sentence, so a client can act on them (build plan stage 18): GTL_BALLOT_LOCKED
  * tells both apps the picks they hold are older than the final ones, and they reload instead of offering a retry.
  */
-const PUBLIC_CODES = new Set([BALLOT_LOCKED]);
+const PUBLIC_CODES = new Set([BALLOT_LOCKED, 'GTL_GAME_CLOSED']);
 const fail = (status, message, code) => { throw new RequestError(status, message, code); };
 const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.stringify(value), {
   status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', ...extraHeaders },
@@ -139,8 +139,8 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
   // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
   const featuresOff = parseFeatureOff(featureOff);
   const groupServices = { lines, bets, league, me };
-  // The live Guess rules ride along with the views both apps render (build plan, section 3.4). The read never
-  // rejects: while gtl_live_rules is missing, or cannot be read, the field carries today's rules.
+  // The live Guess rules ride along with the views both apps render (build plan, section 3.4).
+  // The read fails closed on an outage; only an explicitly missing RPC carries legacy rules.
   async function withRules(view, rules = readLiveRules(optionalRpc)) {
     const [result, live] = await Promise.all([view, rules]);
     return { ...result, rules: live };
@@ -237,15 +237,21 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
           // One clock reading for the feed and its `forfeit` (M-03, read through the optional-RPC wrapper alongside the feed).
           // While GTL_FEATURE_OFF names `forfeit` the field says no forfeit is possible now (open false), since the writer refuses.
           const at = clock();
-          const feed = handleCommunity({ route, body, user, service: community, clock: () => at, pushConfigured, featureOff: featuresOff });
-          return json(await withRules(withForfeit(feed, readForfeit(optionalRpc, user.id, at), { writerOff: featuresOff.has('forfeit') })));
+          const live = await readLiveRules(optionalRpc);
+          const feed = handleCommunity({ route, body, user, service: community, clock: () => at, pushConfigured, featureOff: featuresOff, rules: live });
+          return json(await withRules(withForfeit(feed, readForfeit(optionalRpc, user.id, at), { writerOff: featuresOff.has('forfeit') }), live));
         }
-        return json(await handleCommunity({ route, body, user, service: community, clock, pushConfigured, featureOff: featuresOff }));
+        const response = handleCommunity({ route, body, user, service: community, clock, pushConfigured, featureOff: featuresOff });
+        return json(await (route === '/community/history' ? withRules(response) : response));
       }
       if (Object.hasOwn(OFFICIALS_METHODS, route)) return json(await handleOfficials({ route, body, user, service: officials }));
       if (Object.hasOwn(WIND_METHODS, route)) return json(await handleWind({ route, body, user, service: wind, uuid }));
       if (Object.hasOwn(PUSH_METHODS, route)) return json(await handlePush({ route, body, user, service: push, publicKey: pushPublicKey }));
       if (Object.hasOwn(PERSONAL_METHODS, route)) {
+        // Read rules before a ballot write: a network failure must never silently permit the old editable flow.
+        const needsRules = ['/personal', '/personal/read', '/personal/ballot'].includes(route);
+        const live = needsRules ? await readLiveRules(optionalRpc) : null;
+        if (route === '/personal/ballot' && body?.lockIn?.length && live?.sentFinal !== true) throw providerPersonalError('GTL_FEATURE_OFF');
         const result = handlePersonal({ route, body, user, service: personal, clock, featureOff: featuresOff,
           submitBallot: (payload, commit) => submitWithFreshOdds(user, {
             season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
@@ -253,7 +259,17 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
           }, commit),
         });
         // /personal/read is /personal for a chosen week; both replies replace the same view on the client.
-        return json(await (route === '/personal' || route === '/personal/read' ? withRules(result) : result));
+        if (route === '/personal' || route === '/personal/read') {
+          const view = await result;
+          if (live.perGameScoring === true) {
+            const receipts = await Promise.all(['guess_spread', 'guess_total'].map(mode => personal.rpc('gtl_guess_score_receipt', {
+              p_user: user.id, p_season: view.season, p_week: view.week, p_mode: mode, p_now: new Date(clock()).toISOString(),
+            })));
+            view.scoring = { guess_spread: receipts[0], guess_total: receipts[1] };
+          }
+          return json({ ...view, rules: live });
+        }
+        return json(await (route === '/personal/ballot' ? withRules(result, live) : result));
       }
       const group = ROUTE_GROUPS.find(candidate => Object.hasOwn(candidate.methods, route));
       if (group) return json(await group.handle({ route, method: request.method, body, user, service: groupServices[group.service], clock, uuid, optionalRpc, featureOff: featuresOff }));
@@ -286,8 +302,8 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       const member = await storage.membership(user.id, leagueId);
       if (!member || member.active !== true || typeof member.player_id !== 'string') fail(403, 'Your account has not been added to this league.');
       // The /state view, and the /ballot and /bet replies that replace it on the client, carry the live rules;
-      // the read starts here so it runs alongside the reads below. It never rejects.
-      const rules = route === '/export' ? null : readLiveRules(optionalRpc);
+      // resolve them before any writer can run. A rules outage must not restore older editing rights.
+      const rules = route === '/export' ? null : await readLiveRules(optionalRpc);
       let saved = await weekly.load(user.id, leagueId);
       if (!saved) fail(503, 'League data is not available yet.');
       if (saved.state?.league?.id !== leagueId || !Number.isSafeInteger(saved.revision) || saved.revision < 0) throw new Error('Invalid stored league.');
@@ -295,7 +311,9 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       saved = await loadResultState(saved, user.id, leagueId);
       // M-02 mirror (stage 18): the engine refuses a change to a locked-in guess only once the live rules say sent picks are
       // final, so this deploy never runs ahead of the database rule.
-      const engine = createEngine(saved.state, { clock, uuid, sentFinal: request.method === 'POST' && (await rules)?.sentFinal === true });
+      const engineOptions = { clock, uuid, sentFinal: rules?.sentFinal === true, perGameScoring: rules?.perGameScoring === true,
+        lateWindow: rules?.lateWindow, eligibility: saved.eligibility };
+      const engine = createEngine(saved.state, engineOptions);
       if (route === '/state') return json(await withRules(marketView(resultView(weeklyView(engine.view(member.player_id, mode), saved), saved, member, leagueId), user.id, leagueId), rules));
       if (route === '/export') return json(weeklyView(engine.export(member.player_id), saved));
       if (body.revision !== saved.revision) fail(409, 'Your weekly entries changed on another device or in another group. Refresh before saving again.');
@@ -320,7 +338,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       if (committed !== saved.revision + 1) throw new Error('Invalid committed revision.');
       // Re-read the authoritative database timestamp, provenance, and shared revision.
       const refreshed = await loadResultState(await weekly.load(user.id, leagueId), user.id, leagueId);
-      const freshEngine = createEngine(refreshed.state, { clock, uuid });
+      const freshEngine = createEngine(refreshed.state, { ...engineOptions, eligibility: refreshed.eligibility });
       return json(await withRules(marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId), rules));
     } catch (error) {
       if (error instanceof RequestError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError || error instanceof PushError || ROUTE_GROUPS.some(group => error instanceof group.Error)) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : PUBLIC_CODES.has(error.code) ? { code: error.code } : {}) }, error.status);

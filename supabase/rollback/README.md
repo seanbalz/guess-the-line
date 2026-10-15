@@ -10,11 +10,13 @@ function is applied to the hosted project, its rollback sits here and has passed
 - **Previous bodies only.** The file holds `create or replace function` statements that put back the bodies the
   migration replaces, byte for byte as the newest earlier migration wrote them (the test compares md5s), plus
   `grant` or `revoke` lines when the migration changed a grant. Nothing else: never a `drop`, `delete`, `truncate`,
-  `alter`, `insert` or `update`.
+  `alter`, `insert` or `update`. The sole compatibility exception is M-01's newly added `gtl_live_rules`: its
+  rollback keeps that service-only RPC readable and returns the exact legacy rules restored by the rollback.
 - **New things stay.** Tables and functions the migration added are not removed. The code's off switch
   (`GTL_FEATURE_OFF`) stops their use, and every row a player wrote stays (D-23). A new function that a deployed
-  route already reads through `cloud/optional-rpc.mjs` (M-01's `gtl_live_rules`) is switched off by revoking the
-  grant the migration gave the service role: the read fails and the route answers its fallback.
+  route already reads must not signal its state through permission failures. In M-01's rollback, `gtl_live_rules`
+  explicitly reports `sentFinal: false`, `lateWindow: deadline`, and `revealAt: deadline`. Unexpected permission
+  failures, unavailable rules, and transport errors fail closed; they never reopen final guesses.
 - **Fix-forward migrations have no rollback.** M-13, M-21 and M-23 add their version to `FIX_FORWARD` in
   `tests/migrations.mjs` instead.
 - A migration newer than the stage 3 cut-off that replaces a function needs either a file here or a `FIX_FORWARD`
@@ -40,7 +42,8 @@ reverts the change the other PR made. Reviewers diff the replaced body against `
 `tests/rollback.test.mjs`, for every file here:
 
 1. The name matches a migration, the statements are only the allowed ones, every function the migration replaces
-   is restored, and each restored body's md5 is the previous body's md5.
+   is restored, and each restored body's md5 is the previous body's md5. M-01's added rules RPC must match its
+   exact reviewed legacy body; another added function or a changed capability value fails the check.
 2. On PGlite: `HOSTED`, then the migration, then the rollback. Every replaced function's `md5(prosrc)` is back to
    the previous body, and what the migration added is still there. A migration that must follow a repo file the hosted
    project does not have yet (its ledger "Apply after", such as M-03 after M-01) lists it in `REQUIRES` in
@@ -55,3 +58,8 @@ show the suites fail without the rollback and pass with it.
 A rollback is a hosted change like any migration: Sean's explicit OK, then the Supabase MCP `apply_migration` or the
 SQL editor, then the Gate M step 7 checks (each restored function's `md5(prosrc)`, grants, one `pg_proc` row per
 RPC, the score hash). Never `db push`.
+
+Roll back dependent migrations in reverse dependency order. In particular, M-07 and M-02 (and any later
+dependents) must already be rolled back before M-01. M-01's legacy capability response is valid only after its
+legacy writers are restored; a client must never reopen guesses while final-pick writers remain active. Apply
+the coordinated API/database release checks rather than treating a capability change as a client workaround.

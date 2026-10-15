@@ -278,7 +278,8 @@ test('personal ballot validates request fields before preflight or market access
 test('personal submit keeps weekly and personal revisions distinct without requiring dummy membership', async () => {
   const f = fixture(); f.setMember(null);
   const result = await f.personal();
-  assert.equal(result.status, 200); assert.deepEqual(result.body, { revision: 10, weeklyRevision: 4 });
+  assert.equal(result.status, 200); assert.deepEqual(result.body, { revision: 10, weeklyRevision: 4,
+    rules: { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' } });
   const intent = f.calls.preflights[0].p_intent;
   assert.equal(intent.revision, 3); assert.equal(intent.personalRevision, 9); assert.equal(intent.requestId, id(900));
   assert.equal(Object.hasOwn(intent, 'leagueId'), false); assert.equal(f.calls.membership.length, 0);

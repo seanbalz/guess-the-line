@@ -43,14 +43,17 @@ export const GUESS_STATES = Object.freeze(['open', 'draft', 'lockedIn', 'closed'
 export const FORFEIT_REASONS = Object.freeze(['skip', 'reveal', 'sitOut']);
 
 /**
- * The server's `rules` field, checked the way cloud/live-rules.mjs `parseLiveRules` checks the function's answer:
- * anything malformed or missing reads as today's rules; a missing `revealAt` reads as 'deadline', and a kickoff
- * late window always reveals at kickoff.
+ * The server's validated `rules` field. Old local fixtures without it retain today's rules; authenticated
+ * cloud reads fail if live rules cannot be verified. A missing `revealAt` reads as 'deadline', and a kickoff
+ * late window always reveals at kickoff. M-07's personal-points flag requires the final-lock and kickoff rules.
  */
 export function liveRules(raw) {
   if (raw && typeof raw === 'object' && !Array.isArray(raw) && typeof raw.sentFinal === 'boolean' && LATE_WINDOWS.includes(raw.lateWindow)
-    && (raw.revealAt == null || REVEAL_TIMES.includes(raw.revealAt))) {
-    return { sentFinal: raw.sentFinal, lateWindow: raw.lateWindow, revealAt: raw.lateWindow === 'kickoff' ? 'kickoff' : raw.revealAt ?? 'deadline' };
+    && (raw.revealAt == null || REVEAL_TIMES.includes(raw.revealAt))
+    && (raw.perGameScoring === undefined || typeof raw.perGameScoring === 'boolean')
+    && (raw.perGameScoring !== true || (raw.sentFinal && raw.lateWindow === 'kickoff'))) {
+    return { sentFinal: raw.sentFinal, lateWindow: raw.lateWindow, revealAt: raw.lateWindow === 'kickoff' ? 'kickoff' : raw.revealAt ?? 'deadline',
+      ...(raw.perGameScoring !== undefined ? { perGameScoring: raw.perGameScoring } : {}) };
   }
   return { ...TODAYS_RULES };
 }
@@ -112,8 +115,8 @@ export function guessState({ kickoff, deadline = null, entry = null, forfeit = n
   const kickedOff = ko !== null && at >= ko;
   // No kickoff: closed for picking (nothing can be saved for an unknown time), but nothing opens by kickoff.
   const isClosed = close === null || at >= close;
-  const lockedIn = own.lockedAt !== null;
   const hasValue = own.value !== null;
+  const lockedIn = hasValue && own.lockedAt !== null;
   // A game that had already closed when the week was forfeited stays "closed".
   const closedFirst = isClosed && close !== null && out !== null && out.at !== null && close <= out.at;
 
@@ -166,7 +169,8 @@ export function guessState({ kickoff, deadline = null, entry = null, forfeit = n
     // What this game and market reveal to this player: its line, and everyone's picks.
     lineVisible: revealed,
     picksVisible: revealed,
-    pointsShown: lockedIn && kickedOff,
+    // Permission to show the server's personal points; pending and ineligible receipts still have no numeric score.
+    pointsShown: lockedIn && (live.perGameScoring === true || kickedOff),
   };
 }
 

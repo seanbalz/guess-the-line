@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowRight, Bell, BellOff, BellRing, CalendarClock, CalendarPlus, ChartSpline, Check, CircleCheck, Heart, LoaderCircle, LockKeyhole, MessageCircle, RefreshCw, Send, TriangleAlert, Users } from 'lucide-react';
 import Brand from './Brand';
 import LegalLinks from './LegalLinks';
@@ -22,6 +22,8 @@ import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import { FINAL_LABEL, FINAL_SHORT, LOCKED_MESSAGE, ballotFinal, isBallotLocked, pickFinal, sentFinal } from './sentFinal';
 import { boardRows, dueState, postPicksView } from './communityBoard';
 import './community.css';
+
+const PerGameLegacy = lazy(() => import('./next/play/PerGameLegacy.jsx'));
 
 const DAY = 86_400_000;
 // D-24: "Mon, Oct 12, 12:00 AM" — the week's Monday 00:00 Pacific open.
@@ -376,6 +378,7 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
   if (!data) return unpublished ? <WeekUnpublished/>
     : error ? <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span><button type="button" className="text-button" onClick={loadWeek}>Retry</button></div>
     : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
+  if (data.rules?.sentFinal === true && data.rules?.lateWindow === 'kickoff' && data.rules?.perGameScoring === true) return <Suspense fallback={<p role="status">Loading per-game picks…</p>}><PerGameLegacy key={`${accountId}:${data.season}:${data.week}:${mode}`} accountId={accountId} initialData={data} mode={mode} optOuts={optOuts} onMode={value => { setMode(value); (marketNavigation?.write ?? setMarket)(value); }} onSaved={() => { load(); onSaved?.(); }} onSignInAgain={onSignInAgain}/></Suspense>;
   const picks = picksOf(data, mode, draft), edits = recovery ? communityDraftEdits(recovery) : 0;
   const ballot = data.ballots[mode], submitted = !!ballot?.submittedAt, closed = Date.parse(data.now) >= Date.parse(data.deadline);
   const opensAt = weekOpenAt(data.deadline), notOpen = Date.parse(data.now) < Date.parse(opensAt);
