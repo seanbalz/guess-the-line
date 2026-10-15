@@ -74,7 +74,7 @@ export function startPlace(win) {
  *   entry names (Home for an entry the shell did not write). An old link followed in the page is read and rewritten
  *   like one a visit starts on.
  */
-export function connectHistory(win, { getState, dispatch }) {
+export function connectHistory(win, { getState, dispatch, confirmLeave = () => true }) {
   const { history, location } = win;
   let ours = 0; // popstate events still to come from our own history.back()
   let disconnected = false;
@@ -126,6 +126,13 @@ export function connectHistory(win, { getState, dispatch }) {
     if (hasLayers(state) && !followed) { dispatch({ type: 'closeTop' }); return; }
     // An entry the shell did not write (the one a visit started on with #main or a sign-in fragment) is Home.
     const place = placeFromFragment(location.hash) ?? { tab: tabAt(location) };
+    // Browser navigation must protect the same unsaved forms as tapping a tab. Restore the current tab's address
+    // when the member keeps editing; beforeunload covers navigation to another document.
+    if ((place.tab !== state.tab || place.view) && !confirmLeave()) {
+      push(null, fragmentFor(state.tab));
+      if (hasLayers(state)) push(LAYER_ENTRY);
+      return;
+    }
     // An old link followed in the page (#feed, #picks-total, #groups) is read like one a visit starts on, and its entry
     // rewritten as the new app's own, so Back to it later never reopens a layer.
     if (isLegacyFragment(location.hash)) {

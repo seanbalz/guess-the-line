@@ -81,6 +81,25 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);
   const dockHeight = useHeight(dockHost);
+  const dirty = useRef(new Set());
+  const setDirty = useCallback((key, value) => {
+    if (value) dirty.current.add(key);
+    else dirty.current.delete(key);
+  }, []);
+  const confirmLeave = useCallback(() => {
+    if (!dirty.current.size) return true;
+    if (!window.confirm('Leave without saving your changes?')) return false;
+    return true;
+  }, []);
+  useEffect(() => {
+    const warn = event => {
+      if (!dirty.current.size) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, []);
 
   // The address and Back follow the state (router.js).
   const stateRef = useRef(state);
@@ -88,7 +107,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const history = useRef(null);
   const synced = useRef(null);
   useEffect(() => {
-    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch });
+    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch, confirmLeave });
     history.current = connection;
     connection.sync(null, stateRef.current);
     synced.current = stateRef.current;
@@ -111,8 +130,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     };
     const toast = (text, options = {}) => dispatch({ type: 'toast', toast: { ...options, text } });
     return {
-      tab: tab => dispatch({ type: 'tab', tab }),
-      go: (tab, view) => dispatch({ type: 'go', tab, view }),
+      setDirty,
+      confirmLeave,
+      tab: tab => { if (tab === stateRef.current.tab || confirmLeave()) dispatch({ type: 'tab', tab }); },
+      go: (tab, view) => { if ((tab === stateRef.current.tab && !view) || confirmLeave()) dispatch({ type: 'go', tab, view }); },
       setView: (tab, patch) => dispatch({ type: 'view', tab, patch }),
       open: (id, args, options = {}) => dispatch({ type: 'open', layer: layer(id, args), front: options.front }),
       openSheet: opener('sheet'),
@@ -143,9 +164,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       },
       toast,
       dismissToast: key => dispatch({ type: 'dismissToast', key }),
-      toOldApp: () => switchApp('classic'),
+      toOldApp: () => { if (confirmLeave()) { dirty.current.clear(); switchApp('classic'); } },
       /** Signs out; true when it worked (AuthGate then shows sign-in), false after saying why in a toast. */
       signOut: async () => {
+        if (!confirmLeave()) return false;
         try {
           await onSignOutRef.current?.();
           return true;

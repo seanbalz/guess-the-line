@@ -35,14 +35,18 @@ export const BETS_VISIBLE_NOTE = "Coming soon: everyone in the league will see e
 
 function Stat({ label, value, detail }) { return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
 
-export default function VirtualUnits({ leagueId, onDirty }) {
+export default function VirtualUnits({ leagueId, onDirty, onSaved, onSignInAgain, embedded = false }) {
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
-  const [selections, setSelections] = useState({});
+  const [selections, setSelections] = useState({}), [uncertain, setUncertain] = useState(null);
+  useEffect(() => { onDirty?.(busy || Boolean(uncertain) || Object.keys(selections).length > 0); }, [busy, uncertain, selections, onDirty]);
+  useEffect(() => () => onDirty?.(false), [onDirty]);
   const load = useCallback(async signal => {
-    const result = await cloudApi('virtual-units', undefined, { signal, league: leagueId });
+    let result;
+    try { result = await cloudApi('virtual-units', undefined, { signal, league: leagueId }); }
+    catch (failure) { if (failure.status === 401 && !failure.uncertain) onSignInAgain?.(); if (failure.status === 403) setData(null); throw failure; }
     if (!signal?.aborted) setData(result);
     return result;
-  }, [leagueId]);
+  }, [leagueId, onSignInAgain]);
   useEffect(() => { const controller = new AbortController(); setLoading(true); setError(''); load(controller.signal).catch(failure => { if (failure.name !== 'AbortError') setError(failure.message); }).finally(() => { if (!controller.signal.aborted) setLoading(false); }); return () => controller.abort(); }, [load]);
   // Stage 20 line lock: a market that is locked in a newer reply (the community week moved past this group's week) shows no
   // side, units or save button, so a selection in progress on it can never be saved. It is dropped, and the unsaved-changes
@@ -56,7 +60,6 @@ export default function VirtualUnits({ leagueId, onDirty }) {
     const next = { ...selections };
     for (const key of keys) delete next[key];
     setSelections(next);
-    if (!Object.keys(next).length) onDirty?.(false);
   }, [data]);
   const picks = useMemo(() => Object.fromEntries((data?.picks || []).map(pick => [`${pick.gameId}:${pick.market}`, pick])), [data]);
   const settledCount = data ? data.summary.wins + data.summary.losses + data.summary.pushes : 0;
@@ -65,40 +68,58 @@ export default function VirtualUnits({ leagueId, onDirty }) {
     const offer = game.offers?.[market]?.[side];
     if (!offer) return;
     setSelections(current => ({ ...current, [`${game.id}:${market}`]: { gameId: game.id, market, side, units, offer } }));
-    onDirty?.(true);
   }
   async function save(key) {
-    const choice = selections[key]; if (!choice || busy) return;
+    const choice = selections[key]; if (!choice || busy || uncertain) return;
     setBusy(true); setError(''); setNotice('');
     try {
       const body = { gameId: choice.gameId, market: choice.market, side: choice.side, line: choice.offer.line, odds: choice.offer.odds, units: choice.units, source: choice.offer.book, quotedAt: choice.offer.observedAt };
-      const result = await cloudApi('virtual-pick', body, { league: leagueId });
-      setData(result); setSelections(current => { const next = { ...current }; delete next[key]; return next; }); onDirty?.(false); setNotice('Virtual pick saved with its book, line, odds and unit stake.');
-    } catch (failure) { setError(failure.message); }
+      const result = await cloudApi('virtual-pick', body, { league: leagueId, save: true });
+      setData(result); setSelections(current => { const next = { ...current }; delete next[key]; return next; }); onSaved?.(); setNotice('Virtual pick saved with its book, line, odds and unit stake.');
+    } catch (failure) { setError(failure.message); if (failure.status === 401 && !failure.uncertain) onSignInAgain?.(); if (failure.uncertain) setUncertain({ key, choice }); }
     finally { setBusy(false); }
   }
-  async function refresh() { setLoading(true); setError(''); try { await load(); } catch (failure) { setError(failure.message); } finally { setLoading(false); } }
+  async function refresh() {
+    if (loading || busy) return;
+    setLoading(true); setError('');
+    try {
+      const latest = await load();
+      if (uncertain?.settlement) {
+        setNotice('Saved results refreshed. Review the current records before settling again.'); setUncertain(null);
+      } else if (uncertain) {
+        const { key, choice } = uncertain;
+        const saved = latest.picks?.find(pick => pick.gameId === choice.gameId && pick.market === choice.market)?.selection;
+        const confirmed = saved && saved.side === choice.side && saved.line === choice.offer.line && saved.odds === choice.offer.odds && saved.units === choice.units && saved.source === choice.offer.source && Date.parse(saved.quotedAt) === Date.parse(choice.offer.observedAt);
+        if (confirmed) { setSelections(current => { const next = { ...current }; delete next[key]; return next; }); onSaved?.(); }
+        setNotice(confirmed ? 'Your saved Virtual Units pick is confirmed.' : 'Saved picks refreshed. Review your entered selection and the current offered line before saving again.');
+        setUncertain(null);
+      }
+    } catch (failure) { setError(failure.message); }
+    finally { setLoading(false); }
+  }
   async function settle() {
-    if (busy || !data) return;
+    if (busy || uncertain || !data) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const result = await cloudApi('virtual-units/settle', { season: data.season, week: data.week });
+      const result = await cloudApi('virtual-units/settle', { season: data.season, week: data.week }, { save: true });
       const games = count => `${count} game${count === 1 ? '' : 's'}`;
       const notes = [result.pending?.length ? `${games(result.pending.length)} still without a final` : '', result.skipped?.length ? `${games(result.skipped.length)} not on this week's slate` : ''].filter(Boolean);
       setNotice(`Settled Week ${result.week} from ${result.finals} published final${result.finals === 1 ? '' : 's'}: ${result.settled} new, ${result.corrected} corrected, ${result.unchanged} unchanged, ${result.picksSettled} pick${result.picksSettled === 1 ? '' : 's'} graded${notes.map(note => ` · ${note}`).join('')}.`);
+      onSaved?.();
       await load();
-    } catch (failure) { setError(failure.message); }
+    } catch (failure) { setError(failure.message); if (failure.status === 401 && !failure.uncertain) onSignInAgain?.(); if (failure.uncertain) setUncertain({ settlement: true }); }
     finally { setBusy(false); }
   }
+  const Heading = embedded ? 'h2' : 'h1';
   return <div className="virtual-units">
-    <header className="page-heading"><div><div className="eyebrow"><span className="tiny-rule"/>PICKS · PLAY MONEY</div><h1>Virtual Units</h1><p>Place one spread and one total pick per matchup. Every unit represents $100 virtual risk.</p></div><div className="heading-actions"><button className="secondary" onClick={refresh} disabled={loading || busy}><RefreshCw size={17} className={loading ? 'spin' : ''}/>Refresh lines</button>{commissioner && <button className="secondary" onClick={settle} disabled={loading || busy}><CircleCheckBig size={17}/>Settle finals</button>}</div></header>
+    <header className="page-heading"><div><div className="eyebrow"><span className="tiny-rule"/>PICKS · PLAY MONEY</div><Heading>Virtual Units</Heading><p>Place one spread and one total pick per matchup. Every unit represents $100 virtual risk.</p></div><div className="heading-actions"><button className="secondary" onClick={refresh} disabled={loading || busy}><RefreshCw size={17} className={loading ? 'spin' : ''}/>Refresh lines</button>{commissioner && <button className="secondary" onClick={settle} disabled={loading || busy || Boolean(uncertain)}><CircleCheckBig size={17}/>Settle finals</button>}</div></header>
     <p className="source-note"><ShieldCheck size={17}/><span><strong>Saved named-book lines</strong> · Buttons use the best retained point line from the latest accessible books. Consensus is shown separately when available. A saved line remains usable before kickoff even if it is old; its age is always shown. Picks settle against the published final score with the line and odds saved at placement (D-26).</span></p>
     <p className="source-note virtual-visibility-note"><Eye size={17}/><span>{BETS_VISIBLE_NOTE}</span></p>
-    {error && <div className="error-banner" role="alert">{error}<button onClick={refresh}>Try again</button></div>}{notice && <p className="auth-notice" role="status">{notice}</p>}
+    {error && <div className="error-banner" role="alert">{error}<button disabled={loading || busy} onClick={refresh}>{uncertain ? 'Check saved picks' : 'Try again'}</button></div>}{notice && <p className="auth-notice" role="status">{notice}</p>}
     {data && <><div className="stats-row"><Stat label="Record" value={`${data.summary.wins}–${data.summary.losses}–${data.summary.pushes}`} detail={`${data.summary.pending} pending · ${data.summary.voids} void`} /><Stat label="Net units" value={units(data.summary.netUnits)} detail="Settled results only"/><Stat label="ROI" value={data.summary.roi == null ? '—' : `${data.summary.roi}%`} detail={`${data.summary.riskUnits || 0}U settled risk`}/><Stat label="Qualification" value={(data.summary.qualificationPicks >= 3 || Number(data.summary.qualificationUnits) >= 3) ? 'Qualified' : 'In progress'} detail={`${data.summary.qualificationPicks} picks · ${data.summary.qualificationUnits}U this week`}/></div>
       {settledCount === 0 && <p className="virtual-settlement-note" role="status"><Clock3 size={15}/>{data.summary.pending ? `${data.summary.pending} pick${data.summary.pending === 1 ? '' : 's'} pending. ` : 'No settled picks yet. '}Results settle after each game's final score is published; record, net units and ROI count settled picks only.</p>}
       {settledCount > 0 && data.settlement?.lastSettledAt && <p className="virtual-settlement-note" role="status"><CircleCheckBig size={15}/>{settledCount} settled pick{settledCount === 1 ? '' : 's'}{data.summary.pending ? ` · ${data.summary.pending} still pending` : ''} · finals as of {date(data.settlement.lastSettledAt)} PT</p>}
-      <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} save={save} busy={busy} rules={data.rules}/>)}</div></>}
+      <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div></>}
     {loading && <p className="loading" role="status">Loading saved lines and virtual picks…</p>}
   </div>;
 }

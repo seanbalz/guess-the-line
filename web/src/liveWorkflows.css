@@ -1,0 +1,102 @@
+/* Transitional rendering of the existing live editors inside the D-38 shell. This deliberately lives beside the
+   reused components: it translates their legacy token names, without changing the isolated next/ design system.
+   Scope is opt-in, so the classic app and the native Home/Lines/League screens keep their own styles. */
+.gx-live-workflow {
+  --canvas: var(--gx-canvas);
+  --surface: var(--gx-surface-1);
+  --card: var(--gx-surface-2);
+  --subtle: var(--gx-surface-2);
+  --border: var(--gx-border-strong);
+  --text: var(--gx-text-1);
+  --muted: var(--gx-text-2);
+  --primary: var(--gx-accent);
+  --primaryText: var(--gx-accent-text);
+  --primaryForeground: var(--gx-accent-ink);
+  --cyan: var(--gx-data);
+  --win: var(--gx-win);
+  --loss: var(--gx-loss);
+  --pending: var(--gx-pending);
+  --tie: var(--gx-pending);
+  --overlay: var(--gx-overlay);
+  --font-body: var(--gx-font-body);
+  --font-mono: var(--gx-font-num);
+  --radius-card: var(--gx-radius-md);
+  --radius-control: var(--gx-radius-sm);
+  --touch-target: var(--gx-size-touch);
+  min-width: 0;
+  color: var(--gx-text-1);
+  font-family: var(--gx-font-body);
+}
+.gx .gx-live-workflow button {
+  min-height: var(--gx-size-touch);
+  min-width: var(--gx-size-touch);
+  padding: 8px 12px;
+  border: 1px solid var(--gx-border-strong);
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+  color: var(--gx-text-1);
+  font: 600 16px/24px var(--gx-font-body);
+  white-space: normal;
+}
+.gx .gx-live-workflow button.primary,
+.gx .gx-live-workflow button[aria-pressed="true"],
+.gx .gx-live-workflow button.active {
+  background: var(--gx-accent);
+  color: var(--gx-accent-text);
+  border-color: var(--gx-accent-ink);
+}
+.gx .gx-live-workflow button.selected {
+  border-color: var(--gx-accent-ink);
+  background: var(--gx-accent-tint);
+  color: var(--gx-accent-ink);
+}
+.gx .gx-live-workflow button:disabled {
+  background: var(--gx-surface-3);
+  color: var(--gx-text-2);
+  cursor: not-allowed;
+}
+.gx .gx-live-workflow :is(input, select, textarea) {
+  max-width: 100%;
+  min-width: 0;
+}
+.gx .gx-live-workflow :is(h2, h3) {
+  font: 700 20px/28px var(--gx-font-display);
+}
+.gx .gx-live-workflow p {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.gx .gx-live-workflow :is(small, .source-note, .muted) {
+  color: var(--gx-text-2);
+}
+.gx .gx-live-workflow table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.gx .gx-live-workflow :is(th, td) {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--gx-border);
+  color: var(--gx-text-1);
+}
+.gx .gx-live-workflow :is(dialog, .modal) {
+  color: var(--gx-text-1);
+  background: var(--gx-surface-1);
+  border: 1px solid var(--gx-border-strong);
+  border-radius: var(--gx-radius-md);
+  max-width: calc(100vw - 32px);
+}
+.gx .gx-live-workflow dialog::backdrop { background: var(--gx-overlay); }
+.gx .gx-live-workflow :is(.panel-heading, .heading-actions, .save-actions) { flex-wrap: wrap; }
+.gx .gx-live-workflow :is(.panel, .social-tracker, .virtual-units) { min-width: 0; }
+.gx-bets :is(.social-feed, .social-charts, .virtual-game-grid) { grid-template-columns: minmax(0, 1fr); }
+.gx-bets .social-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gx-bets .social-heading { flex-direction: column; align-items: stretch; }
+.gx-bets .social-heading > .primary { margin-top: 0; }
+.gx-bets .social-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gx-bets .virtual-units .stats-row { grid-template-columns: minmax(0, 1fr); }
+.gx-bets .social-recovery { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); }
+@media (max-width: 520px) {
+  .gx .gx-live-workflow :is(.panel-heading, .social-filters, .virtual-controls) { padding-inline: 12px; }
+}

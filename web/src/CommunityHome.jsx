@@ -317,12 +317,15 @@ function SubmitReceipt({ id, mode, count, ballot, other, deadline, busy, final =
   </section>;
 }
 
-function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onReveal, initialMode, feed, posts = [] }) {
+// Play reuses this live ballot workflow. Its navigation adapter keeps the new shell's address and market state
+// separate from the classic #picks history; omitted adapters preserve the original Community behavior.
+export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onSignInAgain, onReveal, initialMode, feed, posts = [], marketNavigation }) {
   // Persona audit #3: the Picks history entry carries its market (#picks-spread, #picks-total), so a reload, Back or Forward reopens
   // the market that was open, with its unsaved picks offered back. A bare entry (the Picks tab, "Make picks") is settled by
   // chooseMarket in the same render the week arrives, so no other market's chips ever show first; the choice is written back
   // into the entry. Read once at mount: the entry is this screen's own record, nothing else changes it while the screen is open.
-  const [data, setData] = useState(null), [mode, setMode] = useState(() => currentMarket() || initialMode || 'guess_spread'), [draft, setDraft] = useState(null);
+  const entryMarket = useRef(marketNavigation ? marketNavigation.read() : currentMarket());
+  const [data, setData] = useState(null), [mode, setMode] = useState(() => entryMarket.current || initialMode || 'guess_spread'), [draft, setDraft] = useState(null);
   const [busy, setBusy] = useState(false), [saving, setSaving] = useState(null), [error, setError] = useState(''), [unpublished, setUnpublished] = useState(false);
   const [notice, setNotice] = useState(''), [failure, setFailure] = useState(null), [hint, setHint] = useState(''), [recovery, setRecovery] = useState(null);
   const [dismissed, setDismissed] = useState(() => new Set(Object.keys(MODE).filter(m => { try { return localStorage.getItem(helpKey(m)) === 'off'; } catch { return false; } })));
@@ -330,16 +333,16 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   const [showTrends, toggleTrends] = useTrendsToggle();
   // The save-bar button behind the latest request ("draft" or "submit"); a banner action hands focus back to it.
   const action = useRef('draft');
-  const settled = useRef(currentMarket() !== null), latest = useRef(null);
-  latest.current = { accountId, initialMode, optOuts };
+  const settled = useRef(entryMarket.current !== null), latest = useRef(null);
+  latest.current = { accountId, initialMode, optOuts, marketNavigation, onSignInAgain };
   const load = useCallback(async () => {
     const result = await cloudApi('personal');
-    if (!settled.current) { settled.current = true; const chosen = chooseMarket(result, latest.current); setMode(chosen); setMarket(chosen); }
+    if (!settled.current) { settled.current = true; const chosen = chooseMarket(result, latest.current); setMode(chosen); (latest.current.marketNavigation?.write ?? setMarket)(chosen); }
     setData(result);
     return result;
   }, []);
   // Persona audit #14: no published week (the handler answers 404) is a quiet state, not an error.
-  const loadWeek = useCallback(() => { setError(''); setUnpublished(false); return load().catch(e => { if (e.status === 404) setUnpublished(true); else setError(plain(e, 'tap Retry')); }); }, [load]);
+  const loadWeek = useCallback(() => { setError(''); setUnpublished(false); return load().catch(e => { if (e.status === 404) setUnpublished(true); else { setError(plain(e, 'tap Retry')); if (e.status === 401) latest.current.onSignInAgain?.(); } }); }, [load]);
   useEffect(() => { loadWeek(); }, [loadWeek]);
   // Picks derive from the loaded week and the market in the same render, never one render late: a draft counts only for the data and mode it was entered against,
   // so a market switch or a reload can never show one market's values in the other's chips.
@@ -395,7 +398,9 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
   // succeed on a retry.
   function describe(e, retry) {
     if (!e.status) return { message: 'No connection. Your picks are kept on this screen; reconnect and tap Retry.', actions: [['Retry', retry]] };
-    if (e.status === 401) return { message: 'Your session has expired and these picks are not saved. Retry first; if that fails, note your picks, then sign in again (it clears this screen).', actions: [['Retry', retry], ['Sign in again', () => onSignOut?.()]] };
+    if (e.status === 401) return onSignInAgain
+      ? { message: 'Your session has expired. Your picks are kept on this screen; sign in again, then retry the save.', actions: [['Sign in again', onSignInAgain], ['Retry', retry]] }
+      : { message: 'Your session has expired and these picks are not saved. Retry first; if that fails, note your picks, then sign in again (it clears this screen).', actions: [['Retry', retry], ['Sign in again', () => onSignOut?.()]] };
     if (e.code) return { message: e.message, actions: [['Retry', retry]] };
     if (e.status === 409) return { message: e.message, actions: [['Load latest', loadLatest]] };
     if (e.status === 400) return { message: e.message, actions: [] };
@@ -463,7 +468,7 @@ function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOut, onRe
       if (!(await save(submitted, false))) return;
       setNotice(`${submitted ? `${MODE[mode]} picks submitted` : 'Draft saved'}. Now showing ${MODE[next]}.`);
     }
-    setMode(next); setMarket(next); setHint('');
+    setMode(next); (marketNavigation?.write ?? setMarket)(next); setHint('');
   }
   // Persona audit #6: Submit stays enabled and says what is missing instead of going grey.
   function submitOrExplain() {

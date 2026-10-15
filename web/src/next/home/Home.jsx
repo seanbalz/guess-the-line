@@ -121,13 +121,7 @@ export function Home() {
       </div>
     );
   }
-  // Until stage 29 the picks are made in the old app: its Picks screen opens on #picks, and the switch reloads into the
-  // address as it stands. The fragment is written without an event, because setting `location.hash` fires popstate at
-  // once and the frame's router (router.js) reads a legacy #picks and rewrites it to #play before the reload starts.
-  const toPicks = () => {
-    try { window.history.replaceState(null, '', '#picks'); } catch { /* The old app opens on its feed; Picks is one tap away. */ }
-    shell.toOldApp();
-  };
+  const toPicks = () => shell.go('play');
   const toLines = () => shell.tab('lines');
   return (
     <div className="gx-screen">

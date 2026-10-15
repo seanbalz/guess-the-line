@@ -147,7 +147,7 @@ function TestPage({ args }) {
 }
 
 // Lines (stage 13) reads the app's data layer, which this harness does not mount; tests/cloud-browser/next-lines.spec.js covers it.
-const screens = { ...SCREENS, home: TestHome, play: TestPlay, lines: () => <ComingNext tab="lines"/> };
+const screens = { ...SCREENS, home: TestHome, play: TestPlay, lines: () => <ComingNext tab="lines"/>, bets: () => <ComingNext tab="bets"/>, league: () => <ComingNext tab="league"/> };
 const layers = { ...LAYERS, 'sh.test': TestSheet, 'sh.broken': BrokenSheet, 'sh.fragile': FragileSheet, 'dlg.busy': BusyDialog, 'ov.test': TestOverlay, 'pop.test': TestPopover, 'page.test': TestPage };
 const session = { user: { id: 'acct-3', email: 'casey@example.test', user_metadata: { full_name: 'Casey Moore' } } };
 async function onSignOut() {

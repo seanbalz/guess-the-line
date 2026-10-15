@@ -196,17 +196,15 @@ test('Home is the default screen: the week, the countdown, one lime "Make picks"
   } finally { await world.db.close(); }
 });
 
-test('"Make picks" opens the old app on its Picks screen (until stage 29); "See Lines" never shows while picks are due', async ({ page, baseURL }) => {
+test('"Make picks" opens the live Play tab without leaving the new app; "See Lines" never shows while picks are due', async ({ page, baseURL }) => {
   const { world } = await lukesWeek(page, baseURL);
   try {
     await tryNewApp(page);
     await page.locator('.gx-app .gx-btn--primary').click();
-    await expect(communityHome(page)).toBeVisible();
-    // The old app opens on #picks and writes the market it chose into that entry (#picks-spread; persona audit #3).
-    await expect(page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ })).toHaveAttribute('aria-pressed', 'true');
-    expect(new URL(page.url()).hash).toMatch(/^#picks(-(spread|total))?$/);
-    await expect(page.locator('.gx')).toHaveCount(0);
-    expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('classic');
+    await expect(title(page, 'Play')).toBeVisible();
+    await expect(tab(page, 'Play')).toHaveAttribute('aria-current', 'page');
+    expect(new URL(page.url()).hash).toBe('#play');
+    expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('next');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
