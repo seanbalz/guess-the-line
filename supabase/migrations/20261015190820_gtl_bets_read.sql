@@ -71,10 +71,15 @@ begin
       'selection',case when v.user_id=p_user or
         coalesce((gate->v.game_id->>v.market)::boolean,false) then v.selection
         else jsonb_build_object('side',v.selection->'side','units',v.selection->'units') end,
-      'status',v.status,'result',case when v.user_id=p_user or
+      'status',case when v.user_id=p_user or
+        coalesce((gate->v.game_id->>v.market)::boolean,false) then v.status end,
+      'result',case when v.user_id=p_user or
         coalesce((gate->v.game_id->>v.market)::boolean,false) then v.result end,
       'audit',case when v.user_id=p_user then v.audit end,
-      'createdAt',v.created_at,'updatedAt',v.updated_at)
+      'createdAt',case when v.user_id=p_user or
+        coalesce((gate->v.game_id->>v.market)::boolean,false) then v.created_at end,
+      'updatedAt',case when v.user_id=p_user or
+        coalesce((gate->v.game_id->>v.market)::boolean,false) then v.updated_at end)
       order by v.game_id,v.market,v.user_id),'[]'::jsonb) into entries
   from public.gtl_virtual_units_picks v
   where v.season=s and v.week=w

@@ -47,12 +47,18 @@ test('community account-week Bets read, group reuse, qualification, and game/mar
     source: 'DraftKings', quotedAt: now, selectedAt: now, riskDollars: 150 };
   await db.query('insert into public.gtl_virtual_units_picks(user_id,season,week,game_id,market,selection) values($1,$2,$3,$4,$5,$6)',
     [USER('troy'), season, week, game, 'spread', selection]);
+  await db.query("update public.gtl_virtual_units_picks set status='win',result=$1 where user_id=$2 and game_id=$3",
+    [{ netUnits: 1.36 }, USER('troy'), game]);
   const read = (who, league = null) => sql('gtl_read_bets', { p_user: USER(who), p_season: season, p_week: week, p_league: league, p_now: now });
 
   const closed = await read('luke');
   assert.equal(closed.bets.length, 1);
   assert.deepEqual(closed.bets[0].selection, { side: 'home', units: 1.5 },
     'friend side and units are visible but the saved line and price are closed');
+  assert.equal(closed.bets[0].status, null, 'a settled outcome stays closed with its line');
+  assert.equal(closed.bets[0].result, null);
+  assert.equal(closed.bets[0].createdAt, null);
+  assert.equal(closed.bets[0].updatedAt, null);
   assert.equal(closed.markets[game].spread.visible, false);
   assert.equal(closed.markets[game].total.visible, false);
   const closedApi = await world.api('luke', 'bets/read', {});
@@ -65,6 +71,7 @@ test('community account-week Bets read, group reuse, qualification, and game/mar
   const afterKickoff = await sql('gtl_read_bets', { p_user: USER('luke'), p_season: season, p_week: week,
     p_league: null, p_now: new Date(Date.parse(state.games[0].kickoff) + 1000).toISOString() });
   assert.equal(afterKickoff.bets[0].selection.line, -13.5, 'kickoff opens this game without a Guess lock-in');
+  assert.equal(afterKickoff.bets[0].status, 'win');
   assert.equal(afterKickoff.markets[game].total.visible, true, 'kickoff opens the other market of this game too');
 
   const second = structuredClone(state);

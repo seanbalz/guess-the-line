@@ -36,15 +36,18 @@ test('Bets projection drops forged opponent terms and every hidden offer, while 
     roster: [{ userId: VIEWER, displayName: 'Viewer' }, { userId: FRIEND, displayName: 'Friend' }],
     markets: { [GAME]: { spread: { visible: false, quotes: [{ book: 'draftkings', line: -13.5, odds: -110 }] },
       total: { visible: false, quotes: [{ book: 'fanduel', line: 51.5, odds: -110 }] } } },
-    bets: [{ userId: FRIEND, gameId: GAME, market: 'spread', selection: saved, status: 'pending',
-      audit: [{ after: saved }], result: { netUnits: 2.5 } },
+    bets: [{ userId: FRIEND, gameId: GAME, market: 'spread', selection: saved, status: 'win',
+      audit: [{ after: saved }], result: { netUnits: 2.5 }, createdAt: NOW, updatedAt: NOW },
     { userId: VIEWER, gameId: GAME, market: 'spread', selection: saved, status: 'pending', audit: [{ after: saved }] }],
     faces: { [GAME]: [FRIEND, VIEWER] }, qualification: [] };
   const reply = projectBets(raw, VIEWER);
   assert.deepEqual(reply.markets[GAME].spread, { visible: false });
   assert.deepEqual(reply.bets[0].selection, { side: 'home', units: 2 });
+  assert.equal(reply.bets[0].status, null);
   assert.equal(reply.bets[0].result, null);
   assert.equal(reply.bets[0].audit, null);
+  assert.equal(reply.bets[0].createdAt, null);
+  assert.equal(reply.bets[0].updatedAt, null);
   assert.equal(reply.bets[1].selection.line, -13.5);
   assert.equal(reply.bets[1].audit.length, 1);
   assert.equal(JSON.stringify(reply.bets[0]).includes('13.5'), false);

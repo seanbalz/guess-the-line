@@ -74,9 +74,10 @@ export function projectBets(raw, viewer) {
           side: SIDES[row.market].includes(row.selection?.side) ? row.selection.side : null,
           units: finite(row.selection?.units) && row.selection.units > 0 ? row.selection.units : null,
         },
-        status: text(row.status), result: own || open ? resultView(row.result) : null,
+        status: own || open ? text(row.status) : null, result: own || open ? resultView(row.result) : null,
         audit: own && Array.isArray(row.audit) ? row.audit : null,
-        createdAt: time(row.createdAt), updatedAt: time(row.updatedAt) };
+        createdAt: own || open ? time(row.createdAt) : null,
+        updatedAt: own || open ? time(row.updatedAt) : null };
     });
   const faces = Object.fromEntries(games.map(game => [game.id,
     [...new Set((Array.isArray(raw.faces?.[game.id]) ? raw.faces[game.id] : []).filter(id => members.has(id)))]]));
