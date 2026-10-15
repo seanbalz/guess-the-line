@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { accuracy, round } from './domain.mjs';
 import { createEngine } from './engine.mjs';
 import { createSocialStore, LOCAL_SOCIAL_IDS } from './social-store.mjs';
+import { socialBetExport } from '../shared/social-export.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const read = p => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
 const teamCodes = ['TB DAL','PHI JAX','CIN MIA','LV NE','MIN NO','CLE NYJ','IND PIT','HOU TEN','NYG WAS','CHI GB','DEN LAC','SF SEA','BAL ATL','DET ARI','BUF LAR'];
@@ -74,6 +75,10 @@ export function createStore(file = path.join(root, '.local/state.json'), clock =
     saveBallot: (...args) => save('saveBallot', ...args),
     sitOut: (...args) => save('sitOut', ...args),
     saveBet: (...args) => save('saveBet', ...args),
-    export: id => engine().export(id),
+    export: id => {
+      const own = engine().export(id);
+      return socialAction(id, 'read', { allHistory: true, filters: { playerId: LOCAL_SOCIAL_IDS[id] } })
+        .then(shared => ({ ...own, socialBets: socialBetExport(shared, LOCAL_SOCIAL_IDS[id]) }));
+    },
   };
 }

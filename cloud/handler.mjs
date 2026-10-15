@@ -1,5 +1,6 @@
 import { handlePersonal, PERSONAL_METHODS, PersonalError, providerPersonalError } from './personal.mjs';
 import { handleSocial, SOCIAL_METHODS, SocialError, providerSocialError } from './social.mjs';
+import { socialBetExport } from '../shared/social-export.mjs';
 import { handleCommunity, COMMUNITY_METHODS, CommunityError, providerCommunityError, readForfeit, withForfeit } from './community.mjs';
 import { handleOfficials, OFFICIALS_METHODS, OfficialsError, providerOfficialsError } from './officials.mjs';
 import { NFLVERSE_SCHEDULE_URL } from '../shared/nfl-schedule.mjs';
@@ -297,7 +298,10 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       // final, so this deploy never runs ahead of the database rule.
       const engine = createEngine(saved.state, { clock, uuid, sentFinal: request.method === 'POST' && (await rules)?.sentFinal === true });
       if (route === '/state') return json(await withRules(marketView(resultView(weeklyView(engine.view(member.player_id, mode), saved), saved, member, leagueId), user.id, leagueId), rules));
-      if (route === '/export') return json(weeklyView(engine.export(member.player_id), saved));
+      if (route === '/export') {
+        const shared = await handleSocial({ route: '/social/read', body: { allHistory: true, filters: { playerId: user.id } }, user, service: social, clock });
+        return json({ ...weeklyView(engine.export(member.player_id), saved), socialBets: socialBetExport(shared, user.id) });
+      }
       if (body.revision !== saved.revision) fail(409, 'Your weekly entries changed on another device or in another group. Refresh before saving again.');
 
       try {
