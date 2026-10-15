@@ -374,15 +374,44 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           let message, code;
           try { ({ message, code } = (await response.json()) ?? {}); } catch { /* Provider details remain private. */ }
           // A group RPC the hosted project does not have yet (its migration not applied, or rolled back) reads as off.
-          if (response.status === 404 && code === FUNCTION_NOT_FOUND) throw providerError('GTL_FEATURE_OFF');
+          if (response.status === 404 && code === FUNCTION_NOT_FOUND) {
+            // The recommendations writer is the only new Bets RPC with an off
+            // response. Preserve the untouched future Bets routes' generic error.
+            if (providerError === providerBetsError && name !== 'gtl_save_recommended_virtual_pick') throw providerError();
+            throw providerError('GTL_FEATURE_OFF');
+          }
           throw providerError(message);
         }
         return response.json();
       },
     };
   }
+  // Current-account recommendations use only already stored rows. The caller first
+  // checks active community membership and obtains the published signature through
+  // gtl_personal_context. These exact filters never use a private group's week.
+  async function recommendationState({ userId, season, week, signature, now }) {
+    if (!UUID.test(userId || '') || !Number.isInteger(season) || !Number.isInteger(week) || !isRecord(signature) || !Number.isFinite(now)) throw new Error('Invalid recommendation scope.');
+    const rows = async (table, query, max) => {
+      const response = await request(`/rest/v1/${table}?${new URLSearchParams(query)}`, { headers });
+      if (!response.ok) throw new Error('Recommendations storage unavailable.');
+      const body = await response.json();
+      if (!Array.isArray(body) || body.length > max) throw new Error('Invalid recommendations storage response.');
+      return body;
+    };
+    const target = { season: `eq.${season}`, week: `eq.${week}` };
+    const [snapshots, picks, settlements] = await Promise.all([
+      rows('gtl_market_snapshots', { select: 'id,created_at,payload', ...target, slate_signature: `eq.${JSON.stringify(signature)}`,
+        created_at: `lte.${new Date(now).toISOString()}`, order: 'created_at.desc,id.desc', limit: '20' }, 20),
+      rows('gtl_virtual_units_picks', { select: 'game_id,market,selection,status,result,created_at,updated_at', user_id: `eq.${userId}`, ...target,
+        order: 'game_id.asc,market.asc', limit: '65' }, 64),
+      rows('gtl_virtual_units_settlements', { select: 'game_id,status,home,away,version,settled_at,observed_at,source,source_url', ...target,
+        order: 'game_id.asc,version.desc', limit: '1001' }, 1000),
+    ]);
+    const history = snapshots.map(row => ({ id: row.id, createdAt: row.created_at, payload: row.payload }));
+    return { snapshot: history.length ? { ...history[0], history } : null, picks, settlements };
+  }
   return {
-    lines: groupRpc(providerLinesError), bets: groupRpc(providerBetsError), league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
+    lines: groupRpc(providerLinesError), bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {

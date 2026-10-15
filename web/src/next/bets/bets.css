@@ -1,6 +1,6 @@
 .gx .gx-bets { display: grid; gap: var(--gx-space-6); min-width: 0; }
 .gx .gx-bets-heading { display: grid; gap: var(--gx-space-2); }
-.gx .gx-bets-views { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-1); padding: var(--gx-space-1); background: var(--gx-surface-1); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); }
+.gx .gx-bets-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-1); padding: var(--gx-space-1); background: var(--gx-surface-1); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); }
 .gx .gx-bets .gx-bets-views :where(button) { min-width: 0; min-height: var(--gx-size-primary); gap: var(--gx-space-2); padding: var(--gx-space-2); background: none; border-color: transparent; color: var(--gx-text-2); }
 .gx .gx-bets .gx-bets-views [aria-pressed="true"] { background: var(--gx-accent-tint); color: var(--gx-accent-ink); border-color: var(--gx-accent-ink); box-shadow: none; }
 .gx .gx-bets-context { display: flex; align-items: flex-start; gap: var(--gx-space-3); padding: var(--gx-space-3) var(--gx-space-4); border-inline-start: 2px solid var(--gx-data); background: var(--gx-surface-1); border-radius: var(--gx-radius-xs); }
@@ -8,6 +8,8 @@
 .gx .gx-bets-choose { display: grid; justify-items: start; gap: var(--gx-space-4); padding: var(--gx-space-6); background: var(--gx-surface-1); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); }
 .gx .gx-bets-choose-icon { display: grid; place-items: center; width: var(--gx-size-primary); height: var(--gx-size-primary); background: var(--gx-data-tint); color: var(--gx-data); border-radius: var(--gx-radius-md); }
 .gx .gx-bets-choose > :where(button) { width: 100%; }
-@media (max-width: 359px) {
-  .gx .gx-bets .gx-bets-views :where(button) { flex-direction: column; gap: var(--gx-space-1); }
+@media (max-width: 520px) {
+  .gx .gx-bets-views { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .gx .gx-bets .gx-bets-views :where(button) { flex-direction: column; gap: var(--gx-space-1); padding-inline: var(--gx-space-1); }
+  .gx .gx-bets .gx-bets-views :where(button:nth-child(2)) { white-space: nowrap; }
 }

@@ -17,6 +17,7 @@ import { providerWindError } from '../../cloud/wind.mjs';
 import { providerWeeklyError } from '../../cloud/weekly.mjs';
 import { providerLinesError } from '../../cloud/lines.mjs';
 import { providerVirtualError } from '../../cloud/virtual-units.mjs';
+import { providerBetsError } from '../../cloud/bets.mjs';
 import { createOptionalRpc } from '../../cloud/optional-rpc.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { openDeadline } from './fixture-deadline.mjs';
@@ -132,6 +133,19 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     // Redesign stage 23 (M-06): the gated lines readers. On a schema without M-06 (HOSTED today) their RPCs are missing,
     // so /lines/* answer the generic 503 and every other route is unchanged.
     lines: { rpc: rpc(providerLinesError) },
+    // Recommendations use the published account week, even when every private
+    // group remains on an older slate. These are the production adapter's exact
+    // stored-row filters, executed locally; never an odds provider request.
+    bets: { rpc: rpc(providerBetsError), recommendationState: async ({ userId, season, week, signature, now }) => {
+      const snapshots = (await db.query('select id,created_at,payload from public.gtl_market_snapshots where season=$1 and week=$2 and slate_signature=$3 and created_at<=$4 order by created_at desc,id desc limit 20', [season, week, signature, new Date(now).toISOString()])).rows;
+      const picks = (await db.query('select game_id,market,selection,status,result,created_at,updated_at from public.gtl_virtual_units_picks where user_id=$1 and season=$2 and week=$3 order by game_id,market', [userId, season, week])).rows;
+      const settlements = (await db.query('select game_id,status,home,away,version,settled_at,observed_at,source,source_url from public.gtl_virtual_units_settlements where season=$1 and week=$2 order by game_id,version desc', [season, week])).rows;
+      const iso = value => value instanceof Date ? value.toISOString() : value;
+      const history = snapshots.map(row => ({ id: row.id, createdAt: iso(row.created_at), payload: row.payload }));
+      return { snapshot: history.length ? { ...history[0], history } : null,
+        picks: picks.map(row => ({ ...row, created_at: iso(row.created_at), updated_at: iso(row.updated_at) })),
+        settlements: settlements.map(row => ({ ...row, settled_at: iso(row.settled_at), observed_at: iso(row.observed_at) })) };
+    } },
     // D-17: this fixture has no odds provider; the preflight reports eligible cached references (no spec here submits).
     odds: { rpc: (fn, args) => (fn === 'gtl_preflight_submission' ? Promise.resolve({ requiresReferences: false, ready: true }) : personalRpc(fn, args)),
       ...(virtualUnits ? { marketSnapshot: (userId, leagueId) => rawRpc('gtl_read_market_snapshot', { p_user: userId, p_league: leagueId }) } : {}) },
