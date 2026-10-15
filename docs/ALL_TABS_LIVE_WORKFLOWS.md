@@ -43,7 +43,9 @@ legacy components' token names onto D-38 tokens, restores controls after the new
 shell's reset and places save controls above the tab bar. This scoped adapter is
 temporary; it does not approve a new brand direction or retire the prototype.
 Play now supplies optional presentation components for padded matchup cards,
-compact guidance, source details and a measured save dock. Its shared writer and
+compact guidance, source details and a measured save dock. Favorite buttons show
+team abbreviations so names never break across narrow controls; the matchup and
+accessible button names retain the full teams. Its shared writer and
 classic fallback remain intact. Bets adds `web/src/liveBets.css`, scoped under
 `.gx .gx-bets`, for the existing forms and tables. League keeps comment drafts
 mounted when the reply form is collapsed.

@@ -520,7 +520,7 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
       const facts = <TeamFacts week={data.week} awayCode={g.awayCode} homeCode={g.homeCode}/>;
       const reference = submitted ? <LineAtGuess reference={ballot.scoringReferences?.[g.id]} pick={ballot.picks?.[g.id]} spread={mode === 'guess_spread'}/> : null;
       const picker = satOut && feed ? <RevealedPicks game={g} mode={mode} season={data.season} week={data.week} feed={feed} posts={posts} own={picks[g.id]} closed={closed}/>
-        : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)}
+        : !notOpen && <ChipPicker key={`${mode}-${g.id}-${data.weeklyRevision}`} mode={mode} value={picks[g.id]} away={shortName(g.awayCode)} home={shortName(g.homeCode)} teamLabels={presentation?.teamLabels?.(g)}
           label={`${team(g.awayCode)} at ${team(g.homeCode)} ${MODE[mode]}`} disabled={busy || !editable || isFinal(g.id)} onChange={value => { setHint(''); setRecovery(null); setDraft(dr => ({ data, mode, picks: { ...picksOf(data, mode, dr), [g.id]: value } })); }}/>;
       // The access gate still owns line-dependent trends, whether details are expanded or collapsed.
       const trends = showTrends ? <GameTrends season={data.season} week={data.week} gameId={g.id} away={g.awayCode} home={g.homeCode} level={4} access={trendAccess(g.id)} savedLabel="your saved line"

@@ -163,6 +163,11 @@ test('Play remains readable and usable in both themes on a phone; sit-out keeps 
     await openPlay(page);
     await pickSpread(page, 0, 3);
     await pickSpread(page, 1, 7);
+    await expect(cards(page).first().locator('[data-side="away"]')).toHaveText('TB');
+    await expect(cards(page).first().locator('[data-side="away"]')).toHaveAccessibleName('Buccaneers (TB)');
+    await expect(cards(page).first().locator('[data-side="home"]')).toHaveText('DAL');
+    await expect(cards(page).first().locator('[data-side="home"]')).toHaveAccessibleName('Cowboys (DAL)');
+    await expect(cards(page).first().locator('.chip-summary')).toHaveText('Cowboys −3');
     const details = cards(page).first().locator('.gx-play-details');
     await expect(details.locator('.team-facts')).not.toBeVisible();
     await details.locator('summary').click();
@@ -186,15 +191,25 @@ test('Play remains readable and usable in both themes on a phone; sit-out keeps 
           const game = document.querySelector('.gx-play-game'), entry = game.querySelector('.gx-play-entry');
           const control = [...document.querySelectorAll('.gx-play-game .chip-fine button')].at(-1);
           const box = control.getBoundingClientRect(), hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
-          return { scroll: document.documentElement.scrollWidth > innerWidth, overlap: save.bottom > tabs.top,
+          const wrappedTeamLabels = [...document.querySelectorAll('.gx-play-game .team-chip')].filter(button =>
+            [...button.childNodes].some(node => {
+              if (node.nodeType !== Node.TEXT_NODE || !node.textContent.trim()) return false;
+              const range = document.createRange(); range.selectNodeContents(node);
+              return range.getClientRects().length > 1;
+            })).map(button => button.textContent);
+          return { scroll: document.documentElement.scrollWidth > innerWidth, overlap: save.bottom > tabs.top, wrappedTeamLabels,
             finalControlClear: box.bottom <= save.top && (hit === control || control.contains(hit)),
             padding: getComputedStyle(game).paddingLeft, insetSurface: getComputedStyle(game).backgroundColor !== getComputedStyle(entry).backgroundColor,
             small: buttons.map(el => ({ text: el.textContent, box: el.getBoundingClientRect() })).filter(({ box }) => box.width < 43.5 || box.height < 43.5).map(({ text }) => text) };
         });
-        expect(dimensions).toEqual({ scroll: false, overlap: false, finalControlClear: true, padding: '16px', insetSurface: true, small: [] });
+        expect(dimensions).toEqual({ scroll: false, overlap: false, wrappedTeamLabels: [], finalControlClear: true, padding: '16px', insetSurface: true, small: [] });
         const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
         expect(accessibility.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(' ')).join(', ')}`)).toEqual([]);
-        if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-play-${theme}.png`), fullPage: true });
+        if (width === 390) {
+          await page.screenshot({ path: testInfo.outputPath(`next-play-${theme}.png`), fullPage: true });
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await page.screenshot({ path: `.local/previews/formatting/play-final/play-390-${theme}-top.png` });
+        }
       }
     }
     await editor(page).getByRole('button', { name: 'Sit out this week', exact: true }).click();

@@ -1,6 +1,6 @@
 // Presentation only: WeekPicks still owns drafts, submission, rule checks and every disclosure gate.
 import { useId, useLayoutEffect, useRef } from 'react';
-import { Icon, TeamMark } from '../ui/index.js';
+import { Icon, TeamMark, teamCode } from '../ui/index.js';
 import { team } from '../../communityFormat.js';
 
 function GameCard({ game, title, kickoff, facts, reference, picker, trends, picked, changed, submitted, satOut, notOpen }) {
@@ -46,4 +46,4 @@ function HelpCard({ mode, help, onDismiss }) {
   </details>;
 }
 
-export const playPresentation = Object.freeze({ GameCard, SaveDock, HelpCard });
+export const playPresentation = Object.freeze({ GameCard, SaveDock, HelpCard, teamLabels: game => ({ away: teamCode(game.awayCode), home: teamCode(game.homeCode) }) });

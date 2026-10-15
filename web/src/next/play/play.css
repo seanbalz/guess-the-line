@@ -128,6 +128,11 @@
   overflow: visible;
   text-overflow: clip;
 }
+/* Full team names stay in the matchup and accessible name; abbreviations fit the favorite controls. */
+.gx .gx-live-play .gx-play-entry button[class~="team-chip"]:not([data-side="pickem"]) {
+  font: 700 20px/24px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
 .gx .gx-live-play .gx-play-entry button[class~="selected"] {
   background: var(--gx-accent);
   border-color: var(--gx-accent-ink);
