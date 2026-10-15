@@ -66,10 +66,10 @@ subsequent model version.
 | Gate | Required evidence | Current state |
 | --- | --- | --- |
 | Input rights | Exact files, fields, producer lineage, applicable grant and attribution; free use within that scope | Exact CC BY 4.0 release grant supports the recorded local factual-field research; production review remains open, without asserting a second NFL grant is required |
-| Current coverage | Canonical completed games, team/week completeness, roster membership and availability, timestamps and missing/stale rejection | Verified schedule/current-source adapters and a sealed pregame input contract are implemented. Completed 2022–2026 games reconcile to the schedule. Current game-day availability, player usage and historical input vintages remain unverified |
-| Football engine | Score/clock/possession/stat consistency, special teams, penalties, safeties, conversion tries and current overtime rules | Strict research ledger implemented; unsupported plays fail explicitly. Full NFL support is incomplete |
-| Player model | Current roster-bound participation/usage, injuries and substitutions or stated measurable limitations | Not implemented |
-| Whole-game evaluation | Untouched chronological games; score and player-stat distributions, calibration, baselines and rare-event checks | Not implemented; measured next-play research below does not pass this gate |
+| Current coverage | Canonical completed games, team/week completeness, roster membership and availability, timestamps and missing/stale rejection | Verified schedule/current-source adapters, sealed pregame inputs and prior-game usage audits are implemented. Current game-day availability, exact usage totals and historical input vintages remain unverified |
+| Football engine | Score/clock/possession/stat consistency, special teams, penalties, safeties, conversion tries and current overtime rules | Narrow replay ledger and separate 2026 clock/administration foundation implemented; unsupported facts halt explicitly. Full NFL support is incomplete |
+| Player model | Current roster-bound participation/usage, injuries and substitutions or stated measurable limitations | Observed usage counts preserve missing attribution and historical team identity. Participation probabilities and player forecasts are not implemented |
+| Whole-game evaluation | Untouched chronological games; score and player-stat distributions, calibration, baselines and rare-event checks | Metric calculations, declaration checks and a league-wide paired-score development baseline are implemented. The proposed team/player replay model has not been evaluated; no untouched prospective validation is established |
 | Serving/privacy | Versioned server results and reader, allowed inputs only, both market gates, no writes to competition records | Not implemented; no production route registered |
 | UI acceptance/release | Mobile light/dark, 320/390 widths, keyboard/axe, motion/lifecycle checks; Sean's phone acceptance; exact-SHA release evidence | Local browser checks pass at both widths/themes, including keyboard/axe and playback lifecycle; phone acceptance remains; not deployed |
 
@@ -206,6 +206,84 @@ has a media-use restriction; no redistribution, automated input feed or product
 display permission is inferred. Only the audit summary and source hash are
 committed, with the factual comparison kept local.
 
+## Prior-game usage and evaluation contracts
+
+`model/replay_usage.py` binds prior observations to the exact sealed matchup and
+schedule. Its recorded history window excludes the target, same-day games and
+future games. Passing attempts, rush attempts and identified intended receivers
+remain separate counts; an unknown receiver never becomes a guessed player or
+a known zero. A source row labelled with the wrong competition is a coverage gap,
+not an exclusion that makes an incomplete total appear complete. Event credits
+are atomic, and historical team attribution remains separate from a player's
+current team. Recorded usage games do not establish an appearance denominator.
+
+The [aggregate usage audit](../model/reports/replay-usage-audit-2026-10-15.json)
+checks all 79 completed 2026 regular-season games before the frozen input cutoff.
+Of the 159 selected roster records, 28 have attributed usage. Their known
+subtotals are 309 passing attempts, 258 rush attempts and 289 identified targets.
+These are **subtotals**, not complete or predicted player totals: the source has
+228 passes without an identified receiver, plus one kickoff with missing flags
+that produces three metric gaps. Exact totals remain unavailable. The analysis
+policy was recorded after the frozen input cutoff and is explicitly disclosed
+as an analysis choice, not a preregistered forecast protocol. Source hashes,
+producer hash and artifact hash accompany the report; individual rows remain
+local.
+
+`model/replay_evaluation.py` implements empirical CRPS, binary Brier scores,
+type-7 quantiles and inclusive central-interval coverage/width. Home and away
+scores stay paired when deriving margins and totals. Home wins, away wins and
+ties are three explicit binary events. Player evaluation retains every frozen
+player, including missing outcomes; only caller-supplied, evidenced
+nonparticipation can imply zero. This module does not independently verify that
+outcome evidence.
+
+The protocol validator checks the declared cutoff, cohort, seed, sample count,
+metric definitions and exact bytes of five referenced artifacts. It does not
+decode those artifacts to establish eligibility, independently attest their
+recording times, verify baseline bytes or validate a forecast. Already inspected
+2022–2025 games and 2026 Weeks 1–5 remain development evidence. A successful
+declaration check still returns `forecastEvaluated: false`,
+`promotionAllowed: false` and `publicationReady: false`.
+
+`shared/simulation-game-state.mjs` adds separate research administration for
+coin-toss and half choices, quarter/half transitions, game/play clocks, ordinary
+timeouts and the two-minute warning under the 2026 rules. Halftime receiving
+choices are explicit. Declared research checkpoints remain unverified in every
+descendant state. An event must bind to the exact previous state and sequence;
+unsupported live plays, penalties, period extensions and overtime decisions
+halt for a ruling. This module cannot settle a game, assign players or upgrade
+the earlier narrow replay ledger to a complete NFL engine.
+
+## Whole-game comparison baseline
+
+`model/replay_game_baseline.py` provides a league-wide benchmark for the future
+simulator. Its configuration was frozen at 16:49:46 UTC on October 15 before
+the first result was computed. Each target uses every eligible reported-final
+regular-season home/away score pair since July 2022 on strictly earlier calendar
+dates. The two scores from each game stay together. The exact empirical
+distribution retains ties, repeated outcomes and extreme scores, with no random
+sampling, tail removal, team weighting or tuning after inspection.
+
+The [aggregate baseline report](../model/reports/replay-paired-score-baseline-2026-10-15.json)
+evaluates all 272 games in each of 2024 and 2025, with no missing-outcome cohort
+exclusions. Training pools range from 543–801 games in 2024 and 815–1,073 in 2025.
+Each evaluated game has equal weight. Lower CRPS and Brier values are better;
+these values establish a comparison, not an improvement over another model.
+
+| Development season | Home-score CRPS | Away-score CRPS | Margin CRPS | Total CRPS | Home-win Brier |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 2024 | 5.77450 | 5.29557 | 8.05780 | 7.36271 | 0.249668 |
+| 2025 | 5.56175 | 5.68032 | 7.97854 | 7.85092 | 0.249050 |
+
+The report also preserves away-win/tie Brier scores and 50%, 80% and 95%
+interval coverage and width. It pins the source, configuration and producer
+hashes, and a repeated run with the same observation cutoff is byte-identical.
+Individual game results and empirical pairs remain local. This uses the
+currently corrected schedule; chronological ordering does not recreate the
+historical feed available at each kickoff. Both seasons were already inspected
+and remain development evidence. There is no team/player-conditioned forecast,
+animated game generation, prospective certification or publication permission.
+
 ## Initial local verification — PR #131
 
 - Full application suites: 1,272 Node tests and 184 Vitest tests pass, with no
@@ -228,12 +306,20 @@ committed, with the factual comparison kept local.
 These checks establish the isolated implementation, not full-game model
 accuracy, phone acceptance or a production replay release.
 
-The continuation's integrated model suite passes **97 Python tests with no
+The input/reconstruction stage passes **102 Python tests with no
 skips**, including schedule, current-source, matchup and reconstruction cases.
 Independent reviews covered timestamp/receipt integrity, unavailable inputs,
 compound scoring, unknown competition labels and the real cached-input CLI.
 Brand-document QA and whitespace checks pass. GitHub checks and release state
 are tracked separately; local test success is not a deployment.
+
+The following usage/evaluation/administration stage passes **158 integrated
+Python tests**, **43 focused JavaScript tests**, and the application suites
+of **1,335 Node tests plus 184 Vitest tests**, with no skips. Independent review
+checked usage attribution and completeness, clock boundaries, paired-score
+metrics, equal per-game evaluation weight and declaration timing. The cached
+usage and baseline runs are repeatable; publication remains disabled. These
+research modules have no production imports or app routes.
 
 ## Reproduction
 

@@ -1,0 +1,354 @@
+{
+  "comparisonBaselineOnly": true,
+  "config": {
+    "competition": "REG",
+    "distribution": "uniform_exact_observed_home_away_score_pairs",
+    "evaluationSeasons": [
+      2024,
+      2025
+    ],
+    "historyStartDate": "2022-07-01",
+    "intervalLevels": [
+      0.5,
+      0.8,
+      0.95
+    ],
+    "minimumTrainingGames": 1,
+    "missingOutcome": "exclude_with_report",
+    "revisionPolicy": "current_verified_snapshot_retrospective_development_only",
+    "tiePolicy": "separate_binary_tie_event",
+    "trainingWindow": "all_strictly_prior_calendar_dates"
+  },
+  "configFrozenAt": "2026-10-15T16:49:46.808497+00:00",
+  "configSha256": "ed8b1e9548e393e8d201ac2bd627c744e5478d0c769c79ac79314439766b70e8",
+  "eligibleRecordedGames": 1166,
+  "eligibleRecordsSha256": "4c993871585a558269173f282fd42b15a80818aaf357f3f86d168ea0bcc8e9f9",
+  "evaluationModuleSha256": "bcf05ae961c967479b1322dfbde78a7888d45b14880d2ec099b48e28ed8bfcf0",
+  "generationAllowed": false,
+  "implementationSha256": "0c4a6da8f987a91457d4afaa63e8e06bd21ebcd70a5297cf47c544d99bbb1439",
+  "limitations": [
+    "This is a league-wide empirical comparison baseline, not a team- or player-conditioned forecast or animated game generator.",
+    "Whole observed home/away score pairs preserve their empirical joint distribution; no independent marginal pairing, tail trimming, weighting or Monte Carlo sampling is used.",
+    "Every target uses strictly earlier calendar dates. Same-day games are excluded even if an earlier kickoff might have finished.",
+    "The current corrected schedule was observed now. Original historical availability and revision times are unknown; this is not a historical as-known backtest.",
+    "2022–2025 and 2026 weeks 1–5 were already inspected. Reported cohorts are development evidence, not untouched validation.",
+    "Historical rules editions differ. Observed outcomes are not reinterpreted as a full 2026 rules simulation.",
+    "Scores with unknown final labels are excluded and counted, never replaced by zero. No player availability or participation is inferred.",
+    "No prospective protocol, comparative performance improvement, acceptance threshold, deployment or production permission is established."
+  ],
+  "observationAsOf": "2026-10-15T16:56:32.166392+00:00",
+  "publicationReady": false,
+  "scheduleLoaderSha256": "349aa06559cc378cdf7da9e0bb694289843c17cda8539309dc0627f410d1b8d4",
+  "seasons": [
+    {
+      "classification": "development_only_already_inspected",
+      "cohortScheduleRows": 272,
+      "distributions": {
+        "awayScore": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.4963235294117647,
+              "coveredGames": 135,
+              "level": 0.5,
+              "meanWidth": 12.334558823529411
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.8492647058823529,
+              "coveredGames": 231,
+              "level": 0.8,
+              "meanWidth": 24.246323529411764
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9522058823529411,
+              "coveredGames": 259,
+              "level": 0.95,
+              "meanWidth": 36.9875
+            }
+          ],
+          "meanCrps": 5.295570271791359
+        },
+        "homeScore": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.48161764705882354,
+              "coveredGames": 131,
+              "level": 0.5,
+              "meanWidth": 11.778492647058824
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.8014705882352942,
+              "coveredGames": 218,
+              "level": 0.8,
+              "meanWidth": 25.305147058823533
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9522058823529411,
+              "coveredGames": 259,
+              "level": 0.95,
+              "meanWidth": 37.48538602941174
+            }
+          ],
+          "meanCrps": 5.774495888332669
+        },
+        "margin": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.5147058823529411,
+              "coveredGames": 140,
+              "level": 0.5,
+              "meanWidth": 15.217830882352942
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.75,
+              "coveredGames": 204,
+              "level": 0.8,
+              "meanWidth": 34.22242647058824
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9301470588235294,
+              "coveredGames": 253,
+              "level": 0.95,
+              "meanWidth": 54.59981617647058
+            }
+          ],
+          "meanCrps": 8.057801632235375
+        },
+        "total": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.5588235294117647,
+              "coveredGames": 152,
+              "level": 0.5,
+              "meanWidth": 17.272058823529413
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.8345588235294118,
+              "coveredGames": 227,
+              "level": 0.8,
+              "meanWidth": 34.21029411764707
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9595588235294118,
+              "coveredGames": 261,
+              "level": 0.95,
+              "meanWidth": 54.54034926470587
+            }
+          ],
+          "meanCrps": 7.3627108681378335
+        }
+      },
+      "evaluatedGames": 272,
+      "events": {
+        "awayWin": {
+          "availableGames": 272,
+          "meanBrier": 0.24979414339403766,
+          "meanProbability": 0.44705712979109025,
+          "observedFrequency": 0.46691176470588236
+        },
+        "homeWin": {
+          "availableGames": 272,
+          "meanBrier": 0.24966846231657164,
+          "meanProbability": 0.5499331017734689,
+          "observedFrequency": 0.5330882352941176
+        },
+        "tie": {
+          "availableGames": 272,
+          "meanBrier": 9.186775705285124e-06,
+          "meanProbability": 0.003009768435440903,
+          "observedFrequency": 0.0
+        }
+      },
+      "excludedGames": {},
+      "season": 2024,
+      "trainingGames": {
+        "max": 801,
+        "mean": 673.8198529411765,
+        "min": 543
+      }
+    },
+    {
+      "classification": "development_only_already_inspected",
+      "cohortScheduleRows": 272,
+      "distributions": {
+        "awayScore": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.49264705882352944,
+              "coveredGames": 134,
+              "level": 0.5,
+              "meanWidth": 12.120404411764707
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.7904411764705882,
+              "coveredGames": 215,
+              "level": 0.8,
+              "meanWidth": 24.0
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9448529411764706,
+              "coveredGames": 257,
+              "level": 0.95,
+              "meanWidth": 37.593014705882354
+            }
+          ],
+          "meanCrps": 5.680321441671433
+        },
+        "homeScore": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.5147058823529411,
+              "coveredGames": 140,
+              "level": 0.5,
+              "meanWidth": 12.959558823529411
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.8345588235294118,
+              "coveredGames": 227,
+              "level": 0.8,
+              "meanWidth": 26.913235294117644
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9485294117647058,
+              "coveredGames": 258,
+              "level": 0.95,
+              "meanWidth": 37.42702205882352
+            }
+          ],
+          "meanCrps": 5.561751718661512
+        },
+        "margin": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.47794117647058826,
+              "coveredGames": 130,
+              "level": 0.5,
+              "meanWidth": 15.754595588235293
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.7683823529411765,
+              "coveredGames": 209,
+              "level": 0.8,
+              "meanWidth": 35.79485294117647
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9595588235294118,
+              "coveredGames": 261,
+              "level": 0.95,
+              "meanWidth": 55.22242647058823
+            }
+          ],
+          "meanCrps": 7.978543070494948
+        },
+        "total": {
+          "intervals": [
+            {
+              "availableGames": 272,
+              "coverage": 0.48161764705882354,
+              "coveredGames": 131,
+              "level": 0.5,
+              "meanWidth": 17.016544117647058
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.8051470588235294,
+              "coveredGames": 219,
+              "level": 0.8,
+              "meanWidth": 33.987132352941174
+            },
+            {
+              "availableGames": 272,
+              "coverage": 0.9375,
+              "coveredGames": 255,
+              "level": 0.95,
+              "meanWidth": 53.883731617647044
+            }
+          ],
+          "meanCrps": 7.8509245982228855
+        }
+      },
+      "evaluatedGames": 272,
+      "events": {
+        "awayWin": {
+          "availableGames": 272,
+          "meanBrier": 0.2487665594589241,
+          "meanProbability": 0.44889332204830046,
+          "observedFrequency": 0.45955882352941174
+        },
+        "homeWin": {
+          "availableGames": 272,
+          "meanBrier": 0.2490500570170072,
+          "meanProbability": 0.5481839203029644,
+          "observedFrequency": 0.5367647058823529
+        },
+        "tie": {
+          "availableGames": 272,
+          "meanBrier": 0.0036681078872308056,
+          "meanProbability": 0.0029227576487351986,
+          "observedFrequency": 0.003676470588235294
+        }
+      },
+      "excludedGames": {},
+      "season": 2025,
+      "trainingGames": {
+        "max": 1073,
+        "mean": 945.7904411764706,
+        "min": 815
+      }
+    }
+  ],
+  "sourceExclusions": {
+    "outside_regular_season": 52,
+    "same_day_or_future_at_observation": 193
+  },
+  "sourceRef": {
+    "assetId": 644189933,
+    "assetUpdatedAt": "2026-10-15T14:51:40Z",
+    "attribution": "nflverse; schedules maintained by Lee Sharpe (CC BY 4.0), filtered and normalized by GTL",
+    "bytes": 2184481,
+    "earliestObservationRef": {
+      "assetUpdatedAt": "2026-10-15T14:51:40Z",
+      "metadataSha256": "cdf6bb121ffde9c8446b22e738aac23f2d0c54e9d30303011ca24a75892a43f9",
+      "receiptSha256": "547c3d4a348d6f5b6f771601368e281ae9e023970335ffb9b8ffedd6584ca192",
+      "retrievedAt": "2026-10-15T14:54:41.339775+00:00",
+      "sha256": "0c3cecffef439ea0a8045e2f2a72fde1bd014492a46aeec197968e1689b16d67"
+    },
+    "firstObservedAt": "2026-10-15T14:54:41.339775+00:00",
+    "gamesSha256": "2eec9aaec7b1e25d15f64657b230d2b4cde5fb143c3849bfac860b3473ffc0aa",
+    "id": "nflverse-release-schedules",
+    "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+    "metadataSha256": "cdf6bb121ffde9c8446b22e738aac23f2d0c54e9d30303011ca24a75892a43f9",
+    "publishedAt": null,
+    "retrievedAt": "2026-10-15T14:54:41.339775+00:00",
+    "sha256": "0c3cecffef439ea0a8045e2f2a72fde1bd014492a46aeec197968e1689b16d67",
+    "url": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
+  },
+  "sourceVerification": "exact_raw_release_metadata_and_receipt_verified_by_cached_loader",
+  "status": "development_only",
+  "version": "gtl-paired-score-baseline-1",
+  "localEvidence": {
+    "aggregateSha256": "3940a2de438b756b40f0761d16282d556a798ef4f4c967e21721409ea3536b7c",
+    "detailsSha256": "a6665a1d2c1bffb2a54ebd3033a9b4218a041bb8ca27d5d3e8585ed3c41c707e",
+    "detailsScope": "Individual completed-game outcomes and empirical distributions stay in ignored local research storage."
+  }
+}
