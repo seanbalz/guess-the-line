@@ -120,14 +120,31 @@ describe('Home while picks are due', () => {
     expect(nodes(total, attr('data-home', 'chase'))).toHaveLength(0);
   });
 
-  it('a submitted ballot with nothing scored yet is unranked: "—" and "No ballot yet", never "0.0 pts"', () => {
-    home(reply({ standings: [row('u-casey', SPREAD, 0, 0), row('u-blake', SPREAD, 0, 0)] }));
+  it.each([[SPREAD, 'spread', TOTAL, 'total'], [TOTAL, 'total', SPREAD, 'spread']])('an unscored %s submission says "Not scored yet" while the other market still says "No ballot yet"', (submittedMode, submittedMarket, emptyMode, emptyMarket) => {
+    home(reply({
+      due: [{ mode: submittedMode, submitted: true, satOut: false, filled: 4, games: 4 }, { mode: emptyMode, submitted: false, satOut: false, filled: 0, games: 4 }],
+      submissions: [sent('u-casey', submittedMode)],
+      standings: [row('u-casey', submittedMode, 0, 0), row('u-casey', emptyMode, null, 0, { weeksSubmitted: 0 })],
+    }));
     const html = render();
+    expect(markupProblems(html)).toEqual([]);
+    expect(textOf(tile(html, submittedMarket))).toContain('Not scored yet');
+    expect(textOf(tile(html, submittedMarket))).not.toContain('No ballot yet');
+    expect(textOf(tile(html, emptyMarket))).toContain('No ballot yet');
+    expect(textOf(tile(html, emptyMarket))).not.toContain('Not scored yet');
     for (const market of ['spread', 'total']) {
       expect(seen(tile(html, market))).toContain('—');
-      expect(textOf(tile(html, market))).toContain('No ballot yet');
       expect(seen(tile(html, market))).not.toMatch(/\d/);
     }
+  });
+
+  it('a scored zero remains a ranked "0.0 pts", not an unscored ballot', () => {
+    home(reply({ standings: [row('u-casey', SPREAD, 0, 1)] }));
+    const spread = tile(render(), 'spread');
+    expect(textOf(spread)).toContain('Rank 1');
+    expect(textOf(spread)).toContain('0.0 pts');
+    expect(textOf(spread)).not.toContain('Not scored yet');
+    expect(textOf(spread)).not.toContain('No ballot yet');
   });
 
   it('the leader reads "You lead by 2"; first place keeps the kit\'s lime ring', () => {

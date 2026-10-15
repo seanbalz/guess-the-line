@@ -80,14 +80,16 @@ function WhosIn({ who }) {
   );
 }
 
-/** One market's rank tile: "T-2", "2" or "—" (never 0), the points to one decimal or "No ballot yet", and the chase line. */
+/** One market's rank tile: its rank and scored points, or why it is not ranked yet, and the chase line. */
 function RankTile({ title, tile, chase, market }) {
   const id = useId();
+  // M-01 keeps points null without a submitted ballot; an unscored submission has 0 points but no rank yet.
+  const unranked = tile.points === null ? HOME_COPY.noBallot : HOME_COPY.notScored;
   return (
     <Card as="section" className="gx-h-tile" aria-labelledby={id} data-tile={market}>
       <h2 className="gx-t-micro gx-c-2" id={id}>{title}</h2>
       <Rank rank={tile.label} tied={tile.tied}/>
-      <p className="gx-t-meta">{tile.rank === null ? HOME_COPY.noBallot : pointsLine(tile.points)}</p>
+      <p className="gx-t-meta">{tile.rank === null ? unranked : pointsLine(tile.points)}</p>
       {chase ? <p className="gx-t-meta" data-home="chase">{chase}</p> : null}
     </Card>
   );
