@@ -1,13 +1,13 @@
 # Inventory homes for the redesign
 
-Owner: Sean Balsiger · Version 2 · October 14, 2026
-Status: planning record for stage 5 of [the redesign build plan](../REDESIGN_BUILD_PLAN.md). Nothing in this file is built, applied or deployed.
+Owner: Sean Balsiger · Version 3 · October 15, 2026
+Status: destination plan for stage 5 of [the redesign build plan](../REDESIGN_BUILD_PLAN.md), amended by D-52. Row requirements are not delivery evidence; the [completion register](../COMPLETION_REGISTER.md) and [October 15 audit](../RETIREMENT_AUDIT_2026_10_15.md) distinguish implemented workflows from remaining gaps.
 
 ---
 
 ## Why this table exists
 
-D-23: nothing a player entered is deleted, moved or hidden. The old app retires at stage 81, so every item on today's screens needs a home in the new app first. This table gives each of the 191 items in the feature inventory of today's app (October 13, 2026, read at `cecff9e` on `claude/d35-dashboard-redesign`) one home now, so no stage finds a missing screen at cut-over.
+D-23: nothing a player entered is deleted, moved or hidden. D-52 removes player-facing classic access at stage 80, after every retained record and required workflow has an accessible new-app home. Stage 81 cleans up unused source afterward; it does not keep classic available for another two weeks. This table maps the 191 items in the October 13, 2026 inventory (read at `cecff9e` on `claude/d35-dashboard-redesign`). Those historical rows are a preservation baseline, not a count of current scope or proof that the new app is complete.
 
 The inventory itself is [INVENTORY.md](INVENTORY.md), committed byte for byte as it was read (sha256 `b8c4f7925841fb3c45d64f38fe6d9f81bee639c5ea7963692290e07e347e28b8`; `tests/inventory-homes.test.mjs` pins it). Each row below repeats its number and item name, and the test checks every name against the inventory, so a renamed or swapped row fails.
 
@@ -18,10 +18,42 @@ The inventory itself is [INVENTORY.md](INVENTORY.md), committed byte for byte as
   - `Stage`: the item's job continues in the new app, built by the stages named.
   - `History`: the item retires from the main screens; its records stay readable, read-only, in Me › History (stages 73 and 74).
   - `Commissioner`: Me › Commissioner tools (stage 77), then a native page (stage 78).
-  - `Cut, data kept`: the item leaves the screens when the old app retires (stage 81). Anything a player entered through it stays stored and readable where **Data kept** says.
-- **Stages:** the build plan stages that put the home on screen. A stage's own Build-after stages (its server, its reader) come with it, so they are not repeated. A `Cut, data kept` row always names stage 81, and no other row does. No row names a stage that D-39 dropped.
+  - `Cut, data kept`: the classic item is no longer accessible at stage 80; unused source is removed at stage 81. Anything a player entered through it must already be stored and readable where **Data kept** says before stage 80.
+- **Stages:** the build plan stages that put the home on screen. A stage's own Build-after stages (its server, its reader) come with it, so they are not repeated. A `Cut, data kept` row retains stage 81 as its source-cleanup marker, and no other row names it; this never postpones preservation or access removal beyond stage 80. No row names a stage that D-39 dropped.
 - **In the new app:** tab › screen › layer, using the prototype's names (`sh.` sheet, `dlg.` dialog, `page.` page).
 - **Data kept:** what a player entered through this item and where it stays readable. "None" means the item only shows or explains; it holds no entries of its own.
+
+## D-52 applied
+
+The [retirement tasks](../../planning/new-app-retirement.md) and
+[fresh source audit](../RETIREMENT_AUDIT_2026_10_15.md) supplement these historical
+rows. All five new-app tabs already have working components; the earlier
+placeholder finding described stale source. Preserve and verify those workflows,
+then finish missing destinations, recovery and access removal before stage 80.
+
+- **Recovery (row 44):** Community drafts already have a live new-app reader
+  through shared `WeekPicks` and `communityDraft.js`. PR #141 at `bb4f20a` also
+  adds `PerGamePlay` readers for Community and Solo copies, with explicit
+  Use unlocked drafts, behind `perGameReady`; it is merged, not hosted. Verify
+  gating, account scope, retained copies and server readback before marking that
+  recovery accepted. Group `predictionDraft.js` still needs a destination.
+  Protect memory-only bet/slip edits and uncertain saves before forcing a refresh.
+- **App states (row 80):** replace classic switches and error fallbacks with
+  new-app retry/reload/sign-in recovery by stage 80. Preserve access checks and
+  typed work; a new-app error must not reopen classic afterward.
+- **Historical and operational access:** Week 5 freeze evidence (row 135),
+  revisions, old Challenge/group records, Solo journal/archive/forecasts/Favorites,
+  export and native league/invite/commissioner tools must be reachable through
+  the new app before removing their old entry points. Existing Community History
+  alone does not prove that coverage.
+- **Shared code:** `WeekPicks`, `SocialBetTracker`, `VirtualUnits`, `HistoryLine`
+  and their still-used dependencies remain until a dependency audit proves they
+  are unused. Stage 81 removes obsolete UI source, not records, data readers or
+  recovery support merely because they live outside `web/src/next/`.
+- **Later additions:** reconcile capabilities added after October 13 in RETIRE-01,
+  including [UX-NEXT-01/BETS-NEXT-01](../../planning/mobile-bets-followups.md) and
+  the separately pending D-51 recommendation work. Preserve this inventory's row
+  IDs/names and the frozen source inventory; 191 is not today's completion count.
 
 ## D-39 applied
 
@@ -44,14 +76,26 @@ These homes are not spelled out in the stage text yet. The stage that builds the
 
 ## The cut-over audit
 
-The cut-over checklist (plan section 10) ticks the D-23 audit when every row is done:
+The cut-over checklist (plan section 10) ticks the D-23 audit only when every
+retained category has a verified destination and reconciled preservation evidence:
 
-- a `Stage`, `History` or `Commissioner` row is done when every stage it names has merged and is live;
-- a `Cut, data kept` row is done when its Data kept entries are readable where it says and every stage it names other than 81 (the one that takes over its job, such as How to play at stage 30) is live; stage 81 then removes the old screen.
+- a `Stage`, `History` or `Commissioner` row needs a working new-app destination,
+  with its required implementation and hosted dependencies verified. Preserve
+  already-delivered workflows; a stage number or merged PR alone is insufficient;
+- a `Cut, data kept` row must have its Data kept entries readable at the new
+  destination and its replacement job live before stage 80. Stage 80 removes
+  classic access; stage 81 removes only the unused source afterward;
+- RETIRE-01 verifies later additions, private backup/recovery, IDs/counts/hashes,
+  representative old/current records and device drafts. RETIRE-02/03 verify
+  new-only navigation, old links, errors, hosted URLs and supported connected
+  clients. Unknown devices and unverified destinations remain explicit gaps.
 
 When a later stage moves a home, it updates the row in the same PR. `tests/inventory-homes.test.mjs` checks that rows 1 to 191 each have a home and that every stage named exists in the plan.
 
 ## Counts
+
+These counts describe the frozen October 13 row set only. They are not a current
+feature inventory, completion percentage or release-readiness result.
 
 | Home | Rows |
 |---|---|
@@ -127,7 +171,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 41 | Sat-out notice | Stage | 30, 73 | Play's sat-out state; "Skipped" in History | Every sit-out, with its reason |
 | 42 | Closed-week notice | Stage | 30, 36 | "Closed at kickoff" rows in Play; Home after the last kickoff | None |
 | 43 | Submit receipt | Stage | 29 | Play save moment, per game: "Locked-in picks are final." (D-39) | Submission and lock-in times (D-16) |
-| 44 | Unsaved picks recovery card | Stage | 28, 29 | Drafts save themselves; a failed save keeps the typed values | Drafts on the server; the old tab copy stays in the old app until stage 81 |
+| 44 | Unsaved picks recovery card | Stage | 28, 29 | Live Play shares Community recovery through WeekPicks; PR #141's Community/Solo readers and Use unlocked drafts are merged behind perGameReady, not hosted | Preserve server drafts and retained copies; verify per-game gating, explicit adoption and readback; group recovery remains an open RETIRE-01 gap; no automatic lock-in |
 | 45 | Chip help tip | Stage | 28 | Up next card: "Tap a number" | None |
 | 46 | Game pick card header | Stage | 28 | Up next card: matchup and kickoff | None |
 | 47 | Team records line | Stage | 13 | Game sheet header: team records in words (DP-16) | None |
@@ -158,7 +202,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 62 | Sidebar league block | Stage | 11, 59 | League pill and switcher; Invite for the host | None |
 | 63 | Sidebar navigation | Stage | 10 | Tab bar (DP-20) | None |
 | 64 | Season card "Three games. One rivalry." | Stage | 30 | How to play, two games (`sh.howToPlay`) | None |
-| 65 | Design lab entry | Cut, data kept | 81 | Leaves with the old app; the code stays in git | None (choices were saved per browser only) |
+| 65 | Design lab entry | Cut, data kept | 81 | No classic entry after stage 80; unused source cleanup at stage 81, with history retained in git | None (choices were saved per browser only) |
 | 66 | Settings & setup entry | Stage | 37 | Me menu › Settings (`page.settings`) | None |
 | 67 | "PRIVATE LEAGUE · v0.1" note | Cut, data kept | 81 | Leaves (stale) | None |
 | 68 | Topbar breadcrumb, season label, help icon | Stage | 10, 30 | Top bar league pill; How to play from Me | None |
@@ -173,7 +217,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 77 | Provisional analysis summary | History | 74 | Older group scoring views, read-only | None |
 | 78 | Footer | Stage | 7, 30 | "PT" on every time; How to play from Me | None |
 | 79 | Rules modal "Three ways to play" | Stage | 30 | How to play, worded for D-35 to D-39 (DP-22) | None |
-| 80 | App-wide states | Stage | 10, 11 | Toasts, offline banner, per-tab error cards with "Use the old app"; access-pending and removed-account screens | None |
+| 80 | App-wide states | Stage | 10, 11 | Toasts, offline banner, access-pending and removed-account screens; new-app retry/reload/sign-in recovery replaces every classic fallback by stage 80 | Preserve typed work and recovery copies through errors and account checks; no old-app escape after cutover |
 
 ### G. Group dashboard (`App.jsx` Overview, `VisualDashboard.jsx`, `DashboardInsights.jsx`, `DataConnections.jsx`, `DashboardPreferences.jsx` and others)
 
@@ -248,7 +292,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 132 | Install app | Stage | 39 | Me › Settings › Install app | None |
 | 133 | Pick reminders | Stage | 39 | Me › Settings › Pick reminders, only when `pushConfigured` | Each device's reminder choice |
 | 134 | Final-result review | Commissioner | 77, 78 | Commissioner tools › Final scores ("Never settles bets") | Recorded finals and corrections |
-| 135 | Scoring benchmark freeze | History | 74 | The control stays in the old app until stage 81; the freeze record is read-only in History (DP-4) | The Week 5 freeze record |
+| 135 | Scoring benchmark freeze | History | 74 | Existing Week 5 freeze evidence is read-only in new-app History before stage 80 (DP-4); no classic control remains after cutover | Preserve the Week 5 freeze record and provenance; absent evidence stays unavailable and is never fabricated |
 | 136 | Manual market connection | Commissioner | 77, 78 | Commissioner tools › Odds connection (counts only, never secrets) | Collected odds snapshots |
 | 137 | League rules panel | Stage | 30, 59 | How to play; League members (host and roster) | None |
 | 138 | Account & access checklist | Cut, data kept | 77, 81 | Leaves (DP-24); odds status moves to Odds connection | None |
@@ -329,4 +373,4 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 188 | Scoring policy note | Stage | 30 | How to play | None |
 | 189 | Source note | Stage | 34, 38 | Line card provenance behind a tap; Me › Data sources | None |
 | 190 | Brand mark | Stage | 8, 10 | The Field monogram in the top bar | None |
-| 191 | Design lab | Cut, data kept | 81 | Leaves at stage 81; the code stays in git | None (choices were saved per browser only) |
+| 191 | Design lab | Cut, data kept | 81 | No classic entry after stage 80; unused source cleanup at stage 81, with history retained in git | None (choices were saved per browser only) |

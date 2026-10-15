@@ -1,0 +1,89 @@
+{
+  "format": "gtl-retirement-source-audit-v1",
+  "checkedAt": "2026-10-15T20:30:55.176312+00:00",
+  "deployment": {
+    "id": "ed3fb50b-388b-4330-8767-8bd08adb9255",
+    "source": "b883c7742979d133720ed931c520821fdc4a13b5",
+    "environment": "production",
+    "metadataSource": "Authenticated Wrangler pages deployment list; newest of 25 returned production entries"
+  },
+  "reviewedRepoBase": "c60ab49a36118d2e6aa14568573a0145f8a1c38f",
+  "originalCheckout": "e5a45f6d73e66505841044f532f4ed644576f635",
+  "html": [
+    {
+      "label": "production",
+      "url": "https://guess-the-line.pages.dev/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "890d32a7c61394506d466e0bf468e510a702122111a79548ce1615cf21492c99",
+      "bytes": 1516,
+      "scripts": [
+        "/assets/index-1OAlhnBS.js"
+      ],
+      "checkedAt": "2026-10-15T20:29:25.900902+00:00"
+    },
+    {
+      "label": "deployed",
+      "url": "https://ed3fb50b.guess-the-line.pages.dev/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "890d32a7c61394506d466e0bf468e510a702122111a79548ce1615cf21492c99",
+      "bytes": 1516,
+      "scripts": [
+        "/assets/index-1OAlhnBS.js"
+      ],
+      "checkedAt": "2026-10-15T20:29:26.097599+00:00"
+    },
+    {
+      "label": "old",
+      "url": "https://c251e8e1.guess-the-line.pages.dev/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "6ff49a63028860498058ebaff1303563716c0dc0a884ee61e4363a0d403ce6ec",
+      "bytes": 1516,
+      "scripts": [
+        "/assets/index-Big5Bvn8.js"
+      ],
+      "checkedAt": "2026-10-15T20:29:26.371687+00:00"
+    }
+  ],
+  "bundles": [
+    {
+      "url": "https://guess-the-line.pages.dev/assets/index-1OAlhnBS.js",
+      "status": 200,
+      "sha256": "2f88af928cbe1f45176d3942f0d187fec224f0b1074e4de423902cdb392ef46e",
+      "bytes": 476472
+    },
+    {
+      "url": "https://ed3fb50b.guess-the-line.pages.dev/assets/index-1OAlhnBS.js",
+      "status": 200,
+      "sha256": "2f88af928cbe1f45176d3942f0d187fec224f0b1074e4de423902cdb392ef46e",
+      "bytes": 476472
+    },
+    {
+      "url": "https://guess-the-line.pages.dev/assets/NextApp-CW6mgob2.js",
+      "status": 200,
+      "sha256": "d39986196a0f04b4fb1e172679e72de14959a5a7fedb8adbed929e4974c59bb5",
+      "bytes": 147101,
+      "recommendedLabelPresent": true
+    },
+    {
+      "url": "https://ed3fb50b.guess-the-line.pages.dev/assets/NextApp-CW6mgob2.js",
+      "status": 200,
+      "sha256": "d39986196a0f04b4fb1e172679e72de14959a5a7fedb8adbed929e4974c59bb5",
+      "bytes": 147101,
+      "recommendedLabelPresent": true
+    }
+  ],
+  "limitations": [
+    "No new signed-in workflow or database audit",
+    "Entry and NextApp bundles checked, not every asset",
+    "One historical deployment checked; complete hosting inventory remains open",
+    "No code change, migration, deployment or deletion performed"
+  ],
+  "laterSourceReview": {
+    "commit": "bb4f20a",
+    "pullRequest": "https://github.com/seanbalz/guess-the-lines-repo/pull/141",
+    "scope": "Merged per-game scoring and gated Community/Solo recovery; no fresh hosted activation claim"
+  }
+}

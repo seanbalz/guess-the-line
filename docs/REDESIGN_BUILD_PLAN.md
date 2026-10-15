@@ -2,7 +2,7 @@
 
 Owner: Sean Balsiger
 Date: October 14, 2026
-Status: staged plan, updated for D-39 and D-50. Stage descriptions are requirements, not proof of completion; some stages have separate implementation and release evidence in the [completion register](COMPLETION_REGISTER.md). Every merge, hosted apply and deploy retains this plan's existing authorization gates.
+Status: staged plan, updated for D-39, D-50 and D-52. Stage descriptions are requirements, not proof of completion; some stages have separate implementation and release evidence in the [completion register](COMPLETION_REGISTER.md). D-52 requires new-only access at stage 80 after preservation is verified; it does not establish that cutover has happened. Every merge, hosted apply and deploy retains this plan's existing authorization gates.
 
 ---
 
@@ -14,12 +14,61 @@ Status: staged plan, updated for D-39 and D-50. Stage descriptions are requireme
 | D-36 | Real slips inside Bets "as today"; Spread and Total ranked apart with shared ranks (T-2); the line lock until you send a market or skip the week; picks open until each game's kickoff (the 15-minute window is withdrawn); other players' bets visible any time; "See picks now" forfeits the week; challenges count toward the weekly minimum; Edge board inside Play; notes stay; More sports in Me; a sit-out breaks the Pick streak. |
 | D-37 | Drafts change freely. Once a market is sent, its picks are final and its lines open for that player. Bets and challenges keep D-18 edits until kickoff. Stored submission times and revisions stay (D-16, D-23). |
 | D-38 | The approved prototype (canvas version 2) is the target. The new app is built beside the old one, behind "Try the new app" for Sean. It becomes the default when all five tabs are done and checked on real data. The Mac mini sync session deploys after green merges Sean approves. |
+| D-52 | At cutover the new app is the only player-accessible app, with every retained record and required workflow accessible under its existing permissions. Stage 80 removes classic access after preservation; stage 81 removes only unused source. The earlier optional-classic and two-week-access plan is superseded. |
 
 Also binding: D-16, D-18, D-21, D-23 (nothing a player entered is deleted, moved or hidden), D-24, D-26, D-27, D-28, D-30 (Late marker everywhere a pick appears), D-31 as amended, D-34, `docs/RULES.md`, `AGENTS.md`, AIOS (agents build and test; only Sean authorizes merges, applies and deploys).
 
 Inputs: the approved prototype and its spec, the design system, the feature inventory of the current app (191 items, data-display problems DP-1 to DP-27), the game-features notes, six area maps of the current code, and three critiques of the draft plan (completeness, risk, size).
 
 ---
+
+## D-52 changes to this plan (October 15, 2026; read before older rollout)
+
+Sean requested retirement of the previous app with nothing lost. The
+[retirement task register](../planning/new-app-retirement.md) defines RETIRE-01
+through RETIRE-04. Its earlier local D-48 label is reconciled to D-52 because
+D-48 is the shipped recommendations decision and D-51 is pending recommendation
+refinement work. This is a confirmed direction, not a completed cutover.
+
+- **Current source is matched.** All five tabs have concrete implementations
+  using the [existing hosted workflows](ALL_TABS_LIVE_WORKFLOWS.md), with D-48
+  Recommended in Bets. The latest relevant release is Pages `ed3fb50b` from
+  `b883c7742979d133720ed931c520821fdc4a13b5`. The [October 15 retirement audit](RETIREMENT_AUDIT_2026_10_15.md)
+  matches fresh deployment metadata and selected canonical/immutable assets;
+  it is not a fresh signed-in or database audit. The stale-checkout finding that
+  all tabs were placeholders is superseded. Their full planned scopes remain
+  partial; no stage is complete merely because its tab works.
+- **Preservation remains open.** Verify the 191 inventory homes plus later
+  additions, with readable History/export and commissioner destinations before
+  access is removed. League creation/invite management, journal/archive,
+  Favorites, old Challenge/group history, freeze/revision records, export and
+  commissioner tools still have gaps. Back up and reconcile protected records;
+  retain separate loopback owner data without silently uploading it.
+- **Keep shared editors and recovery.** New Play already uses `WeekPicks` and
+  `communityDraft.js`; Bets uses `SocialBetTracker`/`VirtualUnits`, and History
+  uses `HistoryLine`. Retiring the old shell must not delete these dependencies.
+  Group tab drafts still need a destination. Subsequent PR #141, merged at
+  `bb4f20a`, adds `PerGamePlay` recovery of retained Community and Solo copies
+  with an explicit "Use unlocked drafts" action, behind `perGameReady`.
+  It is merged source, not hosted acceptance: verify and activate its dependent
+  flow through the separate release gates rather than rebuilding that reader.
+  Preserve its per-game drafts and uncertain-save state too. Memory-only bet
+  selections and uncertain saves need a safe handoff before forced reload;
+  existing note, profile and comment recovery must remain account-scoped.
+- **Stage 80 is new-only access.** Remove classic defaults, saved choices,
+  `?app=classic`, menus, fallback/error paths and commissioner exits; translate
+  old links and close old hosted deployment entry points. Stage 81 only cleans
+  up unused code afterward. The former two-week period with classic accessible
+  is historical, not a required delay after stage 80. Preservation, live-week,
+  phone, CI and release gates below remain; this direction does not apply a
+  pending migration or change Guess/scoring rules.
+- **Recovery stays new-only.** Use a compatible new-app build or controlled
+  recovery state, preserve newer writes and protect drafts. Returning players to
+  classic would require an explicit recorded exception to D-52.
+- **Mobile follow-ups join the cutover checks.** [UX-NEXT-01 and BETS-NEXT-01](../planning/mobile-bets-followups.md)
+  add the floating bottom-navigation scroll defect and Recommended's
+  All / Spreads / Totals filter to stages 10, 43 and 79. They remain open;
+  neither source matching nor older viewport tests closes them.
 
 ## D-50 changes to this plan (October 15, 2026; read before older timing)
 
@@ -55,7 +104,7 @@ does not modify the frozen v62 tracker.
 
 ## D-39 changes to this plan (read first)
 
-Sean answered the open questions on October 14 (D-39). Where this section and a later one disagree, this section wins, subject to the newer D-50 amendment above.
+Sean answered the open questions on October 14 (D-39). Where this section and a later one disagree, this section wins, subject to the newer D-50 scoring and D-52 rollout amendments above.
 
 | Topic | Change |
 |---|---|
@@ -77,14 +126,14 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 ## 2. The short version
 
 - **81 stages (plus stage 27a, D-40), 29 migrations, 5 lanes, build waves 0 to 12, then the flip.** Each stage is one reviewable PR (stage 78 is a short series of identical pages).
-- **The new app lives in `web/src/next/`** as one lazy chunk. Players never download it. A per-device switch, opt-in for every league member (D-39).
+- **The new app lives in `web/src/next/`** as a lazy entry with shared editors outside that directory. Before cutover it is opt-in for every league member (D-39); devices staying on classic do not load the new entry. Stage 80 makes it the only player-facing app (D-52).
 - **Stage 2 (push guard) goes out with the next deploy of `main`.** Otherwise players get a "Remind me" button that fails.
 - **Rules land on the server first.** The database reports which rule is live (`gtl_live_rules`), and both apps follow it. So a deploy can never put a screen ahead of its rule, and a rollback switches the screens back.
-- **First look:** after wave 5, Sean opens the new frame with read-only Home and Lines on live data.
+- **First-look history:** the initial frame had read-only Home and Lines. All five tabs now use working hosted workflows; the completion register distinguishes that bridge from the remaining redesign stages.
 - **Risky migrations stand alone** in a quiet window: the D-37 lock, the late window, the collector change, the Bets write path, feed kinds, challenges, settlement and kickoff posts.
 - **Nothing is rewritten or deleted.** Migrations add functions and tables. New tables are append-only or versioned. A rollback is the previous function bodies, or an off switch for new tables. Never a drop.
-- **Target calendar:** the last apply on Wed Dec 2; one full live week of checks (Week 14); the default flips Tue Dec 15. Latest Tue Dec 29 (Q10).
-- **The flip is one small PR.** Retiring the old app is a later PR, at least two weeks after.
+- **Historical calendar:** the Dec 2/Dec 15/Dec 29 targets were superseded by D-39's "asap". No new dates are committed; required checks and safe release windows still apply.
+- **Stage 80 retires player access.** After preservation and cutover checks pass, all users use the new app. Stage 81 later removes unused source; it does not require keeping classic accessible for two weeks (D-52).
 
 ---
 
@@ -107,11 +156,20 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 
 ### 3.2 The switch
 
+The first five bullets describe the implemented opt-in period before stage 80,
+not the required state after the D-52 cutover.
+
 - `main.jsx` keeps `ThemeProvider › AuthGate`. Inside AuthGate: `gtl.app = next` renders the lazy `NextApp`, anything else renders `GameHub`. The two never mount together. Every switch reloads the page.
 - `DEFAULT_APP = 'classic'` until stage 80. If storage fails, the default is used.
 - An outer error boundary around the lazy chunk clears `gtl.app` and renders the old app. `?app=classic` always forces the old app.
 - Old app: "Try the new app" in the Community footer, shown to every signed-in member (D-39). New app: "Use the old app" in the menu, Settings and every error card.
 - The switch is a convenience, not a security gate. Both apps call the same routes under the same server rules.
+- At stage 80, authenticated production entry renders only the new app. A stale
+  `gtl.app=classic`, blocked storage, `?app=classic` or chunk failure cannot select
+  the old UI. Retry/sign-in recovery protects drafts; all old menus, switcher and
+  error-card exits are removed. Keep authentication, shared editors, meaningful
+  deep links and existing preference keys. Inventory and close historical hosted
+  builds as RETIRE-03; changing this module alone cannot retire those URLs.
 
 ### 3.3 Data and API
 
@@ -126,6 +184,9 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 - The new app's `rules.js` only draws banners. A lock that exists only in the client can be read in the network tab.
 
 ### 3.5 Old and new side by side
+
+This section describes the period before stage 80. D-52 ends player-facing
+coexistence at cutover; shared source and protected records may remain afterward.
 
 - Same sign-in, routes and tables. A pick or bet made in one app shows in the other.
 - The old app changes only where a rule or a ruled defect forces it: stages 2, 14, 15, 17, 20, 21, 25 and 61.
@@ -189,7 +250,7 @@ Each stage's PR carries a release card: merge OK, deploy-before SHA, "apply M-xx
 4. M-06 (lines reader) only after M-01 and M-02 are applied and stages 20 and 21 are live.
 5. M-07 (late window) only after M-01, M-02 and M-05 (or Sean's fallback), with stage 17 live; stage 25 goes live the same day.
 6. M-13 (feed kinds) before any migration that writes a new post kind: M-15, M-17, M-22, M-23, M-25.
-7. Bets UI only after M-10 and M-11. Challenge UI only after M-15.
+7. The planned native Bets read/place UI follows M-10 and M-11. The shipped transitional tracker/Units and D-48 recommendations use their existing/additive routes as recorded in [workflow scope](ALL_TABS_LIVE_WORKFLOWS.md) and the [recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md). Challenge UI only after M-15. D-52 does not bypass these service gates.
 8. Old-app edits to `web/src/CommunityHome.jsx` merge in this order: 2 → 15 → 9 → 17 → 25.
 9. One function, one open PR. The second PR waits and copies the newest body (checked by the md5 header test from stage 3; the test sees only the header's md5, so the reviewer diffs the body against `node scripts/migration-functions.mjs --function NAME`):
 
@@ -333,22 +394,25 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Tests: vitest `next-ui` (classes, accessible names, emoji only inside `data-emoji-ok`, every svg hidden or labelled).
 
 **9. The switch**
+- Historical first-look scope below is implemented; its classic-selection behavior ends at stage 80 under D-52. Retirement tests replace switch-back success with new-app-only entry and recovery checks (RETIRE-02).
 - Scope: lazy `NextApp` in `main.jsx` (section 3.2); the outer fallback boundary and `?app=classic`; the footer button for every signed-in member (D-39); a placeholder `NextApp`.
 - Tests: node `next-app-view` (default, round trip, storage that throws, unknown value); Playwright 390 `next-switch.spec.js` (a signed-in member sees the button, switches and returns; a blocked chunk falls back to the old app); performance: the old app loads no `NextApp-*`, the new app loads no `GameHub-*`.
 - Sean sees: "Try the new app" and an empty frame.
 
 **10. Shell frame**
-- Scope: the reducer and router (`#picks*` to Play, `#feed` to League feed, `#groups` to the switcher; `=` fragments, `#main` and `#picks-due` left alone; Back closes the top layer); top bar, tab bar, layer hosts, toasts, dock, offline banner; per-tab error boundaries with "Use the old app"; theme and reduced motion on the old storage keys; the tab slot files; CI sharding for cloud-browser once it passes a 20-minute budget.
+- Scope: the reducer and router (`#picks*` to Play, `#feed` to League feed, `#groups` to the switcher; `=` fragments, `#main` and `#picks-due` left alone; Back closes the top layer); top bar, tab bar, layer hosts, toasts, dock, offline banner; per-tab error boundaries; theme and reduced motion on the existing storage keys; the tab slot files; CI sharding for cloud-browser once it passes a 20-minute budget. The implemented "Use the old app" recovery is transitional and must become new-app retry/recovery at stage 80 (RETIRE-02).
 - Tests: node `next-router`, `next-shell-state`; Playwright 390 `next-shell.spec.js` (tabs, a sheet, Back, a reload keeps the tab, `/#picks` opens Play, no unexpected origins, no writes while browsing); axe.
-- Sean sees: five tabs with "coming next" cards; the avatar menu (Appearance, Use the old app, Sign out).
+- UX-NEXT-01 adds top/middle/end scrolling, visible-viewport anchoring, safe-area and dock clearance, toolbar/keyboard/rotation changes, sheets and last-action reachability at 320/390px. Reproduce the reported Recommended flow and sweep all five tabs on an actual iPhone; a single bottom-position assertion without scrolling is insufficient.
+- First-look history: the five tabs began with "coming next" cards. They now have concrete screens; keep Profile/Appearance/sign-out while removing the old-app menu action at cutover.
 
 **11. Data layer, switcher and guards**
 - Scope: `AppData.jsx` (shared reads, refresh on focus and every 5 minutes, abort on unmount); the switcher sheet (Community, groups, invites with Join); the name step on an empty `displayName` (through `/profile`); the saved invite; a 401 prompt that keeps typed text; removed-account and access-pending screens; `clearNextDrafts()` in AuthGate's account-change list; the Play counter.
 - Tests: node `next-data` (one request for two consumers; focus refetch; no write retry after `SaveUncertainError`); Playwright 390 `next-data.spec.js` (only his leagues, kept across reload; name step; invite card; expired token; a removed fixture account; a second account sees no drafts from the first).
 - Sean sees: the league pill, the switcher, his invites and the Play counter.
+- D-52 cutover: joining/switching already exist, but creation and invite management must acquire new-app destinations. Remove the switcher's old-app action only after its needed workflows and retained data are accessible; preserve account isolation, invitations and recovery during the transition (RETIRE-01/02).
 
 **12. Read-only Home**
-- Scope: `web/src/next/home/*`; pure `shared/guess-board.mjs` (ranks with T-2 ties, the chase line, movement; never a Spread + Total sum); `WhosIn`. Countdown, one status line, "6 of 7 in", the Spread rank tile ("—" with no ballot). The lime action opens the old app's Picks until stage 29.
+- Scope: `web/src/next/home/*`; pure `shared/guess-board.mjs` (ranks with T-2 ties, the chase line, movement; never a Spread + Total sum); `WhosIn`. Countdown, one status line, "6 of 7 in", the Spread rank tile ("—" with no ballot). The initial plan routed the lime action to old Picks; the shipped bridge now opens new Play. No old-app exit remains after stage 80.
 - Tests: node `guess-board`, `countdown`, `home-hero` (moments M1, M2, M5, M6); Playwright 390 `next-home.spec.js` (one lime button; who's in; T-2; "—", never 0).
 - Sean sees: Home with this week's countdown, his status, who's in and his Spread rank.
 
@@ -482,8 +546,9 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 | 39 | Me: reminders and install | A | — | 37, 2 | — |
 
 **28. Play board and drafts**
+- Hosted bridge at the audited `b883c77` release: new Play embeds `WeekPicks`, including the same Community draft recovery and whole-market submission rules. Subsequent merged PR #141 adds gated `PerGamePlay` with retained Community/Solo copies and explicit "Use unlocked drafts"; it is not established as hosted by this audit. Preserve both readers as required by the active rules, verify the gated recovery before activation, and add the still-missing group draft destination. Cover conflicts, read-only closed drafts and per-game pending/uncertain-save records before stage 80. Do not auto-submit recovered values or overwrite a locked/server guess (RETIRE-01).
 - Scope: `web/src/next/play/*`: Spread | Total switch; "6 LEFT TO PICK"; the Up next card with chips (the `ChipPicker` logic); drafts that save themselves (debounced, one at a time, never retried blindly); still-to-pick and Picked rows. No submit yet.
-- Tests: node `play-market` (market state, auto-advance); Playwright 390 `next-play-drafts.spec.js` (chip entry; a reload keeps drafts).
+- Tests: node `play-market` (market state, auto-advance); Playwright 390 `next-play-drafts.spec.js` (chip entry; a reload keeps drafts). Preserve classic Community-to-new Play coverage, verify PR #141's gated Community/Solo recovery, and add group handoff, account separation, expired/locked copies and per-game uncertain-save preservation; no blanket storage clearing at cutover.
 - Sean sees: he drafts real picks in the new app.
 
 **29. Play submit, sent is final**
@@ -524,7 +589,7 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Sean sees: Home tells him the one thing to do next.
 
 **37. Me: menu and Settings**
-- Scope: the menu; display name through `/profile` (60 characters; existing names are never cut, D-23); Appearance; Reduce motion; Use the old app; Sign out.
+- Scope: the menu; display name through `/profile` (60 characters; existing names are never cut, D-23); Appearance; Reduce motion; Sign out. Profile and appearance already have implementations. The transitional "Use the old app" action is removed at stage 80 under D-52; History/export/info/reminder destinations must not depend on it.
 - Tests: node `next-me-menu`, `next-settings-model`; vitest; Playwright 390 `next-me.spec.js`; axe.
 
 **38. Me: info pages**
@@ -573,8 +638,10 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Tests: SQL `bets-board-sql` (order, ties, unqualified weeks left off, season list, roster filter); node `bets-qual`; JS and SQL parity on one fixture; handler tests for both routes.
 
 **43. Bets: Place board**
+- Current bridge: Bets already embeds `SocialBetTracker` and `VirtualUnits`, including D-48 Recommended. Preserve those shared components, tracked-ticket past weeks and saved cards while building the remaining native scope. Memory-only selections, ticket edits and uncertain saves need a safe handoff before a forced retirement refresh (RETIRE-01).
 - Scope: `web/src/next/bets/*`: the section switch (Place, Challenges, My bets, Real slips); market rows with the best named-book prices; one gate banner; his tags; friends' faces per game; BET tags on Lines cards through the Bets slot ("BET +3 · 2U"; a locked market shows "BET 1U"). Fixes DP-5, DP-20.
 - Tests: Playwright 390 `next-bets-board.spec.js` (empty state at M1; banner at M2; a locked tag has no line; faces).
+- BETS-NEXT-01 adds a labelled All / Spreads / Totals filter to Recommended, applied before top-three/display limits. Keep ranking within the chosen market, explicit empty states, reveal gates, source terms and card selections. UX-NEXT-01 adds long-list scroll, filter-change and final-action reachability checks; details and closure criteria remain in the [mobile/Bets task register](../planning/mobile-bets-followups.md).
 - Sean sees: the Bets tab.
 
 **44. Bets: slip and placing**
@@ -749,15 +816,15 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 - Tests: SQL own rows only; handler; the leak scan.
 
 **76. Sign-in skin**
-- Scope: AuthGate's logic moves into `useAuthSession()` and `useSignInForm()` with no change in behavior; `NextSignIn` (email, Google, recovery, resend, confirmation) on devices with `gtl.app = next`; the restyled name step (the logic stays in stage 11); legal links.
-- Tests: vitest `next-sign-in` (the same Supabase calls as AuthGate); the old `auth`, `google-sign-in` and `onboarding` specs untouched and green; Playwright 390 `next-auth.spec.js`; performance: the chunk loads only with the flag.
+- Scope: AuthGate's logic moves into `useAuthSession()` and `useSignInForm()` with no change in behavior; `NextSignIn` (email, Google, recovery, resend, confirmation), the restyled name step (the logic stays in stage 11), and legal links. During opt-in it can follow the device choice; at stage 80 all supported entry paths use the new presentation, including missing/blocked storage and stale classic preferences. Preserve account IDs, active sessions, callback/invitation context and account-scoped drafts.
+- Tests: vitest `next-sign-in` (the same Supabase calls as AuthGate); retain equivalent `auth`, `google-sign-in` and `onboarding` coverage; Playwright 390 `next-auth.spec.js`. At cutover test stale preferences, recovery links, sign-out/sign-in and load failures without classic fallback or cross-account recovery. The old flag-only loading requirement is historical.
 
 **77. Commissioner tools page**
-- Scope: `page.commish`, admin only, linking to the old screens: Week opening, Game referees, Settle bets and challenges (with the schedule status), Odds connection, Members (Remove and Restore, with the D-23 warning), Older tools (Final scores: "Never settles bets").
+- Scope: `page.commish`, admin only: Week opening, Game referees, Settle bets and challenges (with the schedule status), Odds connection, Members (Remove and Restore, with the D-23 warning), Older tools (Final scores: "Never settles bets"). The initial plan's links into old screens are transitional only. Every required operation must have its authorized new-app destination before stage 80; hiding its link is not preservation.
 - Tests: Playwright 390 `next-commish.spec.js` (a member sees no row and gets 403 on a direct call; the admin sees each tool).
 
 **78. Native commissioner pages**
-- Scope: one PR per page, in this order: Members; Settlement and schedule status; Week opening; Game referees; Odds connection (counts only, never secrets); Final scores. All must be native before stage 81.
+- Scope: one PR per page, in this order: Members; Settlement and schedule status; Week opening; Game referees; Odds connection (counts only, never secrets); Final scores. All required pages must be native before stage 80, with preserved records and authorization. Stage 81 is only unused-source cleanup (D-52).
 - Tests: one Playwright 390 spec per page; the old `publish`, `results` and `d23` specs stay green.
 
 ### Phase 7: cut-over
@@ -765,13 +832,18 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 | # | Stage | Lane | Build after | Live after |
 |---|---|---|---|---|
 | 79 | Final phone-first sweep | all | every tab stage | all applies |
-| 80 | New app becomes the default | A | 79 and the checklist | Sean's go |
-| 81 | Retire the old app | A | 80 plus two full weeks | Sean's OK |
+| 80 | New app becomes the default | A | 79, preservation and the checklist; new-only access under D-52 | Sean's go |
+| 81 | Retire the old app | A | Verified new-only stage 80; unused-source dependency audit | Sean's OK |
 
 **79. Final phone-first sweep**
 - Scope: every persona (`first-timer`, `phone`, `motor`, `low-vision`, `power`, `impatient`, `confused`) has a `next` project at 390; the `classic` project keeps running until stage 81. Axe on every tab and sheet in dark and light, at 390 and 320; keyboard paths; no side scroll anywhere; 44 px targets. Sean checks on his own phone with the real fonts.
+- Add UX-NEXT-01 and BETS-NEXT-01: real iPhone Safari/Home Screen scroll sequences, dynamic browser bars, safe areas, keyboard/sheets, orientation and larger text; all five tabs; filtered Recommended lists and final card actions. Record results for every tab. Automated desktop viewport checks alone do not close the reported mobile defect.
+- Add RETIRE-01/02/03: original/current records and exports, all recovery categories, stale preferences/query/hash links, old hosted URLs, existing tabs, Back and chunk failures. Keeping classic test source until stage 81 does not authorize a player-accessible classic runtime after stage 80.
 
 **80. New app becomes the default** and **81. Retire the old app**: see section 10.
+Their historical titles remain stable for inventory references. Under D-52,
+stage 80 makes the new app the only player-accessible app; stage 81 removes
+unused old source afterward, with no mandatory two-week classic-access period.
 
 ---
 
@@ -828,20 +900,20 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 
 | DASH | Work item | Stages |
 |---|---|---|
-| DASH-1 | App map, one job per screen | 9–13, 28–32, 36, 43, 58, 80 |
+| DASH-1 | App map, one job per screen; D-52 new-only entry and complete retained-workflow destinations (RETIRE-01/02) | 9–13, 28–32, 36, 43, 58, 72–80 |
 | DASH-2 | Game-feel design system | 6, 7, 8, 10, 79 |
 | DASH-3 | Gamification | 36, 45, 67–71 |
-| DASH-4 | Bets: place bets | 14, 20, 21, 40–47, 56 |
+| DASH-4 | Bets: place bets; Recommended All / Spreads / Totals (BETS-NEXT-01), preserved card selections and scroll reachability (UX-NEXT-01) | 14, 20, 21, 40–47, 56, 79 |
 | DASH-5 | Bet against friends | 49, 50, 51, 53, 54, 55, 67 |
 | DASH-6 | Lines board | 13, 22, 23, 27, 33, 34, 35 |
 | DASH-7 | Trends, simplified | 13, 34 |
 | DASH-8 | Data that displays wrong | 7, 12–14, 16, 17, 21, 31, 32, 57, 58, 64, 72 (table below) |
-| DASH-9 | Cut and hide information | 5, 12, 13, 37, 38, 72–74, 77, 78, 81 |
+| DASH-9 | Remove obsolete UI while keeping every entered record readable; preserve drafts/shared editors, then remove unused source (RETIRE-01/04) | 5, 12, 13, 28, 37, 38, 43, 72–78, 80, 81 |
 | DASH-10 | Social layer | 48, 52, 61–66 |
 | DASH-11 | First-run onboarding | 11, 30, 36, 39, 76 |
-| DASH-12 | Phone-first layout | 10, the 390 spec in every UI stage, 79 |
+| DASH-12 | Phone-first layout; fixed navigation, safe-area/dock clearance and real-device long-list scrolling (UX-NEXT-01) | 10, 43, the 390 spec in every UI stage, 79 |
 | Rules | D-36, D-37 | 15–21, 23–26 |
-| Rollout | D-38 | 1, 2, 9, 49, 80, 81 |
+| Rollout | D-38 as amended by D-52; preserve records and close classic runtime/hosted paths at cutover (RETIRE-01–04) | 1, 2, 9–11, 37, 76–81 |
 
 ### 9.2 Data-display problems (inventory DP-1 to DP-27)
 
@@ -850,7 +922,7 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 | 1 Zero for no ballot | 16, 17, 12, 58 | 10 "Reference unavailable" rows | 31, 32 | 19 Sports switcher wraps | 10, 38 |
 | 2 Hidden Spread + Total sum | 17, 12, 58 | 11 Group board tiles, side scroll | 58 | 20 Nine sidebar entries | 10, 43 |
 | 3 Tracker stuck on Week 5 | 21, 46 | 12 Edge provenance clutter | 32, 33 | 21 Five bet records | 45, 73 |
-| 4 Freeze panel says Week 5 | old app until 81; record in 74 | 13 Same data in many places | 80, 81 | 22 Out-of-date rules text | 7, 25, 30 |
+| 4 Freeze panel says Week 5 | record in 74 before new-only 80; unused source removed at 81 | 13 Same data in many places | 80, 81 | 22 Out-of-date rules text | 7, 25, 30 |
 | 5 Virtual Units line text | 7, 43 | 14 Rounding and units | 7 | 23 Total vs Over/Under | 7 |
 | 6 Four spread notations | 7, every tab | 15 Raw ids and JSON | 7, 34, 47, 72 | 24 Developer status shown | 38, 77 |
 | 7 Mixed time zones | 7, 13 | 16 Team records as codes | 13 | 25 Feed picks mix codes and names | 64 |
@@ -861,9 +933,16 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 
 ## 10. Cut-over checklist (D-38)
 
+The heading is retained for existing links. D-52 amends D-38 here: stage 80
+ends access to the old app after preservation, rather than merely choosing a
+different default. The [retirement register](../planning/new-app-retirement.md)
+tracks four open tasks; the [audit](RETIREMENT_AUDIT_2026_10_15.md) establishes
+source matching and selected-asset/URL observations only. No box below is marked
+complete by this documentation update.
+
 ### Before the flip (every box ticked)
 
-- [ ] **All five tabs done:** Home (12, 36), Play (28–32), Bets (43–47, 53, 54), Lines (13, 33–35), League (58–60, 64–67, 71). Me, History, export, sign-in and commissioner tools too (37–39, 72–77), because every retired screen needs a home first.
+- [ ] **Full tab scope and all retained destinations verified:** the five working tabs are already present in the recorded `b883c77` release, but their planned scopes remain partial. Complete Home (12, 36), Play (28–32), Bets (43–47, 53, 54), Lines (13, 33–35), League (58–60, 64–67, 71), plus Me, History, export, sign-in and native commissioner tools (37–39, 72–78). Every retired screen's retained records and required operations need a new-app home first.
 - [ ] **No slot left empty:** every `homeTiles`, `counter` and `sheetActions` entry the prototype shows is on, each with the test that proves it.
 - [ ] **Every migration applied and deployed:** M-01 to M-29 byte-identical and recorded; `NOT_HOSTED` holds only what Sean chose not to apply; no `awaitingDeploy` left for shipped routes; live `check:cloud --strict` passes.
 - [ ] **Leak gate:** the scan passes at all four moments across every route that can carry a line or a hidden pick: `/lines/*`, `/bets/*`, `/challenges/*`, `/virtual-units`, `/virtual-pick`, `/social/*`, `/league/feed`, `/league/comments`, `/league/player`, `/community/read`, `/community/history`, `/community/picks`, `/personal`, `/personal/notes`, `/personal/ballot`, `/state`, `/ballot`, `/export`, `/me/*`, `/lobby`, and push payloads. A live spot check on Sean's account agrees.
@@ -876,8 +955,11 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
   - [ ] Bets: a real bet placed and settled; a challenge sent to and accepted by the tester, then settled.
   - [ ] League: boards in the right order with no sum; the feed with reactions and comments; old posts render.
   - [ ] History: Week 5 Spread 95.8 with "original time not recorded"; Steven's and Ben's ruled lines labelled; the Betting Challenge record matches the old screen; removed members listed.
-- [ ] **D-23 audit:** every row in `docs/redesign/INVENTORY_HOMES.md` is done. Nothing a player entered is hidden.
-- [ ] **Stage 79 green;** Sean's own phone check done.
+- [ ] **D-23 / RETIRE-01 audit:** every row in `docs/redesign/INVENTORY_HOMES.md` and later additions has a verified destination. Private backups/exports and stable-ID/count/hash reconciliation cover archived, removed-member and ruled records. Nothing a player entered becomes inaccessible; the separate local owner workspace and snapshots are preserved.
+- [ ] **Draft handoff:** retained Community copies still open through the active editor; PR #141's gated Community/Solo reader has verified hosted acceptance before depending on it, and group copies have a recovery destination. Per-game drafts/pending requests and memory-only bet edits/uncertain saves survive the appropriate handoff before reload. Existing profile/note/comment recovery remains account-scoped. Do not auto-submit, re-anchor locked guesses, clear unrelated storage or claim recovery from uninspected devices.
+- [ ] **New-only access tests:** first visit, stored classic/next choice, blocked storage, `?app=classic`, legacy links, auth callbacks, Back, errors and chunk failures all reach the new app or protected recovery. No menu, commissioner link or fallback mounts classic.
+- [ ] **Hosted entry inventory and stale-client plan:** canonical/custom/branch/preview/historical URLs and supported existing tabs/Home Screen launches are accounted for. Historical `c251e8e1` still responded HTTP 200 at this audit; close or redirect old deployments and verify connected old clients cannot keep operating classic workflows without losing recoverable work.
+- [ ] **Stage 79 green;** Sean's own phone check done, including UX-NEXT-01's actual scroll/viewport sequence on every tab and BETS-NEXT-01's filter/card-preservation checks.
 - [ ] **CI fully green;** bundle scan clean; Week 5 picks file hash unchanged; nothing under `.local/` committed.
 - [ ] **How to play, Privacy and Terms** cover what the new app stores: challenges, reactions, notes, the forfeit record, bets visible any time.
 - [ ] **Push decided:** live, or hidden behind `pushConfigured`.
@@ -886,18 +968,51 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 
 ### The flip (stage 80)
 
-- One PR: `DEFAULT_APP = 'next'`. A device that chose `classic` keeps it. "Use the old app" stays in the menu. The old footer button becomes "Back to the new app". `web/index.html` fonts, meta description and the manifest move to the new app.
-- With Sean's OK, set `new_social_open` so everyone can challenge, share and react.
-- Merge on a Tuesday or Wednesday PT, after Monday night is settled. The Mac mini deploys Pages and runs the live checks.
-- **Rollback:** revert the PR and redeploy, or roll Pages back. If rolled back, show "Try the new app" to every member so entries made in the new app stay reachable. No data changes either way.
+- After the preservation and release checklist passes, authenticated production
+  entry renders only the new app. Remove old-app selection, including default,
+  saved `classic`, `?app=classic`, menu/switcher/settings actions, error fallbacks
+  and commissioner exits. Storage failure must not restore classic. Move
+  `web/index.html` fonts, metadata and manifest to the new app; preserve auth,
+  deep-link context and shared workflow components.
+- Complete RETIRE-03 at the hosting layer: redirect or restrict old published
+  builds, verify canonical/custom/preview/history URLs, and safely upgrade
+  existing connected tabs and Home Screen launches. A new default or hidden
+  button alone does not meet D-52. Previously downloaded offline code cannot be
+  recalled; record the supported-hosting and connected-workflow checks precisely.
+- With Sean's separate OK and its implemented service gates, set
+  `new_social_open` so everyone can challenge, share and react. Retirement does
+  not implicitly activate an unfinished feature or apply a migration.
+- Name the exact approved cutover SHA and use a fresh Gate D slate/window check.
+  The Mac mini deploys and records new-only access, preservation reconciliation
+  and real-device results. No cutover is claimed until those checks pass.
+- **Rollback:** use a compatible new-app build or a controlled recovery state
+  that keeps records and recoverable edits safe. Never restore an old database
+  over newer writes. Rolling players back into classic requires an explicit
+  recorded exception to D-52; the former automatic classic fallback is historical.
 
 ### Retiring the old app (stage 81, later, with Sean's OK)
 
-- Wait at least two full weeks on the new default (picks, settlement, feed) with no blocking bug.
-- Preconditions: every commissioner page is native (78); the older group scoring views and the Week 5 freeze record have read-only pages (74); export is native (75); real slips past weeks are readable (47).
-- Then `main.jsx` renders only `NextApp`; the old screens and their CSS leave the source (git keeps them); `styles.css` leaves the entry; the `classic` persona project and old specs go with their screens. The Design lab goes with them.
-- Server routes only the old app called stay until nothing calls them, then go in a later PR. No table or row is dropped (D-23). Betting Challenge selections stay readable in History.
-- Update `AGENTS.md`, `docs/DASHBOARD_APP.md` and `docs/BRAND_GUIDE.md`. Keep `design/tokens.json` until nothing uses it.
+- **Scope under D-52: unused-source cleanup only (RETIRE-04).** This stage may
+  begin only after stage 80 has ended player access. The previous two-full-week classic-access period
+  is superseded; it is not a prerequisite that keeps the old app available.
+- The preservation prerequisites now precede stage 80: native commissioner
+  pages (78), older group/freeze records (74), native export (75), past slips
+  (47), all other retained categories and draft recovery. Recheck them after
+  cleanup instead of postponing their availability until this stage.
+- After stage 80, `main.jsx` must already be new-only. Remove only unused old shell/screens, switch
+  helpers, CSS and tests, preserving Git history. Keep `WeekPicks`,
+  `SocialBetTracker`, `VirtualUnits`, `HistoryLine`, shared authentication/data
+  and recovery code while the new app imports them. Remove `styles.css`, the
+  classic persona project and screen tests only after dependency checks and
+  equivalent new-app coverage pass. The Design lab can leave the runnable app;
+  do not delete its source history or stored preferences as collateral cleanup.
+- Server routes stay while any supported new-app workflow uses them. Retire
+  unused routes separately after call-site verification. No table, row or
+  historical snapshot is dropped (D-23); Betting Challenge and other preserved
+  records stay readable with their permissions.
+- Update `AGENTS.md`, `docs/DASHBOARD_APP.md` and `docs/BRAND_GUIDE.md` with actual
+  implementation/release evidence. Keep `design/tokens.json` until no retained
+  component uses it. No deletion is authorized merely by this planning update.
 
 ---
 

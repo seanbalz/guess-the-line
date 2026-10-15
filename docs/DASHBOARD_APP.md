@@ -214,7 +214,26 @@ is on sign-in and My games. It remembers this browser/device’s choice, with Da
 the default. Final brand approval remains separate. Current deployment and exact
 preservation/readback evidence are in [CLOUD_SETUP.md](CLOUD_SETUP.md).
 
-## The new app switch (redesign stage 9, D-38 and D-39)
+## Retirement direction — D-52, October 15, 2026
+
+The [current audit](RETIREMENT_AUDIT_2026_10_15.md) matches the deployed new app
+to `b883c77`. Home, Play, Bets, Lines and League have working screens; the initial
+frame placeholders described below are historical. The
+[completion register](COMPLETION_REGISTER.md) records current delivery, and
+[RETIRE-01–04](../planning/new-app-retirement.md) now require new-app-only access
+at stage 80 after preservation checks. Stage 81 cleans up unused source afterward.
+The old switch/fallback behavior below remains implemented until that cutover;
+it is no longer the target release behavior.
+
+Retain existing shared editors and Community draft recovery. Finish missing
+history, export and admin destinations, group draft recovery and safe handling of
+memory-only edits before removing classic access or forcing reload. PR #141 adds
+a gated Solo recovery reader; verify its activation and preservation separately.
+The independent loopback workspace and `.local/state.json` remain a separate data
+set: frontend retirement does not merge, publish or delete them. No cutover or
+data migration is claimed by this documentation update.
+
+## The new app switch before retirement (redesign stage 9, D-38 and D-39)
 Every signed-in member sees **Try the new app** in the Community footer (D-39:
 the whole league, opt-in; no tester list) since the first-look deploy of October 14, 2026.
 A build with `VITE_GTL_OFFER_NEW_APP=0` leaves it out (`NEW_APP_OFFERED`), the off

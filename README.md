@@ -14,6 +14,15 @@ for exact source, checks, live observations and rollback, the
 and the [workflow scope](docs/ALL_TABS_LIVE_WORKFLOWS.md) for remaining boundaries.
 Issue #126 remains open for Sean's real-phone visual acceptance.
 
+**October 15 retirement follow-up (D-52):** a fresh
+[source/asset audit](docs/RETIREMENT_AUDIT_2026_10_15.md) confirmed that production
+serves this release and all five new-app tabs already have implementations.
+Sean confirmed a new-app-only direction, with records and drafts preserved.
+[Retirement tasks](planning/new-app-retirement.md) cover the remaining destinations,
+recovery and old entry points; [mobile Bets tasks](planning/mobile-bets-followups.md)
+cover the floating footer and All / Spreads / Totals filter. These tasks are open;
+the old app has not been disabled by this audit.
+
 The [current completion register](docs/COMPLETION_REGISTER.md) tracks each app
 section's remaining formatting, implementation and acceptance work, plus backend,
 account and release dependencies. It keeps the historical tracker unchanged.

@@ -1,5 +1,50 @@
 # Decision log
 
+## D-52 — retire previous-app access while preserving records (October 15, 2026)
+
+Sean requested: “Let’s also make sure no one can access the previous version.
+Let’s sunset the previous version and only use the new app moving forward.
+Make sure nothing is lost though”. He then approved the recommendation to match
+the actual deployed app to current source before deciding what still needs work:
+“Move forward with rec”. The [dated audit](RETIREMENT_AUDIT_2026_10_15.md) matches
+Pages `ed3fb50b` to `b883c77` using fresh deployment metadata and selected served
+assets. All five tabs already have working implementations; the earlier
+placeholder finding came from a stale checkout and is superseded.
+
+- **New app only after cutover.** Remove classic selection through defaults,
+  preferences, query parameters, menus, deep links, error fallbacks and published
+  older entry points. Verify stale connected clients and installed launches too;
+  changing the default alone does not meet this request.
+- **Preservation before removal.** Retain accounts, memberships, guesses and
+  revisions, references, scores, bets, notes, journals, forecasts, Favorites,
+  history, audits and recoverable drafts with their permissions and provenance.
+  Finish missing new-app history/export/admin destinations and verify private
+  backup, recovery and before/after reconciliation before cutover. Do not
+  re-enter, re-score, silently submit or delete records to change the frontend.
+- **Keep working shared features.** Community draft recovery and the existing
+  `WeekPicks`, `VirtualUnits` and `SocialBetTracker` workflows already serve the
+  new app. Preserve their dependencies; add missing group draft recovery and verify
+  the Solo recovery reader merged in PR #141, whose server capability is not yet
+  hosted. Protect memory-only edits and uncertain saves before forced reload.
+- **Amends stages 80/81.** Stage 80 becomes the verified new-only cutover,
+  superseding D-38's optional classic mode and the two-week period of continued
+  old-app access. Stage 81 removes only unused source after cutover; shared code,
+  data readers and recovery support remain until proven unnecessary. Recovery
+  uses a compatible new-app build or a controlled recovery state, not an automatic
+  return to the previous UI.
+
+[RETIRE-01–04](../planning/new-app-retirement.md) track the remaining work; source
+matching is complete within RETIRE-01, but preservation and cutover are open.
+The separate [scrolling and recommendation-filter tasks](../planning/mobile-bets-followups.md)
+remain open. This decision does not apply pending migrations, change Guess rules,
+or claim a production cutover. One older hosted URL still served HTTP 200 during
+the audit. No private records or hosted configuration were changed.
+
+The earlier local retirement note used D-48, already occupied by recommendations.
+This reconciled entry is D-52; D-50 remains scoring/player trends and D-51 remains
+the pending recommendation-refinement branch. The frozen v62 tracker and private
+Status Board are unchanged.
+
 ## D-50 — immediate per-game scoring, score browsing and player trends (October 15, 2026)
 
 Sean requested: "You should not be able to make guesses or change saves for guesses after you lock in that games guesses" and scoring "should immediately show for that weeks scoring", with week/team/game filters and a user trend page. These requirements and the Q-01 answer below are preserved from the local planning record on source checkout `e5a45f6`; Q-02 is preserved from that active checkout's follow-up record captured at 16:19 UTC on October 15; the synchronization review did not retrieve the original conversation. This entry adds the [repo backlog and targeted discovery queue](../planning/scoring-and-player-trends.md), without implementing or deploying the requirements. The local record called this D-47; that number belongs to the weather-schedule draft, D-48 is the recommendations decision, and D-49 is referenced for proposed Lines tables. This reconciled entry uses D-50; it grants no new product or deployment approval.
