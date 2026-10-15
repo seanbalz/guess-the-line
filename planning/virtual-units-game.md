@@ -94,3 +94,25 @@ Source check: [The Odds API V4 events endpoint](https://the-odds-api.com/liveapi
 | Void notices and release | Blocked | Codex | Notification consent/delivery and remaining rules | In-app notice persists; opt-in push/email delivery is verified; private authenticated device acceptance and hosted release are evidenced. |
 
 No target date is committed. The existing free-only data budget remains in force. Product decisions above do not establish source rights, connected feeds, working controls, notifications or a live deployment.
+
+## M-10 Bets read delivery card — October 15, 2026
+
+Status: built and locally tested in a separate branch; not applied or deployed.
+Owner: Codex. Dependency: hosted M-04 line gate, then Sean's explicit M-10
+apply approval and deploy SHA under the [redesign gates](../docs/REDESIGN_BUILD_PLAN.md).
+The current community week is independent of a private group's week. A group
+filters the roster; account bets appear in each group containing their owner.
+Friends' bets show immediately with side and units, while each saved line and price follows the
+viewer's per-game, per-market M-01 gate; the owner's receipts never close.
+Open market buttons use the newest retained named-book quote per book, then
+the best point line and price, with no quote-age cutoff. An unsaved market has
+no selectable offer. The qualification read counts three picks or 3U without
+double-counting a replaced row.
+
+Exit evidence: local PGlite tests cover a community-only account, two group
+filters, a nonmember refusal, closed/open Spread versus Total, own receipts,
+named-book offers and the API's second redaction boundary. Hosted grants,
+readback, the new app UI and private-device acceptance remain open. Turning
+off `GTL_FEATURE_OFF=bets` is the non-destructive rollback path for the new
+reader; stored rows are retained. Brand QA assertion: this card uses the
+existing GTL document tokens and adds no visual asset or new color.

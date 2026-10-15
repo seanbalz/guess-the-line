@@ -377,7 +377,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           if (response.status === 404 && code === FUNCTION_NOT_FOUND) {
             // The recommendations writer is the only new Bets RPC with an off
             // response. Preserve the untouched future Bets routes' generic error.
-            if (providerError === providerBetsError && name !== 'gtl_save_recommended_virtual_pick') throw providerError();
+            if (providerError === providerBetsError && !['gtl_save_recommended_virtual_pick', 'gtl_read_bets'].includes(name)) throw providerError();
             throw providerError('GTL_FEATURE_OFF');
           }
           throw providerError(message);

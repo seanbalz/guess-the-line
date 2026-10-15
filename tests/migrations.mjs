@@ -31,6 +31,7 @@ export const NOT_HOSTED = [
   20261015030000, // M-02 sent_picks_final (redesign stage 18): locked-in picks are final, applied alone (Fri-Sat) on "apply M-02".
   20261015040000, // M-03 guess_week_forfeit (redesign stage 19): skip and "See picks now", applied after M-01 on "apply M-03".
   20261015050000, // M-04 social_line_lock (redesign stage 21): the real-slip line gate, applied after M-01 on Sean's "apply M-04".
+  20261015190820, // M-10 bets_read (stage 40): account-level Bets reader; apply after M-01 and M-04 on Sean's "apply M-10".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -44,7 +45,7 @@ export const FIX_FORWARD = [];
  * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
-export const REQUIRES = Object.freeze({});
+export const REQUIRES = Object.freeze({ 20261015190820: [20261015050000] });
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();

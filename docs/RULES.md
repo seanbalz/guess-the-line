@@ -229,3 +229,23 @@ approved/frozen references took precedence in that release. D-16 subsequently
 confirmed individual submission/edit-time scoring and supersedes this common
 reference behavior in the local implementation. See SUBMISSION_TIME_SCORING.md
 for verification and outstanding hosted delivery.
+
+## Virtual Units Bets read (M-10, staged)
+
+The new Bets reader uses the published community week for every signed-in
+community member, independent of a private group's older week. A group
+selection filters the roster, not the underlying account-level picks: the same
+saved bet appears in every group containing that player. Other players' bets
+are visible as soon as placed under D-36; their side and units show, while the
+saved line, odds, book, quote time and result terms remain hidden until the viewer's own
+per-game Guess lock-in, market sit-out or that game's kickoff opens the M-01
+gate. The owner's saved terms and audit always remain visible. Only a genuine
+retained named-book quote can populate an open offer; no quote-age cutoff or
+consensus substitution is introduced. Weekly qualification counts one current
+row per game and market, including a voided row's original credit, and reaches
+the weekly board at three picks or 3U.
+
+M-10 is a staged migration and API route, not a hosted apply or deploy. The
+release order remains M-04, then M-10, with the explicit approvals and checks
+in [the redesign build plan](REDESIGN_BUILD_PLAN.md). The new Bets screen and
+the settlement scheduler remain later stages.

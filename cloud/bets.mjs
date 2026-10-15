@@ -6,12 +6,13 @@ import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { decorateVirtualUnits } from './virtual-units.mjs';
 import { parseMarketsVisible } from './line-lock.mjs';
 import { readLiveRules } from './live-rules.mjs';
+import { bestOffer, newestPerBook } from '../shared/best-offer.mjs';
 
 export class BetsError extends Error {
   constructor(status, message) { super(message); this.name = 'BetsError'; this.status = status; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
-export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'] });
+export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'], '/bets/read': ['POST'] });
 /** Database refusal code → [status, sentence]. A code is mapped here, and deployed, before the SQL can raise it. */
 const ERRORS = Object.freeze({
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -25,6 +26,7 @@ const ERRORS = Object.freeze({
   GTL_WEEKLY_CONFLICT: [409, 'Your picks changed on another device. Refresh before saving.'],
   GTL_LINE_LOCKED: [409, 'Submit or lock in your guess for this game and market before placing a pick.'],
   GTL_VIRTUAL_EXISTS: [409, 'You already have this matchup and market on your virtual card.'],
+  GTL_BETS_INVALID: [400, 'Choose a published week and league.'],
 });
 export const providerBetsError = message => (Object.hasOwn(ERRORS, message) ? new BetsError(...ERRORS[message]) : new Error('Bets are unavailable.'));
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -36,6 +38,55 @@ const sameWeek = (a, b) => a.season === b.season && a.week === b.week;
 const fail = code => { throw providerBetsError(code); };
 const MARKETS = ['spread', 'total'];
 const SIDES = { spread: ['home', 'away'], total: ['over', 'under'] };
+const BOOKS = Object.freeze({ draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', betrivers: 'BetRivers',
+  betonlineag: 'BetOnline.ag', betus: 'BetUS', bovada: 'Bovada', lowvig: 'LowVig.ag', mybookieag: 'MyBookie.ag' });
+const UUID = UUID_PATTERN;
+const integer = value => Number.isSafeInteger(value) && value >= 0;
+
+/** Rebuild the SQL reply. A forged line under a closed cell never reaches the browser. */
+export function projectBets(raw, viewer) {
+  if (!record(raw) || !Array.isArray(raw.games) || !Array.isArray(raw.roster) || !Array.isArray(raw.bets)) throw new Error('Invalid Bets reply.');
+  const roster = raw.roster.filter(row => UUID.test(row?.userId || '')).map(row => ({ userId: row.userId, displayName: text(row.displayName)?.slice(0, 60) ?? null }));
+  const members = new Set(roster.map(row => row.userId));
+  const games = raw.games.filter(row => typeof row?.id === 'string' && /^[A-Z]{2,3}-[A-Z]{2,3}$/.test(row.id))
+    .map(row => ({ id: row.id, homeCode: text(row.home)?.slice(0, 4) ?? null, awayCode: text(row.away)?.slice(0, 4) ?? null,
+      kickoff: finite(row.kickoff) ? new Date(row.kickoff * 1000).toISOString() : null }));
+  const ids = new Set(games.map(game => game.id));
+  const markets = Object.fromEntries(games.map(game => [game.id, Object.fromEntries(MARKETS.map(market => {
+    const cell = raw.markets?.[game.id]?.[market];
+    if (cell?.visible !== true) return [market, { visible: false }];
+    const quotes = (Array.isArray(cell.quotes) ? cell.quotes : []).filter(q => Object.hasOwn(BOOKS, q?.book)
+      && SIDES[market].includes(q?.side) && time(q.observedAt) && time(q.collectedAt) && time(q.capturedAt));
+    const offers = Object.fromEntries(SIDES[market].map(side => {
+      const candidates = newestPerBook(quotes.filter(q => q.side === side), game.kickoff);
+      const chosen = bestOffer(candidates.filter(q => finite(q.line) && Number.isInteger(q.odds)
+        && Math.abs(q.odds) >= 100 && Math.abs(q.odds) <= 10000), market, side);
+      return [side, chosen ? { book: chosen.book, source: BOOKS[chosen.book], side, line: chosen.line, odds: chosen.odds,
+        observedAt: time(chosen.observedAt), collectedAt: time(chosen.collectedAt) } : null];
+    }));
+    return [market, { visible: true, offers }];
+  }))]));
+  const bets = raw.bets.filter(row => members.has(row?.userId) && ids.has(row?.gameId) && MARKETS.includes(row?.market))
+    .map(row => {
+      const own = row.userId === viewer, open = markets[row.gameId][row.market].visible;
+      return { userId: row.userId, gameId: row.gameId, market: row.market,
+        selection: own || open ? selectionView(row.selection) : {
+          side: SIDES[row.market].includes(row.selection?.side) ? row.selection.side : null,
+          units: finite(row.selection?.units) && row.selection.units > 0 ? row.selection.units : null,
+        },
+        status: text(row.status), result: own || open ? resultView(row.result) : null,
+        audit: own && Array.isArray(row.audit) ? row.audit : null,
+        createdAt: time(row.createdAt), updatedAt: time(row.updatedAt) };
+    });
+  const faces = Object.fromEntries(games.map(game => [game.id,
+    [...new Set((Array.isArray(raw.faces?.[game.id]) ? raw.faces[game.id] : []).filter(id => members.has(id)))]]));
+  const qualification = (Array.isArray(raw.qualification) ? raw.qualification : []).filter(row => members.has(row?.userId))
+    .map(row => ({ userId: row.userId, picks: integer(row.picks) ? row.picks : 0,
+      units: finite(row.units) && row.units >= 0 ? row.units : 0, qualified: row.qualified === true }));
+  return { season: integer(raw.season) ? raw.season : null, week: integer(raw.week) ? raw.week : null,
+    published: raw.published === true, now: time(raw.now), leagueId: text(raw.leagueId), revision: integer(raw.revision) ? raw.revision : 0,
+    roster, games, markets, bets, faces, qualification };
+}
 
 function gamesFromSignature(signature) {
   if (!record(signature) || !Array.isArray(signature.games) || !signature.games.length || signature.games.length > 32) throw new Error('Invalid published slate.');
@@ -138,9 +189,19 @@ function validatePlace(body) {
 export async function handleBets({ route, body = {}, user, service, clock = Date.now, optionalRpc, featureOff = new Set() }) {
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new BetsError(401, 'Sign in to continue.');
   if (!Object.hasOwn(BETS_METHODS, route)) throw new BetsError(404, 'Not found.');
-  if (!service?.rpc || typeof service.recommendationState !== 'function') throw new Error('Bets are not configured.');
-  if (featureOff.has('recommendations') || featureOff.has('bets')) fail('GTL_FEATURE_OFF');
+  if (!service?.rpc) throw new Error('Bets are not configured.');
+  if (featureOff.has('bets') || (route !== '/bets/read' && featureOff.has('recommendations'))) fail('GTL_FEATURE_OFF');
   if (!record(body)) fail('GTL_VIRTUAL_INVALID');
+  if (route === '/bets/read') {
+    if (Object.keys(body).some(key => !['season','week','leagueId'].includes(key))
+      || (body.season === undefined) !== (body.week === undefined)
+      || (body.season !== undefined && !scope(body))
+      || (body.leagueId !== undefined && (typeof body.leagueId !== 'string' || body.leagueId.length < 1 || body.leagueId.length > 100)))
+      fail('GTL_BETS_INVALID');
+    return projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season ?? null,
+      p_week: body.week ?? null, p_league: body.leagueId ?? null, p_now: new Date(clock()).toISOString() }), user.id);
+  }
+  if (typeof service.recommendationState !== 'function') throw new Error('Bets are not configured.');
   if (route === '/bets/recommendations') {
     const keys = Object.keys(body);
     if (keys.length && (keys.length !== 2 || !keys.includes('season') || !keys.includes('week') || !scope(body))) throw new BetsError(400, 'Choose a published season and week. Player identity comes from sign-in.');

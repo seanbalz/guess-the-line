@@ -16,6 +16,9 @@ export const rpcChecks = Object.freeze([
   // D-18 save-path helper added by 20261009190000; service-only like the function that calls it.
   ['gtl_numeric_is_finite', { p_value: 1 }],
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
+  ['gtl_bets_context', { p_user: missingId, p_season: null, p_week: null, p_league: null }],
+  ['gtl_read_bets', { p_user: missingId, p_season: null, p_week: null, p_league: null, p_now: null }],
+  ['gtl_read_bets_market', { p_user: missingId, p_game: 'AAA-BBB', p_market: 'spread', p_season: null, p_week: null, p_now: null }],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -25,9 +28,14 @@ export const apiChecks = Object.freeze([
   ['virtual-units/settle', {}],
   ['bets/recommendations', {}],
   ['bets/recommendations/place', {}],
+  ['bets/read', {}],
 ]);
 
 export const workerChecks = Object.freeze([]);
 
 export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_bets_context': 'migration 20261015190820_gtl_bets_read.sql',
+  'rpc/gtl_read_bets': 'migration 20261015190820_gtl_bets_read.sql',
+  'rpc/gtl_read_bets_market': 'migration 20261015190820_gtl_bets_read.sql',
+  'gtl-api/bets/read': 'the gtl-api deploy with /bets/read',
 });
