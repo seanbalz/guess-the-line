@@ -43,7 +43,7 @@ const NONE_REASONS = {
 };
 
 /** The line a guess is compared against: saved (D-16/D-27), commissioner-ruled (D-25), the line at the guess, the nearest snapshot (older providers), or none. */
-function HistoryLine({ reference, mode, game }) {
+export function HistoryLine({ reference, mode, game }) {
   if (!reference) return <><strong className="mono">—</strong><small>No line saved · draft</small></>;
   const value = reference.value === null ? '—' : pickText(mode, game.awayCode, game.homeCode, reference.value, { even: 'Even' });
   const source = reference.source && <small>{reference.source}</small>;

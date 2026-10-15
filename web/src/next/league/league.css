@@ -1,0 +1,13 @@
+.gx .gx-league { overflow-wrap: anywhere; }
+.gx .gx-league .gx-row { min-height: 72px; height: auto; }
+.gx .gx-league .gx-row-title,
+.gx .gx-league .gx-row-sub { white-space: normal; overflow-wrap: anywhere; }
+.gx .gx-league-picks,
+.gx .gx-league-comments { margin: 0; padding: 0; list-style: none; }
+.gx .gx-league-picks li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.gx .gx-league-history-game { border-top: 1px solid var(--gx-border); }
+.gx .gx-league-history-game > summary { min-height: 44px; padding-block: 12px; cursor: pointer; }
+.gx .gx-league-history-game > div { padding-bottom: 12px; }
+.gx .gx-league .gx-input { width: 100%; min-width: 0; }
+.gx .gx-league-reference strong { font-family: var(--gx-font-num); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--gx-text-1); }
+.gx .gx-league-reference small { font-family: var(--gx-font-body); font-size: 13px; line-height: 1.4; color: var(--gx-text-2); }

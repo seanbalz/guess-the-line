@@ -1,23 +1,23 @@
 // What the shell draws for each tab and each layer id (prototype CONTRACT section 9, the layer registry). A tab's or a
 // layer's own stage changes its one line here; the component lives in that tab's folder. Ids follow the prototype
 // (`sh.menu`, `dlg.sitOut`, `ov.flash`, `page.settings`); state.js knows the kind from the prefix.
-import { ComingNext } from './Frame.jsx';
 import { MenuSheet } from '../me/MenuSheet.jsx';
 import { SwitcherSheet } from '../league/SwitcherSheet.jsx';
 import { Home } from '../home/Home.jsx';
 import { LinesBoard } from '../lines/LinesBoard.jsx';
 import { GameSheet } from '../lines/GameSheet.jsx';
 import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
+import { Play } from '../play/Play.jsx';
+import { Bets } from '../bets/Bets.jsx';
+import { LeagueScreen } from '../league/LeagueScreen.jsx';
 
-const coming = tab => Object.assign(() => <ComingNext tab={tab}/>, { displayName: `ComingNext(${tab})` });
-
-/** Each tab's screen. Until a tab's stage arrives it shows its "coming next" card. */
+/** All five tabs use live routes. The transitional editors retain the hosted rules until their migrations ship. */
 export const SCREENS = Object.freeze({
   home: Home, // stage 12: read-only Home (the hero, who's in and the rank tiles)
-  play: coming('play'),
-  bets: coming('bets'),
+  play: Play,
+  bets: Bets,
   lines: LinesBoard, // stage 13: read-only Lines and game sheet
-  league: coming('league'),
+  league: LeagueScreen,
 });
 
 /** Each layer id's component, with its owner (CONTRACT section 9). */

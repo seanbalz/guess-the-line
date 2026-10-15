@@ -166,27 +166,36 @@ test('main.jsx loads NextApp and GameHub lazily, never both, behind the fallback
   assert.match(main, /if \(view !== 'next'\) return <Classic/);
 });
 
-test('the new app imports nothing from the old app\'s screens, and the old screens never import the new app', () => {
+test('the new app keeps its own shell and allows only the documented live workflow adapters; old screens never import the new app', () => {
   // Shared modules with no React, CSS or screen code: the per-device choice and the D-22 team mark registry (stage 8 TeamMark).
   // Stage 11 (the data layer): the routes both apps call (api.js, build plan section 3.3), the one Supabase client
   // (auth.js, for "Sign in again"), the invite link saved in this tab (invitations.js), Google sign-in (oauth.js) and the
   // new app's typed-text drafts, which AuthGate clears (nextDrafts.js).
   // Stage 13 (Lines): the trends loaders and the wind timer, both free of React, which the old trends panel's hooks also
   // use, so both apps share one cache and one request per week.
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'windTimer.js']);
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js']);
   for (const shared of allowed) {
     assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
   }
   // Stage 10: the theme and the reduced-motion choice belong to the device, so both apps use the same state on the same
   // keys: the ThemeProvider main.jsx wraps both apps in (gtl.theme) and the motion preference (gtl.dashboard.preferences.v1).
   // Only these named hooks, never a component or a default import.
-  const namedOnly = { 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'] };
+  const namedOnly = { 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'CommunityHistory.jsx': ['HistoryLine'] };
+  // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
+  // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
+  const adapters = {
+    'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
+    'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx'],
+  };
   for (const file of filesUnder('web/src/next')) {
     const text = read(file);
     for (const spec of importsOf(text)) {
       if (!spec.startsWith('.')) continue;
       const target = path.relative(path.join(root, 'web/src'), path.resolve(path.join(root, path.dirname(file)), spec));
+      if (adapters[file]?.includes(target)) continue;
       if (namedOnly[target]) {
+        if (target === 'CommunityHome.jsx') assert.equal(file, 'web/src/next/play/Play.jsx');
+        if (target === 'CommunityHistory.jsx') assert.equal(file, 'web/src/next/league/LeagueHistory.jsx');
         const statements = [...text.matchAll(/import\s+([^;]*?)\s+from\s*['"]([^'"]+)['"]/g)].filter(m => m[2] === spec);
         for (const [, clause] of statements) {
           const names = clause.match(/^\{([^}]*)\}$/)?.[1].split(',').map(name => name.trim()).filter(Boolean);

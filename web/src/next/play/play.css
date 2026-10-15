@@ -1,0 +1,15 @@
+/* The classic save bar stays above the new app's fixed navigation. The shared workflow stylesheet supplies
+   token-based control styling for the reused editor; this offset belongs only to Play. */
+.gx .gx-live-play :where([class~="save-bar"]) {
+  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px);
+  z-index: var(--gx-z-dock);
+}
+.gx .gx-live-play :where([class~="personal-actions"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.gx .gx-live-play :where([class~="week-pick-list"]) {
+  display: grid;
+  gap: 16px;
+}

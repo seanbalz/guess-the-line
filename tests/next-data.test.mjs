@@ -265,6 +265,35 @@ test('a read that throws at once still settles, and an unknown read is a program
 
 // ---------- writes ----------
 
+test('a post-save refresh cannot reuse a read that started before the save', async () => {
+  const community = controlledSource();
+  const store = createDataStore({ community });
+  const oldRead = store.load('community');
+  const save = createWriter(store)('comment', async () => ({ saved: true }), { refresh: ['community'] });
+  await tick();
+  assert.equal(community.calls, 1);
+  community.answer({ comments: [] });
+  await oldRead;
+  await tick();
+  assert.equal(community.calls, 2, 'a fresh read follows the old in-flight answer');
+  community.answer({ comments: ['new comment'] });
+  assert.equal((await save).ok, true);
+  assert.deepEqual(store.get('community').data.comments, ['new comment']);
+});
+
+test('unmount cancels a post-save refresh queued behind an in-flight read', async () => {
+  const community = controlledSource();
+  const store = createDataStore({ community });
+  const oldRead = store.load('community');
+  const save = createWriter(store)('comment', async () => ({ saved: true }), { refresh: ['community'] });
+  await tick();
+  store.abortAll();
+  community.answer({ comments: [] });
+  await oldRead;
+  await save;
+  assert.equal(community.calls, 1, 'no fresh read is started after the app unmounts');
+});
+
 test('no write retry after SaveUncertainError: sent once, the reads are checked again, and nothing sends it again', async () => {
   const lobby = controlledSource();
   const c = clock();

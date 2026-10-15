@@ -9,6 +9,7 @@
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
+import '../liveWorkflows.css';
 import { useEffect } from 'react';
 import { AppDataProvider } from './data/AppData.jsx';
 import { AppGate } from './shell/AppGate.jsx';

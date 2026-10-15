@@ -45,7 +45,7 @@ async function phoneChecks(page, root = '.gx') {
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      if (!visible(el) || el.closest('.gx-sr-only, .sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
@@ -72,7 +72,7 @@ function apiCalls(page) {
  * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
  * for its D-45 weather chips on Lines): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read'].includes(call));
+const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -93,7 +93,7 @@ async function openNewApp(page, baseURL, fragment = '') {
 }
 
 test.describe('the real app', () => {
-  test('five tabs with their cards; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
+  test('five working tabs; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL);
     try {
@@ -118,8 +118,7 @@ test.describe('the real app', () => {
           await expect(page.locator('[data-home="hero"]')).toBeVisible();
           await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
         } else {
-          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toBeVisible();
-          await expect(page.getByRole('button', { name: OLD, exact: true })).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
         }
         expect(new URL(page.url()).hash).toBe(`#${name.toLowerCase()}`);
         await phoneChecks(page);
