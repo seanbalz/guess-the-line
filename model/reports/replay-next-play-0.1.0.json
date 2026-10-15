@@ -1,0 +1,143 @@
+{
+  "version": "gtl-next-play-research-0.1.0",
+  "status": "research_only",
+  "config": {
+    "trainThrough": 2023,
+    "calibrationSeason": 2024,
+    "heldoutSeason": 2025,
+    "minimumCell": 40,
+    "minimumTraining": 200,
+    "priorWeight": 20
+  },
+  "trainingPlays": 66099,
+  "trainingExcluded": {
+    "not_run_or_pass": 24059,
+    "penalty_play": 945,
+    "not_regulation": 444,
+    "not_regular_season": 4399
+  },
+  "latestTrainingDate": "2024-01-07",
+  "reports": {
+    "calibration": {
+      "season": 2024,
+      "plays": 32652,
+      "games": 272,
+      "excluded": {
+        "not_run_or_pass": 12424,
+        "penalty_play": 510,
+        "not_regulation": 173,
+        "not_regular_season": 2139
+      },
+      "fallbackPlays": 28,
+      "brier": 0.6335482314188126,
+      "baselineBrier": 0.6684610474466695,
+      "absoluteYardsError": 5.654813786832312,
+      "baselineYardsError": 5.745347972050366,
+      "classCalibration": {
+        "run": {
+          "predictedFrequency": 0.4210642069659948,
+          "observedFrequency": 0.4234350116378782
+        },
+        "complete": {
+          "predictedFrequency": 0.3439315468368841,
+          "observedFrequency": 0.3472987872105843
+        },
+        "incomplete": {
+          "predictedFrequency": 0.1776760798569226,
+          "observedFrequency": 0.1734656376332231
+        },
+        "interception": {
+          "predictedFrequency": 0.012178053660884463,
+          "observedFrequency": 0.01136224427293887
+        },
+        "sack": {
+          "predictedFrequency": 0.037471001196802606,
+          "observedFrequency": 0.037516844297439664
+        },
+        "fumble": {
+          "predictedFrequency": 0.0076791114825114516,
+          "observedFrequency": 0.0069214749479358075
+        }
+      }
+    },
+    "heldout": {
+      "season": 2025,
+      "plays": 32116,
+      "games": 272,
+      "excluded": {
+        "not_run_or_pass": 12133,
+        "penalty_play": 507,
+        "not_regulation": 190,
+        "not_regular_season": 2250
+      },
+      "fallbackPlays": 39,
+      "brier": 0.6316932080966816,
+      "baselineBrier": 0.6681782279966659,
+      "absoluteYardsError": 5.59191614921739,
+      "baselineYardsError": 5.686522974099674,
+      "classCalibration": {
+        "run": {
+          "predictedFrequency": 0.4210870461645134,
+          "observedFrequency": 0.42826005729231537
+        },
+        "complete": {
+          "predictedFrequency": 0.34356936743531385,
+          "observedFrequency": 0.34042221945447754
+        },
+        "incomplete": {
+          "predictedFrequency": 0.17795685949951476,
+          "observedFrequency": 0.1762984182339021
+        },
+        "interception": {
+          "predictedFrequency": 0.012220530583737104,
+          "observedFrequency": 0.011022543280607797
+        },
+        "sack": {
+          "predictedFrequency": 0.03748850136907285,
+          "observedFrequency": 0.03727114210985179
+        },
+        "fumble": {
+          "predictedFrequency": 0.007677694947848046,
+          "observedFrequency": 0.006725619628845435
+        }
+      }
+    }
+  },
+  "publication": {
+    "status": "blocked",
+    "replay": null,
+    "reasons": [
+      "Current field-specific data permissions and complete input coverage must be established.",
+      "Current roster membership, availability and player usage allocation are not validated.",
+      "This next-play model does not generate complete games, special teams, penalties or overtime.",
+      "Held-out full-game score and player-stat calibration has not passed.",
+      "Historical publication/revision timestamps and server-side projection visibility are not implemented."
+    ]
+  },
+  "normalizedSources": [
+    {
+      "file": "normalized-pbp-2022-026d63c408d5.json",
+      "sha256": "026d63c408d513f85cfa3c4d631e7a1b55f4313c4001396fc568f3f6940113c0"
+    },
+    {
+      "file": "normalized-pbp-2023-e2f3432f696c.json",
+      "sha256": "e2f3432f696c859eb909cf7aba75e584219e9309c4b897b3d5946643c3fdee1b"
+    },
+    {
+      "file": "normalized-pbp-2024-a151d26bfd31.json",
+      "sha256": "a151d26bfd317d71e43e44281996e365e16e5e9027e3b94f80414d1c4413b1af"
+    },
+    {
+      "file": "normalized-pbp-2025-ce507fb5fdc1.json",
+      "sha256": "ce507fb5fdc12e18ff6525f30e6dc77608b11a1dc72d03550739312855a63bf7"
+    }
+  ],
+  "vintageLimitation": "Retrospective current snapshots; original availability and revision timestamps not reconstructed.",
+  "attribution": {
+    "publisher": "nflverse contributors",
+    "source": "https://github.com/nflverse/nflverse-data/releases/tag/pbp",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+    "modifications": "GTL field filtering, normalization and aggregate research evaluation; no individual game projections."
+  }
+}

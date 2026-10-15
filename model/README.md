@@ -32,3 +32,21 @@ canonical game identity, final status, and observation/available-at timestamps.
 An outside forecast adapter is a separate source with its own permission,
 version and input-dependence record. Neither path may overwrite locked guesses
 or merge Spread and Total reveal gates.
+
+## Animated NFL replay research (October 15, 2026)
+
+Sean selected a real NFL replay with score, clock, player statistics and captions,
+with the data/model work finished before results are published. See
+[scope, measured research and publication gates](../docs/SIMULATED_GAME_REPLAY.md).
+
+`replay_sources.py` audits fixed public nflverse release URLs and retains hash
+receipts, field-filtered snapshots and coverage under `.local/replay-data/`.
+It is separate from the pinned FiveThirtyEight baseline above. Run `--help`
+for the `fetch`, `audit` and research-export options. `replay_model.py` evaluates
+normalized PBP locally with fixed chronological splits; it cannot generate or
+publish a complete game. Research fixtures do not ship with the frontend.
+
+```sh
+python3 model/replay_sources.py --help
+python3 -m unittest discover -s model -p 'test_replay_*.py' -v
+```
