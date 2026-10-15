@@ -1,8 +1,8 @@
 # Web push reminders — setup for Sean (D-28)
 
-Owner: Sean Balsiger · Version 2 · Updated 2026-10-14 · Decision [D-28](DECISIONS.md)
+Owner: Sean Balsiger · Version 3 · Updated 2026-10-14 · Decision [D-28](DECISIONS.md)
 
-**Status: built and tested locally, nothing switched on.** The code is on `main` once its pull request merges. The migration is **not applied** to the hosted project, `gtl-push-reminders` is **not deployed**, `gtl-api` does not yet carry the push routes, no VAPID key exists and no cron job is registered. Until you finish the steps below, nobody can turn reminders on. **Push guard (redesign stage 2, October 14):** `/community/read` carries `pushConfigured`, true only when `gtl-api` holds a valid `VAPID_PUBLIC_KEY` (the key itself is never in that reply). While it is false the picks-due card and Settings & setup show no reminder control at all, so nobody meets a "Remind me" button that fails.
+**Status: switched on October 14, 2026** ([release record](RELEASE_2026_10_09.md#october-14-deploy)): the migration is applied, `gtl-api` v18 and `gtl-push-reminders` v1 are deployed, all three VAPID secrets are set, the cron job is registered and the schedule row was enabled at 19:52 UTC. Not yet verified: Sean's iPhone receiving the Week 6 reminder. The steps below stay as the procedure for a rebuild or a key rotation. **Push guard (redesign stage 2, October 14):** `/community/read` carries `pushConfigured`, true only when `gtl-api` holds a valid `VAPID_PUBLIC_KEY` (the key itself is never in that reply). While it is false the picks-due card and Settings & setup show no reminder control at all, so nobody meets a "Remind me" button that fails.
 
 ## What it does
 
@@ -35,7 +35,7 @@ Do these from the Mac mini on an up-to-date `main` (`git pull && npm ci`). Never
    It prints a Public Key and a Private Key. Keep the private key out of the repo, chat, tickets and screenshots. Save both in your password manager. If the private key is ever exposed, generate a new pair and repeat steps 2 and 7: every device then has to turn reminders on again.
 
 2. **Set the three Edge Function secrets yourself** in the Supabase dashboard → project `onmrgvcehkflfaizvedl` → Edge Functions → Secrets (Manage secrets):
-   - `VAPID_PUBLIC_KEY` = the Public Key
+   - `VAPID_PUBLIC_KEY` = the Public Key, **last: after step 6**, not with the other two (it switches the reminder controls on; see below)
    - `VAPID_PRIVATE_KEY` = the Private Key
    - `VAPID_SUBJECT` = `mailto:` followed by an address you read (an `https://` URL also works). Push services use it to contact the sender.
 
@@ -78,6 +78,7 @@ Do these from the Mac mini on an up-to-date `main` (`git pull && npm ci`). Never
 - **One device:** Settings & setup → Pick reminders → **Turn off reminders**. Also: removing the Home Screen app or blocking notifications for the site stops delivery; the next send gets 404/410 and deletes the row.
 - **Everyone, keep the data:** `update public.gtl_push_reminder_schedule set enabled=false where id='deadline-2h';`
 - **Remove the job:** `select cron.unschedule('gtl-push-reminders-15m');`
+- **Hide the controls:** deleting `VAPID_PUBLIC_KEY` makes `/community/read` say `pushConfigured: false`, which hides "Remind me" and the whole Pick reminders panel, **Turn off reminders** included. Devices already subscribed stay subscribed, so disable the schedule row first; otherwise a player can stop the pushes only by blocking notifications for the site.
 - **Rotate keys:** new pair (step 1), replace the secrets (step 2); old subscriptions fail with 401/403 and are disabled after five failures, so players turn reminders on again.
 
 ## What is verified and what is not

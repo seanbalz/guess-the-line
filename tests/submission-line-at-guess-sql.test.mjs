@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { HOSTED, migrationSql } from './migrations.mjs';
+import { HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
 import { parseFunctions } from '../scripts/migration-functions.mjs';
 import { seed } from '../server/store.mjs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
@@ -64,7 +64,7 @@ const noLines = games => ({ provider: 'the-odds-api', sport: 'americanfootball_n
 async function fixture(t, { legacy } = {}) {
   const db = new PGlite(); t.after(() => db.close());
   const users = [SEAN, STEVEN, TROY, LUKE, BEN];
-  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;');
+  await db.exec(PRELUDE);
   for (const file of BEFORE) {
     await db.exec(migrationSql(file));
     if (file === BEFORE[0]) {

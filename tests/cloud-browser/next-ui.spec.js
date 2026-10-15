@@ -321,6 +321,24 @@ test('chips and segments are toggles that say which one is on', async ({ page })
   await expect(page.getByRole('list', { name: 'Total board' })).toBeVisible();
 });
 
+test('a keyboard-focused chip shows its whole focus ring above and below, inside the scrolling rail', async ({ page }) => {
+  // Follow-up to the stage 6 review: the rail scrolls, so it clips, and its old 2px padding cut off the ring's top and
+  // bottom (2px wide, 2px out from the chip).
+  await open(page);
+  await page.getByRole('button', { name: 'Seattle by 1', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  const ring = await page.evaluate(() => {
+    const chip = document.activeElement, rail = chip.closest('.gx-chip-rail'), s = getComputedStyle(chip);
+    const out = parseFloat(s.outlineWidth) + parseFloat(s.outlineOffset), c = chip.getBoundingClientRect(), r = rail.getBoundingClientRect();
+    return { label: chip.getAttribute('aria-label') || chip.textContent.trim(), focusVisible: chip.matches(':focus-visible'), style: s.outlineStyle, out,
+      above: c.top - out - r.top, below: r.bottom - (c.bottom + out) };
+  });
+  expect(ring).toMatchObject({ focusVisible: true, style: 'solid', out: 4 });
+  expect(ring.label).toMatch(/1\.5/);
+  expect(ring.above).toBeGreaterThanOrEqual(0);
+  expect(ring.below).toBeGreaterThanOrEqual(0);
+});
+
 test('a live countdown ticks, turns pending under two hours and says so once, politely', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Start a live countdown' }).click();
@@ -338,7 +356,7 @@ test('a live countdown ticks, turns pending under two hours and says so once, po
 test('DP-27: a slow team mark shows its letters in a box that never changes size, then the mark; a failed one keeps its letters', async ({ page }) => {
   let release;
   const held = new Promise(resolve => { release = resolve; });
-  await open(page, { hold: { '/team-logos/buf.png': held }, fail: ['/team-logos/kc.svg'] });
+  await open(page, { hold: { '/team-logos/buf.png': held }, fail: ['/team-logos/kc.png'] });
   const bills = page.getByRole('img', { name: 'Buffalo Bills' });
   await bills.scrollIntoViewIfNeeded();
   await expect(bills).toBeVisible();
@@ -353,13 +371,47 @@ test('DP-27: a slow team mark shows its letters in a box that never changes size
   await expect(bills).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
   await expect(bills.locator('.gx-team-code')).toBeHidden();
   expect(await size()).toEqual(before);
-  expect(await bills.locator('img').evaluate(img => [img.naturalWidth, img.getAttribute('width'), img.getAttribute('decoding')])).toEqual([3840, '48', 'async']);
+  expect(await bills.locator('img').evaluate(img => [img.naturalWidth, img.getAttribute('width'), img.getAttribute('decoding')])).toEqual([128, '48', 'async']);
 
   const chiefs = page.getByRole('img', { name: 'Kansas City Chiefs' });
   await expect(chiefs).toHaveAttribute('data-mark', 'letters');
   await expect(chiefs.locator('img')).toHaveCount(0);
   await expect(chiefs.locator('.gx-team-code')).toHaveText('KC');
   await expect(chiefs.locator('.gx-team-code')).toBeVisible();
+});
+
+test('D-46: an official logo that fails to load is replaced by the team\'s original badge', async ({ page }) => {
+  await open(page, { fail: ['/team-logos/sea.png'] });
+  const every = page.getByRole('group', { name: 'Every team' });
+  const seahawks = every.getByRole('img', { name: 'SEA', exact: true });
+  await seahawks.scrollIntoViewIfNeeded();
+  await expect(seahawks).toHaveAttribute('data-mark', 'original');
+  await expect(seahawks.locator('img')).toHaveAttribute('src', '/team-logos/badges/sea.svg');
+  await expect(seahawks).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
+  const broncos = every.getByRole('img', { name: 'DEN', exact: true });
+  await expect(broncos).toHaveAttribute('data-mark', 'trademark-identification');
+  await expect(broncos.locator('img')).toHaveAttribute('src', '/team-logos/den.png');
+  await expect(broncos).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
+  expect(await seahawks.locator('img').evaluate(img => getComputedStyle(img).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+});
+
+for (const theme of ['dark', 'light']) test(`D-46: official logos sit on a round chip, light neutral in Dark and transparent in Light, and the measured overrides on a dark chip (${theme})`, async ({ page }) => {
+  await open(page, { theme });
+  const every = page.getByRole('group', { name: 'Every team' });
+  await every.scrollIntoViewIfNeeded();
+  const chipColor = code => ['KC', 'LAC', 'PIT', 'TEN'].includes(code)
+    ? (theme === 'dark' ? 'rgb(7, 11, 22)' : 'rgb(11, 16, 32)')
+    : (theme === 'dark' ? 'rgb(245, 247, 251)' : 'rgba(0, 0, 0, 0)');
+  for (const code of ['NYG', 'KC', 'LAC', 'PIT', 'TEN', 'CAR']) {
+    const mark = every.getByRole('img', { name: code, exact: true });
+    await expect(mark).toHaveAttribute('data-mark', 'trademark-identification');
+    await expect(mark).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
+    const chip = await mark.locator('img').evaluate(img => {
+      const style = getComputedStyle(img), box = img.getBoundingClientRect(), tile = img.parentElement.getBoundingClientRect();
+      return { background: style.backgroundColor, radius: style.borderTopLeftRadius, square: Math.abs(box.width - box.height) < 0.5, inside: box.left >= tile.left && box.right <= tile.right && box.top >= tile.top && box.bottom <= tile.bottom };
+    });
+    expect(chip, code).toEqual({ background: chipColor(code), radius: '50%', square: true, inside: true });
+  }
 });
 
 test('reduced motion stops the kit\'s motion', async ({ page }) => {

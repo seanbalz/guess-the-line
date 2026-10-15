@@ -94,6 +94,22 @@ async function storeLines(db, state, lines) {
   await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,$2,$3,$4,$5,$6)', [key, season, week, signature, payload, payload.fetchedAt]);
 }
 
+test('a secret used as an object key is a finding too; the viewer\'s own keys stay exempt', () => {
+  // Follow-up to the stage 3 review: only values were scanned, so a distribution keyed by a pick went unseen.
+  const reply = { distribution: { '-6.5': 1, '3': 2 }, byLine: { 'BUF -11.5': 'g1' }, mine: { userId: VIEWER, counts: { '2.5': 1 } } };
+  assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS }).map(f => [f.path, f.found]),
+    [['$.distribution["-6.5"] (key)', '-6.5'], ['$.byLine["BUF -11.5"] (key)', 'BUF -11.5']]);
+  assert.deepEqual(leakScan(reply, { viewer: VIEWER, secrets: SECRETS, exempt: p => p.startsWith('$.distribution') || p.startsWith('$.byLine') }), []);
+  // Ordinary keys (ids, dates, game ids, counts) never read as a half-point secret.
+  assert.deepEqual(leakScan({ '2026-10-11': 1, 'TB-DAL': 2, '00000000-0000-4000-8000-000000000011': 3, '14': 4, 'week6': 5 }, { viewer: VIEWER, secrets: SECRETS }), []);
+});
+
+test('the viewer\'s playerId at the top of a /state or /export reply never exempts the other members in it', () => {
+  // /state carries `playerId` (the viewer's roster id) beside every opponent's pick: it must not act as an owner key.
+  const state = { playerId: VIEWER, mode: 'guess_spread', games: [{ id: 'g1', prediction: -1.5, opponents: [{ id: OTHER, player: OTHER, value: -6.5 }] }] };
+  assert.deepEqual(leakScan(state, { viewer: VIEWER, secrets: SECRETS }).map(f => f.path), ['$.games[0].opponents[0].value']);
+});
+
 test('readersOn: a reader whose migration the hosted project does not have yet runs only on a schema that has it', () => {
   for (const [route, file] of Object.entries(READER_MIGRATIONS)) {
     assert.ok(READERS.some(([r]) => r === route), `${route} is a reader`);
@@ -147,6 +163,15 @@ test('today\'s readers give a viewer who has not sent picks no line and no hidde
   assert.deepEqual(leakScan(after, { viewer: ACCOUNTS.luke.id, secrets: pickSecrets(map(TROY.total), { market: 'total', owner: 'troy' }) }), []);
   assert.ok(leakScan(after, { viewer: ACCOUNTS.luke.id, secrets: pickSecrets(map(TROY.spread), { market: 'spread', owner: 'troy' }) }).length >= 2, 'the revealed Spread picks are found');
   assert.deepEqual(leakScan(after, { viewer: ACCOUNTS.luke.id, secrets: pickSecrets(map(LUKE.spread), { market: 'spread', owner: 'luke' }) }), [], 'his own picks are never a leak');
+  // The group screen too (/state): the scan sees Troy's revealed Spread picks there, so its clean scan above is not vacuous.
+  const groupSpread = await read('luke', READERS.find(([route]) => route === '/state?mode=guess_spread'));
+  assert.ok(leakScan(groupSpread, { viewer: ACCOUNTS.luke.id, secrets: pickSecrets(map(TROY.spread), { market: 'spread', owner: 'troy' }) }).length >= 2, 'the revealed Spread picks are found in /state');
+  // /export and /personal carry Luke's own Spread picks now, with no owner key (leak-scan.mjs: `playerId` is not one), so
+  // the scan sees inside them too; a suite that scans them for their own viewer after a send exempts those paths.
+  for (const route of ['/export', '/personal']) {
+    const reply = await read('luke', READERS.find(([r]) => r === route));
+    assert.ok(leakScan(reply, { viewer: ACCOUNTS.luke.id, secrets: pickSecrets(map(LUKE.spread), { market: 'spread', owner: 'luke' }) }).length >= 2, `the scan sees Luke's own picks in ${route}`);
+  }
   // Lines too: History now shows the Spread line at each of Troy's guesses, and still no Total line.
   const history = await read('luke', READERS[1]);
   assert.ok(leakScan(history, { viewer: ACCOUNTS.luke.id, secrets: lineSecrets(map(LINES.spread), { market: 'spread' }) }).length >= 2, 'the revealed Spread lines are found');

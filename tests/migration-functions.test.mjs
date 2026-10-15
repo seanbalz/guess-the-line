@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { HEADERS_FROM, catalog, checkHeaders, forMigration, md5, parseFunctions, parseHeaders, readMigrations, topLevel } from '../scripts/migration-functions.mjs';
+import { GRANDFATHERED, HEADERS_FROM, catalog, checkCutoff, checkHeaders, checkRepo, forMigration, md5, parseFunctions, parseHeaders, readMigrations, topLevel } from '../scripts/migration-functions.mjs';
 import { ALL } from './migrations.mjs';
 
 // Stage 3 of docs/REDESIGN_BUILD_PLAN.md: every function each migration defines, with the md5 of the body it
@@ -72,6 +72,33 @@ test('every repo migration passes the header check (a stale copy fails here)', (
   assert.ok(cat.files.every(f => f.version <= HEADERS_FROM || f.functions.length === 0 || f.headers.length >= f.functions.filter(x => x.previous).length));
   assert.ok(cat.latest.size >= 90, 'the parser finds every function the migrations define');
   assert.ok(cat.files.some(f => f.version === HEADERS_FROM), 'the cut-off is the newest migration on main at stage 3');
+});
+
+test('a new migration back-dated to the cut-off or before is refused; the grandfathered files are exactly the stage 3 ones', () => {
+  // Follow-up to the stage 3 review: the header and rollback rules exempt files by version, so the exemption is pinned
+  // to the files that were on main at stage 3 (30, with the two extension-only files).
+  const names = fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql'));
+  assert.deepEqual(names.filter(f => Number(f.slice(0, 14)) <= HEADERS_FROM).sort(), [...GRANDFATHERED]);
+  assert.equal(GRANDFATHERED.length, 30);
+  assert.ok(Object.isFrozen(GRANDFATHERED));
+  assert.deepEqual(checkCutoff(names), []);
+  // A file stamped before the cut-off (or at it) that is not one of them fails, wherever it sorts.
+  for (const late of ['20261013050000_gtl_review_probe.sql', `${HEADERS_FROM}_gtl_same_stamp.sql`, '20261001000000_gtl_early.sql']) {
+    assert.match(checkCutoff([...names, late]).join('\n'), new RegExp(`^${late}: stamped at or before the header cut-off`), late);
+  }
+  assert.deepEqual(checkCutoff([...names, `${HEADERS_FROM + 1}_gtl_after.sql`]), []);
+});
+
+test('--check refuses a back-dated migration: one that replaces gtl_pick_points with no header and no rollback', () => {
+  // The reviewer's probe, in memory (never written into supabase/migrations, which other suites read at the same time).
+  const prev = catalog(readMigrations()).latest.get('public.gtl_pick_points');
+  const probe = { file: '20261013050000_gtl_review_probe.sql', sql: prev.statement.replace(prev.body, '\n  select -1::numeric\n').replace(/^create\s+function/i, 'create or replace function') };
+  assert.deepEqual(checkRepo(catalog(readMigrations())), []);
+  const problems = checkRepo(catalog([...readMigrations(), probe]));
+  assert.match(problems.join('\n'), /20261013050000_gtl_review_probe\.sql: stamped at or before the header cut-off/);
+  // Stamped after the cut-off, the same file needs its header instead.
+  const restamped = checkRepo(catalog([...readMigrations(), { ...probe, file: '29991231000000_gtl_review_probe.sql' }]));
+  assert.match(restamped.join('\n'), /29991231000000_gtl_review_probe\.sql: replaces public\.gtl_pick_points .* without the header line/);
 });
 
 test('the CLI drafts the headers and the rollback for a new migration, and --check passes on the repo', t => {

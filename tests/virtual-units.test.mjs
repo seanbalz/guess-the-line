@@ -69,7 +69,7 @@ test('virtual units breaks a same-line tie by the better price, not the price cl
   assert.deepEqual([spread.away.book, spread.away.line, spread.away.odds], ['betmgm', 3.5, -105]);
 });
 
-test('a book missing from the latest snapshot is offered at its newest retained quote, saved picks keep their terms, and only the offered quote saves', async () => {
+test('a book missing from the latest snapshot is offered at its newest retained quote, saved picks keep their terms, and only a book\'s newest retained quote saves', async () => {
   const early = '2099-10-08T12:00:00.000Z', middle = '2099-10-08T14:00:00.000Z', late = '2099-10-08T16:00:00.000Z';
   const market = withHistory(
     snapshotAt('early', early, [spreadQuote('betmgm', early, -2.5, -110, -110)]),
@@ -83,6 +83,7 @@ test('a book missing from the latest snapshot is offered at its newest retained 
   assert.deepEqual([spread.away.book, spread.away.line, spread.away.observedAt], ['betmgm', 4, middle]);
   assert.deepEqual([spread.home.book, spread.home.line, spread.home.observedAt], ['draftkings', -3.5, late]);
   assert.deepEqual(body.games[0].consensus.spread, { value: -3.75, source: 'Latest retained named-book median', books: 2, observedAt: middle });
+  // The read passes saved picks through untouched (decorate() never rewrites them), whatever the offers are now.
   assert.deepEqual(body.picks, [savedPick], 'a saved pick keeps its own line, odds, book and time');
   const stale = await place(handler, { gameId: game.id, market: 'spread', side: 'away', line: 2.5, odds: -110, units: 1, source: 'betmgm', quotedAt: early });
   assert.equal(stale.status, 409);
@@ -90,6 +91,25 @@ test('a book missing from the latest snapshot is offered at its newest retained 
   const fresh = await place(handler, { gameId: game.id, market: 'spread', side: 'away', line: 4, odds: -110, units: 1, source: 'betmgm', quotedAt: middle });
   assert.equal(fresh.status, 200);
   assert.deepEqual(getSaved().body, { gameId: game.id, market: 'spread', side: 'away', line: 4, odds: -110, units: 1, source: 'BetMGM', quotedAt: middle });
+  // Not only the best offer: any book's newest retained quote for the side saves (DraftKings away +3.5 here, behind
+  // BetMGM's +4). That is the old D-18 behaviour; the stage 20 line lock does not change it.
+  const other = await place(handler, { gameId: game.id, market: 'spread', side: 'away', line: 3.5, odds: -110, units: 1, source: 'draftkings', quotedAt: late });
+  assert.equal(other.status, 200);
+});
+
+test('/virtual-pick: a retained quote that prices only one side refuses the other side with 409, never a server error', async () => {
+  // Follow-up to the stage 14 review: /virtual-units guarded a missing side, but /virtual-pick read q.outcomes[side].line.
+  const at = '2099-10-08T18:00:00.000Z';
+  const oneSided = { ...spreadQuote('draftkings', at, -3.5, -110, -110), outcomes: { home: { line: -3.5, odds: -110 } } };
+  const { handler, getSaved } = make({ market: withHistory(snapshotAt('one', at, [oneSided])) });
+  const { spread } = (await readOffers(handler)).games[0].offers;
+  assert.equal(spread.away, null);
+  assert.equal(spread.home.book, 'draftkings');
+  const away = await place(handler, { gameId: game.id, market: 'spread', side: 'away', line: 3.5, odds: -110, units: 1, source: 'draftkings', quotedAt: at });
+  assert.equal(away.status, 409, JSON.stringify(await away.clone().json()));
+  assert.equal(getSaved(), null);
+  const home = await place(handler, { gameId: game.id, market: 'spread', side: 'home', line: -3.5, odds: -110, units: 1, source: 'draftkings', quotedAt: at });
+  assert.equal(home.status, 200);
 });
 
 test('a quote observed at or after kickoff never becomes the offer; the book keeps its last quote before kickoff', async () => {

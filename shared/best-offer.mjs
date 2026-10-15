@@ -20,6 +20,10 @@ const time = value => {
 const americanOdds = value => Number.isInteger(value) && Math.abs(value) >= 100;
 const byKey = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const newer = (a, b) => (a === b ? 0 : a > b ? -1 : 1);
+const SIDES = Object.freeze({ spread: Object.freeze(['home', 'away']), total: Object.freeze(['over', 'under']) });
+
+/** Whether an offer can compete at all: a book key, a finite line and valid American odds. */
+export const usableOffer = offer => Boolean(offer) && typeof offer.book === 'string' && Number.isFinite(offer.line) && americanOdds(offer.odds);
 
 /** Decimal payout per unit staked, stake included: +100 → 2, −110 → 1.909…, +150 → 2.5. */
 export function decimalPayout(odds) {
@@ -35,9 +39,12 @@ function linePoints(market, side, a, b) {
 
 /**
  * Comparator for one side of one market: the better offer sorts first.
- * Offers carry `{ book, line, odds, observedAt }`.
+ * Offers carry `{ book, line, odds, observedAt }` and must be usable (`usableOffer`): bestOffer filters before it
+ * sorts, and a caller that sorts its own list (the Lines tab) filters the same way first, since an invalid price
+ * has no payout to compare. An unknown market or side throws instead of reading as a spread.
  */
 export function compareOffers(market, side) {
+  if (!SIDES[market]?.includes(side)) throw new TypeError(`Unknown market side: ${market} ${side}.`);
   return (a, b) => linePoints(market, side, b.line, a.line)
     || decimalPayout(b.odds) - decimalPayout(a.odds)
     || newer(time(a.observedAt), time(b.observedAt))
@@ -46,9 +53,8 @@ export function compareOffers(market, side) {
 
 /** The best offer for one side of one market, or null. Offers without a finite line or valid American odds never count. */
 export function bestOffer(offers, market, side) {
-  const usable = (Array.isArray(offers) ? offers : [])
-    .filter(offer => offer && typeof offer.book === 'string' && Number.isFinite(offer.line) && americanOdds(offer.odds));
-  return usable.sort(compareOffers(market, side))[0] || null;
+  const compare = compareOffers(market, side);
+  return (Array.isArray(offers) ? offers : []).filter(usableOffer).sort(compare)[0] || null;
 }
 
 /**

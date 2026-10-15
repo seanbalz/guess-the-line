@@ -4,6 +4,7 @@
 import { ComingNext } from './Frame.jsx';
 import { MenuSheet } from '../me/MenuSheet.jsx';
 import { SwitcherSheet } from '../league/SwitcherSheet.jsx';
+import { Home } from '../home/Home.jsx';
 import { LinesBoard } from '../lines/LinesBoard.jsx';
 import { GameSheet } from '../lines/GameSheet.jsx';
 import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
@@ -12,7 +13,7 @@ const coming = tab => Object.assign(() => <ComingNext tab={tab}/>, { displayName
 
 /** Each tab's screen. Until a tab's stage arrives it shows its "coming next" card. */
 export const SCREENS = Object.freeze({
-  home: coming('home'),
+  home: Home, // stage 12: read-only Home (the hero, who's in and the rank tiles)
   play: coming('play'),
   bets: coming('bets'),
   lines: LinesBoard, // stage 13: read-only Lines and game sheet

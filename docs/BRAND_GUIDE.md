@@ -86,7 +86,7 @@ The selected original logo and app icon are implemented. The broader component l
 The user requested a working Light option alongside Dark and System. This is a functional exception to waiting for final visual selection, not approval of the final brand identity. Dark remains the default. The preference is saved per browser/device, not synchronized to the game account. Light uses the existing print-paper white and print-ink navy, with pale surfaces; lime action fills retain dark text. `themes.light.primaryForeground` supplies dark green for readable accent text; cyan, win, loss, pending and tie foregrounds are darkened for contrast on light surfaces. Both themes use shared semantic tokens and respect the device choice only when System is selected. The five-option identity review remains open.
 
 ## D-38 redesign system (the new app) — October 14, 2026
-Status: approved. Sean approved the redesign prototype (canvas version 2) on October 14, 2026 (D-38) and asked for it as soon as possible (D-39). This section is the brand system for the new app in `web/src/next/`, built beside the old app. Where it differs from the sections above, it governs the new app only. The old app keeps the sections above and `design/tokens.json` until the flip (build plan stage 80); `design/tokens.json` is retired only when nothing uses it (stage 81).
+Status: the prototype is approved; this written section awaits Sean's review (build plan stage 6). Sean approved the redesign prototype (canvas version 2) on October 14, 2026 (D-38) and asked for it as soon as possible (D-39). This section is the brand system for the new app in `web/src/next/`, built beside the old app. Where it differs from the sections above, it governs the new app only. The old app keeps the sections above and `design/tokens.json` until the flip (build plan stage 80); `design/tokens.json` is retired only when nothing uses it (stage 81).
 
 Sources of truth, in this order:
 - `design/tokens-next.json`: every value (colors per theme, type scale, spacing, radii, motion, layers, avatar fills, the font link).
@@ -100,7 +100,7 @@ Sources of truth, in this order:
 - **Violet means live** (`#D08CFF` dark, `#7B2CBF` light), for games in progress only. It is the color most distinct from loss for color-blind players.
 - **Loss** is `#FC7C8E` in dark. The separate tie color retires: a push uses pending plus the word PUSH.
 - **Radii** 6 / 10 / 16 / 24 / pill (the old 12 card and 8 control radii stay in the old app).
-- **12px floor** for uppercase status pills, tags and counters only. Reading text and every tappable label are 16px; meta is 13px.
+- **12px floor** for uppercase status pills, tags and counters, and the initials in a 24px avatar, only. Reading text and every tappable label are 16px; meta is 13px.
 
 ### Palette
 Tints are solid colors (the state color mixed into surface-1), so contrast is predictable. Never put white text on a colored fill; text on lime is always `accent-text`.
@@ -177,7 +177,7 @@ Every number style sets `font-variant-numeric: tabular-nums` after its font, bec
 Durations: tap 100ms, quick 160ms, base 240ms (sheets in), exit 200ms, big 600ms (bursts, count-ups, at most), pulse 1800ms (the LIVE dot, the only loop). Easing: standard, enter, exit and pop (a small overshoot for selections, saves and wins). Only transform and opacity animate. Motion explains a change; saves get a small moment, verified wins a big one, losses stay quiet; one big moment at a time and never on page load; never more than 3 flashes a second. Reduced motion (the device setting, or `data-motion="reduce"` on the app root) stops every animation and transition; numbers show their final value.
 
 ### Themes, contrast and other modes
-- Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.16 to 1.32:1 (the edge is 7.06:1 on white).
+- Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.07 to 1.32:1 (1.07 on surface-3, 1.32 on white; the edge is 7.06:1 on white).
 - Checked on the token values for both themes (`tests/next-tokens.test.mjs`): at least 4.5:1 for every text and icon color on every surface and on your-row tint, each state color and `text-1`/`text-2` on the state tints, text on lime and on solid state fills; at least 3:1 for control outlines, the focus ring and the edge of a lime fill. Lowest text pairs: dark `text-3` on your-row tint 4.80, light `win` on surface-3 4.87. Lowest outline: light `border-strong` on surface-3 3.39. Avatar initials 9.41 (Iris) to 13.94 (Butter).
 - Known limits, handled by rule 7: win and lime are close in lightness, live and loss are similar in lightness, and the `border` hairline is decorative.
 - Forced colors (Windows high contrast): controls draw a real border; selected chips, odds buttons and segments use Highlight.

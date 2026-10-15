@@ -138,8 +138,8 @@ test('confused: week published but not open yet (D-24)', async ({ page, persona 
 test('confused: one market submitted, the other sat out', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   await persona.start({ games: 3 });
-  // The player submitted Spread from another device and never touched Total. Troy submitted Total (D-23 hides his numbers from Ben
-  // until Ben submits Total or sits out); Luke submitted nothing.
+  // The player submitted Spread from another device and never touched Total. Troy submitted Total; M-01 (D-39) hides his numbers
+  // from Ben until Ben submits Total or sits out (D-23), or until each game's kickoff opens that game. Luke submitted nothing.
   await persona.saveBallot('guess_spread', { 'TB-DAL': -3, 'PHI-JAX': 2.5, 'CIN-MIA': -1 }, true);
   await submitAs(persona, id(2), 'guess_total', { 'TB-DAL': 44, 'PHI-JAX': 47.5, 'CIN-MIA': 41 });
   await persona.signIn();
@@ -153,7 +153,10 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   const picks = await post.locator('.post-picks').innerText();
   persona.finding({ screen: 'feed-half-done', severity: 3, experience: `The feed post for the submission lists the picks as "${picks.replace(/\n/g, ' / ')}" using team codes ("TB @ DAL") and "Cowboys −3", while the Picks tab uses full names and the leaderboard uses the player's name only. The card reads "${card.replace(/\n/g, ' · ')}".`, fix: 'Use one team naming scheme across feed, picks and leaderboard (code + nickname).', evidence: { picks } });
   const troyTotal = page.locator('.feed-post').filter({ hasText: 'Troy Fixture submitted Week 5 Total picks' });
-  await expect(troyTotal).toContainText('Submit your Week 5 Total picks to see these');
+  // M-01 (D-39, hosted since October 14, 2026): each game opens at its own kickoff, or once Ben submits Total or sits out; the
+  // deadline alone opens nothing, so the hidden post names both ways in.
+  const hiddenTotal = "Submit your Week 5 Total picks to see these, or wait for each game's kickoff.";
+  await expect(troyTotal.locator('.post-picks-hidden')).toHaveText(hiddenTotal);
   // "Make picks" opens the first market still due: Total, with Spread shown as submitted.
   await page.locator('.picks-due').getByRole('button', { name: 'Make picks' }).click();
   await expect(page.locator('.week-pick').first()).toBeVisible();
@@ -246,7 +249,9 @@ test('confused: one market submitted, the other sat out', async ({ page, persona
   expect(totalCell).toBe('Sat out');
   // The D-23 reveal reaches the feed too: Troy's Total post now carries his numbers.
   await expect(troyTotal.locator('.post-picks')).toContainText('44');
-  await expect(troyTotal).not.toContainText('Submit your Week 5 Total picks to see these');
+  // M-01 (D-39) counts a sit-out as open: every game of the post shows and the hidden note is gone.
+  await expect(troyTotal).not.toContainText(hiddenTotal);
+  await expect(troyTotal.locator('.post-picks-hidden')).toHaveCount(0);
   await persona.shot('feed-sat-out');
   persona.finding({ screen: 'feed-sat-out', severity: 4, experience: 'After sitting out Total the picks-due card disappears entirely and the leaderboard shows "Sat out" in the Total week column with a footnote. Nothing on the feed records that the player sat out (no post), so the act is invisible to everyone else until the leaderboard is read.', fix: 'Post "Ben sat out Week 5 Total" to the feed like a submission, so the reveal to others is explained.' });
   expect(await persona.noOverflow()).toBe(true);

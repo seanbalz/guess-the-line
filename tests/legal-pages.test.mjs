@@ -52,6 +52,8 @@ test('the legal pages are self-contained, accurate on the essentials and use onl
   assert.doesNotMatch(privacy, /anonymous label|anonymi[sz]e/i, 'D-42: deletion never swaps the name for an anonymous label');
   const terms = fs.readFileSync(path.join(pub, 'terms.html'), 'utf8');
   for (const phrase of ['not a sportsbook', 'may be wrong, delayed or missing', 'as is']) assert.ok(terms.includes(phrase), `terms mentions ${phrase}`);
+  // D-46: the official team logos carry their trademark notice.
+  assert.ok(terms.includes('NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.'), 'terms carries the D-46 trademark notice');
 });
 
 test('the frontend email guard allows a contact address only as a mailto: link on the top-level legal pages', () => {

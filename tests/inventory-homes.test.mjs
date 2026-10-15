@@ -2,6 +2,7 @@
 // home table names exists in docs/REDESIGN_BUILD_PLAN.md and was not dropped by D-39.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -68,7 +69,9 @@ const rows = homeRows();
 const byRow = new Map(rows.map(entry => [entry.row, entry]));
 const stagesTitled = pattern => [...stages].filter(([, title]) => pattern.test(title)).map(([number]) => number);
 const historyStages = stagesTitled(/^History\b/);
+const historyScreens = stagesTitled(/^History: /);
 const commissionerStages = stagesTitled(/commissioner/i);
+const nativeCommissioner = stagesTitled(/^Native commissioner pages$/);
 const retireStages = stagesTitled(/^Retire the old app$/);
 const myBetsStages = stagesTitled(/\bMy bets\b/);
 
@@ -76,13 +79,27 @@ test('the plan lists stages 1 to 81, each once', () => {
   assert.deepEqual([...stages.keys()].sort((a, b) => a - b), Array.from({ length: PLAN_STAGES }, (_, i) => i + 1));
   assert.equal(stages.get(5), 'Inventory home table');
   assert.deepEqual(historyStages, [72, 73, 74]);
+  assert.deepEqual(historyScreens, [73, 74]);
   assert.deepEqual(commissionerStages, [77, 78]);
+  assert.deepEqual(nativeCommissioner, [78]);
   assert.deepEqual(retireStages, [81]);
   assert.deepEqual(myBetsStages, [45]);
 });
 
 test('rows 1 to 191 each appear once, in order', () => {
   assert.deepEqual(rows.map(entry => entry.row), Array.from({ length: INVENTORY_ROWS }, (_, i) => i + 1));
+});
+
+test('the inventory is committed as read, and every row repeats its item name', () => {
+  // Follow-up to the stage 5 review: the inventory lived only with the prototype sources, so a renamed row passed.
+  const inventory = read('docs/redesign/INVENTORY.md');
+  assert.equal(createHash('sha256').update(inventory).digest('hex'), 'b8c4f7925841fb3c45d64f38fe6d9f81bee639c5ea7963692290e07e347e28b8', 'docs/redesign/INVENTORY.md is the inventory as read; never edit it');
+  assert.match(homesDoc, /sha256 `b8c4f7925841fb3c45d64f38fe6d9f81bee639c5ea7963692290e07e347e28b8`/);
+  // Its item rows have 8 cells (#, Item, Source, Shows / does, Who, D-35 home, Treatment, Note); the counts tables do not.
+  const items = new Map(inventory.split('\n').filter(line => /^\| \d+ \|/.test(line)).map(tableCells).filter(cells => cells.length === 8)
+    .map(([row, item]) => [Number(row), item]));
+  assert.deepEqual([...items.keys()], Array.from({ length: INVENTORY_ROWS }, (_, i) => i + 1));
+  for (const entry of rows) assert.equal(entry.item, items.get(entry.row), `row ${entry.row} names "${entry.item}", the inventory "${items.get(entry.row)}"`);
 });
 
 test('every row has a home: one of the four kinds, a stage, a place and a data note', () => {
@@ -107,11 +124,31 @@ test('every stage a row names exists in the plan and was not dropped by D-39', (
   }
 });
 
+test('rows that wait on a dropped stage through the plan\'s build order are named in the D-39 section', () => {
+  // Follow-up to the stage 5 review: no row names stage 49, but the feed rows name 64 and 65, which build after
+  // stage 61, which still builds after 49 (the tester list D-39 dropped). Until Sean names the gate that replaces it,
+  // those rows are listed as waiting; when the plan changes, this list changes with it.
+  const after = new Map();
+  for (const line of section(plan, '## 7. Stages').split('\n')) {
+    const cells = /^\| \d+ \|/.test(line) ? tableCells(line) : null;
+    if (cells && cells.length >= 5) after.set(Number(cells[0]), (cells[4].match(/\d+/g) || []).map(Number));
+  }
+  const closure = stage => { const seen = new Set(), todo = [stage]; while (todo.length) for (const next of after.get(todo.pop()) || []) if (!seen.has(next)) { seen.add(next); todo.push(next); } return seen; };
+  const dropped = droppedStages();
+  const waiting = rows.filter(entry => entry.stages.some(stage => [...closure(stage)].some(s => dropped.has(s)))).map(entry => entry.row);
+  assert.deepEqual(waiting, [27, 28, 29, 30, 31]);
+  const d39 = section(homesDoc, '## D-39 applied');
+  assert.match(d39, /rows 27 to 31/);
+  assert.match(d39, /stage 61/);
+});
+
 test('History rows name a History stage, commissioner rows a commissioner stage, and only cut rows the retire stage', () => {
   const names = (entry, wanted) => entry.stages.some(stage => wanted.includes(stage));
   for (const entry of rows) {
-    if (entry.home === 'History') assert.ok(names(entry, historyStages), `History row ${entry.row} names none of ${historyStages}`);
-    if (entry.home === 'Commissioner') assert.ok(names(entry, commissionerStages), `commissioner row ${entry.row} names none of ${commissionerStages}`);
+    // A History row needs a History screen (73 or 74), not only the History server (72), which shows nothing.
+    if (entry.home === 'History') assert.ok(names(entry, historyScreens), `History row ${entry.row} names none of ${historyScreens}`);
+    // A commissioner row needs its native page (78): stage 77 only links to old screens, which leave at stage 81.
+    if (entry.home === 'Commissioner') assert.ok(names(entry, nativeCommissioner), `commissioner row ${entry.row} must name stage ${nativeCommissioner}`);
     if (entry.home === CUT) assert.ok(names(entry, retireStages), `cut row ${entry.row} must name stage ${retireStages}, when its old screen leaves`);
     // Every other home must be live before the flip, so it can never wait on the retire stage.
     else assert.ok(!names(entry, retireStages), `row ${entry.row} is not cut, so it cannot wait on stage ${retireStages}`);
@@ -139,6 +176,13 @@ test('the rows the plan names in stage 5 have the homes it gives them', () => {
   }
   // Tracker filters, metrics, charts and Compare (D-36), and the Design lab: cut, data kept.
   for (const row of [154, 155, 156, 161, 191]) assert.equal(byRow.get(row).home, CUT, `row ${row} is cut, data kept`);
+});
+
+test('D-39: no row puts a market-level send in the new app; the sending rows say lock in', () => {
+  for (const entry of rows) {
+    assert.doesNotMatch(entry.place, /\bsent picks\b|review & submit|\bsubmit\b|\bsend\b/i, `row ${entry.row}: the new app locks in each game's pick (D-39), it has no market-level send`);
+  }
+  for (const row of [43, 52, 114]) assert.match(byRow.get(row).place, /\block(?:ed)?[- ]in\b/i, `row ${row} says how a pick is locked in`);
 });
 
 test('D-39: the journal is read-only in History and never in My bets', () => {

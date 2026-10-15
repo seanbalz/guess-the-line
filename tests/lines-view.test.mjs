@@ -183,7 +183,9 @@ test('team records in words with the file\'s date (DP-16); another season shows 
   const words = L.recordsInWords(records, 2026, game);
   const r = code => records.teams[code].overall;
   assert.equal(words.text, `Seahawks ${r('SEA').w}–${r('SEA').l} · Broncos ${r('DEN').w}–${r('DEN').l}`);
-  assert.equal(words.asOf, 'Records as of Thu Oct 8');
+  // The label follows the file's own retrieval time (Pacific date); pinned on a fixture copy so a weekly refresh of the file does not break it.
+  assert.match(words.asOf, /^Records as of (Mon|Tue|Wed|Thu|Fri|Sat|Sun) [A-Z][a-z]{2} \d{1,2}$/);
+  assert.equal(L.recordsInWords({ ...records, retrieved_at: '2026-10-09T03:00:00.000Z' }, 2026, game).asOf, 'Records as of Thu Oct 8');
   assert.equal(L.recordsInWords(records, 2025, game), null);
   assert.equal(L.recordsInWords({ ...records, teams: { ...records.teams, SEA: { overall: { w: 3, l: 1, t: 1 } } } }, 2026, game).text.split(' · ')[0], 'Seahawks 3–1–1');
   assert.equal(L.recordsInWords(null, 2026, game), null);

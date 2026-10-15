@@ -95,7 +95,9 @@ function needNow(now) {
  * @param {{value?: number|null, lockedAt?: string|number|null, late?: {minutes?: number}|null}|null} [input.entry]
  *   this player's own pick; `late` is the Late marker the server stored (never derived here: a commissioner
  *   ruling can make a later save on time, D-25)
- * @param {{reason?: string, at?: string|number}|null} [input.forfeit] this market's forfeit for the week
+ * @param {{reason?: string, at?: string|number}|null} [input.forfeit] this market's forfeit for the week. Pass the
+ *   server's `at` (when the skip, "See picks now" or sit-out was recorded): a game that had closed before then stays
+ *   "closed", and without `at` nothing can tell, so every game reads as forfeited
  * @param {string|number|Date} input.now
  * @param {{sentFinal: boolean, lateWindow: string}} [input.rules] the server's live rules
  */
@@ -184,7 +186,7 @@ const byKickoff = (a, b) => {
  * @param {'spread'|'total'} input.market
  * @param {Array<{id: string, kickoff: string|number}>} input.games the week's games
  * @param {Record<string, object>} [input.entries] this player's entries by game id
- * @param {object|null} [input.forfeit] this market's forfeit for the week
+ * @param {object|null} [input.forfeit] this market's forfeit for the week, with the server's `at` (see guessState)
  */
 export function marketSummary({ market, games = [], entries = {}, forfeit = null, deadline = null, now, rules } = {}) {
   if (!MARKETS.includes(market)) throw new TypeError(`Unknown market ${market}.`);

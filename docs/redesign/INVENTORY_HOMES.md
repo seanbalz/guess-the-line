@@ -1,6 +1,6 @@
 # Inventory homes for the redesign
 
-Owner: Sean Balsiger · Version 1 · October 14, 2026
+Owner: Sean Balsiger · Version 2 · October 14, 2026
 Status: planning record for stage 5 of [the redesign build plan](../REDESIGN_BUILD_PLAN.md). Nothing in this file is built, applied or deployed.
 
 ---
@@ -9,7 +9,7 @@ Status: planning record for stage 5 of [the redesign build plan](../REDESIGN_BUI
 
 D-23: nothing a player entered is deleted, moved or hidden. The old app retires at stage 81, so every item on today's screens needs a home in the new app first. This table gives each of the 191 items in the feature inventory of today's app (October 13, 2026, read at `cecff9e` on `claude/d35-dashboard-redesign`) one home now, so no stage finds a missing screen at cut-over.
 
-The inventory itself is kept with the prototype sources. Each row below repeats its number and item name, so this table can be checked on its own.
+The inventory itself is [INVENTORY.md](INVENTORY.md), committed byte for byte as it was read (sha256 `b8c4f7925841fb3c45d64f38fe6d9f81bee639c5ea7963692290e07e347e28b8`; `tests/inventory-homes.test.mjs` pins it). Each row below repeats its number and item name, and the test checks every name against the inventory, so a renamed or swapped row fails.
 
 ## How to read it
 
@@ -26,8 +26,8 @@ The inventory itself is kept with the prototype sources. Each row below repeats 
 ## D-39 applied
 
 - **Journal (rows 168 to 171):** read-only in History (stage 74). The new app has no form to add or correct a journal record. My bets (stage 45) holds Virtual Units bets and challenges only.
-- **Tester list:** stage 49 and M-14 are dropped. No row depends on them. "Try the new app" shows to every signed-in member (stage 9).
-- **Per-game lock-in:** rows about sending picks (43, 52, 113, 114, 125) follow the D-39 section of the plan: each game's guess is final once locked in, and that opens its line and friends' guesses for that market.
+- **Tester list:** stage 49 and M-14 are dropped. No row names them, and "Try the new app" shows to every signed-in member (stage 9). One chain still reaches them: rows 27 to 31 (the feed) name stages 64 and 65, which build after stage 61, and the plan still lists stage 61 (append-only reactions) as building after 49 and live after M-14, with non-heart reactions behind the tester gate until the flip. D-39 names no gate to replace it; that is an open question for Sean (for example `new_social_open` alone), and those rows are not done until it is answered.
+- **Per-game lock-in:** rows about sending picks (43, 52, 113, 114, 125) follow the D-39 section of the plan: each game's guess is final once locked in, and that opens its line and friends' guesses for that market. The plan's stage 29 text still says "Review & submit" and "Sent picks are final."; the D-39 section wins, so these rows say "lock in". Picks a player sent as a whole market before D-39 stay stored as sent ballots.
 - **Real slips:** dollar stakes on new slips; old slips keep their units; a tail asks to confirm and has no undo (rows 157, 160).
 
 ## Rows this table adds to a stage's scope
@@ -47,7 +47,7 @@ These homes are not spelled out in the stage text yet. The stage that builds the
 The cut-over checklist (plan section 10) ticks the D-23 audit when every row is done:
 
 - a `Stage`, `History` or `Commissioner` row is done when every stage it names has merged and is live;
-- a `Cut, data kept` row is done when its Data kept entries are readable where it says; stage 81 then removes the old screen.
+- a `Cut, data kept` row is done when its Data kept entries are readable where it says and every stage it names other than 81 (the one that takes over its job, such as How to play at stage 30) is live; stage 81 then removes the old screen.
 
 When a later stage moves a home, it updates the row in the same PR. `tests/inventory-homes.test.mjs` checks that rows 1 to 191 each have a home and that every stage named exists in the plan.
 
@@ -126,16 +126,16 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 40 | Not-open notice | Stage | 28, 36 | "Week 7 opens Mon 12:00 AM PT" on Home and as Play's empty state | None |
 | 41 | Sat-out notice | Stage | 30, 73 | Play's sat-out state; "Skipped" in History | Every sit-out, with its reason |
 | 42 | Closed-week notice | Stage | 30, 36 | "Closed at kickoff" rows in Play; Home after the last kickoff | None |
-| 43 | Submit receipt | Stage | 29 | Play save moment: "Sent picks are final." | Submission times (D-16) |
+| 43 | Submit receipt | Stage | 29 | Play save moment, per game: "Locked-in picks are final." (D-39) | Submission and lock-in times (D-16) |
 | 44 | Unsaved picks recovery card | Stage | 28, 29 | Drafts save themselves; a failed save keeps the typed values | Drafts on the server; the old tab copy stays in the old app until stage 81 |
 | 45 | Chip help tip | Stage | 28 | Up next card: "Tap a number" | None |
 | 46 | Game pick card header | Stage | 28 | Up next card: matchup and kickoff | None |
 | 47 | Team records line | Stage | 13 | Game sheet header: team records in words (DP-16) | None |
 | 48 | Line at your guess | Stage | 31 | Your pick sheet (`sh.yourPick`): "Line at your guess", "First line after submission" or "Line pending" | Every saved line at the guess (D-27) |
-| 49 | Chip picker | Stage | 28 | Up next card chips and the ± readout | Picks, as drafts and sent ballots |
+| 49 | Chip picker | Stage | 28 | Up next card chips and the ± readout | Picks, as drafts, locked-in picks and older sent ballots |
 | 50 | Revealed picks (after sit-out) | Stage | 31 | Everyone's picks (`sh.everyone`) | Other players' picks, under the per-game reveal |
 | 51 | Per-game Trends button | Stage | 13, 34 | Game sheet trends; All trends | None |
-| 52 | Sticky save bar | Stage | 28, 29 | Play dock: left to pick, Review & submit; errors keep the typed values | Drafts and sent ballots with every revision (D-16) |
+| 52 | Sticky save bar | Stage | 28, 29 | Play dock: left to pick, then lock in game by game (D-39); errors keep the typed values | Drafts, locked-in picks and older sent ballots, with every revision (D-16) |
 | 53 | Sit out this week | Stage | 30 | Skip dialog (`dlg.sitOut`) and See picks now (`dlg.revealForfeit`) | Every sit-out (D-23) and forfeit record |
 
 ### E. Community History tab (`CommunityHistory.jsx`)
@@ -213,11 +213,11 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 107 | Open analysis / Compare picks buttons | Stage | 31, 32 | Everyone's picks; Edge board | None |
 | 108 | Weekly ballot note | Cut, data kept | 30, 81 | How to play says picks count in every league | None |
 | 109 | Deadline callout | Stage | 28, 30 | Play section head; the late card | None |
-| 110 | Save-check and recovery panels | Stage | 11, 29 | An unconfirmed save keeps the typed values; a 409 keeps them too | Drafts and sent ballots |
+| 110 | Save-check and recovery panels | Stage | 11, 29 | An unconfirmed save keeps the typed values; a 409 keeps them too | Drafts, locked-in picks and older sent ballots |
 | 111 | Search, filter, trends toggle | Stage | 28 | Still-to-pick rows do the Missing filter's job; search and the trends toggle go | None |
 | 112 | Picks table | Stage | 28, 31, 32 | Play game card; Everyone's picks; Edge board | Picks |
-| 113 | Save state and save bar | Stage | 28, 29 | Play dock | Drafts and sent ballots with every revision |
-| 114 | Review & submit dialog | Stage | 29 | Review sheet (`sh.review`) | None |
+| 113 | Save state and save bar | Stage | 28, 29 | Play dock | Drafts, locked-in picks and older sent ballots, with every revision |
+| 114 | Review & submit dialog | Stage | 29 | Lock-in sheet (the prototype's `sh.review`): each game's pick locks in on its own (D-39) | None |
 | 115 | Mode tabs | Stage | 28, 74 | Spread / Total switch; Betting Challenge in History | None |
 | 116 | Betting Challenge screen | History | 74 | Me › History › Betting Challenge · retired, every player's record | Every Betting Challenge selection and result |
 | 117 | Record Challenge selection dialog | History | 74 | No new selections (D-35); recorded selections read-only in History | Every recorded selection with its quote |

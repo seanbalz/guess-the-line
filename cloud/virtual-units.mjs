@@ -141,7 +141,8 @@ export async function handleVirtualUnits({ route, body, user, leagueId, service,
     throw new VirtualUnitsError(ERRORS.GTL_LINE_LOCKED[0], lineLockedSentence(pick.market, await rules));
   }
   const snapshot = await odds.marketSnapshot(user.id, leagueId).catch(() => null);
-  const offered = latestQuotes(snapshot, game, pick.market).flatMap(q => [pick.side].map(side => ({ ...q, line: Number(q.outcomes[side].line), odds: Number(q.outcomes[side].odds) })));
+  // A retained quote may price only one side (bestOffers guards the same way): the other side never matches, so it is a 409.
+  const offered = latestQuotes(snapshot, game, pick.market).map(q => ({ ...q, line: Number(q.outcomes?.[pick.side]?.line), odds: Number(q.outcomes?.[pick.side]?.odds) }));
   const matched = offered.some(q => q.source === pick.source && q.line === pick.line && q.odds === pick.odds && q.observedAt === pick.quotedAt);
   if (!matched) throw providerVirtualError('GTL_VIRTUAL_QUOTE');
   const revision = state.revision;

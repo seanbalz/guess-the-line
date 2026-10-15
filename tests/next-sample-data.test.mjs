@@ -14,8 +14,9 @@ const TEXT = new Set(['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.css', '.js
 // The prototype's sample league names and people (and their ids), matched as whole words in any case.
 const SAMPLE_NAMES = Object.freeze(['Sunday Crew', 'Office Pool', 'sundayCrew', 'officePool', 'Marcus', 'Priya', 'Jules', 'Kenny', 'Dre', 'Tom']);
 const NAME_PATTERN = new RegExp(`\\b(${SAMPLE_NAMES.map(n => n.replace(' ', '\\s+')).join('|')})\\b`, 'gi');
-// A module specifier, stylesheet or script path that ends in the prototype's data file.
-const DATA_IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*|@import\s+(?:url\()?\s*|\bsrc\s*=\s*|\bnew\s+URL\s*\(\s*)['"`]([^'"`]*\bdata\.js)['"`]/g;
+// A module specifier, stylesheet or script path whose file is the prototype's data file (`data.js` itself, not
+// `team-data.js` or `week.data.js`).
+const DATA_IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*|@import\s+(?:url\()?\s*|\bsrc\s*=\s*|\bnew\s+URL\s*\(\s*)['"`]((?:[^'"`]*\/)?data\.js)['"`]/g;
 // The prototype's global, or a path into its build folder.
 const DATA_GLOBAL = /\b(?:const|let|var)\s+DATA\s*=|\bDATA\s*(?:\.|\[)|\bgen-data\.mjs\b|\bsample-data\.json\b|\bproto\/build\b/g;
 
@@ -44,6 +45,8 @@ test('the guard catches each way sample data could get in', () => {
     'import { games } from "./data.js";',
     "const sample = await import('./data.js');",
     "const { people } = require('../data.js');",
+    "import 'data.js';",
+    '@import url("./styles/../data.js");',
     '<script src="./data.js"></script>',
     "const DATA = { people: [] };",
     'DATA.games.map(g => g.id)',
@@ -71,6 +74,10 @@ test('the guard leaves ordinary code alone', () => {
     "const address = 'Sunday'; const crew = 'Pool';",
     'Tomorrow at 5:15 PM PT',
     "const updatedAt = row.data.updatedAt;",
+    // Follow-up to the stage 7 review: a module whose name only ends in "data.js" is not the prototype's file.
+    "import { TEAMS } from './team-data.js';",
+    "import week from './week.data.js';",
+    "const rows = await import('../odds_data.js');",
   ];
   for (const text of fine) assert.deepEqual(sampleDataFindings(text), [], text);
 });

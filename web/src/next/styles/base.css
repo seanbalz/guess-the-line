@@ -94,11 +94,16 @@
 .gx :where(button):hover:not(:disabled) {
   filter: none;
 }
+/* This reset clears every `transform` on a pressed button, so center or nudge with the `translate`, `rotate` and
+   `scale` properties instead; the press scale in components.css is the one transform a gx- button sets. */
 .gx :where(button):active:not(:disabled) {
   transform: none;
 }
 .gx :where(input, select, textarea) {
   margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
   color: inherit;
   font: inherit;
   font-size: 16px;
@@ -139,8 +144,14 @@
   gap: normal;
   min-height: auto;
 }
-/* styles.css hides footer > span:nth-child(2) below 960px (0,1,2); nothing in the new app is hidden
-   that way (D-23). Lay out footer children with a div, since this rule wins over a class on a span. */
+/* styles.css lays out footer > span as a flex row (0,0,2) and hides footer > span:nth-child(2) below 960px
+   (0,1,2); nothing in the new app is hidden that way (D-23). Lay out footer children with a div, since the
+   second rule here wins over a class on a span. */
+.gx :where(footer) > :where(span) {
+  display: revert;
+  gap: normal;
+  align-items: normal;
+}
 .gx :where(footer) > :where(span):nth-child(2) {
   display: revert;
 }
