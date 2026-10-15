@@ -130,6 +130,8 @@ test('weather on every game: Indoors for a dome and for SoFi, and "Roof may clos
   const fake = stub();
   const world = await communityWorld(page, baseURL, { games: 3, prepare: week6(['BUF-LV', 'ARI-LAR', 'CHI-ATL']), troyBallots: false, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }) });
   await signIn(page, 'luke');
+  // signIn only clicks the button: wait until the session is stored, or the reload below can cancel the sign-in.
+  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
   for (const theme of ['light', 'dark']) {
     await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
     await page.reload();

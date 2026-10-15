@@ -1,5 +1,28 @@
 # Decision log
 
+## D-46 — official logos for all 32 teams (October 14, 2026)
+
+Sean answered two questions in the Mac mini session.
+
+| Question | Ruling |
+|---|---|
+| Switch all 32 teams to ESPN's official logos, shown next to each team's name with a trademark notice? | **"Yes"** |
+| What should the 17 teams show? (options: keep badges / 4 letter marks / redesign badges) | **"Find all logos for all nfl teams and use them"** |
+
+- **Supersedes D-22's public-domain-only rule for team marks.** Team marks no longer need a public-domain file record. All 32 teams, including the 15 that had public-domain Commons marks, now show their official logo from one source. The [D-22](#d-22--coming-soon-leagues-and-team-marks-october-9-2026) original badges stay in `web/public/team-logos/badges/` and show only when a team's logo fails to load.
+- **Basis and limits.** The marks are used only to identify teams next to their names. They carry the trademark notice "NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement." (Terms page, "Team names and logos"). They are not licensed, and no NFL or team endorsement is claimed. No team mark becomes Guess The Line branding, the app icon or advertising.
+- **Source.** The logo PNGs come from ESPN's CDN (`a.espncdn.com`), listed in the `team_logo_espn` column of the nflverse teams file (`teams_colors_logos.csv`). They are self-hosted, never hotlinked, as 128 px downscaled copies with nothing else changed: no recolor, no crop, aspect ratio and transparency kept. Every file's source URL, fetch time and SHA-256 (original and shipped) are in `web/public/team-logos/sources.json` and the [register](TEAM_LOGO_SOURCES.md#official-logos-d-46).
+- **Backing chip.** Sean also approved a backing behind the logos, so that the low-contrast ones read ("Yes I want that"). The rule is the same for all 32 teams:
+  - **Dark:** a round light-neutral chip with small padding behind every official logo, using the token text color (`#F8FAFC` in the old app, `--gx-text-1` in the new one).
+  - **Light:** no chip, because no neutral token separates the mostly-white KC, PIT and TEN marks without sinking others.
+  - **Badges and letters:** unchanged.
+  - Measurements are in [the register](TEAM_LOGO_SOURCES.md#backing-chip-approved-by-sean-october-14-2026-yes-i-want-that).
+- **Backing override** (Sean: "Move forward with rec"). The measurement picked **KC, LAC, PIT and TEN** for `backing: 'dark'` in the registry. They are the logos whose default backing was flagged in Light in either app, and which the dark chip clears.
+  - **What they get:** a round dark chip with the same padding in both themes. The chip is the canvas token in Dark (`#0B1020` old app, `#070B16` new app) and the text token `#0B1020` in Light. All four measure better on it in Dark too.
+  - **Everyone else:** keeps the default rule.
+  - **Result:** no logo is flagged in either theme or app. See the [override table](TEAM_LOGO_SOURCES.md#backing-override).
+- Nothing is applied or deployed by this entry.
+
 ## D-45 — weather on every game, and a weather chip on the board (October 14, 2026)
 
 Sean answered "Weather and wind forecast: what should change?" in the coordinating cloud session. He chose, verbatim: "Full weather on every game (Recommended)" — "Every game gets a weather row: open-air games show the kickoff forecast; domes and closed roofs say "Indoors" (retractable roofs say "Roof may close"). The new app's game sheet shows the full card; the board gets one small chip only when wind is 15+ mph or rain/snow is likely. Updates D-34 to allow that chip."
