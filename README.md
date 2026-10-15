@@ -1,13 +1,14 @@
 # Guess The Line
 
-**Latest verified release — October 14, 2026, evening Pacific:** frontend
-`fa406a83` and authenticated API v23 are live from `main` at `48f48dd`. This ships
-the recovered review fixes, team records through Week 5 and the corrected Home
-scoring status. The optional new-app preview has read-only Home and Lines; Play,
-Bets and League are still being built. The original app remains the default.
-No database migration was applied in this release. See the
-[October 14 release record](docs/RELEASE_2026_10_14.md) for checks, exact source,
-rollback references and remaining gates.
+**Latest verified release — October 14, 2026, late evening Pacific:** frontend
+`b29836da` is live from `main` at `8ecde62`. All five tabs in **Try the new app**
+now open working screens: Home, Play, Bets, Lines and League. Play uses the
+existing whole-market ballots; Bets and League use the existing hosted workflows.
+The original app remains the default, API v23 is unchanged, and no database
+migration was applied. M-02 and the full redesign cutover retain their separate
+gates. See the [version 2 release record](docs/RELEASE_2026_10_14.md#version-2-all-five-tabs-on-hosted-workflows)
+for exact source, checks, live observations and rollback, and the
+[workflow scope](docs/ALL_TABS_LIVE_WORKFLOWS.md) for remaining boundaries.
 
 ## Earlier release notes
 
