@@ -140,7 +140,7 @@ test('history obeys each market reveal and refreshes when the browser comes back
     await expect(region(page)).toContainText('1h 0m before the guess');
     await page.getByRole('group', { name: 'History market' }).getByRole('button', { name: 'Total', exact: true }).click();
     await expect(region(page)).not.toContainText('47.5');
-    await expect(region(page)).toContainText('Hidden');
+    await expect(region(page)).toContainText(/hidden/i);
     await phone(page);
     expect(world.errors).toEqual([]);
   } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }

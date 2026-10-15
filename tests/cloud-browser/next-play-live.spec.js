@@ -76,7 +76,7 @@ test('Play saves drafts, restores tab edits, submits a whole market and still ed
     expect(Object.keys(sent.scoringReferences)).toHaveLength(2);
 
     // The receipt promises Community picks even when the shell currently shows a private group.
-    await page.getByRole('button', { name: 'Your leagues', exact: true }).click();
+    await page.getByRole('button', { name: 'League: Community. Switch league', exact: true }).click();
     await page.getByRole('dialog', { name: 'Your leagues' }).getByRole('list', { name: 'Leagues' }).getByRole('button', { name: /^Play fixture group/ }).click();
     await editor(page).getByRole('button', { name: "See everyone's Spread picks", exact: true }).click();
     await expect(page.getByRole('group', { name: 'League sections' })).toBeVisible();
