@@ -34,8 +34,6 @@ test('all 32 NFL team codes resolve to their official D-46 logo', () => {
       rightsStatus: 'trademark-identification',
       transparent: true,
       rightsReference: 'docs/TEAM_LOGO_SOURCES.md#official-logos-d-46',
-      // The measured backing override: only these mostly-white logos take the dark chip.
-      ...(['KC', 'LAC', 'PIT', 'TEN'].includes(code) ? { backing: 'dark' } : {}),
     });
     assert.ok(existsSync(path.join(publicDir, mark.src)), `${code} file missing: ${mark.src}`);
   }

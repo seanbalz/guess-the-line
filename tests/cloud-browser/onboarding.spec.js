@@ -1159,9 +1159,9 @@ for (const width of [320, 390, 1440]) for (const theme of ['light', 'dark']) tes
     await expect(logo).toHaveCount(1);
     await expect.poll(() => logo.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(matchup.locator('.team-identity').nth(index)).toHaveAttribute('data-logo-status', 'trademark-identification');
-    // D-46 backing: a light-neutral circle (token text #F8FAFC) in Dark, none in Light.
-    const backing = await matchup.locator('.team-identity').nth(index).evaluate(node => { const style = getComputedStyle(node); return [style.backgroundColor, style.borderTopLeftRadius]; });
-    expect(backing).toEqual([theme === 'dark' ? 'rgb(248, 250, 252)' : 'rgba(0, 0, 0, 0)', '50%']);
+    // D-46: official logos sit on the page with no backing circle in either theme (Sean, October 15, 2026).
+    const backing = await matchup.locator('.team-identity').nth(index).evaluate(node => getComputedStyle(node).backgroundColor);
+    expect(backing).toBe('rgba(0, 0, 0, 0)');
   }
   await expect(matchup.locator('[data-logo-status="fallback"]')).toHaveCount(0);
   await expect(matchup.locator('[data-logo-status="original"]')).toHaveCount(0);

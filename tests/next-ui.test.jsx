@@ -630,7 +630,7 @@ describe('TeamMark (D-46 official logos, D-22 badge fallback, sized for DP-27) a
       expect(img.attrs.src).toBe(`/team-logos/${code.toLowerCase()}.png`);
       expect([img.attrs.width, img.attrs.height]).toEqual(['24', '24']);
       expect(one(node, byClass('gx-team')).attrs['data-mark']).toBe('trademark-identification');
-      expect(one(node, byClass('gx-team')).attrs['data-backing']).toBe(['KC', 'LAC', 'PIT', 'TEN'].includes(code) ? 'dark' : undefined);
+      expect(one(node, byClass('gx-team')).attrs['data-backing']).toBeUndefined();
     }
   });
 
