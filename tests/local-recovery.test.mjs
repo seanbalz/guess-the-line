@@ -19,7 +19,10 @@ function windowsAcl(file) {
 function assertPrivate(file, mode) {
   if (process.platform !== 'win32') return assert.equal(fs.statSync(file).mode & 0o777, mode);
   const acl = windowsAcl(file);
-  assert.equal(acl.owner, acl.user);
+  if (fs.statSync(file).isDirectory()) assert.equal(acl.owner, acl.user);
+  // Elevated Windows tokens can default new file ownership to Administrators;
+  // the inherited allow rules below still must exclude every untrusted SID.
+  else assert.ok([acl.user, 'S-1-5-32-544'].includes(acl.owner), JSON.stringify(acl));
   const grants = acl.rules.filter(rule => rule.type === 'Allow');
   assert.ok(grants.length > 0);
   assert.ok(grants.every(rule => [acl.user, 'S-1-5-18', 'S-1-5-32-544'].includes(rule.sid)), JSON.stringify(acl));
