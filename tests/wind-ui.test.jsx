@@ -13,6 +13,8 @@ import { WIND_CARD_NOTES, WIND_COPY, fmtRecord } from '../shared/trends-view.mjs
 import { WEATHER_CHIPS, weatherChip, weatherRow } from '../shared/weather-view.mjs';
 import { WIND_TICK_MS, watchWind, windNowFor } from '../web/src/windTimer.js';
 import { WIND_STADIUMS } from '../shared/wind-venues.mjs';
+import { sheetWeatherRow } from '../shared/lines-view.mjs';
+import { Expander, WeatherDetail } from '../web/src/next/lines/parts.jsx';
 
 const HOUR = 3_600_000, MIN = 60_000;
 const text = html => html.replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
@@ -354,5 +356,75 @@ describe('an open panel follows the clock without a reload', () => {
     expect(t).toContain('Final pre-kickoff forecast (fetched 30 min before kickoff)');
     expect(t).not.toContain('Kickoff wind forecast Empower');
     stop();
+  });
+});
+
+// Redesign build plan stage 13: the new app's game sheet shows the kickoff weather as one row on every game (D-45), closed
+// by default. A closed row carries no digits (D-34: collapsed summaries never carry forecast values); the open row gives
+// every time in Pacific time, the values, the honesty note and the Open-Meteo credit beside them. Indoors and no current
+// forecast are rows too, with no numbers and no credit.
+describe('the new app\'s weather row (stage 13)', () => {
+  const gameOf = id => ({ id, away: game(id).away, home: game(id).home, kickoff: game(id).kickoff });
+  const row = (id, data, now) => sheetWeatherRow({ game: gameOf(id), trendsGame: game(id), entry: data.games[id], now, season: 2026, week: 6, windCard: week.cards['total|g:g_wind10'] });
+  const closedText = r => text(renderToStaticMarkup(<Expander title={r.title} summary={r.summary}><WeatherDetail row={r}/></Expander>));
+  const openText = r => text(renderToStaticMarkup(<WeatherDetail row={r}/>));
+
+  it('a closed row has no digits, in every state and at every venue', () => {
+    let rows = 0;
+    for (const id of ['SEA-DEN', 'HOU-JAX', 'CHI-ATL', 'NO-NYG', 'BUF-LV', 'ARI-LAR']) {
+      const k = kickoff(id);
+      const states = [
+        [k - 24 * HOUR, snapshot(id, k - 26 * HOUR)], // forecast
+        [k + HOUR, snapshot(id, k - 30 * MIN)], // final
+        [k - 6 * 24 * HOUR, null], // not yet
+        [k - 12 * HOUR, snapshot(id, k - 40 * HOUR)], // stale
+      ];
+      for (const [now, wind] of states) {
+        const r = row(id, answer(id, now, wind, wind ? 'forecast' : 'none'), now);
+        expect(r, `${id} at ${new Date(now).toISOString()}`).not.toBeNull();
+        expect(`${r.title} ${r.summary}`).not.toMatch(/\d/);
+        if (r.detail) {
+          expect(closedText(r)).not.toMatch(/\d/);
+          expect(renderToStaticMarkup(<Expander title={r.title} summary={r.summary}><WeatherDetail row={r}/></Expander>)).not.toContain('<a ');
+        }
+        rows += 1;
+      }
+    }
+    expect(rows).toBe(24);
+  });
+
+  it('the open row gives its times in PT, never ET, with the values, the honesty note and the credit', () => {
+    const k = kickoff('SEA-DEN'), now = k - 24 * HOUR;
+    const t = openText(row('SEA-DEN', answer('SEA-DEN', now, snapshot('SEA-DEN', now - 2 * HOUR)), now));
+    expect(t).toContain('Empower Field at Mile High, Denver');
+    expect(t).toContain('Wind at kickoff 14.2 mph from the WSW');
+    expect(t).toContain('Forecast for the 5 PM PT hour (kickoff 5:15 PM PT)');
+    expect(t).not.toMatch(/\bET\b/);
+    expect(t).toContain('has not been backtested');
+    expect(t).toContain('282–196–5');
+    const html = renderToStaticMarkup(<WeatherDetail row={row('SEA-DEN', answer('SEA-DEN', now, snapshot('SEA-DEN', now - 2 * HOUR)), now)}/>);
+    expect(html).toContain(CREDIT);
+    expect(html).toContain(LICENSE);
+    // London kicks off at 6:30 AM PT (1:30 PM in London): the row says Pacific time.
+    const lk = kickoff('HOU-JAX'), lnow = lk - 24 * HOUR;
+    expect(openText(row('HOU-JAX', answer('HOU-JAX', lnow, snapshot('HOU-JAX', lnow - HOUR)), lnow))).toContain('(kickoff 6:30 AM PT)');
+  });
+
+  it('every game has a row (D-45): Indoors for the dome and SoFi; "No current forecast" for a 404, a failed read or a stale one; loading while it reads', () => {
+    const k = kickoff('SEA-DEN'), now = k - 24 * HOUR;
+    const bare = extra => sheetWeatherRow({ game: gameOf('SEA-DEN'), trendsGame: game('SEA-DEN'), entry: null, now: null, season: 2026, week: 6, ...extra });
+    expect([bare().state, bare().summary]).toEqual(['none', 'No current forecast']);
+    expect([bare({ loading: true }).state, bare({ loading: true }).summary]).toEqual(['loading', WIND_COPY.loading]);
+    const stale = row('SEA-DEN', answer('SEA-DEN', now, snapshot('SEA-DEN', now - 10 * HOUR)), now);
+    expect([stale.state, stale.summary, stale.detail.lines]).toEqual(['none', 'No current forecast', [WIND_COPY.stale]]);
+    for (const id of ['BUF-LV', 'ARI-LAR']) {
+      const r = row(id, answer(id, now, null, 'indoor'), now);
+      expect([r.state, r.detail]).toEqual(['indoors', null]);
+      expect(r.summary).toBe(`Indoors · ${VENUES[id].name}, ${VENUES[id].city}`);
+    }
+    // A retractable roof says "Roof may close" with a forecast and without one.
+    const ak = kickoff('CHI-ATL'), anow = ak - 24 * HOUR;
+    expect(row('CHI-ATL', answer('CHI-ATL', anow, snapshot('CHI-ATL', anow - HOUR)), anow).summary).toBe('Kickoff forecast · Roof may close');
+    expect(row('CHI-ATL', answer('CHI-ATL', anow, null), anow).summary).toBe('No current forecast · Roof may close');
   });
 });

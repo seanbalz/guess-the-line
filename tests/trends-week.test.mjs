@@ -159,3 +159,31 @@ test('size budget, copy guard, no user identifiers, and the core imports nothing
   assert.deepEqual(imports, ['./nfl-schedule.mjs']);
   assert.doesNotMatch(source, /Date\.now|Math\.random|node:fs|fetch\(/);
 });
+
+test('the week file holds no current line: no unplayed game carries a line, odds, moneyline or weather, here or in the season file', () => {
+  // The redesign's Lines tab (stage 13) reads this file for its trends, so it must never be a way to a hidden line (D-36, D-39).
+  const LINE_KEY = /^(spread|spread_line|total|total_line|line|lines|odds|[a-z_]*_odds|[a-z_]*moneyline|consensus|wind|temp|weather)$/i;
+  const offending = [];
+  const walk = (node, path) => {
+    if (Array.isArray(node)) { node.forEach((v, i) => walk(v, `${path}[${i}]`)); return; }
+    if (!node || typeof node !== 'object') return;
+    for (const [key, value] of Object.entries(node)) {
+      if (LINE_KEY.test(key) && value !== null && typeof value !== 'object') offending.push(`${path}.${key} = ${JSON.stringify(value)}`);
+      walk(value, `${path}.${key}`);
+    }
+  };
+  // The walk itself finds a line-shaped value (the check is live).
+  walk({ flags: { spread_line: -3.5 }, market: { total: 41.5 } }, 'probe');
+  assert.deepEqual(offending.splice(0), ['probe.flags.spread_line = -3.5', 'probe.market.total = 41.5']);
+  const committed = JSON.parse(committedText);
+  const upcoming = committed.games.filter(g => !g.played);
+  assert.equal(upcoming.length, 14);
+  for (const g of upcoming) walk(g, g.id);
+  assert.deepEqual(offending, []);
+  // The season file's unplayed rows: every redacted column is blank.
+  const { rows } = T.parseCsvRows(seasonCsv);
+  const unplayed = rows.filter(r => !T.rowPlayed(r));
+  assert.ok(unplayed.some(r => r.game_id.startsWith('2026_06_')));
+  for (const r of unplayed) for (const c of T.REDACTED_COLUMNS) assert.equal(r[c], '', `${r.game_id} ${c}`);
+  assert.ok(['spread_line', 'total_line', 'home_spread_odds', 'over_odds', 'home_moneyline', 'wind', 'temp', 'referee'].every(c => T.REDACTED_COLUMNS.includes(c)));
+});
