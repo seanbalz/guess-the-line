@@ -1,8 +1,8 @@
 # Guess The Line — scoring and player trends backlog
 
-Owner: Sean Balsiger · Version 5 · October 15, 2026
+Owner: Sean Balsiger · Version 6 · October 15, 2026
 
-Status: core scoring implemented and checked locally; hosted rollout and Trends discovery remain.
+Status: core scoring merged with green PR checks; release authorized, hosted rollout and Trends discovery remain.
 No delivery dates are committed. Current implementation owners and verification
 state are recorded in the active checkpoint below.
 
@@ -11,7 +11,10 @@ state are recorded in the active checkpoint below.
 Sean requested “Continue with recommendations” after the prioritized status review.
 Work is isolated on `codex/per-game-scoring`, based on `main` at `e5dfda1`.
 Codex owns the core implementation and verification, with parallel SQL, UI and
-independent review lanes. This is not a release authorization or a hosted change.
+independent review lanes. PR #141 merged as `bb4f20a` after all five CI checks passed.
+Sean also granted full approvals; the [release checkpoint](../docs/PER_GAME_SCORING_RELEASE.md#approval-and-synchronization-checkpoint)
+records that authorization, verified Git synchronization and the remaining timing
+decision. No hosted change has occurred.
 The original working checkout and its planning edits are preserved.
 
 | Scope | Current owner | State | Evidence / exit |

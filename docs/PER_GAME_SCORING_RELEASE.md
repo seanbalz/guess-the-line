@@ -1,7 +1,42 @@
 # Guess The Line — per-game scoring implementation
 
 Owner: Codex implementation; Sean product and release approval
-Date: October 15, 2026 · Status: local checks passed; ready for review, not deployed
+Date: October 15, 2026 · Status: merged; release authorized; not deployed
+
+## Approval and synchronization checkpoint
+
+Sean approved the completed work on October 15: **“Full approvals granted, do not
+fail to sync everything.”** This authorizes the merge, compatible frontend/API
+release and required scoring migrations. Approval is recorded here and does not
+need to be requested again. The existing Week 6 editing commitment and release
+windows remain a separate timing decision; a one-time exception was asked but
+has not been received at this checkpoint.
+
+[PR #141](https://github.com/seanbalz/guess-the-lines-repo/pull/141) merged at
+20:31:56 UTC as `bb4f20a095de61ac283b62cfee819d533470fa39`, after all five checks
+passed on head `3de13a4eb38a5fe14c001df28528d48c1f451bf2`. Evidence:
+[Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38798802353),
+[Dashboard and personas](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38798802389),
+[Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38798802354).
+The task branch was fast-forwarded to the merge and pushed; `sync:check` reported
+matching local/remote SHAs, zero ahead/behind and no changed files. Merged-main
+push CI must also pass before release. Other active checkouts and ignored private
+data are not covered by this branch's sync result.
+
+A fresh hosted SELECT at 20:30:51 UTC confirmed 14 Week 6 games and Thursday's
+5:15 PM Pacific kickoff. All seven M-02/03/04/05/06/08/07 migrations are absent;
+live rules remain `{sentFinal:false, lateWindow:"deadline", revealAt:"kickoff"}`.
+The shared release guard rejects the active Thursday window. Its six-hour game
+buffer also rejects 6:16 PM Pacific; 11:16 PM passes against this snapshot only,
+subject to a new live check. M-02 additionally retains its Friday–Saturday window;
+M-05/M-06/M-07 retain Tuesday–Wednesday. No automatic future execution was created.
+
+The project's scoped Cloudflare login was verified against the correct account
+with Pages write permission; the global login is a different scope. Supabase's
+pinned CLI can perform the required read-only queries. GitHub's production
+environment still has no deployment secrets, so the shared Actions deployment
+path is not credential-ready. Existing local logins must not be copied into
+GitHub secrets. No deployment or migration apply occurred in this checkpoint.
 
 ## Scope
 
@@ -42,6 +77,7 @@ Local verification passed on October 15:
 | `npx vitest run` | 188 passed across 13 files. |
 | `next-per-game-scoring.spec.js` | Four browser scenarios passed: independent locks/receipts/filters, lost lock success readback, classic post-Thursday full submission preserving closed drafts, and SQL-backed sit-out with lost response readback. |
 | Classic Community compatibility extension | One targeted browser pass; the same gated editor works inside the classic Community at 320px. |
+| Full cloud-browser suite | 250 passed, zero failures or skips. The historical stage-18 selector then passed its targeted rerun; migration-registry checks passed 6/6. |
 | Mobile and accessibility | 320/390px, dark/light, no horizontal overflow or axe violations on tested picks/score screens; captures visually inspected. |
 | Typecheck and builds | `npm run typecheck`, standard build and authenticated cloud build passed. |
 | Cloud bundle boundary | No private state, contacts, source files or server credentials found in the authenticated build. Dummy public configuration used for this local build. |
@@ -62,17 +98,19 @@ uses the approved D-38 repository tokens and components, pending Sean's review.
 The migration is registered as **NOT_HOSTED**. No hosted writes, migration applies,
 deployment, real pick submission or provider collection is part of this checkpoint.
 
-1. Review the exact branch and checks, including hosted prerequisites and Sean’s visual acceptance. GitHub CI results remain separate from these local checks.
+1. Use the exact integrated source and its successful merged-main checks, including hosted prerequisites. Product/phone acceptance remains separate from release authorization.
 2. Preserve the existing M-02 gate: repair/verify fail-closed client/API behavior,
-   then Sean's explicit “apply M-02” in its allowed quiet window. Week 6 edit rights
-   must not be changed by a generic deployment.
-3. Follow the dependency order for M-03/M-04/M-05/M-06/M-08; these remain separate
-   unhosted capabilities. M-06 requires M-04. The M-07 migration also updates the
-   M-06/M-08 readers, so those definitions are prerequisites, not optional extras.
-4. Deploy compatible Pages/API before M-07. With M-07 still absent, confirm the
+   then apply under the approval above in its allowed quiet window. Week 6 edit
+   rights must not be changed without the explicit timing exception.
+3. Apply individually in dependency order: **M-02 → M-03 → M-04 → M-08 → M-05 →
+   M-06 → M-07**. These remain unhosted capabilities. M-06 requires M-04;
+   M-07 replaces the M-06/M-08 readers and also requires M-03. Capture and verify
+   function/grant and historical-score evidence around every apply.
+4. Deploy compatible Pages, then API before activating M-07. Deploy the compatible
+   collector adapter before M-05. With M-07 still absent, confirm the
    existing full-market flow and references work. The new controls remain gated.
-5. Apply M-07 alone in its approved Tuesday–Wednesday window only after explicit
-   authorization, prior-body and historical-score checks, and tested rollback.
+5. Apply M-07 alone in its approved Tuesday–Wednesday window under the recorded
+   authorization, after prior-body and historical-score checks and tested rollback.
 6. Verify service-only grants and exact function bodies, unchanged historical
    scores, reference resolution, next scheduled collection, permitted views and
    both app paths. Record the hosted version and release SHA.

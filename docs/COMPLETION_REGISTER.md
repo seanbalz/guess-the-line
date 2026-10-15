@@ -21,8 +21,10 @@ were published with PR #127; their archived entries remain unchanged.
 
 The `codex/per-game-scoring` workstream implements the confirmed D-50 core:
 per-game lock-in, immediate personal points, kickoff-based shared standings,
-receipts and weekly score navigation/filtering. Its **local checks pass; hosted
-activation and physical-phone acceptance remain pending**. [Implementation and release checklist](PER_GAME_SCORING_RELEASE.md)
+receipts and weekly score navigation/filtering. **PR #141 merged with all five
+checks passing; Sean granted full release approvals. Hosted activation and
+physical-phone acceptance remain pending.** The [approval and synchronization checkpoint](PER_GAME_SCORING_RELEASE.md#approval-and-synchronization-checkpoint)
+records the remaining release-window/Week 6 timing decision. [Implementation and release checklist](PER_GAME_SCORING_RELEASE.md)
 records the owners, checks and remaining gates. The nine-row
 [scoring backlog](../planning/scoring-and-player-trends.md) remains the detailed
 scope; Trends metrics and comparison decisions are a later checkpoint.
