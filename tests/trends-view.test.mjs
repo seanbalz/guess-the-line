@@ -276,7 +276,7 @@ test('D-34 wind: one credit and one D-47 refresh schedule shared with the server
   for (const note of Object.values(V.WIND_COPY)) assert.doesNotMatch(note, /no forecast source/);
 });
 
-test('D-34 wind formatting: compass points, ages, Eastern hours, bands from the unrounded value, confidence and TTL', () => {
+test('D-34 wind formatting: compass points, ages, Eastern hours, bands from the unrounded value, confidence and the server clock', () => {
   assert.deepEqual([0, 11, 12, 247, 270, 348, 349, 360].map(V.compass), ['N', 'N', 'NNE', 'WSW', 'W', 'NNW', 'N', 'N']);
   assert.equal(V.compass(null), null);
   assert.equal(V.compass(400), null);

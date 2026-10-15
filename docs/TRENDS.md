@@ -227,7 +227,7 @@ At season end: `node scripts/trends-history.mjs --through 2026` freezes the fini
 ## Limits
 
 - Forecast weather only at the kickoff hour, for open-air and retractable-roof venues; temperature, precipitation and other weather trends still need observed data; using the wind record with a forecast is not backtested.
-- A forecast is refreshed only on the D-47 schedule and only when a member reads: between refreshes a card can be up to 24 h old (10 h old between the 12 h and 2 h checkpoints), and its age line says so.
+- A forecast is refreshed only on the D-47 schedule and only when a member reads: a current card can be up to a day old (up to 10 h between the 12 h and 2 h checkpoints), plus the hour of grace, and its age line says so.
 - Snow is read from the kickoff-hour temperature (32 °F or colder) because no weather code or snowfall is stored; freezing rain reads as snow and wet snow just above freezing as rain.
 - No opening lines or line movement in the trend records (the lines reader gives the game sheet each game's movement and kickoff line, [above](#lines-reader-m-06)).
 - Tier 2 is "not proven" as a group.
