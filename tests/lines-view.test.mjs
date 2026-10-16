@@ -129,6 +129,18 @@ function windWeek(values = () => ({})) {
   return { season: 2026, week: 6, asOf: iso(KICKOFF['SEA-DEN'] - 24 * HOUR), games };
 }
 
+test('weather uses the published slate kickoff when the static trends kickoff is older', () => {
+  const game = { ...GAMES[0], kickoff: iso(KICKOFF['SEA-DEN'] + 24 * HOUR) };
+  const now = KICKOFF['SEA-DEN'] + HOUR;
+  const entry = windWeek(() => ({ windMph: 15 })).games['SEA-DEN'];
+  entry.kickoff = game.kickoff;
+  entry.wind.fetchedAt = iso(now);
+  entry.wind.forecastHour = game.kickoff;
+  const options = { trendsGame: week.games[0], entry, now, season: 2026, week: 6 };
+  assert.deepEqual(L.boardWeatherChip(game, options), { text: 'Windy' });
+  assert.equal(L.sheetWeatherRow({ game, ...options }).kind, 'forecast');
+});
+
 test('the D-45 board chip: one word from weather-view, never digits; a trend line keeps its place; Indoors, no forecast and another week get none', () => {
   // Wind at SEA @ DEN (no trend line), rain at NO @ NYG (it has one), snow at DAL @ GB, wind at the Las Vegas dome.
   const wind = windWeek(g => (g.id === 'SEA-DEN' ? { windMph: 15 } : g.id === 'NO-NYG' ? { precipitationProbability: 60 } : g.id === 'DAL-GB' ? { precipitationProbability: 55, temperatureF: 31.5 }
