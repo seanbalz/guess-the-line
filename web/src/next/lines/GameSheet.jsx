@@ -6,8 +6,8 @@
 // arrives with stage 33 ("Line now arrives in a later update.").
 //
 // The kickoff wind forecast (`/wind/read`, D-34) comes through the old app's loaders and their 5-minute cache, so the
-// sheet reuses the board's read; while open it re-reads at TTL crossings, as the old trends panel does. The referee
-// assignments (`/officials/read`) are read once this sheet opens. Stage 35 adds the owner's private game note.
+// sheet reuses the board's read; while open it re-reads at the D-47 due points, as the board and the old trends panel
+// do. The referee assignments (`/officials/read`) are read once this sheet opens. Stage 35 adds the owner's private game note.
 import { useId, useMemo } from 'react';
 import { LINES_COPY, gameSheet, refereeRow, sheetWeatherRow } from '../../../../shared/lines-view.mjs';
 import { TRENDS_FOOTNOTE, WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-view.mjs';

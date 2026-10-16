@@ -65,7 +65,7 @@ export async function windApi(action, body = {}, signal) {
 export const GROUP_ACTIONS = Object.freeze({
   // Stage 23 (M-06): the gated lines readers, POST /lines/read (a week's board) and /lines/game (one game in full).
   lines: Object.freeze({ reads: Object.freeze(['read', 'game']), writes: Object.freeze([]) }),
-  bets: Object.freeze({ reads: Object.freeze([]), writes: Object.freeze([]) }),
+  bets: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze([]) }),
   league: Object.freeze({ reads: Object.freeze([]), writes: Object.freeze([]) }),
   me: Object.freeze({ reads: Object.freeze([]), writes: Object.freeze([]) }),
 });

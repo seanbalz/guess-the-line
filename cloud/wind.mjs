@@ -1,8 +1,10 @@
 // Kickoff wind forecast for the wind trend card (D-34, Sean's October 13, 2026 ruling: "go ahead
 // with the wind forecast too"). Any signed-in community member reads a week's stored Open-Meteo
 // snapshots; on a read the server refreshes the games that are due through a read-through cache with
-// single flight, spacing, backoff and a daily cap enforced in SQL. Reference only: nothing here reads
-// or writes ballots, picks, scores, deadlines, kickoff locks, sit-outs or the D-23 reveal.
+// single flight, spacing, backoff and a daily cap enforced in SQL. A game is due on D-47's schedule
+// (Sean, October 15, 2026: "Just need a weather update every 24 hours and then 2 hours and 12 hours
+// before kickoff"). Reference only: nothing here reads or writes ballots, picks, scores, deadlines,
+// kickoff locks, sit-outs or the D-23 reveal.
 // Separate from cloud/community.mjs and cloud/officials.mjs so their routes and tests stay untouched.
 import { UUID_PATTERN } from './lobby.mjs';
 import { venueFor, windVenue } from '../shared/wind-venues.mjs';
@@ -12,10 +14,12 @@ export class WindError extends Error {
   constructor(status, message) { super(message); this.name = 'WindError'; this.status = status; }
 }
 export const WIND_METHODS = Object.freeze({ '/wind/read': ['POST'] });
-/** Refresh tiers by lead (kickoff minus the database clock). SQL enforces the same numbers; trends-view.mjs mirrors them. */
-export const WIND_TIERS = Object.freeze([
-  Object.freeze({ maxLeadH: 18, ttlMin: 60 }), Object.freeze({ maxLeadH: 72, ttlMin: 180 }), Object.freeze({ maxLeadH: 120, ttlMin: 360 }),
-]);
+/**
+ * The D-47 refresh schedule: a snapshot is due again 24 h after it was taken, and at each checkpoint (12 h, then 2 h
+ * before kickoff) reached after it was taken; never at or after kickoff. gtl_begin_wind_fetch (migration
+ * 20261015120000, the authority) enforces the same numbers; shared/trends-view.mjs mirrors them (tests keep all three equal).
+ */
+export const WIND_SCHEDULE = Object.freeze({ everyH: 24, beforeKickoffH: Object.freeze([12, 2]) });
 export const WIND_HORIZON_H = 120;
 /** Open-Meteo calls (locations) per UTC day across all attempts, failures included: 2% of the free 10,000. */
 export const WIND_DAILY_CAP = 200;
@@ -47,10 +51,32 @@ const HOUR = 3_600_000;
 const GAME_ID = /^[A-Z]{2,3}-[A-Z]{2,3}$/;
 const iso = value => { const ms = typeof value === 'number' ? value : typeof value === 'string' ? Date.parse(value) : NaN; return Number.isFinite(ms) ? new Date(ms).toISOString() : null; };
 
-/** TTL in minutes for a lead in ms: 1 h within 18 h, 3 h within 72 h, 6 h within 120 h; null at or after kickoff or beyond 120 h. */
-export function windTtlMinutes(leadMs) {
-  if (!finite(leadMs) || leadMs <= 0) return null;
-  return WIND_TIERS.find(tier => leadMs <= tier.maxLeadH * HOUR)?.ttlMin ?? null;
+/**
+ * When a snapshot taken at `fetchedMs` falls due (ms): 24 h after it was taken, or the first checkpoint (12 h, then 2 h
+ * before kickoff) after it was taken, whichever comes first. null when that is at or after kickoff: the snapshot is then
+ * the final pre-kickoff forecast and is never due again.
+ */
+export function windNextDue(kickoffMs, fetchedMs) {
+  if (!finite(kickoffMs) || !finite(fetchedMs)) return null;
+  let next = fetchedMs + WIND_SCHEDULE.everyH * HOUR;
+  for (const hours of WIND_SCHEDULE.beforeKickoffH) {
+    const checkpoint = kickoffMs - hours * HOUR;
+    if (checkpoint > fetchedMs) next = Math.min(next, checkpoint);
+  }
+  return next < kickoffMs ? next : null;
+}
+
+/**
+ * Whether a game is due at `now` (the database clock): before kickoff and at most 120 h out, with no snapshot for this
+ * kickoff (`fetchedMs` null or not finite) or with its newest snapshot's due time reached. The same rule as the SQL.
+ */
+export function windDue(kickoffMs, fetchedMs, now) {
+  if (!finite(kickoffMs) || !finite(now)) return false;
+  const lead = kickoffMs - now;
+  if (lead <= 0 || lead > WIND_HORIZON_H * HOUR) return false;
+  if (!finite(fetchedMs)) return true;
+  const due = windNextDue(kickoffMs, fetchedMs);
+  return due !== null && now >= due;
 }
 
 /** The read RPC's answer, checked: { now, published, games: [{ id, kickoff }], latest: { [gameId]: row } }. */
@@ -69,8 +95,9 @@ export function parseWindRead(raw) {
 /**
  * Pure planner: the games to fetch now, from the read's slate, its newest snapshots and the database
  * clock. Each game maps to a venue from the server mirror (never from the client); domes, canopies and
- * unknown venues, kicked-off games and games more than 120 h out are skipped; a game is due when it
- * has no snapshot for this kickoff or its newest snapshot is at least the TTL for the current lead old.
+ * unknown venues, kicked-off games and games more than 120 h out are skipped; a game is due (windDue, D-47)
+ * when it has no snapshot for this kickoff, its newest snapshot is 24 h old, or a checkpoint (12 h, then
+ * 2 h before kickoff) was reached after its newest snapshot was taken.
  * Sorted by kickoff then venue; trimmed to 16 locations, nearest kickoff first.
  */
 export function planWindRefresh({ season, week, games, latest, now }) {
@@ -78,11 +105,9 @@ export function planWindRefresh({ season, week, games, latest, now }) {
   for (const game of games) {
     const venue = venueFor(season, week, game.id);
     if (!windVenue(venue)) continue;
-    const ttl = windTtlMinutes(game.kickoff - now);
-    if (ttl === null) continue;
     const snapshot = latest?.[game.id];
     const fetched = record(snapshot) ? Date.parse(snapshot.fetchedAt) : NaN;
-    if (Number.isFinite(fetched) && now - fetched < ttl * 60_000) continue;
+    if (!windDue(game.kickoff, fetched, now)) continue;
     due.push({ gameId: game.id, venueId: venue.id, latitude: venue.lat, longitude: venue.lon, kickoff: new Date(game.kickoff).toISOString() });
   }
   due.sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff) || (a.venueId < b.venueId ? -1 : a.venueId > b.venueId ? 1 : 0) || (a.gameId < b.gameId ? -1 : 1));
@@ -156,7 +181,7 @@ async function refresh({ service, user, season, week, due, uuid }) {
 /**
  * POST /wind/read { season, week } → { season, week, asOf, published, refresh: { outcome }, attribution,
  *   games: { [gameId]: { kickoff, venue, status, wind } } }
- * Any week returns its stored snapshots; due games of any published week within 120 h of kickoff are
+ * Any week returns its stored snapshots; due games (D-47) of any published week within 120 h of kickoff are
  * refreshed first (Monday night's game is still refreshed after the next week publishes on Monday).
  * A refresh failure never turns the read into an error.
  */
