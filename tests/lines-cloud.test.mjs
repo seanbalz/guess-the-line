@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LINES_METHODS, LinesError, handleLines, projectGameLines, projectLines, providerLinesError } from '../cloud/lines.mjs';
+import { BetsError } from '../cloud/bets.mjs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { leakScan, lineSecrets } from './helpers/leak-scan.mjs';
 
@@ -202,7 +203,10 @@ test('the adapter: PostgREST\'s function-not-found (M-06 not applied yet) reads 
   await assert.rejects(adapter.lines.rpc('gtl_read_lines', {}), e => !(e instanceof LinesError) && e.message === 'Lines are unavailable.');
   answers.push(reply(403, { code: '42501', message: 'permission denied for function gtl_read_lines' }));
   await assert.rejects(adapter.lines.rpc('gtl_read_lines', {}), e => !(e instanceof LinesError) && e.message === 'Lines are unavailable.');
-  // The other groups have no code to map yet: function-not-found stays their generic error.
+  // M-10's Bets reader is also staged: a missing read RPC is off until apply.
   answers.push(reply(404, { code: 'PGRST202', message: 'Could not find the function' }));
-  await assert.rejects(adapter.bets.rpc('gtl_read_bets', {}), e => e.message === 'Bets are unavailable.' && e.status === undefined);
+  await assert.rejects(adapter.bets.rpc('gtl_read_bets', {}), e => e instanceof BetsError && e.status === 503);
+  // An unrelated Bets RPC still stays generic.
+  answers.push(reply(404, { code: 'PGRST202', message: 'Could not find the function' }));
+  await assert.rejects(adapter.bets.rpc('gtl_unreleased_bets', {}), e => e.message === 'Bets are unavailable.' && e.status === undefined);
 });

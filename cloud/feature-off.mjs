@@ -17,6 +17,7 @@ export const FEATURES = Object.freeze({
   'lock-in': 'POST /personal/ballot with lockIn: the per-game lock-in on a draft (M-02, redesign stage 18); a whole-market send keeps working',
   forfeit: 'POST /community/forfeit: "Skip this week\'s Guess the Line" and "See picks now" (M-03, redesign stage 19)',
   recommendations: 'POST /bets/recommendations and /bets/recommendations/place: current-account recommendation reads and new Virtual Units picks',
+  bets: 'POST /bets/read: account-level Virtual Units reads and other players’ gated saved terms (M-10, redesign stage 40)',
 });
 
 /** The set of known feature names the secret turns off (empty when it is unset or names nothing known). */

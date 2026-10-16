@@ -54,6 +54,7 @@ export const READERS = Object.freeze([
   ['/social/read', 'POST', {}],
   // D-48: own current-week guesses/card and M-01-gated lines; no new read migration.
   ['/bets/recommendations', 'POST', {}],
+  ['/bets/read', 'POST', {}],
 ]);
 
 /**
@@ -66,6 +67,7 @@ export const READER_MIGRATIONS = Object.freeze({
   '/lines/game': '20261015010000_gtl_lines_read.sql',
   // /social/read answers on HOSTED too, but another player's slip carries its lines until M-04 adds the gate.
   '/social/read': '20261015050000_gtl_social_line_lock.sql',
+  '/bets/read': '20261015190820_gtl_bets_read.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
