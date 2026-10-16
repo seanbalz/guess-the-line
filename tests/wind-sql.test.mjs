@@ -1,11 +1,12 @@
-// The D-34 wind migration on disposable PGlite: grants, RLS, invoker functions, single flight,
-// spacing, backoff, the daily cap, row checks, append-only storage and isolation from every scoring
-// table. Never connects to the hosted project and never contacts Open-Meteo.
+// The D-34 wind migration and D-47's refresh schedule (20261015120000, which replaces gtl_begin_wind_fetch's due
+// re-check) on disposable PGlite: grants, RLS, invoker functions, single flight, spacing, backoff, the daily cap, the
+// schedule (checked against cloud/wind.mjs windDue), row checks, append-only storage, isolation from every scoring table
+// and the rollback to D-34's tiers. Never connects to the hosted project and never contacts Open-Meteo.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { seed } from '../server/store.mjs';
-import { WIND_LICENSE_NOTE, handleWind, providerWindError } from '../cloud/wind.mjs';
+import { WIND_LICENSE_NOTE, handleWind, providerWindError, windDue } from '../cloud/wind.mjs';
 import { createOpenMeteoProvider } from '../cloud/open-meteo.mjs';
 import { forecastFetch } from './fixtures/open-meteo/build.mjs';
 
@@ -15,12 +16,12 @@ let PGlite;
 try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
 const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-const WIND = '20261013060000_gtl_wind_forecasts.sql';
+const WIND = '20261013060000_gtl_wind_forecasts.sql', SCHEDULE = '20261015120000_gtl_wind_refresh_schedule.sql';
 const MIGRATIONS = [
   '20261008164249_gtl_private_cloud_state.sql', '20261008174007_gtl_profiles_private_games_invites.sql', '20261008182836_gtl_canonical_weekly_entries.sql',
   '20261008185738_gtl_manual_odds_collection.sql', '20261008192528_gtl_scoped_spread_benchmark.sql', '20261008200926_gtl_twelve_hour_odds_refresh.sql',
   '20261009005145_gtl_social_bet_tracker.sql', '20261009120000_gtl_community_feed.sql', '20261009130000_gtl_league_interest.sql',
-  '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql', '20261012234500_gtl_game_officials.sql', WIND,
+  '20261009140000_gtl_d23_data_rule.sql', '20261009150000_gtl_auto_open_week.sql', '20261012234500_gtl_game_officials.sql', WIND, SCHEDULE,
 ];
 const SEAN = 30, TROY = 1, REMOVED = 2, STRANGER = 3;
 const HOUR = 3600;
@@ -140,7 +141,7 @@ test('read: members only, any published week, the database clock, no user ids', 
   assert.doesNotMatch(JSON.stringify(read), /00000000-0000-4000-8000/);
 });
 
-test('begin: strict games, refusals as reasons, single flight, spacing, the TTL re-check and the lease', { skip }, async t => {
+test('begin: strict games, refusals as reasons, single flight, spacing, the D-47 due re-check and the lease', { skip }, async t => {
   const f = await fixture(t);
   await t.test('every malformed or off-slate game list is GTL_WIND_INVALID and writes nothing', async () => {
     const den = f.game('SEA-DEN');
@@ -178,32 +179,44 @@ test('begin: strict games, refusals as reasons, single flight, spacing, the TTL 
     await assert.rejects(() => f.begin([f.game('PIT-TB')], { req: first.requestId }), /GTL_WIND_INVALID/, 'a request id is used once');
     await f.age(61);
     const second = await f.begin([f.game('SEA-DEN'), f.game('PIT-TB')]);
-    assert.deepEqual(second.games.map(g => g.gameId), ['PIT-TB'], 'SEA-DEN was fetched 61 s ago (TTL 1 h at 10 h)');
+    assert.deepEqual(second.games.map(g => g.gameId), ['PIT-TB'], 'SEA-DEN was fetched 61 s ago, after its 12 h checkpoint: next due 2 h before kickoff');
     await f.finish(second, 'succeeded');
     await f.clear();
   });
-  await t.test('TTL by lead: 1 h within 18 h, 3 h within 72 h, 6 h within 120 h; not_due when nothing is left', async () => {
-    const started = await f.begin(['SEA-DEN', 'HOU-JAX', 'BAL-CLE'].map(g => f.game(g)));
-    await f.finish(started, 'succeeded');
-    const all = ['SEA-DEN', 'HOU-JAX', 'BAL-CLE'].map(g => f.game(g));
-    await f.age(59 * 60);
-    assert.deepEqual(await f.begin(all), { started: false, reason: 'not_due' });
-    await f.age(2 * 60);
-    const hour = await f.begin(all);
-    assert.deepEqual(hour.games.map(g => g.gameId), ['SEA-DEN']);
-    await f.finish(hour, 'succeeded');
-    await f.clear();
-    await f.finish(await f.begin([f.game('HOU-JAX')]), 'succeeded');
-    await f.age(3 * 3600 - 60);
-    assert.deepEqual((await f.begin([f.game('HOU-JAX')])).reason, 'not_due', 'HOU-JAX at 40 h is not due before 3 h');
-    await f.age(120);
-    assert.deepEqual((await f.begin(all)).games.map(g => g.gameId), ['SEA-DEN', 'HOU-JAX', 'BAL-CLE']);
-    await f.clear();
-    await f.finish(await f.begin([f.game('BAL-CLE')]), 'succeeded');
-    await f.age(6 * 3600 - 60);
-    assert.equal((await f.begin([f.game('BAL-CLE')])).reason, 'not_due', 'BAL-CLE at 100 h is not due before 6 h');
-    await f.age(120);
-    assert.equal((await f.begin([f.game('BAL-CLE')])).started, true);
+  await t.test('D-47: due with no snapshot, at 24 h old, and at the 12 h and 2 h checkpoints, exactly as cloud/wind.mjs windDue says', async () => {
+    // A Week 8 game kicking off 90 minutes from now, for the 2 h checkpoint (Week 6's nearest is 10 h out).
+    const soon = f.base + 5400;
+    await f.slate(2026, 8, [['SEA-DEN', soon]]);
+    const late = f.game('SEA-DEN', { kickoff: new Date(soon * 1000).toISOString() });
+    const games = { 'SEA-DEN': [f.game('SEA-DEN'), 6], 'PIT-TB': [f.game('PIT-TB'), 6], 'BAL-CLE': [f.game('BAL-CLE'), 6], late: [late, 8] };
+    for (const [g, week] of Object.values(games)) await f.finish(await f.begin([g], { week }), 'succeeded').then(() => f.age(61));
+    /** Sets the game's snapshots to one fetch time, asks begin, and says whether it was due; the attempt is finished and spaced away. */
+    const due = async (key, fetchedMs) => {
+      const [g, week] = games[key];
+      await f.db.query('update public.gtl_wind_forecasts set fetched_at = $1 where game_id = $2 and week = $3', [new Date(fetchedMs).toISOString(), g.gameId, week]);
+      const now = Date.now(), started = await f.begin([g], { week });
+      if (started.started) await f.finish(started, 'succeeded');
+      await f.db.query("update public.gtl_wind_fetches set started_at = started_at - interval '2 hours', lease_until = lease_until - interval '2 hours'");
+      assert.ok(started.started === true || started.reason === 'not_due', JSON.stringify(started));
+      assert.equal(started.started === true, windDue(Date.parse(g.kickoff), fetchedMs, now), `SQL and windDue agree: ${key} fetched ${new Date(fetchedMs).toISOString()}`);
+      return started.started === true;
+    };
+    const K = key => Date.parse(games[key][0].kickoff), H = 3600e3, M = 60e3;
+    // The 12 h checkpoint (SEA-DEN, 10 h out: it passed 2 h ago). A snapshot from just after it is not due, though it is 2 h
+    // old (D-34's 1 h tier would refresh it); one from just before it is.
+    assert.equal(await due('SEA-DEN', K('SEA-DEN') - 12 * H + M), false);
+    assert.equal(await due('SEA-DEN', K('SEA-DEN') - 12 * H - M), true);
+    // Every 24 h (PIT-TB 20 h out, BAL-CLE 100 h out): not due a minute short of 24 h, due a minute past it.
+    for (const key of ['PIT-TB', 'BAL-CLE']) {
+      assert.equal(await due(key, Date.now() - 7 * H), false, `${key}: 7 h old (D-34's 3 h and 6 h tiers would refresh it)`);
+      assert.equal(await due(key, Date.now() - 24 * H + M), false, `${key}: just under 24 h`);
+      assert.equal(await due(key, Date.now() - 24 * H - M), true, `${key}: just over 24 h`);
+    }
+    // The 2 h checkpoint (90 minutes out: it passed 30 minutes ago); a snapshot taken at it or after it is final.
+    assert.equal(await due('late', K('late') - 2 * H - M), true, 'from before the 2 h checkpoint, 31 minutes old');
+    assert.equal(await due('late', K('late') - 2 * H + M), false);
+    assert.equal(await due('late', K('late') - 2 * H), false, 'taken at the checkpoint');
+    assert.equal(await due('late', K('late') - 13 * H), true, 'from before both checkpoints');
     await f.clear();
   });
   await t.test('an expired lease gets a WIND_LEASE_EXPIRED outcome on the next begin, and its finish replays that', async () => {
@@ -370,7 +383,7 @@ test('append-only snapshots, the newest per game, isolation from scoring tables,
   const before = Object.fromEntries(await Promise.all(scoring.map(async table => [table, await f.count(table)])));
   const first = await f.begin([f.game('SEA-DEN')]);
   await f.finish(first, 'succeeded', { rows: [f.rowFor(first.games[0], { windMph: 9.6 })] });
-  await f.age(2 * 3600);
+  await f.age(24 * 3600);
   const second = await f.begin([f.game('SEA-DEN')]);
   await f.finish(second, 'succeeded', { rows: [f.rowFor(second.games[0], { windMph: 16.4 })] });
   assert.equal(await f.count('gtl_wind_forecasts'), 2, 'the earlier snapshot remains');
@@ -399,4 +412,18 @@ test('append-only snapshots, the newest per game, isolation from scoring tables,
   await assert.rejects(() => handleWind({ route: '/wind/read', body: { season: 2026, week: 6 }, user: { id: id(STRANGER) }, service }), error => error.status === 403);
   const after = Object.fromEntries(await Promise.all(scoring.map(async table => [table, await f.count(table)])));
   assert.deepEqual(after, before, 'no ballot, version, audit, feed, market or slate row was written');
+});
+
+test('the D-47 rollback puts D-34\'s lead tiers back; stored snapshots stay', { skip }, async t => {
+  const f = await fixture(t);
+  const den = f.game('SEA-DEN'), pit = f.game('PIT-TB');
+  await f.finish(await f.begin([den, pit]), 'succeeded');
+  // SEA-DEN (10 h out) fetched 90 minutes ago, after its 12 h checkpoint; PIT-TB (20 h out) fetched 4 h ago.
+  await f.age(61);
+  await f.db.query("update public.gtl_wind_forecasts set fetched_at = clock_timestamp() - case game_id when 'SEA-DEN' then interval '90 minutes' else interval '4 hours' end");
+  assert.deepEqual(await f.begin([den, pit]), { started: false, reason: 'not_due' }, 'D-47: neither is due before its next checkpoint or 24 h');
+  await f.db.exec(fs.readFileSync(`supabase/rollback/${SCHEDULE}`, 'utf8'));
+  assert.equal(await f.count('gtl_wind_forecasts'), 2, 'the rollback writes no row and removes none');
+  const again = await f.begin([den, pit]);
+  assert.deepEqual(again.games.map(g => g.gameId), ['SEA-DEN', 'PIT-TB'], 'D-34: past the 1 h tier at 10 h out and the 3 h tier at 20 h out');
 });

@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
-import { WIND_ATTRIBUTION, WIND_DAILY_CAP, WIND_LICENSE_NOTE, WIND_METHODS, WIND_TIERS, handleWind, planWindRefresh, providerWindError, windTtlMinutes } from '../cloud/wind.mjs';
+import { WIND_ATTRIBUTION, WIND_DAILY_CAP, WIND_LICENSE_NOTE, WIND_METHODS, WIND_SCHEDULE, handleWind, planWindRefresh, providerWindError, windDue, windNextDue } from '../cloud/wind.mjs';
 import { WIND_MAX_LOCATIONS, createOpenMeteoProvider } from '../cloud/open-meteo.mjs';
 import { venueFor, windVenue } from '../shared/wind-venues.mjs';
 import { windView } from '../shared/trends-view.mjs';
@@ -27,10 +27,9 @@ const SLATES = {
 const forbidden = new Proxy({}, { get: () => () => { throw new Error('The wind route must not touch league, ballot, scoring or community services.'); } });
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 
-/** An in-memory stand-in for the three wind RPCs with the SQL's rules (lease, spacing, TTL re-check). */
+/** An in-memory stand-in for the three wind RPCs with the SQL's rules (lease, spacing, the D-47 due re-check). */
 function memoryService({ clock, member = true, failBegin = false, failFinish = false, provider = null } = {}) {
   const attempts = [], outcomes = new Map(), forecasts = [], calls = [];
-  const ttl = lead => windTtlMinutes(lead);
   const rpc = async (name, args) => {
     calls.push([name, structuredClone(args)]);
     const now = clock();
@@ -51,10 +50,8 @@ function memoryService({ clock, member = true, failBegin = false, failFinish = f
       if (attempts.some(a => a.leaseUntil > now && !outcomes.has(a.id))) return { started: false, reason: 'busy' };
       if (attempts.some(a => a.startedAt > now - 60_000)) return { started: false, reason: 'cooldown' };
       const due = args.p_games.filter(g => {
-        const kick = Date.parse(g.kickoff), t = ttl(kick - now);
-        if (t === null) return false;
-        const newest = forecasts.filter(f => f.gameId === g.gameId && f.kickoff === iso(kick)).at(-1);
-        return !newest || now - Date.parse(newest.fetchedAt) >= t * 60_000;
+        const kick = Date.parse(g.kickoff), newest = forecasts.filter(f => f.gameId === g.gameId && f.kickoff === iso(kick)).at(-1);
+        return windDue(kick, newest ? Date.parse(newest.fetchedAt) : null, now);
       });
       if (!due.length) return { started: false, reason: 'not_due' };
       const attempt = { id: args.p_request, lease: crypto.randomUUID(), leaseUntil: now + 20_000, startedAt: now, games: due, season: args.p_season, week: args.p_week };
@@ -90,20 +87,44 @@ function world({ start = NOW, fetchOptions, pick, ...options } = {}) {
   return { service, fake, handler, post, user, set: ms => { now = ms; }, now: () => now };
 }
 
-test('planner tiers: 120 h + 1 s is not yet, 120 h is 6 h, 72 h is 3 h, 18 h is 1 h, kickoff is never; ages just under and over each TTL', () => {
-  assert.deepEqual(WIND_TIERS.map(t => [t.maxLeadH, t.ttlMin]), [[18, 60], [72, 180], [120, 360]]);
-  const plan = (leadMs, ageMs = null) => planWindRefresh({ season: 2026, week: 6, now: NOW,
+test('D-47 planner: due with no snapshot, at 24 h old, and at the 12 h and 2 h checkpoints; never past 120 h or at kickoff', () => {
+  // Sean, October 15, 2026: "Just need a weather update every 24 hours and then 2 hours and 12 hours before kickoff".
+  assert.deepEqual(WIND_SCHEDULE, { everyH: 24, beforeKickoffH: [12, 2] });
+  assert.ok(Object.isFrozen(WIND_SCHEDULE) && Object.isFrozen(WIND_SCHEDULE.beforeKickoffH));
+  // `plan(lead, fetchedBefore)`: kickoff `lead` after NOW, the newest snapshot taken `fetchedBefore` kickoff (null: none).
+  const plan = (leadMs, madeMs = null) => planWindRefresh({ season: 2026, week: 6, now: NOW,
     games: [{ id: 'SEA-DEN', kickoff: NOW + leadMs }],
-    latest: ageMs === null ? {} : { 'SEA-DEN': { fetchedAt: iso(NOW - ageMs) } } }).length === 1;
+    latest: madeMs === null ? {} : { 'SEA-DEN': { fetchedAt: iso(NOW + leadMs - madeMs) } } }).length === 1;
+  // The window: no snapshot is due from 120 h out to kickoff, never before or at or after kickoff.
   assert.equal(plan(120 * HOUR + 1000), false);
   assert.equal(plan(120 * HOUR), true);
+  assert.equal(plan(60_000), true);
   assert.equal(plan(0), false);
   assert.equal(plan(-60_000), false);
-  for (const [lead, ttlMin] of [[120 * HOUR, 360], [72 * HOUR + 1, 360], [72 * HOUR, 180], [18 * HOUR + 1, 180], [18 * HOUR, 60], [60_000, 60]]) {
-    assert.equal(windTtlMinutes(lead), ttlMin, `${lead}`);
-    assert.equal(plan(lead, ttlMin * 60_000 - 1), false, `just under ${ttlMin} min`);
-    assert.equal(plan(lead, ttlMin * 60_000), true, `at ${ttlMin} min`);
+  // Every 24 h: a snapshot is due again the moment it is 24 h old, not a millisecond before (leads with no checkpoint between).
+  for (const lead of [100 * HOUR, 60 * HOUR, 36 * HOUR + 1]) {
+    assert.equal(plan(lead, lead + 24 * HOUR - 1), false, `${lead / HOUR} h out, just under 24 h old`);
+    assert.equal(plan(lead, lead + 24 * HOUR), true, `${lead / HOUR} h out, 24 h old`);
   }
+  // The 12 h checkpoint: due once it is reached if the newest snapshot was taken before it, however young that snapshot is.
+  assert.equal(plan(12 * HOUR + 1, 12 * HOUR + 2), false, 'a millisecond before the checkpoint');
+  assert.equal(plan(12 * HOUR, 12 * HOUR + 1), true, 'at the checkpoint, a snapshot taken a millisecond before it');
+  assert.equal(plan(11 * HOUR, 23 * HOUR), true, 'an hour past it, a snapshot taken 12 h earlier');
+  assert.equal(plan(11 * HOUR, 12 * HOUR), false, 'a snapshot taken at the checkpoint is not due again before 2 h');
+  assert.equal(plan(3 * HOUR, 11 * HOUR), false, 'taken after the 12 h checkpoint: nothing due until 2 h before kickoff');
+  // The 2 h checkpoint, then nothing: the final pre-kickoff forecast stays.
+  assert.equal(plan(2 * HOUR + 1, 11 * HOUR), false);
+  assert.equal(plan(2 * HOUR, 2 * HOUR + 1), true);
+  assert.equal(plan(HOUR, 11 * HOUR), true, 'the 2 h checkpoint passed with a snapshot from before it');
+  assert.equal(plan(HOUR, 2 * HOUR), false, 'taken at the 2 h checkpoint: never due again');
+  assert.equal(plan(60_000, 90 * 60_000), false, 'a minute before kickoff, a snapshot from 90 minutes out');
+  assert.equal(plan(0, 2 * HOUR + 1), false, 'never at kickoff');
+  // windNextDue: 24 h after the snapshot or the next checkpoint after it, whichever comes first; null once it is final.
+  const K = NOW + 200 * HOUR, due = madeH => windNextDue(K, K - madeH * HOUR), at = h => K - h * HOUR;
+  assert.deepEqual([119, 100, 60, 36, 30, 24, 13, 12, 5, 2, 0.5].map(due), [at(95), at(76), at(36), at(12), at(12), at(12), at(12), at(2), at(2), null, null]);
+  assert.equal(windNextDue(K, Number.NaN), null);
+  assert.equal(windDue(K, null, K - 121 * HOUR), false, 'not yet in the window');
+  assert.equal(windDue(K, Number.NaN, K - 120 * HOUR), true, 'no snapshot, entering the window');
   // Domes and SoFi's canopy are never planned (D-45: they say Indoors); the venue comes from the server mirror, never the request.
   const all = planWindRefresh({ season: 2026, week: 6, now: NOW, latest: {}, games: SLATES['2026:6'].map(g => ({ id: g.id, kickoff: g.kickoff * 1000 })) });
   assert.equal(all.length, 12);
@@ -126,11 +147,11 @@ function season2026() {
 
 /**
  * One week's Open-Meteo calls (locations) per UTC day with a reader every minute: every game is refreshed the moment the
- * real planner calls it due, and each request counts its distinct locations, as gtl_begin_wind_fetch does. One open
- * trends panel re-reads at every TTL crossing (nextWindRefresh), so one member on a Sunday is this case. The 60 s
- * spacing is ignored (it can only lower the count). With `cap`, the SQL's daily cap applies: a request is trimmed to
- * what is left (nearest kickoff first) and the rest of the UTC day is refused; `dark` then counts the minutes each
- * fetched game within 120 h of kickoff has no current forecast (windView is not 'forecast').
+ * real planner calls it due, and each request counts its distinct locations, as gtl_begin_wind_fetch does. An open Lines
+ * board, game sheet or trends panel re-reads at every D-47 due point (nextWindRefresh), so one member with the app open
+ * on a Sunday is this case. The 60 s spacing is ignored (it can only lower the count). With `cap`, the SQL's daily cap
+ * applies: a request is trimmed to what is left (nearest kickoff first) and the rest of the UTC day is refused; `dark`
+ * then counts the minutes each fetched game within 120 h of kickoff has no current forecast (windView is not 'forecast').
  */
 function simulateWeek(week, games, { cap = Infinity } = {}) {
   const latest = new Map(), perDay = new Map(), dark = new Map();
@@ -158,33 +179,37 @@ function simulateWeek(week, games, { cap = Infinity } = {}) {
     }
   }
   const [day, calls] = [...perDay].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0];
-  return { day, calls, widest, fetched: fetched.length, dark };
+  return { day, calls, widest, fetched: fetched.length, dark, perDay };
 }
 
-/** An upper bound on one UTC day's calls for any reader timing: each fetched game refreshed as often as its TTLs allow from 00:00 UTC. */
+/**
+ * An upper bound on one UTC day's calls for any reader timing: each fetched game refreshed as often as the D-47 schedule
+ * allows, starting with no snapshot at 00:00 UTC (or when it enters the 120 h window). A game is refreshed at most once
+ * outside the checkpoints in any 24 h (a refresh resets its 24 h), so no reader timing can need more than this count.
+ */
 function dayBound(week, games, day) {
   const start = Date.parse(`${day}T00:00:00Z`);
   let total = 0;
   for (const g of games.filter(g => windVenue(venueFor(2026, week, g.id)))) {
     let last = null;
     for (let t = start; t < Math.min(start + 24 * HOUR, g.kickoff); t += 60_000) {
-      const ttl = windTtlMinutes(g.kickoff - t);
-      if (ttl !== null && (last === null || t - last >= ttl * 60_000)) { total++; last = t; }
+      if (windDue(g.kickoff, last, t)) { total++; last = t; }
     }
   }
   return total;
 }
 
-// D-45 cap math for the real 2026 schedule, Week 6 on (docs/TRENDS.md "Cap math" and D-45 print this table). SoFi
-// Stadium is Indoors and never fetched, so every number equals D-34's coverage.
+// D-47 cap math for the real 2026 schedule, Week 6 on (docs/TRENDS.md "Cap math" and D-47 print this table): busiest UTC
+// day, fetched games, calls with a reader every minute, the upper bound for any reader timing. SoFi Stadium is Indoors
+// and never fetched (D-45).
 const CAP_TABLE = {
-  6: ['2026-10-18', 12, 178, 180], 7: ['2026-10-25', 11, 161, 163], 8: ['2026-11-01', 12, 191, 194], 9: ['2026-11-08', 12, 198, 203],
-  10: ['2026-11-15', 12, 187, 191], 11: ['2026-11-22', 11, 173, 176], 12: ['2026-11-29', 12, 155, 158], 13: ['2026-12-06', 11, 192, 196],
-  14: ['2026-12-13', 13, 210, 214], 15: ['2026-12-20', 12, 172, 174], 16: ['2026-12-27', 12, 146, 148], 17: ['2027-01-03', 15, 245, 248],
-  18: ['2027-01-10', 13, 234, 234],
+  6: ['2026-10-18', 12, 22, 31], 7: ['2026-10-25', 11, 20, 28], 8: ['2026-11-01', 12, 22, 31], 9: ['2026-11-08', 12, 23, 33],
+  10: ['2026-11-15', 12, 22, 31], 11: ['2026-11-22', 11, 20, 28], 12: ['2026-11-29', 12, 17, 25], 13: ['2026-12-06', 11, 22, 31],
+  14: ['2026-12-13', 13, 24, 34], 15: ['2026-12-20', 12, 19, 29], 16: ['2026-12-27', 12, 17, 24], 17: ['2027-01-03', 15, 28, 40],
+  18: ['2027-01-10', 13, 26, 39],
 };
 
-test('D-45 cap math, real 2026 schedule: SoFi is never planned, and each week\'s busiest UTC day matches the documented table', () => {
+test('D-47 cap math, real 2026 schedule: SoFi is never planned, and each week\'s busiest UTC day matches the documented table', () => {
   assert.equal(WIND_DAILY_CAP, 200);
   const season = season2026();
   assert.equal(season.length, 18);
@@ -195,29 +220,31 @@ test('D-45 cap math, real 2026 schedule: SoFi is never planned, and each week\'s
       if (venueFor(2026, week, g.id).type === 'canopy') assert.equal(due.length, 0, `SoFi is Indoors: ${week} ${g.id}`);
     }
   }
-  const table = {};
+  const table = {}, days = new Map();
   for (const [week, games] of season.filter(([week]) => week >= 6)) {
     const peak = simulateWeek(week, games);
     assert.ok(peak.widest <= WIND_MAX_LOCATIONS, 'one request never carries more than 16 locations');
     table[week] = [peak.day, peak.fetched, peak.calls, dayBound(week, games, peak.day)];
+    for (const [day, calls] of peak.perDay) days.set(day, (days.get(day) ?? 0) + calls);
   }
   assert.deepEqual(table, CAP_TABLE);
-  // The PR's first Week 6 figure: 178 calls on Sunday, October 18, two under the cap with a reader every minute.
-  assert.deepEqual(table[6].slice(2), [178, 180]);
-  assert.deepEqual(Object.keys(table).filter(week => table[week][2] > WIND_DAILY_CAP), ['14', '17', '18'], 'weeks over the cap under D-34 as well');
+  // The cap counts every week's calls together. With every week's readers the season's busiest UTC day is still Sunday,
+  // January 3 (Week 17); on Sunday, October 18, Week 7's Thursday game entering its 120 h window adds one call to Week 6's 22.
+  assert.deepEqual([...days].sort((a, b) => b[1] - a[1])[0], ['2027-01-03', 28]);
+  assert.equal(days.get('2026-10-18'), 23, 'Week 6\'s Sunday plus Week 7\'s Thursday game entering its window');
+  // Every week's busiest day, and its upper bound for any reader timing, sits well under the cap (D-34 put Weeks 14, 17
+  // and 18 over it at 210, 245 and 234 calls).
+  for (const [week, [, , calls, bound]] of Object.entries(table)) assert.ok(calls <= bound && bound <= WIND_DAILY_CAP / 2, `Week ${week}: ${calls} calls, bound ${bound}`);
 });
 
-test('D-45 cap math: with the SQL cap, Weeks 14, 17 and 18 leave games without a current forecast; Weeks 8 and 9 never do', () => {
+test('D-47 cap math: with the SQL cap and a reader every minute, no game of any 2026 week is ever without a current forecast', () => {
   const season = new Map(season2026());
-  // Minutes each game spends without a current forecast in its last 120 h, from the cap's trims and refusals.
-  const darkOf = week => Object.fromEntries([...simulateWeek(week, season.get(week), { cap: WIND_DAILY_CAP }).dark].sort());
-  for (const week of [8, 9]) assert.deepEqual(darkOf(week), {}, `Week ${week}`);
-  assert.deepEqual(darkOf(14), { 'BUF-GB': 159, 'LAR-SF': 59, 'NYG-SEA': 59 });
-  assert.deepEqual(darkOf(17), { 'BUF-MIA': 59, 'DEN-NE': 59, 'DET-CHI': 299, 'HOU-GB': 284, 'IND-CLE': 59, 'LAR-TB': 119, 'LV-ARI': 299, 'MIN-NYJ': 59,
-    'NO-ATL': 59, 'NYG-DAL': 59, 'PHI-SF': 459, 'PIT-TEN': 59, 'SEA-CAR': 59, 'WAS-JAX': 59 });
-  // Week 18's kickoffs are placeholders in the season file (all sixteen at 1:00 PM ET); the NFL sets them late in the season.
-  assert.deepEqual(darkOf(18), { 'ATL-CAR': 59, 'CLE-CIN': 59, 'DAL-WAS': 119, 'DET-GB': 119, 'JAX-IND': 119, 'LAC-DEN': 119, 'LV-KC': 119, 'MIA-NE': 59,
-    'NYJ-BUF': 59, 'PHI-NYG': 119, 'PIT-BAL': 59, 'SF-ARI': 119, 'TEN-HOU': 119 });
+  // Minutes each game spends without a current forecast in its last 120 h (none: the cap never trims or refuses).
+  for (const week of [...season.keys()].filter(week => week >= 6)) {
+    const run = simulateWeek(week, season.get(week), { cap: WIND_DAILY_CAP });
+    assert.deepEqual(Object.fromEntries(run.dark), {}, `Week ${week}`);
+    assert.equal(run.calls, CAP_TABLE[week][2], `Week ${week}: the cap changes nothing`);
+  }
 });
 
 test('a read fetches the due games once, stores them, and the next read is served from storage', async () => {
@@ -248,12 +275,30 @@ test('a read fetches the due games once, stores them, and the next read is serve
   assert.equal(again.refresh.outcome, 'not_due');
   assert.equal(w.fake.calls.length, 1);
   assert.equal(again.games['SEA-DEN'].wind.windMph, 14.2);
-  // Three hours on, Thursday night (now 21 h out, TTL 3 h) is due again; the weekend games (6 h TTL) are not.
-  w.set(NOW + 3 * HOUR);
+  // D-47: nothing is due again until Thursday night reaches its 12 h checkpoint; then only that game is fetched.
+  for (const at of [NOW + 3 * HOUR, NOW + 12 * HOUR - 60_000]) {
+    w.set(at);
+    assert.equal((await (await w.post()).json()).refresh.outcome, 'not_due', iso(at));
+  }
+  w.set(NOW + 12 * HOUR);
   const later = await (await w.post()).json();
   assert.equal(later.refresh.outcome, 'fetched');
   assert.equal(w.fake.calls.length, 2);
   assert.equal(new URL(w.fake.calls[1].url).searchParams.get('latitude'), '39.744');
+  assert.equal(later.games['SEA-DEN'].wind.fetchedAt, iso(NOW + 12 * HOUR));
+  // Its 2 h checkpoint fetches it once more; 24 h after the first read every other game is due, and Thursday night has kicked off.
+  w.set(kickoffOf('SEA-DEN') - 2 * HOUR);
+  assert.equal((await (await w.post()).json()).refresh.outcome, 'fetched');
+  assert.equal(new URL(w.fake.calls[2].url).searchParams.get('latitude'), '39.744');
+  w.set(kickoffOf('SEA-DEN') - 60_000);
+  assert.equal((await (await w.post()).json()).refresh.outcome, 'not_due', 'the final pre-kickoff forecast stays');
+  w.set(NOW + 24 * HOUR);
+  const day = await (await w.post()).json();
+  assert.equal(day.refresh.outcome, 'fetched');
+  const rest = new URL(w.fake.calls[3].url).searchParams.get('latitude').split(',');
+  assert.equal(rest.length, 11, 'every fetched game but Thursday night, which kicked off at this instant');
+  assert.ok(!rest.includes('39.744'));
+  assert.equal(w.fake.calls.length, 4);
 });
 
 test('two concurrent reads make exactly one Open-Meteo request; the other is served what is stored', async () => {
@@ -282,7 +327,7 @@ test('every provider failure is a 200 with the stored snapshot; finish records o
   for (const [code, status, text, type] of cases) await t.test(code, async () => {
     const w = world();
     await w.post(); // Stores a snapshot first.
-    w.set(NOW + 3 * HOUR);
+    w.set(NOW + 12 * HOUR); // Thursday night's 12 h checkpoint (D-47).
     const original = w.fake.fetchImpl;
     w.service.provider = createOpenMeteoProvider({ fetchImpl: async (url, init) => {
       if (code === 'WIND_UNITS') { const r = await original(url, init); return new Response((await r.text()).replaceAll('"mp/h"', '"km/h"'), { status: 200, headers: { 'content-type': type } }); }

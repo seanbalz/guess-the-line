@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as V from '../shared/trends-view.mjs';
 import { T, build } from './trends-fixture.mjs';
-import { WIND_ATTRIBUTION, WIND_LICENSE_NOTE, WIND_TIERS } from '../cloud/wind.mjs';
+import { WIND_ATTRIBUTION, WIND_LICENSE_NOTE, WIND_SCHEDULE, windNextDue } from '../cloud/wind.mjs';
 import { SEASONS, WIND_STADIUMS, venueFor, windVenue } from '../shared/wind-venues.mjs';
 import { lockedIn } from '../web/src/sentFinal.js';
 import { ballotLockedIn } from '../server/engine.mjs';
@@ -252,11 +252,18 @@ test('the browser trend modules stay pure: no engine, history, auth or network i
   }
 });
 
-test('D-34 wind: one credit and one set of tiers shared with the server; the view copy passes the copy guard', () => {
+test('D-34 wind: one credit and one D-47 refresh schedule shared with the server; the view copy passes the copy guard', () => {
   assert.deepEqual([V.WIND_CREDIT, V.WIND_SOURCE_URL, V.WIND_LICENSE, V.WIND_LICENSE_URL, V.WIND_CHANGES],
     [WIND_ATTRIBUTION.text, WIND_ATTRIBUTION.url, WIND_ATTRIBUTION.license, WIND_ATTRIBUTION.licenseUrl, WIND_ATTRIBUTION.changes]);
   assert.equal(WIND_LICENSE_NOTE, `${V.WIND_CREDIT}, ${V.WIND_LICENSE} (${V.WIND_LICENSE_URL}); ${V.WIND_CHANGES}`);
-  assert.deepEqual(V.WIND_TIERS, WIND_TIERS);
+  assert.deepEqual(V.WIND_SCHEDULE, WIND_SCHEDULE);
+  assert.deepEqual(V.WIND_SCHEDULE, { everyH: 24, beforeKickoffH: [12, 2] });
+  // The browser's due time is the server planner's, minute by minute over a game's last 121 hours.
+  const k = Date.parse('2026-10-18T17:00:00.000Z');
+  for (let made = 121 * 60; made >= -5; made -= 1) {
+    const fetched = k - made * 60_000;
+    assert.equal(V.windNextDue(k, fetched), windNextDue(k, fetched), `made ${made} min before kickoff`);
+  }
   for (const text of [...Object.values(V.WIND_COPY), ...Object.values(V.WIND_CARD_NOTES), V.WIND_CHANGES]) assert.deepEqual(T.bannedCopy(text), [], text);
   // The frozen week file and registry are untouched; the view supersedes their wind strings on screen only.
   assert.match(week.copy.windConditional, /no forecast source/);
@@ -269,7 +276,7 @@ test('D-34 wind: one credit and one set of tiers shared with the server; the vie
   for (const note of Object.values(V.WIND_COPY)) assert.doesNotMatch(note, /no forecast source/);
 });
 
-test('D-34 wind formatting: compass points, ages, Eastern hours, bands from the unrounded value, confidence and TTL', () => {
+test('D-34 wind formatting: compass points, ages, Eastern hours, bands from the unrounded value, confidence and the server clock', () => {
   assert.deepEqual([0, 11, 12, 247, 270, 348, 349, 360].map(V.compass), ['N', 'N', 'NNE', 'WSW', 'W', 'NNW', 'N', 'N']);
   assert.equal(V.compass(null), null);
   assert.equal(V.compass(400), null);
@@ -291,7 +298,6 @@ test('D-34 wind formatting: compass points, ages, Eastern hours, bands from the 
   assert.deepEqual([H, 18 * H, 18 * H + 1].map(lead => V.windConfidence(lead, false)), ['Short range (within 18 h of kickoff)', 'Short range (within 18 h of kickoff)', 'Next-day guidance']);
   assert.deepEqual([0, 18 * H].map(V.windConfidence), [V.WIND_SHORT_RANGE, V.WIND_SHORT_RANGE], 'only a literal true makes the U.S. claim (map passes an index)');
   assert.equal(V.windConfidence(Number.NaN, true), null);
-  assert.deepEqual([0, 1, 18 * H, 18 * H + 1, 72 * H, 72 * H + 1, 120 * H, 120 * H + 1].map(V.windTtl), [null, 60, 60, 180, 180, 360, 360, null]);
   assert.equal(V.windClock('2026-10-15T00:00:00.000Z', 1000, 61_000), Date.parse('2026-10-15T00:01:00.000Z'));
   assert.equal(V.windClock('2026-10-15T00:00:00.000Z', 5000, 1000), Date.parse('2026-10-15T00:00:00.000Z'), 'a device clock that goes backwards adds nothing');
   assert.equal(V.windClock('nope', 1, 2), null);
@@ -322,12 +328,30 @@ test('D-34 windView: indoor, loading, not yet, forecast, stale, final and invali
   assert.equal(V.windView({ game: g, entry: { ...entry(k - 125 * H), wind: null, status: 'not_yet' }, now: k - 121 * H }).state, 'not_yet');
   const fresh = V.windView({ game: g, entry: entry(k - 26 * H), now: k - 24 * H });
   assert.deepEqual([fresh.state, fresh.age, fresh.made, fresh.band.band, fresh.close, fresh.retractable, fresh.international, fresh.early], ['forecast', 2 * H, 26 * H, '10-14', true, false, false, false]);
-  // Stale at more than twice the TTL for the current lead (3 h at 24 h out).
-  assert.equal(V.windView({ game: g, entry: entry(k - 30 * H), now: k - 24 * H }).state, 'forecast');
-  assert.deepEqual(V.windView({ game: g, entry: entry(k - 30 * H - 1), now: k - 24 * H }), { state: 'none', reason: 'stale' });
-  // After kickoff: the last pre-kickoff snapshot if made within 2 h of kickoff, the same window as the last hour before it.
+  // D-47: current until an hour past the time the snapshot falls due (24 h after it was taken, or the 12 h and 2 h
+  // checkpoints), however old it is until then. A day out, a snapshot from 30 h before kickoff is due at the 12 h checkpoint.
+  const state = (madeMs, nowMs) => V.windView({ game: g, entry: entry(k - madeMs), now: nowMs }).state;
+  assert.equal(state(30 * H, k - 24 * H), 'forecast');
+  assert.equal(state(30 * H, k - 11 * H), 'forecast', 'an hour past the 12 h checkpoint, still waiting for the next read');
+  assert.equal(state(30 * H, k - 11 * H + 1), 'none', 'the 12 h checkpoint missed for more than an hour');
+  assert.deepEqual(V.windView({ game: g, entry: entry(k - 30 * H), now: k - 11 * H + 1 }), { state: 'none', reason: 'stale' });
+  // Every 24 h: a snapshot from 49 h out is due 25 h out and current until 24 h out, inclusive.
+  assert.equal(state(49 * H, k - 24 * H), 'forecast');
+  assert.equal(state(49 * H + 1, k - 24 * H), 'none');
+  assert.equal(state(100 * H, k - 77 * H), 'forecast', 'a 23 h-old early outlook is current');
+  // The 2 h checkpoint: a snapshot from the 12 h checkpoint is current until an hour past it, and never at kickoff.
+  assert.equal(state(12 * H, k - H), 'forecast');
+  assert.equal(state(12 * H, k - H + 1), 'none');
+  assert.equal(state(12 * H, k - 1), 'none', 'a 12 h-old forecast is never called current in the last hour');
+  assert.equal(state(2 * H, k - 1), 'forecast', 'taken at the 2 h checkpoint: current until kickoff');
+  // After kickoff: the last pre-kickoff snapshot if it was current at kickoff, which is one taken 2 h or less before it.
   assert.equal(V.windView({ game: g, entry: entry(k - 2 * H), now: k + H }).state, 'final');
+  assert.equal(V.windView({ game: g, entry: entry(k - 2 * H), now: k + 30 * 24 * H }).state, 'final', 'with no end time');
   assert.deepEqual(V.windView({ game: g, entry: entry(k - 2 * H - 1), now: k + H }), { state: 'none', reason: 'stale' });
+  assert.deepEqual(V.windView({ game: g, entry: entry(k - 12 * H), now: k }), { state: 'none', reason: 'stale' }, 'the 2 h checkpoint was missed');
+  // windCurrent is the one rule: until the due time plus WIND_GRACE_MS (one hour), and for good once never due.
+  assert.equal(V.WIND_GRACE_MS, H);
+  assert.deepEqual([V.windCurrent(k, k - 13 * H, k - 11 * H), V.windCurrent(k, k - 13 * H, k - 11 * H + 1), V.windCurrent(k, k - H, k + 365 * 24 * H)], [true, false, true]);
   assert.equal(V.windView({ game: g, entry: entry(k - 101 * H), now: k - 100 * H }).early, true);
   const atl = Date.parse(game('CHI-ATL').kickoff);
   assert.equal(V.windView({ game: game('CHI-ATL'), entry: { ...entry(atl - 26 * H), kickoff: game('CHI-ATL').kickoff, venue: { type: 'retractable', country: 'USA' } }, now: atl - 24 * H }).retractable, true);
@@ -369,18 +393,34 @@ test('D-34 windView: within 18 h of kickoff only a U.S. stadium is labelled with
   assert.deepEqual([bare.state, bare.international, bare.confidence], ['forecast', false, 'Short range (within 18 h of kickoff)']);
 });
 
-test('D-34 nextWindRefresh: the TTL crossing, kickoff, entering the window, and never sooner than a minute', () => {
-  const H = 3_600_000, k = Date.parse('2026-10-16T00:15:00.000Z'), now = k - 24 * H;
-  const data = games => ({ games });
+test('D-47 nextWindRefresh: the due points (24 h, 12 h and 2 h before kickoff), kickoff, entering the window, retries; never sooner than a minute', () => {
+  const H = 3_600_000, MIN = 60_000, k = Date.parse('2026-10-16T00:15:00.000Z');
+  const data = (games, outcome = 'not_due') => ({ refresh: { outcome }, games });
   const at = (fetched, extra = {}) => ({ kickoff: new Date(k).toISOString(), status: 'forecast', wind: { windMph: 5, fetchedAt: new Date(fetched).toISOString(), forecastHour: '2026-10-16T00:00:00.000Z' }, ...extra });
-  assert.equal(V.nextWindRefresh(data({ a: at(now - 2 * H) }), now), now + H, 'fetched 2 h ago with a 3 h TTL');
-  assert.equal(V.nextWindRefresh(data({ a: at(now - 5 * H) }), now), now + 60_000, 'already past the TTL: a minute from now');
-  assert.equal(V.nextWindRefresh(data({ a: at(k - 30 * 60_000) }), k - 20 * 60_000), k, 'kickoff comes first');
+  const next = (fetched, now, outcome) => V.nextWindRefresh(data({ a: at(fetched) }, outcome), now);
+  // The next due point of the newest snapshot: 24 h after it, or the next checkpoint, whichever is first.
+  assert.equal(next(k - 100 * H, k - 99 * H), k - 76 * H, '24 h after a snapshot from 100 h out');
+  assert.equal(next(k - 30 * H, k - 24 * H), k - 12 * H, 'the 12 h checkpoint comes before 24 h');
+  assert.equal(next(k - 12 * H, k - 11 * H), k - 2 * H, 'then the 2 h checkpoint');
+  assert.equal(next(k - 2 * H, k - 90 * MIN), k, 'then only kickoff: the final forecast is never due');
+  assert.equal(next(k - 30 * MIN, k - 20 * MIN), k, 'kickoff comes first');
+  // Never more often: with the snapshot current, nothing between the due points, whatever the TTL tiers used to say.
+  for (const now of [k - 99 * H, k - 80 * H, k - 77 * H]) assert.equal(next(k - 100 * H, now), k - 76 * H, `${(k - now) / H} h out`);
+  // A game still due when the answer came (the server held off or turned the read away) is asked again: a minute after
+  // busy, cooldown or a fetch, 15 minutes after backoff, budget, failure or anything else.
+  assert.equal(V.WIND_RETRY_MS, 15 * MIN);
+  for (const outcome of ['busy', 'cooldown', 'fetched']) assert.equal(next(k - 30 * H, k - 11 * H, outcome), k - 11 * H + MIN, outcome);
+  for (const outcome of ['backoff', 'budget', 'failed', 'not_due', 'unavailable', undefined]) assert.equal(next(k - 30 * H, k - 11 * H, outcome), k - 11 * H + 15 * MIN, String(outcome));
+  const missing = outcome => V.nextWindRefresh(data({ a: { kickoff: new Date(k).toISOString(), status: 'none', wind: null } }, outcome), k - 24 * H);
+  assert.deepEqual([missing('cooldown'), missing('failed')], [k - 24 * H + MIN, k - 24 * H + 15 * MIN], 'no snapshot inside the window');
+  assert.equal(next(k - 30 * H, k - 10 * MIN, 'failed'), k, 'never past kickoff');
   assert.equal(V.nextWindRefresh(data({ a: { kickoff: new Date(k).toISOString(), status: 'not_yet', wind: null } }), k - 130 * H), k - 120 * H, 'entering the 120 h window');
-  assert.equal(V.nextWindRefresh(data({ a: { kickoff: new Date(k).toISOString(), status: 'none', wind: null } }), now), now + 3 * H, 'no snapshot: retry after the TTL');
-  assert.equal(V.nextWindRefresh(data({ a: { ...at(now), status: 'indoor' } }), now), null);
+  assert.equal(V.nextWindRefresh(data({ a: { kickoff: new Date(k).toISOString(), status: 'not_yet', wind: null } }), k - 120 * H - 30_000), k - 120 * H + 30_000, 'never sooner than a minute');
+  // The earliest game decides: a Sunday game 74 h after this one, last fetched 40 h before Thursday's kickoff, is due 24 h later.
+  assert.equal(V.nextWindRefresh(data({ a: at(k - 30 * H), b: { ...at(k - 40 * H), kickoff: new Date(k + 74 * H).toISOString() } }), k - 24 * H), k - 16 * H);
+  assert.equal(V.nextWindRefresh(data({ a: { ...at(k - 30 * H), status: 'indoor' } }), k - 24 * H), null);
   assert.equal(V.nextWindRefresh(data({ a: at(k - 3 * H) }), k + 1), null, 'nothing after kickoff');
-  assert.equal(V.nextWindRefresh(null, now), null);
+  assert.equal(V.nextWindRefresh(null, k), null);
 });
 
 // ---------------------------------------------------------------------------
