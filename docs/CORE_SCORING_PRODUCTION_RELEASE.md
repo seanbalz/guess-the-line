@@ -1,0 +1,117 @@
+# Guess The Line — core scoring production release
+
+Owner: Sean Balsiger; release execution: Codex
+Version 1 · October 15, 2026 · Status: authorized and prepared; not deployed
+
+## Authorization and source
+
+Sean authorized this release in the Windows task:
+
+> Go ahead with the production release for the core scoring milestone. Apply the required migrations in the proper order, deploy it, and verify the live app.
+
+This covers the required scoring migrations and compatible deployments. It does
+not establish that an apply occurred or waive the separately recorded weekday
+and game-window restrictions. A one-time weekday exception is pending a reply;
+the active-game guard remains in force.
+
+The exact release source is `bb4f20a095de61ac283b62cfee819d533470fa39`, merged
+through [PR #141](https://github.com/seanbalz/guess-the-lines-repo/pull/141).
+Its main-push [Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38802704508),
+[Dashboard and Persona checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38802704512),
+and [Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38802704506)
+passed. The release source checker confirmed the exact SHA, clean checkout,
+main ancestry and required successful jobs during this task.
+
+## Prepared evidence
+
+- Fresh Windows verification: 1,400 Node tests and 188 Vitest tests passed with
+  no failures or skips; four core browser scenarios passed. Each Mac passed 35
+  focused scoring, SQL and live-rule tests. Builds, bundle privacy and brand QA
+  passed. The full Node run includes migration and rollback compatibility.
+- All three clean integration checkouts were verified at the release SHA, with
+  zero ahead/behind and no unpublished source changes, before release preparation.
+- The Mac Mini built production-configured assets from a separate clean checkout
+  at the exact SHA. The privacy scan passed: 99 artifacts, 2,165,217 bytes;
+  frontend manifest digest `21b6e9b7025d4512d1726dee1f73147c8ddd3bd19719954dab86279a11d78116`;
+  source digest `5d186fe75c541ef6c9f6cc593f3b7171291637071d148b6b008dbddf597201d1`.
+  These digests identify prepared artifacts, not served production bytes.
+- The existing project-scoped Cloudflare login has Pages write access to the
+  intended account. The production deployment list was captured privately.
+- A fresh signed-out boundary check returned 229 expected denials and 17 probes
+  awaiting deployment. These are not authenticated flow checks or proof of
+  fresh hosted migration state; strict rollout acceptance has not passed.
+
+## Current blockers
+
+The pinned Supabase CLI on the Mac Mini reported no access token, including from
+the earlier scoring worktree. The GitHub production environment has no deployment
+secrets. The Supabase connector was not connected in this task; a supported
+connection was offered. No credential was copied or printed. Cloudflare access
+alone is insufficient to perform the required database preflight or release.
+
+The earlier read-only database evidence in
+[the approval checkpoint](https://github.com/seanbalz/guess-the-lines-repo/pull/142)
+must be refreshed. Its reported seven absent migrations, function-body matches
+and historical score hashes are not asserted as current here.
+
+The [release plan](REDESIGN_BUILD_PLAN.md#6-migration-ledger) assigns M-02 to
+Friday–Saturday and M-05/M-06/M-07 to Tuesday–Wednesday. The earlier published
+slate snapshot places tonight's game buffer through 11:15 PM Pacific. A fresh
+hosted slate and a passing 30-minute quiet-window check are required at execution;
+the earlier timestamp is not a reservation or permission to bypass the guard.
+
+## Execution order after access and timing are resolved
+
+1. Refresh hosted function metadata, permissions, migration history, published
+   slates and historical score/ballot hashes. Pin the finished-week comparison
+   set; verify Week 5 anchors 95.8, 91.4 and 37.6 and settled Virtual Units hashes.
+   Check for concurrent releases or a partial apply before making any mutation.
+2. Deploy the prepared compatible Pages, then `gtl-api`, before new response
+   shapes and rules activate. Verify the hosted collector has the stage-22
+   multi-week adapter; deploy that compatible collector if its provenance does
+   not establish the prerequisite. Preserve its schedule and provider budget.
+3. Confirm the existing full-market flow while M-07 is absent. Apply each
+   migration separately in this dependency order, observing its permitted window:
+
+   | Order | Stage | Repository migration |
+   | --- | --- | --- |
+   | 1 | M-02 | `20261015030000_gtl_sent_picks_final.sql` |
+   | 2 | M-03 | `20261015040000_gtl_guess_week_forfeit.sql` |
+   | 3 | M-04 | `20261015050000_gtl_social_line_lock.sql` |
+   | 4 | M-08 | `20261015020000_gtl_guess_picks_reader.sql` |
+   | 5 | M-05 | `20261014221500_gtl_odds_open_weeks.sql` |
+   | 6 | M-06 | `20261015010000_gtl_lines_read.sql` |
+   | 7 | M-07 | `20261015190710_gtl_guess_write_window.sql` |
+
+4. Around every apply, run the reviewed predecessor and successor checks:
+   function bodies, signatures, search paths, grants, one RPC definition, new
+   table permissions and unchanged historical scores/references. Record the
+   hosted migration version. After an uncertain response, inspect hosted state
+   before any retry. Never run a generic database push.
+5. Verify live rules include final picks, per-game scoring and kickoff windows;
+   receipts, own immediate points, shared started-game standings and independent
+   market reveal agree across both app paths. Verify permitted signed-in reads
+   without creating real competition picks solely for test evidence.
+6. Run strict boundary checks and compare every served frontend asset with the
+   manifest at the immutable and production URLs. Verify API JWT protection,
+   active version and provenance; a hosted bundle digest alone is not source
+   equivalence. Confirm the next scheduled collection succeeds without forcing
+   an extra provider collection.
+7. Record actual hosted versions, deployment identities, historical hash results
+   and acceptance limits. Move only verified applied versions in the migration
+   registry, update the boundary allowances and completion register, run required
+   checks and merge the evidence PR. Sync the clean integration checkouts again.
+
+## Recovery and scope
+
+Each SQL file has its corresponding tested file under `supabase/rollback/`.
+Recover in reverse dependency order, restoring function bodies without dropping
+tables or rewriting player ballots, references, audits or scores. Select the
+captured previous Pages deployment if the frontend needs reversal. Use the
+compatible previous API only after checking its rules/error compatibility.
+
+This release does not change the default app, launch Player Trends, enable
+unrelated services, create competition entries or increase data-provider usage.
+Physical-phone and genuine multi-connection PostgreSQL acceptance remain distinct
+from browser emulation and PGlite results. No hosted mutation or deployment has
+been performed by this release task as of this record.
