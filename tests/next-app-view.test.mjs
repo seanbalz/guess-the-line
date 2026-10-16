@@ -185,6 +185,7 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
+    'web/src/next/fantasy/FantasyScreen.jsx': ['FantasyFootball.jsx'],
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
     'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
     // The existing D-21 chip control is reused, never a classic screen or shell.
@@ -220,6 +221,10 @@ test('the apps keep separate shells and allow only documented workflow and pick-
       if (['CommunityHome.jsx', 'PersonalWorkspace.jsx'].includes(file) && spec === './next/play/PerGameLegacy.jsx') {
         assert.match(text, /const PerGameLegacy = lazy\(\(\) => import\('\.\/next\/play\/PerGameLegacy\.jsx'\)\)/);
         assert.match(text, /rules\?\.sentFinal === true && [^\n]*rules\?\.lateWindow === 'kickoff' && [^\n]*rules\?\.perGameScoring === true/);
+        continue;
+      }
+      if (file === 'FantasyFootball.jsx' && spec === './next/ui/index.js') {
+        assert.match(text, /import \{ Button, Card, Segmented, Switch \} from '\.\/next\/ui\/index\.js'/);
         continue;
       }
       assert.ok(!spec.startsWith('./next/'), `web/src/${file} imports ${spec}`);

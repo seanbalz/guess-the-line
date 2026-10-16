@@ -16,7 +16,7 @@
 .gx .gx-fantasy-players { display: grid; list-style: none; padding: 0; gap: var(--gx-space-3); }
 .gx .gx-fantasy-player-item { min-width: 0; }
 .gx .gx-fantasy-player { padding: 0; overflow: hidden; }
-.gx .gx-fantasy-player-summary { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto 18px; gap: var(--gx-space-2); align-items: start; padding: var(--gx-space-4); list-style: none; cursor: pointer; }
+.gx .gx-fantasy-player-summary { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto 18px; gap: var(--gx-space-2); align-items: start; padding: var(--gx-space-4); list-style: none; cursor: pointer; }
 .gx .gx-fantasy-player-summary::-webkit-details-marker { display: none; }
 .gx .gx-fantasy-player-rank { color: var(--gx-text-3); font: 600 24px/28px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 .gx .gx-fantasy-player-main { display: grid; gap: var(--gx-space-1); min-width: 0; }
@@ -48,5 +48,5 @@
 .gx .gx-fantasy-player :where(details[open]) .gx-fantasy-chevron { transform: rotate(180deg); }
 @media (max-width: 359px) {
   .gx .gx-fantasy-filter-grid { grid-template-columns: minmax(0, 1fr); }
-  .gx .gx-fantasy-player-summary { grid-template-columns: 32px minmax(0, 1fr) auto 18px; gap: var(--gx-space-1); padding: var(--gx-space-3); }
+  .gx .gx-fantasy-player-summary { grid-template-columns: max-content minmax(0, 1fr) auto 18px; gap: var(--gx-space-1); padding: var(--gx-space-3); }
 }
