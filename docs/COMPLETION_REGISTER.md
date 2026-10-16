@@ -35,12 +35,15 @@ separate from the newer repository source.
 | [#147](https://github.com/seanbalz/guess-the-lines-repo/pull/147), `22c418f` | Open requirements; Fantasy Usage Tracker analysis added to PLAY-05 | Usage/actuals, weekly and rest-of-season projections, private league context and partial-source behavior remain deferred. Reconcile with #143’s narrower static rankings implementation; source rights, roster access and refresh integration are not delivered. |
 | [#140](https://github.com/seanbalz/guess-the-lines-repo/pull/140), `ae25212` | Draft implementation; offer-based recommendations and private forecasts | Current-head checks, merge/apply queue, additive edit-writer migration and compatible release/readback. Earlier green checks belong to earlier SHAs. Does not complete #144's market filter or navigation repair. |
 | [#123](https://github.com/seanbalz/guess-the-lines-repo/pull/123), `a9f3b2b` | Draft weather schedule; main conflicts resolved and pushed | Retains D-47, D-48/D-50, private notes and the weather watcher. A follow-up keeps the published slate kickoff in weather views instead of an older static trends kickoff; 49 view checks and all four targeted browser checks pass, including refresh timing and Light/Dark accessibility at 320/390/1440px. GitHub reports mergeable; full current-head CI remains pending. Retain Pages-before-SQL/API release order. |
-| [#139](https://github.com/seanbalz/guess-the-lines-repo/pull/139), `fce136f` | Open M-10 Bets reader; main conflicts resolved and pushed | Preserves M-07 and M-10 dependency metadata and both NOT_HOSTED entries. GitHub reports mergeable. The staged M-06 schema test now scans only its installed readers; 19 Lines SQL tests pass. The same published-kickoff fix from #123 is included, with 49 related view checks passing; full CI is rerunning. Follow M-04 → M-10 hosted dependencies. Account-level placement and native screens remain separate. |
+| [#139](https://github.com/seanbalz/guess-the-lines-repo/pull/139), `224098c` | Open M-10 Bets reader; main conflicts resolved and pushed | Preserves M-07 and M-10 dependency metadata and both NOT_HOSTED entries. GitHub reports mergeable. The staged M-06 schema test now scans only its installed readers; 19 Lines SQL tests pass. The same published-kickoff fix from #123 is included, with 49 related view checks passing; full CI is rerunning. Follow M-04 → M-10 hosted dependencies. Account-level placement and native screens remain separate. |
 
 Conflict-resolution order: first reconcile this register, then #123's independent
 weather branch, then #139 against the already merged scoring prerequisites.
-Neither PR depends on the other's feature; keep their branches separate instead
-of importing an unmerged feature merely to resolve conflicts. Preserve all
+The features are independent, but #139 now includes #123 for final integration
+validation: their pending migration entries collided, and both are retained.
+#146 includes that combined source so its final checks cover the merge result.
+Merge order is #123 → #139 → #146 after passing checks; the inherited changes
+drop out of each later PR as its predecessor merges. Preserve all
 `NOT_HOSTED` entries and dependency declarations. Resolving source conflicts does
 not establish an apply, main merge or deployment.
 
@@ -51,7 +54,7 @@ passed 49 related view checks and four browser scenarios. Bets passed 84 focused
 Node/SQL checks, two rollback metadata checks, 188 Vitest tests and all 19 Lines
 SQL tests after the staged-reader correction. Local exhaustive runs were stopped
 to avoid resource contention; no full local-suite pass is claimed. Full GitHub
-CI is still running on the final heads; earlier green checks are not final-head
+CI is rerunning on the combined final heads; earlier green checks are not final-head
 release evidence.
 
 ## Active scoring implementation — October 15
