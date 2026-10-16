@@ -213,7 +213,7 @@ test.describe('the real app', () => {
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Profile', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
-      await expect(menu.getByRole('button', { name: 'Settings', exact: true })).toBeFocused();
+      await expect(menu.getByRole('button', { name: 'Settings · sportsbooks and guidance', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Appearance', exact: true })).toBeFocused();
       await page.keyboard.press('Enter');

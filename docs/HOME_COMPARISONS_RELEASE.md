@@ -69,6 +69,9 @@ row deletion, generic `supabase db push`, or scoring re-anchoring.
   The performance fixture likewise handles the new authenticated preference read.
   Local parallel browser verification was stopped under machine overload; final
   GitHub CI on the correction commit remains the complete-suite gate.
+- The next GitHub run passed 257/258 cloud browser cases; its only failure was
+  the Settings selector omitting the label suffix. The exact accessible label
+  is now used and that full keyboard/navigation case passes locally (1 test).
 - Browser checks: three Home regressions and four Fantasy regressions pass. Three
   new flows pass: comparisons/guidance/settings with 320px Light/Dark axe checks;
   concurrent edit and account switch; downstream-save failure and recovery.
