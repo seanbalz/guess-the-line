@@ -30,8 +30,9 @@ scope; Trends metrics and comparison decisions are a later checkpoint.
 Sean subsequently authorized the production release. The exact merged source,
 fresh three-machine test/sync evidence, prepared production build and ordered
 apply checklist are in the [production release card](CORE_SCORING_PRODUCTION_RELEASE.md).
-Execution is pending usable Supabase access and resolution of the documented
-weekday windows; no hosted mutation or deployment is claimed by that card.
+Sean approved a one-time weekday exception at the first verified quiet window.
+Execution is pending usable Supabase access and a fresh passing game-window
+check; no hosted mutation or deployment is claimed by that card.
 
 ## Verified delivery baseline
 

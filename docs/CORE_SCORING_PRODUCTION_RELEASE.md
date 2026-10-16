@@ -9,10 +9,12 @@ Sean authorized this release in the Windows task:
 
 > Go ahead with the production release for the core scoring milestone. Apply the required migrations in the proper order, deploy it, and verify the live app.
 
-This covers the required scoring migrations and compatible deployments. It does
-not establish that an apply occurred or waive the separately recorded weekday
-and game-window restrictions. A one-time weekday exception is pending a reply;
-the active-game guard remains in force.
+This covers the required scoring migrations and compatible deployments. Sean
+then selected **“Use the first verified quiet window”** in response to the
+one-time weekday-exception question. This authorizes this release outside the
+M-02 Friday–Saturday and M-05/M-06/M-07 Tuesday–Wednesday limits. The live
+game-window guard remains in force. No further release or weekday approval is
+required; the authorization does not establish that an apply occurred.
 
 The exact release source is `bb4f20a095de61ac283b62cfee819d533470fa39`, merged
 through [PR #141](https://github.com/seanbalz/guess-the-lines-repo/pull/141).
@@ -49,18 +51,24 @@ secrets. The Supabase connector was not connected in this task; a supported
 connection was offered. No credential was copied or printed. Cloudflare access
 alone is insufficient to perform the required database preflight or release.
 
+The access check was repeated at 10:00 PM Pacific and still reported no Supabase
+login. An hourly follow-up in the release chat checks at 16 minutes past the hour
+and continues once access is available and the live quiet-window check passes.
+It stays quiet while the known blocker is unchanged and stops after completion.
+
 The earlier read-only database evidence in
 [the approval checkpoint](https://github.com/seanbalz/guess-the-lines-repo/pull/142)
 must be refreshed. Its reported seven absent migrations, function-body matches
 and historical score hashes are not asserted as current here.
 
 The [release plan](REDESIGN_BUILD_PLAN.md#6-migration-ledger) assigns M-02 to
-Friday–Saturday and M-05/M-06/M-07 to Tuesday–Wednesday. The earlier published
+Friday–Saturday and M-05/M-06/M-07 to Tuesday–Wednesday; Sean's one-time exception
+above supersedes those weekday limits for this release. The earlier published
 slate snapshot places tonight's game buffer through 11:15 PM Pacific. A fresh
 hosted slate and a passing 30-minute quiet-window check are required at execution;
 the earlier timestamp is not a reservation or permission to bypass the guard.
 
-## Execution order after access and timing are resolved
+## Execution order after access is restored and the quiet-window check passes
 
 1. Refresh hosted function metadata, permissions, migration history, published
    slates and historical score/ballot hashes. Pin the finished-week comparison
@@ -71,7 +79,7 @@ the earlier timestamp is not a reservation or permission to bypass the guard.
    multi-week adapter; deploy that compatible collector if its provenance does
    not establish the prerequisite. Preserve its schedule and provider budget.
 3. Confirm the existing full-market flow while M-07 is absent. Apply each
-   migration separately in this dependency order, observing its permitted window:
+   migration separately in this dependency order in a verified quiet window:
 
    | Order | Stage | Repository migration |
    | --- | --- | --- |
