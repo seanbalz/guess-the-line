@@ -1,3 +1,15 @@
+# Local and cloud handoff — October 15, 2026
+Use [docs/REPOSITORY_SYNC.md](docs/REPOSITORY_SYNC.md). Work in a separate task
+branch/worktree from freshly fetched `origin/main`; never switch branches or
+reset/stash another session's checkout. Commit reviewed named files and push,
+then run `npm run sync:check` and report the branch, full commit, PR, verification
+and unpublished work. A successful check covers only that branch and checkout;
+it does not establish merge, deployment, private-board sync or credential access.
+Use `npm run sync:pull` only in a clean checkout you exclusively own. Current
+work belongs in [docs/COMPLETION_REGISTER.md](docs/COMPLETION_REGISTER.md) with
+evidence; preserve the frozen v62 tracker. Deployment uses the separate
+[manual release workflow](docs/SHARED_DEPLOYMENT.md) and existing release gates.
+
 # Current Guess rules — D-35 to D-40 (redesign)
 Read docs/DECISIONS.md D-35 to D-40 and docs/REDESIGN_BUILD_PLAN.md (its "D-39 changes to this plan" section first). D-37 as amended by D-39 replaces D-16's edit-until-deadline for Guess the Spread and Guess the Total: each game's guess is final once locked in (a whole-market Submit locks in every game; the new app locks in one game at a time), and unlocked guesses stay drafts. The database enforces it from M-02 (`supabase/migrations/20261015030000_gtl_sent_picks_final.sql`, redesign stage 18), which is written and not applied; until Sean's "apply M-02" the hosted writers still follow D-16. See docs/RULES.md "Drafts and submission". The older sections below are history where they disagree.
 

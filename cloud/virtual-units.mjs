@@ -84,7 +84,7 @@ function consensus(game, snapshot, market) {
 
 // Stage 20 line lock (cloud/line-lock.mjs): a locked market carries no book offer and no consensus, only
 // `locked: { spread, total }`. The player's own saved picks (`payload.picks`) always keep their full terms.
-function decorate(payload, snapshot, { gate, now, rules }) {
+export function decorateVirtualUnits(payload, snapshot, { gate, now, rules }) {
   const games = (payload.games || []).map(game => {
     const locked = lockedMarkets(game, { season: payload.season, week: payload.week, gate, now });
     const open = LINE_MARKETS.filter(market => !locked[market]);
@@ -127,7 +127,7 @@ export async function handleVirtualUnits({ route, body, user, leagueId, service,
   if (route === '/virtual-units') {
     const now = clock(), rules = readLiveRules(optionalRpc);
     const [payload, snapshot, gate, live] = await Promise.all([service.read(user.id, leagueId), odds.marketSnapshot(user.id, leagueId).catch(() => null), gateAt(now, rules), rules]);
-    return decorate({ ...payload, quoteHistoryAvailable: Boolean(snapshot) }, snapshot, { gate, now, rules: live });
+    return decorateVirtualUnits({ ...payload, quoteHistoryAvailable: Boolean(snapshot) }, snapshot, { gate, now, rules: live });
   }
   const pick = validateBody(body);
   const state = await weekly.load(user.id, leagueId);

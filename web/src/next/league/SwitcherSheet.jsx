@@ -75,7 +75,7 @@ export function SwitcherSheet() {
   const hasInvites = !!app.savedInvite || app.invites.length > 0;
 
   async function join(key, body) {
-    if (busy) return;
+    if (busy || !shell.confirmLeave()) return;
     setBusy(key);
     setProblems(current => ({ ...current, [key]: '' }));
     const result = await app.join(body);
@@ -90,6 +90,7 @@ export function SwitcherSheet() {
   }
   function pick(row) {
     if (!row.on) {
+      if (!shell.confirmLeave()) return;
       app.chooseLeague(row);
       shell.toast(SWITCHER_COPY.showing(row.name));
     }

@@ -1,3 +1,38 @@
+# Current handoff — October 15, 2026
+
+Use [current rules](RULES.md), the [completion register](COMPLETION_REGISTER.md)
+and the [October 15 release record](RELEASE_2026_10_15.md) before the historical
+handoff below. Pages `fc7f3cd2` is deployed from `main` at `d71a988`; API v23
+remains active with JWT verification. All five opt-in tabs use the existing hosted
+workflows; the old app remains the default and fallback.
+
+M-01 is hosted with `revealAt: "kickoff"`: the weekly deadline alone does not
+reveal an unstarted game's picks or gated lines. M-02 remains unapplied, so
+whole-market Submit and D-16 deadline edits continue (`sentFinal: false`,
+`lateWindow: "deadline"`). M-03 and M-08 also remain unapplied; use the completion
+register for the full migration inventory and apply gates. This handoff does not
+authorize a migration or change a business rule.
+
+The repository and committed `planning/project-tracker.json` are public. That
+tracker is frozen historical evidence, not the current task ledger. Preserve
+unrevealed picks and private account data outside public artifacts. Current
+acceptance gaps, including actual-phone and full-week checks, remain in the
+completion register; recorded fixture results are not production-write evidence.
+
+Issue #1 remains open: the starter-archive audit is still unverified. Issues #3
+and #7 are closure/supersession candidates for delivered backend/Total work and
+obsolete common-kickoff scoring requirements; no issue closure is implied here.
+
+## Archived October 8 handoff and status notes
+
+Everything below is preserved historical text. Its "current" or "latest" labels,
+private-repository/tracker statements, deployment versions and earlier rule
+claims describe that earlier record; they do not override the current pointers
+above. The archived starter-ZIP reference is not proof that an archive was found
+or audited.
+
+---
+
 # Current status and precedence — October 8, 2026
 
 **Latest verified release (October 8, 2026):** Pages `531d14b5` / authenticated

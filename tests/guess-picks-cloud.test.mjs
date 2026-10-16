@@ -186,3 +186,27 @@ test('the browser wrapper knows the route; no static asset carries a reader answ
   assert.match(api, /\['read', 'history', 'like', 'comment', 'member', 'publish-preview', 'publish', 'interest', 'sit-out', 'week-open', 'picks'(?:, '[a-z-]+')*\]\.includes\(action\)/);
   assert.doesNotMatch(api, /gtl_read_guess_picks/, 'the browser never names the service-only RPC');
 });
+
+
+test('M-07 permits immediate visible locked scores but never early ranks or hidden contributions', async () => {
+  const raw = reply();
+  raw.scoreTiming = 'immediate';
+  const game = raw.games[1];
+  game.open = false;
+  game.rows[0] = { ...ROW, userId: VIEWER, status: 'in', eligible: true, pick: 44, error: 1, points: 8, rank: 1, tied: true, closest: true };
+  game.rows[1] = { ...ROW, userId: OTHER, status: 'in', eligible: true, pick: 45, error: 2, points: 6, rank: 2 };
+  const read = () => handleCommunity({ route: '/community/picks', body: { mode: 'guess_total' }, user, service: { rpc: async () => raw } });
+  let result = await read();
+  assert.equal(result.games[1].rows[0].points, 8);
+  assert.deepEqual([result.games[1].rows[0].rank, result.games[1].rows[0].tied, result.games[1].rows[0].closest], [null, false, false]);
+  assert.equal(result.games[1].rows[1].points, null);
+  assert.equal(result.games[1].rows[1].pick, null);
+  game.open = true;
+  result = await read();
+  assert.equal(result.games[1].rows[1].points, 6, 'the already permitted per-game detail can score now');
+  game.rows[0].eligible = false;
+  game.rows[1].status = 'not_yet';
+  result = await read();
+  assert.equal(result.games[1].rows[0].points, null);
+  assert.equal(result.games[1].rows[1].points, null);
+});

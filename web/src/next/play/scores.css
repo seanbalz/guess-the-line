@@ -1,0 +1,18 @@
+.gx .gx-score-filters, .gx .gx-score-navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-score-filters label, .gx .gx-score-detail label { display: grid; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-score-filters select, .gx .gx-score-detail select { width: 100%; min-width: 0; }
+.gx .gx-score-navigation > button { white-space: normal; }
+.gx .gx-score-detail { border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); background: var(--gx-surface-1); padding: var(--gx-space-4); }
+.gx .gx-score-detail > summary { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--gx-space-3); min-height: var(--gx-size-touch); cursor: pointer; }
+.gx .gx-score-detail > summary::after { content: '+'; color: var(--gx-data); }
+.gx .gx-score-detail[open] > summary::after { content: '−'; }
+.gx .gx-score-detail > summary::-webkit-details-marker { display: none; }
+.gx .gx-score-detail[open] > summary { margin-bottom: var(--gx-space-3); }
+.gx .gx-score-matchup { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-score-matchup > span { overflow-wrap: anywhere; }
+.gx .gx-lock-receipt { padding: var(--gx-space-3); border-left: 2px solid var(--gx-data); border-radius: var(--gx-radius-xs); background: var(--gx-data-tint); }
+.gx .gx-per-game .gx-play-entry { padding: var(--gx-space-3); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }
+.gx .gx-per-game .gx-play-game { margin: 0; }
+.gx .gx-per-game p { overflow-wrap: anywhere; }
+@media (max-width: 360px) { .gx .gx-score-filters, .gx .gx-score-navigation { grid-template-columns: minmax(0, 1fr); } }
+.gx.gx-legacy-per-game { min-height: 0; background: var(--gx-canvas); padding: var(--gx-space-4); border-radius: var(--gx-radius-md); }

@@ -2,7 +2,7 @@
 
 Owner: Sean Balsiger
 Date: October 14, 2026
-Status: plan only, updated for D-39 (Sean's answers to section 11). Nothing in this file is built, applied or deployed. Every merge, hosted apply and deploy still needs Sean's explicit OK.
+Status: staged plan, updated for D-39 and D-50. Stage descriptions are requirements, not proof of completion; some stages have separate implementation and release evidence in the [completion register](COMPLETION_REGISTER.md). Every merge, hosted apply and deploy retains this plan's existing authorization gates.
 
 ---
 
@@ -21,9 +21,41 @@ Inputs: the approved prototype and its spec, the design system, the feature inve
 
 ---
 
+## D-50 changes to this plan (October 15, 2026; read before older timing)
+
+Sean reaffirmed permanent per-game lock-in and requested immediate weekly scoring,
+score filters and player trends. The [scoring and player trends backlog](../planning/scoring-and-player-trends.md)
+preserves nine open tasks from the local planning record at `e5a45f6`, including
+its Q-02 follow-up captured at 16:19 UTC on October 15, with evidence,
+dependencies and acceptance criteria. Its original D-47 label is reconciled to
+D-50 to avoid existing decision reservations. It supplements these stages and
+does not modify the frozen v62 tracker.
+
+- Available personal points count immediately when that game/market locks in, even
+  before kickoff and while other games remain drafts. Remove blanket kickoff-only
+  guards from personal scores and permitted per-game details in stages 16, 24, 26
+  and 32 and related readers/screens. Stage 57's shared standings retain Q-02's
+  kickoff basis below; do not remove their aggregate guards. A pending
+  D-27 reference stays visibly pending until permitted resolution; never invent zero.
+- Stages 18, 24–25 and 28–31 must deliver server-enforced immutability, independent
+  per-game scoring and a scoring receipt that refreshes the player's week at once.
+- Extend stages 57–58, 67 and 72–73 with a clear weekly score destination,
+  season/week/team/matchup filters and a dedicated player Trends page. Q-01 confirms
+  accuracy and bias first: improvement over time, teams consistently misjudged and
+  guesses too high/low, with links to the actual games. Metric definitions,
+  comparisons and audience remain in discovery; existing NFL situation cards remain
+  a separate feature.
+- Q-02 is confirmed: personal weekly points update immediately; shared weekly and
+  season standings count each game from kickoff, for every row including your own.
+  Label these totals separately and show which own points await kickoff. Other-player
+  per-game scores follow the existing reveal gate. D-39 visibility still protects
+  derived scores; no hidden contribution may leak through aggregates or rank changes.
+- These are requirements only. Existing applies are not undone and no new merge,
+  migration, deploy or external-board update is performed by this amendment.
+
 ## D-39 changes to this plan (read first)
 
-Sean answered the open questions on October 14 (D-39). Where this section and a later one disagree, this section wins.
+Sean answered the open questions on October 14 (D-39). Where this section and a later one disagree, this section wins, subject to the newer D-50 amendment above.
 
 | Topic | Change |
 |---|---|

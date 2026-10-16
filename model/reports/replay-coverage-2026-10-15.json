@@ -1,0 +1,124 @@
+{
+  "asOf": "2026-10-15T14:54:41.339775+00:00",
+  "cutoffRule": "gameday strictly before UTC as-of date; both numeric final scores present; scheduled future games excluded",
+  "schedule": {
+    "assetId": 644189933,
+    "assetUpdatedAt": "2026-10-15T14:51:40Z",
+    "bytes": 2184481,
+    "metadataSha256": "cdf6bb121ffde9c8446b22e738aac23f2d0c54e9d30303011ca24a75892a43f9",
+    "retrievedAt": "2026-10-15T14:54:41.339775+00:00",
+    "sha256": "0c3cecffef439ea0a8045e2f2a72fde1bd014492a46aeec197968e1689b16d67",
+    "url": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
+  },
+  "seasons": [
+    {
+      "countsByGameType": {
+        "CON": 2,
+        "DIV": 4,
+        "REG": 271,
+        "SB": 1,
+        "WC": 6
+      },
+      "expectedCompletedScheduleGames": 284,
+      "mismatches": [],
+      "missingPbpIds": [],
+      "observedPbpGames": 284,
+      "pbpAssetUpdatedAt": "2026-02-12T10:25:24Z",
+      "pbpLatestDate": "2023-02-12",
+      "pbpRetrievedAt": "2026-10-15T14:38:11.836944+00:00",
+      "pbpSha256": "0c69a71eb39498956c7b1d5c1ca52ce7fe679934a95d1af249facb5ea9829ea4",
+      "scheduledRows": 284,
+      "season": 2022,
+      "unexpectedPbpIds": [],
+      "uncompletedScheduleCount": 0
+    },
+    {
+      "countsByGameType": {
+        "CON": 2,
+        "DIV": 4,
+        "REG": 272,
+        "SB": 1,
+        "WC": 6
+      },
+      "expectedCompletedScheduleGames": 285,
+      "mismatches": [],
+      "missingPbpIds": [],
+      "observedPbpGames": 285,
+      "pbpAssetUpdatedAt": "2026-02-12T10:24:52Z",
+      "pbpLatestDate": "2024-02-11",
+      "pbpRetrievedAt": "2026-10-15T14:38:35.044978+00:00",
+      "pbpSha256": "4649804ee0f0a40b41e51ec75a1ce921949d7fab5459213488656b92f78560e8",
+      "scheduledRows": 285,
+      "season": 2023,
+      "unexpectedPbpIds": [],
+      "uncompletedScheduleCount": 0
+    },
+    {
+      "countsByGameType": {
+        "CON": 2,
+        "DIV": 4,
+        "REG": 272,
+        "SB": 1,
+        "WC": 6
+      },
+      "expectedCompletedScheduleGames": 285,
+      "mismatches": [],
+      "missingPbpIds": [],
+      "observedPbpGames": 285,
+      "pbpAssetUpdatedAt": "2026-08-13T12:26:27Z",
+      "pbpLatestDate": "2025-02-09",
+      "pbpRetrievedAt": "2026-10-15T14:39:05.706224+00:00",
+      "pbpSha256": "23370d5d10f8104d80d46a1fc5e61f4f6f5a3263fe96fe2dd629913cfcb08c06",
+      "scheduledRows": 285,
+      "season": 2024,
+      "unexpectedPbpIds": [],
+      "uncompletedScheduleCount": 0
+    },
+    {
+      "countsByGameType": {
+        "CON": 2,
+        "DIV": 4,
+        "REG": 272,
+        "SB": 1,
+        "WC": 6
+      },
+      "expectedCompletedScheduleGames": 285,
+      "mismatches": [],
+      "missingPbpIds": [],
+      "observedPbpGames": 285,
+      "pbpAssetUpdatedAt": "2026-08-13T12:26:09Z",
+      "pbpLatestDate": "2026-02-08",
+      "pbpRetrievedAt": "2026-10-15T14:39:21.359992+00:00",
+      "pbpSha256": "2f135887790a013fd004e609e37096bb4816d5cc80b9f19122e1bad478961978",
+      "scheduledRows": 285,
+      "season": 2025,
+      "unexpectedPbpIds": [],
+      "uncompletedScheduleCount": 0
+    },
+    {
+      "countsByGameType": {
+        "REG": 79
+      },
+      "expectedCompletedScheduleGames": 79,
+      "mismatches": [],
+      "missingPbpIds": [],
+      "observedPbpGames": 79,
+      "pbpAssetUpdatedAt": "2026-10-15T14:09:56Z",
+      "pbpLatestDate": "2026-10-12",
+      "pbpRetrievedAt": "2026-10-15T14:39:30.678561+00:00",
+      "pbpSha256": "f6dca321749fc6ddbfa32cfb85c9818ab2b270ceae64a45299a46e9251cbd8fb",
+      "scheduledRows": 272,
+      "season": 2026,
+      "unexpectedPbpIds": [],
+      "uncompletedScheduleCount": 193
+    }
+  ],
+  "status": "local_retrospective_source_reconciliation",
+  "limitation": "Verifies completed schedule identity/date/teams/final scores at this cutoff, not pre-game data vintage, current player availability, or a production projection.",
+  "attribution": {
+    "publisher": "nflverse contributors; schedules maintained by Lee Sharpe",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/master/LICENSE.md",
+    "modifications": "GTL identity and factual field reconciliation; future schedule rows counted but omitted."
+  }
+}

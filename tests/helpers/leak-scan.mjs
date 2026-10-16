@@ -52,6 +52,8 @@ export const READERS = Object.freeze([
   ['/lines/game', 'POST', { gameId: 'TB-DAL' }],
   // Stage 21 (M-04): the shared real slips of the current published week, another player's spread and total legs gated.
   ['/social/read', 'POST', {}],
+  // D-48: own current-week guesses/card and M-01-gated lines; no new read migration.
+  ['/bets/recommendations', 'POST', {}],
 ]);
 
 /**

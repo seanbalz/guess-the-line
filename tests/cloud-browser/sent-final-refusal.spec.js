@@ -10,7 +10,10 @@ import { ALL, migrationSql } from '../migrations.mjs';
 // it is not an uncoded 409 ("Load latest", "Conflict · review saved changes"). The live rules come from the database
 // (gtl_live_rules through the optional-RPC read), so they switch with the apply. Fixture accounts and values only.
 const M02 = '20261015030000_gtl_sent_picks_final.sql';
-const BEFORE = ALL.filter(file => file !== M02);
+// These stage-18 tests exercise the M-02 transition and the original classic editor. M-07 later replaces that
+// writer and editor; its native per-game behavior is covered by next-per-game-scoring.spec.js.
+const BEFORE_M07 = ALL.filter(file => file !== '20261015190710_gtl_guess_write_window.sql');
+const BEFORE = BEFORE_M07.filter(file => file !== M02);
 const { luke } = ACCOUNTS;
 const NOTICE = 'Sent picks are final. Your saved picks are shown.';
 
@@ -112,7 +115,7 @@ for (const width of [390, 1280]) test(`group ballot at ${width}px: an edit refus
 // only a market with every game locked in, where the whole screen is read-only either way.
 test('Community Picks at 390px: a game locked in on its own is read-only, and the rest of the market stays a draft', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_M07, optionalRpc: true });
   const { db, errors, state } = world, [first, second] = state.games.map(g => g.id), { season, week } = state.league;
   try {
     await page.setViewportSize({ width: 390, height: 844 });

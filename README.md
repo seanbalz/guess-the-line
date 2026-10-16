@@ -1,5 +1,34 @@
 # Guess The Line
 
+**Latest verified deployment — October 15, 2026, 8:14 AM Pacific:** Pages
+`ed3fb50b` and API v24 are live from `main` at `b883c77`. **Recommended bets**
+compares your submitted Spread and Total guesses with collected lines, shows
+both sides in red/yellow/green, and ranks the top three with an expandable list.
+Add to card prepares a Virtual Units pick for explicit review and placement.
+Find it under Bets in **Try the new app**, or Virtual Units in the original app.
+The original app remains the default. Only the additive D-48 writer was applied;
+M-02 and the other pending redesign migrations retain their separate gates.
+See the [recommendations release record](docs/RELEASE_2026_10_15_RECOMMENDATIONS.md)
+for exact source, checks, live observations and rollback, the
+[earlier October 15 release](docs/RELEASE_2026_10_15.md) for formatting/profile/notes,
+and the [workflow scope](docs/ALL_TABS_LIVE_WORKFLOWS.md) for remaining boundaries.
+Issue #126 remains open for Sean's real-phone visual acceptance.
+
+The [current completion register](docs/COMPLETION_REGISTER.md) tracks each app
+section's remaining formatting, implementation and acceptance work, plus backend,
+account and release dependencies. It keeps the historical tracker unchanged.
+
+For local and cloud work, follow the [repository sync workflow](docs/REPOSITORY_SYNC.md)
+and run `npm run sync:check` at handoff. The [shared deployment workflow](docs/SHARED_DEPLOYMENT.md)
+uses an explicit source commit and separate production approval; pushing code
+does not deploy it. Reconciled local [scoring and player trends planning](planning/scoring-and-player-trends.md)
+is recorded as D-50, with implementation and unanswered product questions still open.
+
+## Earlier release notes
+
+The dated notes below describe earlier states. Use the October 15 record above
+for the latest verified deployment and pending migration status.
+
 **October 9, 2026 (D-21..D-25) — on `main` at `597ab59`, partly deployed:** PRs #10–#26
 add the one-community social feed with a shared leaderboard and chip pick entry
 (D-21), coming-soon leagues and a mark for all 32 teams (D-22), the never-delete
@@ -21,7 +50,7 @@ panels need a Pages deploy. Shared referee assignments also need migration
 and a `gtl-api` deploy. Until then the referee comes from the weekly trends file or reads "Referee
 not assigned yet". See [docs/TRENDS.md](docs/TRENDS.md).
 
-**Latest verified release (October 12, 2026):** Pages `06c71c14` and authenticated
+**Earlier verified release (October 12, 2026):** Pages `06c71c14` and authenticated
 API v15, built from `main` at `17c22b5`, are deployed at [Guess The Line](https://guess-the-line.pages.dev), with
 JWT verification enabled; see the [release record](docs/RELEASE_2026_10_09.md). The
 October 8 release (Pages `2106725d`, API v14) included individual submission/edit-time

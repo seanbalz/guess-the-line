@@ -1,5 +1,28 @@
 # Social community and feed — D-21 and D-23
 
+**Current status:** the [October 15 recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md)
+records Pages `ed3fb50b` from `b883c77` and API v24 with JWT verification. Community
+feed, comments/likes, separate market boards and history are live in the opt-in
+League tab. M-01 is hosted: live rules are `{revealAt: "kickoff", sentFinal: false,
+lateWindow: "deadline"}`. Whole-market Guess submission and D-16 editing remain;
+M-02 is not applied. M-09/M-29 and push setup are hosted under the
+[October 14 apply records](RELEASE_2026_10_09.md#october-14-deploy); actual phone
+reminder delivery still needs acceptance. The [completion register](COMPLETION_REGISTER.md)
+tracks the unapplied migrations and remaining work. Section formatting, profile
+editing and private-note UI are deployed; real-phone acceptance remains open.
+
+Recommended bets (D-48) is live in both app presentations, with top-three
+traffic-light comparisons and explicit Virtual Units review. Only its additive
+writer `20261015143006` was applied; the six pending redesign migrations remain
+unapplied. No production pick was saved during verification.
+
+## Historical implementation and release notes
+
+The dated sections below preserve their original implementation state and API
+contracts. Earlier “not deployed,” “M-01 not applied,” missing-live-rules and
+push-pending statements are superseded by the release evidence above; planned
+migrations and later redesign capabilities are not thereby marked complete.
+
 Owner: Sean Balsiger · Version 7 · Updated 2026-10-14 (redesign stages 16 to 18, 20 and 26: the per-game reveal gate, the old app's per-game reveal, sent picks final, the Virtual Units line lock and the everyone's picks reader) · Decisions D-08, D-21, D-22, D-23, D-24, D-27, D-39
 
 ## What is built
@@ -269,6 +292,17 @@ node scripts/trends.mjs --season 2026 --week 7
 ```
 
 Run it Tuesday morning, after the Monday-night final is in the nflverse release. It writes the redacted season file, `shared/trends/2026-week-07.json` and the lazy loader map. Then `npm test`, `npm run build`, a PR, and a Pages deploy. Commissioner referee assignments are saved in the app (Feed → Game referees) once the hosted pieces ship. Until then, `--reuse-season-file --referees refs.json` carries them in the week file. Full procedure: [TRENDS.md](TRENDS.md#weekly-operator-step).
+
+## October 15 D-48 apply record
+
+The [recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md) applied only
+`20261015143006_gtl_recommended_virtual_pick.sql`, recorded under the identical
+hosted version `20261015143006`. API v24 deployed first, followed by this one
+file and Pages `ed3fb50b`. The existing 33 history entries remained unchanged;
+there are now 34. Only this version was marked applied; neither a generic
+`db push` nor the historical bulk repair commands below ran. M-02, M-03, M-04,
+M-05, M-06 and M-08 remain unapplied. The earlier checklist below is preserved
+as dated evidence and is not a command to replay old migrations.
 
 ## Release checklist — October 9, 2026
 

@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "season": 2026,
+  "week": 5,
+  "owner": "troy",
+  "authorizedAt": "2026-10-15",
+  "authorization": "Sean requested: Assume the odds and how do we close the gap.",
+  "basis": "User-authorized accounting assumption; not a verified historical market quote or point-buy price.",
+  "odds": -110,
+  "sourceSha256": "c7720d577215ba6f9331db711952fd3bc7382fbfab651dd0dd9e303a4661f3c1",
+  "sourceSuffix": "; assumed -110 for accounting",
+  "notesSuffix": " On October 15, 2026 Sean authorized assumed odds. Accounting assumption: -110; actual accepted odds, book and any point-buy cost remain unknown. Not a verified historical market quote.",
+  "reason": "Sean authorized an accounting assumption of -110 on October 15, 2026. Actual accepted odds, sportsbook and any point-buy cost remain unknown; original reported terms are preserved in history.",
+  "entries": [
+    {
+      "createRequestId": "e5f1e3e1-6ad1-4e09-8496-b328a057ee7f",
+      "requestId": "987f2937-1585-4eb9-a2f6-cae6ab94284d"
+    },
+    {
+      "createRequestId": "9f6135a1-27de-4f16-af8c-1a6ec3a691d3",
+      "requestId": "26c00ba9-afb3-45a1-822e-8d441aa84ae1"
+    },
+    {
+      "createRequestId": "0642cb88-9d6b-4813-afbf-382ff677f87b",
+      "requestId": "cd85d36f-4711-4b75-a2c7-1afe19ddf67a"
+    },
+    {
+      "createRequestId": "a2cfec12-ae1b-464f-9965-bcd9dd5c7cf1",
+      "requestId": "beab2934-5a0d-4403-b2c4-861c0daee052"
+    },
+    {
+      "createRequestId": "1a10434c-3f3f-4c88-8f2f-723fb2091afd",
+      "requestId": "67473229-92a0-43b6-8779-de94c54158de"
+    },
+    {
+      "createRequestId": "3b192cde-ee9b-4980-9d50-90aa758b837a",
+      "requestId": "7a5affaa-8da3-4dc1-8399-0fafa85a2a72"
+    },
+    {
+      "createRequestId": "efbc0383-e2f7-4ee2-8048-b27c0b4aba11",
+      "requestId": "f600e21f-328a-4a97-81a0-7c2abeb0e821"
+    },
+    {
+      "createRequestId": "2709cb6f-57b5-4b7e-b23c-bd9c06f3970b",
+      "requestId": "21e16205-ee61-43e7-9993-64751b509777"
+    },
+    {
+      "createRequestId": "48a20ba2-9f21-4875-841b-973cc9e8425b",
+      "requestId": "43e951e8-65ae-4fae-8a78-1ff4a2fcca53"
+    },
+    {
+      "createRequestId": "753cf742-3eb8-4e54-a906-da6a6949581f",
+      "requestId": "9d5584ec-9807-4d79-b1ad-008321461de4"
+    },
+    {
+      "createRequestId": "6428ab06-1551-4a1c-ae73-bca3500b252b",
+      "requestId": "5397e6f8-1afd-49ff-9989-6c17b59adc22"
+    },
+    {
+      "createRequestId": "6620962c-1a1c-4c1d-a41a-f14d09e380e3",
+      "requestId": "fabfb8a9-2ec8-4875-811a-df2183231043"
+    },
+    {
+      "createRequestId": "204bc5be-f0aa-445c-9148-28972697f5bd",
+      "requestId": "5ae9c3fd-a350-45fb-8717-63fdb00e60a2"
+    },
+    {
+      "createRequestId": "b0c06c6e-2880-4180-877b-c8a4ab505cf5",
+      "requestId": "0e825655-4a11-4ce1-8aa6-b787a1f92bcd"
+    }
+  ]
+}

@@ -1,5 +1,43 @@
 # Decision log
 
+## D-50 — immediate per-game scoring, score browsing and player trends (October 15, 2026)
+
+Sean requested: "You should not be able to make guesses or change saves for guesses after you lock in that games guesses" and scoring "should immediately show for that weeks scoring", with week/team/game filters and a user trend page. These requirements and the Q-01 answer below are preserved from the local planning record on source checkout `e5a45f6`; Q-02 is preserved from that active checkout's follow-up record captured at 16:19 UTC on October 15; the synchronization review did not retrieve the original conversation. This entry adds the [repo backlog and targeted discovery queue](../planning/scoring-and-player-trends.md), without implementing or deploying the requirements. The local record called this D-47; that number belongs to the weather-schedule draft, D-48 is the recommendations decision, and D-49 is referenced for proposed Lines tables. This reconciled entry uses D-50; it grants no new product or deployment approval.
+
+- **Lock-in reaffirmed (D-39/D-41).** Each game's Spread and Total guesses lock independently and permanently. Another save cannot change, remove or re-anchor a locked-in guess. Drafts for other games/markets remain separate. Each locked-in guess counts even if the rest of the week remains unfinished.
+- **Immediate personal scoring.** With an available server-selected scoring reference, a successful lock-in establishes that game's points and immediately updates the player's personal score for its competition week. No wait for kickoff, football finals, or completion of the remaining ballot. Personal scores and permitted per-game details must stop using the blanket kickoff-only point guards in M-01/M-06/M-08 and the related redesign stages. Shared standings retain the kickoff basis confirmed in Q-02 below, including stage 57; readers and tests must distinguish these scopes. The formula, eligibility and separate Spread/Total competitions stay unchanged.
+- **Missing line.** D-27's pending-reference path remains: the guess can lock in, but points remain visibly pending until a permitted reference resolves. Missing is never a scored zero. Existing saved/ruled references and historical audit records stay intact; later market movement does not re-anchor an established score.
+- **Easy score access.** Provide a clear weekly scoring destination, linked from Home and a successful lock-in, with season/week, market, team and matchup filters and a per-game scoring explanation. Filtered subsets must be labelled separately from official whole-week totals/ranks.
+- **Player Trends.** Add a dedicated view of player performance across weeks. The preserved planning record reports Sean's Q-01 answer on October 15, “Go ahead with rec”: prioritize accuracy and bias, showing whether guesses improve, which teams a player consistently misjudges, and whether guesses run too high or too low, with every insight linked to actual games. This confirms the page's first purpose; exact metric definitions, comparison windows, sample thresholds and audience remain in discovery. Matchup situation trends are a separate feature.
+- **Shared standings and reveal timing (Q-02 confirmed).** Sean answered the next question on October 15, “Go ahead with rec”: personal weekly points update immediately, while shared weekly and season standings add each game at its kickoff. Everyone's board row, including the viewer's own, uses the same started games. Other players' per-game scores follow the existing game/market reveal permissions. Label personal points separately from shared standings and explain own contributions awaiting kickoff: an 8-point guess locked Monday adds 8 to the personal week immediately, then to the board at its kickoff. The underlying score/reference does not change. D-39 gates still protect hidden contributions in aggregates, trends, exports and feed text. Final closest-pick results, awards and winner declarations retain their separate completion rules.
+
+Evidence reconciled against `main` at `1df92bd` and the [October 15 recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md): Pages `ed3fb50b` / API v24 were recorded live from `b883c77`, with M-01 hosted and M-02 still unapplied. No fresh hosted audit was performed for this documentation reconciliation. Stage 24/M-07 and the new per-game entry flow remain unfinished. All nine backlog tasks remain open, delivery owners/dates are unassigned, and the frozen v62 tracker and private Status Board are unchanged.
+
+## D-48 — recommendations from your own guesses (October 15, 2026)
+
+Sean requested deployment of a Recommended section in Bets, then revised its
+initial three-point cutoff: “make it a red yellow green situation” and
+“it recommends the top 3 bets and then from there you can expand the table”.
+
+Show both sides relative to the player’s own submitted or locked-in Spread/Total
+guess and the accessible current consensus. Rank all positive discrepancies,
+including those below three points, show the top three first, and expand the rest.
+Green is favorable to that guess, red is against it, and yellow is a small gap or
+near match. The implementation chooses a one-point boundary for green/red; this
+is a display rule, not a validated model threshold. Show text and signed points
+with every color. Adding a suggestion prepares a Virtual Units card for explicit
+review and placement; it does not place a real-money wager or overwrite a pick.
+
+This authorizes a simple guess-based suggestion without a predictive model.
+It amends earlier wording that no recommendation can be generated from gaps;
+the gap still establishes neither a probability nor positive expected value.
+Recommendations use the current Community week and the player’s own picks,
+independent of private-league membership or its older week. The narrow placement
+path adds a service-only writer; it does not apply the pending redesign migrations.
+Scoring, reveal gates, quote provenance and free-data limits are unchanged.
+See [the feature contract](RECOMMENDED_BETS.md). D-47 remains reserved by the
+weather-schedule draft. Implementation and deployment require their own evidence.
+
 ## D-47 — weather every 24 hours, then 12 hours and 2 hours before kickoff (October 15, 2026)
 
 Sean answered, in the coordinating cloud session, "The new Lines board reads the weather forecast every time it shows a week; with the 200/day cap Weeks 14, 17 and 18 run out on Sundays. What should we do?" Verbatim: "Just need a weather update every 24 hours and then 2 hours and 12 hours before kickoff".
@@ -33,6 +71,7 @@ Sean answered two questions in the Mac mini session.
   - **What they get:** a round dark chip with the same padding in both themes. The chip is the canvas token in Dark (`#0B1020` old app, `#070B16` new app) and the text token `#0B1020` in Light. All four measure better on it in Dark too.
   - **Everyone else:** keeps the default rule.
   - **Result:** no logo is flagged in either theme or app. See the [override table](TEAM_LOGO_SOURCES.md#backing-override).
+- **Backing removed** (Sean, October 15, 2026, Mac mini session: "Remove the black background behind some of the logos. They does not need any of them"). Supersedes both the backing chip and the backing override above: every official logo sits directly on the page, or in the new app's tile, with no chip in either theme. `darkBackingTeams`, the `backing` registry field and the chip CSS are removed. The contrast notes in the register remain as history: some marks (for example NYG and CAR on Dark, KC, PIT and TEN on Light) have low contrast against the page, accepted by this ruling.
 - Nothing is applied or deployed by this entry.
 
 ## D-45 — weather on every game, and a weather chip on the board (October 14, 2026)

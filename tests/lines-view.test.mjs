@@ -305,3 +305,17 @@ test('lines-view stays pure: no React, DOM, storage, network or clock of its own
     ['./nfl-schedule.mjs', './wind-venues.mjs', './trends-view.mjs', './weather-view.mjs', '../web/src/next/format.js', '../web/src/next/copy.js', '../web/src/next/rules.js']);
   assert.doesNotMatch(src, /\b(Date\.now|new Date\(\)|fetch\(|localStorage|sessionStorage|document\.|window\.)/);
 });
+
+test('M07: Lines keeps per-game Late markers separate and preserves expired drafts without claiming a lock or saved reference', () => {
+  const a = 'SEA-DEN', b = 'HOU-JAX', time = '2026-10-14T18:00:00Z';
+  const ballot = { guessRule: 'per-game-v1', submittedAt: time, picks: { [a]: -3, [b]: -4 }, lockedAt: { [a]: time, [b]: time },
+    late: { minutes: 60 }, lockedLate: { [b]: { minutes: 60 } }, scoringReferences: { [a]: ref(-3.5), [b]: ref(-4.5) } };
+  const p = personal({ rules: { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring: true }, spread: ballot });
+  assert.equal(L.ownEntry(p, a, 'spread').late, null);
+  assert.deepEqual(L.ownEntry(p, b, 'spread').late, { minutes: 60 });
+  const closed = personal({ now: KICKOFF[a] + HOUR, rules: p.rules, spread: { ...ballot, closedAtKickoff: [a] } });
+  assert.deepEqual(L.ownEntry(closed, a, 'spread'), { value: -3, lockedAt: null, late: null });
+  const board = L.linesBoard({ personal: closed, community: community() });
+  assert.equal(card(board, a).tags.home, null, 'expired draft is not shown as a locked pick');
+  assert.deepEqual(card(board, a).spread, { open: true, line: null }, 'a closed draft has no saved scoring reference');
+});

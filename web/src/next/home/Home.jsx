@@ -5,7 +5,7 @@
 // shared/home-view.mjs makes of the Community read the data layer shares, with the server's own clock behind the
 // countdown (build plan 3.4), so nothing here decides a rule. The lime "Make picks" opens the old app's Picks until
 // stage 29 brings Play; "See Lines" is the quiet action everywhere else. Nothing here writes.
-import { useEffect, useId, useMemo, useState } from 'react';
+import { Suspense, useEffect, useId, useMemo, useState } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { HOME_COPY, homeHero, homeTiles } from '../../../../shared/home-view.mjs';
 import { HOME_LOADING, pointsLine } from '../copy.js';
@@ -121,13 +121,7 @@ export function Home() {
       </div>
     );
   }
-  // Until stage 29 the picks are made in the old app: its Picks screen opens on #picks, and the switch reloads into the
-  // address as it stands. The fragment is written without an event, because setting `location.hash` fires popstate at
-  // once and the frame's router (router.js) reads a legacy #picks and rewrites it to #play before the reload starts.
-  const toPicks = () => {
-    try { window.history.replaceState(null, '', '#picks'); } catch { /* The old app opens on its feed; Picks is one tap away. */ }
-    shell.toOldApp();
-  };
+  const toPicks = () => shell.go('play');
   const toLines = () => shell.tab('lines');
   return (
     <div className="gx-screen">
@@ -138,7 +132,7 @@ export function Home() {
         <RankTile title={HOME_COPY.spreadRank} tile={tiles.spread} chase={tiles.chase} market="spread"/>
         <RankTile title={HOME_COPY.totalRank} tile={tiles.total} chase={null} market="total"/>
       </div>
-      {SLOT_TILES.map(({ id, Tile }) => <Tile key={id}/>)}
+      {SLOT_TILES.map(({ id, Tile }) => <Suspense key={id} fallback={null}><Tile/></Suspense>)}
     </div>
   );
 }

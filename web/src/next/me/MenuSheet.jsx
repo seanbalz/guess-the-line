@@ -3,15 +3,17 @@
 // sub-view ("‹ Menu"), with Dark, Light or System and Reduce motion. Both are kept on this device under the old app's
 // own keys (`gtl.theme`, and the motion choice in `gtl.dashboard.preferences.v1`), so the two apps always agree.
 import { useState } from 'react';
-import { Button, Card, LinkRow, List, Segmented, Sheet, Switch } from '../ui/index.js';
+import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch } from '../ui/index.js';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { useThemePreference } from '../../Theme.jsx';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { useShell } from '../shell/context.js';
+import { ProfileSettings } from './ProfileSettings.jsx';
 
 export const MENU_COPY = Object.freeze({
   title: 'Menu',
   appearance: 'Appearance',
+  profile: 'Profile',
   signedInAs: email => `Signed in as ${email}`,
   signOut: 'Sign out',
   signingOut: 'Signing out…',
@@ -46,6 +48,7 @@ function Appearance() {
 export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
+  if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
   if (args.sub === 'appearance') {
     return (
       <Sheet title={MENU_COPY.appearance} back={{ label: MENU_COPY.title, onBack: () => shell.setSheetArgs({ sub: null }) }} onClose={shell.closeSheet}>
@@ -61,9 +64,13 @@ export function MenuSheet({ args }) {
   }
   return (
     <Sheet title={MENU_COPY.title} onClose={shell.closeSheet}>
-      <p className="gx-t-meta gx-truncate">{MENU_COPY.signedInAs(shell.you.email)}</p>
+      <Card className="gx-menu-account"><Avatar id={shell.you.id} name={shell.you.name} size={56}/><div>
+        <p className="gx-t-strong">{shell.you.name}</p>
+        <p className="gx-t-meta gx-c-2">{MENU_COPY.signedInAs(shell.you.email)}</p>
+      </div></Card>
       <Card variant="flush">
         <List>
+          <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
           <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
         </List>

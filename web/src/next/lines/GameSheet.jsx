@@ -7,7 +7,7 @@
 //
 // The kickoff wind forecast (`/wind/read`, D-34) comes through the old app's loaders and their 5-minute cache, so the
 // sheet reuses the board's read; while open it re-reads at the D-47 due points, as the board and the old trends panel
-// do. The referee assignments (`/officials/read`) are read once this sheet opens. Nothing here writes.
+// do. The referee assignments (`/officials/read`) are read once this sheet opens. Stage 35 adds the owner's private game note.
 import { useId, useMemo } from 'react';
 import { LINES_COPY, gameSheet, refereeRow, sheetWeatherRow } from '../../../../shared/lines-view.mjs';
 import { TRENDS_FOOTNOTE, WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-view.mjs';
@@ -16,6 +16,7 @@ import { useShell } from '../shell/context.js';
 import { Card, Icon, List, Pill, Row, Sheet } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
 import { Credits, Expander, TrendList, WeatherDetail } from './parts.jsx';
+import { GameNote } from './GameNote.jsx';
 import './lines.css';
 
 function YouRows({ rows }) {
@@ -49,14 +50,15 @@ function Missing({ text }) {
 export function GameSheet({ args }) {
   const shell = useShell();
   const youId = useId(), trendsId = useId();
-  const { personal, community, trends, trendsWeek, records, shown } = useLinesData();
+  const { app, personal, community, trends, trendsWeek, records, shown } = useLinesData();
+  const close = () => { if (shell.confirmLeave()) shell.closeSheet(); };
   const view = useMemo(() => (personal.data ? gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, records, gameId: args.game }) : null),
     [personal.data, community, trendsWeek, trends.status, records, args.game]);
   const officials = useOfficials(shown?.season, shown?.week, Boolean(view));
   const wind = useWind(shown?.season, shown?.week, Boolean(view));
   if (!view) {
     return (
-      <Sheet title={LINES_COPY.title} onClose={shell.closeSheet} className="gx-l-sheet">
+      <Sheet title={LINES_COPY.title} onClose={close} className="gx-l-sheet">
         <Missing text={personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}/>
       </Sheet>
     );
@@ -70,7 +72,7 @@ export function GameSheet({ args }) {
     .filter(Boolean).map(card => (card.locked ? card : { ...card, title: card.title.replace(/^Referee [^,]+, /, '').replace(/^./, c => c.toUpperCase()) })) : [];
   const t = view.trends;
   return (
-    <Sheet title={view.title} onClose={shell.closeSheet} tall className="gx-l-sheet">
+    <Sheet title={view.title} onClose={close} tall className="gx-l-sheet">
       <div className="gx-vstack gx-gap-2">
         <p className="gx-t-meta">{view.when}</p>
         {view.records ? <p className="gx-t-meta">{view.records.text}{view.records.asOf ? ` · ${view.records.asOf}` : ''}</p> : null}
@@ -109,6 +111,7 @@ export function GameSheet({ args }) {
         </List>
       </Card>
 
+      {app.accountId && shown && <GameNote key={`${app.accountId}:${shown.season}:${shown.week}:${view.id}`} accountId={app.accountId} season={shown.season} week={shown.week} gameId={view.id} requestSignIn={app.requestSignIn} onSaved={() => app.refresh({ only: ['personal'] })}/>}
       <Credits footer={view.footer}/>
     </Sheet>
   );

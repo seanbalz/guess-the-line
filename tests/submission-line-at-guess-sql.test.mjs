@@ -18,7 +18,11 @@ const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; n
 const NEW = '20261012230000_gtl_submit_with_line_at_guess.sql';
 // M-02 (stage 18) makes a sent guess final in every writer. This suite runs on HOSTED, which gains M-02 once Sean applies it (and
 // reruns with M-02 and its rollback), so the two edit cases read which writer is installed.
-const sentFinal = async f => (await f.q("select count(*)::int n from pg_proc where proname='gtl_save_weekly_ballot' and prosrc like '%GTL_BALLOT_LOCKED%'"))[0].n === 1;
+const liveRules = async f => {
+  const exists = (await f.q("select to_regprocedure('public.gtl_live_rules()') is not null present"))[0].present;
+  return exists ? (await f.q("select public.gtl_live_rules() rules"))[0].rules : {};
+};
+const sentFinal = async f => (await liveRules(f)).sentFinal===true;
 const FILES = HOSTED;
 const BEFORE = FILES.filter(f => f < NEW), AFTER = FILES.filter(f => f > NEW);
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -360,7 +364,8 @@ test('5. a line collected at or after a game\'s kickoff is never used for that g
   while (Date.now() <= Date.parse(first.kickoff) + 100) await new Promise(resolve => setTimeout(resolve, 50));
   // After the first kickoff (the deadline) the ballot is closed: an edit is refused as before and nothing changes.
   const edit = await f.submit(STEVEN, { ...f.picks(-3, week7.games), [first.id]: -4 }, { week: 7 });
-  assert.equal(edit.status, 400, JSON.stringify(edit.body)); assert.match(edit.body.error, /deadline has passed/);
+  if ((await liveRules(f)).perGameScoring) { assert.equal(edit.status,409,JSON.stringify(edit.body)); assert.equal(edit.body.code,'GTL_BALLOT_LOCKED'); }
+  else { assert.equal(edit.status, 400, JSON.stringify(edit.body)); assert.match(edit.body.error, /deadline has passed/); }
   assert.deepEqual(await f.ballot(STEVEN, 'guess_spread', 7), saved);
   // A stored line collected after the first kickoff (as a defective collector could store it; the finish RPCs refuse
   // matched quotes at or after kickoff) resolves every game except the one that already started.
@@ -513,7 +518,8 @@ test('migration is idempotent, service-only and security invoker', { skip }, asy
   // today's hosted schema, every one of them.
   const own = new Map(parseFunctions(migrationSql(NEW), NEW).map(fn => [fn.name, fn.md5]));
   const held = await Promise.all(sigs.map(async s => (await f.q('select md5(prosrc) m from pg_proc where oid=$1::regprocedure', [`public.${s}`]))[0].m === own.get(s.split('(')[0])));
-  assert.ok(held.filter(Boolean).length >= sigs.length - 4, 'at most the four functions later files replace hold another body');
+  const laterNames=new Set(AFTER.flatMap(file=>parseFunctions(migrationSql(file),file).map(fn=>fn.name)));
+  for (let i=0;i<sigs.length;i++) assert.ok(held[i]||laterNames.has(sigs[i].split('(')[0]), `${sigs[i]} keeps its body unless a later migration explicitly replaces it`);
   const before = await defs();
   await f.db.exec(migrationSql(NEW));
   assert.deepEqual((await defs()).filter((_, i) => held[i]), before.filter((_, i) => held[i]));

@@ -80,7 +80,7 @@ const test = base.extend({
         league.revision++;
         return reply(200, { ...result, localOnly: false, revision: league.revision });
       }
-      return reply(200, { ...(routeName === 'export' ? store.export('troy') : store.view('troy', mode)), localOnly: false, revision: league.revision });
+      return reply(200, { ...(routeName === 'export' ? await store.export('troy') : store.view('troy', mode)), localOnly: false, revision: league.revision });
     });
     try { await use(league); expect(league.browserErrors).toEqual([]); }
     finally { fs.rmSync(directory, { recursive: true, force: true }); }

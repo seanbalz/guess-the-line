@@ -11,7 +11,7 @@ import TeamFacts from './TeamFacts';
 import { TrendsBody, TrendsExpander } from './GameTrends';
 import { useTrendsToggle } from './trendsData';
 import { groupAccess } from '../../shared/trends-view.mjs';
-import { FINAL_LABEL, FINAL_RULE, ballotFinal, pickFinal, sentFinal } from './sentFinal';
+import { FINAL_LABEL, FINAL_RULE, pickFinal, sentFinal } from './sentFinal';
 import { draftFromGames, draftScope, draftHasChanges, mergeDraft, readDraft, writeDraft, writeRecoveryCopy, removeDraft, savedAttemptMatches } from './predictionDraft';
 import './predictionReview.css';
 
@@ -27,15 +27,20 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   // then `rules.sentFinal` is false and a submitted ballot stays editable until the deadline (D-16).
   // Redesign stage 18 (M-02): `lockedAt` names the games locked in on their own (the new app's per-game lock-in); they are final too.
   const finalRule = sentFinal(data.rules), savedBallot = { submittedAt: data.submittedAt, lockedAt: data.lockedAt, picks: Object.fromEntries(data.games.map(game => [game.id, game.prediction])) };
-  const isFinal = id => pickFinal(data.rules, savedBallot, id), allFinal = ballotFinal(data.rules, savedBallot, data.games.map(game => game.id));
+  const perGame = data.rules?.perGameScoring === true;
+  savedBallot.closedAtKickoff = data.closedAtKickoff;
+  const isFinal = id => pickFinal(data.rules, savedBallot, id) || (perGame && Date.parse(data.games.find(game => game.id === id)?.kickoff) <= serverNow());
   // The browser clock closes the ballot when the deadline passes during this session, before the
   // next server read confirms it. The server stays authoritative when it already reported the ballot
   // open past the nominal deadline (a commissioner extension), so the clock only arms while the last
   // server time was still before the deadline.
   const [deadlineTick, setDeadlineTick] = useState(0), clock = useRef({ source: data.now, at: Date.parse(data.now), started: Date.now() });
   if (clock.current.source !== data.now) clock.current = { source: data.now, at: Date.parse(data.now), started: Date.now() };
-  const deadlineArmed = () => Number.isFinite(clock.current.at) && clock.current.at < Date.parse(data.league.deadline);
-  const deadlinePassed = () => deadlineArmed() && clock.current.at + Date.now() - clock.current.started >= Date.parse(data.league.deadline);
+  const serverNow = () => clock.current.at + Date.now() - clock.current.started;
+  const closesAt = perGame ? Math.max(...data.games.map(game => Date.parse(game.kickoff))) : Date.parse(data.league.deadline);
+  const allFinal = data.games.length > 0 && data.games.every(game => isFinal(game.id));
+  const deadlineArmed = () => Number.isFinite(clock.current.at) && clock.current.at < closesAt;
+  const deadlinePassed = () => deadlineArmed() && serverNow() >= closesAt;
   const closed = !!data.locked || satOut || deadlinePassed();
   // A ballot whose guesses are all final is read-only like a closed one: the saved ballot shows, and a tab copy stays read-only.
   const frozen = closed || allFinal;
@@ -43,6 +48,8 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   const [dirty, setDirty] = useState(false), [review, setReview] = useState(false), [saving, setSaving] = useState(false), [fieldConflicts, setFieldConflicts] = useState({});
   const [activeRow, setActiveRow] = useState(null), [navigationMessage, setNavigationMessage] = useState('');
   const [recovery, setRecovery] = useState(() => readDraft(scope, data.games)), [storageAvailable, setStorageAvailable] = useState(true);
+  const [retainedClosed, setRetainedClosed] = useState(() => readDraft(`${scope}.closed`, data.games));
+  const [closedStorageAvailable, setClosedStorageAvailable] = useState(true);
   const [pendingAttempt, setPendingAttempt] = useState(() => readDraft(scope, data.games)?.pendingSave || null), [checking, setChecking] = useState(false), [readbackReady, setReadbackReady] = useState(false), [recoveryNotice, setRecoveryNotice] = useState('');
   const [online, setOnline] = useState(() => navigator.onLine), [savedAt, setSavedAt] = useState(lastSave(data) || data.submittedAt || null);
   const [showTrends, toggleTrends] = useTrendsToggle(), [openTrends, setOpenTrends] = useState(() => new Set());
@@ -54,28 +61,48 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   const uncertain = !!saveIssue?.uncertain || !!pendingAttempt;
   current.current = draft;
   const valid = value => value !== '' && Number.isFinite(Number(value)) && Number(value) * 2 === Math.round(Number(value) * 2) && Number(value) >= (total ? 0 : -100) && Number(value) <= (total ? 200 : 100);
-  const filled = data.games.filter(game => valid(draft[game.id])).length, complete = filled === data.games.length && filled > 0;
+  const requiredGames = perGame ? data.games.filter(game => Date.parse(game.kickoff) > serverNow()) : data.games;
+  const filled = data.games.filter(game => valid(draft[game.id])).length, complete = requiredGames.length > 0 && requiredGames.every(game => valid(draft[game.id]));
   const invalid = Object.values(draft).some(value => value !== '' && !valid(value));
   const conflicts = Object.keys(fieldConflicts).length;
+  function retainClosedEdits(copy, saved = draftFromGames(data.games)) {
+    if (!perGame || !copy) return;
+    const retained = { ...saved };
+    let added = false;
+    for (const game of data.games) {
+      const id = game.id;
+      if (retainedClosed?.draft[id] !== undefined && retainedClosed.draft[id] !== retainedClosed.base[id]) retained[id] = retainedClosed.draft[id];
+      if (isFinal(id) && copy.draft[id] !== copy.base[id] && copy.draft[id] !== saved[id]) {
+        added ||= retainedClosed?.draft[id] !== copy.draft[id];
+        retained[id] = copy.draft[id];
+      }
+    }
+    if (Object.keys(retained).some(id => retained[id] !== saved[id])) {
+      const next = { draft: retained, base: saved, updatedAt: !added && retainedClosed ? retainedClosed.updatedAt : new Date().toISOString(), pendingSave: null };
+      setRetainedClosed(next); setClosedStorageAvailable(writeRecoveryCopy(`${scope}.closed`, next));
+    }
+  }
   useEffect(() => {
-    const remaining = Date.parse(data.league.deadline) - (clock.current.at + Date.now() - clock.current.started);
+    const nextClose = perGame ? Math.min(...data.games.map(game => Date.parse(game.kickoff)).filter(time => time > serverNow())) : closesAt;
+    const remaining = nextClose - serverNow();
     if (data.locked || !Number.isFinite(remaining) || remaining <= 0) return;
     const timer = setTimeout(() => setDeadlineTick(value => value + 1), Math.min(2147483647, remaining + 1));
     return () => clearTimeout(timer);
-  }, [data.now, data.league.deadline, data.locked, deadlineTick]);
+  }, [data.now, data.league.deadline, data.locked, deadlineTick, perGame]);
   useEffect(() => {
     const saved = draftFromGames(data.games);
+    retainClosedEdits({ draft: current.current, base: baseline.current }, saved);
     const merged = frozen ? { draft: saved, conflicts: {} } : mergeDraft(baseline.current, current.current, saved);
     // A pick that became final since this tab's edits began (M-02) shows as saved, with no conflict to resolve.
     if (!frozen) for (const game of data.games) if (isFinal(game.id)) { merged.draft[game.id] = saved[game.id]; delete merged.conflicts[game.id]; }
-    setDraft(merged.draft); setFieldConflicts(old => ({ ...old, ...merged.conflicts })); baseline.current = saved;
+    setDraft(merged.draft); setFieldConflicts(old => Object.fromEntries(Object.entries({ ...old, ...merged.conflicts }).filter(([id]) => !isFinal(id)))); baseline.current = saved;
     if (frozen) {
       if (satOut) { removeDraft(scope); lastCopy.current = null; setRecovery(null); }
       else { const copy = readDraft(scope, data.games) || lastCopy.current; setRecovery(draftHasChanges(copy) || copy?.pendingSave ? copy : null); }
       setDirty(false); setReview(false); setFieldConflicts({});
     }
     if (lastSave(data)) setSavedAt(lastSave(data));
-  }, [data.games, frozen, satOut, scope]);
+  }, [data.games, frozen, satOut, scope, deadlineTick]);
   useEffect(() => {
     if (!readbackReady || !pendingAttempt) return;
     const copy = readDraft(scope, data.games) || lastCopy.current;
@@ -106,7 +133,13 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   function update(next) { setDraft(next); setDirty(true); setRecovery(null); setRecoveryNotice(''); setNavigationMessage(''); lastCopy.current = { draft: next, base: baseline.current, updatedAt: new Date().toISOString(), pendingSave: null }; setStorageAvailable(writeDraft(scope, next, baseline.current)); }
   function change(id, value) { if (!closed && !deadlinePassed() && !uncertain && !savingRef.current && !isFinal(id)) update({ ...current.current, [id]: value }); }
   function resolve(id, value) { if (closed || deadlinePassed() || uncertain || isFinal(id)) return; update({ ...current.current, [id]: value }); setFieldConflicts(old => { const next = { ...old }; delete next[id]; return next; }); }
-  function restore() { if (frozen || deadlinePassed() || uncertain) return; const next = mergeDraft(recovery.base, recovery.draft, baseline.current); setFieldConflicts(next.conflicts); update(next.draft); }
+  function restore() {
+    if (frozen || deadlinePassed() || uncertain) return;
+    const next = mergeDraft(recovery.base, recovery.draft, baseline.current);
+    retainClosedEdits(recovery);
+    for (const game of data.games) if (isFinal(game.id)) { next.draft[game.id] = baseline.current[game.id]; delete next.conflicts[game.id]; }
+    setFieldConflicts(next.conflicts); update(next.draft);
+  }
   function discardRecovery() { if (uncertain) return; removeDraft(scope); lastCopy.current = null; setRecovery(null); setRecoveryNotice('Recovery copy discarded. Your saved ballot is unchanged.'); }
   async function checkSaved() {
     if (!refreshSaved || checking || savingRef.current) return;
@@ -118,8 +151,10 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
     if (savingRef.current || busy || closed || allFinal || deadlinePassed() || uncertain || conflicts || conflict || !online || invalid || submit && !complete) return;
     savingRef.current = true; setSaving(true);
     try {
-      const picks = Object.fromEntries(Object.entries(current.current).filter(([, value]) => value !== '').map(([id, value]) => [id, Number(value)]));
-      const attempt = { picks, submit, revision: data.weeklyRevision ?? data.predictionRevision ?? data.revision ?? 0, serverNow: data.now, changed: data.games.filter(game => submit && (!submitted || Number(current.current[game.id]) !== game.prediction)).map(game => game.id) };
+      retainClosedEdits({ draft: current.current, base: baseline.current });
+      const outbound = Object.fromEntries(data.games.map(game => [game.id, perGame && isFinal(game.id) ? baseline.current[game.id] : current.current[game.id]]));
+      const picks = Object.fromEntries(Object.entries(outbound).filter(([, value]) => value !== '').map(([id, value]) => [id, Number(value)]));
+      const attempt = { picks, submit, revision: data.weeklyRevision ?? data.predictionRevision ?? data.revision ?? 0, serverNow: data.now, changed: data.games.filter(game => submit && (!perGame || !isFinal(game.id)) && (!submitted || Number(outbound[game.id]) !== game.prediction)).map(game => game.id) };
       setPendingAttempt(attempt);
       lastCopy.current = { draft: { ...current.current }, base: { ...baseline.current }, updatedAt: new Date().toISOString(), pendingSave: attempt };
       setStorageAvailable(writeDraft(scope, current.current, baseline.current, undefined, attempt));
@@ -134,7 +169,7 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
   function nextGame(id) {
     const index = data.games.findIndex(game => game.id === id);
     const ordered = [...data.games.slice(index + 1), ...data.games.slice(0, index + 1)];
-    const target = ordered.find(game => !valid(draft[game.id]));
+    const target = ordered.find(game => !isFinal(game.id) && !valid(draft[game.id]));
     setSearch('');
     if (target) { setActiveRow(target.id); setNavigationMessage(''); setTimeout(() => { pickers.current[target.id]?.focus(); pickers.current[target.id]?.scrollIntoView({ block: 'center' }); }, 0); }
     else { setActiveRow(null); setNavigationMessage(`All ${data.games.length} predictions are ready. Review your ballot before saving.`); setTimeout(() => { if (!reviewButton.current?.disabled) reviewButton.current?.focus(); }, 0); }
@@ -145,25 +180,26 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
     <section className="ballot-header panel"><div><span className="badge cyan">{satOut ? 'SAT OUT' : closed ? 'BALLOT CLOSED' : submitted ? finalRule ? 'SUBMITTED · FINAL' : 'SUBMITTED · EDITABLE' : 'BLIND PREDICTIONS'}</span><h2>{total ? 'Where would you set the total?' : 'Where would you set the line?'}</h2>{/* Persona audit #31: the same helper sentence as the Community Picks tab (CHIP_HELP), then the mechanics only this ballot has. */}<p>{total ? `${CHIP_HELP.guess_total} Guess the sportsbook’s total, not your own score forecast or an Over/Under pick.` : `${CHIP_HELP.guess_spread} More covers 10.5–20, and − and + fine-tune by half a point. Tap the other team to switch sides.`}</p></div><div className="ballot-count"><strong>{filled}<span>/{data.games.length}</span></strong><small>VALID PREDICTIONS</small></div></section>
     {submitted && <div className="ballot-analysis-entry"><button className="primary" onClick={() => go('edges')}>Open {total ? 'total' : 'spread'} analysis <ArrowRight size={18}/></button><button className="secondary" onClick={() => go('comparison')}>Compare picks</button></div>}
     {data.ballotScope === 'weekly' && <p className="weekly-ballot-note">One weekly {total ? 'total' : 'spread'} ballot across all groups. Saved guesses and their scoring references are reused everywhere.</p>}
-    <div className="callout"><LockKeyhole size={18}/><p>{satOut ? `You sat out Week ${data.league.week} ${total ? 'Total' : 'Spread'}. This week's ${total ? 'Total' : 'Spread'} score is recorded as sat out, and the other players' picks are visible below.` : closed ? 'The prediction deadline has passed. Extensions require commissioner review.' : submitted ? finalRule ? 'Your submitted guesses are final. Each is scored against the line stored when you saved it.' : 'Edit and review your guesses before saving. Each changed guess is scored against the line stored when you save it; unchanged guesses keep theirs.' : `Save draft stores your edits. Submit the full ballot any time before the deadline to save the line at your guess and open this mode’s analysis. ${finalRule ? FINAL_RULE : 'You may edit before the deadline.'}`} Deadline: {date(data.league.deadline)} PT.</p></div>
+    <div className="callout"><LockKeyhole size={18}/><p>{satOut ? `You sat out Week ${data.league.week} ${total ? 'Total' : 'Spread'}. This week's ${total ? 'Total' : 'Spread'} score is recorded as sat out, and the other players' picks are visible below.` : closed ? perGame ? 'All games have kicked off. Saved guesses and drafts remain available for review.' : 'The prediction deadline has passed. Extensions require commissioner review.' : submitted ? finalRule ? 'Your submitted guesses are final. Each is scored against the line stored when you saved it.' : 'Edit and review your guesses before saving. Each changed guess is scored against the line stored when you save it; unchanged guesses keep theirs.' : perGame ? 'Save draft keeps unlocked guesses editable. Submit locks in every remaining open game; each saved line and score stays fixed. Community Picks also offers one-game lock-in.' : `Save draft stores your edits. Submit the full ballot any time before the deadline to save the line at your guess and open this mode’s analysis. ${finalRule ? FINAL_RULE : 'You may edit before the deadline.'}`} {perGame ? "Each unlocked game closes at its own kickoff." : <>Deadline: {date(data.league.deadline)} PT.</>}</p></div>
+    {retainedClosed && <section className="draft-recovery expired-draft panel" aria-label="Retained closed-game edits"><h3>Closed-game edits retained</h3><p>These tab entries were never confirmed as saved. Closed games keep their saved values; your remaining games can still be entered.</p><details><summary>View retained entries</summary><dl>{data.games.filter(game => retainedClosed.draft[game.id] !== retainedClosed.base[game.id]).map(game => <div key={game.id}><dt>{game.awayCode} at {game.homeCode}</dt><dd>{retainedClosed.draft[game.id] === '' ? 'Cleared' : total ? retainedClosed.draft[game.id] : signed(Number(retainedClosed.draft[game.id]))}</dd></div>)}</dl></details><p>{closedStorageAvailable ? <>Kept in this tab until {date(new Date(Date.parse(retainedClosed.updatedAt) + 24 * 3600_000).toISOString())} PT, or until you discard the copy or sign out.</> : 'Tab storage is unavailable. Keep this page open to retain these entries; they cannot survive a reload.'}</p><button className="secondary" onClick={() => { removeDraft(`${scope}.closed`); setRetainedClosed(null); }}>Discard closed-game copy</button></section>}
     {recoveryNotice && <p className="draft-recovery-notice" role="status">{recoveryNotice}</p>}
     {uncertain && !saving && !review && <section className="draft-reconciliation panel" aria-label="Check unconfirmed save"><h3>Save outcome not confirmed</h3><p>The request may have reached the server. Check your saved ballot before another attempt; your entered values are retained in this tab.</p><button className="primary" disabled={checking || busy || !online || !refreshSaved} onClick={checkSaved}>{checking ? 'Checking…' : 'Check saved ballot'}</button></section>}
     {recovery && (frozen ? <section className="draft-recovery expired-draft panel" aria-label="Expired prediction recovery"><span className="badge amber">{closed ? 'READ-ONLY · DEADLINE PASSED' : 'READ-ONLY · SUBMITTED · FINAL'}</span><h3>Your entered guesses are retained</h3><p>This tab copy is not confirmation of a save. Editing and submission are closed. Your saved ballot is shown separately below.</p><details><summary>View retained {total ? 'Total' : 'Spread'} guesses</summary><dl>{data.games.filter(game => recovery.draft[game.id] !== recovery.base[game.id] || recovery.pendingSave && recovery.draft[game.id] !== '').map(game => <div key={game.id}><dt>{game.awayCode} at {game.homeCode}</dt><dd><span>Entered <strong>{recovery.draft[game.id] === '' ? 'Cleared' : total ? recovery.draft[game.id] : signed(Number(recovery.draft[game.id]))}</strong></span><span>Saved ballot <strong>{game.prediction == null ? 'No guess saved' : total ? fmt(game.prediction) : signed(game.prediction)}</strong></span></dd></div>)}</dl></details><p className="recovery-retention">{storageAvailable ? <>Kept in this tab until {date(new Date(Date.parse(recovery.updatedAt) + 24 * 3600_000).toISOString())} PT, or until you discard it or sign out.</> : 'Tab storage is unavailable. This copy is only on the open page and cannot survive a reload.'}</p><button className="secondary" disabled={uncertain} onClick={discardRecovery}>Discard recovery copy</button></section> : !uncertain && <section className="draft-recovery panel" aria-label="Recover unsaved predictions"><h3>Unsaved predictions found in this tab</h3><p>Recovery copy from {date(recovery.updatedAt)} PT. Review it against the latest saved account data before saving.</p><div><button className="primary" onClick={restore}>Restore tab draft</button><button className="secondary" onClick={discardRecovery}>Discard recovery copy</button></div></section>)}
     <section className="panel prediction-entry"><div className="table-toolbar"><div className="search-field"><Search size={16}/><input aria-label="Search matchups" placeholder="Find a team or matchup…" value={search} onChange={event => { setSearch(event.target.value); setActiveRow(null); setNavigationMessage(''); }}/></div><label className="filter-select"><select aria-label="Filter predictions" value={filter} onChange={event => { setFilter(event.target.value); setActiveRow(null); setNavigationMessage(''); }}><option value="all">All matchups</option><option value="missing">Missing predictions</option></select></label><button type="button" className="secondary trends-toggle" aria-pressed={showTrends} onClick={toggleTrends}><ChartSpline size={16} aria-hidden="true"/>Show trends</button></div>
       <div className="table-scroll"><table className="picks-table"><caption className="sr-only">Week {data.league.week} {total ? 'total' : 'spread'} ballot</caption><thead><tr><th scope="col">MATCHUP / KICKOFF PT</th><th scope="col">{total ? 'YOUR TOTAL' : 'YOUR HOME SPREAD'}</th><th scope="col">{timestamped ? 'SCORING REFERENCE' : 'MARKET REFERENCE'}</th><th scope="col">POINTS</th><th scope="col">STATUS</th></tr></thead><tbody>{rows.map(game => <Fragment key={game.id}><tr data-game-id={game.id}>
-        <th scope="row" className="prediction-matchup"><div className="matchup"><TeamMatchup game={game}/></div><small className="game-date">{date(game.kickoff)} PT</small><TeamFacts week={data.league.week} awayCode={game.awayCode} homeCode={game.homeCode}/>{showTrends && <div className="game-trends"><TrendsExpander open={openTrends.has(game.id)} onToggle={() => flipTrends(game.id)} controls={trendsId(game.id)} away={game.awayCode} home={game.homeCode}/></div>}{data.revealed && <div className="opponent-picks">{game.opponents.map(player => <span key={player.id}>{player.name.split(' ')[0]}: {total ? fmt(player.value) : signed(player.value)}</span>)}</div>}{timestamped && data.revealed && <CurrentConsensus data={data} game={game}/>} {benchmark && <div className="benchmark-mobile-data"><span>{benchmark.status === 'frozen' ? 'Frozen' : 'Provisional'} benchmark: {game.homeCode} {signed(game.market)}</span><strong>Your score: {fmt(game.points)} / 10 pts</strong></div>}</th>
+        <th scope="row" className="prediction-matchup"><div className="matchup"><TeamMatchup game={game}/></div><small className="game-date">{date(game.kickoff)} PT</small><TeamFacts week={data.league.week} awayCode={game.awayCode} homeCode={game.homeCode}/>{showTrends && <div className="game-trends"><TrendsExpander open={openTrends.has(game.id)} onToggle={() => flipTrends(game.id)} controls={trendsId(game.id)} away={game.awayCode} home={game.homeCode}/></div>}{(data.revealed || game.revealed) && <div className="opponent-picks">{game.opponents.map(player => <span key={player.id}>{player.name.split(' ')[0]}: {total ? fmt(player.value) : signed(player.value)}</span>)}</div>}{timestamped && (data.revealed || game.revealed) && <CurrentConsensus data={data} game={game}/>} {benchmark && <div className="benchmark-mobile-data"><span>{benchmark.status === 'frozen' ? 'Frozen' : 'Provisional'} benchmark: {game.homeCode} {signed(game.market)}</span><strong>Your score: {fmt(game.points)} / 10 pts</strong></div>}</th>
         <td className="prediction-entry-controls" onFocus={() => setActiveRow(game.id)}><ChipPicker ref={node => { pickers.current[game.id] = node; }} compact mode={data.mode} value={draft[game.id]} away={game.awayCode} home={game.homeCode} label={`${game.awayCode} at ${game.homeCode} ${total ? 'combined points' : 'home spread'}`} disabled={disabled || isFinal(game.id)} onChange={value => change(game.id, String(value))}/>
           {!closed && !allFinal && <button className="text-button next-prediction" onClick={() => nextGame(game.id)}>Next game <ArrowRight size={16}/></button>}
           {fieldConflicts[game.id] && <div className="prediction-conflict" role="alert"><strong>Changed on another device</strong><p>Saved: {fieldConflicts[game.id].saved || 'empty'} · Yours: {fieldConflicts[game.id].local || 'empty'}</p><button className="secondary" onClick={() => resolve(game.id, fieldConflicts[game.id].saved)}>Use saved</button><button className="secondary" onClick={() => resolve(game.id, current.current[game.id])}>Keep my edit</button></div>}
-        </td><td data-label={timestamped ? "Scoring reference" : "Market reference"}>{!data.revealed ? <span className="hidden-value"><LockKeyhole size={13}/>Hidden</span> : timestamped ? <ReferenceValue reference={game.scoringReference} total={total}/> : <><strong className="mono">{total ? fmt(game.market) : signed(game.market)}</strong><small className="cell-detail">{game.market === null ? total ? 'Awaiting total quotes' : 'Awaiting spread quotes' : benchmark ? `${benchmark.status === 'frozen' ? 'Frozen' : 'Provisional'} · Three-book median` : data.provisionalAnalysis ? 'Provisional analysis · Three-book median' : 'Historical · unofficial'}</small></>}</td><td data-label="Points"><strong className="mono">{fmt(game.points)}</strong><small className="cell-detail">{game.points === null ? 'Unscored' : '/ 10 pts'}</small></td><td data-label="Status"><span className="badge">{draft[game.id] === '' ? 'Not entered' : !valid(draft[game.id]) ? 'Check number' : dirty && draft[game.id] !== baseline.current[game.id] ? 'Unsaved' : closed ? 'Closed' : submitted ? 'Submitted' : 'Recorded'}</span></td>
+        </td><td data-label={timestamped ? "Scoring reference" : "Market reference"}>{!(data.revealed || game.revealed) ? <span className="hidden-value"><LockKeyhole size={13}/>Hidden</span> : timestamped ? <ReferenceValue reference={game.scoringReference} total={total}/> : <><strong className="mono">{total ? fmt(game.market) : signed(game.market)}</strong><small className="cell-detail">{game.market === null ? total ? 'Awaiting total quotes' : 'Awaiting spread quotes' : benchmark ? `${benchmark.status === 'frozen' ? 'Frozen' : 'Provisional'} · Three-book median` : data.provisionalAnalysis ? 'Provisional analysis · Three-book median' : 'Historical · unofficial'}</small></>}</td><td data-label="Points"><strong className="mono">{fmt(game.points)}</strong><small className="cell-detail">{game.points === null ? 'Unscored' : '/ 10 pts'}</small></td><td data-label="Status"><span className="badge">{perGame && isFinal(game.id) && !pickFinal(data.rules, savedBallot, game.id) ? 'Draft · closed at kickoff' : perGame && pickFinal(data.rules, savedBallot, game.id) ? 'Locked in · final' : draft[game.id] === '' ? 'Not entered' : !valid(draft[game.id]) ? 'Check number' : dirty && draft[game.id] !== baseline.current[game.id] ? 'Unsaved' : closed ? 'Closed' : submitted ? 'Submitted' : 'Recorded'}</span></td>
       </tr>{showTrends && <tr className="trends-row" hidden={!openTrends.has(game.id)}><td colSpan={5}>
         {/* The panel spans the table; only this mode's market can carry the saved reference, and only once it is revealed. */}
         <TrendsBody id={trendsId(game.id)} open={openTrends.has(game.id)} season={data.league.season} week={data.league.week} gameId={game.id} level={3} access={trendAccess(game.id)}
-          savedLabel="your saved scoring reference" saved={data.revealed && Number.isFinite(game.market) ? { [total ? 'total' : 'spread']: game.market } : {}}/></td></tr>}</Fragment>)}</tbody></table></div>{!rows.length && <div className="table-note"><p>{filter === 'missing' && !search && complete ? 'Every matchup has a valid prediction. Review your full ballot when you are ready.' : 'No matchups found. Try another team or return to all matchups.'}</p><button className="text-button" onClick={() => { setSearch(''); setFilter('all'); setActiveRow(null); }}>Show all matchups</button></div>}
+          savedLabel="your saved scoring reference" saved={(data.revealed || game.revealed) && Number.isFinite(game.market) ? { [total ? 'total' : 'spread']: game.market } : {}}/></td></tr>}</Fragment>)}</tbody></table></div>{!rows.length && <div className="table-note"><p>{filter === 'missing' && !search && complete ? 'Every matchup has a valid prediction. Review your full ballot when you are ready.' : 'No matchups found. Try another team or return to all matchups.'}</p><button className="text-button" onClick={() => { setSearch(''); setFilter('all'); setActiveRow(null); }}>Show all matchups</button></div>}
     </section>
     {navigationMessage && <p className="table-note" aria-live="polite">{navigationMessage}</p>}
     {invalid && !closed && <p className="form-error" role="alert">Use half-point increments {total ? 'from 0 to 200' : 'from −100 to 100'} for every prediction.</p>}
-    <div className="draft-save-state" aria-live="polite"><strong>{state}</strong><p>{savedAt && <>Last saved {date(savedAt)} PT. </>}{uncertain ? 'Check the saved ballot to find out whether the attempt was recorded. No automatic retry is made.' : satOut ? 'This mode’s ballot is closed for the week. Your saved ballot is unchanged.' : closed ? 'The deadline is closed. A recovery copy cannot change your saved ballot or reveal a market.' : allFinal && !dirty ? "Submitted guesses can't be changed. Your saved ballot stays as submitted." : dirty ? storageAvailable ? 'Recovery copy kept in this tab for up to 24 hours. Review and save to make it available on another device.' : 'Tab recovery is unavailable. Keep this page open until you save.' : 'Manual save is used. Unsaved edits are not account data.'}</p></div>
+    <div className="draft-save-state" aria-live="polite"><strong>{state}</strong><p>{savedAt && <>Last saved {date(savedAt)} PT. </>}{uncertain ? 'Check the saved ballot to find out whether the attempt was recorded. No automatic retry is made.' : satOut ? 'This mode’s ballot is closed for the week. Your saved ballot is unchanged.' : closed ? 'Entry is closed. A recovery copy cannot change your saved ballot or reveal a market.' : allFinal && !dirty ? "Submitted guesses can't be changed. Your saved ballot stays as submitted." : dirty ? storageAvailable ? 'Recovery copy kept in this tab for up to 24 hours. Review and save to make it available on another device.' : 'Tab recovery is unavailable. Keep this page open until you save.' : 'Manual save is used. Unsaved edits are not account data.'}</p></div>
     <div className="save-bar"><div><strong>{satOut ? 'Sat out this week' : closed ? 'Ballot closed' : submitted ? finalRule ? FINAL_LABEL : 'Submitted · editable until deadline' : `${filled}/${data.games.length} ready`}</strong><small>{data.revisionCount} saved revisions · {total ? 'Total' : 'Spread'} {data.ballotScope === 'weekly' ? 'weekly ballot · All groups' : 'competition'}</small></div><div>{closed || allFinal ? <button className="primary" onClick={() => go('edges')}>View analysis <ArrowRight size={17}/></button> : <>{!submitted && <button className="secondary" disabled={disabled || !dirty || invalid || conflicts > 0 || conflict || !online} onClick={() => persist(false)}>{saving && <LoaderCircle className="spin" size={16}/>}Save draft</button>}<button ref={reviewButton} className="primary" disabled={disabled || !complete || submitted && !dirty || conflicts > 0 || conflict || !online} onClick={() => setReview(true)}>{submitted ? 'Review & save changes' : 'Review & submit'} <ArrowRight size={17}/></button></>}</div></div>
     {/* Persona audit #40: the final opt-out is a text link below the save bar, after Save draft and Review & submit in the tab order. */}
     {!closed && !submitted && cloudEnabled && data.ballotScope === 'weekly' && <SitOutWeek season={data.league.season} week={data.league.week} mode={data.mode} disabled={disabled || saving || !online} onDone={async () => { removeDraft(scope); lastCopy.current = null; setRecovery(null); setDirty(false); await refreshSaved?.(); }}/>}
@@ -172,11 +208,11 @@ export default function PredictionEntry({ data, accountId, save, saveIssue, refr
         so a refusal that made the ballot final (stage 18, GTL_BALLOT_LOCKED) never offers a retry from the review. */}
     {review && !frozen && <Modal title={`${submitted ? 'Save changes to' : 'Submit'} your ${total ? 'total' : 'spread'} ballot?`} className="submit-review prediction-review" onClose={() => { if (!saving) setReview(false); }}>
       <div className="callout"><LockKeyhole size={19}/><p>{submitted ? 'Save the current line for changed guesses only.' : `Save the line at your guess and reveal your ${total ? 'total' : 'spread'} analysis.`}</p></div>
-      <p className="review-description">Review all {data.games.length} guesses. You can submit any time before the deadline: each guess is scored against the line stored when you save it.{finalRule && ` ${FINAL_RULE}`}</p>
-      <div className="review-picks" role="list" tabIndex={0} aria-label="Predictions to submit">{data.games.map(game => <div key={game.id} role="listitem"><span>{game.awayCode} at {game.homeCode}</span><strong className="mono">{total ? fmt(Number(draft[game.id])) : signed(Number(draft[game.id]))}</strong></div>)}</div>
+      <p className="review-description">Review {requiredGames.length} open-game guesses. You can submit before {perGame ? 'their kickoff' : 'the deadline'}: each guess is scored against the line stored when you save it.{finalRule && ` ${FINAL_RULE}`}</p>
+      <div className="review-picks" role="list" tabIndex={0} aria-label="Predictions to submit">{(perGame ? requiredGames : data.games).map(game => <div key={game.id} role="listitem"><span>{game.awayCode} at {game.homeCode}</span><strong className="mono">{total ? fmt(Number(draft[game.id])) : signed(Number(draft[game.id]))}</strong></div>)}</div>
       <details className="prediction-review-details"><summary>Scoring & editing details</summary>
-        <p>Deadline: {date(data.league.deadline)} PT. {finalRule ? 'Drafts can change until you submit; submitted guesses are final.' : 'You can edit until the deadline.'}</p>
-        <p>{submitted ? 'Saving changes saves the current line for changed guesses only. Unchanged guesses keep their saved lines.' : 'Submitting saves the line at your guess for every game and opens this mode’s analysis.'} We try to refresh the line first. If a refresh is not possible right now, the newest stored line is used and its age is shown. If no line is stored yet, the first line collected after your guess is used.</p>
+        <p>{perGame ? 'Each open game closes at its own kickoff.' : <>Deadline: {date(data.league.deadline)} PT.</>} {finalRule ? 'Drafts can change until you submit; submitted guesses are final.' : 'You can edit until the deadline.'}</p>
+        <p>{submitted ? 'Saving changes saves the current line for changed guesses only. Unchanged guesses keep their saved lines.' : 'Submitting saves the line at your guess for every game and opens this mode’s analysis.'} {perGame ? 'The server selects a qualifying stored line and shows its source and age. If no line is available, points stay pending; a new qualifying line must have been collected before kickoff.' : 'We try to refresh the line first. If a refresh is not possible right now, the newest stored line is used and its age is shown. If no line is stored yet, the first qualifying line collected after your guess is used.'}</p>
         <p>{total ? 'Each number is your guess of the sportsbook’s total for both teams.' : 'Each signed spread is from the home team’s perspective.'} {data.ballotScope === 'weekly' && <>Your Week {data.league.week} ballot is shared across every group. </>}{total ? 'Spread' : 'Total'} predictions stay separate.</p>
         <p>{dirty ? 'Your reviewed edits will be saved and submitted together.' : 'You are reviewing your saved draft.'}</p>
       </details>

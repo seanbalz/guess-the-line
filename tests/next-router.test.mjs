@@ -52,9 +52,9 @@ function fakeWindow(start = 'https://gtl.test/') {
 }
 
 /** The shell's loop in miniature: the reducer, and sync() after every change, as Shell.jsx's effect does. */
-function app(win) {
+function app(win, confirmLeave) {
   let state = initialState(startPlace(win));
-  const connection = connectHistory(win, { getState: () => state, dispatch: action => { const prev = state; state = reduce(state, action); connection.sync(prev, state); } });
+  const connection = connectHistory(win, { getState: () => state, confirmLeave, dispatch: action => { const prev = state; state = reduce(state, action); connection.sync(prev, state); } });
   connection.sync(null, state);
   const dispatch = action => { const prev = state; state = reduce(state, action); connection.sync(prev, state); };
   return { get state() { return state; }, dispatch, connection, open: (id, args) => dispatch({ type: 'open', layer: layer(id, args) }) };
@@ -117,6 +117,29 @@ test('a tab change is one history entry; Back and Forward move between tabs with
   await settle();
   assert.equal(shell.state.tab, 'play');
   assert.deepEqual(win.stack(), ['(none)', '[#play]', '#league']);
+});
+
+test('Back and legacy links preserve the active form when leaving is declined, then navigate when accepted', async () => {
+  const win = fakeWindow('https://gtl.test/#home');
+  let allow = false;
+  let prompts = 0;
+  const shell = app(win, () => { prompts += 1; return allow; });
+  shell.dispatch({ type: 'tab', tab: 'bets' });
+  win.history.back();
+  await settle();
+  assert.equal(shell.state.tab, 'bets');
+  assert.equal(win.location.hash, '#bets');
+  assert.equal(prompts, 1);
+  win.follow('#picks-total');
+  await settle();
+  assert.equal(shell.state.tab, 'bets');
+  assert.equal(win.location.hash, '#bets');
+  allow = true;
+  win.follow('#picks-total');
+  await settle();
+  assert.equal(shell.state.tab, 'play');
+  assert.equal(shell.state.views.play.market, 'total');
+  assert.equal(win.location.hash, '#play');
 });
 
 test('Back from a tab to the entry a visit started on (#main, a sign-in fragment) shows Home and adds nothing', async () => {

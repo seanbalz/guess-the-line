@@ -1,0 +1,13 @@
+.gx .gx-game-note { display: grid; gap: var(--gx-space-3); padding: var(--gx-space-4); min-width: 0; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); background: var(--gx-surface-1); }
+.gx .gx-game-note-head { display: flex; gap: var(--gx-space-3); align-items: flex-start; }
+.gx .gx-game-note-head > :where(svg) { flex: 0 0 auto; color: var(--gx-data); }
+.gx .gx-game-note-head > :where(div) { display: grid; gap: var(--gx-space-2); }
+.gx .gx-game-note-label { font: 700 16px/24px var(--gx-font-body); }
+.gx .gx-game-note :where(textarea) { width: 100%; min-width: 0; min-height: 144px; resize: vertical; padding: var(--gx-space-3); background: var(--gx-surface-2); color: var(--gx-text-1); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); box-shadow: none; font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-game-note :where(textarea):disabled { color: var(--gx-text-2); opacity: 1; }
+.gx .gx-game-note-count { text-align: end; font-variant-numeric: tabular-nums; }
+.gx .gx-game-note-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-game-note-actions > :where(button) { flex: 1 1 120px; }
+.gx .gx-game-note-review { display: grid; gap: var(--gx-space-3); padding: var(--gx-space-3); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }
+.gx .gx-game-note-saved { white-space: pre-wrap; overflow-wrap: anywhere; }
+.gx .gx-game-note-error { color: var(--gx-loss); }

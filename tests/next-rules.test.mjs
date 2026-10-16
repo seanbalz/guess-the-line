@@ -473,3 +473,22 @@ test('copy: D-39 wording, "due" not "lock" for deadlines, real minus, no emoji',
     assert.doesNotMatch(s, /15 min(utes)? after|extensions?|commissioner review/i, `no withdrawn late-window wording (DP-22): ${s}`);
   }
 });
+
+test('D50: the immediate personal score gate survives rule parsing and weekly summaries without opening another market', () => {
+  const m07 = { ...LIVE, perGameScoring: true };
+  assert.deepEqual(R.liveRules(m07), m07);
+  assert.deepEqual(R.liveRules({ ...m07, perGameScoring: false }), { ...m07, perGameScoring: false });
+  for (const rules of [{ ...m07, perGameScoring: 'true' }, { ...m07, sentFinal: false }, { ...m07, lateWindow: 'deadline' }]) {
+    assert.deepEqual(R.liveRules(rules), TODAY);
+  }
+  const locked = { value: -3, lockedAt: TUE };
+  assert.equal(state({ kickoff: KO.G2, entry: locked, now: TUE, rules: m07 }).pointsShown, true);
+  assert.equal(state({ kickoff: KO.G2, entry: locked, now: TUE, rules: LIVE }).pointsShown, false, 'pre-M07 compatibility stays kickoff gated');
+  const week = R.weekSummary({ games: GAMES, entries: { spread: { G2: locked }, total: { G2: { value: 44 } } }, deadline: DEADLINE, now: TUE, rules: m07 });
+  assert.equal(week.markets.spread.games.G2.pointsShown, true);
+  assert.equal(week.markets.spread.games.G1.pointsShown, false);
+  assert.equal(week.markets.total.games.G2.lineVisible, false);
+  assert.equal(week.markets.total.games.G2.pointsShown, false);
+  const malformed = state({ kickoff: KO.G2, entry: { lockedAt: TUE, value: null }, now: TUE, rules: m07 });
+  assert.equal(malformed.lockedIn, false); assert.equal(malformed.pointsShown, false);
+});

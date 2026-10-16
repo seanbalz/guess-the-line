@@ -1,4 +1,26 @@
-# Current access evidence — October 8, 2026
+# GTL — current access status pointer
+
+The [October 15 recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md)
+records the latest verified manual deployment: Pages `ed3fb50b` from `b883c77`,
+API v24 with JWT verification, and five working opt-in tabs. The repository is
+public; unauthenticated access to private player data remains prohibited.
+M-01, M-09/M-29 and the push setup are hosted, as recorded in the
+[October 14 apply entries](RELEASE_2026_10_09.md#october-14-deploy). Push is enabled;
+actual iPhone delivery, general signup/recovery delivery and second-device
+acceptance remain open. Automatic GitHub-to-Pages deployment is not established.
+
+Use the [completion register](COMPLETION_REGISTER.md) for remaining work and
+approval gates. Frontend formatting, profile editing and private notes are now
+deployed; that does not establish general account-delivery or phone acceptance.
+The frozen planning tracker and acquisition entries
+below are historical evidence, not current integration or completion status.
+
+Recommended bets (D-48) is live in both app presentations, with top-three
+traffic-light comparisons and explicit Virtual Units review. Only its additive
+writer `20261015143006` was applied; the six pending redesign migrations remain
+unapplied. No production pick was saved during verification.
+
+## Historical access evidence — October 8, 2026
 
 Read the latest `docs/CLOUD_SETUP.md` release entry and
 `planning/project-tracker.json` for current status. Historical acquisition tables

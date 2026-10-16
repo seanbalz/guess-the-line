@@ -98,7 +98,9 @@ export function ownEntry(personal, gameId, market) {
   if (!finite(value)) return null;
   const locked = guessLockedIn(ballot, gameId);
   const lockedAt = locked ? (typeof ballot.lockedAt?.[gameId] === 'string' ? ballot.lockedAt[gameId] : ballot.submittedAt) : null;
-  const late = locked && record(ballot.late) ? { minutes: finite(ballot.late.minutes) ? ballot.late.minutes : null } : null;
+  // M-07's Late marker belongs to each lock. A later lock must not mark an earlier on-time guess Late.
+  const marker = ballot?.guessRule === 'per-game-v1' ? ballot.lockedLate?.[gameId] : ballot?.late;
+  const late = locked && record(marker) ? { minutes: finite(marker.minutes) ? marker.minutes : null } : null;
   return { value, lockedAt, late };
 }
 

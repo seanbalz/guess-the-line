@@ -1,11 +1,38 @@
 # Private game notes: server (M-09)
 
-Owner: Sean Balsiger · Redesign build plan stage 27 · October 14, 2026 · Applied to the hosted project and deployed (`gtl-api` v18) on October 14, 2026, with M-29; see `docs/RELEASE_2026_10_09.md`, "October 14 deploy". No screen calls the routes until stage 35.
+Owner: Sean Balsiger · Redesign build plan stages 27 and 35 · Updated October 15, 2026 · Server applied to the hosted project and deployed (`gtl-api` v18) on October 14, 2026, with M-29; see `docs/RELEASE_2026_10_09.md`, "October 14 deploy". The stage 35 editor shipped October 15 as Pages `fc7f3cd2` from `d71a988`; [release evidence](../RELEASE_2026_10_15.md) keeps fixture-based save checks and remaining real-phone acceptance separate.
 
 D-36 keeps private notes ("Solo extras: private notes on a game stay, in the game detail sheet") and D-39 confirms the
 plan. This stage is the server half: a reader and a writer for one private note per game, used by the new app's game
 sheet in stage 35 ("Only you see this."). Only the owner can read or write a note. No other member, commissioner,
 group screen, feed, export or History reader returns it.
+
+## Game-sheet editor (stage 35)
+
+`web/src/next/lines/GameNote.jsx` adds **Private game note** to the new app's game sheet. It reads the signed-in
+owner's exact season/week, then edits only the opened game's note. **Save note** sends the text exactly as typed,
+that note's own revision and a new request ID. It does not create a Favorite, change a pick or post to a feed.
+New saves enforce 2,000 UTF-16 code units, including spaces and line breaks. The database's existing limit counts
+Unicode codepoints, so a valid stored note can contain up to 4,000 UTF-16 units. The editor displays that text whole,
+explains the current save limit and permits deliberate shortening or clearing. It never truncates a saved note.
+
+An unsaved draft keeps its text, original revision and any unconfirmed request in this browser tab's account-scoped
+`nextDrafts` namespace. Clearing text is a recoverable draft too. Closing the sheet or leaving prompts when a draft
+exists; reopening restores it. Signing out or changing accounts purges these copies. If browser storage is unavailable,
+the editor says to keep the page open until saving. Recovery can retain up to 4,000 units while an older note is being
+shortened, including after adopting a newer saved revision; it cannot turn an over-limit draft into a pending write.
+
+A failed or conflicting save preserves the draft. **Check saved note** reads without writing; when the text changed
+elsewhere, the saved version appears alongside the draft. **Use saved note** replaces the local draft only;
+**Keep editing my draft** adopts the checked revision, then a separate **Save note** deliberately replaces the saved
+text. An unconfirmed save can only be retried on demand, with its exact original request. A replayed receipt never
+replaces a known newer saved version, including when a fresh read fails. No background read or recovery action saves.
+
+`tests/cloud-browser/next-game-notes.spec.js` uses the hosted migration inventory on local PGlite. It covers owner
+isolation, no Favorite creation, exact whitespace/UTF-16 text, clearing without deleting history, conflicts, lost replies,
+the earlier-receipt/newer-note race, legacy SQL-length notes, draft restoration and account-change purge.
+`tests/game-note-drafts.test.mjs` checks scope, response validation and recovery across revision changes. These are
+local checks, not evidence of a production note write.
 
 ## Routes (`gtl-api`, POST, signed-in and email-confirmed, no group needed)
 

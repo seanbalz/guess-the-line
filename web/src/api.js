@@ -1,5 +1,5 @@
 import { cloudEnabled, configurationError, publishableKey, supabase, supabaseUrl } from './auth';
-import { ApiError, readResponse, requestResponse } from './apiResponse';
+import { ApiError, requestResponse } from './apiResponse';
 export { ApiError } from './apiResponse';
 
 /** `save: true` marks a write whose lost or unreadable reply must surface as SaveUncertainError; writes never retry by themselves. */
@@ -30,10 +30,10 @@ export async function api(route, player, mode, body, signal, revision, league) {
 export async function socialApi(action, body = {}, player = 'sean', signal) {
   if (!['read', 'create', 'tail', 'settle', 'include', 'correct', 'follow'].includes(action)) throw new ApiError('Unknown bet tracker action.', 400);
   if (configurationError) throw new ApiError(configurationError, 503);
-  if (cloudEnabled) return cloudApi(`social/${action}`, body, { signal });
-  return readResponse(await fetch(`/api/social/${action}?player=${encodeURIComponent(player)}`, {
+  if (cloudEnabled) return cloudApi(`social/${action}`, body, { signal, save: action !== 'read' });
+  return requestResponse(() => fetch(`/api/social/${action}?player=${encodeURIComponent(player)}`, {
     method: 'POST', signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-  }));
+  }), action !== 'read');
 }
 export const fmt = value => value === null || value === undefined ? '—' : Number.isInteger(value) ? String(value) : value.toFixed(1);
 export const signed = value => value === null || value === undefined ? '—' : value === 0 ? 'PK' : value > 0 ? `+${fmt(value)}` : `−${fmt(Math.abs(value))}`;

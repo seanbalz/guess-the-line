@@ -5,6 +5,7 @@ import { seed } from '../server/store.mjs';
 import { createCloudHandler } from '../cloud/handler.mjs';
 import { handleOddsCollection, providerCollectionError } from '../cloud/odds-collection.mjs';
 import { OddsProviderError } from '../cloud/odds-provider.mjs';
+import { emptySocialState } from '../shared/social-bets.mjs';
 let PGlite;
 try { ({PGlite}=await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
@@ -218,16 +219,24 @@ test('collection orchestration uses quota errors safely and free preflight witho
 });
 
 test('market snapshot lookup occurs only after matching mode reveal; failure never blocks saved entries',async()=>{
-  const state=seed(),calls=[];
+  const state=seed(),calls=[],socialCalls=[];
   const make=(failing=false)=>createCloudHandler({
     authenticate:async()=>({id:id(1),email:'owner@example.invalid',emailConfirmed:true}),
     storage:{membership:async()=>({active:true,player_id:'sean',role:'commissioner'})},
     weekly:{load:async()=>({state,revision:0,leagueRevision:0})},
+    social:{rpc:async(name,args)=>{
+      socialCalls.push([name,args]);
+      assert.equal(name,'gtl_read_social');
+      return {season:state.league.season,week:state.league.week,profiles:[],following:[],
+        availableWeeks:[{season:state.league.season,week:state.league.week}],
+        weeks:[{season:state.league.season,week:state.league.week,games:state.games,revision:0,state:emptySocialState()}]};
+    }},
     odds:{marketSnapshot:async(user,league)=>{calls.push([user,league]);if(failing)throw new Error('secret provider detail');return null;}},
   });
   const req=async(handler,path)=>{const response=await handler(new Request(`https://test.invalid${path}`,{headers:{Authorization:'Bearer test-token'}}));return {status:response.status,data:await response.json()};};
   for(const path of ['/state?mode=guess_total','/state?mode=betting_challenge','/export'])assert.equal((await req(make(),path)).status,200);
   assert.equal(calls.length,1, 'Challenge may load quotes for the already-submitted Spread mode');
+  assert.deepEqual(socialCalls,[['gtl_read_social',{p_user:id(1),p_season:null,p_week:null,p_all:true}]],'Export reads all shared history without a market lookup');
   const revealed=await req(make(),'/state?mode=guess_spread');assert.equal(revealed.status,200);assert.equal(calls.length,2);assert.equal(revealed.data.marketFeed.status,'waiting');
   const failure=await req(make(true),'/state?mode=guess_spread');assert.equal(failure.status,200);assert.equal(failure.data.marketFeed.status,'unavailable');assert.equal(failure.data.games[0].prediction,-9.5);assert.equal(JSON.stringify(failure.data).includes('secret provider detail'),false);
 });

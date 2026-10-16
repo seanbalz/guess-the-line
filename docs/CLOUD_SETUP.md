@@ -1,5 +1,27 @@
 # Guess The Line — shared access setup
 
+**Current status:** the [October 15 recommendations release](RELEASE_2026_10_15_RECOMMENDATIONS.md)
+records Pages `ed3fb50b` from `b883c77`, with all five opt-in tabs using hosted
+workflows and API v24 active with JWT verification. The old app remains the
+default. M-01 is hosted; M-02 is not applied, so Guess edits still follow D-16.
+The [October 14 apply record](RELEASE_2026_10_09.md#october-14-deploy) records
+M-09/M-29 and the push migration/VAPID setup; its later entry records the enabled
+push schedule. Actual phone reminder delivery remains an acceptance check.
+Use the [completion register](COMPLETION_REGISTER.md) for current gaps and gates;
+section formatting, profile editing and private notes are deployed, with phone
+acceptance still open.
+
+Recommended bets (D-48) is live in both app presentations, with top-three
+traffic-light comparisons and explicit Virtual Units review. Only its additive
+writer `20261015143006` was applied; the six pending redesign migrations remain
+unapplied. No production pick was saved during verification.
+
+## Historical setup record
+
+The dated claims below preserve earlier evidence. In particular, the former
+“push not live” status and older API/Pages versions do not describe the release
+above. They do not override current deployment evidence or close acceptance work.
+
 Owner: Sean Balsiger · Updated October 12, 2026 · Provisional GTL brand system
 
 **Web push (D-28), not live:** the opt-in reminder 2 hours before picks lock is in the repository, but its migration, `gtl-push-reminders` function, VAPID secrets and cron job wait for Sean; see [WEB_PUSH_SETUP.md](WEB_PUSH_SETUP.md). Until `gtl-api` holds a valid `VAPID_PUBLIC_KEY`, `/community/read` says `pushConfigured: false` and the app shows no reminder control (push guard).

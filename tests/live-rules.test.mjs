@@ -4,11 +4,12 @@ import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs'
 import { createEngine } from '../server/engine.mjs';
 import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 import { LATE_WINDOWS, REVEAL_TIMES, TODAYS_RULES, parseLiveRules, readLiveRules } from '../cloud/live-rules.mjs';
+import { emptySocialState } from '../shared/social-bets.mjs';
 
 // Redesign build plan, stage 4: /community/read, /personal, /personal/read and /state (and the /ballot and /bet
 // replies, which are the /state view) carry `rules`. The hosted project has no gtl_live_rules yet (M-01 creates it;
 // tests/guess-reveal-per-game-sql.test.mjs reads it on PGlite), so every reply carries today's rules, and a missing
-// or failing RPC never fails the route.
+// RPC uses compatibility rules. Outages and malformed responses fail closed.
 // Fictional fixtures only: no real player, pick or line.
 const USER = '00000000-0000-4000-8000-00000000000a';
 const LEAGUE = `g_${'a'.repeat(32)}`;
@@ -52,6 +53,13 @@ function app({ optionalRpc, initial = state() } = {}) {
     },
     community: { rpc: async name => { calls.push(['community', name]); return feed; } },
     personal: { rpc: async name => { calls.push(['personal', name]); return { scope: 'account_private', season: 2026, week: 6 }; } },
+    social: { rpc: async (name, body) => {
+      calls.push(['social', name, body]);
+      assert.equal(name, 'gtl_read_social');
+      return { season: initial.league.season, week: initial.league.week, profiles: [], following: [],
+        availableWeeks: [{ season: initial.league.season, week: initial.league.week }],
+        weeks: [{ season: initial.league.season, week: initial.league.week, games: initial.games, revision: 0, state: emptySocialState() }] };
+    } },
     ...(optionalRpc ? { optionalRpc: async (name, body) => { calls.push(['optional', name, body]); return optionalRpc(name, body); } } : {}),
   });
   const send = async (path, { method = 'POST', body = method === 'POST' ? {} : undefined } = {}) => {
@@ -98,8 +106,8 @@ test('revealAt: the deadline opens the week until M-01 reports each game\'s kick
   assert.deepEqual(parseLiveRules({ sentFinal: true, lateWindow: 'kickoff', revealAt: 'deadline' }), LIVE);
 });
 
-test('readLiveRules returns today\'s rules while the function is missing, unreadable or not configured, and never rejects', async () => {
-  for (const optionalRpc of [undefined, null, async () => FEATURE_OFF, async () => { throw new Error('private provider detail'); }, async () => ({ sentFinal: 'yes' }), async () => null]) {
+test('readLiveRules uses legacy rules only for an explicitly missing or unconfigured RPC', async () => {
+  for (const optionalRpc of [undefined, null, async () => FEATURE_OFF]) {
     const rules = await readLiveRules(optionalRpc);
     assert.deepEqual(rules, TODAYS_RULES);
     assert.ok(!Object.isFrozen(rules), 'each reply gets its own object');
@@ -119,8 +127,8 @@ test('the five views carry today\'s rules when no optional-RPC reader is configu
   assert.ok(!calls.some(([kind]) => kind === 'optional'));
 });
 
-test('a missing gtl_live_rules (feature off) or a failing read leaves every route answering as today', async () => {
-  for (const optionalRpc of [async () => FEATURE_OFF, async () => { throw new Error('GTL private failure detail'); }, async () => ({ sentFinal: 'maybe', lateWindow: 'kickoff' })]) {
+test('an explicitly missing gtl_live_rules keeps compatibility with the legacy deployment', async () => {
+  for (const optionalRpc of [async () => FEATURE_OFF]) {
     const baseline = app(), { send, calls } = app({ optionalRpc });
     for (const [path, options] of routes) {
       const [expected, actual] = [await baseline.send(path, options), await send(path, options)];
@@ -161,16 +169,19 @@ test('routes that are not views carry no rules and make no rules read', async ()
   const { send, calls } = app({ optionalRpc: async () => LIVE });
   const exported = await send('/export', { method: 'GET' });
   assert.equal(exported.status, 200); assert.equal(Object.hasOwn(exported.body, 'rules'), false);
+  assert.equal(exported.body.socialBets.historyScope, 'all'); assert.deepEqual(exported.body.socialBets.entries, []);
+  assert.equal(Object.hasOwn(exported.body.socialBets, 'rules'), false);
+  assert.deepEqual(calls.filter(([kind]) => kind === 'social'), [['social', 'gtl_read_social', { p_user: USER, p_season: null, p_week: null, p_all: true }]]);
   const liked = await send('/community/like', { body: { postId: '00000000-0000-4000-8000-000000000009', like: true } });
   assert.equal(liked.status, 200); assert.equal(Object.hasOwn(liked.body, 'rules'), false);
   assert.equal(calls.filter(([kind]) => kind === 'optional').length, 0);
 });
 
-test('a refused request is refused exactly as before, whatever the rules read does', async () => {
+test('a rules outage closes saves while syntactically invalid requests remain invalid', async () => {
   const { send } = app({ optionalRpc: async () => { throw new Error('unavailable'); } });
   const stale = await send('/ballot', { body: { revision: 7, picks: { 'SEA-DEN': -3 } } });
-  assert.equal(stale.status, 409); assert.equal(Object.hasOwn(stale.body, 'rules'), false);
-  const invalid = await send('/community/read', { body: { extra: 1 } });
+  assert.equal(stale.status, 503); assert.equal(Object.hasOwn(stale.body, 'rules'), false);
+  const invalid = await send('/ballot', { body: { revision: 0, extra: 1 } });
   assert.equal(invalid.status, 400); assert.equal(Object.hasOwn(invalid.body, 'rules'), false);
 });
 
@@ -199,4 +210,33 @@ test('through the Supabase adapter: PostgREST PGRST202 for gtl_live_rules reads 
   live = LIVE;
   assert.deepEqual((await read()).body.rules, LIVE);
   assert.doesNotMatch(JSON.stringify(off.body), /server-test-secret|schema cache/);
+});
+
+
+test('a transient or malformed rules reply never reopens editing or reaches a ballot writer', async () => {
+  for (const optionalRpc of [async () => { throw new Error('private rules failure'); }, async () => null, async () => ({ sentFinal: 'maybe', lateWindow: 'kickoff' })]) {
+    await assert.rejects(readLiveRules(optionalRpc));
+    const { send, calls } = app({ optionalRpc });
+    for (const [path, options] of [...routes, ['/personal/ballot', { body: { lockIn: ['SEA-DEN'] } }]]) {
+      const result = await send(path, options);
+      assert.equal(result.status, 503, path);
+      assert.equal(Object.hasOwn(result.body, 'rules'), false);
+      assert.doesNotMatch(JSON.stringify(result.body), /private rules|sentFinal/);
+    }
+    assert.ok(!calls.some(([kind, name]) => kind === 'personal' && name === 'gtl_mutate_personal'));
+  }
+});
+
+test('per-game scoring is an explicit capability and cannot exist with editable or deadline-only rules', async () => {
+  const live = { ...LIVE, perGameScoring: true };
+  assert.deepEqual(parseLiveRules(live), live);
+  assert.throws(() => parseLiveRules({ ...live, sentFinal: false }));
+  assert.throws(() => parseLiveRules({ ...live, lateWindow: 'deadline' }));
+  assert.throws(() => parseLiveRules({ ...live, perGameScoring: 'true' }));
+  const { send, calls } = app({ optionalRpc: async () => live });
+  const result = await send('/personal/read', { body: { season: 2026, week: 6 } });
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body.rules, live);
+  assert.deepEqual(Object.keys(result.body.scoring), ['guess_spread', 'guess_total']);
+  assert.equal(calls.filter(([kind, name]) => kind === 'personal' && name === 'gtl_guess_score_receipt').length, 2);
 });

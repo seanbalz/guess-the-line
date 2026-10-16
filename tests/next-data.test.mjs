@@ -265,6 +265,35 @@ test('a read that throws at once still settles, and an unknown read is a program
 
 // ---------- writes ----------
 
+test('a post-save refresh cannot reuse a read that started before the save', async () => {
+  const community = controlledSource();
+  const store = createDataStore({ community });
+  const oldRead = store.load('community');
+  const save = createWriter(store)('comment', async () => ({ saved: true }), { refresh: ['community'] });
+  await tick();
+  assert.equal(community.calls, 1);
+  community.answer({ comments: [] });
+  await oldRead;
+  await tick();
+  assert.equal(community.calls, 2, 'a fresh read follows the old in-flight answer');
+  community.answer({ comments: ['new comment'] });
+  assert.equal((await save).ok, true);
+  assert.deepEqual(store.get('community').data.comments, ['new comment']);
+});
+
+test('unmount cancels a post-save refresh queued behind an in-flight read', async () => {
+  const community = controlledSource();
+  const store = createDataStore({ community });
+  const oldRead = store.load('community');
+  const save = createWriter(store)('comment', async () => ({ saved: true }), { refresh: ['community'] });
+  await tick();
+  store.abortAll();
+  community.answer({ comments: [] });
+  await oldRead;
+  await save;
+  assert.equal(community.calls, 1, 'no fresh read is started after the app unmounts');
+});
+
 test('no write retry after SaveUncertainError: sent once, the reads are checked again, and nothing sends it again', async () => {
   const lobby = controlledSource();
   const c = clock();
@@ -437,6 +466,10 @@ test('the Play counter: ballots still due this week, from the server\'s picksDue
   const due = (state, modes) => ({ community: { picksDue: { state, modes: modes.map(mode => ({ mode, submitted: false, satOut: false })) } } });
   assert.deepEqual(playCounter(due('due', ['guess_spread', 'guess_total'])), { count: 2, label: '2 ballots due' });
   assert.deepEqual(playCounter(due('urgent', ['guess_total'])), { count: 1, label: '1 ballot due' });
+  const late = due('late', ['guess_spread', 'guess_total']);
+  assert.equal(playCounter(late), null, 'lateness alone does not promise an open game');
+  late.community.picksDue.modes[0].openGames = 1; late.community.picksDue.modes[1].openGames = 0;
+  assert.deepEqual(playCounter(late), { count: 1, label: '1 ballot due' });
   for (const state of ['not_open', 'closed', 'done', 'none']) assert.equal(playCounter(due(state, ['guess_total'])), null, state);
   assert.equal(playCounter(due('due', [])), null);
   for (const data of [null, {}, { community: null }, { community: { picksDue: { state: 'due' } } }]) assert.equal(playCounter(data), null);

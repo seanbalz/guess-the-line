@@ -69,6 +69,16 @@ export function AppDataProvider({ session, sources, children }) {
   /** Starts a shared read a screen needs (once; later calls share it), and what it holds now. */
   const loadRead = useCallback(name => store.load(name), [store]);
   const readOf = useCallback(name => store.get(name), [store]);
+  const refresh = useCallback(options => store.refresh({ ...options, afterPending: true }), [store]);
+  const requestSignIn = useCallback(() => store.noteSignInNeeded(), [store]);
+
+  // Existing Community writes, shared by the League screen. The request id belongs to the caller's draft;
+  // a lost reply is never replayed by the store, and the shared feed is checked again after it settles.
+  const mutateCommunity = useCallback((action, body) => {
+    if (!['like', 'comment'].includes(action)) throw new TypeError('Unsupported community action.');
+    const key = `community:${action}:${body?.postId ?? ''}:${body?.requestId ?? ''}`;
+    return write(key, () => cloudApi(`community/${action}`, body, { save: true }), { refresh: ['community'] });
+  }, [write]);
 
   const saveName = useCallback(displayName => write('profile', () => cloudApi('profile', { displayName }, { save: true }), { refresh: ['lobby'] }), [write]);
 
@@ -117,7 +127,9 @@ export function AppDataProvider({ session, sources, children }) {
     chooseLeague,
     saveName,
     join,
-    refresh: options => store.refresh(options),
+    refresh,
+    requestSignIn,
+    mutateCommunity,
     loadRead,
     readOf,
     signIn,

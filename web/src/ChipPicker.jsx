@@ -31,7 +31,8 @@ export const CHIP_HELP = {
  * D-21 button entry. Spread values are home-referenced: home favored by 3 is -3.
  * Totals use whole-number chips around a center plus ±0.5 fine tuning.
  * `ref` exposes focus() (the row's Tab stop) and scrollIntoView() for "Next game" navigation;
- * `compact` tightens the chips for table rows.
+ * `compact` tightens the chips for table rows. Optional `teamLabels` only changes visible team-button text;
+ * full favorite names stay in accessible labels, summaries, keyboard help and saved values.
  * Persona audit quick wins: the number row is labelled "<Favorite> win by" / "Combined points"
  * (visible and as the group's aria-label, with each chip described by it), a selected chip
  * carries a check icon as well as its fill, and a plain-language "Your call" line sits beside
@@ -60,7 +61,7 @@ export const CHIP_HELP = {
  * click followed keyboard focus, and the click landed on the row instead of the chip. The typed field opens after the
  * chips for the same reason: closing it on blur must not move the chip being clicked.
  */
-export default function ChipPicker({ mode, value, onChange, away, home, disabled, label, compact, ref }) {
+export default function ChipPicker({ mode, value, onChange, away, home, disabled, label, compact, teamLabels, ref }) {
   const spread = mode === 'guess_spread';
   const has = value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value));
   const v = has ? Number(value) : null;
@@ -172,7 +173,7 @@ export default function ChipPicker({ mode, value, onChange, away, home, disabled
   const check = <Check className="chip-check" size={14} aria-hidden="true"/>;
   return <div ref={root} className={`chip-picker${compact ? ' compact' : ''}`} role="group" aria-label={label}>
     {spread && <div className="chip-row chip-teams" role="group" aria-label="Favorite" onKeyDown={onTeamKey}>{[['away', away], ['pickem', "Pick'em"], ['home', home]].map(([side, text]) =>
-      <button type="button" key={side} data-side={side} className={`chip team-chip ${fav === side ? 'selected' : ''}`} aria-pressed={fav === side} aria-describedby={teamHelpId} tabIndex={teamTab === side ? 0 : -1} disabled={disabled} onClick={() => pickFavorite(side)}>{fav === side && check}{text}</button>)}
+      <button type="button" key={side} data-side={side} className={`chip team-chip ${fav === side ? 'selected' : ''}`} aria-pressed={fav === side} aria-label={teamLabels?.[side] ? `${text} (${teamLabels[side]})` : undefined} aria-describedby={teamHelpId} tabIndex={teamTab === side ? 0 : -1} disabled={disabled} onClick={() => pickFavorite(side)}>{fav === side && check}{teamLabels?.[side] || text}</button>)}
       <span id={teamHelpId} className="sr-only">{HELP.teams}</span>
     </div>}
     {(!spread || (fav && fav !== 'pickem')) && <>

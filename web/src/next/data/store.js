@@ -31,6 +31,7 @@ export function createDataStore(sources, { now = Date.now } = {}) {
   const entries = Object.fromEntries(names.map(name => [name, { data: undefined, error: null, at: null, requested: false, inflight: null }]));
   const listeners = new Set();
   let version = 0;
+  let generation = 0;
   let signInNeeded = false;
   const views = new Map();
 
@@ -95,13 +96,20 @@ export function createDataStore(sources, { now = Date.now } = {}) {
    * Reads again what screens have asked for (or `only` those names). `olderThan` (ms) skips a read whose last good
    * copy is newer than that. A read already on its way is shared, not repeated.
    */
-  function refresh({ only, olderThan } = {}) {
+  function refresh({ only, olderThan, afterPending = false } = {}) {
+    const startedIn = generation;
     const wanted = (only ?? names).filter(name => entry(name).requested);
     const due = wanted.filter(name => {
       const e = entry(name);
       return e.inflight || olderThan === undefined || e.at === null || now() - e.at >= olderThan;
     });
-    return Promise.all(due.map(start));
+    return Promise.all(due.map(async name => {
+      // A read started before a save can contain the old data. A write's refresh waits for that read to finish,
+      // then starts a new one; ordinary focus refreshes still share requests. Unmount cancels queued work too.
+      const pending = entry(name).inflight;
+      if (afterPending && pending) await pending.promise;
+      return startedIn === generation ? start(name) : get(name);
+    }));
   }
 
   return {
@@ -117,6 +125,7 @@ export function createDataStore(sources, { now = Date.now } = {}) {
     refresh,
     /** Cancels every read on its way (the app unmounting). Their answers are dropped; a later load starts afresh. */
     abortAll() {
+      generation += 1;
       let changed = false;
       for (const e of Object.values(entries)) {
         if (!e.inflight) continue;
@@ -210,7 +219,7 @@ export function createWriter(store) {
         result = { ok: false, ...writeProblem(error) };
         if (result.kind === 'signIn') store.noteSignInNeeded();
       }
-      if (refresh.length && result.kind !== 'signIn') await store.refresh({ only: refresh });
+      if (refresh.length && result.kind !== 'signIn') await store.refresh({ only: refresh, afterPending: true });
       return result;
     })().finally(() => pending.delete(key));
     pending.set(key, promise);

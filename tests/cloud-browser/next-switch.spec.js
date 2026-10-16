@@ -18,9 +18,13 @@ const communityHome = page => page.getByRole('heading', { name: 'Community', exa
 // The new app's frame (stage 10): its tab bar, on Home.
 const newApp = page => page.getByRole('navigation', { name: 'Main' });
 /** Who the new app's menu says is signed in, read from the avatar menu (then closed again). */
-async function signedInAs(page) {
+async function signedInAs(page, displayName) {
   await page.getByRole('button', { name: 'Your menu' }).click();
-  const text = await page.getByRole('dialog', { name: 'Menu' }).locator('p').first().textContent();
+  const account = page.getByRole('dialog', { name: 'Menu' }).locator('.gx-menu-account');
+  await expect(account.getByText(displayName, { exact: true })).toBeVisible();
+  const identity = account.getByText(/^Signed in as /);
+  await expect(identity).toHaveCount(1);
+  const text = await identity.textContent();
   await page.keyboard.press('Escape');
   return text;
 }
@@ -119,14 +123,14 @@ test('every signed-in member sees the button, the commissioner and players alike
     await expect(tryButton(page)).toBeVisible();
     await tryButton(page).click();
     await expect(newApp(page)).toBeVisible();
-    expect(await signedInAs(page)).toBe('Signed in as troy@example.test');
+    expect(await signedInAs(page, 'Troy Fixture')).toBe('Signed in as troy@example.test');
     await page.getByRole('button', { name: 'Your menu' }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Your games. Any device.' })).toBeVisible();
     // The choice belongs to the device, not the account: the next member on this device lands in the new app too.
     await signIn(page, 'luke', { navigate: false });
     await expect(newApp(page)).toBeVisible();
-    expect(await signedInAs(page)).toBe('Signed in as luke@example.test');
+    expect(await signedInAs(page, 'Luke Fixture')).toBe('Signed in as luke@example.test');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

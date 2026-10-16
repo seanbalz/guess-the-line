@@ -52,7 +52,6 @@ function Mark({ code, name, size, primary, badge, decorative, className, rest })
     <span
       className={cx('gx-team', `gx-team--${size}`, asset && loaded && 'gx-team--loaded', className)}
       data-mark={asset ? asset.rightsStatus : 'letters'}
-      data-backing={asset?.backing === 'dark' ? 'dark' : undefined}
       {...a11y}
       {...rest}
     >

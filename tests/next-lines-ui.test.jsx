@@ -13,6 +13,9 @@ import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 
 const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false }));
+// The native private-note editor uses the existing authenticated route wrapper. SSR never makes its effect read;
+// isolate that browser auth module here while the hosted-schema browser spec exercises the real handler and auth.
+vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn() }));
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => state.lines }));
 vi.mock('../web/src/next/lines/trendsHooks.js', () => ({
   useOfficials: () => state.officials,
@@ -38,7 +41,7 @@ const HOUR = 3_600_000;
 const NOW = Date.parse(week.games[0].kickoff) - 24 * HOUR;
 const TODAY = { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' };
 const ref = value => ({ basis: 'line_at_guess', status: 'available', value, source: 'fixture' });
-const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), toOldApp: vi.fn(), state: { sheets: [] } };
+const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), toOldApp: vi.fn(), setDirty: vi.fn(), confirmLeave: vi.fn(() => true), state: { sheets: [] } };
 
 /** The data hook's answer: the viewer's own week (a sent Total, Spread drafts and a forged Spread line), the Community week. */
 function data({ now = NOW, rules = TODAY } = {}) {
@@ -47,7 +50,7 @@ function data({ now = NOW, rules = TODAY } = {}) {
     guess_spread: { picks: { 'SEA-DEN': 4, 'HOU-JAX': -9 }, scoringReferences: { 'SEA-DEN': ref(-11.5) } },
     guess_total: { picks: totals, submittedAt: new Date(now - HOUR).toISOString(), scoringReferences: { 'SEA-DEN': ref(43.5) } },
   } };
-  return { app: { refresh: vi.fn() }, personal: { status: 'ready', data: personal, error: null }, community: { week: { season: 2026, week: 6 }, optOuts: [] },
+  return { app: { accountId: 'fixture-account', refresh: vi.fn(), requestSignIn: vi.fn() }, personal: { status: 'ready', data: personal, error: null }, community: { week: { season: 2026, week: 6 }, optOuts: [] },
     shown: { season: 2026, week: 6 }, trends: { status: 'ready', week }, trendsWeek: week, records };
 }
 const render = node => renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx">{node}</div></ShellContext.Provider>);
@@ -226,13 +229,14 @@ describe('the All trends sheet', () => {
   });
 
   it('the game sheet says a file without this game holds no trends for it, not that the file is still to come', () => {
+    const trendStatuses = html => nodes(html, attr('data-section', 'trends')).flatMap(section => [...walk(section)].filter(n => n.attrs?.role === 'status').map(textOf));
     const without = { ...week, games: week.games.filter(g => g.id !== 'SEA-DEN') };
     state.lines = { ...data(), trends: { status: 'ready', week: without }, trendsWeek: without };
     const html = render(<GameSheet args={{ game: 'SEA-DEN' }}/>);
-    expect(nodes(html, attr('role', 'status')).map(textOf)).toEqual(['No trends for this game in this week’s file.']);
+    expect(trendStatuses(html)).toEqual(['No trends for this game in this week’s file.']);
     expect(text(html)).not.toContain('publish after');
     state.lines = { ...data(), trends: { status: 'loading', week: null }, trendsWeek: null };
-    expect(nodes(render(<GameSheet args={{ game: 'SEA-DEN' }}/>), attr('role', 'status')).map(textOf)).toEqual(['Loading trends…']);
+    expect(trendStatuses(render(<GameSheet args={{ game: 'SEA-DEN' }}/>))).toEqual(['Loading trends…']);
   });
 
   it('a line record that does not fit this game at the viewer\'s line says so', () => {
