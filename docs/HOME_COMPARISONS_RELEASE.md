@@ -1,10 +1,10 @@
 # Guess The Line — Home and comparison release
 
-Owner: Sean Balsiger · Version 2 · October 16, 2026
+Owner: Sean Balsiger · Version 3 · October 16, 2026
 
 Status: merged as #149 after #143, with all five final-head checks passing on
 each PR. Combined main source: `8942725746f199270d79fce562ac37cf92d64d69`.
-Not applied or deployed. See [the combined release record](RELEASE_2026_10_16_HOME_FANTASY.md)
+Frontend deployed and independently verified; comparison/preferences migrations and compatible API remain pending. See [the combined release record](RELEASE_2026_10_16_HOME_FANTASY.md)
 for current source gates, access setup and dependencies.
 
 ## Scope and dependencies

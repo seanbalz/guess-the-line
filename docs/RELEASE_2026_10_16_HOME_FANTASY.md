@@ -1,8 +1,8 @@
 # Guess The Line — Home and Fantasy release, October 16, 2026
 
-Owner: Sean Balsiger · Version 3 · Execution: Codex
+Owner: Sean Balsiger · Version 4 · Execution: Codex
 
-Status: #143 and #149 merged in order; protected readiness passed; Pages-first deployment prepared, not deployed.
+Status: compatible Pages deployed and independently verified; D-47 weather SQL applied and verified; API deployment is next. Full feature acceptance remains pending.
 
 ## Authorization and source
 
@@ -118,6 +118,69 @@ Project Settings Read, Database Read and Edge Functions Read-write on the
 production project. Both expire after 90 days. No token value is in this record.
 The shared workflow has verified access; separate local login stores and the
 Supabase connector's earlier denial do not describe this protected workflow.
+
+## Pages and weather execution — October 16, 3:34 PM Pacific
+
+[Frontend run 38973163044](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38973163044)
+deployed source `8942725746f199270d79fce562ac37cf92d64d69` successfully to Pages
+`0933a030-ff36-4a22-8cd7-fb2b7675863c`. The workflow is **failed**, because its
+post-deploy verifier rejects Cloudflare's normal 308 HTML canonicalization for
+`index.html`, `privacy.html` and `terms.html`. This is not a failed upload.
+Independent verification requested the canonical HTML routes with redirects
+still rejected: **95 of 95 served asset SHA-256 values match** at both
+[the immutable deployment](https://0933a030.guess-the-line.pages.dev) and
+[production](https://guess-the-line.pages.dev). All other asset paths are unchanged.
+The manifest source/frontend digests match the preparation hashes above.
+
+The verifier correction in #150 requests canonical HTML paths; regression tests
+cover both origins, nested index pages, mismatched content and unexpected
+redirects. It is a proposed repair, not yet part of the deployed source. The
+API-only target does not execute the affected asset-verification branch.
+
+Authenticated Home shows the newcomer guidance, weekly market cards, Compare
+players and Fantasy Football preview. Comparison and preference backends remain
+unavailable. Post-frontend boundary checks returned 233 expected denials and 27
+explicitly awaiting-deployment probes (260 total). No production picks or settings
+were changed. Multi-account and physical-phone acceptance remain pending.
+
+After verifying Pages, a fresh 22:32:55 UTC quiet-window check covered 29 games
+in the two newest published slates and passed for the next 30 minutes. The exact
+repo weather migration `20261015120000_gtl_wind_refresh_schedule.sql` was applied
+in a guarded transaction at 22:33:57 UTC and recorded as hosted version
+**`20261016223357`**, name `gtl_wind_refresh_schedule`. The history row retains
+verbatim migration and rollback SQL. Transaction assertions verified the prior
+body, service-only grants and unchanged score/settlement fingerprints.
+
+Independent SELECT readback at 22:34:26 UTC confirmed:
+
+- `gtl_begin_wind_fetch` body MD5 `2ff30257c8a36ef04fa347be23ce5035` (prior
+  `027f2797275a447f49d080dfac787b2b`), exactly one signature,
+  `p_user uuid, p_request uuid, p_season integer, p_week integer, p_games jsonb`,
+  empty search path, service-role execute only; anon/authenticated denied.
+- All 135 finished-game scores and all three Week 5 anchors unchanged; score
+  fingerprint `d40a51d62a9e42393f5f95ff05f900fd`. Settled count remains zero,
+  fingerprint `d751713988987e9331980363e24189ce`.
+- All five M-02 predecessors and the M-04 social predecessor unchanged.
+  Bets/preferences tables remain absent.
+- Hosted migration count **35**, canonical history SHA-256
+  **`ba428e1d8fa7031951fcce63b79fb91bcb9213869ffb2b7b4f96e76bd3b9428b`**.
+  This supersedes the pre-weather digest for the next deployment.
+
+The migration registry moves only D-47 to APPLIED. Ten other migrations remain
+NOT_HOSTED. The next protected run is **API only**, exact source
+`8942725746f199270d79fce562ac37cf92d64d69`, with the new history digest and
+#150 as release card. It must repeat hosted preflight and quiet-window checks,
+then verify API version/JWT/bundle metadata, unchanged other functions/history
+and signed-out boundaries. Retain compatible Pages during recovery; the prior
+API is v24 with bundle hash recorded above. Weather rollback is the exact file
+`supabase/rollback/20261015120000_gtl_wind_refresh_schedule.sql`, subject to the
+same fresh gates. Core scoring and comparison/preferences applies follow only
+after this compatible API is verified. Sean retains the final publish click.
+
+Validation of the #150 repair and apply registry: 39 focused Node tests pass
+with zero skips (including disposable PostgreSQL weather/rollback tests), and
+brand/document QA passes. The post-weather signed-out boundary result is recorded
+in local evidence; the absent comparison/core routes are not accepted features.
 
 ## Combined release order
 

@@ -208,7 +208,9 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
     const served = manifest.artifacts.filter(file => !['_headers', '_redirects'].includes(file.path));
     for (const base of [deployment.url, 'https://guess-the-line.pages.dev']) {
       for (const file of served) {
-        const response = await fetchImpl(`${base}/${file.path}?release=${env.RELEASE_SHA}`, { cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(15000) });
+        // Pages canonicalizes HTML routes; request that path without allowing redirects.
+        const servedPath = file.path.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '');
+        const response = await fetchImpl(`${base}/${servedPath}?release=${env.RELEASE_SHA}`, { cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(15000) });
         assert.ok(response.ok, 'Served asset request failed.');
         assert.equal(hash(Buffer.from(await response.arrayBuffer())), file.sha256, 'Served frontend differs from release manifest.');
       }

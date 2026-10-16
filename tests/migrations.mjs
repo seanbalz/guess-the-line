@@ -34,7 +34,6 @@ export const NOT_HOSTED = [
   20261015030000, // M-02 sent_picks_final (redesign stage 18): locked-in picks are final, applied alone (Fri-Sat) on "apply M-02".
   20261015040000, // M-03 guess_week_forfeit (redesign stage 19): skip and "See picks now", applied after M-01 on "apply M-03".
   20261015050000, // M-04 social_line_lock (redesign stage 21): the real-slip line gate, applied after M-01 on Sean's "apply M-04".
-  20261015120000, // D-47 wind_refresh_schedule: weather every 24 h, then 12 h and 2 h before kickoff; Gate M apply on Sean's approval.
   20261015190820, // M-10 bets_read (stage 40): account-level Bets reader; apply after M-01 and M-04 on Sean's "apply M-10".
 ];
 /**
@@ -115,5 +114,6 @@ export const APPLIED = [
   20261014223000, // M-01 gtl_guess_gate_per_game: hosted as 20261014223000 on October 14, 2026
   20261014224500, // M-09 gtl_game_notes: hosted as 20261014224500 on October 14, 2026
   20261014233000, // M-29 gtl_favorite_keeps_note: hosted as 20261014233000 on October 14, 2026
+  20261015120000, // D-47 wind_refresh_schedule: hosted as 20261016223357 on October 16, 2026; RELEASE_2026_10_16_HOME_FANTASY.md.
   20261015143006, // D-48 recommended virtual pick: hosted as 20261015143006 on October 15, 2026.
 ];

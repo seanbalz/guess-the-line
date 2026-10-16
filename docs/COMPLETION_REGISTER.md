@@ -1,10 +1,10 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Version 7 · Evidence reviewed October 16, 2026 (Pacific)
+Owner: Sean Balsiger · Version 8 · Evidence reviewed October 16, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and
-acceptance work. Its deployed source baseline is `main` at `b883c77`; later
-documentation commits record that release without changing its source. It summarizes the
+acceptance work. The latest frontend source is `8942725746f199270d79fce562ac37cf92d64d69`;
+the backend transition remains in progress as recorded below. It summarizes the
 [build plan][plan], rather than replacing its dependencies or numbered decisions.
 Implementation owners below are **unassigned** unless named. Sean owns product
 decisions and visual/phone acceptance. No delivery dates or completion percentage
@@ -17,7 +17,7 @@ current-status headers in [cloud setup](CLOUD_SETUP.md),
 [account access](ACCOUNT_ACCESS_REGISTER.md) and [social community](SOCIAL_COMMUNITY.md)
 were published with PR #127; their archived entries remain unchanged.
 
-## October 16 — Home and Fantasy merged; release pending
+## October 16 — Home and Fantasy frontend live; backend release in progress
 
 PR #143 merged first at `6be5a8138a4805b2bbc46fb1b423e7b7d751f5ac`, then
 #149 at `8942725746f199270d79fce562ac37cf92d64d69`, after all five checks
@@ -25,7 +25,7 @@ passed on each final head. The latter is the combined release source; its tree
 matches the tested #149 head. Exact-main push CI and release source-only
 verification passed. D-53 Home guidance, weekly score context,
 scoped comparisons, account settings and Fantasy are implemented and merged.
-They are **not deployed or hosted-accepted** by this task.
+The frontend is deployed; comparison/settings backends and full hosted acceptance remain pending.
 
 See [the combined release record](RELEASE_2026_10_16_HOME_FANTASY.md) for final-main
 CI, access setup, the live baseline and the Pages/weather/API/scoring/comparison
@@ -35,8 +35,13 @@ records later hosted preflight and the production Cloudflare account mismatch.
 Both GitHub production secrets are configured. Protected readiness run
 `38971438272` passed with a fresh quiet-window check, provider access and
 233 expected boundary denials (27 probes remain awaiting deployment). The
-Pages-first deploy is prepared; no deployment, SQL apply or new-feature live
-acceptance is claimed. Frozen v62 is unchanged.
+Pages deployment `0933a030-ff36-4a22-8cd7-fb2b7675863c` serves all 95 matching
+manifest assets at immutable and production URLs. Run `38973163044` remains
+failed due to its HTML-redirect verifier defect; #150 contains the proposed fix.
+D-47 weather SQL is applied as hosted `20261016223357`, with body/grants and
+unchanged historical scores independently verified. API deployment is next;
+core scoring, comparisons, preferences and full live acceptance remain pending.
+Frozen v62 is unchanged.
 Ranked model-based wagers remain unavailable until validated sources exist.
 
 ## Historical PR reconciliation — October 15
@@ -183,7 +188,7 @@ generic `npx supabase db push` against this project.**
 | M-07 per-game saving/scoring | Merged in #141; hosted activation pending / Codex SQL, API and UI lanes | Pending M-02/M-03/M-04/M-05/M-06/M-08 and compatible app release; the authorized core release still requires a fresh passing quiet-window check. Both apps follow the server capability. | [Implementation checklist](PER_GAME_SCORING_RELEASE.md), [plan][plan] | Each locked guess scores independently; drafts close at kickoff; sit-out/history preserve locked guesses; gates and tests pass. |
 | Immediate personal scoring and player trends (D-50) | Core merged in #141; Trends discovery open / Codex core lanes; Trends unassigned | Lock-in, immediate personal points, weekly score browsing/filters and kickoff-only shared standings pass local checks; hosted and device acceptance remain. Trends metrics, samples, periods and audience remain decisions. Existing migration and privacy gates apply. | [Recovered planning and provenance](../planning/scoring-and-player-trends.md), [D-50][decisions] | Each task's acceptance conditions pass with hosted/phone evidence where required; imported planning is not delivery. |
 | Remaining redesign services | Partial; M-10 implemented on open PR #139 / Unassigned | Account-level Bets read is on #139, not hosted; account-level writers, friend challenges, league/social features, awards, history/export and their jobs need the staged APIs/SQL in phases 4–6. Follow D-39 amendments, including the dropped tester-list stage. | [Plan][plan] | Each capability has code, tests, hosted evidence and its matching screen; a planned migration number alone is not completion. |
-| D-47 weather schedule | Implemented on draft PR, not hosted / Unassigned | [PR #123][weather] at `a9f3b2b`; reconciled with current main; targeted view/browser checks pass, full CI and review remain. Compatible Pages first, then its separately approved migration/API sequence. | [PR release card][weather] | Green reviewed head, merge, ordered deployment/apply and readback; no claim of the new schedule before that. |
+| D-47 weather schedule | Pages and SQL verified; API pending / Codex | Compatible Pages `0933a030` deployed; SQL hosted as `20261016223357`. Exact body, grants and unchanged scores verified. Compatible API is the next release step. | [October 16 execution](RELEASE_2026_10_16_HOME_FANTASY.md) | Complete API deployment/readback and verify weather behavior before claiming the full schedule live. |
 
 ## Accounts, operations and acceptance
 

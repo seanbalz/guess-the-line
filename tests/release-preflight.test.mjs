@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { validateRequest, configuration, successfulRun, checkSource, quietWindow, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI } from '../scripts/release-preflight.mjs';
 
@@ -178,4 +179,48 @@ test('hosted preflight uses only the read-only endpoint and stops on reviewed mi
   functions[1] = before.functions.find(item => item.slug === 'gtl-week-open');
   functions[0] = { ...functions[0], verify_jwt: false };
   await assert.rejects(verifyRelease(cwd, env, before, fake), /JWT verification/);
+});
+
+
+test('Pages verification uses canonical HTML routes and still rejects changed bytes and redirects', async t => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'gtl-release-pages-'));
+  t.after(() => fs.rmSync(cwd, { force: true, recursive: true }));
+  fs.mkdirSync(path.join(cwd, 'scripts')); fs.mkdirSync(path.join(cwd, '.local'));
+  fs.writeFileSync(path.join(cwd, 'scripts/check-cloud-boundary.mjs'), 'export async function checkCloudBoundary() { return {denied: 10, awaiting: []}; }');
+  const files = ['index.html', 'privacy.html', 'terms.html', 'about/index.html', 'assets/app.js'];
+  const digest = value => createHash('sha256').update(value).digest('hex');
+  fs.writeFileSync(path.join(cwd, '.local/release-manifest.json'), JSON.stringify({
+    gitHead: sha, dirtyWorkingTree: false, frontendSha256: 'c'.repeat(64),
+    artifacts: files.map(file => ({ path: file, sha256: digest(file) })),
+  }));
+  const migrations = [{ version: '20261008164249', name: 'base' }];
+  const functions = [{ slug: 'gtl-api', version: 24, status: 'ACTIVE', verify_jwt: true, bundleSha256: 'b'.repeat(64) }];
+  const before = { functions, observedAt: '2026-10-16T21:00:00Z', migrationHistorySha256: migrationDigest(migrations), pendingRepoMigrations: [] };
+  const env = request({ RELEASE_MODE: 'deploy' });
+  const routes = new Map([['/', files[0]], ['/privacy', files[1]], ['/terms', files[2]], ['/about/', files[3]], ['/assets/app.js', files[4]]]);
+  let corrupt = false, redirect = false;
+  const served = [];
+  const fake = async (url, options) => {
+    if (url.endsWith('/functions')) return { ok: true, json: async () => functions.map(f => ({ ...f, ezbr_sha256: f.bundleSha256 })) };
+    if (url.endsWith('/database/query/read-only')) return { ok: true, json: async () => [{ migrations }] };
+    if (url.includes('/deployments?')) return { ok: true, json: async () => ({ success: true, result: [{
+      id: 'deployment', url: 'https://abc123.guess-the-line.pages.dev', created_on: '2026-10-16T21:01:00Z',
+      deployment_trigger: { metadata: { commit_hash: sha } }, latest_stage: { status: 'success' },
+    }] }) };
+    const parsed = new URL(url);
+    assert.equal(options.redirect, 'error');
+    assert.equal(parsed.searchParams.get('release'), sha);
+    assert.ok(routes.has(parsed.pathname), `Unexpected route ${parsed.pathname}`);
+    served.push(parsed.origin + parsed.pathname);
+    if (redirect) throw new TypeError('unexpected redirect');
+    return { ok: true, arrayBuffer: async () => Buffer.from(corrupt ? 'changed' : routes.get(parsed.pathname)) };
+  };
+  const report = await verifyRelease(cwd, env, before, fake);
+  assert.equal(report.pages.checkedAssetsPerUrl, 5);
+  assert.equal(served.length, 10);
+  assert.equal(new Set(served).size, 10);
+  corrupt = true;
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /differs from release manifest/);
+  corrupt = false; redirect = true;
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /unexpected redirect/);
 });
