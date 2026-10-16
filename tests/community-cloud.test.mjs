@@ -382,3 +382,18 @@ test('stage 17: History passes another member\'s open rows and withholds the res
   const text = JSON.stringify(week.entries);
   for (const secret of ['6.5', '5.5', '51.5', '50.5']) assert.equal(text.includes(secret), false, `${secret} never passes`);
 });
+
+
+test('per-game due counts keep later games open after Thursday without reopening locked or sat-out markets', () => {
+  const now = Date.parse('2026-10-17T12:00:00Z');
+  const feed = { week: { week: 6, deadline: '2026-10-16T00:15:00Z' }, due: [
+    { mode: 'guess_spread', submitted: false, satOut: false, openGames: 2, locked: 1, nextKickoff: '2026-10-18T17:00:00Z' },
+    { mode: 'guess_total', submitted: false, satOut: true, openGames: 2, locked: 1 },
+  ] };
+  const due = picksDue(feed, now, { perGameScoring: true });
+  assert.equal(due.state, 'late');
+  assert.equal(due.modes.length, 1);
+  assert.equal(due.modes[0].openGames, 2);
+  assert.equal(picksDue({ ...feed, due: feed.due.map(d => ({ ...d, openGames: 0 })) }, now, { perGameScoring: true }).state, 'done');
+  assert.equal(picksDue(feed, now).state, 'closed', 'legacy timing does not change before M-07');
+});

@@ -135,12 +135,13 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
     assert.equal((await db.query("select count(*)::int n from pg_policies where schemaname='public' and tablename in ('gtl_ruled_ballot_imports','gtl_weekly_ballots','gtl_weekly_versions')")).rows[0].n, 0, 'no RLS policy opens a browser path');
   });
 
+  // M-07 also refuses the legacy direct-write shape because it lacks server-written lock metadata.
   await t.test('a direct insert after the deadline still fails at the guard, even with the flag set by hand', async () => {
     await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,2026,5) on conflict do nothing', [id(TROY)]);
     const insert = tx => tx.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread',$2)", [id(TROY), submittedBallot()]);
-    await assert.rejects(() => insert(db), /GTL_PREDICTION_CLOSED/);
-    await assert.rejects(() => db.transaction(async tx => { await tx.exec("select set_config('gtl.ruled_ballot_import','commissioner',true)"); await insert(tx); }), /GTL_PREDICTION_CLOSED/, 'the flag alone never bypasses the guard: the import function must be on the stack');
-    await assert.rejects(() => db.transaction(async tx => { await tx.exec("set local role service_role; select set_config('gtl.ruled_ballot_import','commissioner',true)"); await insert(tx); }), /GTL_PREDICTION_CLOSED/);
+    await assert.rejects(() => insert(db), /GTL_PREDICTION_CLOSED|GTL_BALLOT_INVALID|GTL_GAME_CLOSED/);
+    await assert.rejects(() => db.transaction(async tx => { await tx.exec("select set_config('gtl.ruled_ballot_import','commissioner',true)"); await insert(tx); }), /GTL_PREDICTION_CLOSED|GTL_BALLOT_INVALID|GTL_GAME_CLOSED/, 'the flag alone never bypasses the guard: the import function must be on the stack');
+    await assert.rejects(() => db.transaction(async tx => { await tx.exec("set local role service_role; select set_config('gtl.ruled_ballot_import','commissioner',true)"); await insert(tx); }), /GTL_PREDICTION_CLOSED|GTL_BALLOT_INVALID|GTL_GAME_CLOSED/);
     assert.equal(await count('public.gtl_weekly_ballots where user_id=$1', [id(TROY)]), 0);
   });
 
@@ -170,7 +171,7 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
       const r = await call(tx, RPC, payload);
       assert.equal((await tx.query("select current_setting('gtl.ruled_ballot_import',true) v")).rows[0].v, '', 'the function clears its flag before returning');
       await tx.exec('savepoint after_import');
-      await assert.rejects(() => tx.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread',$2)", [id(TROY), submittedBallot()]), /GTL_PREDICTION_CLOSED/, 'same transaction, function returned: the guard is back in force');
+      await assert.rejects(() => tx.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread',$2)", [id(TROY), submittedBallot()]), /GTL_PREDICTION_CLOSED|GTL_BALLOT_INVALID|GTL_GAME_CLOSED/, 'same transaction, function returned: the guard is back in force');
       await tx.exec('rollback to savepoint after_import');
       return r;
     });
@@ -220,7 +221,7 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
     await assert.rejects(() => rpc(RPC, { ...payload, p_submitted_at: '2026-10-08T18:00:00Z' }), /GTL_RULED_IMPORT_CONFLICT/);
     await assert.rejects(() => rpc(RPC, { ...payload, p_reference: { ...payload.p_reference, values: { ...payload.p_reference.values, [gameIds[0]]: 0 } } }), /GTL_RULED_IMPORT_CONFLICT/);
     assert.deepEqual(await state(), after);
-    await assert.rejects(() => db.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread',$2)", [id(TROY), submittedBallot()]), /GTL_PREDICTION_CLOSED/, 'the guard still refuses everyone else');
+    await assert.rejects(() => db.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread',$2)", [id(TROY), submittedBallot()]), /GTL_PREDICTION_CLOSED|GTL_BALLOT_INVALID|GTL_GAME_CLOSED/, 'the guard still refuses everyone else');
   });
 
   await t.test('community standings and feed carry Ben with the ruled points and submission time; the D-23 reveal gate is unchanged', async () => {

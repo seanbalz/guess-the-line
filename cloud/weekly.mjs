@@ -10,6 +10,7 @@ const ERRORS = {
   GTL_WEEKLY_CONFLICT: [409, 'Your weekly entries changed on another device or in another group. Refresh before saving again.'],
   // M-02 (stage 18): a change to a locked-in Spread or Total guess, refused by every writer and the ballot trigger.
   GTL_BALLOT_LOCKED: [409, BALLOT_LOCKED_MESSAGE],
+  GTL_GAME_CLOSED: [409, 'This game has kicked off. Its guess can no longer be locked in or changed.'],
   GTL_PREDICTION_CLOSED: [400, 'The prediction deadline has passed. Commissioner adjudication is required.'],
   GTL_PREDICTION_NOT_OPEN: [409, 'This week’s picks open Monday 12:00 AM PT.'],
   GTL_COMMUNITY_SAT_OUT: [409, 'You sat out this week for that market. Its picks are closed.'],
@@ -23,7 +24,7 @@ const ERRORS = {
   GTL_QUOTE_REVIEW_REQUIRED: [409, 'The recorded quote changed or expired. Review the latest named-book quote before confirming.'],
 };
 export const providerWeeklyError = message => ERRORS[message]
-  ? new WeeklyError(...ERRORS[message], message === BALLOT_LOCKED ? BALLOT_LOCKED : undefined) : new Error('Weekly storage request failed.');
+  ? new WeeklyError(...ERRORS[message], [BALLOT_LOCKED, 'GTL_GAME_CLOSED'].includes(message) ? message : undefined) : new Error('Weekly storage request failed.');
 
 export function weeklyView(view, saved) {
   const eligibility = saved.eligibility || {};

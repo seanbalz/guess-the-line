@@ -67,7 +67,8 @@ function normalize(raw) {
     ...(p.kind === 'week_published' ? { games: Number(p.payload?.games) || 0, deadline: p.payload?.deadline ?? null } : {}),
   }));
   const week = record(raw.week) ? { season: raw.week.season, week: raw.week.week, deadline: raw.week.deadline, games: raw.week.games } : null;
-  const due = raw.due.filter(d => MODES.includes(d.mode)).map(d => ({ mode: d.mode, submitted: d.submitted === true, satOut: d.satOut === true, filled: Number(d.filled) || 0, games: Number(d.games) || 0 }));
+  const due = raw.due.filter(d => MODES.includes(d.mode)).map(d => ({ mode: d.mode, submitted: d.submitted === true, satOut: d.satOut === true, filled: Number(d.filled) || 0, games: Number(d.games) || 0,
+    ...(Number.isInteger(d.openGames) && d.openGames >= 0 ? { openGames: d.openGames, locked: Number(d.locked) || 0, nextKickoff: typeof d.nextKickoff === 'string' ? d.nextKickoff : null } : {}) }));
   const standings = (Array.isArray(raw.standings) ? raw.standings : []).filter(x => MODES.includes(x.mode)).map(x => ({ userId: String(x.userId), mode: x.mode,
     weekPoints: boardPoints(x.weekPoints), weekScored: Number(x.weekScored) || 0, seasonPoints: boardPoints(x.seasonPoints), seasonScored: Number(x.seasonScored) || 0, weeksSubmitted: Number(x.weeksSubmitted) || 0, satOut: x.satOut === true }));
   const submissions = raw.submissions.filter(s => MODES.includes(s.mode)).map(s => ({ userId: String(s.userId), mode: s.mode, submittedAt: s.submittedAt ?? null, satOut: s.satOut === true,
@@ -132,8 +133,9 @@ function historyPicks(e, own, eligible) {
     if (!own && (p.hidden === true || withheld.has(gameId))) { withheld.add(gameId); return { gameId, guess: null, reference: null, points: null, scorable: false, hidden: true }; }
     shown += 1;
     // An ineligible ballot never scores (D-08), whatever the provider returned.
-    const points = eligible ? finite(p.points) : null;
-    return { gameId, guess: finite(p.guess), reference: normalizeReference(p.reference), points, scorable: points !== null, hidden: false };
+    const points = eligible && !(e.scoreTiming === 'immediate' && p.lockedIn !== true) ? finite(p.points) : null;
+    return { gameId, guess: finite(p.guess), reference: normalizeReference(p.reference), points, scorable: points !== null, hidden: false,
+      ...(typeof p.lockedIn === 'boolean' ? { lockedIn: p.lockedIn, lockedAt: text(p.lockedAt), late: normalizeLate(p.late), closedAtKickoff: p.closedAtKickoff === true } : {}) };
   });
   return { picksHidden: hidden || withheld.size > 0, picks: !shown && withheld.size ? null : rows, hiddenGames: [...withheld].filter(g => GAME_ID.test(g)).sort() };
 }
@@ -163,7 +165,10 @@ function normalizeHistory(raw, viewer) {
         ruling: record(e.ruling) ? { decision: text(e.ruling.decision) ?? '', basis: text(e.ruling.basis) ?? '' } : null,
         picksHidden, picks, hiddenGames, late: e.status === 'sat_out' ? null : normalizeLate(e.late),
         // M-01: null for a draft or a sit-out (no submitted ballot scores), never 0 (DP-1); an ineligible ballot never scores.
-        weekPoints: eligible ? boardPoints(e.weekPoints) : 0, weekScored: eligible ? Number(e.weekScored) || 0 : 0, games: Number(e.games) || 0 };
+        weekPoints: eligible ? boardPoints(e.weekPoints) : e.scoreTiming === 'immediate' ? null : 0, weekScored: eligible ? Number(e.weekScored) || 0 : 0, games: Number(e.games) || 0,
+        ...(e.scoreTiming === 'immediate' ? { scoreTiming: 'immediate',
+          ...(own ? { standingsPoints: eligible ? boardPoints(e.standingsPoints) : null,
+            awaitingKickoffPoints: eligible ? boardPoints(e.awaitingKickoffPoints) : null } : {}) } : {}) };
     }),
   }));
   const seasons = (Array.isArray(raw.seasons) ? raw.seasons : []).map(Number).filter(Number.isInteger);
@@ -189,14 +194,14 @@ function normalizePicks(raw, viewer) {
       // Another member's guess only while it is locked in and open to the viewer; the viewer's own always.
       const shown = own || (locked && open && r.hidden !== true);
       // From kickoff only, and only for a locked-in guess the viewer may see.
-      const error = started && locked && shown ? finite(r.error) : null;
+      const error = (started || raw.scoreTiming === 'immediate') && locked && shown && r.eligible !== false ? finite(r.error) : null;
       const scored = error !== null;
       return {
         userId: r.userId, removed: r.removed === true, status: r.status, lockedIn: locked,
         late: locked ? normalizeLate(r.late) : null, eligible: locked ? r.eligible !== false : null,
         hidden: locked && !shown, pick: shown ? finite(r.pick) : null,
-        error, points: scored ? finite(r.points) : null, rank: scored && Number.isInteger(r.rank) && r.rank > 0 ? r.rank : null,
-        tied: scored && r.tied === true, closest: scored && r.closest === true,
+        error, points: scored ? finite(r.points) : null, rank: started && scored && Number.isInteger(r.rank) && r.rank > 0 ? r.rank : null,
+        tied: started && scored && r.tied === true, closest: started && scored && r.closest === true,
       };
     });
     return { gameId: g.gameId, kickoff: text(g.kickoff), started, open, rows };
@@ -260,12 +265,13 @@ export async function withForfeit(view, forfeit, { writerOff = false } = {}) {
  * Picks due for the viewer: "not_open" before the week's Monday 00:00 PT open (D-24),
  * "urgent" inside two hours of the deadline, "closed" after it. A sat-out mode is never due (D-23).
  */
-export function picksDue(feed, now) {
+export function picksDue(feed, now, rules = {}) {
   if (!feed.week) return { state: 'none', modes: [] };
   const deadline = Date.parse(feed.week.deadline), opensAt = weekOpenAt(deadline);
-  const open = feed.due.filter(d => !d.submitted && !d.satOut);
+  const perGame = rules.perGameScoring === true;
+  const open = feed.due.filter(d => !d.satOut && (perGame ? d.openGames > 0 : !d.submitted));
   if (!open.length) return { state: 'done', modes: [] };
-  const state = now < Date.parse(opensAt) ? 'not_open' : now >= deadline ? 'closed' : deadline - now <= 2 * 3_600_000 ? 'urgent' : 'due';
+  const state = now < Date.parse(opensAt) ? 'not_open' : now >= deadline ? (perGame ? 'late' : 'closed') : deadline - now <= 2 * 3_600_000 ? 'urgent' : 'due';
   // `now` is the handler clock the states were judged against, so the home screen can say "opens in 3 days" without trusting the device clock.
   return { state, opensAt, deadline: feed.week.deadline, week: feed.week.week, modes: open, now: new Date(now).toISOString() };
 }
@@ -275,7 +281,7 @@ export function picksDue(feed, now) {
  * /community/read carries the boolean so the old app hides its reminder controls until push really works;
  * the key itself is never part of this reply (only /push/status hands it over, on the player's tap).
  */
-export async function handleCommunity({ route, body = {}, user, service, clock = Date.now, pushConfigured = false, featureOff = new Set() }) {
+export async function handleCommunity({ route, body = {}, user, service, clock = Date.now, pushConfigured = false, featureOff = new Set(), rules = {} }) {
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new CommunityError(401, 'Sign in to continue.');
   if (!service?.rpc) throw new Error('The community feed is not configured.');
   if (!Object.hasOwn(COMMUNITY_METHODS, route)) invalid();
@@ -300,7 +306,7 @@ export async function handleCommunity({ route, body = {}, user, service, clock =
     if (body.limit !== undefined && (!Number.isInteger(body.limit) || body.limit < 1 || body.limit > 100)) invalid();
     const now = clock();
     const feed = normalize(await service.rpc('gtl_read_community', { p_user: user.id, p_before: body.before ?? null, p_limit: body.limit ?? 30, p_now: new Date(now).toISOString() }));
-    return { ...feed, picksDue: picksDue(feed, now), pushConfigured: pushConfigured === true };
+    return { ...feed, picksDue: picksDue(feed, now, rules), pushConfigured: pushConfigured === true };
   }
   if (route === '/community/history') {
     fields(body, ['season']);

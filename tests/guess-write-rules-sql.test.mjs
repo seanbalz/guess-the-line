@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL as FUTURE_MIGRATIONS, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, pickSecrets, readersOn } from './helpers/leak-scan.mjs';
 import { serviceSql, storeLines } from './helpers/guess-week.mjs';
@@ -22,6 +22,9 @@ import { ballotLockedIn } from '../server/engine.mjs';
 //
 // The week: four games; the first kicks off at the deadline, the rest an hour apart. Troy's Spread and Total were sent before
 // M-02 (the world's legacy rows). Every other pick and line is an unusual half point, so the leak scan can name each one.
+// This suite proves the pre-M-07 stage contract; M-07 has its own full-stack SQL suite.
+const ALL = FUTURE_MIGRATIONS.filter(file => file < '20261015190710_gtl_guess_write_window.sql');
+
 const M02 = '20261015030000_gtl_sent_picks_final.sql', M01 = '20261014223000_gtl_guess_gate_per_game.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const LOCKED = { error: 'Sent picks are final.', code: 'GTL_BALLOT_LOCKED' };
@@ -397,7 +400,7 @@ test('deployed before the apply: on the hosted schema the new gtl-api keeps D-16
   assert.equal(res.status, 200, `/ballot edit, the engine mirror stays off: ${JSON.stringify(res.body)}`);
   assert.equal('lockedAt' in (await row(world, 'luke', 'guess_spread')).ballot, false);
   res = await save(world, 'sean', 'guess_total', { [ids[0]]: 38.5 }, { lockIn: [ids[0]] });
-  assert.equal(res.status, 400, 'the hosted gtl_mutate_personal does not know lockIn');
+  assert.equal(res.status, 503, 'the API refuses per-game lock-in until the live database advertises support');
 });
 
 test('/personal/ballot lockIn on the route: checked before the database; the lock-in off switch; no refresh is tried first', async () => {

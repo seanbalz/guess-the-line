@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ALL, MIGRATIONS_DIR, NOT_HOSTED, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL as FUTURE_MIGRATIONS, MIGRATIONS_DIR, NOT_HOSTED, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, id as fixtureId, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets, READERS } from './helpers/leak-scan.mjs';
 import { sendBallot, serviceSql, storeLines } from './helpers/guess-week.mjs';
@@ -18,6 +18,9 @@ import { accuracy } from '../server/domain.mjs';
 // a Spread draft and locks in Total, Sean sits out Spread and locks in Total. Dana (removed) sat out Spread; Eve (removed) has
 // no entry; Finn has no ballot at all. Every pick and line is an unusual half point and no two share a size within a market,
 // so the leak scan can name each one; every error and every point total is then a whole number, which no secret can equal.
+// This suite proves the pre-M-07 stage contract; M-07 has its own full-stack SQL suite.
+const ALL = FUTURE_MIGRATIONS.filter(file => file < '20261015190710_gtl_guess_write_window.sql');
+
 const MIGRATION = '20261015020000_gtl_guess_picks_reader.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const SIGNATURE = 'gtl_read_guess_picks(uuid,integer,integer,text,text,uuid,timestamptz)';

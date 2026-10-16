@@ -216,9 +216,10 @@ test('the tab slot files: every tab and Me has homeTiles, counter and sheetActio
     assert.ok(slot.counter === null || typeof slot.counter === 'function', `${tab} counter`);
     // Stage 11 fills Play's counter (tests/next-data.test.mjs); every other slot is still empty.
     if (tab !== 'play') assert.equal(slot.counter, null, `${tab} counter`);
-    assert.equal(slot.homeTiles.length + slot.sheetActions.length, 0, `${tab} tiles and actions`);
+    assert.equal(slot.homeTiles.length + slot.sheetActions.length, tab === 'play' ? 1 : 0, `${tab} tiles and actions`);
+    if (tab === 'play') assert.equal(slot.homeTiles[0].id, 'play.weekly-score');
     // A slot file is data only: it imports nothing, so a lane edits its own folder without touching another's.
-    assert.doesNotMatch(readFileSync(new URL(`../web/src/next/${tab}/index.js`, import.meta.url), 'utf8'), /^\s*import\b/m, `${tab}/index.js`);
+    if (tab !== 'play') assert.doesNotMatch(readFileSync(new URL(`../web/src/next/${tab}/index.js`, import.meta.url), 'utf8'), /^\s*import\b/m, `${tab}/index.js`);
   }
   assert.deepEqual(Object.keys(TAB_INFO), TABS);
 });

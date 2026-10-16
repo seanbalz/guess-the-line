@@ -1,13 +1,18 @@
-// The live, account-wide Spread/Total ballot inside the new shell. Both apps use the same editor and hosted
-// rules: full-market Submit and edits until the deadline while sentFinal is false. No per-game lock-in is sent.
+// The account-wide Play surface follows live server capabilities. M-07 opens per-game entry and receipts;
+// until all capabilities are reported, the existing whole-market editor retains the hosted rules.
 import { useCallback, useMemo } from 'react';
 import { WeekPicks } from '../../CommunityHome.jsx';
-import { useAppData } from '../data/AppData.jsx';
+import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { useShell } from '../shell/context.js';
 import { Button } from '../ui/index.js';
 import { playPresentation } from './PlayPresentation.jsx';
 import './play.css';
+import { cloudApi } from '../../api.js';
+import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
+import { PerGameEditor } from './PerGamePlay.jsx';
+import { WeeklyScore } from './WeeklyScore.jsx';
+import { perGameReady } from './scoring.js';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
@@ -21,6 +26,8 @@ export function Play() {
   const shell = useShell();
   const { accountId, refresh, requestSignIn } = app;
   const feed = app.community.data;
+  const personal = useSharedRead('personal');
+  const score = shell.state.views.play.section === 'score';
   const market = modeOf(shell.state.views.play.market);
   const refreshBallot = useCallback(() => refresh({ only: ['community', 'personal'] }), [refresh]);
   const marketNavigation = useMemo(() => ({
@@ -35,9 +42,12 @@ export function Play() {
     shell.go('league', { view: 'feed', market: mode });
   };
 
+  if (score) return <div className="gx-screen gx-vstack gx-gap-16"><h1 className="gx-t-title">Your weekly score</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'picks' })}>Back to picks</Button><WeeklyScore/></div>;
+  if (perGameReady(personal.data?.rules)) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16"><h1 className="gx-t-title">Play</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button><SelectedPlay app={app} shell={shell} current={personal.data} mode={market || 'guess_spread'} onMode={marketNavigation.write}/></div>;
   return (
     <div className="gx-screen gx-live-workflow gx-live-play">
       <h1 className="gx-t-title">Play</h1>
+      <Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button>
       <p className="gx-t-body gx-c-2">Guess the line. Submit a complete Spread or Total ballot when you’re ready.</p>
       {!feed ? (
         <section className="gx-empty" role={app.community.status === 'error' ? 'alert' : 'status'}>
@@ -62,4 +72,17 @@ export function Play() {
       )}
     </div>
   );
+}
+
+function SelectedPlay({ app, shell, current, mode, onMode }) {
+  const view = shell.state.views.play;
+  const season = Number.isInteger(view.season) ? view.season : current.season;
+  const week = Number.isInteger(view.week) ? view.week : current.week;
+  const read = useLeagueRead(`${app.accountId}:play:${season}:${week}:${mode}`, signal => cloudApi('personal/read', { season, week }, { signal }), error => { if (error.status === 401) app.requestSignIn(); });
+  if (read.loading) return <p className="gx-t-body" role="status">Loading your picks…</p>;
+  if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
+  if (!perGameReady(read.data?.rules)) return <p className="gx-t-body" role="alert">Scoring rules changed. Refresh the app before making a pick.</p>;
+  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} optOuts={app.community.data?.optOuts || []}
+    onMode={onMode} setDirty={shell.setDirty} onSignInAgain={app.requestSignIn} onSaved={() => app.refresh({ only: ['community', 'personal'] })}
+    onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/>;
 }

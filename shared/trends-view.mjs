@@ -38,7 +38,7 @@ const instant = value => {
 /**
  * When the clock opens a game, from the server's live rules (cloud/live-rules.mjs `rules`): 'kickoff' once M-01 says so
  * (a kickoff late window always reveals at kickoff, M-07 being applied after M-01); anything else reads as today's
- * 'deadline', as cloud/live-rules.mjs and web/src/next/rules.js read a missing or malformed answer.
+ * 'deadline' for legacy local data. Authenticated cloud reads fail if live rules cannot be verified.
  */
 export const revealTime = rules => (rules?.revealAt === 'kickoff' || rules?.lateWindow === 'kickoff' ? 'kickoff' : 'deadline');
 /**
@@ -47,6 +47,7 @@ export const revealTime = rules => (rules?.revealAt === 'kickoff' || rules?.late
  * the engine's ballotLockedIn and web/src/sentFinal.js lockedIn.
  */
 export const guessLockedIn = (ballot, gameId) => finite(ballot?.picks?.[gameId])
+  && !(Array.isArray(ballot?.closedAtKickoff) && ballot.closedAtKickoff.includes(gameId))
   && (Boolean(ballot?.submittedAt) || typeof ballot?.lockedAt?.[gameId] === 'string');
 
 /**
@@ -83,7 +84,7 @@ export function communityAccess(data = {}, gameId, optOuts = []) {
 export function groupAccess(data = {}, gameId) {
   const game = Array.isArray(data?.games) ? data.games.find(g => g?.id === gameId) : null;
   const by = fn => Object.fromEntries(Object.entries(MARKET_MODES).map(([market, mode]) => [market, fn(market, mode)]));
-  const own = { submittedAt: data?.submittedAt, lockedAt: data?.lockedAt, picks: { [gameId]: game?.prediction } };
+  const own = { submittedAt: data?.submittedAt, lockedAt: data?.lockedAt, closedAtKickoff: data?.closedAtKickoff, picks: { [gameId]: game?.prediction } };
   return gameAccess({ kickoff: game?.kickoff, deadline: data?.league?.deadline, now: data?.now, rules: data?.rules,
     lockedIn: by((market, mode) => !!game && (data?.marketAccess?.[market] === true || Boolean(data?.statuses?.[mode]?.submittedAt)
       || (data?.mode === mode && (data?.revealed === true || guessLockedIn(own, gameId))))),

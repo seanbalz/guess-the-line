@@ -170,8 +170,11 @@ end $$;
 -- The grants of the three restored functions are unchanged by the migration (it restates them); the five functions it added
 -- (gtl_guess_locked_in, gtl_guess_revealed, gtl_markets_visible, gtl_ballot_late, gtl_live_rules) stay, unused by these bodies.
 
--- gtl_live_rules stays too (never a drop), but the migration granted it to the service role, and this takes that grant back:
--- gtl-api can no longer read it, and cloud/live-rules.mjs reads a failed call as today's rules, { sentFinal: false,
--- lateWindow: 'deadline', revealAt: 'deadline' }, so the screens switch back to the deadline reveal these bodies restore.
--- Reapplying the migration grants it again.
-revoke execute on function public.gtl_live_rules() from service_role;
+-- Keep the added rules RPC readable and explicitly report the legacy rules restored above.
+-- Permission/transport failures now fail closed in the API; revocation would leave both apps unavailable.
+create or replace function public.gtl_live_rules() returns jsonb
+language sql stable security invoker set search_path='' as $$
+  select jsonb_build_object('sentFinal',false,'lateWindow','deadline','revealAt','deadline')
+$$;
+revoke all on function public.gtl_live_rules() from public,anon,authenticated;
+grant execute on function public.gtl_live_rules() to service_role;
