@@ -34,7 +34,7 @@ separate from the newer repository source.
 | [#143](https://github.com/seanbalz/guess-the-lines-repo/pull/143), `64c3d2a` | Open implementation; Fantasy rankings, scoring filters and weekly trends | Verify current-head CI, merge and coordinate one exact-source frontend release. Static Week 6 estimates; no automatic refresh or D/ST. No migration required; not deployed. |
 | [#147](https://github.com/seanbalz/guess-the-lines-repo/pull/147), `22c418f` | Open requirements; Fantasy Usage Tracker analysis added to PLAY-05 | Usage/actuals, weekly and rest-of-season projections, private league context and partial-source behavior remain deferred. Reconcile with #143’s narrower static rankings implementation; source rights, roster access and refresh integration are not delivered. |
 | [#140](https://github.com/seanbalz/guess-the-lines-repo/pull/140), `ae25212` | Draft implementation; offer-based recommendations and private forecasts | Current-head checks, merge/apply queue, additive edit-writer migration and compatible release/readback. Earlier green checks belong to earlier SHAs. Does not complete #144's market filter or navigation repair. |
-| [#123](https://github.com/seanbalz/guess-the-lines-repo/pull/123), `a9f3b2b` | Draft weather schedule; main conflicts resolved and pushed | Retains D-47, D-48/D-50, private notes and the weather watcher. A follow-up keeps the published slate kickoff in weather views instead of an older static trends kickoff; 49 view checks pass. GitHub reports mergeable; current-head CI/browser checks remain separate from merge/release. Retain Pages-before-SQL/API release order. |
+| [#123](https://github.com/seanbalz/guess-the-lines-repo/pull/123), `a9f3b2b` | Draft weather schedule; main conflicts resolved and pushed | Retains D-47, D-48/D-50, private notes and the weather watcher. A follow-up keeps the published slate kickoff in weather views instead of an older static trends kickoff; 49 view checks and all four targeted browser checks pass, including refresh timing and Light/Dark accessibility at 320/390/1440px. GitHub reports mergeable; full current-head CI remains pending. Retain Pages-before-SQL/API release order. |
 | [#139](https://github.com/seanbalz/guess-the-lines-repo/pull/139), `288c37c` | Open M-10 Bets reader; main conflicts resolved and pushed | Preserves M-07 and M-10 dependency metadata and both NOT_HOSTED entries. GitHub reports mergeable. The staged M-06 schema test now scans only its installed readers; 19 Lines SQL tests pass and full CI is rerunning. Follow M-04 → M-10 hosted dependencies. Account-level placement and native screens remain separate. |
 
 Conflict-resolution order: first reconcile this register, then #123's independent
@@ -42,7 +42,17 @@ weather branch, then #139 against the already merged scoring prerequisites.
 Neither PR depends on the other's feature; keep their branches separate instead
 of importing an unmerged feature merely to resolve conflicts. Preserve all
 `NOT_HOSTED` entries and dependency declarations. Resolving source conflicts does
-not authorize or establish an apply, main merge or deployment.
+not establish an apply, main merge or deployment.
+
+Local validation also passed typecheck, brand docs, migration headers and cloud
+build/boundary checks on the reconciled branches. Weather passed 95 focused
+Node/SQL checks and 190 Vitest tests before its kickoff follow-up; the follow-up
+passed 49 related view checks and four browser scenarios. Bets passed 84 focused
+Node/SQL checks, two rollback metadata checks, 188 Vitest tests and all 19 Lines
+SQL tests after the staged-reader correction. Local exhaustive runs were stopped
+to avoid resource contention; no full local-suite pass is claimed. Full GitHub
+CI is still running on the final heads; earlier green checks are not final-head
+release evidence.
 
 ## Active scoring implementation — October 15
 
@@ -148,7 +158,7 @@ generic `npx supabase db push` against this project.**
 | M-07 per-game saving/scoring | Merged in #141; hosted activation pending / Codex SQL, API and UI lanes | Pending M-02/M-03/M-04/M-05/M-06/M-08 and compatible app release; the authorized core release still requires a fresh passing quiet-window check. Both apps follow the server capability. | [Implementation checklist](PER_GAME_SCORING_RELEASE.md), [plan][plan] | Each locked guess scores independently; drafts close at kickoff; sit-out/history preserve locked guesses; gates and tests pass. |
 | Immediate personal scoring and player trends (D-50) | Core merged in #141; Trends discovery open / Codex core lanes; Trends unassigned | Lock-in, immediate personal points, weekly score browsing/filters and kickoff-only shared standings pass local checks; hosted and device acceptance remain. Trends metrics, samples, periods and audience remain decisions. Existing migration and privacy gates apply. | [Recovered planning and provenance](../planning/scoring-and-player-trends.md), [D-50][decisions] | Each task's acceptance conditions pass with hosted/phone evidence where required; imported planning is not delivery. |
 | Remaining redesign services | Partial; M-10 implemented on open PR #139 / Unassigned | Account-level Bets read is on #139, not hosted; account-level writers, friend challenges, league/social features, awards, history/export and their jobs need the staged APIs/SQL in phases 4–6. Follow D-39 amendments, including the dropped tester-list stage. | [Plan][plan] | Each capability has code, tests, hosted evidence and its matching screen; a planned migration number alone is not completion. |
-| D-47 weather schedule | Implemented on draft PR, not hosted / Unassigned | [PR #123][weather] at `a9f3b2b`; reconciled with current main, new-head checks and review remain. Compatible Pages first, then its separately approved migration/API sequence. | [PR release card][weather] | Green reviewed head, merge, ordered deployment/apply and readback; no claim of the new schedule before that. |
+| D-47 weather schedule | Implemented on draft PR, not hosted / Unassigned | [PR #123][weather] at `a9f3b2b`; reconciled with current main; targeted view/browser checks pass, full CI and review remain. Compatible Pages first, then its separately approved migration/API sequence. | [PR release card][weather] | Green reviewed head, merge, ordered deployment/apply and readback; no claim of the new schedule before that. |
 
 ## Accounts, operations and acceptance
 
