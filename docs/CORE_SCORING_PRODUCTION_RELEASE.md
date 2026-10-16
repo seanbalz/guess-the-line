@@ -1,7 +1,7 @@
 # Guess The Line — core scoring production release
 
 Owner: Sean Balsiger; release execution: Codex
-Version 1 · October 15, 2026 · Status: authorized and prepared; not deployed
+Version 2 · October 16, 2026 · Status: authorized and prepared; not deployed
 
 ## Authorization and source
 
@@ -45,13 +45,20 @@ main ancestry and required successful jobs during this task.
 
 ## Current blockers
 
-The pinned Supabase CLI on the Mac Mini reported no access token, including from
-the earlier scoring worktree. The GitHub production environment has no deployment
-secrets. The Supabase connector was not connected in this task; a supported
-connection was offered. No credential was copied or printed. Cloudflare access
-alone is insufficient to perform the required database preflight or release.
+At 12:20 AM Pacific on October 16, Supabase connector tools became available,
+but `list_projects` returned an empty list. Project details, Edge Function
+metadata and a read-only rules/slate query for `onmrgvcehkflfaizvedl` all returned
+"You do not have permission to perform this action." The connection needs access
+to the intended Gambling organization/project before hosted preflight can run.
+This is a provider project-access failure, not a request for another release
+approval. No production query succeeded and no mutation was attempted.
 
-The access check was repeated at 10:00 PM Pacific and still reported no Supabase
+The earlier pinned Supabase CLI checks on the Mac Mini reported no access token,
+including from the earlier scoring worktree. The GitHub production environment
+had no deployment secrets. No credential was copied or printed. Cloudflare
+access alone is insufficient to perform the database preflight or release.
+
+The CLI access check at 10:00 PM Pacific on October 15 still reported no Supabase
 login. An hourly follow-up in the release chat checks at 16 minutes past the hour
 and continues once access is available and the live quiet-window check passes.
 It stays quiet while the known blocker is unchanged and stops after completion.
