@@ -1,16 +1,17 @@
 # Guess The Line — Home and comparison release
 
-Owner: Sean Balsiger · Version 1 · October 16, 2026
+Owner: Sean Balsiger · Version 2 · October 16, 2026
 
-Status: implemented and checked locally on `codex/home-comparisons`, based on main
-`521e7dce2177fcf45099d2535481b5fb231135c6`. Not merged, applied or deployed.
+Status: merged as #149 after #143, with all five final-head checks passing on
+each PR. Combined main source: `8942725746f199270d79fce562ac37cf92d64d69`.
+Not applied or deployed. See [the combined release record](RELEASE_2026_10_16_HOME_FANTASY.md)
+for current source gates, access setup and dependencies.
 
 ## Scope and dependencies
 
-D-53 is the approved product contract. The branch integrates Fantasy PR #143 at
-`64c3d2a67555548d40821b7d985767b108bd0bc0`. Review/merge that dependency before this
-PR, or review this branch as the combined implementation. Do not merge #140 merely
-to enable Home: its unrelated Virtual Units writer and migration are not required.
+D-53 is the approved product contract. Fantasy PR #143 merged first, followed by
+Home/comparisons #149. The final reconciliation preserves the tested #149 tree.
+Do not merge #140 merely to enable Home: its unrelated Virtual Units writer and migration are not required.
 
 New routes:
 
@@ -80,5 +81,10 @@ row deletion, generic `supabase db push`, or scoring re-anchoring.
 
 Screenshots and raw logs are local ignored evidence under `.local/`; they contain
 fixture accounts, not production player data.
-No hosted migration inspection or signed-in live verification has occurred in this
-work. Production access remains subject to the blockers in release PR #148.
+The implementation phase included no hosted migration inspection or signed-in
+live verification. The subsequent read-only production baseline and current
+access blockers are recorded in the combined release record.
+
+Final merge verification supersedes the pending-CI notes above: all five checks
+passed on #143 head `fc3e7081e7bb6a8b59fe5bc82e411c7be14076e5` and #149 head
+`b991396d63cfdb39ae0f13bd9b86da1d0d9d570d`. No migration or deployment is implied.

@@ -1,6 +1,6 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Version 5 · Evidence reviewed October 15, 2026 (Pacific)
+Owner: Sean Balsiger · Version 6 · Evidence reviewed October 16, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and
 acceptance work. Its deployed source baseline is `main` at `b883c77`; later
@@ -17,16 +17,25 @@ current-status headers in [cloud setup](CLOUD_SETUP.md),
 [account access](ACCOUNT_ACCESS_REGISTER.md) and [social community](SOCIAL_COMMUNITY.md)
 were published with PR #127; their archived entries remain unchanged.
 
-## October 16 — approved Home and comparisons follow-up
+## October 16 — Home and Fantasy merged; release pending
 
-Implementation branch `codex/home-comparisons` integrates Fantasy #143 and adds
-D-53 Home guidance, weekly score context, scoped comparisons and account settings.
-See [the release record](HOME_COMPARISONS_RELEASE.md) for dependency order,
-verification and the explicit not-deployed state. Frozen v62 remains unchanged.
+PR #143 merged first at `6be5a8138a4805b2bbc46fb1b423e7b7d751f5ac`, then
+#149 at `8942725746f199270d79fce562ac37cf92d64d69`, after all five checks
+passed on each final head. The latter is the combined release source; its tree
+matches the tested #149 head. D-53 Home guidance, weekly score context,
+scoped comparisons, account settings and Fantasy are implemented and merged.
+They are **not deployed or hosted-accepted** by this task.
+
+See [the combined release record](RELEASE_2026_10_16_HOME_FANTASY.md) for final-main
+CI, access setup, the live baseline and the Pages/weather/API/scoring/comparison
+order. #123, #139 and #146 were already merged at `521e7dc`; their earlier
+pending statuses below are historical. The [#148 release card](https://github.com/seanbalz/guess-the-lines-repo/pull/148)
+records later hosted preflight and the production Cloudflare account mismatch.
+The required GitHub production secrets are being configured; no deployment,
+SQL apply or new-feature live acceptance is claimed. Frozen v62 is unchanged.
 Ranked model-based wagers remain unavailable until validated sources exist.
 
-
-## Current PR reconciliation — October 15
+## Historical PR reconciliation — October 15
 
 Source reviewed: `origin/main` at `bb4f20a095de61ac283b62cfee819d533470fa39`.
 The eight source PRs below were read directly from GitHub. Their implementation,
