@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { HOME_COPY, homeTiles } from '../shared/home-view.mjs';
 
+vi.mock('../web/src/api.js', () => ({ meApi: vi.fn() }));
 const state = vi.hoisted(() => ({ home: null }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => state.home }));
 
@@ -167,7 +168,7 @@ describe('the other hero states', () => {
     expect(nodes(html, attr('data-home', 'hero'))[0].attrs['data-state']).toBe('not_open');
     expect(nodes(html, attr('role', 'timer'))[0].attrs['aria-label']).toBe('Picks open Monday 12:00 AM PT 11 hours 0 minutes');
     expect(primaries(html)).toHaveLength(0);
-    expect(buttons(html)).toEqual(['See Lines']);
+    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['See Lines']);
   });
 
   it('closed: its one line instead of a countdown; done: "You’re in for this week"; no week: the title says so and nothing is due', () => {
@@ -175,7 +176,7 @@ describe('the other hero states', () => {
     let html = render();
     expect(nodes(html, attr('role', 'timer'))).toHaveLength(0);
     expect(nodes(html, attr('data-home', 'line')).map(textOf)).toEqual([HOME_COPY.closed]);
-    expect(buttons(html)).toEqual(['See Lines']);
+    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['See Lines']);
 
     home(reply({ due: [{ mode: SPREAD, submitted: true, satOut: false, filled: 4, games: 4 }, { mode: TOTAL, submitted: false, satOut: true, filled: 0, games: 4 }], picksDue: { state: 'done', modes: [] } }));
     html = render();
@@ -189,7 +190,7 @@ describe('the other hero states', () => {
     expect(textOf(nodes(html, attr('data-home', 'hero'))[0])).toContain(HOME_COPY.noWeek);
     expect(nodes(html, attr('data-home', 'status'))).toHaveLength(0);
     expect(nodes(html, attr('role', 'timer'))).toHaveLength(0);
-    expect(buttons(html)).toEqual(['See Lines']);
+    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['See Lines']);
     expect(textOf(nodes(html, attr('data-home', 'whos-in'))[0])).toContain('0 of 5 in');
   });
 });

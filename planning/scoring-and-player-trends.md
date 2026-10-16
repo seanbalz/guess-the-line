@@ -6,6 +6,19 @@ Status: core scoring implemented and checked locally; hosted rollout and Trends 
 No delivery dates are committed. Current implementation owners and verification
 state are recorded in the active checkpoint below.
 
+## Approved follow-up — October 16
+
+D-53 resolves comparison audience, time windows, sample rules, Home structure,
+account preferences and the staged wager/Fantasy scope. The first-release plan was
+explicitly approved in this chat. See [the current release record](../docs/HOME_COMPARISONS_RELEASE.md)
+for implementation evidence and [D-53](../docs/DECISIONS.md) for the complete rules.
+
+The earlier Q-03 onward discovery wording below is historical where D-53 answers
+it. All-player games require the owner plus at least one other eligible revealed
+score; explicitly selected players use a strict intersection. Both benchmark forms
+include the owner. Per-team bias metrics and ranked model-based wagers remain
+separate follow-ups; the implemented trend chart shows points/game and samples.
+
 ## Active implementation checkpoint — October 15
 
 Sean requested “Continue with recommendations” after the prioritized status review.

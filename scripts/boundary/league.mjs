@@ -7,6 +7,7 @@ export const tables = Object.freeze([
 ]);
 
 export const rpcChecks = Object.freeze([
+  ['gtl_read_score_comparison', { p_user: missingId, p_season: 2026, p_league: null, p_now: null }],
   ['gtl_save_profile', { ...actor, p_display_name: 'Boundary check' }],
   ['gtl_lobby', { ...actor, p_email: fixtureEmail }],
   ['gtl_create_league', { ...actor, p_name: 'Boundary check', p_format: 'duel', p_practice: true, p_request_id: missingId }],
@@ -17,6 +18,7 @@ export const rpcChecks = Object.freeze([
 ]);
 
 export const apiChecks = Object.freeze([
+  ['league/comparison', {}],
   ['lobby', undefined],
   ['profile', { displayName: 'Boundary check' }],
   ['leagues', { name: 'Boundary check', format: 'duel', practice: true, requestId: missingId }],
@@ -28,4 +30,7 @@ export const apiChecks = Object.freeze([
 
 export const workerChecks = Object.freeze([]);
 
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_read_score_comparison': 'migration 20261016010000_gtl_score_comparison.sql',
+  'gtl-api/league/comparison': 'the gtl-api deploy with /league/comparison',
+});

@@ -25,3 +25,5 @@
 .gx-h-tile .gx-rank--top { width: auto; min-width: 28px; padding: 0 6px; }
 /* A long leader's name in the chase line breaks rather than widening the tile. */
 .gx-h-tile .gx-t-meta { overflow-wrap: anywhere; }
+
+.gx .gx-home-guide { padding-left: var(--gx-space-6); display: grid; gap: var(--gx-space-3); }

@@ -7,7 +7,7 @@
 // The lime action opens the old app's Picks until stage 29; "See Lines" is the quiet action everywhere else.
 import { MODES, MODE_LABEL, chaseLine, rankTile, whosIn } from './guess-board.mjs';
 
-export const HOME_STATES = Object.freeze(['none', 'not_open', 'due', 'urgent', 'closed', 'done']);
+export const HOME_STATES = Object.freeze(['none', 'not_open', 'due', 'urgent', 'late', 'closed', 'done']);
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const labelOf = mode => MODE_LABEL[mode] ?? String(mode);
 
@@ -56,21 +56,25 @@ export function homeHero({ community = null, now = null } = {}) {
   const state = HOME_STATES.includes(raw) ? raw : weekNumber === null ? 'none' : 'closed';
   const deadline = typeof picksDue?.deadline === 'string' ? picksDue.deadline : typeof week?.deadline === 'string' ? week.deadline : null;
   const opensAt = typeof picksDue?.opensAt === 'string' ? picksDue.opensAt : null;
-  const countdownTarget = state === 'due' || state === 'urgent' ? deadline : state === 'not_open' ? opensAt : null;
+  const perGame = community?.rules?.perGameScoring === true;
+  const nextKickoff = (community?.due || []).filter(row => row.openGames > 0 && row.nextKickoff).map(row => row.nextKickoff).sort()[0] ?? null;
+  const canPick = ['due','urgent'].includes(state) || (state === 'late' && perGame && nextKickoff !== null);
+  const countdownTarget = canPick ? perGame ? nextKickoff ?? deadline : deadline : state === 'not_open' ? opensAt : null;
   // The feed's week carries its games as a list; a due row carries the count the status line needs, this is the fallback.
   const games = Array.isArray(week?.games) ? week.games.length : Number(week?.games) || 0;
   const due = Array.isArray(community?.due) ? community.due : [];
   const statusLines = weekNumber === null ? [] : MODES.map(mode => {
     const row = due.find(d => d?.mode === mode) ?? null;
     const label = MODE_LABEL[mode];
+    if (perGame && Number.isInteger(row?.locked)) return `${label}: ${row.locked} locked · ${row.openGames ?? 0} still open`;
     if (row?.submitted === true) return HOME_COPY.statusSent(label);
     if (row?.satOut === true) return HOME_COPY.statusSatOut(label);
     return HOME_COPY.statusDraft(Number(row?.filled) || 0, Number(row?.games) || games, label);
   });
-  const action = state === 'due' || state === 'urgent'
+  const action = canPick
     ? { kind: 'picks', label: HOME_COPY.makePicks, primary: true }
     : { kind: 'lines', label: HOME_COPY.seeLines, primary: false };
-  return { state, week: weekNumber, deadline, opensAt, countdownTarget, statusLines, action, now: clockOf(picksDue, now) };
+  return { state, ...(perGame ? { perGame } : {}), week: weekNumber, deadline, opensAt, countdownTarget, statusLines, action, now: clockOf(picksDue, now) };
 }
 
 /**

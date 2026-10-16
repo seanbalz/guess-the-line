@@ -1,10 +1,5 @@
-// Home, read-only (redesign build plan stage 12; prototype spec 1.2; inventory rows 23, 24, 26, 86 and 119): the week,
-// the hero (the countdown to the deadline, or to the open before the week opens; one status line per market; exactly
-// one action), who's in, the Spread and Total rank tiles (ranked apart, never summed; "—" with no ballot, never 0) with
-// the chase line, then the other tabs' Home tiles from their slot files (empty today). It draws what
-// shared/home-view.mjs makes of the Community read the data layer shares, with the server's own clock behind the
-// countdown (build plan 3.4), so nothing here decides a rule. The lime "Make picks" opens the old app's Picks until
-// stage 29 brings Play; "See Lines" is the quiet action everywhere else. Nothing here writes.
+// D-53 weekly Home: guidance, next action, personal scores, research readiness and exploration.
+// Shared server rules govern every score and reveal; the only write is an explicit guidance preference.
 import { Suspense, useEffect, useId, useMemo, useState } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { HOME_COPY, homeHero, homeTiles } from '../../../../shared/home-view.mjs';
@@ -17,6 +12,9 @@ import { homeTiles as leagueTiles } from '../league/index.js';
 import { homeTiles as linesTiles } from '../lines/index.js';
 import { homeTiles as playTiles } from '../play/index.js';
 import { useHomeData } from './homeData.js';
+import { HomeGuide } from './HomeGuide.jsx';
+import { ResearchPreview } from './ResearchPreview.jsx';
+import { FantasyHomeTile } from '../fantasy/FantasyHomeTile.jsx';
 import './home.css';
 
 // The other tabs' Home tiles, in their own order (section 3.1: Home reads other tabs only through their slot files).
@@ -41,7 +39,7 @@ function Hero({ hero, onPicks, onLines }) {
   const id = useId();
   const now = useServerNow(hero.now);
   // Before the week opens the countdown runs to the open, under its own words; "done" never says "locked" there.
-  const countdownLabel = hero.state === 'not_open' ? HOME_COPY.notOpen : HOME_COPY.picksDueIn;
+  const countdownLabel = hero.state === 'not_open' ? HOME_COPY.notOpen : hero.perGame ? 'Next game kickoff' : HOME_COPY.picksDueIn;
   const line = hero.state === 'closed' ? HOME_COPY.closed : hero.state === 'done' ? HOME_COPY.done : null;
   return (
     <Card as="section" variant="hero" className="gx-h-hero" aria-labelledby={id} data-home="hero" data-state={hero.state}>
@@ -97,7 +95,7 @@ function RankTile({ title, tile, chase, market }) {
 
 export function Home() {
   const shell = useShell();
-  const { app, community, viewer } = useHomeData();
+  const { app, community, viewer, preferences } = useHomeData();
   const data = community.data ?? null;
   const hero = useMemo(() => (data ? homeHero({ community: data }) : null), [data]);
   const tiles = useMemo(() => (data ? homeTiles({ community: data, viewer }) : null), [data, viewer]);
@@ -121,18 +119,23 @@ export function Home() {
       </div>
     );
   }
-  const toPicks = () => shell.go('play');
+  const toPicks = () => shell.go('play', { section: 'picks', season: data.week?.season ?? null, week: data.week?.week ?? null });
   const toLines = () => shell.tab('lines');
   return (
     <div className="gx-screen">
       {head}
+      <HomeGuide key={app.accountId} preferences={preferences} perGame={data.rules?.perGameScoring === true}/>
       <Hero hero={hero} onPicks={toPicks} onLines={toLines}/>
+      {SLOT_TILES.filter(tile => tile.id === 'play.weekly-score').map(({ id,Tile }) => <Suspense key={id} fallback={null}><Tile/></Suspense>)}
+      <ResearchPreview shell={shell} preferences={preferences}/>
+      <FantasyHomeTile/>
+      <Card as="section" className="gx-vstack gx-gap-12"><h2 className="gx-t-section">Explore the week</h2><p className="gx-t-body">Lines opens matchup details, quote sources and trends. History shows prior weeks and saved guesses.</p><Button onClick={toLines}>Game details and trends</Button><Button onClick={() => shell.go('league',{ view: 'history' })}>Week history</Button></Card>
       <WhosIn who={tiles.whosIn}/>
       <div className="gx-h-tiles">
         <RankTile title={HOME_COPY.spreadRank} tile={tiles.spread} chase={tiles.chase} market="spread"/>
         <RankTile title={HOME_COPY.totalRank} tile={tiles.total} chase={null} market="total"/>
       </div>
-      {SLOT_TILES.map(({ id, Tile }) => <Suspense key={id} fallback={null}><Tile/></Suspense>)}
+      {SLOT_TILES.filter(tile => tile.id !== 'play.weekly-score').map(({ id, Tile }) => <Suspense key={id} fallback={null}><Tile/></Suspense>)}
     </div>
   );
 }

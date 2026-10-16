@@ -1,5 +1,58 @@
 # Decision log
 
+## D-53 — Home, scored comparisons and research readiness (October 16, 2026)
+
+Sean approved the implementation plan after sequential product questions. His
+final sample clarification is “Just me + 1 other community member at least.”
+This extends D-50 and the wager research presentation in D-48/D-51. D-51 and
+D-52 are reserved on the separate recommendation and retirement PRs.
+
+- Compare yourself with one, several or all Community members. Inside a private
+  league, restrict the response and selection to that league's roster. Retain
+  historical records of former members; require active membership for the viewer.
+- **All players:** a game qualifies with your eligible scored, revealed result and
+  at least one other member's. Include you in the benchmark. Show each game's
+  contributor count. **Choose players:** use the strict intersection across you
+  and every selected member. Never relax a selected intersection silently.
+- Spread and Total stay separate. Show guesses, each player's saved reference and
+  points game by game, summary points, scored games and points/game. Single-week,
+  range and season filters default to the current competition week, with team and
+  matchup filters. Games stay in their original week, including Monday carryover.
+  Missing, hidden, pending and ineligible are not zero. Filtered comparisons never
+  change official standings. The benchmark averages the contributor points per
+  game, then gives each qualifying game equal weight; player sample counts remain
+  visible when All contributors differ between games.
+- Home shows the next move, own weekly points/locked/scored/remaining counts,
+  official standings context, interesting research and clear exploration links.
+  Newcomer guidance starts open and can be collapsed, saved per account.
+- Keep three projection sources distinct: a validated independent model (the
+  ranking basis), permitted Community guesses including the owner, and personal
+  guess context. Do not substitute one for another. Ranked wagers need a measurable
+  model discrepancy against a fresh book line plus independent trend or verified
+  expert/sharp support. Popularity is not sharp support. Explain conflicts,
+  sources, timestamps and uncertainty. Rank estimated value only when validated
+  model output supports it; otherwise show unranked research, not invented
+  confidence percentages or best-bet claims.
+- Qualified Home recommendations eventually show up to three, across Spreads and
+  Totals with All/Spreads/Totals filters and an expandable list. Fewer qualifying
+  offers means fewer cards. Each offer uses the best fresh line **and price** among
+  the player's selected connected books, with book and capture time; consensus is
+  separate context. Account Settings and Home provide sportsbook selection. Only
+  identities present in collected source data are offered; that does not establish
+  a fresh offer for any matchup. Before selection, explain the need to choose books.
+- Fantasy has a separate top-level tab and a compact Home preview. Reuse #143's
+  dated public Week 6 snapshot and its limitations: static pace estimates, no
+  automatic refresh, no D/ST. Fantasy does not change Guess or wager projections.
+- **Approved first release:** Home, guidance, comparisons, account preferences and
+  the Fantasy entry. Ranked wager activation, new paid data/expert integrations and
+  automatic wagering are outside this release. The existing Virtual Units research
+  remains available; it is not a validated independent-model recommendation.
+
+Implementation, dependency order and actual verification are recorded in
+[HOME_COMPARISONS_RELEASE.md](HOME_COMPARISONS_RELEASE.md). Approval to implement
+is not evidence of merge, SQL application or deployment. Existing release gates
+and unavailable production access remain unchanged.
+
 ## D-50 — immediate per-game scoring, score browsing and player trends (October 15, 2026)
 
 Sean requested: "You should not be able to make guesses or change saves for guesses after you lock in that games guesses" and scoring "should immediately show for that weeks scoring", with week/team/game filters and a user trend page. These requirements and the Q-01 answer below are preserved from the local planning record on source checkout `e5a45f6`; Q-02 is preserved from that active checkout's follow-up record captured at 16:19 UTC on October 15; the synchronization review did not retrieve the original conversation. This entry adds the [repo backlog and targeted discovery queue](../planning/scoring-and-player-trends.md), without implementing or deploying the requirements. The local record called this D-47; that number belongs to the weather-schedule draft, D-48 is the recommendations decision, and D-49 is referenced for proposed Lines tables. This reconciled entry uses D-50; it grants no new product or deployment approval.

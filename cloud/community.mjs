@@ -139,7 +139,7 @@ function historyPicks(e, own, eligible) {
   });
   return { picksHidden: hidden || withheld.size > 0, picks: !shown && withheld.size ? null : rows, hiddenGames: [...withheld].filter(g => GAME_ID.test(g)).sort() };
 }
-function normalizeHistory(raw, viewer) {
+export function normalizeHistory(raw, viewer) {
   if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.weeks)) throw new Error('Invalid community history.');
   const members = raw.members.map(m => ({ id: String(m.id), displayName: String(m.displayName), removed: m.removed === true }));
   const weeks = raw.weeks.filter(record).map(w => ({

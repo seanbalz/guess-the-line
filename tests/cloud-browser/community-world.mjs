@@ -17,6 +17,8 @@ import { providerWindError } from '../../cloud/wind.mjs';
 import { providerWeeklyError } from '../../cloud/weekly.mjs';
 import { providerLinesError } from '../../cloud/lines.mjs';
 import { providerVirtualError } from '../../cloud/virtual-units.mjs';
+import { providerLeagueError } from '../../cloud/league.mjs';
+import { providerMeError } from '../../cloud/me.mjs';
 import { providerBetsError } from '../../cloud/bets.mjs';
 import { createOptionalRpc } from '../../cloud/optional-rpc.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
@@ -133,6 +135,7 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     // Redesign stage 23 (M-06): the gated lines readers. On a schema without M-06 (HOSTED today) their RPCs are missing,
     // so /lines/* answer the generic 503 and every other route is unchanged.
     lines: { rpc: rpc(providerLinesError) },
+    league: { rpc: rpc(providerLeagueError) }, me: { rpc: rpc(providerMeError) },
     // Recommendations use the published account week, even when every private
     // group remains on an older slate. These are the production adapter's exact
     // stored-row filters, executed locally; never an odds provider request.
