@@ -22,7 +22,8 @@ file headers; `gtl_begin_wind_fetch` matches D-47's predecessor
 predecessor `a7f96942d52ffd86c992a1fbccfc2a0b`. Every checked RPC has one
 signature, `service_role` execute and no `authenticated` execute. The pinned
 finished-week score hash is `cb51deda461c6049e24f7a1cbe950f4d` across 135
-game scores; settled Virtual Units has zero rows and empty MD5
+game scores; the Week 5 point anchors 95.8, 91.4 and 37.6 each appear once
+in the live readback. Settled Virtual Units has zero rows and empty MD5
 `d41d8cd98f00b204e9800998ecf8427e`. Refresh these checks at execution.
 
 The current Wrangler OAuth login exposes account
