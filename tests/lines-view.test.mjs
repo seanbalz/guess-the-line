@@ -156,8 +156,11 @@ test('the D-45 board chip: one word from weather-view, never digits; a trend lin
   assert.ok(other.groups.flatMap(g => g.cards).every(c => c.chip?.kind !== 'weather'));
   const noClock = L.linesBoard({ personal: personal({ now: at }), community: community(), trends: week, wind, windNow: null });
   assert.ok(noClock.groups.flatMap(g => g.cards).every(c => c.chip?.kind !== 'weather'));
-  // A stale snapshot (older than twice its TTL) is no current forecast: no chip.
-  const later = KICKOFF['SEA-DEN'] - 12 * HOUR;
+  // A snapshot more than an hour past its D-47 due time is no current forecast: no chip. Made 25 h out, it fell due at
+  // the 12 h checkpoint, so it is current at 11 h out and not at 10 h out.
+  const due = KICKOFF['SEA-DEN'] - 11 * HOUR;
+  assert.deepEqual(card(L.linesBoard({ personal: personal({ now: due }), community: community(), wind, windNow: due }), 'SEA-DEN').chip, { kind: 'weather', text: 'Windy' });
+  const later = KICKOFF['SEA-DEN'] - 10 * HOUR;
   assert.equal(card(L.linesBoard({ personal: personal({ now: later }), community: community(), wind, windNow: later }), 'SEA-DEN').chip, null);
   // After kickoff the chip follows the final pre-kickoff forecast while the board shows the game; a trend line does not.
   const finalWind = windWeek(g => (g.id === 'SEA-DEN' ? { windMph: 18.2, fetchedAt: iso(KICKOFF['SEA-DEN'] - 30 * 60_000) } : {}));
@@ -222,7 +225,7 @@ test('the weather row on every game (D-45): forecast closed with no digits, open
   // failed read, signed out): "No current forecast", never a number.
   const notYet = L.sheetWeatherRow({ game: sea, trendsGame: week.games[0], entry: { kickoff: sea.kickoff, venue, status: 'none', wind: null }, now: KICKOFF['SEA-DEN'] - 6 * 24 * HOUR, season: 2026, week: 6 });
   assert.deepEqual([notYet.state, notYet.summary, notYet.detail], ['none', 'No current forecast', { lines: ['The kickoff forecast appears 5 days before kickoff.'] }]);
-  const stale = row({ kickoff: sea.kickoff, venue, status: 'forecast', wind: wind(now - 10 * HOUR) });
+  const stale = row({ kickoff: sea.kickoff, venue, status: 'forecast', wind: wind(now - 30 * HOUR) });
   assert.deepEqual([stale.state, stale.summary, stale.detail], ['none', 'No current forecast', { lines: ['The last forecast is out of date.'] }]);
   assert.deepEqual([row(null).state, row(null).summary, row(null).detail], ['none', 'No current forecast', null]);
   const loading = L.sheetWeatherRow({ game: sea, trendsGame: week.games[0], entry: null, now: null, loading: true, season: 2026, week: 6 });

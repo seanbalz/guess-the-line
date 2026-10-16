@@ -320,13 +320,32 @@ export const WIND_SOURCE_URL = 'https://open-meteo.com/';
 export const WIND_LICENSE = 'CC BY 4.0';
 export const WIND_LICENSE_URL = TRENDS_LICENSE_URL;
 export const WIND_CHANGES = 'Kickoff-hour values selected by GTL; wind direction shown as compass points';
-/** Refresh tiers by lead; the same numbers as cloud/wind.mjs and the SQL (a test keeps them equal). */
-export const WIND_TIERS = Object.freeze([
-  Object.freeze({ maxLeadH: 18, ttlMin: 60 }), Object.freeze({ maxLeadH: 72, ttlMin: 180 }), Object.freeze({ maxLeadH: 120, ttlMin: 360 }),
-]);
+/**
+ * The D-47 refresh schedule (Sean, October 15, 2026: "Just need a weather update every 24 hours and then 2 hours and 12
+ * hours before kickoff"): a snapshot is due again 24 h after it was taken and at each checkpoint (12 h, then 2 h before
+ * kickoff) reached after it was taken; never at or after kickoff. The same numbers as cloud/wind.mjs and the SQL
+ * gtl_begin_wind_fetch (tests keep all three equal).
+ */
+export const WIND_SCHEDULE = Object.freeze({ everyH: 24, beforeKickoffH: Object.freeze([12, 2]) });
 export const WIND_HORIZON_H = 120;
-/** A final pre-kickoff forecast must be at most this old at kickoff: twice the 1 h TTL, the same rule as the last hour before kickoff. */
-export const WIND_FINAL_MAX_MS = 2 * 60 * 60_000;
+/**
+ * How long past its due time a snapshot still shows as current (D-47): one hour. A refresh happens only when someone
+ * reads, so a due snapshot is first shown while the read that refreshes it is on its way: an open screen asks again at
+ * the due time (a minute later when the server's single flight or 60 s spacing turned it away), and the first reader
+ * after a quiet spell gets the refreshed snapshot in the same answer. An hour covers that, a device clock that runs a
+ * little behind and the 15-minute backoff after one Open-Meteo failure, so a forecast that is merely waiting for the
+ * next read never shows as out of date. It is shorter than the 10 h between the 12 h and 2 h checkpoints and than the
+ * last 2 h, so a missed checkpoint stops showing as current an hour later: a 12 h-old forecast is never called current
+ * in the last hour before kickoff, and after kickoff only a snapshot taken in the last 2 h (the 2 h checkpoint or
+ * later) is the final pre-kickoff forecast.
+ */
+export const WIND_GRACE_MS = 60 * 60_000;
+/**
+ * An open screen asks again this long after an answer that left a game due (no snapshot, or one past its due time)
+ * because the server held off (backoff, the daily budget, a failed fetch): gtl_begin_wind_fetch's shortest backoff.
+ * When the server only spaced the request (busy, cooldown) or has just fetched, it asks again a minute later.
+ */
+export const WIND_RETRY_MS = 15 * 60_000;
 export const WIND_CARD = 'total|g:g_wind10';
 export const WIND15_CARD = 'total|g:g_wind15';
 export const WIND_COPY = Object.freeze({
@@ -354,11 +373,25 @@ export function windNote(week, note, shown = false) {
 }
 
 const HOUR_MS = 3_600_000;
-/** TTL in minutes for a lead in ms, or null at or after kickoff and beyond 120 h. */
-export function windTtl(leadMs) {
-  if (!finite(leadMs) || leadMs <= 0) return null;
-  return WIND_TIERS.find(tier => leadMs <= tier.maxLeadH * HOUR_MS)?.ttlMin ?? null;
+/**
+ * When a snapshot taken at `fetchedMs` falls due (ms), the same rule as cloud/wind.mjs windNextDue and the SQL: 24 h after
+ * it was taken, or the first checkpoint (12 h, then 2 h before kickoff) after it was taken, whichever comes first. null
+ * when that is at or after kickoff: the snapshot is then the final pre-kickoff forecast and is never due again.
+ */
+export function windNextDue(kickoffMs, fetchedMs) {
+  if (!finite(kickoffMs) || !finite(fetchedMs)) return null;
+  let next = fetchedMs + WIND_SCHEDULE.everyH * HOUR_MS;
+  for (const hours of WIND_SCHEDULE.beforeKickoffH) {
+    const checkpoint = kickoffMs - hours * HOUR_MS;
+    if (checkpoint > fetchedMs) next = Math.min(next, checkpoint);
+  }
+  return next < kickoffMs ? next : null;
 }
+/** Whether a snapshot is current at `at` (D-47): until its due time plus WIND_GRACE_MS, and for good once it is never due. */
+export const windCurrent = (kickoffMs, fetchedMs, at) => {
+  const due = windNextDue(kickoffMs, fetchedMs);
+  return due === null || at <= due + WIND_GRACE_MS;
+};
 /** The effective server time: the response's asOf plus the time since it arrived on this device. */
 export function windClock(asOf, receivedAt, nowMs) {
   const base = typeof asOf === 'string' ? Date.parse(asOf) : NaN;
@@ -432,8 +465,10 @@ export const indoorsFor = (roof, game = null) => roof === 'dome' || roof === 'ca
  * - loading: the read is in flight;
  * - indoor: a dome, a canopy or a closed roof (no fetch, no numbers, no credit), or a game the server answers 'indoor'
  *   for when no venue type is known;
- * - forecast: a pre-kickoff snapshot no older than twice the TTL for the current lead;
- * - final: after kickoff, the last pre-kickoff snapshot if it was made within 2 h of kickoff;
+ * - forecast: a pre-kickoff snapshot that is current (windCurrent, D-47): until an hour past the time it fell due on the
+ *   24 h / 12 h / 2 h schedule;
+ * - final: after kickoff, the last pre-kickoff snapshot if it was still current at kickoff, which is a snapshot taken
+ *   2 h or less before kickoff (at or after the last checkpoint);
  * - not_yet: more than 120 h before kickoff;
  * - none: missing, stale, invalid or unavailable (reason 'stale' or 'unavailable').
  */
@@ -449,8 +484,8 @@ export function windView({ game, entry = null, now = null, loading = false }) {
   const fetched = Date.parse(wind.fetchedAt), made = kickoff - fetched;
   if (made <= 0) return { state: 'none', reason: 'unavailable' };
   let state;
-  if (lead > 0) state = Math.max(0, now - fetched) <= 2 * windTtl(lead) * 60_000 ? 'forecast' : null;
-  else state = made <= WIND_FINAL_MAX_MS ? 'final' : null;
+  if (lead > 0) state = windCurrent(kickoff, fetched, now) ? 'forecast' : null;
+  else state = windCurrent(kickoff, fetched, kickoff) ? 'final' : null;
   if (!state) return { state: 'none', reason: 'stale' };
   const venue = entry.venue || null, band = windBand(wind.windMph), us = venue?.country === 'USA';
   return {
@@ -461,21 +496,24 @@ export function windView({ game, entry = null, now = null, loading = false }) {
 }
 
 /**
- * When an open panel should ask the server again (ms since epoch), or null: the earliest of a game
- * entering the 120 h window, a snapshot's age crossing the TTL for its lead, and kickoff. A game
- * within the window with no snapshot is retried after its TTL. Never sooner than a minute from now.
+ * When an open screen should ask the server again (ms since epoch), or null: the earliest of a game entering the 120 h
+ * window, a snapshot falling due on the D-47 schedule (24 h after it was taken, 12 h and 2 h before kickoff), and
+ * kickoff. A game still due when the answer came (no snapshot, or one past its due time) is asked again after
+ * WIND_RETRY_MS when the server held off (backoff, budget, a failed fetch), or a minute later when it only spaced the
+ * request or has just fetched. Never sooner than a minute from now.
  */
 export function nextWindRefresh(data, now) {
   if (!data || typeof data !== 'object' || !finite(now) || !data.games || typeof data.games !== 'object') return null;
+  const retry = ['busy', 'cooldown', 'fetched'].includes(data.refresh?.outcome) ? 60_000 : WIND_RETRY_MS;
   let next = Infinity;
   for (const entry of Object.values(data.games)) {
     if (!entry || entry.status === 'indoor' || entry.status === 'unknown_venue') continue;
     const kickoff = Date.parse(entry.kickoff);
     if (!Number.isFinite(kickoff) || kickoff <= now) continue;
-    const lead = kickoff - now, ttl = windTtl(lead);
-    if (ttl === null) { next = Math.min(next, kickoff - WIND_HORIZON_H * HOUR_MS); continue; }
+    if (kickoff - now > WIND_HORIZON_H * HOUR_MS) { next = Math.min(next, kickoff - WIND_HORIZON_H * HOUR_MS); continue; }
     const fetched = validWind(entry.wind) ? Date.parse(entry.wind.fetchedAt) : NaN;
-    next = Math.min(next, kickoff, Number.isFinite(fetched) ? fetched + ttl * 60_000 : now + ttl * 60_000);
+    const due = Number.isFinite(fetched) ? windNextDue(kickoff, fetched) : now;
+    next = Math.min(next, kickoff, due === null ? Infinity : due > now ? due : now + retry);
   }
   return Number.isFinite(next) ? Math.max(next, now + 60_000) : null;
 }

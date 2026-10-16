@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, sendBallot, signIn, storeBookLines } from './community-world.mjs';
 import { createOpenMeteoProvider } from '../../cloud/open-meteo.mjs';
+import { windNextDue } from '../../cloud/wind.mjs';
 import { forecastFetch } from '../fixtures/open-meteo/build.mjs';
 import { assertNoLeak, lineSecrets, pickSecrets } from '../helpers/leak-scan.mjs';
 import { kickoffGroups, gamesOf } from '../../shared/lines-view.mjs';
@@ -17,7 +18,8 @@ import { randomUUID } from 'node:crypto';
 // and the weather row in the sheet (closed with no digits, times in PT, the credit), the referee row, the 404 fallbacks,
 // one /wind/read for the board and every sheet, no writes, the leak scan on
 // the rendered page (its text and attributes), axe in Light and Dark, and the phone rules measured in CI's fallback font
-// (ciFonts). Fictional accounts only; never contacts hosted data.
+// (ciFonts). D-47: the board reads the forecasts again at the next due point and never sooner (the browser clock jumps;
+// the server's does not). Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -204,7 +206,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     await phoneChecks(page);
     await noLeak(page, world, 'the board');
 
-    expect(calls.filter(call => call === 'POST /wind/read'), 'the board reads the week\'s forecasts once, for its chips').toHaveLength(1);
+    expect(calls.filter(call => call === 'POST /wind/read'), 'the board reads the week\'s forecasts once, for its chips, until the next due point').toHaveLength(1);
     expect(calls.filter(call => !READS.includes(call)), 'browsing writes nothing').toEqual([]);
     expect(fake.calls).toHaveLength(1);
     expect(world.errors).toEqual([]);
@@ -301,6 +303,53 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     expect(calls.filter(call => call === 'POST /wind/read'), 'one wind read for the board and every sheet').toHaveLength(1);
     expect(calls.filter(call => !READS.includes(call)), 'browsing writes nothing').toEqual([]);
     expect(fake.calls).toHaveLength(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('D-47: the board reads the forecasts again at the next due point and never sooner; the server fetches nothing early', async ({ page, baseURL }) => {
+  const { world, fake } = await lukesWeek(page, baseURL);
+  try {
+    // Fixture kickoffs follow the wall clock, so on some afternoons a 12 h checkpoint falls minutes after now. The week's
+    // snapshots are fetched first and stamped 30 minutes ahead, so the next due point is always at least 30 minutes away
+    // (the 2 h checkpoint of the earliest game is at least an hour away: the fixture deadline keeps a 3 h margin).
+    expect((await world.api('troy', 'wind/read', { season: 2026, week: 6 })).body.refresh.outcome).toBe('fetched');
+    await world.db.query("update public.gtl_wind_forecasts set fetched_at = fetched_at + interval '30 minutes'");
+    const rows = (await world.db.query('select game_id, kickoff, max(fetched_at) fetched from public.gtl_wind_forecasts group by game_id, kickoff')).rows;
+    expect(rows.map(r => r.game_id).sort()).toEqual([...GAMES].sort());
+    // The earliest next due point by the server's rule (cloud/wind.mjs windNextDue): 24 h later, or a 12 h or 2 h checkpoint.
+    const due = Math.min(...rows.map(r => windNextDue(r.kickoff.getTime(), r.fetched.getTime())));
+    // The browser clock jumps ahead; supabase-js then refreshes the fixture session (1 h): hand back the same token, valid longer.
+    await page.clock.install();
+    const session = world.sessions[ACCOUNTS.luke.email];
+    await page.route(url => url.origin === SUPABASE && url.pathname === '/auth/v1/token' && url.searchParams.get('grant_type') === 'refresh_token',
+      route => route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json',
+        body: JSON.stringify({ ...session, expires_in: 7 * 86_400, expires_at: Math.floor(Date.now() / 1000) + 7 * 86_400 }) }));
+    const calls = apiCalls(page), answers = [];
+    page.on('response', async response => { if (new URL(response.url()).pathname === '/functions/v1/gtl-api/wind/read') answers.push(await response.json()); });
+    const reads = () => calls.filter(call => call === 'POST /wind/read').length;
+    await openLines(page);
+    await expect(card(page, 'SEA-DEN').locator('[data-chip="weather"]')).toHaveText('Rain likely');
+    await expect.poll(() => answers.length).toBe(1);
+    expect([reads(), answers[0].refresh.outcome]).toEqual([1, 'not_due']);
+    const wait = due - Date.parse(answers[0].asOf);
+    expect(wait).toBeGreaterThan(25 * 60_000);
+    // Two minutes before it: the board has re-rendered on its ticks but asked nothing.
+    await page.clock.fastForward(wait - 2 * 60_000);
+    await page.waitForTimeout(1500);
+    expect(reads(), 'no read before the due point').toBe(1);
+    await expect(card(page, 'SEA-DEN').locator('[data-chip="weather"]')).toHaveText('Rain likely');
+    // Past it: exactly one read. The server's own clock has not reached the due point, so it fetches nothing ('not_due').
+    await page.clock.fastForward(3 * 60_000);
+    await expect.poll(reads).toBe(2);
+    await expect.poll(() => answers.length).toBe(2);
+    expect(answers[1].refresh.outcome).toBe('not_due');
+    // Never more often: that answer's next due point is the same server instant, far ahead again.
+    await page.clock.fastForward(5 * 60_000);
+    await page.waitForTimeout(1500);
+    expect(reads(), 'one read per due point').toBe(2);
+    expect(fake.calls).toHaveLength(1);
+    expect(calls.filter(call => !READS.includes(call)), 'browsing writes nothing').toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

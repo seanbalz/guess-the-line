@@ -2,7 +2,7 @@
 // Week 6 trends file and hand-built /wind/read answers. Every state, the CC BY credit next to every
 // forecast value, the honesty note with the record read from the file, heading levels and the copy
 // guard; then fake timers show an open panel moving from forecast to out of date, and from forecast
-// to final, without a reload.
+// to final, without a reload, and reading again only at the D-47 due points.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -37,8 +37,8 @@ const snapshot = (id, fetchedAt, values = {}) => {
     sourceUrl: 'https://api.open-meteo.com/v1/forecast?latitude=39.744', ...values };
 };
 /** A /wind/read answer for one game. */
-const answer = (id, asOf, wind, status = wind ? 'forecast' : 'none', venue = VENUES[id]) => ({
-  season: 2026, week: 6, asOf: new Date(asOf).toISOString(), published: true, refresh: { outcome: 'not_due' },
+const answer = (id, asOf, wind, status = wind ? 'forecast' : 'none', venue = VENUES[id], outcome = 'not_due') => ({
+  season: 2026, week: 6, asOf: new Date(asOf).toISOString(), published: true, refresh: { outcome },
   attribution: { text: 'Weather data by Open-Meteo.com', url: 'https://open-meteo.com/', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', changes: 'Kickoff-hour values selected by GTL; wind direction shown as compass points' },
   games: { [id]: { kickoff: game(id).kickoff, venue, status, wind } },
 });
@@ -191,7 +191,7 @@ describe('kickoff wind forecast states', () => {
     expect(text(render('CHI-ATL', null, null))).toContain('Kickoff weather: no current forecast for this game. Roof may close.');
     expect(text(render('CHI-ATL', answer('CHI-ATL', far, null, 'not_yet'), far)))
       .toContain('Kickoff weather: no current forecast for this game. Roof may close. The kickoff forecast appears 5 days before kickoff.');
-    expect(text(render('CHI-ATL', answer('CHI-ATL', now, snapshot('CHI-ATL', now - 6 * HOUR - MIN)), now)))
+    expect(text(render('CHI-ATL', answer('CHI-ATL', now, snapshot('CHI-ATL', now - 26 * HOUR)), now)))
       .toContain('Kickoff weather: no current forecast for this game. Roof may close. The last forecast is out of date.');
     expect(text(render('SEA-DEN', null, null))).not.toContain('Roof may close');
   });
@@ -222,8 +222,9 @@ describe('kickoff wind forecast states', () => {
     expect(t).toContain(WIND_COPY.windConditional);
   });
   it('a stale snapshot falls back and says the last forecast is out of date', () => {
+    // D-47: made 50 h before kickoff, it fell due 26 h out (24 h later) and stopped being current an hour after that.
     const k = kickoff('SEA-DEN'), now = k - 24 * HOUR;
-    const html = render('SEA-DEN', answer('SEA-DEN', now, snapshot('SEA-DEN', now - 6 * HOUR - MIN)), now), t = text(html);
+    const html = render('SEA-DEN', answer('SEA-DEN', now, snapshot('SEA-DEN', now - 26 * HOUR)), now), t = text(html);
     expect(html).not.toContain('class="trend-wind"');
     expect(t).toContain(WIND_COPY.windConditional);
     expect(t).toContain('Kickoff weather: no current forecast for this game. The last forecast is out of date.');
@@ -313,10 +314,11 @@ describe('an open panel follows the clock without a reload', () => {
   afterEach(() => { vi.useRealTimers(); });
   const fakeDoc = () => { const listeners = new Set(); return { visibilityState: 'visible', addEventListener: (_, fn) => listeners.add(fn), removeEventListener: (_, fn) => listeners.delete(fn), fire: () => listeners.forEach(fn => fn()), listeners }; };
 
-  it('moves from forecast to "out of date" as the snapshot ages, re-rendering every minute and asking for a fresh read at the TTL', () => {
+  it('reads again at the D-47 checkpoint and no sooner; "out of date" only an hour after a missed checkpoint', () => {
     // The device clock is years off the server's: only elapsed device time is added to asOf.
     vi.useFakeTimers(); vi.setSystemTime(Date.UTC(2031, 0, 1));
     const k = kickoff('SEA-DEN'), asOf = k - 24 * HOUR;
+    // Made 26 h before kickoff: the next due point is the 12 h checkpoint, 12 h after asOf (24 h after it was made is later).
     const result = { data: answer('SEA-DEN', asOf, snapshot('SEA-DEN', asOf - 2 * HOUR)), receivedAt: Date.now() };
     const ticks = [], refetches = [], doc = fakeDoc();
     const stop = watchWind({ result, doc, onTick: now => ticks.push(now), onRefetch: () => refetches.push(windNowFor(result)) });
@@ -324,22 +326,61 @@ describe('an open panel follows the clock without a reload', () => {
     expect(text(view())).toContain('updated 2 h ago');
     vi.advanceTimersByTime(WIND_TICK_MS);
     expect(ticks).toHaveLength(1);
-    // The 3 h TTL for a 24 h lead runs out an hour after asOf: the panel asks the server again.
-    vi.advanceTimersByTime(HOUR - WIND_TICK_MS);
-    expect(refetches).toEqual([asOf + HOUR]);
-    expect(text(view())).toContain('updated 3 h ago');
-    // Twice the TTL after it was made, with no newer snapshot, the card gives way to the fallback.
-    vi.advanceTimersByTime(3 * HOUR + MIN);
+    // Never more often: no read in the 12 h before the checkpoint (D-34 read every 3 h here; the 6 h wait cap re-arms without one).
+    vi.advanceTimersByTime(12 * HOUR - WIND_TICK_MS - 1);
+    expect(refetches).toEqual([]);
+    expect(text(view())).toContain('Kickoff wind forecast');
+    vi.advanceTimersByTime(1);
+    expect(refetches).toEqual([asOf + 12 * HOUR]);
+    // With no newer snapshot the card stays an hour past the checkpoint (waiting for the next read), then gives way.
+    vi.advanceTimersByTime(HOUR);
+    expect(text(view())).toContain('updated 15 h ago');
+    vi.advanceTimersByTime(1);
     const stale = view();
     expect(stale).not.toContain('class="trend-wind"');
     expect(text(stale)).toContain('The last forecast is out of date.');
-    expect(ticks.length).toBe(4 * 60 + 1);
+    expect(refetches, 'one timed read per answer').toHaveLength(1);
+    expect(ticks.length).toBe(13 * 60);
     doc.fire();
     expect(refetches).toHaveLength(2);
     stop();
     expect(doc.listeners.size).toBe(0);
     vi.advanceTimersByTime(HOUR);
-    expect(ticks.length).toBe(4 * 60 + 1);
+    expect(ticks.length).toBe(13 * 60);
+  });
+
+  it('a device that slept past the due point reads on its next tick, once', () => {
+    vi.useFakeTimers(); vi.setSystemTime(Date.UTC(2026, 9, 1));
+    const k = kickoff('SEA-DEN'), asOf = k - 100 * HOUR;
+    // Made 101 h before kickoff: due 24 h later, 23 h after asOf.
+    const result = { data: answer('SEA-DEN', asOf, snapshot('SEA-DEN', asOf - HOUR)), receivedAt: Date.now() };
+    const refetches = [];
+    const stop = watchWind({ result, doc: fakeDoc(), onTick: () => {}, onRefetch: () => refetches.push(windNowFor(result)) });
+    // The device sleeps for a day: the wall clock jumps and no timer runs until it wakes.
+    vi.setSystemTime(Date.now() + 24 * HOUR);
+    expect(refetches).toEqual([]);
+    vi.advanceTimersByTime(WIND_TICK_MS);
+    expect(refetches).toHaveLength(1);
+    expect(refetches[0]).toBeGreaterThanOrEqual(asOf + 23 * HOUR);
+    vi.advanceTimersByTime(3 * HOUR);
+    expect(refetches).toHaveLength(1);
+    stop();
+  });
+
+  it('a game still due after the answer is asked again a minute after busy or cooldown, 15 minutes after backoff', () => {
+    vi.useFakeTimers(); vi.setSystemTime(Date.UTC(2026, 9, 1));
+    const k = kickoff('SEA-DEN'), asOf = k - 11 * HOUR;
+    for (const [outcome, wait] of [['cooldown', MIN], ['busy', MIN], ['backoff', 15 * MIN], ['budget', 15 * MIN], ['failed', 15 * MIN]]) {
+      // Made 30 h out: due at the 12 h checkpoint, an hour before this answer, which did not refresh it.
+      const result = { data: answer('SEA-DEN', asOf, snapshot('SEA-DEN', k - 30 * HOUR), 'forecast', VENUES['SEA-DEN'], outcome), receivedAt: Date.now() };
+      const refetches = [];
+      const stop = watchWind({ result, doc: fakeDoc(), onTick: () => {}, onRefetch: () => refetches.push(windNowFor(result)) });
+      vi.advanceTimersByTime(wait - 1);
+      expect(refetches, outcome).toEqual([]);
+      vi.advanceTimersByTime(1);
+      expect(refetches, outcome).toEqual([asOf + wait]);
+      stop();
+    }
   });
 
   it('moves from forecast to final at kickoff, and asks for a fresh read at kickoff', () => {
@@ -415,7 +456,7 @@ describe('the new app\'s weather row (stage 13)', () => {
     const bare = extra => sheetWeatherRow({ game: gameOf('SEA-DEN'), trendsGame: game('SEA-DEN'), entry: null, now: null, season: 2026, week: 6, ...extra });
     expect([bare().state, bare().summary]).toEqual(['none', 'No current forecast']);
     expect([bare({ loading: true }).state, bare({ loading: true }).summary]).toEqual(['loading', WIND_COPY.loading]);
-    const stale = row('SEA-DEN', answer('SEA-DEN', now, snapshot('SEA-DEN', now - 10 * HOUR)), now);
+    const stale = row('SEA-DEN', answer('SEA-DEN', now, snapshot('SEA-DEN', now - 26 * HOUR)), now);
     expect([stale.state, stale.summary, stale.detail.lines]).toEqual(['none', 'No current forecast', [WIND_COPY.stale]]);
     for (const id of ['BUF-LV', 'ARI-LAR']) {
       const r = row(id, answer(id, now, null, 'indoor'), now);
