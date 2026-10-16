@@ -3,7 +3,7 @@
 // node tests (tests/next-shell-state.test.mjs) run it as is. Shell.jsx keeps it in useReducer and router.js keeps the
 // address and the browser's Back button in step with it.
 //
-// - Five tabs. A tab's view (its segment, market, scroll target) is its own: the shell keeps it for the visit and
+// - A tab's view (its segment, market, scroll target) is its own: the shell keeps it for the visit and
 //   never reads it. Tapping a tab closes every sheet, dialog, popover and page and shows that tab as it was; tapping
 //   the tab already showing closes its page (the frame scrolls to the top when there is none).
 // - Layers are named by id, and the id's prefix says which kind: `sh.` sheet, `dlg.` dialog, `pop.` popover, `ov.`
@@ -16,7 +16,7 @@
 //   queue too: the first shows, never over an overlay.
 // - closeTop is Escape and Back: overlay, then popover, dialog, the top sheet, the page.
 
-export const TABS = Object.freeze(['home', 'play', 'bets', 'lines', 'league']);
+export const TABS = Object.freeze(['home', 'play', 'bets', 'lines', 'league', 'fantasy']);
 export const DEFAULT_TAB = 'home';
 const KINDS = Object.freeze({ sh: 'sheet', dlg: 'dialog', pop: 'popover', ov: 'overlay', page: 'page' });
 export const LAYER_KINDS = Object.freeze(Object.values(KINDS));

@@ -1,11 +1,11 @@
-// Persona audit #3: one history entry per Community screen (#feed, #picks, #history, #groups), so the phone's Back button moves
+// Persona audit #3: one history entry per Community screen (#feed, #picks, #history, #fantasy, #groups), so the phone's Back button moves
 // between screens instead of leaving the site and a reload lands on the same tab. The Picks screen's entry also carries the market
 // that is open (#picks-spread, #picks-total), so a reload or a Forward reopens that market, not whichever is due first; a bare #picks
 // lets the screen choose. Any other fragment (the #main and #picks-due skip-link targets, Supabase's #type=recovery, a removed
 // #invite) leaves the screen alone; an empty fragment is the feed. #history (the Community history view) is a bare screen.
 import { useSyncExternalStore } from 'react';
 
-export const SCREENS = ['feed', 'picks', 'history', 'groups'];
+export const SCREENS = ['feed', 'picks', 'history', 'fantasy', 'groups'];
 export const DEFAULT_SCREEN = 'feed';
 export const MARKET_SLUGS = { guess_spread: 'spread', guess_total: 'total' };
 const MARKET_OF_SLUG = Object.fromEntries(Object.entries(MARKET_SLUGS).map(([mode, slug]) => [slug, mode]));

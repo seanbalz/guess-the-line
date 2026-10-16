@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_SCREEN, MARKET_SLUGS, SCREENS, currentMarket, currentScreen, fragmentOf, goScreen, marketFromHash, placeFromHash, screenFromHash, setMarket } from '../web/src/screenHash.js';
 
-test('only the four Community screens are read from the fragment; anything else leaves the screen alone', () => {
-  assert.deepEqual(SCREENS, ['feed', 'picks', 'history', 'groups']);
+test('only the Community screens are read from the fragment; anything else leaves the screen alone', () => {
+  assert.deepEqual(SCREENS, ['feed', 'picks', 'history', 'fantasy', 'groups']);
   assert.equal(screenFromHash(''), DEFAULT_SCREEN);
   assert.equal(screenFromHash('#'), DEFAULT_SCREEN);
   assert.equal(screenFromHash(undefined), DEFAULT_SCREEN);
