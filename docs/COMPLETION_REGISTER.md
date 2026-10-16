@@ -22,7 +22,8 @@ were published with PR #127; their archived entries remain unchanged.
 PR #143 merged first at `6be5a8138a4805b2bbc46fb1b423e7b7d751f5ac`, then
 #149 at `8942725746f199270d79fce562ac37cf92d64d69`, after all five checks
 passed on each final head. The latter is the combined release source; its tree
-matches the tested #149 head. D-53 Home guidance, weekly score context,
+matches the tested #149 head. Exact-main push CI and release source-only
+verification passed. D-53 Home guidance, weekly score context,
 scoped comparisons, account settings and Fantasy are implemented and merged.
 They are **not deployed or hosted-accepted** by this task.
 
@@ -31,8 +32,9 @@ CI, access setup, the live baseline and the Pages/weather/API/scoring/comparison
 order. #123, #139 and #146 were already merged at `521e7dc`; their earlier
 pending statuses below are historical. The [#148 release card](https://github.com/seanbalz/guess-the-lines-repo/pull/148)
 records later hosted preflight and the production Cloudflare account mismatch.
-The required GitHub production secrets are being configured; no deployment,
-SQL apply or new-feature live acceptance is claimed. Frozen v62 is unchanged.
+The required GitHub production secrets remain unconfigured; setup is waiting
+for the production Cloudflare login. No deployment, SQL apply or new-feature
+live acceptance is claimed. Frozen v62 is unchanged.
 Ranked model-based wagers remain unavailable until validated sources exist.
 
 ## Historical PR reconciliation — October 15

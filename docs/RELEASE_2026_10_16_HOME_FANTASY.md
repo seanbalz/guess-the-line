@@ -1,8 +1,8 @@
 # Guess The Line — Home and Fantasy release, October 16, 2026
 
-Owner: Sean Balsiger · Version 1 · Execution: Codex
+Owner: Sean Balsiger · Version 2 · Execution: Codex
 
-Status: #143 and #149 merged in order; main CI running; deployment credentials being configured.
+Status: #143 and #149 merged in order; exact-main CI and source verification passed; deployment blocked pending credential setup.
 
 ## Authorization and source
 
@@ -41,7 +41,10 @@ to unblock CI on the combined release source. No release gate was removed.
 Exact final-main [Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38942064937),
 [Dashboard](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38942064960)
 and [Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38942064945)
-remain the source gate; check their final results before dispatch.
+all passed on the pinned source. The [check-only release run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38946664176)
+also passed. Its downloaded source report confirms source, workflowSource and
+fetchedMain all equal `8942725746f199270d79fce562ac37cf92d64d69`, target
+`frontend`, and `deployed: false`. This does not establish hosted readiness.
 
 ## Verified access and live baseline
 
@@ -61,7 +64,8 @@ window is certified by this inventory read.
 The Supabase connector denied project access and the pinned CLI on this task's
 host reported no access token. The separate #148 release record reports working
 Supabase CLI access on the Mac mini; that does not establish access here.
-GitHub repository and production-environment secret inventories are empty.
+GitHub repository and production-environment secret inventories were empty;
+the production inventory remained empty after source verification.
 The local Wrangler OAuth login exposes account
 `01f95c9d694864ce2322fe858948c21b`, while production requires
 `83bd659d712e968e7a61efa14107465a`.
@@ -71,6 +75,23 @@ Add the existing production-scoped `SUPABASE_ACCESS_TOKEN` and
 preserving its reviewer and main-only policy. Do not put credentials in this
 record or chat. No SQL apply, API deployment or Pages upload has been attempted
 by this release task.
+
+Credential setup uses scoped tokens, entered directly into GitHub:
+
+- Cloudflare: `GTL GitHub Releases`, restricted to production account
+  `83bd659d712e968e7a61efa14107465a`, Cloudflare Pages **Edit**. Save it as
+  `CLOUDFLARE_API_TOKEN`. See [Cloudflare's Pages token requirements](https://developers.cloudflare.com/pages/configuration/api/).
+- Supabase: `GTL GitHub Releases`, restricted to project
+  `onmrgvcehkflfaizvedl` in Gambling, Project Settings **Read**, Database **Read**,
+  Edge Functions **Read-write**. Save it as `SUPABASE_ACCESS_TOKEN`.
+  The workflow reads migration history through its read-only SQL preflight and
+  does not apply migrations. See [Supabase's scoped token permissions](https://supabase.com/docs/guides/platform/personal-access-tokens).
+
+Credential creation/entry remains in the user's provider and GitHub interfaces;
+this record contains no token value or copied login store. Sean requested setup
+help; Chrome is left at Apple sign-in for the intended Cloudflare account.
+No token has been created or entered by this task. Protected readiness,
+deployment and new-feature live acceptance remain incomplete.
 
 ## Combined release order
 
