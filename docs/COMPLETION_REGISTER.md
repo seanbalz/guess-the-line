@@ -1,6 +1,6 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Version 6 · Evidence reviewed October 16, 2026 (Pacific)
+Owner: Sean Balsiger · Version 7 · Evidence reviewed October 16, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and
 acceptance work. Its deployed source baseline is `main` at `b883c77`; later
@@ -32,9 +32,11 @@ CI, access setup, the live baseline and the Pages/weather/API/scoring/comparison
 order. #123, #139 and #146 were already merged at `521e7dc`; their earlier
 pending statuses below are historical. The [#148 release card](https://github.com/seanbalz/guess-the-lines-repo/pull/148)
 records later hosted preflight and the production Cloudflare account mismatch.
-The required GitHub production secrets remain unconfigured; setup is waiting
-for the production Cloudflare login. No deployment, SQL apply or new-feature
-live acceptance is claimed. Frozen v62 is unchanged.
+Both GitHub production secrets are configured. Protected readiness run
+`38971438272` passed with a fresh quiet-window check, provider access and
+233 expected boundary denials (27 probes remain awaiting deployment). The
+Pages-first deploy is prepared; no deployment, SQL apply or new-feature live
+acceptance is claimed. Frozen v62 is unchanged.
 Ranked model-based wagers remain unavailable until validated sources exist.
 
 ## Historical PR reconciliation — October 15

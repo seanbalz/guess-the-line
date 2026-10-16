@@ -1,8 +1,8 @@
 # Guess The Line — Home and Fantasy release, October 16, 2026
 
-Owner: Sean Balsiger · Version 2 · Execution: Codex
+Owner: Sean Balsiger · Version 3 · Execution: Codex
 
-Status: #143 and #149 merged in order; exact-main CI and source verification passed; deployment blocked pending credential setup.
+Status: #143 and #149 merged in order; protected readiness passed; Pages-first deployment prepared, not deployed.
 
 ## Authorization and source
 
@@ -61,37 +61,63 @@ The per-game scoring chain and new comparison/preferences migrations are absent
 from that list. No replacement-function body/grant, score hash or fresh quiet
 window is certified by this inventory read.
 
-The Supabase connector denied project access and the pinned CLI on this task's
-host reported no access token. The separate #148 release record reports working
-Supabase CLI access on the Mac mini; that does not establish access here.
-GitHub repository and production-environment secret inventories were empty;
-the production inventory remained empty after source verification.
-The local Wrangler OAuth login exposes account
-`01f95c9d694864ce2322fe858948c21b`, while production requires
-`83bd659d712e968e7a61efa14107465a`.
+## Protected readiness — October 16, 2:58 PM Pacific
 
-Add the existing production-scoped `SUPABASE_ACCESS_TOKEN` and
-`CLOUDFLARE_API_TOKEN` through GitHub's secure production environment settings,
-preserving its reviewer and main-only policy. Do not put credentials in this
-record or chat. No SQL apply, API deployment or Pages upload has been attempted
-by this release task.
+Both dedicated production secrets are saved in GitHub. Sean approved the
+protected readiness job; [run 38971438272](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/38971438272)
+passed on `8942725746f199270d79fce562ac37cf92d64d69`. The source, dependency
+install, production build/privacy scan, configuration, hosted preflight and
+quiet-window checks all passed. No deployment or SQL apply occurred.
 
-Credential setup uses scoped tokens, entered directly into GitHub:
+The downloaded read-only report at 21:58:12 UTC records:
 
-- Cloudflare: `GTL GitHub Releases`, restricted to production account
-  `83bd659d712e968e7a61efa14107465a`, Cloudflare Pages **Edit**. Save it as
-  `CLOUDFLARE_API_TOKEN`. See [Cloudflare's Pages token requirements](https://developers.cloudflare.com/pages/configuration/api/).
-- Supabase: `GTL GitHub Releases`, restricted to project
-  `onmrgvcehkflfaizvedl` in Gambling, Project Settings **Read**, Database **Read**,
-  Edge Functions **Read-write**. Save it as `SUPABASE_ACCESS_TOKEN`.
-  The workflow reads migration history through its read-only SQL preflight and
-  does not apply migrations. See [Supabase's scoped token permissions](https://supabase.com/docs/guides/platform/personal-access-tokens).
+- Target: `frontend`; `deployed: false`.
+- Hosted migration count: 34; reviewed history SHA-256:
+  `eb8e51838144388a3e6e287974347357421b5f3a2098821bd0e44e269c1977e9`.
+- Quiet window: next 30 minutes passed against 29 games in the two newest
+  published slates; newest published week is 2026 Week 6. Deployment repeats
+  this check immediately before mutation.
+- Current Pages: `ed3fb50b-388b-4330-8767-8bd08adb9255`, source
+  `b883c7742979d133720ed931c520821fdc4a13b5`.
+- Current API: `gtl-api` v24, ACTIVE, JWT verification enabled, bundle SHA-256
+  `22bb9a8023a3804f640b33322c06aa168666894eb9ffbaac794ecc07b43a464a`.
+- Other functions: odds-refresh v4, push-reminders v2, week-open v3.
+- Boundaries: 233 expected denials; 27 explicitly pending probes. The 11
+  NOT_HOSTED migration entries remain pending, including weather, the core
+  scoring chain, Bets, comparison and preferences.
 
-Credential creation/entry remains in the user's provider and GitHub interfaces;
-this record contains no token value or copied login store. Sean requested setup
-help; Chrome is left at Apple sign-in for the intended Cloudflare account.
-No token has been created or entered by this task. Protected readiness,
-deployment and new-feature live acceptance remain incomplete.
+A separate read-only SQL-editor query at 21:59:24 UTC confirmed all five M-02
+predecessor hashes, the D-47 weather predecessor
+`027f2797275a447f49d080dfac787b2b`, and the M-04 social predecessor
+`a7f96942d52ffd86c992a1fbccfc2a0b`. Each checked RPC has one signature, an empty
+search path, service-role execute and no anon/authenticated execute. The Bets
+and account-preferences tables are absent.
+
+The same query captured 135 finished-week game scores and exactly one Week 5
+anchor each at 95.8, 91.4 and 37.6. This task's reproducible, ordered JSON score
+fingerprint is `d40a51d62a9e42393f5f95ff05f900fd`; settled Virtual Units has zero
+rows and JSON-empty-array fingerprint `d751713988987e9331980363e24189ce`.
+These use a different serialization from #148's earlier hashes and are a new
+pre-mutation baseline, not a claimed equality to that earlier digest. The exact
+SELECT-only query and full readback are retained in ignored local evidence.
+
+The prepared first deploy is **frontend only**, source
+`8942725746f199270d79fce562ac37cf92d64d69`, with the history digest above and
+[this release card](https://github.com/seanbalz/guess-the-lines-repo/pull/150).
+Compatible Pages must precede the D-47 weather SQL/API transition. Existing
+per-game capability gates keep unhosted scoring unavailable; missing comparison
+and preference routes degrade as covered by final-main CI. The default app
+remains unchanged. The deploy workflow verifies served manifest bytes at the
+immutable and production URLs and checks unchanged API/history. Rollback uses
+the recorded prior Pages deployment; retain the compatible Pages if recovering
+a later backend step. Subsequent SQL applies still require fresh Gate M evidence.
+
+Credentials were created and entered by Sean directly in the providers and
+GitHub. Cloudflare is Pages Write on the production account; Supabase is
+Project Settings Read, Database Read and Edge Functions Read-write on the
+production project. Both expire after 90 days. No token value is in this record.
+The shared workflow has verified access; separate local login stores and the
+Supabase connector's earlier denial do not describe this protected workflow.
 
 ## Combined release order
 
