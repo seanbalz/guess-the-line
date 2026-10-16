@@ -167,3 +167,7 @@ unpublished work outside this checkout were not reconciled in this register.
 [homes]: redesign/INVENTORY_HOMES.md
 [visual]: https://github.com/seanbalz/guess-the-lines-repo/issues/126
 [weather]: https://github.com/seanbalz/guess-the-lines-repo/pull/123
+
+## Fantasy Football analysis requirements — October 15
+
+PLAY-05 now records Sean's requested Usage Tracker analysis: usage/actuals, weekly and rest-of-season rankings/projections, private league context and source/freshness reporting. [Analysis brief and acceptance criteria](redesign/SHARP_VS_SQUARE.md#9-fantasy-football--usage-tracker-analysis-brief-october-15-2026). Requirements recorded only; implementation remains deferred. Documentation validation checks the PLAY-05 JSON, link target and whitespace; no application code or hosted state changed.

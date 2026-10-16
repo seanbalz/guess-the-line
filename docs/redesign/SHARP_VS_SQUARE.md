@@ -261,11 +261,11 @@ The two items below follow the tracker's item schema exactly (`id`, `area`, `tit
   "title": "Fantasy Football section (back burner)",
   "status": "Deferred",
   "priority": "P2",
-  "state": "Backlog only. Sean asked on October 15, 2026 (through the Mac mini session) for a Fantasy Football section on the back burner: not scheduled, no scope, no source, no design. Nothing is built or planned beyond this entry.",
+  "state": "Backlog only. Sean added the Fantasy Usage Tracker analysis direction on October 15, 2026; see section 9. Requirements are recorded; implementation and design remain unscheduled.",
   "evidence": [
     "docs/redesign/SHARP_VS_SQUARE.md"
   ],
-  "exit": "Sean schedules it and says what the section is for; then a scope note and a build-plan stage.",
+  "exit": "Schedule implementation, confirm source reuse and private roster access, then create a build-plan stage using section 9 acceptance criteria.",
   "owner": "Unassigned until Sean schedules it",
   "dependency": [
     "Sean's go"
@@ -274,7 +274,7 @@ The two items below follow the tracker's item schema exactly (`id`, `area`, `tit
   "targetDate": "Not committed",
   "workstream": "play",
   "execution": "Deferred",
-  "nextAction": "None until Sean schedules it; then one question: what the section should hold."
+  "nextAction": "When scheduled, use section 9 as the analysis brief and resolve integration details before implementation."
 }
 ```
 
@@ -299,3 +299,15 @@ Earlier dated reads reused, from this repository: [ODDS_PROVIDER_EVALUATION.md](
 Search snippets only (pages not opened): VSiN articles on its DraftKings and Circa splits; CBS Sports and Rotowire on DraftKings-sourced splits; ingame.com, casinobeats.com and igamingexpert.com on the ESPN BET to theScore Bet change; Sportradar Betting Splits documentation summaries; SharpAPI splits documentation summaries; third-party listings describing the Sleeper API; Apify scraper listings. A second search in the verification pass (October 15) surfaced the same: the SharpAPI docs conflict and its pricing page, Sportradar's "over 150 bookmakers" and its rule that ticket and stake percentages may be shown but bet counts may not, the CBS Sports sentence, the theScore Bet change on December 1, 2025, third-party Sleeper listings, and Apify listings for Action Network, VegasInsider and Covers. The VSiN "five-minute" and "$199" snippets did not resurface, so the cadence rests on the October 8 read and the price on the first session's snippet only.
 
 Repository files read at `8a1bee7`: `AGENTS.md`, `docs/DECISIONS.md` (D-44 to D-46 and the D-04 and D-11 lines), `docs/RULES.md`, `docs/TRENDS.md`, `docs/REDESIGN_BUILD_PLAN.md`, `docs/BRAND_GUIDE.md`, `docs/RELEASE_2026_10_09.md`, `design/tokens.json`, `web/src/next/styles/tokens.css`, `cloud/odds-provider.mjs`, `supabase/migrations/20261008185738_gtl_manual_odds_collection.sql`, `20261008200926_gtl_twelve_hour_odds_refresh.sql`, `20261012213000_gtl_submission_odds_window.sql`, `20261012230000_gtl_submit_with_line_at_guess.sql`, `20261012234500_gtl_game_officials.sql`, `20261014221500_gtl_odds_open_weeks.sql`, `20261015010000_gtl_lines_read.sql`, and `planning/project-tracker.json` (v62, frozen).
+
+## 9. Fantasy Football — Usage Tracker analysis brief (October 15, 2026)
+
+Sean requested adding the analysis from his Fantasy Usage Tracker to this section. This updates PLAY-05's previously unspecified purpose; the earlier request and draft decision above remain historical. This is a requirements addition, not a delivered GTL feature.
+
+- **Usage and production:** player-by-week usage, opportunity and actual fantasy points; season and recent-week comparisons with available sample sizes. Missing metrics stay missing, and comparisons use the same scoring format.
+- **Rankings and projections:** weekly and rest-of-season consensus, individual source rankings, projected points and disagreements across sources; support Standard, Half-PPR and PPR. Keep observed production separate from forecasts and grade past rankings only against available completed-week actuals.
+- **League context:** show roster/ownership context for the signed-in user's connected leagues when implemented. Keep league identifiers, rosters and private account data out of public repository assets.
+- **Refresh and provenance:** use the existing tracker as the implementation reference: pregame rankings/projections and roster refresh; postweek nflverse/Sleeper ingest, FantasyPros actuals and roster refresh. Display each source's capture time, season/week, actual-data coverage and saved/guard-skipped/failed status. Free-source availability and GTL reuse rights still require verification before integration.
+- **Failure behavior:** retain last successful data with a visible stale/source warning; distinguish a successful dashboard build from complete source coverage and successful publication. Do not label forecast week as the latest ingested actual week.
+- **Observed reference run (October 15):** pregame exited 0 and built the local dashboard; FantasyPros Week 6 saved 34 files with no guard skips. Actuals covered 2026 Weeks 1–3 (48 games); 2025 baseline covered Weeks 1–18 (285 games). CBS pages failed title validation, FFToday returned HTTP 403, and pandas emitted a fragmentation performance warning; no data-check WARNs occurred. The existing artifact was not republished because the publishing tool was unavailable. These are dated observations, not current GTL integrations.
+- **Acceptance when built:** users can compare usage, actuals, rankings and projections by player/week/scoring format; source/time and missing/stale states remain visible; partial source failures do not erase good data; roster access is authenticated; checks cover scoring-format separation, week alignment, missing data and partial refresh failures.
