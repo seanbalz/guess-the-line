@@ -11,6 +11,8 @@
 
 /** Feature name → the writer or reader it stops. A stage that adds a switchable route adds its name here. */
 export const FEATURES = Object.freeze({
+  comparisons: 'POST /league/comparison: scoped score comparisons',
+  preferences: 'POST /me/preferences/save: account settings writes',
   notes: 'POST /personal/note: private game notes (M-09, redesign stage 27)',
   lines: 'POST /lines/read and /lines/game: the gated lines readers (M-06, redesign stage 23)',
   picks: 'POST /community/picks: everyone\'s Guess picks, game by game (M-08, redesign stage 26)',

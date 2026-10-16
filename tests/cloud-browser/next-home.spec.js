@@ -18,7 +18,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const TRY = 'Try the new app';
-const READS = ['GET /lobby', 'POST /community/read'];
+const READS = ['GET /lobby', 'POST /community/read', 'POST /community/history', 'POST /me/preferences'];
 // Luke's own draft (whole numbers: his own picks are never secrets, and whole numbers collide with counts in the scan).
 const LUKE_SPREAD_DRAFT = [4, -9];
 // Stored book lines for the week (fixture values, never live odds), half-points so the scan can tell them from counts.
@@ -190,8 +190,8 @@ test('Home is the default screen: the week, the countdown, one lime "Make picks"
 
     await phoneChecks(page);
     await noLeak(page, world, lines, 'Home');
-    expect(calls.filter(call => !READS.includes(call)), 'Home writes nothing and reads only what the data layer shares').toEqual([]);
-    expect(calls.filter(call => call.startsWith('POST ')).every(call => call === 'POST /community/read'), 'the one POST is the Community read').toBe(true);
+    expect(calls.filter(call => !READS.includes(call)), 'Home writes nothing and reads only the shared feed, score history and own settings').toEqual([]);
+    expect(calls.filter(call => call.startsWith('POST ')).every(call => READS.includes(call)), 'POSTs are read-only feed, scores and own settings').toBe(true);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

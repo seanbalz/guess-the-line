@@ -25,7 +25,7 @@ const GROUPS = [
   ['lines', LINES_METHODS, handleLines, LinesError, providerLinesError, 'Lines are unavailable.'],
   ['bets', BETS_METHODS, handleBets, BetsError, providerBetsError, 'Bets are unavailable.'],
   ['league', LEAGUE_METHODS, handleLeague, LeagueError, providerLeagueError, 'League data is unavailable.'],
-  ['me', ME_METHODS, handleMe, MeError, providerMeError, 'Your records are unavailable.'],
+  ['me', ME_METHODS, handleMe, MeError, providerMeError, 'Your preferences are unavailable.'],
 ];
 const USER = { id: '00000000-0000-4000-8000-00000000000b', is_anonymous: false };
 

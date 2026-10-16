@@ -25,6 +25,8 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261016010000, // D-53 comparisons, after M-07. Not applied.
+  20261016011000, // D-53 account preferences. Not applied.
   20261015190710, // M-07 per-game locks and immediate personal scoring; not applied.
   20261014221500, // M-05 (stage 22) Monday-night lines: applied alone on a Tuesday or Wednesday after Sean's "apply M-05".
   20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
@@ -48,6 +50,7 @@ export const FIX_FORWARD = [];
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
 export const REQUIRES = Object.freeze({
+  20261016010000: [20261014221500,20261015010000,20261015020000,20261015030000,20261015040000,20261015190710],
   20261015190710: [20261014221500,20261015010000,20261015020000,20261015030000,20261015040000],
   20261015190820: [20261015050000],
 });

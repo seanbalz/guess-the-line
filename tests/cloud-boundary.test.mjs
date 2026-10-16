@@ -326,17 +326,18 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // M-03 (stage 19): the forfeit writer, its reader and their market helper; the route, the gtl-api deploy.
   const forfeit = ['gtl_forfeit_markets', 'gtl_forfeit_guess_week', 'gtl_read_forfeit'];
   const bets = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market'];
+  const comparisonPreferences = ['gtl_read_score_comparison','gtl_read_account_preferences','gtl_save_account_preferences'];
   // D-48 recommendations writer and routes are hosted since October 15, 2026.
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', 'gtl-api/community/forfeit', 'gtl-api/bets/read', ...[...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit, ...bets].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/lines/read', 'gtl-api/lines/game', 'gtl-api/community/picks', 'gtl-api/community/forfeit', 'gtl-api/bets/read', 'gtl-api/league/comparison', 'gtl-api/me/preferences', 'gtl-api/me/preferences/save', ...[...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit, ...bets, ...comparisonPreferences].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   assert.equal(awaitingDeploy['rpc/gtl_ballot_locked_in'], 'migration 20261015030000_gtl_sent_picks_final.sql');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
   assert.equal(awaitingDeploy['rpc/gtl_odds_carryover_slate'], 'migration 20261014221500_gtl_odds_open_weeks.sql');
-  const missing = async (url, request) => ([...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit, ...bets].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  const missing = async (url, request) => ([...referees, ...winds, ...monday, ...lines, ...picks, ...lockIn, ...forfeit, ...bets, ...comparisonPreferences].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|lines\/(read|game)|community\/(picks|forfeit)|bets\/read)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|lines\/(read|game)|community\/(picks|forfeit)|bets\/read|league\/comparison|me\/preferences(?:\/save)?)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + winds.length + monday.length + lines.length + picks.length + lockIn.length + forfeit.length + bets.length + 8 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + monday.length + lines.length + picks.length + lockIn.length + forfeit.length + bets.length + comparisonPreferences.length + 11 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 

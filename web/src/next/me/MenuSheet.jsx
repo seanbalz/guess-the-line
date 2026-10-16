@@ -8,6 +8,7 @@ import { APP_SWITCH_COPY } from '../../appView.js';
 import { useThemePreference } from '../../Theme.jsx';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { useShell } from '../shell/context.js';
+import { AccountPreferences } from './AccountPreferences.jsx';
 import { ProfileSettings } from './ProfileSettings.jsx';
 
 export const MENU_COPY = Object.freeze({
@@ -48,6 +49,7 @@ function Appearance() {
 export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
+  if (args.sub === 'preferences') return <AccountPreferences key={shell.you.id}/>;
   if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
   if (args.sub === 'appearance') {
     return (
@@ -71,6 +73,7 @@ export function MenuSheet({ args }) {
       <Card variant="flush">
         <List>
           <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
+          <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
           <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
         </List>

@@ -72,7 +72,7 @@ function apiCalls(page) {
  * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
  * for its D-45 weather chips on Lines): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
+const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -199,7 +199,7 @@ test.describe('the real app', () => {
       await expect(avatar).toBeFocused();
       await expect(title(page, 'Home')).toBeVisible();
 
-      // Keyboard: the menu wraps in both directions, then Profile precedes Appearance in the tab order.
+      // Keyboard: the menu wraps in both directions, then Profile and Settings precede Appearance in the tab order.
       // Appearance changes the view in place and focus stays in the sheet.
       await avatar.focus();
       await page.keyboard.press('Enter');
@@ -212,6 +212,8 @@ test.describe('the real app', () => {
       await expect(menu.getByRole('button', { name: 'Close' })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Profile', exact: true })).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(menu.getByRole('button', { name: 'Settings · sportsbooks and guidance', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Appearance', exact: true })).toBeFocused();
       await page.keyboard.press('Enter');

@@ -11,6 +11,7 @@ import './play.css';
 import { cloudApi } from '../../api.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
 import { PerGameEditor } from './PerGamePlay.jsx';
+import { ScoreComparison } from './ScoreComparison.jsx';
 import { WeeklyScore } from './WeeklyScore.jsx';
 import { perGameReady } from './scoring.js';
 
@@ -42,6 +43,7 @@ export function Play() {
     shell.go('league', { view: 'feed', market: mode });
   };
 
+  if (shell.state.views.play.section === 'compare') return <div className="gx-screen gx-vstack gx-gap-16"><h1 className="gx-t-title">Compare players</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button><ScoreComparison/></div>;
   if (score) return <div className="gx-screen gx-vstack gx-gap-16"><h1 className="gx-t-title">Your weekly score</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'picks' })}>Back to picks</Button><WeeklyScore/></div>;
   if (perGameReady(personal.data?.rules)) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16"><h1 className="gx-t-title">Play</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button><SelectedPlay app={app} shell={shell} current={personal.data} mode={market || 'guess_spread'} onMode={marketNavigation.write}/></div>;
   return (

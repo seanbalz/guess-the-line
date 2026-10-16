@@ -17,6 +17,15 @@ current-status headers in [cloud setup](CLOUD_SETUP.md),
 [account access](ACCOUNT_ACCESS_REGISTER.md) and [social community](SOCIAL_COMMUNITY.md)
 were published with PR #127; their archived entries remain unchanged.
 
+## October 16 — approved Home and comparisons follow-up
+
+Implementation branch `codex/home-comparisons` integrates Fantasy #143 and adds
+D-53 Home guidance, weekly score context, scoped comparisons and account settings.
+See [the release record](HOME_COMPARISONS_RELEASE.md) for dependency order,
+verification and the explicit not-deployed state. Frozen v62 remains unchanged.
+Ranked model-based wagers remain unavailable until validated sources exist.
+
+
 ## Current PR reconciliation — October 15
 
 Source reviewed: `origin/main` at `bb4f20a095de61ac283b62cfee819d533470fa39`.

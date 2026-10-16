@@ -4,11 +4,14 @@
 import { missingId } from './fixtures.mjs';
 
 export const tables = Object.freeze([
+  // account_preferences joins table probes only after its apply record; local SQL tests deny both browser roles now.
   'personal_versions', 'favorites', 'journal_entries', 'personal_forecasts', 'personal_events', 'personal_receipts', 'league_interest',
   'push_subscriptions', 'push_reminders_sent', 'push_reminder_schedule', 'push_reminder_runs',
 ]);
 
 export const rpcChecks = Object.freeze([
+  ['gtl_read_account_preferences', { p_user: missingId }],
+  ['gtl_save_account_preferences', { p_user: missingId, p_revision: 0, p_value: { sportsbooks: [], guidanceCollapsed: false } }],
   ['gtl_personal_context', { p_user: missingId, p_season: 2026, p_week: 5 }],
   ['gtl_read_personal', { p_user: missingId }],
   ['gtl_personal_history', { p_user: missingId, p_entry: missingId }],
@@ -29,6 +32,8 @@ export const rpcChecks = Object.freeze([
 ]);
 
 export const apiChecks = Object.freeze([
+  ['me/preferences', {}],
+  ['me/preferences/save', {}],
   ['personal', undefined],
   ['personal/read', {}],
   ['personal/ballot', {}],
@@ -52,4 +57,8 @@ export const workerChecks = Object.freeze([
 ]);
 
 export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_read_account_preferences': 'migration 20261016011000_gtl_account_preferences.sql',
+  'rpc/gtl_save_account_preferences': 'migration 20261016011000_gtl_account_preferences.sql',
+  'gtl-api/me/preferences': 'the gtl-api deploy with /me/preferences',
+  'gtl-api/me/preferences/save': 'the gtl-api deploy with /me/preferences/save',
 });
