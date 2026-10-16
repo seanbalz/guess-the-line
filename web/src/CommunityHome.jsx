@@ -14,6 +14,7 @@ import CommunityHistory from './CommunityHistory';
 import LineAtGuess from './LineAtGuess';
 import { PushReminderPrompt } from './PushReminders';
 import TryNewApp from './TryNewApp';
+import FantasyFootball from './FantasyFootball';
 import { cloudApi, communityApi, date } from './api';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
@@ -553,8 +554,8 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
 }
 
 export default function CommunityHome({ accountId, onGroups, onSignOut, displayName, onUnavailable, welcome = '' }) {
-  // Persona audit #3: the open tab is the URL hash (#feed, #picks, #history), one history entry each, so Back returns to the feed and a reload lands on the same tab.
-  const screen = useScreen(), tab = ['picks', 'history'].includes(screen) ? screen : 'feed';
+  // Persona audit #3: the open tab is the URL hash (#feed, #picks, #history, #fantasy), one history entry each, so Back returns to the feed and a reload lands on the same tab.
+  const screen = useScreen(), tab = ['picks', 'history', 'fantasy'].includes(screen) ? screen : 'feed';
   const [league, setLeague] = useState('nfl'), [feed, setFeed] = useState(null), [older, setOlder] = useState([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [retryable, setRetryable] = useState(false);
   const main = useRef(null), refocus = useRefocus(main);
@@ -612,7 +613,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
         <button className="secondary back-to-nfl" onClick={() => setLeague('nfl')}>Back to NFL</button>
       </> : <>
       <nav className="community-tabs" aria-label="Community sections">
-        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`], ['history', 'History']].map(([key, label]) =>
+        {[['feed', 'Feed'], ['picks', `Picks${due ? ` (${due} due)` : picksClosed ? ' (closed)' : ''}`], ['history', 'History'], ['fantasy', 'Fantasy Football']].map(([key, label]) =>
           <button key={key} className={tab === key ? 'primary' : 'secondary'} aria-pressed={tab === key} onClick={() => goScreen(key)}>{label}</button>)}
         <button className="secondary" onClick={onGroups}>Groups & games<ArrowRight size={16}/></button>
       </nav>
@@ -620,6 +621,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
       <p className="auth-notice" role="status" aria-live="polite">{notice}</p>
       {tab === 'picks' ? <WeekPicks accountId={accountId} feed={feed} posts={posts} optOuts={feed?.optOuts || []} initialMode={feed?.picksDue?.modes?.[0]?.mode} onSignOut={onSignOut} onReveal={reveal} onSaved={() => load().catch(() => {})} onSatOut={() => load().catch(() => {})}/>
         : tab === 'history' ? <CommunityHistory accountId={accountId}/>
+        : tab === 'fantasy' ? <FantasyFootball headingLevel={2} onBack={() => { goScreen('feed'); main.current?.focus({ preventScroll: true }); }}/>
         : !feed ? !error && <p role="status"><LoaderCircle className="spin"/>Loading the feed…</p> : <>
         {!feed.week && <WeekUnpublished/>}
         <PicksDue due={feed.picksDue} all={feed.due} push={feed.pushConfigured === true} onPick={() => goScreen('picks')}/>

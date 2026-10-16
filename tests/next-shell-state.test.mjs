@@ -16,8 +16,8 @@ test('a visit starts on Home with every tab\'s view empty and nothing open', () 
   const state = start();
   assert.equal(state.tab, 'home');
   assert.equal(DEFAULT_TAB, 'home');
-  assert.deepEqual(TABS, ['home', 'play', 'bets', 'lines', 'league']);
-  assert.deepEqual(state.views, { home: {}, play: {}, bets: {}, lines: {}, league: {} });
+  assert.deepEqual(TABS, ['home', 'play', 'bets', 'lines', 'league', 'fantasy']);
+  assert.deepEqual(state.views, { home: {}, play: {}, bets: {}, lines: {}, league: {}, fantasy: {} });
   assert.deepEqual([state.page, state.sheets, state.dialog, state.popover, state.overlays, state.toasts], [null, [], null, null, [], []]);
   assert.equal(hasLayers(state), false);
   assert.equal(modalOpen(state), false);
@@ -208,7 +208,7 @@ test('unknown actions and malformed layers leave the state as it is', () => {
 });
 
 test('the tab slot files: every tab and Me has homeTiles, counter and sheetActions, empty until each slot\'s own stage', () => {
-  assert.deepEqual(Object.keys(SLOTS).sort(), ['bets', 'home', 'league', 'lines', 'me', 'play']);
+  assert.deepEqual(Object.keys(SLOTS).sort(), ['bets', 'fantasy', 'home', 'league', 'lines', 'me', 'play']);
   for (const [tab, slot] of Object.entries(SLOTS)) {
     assert.deepEqual(Object.keys(slot).sort(), ['counter', 'homeTiles', 'sheetActions'], tab);
     assert.ok(Array.isArray(slot.homeTiles) && Object.isFrozen(slot.homeTiles), `${tab} homeTiles`);
@@ -225,7 +225,7 @@ test('the tab slot files: every tab and Me has homeTiles, counter and sheetActio
 });
 
 test('the tab bar reads a counter or a dot from a slot, in the tab\'s name too, and shows nothing for anything else', () => {
-  for (const tab of TABS) assert.deepEqual(tabBadge(tab, null), { label: TAB_INFO[tab].label, name: TAB_INFO[tab].label, count: 0, dot: false }, tab);
+  for (const tab of TABS) assert.deepEqual(tabBadge(tab, null), { label: TAB_INFO[tab].label, name: TAB_INFO[tab].name ?? TAB_INFO[tab].label, count: 0, dot: false }, tab);
   const slots = counter => ({ ...SLOTS, play: { ...SLOTS.play, counter } });
   const data = { due: 1 };
   assert.deepEqual(tabBadge('play', data, slots(d => ({ count: d.due, label: '1 ballot due' }))), { label: 'Play', name: 'Play, 1 ballot due', count: 1, dot: false });
