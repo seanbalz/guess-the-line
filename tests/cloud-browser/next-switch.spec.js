@@ -97,8 +97,8 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     // A reload keeps the device's choice.
     await page.reload();
     await expect(newApp(page)).toBeVisible();
-    // Stage 11: the new app reads the account and the Community once per page load, and writes nothing.
-    expect(calls).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
+    // Shared account/Community reads occur once per page load. Home also reads preferences and scored history.
+    expect(calls.filter(call => !['POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history'].includes(call))).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
 
     await (await oldAppButton(page)).click();
     await expect(communityHome(page)).toBeVisible();

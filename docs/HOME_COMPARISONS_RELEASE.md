@@ -61,9 +61,14 @@ row deletion, generic `supabase db push`, or scoring re-anchoring.
 - Full Vitest run: 198 tests pass (14 files).
 - Final focused Node run: 111 tests pass, no skips, including real PGlite membership,
   reveal, browser-role grants, settings concurrency/idempotency and rollout boundaries.
-- Full Node run exercised 1,441 tests with no skips: 1,439 passed; its two failures
-  were outdated feature-switch/import-boundary expectations, repaired and passing
-  in the final focused run. GitHub final-head CI must establish the complete green run.
+- First GitHub run: all 1,442 Node tests pass with zero skips, plus 198 Vitest tests.
+  Brand, Windows and Persona checks pass. The cloud browser suite passed 249 of
+  258 cases: eight failures were old Home-read/menu-order expectations, and one
+  exposed Fantasy rank-column overflow. The expectations now include only the
+  added read routes and Settings tab stop; the rank column fits its content.
+  The performance fixture likewise handles the new authenticated preference read.
+  Local parallel browser verification was stopped under machine overload; final
+  GitHub CI on the correction commit remains the complete-suite gate.
 - Browser checks: three Home regressions and four Fantasy regressions pass. Three
   new flows pass: comparisons/guidance/settings with 320px Light/Dark axe checks;
   concurrent edit and account switch; downstream-save failure and recovery.

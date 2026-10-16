@@ -35,6 +35,11 @@ export const test = base.extend({
       expect(request.headers().authorization).toBe(`Bearer ${token}`);
       expect(request.headers().apikey).toBe('sb_publishable_frontend_test_only');
       fixture.apiRequests.push({ pathname: url.pathname, method: request.method() });
+      // Preferences are not deployed in this legacy fixture; the Home guide stays available without saving.
+      if (url.pathname === '/functions/v1/gtl-api/me/preferences' && request.method() === 'POST') {
+        expect(request.postDataJSON()).toEqual({});
+        return route.fulfill({ status: 404, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ error: 'Not found.' }) });
+      }
       if (url.pathname === '/functions/v1/gtl-api/lobby' && request.method() === 'GET') return reply({ profile: { id: user.id, displayName: 'Troy Jun' }, leagues: [{ id: 'sean-troy-luke', name: 'Triple Threat', format: 'triple-threat', role: 'player', memberCount: 3, maxMembers: 3, practice: false }], pendingInvites: [] });
       if (url.pathname === '/functions/v1/gtl-api/state' && request.method() === 'GET') {
         expect(url.searchParams.get('league')).toBe('sean-troy-luke');

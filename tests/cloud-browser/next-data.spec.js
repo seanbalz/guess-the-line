@@ -17,7 +17,7 @@ const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 // Stage 13: the Lines tab adds the viewer's own week (`/personal`), read once a Lines screen asks for it, and the week's
 // kickoff forecasts (`/wind/read`, read once by the board for its D-45 weather chips).
 // The functional League tab reads the selected private group's authenticated state.
-const READS = ['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'GET /functions/v1/gtl-api/state'];
+const READS = ['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'GET /functions/v1/gtl-api/state'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 const tab = (page, name) => tabBar(page).getByRole('button', { name, exact: true });
 const title = (page, name) => page.getByRole('heading', { name, level: 1, exact: true });
