@@ -57,7 +57,7 @@ function review(migrationPath, rollbackSql) {
  */
 async function applyWithRollback(migrationPath, rollbackSql) {
   const name = path.basename(migrationPath), db = new PGlite();
-  const files = [...new Set([...HOSTED, ...requiredFiles(name), name])].sort();
+  const files = [...new Set([...HOSTED.filter(file => file <= name), ...requiredFiles(name), name])].sort();
   const md5s = async () => new Map((await db.query("select p.proname, md5(p.prosrc) md5 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'")).rows.map(r => [`public.${r.proname}`, r.md5]));
   let after, restored;
   try {

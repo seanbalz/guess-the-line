@@ -173,7 +173,7 @@ const ids = games => games.map(g => g.gameId ?? g.id);
 test('Monday after the next week opens: one scheduled run collects this week and the unstarted Monday game in the same two provider requests and stores each week its own snapshot', { skip }, async t => {
   const now = Date.now();
   // The same slates on the schema players have today (HOSTED, without M-05) and with M-05 (ALL).
-  const before = await fixture(t, { files: HOSTED, now });
+  const before = await fixture(t, { files: HOSTED.filter(file => !file.startsWith('20261014221500')), now });
   const f = await fixture(t, { now });
   const old = await before.run(), result = await f.run();
   assert.deepEqual([old.status, old.data.status, old.data.reason], [200, 'succeeded', null]);
@@ -222,7 +222,7 @@ test('Monday after the next week opens: one scheduled run collects this week and
 
 test('with no unstarted game from last week (Tuesday to Sunday) the collector is exactly as before: same games, requests, rows, payload and result keys', { skip }, async t => {
   const now = Date.now();
-  const before = await fixture(t, { files: HOSTED, now, monday: -HOUR }), f = await fixture(t, { now, monday: -HOUR });
+  const before = await fixture(t, { files: HOSTED.filter(file => !file.startsWith('20261014221500')), now, monday: -HOUR }), f = await fixture(t, { now, monday: -HOUR });
   assert.equal(await f.rpc('gtl_odds_carryover_slate', { p_at: iso(Date.now()) }), null);
   const old = await before.run(), result = await f.run();
   assert.deepEqual([result.status, result.data.status, result.data.reason], [old.status, old.data.status, old.data.reason]);

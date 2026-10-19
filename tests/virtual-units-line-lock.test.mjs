@@ -337,7 +337,7 @@ test('without M-01 (the schema before October 14) the deadline opens every line 
   // Half an hour after the deadline: the first game has kicked off, the second kicks off in half an hour.
   const late = state => Date.parse(state.league.deadline) + 30 * 60_000;
   let clockAt = Date.now();
-  const hosted = await linesWorld(t, { migrations: HOSTED.filter(file => file !== '20261014223000_gtl_guess_gate_per_game.sql'), clock: () => clockAt });
+  const hosted = await linesWorld(t, { migrations: HOSTED.filter(file => file < '20261014223000_gtl_guess_gate_per_game.sql'), clock: () => clockAt });
   clockAt = late(hosted.state);
   const [g0, g1] = hosted.ids;
   assert.deepEqual(locks(await hosted.units('luke')), { [g0]: { spread: false, total: false }, [g1]: { spread: false, total: false } });

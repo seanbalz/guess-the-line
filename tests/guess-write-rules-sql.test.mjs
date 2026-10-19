@@ -71,9 +71,9 @@ const groupRevision = async (world, account, mode) => (await world.api(account, 
 const md5s = async db => new Map((await db.query("select p.proname||'('||pg_get_function_identity_arguments(p.oid)||')' sig, md5(p.prosrc) m from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'")).rows
   .map(r => [r.sig.replace(/ /g, '').replace(/p_\w+/g, '').replace(/\(,/g, '(').replace(/,,/g, ','), r.m]));
 
-test('M-02 is a repo file the hosted project does not have yet, with md5 headers, a rollback and no new argument list', () => {
+test('M-02 is a hosted repo migration, with md5 headers, a rollback and no new argument list', () => {
   assert.ok(ALL.includes(M02) && ALL.at(-1) >= M02, 'M-02 sorts after every file it replaces a body from');
-  assert.ok(NOT_HOSTED.includes(version(M02)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
+  assert.ok(!NOT_HOSTED.includes(version(M02)), 'confirmed hosted by the October 19 apply record');
   assert.ok(fs.existsSync(path.join(ROLLBACK_DIR, M02)), 'its rollback restores the five previous bodies');
   const cat = catalog(readMigrations(ALL)), own = cat.files.find(f => f.file === M02);
   assert.deepEqual(own.functions.map(fn => fn.name).sort(), ['gtl_ballot_locked_in', 'gtl_guard_fresh_submission', 'gtl_guess_locked_in', 'gtl_live_rules', 'gtl_mutate_personal', 'gtl_save_weekly_ballot']);
@@ -98,7 +98,7 @@ test('gtl_live_rules (M-02): sentFinal true, lateWindow deadline; revealAt is M-
   };
   await db.exec(PRELUDE);
   // The schema before October 14, 2026 had neither M-01 nor M-02: the deadline rules.
-  for (const file of HOSTED.filter(file => file !== M01)) await db.exec(migrationSql(file));
+  for (const file of HOSTED.filter(file => file < M01)) await db.exec(migrationSql(file));
   assert.deepEqual(await readLiveRules(optionalRpc), TODAYS_RULES);
   // M-02 applied without M-01 (out of order): a working function that keeps today's deadline reveal.
   await db.exec(migrationSql(M02));
@@ -388,7 +388,7 @@ test('old edited ballots: stored D-16 edits stay and score the same after M-02; 
 });
 
 test('deployed before the apply: on the hosted schema the new gtl-api keeps D-16 edits and the database refuses lockIn', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED, games: 2, groupScreens: true, optionalRpc: true });
+  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file < M02), games: 2, groupScreens: true, optionalRpc: true });
   t.after(() => world.db.close());
   const ids = world.state.games.map(g => g.id), map = values => Object.fromEntries(ids.map((g, i) => [g, values[i]]));
   let res = await save(world, 'luke', 'guess_spread', map([-4.5, 1.5]), { submit: true });

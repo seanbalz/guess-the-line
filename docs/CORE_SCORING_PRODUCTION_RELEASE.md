@@ -8,19 +8,81 @@ The implementation is PR #151. Exact source/CI, fresh hosted state, compatibilit
 data-preservation checks, individual migration order and rollback remain required.
 No further time-window approval or wait is required.
 
-Supabase access through the GTL connection and the Mac Mini's GTL disk image are
-restored. Production has advanced to Pages `0933a030-ff36-4a22-8cd7-fb2b7675863c`
-from `8942725746f199270d79fce562ac37cf92d64d69`, with API v25. Reconcile those
-Home/Fantasy changes and the release evidence in PR #150 before proceeding;
-do not deploy the older bb4 prepared frontend over them. D-47 is now hosted as
-`20261016223357`; the seven core migrations still await application as of this
-read-only check. This update does not claim a scoring deployment or migration.
+## Production activation — October 19, 2026
 
-The sections below retain the earlier preparation record; their access blockers,
-source baseline and time restrictions are historical where superseded above.
+PR #151 passed all five required checks and merged as
+`5b1f3677479a3def3d3957e127ea933701d8034d` at 23:45:39 UTC.
+Core scoring was activated at 23:46–23:47 UTC, with each migration applied
+separately after its predecessor and verified before continuing:
+
+| Stage | Repo version | Actual hosted version |
+| --- | --- | --- |
+| M-02 | 20261015030000 | 20261019234625 |
+| M-03 | 20261015040000 | 20261019234645 |
+| M-04 | 20261015050000 | 20261019234708 |
+| M-08 | 20261015020000 | 20261019234713 |
+| M-05 | 20261014221500 | 20261019234718 |
+| M-06 | 20261015010000 | 20261019234724 |
+| M-07 | 20261015190710 | 20261019234729 |
+
+D-47 was already hosted as `20261016223357` by the October 16 release;
+its function body and history were reconciled, and it was not reapplied.
+Unrelated Bets, comparison and preferences migrations remain unapplied.
+
+The compatible Home/Fantasy runtime was retained: source
+`8942725746f199270d79fce562ac37cf92d64d69`, Pages
+`0933a030-ff36-4a22-8cd7-fb2b7675863c`, API v25 with JWT verification,
+and collector v4. Exact-source CI and clean source were verified. All 95
+served assets matched the production and immutable deployment URLs. All 46
+API files and four collector files matched source. No older build was uploaded.
+API bundle SHA-256: `b688829ee7e07c980765113b42d80cc9f9f24bd45cd1df64c3ba356489fdffe2`.
+Collector bundle SHA-256: `5f47a2ee11e391d94e2462949488a052e256e77eb0e2c2f9bbf467fa524c4b68`.
+
+Each apply checked function bodies, signatures, security settings, search paths,
+grants and intended schema changes. The new forfeit table has RLS enabled and
+no anonymous/authenticated table grants. Historical Week 5 scores (135 game
+rows, nine ballots, 655.8 total points) and ballot audits remained unchanged.
+All 23 complete ballot rows retained MD5 `9845424e7b611149b727f692e9e49bd1`.
+Historical per-game score MD5: `9c487dda5871e6b1135c42ff6fb062f7`;
+per-ballot score MD5: `5f54ec162dae278032647abd6969529a`.
+Private before/after evidence is retained locally and contains no public release payload.
+
+Live rules now report `sentFinal:true`, `lateWindow:kickoff`,
+`perGameScoring:true`, `revealAt:kickoff`. Authenticated read-only browser
+checks confirmed locked receipts, saved-reference provenance, immediate personal
+points, previous-week navigation and independent Spread/Total scores.
+No competition picks were created or changed for testing.
+
+Live boundary verification returned 255 expected denials from 261 probes.
+The six pending RPC probes belong only to unapplied Bets/comparison/preferences;
+no core scoring probe is allowed to remain missing. This is not a claim that
+the unrelated full strict rollout passed.
+
+Windows main, Mac Mini shared-sync and MacBook Neo main were all clean and
+synced to `5b1f3677479a3def3d3957e127ea933701d8034d` after the activation.
+Release evidence will be synced again after PR #145 merges.
+
+Local validation: 198 Vitest tests, typecheck and Brand QA passed. The 1,430
+Node functional tests passed across the full run and targeted correction reruns
+(no skips). All 12 rollback tests passed across the suite and corrected
+M-05 fixture rerun. Historical pre-apply
+fixtures now explicitly select their earlier schema. Rollback fixtures stop at
+the target migration so later dependent bodies cannot overwrite the scenario.
+
+Remaining closeout: final evidence CI, PR #145 merge and sync, and a successful
+scheduled collection after activation. Existing collection cron is `15 8,20 * * *` UTC; the next execution
+is October 20 at 08:15 UTC (01:15 Pacific). Do not force a provider collection
+to manufacture scheduled evidence. Real-phone and multi-account write acceptance
+remain separate from this read-only production verification.
+
+## Historical preparation record
+
+The following sections describe earlier preparation. Their pending-apply,
+access-blocker, old-source and timing statements are historical and superseded
+by the production activation above.
 
 Owner: Sean Balsiger; release execution: Codex
-Version 2 · October 16, 2026 · Status: authorized and prepared; not deployed
+Version 3 · October 19, 2026 · Status: scoring active; closeout in progress
 
 ## Authorization and source
 

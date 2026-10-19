@@ -31,9 +31,9 @@ const SEAN = { total: [54.5, 37.5, 51.5, 47.5] }; // Spread sat out
 const EXTRA = { dana: { id: fixtureId(4), name: 'Dana Fixture' }, eve: { id: fixtureId(5), name: 'Eve Fixture' }, finn: { id: fixtureId(6), name: 'Finn Fixture' } };
 const ROW_KEYS = ['closest', 'eligible', 'error', 'hidden', 'late', 'lockedIn', 'pick', 'points', 'rank', 'removed', 'status', 'tied', 'userId'];
 
-test('M-08 is a repo file the hosted project does not have yet; it adds one function and replaces, drops or writes nothing', () => {
+test('M-08 is a hosted repo migration; it adds one function and replaces, drops or writes nothing', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'confirmed hosted by the October 19 apply record');
   const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8');
   const defined = parseFunctions(sql, MIGRATION);
   assert.deepEqual(defined.map(fn => `${fn.schema}.${fn.name}`), ['public.gtl_read_guess_picks']);

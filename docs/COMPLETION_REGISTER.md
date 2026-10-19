@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## October 19 — core scoring activated
+
+M-02, M-03, M-04, M-08, M-05, M-06 and M-07 were individually applied and
+verified in that order at 23:46–23:47 UTC. Per-game final locking, immediate
+personal points, receipts and weekly score navigation are active with the
+existing compatible Home/Fantasy runtime. Historical scores and all 23 ballots
+were preserved. Live authenticated reads and 255 privacy denials passed;
+six unrelated unapplied RPC probes remain explicitly pending. See the
+[core scoring release record](CORE_SCORING_PRODUCTION_RELEASE.md) for hosted
+versions, evidence and limits. All three integration checkouts were synced cleanly to policy merge `5b1f367`.
+Release-evidence CI/merge, its final sync and the next scheduled collection
+remain pending; this entry does not claim them complete.
+
 ## October 19 - release timing policy
 
 Sean permanently removed deployment and migration time gates. The release

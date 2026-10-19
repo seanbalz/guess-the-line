@@ -211,12 +211,12 @@ test('redactSocialWeek never changes its input and leaves a week without a gate 
   assert.equal(redactSocialWeek(WEEK_STATE.state, { actorId: VIEWER, games: [A, B], gate: null, now: NOW }).state, WEEK_STATE.state);
 });
 
-test('M-04 is not hosted yet and /social/read joins the leak scan through it', () => {
+test('M-04 is hosted and /social/read joins the leak scan through it', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'the apply record removes it');
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'confirmed hosted by the apply record');
   assert.ok(READERS.some(([route]) => route === '/social/read'));
-  assert.equal(READER_MIGRATIONS['/social/read'], MIGRATION);
-  assert.ok(!readersOn(HOSTED).some(([route]) => route === '/social/read'), 'a HOSTED suite does not scan it yet');
+  assert.equal(READER_MIGRATIONS['/social/read'], undefined);
+  assert.ok(readersOn(HOSTED).some(([route]) => route === '/social/read'), 'HOSTED scans the deployed line gate');
 });
 
 // The real handler, the migrations and PGlite (tests/cloud-browser/community-world.mjs). Troy posts slips at the stored book
@@ -327,7 +327,7 @@ test('ALL: the SQL gate is gtl_markets_visible per week; a kickoff opens one gam
   }
 });
 
-for (const [label, migrations] of [['ALL without M-04 (the deploy before the apply)', ALL.filter(file => file !== MIGRATION)], ['HOSTED', HOSTED]]) {
+for (const [label, migrations] of [['ALL without M-04 (the deploy before the apply)', ALL.filter(file => file !== MIGRATION)], ['historical HOSTED without M-04', HOSTED.filter(file => file !== MIGRATION)]]) {
   test(`${label}: the tracker answers as today, every slip whole and Tail open`, { skip }, async t => {
     const f = await slipsWorld(t, migrations);
     const luke = await f.social('luke');

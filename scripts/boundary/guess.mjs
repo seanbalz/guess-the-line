@@ -9,7 +9,7 @@ import { missingId, missingLeague } from './fixtures.mjs';
 export const tables = Object.freeze([
   'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings',
   'submission_odds_intents', 'reference_line_imports', 'reference_lines', 'reference_line_voids', 'benchmark_policies', 'frozen_benchmarks',
-  'result_review_lock', 'reviewed_result_events', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'ruled_ballot_imports',
+  'result_review_lock', 'reviewed_result_events', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'ruled_ballot_imports', 'week_forfeits',
 ]);
 
 /** [rpc, inert body]: each is called anonymously and must be denied. */
@@ -102,19 +102,4 @@ export const apiChecks = Object.freeze([
 export const workerChecks = Object.freeze([]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-export const awaitingDeploy = Object.freeze({
-  ...Object.fromEntries(['gtl_ballot_has_locked', 'gtl_guess_game_open', 'gtl_guess_late', 'gtl_prepare_guess_ballot',
-    'gtl_resolution_before_kickoff', 'gtl_valid_pending_resolution', 'gtl_guess_score_receipt']
-    .map(name => [`rpc/${name}`, 'migration 20261015190710_gtl_guess_write_window.sql'])),
-  // M-08: remove these two with the release record of its hosted apply and the gtl-api deploy (Gate M step 8).
-  'rpc/gtl_read_guess_picks': 'migration 20261015020000_gtl_guess_picks_reader.sql',
-  'gtl-api/community/picks': 'the gtl-api deploy with /community/picks',
-  // M-02: remove this one with the release record of its hosted apply (Gate M step 8).
-  'rpc/gtl_ballot_locked_in': 'migration 20261015030000_gtl_sent_picks_final.sql',
-  // M-03: remove these four with the release record of its hosted apply and the gtl-api deploy (Gate M step 8); that record
-  // also adds 'week_forfeits' to the table probes above (a table probe has no awaiting state).
-  'rpc/gtl_forfeit_markets': 'migration 20261015040000_gtl_guess_week_forfeit.sql',
-  'rpc/gtl_forfeit_guess_week': 'migration 20261015040000_gtl_guess_week_forfeit.sql',
-  'rpc/gtl_read_forfeit': 'migration 20261015040000_gtl_guess_week_forfeit.sql',
-  'gtl-api/community/forfeit': 'the gtl-api deploy with /community/forfeit',
-});
+export const awaitingDeploy = Object.freeze({});

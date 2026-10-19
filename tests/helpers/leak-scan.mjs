@@ -22,14 +22,14 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
  * The reader routes the scan covers, called as the viewer through the cloud handler: [route, method, body].
  * Keep the order stable; append a route in the stage that gates it. Stage 20 added /virtual-units (its line lock; the
  * world needs `virtualUnits: true`); stage 23 added /lines/*; stage 21 added /social/read (real slips, gated from M-04;
- * tests/social-line-lock.test.mjs scans it with slips posted at the stored lines). Not yet here: /community/picks (26),
+ * tests/social-line-lock.test.mjs scans it with slips posted at the stored lines). Not yet here:
  * /league/* and /me/* (later).
  * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
  * /lines/game names the fixture world's first game (server/store.mjs seeds TB-DAL first; tests/lines-sql.test.mjs scans
  * every game).
  * /community/picks (stage 26, M-08) is scanned on ALL in tests/guess-picks-sql.test.mjs until M-08 is hosted (every viewer,
- * both markets, one game and one member, before and after kickoffs); the apply record moves it here, so this list stays the
+ * both markets, one game and one member, before and after kickoffs); it joined this list on October 19, so this list stays the
  * routes that answer on HOSTED.
  * /community/read's `forfeit` field and /community/history's sat-out entries with locked-in guesses (stage 19, M-03, D-41) are
  * scanned on ALL in tests/guess-forfeit-sql.test.mjs until M-03 is hosted (every viewer, before and after each kickoff, after a
@@ -55,6 +55,7 @@ export const READERS = Object.freeze([
   // D-48: own current-week guesses/card and M-01-gated lines; no new read migration.
   ['/bets/recommendations', 'POST', {}],
   ['/bets/read', 'POST', {}],
+  ['/community/picks', 'POST', { mode: 'guess_spread' }],
 ]);
 
 /**
@@ -63,10 +64,6 @@ export const READERS = Object.freeze([
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
 export const READER_MIGRATIONS = Object.freeze({
-  '/lines/read': '20261015010000_gtl_lines_read.sql',
-  '/lines/game': '20261015010000_gtl_lines_read.sql',
-  // /social/read answers on HOSTED too, but another player's slip carries its lines until M-04 adds the gate.
-  '/social/read': '20261015050000_gtl_social_line_lock.sql',
   '/bets/read': '20261015190820_gtl_bets_read.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */

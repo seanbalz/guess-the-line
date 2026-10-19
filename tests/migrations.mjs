@@ -27,14 +27,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 export const NOT_HOSTED = [
   20261016010000, // D-53 comparisons, after M-07. Not applied.
   20261016011000, // D-53 account preferences. Not applied.
-  20261015190710, // M-07 per-game locks and immediate personal scoring; not applied.
-  20261014221500, // M-05 (stage 22) Monday-night lines: applied alone on a Tuesday or Wednesday after Sean's "apply M-05".
-  20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
-  20261015020000, // M-08 guess_picks_reader (redesign stage 26): everyone's picks, applied after M-01 on Sean's "apply M-08".
-  20261015030000, // M-02 sent_picks_final (redesign stage 18): locked-in picks are final, applied alone (Fri-Sat) on "apply M-02".
-  20261015040000, // M-03 guess_week_forfeit (redesign stage 19): skip and "See picks now", applied after M-01 on "apply M-03".
-  20261015050000, // M-04 social_line_lock (redesign stage 21): the real-slip line gate, applied after M-01 on Sean's "apply M-04".
-  20261015120000, // D-47 wind_refresh_schedule: weather every 24 h, then 12 h and 2 h before kickoff; Gate M apply on Sean's approval.
   20261015190820, // M-10 bets_read (stage 40): account-level Bets reader; apply after M-01 and M-04 on Sean's "apply M-10".
 ];
 /**
@@ -49,11 +41,7 @@ export const FIX_FORWARD = [];
  * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
-export const REQUIRES = Object.freeze({
-  20261016010000: [20261014221500,20261015010000,20261015020000,20261015030000,20261015040000,20261015190710],
-  20261015190710: [20261014221500,20261015010000,20261015020000,20261015030000,20261015040000],
-  20261015190820: [20261015050000],
-});
+export const REQUIRES = Object.freeze({});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -68,7 +56,9 @@ const extra = check ? path.basename(check.migration) : null;
 const required = extra ? REQUIRES[version(extra)] ?? [] : [];
 
 export const ALL = [...new Set([...FILES.filter(file => !EXTENSION_ONLY.includes(file)), ...(extra ? [extra] : [])])].sort();
-export const HOSTED = ALL.filter(file => file === extra || required.includes(version(file)) || !NOT_HOSTED.includes(version(file)));
+// A rollback scenario stops at its target: later migrations may depend on the body being restored.
+// Normal HOSTED always includes every applied migration.
+export const HOSTED = ALL.filter(file => (!extra || file <= extra) && (file === extra || required.includes(version(file)) || !NOT_HOSTED.includes(version(file))));
 
 /** The SQL to apply for a file in ALL or HOSTED (in a rollback check, the checked migration followed by its rollback). */
 export function migrationSql(file) {
@@ -112,8 +102,16 @@ export const APPLIED = [
   20261013010000, // gtl_line_at_guess_reads
   20261013030000, // gtl_web_push_reminders (D-28): hosted as 20261013030000 on October 14, 2026
   20261013060000, // gtl_wind_forecasts
+  20261014221500, // Hosted as 20261019234718; see CORE_SCORING_PRODUCTION_RELEASE.md.
   20261014223000, // M-01 gtl_guess_gate_per_game: hosted as 20261014223000 on October 14, 2026
   20261014224500, // M-09 gtl_game_notes: hosted as 20261014224500 on October 14, 2026
   20261014233000, // M-29 gtl_favorite_keeps_note: hosted as 20261014233000 on October 14, 2026
+  20261015010000, // Hosted as 20261019234724; see CORE_SCORING_PRODUCTION_RELEASE.md.
+  20261015020000, // Hosted as 20261019234713; see CORE_SCORING_PRODUCTION_RELEASE.md.
+  20261015030000, // Hosted as 20261019234625; see CORE_SCORING_PRODUCTION_RELEASE.md.
+  20261015040000, // Hosted as 20261019234645; see CORE_SCORING_PRODUCTION_RELEASE.md.
+  20261015050000, // Hosted as 20261019234708; see CORE_SCORING_PRODUCTION_RELEASE.md.
+  20261015120000, // Hosted as 20261016223357; see CORE_SCORING_PRODUCTION_RELEASE.md.
   20261015143006, // D-48 recommended virtual pick: hosted as 20261015143006 on October 15, 2026.
+  20261015190710, // Hosted as 20261019234729; see CORE_SCORING_PRODUCTION_RELEASE.md.
 ];
