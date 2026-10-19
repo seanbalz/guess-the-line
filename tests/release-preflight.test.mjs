@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { validateRequest, configuration, successfulRun, checkSource, quietWindow, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI } from '../scripts/release-preflight.mjs';
+import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI } from '../scripts/release-preflight.mjs';
 
 const sha = 'a'.repeat(40);
 const request = (extra = {}) => ({ RELEASE_SHA: sha, RELEASE_TARGET: 'frontend', RELEASE_MODE: 'check-only', ...extra });
@@ -109,25 +109,22 @@ test('migration digest is stable by version and changes on migration-history dri
   assert.throws(() => migrationDigest([]));
 });
 
-test('quiet-window gate uses the published slate including unusual days and prior-week Monday', () => {
+test('published schedule permits releases during former calendar and game freezes', () => {
   const games = slate(['2026-10-16T00:15:00Z', '2026-10-18T17:00:00Z', '2026-10-20T00:15:00Z']);
-  assert.equal(quietWindow(games, new Date('2026-10-15T15:00:00Z')).checkedMinutes, 30);
-  assert.throws(() => quietWindow(games, new Date('2026-10-15T18:45:00Z')), /Thursday/); // crosses noon PT
-  assert.throws(() => quietWindow(games, new Date('2026-10-18T14:00:00Z')), /Sunday/);
-  assert.throws(() => quietWindow(games, new Date('2026-10-19T07:15:00Z')), /week-open/);
-  assert.throws(() => quietWindow(games, new Date('2026-10-19T23:00:00Z')), /Published game/);
-  const unusual = slate(['2026-11-27T20:00:00Z']); // Black Friday, 12 noon PT
-  assert.throws(() => quietWindow(unusual, new Date('2026-11-27T19:00:00Z')), /Published game/);
+  for (const instant of ['2026-10-15T18:45:00Z', '2026-10-18T14:00:00Z', '2026-10-19T07:15:00Z', '2026-10-19T23:00:00Z']) {
+    assert.equal(publishedSchedule(games, new Date(instant)).timeRestrictions, false);
+  }
+  assert.equal(publishedSchedule(slate(['2026-11-27T20:00:00Z']), new Date('2026-11-27T19:00:00Z')).timeRestrictions, false);
   const priorWeek = [...slate(['2026-10-23T00:15:00Z']), ...games];
-  assert.throws(() => quietWindow(priorWeek, new Date('2026-10-20T01:00:00Z')), /Published game/);
+  assert.equal(publishedSchedule(priorWeek, new Date('2026-10-20T01:00:00Z')).games, 4);
+  assert.equal(publishedSchedule(slate(['2026-11-02T01:20:00Z']), new Date('2026-11-01T14:30:00Z')).timeRestrictions, false);
 });
 
-test('quiet-window gate handles Pacific DST and refuses missing or stale slates', () => {
-  const games = slate(['2026-11-02T01:20:00Z']);
-  assert.throws(() => quietWindow(games, new Date('2026-11-01T14:30:00Z')), /Sunday/); // 6:30 PST
-  assert.throws(() => quietWindow([], new Date()), /No published/);
-  assert.throws(() => quietWindow(slate(['2026-10-16T00:15:00Z']), new Date('2026-10-22T10:00:00Z')), /stale/);
-  assert.throws(() => quietWindow([{ season: 2026, week: 6, kickoffs: ['invalid'] }], new Date()), /Invalid/);
+test('published schedule still refuses missing, stale and malformed evidence', () => {
+  assert.throws(() => publishedSchedule([], new Date()), /No published/);
+  assert.throws(() => publishedSchedule(slate(['2026-10-16T00:15:00Z']), new Date('2026-10-22T10:00:00Z')), /stale/);
+  assert.throws(() => publishedSchedule([{ season: 2026, week: 6, kickoffs: ['invalid'] }], new Date()), /Invalid/);
+  assert.throws(() => publishedSchedule(slate(['2026-11-27T20:00:00Z']), new Date('2026-10-19T23:00:00Z')), /too far ahead/);
 });
 
 test('hosted preflight uses only the read-only endpoint and stops on reviewed migration drift', async t => {

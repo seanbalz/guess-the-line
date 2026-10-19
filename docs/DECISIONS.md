@@ -1,5 +1,17 @@
 # Decision log
 
+## Release timing policy - October 19, 2026
+
+Sean explicitly instructed: "permanently remove the gated window". Deployments
+and migration applies no longer wait for weekdays, quiet windows, kickoff
+buffers, Sunday/Monday/Thursday freezes or daylight-saving date exclusions.
+This supersedes older timing restrictions throughout the release documentation
+and migration ledger. Migration dependencies and individual apply order remain
+mandatory. Exact source/CI, fresh hosted evidence, data-preservation hashes,
+permissions/privacy checks, compatibility, rollback readiness and verification
+remain required. Player pick deadlines and locks are unchanged.
+
+
 ## D-53 — Home, scored comparisons and research readiness (October 16, 2026)
 
 Sean approved the implementation plan after sequential product questions. His

@@ -1,4 +1,16 @@
 # Local and cloud handoff — October 15, 2026
+
+## Release timing policy - October 19, 2026
+
+Sean explicitly instructed: "permanently remove the gated window". Deployments
+and migration applies no longer wait for weekdays, quiet windows, kickoff
+buffers, Sunday/Monday/Thursday freezes or daylight-saving date exclusions.
+This supersedes older timing restrictions throughout the release documentation
+and migration ledger. Migration dependencies and individual apply order remain
+mandatory. Exact source/CI, fresh hosted evidence, data-preservation hashes,
+permissions/privacy checks, compatibility, rollback readiness and verification
+remain required. Player pick deadlines and locks are unchanged.
+
 Use [docs/REPOSITORY_SYNC.md](docs/REPOSITORY_SYNC.md). Work in a separate task
 branch/worktree from freshly fetched `origin/main`; never switch branches or
 reset/stash another session's checkout. Commit reviewed named files and push,
