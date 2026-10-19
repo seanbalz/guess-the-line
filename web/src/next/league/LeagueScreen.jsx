@@ -170,6 +170,7 @@ export function LeagueScreen() {
   return <div className="gx-screen gx-league">
     <div className="gx-league-heading"><div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">League</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>Your leagues</Button></div>
       <p className="gx-t-body gx-c-2">{app.league.name}</p></div>
+    <Button onClick={() => shell.go('play', { section: 'compare', season: feed?.week?.season ?? null, week: feed?.week?.week ?? null, period: 'week', comparisonKind: 'all', players: [], team: '', matchup: '' })}>Compare players in {app.league.name}</Button>
     {community && <Segmented label="League sections" options={[{ value: 'feed', label: 'Feed' }, { value: 'board', label: 'Boards' }, { value: 'history', label: 'History' }]} value={section} onChange={value => shell.setView('league', { view: value })}/>}
     {(!community || section === 'board') && <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => shell.setView('league', { market: value })}/>}
     {!community ? <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} mode={mode}/>

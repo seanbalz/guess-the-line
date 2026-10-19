@@ -81,7 +81,8 @@ test('M-06 is a repo file the hosted project does not have yet; its readers join
   // The apply record removes the NOT_HOSTED line and the READER_MIGRATIONS entries together: a hosted file listed there fails here.
   for (const [route, file] of Object.entries(READER_MIGRATIONS)) assert.ok(NOT_HOSTED.includes(version(file)), `${route}: ${file} is hosted; remove it from READER_MIGRATIONS`);
   assert.deepEqual(readersOn(HOSTED).filter(([route]) => route.startsWith('/lines/')), [], 'the HOSTED suites skip /lines/* until M-06 is hosted');
-  assert.equal(readersOn(ALL).length, READERS.length);
+  assert.equal(readersOn(FUTURE_MIGRATIONS).length, READERS.length, 'the complete schema covers every registered reader');
+  assert.ok(!readersOn(ALL).some(([route]) => route === '/bets/read'), 'the pre-M-07 schema does not install M-10');
 });
 
 test('M-06 takes all four functions from public, anon and authenticated and grants them to the service role only', () => {
@@ -262,7 +263,7 @@ test('the lines readers (M-06): a cell opens per game and market on a lock-in, a
       }
     }
     // Every reader in the leak scan list, for a viewer with nothing sent: no line and no pick of anyone else.
-    for (const [route, method, body] of READERS) {
+    for (const [route, method, body] of readersOn(ALL)) {
       const reply = await world.api('luke', route.slice(1), method === 'GET' ? undefined : body);
       assert.equal(reply.status, 200, `${route}: ${JSON.stringify(reply.body)}`);
       assertNoLeak(reply.body, { viewer: id('luke'), secrets: [...allLines, ...othersPicks('luke')] }, route);

@@ -97,9 +97,9 @@ test('exactly one action, always, and the lime one only while picks are due or u
     assert.equal(hero.action.kind === 'picks', state === 'due' || state === 'urgent', state);
     assert.equal(hero.countdownTarget !== null, ['due', 'urgent', 'not_open'].includes(state), state);
   }
-  const odd = homeHero({ community: community({ state: 'late' }) });
+  const odd = homeHero({ community: community({ state: 'unknown' }) });
   assert.deepEqual([odd.state, odd.action, odd.countdownTarget], ['closed', LINES, null], 'a state this file does not know reads as closed while a week exists');
-  assert.equal(homeHero({ community: { ...community({ week: null, due: [] }), picksDue: { state: 'late', modes: [] } } }).state, 'none');
+  assert.equal(homeHero({ community: { ...community({ week: null, due: [] }), picksDue: { state: 'unknown', modes: [] } } }).state, 'none');
 });
 
 test('the clock is the server\'s picksDue.now when present, else the argument; a draft without a games count uses the week\'s', () => {
@@ -161,4 +161,17 @@ test('no prototype sample name leaks into the Home model or its tests', () => {
     const src = fs.readFileSync(new URL(file, import.meta.url), 'utf8').split('\n').filter(line => !line.includes('SAMPLE_NAMES = [')).join('\n');
     assert.deepEqual(src.match(NAME_PATTERN) ?? [], [], file);
   }
+});
+
+
+test('per-game Home directs an unfinished late week to open games and counts down to the next kickoff', () => {
+  const data = community({ state: 'late' });
+  data.rules = { perGameScoring: true };
+  data.due = [{ mode: 'guess_spread', locked: 2, openGames: 3, nextKickoff: '2026-10-18T17:00:00Z' }];
+  const hero = homeHero({ community: data });
+  assert.equal(hero.action.kind,'picks');
+  assert.equal(hero.countdownTarget,'2026-10-18T17:00:00Z');
+  assert.equal(hero.statusLines[0],'Spread: 2 locked · 3 still open');
+  data.rules.perGameScoring=false;
+  assert.equal(homeHero({ community: data }).action.kind,'lines');
 });

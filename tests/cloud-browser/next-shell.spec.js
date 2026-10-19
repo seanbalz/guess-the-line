@@ -21,11 +21,11 @@ test.use({ viewport: { width: 390, height: 844 } });
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const OLD = 'Use the old app';
-const TABS = ['Home', 'Play', 'Bets', 'Lines', 'League'];
+const TABS = ['Home', 'Play', 'Bets', 'Lines', 'League', 'Fantasy'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 // A tab by its label; its name may add the counter's words ("Play, 2 ballots due", stage 11).
-const tab = (page, name) => tabBar(page).getByRole('button', { name: new RegExp(`^${name}(, .+)?$`) });
-const title = (page, name) => page.getByRole('heading', { name, level: 1, exact: true });
+const tab = (page, name) => tabBar(page).getByRole('button', { name: new RegExp(`^${name === 'Fantasy' ? 'Fantasy Football' : name}(, .+)?$`) });
+const title = (page, name) => page.getByRole('heading', { name: name === 'Fantasy' ? 'Fantasy Football' : name, level: 1, exact: true });
 const sheet = (page, name) => page.getByRole('dialog', { name, exact: true });
 const inside = (page, selector) => page.evaluate(sel => !!document.activeElement?.closest(sel), selector);
 const focusOnBody = page => page.evaluate(() => document.activeElement === document.body || !document.activeElement);
@@ -72,7 +72,7 @@ function apiCalls(page) {
  * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
  * for its D-45 weather chips on Lines): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
+const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -93,7 +93,7 @@ async function openNewApp(page, baseURL, fragment = '') {
 }
 
 test.describe('the real app', () => {
-  test('five working tabs; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
+  test('six working tabs; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL);
     try {
@@ -109,7 +109,13 @@ test.describe('the real app', () => {
         await expect(title(page, name)).toBeVisible();
         await expect(tab(page, name)).toHaveAttribute('aria-current', 'page');
         await expect(tabBar(page).locator('[aria-current]')).toHaveCount(1);
-        if (name === 'Lines') {
+        if (name === 'Fantasy') {
+          await expect(page.getByRole('group', { name: 'Ranking period', exact: true })).toBeVisible();
+          await expect(page.getByRole('combobox', { name: 'Scoring', exact: true })).toBeVisible();
+          await expect(page.getByRole('list', { name: 'Ranked players', exact: true })).toBeVisible();
+          await expect(page.getByRole('button', { name: 'Back to Home', exact: true })).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
+        } else if (name === 'Lines') {
           // Stage 13: Lines is the read-only board (tests/cloud-browser/next-lines.spec.js covers it).
           await expect(page.locator('.gx-l-group').first()).toBeVisible();
           await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
@@ -130,11 +136,11 @@ test.describe('the real app', () => {
       await page.reload();
       await expect(title(page, 'Lines')).toBeVisible();
       await expect(tab(page, 'Lines')).toHaveAttribute('aria-current', 'page');
-      // Entries: Play, Bets, Lines, League, Home, Lines (reloaded).
+      // Entries: Play, Bets, Lines, League, Fantasy, Home, Lines (reloaded).
       await page.goBack();
       await expect(title(page, 'Home')).toBeVisible();
       await page.goBack();
-      await expect(title(page, 'League')).toBeVisible();
+      await expect(title(page, 'Fantasy')).toBeVisible();
       await page.goForward();
       await expect(title(page, 'Home')).toBeVisible();
       expect(writes(calls), 'browsing writes nothing').toEqual([]);
@@ -149,7 +155,7 @@ test.describe('the real app', () => {
       await expect(title(page, 'Play')).toBeVisible();
       expect(new URL(page.url()).hash, 'read once, then written as the new app\'s own').toBe('#play');
       // Followed in the page (a fragment change, no new document), then on a fresh load.
-      for (const [fragment, name, hash] of [['#feed', 'League', '#league'], ['#picks-total', 'Play', '#play'], ['#main', 'Home', '#main']]) {
+      for (const [fragment, name, hash] of [['#feed', 'League', '#league'], ['#picks-total', 'Play', '#play'], ['#fantasy', 'Fantasy', '#fantasy'], ['#main', 'Home', '#main']]) {
         await page.goto(`/${fragment}`);
         await expect(title(page, name)).toBeVisible();
         expect(new URL(page.url()).hash).toBe(hash);
@@ -193,7 +199,7 @@ test.describe('the real app', () => {
       await expect(avatar).toBeFocused();
       await expect(title(page, 'Home')).toBeVisible();
 
-      // Keyboard: the menu wraps in both directions, then Profile precedes Appearance in the tab order.
+      // Keyboard: the menu wraps in both directions, then Profile and Settings precede Appearance in the tab order.
       // Appearance changes the view in place and focus stays in the sheet.
       await avatar.focus();
       await page.keyboard.press('Enter');
@@ -206,6 +212,8 @@ test.describe('the real app', () => {
       await expect(menu.getByRole('button', { name: 'Close' })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Profile', exact: true })).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(menu.getByRole('button', { name: 'Settings · sportsbooks and guidance', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Appearance', exact: true })).toBeFocused();
       await page.keyboard.press('Enter');

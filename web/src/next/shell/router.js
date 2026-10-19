@@ -1,5 +1,5 @@
 // The new app's address and the browser's Back button (redesign build plan stage 10). The tab showing is the
-// address fragment, one history entry per tab change (#home, #play, #bets, #lines, #league), so a reload lands on the
+// address fragment, one history entry per tab change (#home, #play, #bets, #lines, #league, #fantasy), so a reload lands on the
 // same tab and Back moves between tabs. While any layer is open (a sheet, dialog, popover, overlay or page), one
 // extra "layer" entry sits on top of the tab's entry, so the phone's Back button closes the top layer instead of
 // leaving the tab or the site.

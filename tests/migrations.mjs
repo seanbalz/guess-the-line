@@ -25,6 +25,8 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261016010000, // D-53 comparisons, after M-07. Not applied.
+  20261016011000, // D-53 account preferences. Not applied.
   20261015190710, // M-07 per-game locks and immediate personal scoring; not applied.
   20261014221500, // M-05 (stage 22) Monday-night lines: applied alone on a Tuesday or Wednesday after Sean's "apply M-05".
   20261015010000, // M-06 lines_read (redesign stage 23): the gated lines readers, applied after M-01 and M-02 on "apply M-06".
@@ -32,6 +34,8 @@ export const NOT_HOSTED = [
   20261015030000, // M-02 sent_picks_final (redesign stage 18): locked-in picks are final, applied alone (Fri-Sat) on "apply M-02".
   20261015040000, // M-03 guess_week_forfeit (redesign stage 19): skip and "See picks now", applied after M-01 on "apply M-03".
   20261015050000, // M-04 social_line_lock (redesign stage 21): the real-slip line gate, applied after M-01 on Sean's "apply M-04".
+  20261015120000, // D-47 wind_refresh_schedule: weather every 24 h, then 12 h and 2 h before kickoff; Gate M apply on Sean's approval.
+  20261015190820, // M-10 bets_read (stage 40): account-level Bets reader; apply after M-01 and M-04 on Sean's "apply M-10".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -46,7 +50,9 @@ export const FIX_FORWARD = [];
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
 export const REQUIRES = Object.freeze({
+  20261016010000: [20261014221500,20261015010000,20261015020000,20261015030000,20261015040000,20261015190710],
   20261015190710: [20261014221500,20261015010000,20261015020000,20261015030000,20261015040000],
+  20261015190820: [20261015050000],
 });
 
 export const version = file => Number(path.basename(file).slice(0, 14));

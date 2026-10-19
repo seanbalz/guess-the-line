@@ -1,15 +1,16 @@
-// The five tabs' names and jobs (prototype spec 1.1 and 1.2), the frame's fixed words, and the tab bar's reading of
+// The tabs' names and jobs (prototype spec 1.1 and 1.2, plus Fantasy Football), the frame's fixed words, and the tab bar's reading of
 // each tab's slot file. Pure: no React, so the node tests read it directly.
 import * as home from '../home/index.js';
 import * as play from '../play/index.js';
 import * as bets from '../bets/index.js';
 import * as lines from '../lines/index.js';
 import * as league from '../league/index.js';
+import * as fantasy from '../fantasy/index.js';
 import * as me from '../me/index.js';
 import { TABS } from './state.js';
 
 /** Each tab's slot file (section 3.1), Me's too. */
-export const SLOTS = Object.freeze({ home, play, bets, lines, league, me });
+export const SLOTS = Object.freeze({ home, play, bets, lines, league, fantasy, me });
 
 /** One job per tab (spec 1.1): the tab's name, its screen title and the sentence its "coming next" card says. */
 export const TAB_INFO = Object.freeze({
@@ -18,6 +19,7 @@ export const TAB_INFO = Object.freeze({
   bets: { label: 'Bets', job: 'Bet Virtual Units on games or against a friend, and track your bets.' },
   lines: { label: 'Lines', job: 'Every game’s line and one thing worth knowing about it.' },
   league: { label: 'League', job: 'How you stack up, and what friends are saying.' },
+  fantasy: { label: 'Fantasy', name: 'Fantasy Football', job: 'Filter weekly and rest-of-season player rankings, scoring formats and strong trends.' },
 });
 
 export const SHELL_COPY = Object.freeze({
@@ -48,12 +50,13 @@ export const leagueLabel = name => `League: ${name}. Switch league`;
  */
 export function tabBadge(tab, data, slots = SLOTS) {
   const label = TAB_INFO[tab]?.label ?? tab;
+  const name = TAB_INFO[tab]?.name ?? label;
   let badge = null;
   try { badge = typeof slots[tab]?.counter === 'function' ? slots[tab].counter(data) : null; } catch { badge = null; }
   const count = Number.isInteger(badge?.count) && badge.count > 0 ? badge.count : 0;
   const dot = !count && badge?.dot === true;
   const words = (count || dot) && typeof badge.label === 'string' && badge.label.trim() ? badge.label.trim() : '';
-  return { label, name: words ? `${label}, ${words}` : label, count, dot };
+  return { label, name: words ? `${name}, ${words}` : name, count, dot };
 }
 
 export { TABS };

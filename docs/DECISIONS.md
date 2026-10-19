@@ -1,5 +1,70 @@
 # Decision log
 
+## Release timing policy - October 19, 2026
+
+Sean explicitly instructed: "permanently remove the gated window". Deployments
+and migration applies no longer wait for weekdays, quiet windows, kickoff
+buffers, Sunday/Monday/Thursday freezes or daylight-saving date exclusions.
+This supersedes older timing restrictions throughout the release documentation
+and migration ledger. Migration dependencies and individual apply order remain
+mandatory. Exact source/CI, fresh hosted evidence, data-preservation hashes,
+permissions/privacy checks, compatibility, rollback readiness and verification
+remain required. Player pick deadlines and locks are unchanged.
+
+
+## D-53 — Home, scored comparisons and research readiness (October 16, 2026)
+
+Sean approved the implementation plan after sequential product questions. His
+final sample clarification is “Just me + 1 other community member at least.”
+This extends D-50 and the wager research presentation in D-48/D-51. D-51 and
+D-52 are reserved on the separate recommendation and retirement PRs.
+
+- Compare yourself with one, several or all Community members. Inside a private
+  league, restrict the response and selection to that league's roster. Retain
+  historical records of former members; require active membership for the viewer.
+- **All players:** a game qualifies with your eligible scored, revealed result and
+  at least one other member's. Include you in the benchmark. Show each game's
+  contributor count. **Choose players:** use the strict intersection across you
+  and every selected member. Never relax a selected intersection silently.
+- Spread and Total stay separate. Show guesses, each player's saved reference and
+  points game by game, summary points, scored games and points/game. Single-week,
+  range and season filters default to the current competition week, with team and
+  matchup filters. Games stay in their original week, including Monday carryover.
+  Missing, hidden, pending and ineligible are not zero. Filtered comparisons never
+  change official standings. The benchmark averages the contributor points per
+  game, then gives each qualifying game equal weight; player sample counts remain
+  visible when All contributors differ between games.
+- Home shows the next move, own weekly points/locked/scored/remaining counts,
+  official standings context, interesting research and clear exploration links.
+  Newcomer guidance starts open and can be collapsed, saved per account.
+- Keep three projection sources distinct: a validated independent model (the
+  ranking basis), permitted Community guesses including the owner, and personal
+  guess context. Do not substitute one for another. Ranked wagers need a measurable
+  model discrepancy against a fresh book line plus independent trend or verified
+  expert/sharp support. Popularity is not sharp support. Explain conflicts,
+  sources, timestamps and uncertainty. Rank estimated value only when validated
+  model output supports it; otherwise show unranked research, not invented
+  confidence percentages or best-bet claims.
+- Qualified Home recommendations eventually show up to three, across Spreads and
+  Totals with All/Spreads/Totals filters and an expandable list. Fewer qualifying
+  offers means fewer cards. Each offer uses the best fresh line **and price** among
+  the player's selected connected books, with book and capture time; consensus is
+  separate context. Account Settings and Home provide sportsbook selection. Only
+  identities present in collected source data are offered; that does not establish
+  a fresh offer for any matchup. Before selection, explain the need to choose books.
+- Fantasy has a separate top-level tab and a compact Home preview. Reuse #143's
+  dated public Week 6 snapshot and its limitations: static pace estimates, no
+  automatic refresh, no D/ST. Fantasy does not change Guess or wager projections.
+- **Approved first release:** Home, guidance, comparisons, account preferences and
+  the Fantasy entry. Ranked wager activation, new paid data/expert integrations and
+  automatic wagering are outside this release. The existing Virtual Units research
+  remains available; it is not a validated independent-model recommendation.
+
+Implementation, dependency order and actual verification are recorded in
+[HOME_COMPARISONS_RELEASE.md](HOME_COMPARISONS_RELEASE.md). Approval to implement
+is not evidence of merge, SQL application or deployment. Existing release gates
+and unavailable production access remain unchanged.
+
 ## D-50 — immediate per-game scoring, score browsing and player trends (October 15, 2026)
 
 Sean requested: "You should not be able to make guesses or change saves for guesses after you lock in that games guesses" and scoring "should immediately show for that weeks scoring", with week/team/game filters and a user trend page. These requirements and the Q-01 answer below are preserved from the local planning record on source checkout `e5a45f6`; Q-02 is preserved from that active checkout's follow-up record captured at 16:19 UTC on October 15; the synchronization review did not retrieve the original conversation. This entry adds the [repo backlog and targeted discovery queue](../planning/scoring-and-player-trends.md), without implementing or deploying the requirements. The local record called this D-47; that number belongs to the weather-schedule draft, D-48 is the recommendations decision, and D-49 is referenced for proposed Lines tables. This reconciled entry uses D-50; it grants no new product or deployment approval.
@@ -37,6 +102,18 @@ path adds a service-only writer; it does not apply the pending redesign migratio
 Scoring, reveal gates, quote provenance and free-data limits are unchanged.
 See [the feature contract](RECOMMENDED_BETS.md). D-47 remains reserved by the
 weather-schedule draft. Implementation and deployment require their own evidence.
+
+## D-47 — weather every 24 hours, then 12 hours and 2 hours before kickoff (October 15, 2026)
+
+Sean answered, in the coordinating cloud session, "The new Lines board reads the weather forecast every time it shows a week; with the 200/day cap Weeks 14, 17 and 18 run out on Sundays. What should we do?" Verbatim: "Just need a weather update every 24 hours and then 2 hours and 12 hours before kickoff".
+
+- **What it changes in [D-34](#d-34--kickoff-wind-forecast-from-open-meteo-october-13-2026) and [D-45](#d-45--weather-on-every-game-and-a-weather-chip-on-the-board-october-14-2026).** The refresh tiers (a 1 h TTL within 18 h of kickoff, 3 h within 72 h, 6 h within 120 h) give way to Sean's schedule. A fetched game (open air or a retractable roof, inside the 120 h forecast window) is due when it has no snapshot for this kickoff, when its newest snapshot is 24 h old, or when kickoff minus 12 h, then kickoff minus 2 h, has been reached and its newest snapshot was taken before that checkpoint. Never at or after kickoff: the final pre-kickoff forecast stays.
+- **Unchanged.** Refreshes still happen only when a member reads (no cron). Single flight, the 20 s lease, the 60 s spacing, the backoff and the cap of 200 Open-Meteo calls per UTC day stay as they are (Sean did not ask to change the cap). So do the fetched stadiums (SoFi Stadium stays Indoors), the 120 h window, the values, the credit, the words ("Kickoff forecast", "No current forecast", "Roof may close", "Indoors", the age line), the board chip and every guardrail of D-34 and D-45.
+- **When a forecast shows as current (the builder's rule).** Until one hour past the time it falls due. A refresh happens only when someone reads, so a snapshot that has just fallen due is shown while the read that refreshes it is on its way. An open screen asks again at the due time, or a minute later if the single flight or the 60 s spacing turned it away. The first reader after a quiet spell gets the refreshed snapshot in the same answer. An hour covers that, a device clock a little behind, and the 15-minute backoff after one Open-Meteo failure. It is shorter than the gaps between checkpoints, so a missed checkpoint stops showing as current an hour later: a 12 h-old forecast is never called current in the last hour before kickoff. After kickoff only a snapshot taken 2 h or less before kickoff is the final pre-kickoff forecast, the same window as D-34.
+- **When screens read again.** The old trends panel, the new app's Lines board and its game sheet read again only at the next due point, at kickoff, when a game enters the 120 h window and when the tab becomes visible. Until now the board read once per week shown. A game still due after an answer is asked again a minute later when the server only spaced the request, and 15 minutes later when it held off (backoff, budget, a failed fetch).
+- **Cap math.** With a reader every minute, the busiest UTC day of each 2026 week from Week 6 on now needs 17 to 28 calls. The upper bound for any reader timing is 24 to 40, and no game is ever without a current forecast with the cap enforced. Weeks 14, 17 and 18 needed 210, 245 and 234 calls under the tiers; now they need 24, 28 and 26. With every week's readers together, the season's busiest day is Sunday, January 3, 2027 at 28 calls. The per-week table is in [TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34), and `tests/wind-cloud.test.mjs` recomputes it with the real planner.
+- **Where it is built.** Migration `supabase/migrations/20261015120000_gtl_wind_refresh_schedule.sql` replaces `gtl_begin_wind_fetch` (only its due re-check changes; rollback in `supabase/rollback/`). `cloud/wind.mjs` (the `gtl-api` planner), `shared/trends-view.mjs` (when a snapshot is current, and when a screen reads again), `web/src/windTimer.js` and the Lines board's hook. Not applied and not deployed.
+- **Release.** Deploy Pages first: the new display rule works with the old, more frequent refreshes, while today's Pages would call most D-47 snapshots out of date. Then apply `20261015120000` through Gate M on a quiet day with Sean's approval, then deploy `gtl-api`. Either backend order is safe, because `gtl_begin_wind_fetch` re-checks every game it is sent. An old planner asking for a game the new SQL calls not due gets `not_due`, or the game is dropped from the request, and its reader is served what is stored. A new planner against the old SQL only asks for games the schedule calls due, and the old SQL fetches those once its own tier allows (at most an hour late at a checkpoint). Applying the SQL first makes the schedule hold from that moment, whatever planner runs. Rollback: the rollback file restores the D-34 body; every stored snapshot stays (D-23).
 
 ## D-46 — official logos for all 32 teams (October 14, 2026)
 
@@ -80,7 +157,7 @@ Sean answered "Weather and wind forecast: what should change?" in the coordinati
 
 - **SoFi Stadium.** The first build of this decision fetched SoFi and labelled its forecast "Covered, open-sided stadium". Review ran the real planner over the 2026 schedule: SoFi would push Week 8 (Sunday, November 1) to 210 calls and Week 9 (November 8) to 217, against 191 and 198 without it, and with the cap enforced games on those Sundays would show "No current forecast" for 1 to 4.7 hours before kickoff. So SoFi stays unfetched, as under D-34, and says "Indoors": its roof is fixed over the field, nflverse lists it as a dome, and the trend records count it as one. Sean can rule otherwise. Fetching SoFi is one entry (`'canopy'` in `WIND_VENUE_TYPES`, `shared/wind-venues.mjs`), and it needs a higher cap or different refresh tiers first.
 - **The board chip.** At most one per row, and only for a current forecast: "Rain likely" or "Snow likely" when the kickoff-hour precipitation chance is 50% or more; otherwise "Windy" when the kickoff-hour sustained wind is 15 mph or more (gusts never count). Precipitation wins over Windy. "Snow likely" means a kickoff-hour temperature of 32 °F or colder: the stored Open-Meteo fields carry no weather code or snowfall, and adding one would need a migration, so with no temperature there is no precipitation chip. Thresholds use the unrounded stored values (14.9 mph is not Windy, 49% is not likely). "Indoors" and "No current forecast" rows never get a chip, so a dome and SoFi never do. A retractable stadium can, because the chip describes the outside weather. After kickoff the chip follows the final pre-kickoff forecast (made within 2 h of kickoff) for as long as the board shows the game, like the sheet's card.
-- **Cap math.** The cap stays 200 Open-Meteo calls (locations) per UTC day, failures included. This decision fetches no new stadium, so every figure is D-34's. With a reader every minute and every game refreshed the moment its TTL allows, the busiest UTC day of each remaining 2026 week is under 200 except Week 14 (210), Week 17 (245) and Week 18 (234, on placeholder kickoff times). With the cap enforced, some of those Sundays' games show "No current forecast" for 1 to 7.7 hours before kickoff. That is a D-34 limit that this decision does not change. Raising the cap (a migration) or changing the refresh tiers needs Sean's call. The per-week table is in [TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34), and `tests/wind-cloud.test.mjs` recomputes it from the season file with the real planner.
+- **Cap math.** The cap stays 200 Open-Meteo calls (locations) per UTC day, failures included. This decision fetches no new stadium, so every figure is D-34's. With a reader every minute and every game refreshed the moment its TTL allows, the busiest UTC day of each remaining 2026 week is under 200 except Week 14 (210), Week 17 (245) and Week 18 (234, on placeholder kickoff times). With the cap enforced, some of those Sundays' games show "No current forecast" for 1 to 7.7 hours before kickoff. That is a D-34 limit that this decision does not change. Raising the cap (a migration) or changing the refresh tiers needs Sean's call. [D-47](#d-47--weather-every-24-hours-then-12-hours-and-2-hours-before-kickoff-october-15-2026) (October 15) is that call: Sean's schedule replaced the tiers, and no week comes near the cap. The per-week table is in [TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34), and `tests/wind-cloud.test.mjs` recomputes it from the season file with the real planner.
 - **Where it is built.** `shared/weather-view.mjs` (`weatherRow`, `weatherChip`), the roof rule in `shared/trends-view.mjs`, and the old app's trends panel (`web/src/WindForecast.jsx`, `web/src/TrendsView.jsx`). The new app's Lines board and game sheet are redesign stage 13 ([build plan](REDESIGN_BUILD_PLAN.md)), not built yet; their scope now names the chip and the full card. No migration and no `gtl-api` change: the fetched stadiums are D-34's. The rows start with the next Pages deploy.
 - **Unchanged.** Weather is reference only. It never changes scoring, picks, lines, line locks, kickoff locks or the D-23 reveal, and it is not gated because it reveals no line or pick. The old app's card keeps its Eastern times. See [TRENDS.md](TRENDS.md#kickoff-wind-forecast-d-34).
 
@@ -250,7 +327,7 @@ Sean (product owner), verbatim: "go ahead with the wind forecast too".
 - **Source.** Open-Meteo, <https://open-meteo.com>, forecast endpoint `https://api.open-meteo.com/v1/forecast`, no key. The server code (<https://github.com/open-meteo/open-meteo>) is AGPLv3; that does not reach GTL, which only calls the hosted API and ships none of its code.
 - **Licence.** Open-Meteo's README: "API data is offered under the Attribution 4.0 International license (CC BY 4.0)" and "Include an attribution link next to any location where Open-Meteo data is displayed". GTL shows "Weather data by Open-Meteo.com" linked to <https://open-meteo.com/>, the CC BY 4.0 link and the change note "Kickoff-hour values selected by GTL; wind direction shown as compass points" (one string, kept equal in `cloud/wind.mjs`, `shared/trends-view.mjs` and the SQL `license_note` by tests). It sits next to every forecast value: the wind card on Community Picks, the group ballot and the dashboard game detail, and the trends footer; Data connections names the source with both links. Collapsed summaries never carry forecast values or links.
 - **Non-commercial basis.** Open-Meteo's terms: the free API is "for non-commercial use", "Less than 10'000 API calls per day, 5'000 per hour and 600 per minute", and a qualifying example is "private or non-profit websites or apps that do not have subscriptions or advertising". GTL is a private, non-commercial friends' league with no subscriptions, ads, paid tiers or entry fees; the shared Bet Tracker records members' own real-money slips, but GTL itself takes no money. GTL caps itself at **200 Open-Meteo calls (locations) per UTC day**, failures included, enforced in SQL (2% of the free limit).
-- **What GTL does.** The hosted `gtl-api` Edge Function is the only caller; the browser never contacts Open-Meteo and the CSP is unchanged. On a member's read (`POST /wind/read`), the server refreshes outdoor and retractable-roof games of that published week that kick off within 120 h: 6 h TTL at 72–120 h, 3 h at 18–72 h, 1 h within 18 h, never after kickoff. Every published week is eligible, so Monday night's game keeps its hourly refresh after D-24 opens the next week on Monday. One multi-location request per refresh, single flight under an advisory lock and a 20 s lease, 60 s spacing, 15/60-minute and until-midnight backoff, and the daily cap (a request that would pass it is trimmed, nearest kickoff first). Values are the nearest model hour to kickoff for sustained wind, direction and temperature, and the hour containing kickoff for gusts and precipitation. Snapshots are append-only in three service-only tables; only stadium coordinates leave GTL, and no member id is stored with an attempt (the lease, spacing, budget and audit need none, so it would only log who opened a panel). Members only: signed-out, local and non-member views keep the "no current forecast" note.
+- **What GTL does.** The hosted `gtl-api` Edge Function is the only caller; the browser never contacts Open-Meteo and the CSP is unchanged. On a member's read (`POST /wind/read`), the server refreshes outdoor and retractable-roof games of that published week that kick off within 120 h: 6 h TTL at 72–120 h, 3 h at 18–72 h, 1 h within 18 h, never after kickoff ([D-47](#d-47--weather-every-24-hours-then-12-hours-and-2-hours-before-kickoff-october-15-2026), October 15, replaced these tiers with a refresh every 24 h, then 12 h and 2 h before kickoff; the rest of this entry stands). Every published week is eligible, so Monday night's game keeps its hourly refresh after D-24 opens the next week on Monday. One multi-location request per refresh, single flight under an advisory lock and a 20 s lease, 60 s spacing, 15/60-minute and until-midnight backoff, and the daily cap (a request that would pass it is trimmed, nearest kickoff first). Values are the nearest model hour to kickoff for sustained wind, direction and temperature, and the hour containing kickoff for gusts and precipitation. Snapshots are append-only in three service-only tables; only stadium coordinates leave GTL, and no member id is stored with an attempt (the lease, spacing, budget and audit need none, so it would only log who opened a panel). Members only: signed-out, local and non-member views keep the "no current forecast" note.
 - **Guardrails.** Reference only. Forecasts never change scoring, pick deadlines, kickoff locks, sit-outs or the D-23 reveal; the route reads only the slate and the wind tables. They never enter static assets or the week file, and the frozen registry and week-file copy are superseded on screen only (registry sha256 unchanged).
 - **Honesty.** Using the record with a forecast has **not been backtested**, and the panel says so every time it shows forecast numbers, with the file's record label, the full history and this season. A 10 m wind forecast commonly misses by 6–8 mph from day two, so each value is labelled by lead time and a close-call note appears within 3 mph of 10 or 15 mph; the band sentence says what "would fit if this holds", never what to pick. The planned check, Open-Meteo's Previous Runs API (archived since January 2024) against 2024–2025 observed wind, could not be reached from GTL's build environment (egress 403) and is a follow-up from an environment with egress.
 - **Revisit triggers.** GTL adds subscriptions, ads, paid tiers, real-money entry fees, sportsbook affiliate or referral links, or sponsorships (commercial use under Open-Meteo's terms); usage approaches 10,000 calls a day; Open-Meteo changes its terms; the backtest result.

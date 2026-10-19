@@ -96,3 +96,11 @@ including successful saves, uncertainty, server refusals, independent markets,
 membership scope and phone layouts. Existing shell, Community, Social and Virtual
 Units tests remain part of regression validation. The dated release record lists
 actual test outcomes, GitHub checks, deployment source and production readback.
+
+## October 16 — Fantasy adapter and Home preview
+
+D-53 reuses #143: the new FantasyScreen wraps FantasyFootball with its next theme,
+and FantasyHomeTile shares the named public snapshot hook from fantasyData.js.
+The app shells remain separate; the shared snapshot contains no account data.
+FantasyFootball uses only Button, Card, Segmented and Switch from the presentation
+kit for its next theme; it does not import the next shell or account context.

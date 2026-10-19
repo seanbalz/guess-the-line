@@ -9,7 +9,7 @@ import { useShell } from './context.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
 // Lucide house, target, ticket, chart-line and trophy (spec 1.2), by the kit's names.
-const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', lines: 'chart', league: 'trophy' };
+const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', lines: 'chart', league: 'trophy', fantasy: 'people' };
 
 /** Top bar (spec 1.3): the Field monogram (to Home), the league pill (the switcher) and your avatar (the menu). */
 export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
@@ -34,7 +34,7 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
 }
 
 /**
- * Tab bar (spec 1.2): five equal tabs, the one showing marked with aria-current and the lime bar; a counter or dot
+ * Tab bar (spec 1.2, plus Fantasy Football): the one showing marked with aria-current and the lime bar; a counter or dot
  * from each tab's slot file, in its name too ("Play, 1 ballot due").
  */
 export function TabBar({ current, data, onTab }) {
@@ -49,6 +49,7 @@ export function TabBar({ current, data, onTab }) {
               key={tab}
               type="button"
               className={cx('gx-tab', on && 'gx-tab--on')}
+              data-tab={tab}
               aria-current={on ? 'page' : undefined}
               aria-label={badge.name}
               onClick={() => onTab(tab)}

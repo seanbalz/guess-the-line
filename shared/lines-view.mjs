@@ -185,11 +185,11 @@ export function kickoffGroups(games, { season = null, week = null } = {}) {
 // The board
 // ---------------------------------------------------------------------------
 /**
- * The game shared/weather-view.mjs reads (D-45): the week file's game (its stadium and nflverse roof), else the kickoff
- * and the venue table's stadium, so a game the file lacks still gets its roof.
+ * The game shared/weather-view.mjs reads (D-45): the published slate's kickoff with the week file's stadium and roof,
+ * else the venue table's stadium. A static trends file must not replace a newer slate kickoff.
  */
 function weatherGame(game, { trendsGame = null, season = null, week = null } = {}) {
-  if (trendsGame) return trendsGame;
+  if (trendsGame) return { ...trendsGame, kickoff: game.kickoff ?? trendsGame.kickoff };
   const venue = Number.isInteger(season) && Number.isInteger(week) ? venueFor(season, week, game.id) : null;
   return { kickoff: game.kickoff, flags: { stadium: venue ? { id: venue.id, name: venue.name, city: venue.city, country: venue.country, type: venue.type } : null } };
 }
