@@ -1,5 +1,13 @@
 # Guess The Line — current completion register
 
+## October 19 - release timing policy
+
+Sean permanently removed deployment and migration time gates. The release
+preflight validates schedule evidence without rejecting active games or calendar
+windows. All ten targeted preflight tests passed, covering former freezes and
+retained evidence checks. Production scoring migration/deployment completion
+remains separate; no hosted changes are established by this policy change.
+
 Owner: Sean Balsiger · Version 5 · Evidence reviewed October 15, 2026 (Pacific)
 
 This register separates delivered work from the remaining implementation and

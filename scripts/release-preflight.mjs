@@ -105,11 +105,7 @@ export const LIVE_QUERY = `select
     from public.gtl_weekly_slates s where (s.season,s.week) in
       (select z.season,z.week from public.gtl_weekly_slates z order by z.season desc,z.week desc limit 2)) as slates`;
 
-const pacific = date => Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-  timeZone: 'America/Los_Angeles', weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-}).formatToParts(date).filter(p => p.type !== 'literal').map(p => [p.type, p.value]));
-
-export function quietWindow(slates, now = new Date()) {
+export function publishedSchedule(slates, now = new Date()) {
   assert.ok(Array.isArray(slates) && slates.length > 0, 'No published slate available; stop for schedule review.');
   const all = slates.flatMap(slate => {
     assert.ok(Array.isArray(slate.kickoffs) && slate.kickoffs.length > 0, 'Published slate has no kickoff times.');
@@ -121,21 +117,9 @@ export function quietWindow(slates, now = new Date()) {
   const latestKickoff = Math.max(...current.kickoffs.map(Number)) * 1000;
   assert.ok(now.getTime() <= latestKickoff + 24 * 3600000, 'Published slate is stale; stop for schedule review.');
   assert.ok(Math.min(...current.kickoffs.map(Number)) * 1000 <= now.getTime() + 8 * 86400000, 'Published slate is too far ahead; stop for schedule review.');
-  // Check a 30-minute release window. This does not lock out other deployers.
-  // The buffer is deliberately stricter than Gate D:
-  // all published games protect the two hours before and six hours after kickoff.
-  for (let offset = 0; offset <= 30; offset++) {
-    const instant = new Date(now.getTime() + offset * 60000);
-    const p = pacific(instant), minutes = Number(p.hour) * 60 + Number(p.minute);
-    assert.ok(!(p.weekday === 'Sun' && minutes >= 360 && minutes < 1290), 'Sunday release freeze.');
-    assert.ok(!(p.weekday === 'Mon' && minutes < 60), 'Monday week-open freeze.');
-    if (p.weekday === 'Thu' && minutes >= 720) {
-      const today = all.filter(t => { const d = pacific(new Date(t)); return d.year === p.year && d.month === p.month && d.day === p.day; });
-      assert.ok(today.length > 0 && instant.getTime() > Math.max(...today) + 3600000, 'Thursday noon-to-kickoff release freeze.');
-    }
-    assert.ok(!all.some(t => instant.getTime() >= t - 2 * 3600000 && instant.getTime() <= t + 6 * 3600000), 'Published game window release freeze.');
-  }
-  return { checkedAt: now.toISOString(), checkedMinutes: 30, publishedWeek: { season: current.season, week: current.week }, games: all.length };
+  // Sean permanently removed calendar/game-window release gates on October 19, 2026.
+  // Keep published schedule validation as evidence, without blocking active games.
+  return { checkedAt: now.toISOString(), timeRestrictions: false, publishedWeek: { season: current.season, week: current.week }, games: all.length };
 }
 
 export function migrationDigest(migrations) {
@@ -163,7 +147,7 @@ export async function livePreflight(cwd, env, fetchImpl = fetch) {
   assert.ok(Number.isFinite(observed.getTime()) && Math.abs(Date.now() - observed.getTime()) < 120000, 'Read-only preflight time is stale.');
   const digest = migrationDigest(row.migrations);
   if (env.RELEASE_MODE === 'deploy') assert.equal(digest, env.RELEASE_HISTORY_SHA256, 'Hosted migration history differs from the reviewed release card. Stop and reconcile; never db push.');
-  const window = quietWindow(row.slates, observed);
+  const schedule = publishedSchedule(row.slates, observed);
   const functions = functionSummary(await supabase('functions', env, {}, fetchImpl));
   const api = functions.find(item => item.slug === 'gtl-api');
   assert.ok(api?.status === 'ACTIVE' && api.verify_jwt === true, 'Hosted API must be ACTIVE with JWT verification.');
@@ -177,7 +161,7 @@ export async function livePreflight(cwd, env, fetchImpl = fetch) {
   const { checkCloudBoundary } = await import(pathToFileURL(path.join(cwd, 'scripts/check-cloud-boundary.mjs')));
   const boundary = await checkCloudBoundary({ url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_PUBLISHABLE_KEY, fetchImpl, log: () => {} });
   const { NOT_HOSTED } = await import(pathToFileURL(path.join(cwd, 'tests/migrations.mjs')));
-  return { source: env.RELEASE_SHA, target: env.RELEASE_TARGET, deployed: false, observedAt: observed.toISOString(), migrationHistorySha256: digest, migrationCount: row.migrations.length, pendingRepoMigrations: NOT_HOSTED, window, functions, previousPages, boundary };
+  return { source: env.RELEASE_SHA, target: env.RELEASE_TARGET, deployed: false, observedAt: observed.toISOString(), migrationHistorySha256: digest, migrationCount: row.migrations.length, pendingRepoMigrations: NOT_HOSTED, schedule, functions, previousPages, boundary };
 }
 
 export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {

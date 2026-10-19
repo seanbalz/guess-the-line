@@ -1,5 +1,17 @@
 # Guess The Line redesign: build plan
 
+## Release timing policy - October 19, 2026
+
+Sean explicitly instructed: "permanently remove the gated window". Deployments
+and migration applies no longer wait for weekdays, quiet windows, kickoff
+buffers, Sunday/Monday/Thursday freezes or daylight-saving date exclusions.
+This supersedes older timing restrictions throughout the release documentation
+and migration ledger. Migration dependencies and individual apply order remain
+mandatory. Exact source/CI, fresh hosted evidence, data-preservation hashes,
+permissions/privacy checks, compatibility, rollback readiness and verification
+remain required. Player pick deadlines and locks are unchanged.
+
+
 Owner: Sean Balsiger
 Date: October 14, 2026
 Status: staged plan, updated for D-39 and D-50. Stage descriptions are requirements, not proof of completion; some stages have separate implementation and release evidence in the [completion register](COMPLETION_REGISTER.md). Every merge, hosted apply and deploy retains this plan's existing authorization gates.
@@ -173,7 +185,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 
 - Each deploy names an exact SHA. The Mac mini runs `npm run build:cloud`, `check-cloud-boundary.mjs --bundle-only` and `release-manifest.mjs`, deploys, runs the live checks and updates the release record, which lists merged migrations not yet applied.
 - When a reply changes shape: Pages that read both shapes, then `gtl-api`, then the SQL apply.
-- **Freeze windows (no deploy, no apply):** Thu 12:00 PM PT until 1 h after the Thursday kickoff; Sun 6:00 AM to 9:30 PM PT; Mon 00:00 to 01:00 PT (week open) and Monday night; any other game window on the published slate. Check windows against the slate with a read-only script, not by weekday (Week 12's deadline is Wed Nov 25; Black Friday, Saturdays in Week 15, Christmas Friday). No apply with time math Sat Oct 31 to Mon Nov 2 (daylight time ends Sun Nov 1).
+- **Release timing:** no calendar or game-window restrictions (Sean, October 19). Collect fresh published schedule evidence; retain all other Gate M and Gate D checks.
 
 ### 4.4 Release cards and approvals
 

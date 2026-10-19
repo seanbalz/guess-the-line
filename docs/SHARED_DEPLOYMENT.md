@@ -21,7 +21,7 @@ not a claim that administrators cannot override repository settings.
 | Mode | Credentials | Result |
 | --- | --- | --- |
 | `check-only` (default) | GitHub's read-only job token | Checks source identity and successful exact-commit CI. No production environment approval or deployment credentials are requested. |
-| `readiness` | Protected environment secrets, after approval | Builds and scans the frontend, reads hosted schedule and migration history, checks a 30-minute quiet window and probes signed-out boundaries. Produces the migration-history digest for review; does not deploy. |
+| `readiness` | Protected environment secrets, after approval | Builds and scans the frontend, reads hosted schedule and migration history, validates fresh published schedule evidence and probes signed-out boundaries. Produces the migration-history digest for review; does not deploy. |
 | `deploy` | Protected environment secrets, after approval | Repeats readiness, compares the reviewed migration digest, deploys the selected component(s), then verifies metadata, boundaries and served frontend bytes. |
 
 Targets are `frontend`, `api`, or `api-and-frontend`. The combined target deploys
@@ -75,7 +75,7 @@ existing CI. It never installs `latest` deploy tools.
    branches or files that were never pushed cannot be released here.
 3. Once secrets/variables are configured, dispatch `readiness` for the same SHA
    and target, and approve its production environment job. Review the report's
-   `migrationHistorySha256`, pending repository migrations, quiet-window result,
+   `migrationHistorySha256`, pending repository migrations, schedule validation result,
    CI links and boundary results. Missing configuration reports names only.
 4. Prepare a repository issue, PR or committed release card that names the full
    source SHA, target/order, expected hosted migration state and digest, pending
@@ -99,22 +99,20 @@ Runs share a production concurrency group and do not cancel an active release.
 Avoid concurrent manual Mac deployments or hosted migration changes. GitHub may
 replace an older pending run when another is queued; review the actual run ID.
 
-## Quiet windows and failure behavior
+## Schedule evidence and failure behavior
 
 The hosted query reads only migration names/versions and the two newest
 published slates' times, including the previous week's Monday carryover. It
 does not read player picks, names, contacts or tokens. It uses Supabase's
 dedicated read-only endpoint and refuses missing, malformed or stale data.
 
-The guard checks the next 30 minutes against Sunday 6:00 AM–9:30 PM Pacific,
-Monday 00:00–01:00 Pacific, Thursday noon through at least one hour after the
-Thursday kickoff, and every published game's two hours before through six hours
-after kickoff. This last buffer is deliberately conservative; it covers unusual
-Wednesday, Friday and Saturday games as well as Monday night. A blocked or stale
-slate requires review and a later run; the workflow has no bypass input. Pacific
-daylight-saving changes use the IANA timezone. The deployment job has a
-20-minute timeout, shorter than the checked window. This does not reserve a slot
-or prevent a Mac mini session from deploying; coordinate those sessions separately.
+Sean permanently removed calendar and game-window release restrictions on
+October 19, 2026. The preflight still rejects missing, malformed or stale published
+schedule evidence, but active games, kickoff buffers, weekdays and DST dates do
+not block deployment. Its report contains `schedule.timeRestrictions: false`.
+The 20-minute job timeout remains an execution limit, not a quiet-window gate.
+Production concurrency and every source, compatibility, privacy and data check
+remain required. This policy does not change player pick deadlines or locks.
 
 The existing default boundary checker allows explicitly documented pending
 migration probes and lists them as awaiting deployment. These are not successful
