@@ -1,5 +1,24 @@
 # Guess The Line — core scoring production release
 
+## Superseding release policy - October 19, 2026
+
+Sean instructed: "permanently remove the gated window". All calendar, weekday,
+DST and game-buffer release restrictions below are superseded permanently.
+The implementation is PR #151. Exact source/CI, fresh hosted state, compatibility,
+data-preservation checks, individual migration order and rollback remain required.
+No further time-window approval or wait is required.
+
+Supabase access through the GTL connection and the Mac Mini's GTL disk image are
+restored. Production has advanced to Pages `0933a030-ff36-4a22-8cd7-fb2b7675863c`
+from `8942725746f199270d79fce562ac37cf92d64d69`, with API v25. Reconcile those
+Home/Fantasy changes and the release evidence in PR #150 before proceeding;
+do not deploy the older bb4 prepared frontend over them. D-47 is now hosted as
+`20261016223357`; the seven core migrations still await application as of this
+read-only check. This update does not claim a scoring deployment or migration.
+
+The sections below retain the earlier preparation record; their access blockers,
+source baseline and time restrictions are historical where superseded above.
+
 Owner: Sean Balsiger; release execution: Codex
 Version 2 · October 16, 2026 · Status: authorized and prepared; not deployed
 
