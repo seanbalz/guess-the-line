@@ -60,7 +60,11 @@ the unrelated full strict rollout passed.
 
 Windows main, Mac Mini shared-sync and MacBook Neo main were all clean and
 synced to `5b1f3677479a3def3d3957e127ea933701d8034d` after the activation.
-Release evidence will be synced again after PR #145 merges.
+PR #145 subsequently passed all five checks on
+`4736b4f2f6f521bf31c9d068792c5b5ec8a7e4d4` and merged October 20 at
+00:53:18 UTC as `eb4e5e1a7f14a2a863e98ceed9e4744c11603393`. Windows main,
+Mini shared-sync and Neo main were each verified clean at that merge with
+`sync:pull` and `sync:check`, zero ahead/behind/changed files.
 
 Local validation: 198 Vitest tests, typecheck and Brand QA passed. The 1,430
 Node functional tests passed across the full run and targeted correction reruns
@@ -78,8 +82,7 @@ assertions follow immediate personal scoring and the shared kickoff boundary;
 Bet Tracker asserts that an unrevealed opponent line is absent from both the
 card and response. Current per-game scoring and privacy coverage remain enabled.
 
-Remaining closeout: final evidence CI, PR #145 merge and sync, and a successful
-scheduled collection after activation. Existing collection cron is `15 8,20 * * *` UTC; the next execution
+Remaining release verification: a successful scheduled collection after activation. Existing collection cron is `15 8,20 * * *` UTC; the next execution
 is October 20 at 08:15 UTC (01:15 Pacific). Do not force a provider collection
 to manufacture scheduled evidence. Real-phone and multi-account write acceptance
 remain separate from this read-only production verification.

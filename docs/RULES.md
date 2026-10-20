@@ -1,33 +1,25 @@
-# Current competition rules — status updated October 15, 2026
+# Current competition rules — status updated October 19, 2026
 
-This summary governs confirmed product rules. D-39/D-41 and D-50 supersede D-16's
-edit-after-submission rule: each game's Spread or Total guess is final once locked
-in. D-16's saved submission-time scoring basis remains; D-50 requires available
-personal points to appear immediately at lock-in, independently of kickoff or the
-rest of the ballot. These are required rules, not a claim that the pending
-implementation or migration is live. See the [scoring and player trends backlog](../planning/scoring-and-player-trends.md)
-and [D-50](DECISIONS.md). The [per-game implementation checkpoint](PER_GAME_SCORING_RELEASE.md) records the new local code, verification and held release gates.
-Older rows that describe editable submitted ballots or kickoff-only personal
-points record implementation transitions; they do not override these requirements.
-D-18 establishes a separate virtual units game; its remaining mechanics were confirmed in the October 8 BET-07 decision pass.
-D-19 adds [social Bet Tracker](SOCIAL_BET_TRACKER.md): deliberately shared singles
-and parlays appear in the owner's Unit Betting week, count by default, and support
-owner exclusions, following, reviewed tails, filters and ROI/history comparisons.
-Its audience is all signed-in players; existing private entries remain private.
-Detailed D-05/D-06/D-08/D-10 policies retain their exact scope. Sections marked as
-history preserve superseded proposals; they are not authorization to change rules.
-Implementation, verification and deployment are recorded separately in the
-[completion register](COMPLETION_REGISTER.md), [cloud setup](CLOUD_SETUP.md) and
-[dated releases](RELEASE_2026_10_15_RECOMMENDATIONS.md). The latest recorded verified
-release is October 15: Pages `ed3fb50b` and API v24 from `main` at `b883c77`. The public,
-committed `planning/project-tracker.json` is a frozen historical record; it is not
-the current completion or deployment ledger.
+D-39/D-41 and D-50 supersede D-16's edit-after-submission rule: each game's
+Spread or Total guess is final once locked in. Available personal accuracy
+points appear immediately; shared standings retain their per-game kickoff
+boundary. Unlocked guesses remain drafts until that game's kickoff. Saved
+submission-time references and audit history are preserved.
 
-M-01 is hosted: live rules are `{revealAt: "kickoff", sentFinal: false,
-lateWindow: "deadline"}`. The weekly deadline alone does not reveal an unstarted
-game. Whole-market submission and D-16 deadline edits still apply; M-02, M-03,
-M-04, M-05, M-06 and M-08 remain unapplied. Future rules below retain their own
-implementation and apply gates; the old app remains the default.
+These rules are active following the individually verified M-02, M-03, M-04,
+M-08, M-05, M-06 and M-07 applies. Live rules report `sentFinal:true`,
+`lateWindow:kickoff`, `perGameScoring:true`, `revealAt:kickoff`. The compatible
+Home/Fantasy Pages and API v25 were retained. See the
+[production release record](CORE_SCORING_PRODUCTION_RELEASE.md) for exact versions,
+checks and acceptance limits, and the [completion register](COMPLETION_REGISTER.md)
+for remaining work. Scheduled collector verification remains pending.
+
+D-18 Virtual Units and D-19 social Bet Tracker retain their separate rules.
+Older editable-ballot and unhosted statements below record historical transitions;
+they do not override the current rules or authorize changes to existing data.
+The public `planning/project-tracker.json` remains the frozen v62 historical
+record, not the current deployment ledger. Removing release timing restrictions
+does not remove player pick deadlines or locks.
 
 October 9 adds D-21 (one community, shared leaderboard, chip entry), D-22
 (coming-soon leagues, a mark for all 32 teams), D-23, D-24 and D-25 as rows below.
