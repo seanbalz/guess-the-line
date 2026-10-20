@@ -262,6 +262,7 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     state.entries.push({ ...base, id: 'ticket' + i, outcome, legs: [{ gameId: world.state.games[0].id, market: i === 2 ? 'total' : 'spread', side: i === 2 ? 'over' : 'home', line: i === 2 ? 44.5 : -3.5, selection: 'Owner ' + outcome }] });
   state.entries.push({ ...state.entries[0], id: 'rival', ownerId: ACCOUNTS.troy.id, legs: [{ ...state.entries[0].legs[0], selection: 'RIVAL SENTINEL' }] });
   state.entries.push({ ...state.entries[0], id: 'previous', week: week - 1, legs: [{ ...state.entries[0].legs[0], selection: 'PREVIOUS OWNER' }] });
+  state.entries.push({ ...state.entries[0], id: 'legacy-virtual', origin: 'virtual', legs: [{ ...state.entries[0].legs[0], selection: 'LEGACY VIRTUAL' }] });
   const calls = [];
   await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/social/read'), async (route) => {
     const body = route.request().postDataJSON();
@@ -279,6 +280,8 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await expect(page.getByRole('button', { name: 'Following', exact: true })).toHaveCount(0);
     await expect(page.locator('.social-bet-card')).toHaveCount(5);
     await expect(page.locator('.social-feed')).not.toContainText('RIVAL SENTINEL');
+    await expect(page.locator('.social-feed')).not.toContainText('LEGACY VIRTUAL');
+    expect(calls.at(-1).filters.origin).toBe('tracked');
     await page.getByRole('group', { name: 'Result filter', exact: true }).getByRole('button', { name: 'Pending', exact: true }).click();
     await expect.poll(() => held).toBe(true);
     await expect(page.locator('.social-bet-card')).toHaveCount(0);
@@ -305,11 +308,59 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     expect(calls.at(-1).filters.playerId).toBe(ACCOUNTS.luke.id);
     await page.getByLabel('Competition week').selectOption('all');
     await page.getByRole('button', { name: 'All bets', exact: true }).click();
-    await expect(page.locator('.social-bet-card')).toHaveCount(7);
+    await expect(page.locator('.social-bet-card')).toHaveCount(8);
+    await expect(page.locator('.social-feed')).toContainText('LEGACY VIRTUAL');
     await expect(page.locator('.social-feed')).toContainText('RIVAL SENTINEL');
   }
   finally {
     release?.();
+    await world.db.close();
+  }
+});
+
+test('an inclusion save finishing after a filter change does not invalidate the active read', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL);
+  let releaseSave, releaseRead;
+  let saveHeld = false, readHeld = false;
+  try {
+    await openBets(page);
+    const editor = await fillTicket(page, world.state.games[0].id);
+    await editor.getByRole('button', { name: 'Save tracked bet', exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/social/include'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.text();
+      expect(response.status).toBe(200);
+      saveHeld = true;
+      await new Promise(resolve => releaseSave = resolve);
+      await route.fulfill({ status: response.status, contentType: 'application/json', body });
+    });
+    await page.locator('.social-bet-card').getByText('Details & history', { exact: true }).click();
+    await page.getByRole('button', { name: /Exclude from records/ }).click();
+    await expect.poll(() => saveHeld).toBe(true);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/social/read'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.text();
+      if (req.postDataJSON().filters?.outcome === 'pending') {
+        readHeld = true;
+        await new Promise(resolve => releaseRead = resolve);
+      }
+      await route.fulfill({ status: response.status, contentType: 'application/json', body });
+    });
+    await page.getByRole('group', { name: 'Result filter', exact: true }).getByRole('button', { name: 'Pending', exact: true }).click();
+    await expect.poll(() => readHeld).toBe(true);
+    releaseSave();
+    await expect(page.locator('.social-notice')).toBeVisible();
+    releaseRead();
+    await expect(page.locator('.social-loading')).toHaveCount(0);
+    await expect(page.locator('.social-bet-card')).toHaveCount(1);
+    await expect(page.locator('.social-data-note')).toContainText('1 excluded');
+    expect(world.errors).toEqual([]);
+  } finally {
+    releaseSave?.();
+    releaseRead?.();
     await world.db.close();
   }
 });
