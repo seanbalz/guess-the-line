@@ -11,4 +11,3 @@ begin
   if not exists(select 1 from public.gtl_weekly_slates where season=(sig->>'season')::integer and week=(sig->>'week')::integer and signature=sig) then raise exception 'GTL_SLATE_CONFLICT'; end if;
   return jsonb_build_object('state',l.state,'leagueRevision',l.revision,'playerId',m.player_id,'practice',l.practice,'season',sig->'season','week',sig->'week');
 end $$;
-

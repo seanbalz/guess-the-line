@@ -9,4 +9,3 @@ begin
     and exists(select 1 from jsonb_array_elements(c#>'{state,games}') g where g->>'id'=e.game_id)
     order by e.game_id,e.version desc) latest),'{}'));
 end $$;
-
