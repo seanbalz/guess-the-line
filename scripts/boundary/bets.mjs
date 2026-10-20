@@ -3,10 +3,13 @@
 import { missingId, missingLeague } from './fixtures.mjs';
 
 export const tables = Object.freeze([
-  'social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'virtual_units_picks', 'virtual_units_settlements',
+  'social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'virtual_units_picks', 'virtual_units_settlements', 'results_refresh_schedule', 'results_refresh_runs',
 ]);
 
 export const rpcChecks = Object.freeze([
+  ['gtl_dispatch_results_refresh', {}],
+  ['gtl_claim_results_refresh', {p_token:'0'.repeat(64),p_run:missingId}],
+  ['gtl_complete_results_refresh', {p_run:missingId,p_claim:missingId,p_reason:null}],
   ['gtl_read_social', { p_user: missingId, p_season: null, p_week: null, p_all: false }],
   ['gtl_commit_social', { p_user: missingId, p_season: 2026, p_week: 5, p_expected_revision: 0, p_request_id: missingId, p_action: 'create', p_body: {}, p_state: {} }],
   ['gtl_follow_social', { p_user: missingId, p_request_id: missingId, p_target: missingId, p_following: false }],
@@ -31,7 +34,9 @@ export const apiChecks = Object.freeze([
   ['bets/read', {}],
 ]);
 
-export const workerChecks = Object.freeze([]);
+export const workerChecks = Object.freeze([
+  ['scheduled results refresh', 'gtl-results-refresh', {runId:missingId}],
+]);
 
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_bets_context': 'migration 20261015190820_gtl_bets_read.sql',

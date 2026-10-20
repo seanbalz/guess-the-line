@@ -56,3 +56,7 @@ not imply that all task work is published.
 Sean's phone/visual acceptance and a full live week remain distinct from CI and
 read-only production checks. No real test pick, extra provider collection,
 production mutation or old-app retirement is performed by this reconciliation.
+
+## Active priority — October 20, 2026
+
+Private-group week rollover and automatic final results supersede the next queue item at Sean's request. Implementation and release evidence: [weekly results release](WEEKLY_RESULTS_RELEASE.md). Local implementation underway; no production activation claimed yet.

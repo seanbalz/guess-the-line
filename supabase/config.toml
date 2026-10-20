@@ -14,3 +14,7 @@ verify_jwt = false
 [functions.gtl-push-reminders]
 # D-28 deadline reminders; same one-run capability pattern as gtl-week-open.
 verify_jwt = false
+
+[functions.gtl-results-refresh]
+# Short-lived per-run capability; never a public settlement writer.
+verify_jwt = false

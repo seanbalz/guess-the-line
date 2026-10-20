@@ -379,7 +379,8 @@ test('the carried line serves every reader of its week: a guess saved before any
 test('the October 12 slate_changed case stays green with M-05, also while a Monday game is unstarted: every skip happens before any provider request', { skip }, async t => {
   const f = await fixture(t);
   const league = await f.rpc('gtl_odds_commissioner', { p_user: id(COMMISSIONER) });
-  assert.equal(league.week, 5, 'the group league still lags on Week 5');
+  assert.equal(league.week, 7, 'the private group follows the newest opened week');
+  assert.equal((await f.q("select (state#>>'{league,week}')::integer week from gtl_leagues where id='sean-troy-luke'"))[0].week, 5, 'the historical stored snapshot is preserved');
   const slate = await f.rpc('gtl_odds_collection_slate', { p_user: id(COMMISSIONER) });
   assert.deepEqual([slate.week, slate.games.length], [7, 14], 'the collection slate resolver is unchanged: the newest week, its games only');
   assert.deepEqual(Object.keys(slate).sort(), Object.keys(league).sort());
