@@ -38,7 +38,7 @@ export function applyReviewedResults(state, document, now = Date.now()) {
   const results = { ...state.results };
   for (const game of state.games) {
     const row = document.games[game.id];
-    if (!row || row.status !== 'final' || row.reviewType !== 'commissioner_reported'
+    if (!row || row.status !== 'final' || !['commissioner_reported','settlement'].includes(row.reviewType)
       || row.homeTeam !== game.home || row.awayTeam !== game.away || Date.parse(row.scheduledKickoff) !== Date.parse(game.kickoff)
       || ![row.home, row.away].every(value => Number.isInteger(value) && value >= 0 && value <= 200)
       || !Number.isSafeInteger(row.version) || row.version < 1 || !Number.isFinite(Date.parse(row.observedAt))
@@ -46,7 +46,7 @@ export function applyReviewedResults(state, document, now = Date.now()) {
       || Date.parse(row.observedAt) > Date.parse(row.reviewedAt) || Date.parse(row.reviewedAt) > now) continue;
     results[game.id] = { status: 'final', home: row.home, away: row.away, version: row.version,
       source: row.source, sourceURL: row.sourceURL, observedAt: row.observedAt, reviewedAt: row.reviewedAt,
-      reviewType: 'commissioner_reported', verification: 'Commissioner-reported final; not independently verified' };
+      reviewType: row.reviewType, verification: row.reviewType === 'settlement' ? 'Final from the recorded results source' : 'Commissioner-reported final; not independently verified' };
   }
   return { ...state, results };
 }
