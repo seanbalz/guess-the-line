@@ -4,8 +4,9 @@ import { randomUUID } from 'node:crypto';
 import { HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, storeBookLines } from './community-world.mjs';
 
-// The new Play tab uses the rules hosted today, deliberately not ALL (which would turn on M-02). These are
-// fictional accounts and locally replayed SQL, exercising the actual writer, references and revision guards.
+// Historical D-16 compatibility before M-02; current per-game locking and scoring are
+// covered by next-per-game-scoring.spec.js using the current hosted migrations.
+const D16_MIGRATIONS = HOSTED.filter(file => file < '20261015030000_gtl_sent_picks_final.sql');
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
@@ -21,7 +22,7 @@ async function pickSpread(page, index, value) {
   await card.locator(`.number-chip[data-value="${value}"]`).click();
 }
 async function fixture(page, baseURL, options = {}) {
-  const world = await communityWorld(page, baseURL, { migrations: HOSTED, optionalRpc: true, ...options });
+  const world = await communityWorld(page, baseURL, { migrations: D16_MIGRATIONS, optionalRpc: true, ...options });
   const lines = values => Object.fromEntries(world.state.games.map((g, i) => [g.id, values[i]]));
   await storeBookLines(world, { spread: lines([-2.5, 6.5]), total: lines([41.5, 47.5]) });
   expect((await world.api('luke', 'personal')).body.rules.sentFinal).toBe(false);
@@ -39,7 +40,7 @@ async function ballot(world, mode = 'guess_spread') {
   return row?.ballot ?? null;
 }
 
-test('Play saves drafts, restores tab edits, submits a whole market and still edits under hosted D-16', async ({ page, baseURL }) => {
+test('Play saves drafts, restores tab edits, submits a whole market and still edits under historical D-16', async ({ page, baseURL }) => {
   const world = await fixture(page, baseURL, { groupScreens: true });
   expect((await world.api('luke', 'leagues', { name: 'Play fixture group', format: 'group', practice: false, requestId: randomUUID() })).status).toBe(200);
   const writes = [];
@@ -241,7 +242,7 @@ test('Play remains readable and usable in both themes on a phone; sit-out keeps 
   } finally { await world.db.close(); }
 });
 
-test('Play honors the hosted Thursday deadline instead of offering per-game late guesses', async ({ page, baseURL }) => {
+test('Play honors the historical Thursday deadline instead of offering per-game late guesses', async ({ page, baseURL }) => {
   const world = await fixture(page, baseURL, { deadline: new Date(Date.now() - 60 * 60_000).toISOString() });
   const writes = [];
   page.on('request', request => { if (request.url().endsWith('/personal/ballot')) writes.push(request.postDataJSON()); });
