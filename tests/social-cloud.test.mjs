@@ -85,3 +85,24 @@ test('adapter authenticates with the user token then reads social RPC with serve
     failure = message; const result = await request({}); assert.equal(result.status, status); const error = await result.text(); assert.equal(error.includes('fixture-server-secret'), false); assert.equal(error.includes('Never expose'), false);
   }
 });
+
+test('hosted read accepts grouped settled and projects the same final-only summary', async () => {
+  const f = fixture();
+  let revision = 0;
+  for (const [index, outcome] of ['pending', 'win', 'loss', 'push', 'void'].entries()) {
+    const created = await f.request('create', { ...body(), requestId: id(600 + index), weekRevision: revision++ });
+    assert.equal(created.status, 200);
+    if (outcome === 'pending')
+      continue;
+    const view = await (await f.request('read', {})).json();
+    const entry = view.entries.find(e => e.outcome === 'pending');
+    const settled = await f.request('settle', { season: 2026, week: 5, weekRevision: revision++, requestId: id(700 + index), entryId: entry.id, revision: entry.revision, outcome, actualReturnUnits: null, reason: 'Fixture result' });
+    assert.equal(settled.status, 200);
+  }
+  const response = await f.request('read', { filters: { outcome: 'settled', market: 'spread' } });
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.deepEqual(result.entries.map(e => e.outcome).sort(), ['loss', 'push', 'void', 'win']);
+  assert.equal(result.summary.bets, 4);
+  assert.equal((await (await f.request('read', { filters: { outcome: 'settled', market: 'total' } })).json()).entries.length, 0);
+});

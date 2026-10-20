@@ -14,6 +14,14 @@ sync are complete. See the [release record](../docs/CORE_SCORING_PRODUCTION_RELE
 
 ## Ordered items
 
+October 20 priority update: after the deployed private-week/results repair, Sean
+selected Q16, easier actual-bet tracking, with Virtual Units in a separate view.
+Finish its implementation, verification, deployment and three-machine sync before
+returning to the remaining queue. See the [release card](../docs/EASIER_BET_TRACKING_RELEASE.md).
+The private-week/results evidence PR #154 merged as
+`eb1fa9330d715140f8e343a24daf51908ace5ba6`; all three clean integration checkouts
+were verified at that merge with zero ahead, behind or changed files.
+
 Q01 is complete (PR #152). Sean prioritized private-week rollover and automatic
 final results before Q02–Q20; see the [weekly results release](../docs/WEEKLY_RESULTS_RELEASE.md).
 That repair is active in production and its source is merged/synced on all three machines;

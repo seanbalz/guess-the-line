@@ -193,7 +193,8 @@ const labelFor = (profiles, id) => {
 function matches(entry, filters, following, games) {
   games = scopedGames(games, entry);
   if (filters.playerId && filters.playerId !== 'all' && entry.ownerId !== filters.playerId) return false;
-  for (const key of ['kind', 'origin', 'outcome']) if (filters[key] && filters[key] !== 'all' && (key === 'origin' && filters.origin === 'tailed' ? !entry.sourceEntryId : entry[key] !== filters[key])) return false;
+  for (const key of ['kind', 'origin']) if (filters[key] && filters[key] !== 'all' && (key === 'origin' && filters.origin === 'tailed' ? !entry.sourceEntryId : entry[key] !== filters[key])) return false;
+  if (filters.outcome && filters.outcome !== 'all' && (filters.outcome === 'settled' ? !['win', 'loss', 'push', 'void'].includes(entry.outcome) : entry.outcome !== filters.outcome)) return false;
   if (filters.market && filters.market !== 'all' && !entry.legs.some(leg => leg.market === filters.market)) return false;
   if (filters.following && !following.includes(entry.ownerId)) return false;
   if (filters.includeParlays === false && entry.kind === 'parlay') return false;

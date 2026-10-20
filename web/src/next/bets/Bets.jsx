@@ -35,7 +35,7 @@ export function Bets() {
     </div>
     {view === 'tracked' ? <>
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Tracked bets are shared with all signed-in players, including when you select a private league. Results are player reported.</span></p>
-      <DeferredScreen label="tracked bets"><SocialBetTracker key={app.accountId} player={app.accountId} embedded onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
+      <DeferredScreen label="tracked bets"><SocialBetTracker key={app.accountId} player={app.accountId} initialView="mybets" embedded onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : view === 'recommended' ? <>
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Coins} size={18}/><span>Research from your current week’s submitted guesses, not validated model-based wagers. Add a suggestion to review its Virtual Units stake before placing it.</span></p>
       <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>

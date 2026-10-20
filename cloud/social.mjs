@@ -27,7 +27,7 @@ function scope(body) {
 function validateFilters(filters) {
   fields(filters, ['playerId', 'kind', 'market', 'outcome', 'origin', 'following', 'team', 'counts', 'includeParlays', 'includeTailed', 'includeTracked']);
   for (const key of ['following', 'includeParlays', 'includeTailed', 'includeTracked']) if (filters[key] !== undefined && typeof filters[key] !== 'boolean') invalid();
-  const enums = { kind: ['all', 'single', 'parlay'], market: ['all', 'spread', 'total', 'prop'], outcome: ['all', 'pending', 'win', 'loss', 'push', 'void'], origin: ['all', 'tracked', 'virtual', 'tailed'], counts: ['all', 'included', 'excluded'] };
+  const enums = { kind: ['all', 'single', 'parlay'], market: ['all', 'spread', 'total', 'prop'], outcome: ['all', 'settled', 'pending', 'win', 'loss', 'push', 'void'], origin: ['all', 'tracked', 'virtual', 'tailed'], counts: ['all', 'included', 'excluded'] };
   for (const [key, values] of Object.entries(enums)) if (filters[key] !== undefined && !values.includes(filters[key])) invalid();
   if (filters.playerId !== undefined && filters.playerId !== 'all' && !UUID_PATTERN.test(filters.playerId)) invalid();
   if (filters.team !== undefined && (typeof filters.team !== 'string' || filters.team.length > 100 || /[\x00-\x1f\x7f]/.test(filters.team))) invalid();

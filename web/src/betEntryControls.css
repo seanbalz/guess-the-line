@@ -1,0 +1,125 @@
+/* Shared button-first ticket entry. The Bets adapter in liveBets.css supplies
+   the new app's tokens; these defaults keep the classic editor consistent. */
+.social-entry-field {
+  display: grid;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.social-entry-field > legend {
+  max-width: 100%;
+  padding: 0 0 var(--space-2, 8px);
+  color: var(--text);
+  font: 600 16px/24px var(--font-body);
+  overflow-wrap: anywhere;
+}
+.social-entry-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+.social-entry-option,
+.social-entry-adjustment > button,
+.social-matchup-current > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1, 4px);
+  min-width: var(--touch-target, 44px);
+  min-height: var(--touch-target, 44px);
+  max-width: 100%;
+  margin: 0;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border: 1px solid var(--muted);
+  border-radius: var(--radius-control, 8px);
+  background: var(--card);
+  color: var(--text);
+  font: 600 16px/24px var(--font-body);
+  font-variant-numeric: tabular-nums;
+  white-space: normal;
+  overflow-wrap: normal;
+  touch-action: manipulation;
+  transition: none;
+}
+.social-entry-options > .social-entry-option { flex: 1 1 72px; min-width: min-content; padding-inline: var(--space-2, 8px); }
+.social-entry-numbers > .social-entry-options > .social-entry-option { white-space: nowrap; min-width: max-content; }
+.social-entry-option[aria-pressed="true"] {
+  border-color: var(--primaryForeground, var(--primary));
+  background: var(--primary);
+  color: var(--primaryText);
+  font-weight: 700;
+}
+.social-entry-option:disabled,
+.social-entry-adjustment > button:disabled {
+  border-style: dashed;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+.social-entry-adjustment {
+  display: grid;
+  grid-template-columns: var(--touch-target, 44px) minmax(0, 1fr) var(--touch-target, 44px);
+  align-items: center;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+.social-entry-adjustment > .social-entry-option { padding-inline: var(--space-1, 4px); white-space: nowrap; }
+.social-entry-value {
+  min-width: 0;
+  color: var(--text);
+  font: 600 20px/28px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.social-entry-custom {
+  display: grid;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+.social-entry-custom input { width: 100%; min-width: 0; min-height: var(--touch-target, 44px); font-size: 16px; }
+.social-matchup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+.social-matchup-grid > .social-entry-option { width: 100%; min-width: 0; justify-content: flex-start; text-align: start; }
+.social-matchup-grid > .social-entry-option > span { min-width: 0; overflow-wrap: normal; }
+.social-matchup-current {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+.social-matchup-current > :is(span, strong) { flex: 1 1 140px; min-width: 0; overflow-wrap: anywhere; }
+.social-ticket-details { min-width: 0; border-top: 1px solid var(--border); }
+.social-ticket-details > summary {
+  min-height: var(--touch-target, 44px);
+  padding: var(--space-3, 12px) 0;
+  color: var(--cyan);
+  font: 600 16px/24px var(--font-body);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.social-ticket-detail-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4, 16px); padding-top: var(--space-2, 8px); min-width: 0; }
+:is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button, .social-ticket-details > summary):focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+@media (forced-colors: active) {
+  .social-entry-option,
+  .social-entry-adjustment > button,
+  .social-matchup-current > button { border-color: ButtonText; background: ButtonFace; color: ButtonText; forced-color-adjust: none; }
+  .social-entry-option[aria-pressed="true"] { border-color: Highlight; background: Highlight; color: HighlightText; }
+  .social-entry-option:disabled,
+  .social-entry-adjustment > button:disabled { border-color: GrayText; color: GrayText; }
+  :is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button, .social-ticket-details > summary):focus-visible { outline-color: Highlight; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .social-entry-field *, .social-matchup-current *, .social-ticket-details * { animation: none !important; transition: none !important; }
+}

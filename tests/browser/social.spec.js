@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test('social parlay creation, shared visibility, tail review, records and weekly inclusion', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
+  const writes = []; page.on('request', request => { if (/\/api\/social\/(create|tail)(?:\?|$)/.test(request.url())) writes.push({ path: new URL(request.url()).pathname, body: request.postDataJSON() }); });
+  await page.clock.setFixedTime(new Date('2026-10-08T15:50:00Z'));
   await page.goto('/');
   await page.getByRole('button', { name: 'Bet Tracker', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Bet Tracker', exact: true })).toBeVisible();
@@ -10,16 +12,25 @@ test('social parlay creation, shared visibility, tail review, records and weekly
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('button', { name: 'Parlay', exact: true }).click();
   const legs = dialog.locator('.social-leg-editor');
-  for (const [index, matchup, side, line] of [[0, 'PHI-JAX', 'away', '7.5'], [1, 'CIN-MIA', 'away', '-6.5']]) {
-    await legs.nth(index).getByLabel('Matchup').selectOption(matchup);
-    await legs.nth(index).getByLabel(/^Team/).selectOption(side);
-    await legs.nth(index).getByLabel('Exact signed spread').fill(line);
+  for (const [index, matchup, side, line] of [[0, 'Philadelphia Eagles @ Jacksonville Jaguars', 'Philadelphia Eagles', '+7.5'], [1, 'Cincinnati Bengals @ Miami Dolphins', 'Cincinnati Bengals', '−6.5']]) {
+    const leg = legs.nth(index);
+    await leg.getByRole('group', { name: 'Matchup', exact: true }).getByRole('button', { name: new RegExp(`${matchup}$`) }).click();
+    await leg.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: side, exact: true }).click();
+    await leg.getByRole('button', { name: line.startsWith('+') ? 'Underdog (+)' : 'Favorite (−)', exact: true }).click();
+    await leg.getByRole('group', { name: 'Exact signed spread', exact: true }).getByRole('button', { name: line, exact: true }).click();
   }
-  await dialog.getByLabel('American odds', { exact: false }).fill('210');
-  await dialog.getByLabel('Units risked').fill('1');
-  await dialog.getByLabel('Sportsbook / quote source').fill('Browser fixture only');
+  await expect(legs.nth(0).getByRole('button', { name: '+7.5', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(legs.nth(1).getByRole('button', { name: '−6.5', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await dialog.getByRole('group', { name: 'Combined American odds', exact: true }).getByRole('button', { name: 'Custom', exact: true }).click();
+  await dialog.getByRole('spinbutton', { name: 'Combined American odds', exact: true }).fill('210');
+  await dialog.getByRole('group', { name: 'Units risked', exact: true }).getByRole('button', { name: '1u', exact: true }).click();
+  await dialog.getByRole('group', { name: 'Sportsbook / quote source', exact: true }).getByRole('button', { name: 'DraftKings', exact: true }).click();
+  expect(writes).toEqual([]);
   await dialog.getByRole('button', { name: 'Save tracked bet' }).click();
   await expect(dialog).toHaveCount(0);
+  expect(writes).toHaveLength(1);
+  expect(writes[0].body).toMatchObject({ kind: 'parlay', odds: 210, stakeUnits: 1,
+    legs: [{ gameId: 'PHI-JAX', market: 'spread', side: 'away', line: 7.5 }, { gameId: 'CIN-MIA', market: 'spread', side: 'away', line: -6.5 }] });
   await expect(page.locator('.social-bet-card')).toHaveCount(1);
   await page.getByRole('button', { name: 'Unit Betting', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your weekly bet card' })).toBeVisible();
@@ -30,15 +41,20 @@ test('social parlay creation, shared visibility, tail review, records and weekly
   await page.locator('.social-bet-card').getByRole('button', { name: /Follow/ }).click();
   await expect(page.locator('.social-bet-card').getByRole('button', { name: /Unfollow/ })).toBeVisible();
   await page.locator('.social-bet-card').getByRole('button', { name: /Tail/ }).click();
-  await expect(dialog.getByLabel('American odds', { exact: false })).toHaveValue('');
-  await dialog.getByLabel('American odds', { exact: false }).fill('200');
-  await dialog.getByLabel('Sportsbook / quote source').fill('Troy fixture own quote');
-  const stamp = await page.evaluate(() => { const date = new Date('2026-10-08T15:50:00Z'); return new Date(date.valueOf() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); });
-  await dialog.getByLabel('Quote observed', { exact: false }).fill(stamp);
-  await dialog.getByLabel('Bet placed', { exact: false }).fill(stamp);
+  const tailOdds = dialog.getByRole('group', { name: 'Combined American odds', exact: true });
+  await expect(tailOdds.locator('button[aria-pressed="true"]')).toHaveCount(0);
+  await expect(dialog.getByRole('group', { name: 'Matchup', exact: true })).toHaveCount(0);
+  await tailOdds.getByRole('button', { name: '+200', exact: true }).click();
+  await dialog.getByRole('group', { name: 'Units risked', exact: true }).getByRole('button', { name: '1u', exact: true }).click();
+  await dialog.getByRole('group', { name: 'Sportsbook / quote source', exact: true }).getByRole('button', { name: 'Novig', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Quote observed now', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Bet placed now', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: /Save my tailed bet/ })).toBeDisabled();
   await dialog.getByRole('checkbox').last().check();
   await dialog.getByRole('button', { name: /Save my tailed bet/ }).click();
   await expect(dialog).toHaveCount(0);
+  expect(writes).toHaveLength(2);
+  expect(writes[1].body).toMatchObject({ odds: 200, stakeUnits: 1, source: 'Novig', quotedAt: '2026-10-08T15:50:00.000Z', placedAt: '2026-10-08T15:50:00.000Z' });
   await expect(page.locator('.social-bet-card')).toHaveCount(2);
   await page.getByRole('button', { name: 'Unit Betting', exact: true }).click();
   await expect(page.locator('.social-bet-card')).toHaveCount(1);
