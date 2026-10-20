@@ -65,7 +65,9 @@ Release evidence will be synced again after PR #145 merges.
 Local validation: 198 Vitest tests, typecheck and Brand QA passed. The 1,430
 Node functional tests passed across the full run and targeted correction reruns
 (no skips). All 12 rollback tests passed across the suite and corrected
-M-05 fixture rerun. Historical pre-apply
+M-05 fixture rerun. Six focused browser scenarios passed: four core scoring flows and both keyboard
+personas. The historical editable-keyboard persona now explicitly selects its
+pre-M-02 schema; immutable coverage remains on current migrations. Historical pre-apply
 fixtures now explicitly select their earlier schema. Rollback fixtures stop at
 the target migration so later dependent bodies cannot overwrite the scenario.
 

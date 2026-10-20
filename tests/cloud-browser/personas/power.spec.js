@@ -1,6 +1,6 @@
 // Persona (c): power user at 1280px who wants speed. Keyboard only: tab order through chips,
 // Enter/Space, focus visibility, and how many taps or key presses it takes to finish 14 games.
-import { test, expect, pgliteAvailable } from './harness.mjs';
+import { test, expect, pgliteAvailable, MIGRATIONS } from './harness.mjs';
 
 test.use({ viewport: { width: 1280, height: 900 } });
 
@@ -8,7 +8,9 @@ const HOME = ['Cowboys', 'Jaguars', 'Packers', 'Dolphins', 'Jets', 'Titans', 'St
 
 test('power user: keyboard-only ballot, tab counts, focus visibility and tap budget', async ({ page, persona }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  await persona.start();
+  // Historical D-16 keyboard editing; current immutable behavior is covered below.
+  await persona.start({ migrations: MIGRATIONS.filter(file => file < '20261015030000_gtl_sent_picks_final.sql') });
+  persona.rules = null;
   await page.goto('/');
   // Keyboard sign-in.
   const toEmail = await persona.tabTo(f => f.tag === 'input' && f.name === '');

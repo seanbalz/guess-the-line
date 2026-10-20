@@ -42,10 +42,10 @@ const AXE_SEVERITY = { critical: 1, serious: 2, moderate: 3, minor: 4 };
 const cleared = new Set();
 
 /** Builds the database and world for one persona run. */
-async function buildWorld({ games = 14, deadline = openDeadline(), slate = true, profile = true, members = ['Troy Fixture', 'Luke Fixture'] } = {}) {
+async function buildWorld({ migrations = MIGRATIONS, games = 14, deadline = openDeadline(), slate = true, profile = true, members = ['Troy Fixture', 'Luke Fixture'] } = {}) {
   const db = new PGlite();
   await db.exec(PRELUDE);
-  await db.exec(migrationSql(MIGRATIONS[0]));
+  await db.exec(migrationSql(migrations[0]));
   const state = seed(); state.ballots = {}; state.bets = {}; state.audit = []; state.games = state.games.slice(0, games);
   state.league.deadline = deadline;
   // Keep every kickoff after the deadline so the slate stays internally consistent.
@@ -54,7 +54,7 @@ async function buildWorld({ games = 14, deadline = openDeadline(), slate = true,
   if (slate) await db.query('insert into public.gtl_leagues(id,state) values($1,$2)', ['sean-troy-luke', state]);
   const users = [id(1), ...members.map((_, i) => id(i + 2))];
   await db.query(`insert into auth.users values ${users.map((_, i) => `($${i + 1})`).join(',')}`, users);
-  for (const file of MIGRATIONS.slice(1)) await db.exec(migrationSql(file));
+  for (const file of migrations.slice(1)) await db.exec(migrationSql(file));
   const profiles = [...(profile ? [[id(1), 'Ben Fixture']] : []), ...members.map((name, i) => [id(i + 2), name])];
   for (const [userId, name] of profiles) await db.query('insert into public.gtl_profiles(user_id,display_name) values($1,$2)', [userId, name]);
   if (slate) await freshQuotes(db, state);
@@ -84,9 +84,10 @@ export const test = base.extend({
     let db = null, state = null, lastScreenshot = '', ended = false;
     const inflight = new Set();
     const net = { delay: 0, offline: false, fail: null, expireSession: false, quotesUnavailable: false, requests: [] };
-    // The live Guess rules (build plan section 3.4) reach the screens as `rules` through the handler's optional-RPC read. The hosted
-    // schema has no gtl_live_rules, so by default the read is "feature off" and every view carries today's rules, as for players.
-    // A spec sets persona.rules (for example M-02's { sentFinal: true, ... }) to see the screens under a rule that is not live yet.
+    // These legacy-screen persona diagnostics intentionally control the advertised
+    // UI rules. Null exercises the D-16 presentation; current lock-in presentation
+    // is covered by explicit rule overrides and the dedicated core-scoring suite.
+    // A scenario that edits submitted picks must also select a pre-M-02 schema.
     const persona = {
       name, findings, errors, net, rules: null, get db() { return db; }, get state() { return state; },
       user: { id: id(1), aud: 'authenticated', role: 'authenticated', email: 'ben@example.test', app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-10-01T00:00:00Z' },
