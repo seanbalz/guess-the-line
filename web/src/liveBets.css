@@ -106,6 +106,22 @@
 .gx .gx-bets .social-leg-editor legend { font-size: 16px; color: var(--gx-text-1); }
 .gx .gx-bets .social-form-footer { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gx-space-3); padding-top: var(--gx-space-4); padding-bottom: env(safe-area-inset-bottom); }
 .gx .gx-bets .social-form-footer button.primary { min-height: var(--gx-size-primary); }
+/* Button-first entry keeps the shared editor's class contract and uses D-38 tokens here. */
+.gx .gx-bets .social-entry-field { gap: var(--gx-space-2); padding: 0; border: 0; }
+.gx .gx-bets .social-entry-field > legend { padding: 0 0 var(--gx-space-2); color: var(--gx-text-1); font: 600 16px/24px var(--gx-font-body); }
+.gx .gx-bets :is(.social-entry-options, .social-entry-adjustment, .social-matchup-grid, .social-matchup-current, .social-entry-custom) { gap: var(--gx-space-2); }
+.gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button) { min-height: var(--gx-size-touch); padding: var(--gx-space-2) var(--gx-space-3); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); color: var(--gx-text-1); font: 600 16px/24px var(--gx-font-body); font-variant-numeric: tabular-nums; }
+.gx .gx-bets .social-entry-options > .social-entry-option { min-width: min-content; padding-inline: var(--gx-space-2); }
+.gx .gx-bets .social-entry-numbers > .social-entry-options > .social-entry-option { min-width: max-content; white-space: nowrap; }
+.gx .gx-bets .social-entry-options > .social-entry-option[aria-pressed="true"] { border-color: var(--gx-accent-ink); background: var(--gx-accent); color: var(--gx-accent-text); font-weight: 700; }
+.gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button):disabled { border-style: dashed; background: var(--gx-surface-3); color: var(--gx-text-2); }
+.gx .gx-bets .social-entry-adjustment { grid-template-columns: var(--gx-size-touch) minmax(0, 1fr) var(--gx-size-touch); }
+.gx .gx-bets .social-entry-adjustment > .social-entry-option { padding-inline: var(--gx-space-1); white-space: nowrap; }
+.gx .gx-bets .social-entry-value { color: var(--gx-text-1); font: 600 24px/28px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-bets .social-ticket-details { border-color: var(--gx-border); }
+.gx .gx-bets .social-ticket-details > summary { min-height: var(--gx-size-touch); padding: var(--gx-space-3) 0; color: var(--gx-data); font: 600 16px/24px var(--gx-font-body); }
+.gx .gx-bets .social-ticket-detail-fields { gap: var(--gx-space-4); padding-top: var(--gx-space-2); }
+.gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button, .social-ticket-details > summary):focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 .gx .gx-bets .virtual-game-card { overflow: hidden; }
 .gx .gx-bets .virtual-game-card .panel-heading { display: flex; align-items: flex-start; gap: var(--gx-space-3); padding: var(--gx-space-4); background: var(--gx-surface-2); }
 .gx .gx-bets .virtual-game-card .panel-heading > div { min-width: 0; flex: 1 1 180px; }
@@ -133,4 +149,10 @@
   .gx .gx-bets :is(.social-metrics > div, .stat) { padding: var(--gx-space-3); }
   .gx .gx-bets .social-player { flex-basis: 100%; }
   .gx .gx-bets .social-follow { width: 100%; justify-content: center; }
+}
+@media (forced-colors: active) {
+  .gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button) { border-color: ButtonText; background: ButtonFace; color: ButtonText; forced-color-adjust: none; }
+  .gx .gx-bets .social-entry-options > .social-entry-option[aria-pressed="true"] { border-color: Highlight; background: Highlight; color: HighlightText; }
+  .gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button):disabled { border-color: GrayText; color: GrayText; }
+  .gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button, .social-ticket-details > summary):focus-visible { outline-color: Highlight; }
 }

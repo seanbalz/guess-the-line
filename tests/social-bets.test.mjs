@@ -201,3 +201,17 @@ test('repeated matchup IDs use their own week schedule in history and discover p
   assert.equal(view.entries.find(entry => entry.week === 6).lateEntry, false);
   assert.equal(view.profiles.some(profile => profile.id === 'luke'), true);
 });
+
+test('settled groups final outcomes and keeps summary and market scope identical', () => {
+  let state = emptySocialState();
+  for (const outcome of ['pending', 'win', 'loss', 'push', 'void']) {
+    state = mutate(state, 'create', create());
+    if (outcome !== 'pending')
+      state = settle(state, state.entries.length - 1, outcome);
+  }
+  const view = socialView(state, { actorId: 'sean', games, now, filters: { outcome: 'settled', market: 'spread' } });
+  assert.deepEqual(view.entries.map(e => e.outcome).sort(), ['loss', 'push', 'void', 'win']);
+  assert.deepEqual(view.summary, summarizeSocialBets(state.entries.filter(e => e.outcome !== 'pending')));
+  assert.equal(view.summary.roiPercent, summarizeSocialBets(state.entries.filter(e => ['win', 'loss', 'push'].includes(e.outcome))).roiPercent);
+  assert.equal(socialView(state, { actorId: 'sean', games, now, filters: { outcome: 'settled', market: 'total' } }).entries.length, 0);
+});
