@@ -19,7 +19,10 @@ selected Q16, easier actual-bet tracking, with Virtual Units in a separate view.
 Q16 implementation passed all five CI checks, merged in PR #155 as
 `2d81436dc0f3bcbfd9c91b69c9049755eb8b4601`, deployed as API v27 / Pages `9ef3f651`,
 and synced cleanly across the three integration checkouts. Its release evidence
-closeout precedes returning to Q02. See the [release card](../docs/EASIER_BET_TRACKING_RELEASE.md).
+closeout PR #156 merged as `fd1facc7af1d1673b99dee0bd2f0228d6f63a0e6`; all three
+checkouts were synced cleanly. Q02 is now active. See the
+[bet-tracking release card](../docs/EASIER_BET_TRACKING_RELEASE.md) and
+[verifier record](../docs/DEPLOYMENT_VERIFIER_RELEASE.md).
 The private-week/results evidence PR #154 merged as
 `eb1fa9330d715140f8e343a24daf51908ace5ba6`; all three clean integration checkouts
 were verified at that merge with zero ahead, behind or changed files.

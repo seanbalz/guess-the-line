@@ -7,12 +7,16 @@ the same release path: an exact GitHub commit, successful CI, Sean's production
 environment approval, a fresh hosted preflight, and recorded deployment evidence.
 Committing and pushing source remains separate from deploying it.
 
-This workflow is being introduced; no production release through it is claimed.
 On October 15 the `production` GitHub environment was created and read back with
 Sean (`seanbalz`) as required reviewer and a branch policy allowing only `main`.
 Self-review is allowed so Sean can dispatch and approve his own release. The
 five public configuration variables below were also populated and read back.
-Deployment secrets and the first successful Actions release remain pending.
+Both dedicated secret names were present on October 20. Actual protected readiness
+and an API-only deployment succeeded October 16; the frontend upload succeeded but
+its verifier rejected canonical HTML redirects. The historical failed run remains
+failed. See [the verifier repair record](DEPLOYMENT_VERIFIER_RELEASE.md) for the
+reconciled fix and subsequent verification status; credential presence alone is
+not proof of current access.
 An administrator can change environment protections; this is an approval gate,
 not a claim that administrators cannot override repository settings.
 
@@ -124,7 +128,10 @@ state and the artifact before retrying. The workflow verifies other Edge
 function versions/configuration and migration history stayed unchanged; it does
 not hash all player data or automatically roll back production. Use the release
 card's reviewed recovery plan. Frontend verification compares every served
-manifest asset at both the immutable deployment URL and production URL; `_headers`
+manifest asset at both the immutable deployment URL and production URL. HTML uses
+canonical paths (`index.html` to `/`, `privacy.html` to `/privacy`, nested index
+files to their directory). Unexpected redirects remain rejected and every response
+must match its artifact hash. `_headers`
 and `_redirects` are configuration, not served assets.
 
 API verification records the hosted `ezbr_sha256` bundle digest and requires
