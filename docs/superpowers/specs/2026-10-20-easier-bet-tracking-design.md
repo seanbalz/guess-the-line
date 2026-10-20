@@ -2,8 +2,9 @@
 
 Owner: Sean Balsiger · Version 1 · October 20, 2026
 
-Status: proposed implementation design. Sean selected actual bets first, with
-Virtual Units in a separate view. No implementation or deployment is claimed.
+Status: implementation authorized. Sean selected actual bets first, with
+Virtual Units in a separate view, then requested completion, deployment and sync.
+Actual release evidence is recorded separately in the release card.
 
 ## Scope and approach
 

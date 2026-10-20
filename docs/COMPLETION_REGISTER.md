@@ -27,6 +27,13 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 ## Current work and remaining boundaries
 
+Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
+Units separate. Implementation and release evidence belong in the
+[easier bet tracking release card](EASIER_BET_TRACKING_RELEASE.md). It is not yet
+deployed. The weekly-results evidence PR #154 passed all five checks, merged as
+`eb1fa9330d715140f8e343a24daf51908ace5ba6`, and was verified clean/synced on Windows,
+Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
+
 | Work | Current state | Next action |
 | --- | --- | --- |
 | Q01 backlog reconciliation | PR #152 merged as 97c08b987a26918b74db23138cf0793f70eba6d8; three clean integration checkouts verified at that commit | Complete. Preserve the two dirty Mini worktrees identified in the queue. |
