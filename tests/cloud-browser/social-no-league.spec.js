@@ -87,7 +87,9 @@ test('a signed-in player without a league opens shared Bet Tracker while Solo no
     await expect(page.getByRole('heading', { name: 'Bet Tracker', exact: true })).toBeVisible();
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
     await expect(page.locator('.social-bet-card')).toContainText('Troy Fixture');
-    await expect(page.locator('.social-bet-card')).toContainText('DAL -6.5');
+    await expect(page.locator('.social-bet-card')).toContainText('Line locked');
+    await expect(page.locator('.social-bet-card')).not.toContainText('DAL -6.5');
+    expect(responses.filter(item => item.path.includes('/social/')).every(item => !item.text.includes('-6.5'))).toBe(true);
     await expect(page.locator('.social-bet-card')).toContainText('Synthetic browser fixture');
     await expect(page.locator('body')).not.toContainText(privateNote);
     expect(requests.some(req => /\/(personal|state|leagues)(\/|$)/.test(req.path))).toBe(false);

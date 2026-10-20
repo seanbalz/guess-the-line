@@ -37,9 +37,9 @@ const EXTRA = { dana: { id: fixtureId(4), name: 'Dana Fixture' }, finn: { id: fi
 const FUNCTIONS = ['gtl_forfeit_markets(uuid,integer,integer)', 'gtl_forfeit_guess_week(uuid,integer,integer,text,timestamptz)', 'gtl_read_forfeit(uuid,integer,integer,timestamptz)'];
 const MODES = ['guess_spread', 'guess_total'];
 
-test('M-03 is a repo file the hosted project does not have yet; it adds one table and three functions, replaces only M-01\'s History reader, and drops or deletes nothing', () => {
+test('M-03 is a hosted repo migration; it adds one table and three functions, replaces only M-01\'s History reader, and drops or deletes nothing', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'confirmed hosted by the October 19 apply record');
   const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8');
   const defined = parseFunctions(sql, MIGRATION);
   assert.deepEqual(defined.map(fn => `${fn.schema}.${fn.name}`), ['public.gtl_forfeit_markets', 'public.gtl_forfeit_guess_week', 'public.gtl_read_forfeit', 'public.gtl_read_community_history']);

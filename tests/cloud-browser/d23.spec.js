@@ -70,7 +70,8 @@ for (const width of [390, 1280]) test(`D-23: sitting out Spread from the group b
     expect((await db.query('select event from public.gtl_access_audit where actor_id=$1', [luke.id])).rows.map(r => r.event)).toEqual(['sit_out:2026:5:guess_spread']);
     // The database refuses any later Spread ballot for the sat-out player, whatever the screen.
     await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,2026,5) on conflict do nothing', [luke.id]);
-    await expect(db.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread','{\"picks\":{}}')", [luke.id])).rejects.toThrow(/GTL_COMMUNITY_SAT_OUT/);
+    await expect(db.query("insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread','{\"picks\":{}}')", [luke.id])).rejects.toThrow(/GTL_SUBMISSION_ODDS_REQUIRED/);
+    expect((await world.api('luke', 'personal/ballot', { season: 2026, week: 5, mode: 'guess_spread', picks: troyPicks.guess_spread, submit: true, revision: 0, weeklyRevision: 0, requestId: crypto.randomUUID() })).status).toBe(409);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/previews/group-sit-out-${width}.png`, fullPage: true });
 
@@ -123,9 +124,9 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     const welcome = page.locator('.feed-post').filter({ hasText: 'Luke Fixture joined Guess The Line.' });
     await expect(troyRow).toHaveCount(1);
     await expect(troyRow).not.toContainText('Removed');
-    await expect(troyRow.locator('td')).toHaveText(['0', '0']);
-    await expect(troyTotalRow.locator('td')).toHaveText(['0', '0']);
-    // M-01 (DP-1): Troy's sent ballots are 0 before any kickoff; Luke and Sean have no ballot, so their rows read "—", never 0.
+    await expect(troyRow.locator('td')).toHaveText(['—', '—']);
+    await expect(troyTotalRow.locator('td')).toHaveText(['—', '—']);
+    // M-01 (DP-1): Troy's shared standings have no eligible started games before kickoff; Luke and Sean have no ballot, so their rows read "—", never 0.
     for (const table of ['Spread', 'Total']) for (const who of ['Luke Fixture', 'Sean Fixture']) {
       await expect(page.getByRole('table', { name: table, exact: true }).locator('tbody tr').filter({ hasText: who }).locator('td')).toHaveText(['—', '—']);
     }
@@ -149,8 +150,8 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     await page.getByRole('button', { name: 'Refresh' }).click();
     await expect(troyRow).toContainText('Troy Fixture · Removed');
     await expect(troyTotalRow).toContainText('Troy Fixture · Removed');
-    await expect(troyRow.locator('td')).toHaveText(['0', '0']);
-    await expect(troyTotalRow.locator('td')).toHaveText(['0', '0']);
+    await expect(troyRow.locator('td')).toHaveText(['—', '—']);
+    await expect(troyTotalRow.locator('td')).toHaveText(['—', '—']);
     await expect(page.locator('.feed-post')).toHaveCount(5);
     await expect(byTroy).toHaveCount(3);
     await expect(spreadPost.locator('.post-picks-hidden')).toHaveText(hiddenSpread);

@@ -144,12 +144,12 @@ for (const width of [390, 1280]) test(`community history: the line at each guess
     await expect(spread).toContainText('The Odds API · 3-book median');
     await expect(spread).toContainText('Observed Oct 8, 4:59 AM PT · 6h 1m before the guess');
     // M-01 (D-39): a game's points count from its kickoff. Before the first kickoff each guess shows its line at the guess and reads
-    // "Scores at kickoff", and neither ballot has points yet.
+    // its saved accuracy points; shared weekly totals still wait for kickoff.
     const pointCells = market => market.locator(width < 720 ? '.history-cards dd' : '.history-table tbody td:nth-child(5)');
     for (const market of [spread, total]) {
       await expect(market).toContainText('No points yeteach game scores from its kickoff');
-      await expect(pointCells(market).filter({ hasText: 'Scores at kickoff' })).toHaveCount(2);
-      await expect(market).not.toContainText('of 10');
+      await expect(pointCells(market).filter({ hasText: 'of 10' })).toHaveCount(2);
+      await expect(market).not.toContainText('Scores at kickoff');
     }
     // A minute after the last kickoff: Troy guessed −3 and 2.5 at 11:00 AM PT, the first game against the imported −2.5 (observed
     // 4h 40m before; 9 points), the second against the hosted 1.5 (8 points). His Total guesses 44 and 47.5 meet the hosted 44.5

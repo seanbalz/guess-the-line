@@ -73,14 +73,14 @@ const uniform = (lines, books = BOOKS) => {
   return games;
 };
 
-test('M-06 is a repo file the hosted project does not have yet; its readers join the leak scan, on ALL until the apply', () => {
+test('M-06 is a hosted repo migration; its readers run in the HOSTED leak scan', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until the apply record removes it (Gate M step 8)');
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'confirmed hosted by the October 19 apply record');
   assert.deepEqual(READERS.filter(([route]) => route.startsWith('/lines/')).map(([route]) => route), ['/lines/read', '/lines/game']);
-  for (const route of ['/lines/read', '/lines/game']) assert.equal(READER_MIGRATIONS[route], MIGRATION, route);
+  for (const route of ['/lines/read', '/lines/game']) assert.equal(READER_MIGRATIONS[route], undefined, route);
   // The apply record removes the NOT_HOSTED line and the READER_MIGRATIONS entries together: a hosted file listed there fails here.
   for (const [route, file] of Object.entries(READER_MIGRATIONS)) assert.ok(NOT_HOSTED.includes(version(file)), `${route}: ${file} is hosted; remove it from READER_MIGRATIONS`);
-  assert.deepEqual(readersOn(HOSTED).filter(([route]) => route.startsWith('/lines/')), [], 'the HOSTED suites skip /lines/* until M-06 is hosted');
+  assert.equal(readersOn(HOSTED).filter(([route]) => route.startsWith('/lines/')).length, 2, 'HOSTED scans both lines readers');
   assert.equal(readersOn(FUTURE_MIGRATIONS).length, READERS.length, 'the complete schema covers every registered reader');
   assert.ok(!readersOn(ALL).some(([route]) => route === '/bets/read'), 'the pre-M-07 schema does not install M-10');
 });
@@ -423,10 +423,10 @@ test('the kickoff line, movement and named books with prices (M-06): the newest 
 });
 
 test('before the apply: on the hosted schema /lines/* answer the generic 503 and every other reader is unchanged', { skip }, async t => {
-  const world = await createCommunityWorld({ troyBallots: false, groupScreens: true, virtualUnits: true });
+  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file < MIGRATION), troyBallots: false, groupScreens: true, virtualUnits: true });
   t.after(() => world.db.close());
   for (const [route, body] of [['lines/read', {}], ['lines/game', { gameId: 'TB-DAL' }]]) {
     assert.deepEqual(await world.api('luke', route, body), { status: 503, body: { error: 'The saved data service is temporarily unavailable. Please try again.' } }, route);
   }
-  for (const [route, method, body] of readersOn(HOSTED)) assert.equal((await world.api('luke', route.slice(1), method === 'GET' ? undefined : body)).status, 200, route);
+  for (const [route, method, body] of readersOn(HOSTED).filter(([route]) => !route.startsWith('/lines/') && route !== '/community/picks')) assert.equal((await world.api('luke', route.slice(1), method === 'GET' ? undefined : body)).status, 200, route);
 });

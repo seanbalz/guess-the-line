@@ -62,14 +62,4 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_begin_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
   'rpc/gtl_finish_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
   'gtl-api/wind/read': 'the gtl-api deploy with /wind/read',
-  // M-05 (stage 22): remove with the release record of the hosted apply (Gate M step 8).
-  'rpc/gtl_odds_carryover_slate': 'migration 20261014221500_gtl_odds_open_weeks.sql',
-  // M-06 (stage 23): the routes ship with the gtl-api deploy that maps the codes (before the apply); remove the routes with
-  // that deploy's release record and the RPCs with the apply's (Gate M step 8).
-  'rpc/gtl_read_lines': 'migration 20261015010000_gtl_lines_read.sql',
-  'rpc/gtl_read_game_lines': 'migration 20261015010000_gtl_lines_read.sql',
-  'rpc/gtl_book_quotes_from_snapshot': 'migration 20261015010000_gtl_lines_read.sql',
-  'rpc/gtl_kickoff_line': 'migration 20261015010000_gtl_lines_read.sql',
-  'gtl-api/lines/read': 'the gtl-api deploy with /lines/read',
-  'gtl-api/lines/game': 'the gtl-api deploy with /lines/game',
 });

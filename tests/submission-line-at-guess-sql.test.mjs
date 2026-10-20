@@ -122,6 +122,7 @@ async function fixture(t, { legacy } = {}) {
       return Response.json(result.rows[0].value);
     } catch (error) {
       log.push({ name, args, outcome: error.message });
+      if (error.code === '42883') return Response.json({ code: 'PGRST202', message: error.message }, { status: 404 });
       return Response.json({ message: error.message }, { status: 400 });
     }
   };

@@ -84,7 +84,7 @@ test('real SQL: membership and reveal boundaries; settings CAS, idempotency and 
 });
 test('comparisons fail closed before M-07 instead of changing scoring timing', { skip: !pgliteAvailable }, async t => {
   const migration = ALL.find(file => file.startsWith('20261016010000'));
-  const world = await createCommunityWorld({ migrations: [...HOSTED,migration],optionalRpc: true });
+  const world = await createCommunityWorld({ migrations: [...HOSTED.filter(file => !file.startsWith('20261015190710')),migration],optionalRpc: true });
   t.after(() => world.db.close());
   assert.equal((await world.api('luke','league/comparison',{})).status,503);
 });
