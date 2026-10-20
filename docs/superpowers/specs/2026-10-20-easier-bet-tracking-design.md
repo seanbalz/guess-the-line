@@ -2,7 +2,7 @@
 
 Owner: Sean Balsiger · Version 1 · October 20, 2026
 
-Status: implementation authorized. Sean selected actual bets first, with
+Status: implemented, merged and deployed in PR #155. Sean selected actual bets first, with
 Virtual Units in a separate view, then requested completion, deployment and sync.
 Actual release evidence is recorded separately in the release card.
 
