@@ -8,13 +8,16 @@ for production or that a planned integration is connected. Existing release
 authorization remains valid. No calendar or game-window release restriction applies.
 Source/CI, migration dependencies, preservation, privacy and rollback checks remain.
 
-The already-running collector follow-up is separate: verify the existing October 20
-01:15 Pacific execution, without forcing a provider request. Core scoring is active;
-its PR and three-machine sync are complete. See the [release record](../docs/CORE_SCORING_PRODUCTION_RELEASE.md).
+The October 20 20:15 UTC scheduled collector, collection and Week 7 snapshot
+were verified successful. Core scoring is active; its PR and original three-machine
+sync are complete. See the [release record](../docs/CORE_SCORING_PRODUCTION_RELEASE.md).
 
 ## Ordered items
 
-Only Q01 is the current task. Q02–Q20 remain queued. An item is finished when its
+Q01 is complete (PR #152). Sean prioritized private-week rollover and automatic
+final results before Q02–Q20; see the [weekly results release](../docs/WEEKLY_RESULTS_RELEASE.md).
+That repair is active in production and its source is merged/synced on all three machines;
+its closeout PR records the hosted evidence and final evidence synchronization. An item is finished when its
 applicable review, tests, merge, hosted verification and clean three-machine sync
 are evidenced. A blocked item stays blocked; do not silently skip it or start
 several implementation lanes. Physical-phone or product acceptance must be named
@@ -22,7 +25,7 @@ explicitly when it cannot be established by automated tests.
 
 | ID | Item | Existing work and completion boundary |
 | --- | --- | --- |
-| Q01 | Backlog and branch reconciliation | Current register, this queue and the branch audit distinguish delivered, pending and unpublished work. Complete this documentation PR and sync; preserve all other worktrees. |
+| Q01 | Backlog and branch reconciliation | Current register, this queue and the branch audit distinguish delivered, pending and unpublished work. PR #152 merged as 97c08b9 and all three integration checkouts were verified clean; preserve all other worktrees. |
 | Q02 | Deployment verification | Reconcile the Pages canonical-redirect verifier fix in PR #150 with current main; test expected versus unexpected redirects and record actual protected-workflow results. Earlier successful upload is not a successful verifier run. |
 | Q03 | Mobile navigation and scrolling | Reconcile PR #144's UX-NEXT-01 and unpublished shell changes before implementing. Verify content and controls clear navigation/save bars at phone widths and safe areas in both themes. |
 | Q04 | Bets filters | PR #144's BETS-NEXT-01: All / Spreads / Totals filtering before limiting results, with clear week and empty states. |

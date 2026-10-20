@@ -4,7 +4,7 @@ Owner: Sean Balsiger · Evidence reconciled October 19, 2026 (Pacific)
 
 The [sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md) is the current
 itemized backlog. Work proceeds one item at a time. Q01 reconciles source, open PRs
-and local work; Q02 is next after Q01 review/merge/sync. The earlier register is
+and local work; Q01 merged as PR #152; the authorized weekly-results repair takes priority before Q02. The earlier register is
 preserved as an [archived snapshot](COMPLETION_REGISTER_ARCHIVE_2026_10_19.md),
 not a current deployment ledger. The frozen v62 tracker is unchanged.
 
@@ -29,8 +29,8 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 | Work | Current state | Next action |
 | --- | --- | --- |
-| Q01 backlog reconciliation | Source audit complete; this PR records its results | Review, merge and sync this documentation change. Preserve the two dirty Mini worktrees identified in the queue. |
-| Scheduled collector | Verification pending after activation | Existing October 20 01:15 Pacific run; actual collection/snapshot success, not just cron dispatch. Existing follow-up stays active. |
+| Q01 backlog reconciliation | PR #152 merged as 97c08b987a26918b74db23138cf0793f70eba6d8; three clean integration checkouts verified at that commit | Complete. Preserve the two dirty Mini worktrees identified in the queue. |
+| Scheduled collector | October 20 20:15 UTC cron, worker, collection and Week 7 snapshot succeeded | Verified; see the core scoring release record. No forced provider collection. |
 | Q02 deployment verifier | Existing fix on open PR #150 | Reconcile canonical redirects and current release records; verify protected workflow. |
 | Q03–Q05 mobile/Bets/recommendations | Requirements and an implementation branch exist | Sequential navigation, filters, then recommendation refinement tasks. |
 | Q06–Q08 Bets/comparisons/preferences | Merged readers/settings code; three migrations remain unhosted | Separate dependency-aware release/readback; no generic database push. |
@@ -59,4 +59,4 @@ production mutation or old-app retirement is performed by this reconciliation.
 
 ## Active priority — October 20, 2026
 
-Private-group week rollover and automatic final results supersede the next queue item at Sean's request. Implementation and release evidence: [weekly results release](WEEKLY_RESULTS_RELEASE.md). Local implementation underway; no production activation claimed yet.
+Private-group week rollover and automatic final results supersede the next queue item at Sean's request. Implementation and release evidence: [weekly results release](WEEKLY_RESULTS_RELEASE.md). PR #153 merged; API v26, three ordered migrations and results worker v1 activated. All five groups resolve to Week 7; the first scheduled run recorded 29 finals and settled two existing bets. Historical ballots, Guess scores and saved terms are unchanged. Windows main, Mini shared-sync and Neo main were verified clean at the release merge f9b89664dd15261bec454fa2378fc7f55ff4fcbd. This closeout records hosted evidence; its PR carries the subsequent evidence-merge and sync outcome.
