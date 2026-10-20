@@ -71,6 +71,13 @@ pre-M-02 schema; immutable coverage remains on current migrations. Historical pr
 fixtures now explicitly select their earlier schema. Rollback fixtures stop at
 the target migration so later dependent bodies cannot overwrite the scenario.
 
+All 258 cloud browser scenarios passed across the full run (248 passes) and
+targeted correction reruns. Ten outdated expectations were corrected: historical
+editable Play fixtures explicitly select pre-M-02 SQL; current history and D-23
+assertions follow immediate personal scoring and the shared kickoff boundary;
+Bet Tracker asserts that an unrevealed opponent line is absent from both the
+card and response. Current per-game scoring and privacy coverage remain enabled.
+
 Remaining closeout: final evidence CI, PR #145 merge and sync, and a successful
 scheduled collection after activation. Existing collection cron is `15 8,20 * * *` UTC; the next execution
 is October 20 at 08:15 UTC (01:15 Pacific). Do not force a provider collection
