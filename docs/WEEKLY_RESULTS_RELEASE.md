@@ -28,10 +28,10 @@ October 20 instruction authorizes this separate scheduler and its enablement.
 
 1. Review source, pass exact-source CI, verify fresh hosted function bodies/grants,
    active runtime versions, published schedule and historical data hashes.
-2. Apply `20261020211626_private_current_week.sql` (existing weekly-context and
-   schedule tables), then `20261020211656_results_refresh_schedule.sql` (existing
+2. Apply `20261020211626_gtl_private_current_week.sql` (existing weekly-context and
+   schedule tables), then `20261020211656_gtl_results_refresh_schedule.sql` (existing
    D-26 ledger and week-open administrator), then
-   `20261020211737_group_settlement_results.sql` (existing reviewed-results read).
+   `20261020211737_gtl_group_settlement_results.sql` (existing reviewed-results read).
    Check preservation and permission boundaries after each apply.
 3. Deploy compatible gtl-api with settlement provenance support; keep JWT enabled.
    Existing Pages is compatible and must not be replaced by an old build.

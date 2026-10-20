@@ -1,3 +1,4 @@
+-- replaces public.gtl_read_reviewed_results md5 a38df402962216fb47e4d417fc2a4e96
 -- Include versioned automatic finals in the existing member-only private group read.
 create or replace function public.gtl_read_reviewed_results(p_user uuid,p_league text) returns jsonb
 language plpgsql stable security invoker set search_path='' as $$

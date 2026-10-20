@@ -36,7 +36,7 @@ test('private groups follow opened published weeks without rewriting historical 
 
   await db.query('insert into gtl_profiles(user_id,display_name) values($1,$2)',[id(SEAN),'Fixture']);
   await db.exec(fs.readFileSync('supabase/migrations/20261008225607_gtl_reviewed_final_results.sql','utf8'));
-  await db.exec(fs.readFileSync('supabase/migrations/20261020211737_group_settlement_results.sql','utf8'));
+  await db.exec(fs.readFileSync('supabase/migrations/20261020211737_gtl_group_settlement_results.sql','utf8'));
   await as('service_role','select gtl_settle_virtual_units(2026,5,$1)',[{source:'fixture finals',sourceUrl:'https://example.test/finals',games:[{gameId:state.games[0].id,status:'final',home:21,away:14}]}]);
   const finals=(await as('service_role','select gtl_read_reviewed_results($1,$2) x',[id(SEAN),'sean-troy-luke'])).rows[0].x;
   assert.equal(finals.games[state.games[0].id].reviewType,'settlement');
@@ -44,7 +44,7 @@ test('private groups follow opened published weeks without rewriting historical 
   const before=(await db.query('select state from gtl_leagues')).rows[0].state;
   const games=state.games.map(g=>({...g,kickoff:iso(now+3600000)}));
   await as('service_role','select gtl_publish_week($1,2026,6,$2,$3,$4)',[id(SEAN),games,iso(now+3600000),'fixture schedule']);
-  const migration='supabase/migrations/20261020211626_private_current_week.sql';
+  const migration='supabase/migrations/20261020211626_gtl_private_current_week.sql';
   if(fs.existsSync(migration)) await db.exec(fs.readFileSync(migration,'utf8'));
   const context=(await as('service_role','select gtl_weekly_context($1,$2) c',[id(SEAN),'sean-troy-luke'])).rows[0].c;
   assert.equal(context.week,6);
@@ -54,7 +54,7 @@ test('private groups follow opened published weeks without rewriting historical 
   assert.equal(context.state.league.actualKickoff,null);
   assert.deepEqual(context.state.league.roster,before.league.roster);
   assert.deepEqual((await db.query('select state from gtl_leagues')).rows[0].state,before);
-  await db.exec(fs.readFileSync('supabase/migrations/20261020211656_results_refresh_schedule.sql','utf8'));
+  await db.exec(fs.readFileSync('supabase/migrations/20261020211656_gtl_results_refresh_schedule.sql','utf8'));
   assert.equal((await db.query('select gtl_dispatch_results_refresh() x')).rows[0].x.status,'disabled');
   await db.query("insert into gtl_results_refresh_schedule(id,enabled,endpoint,authorized_by,season) values('nfl-results',true,'https://fixture.supabase.co/functions/v1/gtl-results-refresh',$1,2026)",[id(SEAN)]);
   const token='a'.repeat(64);

@@ -25,6 +25,9 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261020211626, // Private current-week context; weekly results release pending.
+  20261020211656, // Automatic finals schedule; disabled until release.
+  20261020211737, // Private settlement-results projection.
   20261016010000, // D-53 comparisons, after M-07. Not applied.
   20261016011000, // D-53 account preferences. Not applied.
   20261015190820, // M-10 bets_read (stage 40): account-level Bets reader; apply after M-01 and M-04 on Sean's "apply M-10".

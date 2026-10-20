@@ -1,3 +1,4 @@
+-- replaces public.gtl_weekly_context md5 092802e9d56f5a05e7a364e5f076a89f
 -- Private groups follow opened community weeks without rewriting history.
 create or replace function public.gtl_weekly_context(p_user uuid,p_league text) returns jsonb
 language plpgsql security invoker set search_path='' as $$
