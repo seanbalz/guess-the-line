@@ -82,10 +82,15 @@ assertions follow immediate personal scoring and the shared kickoff boundary;
 Bet Tracker asserts that an unrevealed opponent line is absent from both the
 card and response. Current per-game scoring and privacy coverage remain enabled.
 
-Remaining release verification: a successful scheduled collection after activation. Existing collection cron is `15 8,20 * * *` UTC; the next execution
-is October 20 at 08:15 UTC (01:15 Pacific). Do not force a provider collection
-to manufacture scheduled evidence. Real-phone and multi-account write acceptance
-remain separate from this read-only production verification.
+Scheduled collection verified October 20: cron job 1/run 608 dispatched at
+20:15:00.12118 UTC; its worker succeeded at 20:15:05.273877 UTC. The actual Week 7
+collection ran at 20:15:04.900705–20:15:05.115027 UTC and wrote the Week 7 snapshot
+at completion. It reserved the existing two credits, had no error and no carryover
+(on Tuesday, after the previous week finished). The snapshot is not marked
+official_verified; collection success does not assert every quote meets the
+scoring gate. No provider collection was forced. The subsequent private-week and
+results repair is recorded in [weekly results release](WEEKLY_RESULTS_RELEASE.md).
+Real-phone and multi-account write acceptance remain separate.
 
 ## Historical preparation record
 
