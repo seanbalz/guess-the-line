@@ -28,9 +28,14 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 ## Current work and remaining boundaries
 
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
-Units separate. Implementation and release evidence belong in the
-[easier bet tracking release card](EASIER_BET_TRACKING_RELEASE.md). It is not yet
-deployed. The weekly-results evidence PR #154 passed all five checks, merged as
+Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed
+source `fd97d07273c5f586772006acea5cbf548ef50aa7`. PR #155 passed all five checks
+and merged as `2d81436dc0f3bcbfd9c91b69c9049755eb8b4601`; all three integration
+checkouts passed clean sync at that merge. See the
+[easier bet tracking release card](EASIER_BET_TRACKING_RELEASE.md) for live asset,
+privacy, preservation and acceptance limits. Its evidence PR carries the final
+documentation merge/sync result. Q02 is next after that closeout.
+The weekly-results evidence PR #154 passed all five checks, merged as
 `eb1fa9330d715140f8e343a24daf51908ace5ba6`, and was verified clean/synced on Windows,
 Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 
@@ -43,7 +48,8 @@ Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 | Q06–Q08 Bets/comparisons/preferences | Merged readers/settings code; three migrations remain unhosted | Separate dependency-aware release/readback; no generic database push. |
 | Q09–Q10 account/notification acceptance | Live components exist; real-world checks remain | Verify actual supported account/device flows and iPhone notification delivery. |
 | Q11–Q15 Fantasy | Static rankings/basic details exist; refresh and richer analysis remain | Refresh, profiles/usage, comparisons, matchups and newly requested sourced trade values. |
-| Q16–Q20 platform completion | Partial; see per-item exit criteria | Bet entry, remaining destinations, operations, full-week/device acceptance and new-only transition. |
+| Q16 easier actual-bet tracking | Released as API v27 / Pages 9ef3f651; PR #155 merged and three integration checkouts synced | Release evidence closeout; physical-phone acceptance remains separate. |
+| Q17–Q20 platform completion | Partial; see per-item exit criteria | Remaining destinations, operations, full-week/device acceptance and new-only transition. |
 | Simulator/native iOS/other feeds | Separate later scope or decisions | No model validation, native-client or external-connection claim follows from existing planning. |
 
 The current migration registry lists only M-10 Bets reading and D-53 comparisons

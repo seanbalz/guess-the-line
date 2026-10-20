@@ -16,8 +16,10 @@ sync are complete. See the [release record](../docs/CORE_SCORING_PRODUCTION_RELE
 
 October 20 priority update: after the deployed private-week/results repair, Sean
 selected Q16, easier actual-bet tracking, with Virtual Units in a separate view.
-Finish its implementation, verification, deployment and three-machine sync before
-returning to the remaining queue. See the [release card](../docs/EASIER_BET_TRACKING_RELEASE.md).
+Q16 implementation passed all five CI checks, merged in PR #155 as
+`2d81436dc0f3bcbfd9c91b69c9049755eb8b4601`, deployed as API v27 / Pages `9ef3f651`,
+and synced cleanly across the three integration checkouts. Its release evidence
+closeout precedes returning to Q02. See the [release card](../docs/EASIER_BET_TRACKING_RELEASE.md).
 The private-week/results evidence PR #154 merged as
 `eb1fa9330d715140f8e343a24daf51908ace5ba6`; all three clean integration checkouts
 were verified at that merge with zero ahead, behind or changed files.
@@ -36,7 +38,7 @@ explicitly when it cannot be established by automated tests.
 | Q01 | Backlog and branch reconciliation | Current register, this queue and the branch audit distinguish delivered, pending and unpublished work. PR #152 merged as 97c08b9 and all three integration checkouts were verified clean; preserve all other worktrees. |
 | Q02 | Deployment verification | Reconcile the Pages canonical-redirect verifier fix in PR #150 with current main; test expected versus unexpected redirects and record actual protected-workflow results. Earlier successful upload is not a successful verifier run. |
 | Q03 | Mobile navigation and scrolling | Reconcile PR #144's UX-NEXT-01 and unpublished shell changes before implementing. Verify content and controls clear navigation/save bars at phone widths and safe areas in both themes. |
-| Q04 | Bets filters | PR #144's BETS-NEXT-01: All / Spreads / Totals filtering before limiting results, with clear week and empty states. |
+| Q04 | Bets filters | Q16 delivered visible result/market filters, owner-scoped weeks and empty states for actual tickets. Reconcile PR #144's remaining BETS-NEXT-01 scope before closing this broader item; native/Virtual Units reader delivery remains Q06. |
 | Q05 | Recommendation refinements | Reconcile PR #140 against current main: actual-offer ranking, quote-preserving edits, private forecasts and weekly summaries. Its additive writer remains separate from the applied scoring chain. Exact-head tests and release/readback required. |
 | Q06 | Account-level Bets access | M-10 reader remains unhosted. Reconcile PR #148's release notes; verify dependencies, grants, gated reads and scope. This does not finish account-level placement or all native Bets screens. |
 | Q07 | Guess score comparisons | D-53 comparison migration remains unhosted. Verify common-game eligibility, independent markets and private-roster boundaries; never mutate scoring references or official rank. |
@@ -48,7 +50,7 @@ explicitly when it cannot be established by automated tests.
 | Q13 | NFL player comparisons | Side-by-side player analysis with common scoring format and period; distinct from Q07's Guess-player score comparisons. |
 | Q14 | Fantasy matchup tools | Extend basic opponent information with useful sourced matchup context. No unvalidated predictive advantage claims. |
 | Q15 | Trade-value charts | New requested scope: establish permitted free sources, league formats, attribution and timestamps. Different provider scales must not be silently combined. No source is connected by this task. |
-| Q16 | Easier bet entry/tracking | Reconcile unpublished button-entry work before building. Clear entry/confirmation and pending/settled/history views; preserve corrections and separate tracked real bets from Virtual Units. |
+| Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. Evidence closeout has its own PR; phone acceptance remains separate. |
 | Q17 | Remaining native destinations | Reconcile PR #144's preservation/recovery checklist and the inventory: League/Bets screens, history, exports, commissioner tools and old records must retain working homes. |
 | Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. |
 | Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. |
@@ -89,8 +91,9 @@ accessible worktrees have unpublished changes:
   in main or open PRs. Do not count all entries as new features or overwrite them.
   Compare the changed content when Q03/Q11/Q17 begins.
 - `codex/button-bet-entry`: eight status entries including bet-entry controls, styling,
-  browser checks and a specification. Inspect and reconcile in Q16; no test/merge/live
-  claim is made for these edits.
+  browser checks and a specification. Q16 reconciled the relevant source into PR #155
+  and deployed it with new tests. The original dirty checkout remains preserved;
+  its older standalone contents are not themselves a clean release checkout.
 
 These counts exclude ignored files and do not establish synchronization of private
 data, credentials, unrelated repositories, cloud task sandboxes or the private Status
