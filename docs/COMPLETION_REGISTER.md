@@ -27,6 +27,20 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 ## Current work and remaining boundaries
 
+October 21 situational-trends discovery: Sean confirmed a weekly and per-matchup
+shortlist of up to three consistent trends, emerging patterns under Explore,
+recent views that can span prior seasons, NFL spread/total scope prepared for later
+markets, and an explicit research lean with supporting/conflicting evidence or
+“No clear lean”. His Guess entry predicts sportsbook pricing. Book It With Trent
+has a separate original-play section; the other named accounts are trend research
+references. The [proposed design](superpowers/specs/2026-10-21-trends-research-design.md)
+records confirmed choices and proposed evidence rules. Status: design review;
+no feature code, source connection, migration or deployment. The existing
+sequential implementation queue and other worktrees remain intact.
+Local document verification: existing Brand QA passed with Python UTF-8 mode;
+relative links and the staged whitespace/conflict check passed. The PR records
+branch/commit and CI status; these checks do not validate a betting model or UI.
+
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
 Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed
 source `fd97d07273c5f586772006acea5cbf548ef50aa7`. PR #155 passed all five checks
