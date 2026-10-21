@@ -1,14 +1,15 @@
 import FantasyFootball from '../../FantasyFootball.jsx';
+import { fantasyWeekKey } from '../../fantasyData.js';
 import { useShell } from '../shell/context.js';
 import './fantasy.css';
 
 export function FantasyScreen() {
   const shell = useShell();
-  const backHome = event => {
-    // This button leaves with the screen; keep keyboard focus on the persistent Home control.
-    const home = event.currentTarget.closest('.gx-app')?.querySelector('[data-tab="home"]');
-    shell.go('home');
-    home?.focus();
+  const view = shell.state.views.fantasy;
+  const navigationState = { ...view, selection: view.season && view.week ? fantasyWeekKey(view.season, view.week) : view.selection };
+  const remember = patch => {
+    const [season, week] = patch.selection.split('-').map(Number);
+    shell.setView('fantasy', { ...patch, season, week });
   };
-  return <FantasyFootball theme="next" onBack={backHome}/>;
+  return <FantasyFootball key={shell.state.nav} navigationState={navigationState} onNavigationState={remember} theme="next" onBack={shell.back} backLabel="Back to Research"/>;
 }

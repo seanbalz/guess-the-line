@@ -14,6 +14,7 @@ import { useLinesData } from './linesData.js';
 import { useWind } from './trendsHooks.js';
 import { Credits } from './parts.jsx';
 import './lines.css';
+import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 
 /** A market's value on a card: a lock icon while closed, your line at the guess once open, else "—". */
 function MarketValue({ cell, className }) {
@@ -77,16 +78,16 @@ function Group({ label, time, cards, onOpen }) {
   );
 }
 
-export function LinesBoard() {
+export function LinesBoard({ trendsOnly = false }) {
   const shell = useShell();
   const { app, personal, community, trendsWeek, shown } = useLinesData();
   const wind = useWind(shown?.season, shown?.week, Boolean(shown));
   const board = useMemo(() => (personal.data ? linesBoard({ personal: personal.data, community, trends: trendsWeek, wind: wind.wind, windNow: wind.now }) : null),
     [personal.data, community, trendsWeek, wind.wind, wind.now]);
-  const open = gameId => shell.openSheet('sh.game', { game: gameId });
+  const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', { game: gameId });
   const head = (
     <div className="gx-vstack gx-gap-2">
-      <h1 className="gx-t-title">{LINES_COPY.title}</h1>
+      <h1 className="gx-t-title">{trendsOnly ? 'Trends' : LINES_COPY.title}</h1>
       {board?.meta ? <p className="gx-t-meta">{board.meta}</p> : null}
     </div>
   );
@@ -113,8 +114,10 @@ export function LinesBoard() {
     <div className="gx-screen">
       {head}
       <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
-      {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} onOpen={open}/>)}
-      {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} onOpen={open}/> : null}
+      {trendsOnly ? <><p className="gx-t-body gx-c-2">Choose a matchup to see its available trends, sample sizes and sources. Hidden markets stay locked.</p><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
+        {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} onOpen={open}/>)}
+        {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} onOpen={open}/> : null}
+      </>}
       {!board.groups.length && !board.started ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}
       <Credits footer={board.footer}/>
     </div>

@@ -4,23 +4,19 @@
 import { MenuSheet } from '../me/MenuSheet.jsx';
 import { SwitcherSheet } from '../league/SwitcherSheet.jsx';
 import { Home } from '../home/Home.jsx';
-import { LinesBoard } from '../lines/LinesBoard.jsx';
 import { GameSheet } from '../lines/GameSheet.jsx';
 import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
 import { ResearchSheet } from '../research/ResearchSheet.jsx';
 import { Play } from '../play/Play.jsx';
 import { Bets } from '../bets/Bets.jsx';
-import { LeagueScreen } from '../league/LeagueScreen.jsx';
-import { FantasyScreen } from '../fantasy/FantasyScreen.jsx';
+import { Research } from '../research/Research.jsx';
 
 /** The original tabs use live routes; Fantasy reads public player snapshots. The transitional editors retain the hosted rules until their migrations ship. */
 export const SCREENS = Object.freeze({
   home: Home, // stage 12: read-only Home (the hero, who's in and the rank tiles)
   play: Play,
   bets: Bets,
-  lines: LinesBoard, // stage 13: read-only Lines and game sheet
-  league: LeagueScreen,
-  fantasy: FantasyScreen,
+  research: Research,
 });
 
 /** Each layer id's component, with its owner (CONTRACT section 9). */

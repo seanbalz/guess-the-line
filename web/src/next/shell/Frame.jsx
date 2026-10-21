@@ -8,8 +8,8 @@ import { APP_SWITCH_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
-// Lucide house, target, ticket, chart-line and trophy (spec 1.2), by the kit's names.
-const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', lines: 'chart', league: 'trophy', fantasy: 'people' };
+// Four primary destinations, using the shared original icon language.
+const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
 /** Top bar (spec 1.3): the Field monogram (to Home), the league pill (the switcher) and your avatar (the menu). */
 export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
@@ -33,8 +33,13 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
   );
 }
 
+/** Shared detail navigation stays above the destination's own title. */
+export function DetailBack({ onBack }) {
+  return <div className="gx-detail-nav"><Button variant="ghost" onClick={onBack}><Icon icon="chevronLeft" size={20}/>Back</Button></div>;
+}
+
 /**
- * Tab bar (spec 1.2, plus Fantasy Football): the one showing marked with aria-current and the lime bar; a counter or dot
+ * Four-tab bar: the one showing marked with aria-current and the lime bar; a counter or dot
  * from each tab's slot file, in its name too ("Play, 1 ballot due").
  */
 export function TabBar({ current, data, onTab }) {

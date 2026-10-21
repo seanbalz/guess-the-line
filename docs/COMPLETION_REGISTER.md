@@ -27,6 +27,41 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 ## Current work and remaining boundaries
 
+October 21 design review: Sean selected a simpler four-tab application,
+**Home / Play / Bets / Research**, with League inside Play and Fantasy inside
+Research, and equal emphasis on guessing/competition and actual-bet tracking.
+He chose the third visual option, **One thing first**. The
+[four-tab design specification](superpowers/specs/2026-10-21-four-tab-simplification-design.md)
+records the selected direction, feature destinations and local preview evidence.
+Sean approved the specification and explicitly authorized the build. PR #162,
+branch `codex/four-tab-design`, implements the four roots, compact summaries,
+retained editors and reversible detail routes. League is inside Play and Fantasy
+inside Research; account/settings and old-app recovery remain accessible.
+The [implementation plan](superpowers/plans/2026-10-21-four-tab-simplification.md)
+records the work and verification. Read-only reconciliation of PR #144 and the
+Mini's unpublished shell found its Fantasy navigation changes already represented
+on main; no Mini files were changed.
+
+Local verification on October 21: `npm run check` passed (1,456 Node tests with
+zero skips, 198 Vitest tests, typecheck and production build). The legacy browser
+suite passed 41/41, performance 4/4, and critical-path accessibility 7/7. Brand QA
+and authenticated cloud-build boundary inspection passed. Focused browser coverage
+checks four roots at 320/390 in both themes, exactly one primary root action,
+fixed bottom navigation, nested/reloaded Back, restored scroll/focus, historical
+week scope, draft cancellation, exact recommendation ticket terms and explicit
+saves. The final corrected feature rerun passed 38/38; shell/router/token checks passed
+45/45, with 19 shell browser checks plus four focused follow-up checks passing.
+The plan records the earlier failures, corrections and verification scope; PR
+#162 and the conversation handoff record exact-head CI and branch sync.
+
+Sean subsequently authorized CI fixes, merge and deployment. The
+[four-tab release record](RELEASE_FOUR_TAB_REDESIGN.md) tracks that frontend-only
+release; its preparation checkpoint does not yet establish merge or deployment.
+No migrations, live account edits or new data integrations are included.
+Physical-iPhone/Home Screen acceptance and the separate native iOS
+deliverable remain open. This entry does not close Q03/Q04/Q17 wholesale; the
+existing sequential queue and preservation of unpublished Mini work still apply.
+
 October 21 situational-trends upgrade: Sean confirmed a weekly and per-matchup
 shortlist of up to three consistent trends, emerging patterns under Explore,
 recent views that can span prior seasons, NFL spread/total scope prepared for later

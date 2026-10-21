@@ -28,12 +28,19 @@ async function fixture(page, baseURL, options = {}) {
   expect((await world.api('luke', 'personal')).body.rules.sentFinal).toBe(false);
   return world;
 }
+async function enterSpread(page) {
+  await tab(page, 'Play').click();
+  await expect(page.locator('[data-landing="play"]')).toBeVisible();
+  const spread = page.getByRole('button', { name: 'Guess the Spread', exact: true });
+  if (await spread.isVisible()) await spread.click();
+  else await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
+}
 async function openPlay(page) {
   await signIn(page, 'luke');
   await page.getByRole('button', { name: 'Try the new app', exact: true }).click();
-  await tab(page, 'Play').click();
+  await enterSpread(page);
   await expect(editor(page)).toBeVisible();
-  await expect(page).toHaveURL(/#play$/);
+  await expect(page).toHaveURL(/#play\/picks/);
 }
 async function ballot(world, mode = 'guess_spread') {
   const row = (await world.db.query('select ballot from public.gtl_weekly_ballots where user_id=$1 and mode=$2', [ACCOUNTS.luke.id, mode])).rows[0];
@@ -57,7 +64,7 @@ test('Play saves drafts, restores tab edits, submits a whole market and still ed
 
     await pickSpread(page, 0, 4);
     await tab(page, 'Home').click();
-    await tab(page, 'Play').click();
+    await enterSpread(page);
     await expect(editor(page).getByRole('heading', { name: 'Unsaved Spread picks found in this tab' })).toBeVisible();
     await editor(page).getByRole('button', { name: 'Restore picks', exact: true }).click();
     await expect(cards(page).first().locator('.number-chip[data-value="4"]')).toHaveAttribute('aria-checked', 'true');
@@ -83,7 +90,7 @@ test('Play saves drafts, restores tab edits, submits a whole market and still ed
     await expect(page.getByRole('group', { name: 'League sections' })).toBeVisible();
     await expect(page.locator('.gx-league-post').filter({ hasText: 'submitted Week 5 Spread picks.' }).first()).toBeVisible();
     await expect(page.getByRole('list', { name: 'Private group members' })).toHaveCount(0);
-    await tab(page, 'Play').click();
+    await enterSpread(page);
     await expect(market(page, 'Spread')).toHaveAttribute('aria-pressed', 'true');
 
     await pickSpread(page, 0, 5);
@@ -98,12 +105,12 @@ test('Play saves drafts, restores tab edits, submits a whole market and still ed
     await expect(page.locator('[data-home="hero"]')).toContainText('Spread sent');
     await expect(tab(page, 'Play')).toHaveAccessibleName('Play, 1 ballot due');
 
-    await tab(page, 'Play').click();
+    await enterSpread(page);
     await market(page, 'Total').click();
     await page.reload();
     await expect(market(page, 'Total')).toHaveAttribute('aria-pressed', 'true');
     await expect(cards(page).first().locator('.number-chip[data-value="44"]')).toHaveAttribute('aria-checked', 'true');
-    await expect(page).toHaveURL(/#play$/);
+    await expect(page).toHaveURL(/#play\/picks/);
     expect(writes.length).toBeGreaterThan(3);
     expect(writes.every(body => !Object.hasOwn(body, 'lockIn'))).toBe(true);
     expect(world.errors).toEqual([]);

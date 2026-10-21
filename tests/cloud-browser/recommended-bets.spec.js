@@ -57,7 +57,7 @@ async function openRecommended(page) {
   await page.goto('/#bets');
   await signIn(page, 'luke', { navigate: false });
   await expect(page.getByRole('heading', { name: 'Bets', level: 1, exact: true })).toBeVisible();
-  await view(page, 'Recommended').click();
+  await page.getByRole('button', { name: 'Recommended', exact: true }).click();
   await expect(page.locator('.virtual-units')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Refresh lines', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Choose league', exact: true })).toHaveCount(0);
@@ -90,6 +90,11 @@ test('a reviewed recommendation becomes one actual tracked ticket and survives r
   try {
     const calls = requests(page);
     await openRecommended(page);
+    // Returning from a remembered All weeks list must still open the exact recommendation week.
+    await view(page, 'Tracked bets').click();
+    await page.getByLabel('Competition week').selectOption('all');
+    await expect(page.getByLabel('Competition week')).toHaveValue('all');
+    await view(page, 'Recommended').click();
     const gameId = world.state.games[0].id, card = await openTotal(page, gameId);
     await card.getByRole('button', { name: 'Track this bet', exact: true }).click();
     await expect(view(page, 'Tracked bets')).toHaveAttribute('aria-pressed', 'true');
