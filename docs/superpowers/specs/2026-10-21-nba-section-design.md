@@ -2,10 +2,10 @@
 
 Owner: Sean Balsiger · Version 1 · October 21, 2026
 
-Status: proposed design for review. Sean selected **daily game board + bet
-tracking first**, with NBA competitions later. That scope is confirmed; the
-architecture and behavior below are proposed. This document does not establish
-implementation, source access, deployment or final visual approval.
+Status: approved by Sean on October 21, 2026. Sean selected **daily game board +
+bet tracking first**, then approved this design and authorized the implementation
+plan and build, retaining separate NBA bets and totals. This document does not
+establish implementation, source access, deployment or final visual approval.
 
 ## Approach
 
