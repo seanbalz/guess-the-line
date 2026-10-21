@@ -84,6 +84,29 @@ test('freshness detects overdue missing finals, absent season and refresh failur
   assert.equal(overdue.history.status, 'stale');
 });
 
+test('cached public history rechecks newly observable finals and corrected source contents', async () => {
+  let time = Date.parse('2026-10-26T11:59:59Z'), loads = 0;
+  const finalCsv = T.writeCompactCsv([...history, { ...upcoming, home_score: 24, away_score: 17 }]);
+  const provider = await getProvider({ clock: () => time, loadSchedule: async () => { loads++; return finalCsv; } });
+  assert.equal((await provider.read({ board: board() })).history.status, 'fresh');
+  time += 2000;
+  const afterNoon = await provider.read({ board: board() });
+  assert.equal(loads, 1, 'the cached source crosses the final-observation boundary');
+  assert.equal(afterNoon.history.status, 'stale');
+  assert.ok(afterNoon.history.reasons.includes('completed_source_changed'));
+
+  time = Date.parse(now); loads = 0;
+  let source = csv;
+  const refreshed = await getProvider({ clock: () => time, loadSchedule: async () => { loads++; return source; } });
+  assert.equal((await refreshed.read({ board: board() })).history.status, 'fresh');
+  source = T.writeCompactCsv([{ ...history[0], home_score: 28 }, ...history.slice(1), upcoming]);
+  time += 301000;
+  const corrected = await refreshed.read({ board: board() });
+  assert.equal(loads, 2);
+  assert.equal(corrected.history.status, 'stale');
+  assert.ok(corrected.history.reasons.includes('completed_source_changed'));
+});
+
 const feed = () => ({ version: 1, checkedAt: now, availability: { bookitwithtrent: 'available' }, entries: [{ id: 'synthetic-1', version: 1, previousRevision: null, sourceId: 'bookitwithtrent', sourceUrl: 'https://x.com/bookitwithtrent/status/123', postedAt: '2026-10-21T18:00:00Z', capturedAt: now, status: 'available', review: { primaryPost: true, reusePermitted: true, nflDependenciesComplete: true }, event: 'Synthetic event', selection: 'Synthetic original play', market: 'parlay', postedLine: null, price: null, originalTerms: 'Synthetic terms', dependencies: [{ season: 2026, week: 7, gameId: 'DAL-NYG', market: 'spread' }, { season: 2026, week: 7, gameId: 'DAL-NYG', market: 'total' }] }] });
 
 test('reviewed feeds enforce primary accounts, dates, corrections and all parlay dependencies', async () => {

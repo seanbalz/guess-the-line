@@ -7,6 +7,7 @@ import { projectReviewedSources, validateReviewedFeed } from '../shared/trends-r
 import { easternToUtc } from '../shared/nfl-schedule.mjs';
 
 const FIVE_MINUTES = 300000, BACKOFF = 60000;
+const observationBoundary = time => Math.floor((time - 43200000) / 86400000);
 const markets = ['spread', 'total'];
 const summary = r => ({ sample: r.sample, wins: r.wins, losses: r.losses, pushes: r.pushes, decisive: r.decisive, hitRate: r.hitRate, illustrativeUnits: r.illustrativeUnits,
   illustrativeLabel: r.illustrativeLabel, actualUnits: r.actualUnits, priceCoverage: r.priceCoverage, coverage: r.coverage, exclusions: r.exclusions });
@@ -62,20 +63,29 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
     })();
     return inFlight;
   }
+  function fingerprint(data, at) {
+    const boundary = observationBoundary(at);
+    if (data.fingerprint?.boundary !== boundary) {
+      const completed = data.rows.filter(r => T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= at);
+      // This memo belongs to this immutable public source fetch, never a viewer.
+      // A new fetch or noon boundary invalidates it, including pending hashes.
+      data.fingerprint = { boundary, pending: sha256(completedSourceText(completed)) };
+    }
+    return data.fingerprint.pending;
+  }
   return { async read({ board, ...request }) {
     const options = validateResearchRequest(request);
     const [data, prepared] = await Promise.all([material(), snapshot(options.period)]);
     const preparedAt = clock();
     const snapshotShape = prepared?.version === RESEARCH_VERSION && Array.isArray(prepared.candidates) && Array.isArray(prepared.targets);
-    const completed = data?.rows.filter(r => T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= preparedAt) ?? [];
-    const hashMatches = snapshotShape && data && await sha256(completedSourceText(completed)) === prepared.source.completedSha256;
+    const hashMatches = snapshotShape && data && await fingerprint(data, preparedAt) === prepared.source.completedSha256;
     // Quote age, kickoff, source visibility and snapshot eligibility all share
     // this authoritative decision time, after every asynchronous preparation.
     const decisionAt = clock(), now = new Date(decisionAt).toISOString();
     const validSnapshot = snapshotShape && Date.parse(prepared.generatedAt) <= decisionAt;
     // Results become observable at noon UTC. If hashing crossed that boundary,
     // its earlier sample cannot certify current freshness; the next read retries.
-    const observationBoundaryChanged = !!data && Math.floor((preparedAt - 43200000) / 86400000) !== Math.floor((decisionAt - 43200000) / 86400000);
+    const observationBoundaryChanged = !!data && observationBoundary(preparedAt) !== observationBoundary(decisionAt);
     const missingFinals = data?.rows.some(r => Number(r.season) === board.season && !T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= Date.parse(now)) ?? true;
     const hasSeason = data?.rows.some(r => Number(r.season) === board.season) === true;
     const fresh = !!(validSnapshot && hashMatches && !observationBoundaryChanged && !failed && hasSeason && !missingFinals && board.season === prepared.season);
@@ -101,9 +111,15 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
           if (candidate.market !== market) continue;
           const applied = applyResearchCandidate(candidate, current, corrections.rules);
           if (!applied) continue;
-          const entry = { ...candidate, ...applied };
-          // Never copy prepared period charts into grouping's recursive copies.
-          delete entry.periods; delete entry.preset;
+          // Grouping and ranking need identities, overlap and qualification,
+          // not every historical summary. Keep the full candidate only in the
+          // permitted map; cloning it per matchup otherwise multiplies memory.
+          const entry = { id: candidate.id, version: candidate.version, market,
+            family: candidate.family, dedupGroup: candidate.dedupGroup,
+            sourceState: candidate.sourceState, historicalTier: candidate.historicalTier,
+            qualification: { qualifies: candidate.qualification.qualifies },
+            matchedGameIds: candidate.matchedGameIds, coverage: { to: candidate.coverage?.to },
+            prospective: { decisive: candidate.prospective?.decisive }, ...applied };
           evidence.push(entry); permitted.set(candidate.id, candidate);
           const list = applications.get(candidate.id) ?? [];
           list.push({ gameId: game.id, direction: applied.direction, whyApplies: candidate.conditions }); applications.set(candidate.id, list);
