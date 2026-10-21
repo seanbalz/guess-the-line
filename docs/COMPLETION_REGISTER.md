@@ -62,6 +62,12 @@ Physical-iPhone/Home Screen acceptance and the separate native iOS
 deliverable remain open. This entry does not close Q03/Q04/Q17 wholesale; the
 existing sequential queue and preservation of unpublished Mini work still apply.
 
+October 21: Sean authorized a separate private NBA archive and import of the
+saved NBA ledger. The [private NBA release card](PRIVATE_NBA_STORAGE.md) records
+the additive schema, account linkage, permission boundary, idempotent import
+and data-preserving rollback. This is under local verification; hosted apply
+is pending. NBA records do not feed the NFL application or its totals.
+
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
 Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed
 source `fd97d07273c5f586772006acea5cbf548ef50aa7`. PR #155 passed all five checks
@@ -104,6 +110,21 @@ Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 The current migration registry lists only M-10 Bets reading and D-53 comparisons
 and account preferences as unhosted. The recommendation edit writer is on an
 open branch, so it is an additional future release, not an omission from main's registry.
+
+October 21 follow-up to Recommended and Bets: Sean approved percentage-based
+cross-market gaps with a 3-point minimum for small spreads, plus compact
+expandable recommendations, historical trend context and clearer Bets view
+labels. Implementation is on the separate `codex/recommended-percent-trends`
+task branch. Local verification: `npm test` passed 1,457 Node tests (including
+the local PGlite fixture) and 202 React tests, all 12 Recommended browser tests
+passed, and typecheck, standard/cloud builds, Week 7 trend reproduction and
+brand QA passed. The generated cloud frontend passed the private-state scan;
+`npm run check:cloud` could not finish because this isolated worktree lacks
+`.env.cloud`. PR/release evidence belongs to that branch; this entry does not
+claim a merge or hosted deployment. The frozen v62 tracker
+remains unchanged. A separate redacted Week 7 nflverse snapshot was generated
+for current-week context; the Week 6 input remains frozen. See
+[the design](superpowers/specs/2026-10-21-recommended-percent-trends-design.md).
 
 ## Evidence and limits
 

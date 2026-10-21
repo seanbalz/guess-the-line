@@ -4,6 +4,10 @@ Owner: Sean Balsiger · Version 1 · October 15, 2026
 
 Status: deployed October 15, 2026 as Pages `ed3fb50b` / API v24, with the additive writer applied. See the [release record](RELEASE_2026_10_15_RECOMMENDATIONS.md) for checks and live readback; physical-phone acceptance remains separate.
 
+The October 21 D-54 percentage ranking, compact rows and historical context
+are a later task branch for review. The deployment statement above describes
+the original D-48 release, not this revision.
+
 Sean requested a Recommended tab in Bets using his own Spread and Total guesses.
 He then replaced the proposed three-point cutoff with a red/yellow/green comparison,
 the top three suggestions first, and an expandable list of the other discrepancies.
@@ -14,7 +18,12 @@ This is D-48; D-47 is reserved by the weather-schedule draft.
 Compare the player's submitted (or per-game locked-in) guess with the current
 accessible named-book consensus for that game and market. Keep every positive
 gap, including gaps smaller than three points, and rank Spread and Total together
-by absolute gap. Show three initially and let the player expand the remainder.
+by percentage gap (October 21 update). Divide absolute points apart by the
+absolute current consensus line: a 5-point gap at a 50-point total equals a
+1-point gap at a 10-point spread (10%). For spreads below 3 points, including
+pick’em, use a 3-point minimum denominator and label that adjustment. A zero
+total cannot provide a percentage, so it is unavailable. Show both points and
+percentage, three initially, and let the player expand the remainder.
 This ranking does not combine the two Guess games' scores or leaderboards.
 
 Both sides have a signed advantage relative to the player's guess:
@@ -27,16 +36,18 @@ Both sides have a signed advantage relative to the player's guess:
 | Total | Under | Market total minus guessed total |
 
 A positive advantage points toward the player's perceived value. Green means
-one point or more in that direction; red means one point or more against it;
-yellow means less than one point either way or an even line. These are display
+10% or more in that direction; red means 10% or more against it;
+yellow means a smaller relative difference or an even line. These are display
 boundaries chosen for this first version, not a measured confidence scale or
 a reason to hide a smaller discrepancy. Every color has text and the actual
 signed number. Equal guesses have no suggested side.
 
 These suggestions express the player's own valuation. A guess is not a
 validated outcome model, a probability, or proof of positive expected value.
-Trends remain available in their existing game details; they do not boost this
-ranking or imply agreement with a suggestion. No new model, provider, paid
+The compact recommendation shows a historical trend when one is published for
+that game; expanded details show up to two with their record, sample, period
+and nflverse CC BY 4.0 source. A missing week or game says so. Trends do not
+boost this ranking or imply agreement with a suggestion. No new model, provider, paid
 data, collection schedule or external sportsbook connection is introduced.
 
 ## Placement and visibility
@@ -103,7 +114,7 @@ the application rollback targets.
 
 ## Verification and release
 
-The pure helper tests cover direction, thresholds, ranking and fail-closed
+The pure helper tests cover direction, relative thresholds, ranking and fail-closed
 eligibility. Fictional-account browser tests cover the top-three list, expansion,
 side labels, preparing versus placing, failure states and phone layouts in both
 themes. Existing Virtual Units, Bets, privacy, brand and broader CI checks remain

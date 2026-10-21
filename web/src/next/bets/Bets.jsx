@@ -68,8 +68,13 @@ function BetsDetail() {
     setDirty('bets', false);
     shell.setView('bets', { view: 'tracked', season: ticket.season, week: ticket.week, period: null });
   }
+  const introduction = {
+    tracked: 'Tickets you placed elsewhere, with results and history.',
+    recommended: 'Review gaps between your locked guesses and current lines.',
+    virtual: 'Choose a league and place play-money picks.',
+  };
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title">
-    <header className="gx-bets-heading"><h1 id="gx-bets-title" className="gx-t-title">{({ active: "Active tickets", settled: "Settled tickets", add: "Add a bet", recommended: "Recommended", virtual: "Virtual Units" })[destination] ?? "Tracked bets"}</h1><p className="gx-t-body gx-c-2">Track tickets you placed elsewhere, or play with Virtual Units.</p></header>
+    <header className="gx-bets-heading"><h1 id="gx-bets-title" className="gx-t-title">{({ active: "Active tickets", settled: "Settled tickets", add: "Add a bet", recommended: "Recommended", virtual: "Virtual Units" })[destination] ?? "Tracked bets"}</h1><p className="gx-t-body gx-c-2">{introduction[view]}</p></header>
     <div className="gx-bets-views" role="group" aria-label="Bets view">
       <Button icon={NotebookPen} aria-pressed={view === 'tracked'} onClick={() => choose('tracked')}>Tracked bets</Button>
       <Button icon={ListFilter} aria-pressed={view === 'recommended'} onClick={() => choose('recommended')}>Recommended</Button>
@@ -79,7 +84,7 @@ function BetsDetail() {
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Tracked bets are shared with all signed-in players, including when you select a private league. Results are player reported.</span></p>
       <DeferredScreen label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} ticketRequest={ticketRequest?.accountId === app.accountId ? ticketRequest : null} onTicketConsumed={ticketConsumed} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : view === 'recommended' ? <>
-      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={NotebookPen} size={18}/><span>Research from your submitted guesses, not validated predictions. Track a ticket you placed elsewhere, or choose play-money Virtual Units.</span></p>
+      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={NotebookPen} size={18}/><span>Compare your locked guesses with current lines. Track a ticket placed elsewhere, or play with Virtual Units.</span></p>
       <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : privateLeague ? <>
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Showing {league.name}. Your account’s Virtual Units picks are reused across your leagues.</span></p>

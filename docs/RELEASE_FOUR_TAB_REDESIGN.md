@@ -12,8 +12,11 @@ records implementation, local verification and acceptance limits.
 ## Release scope and recovery
 
 Target: frontend only, through the protected Shared production release workflow.
-The cloud handlers, shared server code and migrations are unchanged from deployed
-source `368f5d46cd036d74f9dc5c32cf572dd702d320b2`. The new frontend retains the
+The cloud handlers retain deployed source
+`368f5d46cd036d74f9dc5c32cf572dd702d320b2`. Integration with newer main includes
+PR #164's relative-gap recommendation ranking and compact trend details, plus
+PR #163's separate private NBA archive source. The archive migration is not
+applied by this frontend release. The new frontend retains the
 existing API v27 contracts, independent market gates, authenticated readers,
 explicit ticket saves and old-app recovery path. The app-default switch is unchanged.
 
@@ -71,6 +74,18 @@ All eight affected layout/accessibility cases then passed locally, covering the
 six Linux failure paths plus the wider-text regression and four-tab root flow.
 Updated light/dark fixture screenshots were inspected; hosted verification must
 pass on the new commit before merge.
+
+While those checks were pending, main advanced through PRs #163 and #164. This
+created three merge conflicts and prevented GitHub from starting the next PR
+checks. Integration preserves both completion entries, the detail-specific Bets
+heading with the newer contextual introduction, and both the All weeks return
+regression and the recommendation card's new explicit expansion. Exact integrated
+source must pass fresh CI before merge.
+The integrated four-tab/recommendation browser run passed 13/13; focused
+navigation/ranking Node tests passed 25/25 and landing/recommendation component
+tests passed 9/9. Brand QA passed. The relative-gap computation runs in the
+frontend against the existing authenticated API responses, so no API deployment
+is required for the newer recommendation presentation.
 
 ## Required deployment evidence
 

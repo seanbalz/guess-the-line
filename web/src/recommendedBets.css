@@ -8,13 +8,32 @@
 .recommended-list-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .recommended-list-heading h3 { font-size: 20px; }
 .recommended-list-heading > span, .recommended-coverage { color: var(--muted); font-size: 13px; }
-.recommended-bet-list { display: grid; gap: 16px; }
-.recommended-bet-card, .recommended-pending-review { min-width: 0; overflow: hidden; padding: 16px; }
-.recommended-card-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
-.recommended-card-heading h3 { font-size: 20px; line-height: 1.4; margin-top: 4px; }
+.recommended-bet-list { display: grid; gap: 8px; }
+.recommended-bet-card, .recommended-pending-review { min-width: 0; overflow: hidden; padding: 0; }
+.recommended-pending-review { padding: 16px; }
+.recommended-card-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; gap: 8px 12px; align-items: center; min-height: 72px; padding: 12px 16px; cursor: pointer; list-style: none; }
+.recommended-card-heading::-webkit-details-marker { display: none; }
+.recommended-card-heading:focus-visible { outline: 2px solid var(--cyan); outline-offset: -3px; }
+.recommended-card-main, .recommended-card-aside { display: grid; gap: 2px; min-width: 0; }
+.recommended-card-main > strong { color: var(--text); font-size: 16px; line-height: 22px; overflow-wrap: anywhere; }
+.recommended-card-side, .recommended-trend-summary { color: var(--muted); font-size: 13px; line-height: 18px; overflow-wrap: anywhere; }
+.recommended-card-aside { text-align: right; }
+.recommended-percent { color: var(--cyan); font-family: var(--font-mono); font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.recommended-chevron { color: var(--muted); transition: transform 160ms ease; }
+.recommended-bet-card[open] .recommended-chevron { transform: rotate(180deg); }
+.recommended-trend-summary { grid-column: 1 / -1; }
+.recommended-card-detail { padding: 0 16px 16px; border-top: 1px solid var(--border); }
+.recommended-card-detail h3 { font-size: 18px; margin-top: 16px; }
 .recommended-card-heading p, .recommended-market-label { color: var(--muted); font-size: 13px; }
 .recommended-market-label { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
-.recommended-gap { flex-shrink: 0; color: var(--cyan); font-family: var(--font-mono); font-size: 18px; font-variant-numeric: tabular-nums; }
+.recommended-gap { color: var(--muted); font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.recommended-trends { display: grid; gap: 8px; margin-top: 16px; }
+.recommended-trends h4 { font-size: 16px; }
+.recommended-trends ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.recommended-trends li { display: grid; gap: 2px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-control, 8px); }
+.recommended-trends li strong { font-size: 16px; }
+.recommended-trends li span { color: var(--muted); font-size: 13px; }
+.recommended-trends a { color: var(--cyan); }
 .recommended-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 8px; }
 .recommended-comparison > div { min-width: 0; }
 .recommended-comparison dt { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
@@ -49,7 +68,12 @@
 .recommended-saved-card li > .recommended-source { font-size: 13px; }
 .recommended-saved-result { color: var(--text); }
 @media (max-width: 520px) {
+  .recommended-card-heading { grid-template-columns: minmax(0, 1fr) auto 18px; padding-inline: 12px; }
+  .recommended-card-detail { padding-inline: 12px; }
   .recommended-action > button { width: 100%; justify-content: center; }
   .recommended-side { padding: 8px; }
   .recommended-review .virtual-side-buttons { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recommended-chevron { transition: none; }
 }
