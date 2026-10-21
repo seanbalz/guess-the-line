@@ -48,8 +48,12 @@ period, retaining at most two decoded periods. It checks the free schedule
 source on demand, with a five-minute shared source cache, request coalescing and
 one-minute retry backoff. Viewer projections are never shared or persisted.
 
-The server compares all observable completed-row content with the prepared
-fingerprint and verifies target schedule identity. The completed fingerprint is
+The server compares all observable completed-row content and all public non-quote
+schedule inputs with the prepared fingerprints, then verifies target identity.
+The schedule check includes other unplayed games because they can change a
+target's rest-day conditions. Any such change conservatively removes current
+applicability until the snapshot is refreshed; ordinary unplayed quote changes
+do not invalidate this schedule fingerprint. The completed fingerprint is
 memoized only for that public source fetch and observation day; a new fetch or
 noon boundary invalidates it. New finals, corrected
 results, missed finals, changed schedules or a failed source refresh disable
@@ -115,8 +119,8 @@ October 19. Its SHA-256 is
 `defc1a8d2e3f3818d4c6fa3bfd572edb933ca94a0dcad5ba81664e831bd1bde1`.
 The prepared catalogue has 750 fixed candidates; eight qualify before current
 matchup checks: five through retained historical gates and three through the
-new recent-consistency rule. The generated module is 2,033,638 bytes; a local
-esbuild of the complete Edge entrypoint is 2,467,927 bytes. Exact regeneration
+new recent-consistency rule. The generated module is 2,033,794 bytes; a local
+esbuild of the complete Edge entrypoint is 2,469,779 bytes. Exact regeneration
 with the recorded input and time passed `--check`.
 
 The [versioned diagnostic result](../model/trends/research-diagnostics-2026-10-21.json)
@@ -140,6 +144,29 @@ Reproduce with:
 node scripts/trends-research-diagnostics.mjs --file .local/trends-research/source.csv --now 2026-10-21T19:38:17.207Z --season 2026 --permutations 20
 ```
 
+### Local UI and build checks
+
+The shared UI was committed as `e5f942c6937081f4ef0c56a86a80bf05ff97e1ac`.
+All 33 focused React/API tests and six research browser cases passed. The five
+existing Lines browser cases also passed. Browser cases cover account/week/filter
+changes, delayed replies, focus refresh, backward client clock changes, kickoff
+and quote expiry. The final responsive table correction passed the mobile case
+again, including 320px light/dark axe, overflow and touch-target checks; both
+screenshots were inspected. Browser data is explicitly synthetic.
+
+Type checking, normal and cloud builds, the cloud frontend privacy scan and
+brand/document QA passed. Vite retained its advisory for the existing large
+legacy chunk; the browser environment also reported a NO_COLOR/FORCE_COLOR
+warning. Neither is evidence of a runtime failure or hosted acceptance.
+The full regression suite passed: 1,503 Node tests with zero skips and 213
+Vitest tests across 15 files. The whole-branch review found one schedule-dependency
+bug; a regression now
+checks that moving an unplayed predecessor invalidates the unchanged target's
+prepared rest conditions. All 58 focused tests passed after the fix, including
+the companion case where quote-only changes preserve applicability. The updated
+snapshot reproduced exactly. Independent focused re-review approved the fix;
+no blocking findings remain.
+
 ### Boundaries and acceptance
 
 The authenticated `POST /lines/research` route reads and projects the existing
@@ -152,14 +179,16 @@ The [local runtime measurements](../model/trends/research-profile-2026-10-21.jso
 use Node 24 on Windows, all 14 Week 7 games open, synthetic test references and
 no player picks or source-feed entries. They exclude network and service RPC
 latency. After reducing grouping allocations and memoizing public fingerprints,
-the response hashes remained identical across all four measured requests.
+the response hashes remained identical across all four measured requests,
+including after the schedule-dependency fix in `5abecd71d62d38c6595a0435a9a4a1f2eea07581`.
+The table records that final run; timing varies between local runs.
 
 | Request | Wall time | Process CPU | Response bytes | RSS after response serialization |
 | --- | --- | --- | --- | --- |
-| Cold last 30 | 633 ms | 562 ms | 770,338 | 183,001,088 bytes |
-| Warm last 30 | 68 ms | 63 ms | 770,338 | 210,137,088 bytes |
-| First full history | 153 ms | 173 ms | 777,914 | 254,500,864 bytes |
-| First rolling year | 87 ms | 109 ms | 768,298 | 241,876,992 bytes |
+| Cold last 30 | 211 ms | 281 ms | 770,338 | 181,596,160 bytes |
+| Warm last 30 | 24 ms | 32 ms | 770,338 | 206,598,144 bytes |
+| First full history | 59 ms | 62 ms | 777,914 | 253,292,544 bytes |
+| First rolling year | 45 ms | 62 ms | 768,298 | 240,881,664 bytes |
 
 These are sampled local measurements, not upper bounds or hosted acceptance.
 The largest sampled RSS before optimization was 296,763,392 bytes. Supabase documents a 2-second request

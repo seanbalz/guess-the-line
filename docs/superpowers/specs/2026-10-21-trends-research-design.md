@@ -2,8 +2,9 @@
 
 Owner: Sean Balsiger · Version 2 · October 21, 2026 (Pacific)
 
-Status: approved by Sean on October 21, 2026; implementation is underway in
-[the implementation plan](../plans/2026-10-21-trends-research.md). This specification
+Status: approved by Sean on October 21, 2026; implementation and local verification
+are complete in [PR #161](https://github.com/seanbalz/guess-the-lines-repo/pull/161).
+See [the implementation plan](../plans/2026-10-21-trends-research.md). This specification
 does not establish a source connection, production change, or betting-performance
 validation.
 

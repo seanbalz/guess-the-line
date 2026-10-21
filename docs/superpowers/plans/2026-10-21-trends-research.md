@@ -174,24 +174,24 @@ Files:
 - Create `tests/next-research-ui.test.jsx`; update scoped existing tests only
   when integration changes their contracts.
 
-- [ ] Hook calls existing linesApi('research'), scoped by account/week, aborts
+- [x] Hook calls existing linesApi('research'), scoped by account/week, aborts
   old requests and drops stale results after account/market/week changes.
-- [ ] Add Trends access from Lines board and inside each matchup, without
+- [x] Add Trends access from Lines board and inside each matchup, without
   restructuring navigation owned by other worktrees.
-- [ ] This week shows at most3 consistent cards with chart, date/sample, label,
+- [x] This week shows at most3 consistent cards with chart, date/sample, label,
   why applicable; same shared projection powers matchup detail and Explore.
-- [ ] Explore has period, market, team and supported situation/family filters;
+- [x] Explore has period, market, team and supported situation/family filters;
   emerging is easy to select. Defaults recent30. Show actual data date range.
-- [ ] Detail expands full evidence including yellow alternatives and overlap,
+- [x] Detail expands full evidence including yellow alternatives and overlap,
   uncertainty reasons, modeled chart with zero baseline and accessible table,
   retrospective/prospective and price coverage. No fabricated confidence.
-- [ ] Show expected market guess, saved line and accessible current line in
+- [x] Show expected market guess, saved line and accessible current line in
   separate labelled rows. Explain the gap without treating it as a bet signal.
-- [ ] Separate Trent section shows original plays/source state, revisions,
+- [x] Separate Trent section shows original plays/source state, revisions,
   source URL/time/terms when open. Never fabricate empty feed contents.
-- [ ] Use existing tokens/components and lazy detail chart; empty/error/closed/
+- [x] Use existing tokens/components and lazy detail chart; empty/error/closed/
   stale/loading states readable and accessible.
-- [ ] Run focused React tests including weekly/matchup consistency, hidden
+- [x] Run focused React tests including weekly/matchup consistency, hidden
   market content, alternatives, period selection and async race protection.
   Commit named files; report RED/GREEN evidence.
 
@@ -205,11 +205,11 @@ Files: scoped fixes from review, `docs/TRENDS_RESEARCH.md`,
   It is a false-discovery diagnostic, not betting-performance validation.
 - [x] Attempt a free source refresh and record actual coverage or explicit
   unavailable/stale state. Never invent current results to populate the UI.
-- [ ] Run focused privacy/line/boundary tests, full npm test, typecheck/build,
+- [x] Run focused privacy/line/boundary tests, full npm test, typecheck/build,
   brand QA and relevant browser checks (320px, dark/light, key states).
-- [ ] Have task reviewers verify each implementation and a fresh broad reviewer
+- [x] Have task reviewers verify each implementation and a fresh broad reviewer
   check the complete branch. Fix material findings and recheck changed behavior.
-- [ ] Document configuration, data refresh, reviewed-feed workflow, rollback
+- [x] Document configuration, data refresh, reviewed-feed workflow, rollback
   feature switch, unconnected sources, tests and hosted/real-phone limits.
 - [ ] Update PR #161 title/body for final behavior and evidence; push and run
   sync:check. Report full commit, PR and unpublished work. No deployment inferred.
@@ -237,3 +237,21 @@ Files: scoped fixes from review, `docs/TRENDS_RESEARCH.md`,
 - Offline replay/null diagnostics completed against the recorded October 21
   source: three recent-rule qualifiers versus 5.65 average in 20 null runs.
   Results and limits are preserved in model/trends/research-diagnostics-2026-10-21.json.
+
+- Task 3: commit e5f942c6937081f4ef0c56a86a80bf05ff97e1ac; 33 focused React/API
+  tests and all six research browser cases passed. The five existing Lines browser
+  cases passed in the combined run. A final phone-layout correction passed the
+  visual case again, including 320px light/dark axe and touch-target checks.
+  Both screenshots were inspected. Independent task review approved with no
+  blocking findings; only existing build/environment warnings were noted.
+- Final integration baseline: npm test passed 1,503 Node tests (zero skips) and
+  213 Vitest tests. Typecheck, normal/cloud builds, cloud frontend privacy scan,
+  brand QA and the complete Edge entrypoint bundle check passed. Existing Vite
+  large-chunk and browser color-environment advisories remain documented.
+- Whole-branch review found one schedule-dependency bug: a rescheduled unplayed
+  predecessor could leave the target's prepared rest conditions marked known.
+  Commit 5abecd71d62d38c6595a0435a9a4a1f2eea07581 adds a public non-quote schedule
+  fingerprint and regression. The exact case failed before the fix; 58 focused
+  tests passed afterward. The regenerated artifact matched --check, and the final
+  four runtime response hashes stayed unchanged. Focused re-review approved the
+  fix with no outstanding blocking findings.

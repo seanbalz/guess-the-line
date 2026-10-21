@@ -35,13 +35,16 @@ markets, and an explicit research lean with supporting/conflicting evidence or
 has a separate original-play section; the other named accounts are trend research
 references. Sean approved the [design](superpowers/specs/2026-10-21-trends-research-design.md)
 and authorized the [implementation plan](superpowers/plans/2026-10-21-trends-research.md).
-The pure evaluator, authenticated reader and prepared historical snapshot are
-implemented in PR #161 and passed independent task reviews. Runtime timing and
-allocation follow-ups preserve privacy and freshness boundaries. The
-[research record](TRENDS_RESEARCH.md) contains source provenance, replay/null
-diagnostics, publication instructions and local performance limits. The UI is
-in progress. No migration or deployment is
-established. The existing sequential queue and other worktrees remain intact.
+The evaluator, authenticated reader, prepared historical snapshot and shared
+weekly/matchup UI are implemented in [PR #161](https://github.com/seanbalz/guess-the-lines-repo/pull/161)
+and passed independent task reviews. Runtime timing and allocation follow-ups
+preserve privacy and freshness boundaries. The [research record](TRENDS_RESEARCH.md)
+contains source provenance, replay/null diagnostics, publication instructions,
+local browser/build checks and performance limits. The full suite passed
+(1,503 Node and 213 Vitest tests; zero skips), with 58 focused tests after the
+final schedule-dependency fix. Whole-branch review approved with no outstanding
+blocking findings. No migration or deployment is established. The existing
+sequential queue and other worktrees remain intact.
 Sean's follow-up permits qualifying opposing groups alongside a main lean:
 show the opposing case as a yellow alternative, not automatically red/bad or
 an automatic No clear lean. Design version 2 preserves the opposition and
