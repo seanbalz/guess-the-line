@@ -93,7 +93,12 @@ RotoBot, ParlayScience, Fatboss, TrendsCenter and BettingPros are research
 references. Their posts are source-reported claims, never extra votes in a
 computed lean. Book It With Trent is its own section showing original plays.
 There is no automatic fade, fabricated play or claimed source profitability.
-No live X connection is configured by this implementation.
+The first dated, manually reviewed feed was configured in production on October
+21 at 21:00 UTC. It uses attributed factual summaries and original selection
+terms; no source images or full post text are republished. Automatic X collection
+remains off. The API/UI release and acceptance are tracked in the
+[release card](TRENDS_RESEARCH_RELEASE.md). Accounts without a usable reviewed
+entry show an explicit empty state, not invented selections.
 
 An operator may supply `GTL_RESEARCH_REVIEWED_FEED` as server-only JSON through
 the existing release configuration workflow. Validate the ignored local file

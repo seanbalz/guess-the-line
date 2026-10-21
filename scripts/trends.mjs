@@ -2,6 +2,7 @@
 // Usage:
 //   node scripts/trends.mjs --season 2026 --week 7 [--file games.csv] [--allow-pending]
 //   node scripts/trends.mjs --season 2026 --week 7 --reuse-season-file --referees refs.json   (mid-week referee rerun)
+//   node scripts/trends.mjs --season 2026 --week 7 --season-file shared/trends/season-2026-week-07.csv
 //   node scripts/trends.mjs --season 2026 --week 7 --reuse-season-file --check                (verify committed files)
 // Without --file it downloads the nflverse schedule release (CC BY 4.0). Unplayed games lose every
 // line, odds, weather and referee field before anything is written or evaluated.
@@ -14,13 +15,16 @@ import { easternToUtc } from '../shared/nfl-schedule.mjs';
 const { values } = parseArgs({ options: {
   season: { type: 'string' }, week: { type: 'string' }, file: { type: 'string' }, origin: { type: 'string' },
   referees: { type: 'string' }, 'allow-pending': { type: 'boolean', default: false }, check: { type: 'boolean', default: false },
-  'reuse-season-file': { type: 'boolean', default: false }, retrieved: { type: 'string' },
+  'reuse-season-file': { type: 'boolean', default: false }, 'season-file': { type: 'string' }, retrieved: { type: 'string' },
 } });
 const season = Number(values.season), week = Number(values.week);
 if (!Number.isInteger(season) || !Number.isInteger(week) || week < 1 || week > 25) throw new Error('Pass --season and --week.');
 const sha = data => createHash('sha256').update(data).digest('hex');
 const historyFile = `shared/trends/history-${PERIODS.warmupFirst}-${season - 1}.csv`;
-const seasonFile = `shared/trends/season-${season}.csv`;
+const seasonFile = values['season-file'] ?? `shared/trends/season-${season}.csv`;
+if (!new RegExp(`^shared/trends/season-${season}(?:-week-\\d{2})?\\.csv$`).test(seasonFile)) {
+  throw new Error('Season file must be this season’s shared/trends snapshot.');
+}
 const weekFile = `shared/trends/${season}-week-${String(week).padStart(2, '0')}.json`;
 const loaderFile = 'web/src/trendWeeks.generated.js';
 if (!existsSync(historyFile)) throw new Error(`${historyFile} is missing; cut it with node scripts/trends-history.mjs --through ${season - 1}.`);

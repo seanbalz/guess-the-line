@@ -92,7 +92,13 @@ test('the rollback convention: each file names a migration, restores exactly the
     assert.ok(!FIX_FORWARD.includes(version(file)), `${file} is listed as fix-forward`);
     const { problems, replaced } = review(path.join(MIGRATIONS_DIR, file), fs.readFileSync(path.join(ROLLBACK_DIR, file), 'utf8'));
     assert.deepEqual(problems, []);
-    assert.ok(replaced.size > 0, `${file} replaces no function, so it needs no rollback (an off switch covers new tables)`);
+    if (!replaced.size) {
+      const migration = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
+      const statements = topLevel(fs.readFileSync(path.join(ROLLBACK_DIR, file), 'utf8')).split(';').map(s => s.trim()).filter(Boolean);
+      assert.match(migration, /create table (?:if not exists )?/i, `${file}: a permission off switch must accompany new tables`);
+      assert.equal(parseFunctions(migration).length, 0, `${file}: table-only off switches define no functions`);
+      assert.ok(statements.length > 0 && statements.every(s => /^revoke\b/i.test(s)), `${file}: an off switch may only revoke access, never grant or delete`);
+    }
   }
   // From stage 3 on, a migration that replaces a function ships with its rollback, unless it is fix-forward.
   for (const { file, functions } of catalog(readMigrations()).files) {

@@ -12,6 +12,15 @@ test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never 
 
 const view = (page, name) => page.getByRole('group', { name: 'Bets view' }).getByRole('button', { name, exact: true });
 const cards = page => page.locator('.recommended-bet-card');
+async function openTotal(page, gameId) {
+  const card = page.locator(`.recommended-bet-card[data-game-id="${gameId}"][data-market="total"]`);
+  if (await card.count() === 0) await page.getByRole('button', { name: /Show all/i }).click();
+  await card.locator('summary').click();
+  return card;
+}
+async function playTotal(page, world) {
+  await (await openTotal(page, world.state.games[0].id)).getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+}
 function requests(page) {
   const calls = [];
   page.on('request', request => {
@@ -81,7 +90,7 @@ test('a reviewed recommendation becomes one actual tracked ticket and survives r
   try {
     const calls = requests(page);
     await openRecommended(page);
-    const card = cards(page).first(), gameId = await card.getAttribute('data-game-id');
+    const gameId = world.state.games[0].id, card = await openTotal(page, gameId);
     await card.getByRole('button', { name: 'Track this bet', exact: true }).click();
     await expect(view(page, 'Tracked bets')).toHaveAttribute('aria-pressed', 'true');
     const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
@@ -118,7 +127,7 @@ test('cancelling a recommendation review writes neither a tracked ticket nor a v
   try {
     const calls = requests(page);
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Track this bet', exact: true }).click();
+    await (await openTotal(page, world.state.games[0].id)).getByRole('button', { name: 'Track this bet', exact: true }).click();
     const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
     await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(editor).toHaveCount(0);
@@ -134,7 +143,7 @@ test('recommendation ticket recovery keeps its original week and does not duplic
   try {
     const calls = requests(page), week = world.state.league.week;
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Track this bet', exact: true }).click();
+    await (await openTotal(page, world.state.games[0].id)).getByRole('button', { name: 'Track this bet', exact: true }).click();
     const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
     await expect(editor).toBeVisible();
     await publishNextWeek(world);
@@ -170,13 +179,13 @@ test('saved guesses rank the top three; expanding retains small gaps and both si
     const calls = requests(page);
     await openRecommended(page);
     await expect(cards(page)).toHaveCount(3);
-    await expect(cards(page).nth(0)).toContainText('10.5');
-    await expect(cards(page).nth(1)).toContainText('6.5');
-    await expect(cards(page).nth(2)).toContainText('4.5');
-    await expect(cards(page).nth(0)).toContainText('Over');
-    await expect(cards(page).nth(0)).toContainText('Under');
-    await expect(cards(page).nth(0).locator('[data-side="over"][data-value-color="green"]')).toContainText('Favorable');
-    await expect(cards(page).nth(0).locator('[data-side="under"][data-value-color="red"]')).toContainText('Against your guess');
+    await expect(cards(page).nth(0).locator('summary')).toContainText('185.7% gap');
+    await expect(cards(page).nth(0).locator('summary')).toContainText('6.5 pt gap');
+    await expect(cards(page).nth(1).locator('summary')).toContainText('100.0% gap');
+    await expect(cards(page).nth(2).locator('summary')).toContainText('42.9% gap');
+    await cards(page).first().locator('summary').click();
+    await expect(cards(page).first().locator('[data-side="home"][data-value-color="green"]')).toContainText('Favorable');
+    await expect(cards(page).first().locator('[data-side="away"][data-value-color="red"]')).toContainText('Against your guess');
     expect(placements(calls)).toEqual([]);
     expect(await picksCount(world)).toBe(0);
     await page.screenshot({ path: '.local/previews/recommended-bets-top3-dark-390.png', fullPage: true });
@@ -185,7 +194,7 @@ test('saved guesses rank the top three; expanding retains small gaps and both si
     await expect(cards(page)).toHaveCount(7);
     await expect(cards(page).last().locator('[data-value-color="yellow"]')).toHaveCount(2);
     await expect(cards(page).last()).toContainText('Small gap');
-    await expect(cards(page).last()).toContainText('0.5 pt gap');
+    await expect(cards(page).last().locator('summary')).toContainText('1.5 pt gap');
     expect(calls.filter(call => call.path === 'bets/recommendations').at(-1)?.body).toEqual({});
     expect(calls.some(call => call.path.startsWith('odds/') || call.path === 'virtual-units' || call.path === 'virtual-pick')).toBe(false);
 
@@ -212,7 +221,7 @@ test('Add to card only prepares the retained quote; explicit placement saves one
     const firstGame = world.state.games[0];
     await openRecommended(page);
     await expect(cards(page)).toHaveCount(3);
-    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+    await playTotal(page, world);
     await expect(page.getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
     expect(placements(calls)).toEqual([]);
     expect(await picksCount(world)).toBe(0);
@@ -226,10 +235,10 @@ test('Add to card only prepares the retained quote; explicit placement saves one
       source: 'betmgm', quotedAt: world.observedAt,
     } });
     await expect.poll(() => picksCount(world)).toBe(1);
-    await expect(cards(page).first()).toContainText(/Virtual pick saved|On your card|Already saved/);
-    await expect(cards(page).first().getByRole('button', { name: 'Virtual pick saved', exact: true })).toBeDisabled();
+    await expect(page.locator(`.recommended-bet-card[data-game-id="${firstGame.id}"][data-market="total"]`)).toContainText(/Virtual pick saved|On your card|Already saved/);
+    await expect(page.locator(`.recommended-bet-card[data-game-id="${firstGame.id}"][data-market="total"]`).getByRole('button', { name: 'Virtual pick saved', exact: true })).toBeDisabled();
     await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
-    await expect(cards(page)).toHaveCount(3);
+    await expect(cards(page)).toHaveCount(7);
     expect(placements(calls)).toHaveLength(1);
     expect(await picksCount(world)).toBe(1);
     expect(world.errors).toEqual([]);
@@ -282,12 +291,15 @@ test('a failed recommendation read is explicit and retry plus Refresh lines uses
     reject = false;
     await page.getByRole('alert').getByRole('button', { name: /Try again|Retry/i }).click();
     await expect(cards(page)).toHaveCount(3);
-    await expect(cards(page).first()).toContainText('10.5');
+    await page.getByRole('button', { name: /Show all/i }).click();
+    const totalCard = page.locator(`.recommended-bet-card[data-game-id="${world.state.games[0].id}"][data-market="total"]`);
+    await expect(totalCard.locator('summary')).toContainText('10.5 pt gap');
     await storeBookLines(world, { ...world.lines, total: Object.fromEntries(world.state.games.map(game => [game.id, 46.5])) }, { capturedAt: Date.now() - 5000 });
     await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
-    await expect(cards(page)).toHaveCount(3);
-    await expect(cards(page).first()).toContainText('8.5');
-    await expect(cards(page).first()).toContainText('46.5');
+    await expect(totalCard).toBeVisible();
+    await expect(totalCard.locator('summary')).toContainText('8.5 pt gap');
+    await totalCard.locator('summary').click();
+    await expect(totalCard).toContainText('46.5');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -317,7 +329,7 @@ test('Community recommendations use the current published week when the private 
     await openRecommended(page);
     await expect(cards(page)).toHaveCount(3);
     await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText(`Week ${next}`);
-    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+    await playTotal(page, world);
     await page.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
     await expect.poll(() => picksCount(world)).toBe(1);
     expect(placements(calls)).toHaveLength(1);
@@ -336,7 +348,7 @@ test('a lost successful recommendation reply is confirmed by its exact saved sou
   try {
     const calls = requests(page);
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+    await playTotal(page, world);
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/gtl-api/bets/recommendations/place'), async route => {
       const req = route.request();
       const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
@@ -365,7 +377,7 @@ test('a pending review retains the chosen terms at kickoff and offers no placeme
   try {
     const calls = requests(page);
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+    await playTotal(page, world);
     await page.getByRole('button', { name: '2U', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
     await moveBrowserPastKickoff(page, world.state.games[0]);
@@ -386,7 +398,7 @@ test('a saved virtual pick stays visible when its difference disappears and afte
   try {
     const calls = requests(page), first = world.state.games[0];
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+    await playTotal(page, world);
     await page.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
     const saved = page.getByRole('region', { name: 'Your virtual card', exact: true });
     await expect(saved).toContainText('Over 44.5 (−110) · 1U');
@@ -410,7 +422,7 @@ test('the week selector keeps the player’s older saved card readable after Com
   try {
     const calls = requests(page), { season, week } = world.state.league;
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+    await playTotal(page, world);
     await page.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Your virtual card', exact: true })).toContainText('BetMGM');
     const next = await publishNextWeek(world);
