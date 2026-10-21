@@ -74,7 +74,7 @@ test('public reader bounds streams and passes no service headers to the permitte
  const reader = createSeasonReader({ fetchImpl: async (url, opts) => { assert.equal(url,T.TRENDS_SOURCE.url); options = opts; return new Response('x'.repeat(32), { headers: { 'content-length': String(MAX_SOURCE_BYTES + 1) } }); } });
  await assert.rejects(reader(), /size/i);
  assert.equal(options.headers, undefined);
- assert.equal(options.redirect, 'error');
+ assert.equal(options.redirect, 'manual');
 });
 
 
@@ -101,8 +101,8 @@ test('hosted loader TTL, unavailable fallback and auth refusals keep the documen
   readHosted:async()=>{calls++; if(status)throw Object.assign(new Error('refused'),{status});return weekData;} });
  await Promise.all([loader.load(2026,6),loader.load(2026,6)]); assert.equal(calls,1);assert.equal(loads,0);
  now+=300001;status=503;const fallback=await loader.load(2026,6);assert.equal(fallback.availability.stale,true);assert.equal(fallback.availability.sourceAsOf,'2026-10-11');
- for(const denial of [401,403]){ loader.clear();status=denial;await assert.rejects(loader.load(2026,6),{status:denial});assert.equal(loads,1); }
- loader.clear();status=0;await loader.load(2026,6);assert.equal(calls,5);
+ for(const denial of [400,401,403]){ loader.clear();status=denial;await assert.rejects(loader.load(2026,6),{status:denial});assert.equal(loads,1); }
+ loader.clear();status=0;await loader.load(2026,6);assert.equal(calls,6);
 });
 
 
@@ -125,4 +125,67 @@ test('published kickoff drives target game facts and stale refresh retains dated
  assert.equal(stale.availability.stale,true);assert.equal(stale.availability.generatedAt,first.availability.generatedAt);
  assert.equal(stale.availability.sourceAsOf,first.availability.sourceAsOf);
  assert.ok(stale.availability.sourceAgeMs>first.availability.sourceAgeMs);
+});
+
+test('auth epoch clears an in-flight week before a new account reads it', async () => {
+ const { createTrendWeekLoader } = await loadersModule();
+ let calls = 0, staticLoads = 0, oldResolve, newResolve;
+ const loader = createTrendWeekLoader({ cloud: true, now: () => 1000,
+  staticWeeks: { '2026-6': async () => { staticLoads++; return { default: {} }; } },
+  readHosted: () => new Promise(resolve => { if (++calls === 1) oldResolve = resolve; else newResolve = resolve; }) });
+ const oldRead = loader.load(2026, 6);
+ await Promise.resolve();
+ loader.clear();
+ const newRead = loader.load(2026, 6);
+ await Promise.resolve();
+ const currentWeek = { season: 2026, week: 6, marker: 'current account' };
+ newResolve(currentWeek);
+ assert.equal(await newRead, currentWeek);
+ const refused = assert.rejects(oldRead, { status: 401 });
+ oldResolve({ season: 2026, week: 6, marker: 'previous account' });
+ await refused;
+ assert.equal(await loader.load(2026, 6), currentWeek);
+ assert.equal(calls, 2);
+ assert.equal(staticLoads, 0);
+});
+
+test('public reader follows only bounded HTTPS GitHub asset redirects without credentials', async () => {
+ const { createSeasonReader } = await cloudModule();
+ const calls = [];
+ const asset = 'https://release-assets.githubusercontent.com/github-production-release-asset/fixture/games.csv';
+ const reader = createSeasonReader({ fetchImpl: async (url, options) => {
+  calls.push({ url, options });
+  return calls.length === 1 ? new Response(null, { status: 302, headers: { location: asset } }) : new Response('public csv');
+ } });
+ assert.equal(await reader(), 'public csv');
+ assert.deepEqual(calls.map(c => c.url), [T.TRENDS_SOURCE.url, asset]);
+ for (const { options } of calls) {
+  assert.equal(options.redirect, 'manual');
+  assert.equal(options.credentials, 'omit');
+  assert.equal(options.headers, undefined);
+  assert.equal(options.signal, calls[0].options.signal);
+ }
+});
+test('public reader refuses unapproved redirect destinations and redirect loops', async () => {
+ const { createSeasonReader } = await cloudModule();
+ for (const location of ['https://example.invalid/games.csv', 'http://release-assets.githubusercontent.com/x', 'https://user:pass@release-assets.githubusercontent.com/x', 'https://release-assets.githubusercontent.com:444/x']) {
+  let calls = 0;
+  const reader = createSeasonReader({ fetchImpl: async () => { calls++; return new Response(null, { status: 302, headers: { location } }); } });
+  await assert.rejects(reader(), /redirect/i);
+  assert.equal(calls, 1);
+ }
+ let calls = 0;
+ const reader = createSeasonReader({ fetchImpl: async () => { calls++; return new Response(null, { status: 302, headers: { location: T.TRENDS_SOURCE.url } }); } });
+ await assert.rejects(reader(), /redirect/i);
+ assert.equal(calls, 4, 'initial request plus at most three followed redirects');
+});
+test('public reader keeps the streaming byte cap after an allowed redirect', async () => {
+ const { createSeasonReader, MAX_SOURCE_BYTES } = await cloudModule();
+ let calls = 0, canceled = false;
+ const reader = createSeasonReader({ fetchImpl: async () => ++calls === 1
+  ? new Response(null, { status: 307, headers: { location: 'https://release-assets.githubusercontent.com/fixture' } })
+  : new Response(new ReadableStream({ pull(controller) { controller.enqueue(new Uint8Array(MAX_SOURCE_BYTES)); }, cancel() { canceled = true; } }))
+ });
+ await assert.rejects(reader(), /size/i);
+ assert.equal(canceled, true);
 });

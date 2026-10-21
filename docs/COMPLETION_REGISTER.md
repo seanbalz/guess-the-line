@@ -8,6 +8,10 @@ and local work; Q01 merged as PR #152; the authorized weekly-results repair take
 preserved as an [archived snapshot](COMPLETION_REGISTER_ARCHIVE_2026_10_19.md),
 not a current deployment ledger. The frozen v62 tracker is unchanged.
 
+## Active priority — weekly and player Trends, October 21
+
+Sean approved week-opening publication, a Trends tab with This Week / Teams / Players, recent and longer history, and player guess-versus-market outcome evidence. Work is isolated on `codex/weekly-player-trends` from `origin/main` at `368f5d4`; other checkouts and unpublished work are preserved. See the [approved design](superpowers/specs/2026-10-21-weekly-player-trends-design.md) and [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md) for implementation and verification state. No migration or hosted deployment is part of this implementation handoff. Private-league player history retains the separately staged D-53 comparison-reader dependency.
+
 ## Verified delivery
 
 - Core per-game locking, immediate personal points, receipts and weekly score

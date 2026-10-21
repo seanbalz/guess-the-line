@@ -9,11 +9,24 @@ export class TrendsError extends Error {
 }
 const TTL = 5 * 60_000, RETRY = 60_000, MAX_CACHE = 4;
 export const MAX_SOURCE_BYTES = 5_000_000;
-/** Bounded public request: no credentials, redirects or provider error bodies. */
+/** Bounded public request: only HTTPS GitHub asset redirects, no credentials or provider error bodies. */
 export function createSeasonReader({ fetchImpl = fetch } = {}) {
  return async () => {
-  const response = await fetchImpl(TRENDS_SOURCE.url, { redirect: 'error', signal: AbortSignal.timeout(10_000) });
-  if (!response.ok) throw new Error('Public schedule unavailable.');
+  const signal = AbortSignal.timeout(10_000);
+  const origins = new Set(['https://github.com', 'https://release-assets.githubusercontent.com']);
+  let url = TRENDS_SOURCE.url, response;
+  for (let redirects = 0; ; redirects++) {
+   response = await fetchImpl(url, { redirect: 'manual', credentials: 'omit', signal });
+   if (![301, 302, 303, 307, 308].includes(response.status)) break;
+   await response.body?.cancel();
+   if (redirects >= 3) throw new Error('Public schedule redirect limit exceeded.');
+   const location = response.headers.get('location');
+   let target;
+   try { target = location ? new URL(location, url) : null; } catch { /* Refuse malformed locations below. */ }
+   if (!target || !origins.has(target.origin) || target.username || target.password) throw new Error('Public schedule redirect refused.');
+   url = target.href;
+  }
+  if (!response.ok) { await response.body?.cancel(); throw new Error('Public schedule unavailable.'); }
   if (Number(response.headers.get('content-length')) > MAX_SOURCE_BYTES) { await response.body?.cancel(); throw new Error('Public schedule size exceeded.'); }
   if (!response.body) throw new Error('Public schedule unavailable.');
   const reader = response.body.getReader(), chunks = []; let size = 0;

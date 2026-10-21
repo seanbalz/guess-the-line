@@ -308,14 +308,14 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   const bets = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market'];
   const comparisonPreferences = ['gtl_read_score_comparison','gtl_read_account_preferences','gtl_save_account_preferences'];
   // D-48 recommendations writer and routes are hosted since October 15, 2026.
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/bets/read', 'gtl-api/league/comparison', 'gtl-api/me/preferences', 'gtl-api/me/preferences/save', ...[...referees, ...winds, ...bets, ...comparisonPreferences].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/bets/read', 'gtl-api/league/comparison', 'gtl-api/me/preferences', 'gtl-api/me/preferences/save', 'gtl-api/trends/week', ...[...referees, ...winds, ...bets, ...comparisonPreferences].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
   const missing = async (url, request) => ([...referees, ...winds, ...bets, ...comparisonPreferences].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|bets\/read|league\/comparison|me\/preferences(?:\/save)?)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|bets\/read|league\/comparison|me\/preferences(?:\/save)?|trends\/week)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + winds.length + bets.length + comparisonPreferences.length + 7 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + bets.length + comparisonPreferences.length + 8 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 
@@ -354,4 +354,24 @@ test('D-28 push tables, RPCs, API routes and the reminder worker are probed anon
     assert.deepEqual(captured.filter(({ url }) => url.endsWith(`/functions/v1/gtl-api/${route}`)).map(({ request }) => request.headers.Authorization), [undefined, 'Bearer invalid-test-token'], route);
   }
   assert.deepEqual(captured.filter(({ url }) => url.endsWith('/functions/v1/gtl-push-reminders')).map(({ request }) => request.headers.Authorization), [undefined, `Bearer ${'0'.repeat(64)}`]);
+});
+
+test('weekly trends probes require authentication and explicitly distinguish an undeployed route', async () => {
+  const captured = [];
+  await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => {
+    if (url.endsWith('/functions/v1/gtl-api/trends/week')) captured.push(request);
+    return denied(url, request);
+  } });
+  assert.equal(captured.length, 2);
+  assert.deepEqual(captured.map(request => request.headers.Authorization), [undefined, 'Bearer invalid-test-token']);
+  for (const request of captured) assert.deepEqual(JSON.parse(request.body), { season: 2026, week: 6 });
+  const missing = async (url, request) => url.endsWith('/functions/v1/gtl-api/trends/week')
+    ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request);
+  const pending = await checkCloudBoundary({ ...options, fetchImpl: missing });
+  assert.equal(pending.awaiting.length, 2);
+  await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: missing, strict: true }), /trends\/week.*unexpected 404/);
+  await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: async (url, request) =>
+    url.endsWith('/functions/v1/gtl-api/trends/week')
+      ? new Response(JSON.stringify({ games: [] }), { status: 200 }) : denied(url, request)
+  }), /trends\/week.*unexpected 200/);
 });
