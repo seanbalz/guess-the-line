@@ -70,6 +70,21 @@ The current migration registry lists only M-10 Bets reading and D-53 comparisons
 and account preferences as unhosted. The recommendation edit writer is on an
 open branch, so it is an additional future release, not an omission from main's registry.
 
+October 21 follow-up to Recommended and Bets: Sean approved percentage-based
+cross-market gaps with a 3-point minimum for small spreads, plus compact
+expandable recommendations, historical trend context and clearer Bets view
+labels. Implementation is on the separate `codex/recommended-percent-trends`
+task branch. Local verification: `npm test` passed 1,457 Node tests (including
+the local PGlite fixture) and 202 React tests, all 12 Recommended browser tests
+passed, and typecheck, standard/cloud builds, Week 7 trend reproduction and
+brand QA passed. The generated cloud frontend passed the private-state scan;
+`npm run check:cloud` could not finish because this isolated worktree lacks
+`.env.cloud`. PR/release evidence belongs to that branch; this entry does not
+claim a merge or hosted deployment. The frozen v62 tracker
+remains unchanged. A separate redacted Week 7 nflverse snapshot was generated
+for current-week context; the Week 6 input remains frozen. See
+[the design](superpowers/specs/2026-10-21-recommended-percent-trends-design.md).
+
 ## Evidence and limits
 
 The queue records all six open PR dispositions, old issue triage and local-work

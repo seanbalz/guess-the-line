@@ -2,6 +2,16 @@
 
 Owner: Sean Balsiger · Version 1 · Updated 2026-10-14 · Ruling of October 12, 2026, D-32 in [DECISIONS.md](DECISIONS.md)
 
+October 21 source update: Week 7 is generated from the free nflverse schedule
+release in `shared/trends/2026-week-07.json` and the redacted, retained input
+`shared/trends/season-2026-week-07.csv`. The older
+`shared/trends/season-2026.csv` remains the frozen Week 6 input. The new
+`--season-file` option in `scripts/trends.mjs` records the dated source path
+and hash in each new week output. Reproduce Week 7 with
+`node scripts/trends.mjs --season 2026 --week 7 --reuse-season-file --season-file shared/trends/season-2026-week-07.csv --check`.
+Recommended displays at most two matching-market historical cards as context;
+it does not use trends to rank or qualify a bet.
+
 Trend cards show how NFL games in a given situation went against the line in the past. They sit next to each game on the Community Picks tab, on the group ballot and in the dashboard's game detail. **They are reference only: they never change GTL scoring, and they are not betting recommendations.**
 
 ## What Sean asked for

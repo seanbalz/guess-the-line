@@ -50,7 +50,7 @@ test('totals select Over above the median and Under below, never the saved scori
   assert.equal(under.evaluations.over.advantage, -3);
 });
 
-test('both-side traffic lights turn green/red at one point; smaller signed gaps remain yellow', () => {
+test('both-side traffic lights use ten percent of the market line', () => {
   for (const [gap, positive, negative] of [[0.25, 'yellow', 'yellow'], [0.5, 'yellow', 'yellow'], [1, 'green', 'red'], [3, 'green', 'red']]) {
     const result = row(fixture({ guess: -7, spreadLine: -7 + gap }));
     assert.equal(result.evaluations.home.color, positive);
@@ -60,14 +60,45 @@ test('both-side traffic lights turn green/red at one point; smaller signed gaps 
   }
 });
 
-test('spread and total sort together descending with deterministic ties and no top-three truncation', () => {
+test('equal relative spread and total gaps have equal rank strength and guidance', () => {
+  const input = fixture({ guess: -11, spreadLine: -10, total: 55, totalLine: 50 });
+  const result = buildRecommendations(input);
+  assert.equal(result.rows.length, 2);
+  for (const item of result.rows) {
+    assert.equal(item.gapPercent, 10);
+    assert.equal(item.evaluations[item.side].color, 'green');
+  }
+  assert.equal(row(input, 'spread').denominator, 10);
+  assert.equal(row(input, 'total').denominator, 50);
+});
+
+test('percentage sorts cross-market differences ahead of larger raw-point gaps', () => {
+  const input = fixture({ guess: -12, spreadLine: -10, total: 55, totalLine: 50 });
+  assert.deepEqual(buildRecommendations(input).rows.map(item => item.market), ['spread', 'total']);
+  assert.equal(row(input, 'spread').gapPercent, 20);
+  assert.equal(row(input, 'total').gapPercent, 10);
+});
+
+test('pick’em and short spreads use the approved three-point denominator', () => {
+  for (const spreadLine of [0, -0.5, 0.5, -2.5]) {
+    const input = fixture({ guess: spreadLine + 0.5, spreadLine });
+    const result = row(input);
+    assert.equal(result.denominator, 3);
+    assert.equal(result.gapPercent, 100 / 6);
+    assert.equal(result.evaluations[result.side].color, 'green');
+  }
+  const input = fixture({ totalLine: 0, total: 5 });
+  assert.equal(row(input, 'total'), undefined);
+});
+
+test('spread and total sort together by relative gap with deterministic ties and no top-three truncation', () => {
   const input = fixture();
   const other = { ...input.virtual.games[0], id: 'KC-DEN', homeCode: 'DEN', awayCode: 'KC', home: 'Denver Broncos', away: 'Kansas City Chiefs' };
   input.virtual.games.push(other);
   input.personal.games.push(other);
   input.personal.ballots.guess_spread.picks[other.id] = -10;
   input.personal.ballots.guess_total.picks[other.id] = 47.5;
-  assert.deepEqual(buildRecommendations(input).rows.map(item => [item.key, item.gap]), [['KC-DEN:spread', 6.5], ['NYJ-BUF:total', 3.5], ['KC-DEN:total', 3], ['NYJ-BUF:spread', 3]]);
+  assert.deepEqual(buildRecommendations(input).rows.map(item => [item.key, item.gap]), [['KC-DEN:spread', 6.5], ['NYJ-BUF:spread', 3], ['NYJ-BUF:total', 3.5], ['KC-DEN:total', 3]]);
 });
 
 test('only own submitted or per-game locked-in guesses count; drafts and other markets stay closed', () => {

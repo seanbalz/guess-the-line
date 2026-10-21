@@ -43,8 +43,8 @@ const advantage = (market, side, guess, line) => market === 'spread'
   ? (side === 'home' ? line - guess : line + guess)
   : (side === 'over' ? guess - line : line - guess);
 
-function evaluation(side, value, offer) {
-  const color = value >= 1 ? 'green' : value <= -1 ? 'red' : 'yellow';
+function evaluation(side, value, offer, denominator) {
+  const color = value / denominator >= 0.1 ? 'green' : value / denominator <= -0.1 ? 'red' : 'yellow';
   const label = color === 'green' ? 'Favorable' : color === 'red' ? 'Against your guess' : value === 0 ? 'Even' : 'Small gap';
   return { side, advantage: value, color, label, offer };
 }
@@ -60,10 +60,10 @@ function bookOffer(game, market, side, now) {
 /**
  * Build the Recommendations tab from two authenticated reads for the same week.
  * Never substitute an old saved scoring reference or a consensus for book terms.
- * `rows` includes every nonzero discrepancy, descending by absolute points. Each
+ * `rows` includes every nonzero discrepancy, descending by relative gap. Each
  * row keeps the original game/reference/offer/savedPick objects, and evaluations
  * for BOTH sides use the same consensus (away spread is the negated home line).
- * The one-point traffic-light bands are display guidance, never a win probability.
+ * The 10% traffic-light bands are display guidance, never a win probability.
  * A row's suggested `offer` is null when no genuine favorable book quote exists;
  * its side evaluations still retain usable offers for an explicit other-side bet.
  * D-18 has no quote TTL: observedAt is preserved so the UI can show its actual age.
@@ -107,19 +107,22 @@ export function buildRecommendations({ personal, virtual, now = Date.now() } = {
       }
       const { guess, lockedAt } = own, gap = Math.abs(guess - reference.value);
       if (gap === 0) continue;
+      const denominator = market === 'spread' ? Math.max(Math.abs(reference.value), 3) : reference.value;
+      if (denominator <= 0) { counts.missingReference += 1; continue; }
+      const gapPercent = 100 * gap / denominator;
       const side = market === 'spread' ? (guess < reference.value ? 'home' : 'away') : (guess > reference.value ? 'over' : 'under');
       const evaluations = Object.fromEntries(SIDES[market].map(candidate => {
         const line = market === 'spread' && candidate === 'away' ? -reference.value : reference.value;
-        return [candidate, evaluation(candidate, advantage(market, candidate, guess, line), bookOffer(game, market, candidate, nowMs))];
+        return [candidate, evaluation(candidate, advantage(market, candidate, guess, line), bookOffer(game, market, candidate, nowMs), denominator)];
       }));
       const offered = evaluations[side].offer;
       const offer = offered && advantage(market, side, guess, offered.line) > 0 ? offered : null;
       const key = `${game.id}:${market}`, savedPick = saved.get(key) ?? null;
       if (!offer) counts.unavailableOffer += 1;
       if (savedPick) counts.saved += 1;
-      rows.push({ key, game, market, guess, reference, gap, side, offer, savedPick, lockedAt, evaluations });
+      rows.push({ key, game, market, guess, reference, gap, gapPercent, denominator, side, offer, savedPick, lockedAt, evaluations });
     }
   }
-  rows.sort((a, b) => b.gap - a.gap || time(a.game.kickoff) - time(b.game.kickoff) || a.key.localeCompare(b.key));
+  rows.sort((a, b) => b.gapPercent - a.gapPercent || time(a.game.kickoff) - time(b.game.kickoff) || a.key.localeCompare(b.key));
   return { status: 'ready', rows, counts };
 }
