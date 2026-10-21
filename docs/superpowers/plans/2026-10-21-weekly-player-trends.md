@@ -75,7 +75,8 @@ Interfaces: consume existing useLinesData/useTrendWeek/useWind for published sla
 ## Task 4: Integration verification and published handoff
 
 - [x] Run npm run check, relevant cloud-browser suite, brand QA and bundle privacy check. Fix failures and re-run covering checks, not unrelated broad repetitions.
-- [ ] Review complete branch diff independently for source rights, sign errors, lookahead, gated aggregates, cross-scope races, data failures, browser/API compatibility, theme/navigation and missing requirements.
+- [x] Review complete branch diff independently for source rights, sign errors, lookahead, gated aggregates, cross-scope races, data failures, browser/API compatibility, theme/navigation and missing requirements.
 - [x] Update docs/TRENDS.md, docs/COMPLETION_REGISTER.md and planning/PLATFORM_WORK_QUEUE.md with approval, actual source/tests, known hosted dependency and explicit no-deployment state. Preserve historical documents and records.
-- [ ] Commit reviewed named files; push branch; open/attach PR; inspect CI and address failures; npm run sync:check.
+- [x] Commit reviewed named files; push branch; open/attach PR; npm run sync:check (integrated source 7094557, clean and equal to its remote).
+- [ ] Final exact-commit CI and handoff receipt: record in PR #166 after the final test-only compatibility changes.
 - [ ] Report branch, full commit, PR, verification, ahead/behind and unpublished work. Do not merge/apply/deploy without the separate release process.
