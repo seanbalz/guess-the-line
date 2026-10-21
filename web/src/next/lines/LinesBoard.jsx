@@ -112,6 +112,7 @@ export function LinesBoard() {
   return (
     <div className="gx-screen">
       {head}
+      <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
       {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} onOpen={open}/>)}
       {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} onOpen={open}/> : null}
       {!board.groups.length && !board.started ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}

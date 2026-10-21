@@ -46,6 +46,7 @@ Expected: complete existing flows, no overflow or accessibility violations.
 
 - [x] Update completion register, queue and release card with actual local evidence and remaining release state.
 - [x] Independent code review; fix findings; typecheck, relevant tests, cloud boundary, brand QA and build.
-- [ ] Commit named files, push, sync:check, attach PR, pass exact-head checks and merge.
-- [ ] Protected exact-source frontend release and served-asset readback; verify API/data/migrations unchanged.
-- [ ] Record actual evidence, finish its review/merge, sync clean Windows/Mini/Neo main. Preserve all other worktrees.
+- [x] Commit named files, push, sync:check, attach PR, pass exact-head checks and merge.
+- [x] Protected exact-source frontend release and served-asset readback; verify API/data/migrations unchanged.
+- [x] Record actual hosted evidence in the fresh closeout branch.
+- [ ] Evidence-submission checkpoint: closeout CI/merge and final documentation sync remain pending. Record the verified final merge and clean Windows/Mini/Neo sync in the closeout PR body after completion. Runtime source sync has passed on all three; preserve all other worktrees.

@@ -48,6 +48,7 @@ export const apiChecks = Object.freeze([
   ['lines/game', {}],
   // Weekly Trends is authenticated even though its generated records are public history.
   ['trends/week', { season: 2026, week: 6 }],
+  ['lines/research', {}],
 ]);
 
 export const workerChecks = Object.freeze([
@@ -56,6 +57,7 @@ export const workerChecks = Object.freeze([
 
 export const awaitingDeploy = Object.freeze({
   'gtl-api/trends/week': 'the gtl-api deploy with /trends/week',
+  'gtl-api/lines/research': 'the gtl-api deploy with /lines/research; a signed-out gateway 401 does not prove route deployment',
   'rpc/gtl_read_game_officials': 'migration 20261012234500_gtl_game_officials.sql',
   'rpc/gtl_set_game_official': 'migration 20261012234500_gtl_game_officials.sql',
   'gtl-api/officials/read': 'the gtl-api deploy with /officials/read',

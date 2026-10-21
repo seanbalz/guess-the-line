@@ -31,6 +31,43 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
+October 21 situational-trends upgrade: Sean confirmed a weekly and per-matchup
+shortlist of up to three consistent trends, emerging patterns under Explore,
+recent views that can span prior seasons, NFL spread/total scope prepared for later
+markets, and an explicit research lean with supporting/conflicting evidence or
+“No clear lean”. His Guess entry predicts sportsbook pricing. Book It With Trent
+has a separate original-play section; the other named accounts are trend research
+references. Sean approved the [design](superpowers/specs/2026-10-21-trends-research-design.md)
+and authorized the [implementation plan](superpowers/plans/2026-10-21-trends-research.md).
+The evaluator, authenticated reader, prepared historical snapshot and shared
+weekly/matchup UI are implemented in [PR #161](https://github.com/seanbalz/guess-the-lines-repo/pull/161)
+and passed independent task reviews. Runtime timing and allocation follow-ups
+preserve privacy and freshness boundaries. The [research record](TRENDS_RESEARCH.md)
+contains source provenance, replay/null diagnostics, publication instructions,
+local browser/build checks and performance limits. The full suite passed
+(1,503 Node and 213 Vitest tests; zero skips), with 58 focused tests after the
+final schedule-dependency fix. Whole-branch review approved with no outstanding
+blocking findings. No migration or deployment is established. The existing
+sequential queue and other worktrees remain intact.
+Sean's follow-up permits qualifying opposing groups alongside a main lean:
+show the opposing case as a yellow alternative, not automatically red/bad or
+an automatic No clear lean. Design version 2 preserves the opposition and
+reserves No clear lean for insufficient or unresolved competing evidence.
+The free nflverse source refreshed October 21 with completed games through
+October 19. Sean subsequently said "get it connected". The first reviewed feed
+was saved server-side on October 21 at 21:00 UTC and its digest matched the
+validated private input. This is a dated manual import, not automatic X ingestion.
+The [release card](TRENDS_RESEARCH_RELEASE.md) tracks merge, protected deployment
+and hosted acceptance, which remain pending at this checkpoint.
+
+October 21: Sean authorized a separate private NBA archive and import of the
+saved NBA ledger. The [private NBA release card](PRIVATE_NBA_STORAGE.md) records
+PR #163's merge, hosted migration `20261021205118` and the verified private import
+at 20:51 UTC. Account linkage, app-role denial, original-source preservation and
+generated accounting were verified. NFL data and function/grant hashes stayed
+unchanged. NBA records do not feed the NFL application or its totals. The evidence
+PR body records its final CI, merge and three-machine synchronization receipt.
+
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
 Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed
 source `fd97d07273c5f586772006acea5cbf548ef50aa7`. PR #155 passed all five checks
@@ -41,12 +78,18 @@ privacy, preservation and acceptance limits. Its evidence PR carries the final
 documentation merge/sync result. PR #156 merged as
 `fd1facc7af1d1673b99dee0bd2f0228d6f63a0e6`; all three checkouts then synced cleanly.
 Q02's fix merged in PR #157 and protected frontend release 39521335125 passed;
-current Pages is `ad10f1c1`, API remains v27. See the
+that release deployed Pages `ad10f1c1`, retaining API v27. It is superseded by
+the October 21 deployment below. See the
 [verifier repair record](DEPLOYMENT_VERIFIER_RELEASE.md); its evidence PR records
 final merge/sync. Sean reported the Recommended-to-tracked-bets gap on October 21
 and supplied a grouped-list design direction. This Q16 follow-up takes priority
 before Q03; see the [recommendation tracking release card](RECOMMENDED_TRACKING_RELEASE.md).
-Implementation and local browser checks are complete; merge/deployment/sync remain pending.
+PR #159 merged as `368f5d46cd036d74f9dc5c32cf572dd702d320b2` and protected frontend
+release 39652280151 verified Pages `dcfb977b`, with API v27 and all data hashes
+unchanged. All three integration checkouts passed clean sync at that runtime
+commit. Closeout CI/merge and the final documentation sync are pending at this
+evidence-submission checkpoint; the closeout PR body will record their results;
+Q03 remains the next queued item.
 The weekly-results evidence PR #154 passed all five checks, merged as
 `eb1fa9330d715140f8e343a24daf51908ace5ba6`, and was verified clean/synced on Windows,
 Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
@@ -60,13 +103,28 @@ Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 | Q06–Q08 Bets/comparisons/preferences | Merged readers/settings code; three migrations remain unhosted | Separate dependency-aware release/readback; no generic database push. |
 | Q09–Q10 account/notification acceptance | Live components exist; real-world checks remain | Verify actual supported account/device flows and iPhone notification delivery. |
 | Q11–Q15 Fantasy | Static rankings/basic details exist; refresh and richer analysis remain | Refresh, profiles/usage, comparisons, matchups and newly requested sourced trade values. |
-| Q16 easier actual-bet tracking | PRs #155/#156 merged and three integration checkouts synced; API v27 retained, same source rebuilt as Pages ad10f1c1 by Q02 | October 21 recommendation handoff and grouped-list follow-up in review; physical-phone acceptance remains separate. |
+| Q16 easier actual-bet tracking | PRs #155/#156 merged and three integration checkouts synced; API v27 retained, same source rebuilt as Pages ad10f1c1 by Q02 | October 21 follow-up merged in #159 and deployed as Pages dcfb977b; closeout CI/merge and final documentation sync pending; results will be recorded in its PR body. Physical-phone acceptance remains separate. |
 | Q17–Q20 platform completion | Partial; see per-item exit criteria | Remaining destinations, operations, full-week/device acceptance and new-only transition. |
 | Simulator/native iOS/other feeds | Separate later scope or decisions | No model validation, native-client or external-connection claim follows from existing planning. |
 
 The current migration registry lists only M-10 Bets reading and D-53 comparisons
 and account preferences as unhosted. The recommendation edit writer is on an
 open branch, so it is an additional future release, not an omission from main's registry.
+
+October 21 follow-up to Recommended and Bets: Sean approved percentage-based
+cross-market gaps with a 3-point minimum for small spreads, plus compact
+expandable recommendations, historical trend context and clearer Bets view
+labels. Implementation is on the separate `codex/recommended-percent-trends`
+task branch. Local verification: `npm test` passed 1,457 Node tests (including
+the local PGlite fixture) and 202 React tests, all 12 Recommended browser tests
+passed, and typecheck, standard/cloud builds, Week 7 trend reproduction and
+brand QA passed. The generated cloud frontend passed the private-state scan;
+`npm run check:cloud` could not finish because this isolated worktree lacks
+`.env.cloud`. PR/release evidence belongs to that branch; this entry does not
+claim a merge or hosted deployment. The frozen v62 tracker
+remains unchanged. A separate redacted Week 7 nflverse snapshot was generated
+for current-week context; the Week 6 input remains frozen. See
+[the design](superpowers/specs/2026-10-21-recommended-percent-trends-design.md).
 
 ## Evidence and limits
 

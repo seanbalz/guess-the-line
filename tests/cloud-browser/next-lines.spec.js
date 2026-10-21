@@ -108,7 +108,7 @@ function apiCalls(page) {
   });
   return calls;
 }
-const READS = ['POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes'];
+const READS = ['POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research'];
 
 /** The world: Week 6 fixtures, Luke's sent Totals and Spread drafts, Troy's sent ballots, a stored collection and a wind stand-in. */
 async function lukesWeek(page, baseURL, { forge = true } = {}) {

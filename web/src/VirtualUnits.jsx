@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Check, Circle, CircleCheckBig, Clock3, Eye, Lock, Minus, Plus, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChevronDown, Circle, CircleCheckBig, Clock3, Eye, Lock, Minus, Plus, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
 import { cloudApi, date, signed } from './api';
 import { lockSentence } from './lineLock';
 import { buildRecommendations } from '../../shared/recommended-bets.mjs';
+import { RecommendationTrendDetail, useRecommendationTrends } from './RecommendationTrends.jsx';
 import './recommendedBets.css';
 
 const STAKES = [0.5, 1, 1.5, 2, 2.5, 3];
@@ -211,10 +212,10 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
   const visibleRecommendations = historical ? [] : expanded ? recommendations.rows : recommendations.rows.slice(0, 3);
   const separateReviews = Object.entries(selections).filter(([key]) => !visibleRecommendations.some(row => row.key === key));
   return <div className="virtual-units">
-    <header className="page-heading"><div><div className="eyebrow"><span className="tiny-rule"/>PICKS · PLAY MONEY</div><Heading>{view === 'recommended' ? 'Recommended bets' : 'Virtual Units'}</Heading><p>{view === 'recommended' ? 'Your biggest differences from the latest collected lines, ranked for review.' : 'Place one spread and one total pick per matchup. Every unit represents $100 virtual risk.'}</p></div><div className="heading-actions"><button className="secondary" onClick={refresh} disabled={loading || busy}><RefreshCw size={17} className={loading ? 'spin' : ''}/>Refresh lines</button>{commissioner && view !== 'recommended' && <button className="secondary" onClick={settle} disabled={loading || busy || Boolean(uncertain)}><CircleCheckBig size={17}/>Settle finals</button>}</div></header>
+    <header className="page-heading"><div><div className="eyebrow"><span className="tiny-rule"/>PICKS · PLAY MONEY</div><Heading>{view === 'recommended' ? 'Recommended bets' : 'Virtual Units'}</Heading><p>{view === 'recommended' ? 'Largest percentage gaps between your guesses and current lines.' : 'Place one spread and one total pick per matchup. Every unit represents $100 virtual risk.'}</p></div><div className="heading-actions"><button className="secondary" onClick={refresh} disabled={loading || busy}><RefreshCw size={17} className={loading ? 'spin' : ''}/>Refresh lines</button>{commissioner && view !== 'recommended' && <button className="secondary" onClick={settle} disabled={loading || busy || Boolean(uncertain)}><CircleCheckBig size={17}/>Settle finals</button>}</div></header>
     {showViewTabs && <div className="recommended-view-tabs" role="group" aria-label="Virtual Units view"><button className="secondary" disabled={busy} aria-pressed={view === 'all'} onClick={() => changeView('all')}>All games</button><button className="secondary" disabled={busy} aria-pressed={view === 'recommended'} onClick={() => changeView('recommended')}>Recommended</button></div>}
     {view === 'recommended' && weekInfo && <label className="recommended-week-select">Week<select aria-label="Recommendation week" value={selectedWeek ? `${selectedWeek.season}:${selectedWeek.week}` : 'current'} disabled={busy || loading} onChange={event => changeWeek(event.target.value)}><option value="current">Current{weekInfo.publishedWeek ? ` · ${weekInfo.publishedWeek.season} Week ${weekInfo.publishedWeek.week}` : ''}</option>{weekInfo.slates.filter(week => week.season !== weekInfo.publishedWeek?.season || week.week !== weekInfo.publishedWeek?.week).map(week => <option key={`${week.season}:${week.week}`} value={`${week.season}:${week.week}`}>{week.season} Week {week.week}</option>)}</select></label>}
-    {view === 'recommended' ? historical ? <p className="source-note recommended-explanation"><Lock size={17}/><span>View only · older week. Your saved card stays available here; new picks can be placed only in the current published week.</span></p> : <p className="source-note recommended-explanation"><ShieldCheck size={17}/><span>Ranked by disagreement with your submitted guesses, not a prediction model. Green favors your guess; red opposes it. Yellow means under 1 point. All positive gaps qualify.</span></p> : <>
+    {view === 'recommended' ? historical ? <p className="source-note recommended-explanation"><Lock size={17}/><span>View only · older week. Your saved card stays available here; new picks can be placed only in the current published week.</span></p> : <p className="source-note recommended-explanation"><ShieldCheck size={17}/><span>Ranked by percentage gap. Spread lines below 3 use 3 as a baseline. Open a matchup for sources, historical trends and actions. These gaps are not win probabilities.</span></p> : <>
       <p className="source-note"><ShieldCheck size={17}/><span><strong>Saved named-book lines</strong> · Buttons use the best retained point line from the latest accessible books. Consensus is shown separately when available. A saved line remains usable before kickoff even if it is old; its age is always shown. Picks settle against the published final score with the line and odds saved at placement (D-26).</span></p>
       <p className="source-note virtual-visibility-note"><Eye size={17}/><span>{BETS_VISIBLE_NOTE}</span></p>
     </>}
@@ -229,7 +230,7 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>
         : <>
           <div className="recommended-list-heading"><h3>{expanded ? 'All differences' : 'Top 3 differences'}</h3><span>{recommendations.rows.length} available · Week {data.week}</span></div>
-          {recommendations.rows.length ? <div className="recommended-bet-list">{visibleRecommendations.map(row => <RecommendationCard key={row.key} row={row} selection={selections[row.key]} pick={picks[row.key]} now={now} add={addRecommendation} track={onTrackTicket ? trackRecommendation : undefined} choose={choose} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div>
+          {recommendations.rows.length ? <div className="recommended-bet-list">{visibleRecommendations.map(row => <RecommendationCard key={row.key} row={row} season={data.season} week={data.week} selection={selections[row.key]} pick={picks[row.key]} now={now} add={addRecommendation} track={onTrackTicket ? trackRecommendation : undefined} choose={choose} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div>
             : <div className="recommended-empty" role="status"><p>No differences to show yet. Submit your guesses, then check back for available pregame lines.</p></div>}
           {recommendations.rows.length > 3 && <button className="secondary recommended-expand" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? <><ArrowUp size={17}/>Show top 3</> : <><ArrowDown size={17}/>Show all {recommendations.rows.length} differences</>}</button>}
           {separateReviews.map(([key, selection]) => {
@@ -261,13 +262,24 @@ function quoteAge(value, now) {
 const sideName = (game, market, side) => market === 'total' ? side === 'over' ? 'Over' : 'Under' : side === 'home' ? game.home : game.away;
 const marketNumber = (market, value) => market === 'spread' ? signed(value) : String(value);
 
-function RecommendationCard({ row, selection, pick, now, add, track, choose, save, busy, rules }) {
+export function RecommendationCard({ row, season, week, selection, pick, now, add, track, choose, save, busy, rules }) {
   const { game, market, reference, evaluations } = row;
   const sides = market === 'spread' ? ['away', 'home'] : ['over', 'under'];
-  return <article className="panel recommended-bet-card" data-game-id={game.id} data-market={market}>
-    <header className="recommended-card-heading"><div><span className="recommended-market-label">{market === 'spread' ? 'Spread' : 'Total'}</span><h3>{game.away} at {game.home}</h3><p>{date(game.kickoff)} PT</p></div><span className="recommended-gap">{row.gap} pt gap</span></header>
+  const trend = useRecommendationTrends({ season, week, gameId: game.id, market, consensus: reference.value });
+  const firstTrend = trend.cards[0];
+  return <details className="panel recommended-bet-card" data-game-id={game.id} data-market={market}>
+    <summary className="recommended-card-heading">
+      <span className="recommended-card-main"><span className="recommended-market-label">{market === 'spread' ? 'Spread' : 'Total'} · {date(game.kickoff)} PT</span><strong>{game.awayCode || game.away} at {game.homeCode || game.home}</strong><span className="recommended-card-side">Review {sideName(game, market, row.side)} · {quoteAge(reference.observedAt, now)}</span></span>
+      <span className="recommended-card-aside"><strong className="recommended-percent">{row.gapPercent.toFixed(1)}% gap</strong><span className="recommended-gap">{row.gap} pt gap</span></span>
+      <ChevronDown className="recommended-chevron" size={18} aria-hidden="true"/>
+      {firstTrend && <span className="recommended-trend-summary">Historical: {firstTrend.title} · {firstTrend.record} ({firstTrend.sample})</span>}
+    </summary>
+    <div className="recommended-card-detail">
+    <h3>{game.away} at {game.home} · {market === 'spread' ? 'Spread' : 'Total'}</h3>
+    {market === 'spread' && Math.abs(reference.value) < 3 && <p className="recommended-source">Percentage uses a 3-point minimum spread for pick’em and small lines.</p>}
     <dl className="recommended-comparison"><div><dt>Your guess{market === 'spread' ? ` · ${game.homeCode || game.home}` : ''}</dt><dd>{marketNumber(market, row.guess)}</dd></div><div><dt>Latest consensus{market === 'spread' ? ` · ${game.homeCode || game.home}` : ''}</dt><dd>{marketNumber(market, reference.value)}</dd></div></dl>
     <p className="recommended-source">{reference.source || 'Named-book median'} · {reference.books} books · {date(reference.observedAt)} PT · {quoteAge(reference.observedAt, now)}</p>
+    <RecommendationTrendDetail trend={trend}/>
     <div className="recommended-sides" aria-label="How each side compares with your guess">{sides.map(side => {
       const evaluation = evaluations[side];
       const Indicator = evaluation.color === 'green' ? Plus : evaluation.color === 'red' ? Minus : Circle;
@@ -278,7 +290,8 @@ function RecommendationCard({ row, selection, pick, now, add, track, choose, sav
       <button className="secondary" disabled={busy || !row.offer || Boolean(pick) || Boolean(selection)} onClick={() => add(row)}>{pick ? <><Check size={16}/>{track ? 'Virtual pick saved' : 'Already on your card'}</> : selection ? <><Check size={16}/>Review below</> : <><Plus size={16}/>{track ? 'Play with Virtual Units' : 'Add to card'}</>}</button></div>
     {pick && <p className="recommended-saved">Saved: {sideName(game, market, pick.selection.side)} {marketNumber(market, pick.selection.line)} ({money(pick.selection.odds)}) · {pick.selection.units}U · {pick.selection.source}</p>}
     {selection && <div className="recommended-review" aria-label={`Review ${game.away} at ${game.home} ${market} virtual pick`}><p>Review your card · play money only</p><Market game={game} market={market} pick={pick} selection={selection} choose={choose} save={save} busy={busy} rules={rules}/></div>}
-  </article>;
+    </div>
+  </details>;
 }
 
 function GameCard({ game, result, picks, selections, choose, save, busy, rules }) {

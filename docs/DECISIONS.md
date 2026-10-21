@@ -12,6 +12,29 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-54 — relative Recommended gaps and compact Bets (October 21, 2026)
+
+Sean requested that Spread and Total differences be compared by percentage
+rather than raw points: 5 points on a 50-point total and 1 point on a 10-point
+spread are equal at 10%. He approved a 3-point minimum denominator for
+pick’em and spreads below 3, clearly labeled to avoid a near-zero denominator
+dominating the list. This replaces D-48's absolute-point ranking and one-point
+traffic-light bands. The same 10% relative boundary now guides green/red;
+yellow is a smaller difference. It is a display comparison, not a model,
+probability or claim of expected value.
+
+Sean also asked for a clearer Bets page and smaller recommendation rows that
+expand to show the point discrepancy, dated lines, and a little historical
+trend context. The opt-in app keeps Tracked bets, Recommended and Virtual Units
+as distinct destinations. Historical trends come from the published, free
+nflverse week file, carry their record/sample/period and source, match the
+recommendation's market, and never affect rank or eligibility. The current
+Week 7 file has its own redacted source snapshot; Week 6 remains frozen.
+See [the implementation design](superpowers/specs/2026-10-21-recommended-percent-trends-design.md).
+
+This decision authorizes a code change for review. It does not establish
+merge, deployment, real-phone acceptance or a new data integration.
+
 ## D-53 — Home, scored comparisons and research readiness (October 16, 2026)
 
 Sean approved the implementation plan after sequential product questions. His

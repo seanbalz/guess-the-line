@@ -27,7 +27,11 @@ closeout PR #156 merged as `fd1facc7af1d1673b99dee0bd2f0228d6f63a0e6`; all three
 checkouts were synced cleanly. Q02's fix is merged and its protected release passed;
 the evidence PR records final merge/sync. October 21: Sean prioritized the
 Recommended-to-tracked-bets handoff and a grouped ticket list before Q03. That
-follow-up is implemented and locally checked, with merge/release/sync pending;
+follow-up merged in PR #159 and was verified in protected release 39652280151
+as Pages dcfb977b; all three integration checkouts synced cleanly to runtime
+commit 368f5d46cd036d74f9dc5c32cf572dd702d320b2. Closeout CI/merge and final documentation
+sync are pending at this evidence-submission checkpoint; its PR body will record
+the verified results;
 see the [release card](../docs/RECOMMENDED_TRACKING_RELEASE.md). See the
 [bet-tracking release card](../docs/EASIER_BET_TRACKING_RELEASE.md) and
 [verifier record](../docs/DEPLOYMENT_VERIFIER_RELEASE.md).
@@ -61,7 +65,7 @@ explicitly when it cannot be established by automated tests.
 | Q13 | NFL player comparisons | Side-by-side player analysis with common scoring format and period; distinct from Q07's Guess-player score comparisons. |
 | Q14 | Fantasy matchup tools | Extend basic opponent information with useful sourced matchup context. No unvalidated predictive advantage claims. |
 | Q15 | Trade-value charts | New requested scope: establish permitted free sources, league formats, attribution and timestamps. Different provider scales must not be silently combined. No source is connected by this task. |
-| Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. October 21 follow-up connects reviewed recommendations to actual tickets and adds a grouped owner list; release pending. Phone acceptance remains separate. |
+| Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. October 21 follow-up connects reviewed recommendations to actual tickets and adds a grouped owner list; #159 merged, Pages dcfb977b verified with preserved data/API. Closeout CI/merge and final documentation sync are pending; its PR body will record verified results. Phone acceptance remains separate. |
 | Q17 | Remaining native destinations | Reconcile PR #144's preservation/recovery checklist and the inventory: League/Bets screens, history, exports, commissioner tools and old records must retain working homes. |
 | Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. |
 | Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. |

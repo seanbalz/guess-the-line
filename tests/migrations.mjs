@@ -117,4 +117,5 @@ export const APPLIED = [
   20261020211626, // Hosted 20261020220305: private current-week context.
   20261020211656, // Hosted 20261020220311: automatic final-results schedule.
   20261020211737, // Hosted 20261020220318: private settlement-results reader.
+  20261021201054, // Hosted 20261021205118: isolated private NBA archive; see PRIVATE_NBA_STORAGE.md.
 ];
