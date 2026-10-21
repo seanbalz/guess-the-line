@@ -162,7 +162,7 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
       await assert.rejects(() => as('service_role', `delete from public.${table}`), /permission denied/);
       assert.equal((await db.query('select relrowsecurity rls from pg_class where oid=$1::regclass', [`public.${table}`])).rows[0].rls, true);
     }
-    assert.equal((await db.query("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and p.proname not in ('gtl_nba_read_bets','gtl_nba_save_bet') and prosecdef")).rows[0].n, 0, 'no security definer');
+    assert.equal((await db.query("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and p.proname not in ('gtl_nba_read_bets','gtl_nba_save_bet','gtl_nba_claim_games','gtl_nba_finish_games') and prosecdef")).rows[0].n, 0, 'no security definer');
   });
 
   await t.test('resolver: newest stored line at or before the guess of any age, else the first stored after it and before kickoff; imports count from their capture (lab data, rolled back)', async () => {

@@ -1,5 +1,6 @@
 import { normalizeNbaTicket, NBA_UUID, NBA_OUTCOMES, NBA_MARKETS, isNbaDate } from '../shared/nba-bets.mjs';
-export const NBA_METHODS = Object.freeze({ '/nba/read': ['POST'], '/nba/save': ['POST'] });
+import { validateNbaGamesRequest } from '../shared/nba-games.mjs';
+export const NBA_METHODS = Object.freeze({ '/nba/read': ['POST'], '/nba/save': ['POST'], '/nba/games': ['POST'] });
 export class NbaError extends Error {
   constructor(status, message) { super(message); this.name = 'NbaError'; this.status = status; }
 }
@@ -41,9 +42,15 @@ function readView(raw) {
   const summary = Object.fromEntries([...counts, ...units, 'roi'].map(key => [key, raw.summary[key]]));
   return { tickets: raw.tickets.map(ticketView), summary, nextCursor: raw.nextCursor ? { eventDate: raw.nextCursor.eventDate, id: raw.nextCursor.id } : null };
 }
-export async function handleNba({ route, body, user, service }) {
+export async function handleNba({ route, body, user, service, gamesService }) {
   if (!uuid(user?.id) || user.is_anonymous === true) throw new NbaError(401, 'Sign in to continue.');
   if (!Object.hasOwn(NBA_METHODS, route)) throw new NbaError(404, 'Not found.');
+  if (route === '/nba/games') {
+    keys(body, ['date', 'timeZone']);
+    try { validateNbaGamesRequest(body); } catch { throw new NbaError(400, 'Choose a valid date and time zone.'); }
+    if (!gamesService?.read) throw new NbaError(503, 'NBA games are unavailable right now.');
+    return gamesService.read(body);
+  }
   if (route === '/nba/read') {
     keys(body, ['filters', 'cursor', 'ticketId']);
     const filters = body.filters ?? {}; keys(filters, ['status', 'market', 'from', 'to']);

@@ -25,6 +25,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261021223100, // NBA-only game cache and bounded provider claims; written only, not applied.
   20261021223000, // Private NBA owner ticket RPCs; written only, not applied.
   20261016010000, // D-53 comparisons, after M-07. Not applied.
   20261016011000, // D-53 account preferences. Not applied.

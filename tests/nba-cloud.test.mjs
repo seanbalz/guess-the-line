@@ -14,7 +14,7 @@ test('NBA routes require verified identity and bypass every NFL service', async 
   const handler = createCloudHandler({ authenticate: async token => token === 'test' ? USER : null,
     storage: { membership: () => assert.fail('NBA never reads NFL membership') },
     nba: { rpc: async (name, body) => { calls.push({ name, body }); return { tickets: [], nextCursor: null, summary }; } } });
-  assert.deepEqual(ROUTE_MODULES.nba, { '/nba/read': ['POST'], '/nba/save': ['POST'] });
+  assert.deepEqual(ROUTE_MODULES.nba, { '/nba/read': ['POST'], '/nba/save': ['POST'], '/nba/games': ['POST'] });
   assert.equal((await handler(request('/nba/read', {}, 'bad'))).status, 401);
   assert.equal((await handler(request('/nba/read'))).status, 200);
   assert.deepEqual(calls[0], { name: 'gtl_nba_read_bets', body: { p_user_id: USER.id, p_filters: {}, p_cursor: null, p_ticket_id: null } });

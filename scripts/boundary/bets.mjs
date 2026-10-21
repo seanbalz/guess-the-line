@@ -8,6 +8,8 @@ export const tables = Object.freeze([
 
 export const rpcChecks = Object.freeze([
   // Private NBA account capabilities, independent of NFL membership.
+  ['gtl_nba_claim_games', { p_date: '2026-10-21', p_refresh: false }],
+  ['gtl_nba_finish_games', { p_date: '2026-10-21', p_token: missingId, p_games: null }],
   ['gtl_nba_read_bets', { p_user_id: missingId, p_filters: {}, p_cursor: null, p_ticket_id: null }],
   ['gtl_nba_save_bet', { p_user_id: missingId, p_operation_id: missingId, p_ticket: {}, p_expected_revision: 0, p_reason: null }],
   ['gtl_dispatch_results_refresh', {}],
@@ -28,6 +30,7 @@ export const rpcChecks = Object.freeze([
 ]);
 
 export const apiChecks = Object.freeze([
+  ['nba/games', { date: '2026-10-21', timeZone: 'America/Los_Angeles' }],
   ['nba/read', {}], ['nba/save', {}],
   ...['read', 'create', 'tail', 'settle', 'include', 'correct', 'follow'].map(action => [`social/${action}`, {}]),
   ['virtual-units', undefined],
@@ -43,6 +46,9 @@ export const workerChecks = Object.freeze([
 ]);
 
 export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_nba_claim_games': 'migration 20261021223100_gtl_nba_game_cache.sql',
+  'rpc/gtl_nba_finish_games': 'migration 20261021223100_gtl_nba_game_cache.sql',
+  'gtl-api/nba/games': 'the gtl-api deploy with /nba/games',
   'rpc/gtl_nba_read_bets': 'migration 20261021223000_gtl_nba_app_bets.sql',
   'rpc/gtl_nba_save_bet': 'migration 20261021223000_gtl_nba_app_bets.sql',
   'gtl-api/nba/read': 'the gtl-api deploy with /nba/read',

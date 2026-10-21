@@ -98,11 +98,18 @@ test('the rollback convention: each file names a migration, restores exactly the
       assert.match(migration, /create table (?:if not exists )?/i, `${file}: a permission off switch must accompany new tables`);
       const addedFunctions = parseFunctions(migration);
       if (addedFunctions.length) {
-        assert.equal(file, '20261021223000_gtl_nba_app_bets.sql', `${file}: new RPC off switches require explicit review`);
-        assert.deepEqual(statements.map(statement => statement.replace(/\s/g, '').toLowerCase()), [
-          'revokeallonfunctionpublic.gtl_nba_read_bets(uuid,jsonb,jsonb,uuid)frompublic,anon,authenticated,service_role',
-          'revokeallonfunctionpublic.gtl_nba_save_bet(uuid,uuid,jsonb,integer,text)frompublic,anon,authenticated,service_role',
-        ]);
+        const reviewedOffSwitches = {
+          '20261021223000_gtl_nba_app_bets.sql': [
+            'revokeallonfunctionpublic.gtl_nba_read_bets(uuid,jsonb,jsonb,uuid)frompublic,anon,authenticated,service_role',
+            'revokeallonfunctionpublic.gtl_nba_save_bet(uuid,uuid,jsonb,integer,text)frompublic,anon,authenticated,service_role',
+          ],
+          '20261021223100_gtl_nba_game_cache.sql': [
+            'revokeallonfunctionpublic.gtl_nba_claim_games(date,boolean)frompublic,anon,authenticated,service_role',
+            'revokeallonfunctionpublic.gtl_nba_finish_games(date,uuid,jsonb)frompublic,anon,authenticated,service_role',
+          ],
+        };
+        assert.ok(Object.hasOwn(reviewedOffSwitches, file), `${file}: new RPC off switches require explicit review`);
+        assert.deepEqual(statements.map(statement => statement.replace(/\s/g, '').toLowerCase()), reviewedOffSwitches[file]);
       }
       assert.ok(statements.length > 0 && statements.every(s => /^revoke\b/i.test(s)), `${file}: an off switch may only revoke access, never grant or delete`);
     }

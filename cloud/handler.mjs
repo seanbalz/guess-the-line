@@ -35,6 +35,7 @@ import { createOptionalRpc, FUNCTION_NOT_FOUND } from './optional-rpc.mjs';
 import { parseFeatureOff } from './feature-off.mjs';
 import { readLiveRules } from './live-rules.mjs';
 import { handleNba, NBA_METHODS, NbaError, providerNbaError } from './nba.mjs';
+import { createNbaGamesCache } from './nba-games.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const CORS = {
@@ -137,7 +138,7 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, league, me, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, me, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
@@ -236,7 +237,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
         body = await readJson(request);
       }
       // Private NBA account tickets require verified Auth only, independent of NFL rosters and gates.
-      if (Object.hasOwn(NBA_METHODS, route)) return json(await handleNba({ route, body, user, service: nba }));
+      if (Object.hasOwn(NBA_METHODS, route)) return json(await handleNba({ route, body, user, service: nba, gamesService: nbaGames }));
       // Stage 21 (M-04): the slip replies carry the live rules, which word the real-slip line lock.
       if (Object.hasOwn(SOCIAL_METHODS, route)) return json(await handleSocial({ route, body, user, service: social, clock, rules: () => readLiveRules(optionalRpc) }));
       if (Object.hasOwn(COMMUNITY_METHODS, route)) {
@@ -393,10 +394,10 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     return response.json();
   }
   // One service-only RPC caller per redesign route group, mapped through that group's own error map (stage 4).
-  function groupRpc(providerError) {
+  function groupRpc(providerError, allowedNames) {
     return {
       async rpc(name, body) {
-        if (typeof name !== 'string' || !/^gtl_[a-z0-9_]{1,60}$/.test(name) || providerError === providerNbaError && !['gtl_nba_read_bets', 'gtl_nba_save_bet'].includes(name)) throw new Error('Invalid operation.');
+        if (typeof name !== 'string' || !/^gtl_[a-z0-9_]{1,60}$/.test(name) || allowedNames && !allowedNames.includes(name)) throw new Error('Invalid operation.');
         const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!response.ok) {
           let message, code;
@@ -439,7 +440,8 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     return { snapshot: history.length ? { ...history[0], history } : null, picks, settlements };
   }
   return {
-    nba: groupRpc(providerNbaError),
+    nba: groupRpc(providerNbaError, ['gtl_nba_read_bets', 'gtl_nba_save_bet']),
+    nbaGamesCache: createNbaGamesCache(groupRpc(providerNbaError, ['gtl_nba_claim_games', 'gtl_nba_finish_games'])),
     lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicSchedule, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),

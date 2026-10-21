@@ -528,7 +528,7 @@ test('migration is idempotent, service-only and security invoker', { skip }, asy
     for (const role of ['anon', 'authenticated']) assert.equal((await f.q('select has_function_privilege($1,$2,$3) ok', [role, `public.${s}`, 'EXECUTE']))[0].ok, false, s);
     assert.equal((await f.q('select has_function_privilege($1,$2,$3) ok', ['service_role', `public.${s}`, 'EXECUTE']))[0].ok, true, s);
   }
-  assert.equal((await f.q("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and p.proname not in ('gtl_nba_read_bets','gtl_nba_save_bet') and prosecdef"))[0].n, 0);
+  assert.equal((await f.q("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and p.proname not in ('gtl_nba_read_bets','gtl_nba_save_bet','gtl_nba_claim_games','gtl_nba_finish_games') and prosecdef"))[0].n, 0);
 });
 
 test('a member\'s submission collection resolves another member\'s pending guesses in the same transaction', { skip }, async t => {
