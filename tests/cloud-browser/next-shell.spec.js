@@ -150,7 +150,7 @@ test.describe('the real app', () => {
     const { world, calls } = await openNewApp(page, baseURL, '#picks');
     try {
       await expect(title(page, 'Your guesses')).toBeVisible();
-      expect(new URL(page.url()).hash, 'read once, then written as the new app\'s own').toBe('#play/picks');
+      expectFragment(page, '#play/picks?market=spread');
       // Followed in the page (a fragment change, no new document), then on a fresh load.
       for (const [fragment, name, hash] of [['#feed', 'League', '#play/league?view=feed'], ['#picks-total', 'Your guesses', '#play/picks?market=total'], ['#fantasy', 'Fantasy', '#research/fantasy'], ['#lines', 'Lines', '#research/games'], ['#main', 'Home', '#main']]) {
         await page.goto(`/${fragment}`);

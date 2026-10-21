@@ -43,6 +43,13 @@ four-case Fantasy suite passed in 54 seconds, including both apps' filters,
 source details, keyboard access and light/dark layouts at 320, 390 and 1280px.
 Brand/document QA and the whitespace check also passed.
 
+Two other assertions needed the same navigation update: a legacy `#picks` link
+now retains its default `market=spread` address, and Home's authenticated ticket
+summary adds one `social/read` request per load. Their tests retain the selected
+market check and exact shared-read/no-unexpected-write checks. The corrected
+shell/switch browser suite passed all 28 cases, including legacy aliases, dirty
+guards, Back/Forward, focus, scroll, reload and old-app recovery.
+
 ## Required deployment evidence
 
 Merge and deployment are pending at this preparation checkpoint. The final PR
