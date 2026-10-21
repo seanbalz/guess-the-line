@@ -188,3 +188,18 @@ Durations: tap 100ms, quick 160ms, base 240ms (sheets in), exit 200ms, big 600ms
 3. Load `tokens.css`, `base.css` and `components.css` in that order. `base.css` cancels the old app's element rules (`styles.css` is loaded on every page); keep element selectors inside `:where()`.
 4. Build screens from the React components in `web/src/next/ui/` (stage 8: Text, Button, IconButton, Card, List, Row, Pill, Tag, Chip, ChipRail, Segmented, GateBanner, LockLine, Countdown, Rank, Meter, Badge, Strip, Sheet, Dialog, Toast, Overlay, TeamMark, the Field monogram and Lucide icons). They only draw what they are given; the server and `web/src/next/rules.js` decide what is hidden. Check a screen's markup with `tests/helpers/ui-markup.mjs` (gx- classes, accessible names, every svg hidden or labelled, emoji only inside `data-emoji-ok`).
 5. Any deviation from this section needs a recorded decision.
+
+## Four-tab simplification direction — October 21, 2026
+
+Sean approved consolidating navigation to **Home / Play / Bets / Research**, with
+League inside Play and Fantasy inside Research, giving guessing/competition and
+actual-bet research/tracking equal priority. He selected **One thing first**,
+the third of five interactive layout examples, with one clear task above compact
+rows that open into detail. See the [written design](superpowers/specs/2026-10-21-four-tab-simplification-design.md)
+for coverage, navigation behavior, preservation requirements and preview evidence.
+
+This records the chosen UI direction. The written specification still awaits
+review; the application has not been changed by this entry. Existing GTL tokens,
+identity, type, semantic colors and Light/Dark/System remain the baseline. The
+selection does not finalize unrelated brand categories, change game rules or
+establish a native iOS release.

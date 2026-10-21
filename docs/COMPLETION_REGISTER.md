@@ -27,6 +27,16 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 ## Current work and remaining boundaries
 
+October 21 design review: Sean selected a simpler four-tab application,
+**Home / Play / Bets / Research**, with League inside Play and Fantasy inside
+Research, and equal emphasis on guessing/competition and actual-bet tracking.
+He chose the third visual option, **One thing first**. The
+[four-tab design specification](superpowers/specs/2026-10-21-four-tab-simplification-design.md)
+records the selected direction, feature destinations and local preview evidence.
+Its written-design review and implementation plan are pending; this entry does
+not mark Q03/Q04/Q17 complete or establish an application change or deployment.
+The existing sequential queue and preservation of unpublished Mini work apply.
+
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
 Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed
 source `fd97d07273c5f586772006acea5cbf548ef50aa7`. PR #155 passed all five checks
