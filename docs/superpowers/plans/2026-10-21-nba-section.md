@@ -76,7 +76,22 @@ probabilityToAmerican(percent); // number rounded to 4 decimal places
 // stakeUnits, outcome, netUnits, priceInput, updatedAt, audit (safe corrections).
 // Leg fields: gameId, matchup, market, team?, side?, line?; market is
 // moneyline/spread/total. PriceInput: { format: 'american'|'probability', value }.
+// odds: four-decimal-capable number; stakeUnits: bounded eight-decimal number.
+// Computed netUnits: fixed-eight-decimal string, or null for pending.
+// Summary riskUnits/netUnits/pendingStakeUnits and non-null roi: fixed-eight-
+// decimal strings. Counts stay numbers; ROI is null when settled risk is zero.
+// The same decimal strings pass through saves, receipts, safe audits and reads.
+// filters.status='settled': win/loss/push/void in one date/ID cursor sequence.
 ```
+
+This unreleased transport contract preserves exact accounting without narrowing
+the accepted input bounds or changing numeric database columns, generated results,
+original source records or receipts. Probability conversion uses exact decimal
+arithmetic and PostgreSQL-compatible half-away-from-zero rounding (79.52% becomes
+-388.2813). Filtered summaries cover every matching row, regardless of cursor;
+pendingStakeUnits sums pending stakes, while riskUnits retains settled win/loss/
+push risk and excludes pending and void stakes. Consumers preserve the strings
+and format deliberately for display; malformed accounting must not become zero.
 
 - [ ] Write tests for conversion, required terms, independent parlay legs,
   pending/push/void accounting, exact retries, conflict revisions, cross-owner

@@ -16,10 +16,11 @@ const record = value => value !== null && typeof value === 'object' && !Array.is
 const keys = (value, allowed) => { if (!record(value) || Object.keys(value).some(key => !allowed.includes(key))) fail(); };
 const uuid = value => typeof value === 'string' && NBA_UUID.test(value);
 const timestamp = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) ? value : null;
-const finite = value => typeof value === 'number' && Number.isFinite(value);
+const decimal = value => typeof value === 'string' && /^-?(?:0|[1-9]\d*)\.\d{8}$/.test(value);
 // Rebuild every level: neither source records nor internal receipt payloads reach the browser.
 function ticketTerms(raw) {
   if (!record(raw) || !uuid(raw.id) || !Array.isArray(raw.legs)) throw new Error('Invalid NBA reply.');
+  if (raw.outcome === 'pending' ? raw.netUnits !== null : !decimal(raw.netUnits)) throw new Error('Invalid NBA reply.');
   return { id: raw.id, season: raw.season, eventDate: raw.eventDate, kind: raw.kind, label: raw.label,
     legs: raw.legs.map(leg => Object.fromEntries(['gameId', 'matchup', 'market', 'team', 'side', 'line'].filter(key => Object.hasOwn(leg, key)).map(key => [key, leg[key]]))),
     odds: raw.odds, stakeUnits: raw.stakeUnits, outcome: raw.outcome, netUnits: raw.netUnits,
@@ -33,7 +34,11 @@ function ticketView(raw) {
 }
 function readView(raw) {
   if (!record(raw) || !Array.isArray(raw.tickets) || !record(raw.summary)) throw new Error('Invalid NBA reply.');
-  const summary = Object.fromEntries(['count', 'wins', 'losses', 'pushes', 'voids', 'pending', 'riskUnits', 'netUnits', 'roi'].map(key => [key, finite(raw.summary[key]) ? raw.summary[key] : key === 'roi' ? null : 0]));
+  const counts = ['count', 'wins', 'losses', 'pushes', 'voids', 'pending'];
+  const units = ['riskUnits', 'netUnits', 'pendingStakeUnits'];
+  if (counts.some(key => !Number.isSafeInteger(raw.summary[key]) || raw.summary[key] < 0)
+    || units.some(key => !decimal(raw.summary[key])) || raw.summary.roi !== null && !decimal(raw.summary.roi)) throw new Error('Invalid NBA reply.');
+  const summary = Object.fromEntries([...counts, ...units, 'roi'].map(key => [key, raw.summary[key]]));
   return { tickets: raw.tickets.map(ticketView), summary, nextCursor: raw.nextCursor ? { eventDate: raw.nextCursor.eventDate, id: raw.nextCursor.id } : null };
 }
 export async function handleNba({ route, body, user, service }) {
@@ -42,7 +47,7 @@ export async function handleNba({ route, body, user, service }) {
   if (route === '/nba/read') {
     keys(body, ['filters', 'cursor', 'ticketId']);
     const filters = body.filters ?? {}; keys(filters, ['status', 'market', 'from', 'to']);
-    if (filters.status !== undefined && !NBA_OUTCOMES.includes(filters.status) || filters.market !== undefined && !NBA_MARKETS.includes(filters.market)
+    if (filters.status !== undefined && ![...NBA_OUTCOMES, 'settled'].includes(filters.status) || filters.market !== undefined && !NBA_MARKETS.includes(filters.market)
       || filters.from !== undefined && !isNbaDate(filters.from) || filters.to !== undefined && !isNbaDate(filters.to)
       || filters.from && filters.to && filters.from > filters.to || body.ticketId !== undefined && !uuid(body.ticketId)) fail();
     const cursor = body.cursor ?? null;

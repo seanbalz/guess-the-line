@@ -4,6 +4,8 @@ import { createCloudHandler, createSupabaseAdapter, ROUTE_MODULES } from '../clo
 import { BOUNDARY_AREAS, awaitingDeploy, privateResponse } from '../scripts/check-cloud-boundary.mjs';
 const USER = { id: '00000000-0000-4000-8000-000000000001', email: 'synthetic@example.test', emailConfirmed: true };
 const request = (route, body = {}, token = 'test') => new Request(`https://fixture.invalid/gtl-api${route}`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+const summary = { count: 0, wins: 0, losses: 0, pushes: 0, voids: 0, pending: 0,
+  riskUnits: '0.00000000', netUnits: '0.00000000', pendingStakeUnits: '0.00000000', roi: null };
 const raw = { id: '00000000-0000-4000-8000-000000000010', season: '2026-27', eventDate: '2026-10-21', kind: 'single', label: 'Synthetic test',
   legs: [{ gameId: 'NBA:synthetic:1', matchup: 'AAA at BBB', market: 'moneyline', team: 'AAA' }], priceInput: { format: 'american', value: -120 }, stakeUnits: 1, outcome: 'pending' };
 
@@ -11,13 +13,37 @@ test('NBA routes require verified identity and bypass every NFL service', async 
   const calls = [];
   const handler = createCloudHandler({ authenticate: async token => token === 'test' ? USER : null,
     storage: { membership: () => assert.fail('NBA never reads NFL membership') },
-    nba: { rpc: async (name, body) => { calls.push({ name, body }); return { tickets: [], nextCursor: null, summary: {} }; } } });
+    nba: { rpc: async (name, body) => { calls.push({ name, body }); return { tickets: [], nextCursor: null, summary }; } } });
   assert.deepEqual(ROUTE_MODULES.nba, { '/nba/read': ['POST'], '/nba/save': ['POST'] });
   assert.equal((await handler(request('/nba/read', {}, 'bad'))).status, 401);
   assert.equal((await handler(request('/nba/read'))).status, 200);
   assert.deepEqual(calls[0], { name: 'gtl_nba_read_bets', body: { p_user_id: USER.id, p_filters: {}, p_cursor: null, p_ticket_id: null } });
   for (const body of [{ userId: USER.id }, { filters: { owner_id: USER.id } }, { cursor: { eventDate: 'bad', id: raw.id } }]) assert.equal((await handler(request('/nba/read', body))).status, 400);
   assert.equal(calls.length, 1);
+});
+
+test('NBA reads preserve exact summary and ticket/audit accounting and accept one settled filter', async () => {
+  const exact = { ...summary, count: 103, wins: 101, losses: 1, pushes: 1,
+    riskUnits: '99999999.99999999', netUnits: '9999991110.56790869', pendingStakeUnits: '123456.12345678', roi: '9999.99111057' };
+  const terms = { ...raw, odds: 999999.9876, stakeUnits: 999999.12345678, outcome: 'win', netUnits: '9999991110.56790869' };
+  const ticket = { ...terms, revision: 2, audit: [{ before: { ...terms, outcome: 'loss', netUnits: '-999999.12345678' }, after: terms }] };
+  const handler = createCloudHandler({ authenticate: async () => USER, nba: { rpc: async (_name, body) => {
+    assert.equal(body.p_filters.status, 'settled');
+    return { tickets: [ticket], nextCursor: { eventDate: raw.eventDate, id: raw.id }, summary: exact };
+  } } });
+  const response = await handler(request('/nba/read', { filters: { status: 'settled' } }));
+  assert.equal(response.status, 200);
+  const result = await response.json(); assert.deepEqual(result.summary, exact);
+  assert.equal(result.tickets[0].netUnits, terms.netUnits);
+  assert.equal(result.tickets[0].audit[0].before.netUnits, '-999999.12345678');
+  assert.equal(result.tickets[0].audit[0].after.netUnits, terms.netUnits);
+});
+
+test('NBA replies reject malformed accounting rather than substituting zeros', async () => {
+  for (const broken of [{ ...summary, netUnits: 0 }, { ...summary, pendingStakeUnits: undefined }, { ...summary, roi: 'NaN' }]) {
+    const handler = createCloudHandler({ authenticate: async () => USER, nba: { rpc: async () => ({ tickets: [], summary: broken }) } });
+    assert.equal((await handler(request('/nba/read'))).status, 503);
+  }
 });
 
 test('NBA saves validate terms, use verified owner and project safe replies', async () => {

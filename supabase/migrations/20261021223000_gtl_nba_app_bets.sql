@@ -47,7 +47,7 @@ language sql stable set search_path = pg_catalog as $$
       'gameId', leg->'gameId', 'matchup', leg->'matchup', 'market', leg->'market',
       'team', leg->'team', 'side', leg->'side', 'line', leg->'line')) order by ordinal)
       from jsonb_array_elements(b.legs) with ordinality as l(leg, ordinal)),
-    'odds', b.odds, 'stakeUnits', b.stake_units, 'outcome', b.outcome, 'netUnits', b.net_units,
+    'odds', b.odds, 'stakeUnits', b.stake_units, 'outcome', b.outcome, 'netUnits', b.net_units::text,
     'priceInput', coalesce(b.price_input, jsonb_build_object('format', 'american', 'value', b.odds)))
 $$;
 create function nba_private.ticket_view(b nba_private.bets) returns jsonb
@@ -114,7 +114,7 @@ begin
   elsif price <> probability then raise exception 'GTL_NBA_INVALID'; end if;
   expected_net := case p_ticket->>'outcome' when 'pending' then null when 'loss' then -stake when 'win'
     then round(case when price > 0 then stake * price / 100 else stake * 100 / abs(price) end,8) else 0 end;
-  if (p_ticket->'netUnits') is distinct from coalesce(to_jsonb(expected_net),'null'::jsonb) then raise exception 'GTL_NBA_INVALID'; end if;
+  if (p_ticket->'netUnits') is distinct from coalesce(to_jsonb(round(expected_net,8)::text),'null'::jsonb) then raise exception 'GTL_NBA_INVALID'; end if;
   for leg in select value from jsonb_array_elements(p_ticket->'legs') loop
     if jsonb_typeof(leg) is distinct from 'object' then raise exception 'GTL_NBA_INVALID'; end if;
     if exists(select 1 from jsonb_object_keys(leg) k where k not in ('gameId','matchup','market','team','side','line'))
@@ -184,7 +184,7 @@ declare
 begin
   if p_user_id is null or jsonb_typeof(p_filters) is distinct from 'object'
     or exists(select 1 from jsonb_object_keys(p_filters) k where k not in ('status','market','from','to'))
-    or (p_filters ? 'status' and (jsonb_typeof(p_filters->'status') is distinct from 'string' or p_filters->>'status' not in ('pending','win','loss','push','void')))
+    or (p_filters ? 'status' and (jsonb_typeof(p_filters->'status') is distinct from 'string' or p_filters->>'status' not in ('pending','win','loss','push','void','settled')))
     or (p_filters ? 'market' and (jsonb_typeof(p_filters->'market') is distinct from 'string' or p_filters->>'market' not in ('moneyline','spread','total')))
     then raise exception 'GTL_NBA_INVALID'; end if;
   if p_filters ? 'from' then
@@ -206,7 +206,8 @@ begin
   end if;
   with matching as materialized (
     select b.* from nba_private.bets b where b.owner_id = p_user_id and (p_ticket_id is null or b.id = p_ticket_id)
-      and (not (p_filters ? 'status') or b.outcome = p_filters->>'status')
+      and (not (p_filters ? 'status') or b.outcome = p_filters->>'status'
+        or (p_filters->>'status' = 'settled' and b.outcome in ('win','loss','push','void')))
       and (date_from is null or b.event_date >= date_from) and (date_to is null or b.event_date <= date_to)
       and (not (p_filters ? 'market') or exists(select 1 from jsonb_array_elements(b.legs) l where l->>'market' = p_filters->>'market'))
   ), page as (
@@ -216,13 +217,15 @@ begin
     select count(*) n, count(*) filter(where outcome='win') wins, count(*) filter(where outcome='loss') losses,
       count(*) filter(where outcome='push') pushes,count(*) filter(where outcome='void') voids,count(*) filter(where outcome='pending') pending,
       coalesce(sum(stake_units) filter(where outcome in ('win','loss','push')),0) risk,
+      coalesce(sum(stake_units) filter(where outcome='pending'),0) pending_stake,
       coalesce(sum(net_units),0) net from matching
   )
   select coalesce((select jsonb_agg(nba_private.ticket_view(v) order by v.event_date desc,v.id desc) from visible v),'[]'::jsonb),
     case when (select count(*) from page) > 100 then (select jsonb_build_object('eventDate',v.event_date,'id',v.id)
       from visible v order by v.event_date asc,v.id asc limit 1) else null end,
     (select jsonb_build_object('count',n,'wins',wins,'losses',losses,'pushes',pushes,'voids',voids,'pending',pending,
-      'riskUnits',risk,'netUnits',net,'roi',case when risk > 0 then round(net/risk*100,8) else null end) from totals)
+      'riskUnits',round(risk,8)::text,'netUnits',round(net,8)::text,'pendingStakeUnits',round(pending_stake,8)::text,
+      'roi',case when risk > 0 then round(net/risk*100,8)::text else null end) from totals)
     into tickets,next_cursor,summary;
   return jsonb_build_object('tickets',tickets,'nextCursor',next_cursor,'summary',summary);
 exception when data_exception then raise exception 'GTL_NBA_INVALID';

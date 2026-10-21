@@ -10,20 +10,46 @@ const text = (value, max) => { if (typeof value !== 'string' || !value.trim() ||
 export function isNbaDate(value) {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
 }
+// Interpret the decimal JSON number, including exponent notation, without binary arithmetic.
+function decimalRatio(value) {
+  const [digits, exponent = '0'] = String(value).toLowerCase().split('e');
+  const [whole, fraction = ''] = digits.split('.');
+  const scale = fraction.length - Number(exponent);
+  const numerator = BigInt(whole + fraction);
+  return scale < 0 ? [numerator * 10n ** BigInt(-scale), 1n] : [numerator, 10n ** BigInt(scale)];
+}
+function roundRatio(numerator, denominator) {
+  const sign = numerator < 0n ? -1n : 1n;
+  const magnitude = numerator * sign;
+  return sign * ((magnitude * 2n + denominator) / (denominator * 2n));
+}
+function scaledDecimal(value, places) {
+  const [numerator, denominator] = decimalRatio(value);
+  return roundRatio(numerator * 10n ** BigInt(places), denominator);
+}
+function fixedUnits(amount) {
+  const sign = amount < 0n ? '-' : '';
+  const digits = (amount < 0n ? -amount : amount).toString().padStart(9, '0');
+  return `${sign}${digits.slice(0, -8)}.${digits.slice(-8)}`;
+}
 export function probabilityToAmerican(percent) {
   if (!finite(percent) || percent <= 0 || percent >= 100) invalid();
-  const odds = Math.round((percent > 50 ? -100 * percent / (100 - percent) : 100 * (100 - percent) / percent) * 10000) / 10000;
+  const [probability, denominator] = decimalRatio(percent);
+  const remainder = 100n * denominator - probability;
+  const odds = Number(percent > 50 ? roundRatio(-1000000n * probability, remainder)
+    : roundRatio(1000000n * remainder, probability)) / 10000;
   if (Math.abs(odds) < 100 || Math.abs(odds) > 1000000) invalid();
   return odds;
 }
 function netUnits(outcome, stake, odds) {
   if (outcome === 'pending') return null;
-  if (outcome === 'loss') return -stake;
-  if (outcome !== 'win') return 0;
-  const amount = BigInt(stake.toFixed(8).replace('.', '')), price = BigInt(Math.abs(odds).toFixed(4).replace('.', ''));
+  const amount = scaledDecimal(stake, 8);
+  if (outcome === 'loss') return fixedUnits(-amount);
+  if (outcome !== 'win') return '0.00000000';
+  const price = scaledDecimal(Math.abs(odds), 4);
   const numerator = odds > 0 ? amount * price : amount * 1000000n;
   const denominator = odds > 0 ? 1000000n : price;
-  return Number((numerator * 2n + denominator) / (denominator * 2n)) / 1e8;
+  return fixedUnits(roundRatio(numerator, denominator));
 }
 export function normalizeNbaTicket(input) {
   keys(input, ['id', 'season', 'eventDate', 'kind', 'label', 'legs', 'priceInput', 'stakeUnits', 'outcome']);

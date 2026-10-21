@@ -13,6 +13,11 @@ test('probability conversion preserves four-decimal American terms', () => {
   assert.equal(api.probabilityToAmerican(57), -132.5581);
   assert.equal(api.probabilityToAmerican(49), 104.0816);
   assert.equal(api.probabilityToAmerican(50), 100);
+  assert.equal(api.probabilityToAmerican(79.52), -388.2813);
+  assert.equal(api.probabilityToAmerican(7.952e1), -388.2813);
+  assert.equal(api.probabilityToAmerican(20.48), 388.2813);
+  assert.equal(api.probabilityToAmerican(1e-2), 999900);
+  assert.equal(api.probabilityToAmerican(99.99), -999900);
   for (const value of [0, 100, -1, NaN, Infinity, '57', 0.00001]) assert.throws(() => api.probabilityToAmerican(value));
 });
 
@@ -34,9 +39,17 @@ test('tickets require complete independent legs and explicitly quoted combined p
 
 test('owner outcomes keep pending distinct and return push/void stakes without profit', () => {
   assert.equal(typeof api.normalizeNbaTicket, 'function', 'NBA accounting is implemented');
-  for (const [outcome, netUnits] of [['pending', null], ['win', 0.5], ['loss', -0.6], ['push', 0], ['void', 0]]) {
+  for (const [outcome, netUnits] of [['pending', null], ['win', '0.50000000'], ['loss', '-0.60000000'], ['push', '0.00000000'], ['void', '0.00000000']]) {
     assert.equal(api.normalizeNbaTicket(fixture({ outcome })).netUnits, netUnits);
   }
   const result = api.normalizeNbaTicket(fixture({ priceInput: { format: 'probability', value: 57 }, outcome: 'win', stakeUnits: 0.12345678 }));
-  assert.equal(result.odds, -132.5581); assert.equal(result.netUnits, 0.09313409);
+  assert.equal(result.odds, -132.5581); assert.equal(result.netUnits, '0.09313409');
+});
+
+test('accounting preserves exact eight-decimal payouts across accepted bounds and exponent numbers', () => {
+  for (const [stakeUnits, value, netUnits] of [
+    [999999.12345678, 999999.9876, '9999991110.56790869'],
+    [1e-8, 150, '0.00000002'], [1e-8, -200, '0.00000001'],
+    [999999.99999999, 1e6, '9999999999.99990000'],
+  ]) assert.equal(api.normalizeNbaTicket(fixture({ stakeUnits, priceInput: { format: 'american', value }, outcome: 'win' })).netUnits, netUnits);
 });
