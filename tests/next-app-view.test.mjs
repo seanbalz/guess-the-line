@@ -149,6 +149,38 @@ test('the fallback note starts clear and is set once the new app fails on this p
 
 // ---------- the wiring: one lazy chunk each way, the fallback boundary, the footer button ----------
 const importsOf = text => [...text.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"]([^'"]+)['"]/g)].map(m => m[1]);
+/** Named shared adapters permit imports and reexports, never defaults, namespaces or dynamic loads. */
+function assertNamedAccess(text, spec, allowedNames, file) {
+  const dynamic = [...text.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]/g)].some(m => m[1] === spec);
+  const bare = [...text.matchAll(/\bimport\s*['"]([^'"]+)['"]/g)].some(m => m[1] === spec);
+  assert.ok(!dynamic && !bare, `${file} accesses ${spec}; only named ${allowedNames.join(', ')}`);
+  const statements = [...text.matchAll(/\b(import|export)\s+([^;]*?)\s+from\s*['"]([^'"]+)['"]/g)].filter(m => m[3] === spec);
+  assert.ok(statements.length, `${file} accesses ${spec}; only named ${allowedNames.join(', ')}`);
+  for (const [, , clause] of statements) {
+    const names = clause.match(/^\{([^}]*)\}$/)?.[1].split(',').map(name => name.trim()).filter(Boolean);
+    assert.ok(names?.length && names.every(name => allowedNames.includes(name)), `${file} imports or reexports ${clause} from ${spec}; only ${allowedNames.join(', ')}`);
+  }
+}
+
+test('named shared-hook inventory checks reexports and rejects default, namespace, extra and dynamic access', () => {
+  const spec = '../../trendsWeekHook.js', names = ['useTrendWeek'];
+  for (const source of [
+    "import { useTrendWeek } from '../../trendsWeekHook.js';",
+    "export { useTrendWeek } from '../../trendsWeekHook.js';",
+  ]) assert.doesNotThrow(() => assertNamedAccess(source, spec, names, 'fixture'));
+  for (const source of [
+    "import useTrendWeek from '../../trendsWeekHook.js';",
+    "import * as hooks from '../../trendsWeekHook.js';",
+    "import { useTrendWeek, OtherHook } from '../../trendsWeekHook.js';",
+    "export { OtherHook } from '../../trendsWeekHook.js';",
+    "export { default as useTrendWeek } from '../../trendsWeekHook.js';",
+    "export * from '../../trendsWeekHook.js';",
+    "const hook = import('../../trendsWeekHook.js');",
+    "import { useTrendWeek } from '../../trendsWeekHook.js'; const hook = import('../../trendsWeekHook.js');",
+    "import { useTrendWeek } from '../../trendsWeekHook.js'; import '../../trendsWeekHook.js';",
+  ]) assert.throws(() => assertNamedAccess(source, spec, names, 'fixture'), /only/);
+});
+
 function filesUnder(dir) {
   return fs.readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap(entry => {
     const rel = `${dir}/${entry.name}`;
@@ -173,15 +205,16 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // new app's typed-text drafts, which AuthGate clears (nextDrafts.js).
   // Stage 13 (Lines): the trends loaders and the wind timer, both free of React, which the old trends panel's hooks also
   // use, so both apps share one cache and one request per week.
+  // Weekly/player Trends reuses trendsAvailability.js as a pure formatter and only useTrendWeek from the shared React hook.
   // Stage 25 retains the classic recovery copies using the same pure account/week draft helpers.
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js']);
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'trendsAvailability.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js']);
   for (const shared of allowed) {
     assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
   }
   // Stage 10: the theme and the reduced-motion choice belong to the device, so both apps use the same state on the same
   // keys: the ThemeProvider main.jsx wraps both apps in (gtl.theme) and the motion preference (gtl.dashboard.preferences.v1).
   // Only these named hooks, never a component or a default import.
-  const namedOnly = { 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'CommunityHistory.jsx': ['HistoryLine'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot'] };
+  const namedOnly = { 'trendsWeekHook.js': ['useTrendWeek'], 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'CommunityHistory.jsx': ['HistoryLine'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot'] };
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
@@ -200,11 +233,7 @@ test('the apps keep separate shells and allow only documented workflow and pick-
       if (namedOnly[target]) {
         if (target === 'CommunityHome.jsx') assert.equal(file, 'web/src/next/play/Play.jsx');
         if (target === 'CommunityHistory.jsx') assert.equal(file, 'web/src/next/league/LeagueHistory.jsx');
-        const statements = [...text.matchAll(/import\s+([^;]*?)\s+from\s*['"]([^'"]+)['"]/g)].filter(m => m[2] === spec);
-        for (const [, clause] of statements) {
-          const names = clause.match(/^\{([^}]*)\}$/)?.[1].split(',').map(name => name.trim()).filter(Boolean);
-          assert.ok(names && names.every(name => namedOnly[target].includes(name)), `${file} imports ${clause} from ${spec}; only ${namedOnly[target].join(', ')}`);
-        }
+        assertNamedAccess(text, spec, namedOnly[target], file);
         continue;
       }
       // The repo's shared modules (shared/, pure ESM and JSON the server and both apps read) are not the old app.
