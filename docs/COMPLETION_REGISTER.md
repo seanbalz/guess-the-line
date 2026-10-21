@@ -27,6 +27,14 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 ## Current work and remaining boundaries
 
+October 21 NBA product direction: Sean selected **daily game board + private bet
+tracking first**, with NBA competitions later. The
+[proposed NBA section design](superpowers/specs/2026-10-21-nba-section-design.md)
+recommends a separate sport section sharing sign-in and settings, daily navigation,
+owner-only access to the existing archive and separate NBA accounting. Design
+review is pending; this entry establishes no app implementation, feed connection,
+permission change or deployment. The existing private archive remains protected.
+
 October 21 situational-trends upgrade: Sean confirmed a weekly and per-matchup
 shortlist of up to three consistent trends, emerging patterns under Explore,
 recent views that can span prior seasons, NFL spread/total scope prepared for later
