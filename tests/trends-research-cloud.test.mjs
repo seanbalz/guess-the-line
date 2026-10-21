@@ -296,3 +296,48 @@ test('reviewed revision chains cannot expose a hidden predecessor ID or branch i
   revised.entries.push({ ...structuredClone(revised.entries[1]), id: 'branched-correction' });
   assert.throws(() => sourceModule.validateReviewedFeed(revised));
 });
+
+test('a request crossing kickoff uses the final server time and returns its authoritative kickoff', async () => {
+  let time = Date.parse('2026-10-25T16:59:59Z');
+  const target = board(); target.games[0].spread.observedAt = new Date(time).toISOString();
+  const provider = await getProvider({ clock: () => time, loadSchedule: async () => { time = Date.parse('2026-10-25T17:00:02Z'); return csv; } });
+  const result = await provider.read({ board: target });
+  assert.equal(result.now, '2026-10-25T17:00:02.000Z');
+  assert.equal(result.games[0].kickoff, target.games[0].kickoff);
+  assert.ok(result.games[0].spread.lean.reasons.includes('not_pregame'));
+  assert.equal(result.games[0].spread.lean.state, 'unavailable');
+  assert.deepEqual(result.games[0].total, { visible: false });
+});
+
+test('a quote expiring while source preparation awaits cannot retain its earlier eligibility', async () => {
+  let time = Date.parse('2026-10-21T19:00:01Z');
+  const target = board(); target.games[0].spread.observedAt = '2026-10-21T07:00:03Z';
+  const provider = await getProvider({ clock: () => time, loadSnapshot: async () => { time = Date.parse('2026-10-21T19:00:04Z'); return getFixtureSnapshot(); } });
+  const result = await provider.read({ board: target });
+  assert.equal(result.now, '2026-10-21T19:00:04.000Z');
+  assert.ok(result.games[0].spread.lean.reasons.includes('reference_stale'));
+  assert.equal(result.games[0].spread.lean.state, 'unavailable');
+});
+
+test('an observation cutoff crossing during async fingerprinting fails history closed', async t => {
+  let time = Date.parse('2026-10-22T11:59:59Z');
+  const input = T.writeCompactCsv([...history, row({ season: 2026, week: 6, gameday: '2026-10-21', away_team: 'SEA', home_team: 'DEN', home_score: 24, away_score: 20, spread_line: 3, total_line: 44 }), upcoming]);
+  const prepared = await candidateModule.createResearchSnapshot({ csv: input, now: new Date(time).toISOString(), season: 2026, registry, venues, corrections });
+  const target = board(); target.games[0].spread.observedAt = new Date(time).toISOString();
+  const digest = crypto.subtle.digest.bind(crypto.subtle);
+  let digests = 0;
+  t.mock.method(crypto.subtle, 'digest', async (...args) => {
+    const value = await digest(...args);
+    if (++digests === 2) time = Date.parse('2026-10-22T12:00:01Z');
+    return value;
+  });
+  const provider = await getProvider({ clock: () => time, loadSchedule: async () => input, loadSnapshot: async () => prepared });
+  const result = await provider.read({ board: target });
+  assert.equal(result.now, '2026-10-22T12:00:01.000Z');
+  assert.equal(result.history.status, 'stale');
+  assert.ok(result.history.reasons.includes('observation_boundary_changed_during_read'));
+  assert.ok(result.games[0].spread.lean.reasons.includes('history_not_fresh'));
+  const next = await provider.read({ board: target });
+  assert.ok(next.history.reasons.includes('completed_source_changed'));
+  assert.ok(!next.history.reasons.includes('observation_boundary_changed_during_read'));
+});

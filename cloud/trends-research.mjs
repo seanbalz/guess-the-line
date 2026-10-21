@@ -63,22 +63,29 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
     return inFlight;
   }
   return { async read({ board, ...request }) {
-    const options = validateResearchRequest(request), now = new Date(clock()).toISOString();
+    const options = validateResearchRequest(request);
     const [data, prepared] = await Promise.all([material(), snapshot(options.period)]);
-    const validSnapshot = prepared?.version === RESEARCH_VERSION && Array.isArray(prepared.candidates) && Array.isArray(prepared.targets)
-      && Date.parse(prepared.generatedAt) <= Date.parse(now);
-    const completed = data?.rows.filter(r => T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= Date.parse(now)) ?? [];
+    const preparedAt = clock();
+    const snapshotShape = prepared?.version === RESEARCH_VERSION && Array.isArray(prepared.candidates) && Array.isArray(prepared.targets);
+    const completed = data?.rows.filter(r => T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= preparedAt) ?? [];
+    const hashMatches = snapshotShape && data && await sha256(completedSourceText(completed)) === prepared.source.completedSha256;
+    // Quote age, kickoff, source visibility and snapshot eligibility all share
+    // this authoritative decision time, after every asynchronous preparation.
+    const decisionAt = clock(), now = new Date(decisionAt).toISOString();
+    const validSnapshot = snapshotShape && Date.parse(prepared.generatedAt) <= decisionAt;
+    // Results become observable at noon UTC. If hashing crossed that boundary,
+    // its earlier sample cannot certify current freshness; the next read retries.
+    const observationBoundaryChanged = !!data && Math.floor((preparedAt - 43200000) / 86400000) !== Math.floor((decisionAt - 43200000) / 86400000);
     const missingFinals = data?.rows.some(r => Number(r.season) === board.season && !T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= Date.parse(now)) ?? true;
     const hasSeason = data?.rows.some(r => Number(r.season) === board.season) === true;
-    const hashMatches = validSnapshot && data && await sha256(completedSourceText(completed)) === prepared.source.completedSha256;
-    const fresh = !!(validSnapshot && hashMatches && !failed && hasSeason && !missingFinals && board.season === prepared.season);
+    const fresh = !!(validSnapshot && hashMatches && !observationBoundaryChanged && !failed && hasSeason && !missingFinals && board.season === prepared.season);
     const history = { status: !data || !validSnapshot ? 'unavailable' : fresh ? 'fresh' : 'stale', source: T.TRENDS_SOURCE,
       sourceSha256: data?.sha256 ?? null, snapshotSha256: validSnapshot ? prepared.source.sha256 : null,
       fetchedAt: data ? new Date(data.fetchedAt).toISOString() : null, snapshotAsOf: validSnapshot ? prepared.generatedAt : null,
       latestCompleted: validSnapshot ? prepared.source.latestCompleted : null,
       periodAnchor: validSnapshot ? prepared.generatedAt : null,
       limitations: ['Descriptive consistency is not a probability or a proven betting advantage.', 'Rolling 12 months and season summaries are anchored to the prepared snapshot.', 'Current state-and-line predicates without sufficient context remain unavailable.', validSnapshot ? prepared.source.finalAvailability : 'Prepared historical evidence is unavailable.'],
-      reasons: [...(!validSnapshot ? ['snapshot_unavailable'] : []), ...(failed ? ['source_refresh_failed'] : []), ...(!hasSeason ? ['season_missing'] : []), ...(missingFinals ? ['missing_finals'] : []), ...(validSnapshot && !hashMatches ? ['completed_source_changed'] : [])] };
+      reasons: [...(!validSnapshot ? ['snapshot_unavailable'] : []), ...(failed ? ['source_refresh_failed'] : []), ...(!hasSeason ? ['season_missing'] : []), ...(missingFinals ? ['missing_finals'] : []), ...(validSnapshot && !hashMatches ? ['completed_source_changed'] : []), ...(observationBoundaryChanged ? ['observation_boundary_changed_during_read'] : [])] };
     const publicSources = projectReviewedSources(feed, { board, now, invalid: invalidFeed });
     const applications = new Map(), permitted = new Map(), weekly = [];
     const sourceRows = new Map((data?.rows ?? []).map(r => [r.game_id, r]));
@@ -87,7 +94,7 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
       const target = validSnapshot ? prepared.targets.find(t => t.season === board.season && t.week === board.week && `${t.awayApp}-${t.homeApp}` === game.id) : null;
       const knownSchedule = target && matchingSchedule(target, sourceRows.get(target.id), game);
       const current = knownSchedule ? applyAccessibleLines(target, game, { venues, corrections }) : null;
-      return { id: game.id, ...Object.fromEntries(markets.map(market => {
+      return { id: game.id, kickoff: game.kickoff, ...Object.fromEntries(markets.map(market => {
         if (game[market]?.visible !== true) return [market, { visible: false }];
         const evidence = [];
         if (current) for (const candidate of prepared.candidates) {
