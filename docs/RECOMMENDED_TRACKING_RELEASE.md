@@ -63,7 +63,10 @@ ticket, virtual-pick, correction or audit records to roll back this UI change.
 - 41 focused Node checks, typecheck, UTF-8 Brand QA, production cloud build and
   bundle privacy scan passed. All five classic-browser regressions passed after
   building their required local assets. The full test suite is still running;
-  final results will be recorded before merge.
+  final results will be recorded before merge. Its first run caught the app
+  import-boundary guard: the shared tracker now receives its optional row
+  component from Bets instead of importing the new app. All 12 architecture
+  checks pass, with no exception added to the guard.
 
 Signed-in workflows are verified with local fixtures. Hosted asset, boundary and
 permitted read checks follow deployment. Physical-phone and human visual

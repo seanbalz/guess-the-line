@@ -5,6 +5,7 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Button } from '../ui/Button.jsx';
 import { Icon } from '../ui/Icon.jsx';
+import { TrackedBetRow } from './TrackedBetRow.jsx';
 import './bets.css';
 import '../../liveBets.css';
 
@@ -43,7 +44,7 @@ export function Bets() {
     </div>
     {view === 'tracked' ? <>
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Tracked bets are shared with all signed-in players, including when you select a private league. Results are player reported.</span></p>
-      <DeferredScreen label="tracked bets"><SocialBetTracker key={app.accountId} player={app.accountId} initialView="mybets" embedded compactTickets ticketRequest={ticketRequest?.accountId === app.accountId ? ticketRequest : null} onTicketConsumed={ticketConsumed} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
+      <DeferredScreen label="tracked bets"><SocialBetTracker key={app.accountId} player={app.accountId} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} ticketRequest={ticketRequest?.accountId === app.accountId ? ticketRequest : null} onTicketConsumed={ticketConsumed} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : view === 'recommended' ? <>
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={NotebookPen} size={18}/><span>Research from your submitted guesses, not validated predictions. Track a ticket you placed elsewhere, or choose play-money Virtual Units.</span></p>
       <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
