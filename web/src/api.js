@@ -80,3 +80,7 @@ export const linesApi = (action, body = {}, signal) => groupApi('lines', action,
 export const betsApi = (action, body = {}, signal) => groupApi('bets', action, body, signal);
 export const leagueApi = (action, body = {}, signal) => groupApi('league', action, body, signal);
 export const meApi = (action, body = {}, signal) => groupApi('me', action, body, signal);
+
+
+/** Public historical Trends for an authorized published week. */
+export const trendsApi = (body, signal) => cloudApi('trends/week', body, { signal });

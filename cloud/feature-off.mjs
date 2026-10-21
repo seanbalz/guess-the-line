@@ -11,6 +11,7 @@
 
 /** Feature name → the writer or reader it stops. A stage that adds a switchable route adds its name here. */
 export const FEATURES = Object.freeze({
+  trends: 'POST /trends/week: authenticated public historical weekly trends',
   comparisons: 'POST /league/comparison: scoped score comparisons',
   preferences: 'POST /me/preferences/save: account settings writes',
   notes: 'POST /personal/note: private game notes (M-09, redesign stage 27)',

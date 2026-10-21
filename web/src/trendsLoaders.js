@@ -7,23 +7,51 @@
 // map. Without wind forecasts (signed out, local mode, not a member, or not deployed) the panels keep their "no current
 // forecast" note. Moved here unchanged from trendsData.js.
 import { TREND_WEEKS } from './trendWeeks.generated.js';
-import { cloudEnabled } from './auth';
-import { officialsApi, windApi } from './api';
+import { cloudEnabled, supabase } from './auth';
+import { officialsApi, windApi, trendsApi } from './api';
 import { weekKey } from '../../shared/trends-view.mjs';
 import { WIND_TICK_MS } from './windTimer.js';
 
-const weeks = new Map(), officials = new Map(), listeners = new Set(), winds = new Map();
+const officials = new Map(), listeners = new Set(), winds = new Map();
 const WIND_CACHE_MS = 5 * 60_000;
 let windOff = false;
 
-/** The week file, or null when no file is published for that week. Rejects only when the chunk fails to load. */
-export function loadTrendWeek(season, week) {
-  const key = weekKey(season, week), loader = TREND_WEEKS[key];
-  if (!loader) return Promise.resolve(null);
-  if (!weeks.has(key)) weeks.set(key, loader().then(module => module.default ?? module).catch(error => { weeks.delete(key); throw error; }));
-  return weeks.get(key);
+/** Hosted public evidence cache; membership refusals never become a static fallback. */
+export function createTrendWeekLoader({ cloud = cloudEnabled, readHosted = trendsApi, staticWeeks = TREND_WEEKS, now = Date.now } = {}) {
+  const cache = new Map(); let epoch = 0;
+  const clear = () => { epoch++; cache.clear(); };
+  const load = (season, week, { fresh = false, retry = false } = {}) => {
+    const key = weekKey(season, week), hit = cache.get(key), age = hit ? now() - hit.at : Infinity;
+    if (hit && (hit.pending || (!retry && age < (fresh ? 60_000 : 5 * 60_000)))) return hit.promise;
+    const loader = staticWeeks[key], version = epoch;
+    const entry = { at: now(), pending: true, promise: null };
+    const fallback = async reason => {
+      if (!loader) return null;
+      const module = await loader(), value = module.default ?? module;
+      return { ...value, availability: { generatedAt: null, sourceAsOf: value.asOf ?? null, stale: true, reason,
+        evidencePolicy: 'Frozen static snapshot; results are dated as of the saved file.' } };
+    };
+    entry.promise = (cloud
+      ? Promise.resolve().then(() => readHosted({ season, week })).catch(error => {
+          if ([400, 401, 403].includes(error?.status)) throw error;
+          return fallback('Hosted trends unavailable; dated static fallback.');
+        })
+      : fallback('Local mode; dated static snapshot.')).then(value => {
+        if (version !== epoch) throw Object.assign(new Error('Account changed. Reload trends.'), { status: 401 });
+        entry.pending = false;
+        return value;
+      }).catch(error => { if (cache.get(key) === entry) cache.delete(key); throw error; });
+    cache.set(key, entry);
+    while (cache.size > 8) cache.delete(cache.keys().next().value);
+    return entry.promise;
+  };
+  return { load, clear };
 }
-export const hasTrendWeek = (season, week) => Object.hasOwn(TREND_WEEKS, weekKey(season, week));
+const trendLoader = createTrendWeekLoader();
+export const loadTrendWeek = (season, week, options) => trendLoader.load(season, week, options);
+export const clearTrendWeeks = () => trendLoader.clear();
+supabase?.auth.onAuthStateChange(() => clearTrendWeeks());
+export const hasTrendWeek = (season, week) => cloudEnabled || Object.hasOwn(TREND_WEEKS, weekKey(season, week));
 /** The first week of a season with a published trends file, or null. */
 export const firstTrendWeek = season => Object.keys(TREND_WEEKS).filter(key => key.startsWith(`${season}-`)).map(key => Number(key.slice(5))).sort((a, b) => a - b)[0] ?? null;
 
