@@ -46,6 +46,7 @@ export const apiChecks = Object.freeze([
   // M-06 lines routes (awaitingDeploy): signed-out probes prove only authentication protection.
   ['lines/read', {}],
   ['lines/game', {}],
+  ['lines/research', {}],
 ]);
 
 export const workerChecks = Object.freeze([
@@ -53,6 +54,7 @@ export const workerChecks = Object.freeze([
 ]);
 
 export const awaitingDeploy = Object.freeze({
+  'gtl-api/lines/research': 'the gtl-api deploy with /lines/research; a signed-out gateway 401 does not prove route deployment',
   'rpc/gtl_read_game_officials': 'migration 20261012234500_gtl_game_officials.sql',
   'rpc/gtl_set_game_official': 'migration 20261012234500_gtl_game_officials.sql',
   'gtl-api/officials/read': 'the gtl-api deploy with /officials/read',

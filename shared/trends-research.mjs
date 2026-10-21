@@ -43,8 +43,12 @@ function normalize(records, cutoff = Infinity) {
     const date = instant(row.date);
     if (date === null) { exclusions.invalidDate++; continue; }
     if (date > cutoff) { exclusions.future++; continue; }
+    const available = row.availableAt === undefined ? date : instant(row.availableAt);
+    if (available === null || available < date) { exclusions.invalidDate++; continue; }
+    if (available > cutoff) { exclusions.future++; continue; }
     if (![1, 0, -1].includes(row.result)) { exclusions.invalidResult++; continue; }
     const normalized = { gameId: row.gameId, date: new Date(date).toISOString(), season: row.season, result: row.result, odds: validPrice(row.odds) ? row.odds : null };
+    if (row.availableAt !== undefined) normalized.availableAt = new Date(available).toISOString();
     const bucket = buckets.get(row.gameId) ?? [];
     bucket.push(normalized);
     buckets.set(row.gameId, bucket);
@@ -79,7 +83,9 @@ function periodRows(records, { period = 'recent30', season, now }) {
 
 /** Periods: recent30 (default), recent25, season, previousSeason, rolling12, all.
  * Selection includes pushes, excludes future/invalid/conflicting records and
- * uses NFL season fields rather than a calendar-year guess. Returns frozen rows.
+ * uses NFL season fields rather than a calendar-year guess. Optional availableAt
+ * independently gates result observation; date remains the event chronology.
+ * Returns frozen rows.
  */
 export function selectResearchPeriod(records, options = {}) {
   const normalized = normalize(records, asOf(options.now));

@@ -28,6 +28,20 @@ const lean = (items, overrides = {}) => researchLean({
   historyFresh: true, ...overrides,
 });
 
+test('event chronology controls prospective labels while optional availability independently gates results', () => {
+  const record = { gameId: 'before-registration', date: '2026-10-11T20:00:00Z', availableAt: '2026-10-12T12:00:00Z', season: 2026, result: 1, odds: null };
+  const c = candidate({ registeredAt: '2026-10-12T00:00:00Z', records: [record] });
+  const observed = evaluateResearchCandidate(c, { now: NOW, season: 2026 });
+  assert.equal(observed.retrospective.sample, 1);
+  assert.equal(observed.prospective.sample, 0);
+  assert.equal(observed.record.records[0].date, '2026-10-11T20:00:00.000Z');
+  assert.equal(observed.record.records[0].availableAt, '2026-10-12T12:00:00.000Z');
+  const notObserved = evaluateResearchCandidate(c, { now: '2026-10-12T00:00:00Z', season: 2026 });
+  assert.equal(notObserved.record.sample, 0);
+  assert.equal(notObserved.exclusions.future, 1);
+  assert.equal(selectResearchPeriod([{ ...record, availableAt: 'bad' }], { now: NOW }).length, 0);
+});
+
 test('last30 includes pushes and crosses seasons with deterministic equal-date ordering', () => {
   const input = rows(Array(35).fill(1)).map((r, i) => ({ ...r, season: i < 20 ? 2024 : 2025 }));
   input[34].result = 0;
