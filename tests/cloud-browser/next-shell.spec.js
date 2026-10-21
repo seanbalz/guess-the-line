@@ -21,7 +21,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const OLD = 'Use the old app';
-const TABS = ['Home', 'Play', 'Bets', 'Lines', 'League', 'Fantasy'];
+const TABS = ['Home', 'Play', 'Bets', 'Lines', 'League', 'Fantasy', 'Trends'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 // A tab by its label; its name may add the counter's words ("Play, 2 ballots due", stage 11).
 const tab = (page, name) => tabBar(page).getByRole('button', { name: new RegExp(`^${name === 'Fantasy' ? 'Fantasy Football' : name}(, .+)?$`) });
@@ -49,8 +49,9 @@ async function phoneChecks(page, root = '.gx') {
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
-      if (r.right > innerWidth + 0.5 || r.left < -0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+      if (!el.closest('[data-scroll-rail=navigation]') && (r.right > innerWidth + 0.5 || r.left < -0.5)) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
     }
+    const activeTab = scope.querySelector('[data-scroll-rail=navigation] :focus') || scope.querySelector('[data-scroll-rail=navigation] [aria-current=page]'); if (activeTab) { const r = activeTab.getBoundingClientRect(), box = activeTab.closest('[data-scroll-rail=navigation]').getBoundingClientRect(); if (r.left < box.left-1 || r.right > box.right+1) clipped.push('Active tab clipped'); }
     return { targets, small, clipped };
   });
   expect(report).toEqual({ targets: [], small: [], clipped: [] });
@@ -72,7 +73,7 @@ function apiCalls(page) {
  * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
  * for its D-45 weather chips on Lines): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
+const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -93,7 +94,7 @@ async function openNewApp(page, baseURL, fragment = '') {
 }
 
 test.describe('the real app', () => {
-  test('six working tabs; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
+  test('seven working tabs; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL);
     try {
@@ -140,7 +141,7 @@ test.describe('the real app', () => {
       await page.goBack();
       await expect(title(page, 'Home')).toBeVisible();
       await page.goBack();
-      await expect(title(page, 'Fantasy')).toBeVisible();
+      await expect(title(page, 'Trends')).toBeVisible();
       await page.goForward();
       await expect(title(page, 'Home')).toBeVisible();
       expect(writes(calls), 'browsing writes nothing').toEqual([]);
@@ -375,7 +376,7 @@ test.describe('the shell harness', () => {
     await expect(sheet(page, 'Detail')).toBeVisible();
     expect(await focusOnBody(page), 'focus did not drop to the page').toBe(false);
     await expect(sheet(page, 'Detail')).toBeFocused();
-    for (let i = 0; i < 6; i += 1) {
+    for (let i = 0; i < 7; i += 1) {
       await page.keyboard.press('Tab');
       expect(await inside(page, '.gx-sheet')).toBe(true);
     }

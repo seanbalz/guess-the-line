@@ -1,3 +1,4 @@
+import { trendAvailabilitySummary, trendAvailabilityText } from './trendsAvailability.js';
 import React from 'react';
 import { LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-react';
 import TrendsView from './TrendsView.jsx';
@@ -13,7 +14,7 @@ export default function TrendsPanel({ season, week, gameId, ...view }) {
     <button type="button" className="text-button" onClick={data.retry}><RefreshCw size={16} aria-hidden="true"/>Retry</button></div>;
   if (data.status === 'missing') {
     const first = firstTrendWeek(season);
-    return <p className="trends-empty" role="status">{first !== null && week < first ? `Situational trends start with Week ${first} of the ${season} season; Week ${week} has none.` : `Trends for Week ${week} publish after Monday night’s final.`}</p>;
+    return <p className="trends-empty" role="status">{first !== null && week < first ? `Situational trends start with Week ${first} of the ${season} season; Week ${week} has none.` : `Trends for Week ${week} are available when the published week opens; pending records update after finals.`}</p>;
   }
-  return <TrendsView week={data.week} gameId={gameId} officials={officials} wind={wind.wind} windNow={wind.now} windLoading={wind.loading} {...view}/>;
+  return <><div className="trends-panel"><p className="trends-status" role="status">{trendAvailabilitySummary(data.week)}</p><details><summary>Source details</summary><p className="trends-status">{trendAvailabilityText(data.week)}</p></details></div><TrendsView week={data.week} gameId={gameId} officials={officials} wind={wind.wind} windNow={wind.now} windLoading={wind.loading} {...view}/></>;
 }

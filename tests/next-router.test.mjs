@@ -62,13 +62,13 @@ function app(win, confirmLeave) {
 
 test('fragments: the new app\'s tabs, the old app\'s screens on the way in, and the ones left alone', () => {
   const cases = {
-    '': { tab: 'home' }, '#': { tab: 'home' }, '#home': { tab: 'home' }, '#play': { tab: 'play' }, '#bets': { tab: 'bets' }, '#lines': { tab: 'lines' }, '#league': { tab: 'league' }, '#fantasy': { tab: 'fantasy' },
+    '': { tab: 'home' }, '#': { tab: 'home' }, '#home': { tab: 'home' }, '#play': { tab: 'play' }, '#bets': { tab: 'bets' }, '#lines': { tab: 'lines' }, '#league': { tab: 'league' }, '#fantasy': { tab: 'fantasy' }, '#trends': { tab: 'trends' },
     '#picks': { tab: 'play' }, '#picks-spread': { tab: 'play', view: { market: 'spread' } }, '#picks-total': { tab: 'play', view: { market: 'total' } }, '#picks-week': { tab: 'play' },
     '#feed': { tab: 'league', view: { view: 'feed' } }, '#groups': { tab: 'home', layer: { id: 'sh.switcher' } },
     '#main': null, '#picks-due': null, '#type=recovery': null, '#access_token=x&type=signup': null, '#invite=abc': null, '#picks=1': null, '#history': null, '#Play': null, '#unknown': null,
   };
   for (const [fragment, place] of Object.entries(cases)) assert.deepEqual(placeFromFragment(fragment), place, fragment);
-  assert.deepEqual(['home', 'play', 'bets', 'lines', 'league', 'fantasy', 'nope'].map(fragmentFor), ['#home', '#play', '#bets', '#lines', '#league', '#fantasy', '#home']);
+  assert.deepEqual(['home', 'play', 'bets', 'lines', 'league', 'fantasy', 'trends', 'nope'].map(fragmentFor), ['#home', '#play', '#bets', '#lines', '#league', '#fantasy', '#trends', '#home']);
   assert.deepEqual(['#picks', '#picks-total', '#feed', '#groups', '#play', '', '#main', '#x=1'].map(isLegacyFragment), [true, true, true, true, false, false, false, false]);
 });
 

@@ -12,7 +12,7 @@ export function useLinesData() {
   const app = useAppData();
   const personal = useSharedRead('personal');
   const shown = weekOf(personal.data);
-  const trends = useTrendWeek(shown?.season, shown?.week, Boolean(shown));
+  const trends = useTrendWeek(shown?.season, shown?.week, Boolean(shown), app.accountId);
   return {
     app,
     personal,

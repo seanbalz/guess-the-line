@@ -16,7 +16,7 @@
 //   queue too: the first shows, never over an overlay.
 // - closeTop is Escape and Back: overlay, then popover, dialog, the top sheet, the page.
 
-export const TABS = Object.freeze(['home', 'play', 'bets', 'lines', 'league', 'fantasy']);
+export const TABS = Object.freeze(['home', 'play', 'bets', 'lines', 'league', 'fantasy', 'trends']);
 export const DEFAULT_TAB = 'home';
 const KINDS = Object.freeze({ sh: 'sheet', dlg: 'dialog', pop: 'popover', ov: 'overlay', page: 'page' });
 export const LAYER_KINDS = Object.freeze(Object.values(KINDS));

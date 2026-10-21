@@ -161,13 +161,10 @@
   border-top: 1px solid var(--gx-border);
 }
 .gx-tabbar-inner {
-  display: grid;
-  /* Reserve each label's natural width before sharing spare room. League and Fantasy need more than a sixth
-     of a narrow phone, while the shorter labels still keep a full 44px touch target. */
-  grid-template-columns: repeat(6, minmax(max-content, 1fr));
-  max-width: var(--gx-size-content);
-  margin-inline: auto;
+  display: flex; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  max-width: var(--gx-size-content); margin-inline: auto;
 }
+.gx-tabbar-inner::-webkit-scrollbar { display: none; }
 .gx-tab {
   position: relative;
   display: flex;
@@ -175,7 +172,7 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: var(--gx-size-touch);
+  flex: 1 0 auto; min-width: 60px; padding-inline: 8px;
   height: calc(var(--gx-size-tabbar) - 1px);
   color: var(--gx-text-2);
 }
@@ -183,7 +180,7 @@
 .gx-tab-icon { position: relative; display: block; width: 24px; height: 24px; }
 .gx-tab-label { font: 600 16px/20px var(--gx-font-body); }
 /* Keep the existing narrow-phone type size; intrinsic grid tracks fit the two longer labels without clipping. */
-@media (max-width: 359.98px) { .gx-tab-label { font-size: 15px; } }
+
 .gx-tab--on { color: var(--gx-text-1); }
 .gx-tab--on .gx-tab-label { font-weight: 700; }
 .gx-tab--on .gx-ic { color: var(--gx-accent-ink); }

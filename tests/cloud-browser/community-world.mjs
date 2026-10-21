@@ -1,3 +1,5 @@
+import { createTrendsService } from '../../cloud/trends.mjs';
+import trendsSeed from '../../cloud/trends-seed.mjs';
 // Shared community world for the D-21/D-23/D-24 browser specs: the real cloud handler and
 // the real migrations on local PGlite (the community.spec.js pattern) with three fixture
 // accounts. Luke views, Troy plays and Sean is the sean-troy-luke commissioner, so the
@@ -77,7 +79,7 @@ export async function communityWorld(page, baseURL, options = {}) {
 }
 
 /** The same world without a browser: the database, the real handler and world.api (options as communityWorld). */
-export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false } = {}) {
+export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false, trendsReadSeason = async () => trendsSeed.seasonCsv } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec(PRELUDE);
   await db.exec(migrationSql(migrations[0]));
@@ -135,6 +137,7 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     // Redesign stage 23 (M-06): the gated lines readers. On a schema without M-06 (HOSTED today) their RPCs are missing,
     // so /lines/* answer the generic 503 and every other route is unchanged.
     lines: { rpc: rpc(providerLinesError) },
+    trends: createTrendsService({ rpc: rpc(providerLinesError), readSeason: trendsReadSeason, clock, seed: trendsSeed }),
     league: { rpc: rpc(providerLeagueError) }, me: { rpc: rpc(providerMeError) },
     // Recommendations use the published account week, even when every private
     // group remains on an older slate. These are the production adapter's exact

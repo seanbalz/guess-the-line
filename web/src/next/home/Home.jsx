@@ -129,7 +129,7 @@ export function Home() {
       {SLOT_TILES.filter(tile => tile.id === 'play.weekly-score').map(({ id,Tile }) => <Suspense key={id} fallback={null}><Tile/></Suspense>)}
       <ResearchPreview shell={shell} preferences={preferences}/>
       <FantasyHomeTile/>
-      <Card as="section" className="gx-vstack gx-gap-12"><h2 className="gx-t-section">Explore the week</h2><p className="gx-t-body">Lines opens matchup details, quote sources and trends. History shows prior weeks and saved guesses.</p><Button onClick={toLines}>Game details and trends</Button><Button onClick={() => shell.go('league',{ view: 'history' })}>Week history</Button></Card>
+      <Card as="section" className="gx-vstack gx-gap-12"><h2 className="gx-t-section">Explore the week</h2><p className="gx-t-body">Lines opens matchup details, quote sources and trends. History shows prior weeks and saved guesses.</p><Button onClick={toLines}>Game details and trends</Button><Button onClick={() => shell.tab('trends')}>Weekly and player trends</Button><Button onClick={() => shell.go('league',{ view: 'history' })}>Week history</Button></Card>
       <WhosIn who={tiles.whosIn}/>
       <div className="gx-h-tiles">
         <RankTile title={HOME_COPY.spreadRank} tile={tiles.spread} chase={tiles.chase} market="spread"/>
