@@ -37,7 +37,9 @@ export function TrendsScreen() {
   const views = personal.data ? gamesOf(personal.data).map(g => gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, gameId: g.id })).filter(Boolean) : [];
   const teams = [...new Set(views.flatMap(v => [v.away.code,v.home.code]))].sort();
   const team = teams.includes(view.weekTeam) ? view.weekTeam : '';
-  const games = views.filter(v => (!team || [v.away.code,v.home.code].includes(team)) && (!view.matchup || v.id === view.matchup));
+  const teamGames = views.filter(v => !team || [v.away.code,v.home.code].includes(team));
+  const matchup = teamGames.some(v => v.id === view.matchup) ? view.matchup : '';
+  const games = teamGames.filter(v => !matchup || v.id === matchup);
   const cards = games.flatMap(v => marketSituationCards(trendsWeek,v,market).map(card => ({ card, v }))).sort((a,b) => a.card.strength[0]-b.card.strength[0] || a.card.strength[1]-b.card.strength[1]);
   return <div className="gx-screen gx-trends">
     <h1 className="gx-t-title">Trends</h1>
@@ -49,7 +51,7 @@ export function TrendsScreen() {
       <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p>
       {trends.status === 'error' ? <Card role="alert"><p className="gx-t-body">Trends unavailable. Try again.</p><Button onClick={trends.retry}>Retry trends</Button></Card> : trends.status === 'loading' ? <p className="gx-t-body" role="status">Loading published-week trends…</p> : trends.status === 'missing' ? <p className="gx-t-body" role="status">No evidence available for this published week.</p> : null}
       <div className="gx-tr-filters gx-tr-week-filters"><Select label="Team" value={team} onChange={weekTeam => onChange({ weekTeam, matchup: '' })}><option value="">All teams</option>{teams.map(t => <option key={t}>{t}</option>)}</Select>
-        <Select label="Matchup" value={view.matchup || ''} onChange={matchup => onChange({ matchup })}><option value="">All matchups</option>{views.filter(v => !team || [v.away.code,v.home.code].includes(team)).map(v => <option key={v.id} value={v.id}>{v.title}</option>)}</Select></div>
+        <Select label="Matchup" value={matchup} onChange={matchup => onChange({ matchup })}><option value="">All matchups</option>{teamGames.map(v => <option key={v.id} value={v.id}>{v.title}</option>)}</Select></div>
       {section === 'week' && cards.length > 0 && <section className="gx-vstack gx-gap-12" aria-label="Weekly highlights"><h2 className="gx-t-section">Weekly highlights</h2><p className="gx-t-meta">At most three, ordered by existing evidence quality. Shared situations can overlap.</p><ul className="gx-l-alist">{cards.slice(0,3).map(({card,v}) => <ShortTrend key={v.id+card.key} card={card} rules={v.rules}/>)}</ul></section>}
       <section className="gx-vstack gx-gap-16" aria-label={section === 'teams' ? 'Team history comparisons' : 'Published matchups'}>
       <h2 className="gx-t-section">{section === 'teams' ? 'Team history comparisons' : 'Published matchups'}</h2>

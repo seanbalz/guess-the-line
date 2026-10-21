@@ -61,3 +61,46 @@ it('legacy panel keeps source outage notes alongside valid cards', () => {
  const html = renderToStaticMarkup(<LegacyPanel season={2026} week={6}/>);
  expect(html).toContain('2026-10-12'); expect(html).toContain('Stale evidence'); expect(html).toContain('Fixture outage'); expect(html).toContain('Valid legacy fixture records');
 });
+
+const publishedSlate = vi.hoisted(() => ({ value: null }));
+vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => publishedSlate.value }));
+const { TrendsScreen } = await import('../web/src/next/trends/TrendsScreen.jsx');
+const { ShellContext } = await import('../web/src/next/shell/context.js');
+const { parseMarkup, walk } = await import('./helpers/ui-markup.mjs');
+function renderPublishedSlate(week, games, view) {
+ publishedSlate.value = {
+  app: { accountId: 'me', league: { id: 'community', name: 'Community', community: true } },
+  personal: { data: { season: 2026, week, games, now: '2026-10-01T00:00:00Z', deadline: '2026-10-30T00:15:00Z', ballots: {} } },
+  community: null, shown: { season: 2026, week }, trends: { status: 'ready', retry: vi.fn() }, trendsWeek: null,
+ };
+ return renderToStaticMarkup(<div className="gx"><ShellContext.Provider value={{ state: { views: { trends: view } }, setView: vi.fn(), openSheet: vi.fn() }}><TrendsScreen/></ShellContext.Provider></div>);
+}
+const selectedMatchup = html => {
+ const select = [...walk(parseMarkup(html))].filter(n => n.tag === 'select')[1];
+ return select.children.filter(n => n.tag === 'option' && Object.hasOwn(n.attrs, 'selected')).map(n => n.attrs.value);
+};
+const nextGame = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-25T20:00:00Z' };
+describe.each(['week','teams'])('published matchup filters in %s', section => {
+ it('uses All matchups when the published week replaces the saved matchup', () => {
+  const view = { section, matchup: game.id };
+  const initial = renderPublishedSlate(6,[game,nextGame],view);
+  expect(selectedMatchup(initial)).toEqual([game.id]);
+  expect(initial).toContain('Game details · CAR @ ATL');
+  expect(initial).not.toContain('Game details · SEA @ DEN');
+  const changed = renderPublishedSlate(7,[nextGame],view);
+  expect(view.matchup).toBe(game.id);
+  expect(selectedMatchup(changed)).toEqual(['']);
+  expect(changed).toContain('Published week: 2026 Week 7');
+  expect(changed).toContain('Game details · SEA @ DEN');
+  expect(changed).not.toContain('No games match these filters.');
+  expect(markupProblems(changed)).toEqual([]);
+ });
+ it('uses All matchups when the current team filter removes the saved matchup', () => {
+  const view = { section, matchup: game.id, weekTeam: 'DEN' };
+  const html = renderPublishedSlate(7,[game,nextGame],view);
+  expect(selectedMatchup(html)).toEqual(['']);
+  expect(html).toContain('Game details · SEA @ DEN');
+  expect(html).not.toContain('Game details · CAR @ ATL');
+  expect(html).not.toContain('No games match these filters.');
+ });
+});
