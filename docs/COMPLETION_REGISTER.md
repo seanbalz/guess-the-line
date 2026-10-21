@@ -34,7 +34,9 @@ and merged as `2d81436dc0f3bcbfd9c91b69c9049755eb8b4601`; all three integration
 checkouts passed clean sync at that merge. See the
 [easier bet tracking release card](EASIER_BET_TRACKING_RELEASE.md) for live asset,
 privacy, preservation and acceptance limits. Its evidence PR carries the final
-documentation merge/sync result. Q02 is next after that closeout.
+documentation merge/sync result. PR #156 merged as
+`fd1facc7af1d1673b99dee0bd2f0228d6f63a0e6`; all three checkouts then synced cleanly.
+Q02 is now active; see the [verifier repair record](DEPLOYMENT_VERIFIER_RELEASE.md).
 The weekly-results evidence PR #154 passed all five checks, merged as
 `eb1fa9330d715140f8e343a24daf51908ace5ba6`, and was verified clean/synced on Windows,
 Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
@@ -43,7 +45,7 @@ Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 | --- | --- | --- |
 | Q01 backlog reconciliation | PR #152 merged as 97c08b987a26918b74db23138cf0793f70eba6d8; three clean integration checkouts verified at that commit | Complete. Preserve the two dirty Mini worktrees identified in the queue. |
 | Scheduled collector | October 20 20:15 UTC cron, worker, collection and Week 7 snapshot succeeded | Verified; see the core scoring release record. No forced provider collection. |
-| Q02 deployment verifier | Existing fix on open PR #150 | Reconcile canonical redirects and current release records; verify protected workflow. |
+| Q02 deployment verifier | PR #150's code/test fix reconciled with current main; local regression passes | Review/CI, then actual protected frontend verification and evidence sync. |
 | Q03–Q05 mobile/Bets/recommendations | Requirements and an implementation branch exist | Sequential navigation, filters, then recommendation refinement tasks. |
 | Q06–Q08 Bets/comparisons/preferences | Merged readers/settings code; three migrations remain unhosted | Separate dependency-aware release/readback; no generic database push. |
 | Q09–Q10 account/notification acceptance | Live components exist; real-world checks remain | Verify actual supported account/device flows and iPhone notification delivery. |
