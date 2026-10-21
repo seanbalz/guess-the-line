@@ -1,6 +1,6 @@
 # Guess The Line — situational trends and research leans
 
-Owner: Sean Balsiger · Version 1 · October 21, 2026 (Pacific)
+Owner: Sean Balsiger · Version 2 · October 21, 2026 (Pacific)
 
 Status: product choices confirmed in conversation; the detailed design below is
 proposed for review. Documentation only. No implementation, source connection,
@@ -15,10 +15,10 @@ production change, or betting-performance validation is established by this file
 | Time | Recent is the default presentation, not a hard cutoff. Useful patterns, including primetime situations, can span earlier seasons. |
 | Initial evidence | Favor consistent trends. Put emerging patterns within easy reach under Explore. Do not fill the shortlist with small-sample streaks. |
 | Markets | Start with NFL spreads and game totals; prepare the design for moneylines and player props later. |
-| Research lean | Show a direction with supporting and conflicting evidence. Say “No clear lean” when consistent evidence is insufficient. |
+| Research lean | Show a direction with supporting and conflicting evidence. Qualifying opposing groups may coexist with a lean and appear as a yellow alternative. Say “No clear lean” when consistent evidence is insufficient or neither direction has a meaningful advantage. |
 | Trend references | RotoBot, ParlayScience, Fatboss, TrendsCenter and BettingPros aggregate trends that help people evaluate bets. They are research references, not five votes for a side. |
 | Trent | Book It With Trent gets a separate section showing his published plays. Sean's stated interest is fading Trent. |
-| Presentation | Preserve useful charts and the visible “Consistent, not proven” distinction, including a green indicator with explicit text. |
+| Presentation | Preserve charts and “Consistent, not proven” with an explicit text label. Green marks support for the main lean; yellow identifies a credible alternative or mixed evidence. Opposition alone is not a red/bad label. |
 
 These choices extend D-32/DASH-7. They clarify how the new research experience
 uses D-48's guess-versus-market comparison: a pricing expectation gap is not a
@@ -179,19 +179,45 @@ hidden fourth opposing trend must not disappear from the decision.
    age. This does not introduce a quote expiry into D-18's existing save path or
    start an extra odds refresh. A valid read does not establish an executable
    sportsbook offer.
-3. At least **two separate qualifying evidence groups** favor the same side and
-   no qualifying group favors the opposite side. A group containing qualifying
-   patterns on both sides is a conflict. If either condition fails, show
-   **No clear lean**, with “Only one qualifying evidence group”, “Conflicting
-   consistent trends”, or “Insufficient consistent evidence”, as appropriate.
-4. Emerging or source-reported contrary research remains visible as context,
+3. At least **two separate qualifying evidence groups** must support the main
+   lean. Qualifying opposing groups do not veto it. For a deterministic first
+   version, propose a strict advantage in the number of directionally agreeing
+   groups after deduplication. A group with qualifying patterns on both sides is
+   mixed: show both, but do not count it toward either side's minimum or advantage.
+   Do not choose a count-leading side when the alternative has a qualifying
+   existing Tier 1 pattern and that side has none; show **No clear lean — stronger
+   historical evidence conflicts** in that case. These comparison rules remain
+   proposed heuristics, not a measured confidence score.
+4. Show **No clear lean** when neither side has two agreeing groups, the agreeing
+   group counts tie, or the stronger-historical-evidence condition above applies.
+   State the reason. Otherwise keep the main lean and show any qualifying opposing
+   side immediately beside or below it as **Alternative — qualifying opposing
+   evidence**, in yellow, with its evidence and limits available on tap. Do not
+   require opening Explore to discover that the main lean has qualified opposition.
+5. Emerging or source-reported contrary research remains visible as context,
    but does not vote for or against a lean. Explain its lower evidence status.
-5. Trent's selections, repost counts and the player's guessed line do not vote.
+6. Trent's selections, repost counts and the player's guessed line do not vote.
 
 Show **Research lean: [team] against the spread**, **Over**, or **Under**, then
 the supporting groups, opposing evidence, date/sample limits and any overlap.
 This is a descriptive research direction. Do not attach an implied probability,
 EV percentage, stake size or an unsupported target fair line.
+
+Color describes the research role, not certainty or a guaranteed betting outcome:
+
+- **Green — Supports the lean:** qualifying evidence for the selected direction.
+- **Yellow — Alternative / mixed evidence:** a credible opposing direction,
+  uncertainty or No clear lean. A consistent opposing trend keeps its consistency
+  label even though its relationship to the main lean is yellow.
+- **Red:** keep established negative-result uses such as historical losses; do
+  not mark an alternative red merely because it opposes the main lean.
+
+The evidence label and the support/alternative label are separate fields. Every
+color has visible text and an accessible equivalent. Two agreeing groups against
+one opposing group can therefore produce a green main lean and a yellow
+alternative, subject to the stronger-historical-evidence check. Two against two
+produces a yellow No clear lean state. Counts explain breadth of support; they
+are not odds, probabilities, or proof that grouped signals are independent.
 
 Display the player's locked guess, saved scoring reference and accessible current
 market reference as distinct values. Label the guess gap **Difference from your
@@ -259,8 +285,9 @@ trend, and an unknown condition does not count as false.
 
 Follow [BRAND_GUIDE](../../BRAND_GUIDE.md), [existing tokens](../../../design/tokens.json)
 and the new app's [tokens](../../../design/tokens-next.json). The consistency
-indicator uses the semantic green with an icon and explicit “not proven” text;
-the chart uses the data color. No new brand identity, third-party artwork or
+indicator uses the semantic green for support or pending/yellow for an alternative,
+with an icon and explicit “not proven” text; the chart uses the data color.
+Historical loss marks retain their semantic loss color. No new brand identity, third-party artwork or
 color-only meaning. Respect 320/390px layouts, safe areas, keyboard/touch access,
 Light/Dark/System and reduced motion. Provide chart summaries and an accessible
 game table. A mockup or screenshot review remains distinct from source tests.
@@ -276,9 +303,14 @@ Implementation acceptance must establish:
 - Reposts, nested subsets, mirrored team perspectives, overlap chains and custom
   date choices cannot multiply evidence or create a false lean. Both game sides
   are normalized before grouping; one physical game has one ID.
-- An opposing fourth candidate produces No clear lean even when it is outside
-  the three displayed cards. A single group, empty evidence or mixed qualifying
-  groups cannot produce a direction. Emerging evidence remains accessible.
+- An opposing fourth candidate remains in the comparison and is disclosed even
+  when outside the three displayed cards; its presence alone does not erase a
+  supported lean. Verify two agreeing groups versus one opposing group, ties,
+  mixed groups, and higher-tier opposition. A single agreeing group or empty
+  evidence cannot produce a direction. Emerging evidence remains accessible.
+- Green support and yellow alternatives have separate evidence-quality labels;
+  qualified opposition is not marked red/bad. No clear lean explains insufficient
+  or balanced evidence. Historical win/loss colors retain their existing meaning.
 - Privacy checks cover response data, bundles, titles, card counts, applicability,
   charts, source previews, caches and both market gates before/after lock-in.
 - Bad/stale/missing lines, unknown pregame inputs, source outages, week rollover,

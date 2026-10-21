@@ -37,6 +37,10 @@ references. The [proposed design](superpowers/specs/2026-10-21-trends-research-d
 records confirmed choices and proposed evidence rules. Status: design review;
 no feature code, source connection, migration or deployment. The existing
 sequential implementation queue and other worktrees remain intact.
+Sean's follow-up permits qualifying opposing groups alongside a main lean:
+show the opposing case as a yellow alternative, not automatically red/bad or
+an automatic No clear lean. Design version 2 preserves the opposition and
+reserves No clear lean for insufficient or unresolved competing evidence.
 Local document verification: existing Brand QA passed with Python UTF-8 mode;
 relative links and the staged whitespace/conflict check passed. The PR records
 branch/commit and CI status; these checks do not validate a betting model or UI.
