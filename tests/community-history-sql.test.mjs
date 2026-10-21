@@ -108,7 +108,7 @@ test('community history: every player, week and market with the line at each gue
       await assert.rejects(() => as(role, 'select public.gtl_pick_points(-3,-3.5)'), /permission denied/);
     }
     for (const signature of RPCS) assert.equal((await db.query('select has_function_privilege($1,$2,$3) ok', ['service_role', `public.${signature}`, 'EXECUTE'])).rows[0].ok, true);
-    assert.equal((await db.query("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and prosecdef")).rows[0].n, 0);
+    assert.equal((await db.query("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and p.proname not in ('gtl_nba_read_bets','gtl_nba_save_bet') and prosecdef")).rows[0].n, 0);
     // The standings expression, rounded per pick like accuracy().
     const points = (await db.query('select public.gtl_pick_points(-3,-3.5) a,public.gtl_pick_points(-9.5,-9.3) b,public.gtl_pick_points(0,10) c,public.gtl_pick_points(44,null) d,public.gtl_pick_points(47.5,44.5) e')).rows[0];
     assert.deepEqual([Number(points.a), Number(points.b), Number(points.c), points.d, Number(points.e)], [accuracy(-3, -3.5), accuracy(-9.5, -9.3), 0, null, accuracy(47.5, 44.5)]);

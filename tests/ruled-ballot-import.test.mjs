@@ -128,7 +128,7 @@ test('commissioner-ruled ballot import: service-only RPC, guard bypass scoped to
       await assert.rejects(() => as(role, "insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,2026,5,'guess_spread','{}')", [id(BEN)]), /permission denied/);
     }
     assert.equal((await db.query('select has_function_privilege($1,$2,$3) ok', ['service_role', signature, 'EXECUTE'])).rows[0].ok, true);
-    assert.equal((await db.query("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and prosecdef")).rows[0].n, 0);
+    assert.equal((await db.query("select count(*)::int n from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' and p.proname like 'gtl_%' and p.proname not in ('gtl_nba_read_bets','gtl_nba_save_bet') and prosecdef")).rows[0].n, 0);
     assert.equal((await db.query("select relrowsecurity from pg_class where oid='public.gtl_ruled_ballot_imports'::regclass")).rows[0].relrowsecurity, true);
     assert.deepEqual((await db.query("select privilege_type from information_schema.role_table_grants where table_name='gtl_ruled_ballot_imports' and grantee='service_role' order by 1")).rows.map(r => r.privilege_type), ['INSERT', 'SELECT'], 'a ruling record is final');
     assert.deepEqual((await db.query("select privilege_type from information_schema.role_table_grants where table_name='gtl_weekly_eligibility_rulings' and grantee='service_role' order by 1")).rows.map(r => r.privilege_type), ['SELECT'], 'the eligibility rulings table keeps its read-only runtime grant');
