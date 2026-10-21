@@ -1,0 +1,11 @@
+.gx-focus-action { display: flex; flex-direction: column; align-items: stretch; gap: var(--gx-space-4); padding: var(--gx-space-6); border-radius: var(--gx-radius-lg); }
+.gx-focus-action .gx-t-display { max-width: 14ch; text-wrap: balance; }
+.gx-focus-action > .gx-btn { margin-top: var(--gx-space-2); }
+.gx-focus-row { min-height: 80px; height: auto; padding-block: var(--gx-space-4); }
+.gx-focus-row .gx-row-main { min-width: 0; }
+.gx-focus-row .gx-row-sub { white-space: normal; overflow-wrap: anywhere; }
+.gx-focus-icon { display: grid; place-items: center; flex: none; width: var(--gx-size-touch); height: var(--gx-size-touch); color: var(--gx-accent-ink); background: var(--gx-surface-2); border-radius: var(--gx-radius-md); }
+.gx-focus-rows { border-radius: var(--gx-radius-lg); overflow: hidden; }
+.gx-focus-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--gx-space-3); flex-wrap: wrap; }
+.gx-focus-help { padding: var(--gx-space-4); border-radius: var(--gx-radius-md); background: var(--gx-surface-1); }
+.gx-focus-help > summary { cursor: pointer; min-height: var(--gx-size-touch); display: flex; align-items: center; }

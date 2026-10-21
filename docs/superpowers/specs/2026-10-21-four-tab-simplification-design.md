@@ -2,9 +2,11 @@
 
 Owner: Sean Balsiger · Version 1 · October 21, 2026 (Pacific)
 
-Status: navigation and visual direction selected; written specification awaiting
-Sean's review. This document describes the next UI work. It does not establish
-implementation, merge, deployment or actual-iPhone acceptance.
+Status: Sean approved this design and implementation on October 21: “Yes, that
+captures it. Go ahead and build the four-tab redesign using One thing first.”
+Implementation and verification are tracked in the [build plan](../plans/2026-10-21-four-tab-simplification.md)
+and [completion register](../../COMPLETION_REGISTER.md). Approval does not establish
+merge, deployment or actual-iPhone acceptance.
 
 ## Decisions from the design review
 

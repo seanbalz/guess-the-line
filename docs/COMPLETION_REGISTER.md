@@ -33,9 +33,31 @@ Research, and equal emphasis on guessing/competition and actual-bet tracking.
 He chose the third visual option, **One thing first**. The
 [four-tab design specification](superpowers/specs/2026-10-21-four-tab-simplification-design.md)
 records the selected direction, feature destinations and local preview evidence.
-Its written-design review and implementation plan are pending; this entry does
-not mark Q03/Q04/Q17 complete or establish an application change or deployment.
-The existing sequential queue and preservation of unpublished Mini work apply.
+Sean approved the specification and explicitly authorized the build. PR #162,
+branch `codex/four-tab-design`, implements the four roots, compact summaries,
+retained editors and reversible detail routes. League is inside Play and Fantasy
+inside Research; account/settings and old-app recovery remain accessible.
+The [implementation plan](superpowers/plans/2026-10-21-four-tab-simplification.md)
+records the work and verification. Read-only reconciliation of PR #144 and the
+Mini's unpublished shell found its Fantasy navigation changes already represented
+on main; no Mini files were changed.
+
+Local verification on October 21: `npm run check` passed (1,456 Node tests with
+zero skips, 198 Vitest tests, typecheck and production build). The legacy browser
+suite passed 41/41, performance 4/4, and critical-path accessibility 7/7. Brand QA
+and authenticated cloud-build boundary inspection passed. Focused browser coverage
+checks four roots at 320/390 in both themes, exactly one primary root action,
+fixed bottom navigation, nested/reloaded Back, restored scroll/focus, historical
+week scope, draft cancellation, exact recommendation ticket terms and explicit
+saves. The final corrected feature rerun passed 38/38; shell/router/token checks passed
+45/45, with 19 shell browser checks plus four focused follow-up checks passing.
+The plan records the earlier failures, corrections and verification scope; PR
+#162 and the conversation handoff record exact-head CI and branch sync.
+
+No migrations, live account edits, new data integrations, merge or deployment are
+included. Physical-iPhone/Home Screen acceptance and the separate native iOS
+deliverable remain open. This entry does not close Q03/Q04/Q17 wholesale; the
+existing sequential queue and preservation of unpublished Mini work still apply.
 
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
 Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed

@@ -208,7 +208,8 @@ test('an uncommitted request survives closing and reopening, retries only on dem
     await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
     expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.next.draft.v1.')))).toEqual([]);
     await signIn(page, 'troy', { navigate: false });
-    await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Lines', exact: true }).click();
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Research', exact: true }).click();
+    await page.getByRole('button', { name: 'Explore games', exact: true }).click();
     await openSheet(page);
     await expect(textbox(page)).toHaveValue('');
     await expect(page.locator('body')).not.toContainText('PRIVATE UNSAVED SENTINEL');

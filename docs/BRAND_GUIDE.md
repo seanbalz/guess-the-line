@@ -198,8 +198,8 @@ the third of five interactive layout examples, with one clear task above compact
 rows that open into detail. See the [written design](superpowers/specs/2026-10-21-four-tab-simplification-design.md)
 for coverage, navigation behavior, preservation requirements and preview evidence.
 
-This records the chosen UI direction. The written specification still awaits
-review; the application has not been changed by this entry. Existing GTL tokens,
+Sean approved the written specification and authorized implementation on October
+21. The four-tab implementation is tracked in PR #162. Existing GTL tokens,
 identity, type, semantic colors and Light/Dark/System remain the baseline. The
 selection does not finalize unrelated brand categories, change game rules or
 establish a native iOS release.

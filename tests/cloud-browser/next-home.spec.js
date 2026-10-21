@@ -4,21 +4,20 @@ import { randomUUID } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, storeBookLines } from './community-world.mjs';
 import { assertNoLeak, lineSecrets, pickSecrets } from '../helpers/leak-scan.mjs';
-import { HOME_COPY, homeHero, homeTiles } from '../../shared/home-view.mjs';
+import { HOME_COPY, homeHero } from '../../shared/home-view.mjs';
 
 // Redesign build plan stage 12: the read-only Home at 390 x 844 (section 4.1), on the real app (main.jsx, AuthGate, the
 // lazy NextApp) and the real handler with every migration (ALL) on local PGlite. The fixture week is open: Troy has sent
 // both markets, Sean has sat out Spread, Luke keeps a Spread draft of two picks and no Total ballot. Checked: Home is the
-// default screen after "Try the new app"; exactly one lime button and it reads "Make picks"; it lands in the old app's
-// Picks; the countdown; who's in; Luke's rank tiles read "—" and "No ballot yet" (never 0); the leak scan on the rendered
-// page; no writes; axe in Dark and Light at 390 and 320 with the phone rules in CI's fallback font. Nothing in the fixture
-// week can score a ballot (points count from a game's kickoff, after the deadline), so the ranked and tied tiles ("T-2")
-// are rendered in tests/next-home-ui.test.jsx instead. Fictional accounts only; never contacts hosted data.
+// default screen after "Try the new app"; exactly one primary "Make picks" action opens the retained editor;
+// compact score/ticket/league shortcuts; the rendered-page leak scan; no writes; axe in Dark and Light at 390 and 320
+// with CI's fallback font. Score missing/zero semantics are separately covered in four-tab-landings.test.jsx.
+// Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const TRY = 'Try the new app';
-const READS = ['GET /lobby', 'POST /community/read', 'POST /community/history', 'POST /me/preferences'];
+const READS = ['GET /lobby', 'POST /community/read', 'POST /social/read', 'POST /community/history', 'POST /me/preferences'];
 // Luke's own draft (whole numbers: his own picks are never secrets, and whole numbers collide with counts in the scan).
 const LUKE_SPREAD_DRAFT = [4, -9];
 // Stored book lines for the week (fixture values, never live odds), half-points so the scan can tell them from counts.
@@ -133,23 +132,22 @@ async function noLeak(page, world, lines, where) {
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
 
-test('Home is the default screen: the week, the countdown, one lime "Make picks", the status lines, who\'s in, "—" tiles with no 0, no writes, no leak', async ({ page, baseURL }) => {
+test('Home has one primary task and compact shortcuts, with no writes or hidden-market leaks', async ({ page, baseURL }) => {
   const { world, lines } = await lukesWeek(page, baseURL);
   try {
     const calls = await tryNewApp(page);
     await expect(tab(page, 'Home')).toHaveAttribute('aria-current', 'page');
     await expect(title(page, 'Home')).toBeVisible();
-    expect(new URL(page.url()).hash).toBe('');
+    expect(new URL(page.url()).hash).toBe('#home');
     await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
 
     // What the shared view model makes of the same reply the screen reads.
     const reply = (await world.api('luke', 'community/read', {})).body;
     const expectedHero = homeHero({ community: reply });
-    const expectedTiles = homeTiles({ community: reply });
     expect(expectedHero.state).toBe('due');
     expect(expectedHero.statusLines).toEqual([`Spread ${LUKE_SPREAD_DRAFT.length} of ${world.state.games.length} picked`, `Total 0 of ${world.state.games.length} picked`]);
     await expect(hero(page)).toHaveAttribute('data-state', 'due');
-    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(HOME_COPY.weekTitle(reply.week.week));
+    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText('Finish your weekly guesses.');
     await expect(hero(page).locator('[data-home="status"] li')).toHaveText(expectedHero.statusLines);
 
     // The countdown: a timer named with its words and the time left, digits in tiles, not read every tick.
@@ -167,26 +165,11 @@ test('Home is the default screen: the week, the countdown, one lime "Make picks"
     await expect(page.locator('.gx .gx-btn--primary:visible')).toHaveCount(1);
     await expect(page.getByRole('button', { name: HOME_COPY.seeLines })).toHaveCount(0);
 
-    // Who's in: Troy (in) and Sean (sat out) are done with Spread; Luke's draft is not. The faces are theirs, not his.
-    expect(expectedTiles.whosIn.label).toBe('2 of 3 in');
-    await expect(whosIn(page)).toContainText(HOME_COPY.whosIn);
-    await expect(whosIn(page)).toContainText(expectedTiles.whosIn.label);
-    await expect(whosIn(page).locator('.gx-av')).toHaveCount(2);
-    await expect(whosIn(page).locator('.gx-av-more')).toHaveCount(0);
-
-    // Luke's rank tiles: no ballot scored, so "—" and "No ballot yet", and never a 0 anywhere in the tile.
-    for (const market of ['spread', 'total']) {
-      const tileOf = rankTile(page, market);
-      await expect(tileOf).toContainText(market === 'spread' ? HOME_COPY.spreadRank : HOME_COPY.totalRank);
-      await expect(tileOf.locator('.gx-rank')).toContainText('—');
-      await expect(tileOf.locator('.gx-rank .gx-sr-only')).toHaveText('Not ranked');
-      await expect(tileOf).toContainText(HOME_COPY.noBallot);
-      expect(await tileOf.innerText()).not.toMatch(/\d/);
-      await expect(tileOf.locator('[data-home="chase"]')).toHaveCount(0);
-    }
-    expect(expectedTiles.spread.label).toBe('—');
-    expect(expectedTiles.total.label).toBe('—');
-    expect(expectedTiles.chase).toBeNull();
+    await expect(page.getByRole('button', { name: 'Your scores', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'My bets', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'My league', exact: true })).toBeVisible();
+    await expect(whosIn(page)).toHaveCount(0);
+    for (const market of ['spread', 'total']) await expect(rankTile(page, market)).toHaveCount(0);
 
     await phoneChecks(page);
     await noLeak(page, world, lines, 'Home');
@@ -201,9 +184,9 @@ test('"Make picks" opens the live Play tab without leaving the new app; "See Lin
   try {
     await tryNewApp(page);
     await page.locator('.gx-app .gx-btn--primary').click();
-    await expect(title(page, 'Play')).toBeVisible();
+    await expect(title(page, 'Your guesses')).toBeVisible();
     await expect(tab(page, 'Play')).toHaveAttribute('aria-current', 'page');
-    expect(new URL(page.url()).hash).toBe('#play');
+    expect(new URL(page.url()).hash).toMatch(/^#play\/picks/);
     expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('next');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
