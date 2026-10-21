@@ -50,6 +50,15 @@ market check and exact shared-read/no-unexpected-write checks. The corrected
 shell/switch browser suite passed all 28 cases, including legacy aliases, dirty
 guards, Back/Forward, focus, scroll, reload and old-app recovery.
 
+The full 271-case cloud-browser run finished with 268 passes and only those three
+obsolete assertions failing; their corrected affected suites then passed 32/32.
+Hosted CI subsequently found one stale architecture allowlist: the retained
+Fantasy adapter reuses the existing `fantasyWeekKey` formatter to preserve a
+snapshot week in its address. The named-import allowlist now explicitly includes
+that helper, while default imports and other old-app shell imports remain
+forbidden. The failure was reproduced locally before this correction, and all
+12 app-view/boundary tests passed afterward. Brand/document QA also passed.
+
 ## Required deployment evidence
 
 Merge and deployment are pending at this preparation checkpoint. The final PR
