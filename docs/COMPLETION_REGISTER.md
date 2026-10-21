@@ -54,8 +54,11 @@ saves. The final corrected feature rerun passed 38/38; shell/router/token checks
 The plan records the earlier failures, corrections and verification scope; PR
 #162 and the conversation handoff record exact-head CI and branch sync.
 
-No migrations, live account edits, new data integrations, merge or deployment are
-included. Physical-iPhone/Home Screen acceptance and the separate native iOS
+Sean subsequently authorized CI fixes, merge and deployment. The
+[four-tab release record](RELEASE_FOUR_TAB_REDESIGN.md) tracks that frontend-only
+release; its preparation checkpoint does not yet establish merge or deployment.
+No migrations, live account edits or new data integrations are included.
+Physical-iPhone/Home Screen acceptance and the separate native iOS
 deliverable remain open. This entry does not close Q03/Q04/Q17 wholesale; the
 existing sequential queue and preservation of unpublished Mini work still apply.
 
