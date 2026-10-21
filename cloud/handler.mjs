@@ -25,6 +25,9 @@ import { createOpenMeteoProvider } from './open-meteo.mjs';
 import { handlePush, PUSH_METHODS, PushError, providerPushError, validVapidPublicKey } from './push.mjs';
 // Redesign route groups and the optional-RPC reader (build plan, stage 4).
 import { handleLines, LINES_METHODS, LinesError, providerLinesError } from './lines.mjs';
+import { createResearchProvider } from './trends-research.mjs';
+import researchVenues from '../shared/nfl-venues.json' with { type: 'json' };
+import researchCorrections from '../shared/trends-corrections.json' with { type: 'json' };
 import { handleBets, BETS_METHODS, BetsError, providerBetsError } from './bets.mjs';
 import { handleLeague, LEAGUE_METHODS, LeagueError, providerLeagueError } from './league.mjs';
 import { handleMe, ME_METHODS, MeError, providerMeError } from './me.mjs';
@@ -356,7 +359,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
 const OPTIONAL_PERSONAL_RPCS = new Set(['gtl_read_game_notes', 'gtl_set_game_note']);
 
 /** Native HTTP adapter. Service-role credentials never leave the server. */
-export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl = fetch, clock = Date.now }) {
+export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl = fetch, clock = Date.now, reviewedResearchFeed, researchSnapshotLoader }) {
   const base = new URL(url);
   if ((base.protocol !== 'https:' && !(base.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(base.hostname))) || base.username || base.password || base.pathname !== '/' || base.search || base.hash || !anonKey || !serviceRoleKey) throw new Error('Invalid service configuration.');
   const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' };
@@ -433,7 +436,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     return { snapshot: history.length ? { ...history[0], history } : null, picks, settlements };
   }
   return {
-    lines: groupRpc(providerLinesError), bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
+    lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicSchedule, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {

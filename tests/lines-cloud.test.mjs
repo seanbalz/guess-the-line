@@ -34,8 +34,8 @@ function forgedBoard() {
   };
 }
 
-test('the routes: two POST readers, each refused before any database call when signed out, unknown or switched off', async () => {
-  assert.deepEqual(LINES_METHODS, { '/lines/read': ['POST'], '/lines/game': ['POST'] });
+test('the routes: three POST readers, each refused before any database call when signed out, unknown or switched off', async () => {
+  assert.deepEqual(LINES_METHODS, { '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'] });
   assert.ok(Object.isFrozen(LINES_METHODS));
   const service = { rpc: async () => assert.fail('no database call') };
   for (const user of [null, {}, { id: 'not-a-uuid' }, { ...USER, is_anonymous: true }]) {

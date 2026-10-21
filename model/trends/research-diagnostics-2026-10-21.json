@@ -1,0 +1,61 @@
+{
+  "version": "research-2026-10-21-v1",
+  "sourceSha256": "defc1a8d2e3f3818d4c6fa3bfd572edb933ca94a0dcad5ba81664e831bd1bde1",
+  "asOf": "2026-10-21T19:38:17.207Z",
+  "season": 2026,
+  "candidateCount": 750,
+  "seed": 20261021,
+  "permutations": 20,
+  "observedRecentRuleCount": 3,
+  "nullCounts": [
+    4,
+    5,
+    7,
+    2,
+    4,
+    9,
+    6,
+    2,
+    7,
+    10,
+    7,
+    4,
+    6,
+    5,
+    5,
+    6,
+    8,
+    6,
+    4,
+    6
+  ],
+  "nullMean": 5.65,
+  "nullMin": 2,
+  "nullMax": 10,
+  "replay": [
+    {
+      "asOf": "2026-10-11T12:00:00.000Z",
+      "registered": 0,
+      "qualifying": 0,
+      "noFutureRegistrationsOrResults": true
+    },
+    {
+      "asOf": "2026-10-15T12:00:00.000Z",
+      "registered": 18,
+      "qualifying": 7,
+      "noFutureRegistrationsOrResults": true
+    },
+    {
+      "asOf": "2026-10-20T12:00:00.000Z",
+      "registered": 18,
+      "qualifying": 6,
+      "noFutureRegistrationsOrResults": true
+    }
+  ],
+  "limits": [
+    "Fixed candidate membership and pregame features; game-result signs shuffled together across overlapping candidates.",
+    "Descriptive selection diagnostic only. Not an out-of-sample forecast backtest or a predictive probability.",
+    "Frozen study tiers are not recalibrated or promoted. The shuffled comparison tests the recent-consistency rule only.",
+    "The small permutation sample is a warning check, not proof of predictive performance."
+  ]
+}

@@ -12,20 +12,22 @@ records implementation, local verification and acceptance limits.
 ## Release scope and recovery
 
 Target: frontend only, through the protected Shared production release workflow.
-The cloud handlers retain deployed source
-`368f5d46cd036d74f9dc5c32cf572dd702d320b2`. Integration with newer main includes
-PR #164's relative-gap recommendation ranking and compact trend details, plus
-PR #163's separate private NBA archive source. The archive migration is not
-applied by this frontend release. The new frontend retains the
-existing API v27 contracts, independent market gates, authenticated readers,
+Integration with newer main includes PR #164's relative-gap recommendation
+ranking, PR #163/#165's separately applied private NBA archive, and PR #161's
+trends research. The research API release has its own authorization and
+[release card](TRENDS_RESEARCH_RELEASE.md); this frontend release must verify
+its actual hosted version and compatibility at readiness. The new frontend retains
+the existing API contracts, independent market gates, authenticated readers,
 explicit ticket saves and old-app recovery path. The app-default switch is unchanged.
 
 No database migration or collector change is part of this release. M-10 and both
 D-53 migrations remain pending. Readiness must verify their actual hosted status
 and provide a fresh migration-history digest before deployment.
 
-Rollback: restore Pages `dcfb977b-c388-4706-b728-d0c11e356228`, retaining API v27
-and all stored records. This is a frontend rollback; it does not delete or revert
+Initial rollback baseline: Pages `dcfb977b-c388-4706-b728-d0c11e356228`, API v27.
+Refresh this baseline if the independently authorized research release advances
+production before readiness. Restore the prior Pages deployment while retaining
+the current compatible API and all stored records. This does not delete or revert
 picks, tickets, receipts, scores or groups. The protected production environment
 and source/CI checks remain in force. The prior release's provenance is in the
 [recommended tracking release](RECOMMENDED_TRACKING_RELEASE.md).
@@ -86,6 +88,18 @@ navigation/ranking Node tests passed 25/25 and landing/recommendation component
 tests passed 9/9. Brand QA passed. The relative-gap computation runs in the
 frontend against the existing authenticated API responses, so no API deployment
 is required for the newer recommendation presentation.
+
+PR #161 subsequently merged to main, followed by integration of the NBA closeout.
+The two new conflicts preserve both completion entries and the Lines board's new
+weekly-research action alongside the four-tab Trends matchup list. The research
+sheet registry merges with the four root screens. The combined source requires
+fresh PR and merged-main CI; the independent research API release is reconciled
+from fresh hosted evidence before this frontend deployment.
+The combined Lines/research/four-tab browser suite passed 12/12, including both
+themes at 320px, read-only market boundaries, Back, stale replies, account changes
+and quote/kickoff expiry. Component checks passed 32/32, navigation and architecture
+checks 19/19, and Brand QA passed. No runtime change beyond conflict reconciliation
+was needed for this integration.
 
 ## Required deployment evidence
 

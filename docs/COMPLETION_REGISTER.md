@@ -62,11 +62,42 @@ Physical-iPhone/Home Screen acceptance and the separate native iOS
 deliverable remain open. This entry does not close Q03/Q04/Q17 wholesale; the
 existing sequential queue and preservation of unpublished Mini work still apply.
 
+October 21 situational-trends upgrade: Sean confirmed a weekly and per-matchup
+shortlist of up to three consistent trends, emerging patterns under Explore,
+recent views that can span prior seasons, NFL spread/total scope prepared for later
+markets, and an explicit research lean with supporting/conflicting evidence or
+“No clear lean”. His Guess entry predicts sportsbook pricing. Book It With Trent
+has a separate original-play section; the other named accounts are trend research
+references. Sean approved the [design](superpowers/specs/2026-10-21-trends-research-design.md)
+and authorized the [implementation plan](superpowers/plans/2026-10-21-trends-research.md).
+The evaluator, authenticated reader, prepared historical snapshot and shared
+weekly/matchup UI are implemented in [PR #161](https://github.com/seanbalz/guess-the-lines-repo/pull/161)
+and passed independent task reviews. Runtime timing and allocation follow-ups
+preserve privacy and freshness boundaries. The [research record](TRENDS_RESEARCH.md)
+contains source provenance, replay/null diagnostics, publication instructions,
+local browser/build checks and performance limits. The full suite passed
+(1,503 Node and 213 Vitest tests; zero skips), with 58 focused tests after the
+final schedule-dependency fix. Whole-branch review approved with no outstanding
+blocking findings. No migration or deployment is established. The existing
+sequential queue and other worktrees remain intact.
+Sean's follow-up permits qualifying opposing groups alongside a main lean:
+show the opposing case as a yellow alternative, not automatically red/bad or
+an automatic No clear lean. Design version 2 preserves the opposition and
+reserves No clear lean for insufficient or unresolved competing evidence.
+The free nflverse source refreshed October 21 with completed games through
+October 19. Sean subsequently said "get it connected". The first reviewed feed
+was saved server-side on October 21 at 21:00 UTC and its digest matched the
+validated private input. This is a dated manual import, not automatic X ingestion.
+The [release card](TRENDS_RESEARCH_RELEASE.md) tracks merge, protected deployment
+and hosted acceptance, which remain pending at this checkpoint.
+
 October 21: Sean authorized a separate private NBA archive and import of the
 saved NBA ledger. The [private NBA release card](PRIVATE_NBA_STORAGE.md) records
-the additive schema, account linkage, permission boundary, idempotent import
-and data-preserving rollback. This is under local verification; hosted apply
-is pending. NBA records do not feed the NFL application or its totals.
+PR #163's merge, hosted migration `20261021205118` and the verified private import
+at 20:51 UTC. Account linkage, app-role denial, original-source preservation and
+generated accounting were verified. NFL data and function/grant hashes stayed
+unchanged. NBA records do not feed the NFL application or its totals. The evidence
+PR body records its final CI, merge and three-machine synchronization receipt.
 
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
 Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed

@@ -6,6 +6,7 @@ import { SwitcherSheet } from '../league/SwitcherSheet.jsx';
 import { Home } from '../home/Home.jsx';
 import { GameSheet } from '../lines/GameSheet.jsx';
 import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
+import { ResearchSheet } from '../research/ResearchSheet.jsx';
 import { Play } from '../play/Play.jsx';
 import { Bets } from '../bets/Bets.jsx';
 import { Research } from '../research/Research.jsx';
@@ -24,4 +25,5 @@ export const LAYERS = Object.freeze({
   'sh.switcher': SwitcherSheet, // league (stage 11)
   'sh.game': GameSheet, // lines (stage 13): one game, read-only
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
+  'sh.research': ResearchSheet,
 });

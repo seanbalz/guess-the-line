@@ -1,0 +1,81 @@
+import { describe, expect, it, vi } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { markupProblems } from './helpers/ui-markup.mjs';
+vi.mock('../web/src/api.js', () => ({ linesApi: vi.fn() }));
+const { ResearchCards, ResearchLeans, ResearchSources, ResearchStatus } = await import('../web/src/next/research/ResearchCards.jsx');
+const { default: ResearchChart } = await import('../web/src/next/research/ResearchChart.jsx');
+const { researchExpiry, researchRefreshDue, withoutExpiredLeans } = await import('../web/src/next/research/useResearch.js');
+const record = { wins: 20, losses: 9, pushes: 1, sample: 30, coverage: { from: '2025-01-01', to: '2026-10-20' } };
+const candidates = ['a','b','c','fourth'].map(id => ({ id, title: `Synthetic ${id}`, market: 'spread', family: id, conditions: [], record, qualification: { qualifies: true, label: 'Consistent, not proven' }, applications: [{ gameId: 'SEA-DEN', direction: id === 'fourth' ? 'away' : 'home', whyApplies: [] }], series: { points: [{ from: '2025-01-01', to: '2026-10-20', wins: 20, losses: 9, pushes: 1, sample: 30, illustrativeUnits: 9.18 }], binned: true, selectedSample: 30 } }));
+const now = '2026-10-21T12:00:00Z';
+const game = { id: 'SEA-DEN', kickoff: '2026-10-22T12:00:00Z', spread: { visible: true, ownGuess: -4, savedReference: { value: -3, source: 'Synthetic', observedAt: now }, currentReference: { value: -2, source: 'Synthetic', observedAt: now }, guessGap: { value: 2, label: 'Difference from your expected market line' }, lean: { state: 'lean', direction: 'home', reasons: [], groups: [{ id: 'g1', role: 'supporting', memberIds: ['a'] },{ id: 'g4', role: 'alternative', memberIds: ['fourth'] }] } }, total: { visible: false } };
+const data = { now, shortlist: ['a','b','c'], candidates, games: [game] };
+const render = el => renderToStaticMarkup(<div className="gx">{el}</div>);
+describe('shared research presentation', () => {
+  it('caps the shared shortlist and labels canonical consistency separately', () => {
+    const html = render(<ResearchCards data={data} ids={['a','b','c','fourth']} limit={3}/>);
+    expect((html.match(/data-research-card=/g) || [])).toHaveLength(3);
+    expect(html).toContain('Consistency:'); expect(html).toContain('2025-01-01');
+    expect(markupProblems(html)).toEqual([]);
+  });
+  it('shows team direction and yellow qualifying opposition outside the shortlist', () => {
+    const html = render(<ResearchLeans data={data}/>);
+    expect(html).toContain('DEN against the spread'); expect(html).toContain('Synthetic fourth');
+    expect(html).toContain('Alternative'); expect(html).toContain('gx-r-alternative');
+    expect(html).toContain('Difference from your expected market line');
+    expect(html).toContain('DEN −2'); expect(html).toContain('Your expected market line');
+    expect(html).toContain('Total research is locked');
+  });
+  it('renders closed markets without their forged evidence', () => {
+    const html = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: { visible: false, lean: game.spread.lean } }] }}/>);
+    expect(html).not.toContain('Synthetic fourth'); expect(html).not.toContain('DEN −2');
+  });
+  it('chart and accessible binned table reconcile with the same selected sample and zero baseline', () => {
+    const html = render(<ResearchChart candidate={candidates[0]}/>);
+    expect(html).toContain('Illustrative units at -110'); expect(html).toContain('data-zero-baseline');
+    expect(html).toContain('chronological bins'); expect(html).toContain('30'); expect(html).toContain('9.18');
+    expect(markupProblems(html)).toEqual([]);
+  });
+  it('Trent remains a separate unavailable original-play feed', () => {
+    const html = render(<ResearchSources trent={{ status: 'unavailable', plays: [] }}/>);
+    expect(html).toContain('Source unavailable'); expect(html).toContain('Original plays'); expect(html).not.toContain('Synthetic');
+  });
+  it('shows source-reported original terms, unknown prices and correction ancestry without granting consistency', () => {
+    const html = render(<ResearchSources trent={{ status: 'reviewed', plays: [{ id: 'synthetic-revision', previousRevision: 'synthetic-original', event: 'Synthetic event', selection: 'Synthetic original selection', originalTerms: 'Synthetic unchanged terms', postedLine: null, price: null, sourceUrl: 'https://x.com/bookitwithtrent/status/1', status: 'corrected' }] }}/>);
+    expect(html).toContain('Source-reported · not verified'); expect(html).toContain('Odds: Unknown');
+    expect(html).toContain('synthetic-original'); expect(html).toContain('Original source post');
+    expect(html).not.toContain('Supports the lean'); expect(markupProblems(html)).toEqual([]);
+  });
+  it('retains a no-clear-lean reason and treats groups as yellow mixed evidence', () => {
+    const html = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: { ...game.spread, lean: { ...game.spread.lean, label: 'No clear lean', state: 'no-clear-lean', reasons: ['balanced_groups'] } } }] }}/>);
+    expect(html).toContain('Qualifying evidence groups are evenly split.'); expect(html).toContain('No clear lean');
+    expect(html).not.toContain('gx-r-support');
+  });
+  it('explains sample overlap in words rather than exposing internal record objects', () => {
+    const html = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: { ...game.spread, lean: { ...game.spread.lean, groups: [{ id: 'overlap', memberIds: ['a', 'b'], overlaps: [{ a: 'a', b: 'b', count: 15, smaller: 30, reasons: ['family', 'sample_overlap'] }] }] } } }] }}/>);
+    expect(html).toContain('15 of 30 games in the smaller sample');
+    expect(html).toContain('same situation family'); expect(html).not.toContain('&quot;count&quot;');
+  });
+  it.each([[401, 'Sign in again'], [404, 'not published'], [503, 'temporarily unavailable'], [500, 'could not be loaded']])('explains read status %i', (status, copy) => {
+    const html = render(<ResearchStatus read={{ status: 'error', error: { status } }}/>);
+    expect(html).toContain(copy); expect(markupProblems(html)).toEqual([]);
+  });
+  it('expires from authoritative server time using the request-start monotonic baseline', () => {
+    expect(researchExpiry(data)).toBe(Date.parse(now) + 12 * 3600000);
+    const expired = withoutExpiredLeans(data, 12 * 3600000 + 1);
+    expect(expired.games[0].spread.lean.state).toBe('unavailable');
+    expect(expired.games[0].total).toEqual({ visible: false });
+    expect(data.games[0].spread.lean.state).toBe('lean');
+  });
+  it('expires at the earlier kickoff and suppresses a response that spent its remaining lifetime on the network', () => {
+    const short = { ...data, games: [{ ...game, kickoff: '2026-10-21T12:00:01Z' }] };
+    expect(researchExpiry(short)).toBe(Date.parse(now) + 1000);
+    expect(withoutExpiredLeans(short, 1100).games[0].spread.lean.state).toBe('unavailable');
+    expect(withoutExpiredLeans(short, 500).games[0].spread.lean.state).toBe('lean');
+  });
+  it('refreshes a fully locked market at kickoff so reveal can change without focus', () => {
+    const closed = { ...data, games: [{ ...game, spread: { visible: false }, total: { visible: false } }] };
+    expect(researchRefreshDue(closed)).toBe(Date.parse(game.kickoff));
+    expect(researchExpiry(closed)).toBe(Infinity);
+  });
+});

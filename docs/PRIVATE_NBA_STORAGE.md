@@ -54,5 +54,45 @@ Local verification: PGlite tests cover exact retries, rollback preservation,
 cross-account conflicts, invalid data, generated accounting, app-role denial
 and RLS defense in depth. Registry and function-header tests also apply.
 
-Hosted status: pending; no production mutation at this source-review checkpoint.
-The completion register and this record will be updated after verified apply.
+## Hosted verification — October 21, 2026
+
+[PR #163](https://github.com/seanbalz/guess-the-lines-repo/pull/163) merged at
+20:51:06 UTC as `8c445a561ed60e9a98672ef70535c8e12228d4ad`, after independent
+review and all five checks passed on `bad213bae11969ec1a0c76c3918989ebc0c51308`:
+[Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39669196707),
+[Dashboard and personas](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39669196425),
+and [Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39669196529).
+Local checks also passed: 17 focused tests, the rollback convention, 11 rollback
+regression scenarios, TypeScript, Brand QA and the cloud bundle privacy scan.
+
+- Repository migration `20261021201054` applied through the GTL Supabase
+  connection as hosted version **`20261021205118`**. Migration SHA-256:
+  `db6dcaff7276900562a03405a1e24907f7b6a44d0cf65c570d4f4e925ba7b157`.
+- The fresh 20:51:10 UTC preflight confirmed the schema absent and owner account
+  present. The private import committed at 20:51:31 UTC. Readback matched every
+  ticket field, original source record, generated net result and import receipt.
+  Actual selections, identities, totals, source fingerprints and the full
+  before/after receipt remain in private storage, outside this repository.
+- Both tables are owned by `postgres`, with RLS enabled and forced and no
+  policies. Actual queries under `anon`, `authenticated` and `service_role`
+  were denied for both tables. No NBA function or realtime publication was added.
+- The Data API rejects `Accept-Profile: nba_private` with HTTP 406/PGRST106;
+  only `public` and `graphql_public` remain exposed.
+- Social bet state, all ballots, historical scoring, NFL slates, Virtual Units
+  picks/settlements and all public function bodies/grants matched their fresh
+  pre-apply hashes after import. No NFL records, runtime assets or collectors
+  were changed. Duplicate-import behavior was tested in disposable PostgreSQL.
+- Security advisors added only two informational notices for RLS without
+  policies, intentional for administrator-only archival tables. No new warning
+  or error was added. See the [Supabase linter explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
+- The existing default cloud boundary check passed with 262 denials. Its six
+  recognized future RPCs still await the three unrelated Bets/comparison/
+  preferences migrations. The strict variant stops at that existing unhosted
+  Bets RPC; this is not claimed as a strict pass or resolved by applying unrelated
+  migrations. The separate NBA permission and API-exposure checks passed.
+
+The evidence PR body records its final CI, merge and synchronization receipt.
+The private import is complete; an NBA application and automatic NBA settlement
+remain separate future work. Supabase Auth stores account credentials (passwords
+are [hashed](https://supabase.com/docs/guides/auth/password-security)); profiles
+and NBA records remain separate tables linked by account ID.

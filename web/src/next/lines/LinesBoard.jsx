@@ -113,6 +113,7 @@ export function LinesBoard({ trendsOnly = false }) {
   return (
     <div className="gx-screen">
       {head}
+      <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
       {trendsOnly ? <><p className="gx-t-body gx-c-2">Choose a matchup to see its available trends, sample sizes and sources. Hidden markets stay locked.</p><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
         {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} onOpen={open}/>)}
         {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} onOpen={open}/> : null}
