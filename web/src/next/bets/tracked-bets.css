@@ -1,0 +1,33 @@
+.gx .gx-tracked-row { min-width: 0; background: var(--gx-surface-1); }
+.gx .gx-tracked-row + .gx-tracked-row { border-top: 1px solid var(--gx-border); }
+.gx .gx-tracked-row > summary {
+  display: grid;
+  grid-template-columns: var(--gx-space-8) minmax(0, 1fr) auto var(--gx-space-4);
+  gap: var(--gx-space-3);
+  align-items: center;
+  min-height: var(--gx-size-primary);
+  padding: var(--gx-space-5) var(--gx-space-4);
+  cursor: pointer;
+  list-style: none;
+}
+.gx .gx-tracked-row > summary::-webkit-details-marker { display: none; }
+.gx .gx-tracked-row > summary:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: -4px; border-radius: var(--gx-radius-md); }
+.gx .gx-tracked-row > summary:hover { background: var(--gx-surface-2); }
+.gx .gx-tracked-mark { display: grid; place-items: center; width: var(--gx-space-8); height: var(--gx-space-8); border-radius: var(--gx-radius-pill); color: var(--gx-data); background: var(--gx-data-tint); }
+.gx .gx-tracked-selection { display: grid; min-width: 0; gap: var(--gx-space-1); text-align: start; }
+.gx .gx-tracked-selection > strong { font: 700 16px/24px var(--gx-font-body); color: var(--gx-text-1); overflow-wrap: anywhere; }
+.gx .gx-tracked-selection > span, .gx .gx-tracked-selection > small { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); overflow-wrap: anywhere; }
+.gx .gx-tracked-result { display: grid; justify-items: end; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-tracked-result > strong { font: 600 20px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-tracked-result > small { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-tracked-chevron { color: var(--gx-text-3); }
+.gx .gx-tracked-row[open] > summary > .gx-tracked-chevron { transform: rotate(180deg); }
+.gx .gx-tracked-detail { padding: 0 var(--gx-space-3) var(--gx-space-3); }
+@media (max-width: 359px) {
+  .gx .gx-tracked-row > summary { grid-template-columns: minmax(0, 1fr) auto var(--gx-space-4); gap: var(--gx-space-2); padding: var(--gx-space-4) var(--gx-space-3); }
+  .gx .gx-tracked-mark { display: none; }
+}
+@media (forced-colors: active) {
+  .gx .gx-tracked-row { border: 1px solid CanvasText; }
+  .gx .gx-tracked-row > summary:focus-visible { outline-color: Highlight; }
+}

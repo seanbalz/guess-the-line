@@ -67,10 +67,10 @@ test('Community tracked bets work without private membership; create, own week a
     await editor.getByRole('button', { name: 'Save tracked bet', exact: true }).click();
     await expect(editor).toHaveCount(0);
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
-    await page.getByRole('button', { name: 'My week', exact: true }).click();
+    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('myweek');
     await expect(page.getByRole('heading', { name: 'Your weekly bet card' })).toBeVisible();
     await expect.poll(() => calls.filter(call => call.path === 'social/read').at(-1)?.body.filters.playerId).toBe(ACCOUNTS.luke.id);
-    await page.getByRole('button', { name: 'History', exact: true }).click();
+    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('history');
     await expect(page.getByRole('heading', { name: 'Bet history', exact: true })).toBeVisible();
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
     const writes = calls.filter(call => call.path === 'social/create');
@@ -78,7 +78,7 @@ test('Community tracked bets work without private membership; create, own week a
     expect(writes[0].body).toMatchObject({ kind: 'single', odds: -110, stakeUnits: 1, source: 'DraftKings',
       legs: [{ gameId: world.state.games[0].id, market: 'spread', side: 'home', line: -3.5 }] });
     expect(calls.some(call => call.path === 'state' || call.path.startsWith('bets/'))).toBe(false);
-    await page.getByRole('button', { name: 'My bets', exact: true }).click();
+    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('mybets');
     await page.getByLabel('Competition week').selectOption(`${world.state.league.season}:${world.state.league.week}`);
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
     for (const theme of ['dark', 'light']) {
@@ -276,9 +276,24 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
   });
   try {
     await openBets(page);
-    await expect(page.getByRole('button', { name: 'My bets', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByLabel('Bet tracker view', { exact: true })).toHaveValue('mybets');
     await expect(page.getByRole('button', { name: 'Following', exact: true })).toHaveCount(0);
     await expect(page.locator('.social-bet-card')).toHaveCount(5);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      for (const width of [390, 320, 1280]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.locator('.social-feed').screenshot({ path: `.local/previews/tracked-list-${theme}-${width}.png` });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      }
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('.gx-tracked-row > summary').first().focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.gx-tracked-row').first()).toHaveAttribute('open', '');
+    const scan = await new AxeBuilder({ page }).include('.gx-bets').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+    expect(scan.violations.map(issue => issue.id)).toEqual([]);
+    await page.locator('.gx-tracked-row').first().screenshot({ path: '.local/previews/tracked-row-expanded.png' });
     await expect(page.locator('.social-feed')).not.toContainText('RIVAL SENTINEL');
     await expect(page.locator('.social-feed')).not.toContainText('LEGACY VIRTUAL');
     expect(calls.at(-1).filters.origin).toBe('tracked');
@@ -288,6 +303,7 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await page.getByRole('group', { name: 'Result filter', exact: true }).getByRole('button', { name: 'Settled', exact: true }).click();
     await expect(page.locator('.social-bet-card')).toHaveCount(4);
     release();
+    await page.locator('.social-filters > summary').click();
     await page.getByRole('group', { name: 'Market filter', exact: true }).getByRole('button', { name: 'Spreads', exact: true }).click();
     await expect(page.locator('.social-bet-card')).toHaveCount(3);
     await expect(page.locator('.social-content')).toContainText('Filtered summary');
@@ -307,7 +323,7 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await expect(page.locator('.social-feed')).toContainText('PREVIOUS OWNER');
     expect(calls.at(-1).filters.playerId).toBe(ACCOUNTS.luke.id);
     await page.getByLabel('Competition week').selectOption('all');
-    await page.getByRole('button', { name: 'All bets', exact: true }).click();
+    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('feed');
     await expect(page.locator('.social-bet-card')).toHaveCount(8);
     await expect(page.locator('.social-feed')).toContainText('LEGACY VIRTUAL');
     await expect(page.locator('.social-feed')).toContainText('RIVAL SENTINEL');
@@ -336,6 +352,7 @@ test('an inclusion save finishing after a filter change does not invalidate the 
       await new Promise(resolve => releaseSave = resolve);
       await route.fulfill({ status: response.status, contentType: 'application/json', body });
     });
+    await page.locator('.gx-tracked-row > summary').click();
     await page.locator('.social-bet-card').getByText('Details & history', { exact: true }).click();
     await page.getByRole('button', { name: /Exclude from records/ }).click();
     await expect.poll(() => saveHeld).toBe(true);
