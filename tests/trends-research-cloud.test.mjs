@@ -364,3 +364,40 @@ test('an observation cutoff crossing during async fingerprinting fails history c
   assert.ok(next.history.reasons.includes('completed_source_changed'));
   assert.ok(!next.history.reasons.includes('observation_boundary_changed_during_read'));
 });
+
+test('a changed unplayed predecessor invalidates prepared schedule conditions even when the target is unchanged', async () => {
+  const inputRows = [
+    row({ season: 2026, week: 6, gameday: '2026-10-11', away_team: 'SEA', home_team: 'NYG', home_score: 24, away_score: 20, spread_line: 3, total_line: 44 }),
+    row({ season: 2026, week: 6, gameday: '2026-10-11', away_team: 'DEN', home_team: 'DAL', home_score: 24, away_score: 20, spread_line: 3, total_line: 44 }),
+    row({ season: 2026, week: 8, gameday: '2026-10-28', away_team: 'PHI', home_team: 'NYG' }),
+    row({ season: 2026, week: 8, gameday: '2026-10-22', away_team: 'DEN', home_team: 'DAL' }),
+    row({ season: 2026, week: 9, gameday: '2026-11-01', away_team: 'DAL', home_team: 'NYG' }),
+  ];
+  const input = T.writeCompactCsv(inputRows);
+  const shortWeekRegistry = { ...registry, presets: registry.presets.filter(p => p.id === 'team_ats|t:t_short_week') };
+  assert.equal(shortWeekRegistry.presets.length, 1);
+  const snapshot = await candidateModule.createResearchSnapshot({ csv: input, now, season: 2026, registry: shortWeekRegistry, venues, corrections });
+  const target = board(); target.week = 9; target.games[0].kickoff = '2026-11-01T18:00:00Z';
+  const provider = material => providerModule.createResearchProvider({ loadSchedule: async () => material, loadSnapshot: async () => snapshot, clock: () => Date.parse(now), venues, corrections });
+  const baseline = await provider(input).read({ board: target });
+  assert.equal(baseline.history.status, 'fresh');
+  assert.equal(baseline.candidates.length, 2);
+  const movedRows = inputRows.map(r => r.away_team === 'PHI' ? { ...r, gameday: '2026-10-25' } : r);
+  const moved = T.writeCompactCsv(movedRows);
+  const recomputed = candidateModule.prepareResearchHistory(moved, { now, venues, corrections }).features.find(g => g.id === inputRows[4].game_id);
+  assert.deepEqual(recomputed.meta.rest, [7, 10]);
+  assert.deepEqual(recomputed.tf.map(t => t.t_short_week), [false, false]);
+  assert.equal(candidateModule.applyResearchCandidate({ direction: 'A', preset: shortWeekRegistry.presets[0] }, recomputed), null);
+  const changed = await provider(moved).read({ board: target });
+  assert.equal(changed.history.status, 'stale');
+  assert.ok(changed.history.reasons.includes('schedule_source_changed'));
+  assert.deepEqual(changed.candidates, []);
+  assert.deepEqual(changed.shortlist, []);
+  assert.ok(changed.games[0].spread.lean.reasons.includes('schedule_context_unavailable'));
+  assert.deepEqual(changed.games[0].total, { visible: false });
+  // Quotes never belong to the public schedule dependency fingerprint.
+  const quotesOnly = T.writeCompactCsv(inputRows.map(r => r.home_score === '' ? { ...r, spread_line: -99, total_line: 999, home_spread_odds: -500 } : r));
+  const changedQuotes = await provider(quotesOnly).read({ board: target });
+  assert.equal(changedQuotes.history.status, 'fresh');
+  assert.deepEqual(changedQuotes.candidates.map(c => c.id), baseline.candidates.map(c => c.id));
+});

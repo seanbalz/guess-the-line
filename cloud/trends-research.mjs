@@ -1,7 +1,7 @@
 // Authenticated projection only. Full family evaluation is an offline operation;
 // requests read a compact prepared snapshot and verify its completed-source hash.
 import * as T from '../shared/trends.mjs';
-import { RESEARCH_VERSION, RESEARCH_PERIODS, applyAccessibleLines, applyResearchCandidate, completedSourceText, finalAvailableAt, sha256 } from '../shared/trends-research-candidates.mjs';
+import { RESEARCH_VERSION, RESEARCH_PERIODS, applyAccessibleLines, applyResearchCandidate, completedSourceText, scheduleSourceText, finalAvailableAt, sha256 } from '../shared/trends-research-candidates.mjs';
 import { researchLean, researchShortlist } from '../shared/trends-research.mjs';
 import { projectReviewedSources, validateReviewedFeed } from '../shared/trends-research-sources.mjs';
 import { easternToUtc } from '../shared/nfl-schedule.mjs';
@@ -79,6 +79,9 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
     const preparedAt = clock();
     const snapshotShape = prepared?.version === RESEARCH_VERSION && Array.isArray(prepared.candidates) && Array.isArray(prepared.targets);
     const hashMatches = snapshotShape && data && await fingerprint(data, preparedAt) === prepared.source.completedSha256;
+    // Memoize only immutable public source data, shared across viewers. A target
+    // match alone cannot certify rest/travel after another scheduled game moves.
+    const scheduleHashMatches = snapshotShape && data && await (data.scheduleFingerprint ??= sha256(scheduleSourceText(data.rows))) === prepared.source.scheduleSha256;
     // Quote age, kickoff, source visibility and snapshot eligibility all share
     // this authoritative decision time, after every asynchronous preparation.
     const decisionAt = clock(), now = new Date(decisionAt).toISOString();
@@ -88,21 +91,21 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
     const observationBoundaryChanged = !!data && observationBoundary(preparedAt) !== observationBoundary(decisionAt);
     const missingFinals = data?.rows.some(r => Number(r.season) === board.season && !T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= Date.parse(now)) ?? true;
     const hasSeason = data?.rows.some(r => Number(r.season) === board.season) === true;
-    const fresh = !!(validSnapshot && hashMatches && !observationBoundaryChanged && !failed && hasSeason && !missingFinals && board.season === prepared.season);
+    const fresh = !!(validSnapshot && hashMatches && scheduleHashMatches && !observationBoundaryChanged && !failed && hasSeason && !missingFinals && board.season === prepared.season);
     const history = { status: !data || !validSnapshot ? 'unavailable' : fresh ? 'fresh' : 'stale', source: T.TRENDS_SOURCE,
       sourceSha256: data?.sha256 ?? null, snapshotSha256: validSnapshot ? prepared.source.sha256 : null,
       fetchedAt: data ? new Date(data.fetchedAt).toISOString() : null, snapshotAsOf: validSnapshot ? prepared.generatedAt : null,
       latestCompleted: validSnapshot ? prepared.source.latestCompleted : null,
       periodAnchor: validSnapshot ? prepared.generatedAt : null,
       limitations: ['Descriptive consistency is not a probability or a proven betting advantage.', 'Rolling 12 months and season summaries are anchored to the prepared snapshot.', 'Current state-and-line predicates without sufficient context remain unavailable.', validSnapshot ? prepared.source.finalAvailability : 'Prepared historical evidence is unavailable.'],
-      reasons: [...(!validSnapshot ? ['snapshot_unavailable'] : []), ...(failed ? ['source_refresh_failed'] : []), ...(!hasSeason ? ['season_missing'] : []), ...(missingFinals ? ['missing_finals'] : []), ...(validSnapshot && !hashMatches ? ['completed_source_changed'] : []), ...(observationBoundaryChanged ? ['observation_boundary_changed_during_read'] : [])] };
+      reasons: [...(!validSnapshot ? ['snapshot_unavailable'] : []), ...(failed ? ['source_refresh_failed'] : []), ...(!hasSeason ? ['season_missing'] : []), ...(missingFinals ? ['missing_finals'] : []), ...(validSnapshot && !hashMatches ? ['completed_source_changed'] : []), ...(validSnapshot && !scheduleHashMatches ? ['schedule_source_changed'] : []), ...(observationBoundaryChanged ? ['observation_boundary_changed_during_read'] : [])] };
     const publicSources = projectReviewedSources(feed, { board, now, invalid: invalidFeed });
     const applications = new Map(), permitted = new Map(), weekly = [];
     const sourceRows = new Map((data?.rows ?? []).map(r => [r.game_id, r]));
     const selectedGames = board.games.filter(g => !options.gameId || g.id === options.gameId);
     const games = selectedGames.map(game => {
       const target = validSnapshot ? prepared.targets.find(t => t.season === board.season && t.week === board.week && `${t.awayApp}-${t.homeApp}` === game.id) : null;
-      const knownSchedule = target && matchingSchedule(target, sourceRows.get(target.id), game);
+      const knownSchedule = scheduleHashMatches && target && matchingSchedule(target, sourceRows.get(target.id), game);
       const current = knownSchedule ? applyAccessibleLines(target, game, { venues, corrections }) : null;
       return { id: game.id, kickoff: game.kickoff, ...Object.fromEntries(markets.map(market => {
         if (game[market]?.visible !== true) return [market, { visible: false }];

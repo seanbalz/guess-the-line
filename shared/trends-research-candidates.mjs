@@ -118,6 +118,12 @@ export function observableRows(csv, now) {
   return T.parseCsvRows(csv).rows.filter(r => T.rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= Date.parse(now));
 }
 export const completedSourceText = rows => JSON.stringify(rows.map(r => T.HISTORY_COLUMNS.map(k => r[k] ?? '')).sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
+// Prepared rest, travel and team context depend on the whole schedule, including
+// other unplayed games. Fingerprint its public nonquote inputs independently of
+// result observation. Unplayed scores, overtime, roof, weather, officials and
+// every quote are stripped/unused by preparation and cannot invalidate this key.
+const SCHEDULE_DEPENDENCY_COLUMNS = T.HISTORY_COLUMNS.filter(k => !T.REDACTED_COLUMNS.includes(k) && !['home_score', 'away_score', 'overtime', 'roof'].includes(k));
+export const scheduleSourceText = rows => JSON.stringify(rows.map(r => SCHEDULE_DEPENDENCY_COLUMNS.map(k => r[k] ?? '')).sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
 
 /** Deterministic bins represent the exact selected sample. The accompanying
  * accessible table uses the same bins, counts and endpoint cumulative units.
@@ -164,7 +170,7 @@ export async function createResearchSnapshot({ csv, now, season, registry, venue
     return target;
   });
   return { version: RESEARCH_VERSION, generatedAt: now, season,
-    source: { sha256: await sha256(csv), completedSha256: await sha256(completedSourceText(observableRows(csv, now))), rowCount: prepared.rowCount,
+    source: { sha256: await sha256(csv), completedSha256: await sha256(completedSourceText(observableRows(csv, now))), scheduleSha256: await sha256(scheduleSourceText([...rawRows.values()])), rowCount: prepared.rowCount,
       latestCompleted: prepared.games.filter(g => g.played).at(-1)?.date ?? null, finalAvailability: 'Noon UTC following the schedule date; exact final observation times are unavailable.' },
     candidates: compact, targets };
 }
