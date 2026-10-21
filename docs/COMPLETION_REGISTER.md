@@ -36,7 +36,10 @@ checkouts passed clean sync at that merge. See the
 privacy, preservation and acceptance limits. Its evidence PR carries the final
 documentation merge/sync result. PR #156 merged as
 `fd1facc7af1d1673b99dee0bd2f0228d6f63a0e6`; all three checkouts then synced cleanly.
-Q02 is now active; see the [verifier repair record](DEPLOYMENT_VERIFIER_RELEASE.md).
+Q02's fix merged in PR #157 and protected frontend release 39521335125 passed;
+current Pages is `ad10f1c1`, API remains v27. See the
+[verifier repair record](DEPLOYMENT_VERIFIER_RELEASE.md); its evidence PR records
+final merge/sync. Q03 mobile navigation is next, not yet started.
 The weekly-results evidence PR #154 passed all five checks, merged as
 `eb1fa9330d715140f8e343a24daf51908ace5ba6`, and was verified clean/synced on Windows,
 Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
@@ -45,12 +48,12 @@ Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 | --- | --- | --- |
 | Q01 backlog reconciliation | PR #152 merged as 97c08b987a26918b74db23138cf0793f70eba6d8; three clean integration checkouts verified at that commit | Complete. Preserve the two dirty Mini worktrees identified in the queue. |
 | Scheduled collector | October 20 20:15 UTC cron, worker, collection and Week 7 snapshot succeeded | Verified; see the core scoring release record. No forced provider collection. |
-| Q02 deployment verifier | PR #150's code/test fix reconciled with current main; local regression passes | Review/CI, then actual protected frontend verification and evidence sync. |
+| Q02 deployment verifier | PR #157 merged; protected source, readiness and frontend deploy/verification passed; 95 assets checked at both URLs | Evidence PR merge/sync recorded in its body; physical-phone acceptance remains separate. |
 | Q03–Q05 mobile/Bets/recommendations | Requirements and an implementation branch exist | Sequential navigation, filters, then recommendation refinement tasks. |
 | Q06–Q08 Bets/comparisons/preferences | Merged readers/settings code; three migrations remain unhosted | Separate dependency-aware release/readback; no generic database push. |
 | Q09–Q10 account/notification acceptance | Live components exist; real-world checks remain | Verify actual supported account/device flows and iPhone notification delivery. |
 | Q11–Q15 Fantasy | Static rankings/basic details exist; refresh and richer analysis remain | Refresh, profiles/usage, comparisons, matchups and newly requested sourced trade values. |
-| Q16 easier actual-bet tracking | Released as API v27 / Pages 9ef3f651; PR #155 merged and three integration checkouts synced | Release evidence closeout; physical-phone acceptance remains separate. |
+| Q16 easier actual-bet tracking | PRs #155/#156 merged and three integration checkouts synced; API v27 retained, same source rebuilt as Pages ad10f1c1 by Q02 | Complete; physical-phone acceptance remains separate. |
 | Q17–Q20 platform completion | Partial; see per-item exit criteria | Remaining destinations, operations, full-week/device acceptance and new-only transition. |
 | Simulator/native iOS/other feeds | Separate later scope or decisions | No model validation, native-client or external-connection claim follows from existing planning. |
 

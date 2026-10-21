@@ -15,8 +15,9 @@ Both dedicated secret names were present on October 20. Actual protected readine
 and an API-only deployment succeeded October 16; the frontend upload succeeded but
 its verifier rejected canonical HTML redirects. The historical failed run remains
 failed. See [the verifier repair record](DEPLOYMENT_VERIFIER_RELEASE.md) for the
-reconciled fix and subsequent verification status; credential presence alone is
-not proof of current access.
+reconciled fix and successful October 21 UTC protected source, readiness and
+frontend deployment runs. Release 39521335125 verified 95 assets at both URLs;
+credential presence alone is not proof of current access.
 An administrator can change environment protections; this is an approval gate,
 not a claim that administrators cannot override repository settings.
 
@@ -39,7 +40,7 @@ change cron schedules or data budgets, or flip the default app. Existing
 [Gate M](REDESIGN_BUILD_PLAN.md#42-gate-m-applying-a-migration) and
 [Gate D](REDESIGN_BUILD_PLAN.md#43-gate-d-deploys) remain binding. This shared path
 replaces the requirement to hold CLI logins on the Mac mini for these two release
-targets once setup and the first protected run are verified. Existing dated
+targets: protected API and frontend runs are now verified. Existing dated
 release records remain historical evidence of the Mac mini releases.
 
 ## One-time configuration
