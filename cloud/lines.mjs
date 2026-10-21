@@ -12,12 +12,13 @@
 // else, even if SQL sent a value, a book, a price, movement or a kickoff line under it. The viewer's own guess always
 // comes back (D-23: never redacted from its owner); its line at the guess only under an open market.
 import { UUID_PATTERN } from './lobby.mjs';
+import { validateResearchRequest } from './trends-research.mjs';
 
 export class LinesError extends Error {
   constructor(status, message) { super(message); this.name = 'LinesError'; this.status = status; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
-export const LINES_METHODS = Object.freeze({ '/lines/read': ['POST'], '/lines/game': ['POST'] });
+export const LINES_METHODS = Object.freeze({ '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'] });
 /** Database refusal code → [status, sentence]. A code is mapped here, and deployed, before the SQL can raise it. */
 const ERRORS = Object.freeze({
   GTL_LINES_INVALID: [400, 'Check the week and game, then try again.'],
@@ -133,6 +134,15 @@ export async function handleLines({ route, body = {}, user, service, clock = Dat
   if (route === '/lines/read') {
     const target = readWeek(body, ['season', 'week']);
     return projectLines(await service.rpc('gtl_read_lines', { p_user: user.id, ...target, p_now: now }), user.id);
+  }
+  if (route === '/lines/research') {
+    if (featureOff.has('research')) throw providerLinesError('GTL_FEATURE_OFF');
+    const target = readWeek(body, ['season', 'week', 'gameId', 'period', 'market', 'family', 'team', 'candidateId']);
+    try { validateResearchRequest(body); } catch { invalid(); }
+    if (!service.research?.read) throw providerLinesError('GTL_FEATURE_OFF');
+    const board = projectLines(await service.rpc('gtl_read_lines', { p_user: user.id, ...target, p_now: now }), user.id);
+    try { return await service.research.read({ board, ...body }); }
+    catch (error) { if (error instanceof TypeError) throw new LinesError(400, 'Research candidate is unavailable.'); throw error; }
   }
   const target = readWeek(body, ['season', 'week', 'gameId']);
   if (typeof body.gameId !== 'string' || !GAME_ID.test(body.gameId)) invalid();
