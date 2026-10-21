@@ -101,6 +101,13 @@ and quote/kickoff expiry. Component checks passed 32/32, navigation and architec
 checks 19/19, and Brand QA passed. No runtime change beyond conflict reconciliation
 was needed for this integration.
 
+The broader 278-case local browser run exposed a timing-dependent legacy-link
+assertion: generic `#picks` leaves the market unspecified, then the retained
+editor may add its selected default to URL metadata. The test now checks the
+canonical destination and selected Spread button directly; explicit market links
+still require their market metadata. The corrected legacy-link scenario passed
+five consecutive runs. No application behavior changed for this correction.
+
 ## Required deployment evidence
 
 Merge and deployment are pending at this preparation checkpoint. The final PR

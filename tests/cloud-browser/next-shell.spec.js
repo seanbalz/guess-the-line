@@ -150,7 +150,10 @@ test.describe('the real app', () => {
     const { world, calls } = await openNewApp(page, baseURL, '#picks');
     try {
       await expect(title(page, 'Your guesses')).toBeVisible();
-      expectFragment(page, '#play/picks?market=spread');
+      // The generic legacy link leaves market unspecified; the editor may later
+      // record its default selection in the URL. Check that selection directly.
+      expectFragment(page, '#play/picks');
+      await expect(page.getByRole('group', { name: 'Market', exact: true }).getByRole('button', { name: 'Spread', exact: true })).toHaveAttribute('aria-pressed', 'true');
       // Followed in the page (a fragment change, no new document), then on a fresh load.
       for (const [fragment, name, hash] of [['#feed', 'League', '#play/league?view=feed'], ['#picks-total', 'Your guesses', '#play/picks?market=total'], ['#fantasy', 'Fantasy', '#research/fantasy'], ['#lines', 'Lines', '#research/games'], ['#main', 'Home', '#main']]) {
         await page.goto(`/${fragment}`);
