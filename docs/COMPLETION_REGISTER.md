@@ -29,9 +29,11 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 October 21: Sean authorized a separate private NBA archive and import of the
 saved NBA ledger. The [private NBA release card](PRIVATE_NBA_STORAGE.md) records
-the additive schema, account linkage, permission boundary, idempotent import
-and data-preserving rollback. This is under local verification; hosted apply
-is pending. NBA records do not feed the NFL application or its totals.
+PR #163's merge, hosted migration `20261021205118` and the verified private import
+at 20:51 UTC. Account linkage, app-role denial, original-source preservation and
+generated accounting were verified. NFL data and function/grant hashes stayed
+unchanged. NBA records do not feed the NFL application or its totals. The evidence
+PR body records its final CI, merge and three-machine synchronization receipt.
 
 Sean selected easier actual-bet tracking (Q16) next on October 20, with Virtual
 Units separate. Q16 is now deployed: API v27 and Pages `9ef3f651`, from reviewed
