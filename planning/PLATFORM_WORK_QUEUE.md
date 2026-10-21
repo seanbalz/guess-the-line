@@ -20,7 +20,8 @@ Q16 implementation passed all five CI checks, merged in PR #155 as
 `2d81436dc0f3bcbfd9c91b69c9049755eb8b4601`, deployed as API v27 / Pages `9ef3f651`,
 and synced cleanly across the three integration checkouts. Its release evidence
 closeout PR #156 merged as `fd1facc7af1d1673b99dee0bd2f0228d6f63a0e6`; all three
-checkouts were synced cleanly. Q02 is now active. See the
+checkouts were synced cleanly. Q02's fix is merged and its protected release passed;
+the evidence PR records final merge/sync. Q03 is next, not yet started. See the
 [bet-tracking release card](../docs/EASIER_BET_TRACKING_RELEASE.md) and
 [verifier record](../docs/DEPLOYMENT_VERIFIER_RELEASE.md).
 The private-week/results evidence PR #154 merged as
@@ -39,7 +40,7 @@ explicitly when it cannot be established by automated tests.
 | ID | Item | Existing work and completion boundary |
 | --- | --- | --- |
 | Q01 | Backlog and branch reconciliation | Current register, this queue and the branch audit distinguish delivered, pending and unpublished work. PR #152 merged as 97c08b9 and all three integration checkouts were verified clean; preserve all other worktrees. |
-| Q02 | Deployment verification | Reconcile the Pages canonical-redirect verifier fix in PR #150 with current main; test expected versus unexpected redirects and record actual protected-workflow results. Earlier successful upload is not a successful verifier run. |
+| Q02 | Deployment verification | PR #157 merged; check-only 39521037481, readiness 39521105364 and frontend release 39521335125 passed. Pages ad10f1c1 verified 95 assets at both URLs, with API/data/migrations unchanged. Evidence PR carries final merge/sync. |
 | Q03 | Mobile navigation and scrolling | Reconcile PR #144's UX-NEXT-01 and unpublished shell changes before implementing. Verify content and controls clear navigation/save bars at phone widths and safe areas in both themes. |
 | Q04 | Bets filters | Q16 delivered visible result/market filters, owner-scoped weeks and empty states for actual tickets. Reconcile PR #144's remaining BETS-NEXT-01 scope before closing this broader item; native/Virtual Units reader delivery remains Q06. |
 | Q05 | Recommendation refinements | Reconcile PR #140 against current main: actual-offer ranking, quote-preserving edits, private forecasts and weekly summaries. Its additive writer remains separate from the applied scoring chain. Exact-head tests and release/readback required. |
@@ -78,7 +79,7 @@ stashed, deleted or silently merged. Open PRs are source evidence, not hosted pr
 | [Mobile/retirement audit #144](https://github.com/seanbalz/guess-the-lines-repo/pull/144) | Retain requirements; consume/reconcile in Q03, Q04, Q17 and Q20. Its old release snapshot is historical. |
 | [Fantasy usage requirements #147](https://github.com/seanbalz/guess-the-lines-repo/pull/147) | Retain requirements for Q11–Q14 and later private league context. Documentation only; not an integration. |
 | [Merged weather/Bets release #148](https://github.com/seanbalz/guess-the-lines-repo/pull/148) | Retain for Q06. Weather is already applied; access and scoring blockers are obsolete. M-10 still needs release. Do not replay weather/scoring migrations. |
-| [Home/Fantasy release verification #150](https://github.com/seanbalz/guess-the-lines-repo/pull/150) | Retain the verifier fix for Q02. Pages/API and weather claims must be reconciled against later evidence; avoid reintroducing old registry entries. |
+| [Home/Fantasy release verification #150](https://github.com/seanbalz/guess-the-lines-repo/pull/150) | Verifier fix reconciled and superseded by merged #157, verified in release 39521335125. Preserve remaining branch history; stale Pages/API/weather and registry claims were not imported. |
 | [Recommendation refinements #140](https://github.com/seanbalz/guess-the-lines-repo/pull/140) | Retain implementation for Q05. Earlier green checks are not checks of a future integration head. Old timing restrictions are superseded. |
 
 Windows main and Neo main were clean at `eb4e5e1a7f14a2a863e98ceed9e4744c11603393`;
