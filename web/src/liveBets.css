@@ -150,6 +150,28 @@
   .gx .gx-bets .social-player { flex-basis: 100%; }
   .gx .gx-bets .social-follow { width: 100%; justify-content: center; }
 }
+/* Owner tickets: quiet grouped rows, with the established full audit on tap. */
+.gx .gx-bets .gx-ticket-tracker .social-heading { display: flex; flex-direction: row; align-items: end; justify-content: space-between; }
+.gx .gx-bets .gx-ticket-tracker .social-heading > div { flex: 1; min-width: 0; text-align: start; }
+.gx .gx-bets .gx-ticket-tracker .social-heading > button { flex: 0 0 auto; }
+.gx .gx-bets .gx-ticket-tracker .social-heading > button { width: auto; padding-inline: var(--gx-space-4); }
+.gx .gx-bets .gx-ticket-tracker .social-tabs { display: flex; gap: var(--gx-space-1); overflow-x: auto; padding: var(--gx-space-1); background: var(--gx-surface-2); border-radius: var(--gx-radius-md); }
+.gx .gx-bets .gx-ticket-tracker .social-tabs > button { flex: 0 0 auto; min-height: var(--gx-size-touch); padding: var(--gx-space-2) var(--gx-space-3); border-color: transparent; background: none; }
+.gx .gx-bets .gx-ticket-tracker .social-tabs > button[aria-pressed="true"] { background: var(--gx-surface-1); color: var(--gx-text-1); box-shadow: var(--gx-e1); }
+.gx .gx-bets .gx-ticket-tracker .social-toolbar { padding: 0; border: 0; background: none; align-items: end; }
+.gx .gx-bets .gx-ticket-tracker .social-toolbar > label { grid-column: 1; }
+.gx .gx-bets .gx-ticket-tracker .social-toolbar > button { margin-bottom: var(--gx-space-1); }
+.gx .gx-bets .gx-ticket-tracker .social-metrics { gap: 0; overflow: hidden; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-lg); background: var(--gx-surface-1); box-shadow: var(--gx-e1); }
+.gx .gx-bets .gx-ticket-tracker .social-metrics > div { padding: var(--gx-space-3) var(--gx-space-4); border: 0; border-radius: 0; gap: var(--gx-space-1); }
+.gx .gx-bets .gx-ticket-tracker .social-metrics > div:nth-child(even) { border-left: 1px solid var(--gx-border); }
+.gx .gx-bets .gx-ticket-tracker .social-metrics > div:nth-child(n+3) { border-top: 1px solid var(--gx-border); }
+.gx .gx-bets .gx-ticket-tracker .social-metrics strong { font-size: 24px; line-height: 28px; }
+.gx .gx-bets .gx-ticket-tracker .social-feed { gap: 0; overflow: hidden; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-lg); box-shadow: var(--gx-e2); }
+.gx .gx-bets .gx-ticket-tracker .social-bet-card { border-radius: var(--gx-radius-md); background: var(--gx-surface-2); }
+.gx .gx-bets .gx-ticket-tracker .social-content { gap: var(--gx-space-4); }
+.gx .gx-bets .recommended-action { flex-wrap: wrap; }
+.gx .gx-bets .recommended-action > p { flex-basis: 100%; }
+.gx .gx-bets .recommended-action > button { flex: 1 1 180px; white-space: normal; }
 @media (forced-colors: active) {
   .gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button) { border-color: ButtonText; background: ButtonFace; color: ButtonText; forced-color-adjust: none; }
   .gx .gx-bets .social-entry-options > .social-entry-option[aria-pressed="true"] { border-color: Highlight; background: Highlight; color: HighlightText; }

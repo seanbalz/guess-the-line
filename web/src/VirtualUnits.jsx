@@ -43,7 +43,7 @@ function closedReviewReason(game, now, result) {
   return null;
 }
 
-export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false }) {
+export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, onTrackTicket, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false }) {
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [selections, setSelections] = useState({}), [uncertain, setUncertain] = useState(null);
   const [view, setView] = useState(initialView === 'recommended' ? 'recommended' : 'all');
@@ -132,6 +132,19 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
     choose(current.game, current.market, current.side, 1);
     setNotice('Added to your review card. Check the saved book line, odds and units, then place your virtual pick.');
   }
+  function trackRecommendation(row) {
+    if (busy || loading || uncertain || historical || !onTrackTicket) return;
+    const current = buildRecommendations({ personal: personal?.data, virtual: data, now: Date.now() }).rows.find(item => item.key === row.key);
+    if (!current?.offer) { setNow(Date.now()); return; }
+    onTrackTicket({
+      season: data.season, week: data.week, kind: 'single',
+      legs: [{ gameId: current.game.id, market: current.market, side: current.side, line: current.offer.line }],
+      odds: current.offer.odds, source: current.offer.source || current.offer.book,
+      quotedAt: current.offer.observedAt,
+      // A recommendation is a quote, never evidence of an executed stake or placement.
+      stakeUnits: null, placedAt: null,
+    });
+  }
   function changeView(next) {
     if (next === view || busy) return;
     if ((uncertain || Object.keys(selections).length) && !window.confirm('You have an unsaved virtual pick. Leave this view and discard the selection?')) return;
@@ -216,7 +229,7 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>
         : <>
           <div className="recommended-list-heading"><h3>{expanded ? 'All differences' : 'Top 3 differences'}</h3><span>{recommendations.rows.length} available · Week {data.week}</span></div>
-          {recommendations.rows.length ? <div className="recommended-bet-list">{visibleRecommendations.map(row => <RecommendationCard key={row.key} row={row} selection={selections[row.key]} pick={picks[row.key]} now={now} add={addRecommendation} choose={choose} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div>
+          {recommendations.rows.length ? <div className="recommended-bet-list">{visibleRecommendations.map(row => <RecommendationCard key={row.key} row={row} selection={selections[row.key]} pick={picks[row.key]} now={now} add={addRecommendation} track={onTrackTicket ? trackRecommendation : undefined} choose={choose} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div>
             : <div className="recommended-empty" role="status"><p>No differences to show yet. Submit your guesses, then check back for available pregame lines.</p></div>}
           {recommendations.rows.length > 3 && <button className="secondary recommended-expand" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? <><ArrowUp size={17}/>Show top 3</> : <><ArrowDown size={17}/>Show all {recommendations.rows.length} differences</>}</button>}
           {separateReviews.map(([key, selection]) => {
@@ -248,7 +261,7 @@ function quoteAge(value, now) {
 const sideName = (game, market, side) => market === 'total' ? side === 'over' ? 'Over' : 'Under' : side === 'home' ? game.home : game.away;
 const marketNumber = (market, value) => market === 'spread' ? signed(value) : String(value);
 
-function RecommendationCard({ row, selection, pick, now, add, choose, save, busy, rules }) {
+function RecommendationCard({ row, selection, pick, now, add, track, choose, save, busy, rules }) {
   const { game, market, reference, evaluations } = row;
   const sides = market === 'spread' ? ['away', 'home'] : ['over', 'under'];
   return <article className="panel recommended-bet-card" data-game-id={game.id} data-market={market}>
@@ -260,7 +273,9 @@ function RecommendationCard({ row, selection, pick, now, add, choose, save, busy
       const Indicator = evaluation.color === 'green' ? Plus : evaluation.color === 'red' ? Minus : Circle;
       return <div className={`recommended-side recommended-${evaluation.color}`} key={side} data-side={side} data-value-color={evaluation.color}><strong>{sideName(game, market, side)}</strong><span><Indicator size={15}/>{evaluation.label}</span><small>{evaluation.advantage > 0 ? '+' : evaluation.advantage < 0 ? '−' : ''}{Math.abs(evaluation.advantage)} pts vs your guess</small></div>;
     })}</div>
-    <div className="recommended-action"><p><strong>Suggested: {sideName(game, market, row.side)}</strong>{row.offer ? <small>Saved quote: {line(game, market, row.side, row.offer)} · {row.offer.source || row.offer.book} · {date(row.offer.observedAt)} PT · {quoteAge(row.offer.observedAt, now)}</small> : <small>No usable named-book quote on this side. It cannot be added yet.</small>}</p><button className="secondary" disabled={busy || !row.offer || Boolean(pick) || Boolean(selection)} onClick={() => add(row)}>{pick ? <><Check size={16}/>Already on your card</> : selection ? <><Check size={16}/>Review below</> : <><Plus size={16}/>Add to card</>}</button></div>
+    <div className="recommended-action"><p><strong>Suggested: {sideName(game, market, row.side)}</strong>{row.offer ? <small>Saved quote: {line(game, market, row.side, row.offer)} · {row.offer.source || row.offer.book} · {date(row.offer.observedAt)} PT · {quoteAge(row.offer.observedAt, now)}</small> : <small>No usable named-book quote on this side. It cannot be added yet.</small>}</p>
+      {track && <button className="secondary" disabled={busy || !row.offer} onClick={() => track(row)}><Plus size={16}/>Track this bet</button>}
+      <button className="secondary" disabled={busy || !row.offer || Boolean(pick) || Boolean(selection)} onClick={() => add(row)}>{pick ? <><Check size={16}/>{track ? 'Virtual pick saved' : 'Already on your card'}</> : selection ? <><Check size={16}/>Review below</> : <><Plus size={16}/>{track ? 'Play with Virtual Units' : 'Add to card'}</>}</button></div>
     {pick && <p className="recommended-saved">Saved: {sideName(game, market, pick.selection.side)} {marketNumber(market, pick.selection.line)} ({money(pick.selection.odds)}) · {pick.selection.units}U · {pick.selection.source}</p>}
     {selection && <div className="recommended-review" aria-label={`Review ${game.away} at ${game.home} ${market} virtual pick`}><p>Review your card · play money only</p><Market game={game} market={market} pick={pick} selection={selection} choose={choose} save={save} busy={busy} rules={rules}/></div>}
   </article>;

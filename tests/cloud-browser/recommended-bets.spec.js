@@ -76,6 +76,94 @@ async function moveBrowserPastKickoff(page, game) {
   }, Date.parse(game.kickoff) + 1000);
 }
 
+test('a reviewed recommendation becomes one actual tracked ticket and survives reload', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const calls = requests(page);
+    await openRecommended(page);
+    const card = cards(page).first(), gameId = await card.getAttribute('data-game-id');
+    await card.getByRole('button', { name: 'Track this bet', exact: true }).click();
+    await expect(view(page, 'Tracked bets')).toHaveAttribute('aria-pressed', 'true');
+    const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
+    await expect(editor).toBeVisible();
+    await expect(editor.getByRole('group', { name: 'Units risked', exact: true }).getByRole('button', { name: 'Unknown', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(editor.getByRole('button', { name: 'Save tracked bet', exact: true })).toBeDisabled();
+    expect(calls.filter(call => call.path === 'social/create')).toHaveLength(0);
+    expect(placements(calls)).toHaveLength(0);
+    await editor.getByLabel('I placed this bet elsewhere and checked these ticket terms.').check();
+    await editor.getByRole('button', { name: 'Save tracked bet', exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    const writes = calls.filter(call => call.path === 'social/create');
+    expect(writes).toHaveLength(1);
+    expect(writes[0].body).toMatchObject({
+      season: world.state.league.season, week: world.state.league.week,
+      origin: 'tracked', kind: 'single', stakeUnits: null, placedAt: null,
+      legs: [{ gameId, market: 'total', side: 'over', line: 44.5 }],
+    });
+    expect(writes[0].body.source).toBeTruthy();
+    expect(writes[0].body.quotedAt).toBe(world.observedAt);
+    expect(await picksCount(world)).toBe(0);
+    await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
+    await expect(page.locator('.gx-tracked-row > summary')).toContainText('Over 44.5');
+    await page.reload();
+    await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
+    await page.locator('.gx-tracked-row > summary').click();
+    await expect(page.locator('.social-bet-card')).toContainText(writes[0].body.source);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('cancelling a recommendation review writes neither a tracked ticket nor a virtual pick', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const calls = requests(page);
+    await openRecommended(page);
+    await cards(page).first().getByRole('button', { name: 'Track this bet', exact: true }).click();
+    const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
+    await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    expect(calls.filter(call => call.path === 'social/create')).toHaveLength(0);
+    expect(placements(calls)).toHaveLength(0);
+    await expect(page.locator('.gx-tracked-row')).toHaveCount(0);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('recommendation ticket recovery keeps its original week and does not duplicate a committed save', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const calls = requests(page), week = world.state.league.week;
+    await openRecommended(page);
+    await cards(page).first().getByRole('button', { name: 'Track this bet', exact: true }).click();
+    const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
+    await expect(editor).toBeVisible();
+    await publishNextWeek(world);
+    await editor.getByLabel('I placed this bet elsewhere and checked these ticket terms.').check();
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/social/create'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      expect(response.status).toBe(200);
+      await response.text();
+      await route.abort('failed');
+    }, { times: 1 });
+    await editor.getByRole('button', { name: 'Save tracked bet', exact: true }).click();
+    await expect(editor.getByRole('alert')).toContainText('could not confirm');
+    await editor.getByRole('button', { name: 'Check saved bets', exact: true }).click();
+    await expect(editor.getByRole('button', { name: 'Retry same save', exact: true })).toBeEnabled();
+    await editor.getByRole('button', { name: 'Retry same save', exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    const writes = calls.filter(call => call.path === 'social/create');
+    expect(writes).toHaveLength(2);
+    expect(writes[0].body.week).toBe(week);
+    expect(writes[1].body).toEqual(writes[0].body);
+    await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
+    await expect(page.locator('.gx-tracked-row > summary')).toContainText(`Week ${week}`);
+    await expect(page.getByLabel('Competition week')).toHaveValue(`${world.state.league.season}:${week}`);
+    expect(await picksCount(world)).toBe(0);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('saved guesses rank the top three; expanding retains small gaps and both sides have text-labelled traffic lights on phones', async ({ page, baseURL }) => {
   const world = await fixture(page, baseURL);
   try {
@@ -124,7 +212,7 @@ test('Add to card only prepares the retained quote; explicit placement saves one
     const firstGame = world.state.games[0];
     await openRecommended(page);
     await expect(cards(page)).toHaveCount(3);
-    await cards(page).first().getByRole('button', { name: 'Add to card', exact: true }).click();
+    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
     expect(placements(calls)).toEqual([]);
     expect(await picksCount(world)).toBe(0);
@@ -138,8 +226,8 @@ test('Add to card only prepares the retained quote; explicit placement saves one
       source: 'betmgm', quotedAt: world.observedAt,
     } });
     await expect.poll(() => picksCount(world)).toBe(1);
-    await expect(cards(page).first()).toContainText(/Already on your card|On your card|Already saved/);
-    await expect(cards(page).first().getByRole('button', { name: 'Already on your card', exact: true })).toBeDisabled();
+    await expect(cards(page).first()).toContainText(/Virtual pick saved|On your card|Already saved/);
+    await expect(cards(page).first().getByRole('button', { name: 'Virtual pick saved', exact: true })).toBeDisabled();
     await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
     await expect(cards(page)).toHaveCount(3);
     expect(placements(calls)).toHaveLength(1);
@@ -229,7 +317,7 @@ test('Community recommendations use the current published week when the private 
     await openRecommended(page);
     await expect(cards(page)).toHaveCount(3);
     await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText(`Week ${next}`);
-    await cards(page).first().getByRole('button', { name: 'Add to card', exact: true }).click();
+    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
     await page.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
     await expect.poll(() => picksCount(world)).toBe(1);
     expect(placements(calls)).toHaveLength(1);
@@ -248,7 +336,7 @@ test('a lost successful recommendation reply is confirmed by its exact saved sou
   try {
     const calls = requests(page);
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Add to card', exact: true }).click();
+    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/gtl-api/bets/recommendations/place'), async route => {
       const req = route.request();
       const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
@@ -277,7 +365,7 @@ test('a pending review retains the chosen terms at kickoff and offers no placeme
   try {
     const calls = requests(page);
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Add to card', exact: true }).click();
+    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
     await page.getByRole('button', { name: '2U', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
     await moveBrowserPastKickoff(page, world.state.games[0]);
@@ -298,7 +386,7 @@ test('a saved virtual pick stays visible when its difference disappears and afte
   try {
     const calls = requests(page), first = world.state.games[0];
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Add to card', exact: true }).click();
+    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
     await page.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
     const saved = page.getByRole('region', { name: 'Your virtual card', exact: true });
     await expect(saved).toContainText('Over 44.5 (−110) · 1U');
@@ -322,7 +410,7 @@ test('the week selector keeps the player’s older saved card readable after Com
   try {
     const calls = requests(page), { season, week } = world.state.league;
     await openRecommended(page);
-    await cards(page).first().getByRole('button', { name: 'Add to card', exact: true }).click();
+    await cards(page).first().getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
     await page.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Your virtual card', exact: true })).toContainText('BetMGM');
     const next = await publishNextWeek(world);
@@ -338,7 +426,7 @@ test('the week selector keeps the player’s older saved card readable after Com
     await expect(saved).toContainText('Over 44.5 (−110) · 1U');
     await expect(saved).toContainText('BetMGM');
     await expect(cards(page)).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Add to card', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Play with Virtual Units', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Place virtual pick', exact: true })).toHaveCount(0);
     expect(calls.filter(call => call.path === 'bets/recommendations').at(-1).body).toEqual({ season, week });
     const oldRequest = { ...placements(calls)[0].body, gameId: world.state.games[1].id };
