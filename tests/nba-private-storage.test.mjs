@@ -104,12 +104,17 @@ test('import preserves decimal rounding and canonical UUIDs without changing ori
   try {
     const source = ledger(); source.entries = [source.entries[0]];
     Object.assign(source.entries[0], { id: '00000000-0000-4000-8000-00000000000A', odds: 125, stakeUnits: 0.12345678, netUnits: 0.15432098 });
-    const prepared = prepareNbaImport(JSON.stringify(source), { ownerId, importId });
+    const overrides = { [source.entries[0].id.toLowerCase()]: 'Clarified test provenance' };
+    const prepared = prepareNbaImport(JSON.stringify(source), { ownerId, importId, stakeBasisOverrides: overrides });
     await db.exec(prepared.sql);
-    const row = (await db.query('select id,net_units,source_record from nba_private.bets')).rows[0];
+    const row = (await db.query('select id,net_units,source_record,provenance from nba_private.bets')).rows[0];
     assert.equal(row.id, source.entries[0].id.toLowerCase());
     assert.equal(row.net_units, '0.15432098');
     assert.deepEqual(row.source_record, source.entries[0]);
+    assert.equal(row.provenance.stakeBasis, 'Clarified test provenance');
+    assert.ok(row.provenance.correction);
+    assert.throws(() => prepareNbaImport(JSON.stringify(source), { ownerId, importId,
+      stakeBasisOverrides: { ...overrides, [source.entries[0].id]: 'Conflicting provenance' } }), /Duplicate normalized/);
     source.entries[0].netUnits = 0.15432097;
     assert.throws(() => prepareNbaImport(JSON.stringify(source), { ownerId, importId }), /Source result/);
   } finally { await db.close(); }

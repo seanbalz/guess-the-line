@@ -27,6 +27,13 @@ export function prepareNbaImport(sourceText, { ownerId, importId, stakeBasisOver
   assert.match(importId, uuid);
   ownerId = ownerId.toLowerCase();
   importId = importId.toLowerCase();
+  const overrides = new Map();
+  for (const [id, basis] of Object.entries(stakeBasisOverrides)) {
+    assert.match(id, uuid);
+    assert.ok(typeof basis === 'string' && basis.trim().length > 0);
+    assert.ok(!overrides.has(id.toLowerCase()), 'Duplicate normalized provenance override');
+    overrides.set(id.toLowerCase(), basis);
+  }
   const source = JSON.parse(sourceText);
   assert.ok(Array.isArray(source.entries) && source.entries.length > 0);
   const rows = source.entries.map(entry => {
@@ -38,16 +45,17 @@ export function prepareNbaImport(sourceText, { ownerId, importId, stakeBasisOver
     assert.ok(['pending', 'win', 'loss', 'push', 'void'].includes(entry.outcome));
     assert.ok(Array.isArray(entry.legs) && entry.legs.every(leg => leg.gameId?.startsWith('NBA:')));
     assert.equal(entry.netUnits, netUnits(entry), 'Source result must reconcile before import');
+    const override = overrides.get(entry.id.toLowerCase());
     return { id: entry.id.toLowerCase(), owner_id: ownerId, import_id: importId, sport: 'nba', season: entry.season,
       event_date: entry.eventDate, kind: entry.kind, label: entry.label, legs: entry.legs,
       odds: entry.odds, stake_units: entry.stakeUnits, outcome: entry.outcome,
-      provenance: { oddsBasis: entry.oddsBasis, stakeBasis: stakeBasisOverrides[entry.id] ?? entry.stakeBasis,
-        ...(stakeBasisOverrides[entry.id] ? { correction: 'Stake provenance clarified from original user instruction; numeric terms unchanged.' } : {}),
+      provenance: { oddsBasis: entry.oddsBasis, stakeBasis: override ?? entry.stakeBasis,
+        ...(override ? { correction: 'Stake provenance clarified from original user instruction; numeric terms unchanged.' } : {}),
         sportsbook: entry.sportsbook ?? null, placedAt: entry.placedAt ?? null, quotedAt: entry.quotedAt ?? null,
         settlement: entry.settlement ?? null }, source_record: entry };
   });
   assert.equal(new Set(rows.map(row => row.id)).size, rows.length, 'Duplicate source tickets');
-  assert.ok(Object.keys(stakeBasisOverrides).every(id => rows.some(row => row.id === id.toLowerCase())));
+  assert.ok([...overrides.keys()].every(id => rows.some(row => row.id === id)));
   const sourceSha256 = createHash('sha256').update(sourceText).digest('hex');
   const payload = quote(JSON.stringify(source));
   const tickets = quote(JSON.stringify(rows));
