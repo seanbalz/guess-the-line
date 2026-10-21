@@ -168,8 +168,9 @@ assert.equal((await missingKeyService.read(request)).unavailable, true);
 
 **Files:** Create `web/src/next/nba/{NbaApp.jsx,Games.jsx,Bets.jsx,BetEditor.jsx,api.js,route.js,useNbaData.js,nba.css}`;
 modify `web/src/next/NextApp.jsx`, `web/src/next/shell/Frame.jsx`,
-`web/src/next/shell/Shell.jsx` and the minimal routing/entry integration files
-needed to expose NBA without NFL lobby reads. Create `tests/nba-ui.test.jsx`,
+`web/src/next/shell/Shell.jsx`, `web/src/main.jsx` and the minimal classic
+`web/src/GameHub.jsx` entry needed to expose NBA without NFL lobby reads. Keep
+`DEFAULT_APP` unchanged and retain the classic escape hatch. Create `tests/nba-ui.test.jsx`,
 `tests/nba-route.test.mjs`, `tests/cloud-browser/nba.spec.js`.
 
 **Interfaces:**
