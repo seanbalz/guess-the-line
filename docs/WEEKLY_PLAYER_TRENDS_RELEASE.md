@@ -50,3 +50,6 @@ Current main advanced to `fb86a3ea55bd91db1b1937dcd40ee70063d37716` during this 
 
 
 The final test-only compatibility commit `952eb4811629a5a3df6d2b1621107cd230492aab` updates the older Home/data phone checks for the contained seven-tab rail and the authenticated weekly read. Both targeted browser files passed all 12 tests; intrinsic text clipping, minimum touch targets, document overflow, and selected/focused tab visibility remain enforced. No production code changed after integrated source 7094557.
+
+
+The first published CI run at d5d73ae passed Brand QA, Windows portability, typecheck/test and the persona suite. Its dashboard job passed 273 cloud browser cases and failed two older app-switch phone assertions that treated intentionally scrollable tabs as clipped. Test-only correction bac7a399c4d8141318c45b940ec67221b6124a69 applies the same bounded rail checks already reviewed for Home; all eight app-switch browser cases passed locally. Separate local performance checks passed 4/4 and accessibility checks passed 7/7. Production code remains unchanged after integrated source 7094557. A fresh exact-head CI run is required; these local results do not establish its outcome.
