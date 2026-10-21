@@ -369,6 +369,22 @@ const events = page => page.evaluate(() => window.__events.slice());
 test.describe('the shell harness', () => {
   test.beforeAll(async () => { test.setTimeout(120000); await harnessBundle(); });
 
+  test('four tab labels stay inside 320px with wider text metrics', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 });
+    await harness(page);
+    // Exercise wider fallback glyphs/text enlargement even on hosts with narrow system fonts.
+    await page.addStyleTag({ content: '.gx-tab-label { font-size: 20px !important; line-height: 24px !important; }' });
+    for (const name of TABS) {
+      await tab(page, name).click();
+      await phoneChecks(page, '.gx-tabbar');
+      const labels = await tabBar(page).locator('.gx-tab-label').evaluateAll(nodes => nodes.map(node => {
+        const label = node.getBoundingClientRect(), button = node.closest('button').getBoundingClientRect();
+        return { left: label.left - button.left, right: button.right - label.right };
+      }));
+      expect(labels.every(label => label.left >= 0 && label.right >= 0)).toBe(true);
+    }
+  });
+
   test('four tabs, nested detail Back, origin focus and reload preserve intent', async ({ page }) => {
     await harness(page);
     await expect(tabBar(page).getByRole('button')).toHaveCount(4);

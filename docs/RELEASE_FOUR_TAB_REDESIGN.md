@@ -59,6 +59,19 @@ that helper, while default imports and other old-app shell imports remain
 forbidden. The failure was reproduced locally before this correction, and all
 12 app-view/boundary tests passed afterward. Brand/document QA also passed.
 
+The final full local check then passed: 1,457 Node tests with zero skips,
+198 Vitest tests, typecheck and production build. Hosted Node, Persona, Brand
+and Windows checks passed too. Linux cloud-browser CI exposed a real 320px
+layout defect: its wider fallback font pushed Research beyond the viewport in
+six layout checks. The tab grid now reserves each label's intrinsic width with
+small horizontal padding, preserving full labels, 16px text and touch targets.
+A new browser regression reproduces wider text metrics on any host; it failed
+before the CSS change and passed afterward. Token/navigation tests passed 20/20.
+All eight affected layout/accessibility cases then passed locally, covering the
+six Linux failure paths plus the wider-text regression and four-tab root flow.
+Updated light/dark fixture screenshots were inspected; hosted verification must
+pass on the new commit before merge.
+
 ## Required deployment evidence
 
 Merge and deployment are pending at this preparation checkpoint. The final PR

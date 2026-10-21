@@ -163,7 +163,8 @@
 }
 .gx-tabbar-inner {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Keep each label's full width when fallback fonts are wider than Figtree. */
+  grid-template-columns: repeat(4, minmax(max-content, 1fr));
   max-width: var(--gx-size-content);
   margin-inline: auto;
 }
@@ -176,6 +177,7 @@
   gap: 2px;
   min-width: var(--gx-size-touch);
   height: calc(var(--gx-size-tabbar) - 1px);
+  padding-inline: var(--gx-space-1);
   color: var(--gx-text-2);
 }
 .gx-tab .gx-ic { color: var(--gx-text-3); }
