@@ -8,8 +8,9 @@ market-aware research leans and a separate Book It With Trent feed in the new ap
 
 **Architecture:** Keep the frozen study unchanged. Add a pure research evaluator,
 a versioned candidate adapter over existing NFL predicates, an authenticated Lines
-research reader, and shared weekly/matchup UI. The server reuses the free nflverse
-schedule source on demand, caching source data (never viewer projections). Reviewed
+research reader, and shared weekly/matchup UI. An offline generator prepares a
+server-only historical snapshot. The server checks the free nflverse schedule
+source on demand and caches source data (never viewer projections). Reviewed
 social entries enter through a bounded server-only configuration, with validation
 and original-post provenance. Unconfigured sources have an honest unavailable state.
 
@@ -77,22 +78,22 @@ Public contract:
 A candidate has id, version, family, dedupGroup, market (spread/total), direction
 (home/away/over/under when applied), title, conditions, registeredAt, sourceState,
 historicalTier (1/2/3 from frozen study adapter), and records. Each record has
-gameId, date (ISO observation-safe game time), season, result (-1/0/1), odds
+gameId, date (ISO game time), optional availableAt (result availability), season, result (-1/0/1), odds
 (nullable valid American price). Missing/unknown results do not become losses.
 Evaluation returns the selected period record and chart, canonical qualification
 and reasons, retrospective/prospective records, matched IDs and date coverage.
 Keep canonical IDs separate from a per-game UI key. Build immutable outputs.
 
-- [ ] Write focused failing tests first: period bounds, cross-season last30,
+- [x] Write focused failing tests first: period bounds, cross-season last30,
   pushes and chart reconciliation, partial prices, each qualification boundary,
   future results, prospective boundary, canonical period invariance.
-- [ ] Implement pure evaluator with deterministic chronology and stable ties.
-- [ ] Add failing grouping/lean tests: overlap chains, 50% boundary, duplicate
+- [x] Implement pure evaluator with deterministic chronology and stable ties.
+- [x] Add failing grouping/lean tests: overlap chains, 50% boundary, duplicate
   source, family overlap, mixed groups, two-vs-one yellow alternative, two-vs-two,
   stronger historical conflict, fourth opposition beyond top3, old/future/
   missing quote, kickoff and closed market.
-- [ ] Implement grouping/leans; closed response exposes no evidence.
-- [ ] Run focused tests and inspect diff. Commit named files. Report RED/GREEN
+- [x] Implement grouping/leans; closed response exposes no evidence.
+- [x] Run focused tests and inspect diff. Commit named files. Report RED/GREEN
   commands and results in `.local/trends-task-1-report.md`.
 
 ## Task 2 — Historical/source adapters and authenticated research API
@@ -101,6 +102,8 @@ Files:
 - Create `shared/trends-research-candidates.mjs` and
   `shared/trends-research-sources.mjs`
 - Create `cloud/trends-research.mjs`
+- Create a server-only prepared snapshot module and offline generation helper;
+  compress the artifact when needed to fit Edge function packaging limits.
 - Modify `cloud/lines.mjs`, `cloud/handler.mjs`,
   `supabase/functions/gtl-api/index.ts`
 - Create `scripts/trends-research.mjs` and `tests/trends-research-cloud.test.mjs`
@@ -119,14 +122,21 @@ Interfaces:
   and explicit NFL game/market dependencies. Validate URLs, dates, bounded text
   and sizes; reject unknown fields that could bypass gates. Source claims are
   never promoted to verified computed candidates.
-- `createResearchProvider({ loadSchedule, clock, reviewedFeed })` caches only
-  parsed public source/history, coalesces concurrent reads and expires after five
-  minutes. Source failure retains clearly stale historical data if available,
-  with no lean; no cached viewer response. Fetch and evaluate only on research
-  reads. Verify schema, latest completed coverage, missing finals and future
-  observations. Reuse existing corrections/venues and CC BY attribution.
+- `createResearchProvider({ loadSchedule, loadSnapshot, clock, reviewedFeed, venues, corrections })`
+  caches only parsed public source and prepared research, coalesces concurrent
+  reads and expires source checks after five minutes. An offline generator
+  performs the expensive full-history evaluation. The runtime compares a content
+  fingerprint of observable completed rows and current schedule identity with the
+  prepared snapshot. Changed results, missed finals, new completed games, unknown
+  target conditions or source failure disable dependent leans; historical samples
+  retain their explicit snapshot date. No cached viewer response.
+  The snapshot may contain redacted upcoming feature context but never unplayed
+  lines/odds/weather/referee terms or user data. Runtime current-line predicates
+  must match the frozen engine on parity tests; unsupported state-dependent
+  predicates remain unavailable. Verify schema and future observations. Reuse
+  existing corrections/venues and CC BY attribution.
 - `POST /lines/research` accepts only optional season/week, gameId, period,
-  market, family, team. Authenticate through existing handler. Read
+  market, family, team and candidateId for visible detail. Authenticate through existing handler. Read
   `gtl_read_lines` through current service; project it before research evaluation.
   Use authoritative server time. Open markets only enter applicability; inject
   accessible spread using app-to-nflverse sign conversion. Unknown weather/ref/
@@ -144,12 +154,15 @@ Interfaces:
   and can run deterministic replay/null evaluation using local historical inputs;
   refresh input uses the existing free nflverse URL and preserves originals.
 
-- [ ] Write failing adapter/API tests for normalized directions, no future
+- [x] Write failing adapter/API tests for normalized directions, no future
   leakage, unavailable sources, refresh failure, caches, bad requests and quote age.
-- [ ] Build adapter and provider; preserve frozen files and source budgets.
-- [ ] Test closed-market absence of titles/counts/IDs/URLs and multi-market Trent
+- [x] Build adapter and provider; preserve frozen files and source budgets.
+- [x] Profile cold/warm source verification and research projection. Keep the
+  prepared artifact under packaging limits; document exact local measurements
+  and the remaining hosted performance check.
+- [x] Test closed-market absence of titles/counts/IDs/URLs and multi-market Trent
   gating, account/week changes, primary play corrections and no auto-fade.
-- [ ] Run focused boundary tests. Commit named files, report RED/GREEN evidence.
+- [x] Run focused boundary tests. Commit named files, report RED/GREEN evidence.
 
 ## Task 3 — Shared research UI and matchup/weekly entry points
 
@@ -187,10 +200,10 @@ Files:
 Files: scoped fixes from review, `docs/TRENDS_RESEARCH.md`,
 `docs/COMPLETION_REGISTER.md`, this plan and approved spec status.
 
-- [ ] Run deterministic historical replay and shuffled-outcome diagnostic for
+- [x] Run deterministic historical replay and shuffled-outcome diagnostic for
   the registered candidate family; save version/hash/counts and explain limits.
   It is a false-discovery diagnostic, not betting-performance validation.
-- [ ] Attempt a free source refresh and record actual coverage or explicit
+- [x] Attempt a free source refresh and record actual coverage or explicit
   unavailable/stale state. Never invent current results to populate the UI.
 - [ ] Run focused privacy/line/boundary tests, full npm test, typecheck/build,
   brand QA and relevant browser checks (320px, dark/light, key states).
@@ -207,3 +220,20 @@ Files: scoped fixes from review, `docs/TRENDS_RESEARCH.md`,
 - Plan reviewed for internal consistency before implementation.
 - Implementation uses sequential implementers and independent task reviews;
   parent coordinates integration and verification.
+- Task 1: commit 202d46cfe1e1f658cc02336718e5e30008076d1f; 38 focused/regression
+  tests passed and independent review approved with no findings.
+- Runtime design adjustment: direct live catalogue evaluation measured about
+  15 seconds and 516 MB RSS locally. Supabase's documented request CPU limit is
+  2 seconds and memory limit is 256 MB. The build therefore prepares historical
+  research offline and checks source freshness before serving any lean; it does
+  not add a scheduler. Refreshing the prepared snapshot is part of the existing
+  manual data publication workflow. Hosted performance is still unverified.
+- Task 2: authenticated API, adapters and generated artifact completed; 62 focused
+  tests and 80 SQL/boundary tests passed at the initial checkpoint. Independent
+  review found a delayed-request clock bug; three regressions and commit beaf18f
+  fixed it, and review approved. Follow-up allocation/fingerprint optimization
+  in 2d18257 preserved four response hashes; 25 API tests passed and independent
+  review approved with no findings. Hosted runtime acceptance remains separate.
+- Offline replay/null diagnostics completed against the recorded October 21
+  source: three recent-rule qualifiers versus 5.65 average in 20 null runs.
+  Results and limits are preserved in model/trends/research-diagnostics-2026-10-21.json.

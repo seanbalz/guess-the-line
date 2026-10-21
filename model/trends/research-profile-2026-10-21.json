@@ -1,0 +1,55 @@
+{
+  "now": "2026-10-21T19:38:17.207Z",
+  "syntheticQuotes": true,
+  "networkAndRpcExcluded": true,
+  "results": [
+    {
+      "responseSha256": "3c7b5621f584f04be017f47b533c81b05cd6107ffb63406d0a747101494ef413",
+      "period": "recent30",
+      "wallMs": 633,
+      "cpuMs": 562,
+      "bytes": 770338,
+      "candidates": 383,
+      "shortlist": 2,
+      "history": "fresh",
+      "heapBytes": 66100192,
+      "rssBytes": 183001088
+    },
+    {
+      "responseSha256": "3c7b5621f584f04be017f47b533c81b05cd6107ffb63406d0a747101494ef413",
+      "period": "recent30",
+      "wallMs": 68,
+      "cpuMs": 63,
+      "bytes": 770338,
+      "candidates": 383,
+      "shortlist": 2,
+      "history": "fresh",
+      "heapBytes": 64168424,
+      "rssBytes": 210137088
+    },
+    {
+      "responseSha256": "c83412bee7eb36b4c31bf3fb00b81a2ff76036b63127e0d7e8d86b51942b6f62",
+      "period": "all",
+      "wallMs": 153,
+      "cpuMs": 173,
+      "bytes": 777914,
+      "candidates": 383,
+      "shortlist": 2,
+      "history": "fresh",
+      "heapBytes": 129872720,
+      "rssBytes": 254500864
+    },
+    {
+      "responseSha256": "7ec7acf6271acaff73f237b8f7715761ef1e0509d1928cf5c00362b053b13682",
+      "period": "rolling12",
+      "wallMs": 87,
+      "cpuMs": 109,
+      "bytes": 768298,
+      "candidates": 383,
+      "shortlist": 2,
+      "history": "fresh",
+      "heapBytes": 91704984,
+      "rssBytes": 241876992
+    }
+  ]
+}
