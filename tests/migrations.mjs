@@ -25,7 +25,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
-  20261021201054, // Private NBA archive; no NFL routes or totals. Apply independently on explicit authorization.
   20261016010000, // D-53 comparisons, after M-07. Not applied.
   20261016011000, // D-53 account preferences. Not applied.
   20261015190820, // M-10 bets_read (stage 40): account-level Bets reader; apply after M-01 and M-04 on Sean's "apply M-10".
@@ -118,4 +117,5 @@ export const APPLIED = [
   20261020211626, // Hosted 20261020220305: private current-week context.
   20261020211656, // Hosted 20261020220311: automatic final-results schedule.
   20261020211737, // Hosted 20261020220318: private settlement-results reader.
+  20261021201054, // Hosted 20261021205118: isolated private NBA archive; see PRIVATE_NBA_STORAGE.md.
 ];
