@@ -2,9 +2,10 @@
 
 Owner: Sean Balsiger · Version 2 · October 21, 2026 (Pacific)
 
-Status: product choices confirmed in conversation; the detailed design below is
-proposed for review. Documentation only. No implementation, source connection,
-production change, or betting-performance validation is established by this file.
+Status: approved by Sean on October 21, 2026; implementation is underway in
+[the implementation plan](../plans/2026-10-21-trends-research.md). This specification
+does not establish a source connection, production change, or betting-performance
+validation.
 
 ## Confirmed product choices
 
