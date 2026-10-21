@@ -54,9 +54,11 @@ saves. The final corrected feature rerun passed 38/38; shell/router/token checks
 The plan records the earlier failures, corrections and verification scope; PR
 #162 and the conversation handoff record exact-head CI and branch sync.
 
-Sean subsequently authorized CI fixes, merge and deployment. The
-[four-tab release record](RELEASE_FOUR_TAB_REDESIGN.md) tracks that frontend-only
-release; its preparation checkpoint does not yet establish merge or deployment.
+Sean subsequently authorized CI fixes, merge and deployment. PR #162 merged as
+`c6afb02` and the protected frontend-only release deployed it on October 21 at
+23:49 UTC as Pages `46fb8ae6-0df8-478c-8762-9607c2c6fdec`, keeping API v29; see
+the [four-tab release record](RELEASE_FOUR_TAB_REDESIGN.md) for CI, readiness,
+served-asset and preservation evidence.
 No migrations, live account edits or new data integrations are included.
 Physical-iPhone/Home Screen acceptance and the separate native iOS
 deliverable remain open. This entry does not close Q03/Q04/Q17 wholesale; the
