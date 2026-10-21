@@ -1,0 +1,25 @@
+.gx .gx-r-sheet { overflow-wrap: anywhere; }
+.gx .gx-r-card { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-r-chart { display: block; width: 100%; height: auto; max-height: 160px; }
+.gx .gx-r-chart--compact { max-height: 60px; }
+.gx .gx-r-series { stroke: var(--gx-data); stroke-width: 2; fill: none; vector-effect: non-scaling-stroke; }
+.gx .gx-r-zero { stroke: var(--gx-text-3); stroke-width: 1; stroke-dasharray: 4 4; }
+.gx .gx-r-group { padding: var(--gx-space-3); border-inline-start: 3px solid var(--gx-pending); border-radius: var(--gx-radius-xs); background: var(--gx-pending-tint); }
+.gx .gx-r-support { border-color: var(--gx-win); background: var(--gx-win-tint); }
+.gx .gx-r-group > .gx-t-label { color: var(--gx-pending); }
+.gx .gx-r-support > .gx-t-label { color: var(--gx-win); }
+.gx .gx-r-filter { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-r-filter :where(select) { width: 100%; min-height: var(--gx-size-touch); min-width: 0; padding: var(--gx-space-2); color: var(--gx-text-1); background: var(--gx-surface-2); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); font: inherit; }
+.gx .gx-r-filters { display: grid; gap: var(--gx-space-3); }
+.gx .gx-r-tabs .gx-seg { flex-wrap: wrap; height: auto; min-height: var(--gx-size-touch); border-radius: var(--gx-radius-sm); }
+.gx .gx-r-tabs .gx-seg-btn { flex: 1 1 auto; white-space: normal; }
+.gx .gx-r-detail { padding-block: var(--gx-space-3); border-top: 1px solid var(--gx-border); }
+.gx .gx-r-table-wrap { max-width: 100%; overflow: auto; }
+.gx .gx-r-table { width: 100%; border-collapse: collapse; font-size: 13px; overflow-wrap: normal; }
+.gx .gx-r-table :where(th, td) { text-align: start; padding: var(--gx-space-1); border-bottom: 1px solid var(--gx-border); vertical-align: top; }
+.gx .gx-r-table-date { display: block; white-space: nowrap; }
+.gx .gx-r-table :where(td) { white-space: nowrap; }
+.gx .gx-r-references :where(dd) { margin: 0; }
+.gx .gx-r-evidence :where(summary) { display: flex; align-items: center; min-height: var(--gx-size-touch); cursor: pointer; font-size: 16px; color: var(--gx-data); }
+.gx .gx-r-link { display: inline-flex; align-items: center; min-height: var(--gx-size-touch); color: var(--gx-data); }
+.gx .gx-r-filter :where(select:focus-visible), .gx .gx-r-evidence :where(summary:focus-visible), .gx .gx-r-table-wrap:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }

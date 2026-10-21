@@ -17,6 +17,7 @@ import { Card, Icon, List, Pill, Row, Sheet } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
 import { Credits, Expander, TrendList, WeatherDetail } from './parts.jsx';
 import { GameNote } from './GameNote.jsx';
+import { MatchupResearch } from '../research/ResearchSheet.jsx';
 import './lines.css';
 
 function YouRows({ rows }) {
@@ -50,7 +51,8 @@ function Missing({ text }) {
 export function GameSheet({ args }) {
   const shell = useShell();
   const youId = useId(), trendsId = useId();
-  const { app, personal, community, trends, trendsWeek, records, shown } = useLinesData();
+  const lines = useLinesData();
+  const { app, personal, community, trends, trendsWeek, records, shown } = lines;
   const close = () => { if (shell.confirmLeave()) shell.closeSheet(); };
   const view = useMemo(() => (personal.data ? gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, records, gameId: args.game }) : null),
     [personal.data, community, trendsWeek, trends.status, records, args.game]);
@@ -85,10 +87,10 @@ export function GameSheet({ args }) {
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={trendsId} data-section="trends">
         <h3 className="gx-t-section" id={trendsId}>{LINES_COPY.trends}</h3>
-        {t.notice ? <Missing text={t.notice}/>
+        <MatchupResearch lines={lines} gameId={view.id} fallback={<>{t.notice ? <Missing text={t.notice}/>
           : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game"/>
             : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}
-        {t.status === 'ready' && t.top.length ? <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p> : null}
+        {t.status === 'ready' && t.top.length ? <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p> : null}</>}/>
       </section>
 
       <Card variant="flush">

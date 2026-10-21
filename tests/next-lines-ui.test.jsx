@@ -15,7 +15,7 @@ import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak
 const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false }));
 // The native private-note editor uses the existing authenticated route wrapper. SSR never makes its effect read;
 // isolate that browser auth module here while the hosted-schema browser spec exercises the real handler and auth.
-vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn() }));
+vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), linesApi: vi.fn() }));
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => state.lines }));
 vi.mock('../web/src/next/lines/trendsHooks.js', () => ({
   useOfficials: () => state.officials,

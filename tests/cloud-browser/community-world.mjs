@@ -77,7 +77,7 @@ export async function communityWorld(page, baseURL, options = {}) {
 }
 
 /** The same world without a browser: the database, the real handler and world.api (options as communityWorld). */
-export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false } = {}) {
+export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false, research } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec(PRELUDE);
   await db.exec(migrationSql(migrations[0]));
@@ -134,7 +134,7 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     wind: { rpc: rpc(providerWindError), provider: wind },
     // Redesign stage 23 (M-06): the gated lines readers. On a schema without M-06 (HOSTED today) their RPCs are missing,
     // so /lines/* answer the generic 503 and every other route is unchanged.
-    lines: { rpc: rpc(providerLinesError) },
+    lines: { rpc: rpc(providerLinesError), ...(research ? { research } : {}) },
     league: { rpc: rpc(providerLeagueError) }, me: { rpc: rpc(providerMeError) },
     // Recommendations use the published account week, even when every private
     // group remains on an older slate. These are the production adapter's exact

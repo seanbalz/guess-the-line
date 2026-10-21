@@ -39,11 +39,11 @@ describe('route-group wrappers', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('lines lists its two readers (stage 23, M-06): reads, never saves, sent as POST to their gtl-api routes', async () => {
-    expect(GROUP_ACTIONS.lines).toEqual({ reads: ['read', 'game'], writes: [] });
+  it('lines lists its readers: reads, never saves, sent as POST to their gtl-api routes', async () => {
+    expect(GROUP_ACTIONS.lines).toEqual({ reads: ['read', 'game', 'research'], writes: [] });
     const fetch = vi.fn(async () => new Response(JSON.stringify({ error: 'Lines are not available right now.' }), { status: 503, headers: { 'content-type': 'application/json' } }));
     vi.stubGlobal('fetch', fetch);
-    for (const [action, body] of [['read', {}], ['game', { gameId: 'SEA-DEN' }]]) {
+    for (const [action, body] of [['read', {}], ['game', { gameId: 'SEA-DEN' }], ['research', { period: 'recent30' }]]) {
       const error = await linesApi(action, body).catch(caught => caught);
       expect(error).toBeInstanceOf(ApiError);
       expect(error).not.toBeInstanceOf(SaveUncertainError);
@@ -52,6 +52,7 @@ describe('route-group wrappers', () => {
     expect(fetch.mock.calls.map(([url, init]) => [url, init.method, init.body])).toEqual([
       ['https://fixture.invalid/functions/v1/gtl-api/lines/read', 'POST', '{}'],
       ['https://fixture.invalid/functions/v1/gtl-api/lines/game', 'POST', '{"gameId":"SEA-DEN"}'],
+      ['https://fixture.invalid/functions/v1/gtl-api/lines/research', 'POST', '{"period":"recent30"}'],
     ]);
   });
 });
