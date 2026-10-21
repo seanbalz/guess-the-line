@@ -4,6 +4,7 @@ import { row, registry, venues, corrections, T } from './trends-fixture.mjs';
 import { handleLines } from '../cloud/lines.mjs';
 import { createSupabaseAdapter, createCloudHandler } from '../cloud/handler.mjs';
 import { parseFeatureOff } from '../cloud/feature-off.mjs';
+import { NFLVERSE_SCHEDULE_URL } from '../shared/nfl-schedule.mjs';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
@@ -165,6 +166,26 @@ test('native adapter wires lazy research without letting invalid reviewed config
   assert.equal(typeof adapter.lines.research?.read, 'function');
   assert.equal(typeof adapter.lines.rpc, 'function');
   assert.equal(typeof adapter.bets.rpc, 'function');
+});
+
+test('native research validates the same release history used to prepare its snapshot', async () => {
+  const differentHistory = T.writeCompactCsv([{ ...history[0], home_score: 28 }, ...history.slice(1), upcoming]);
+  const requests = [];
+  const adapter = createSupabaseAdapter({ url: 'https://example.supabase.co', anonKey: 'public', serviceRoleKey: 'private',
+    clock: () => Date.parse(now), researchSnapshotLoader: async () => getFixtureSnapshot(),
+    fetchImpl: async (url, options) => {
+      requests.push({ url: String(url), options });
+      if (String(url) === T.TRENDS_SOURCE.url) return new Response(csv);
+      if (String(url) === NFLVERSE_SCHEDULE_URL) return new Response(differentHistory);
+      assert.fail('Unexpected request');
+    } });
+  const result = await adapter.lines.research.read({ board: board() });
+  assert.equal(result.history.status, 'fresh', 'a different schedule mirror must not invalidate matching prepared history');
+  assert.deepEqual(result.history.reasons, []);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, T.TRENDS_SOURCE.url);
+  assert.equal(requests[0].options.redirect, 'follow', 'the fixed GitHub release URL redirects to its public asset');
+  assert.equal(requests[0].options.headers, undefined, 'public history receives no database credentials');
 });
 
 test('HTTP route requires confirmation, forbids queries and sets no-store', async () => {

@@ -88,8 +88,13 @@ The free nflverse source refreshed October 21 with completed games through
 October 19. Sean subsequently said "get it connected". The first reviewed feed
 was saved server-side on October 21 at 21:00 UTC and its digest matched the
 validated private input. This is a dated manual import, not automatic X ingestion.
-The [release card](TRENDS_RESEARCH_RELEASE.md) tracks merge, protected deployment
-and hosted acceptance, which remain pending at this checkpoint.
+PR #161 merged and protected release 39687111092 deployed API v29 and Pages
+0dde8b76. The first reviewed Trent feed was verified in the signed-in app;
+all preservation hashes matched. Live acceptance found research validation was
+reading a different nflverse mirror from offline preparation, so leans were
+correctly withheld. The reviewed API-only source-alignment fix passes its new
+regression and all 52 focused checks; CI and deployment remain pending.
+See the [dated release record](RELEASE_2026_10_21_TRENDS_RESEARCH.md).
 
 October 21: Sean authorized a separate private NBA archive and import of the
 saved NBA ledger. The [private NBA release card](PRIVATE_NBA_STORAGE.md) records

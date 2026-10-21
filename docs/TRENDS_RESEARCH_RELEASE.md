@@ -2,7 +2,11 @@
 
 Owner: Sean Balsiger · Version 1 · October 21, 2026
 
-Status: reviewed server feed configured; code release pending.
+Status: first reviewed feed and UI deployed; API history-source correction pending.
+See the [dated release evidence](RELEASE_2026_10_21_TRENDS_RESEARCH.md) for API v29,
+Pages 0dde8b76, preservation, signed-in feed acceptance and the source mismatch
+found during acceptance. The original preflight card below is retained as context;
+the dated record supplies the actual release and rollback identifiers.
 
 Sean approved the trends implementation and then instructed "get it connected".
 This release connects the approved reviewed-import phase. Automatic X ingestion,
@@ -28,7 +32,8 @@ The exact configured feed passed strict schema validation and projection checks:
 closed NFL markets reveal no entry ID, title or URL; the separate non-NFL Trent
 card is retained; current and historical NFL entries appear only in their own
 week after their market is open. No feed contents are in public assets or Git.
-The configuration alone does not make the undeployed route live.
+Configuration alone was not evidence of a live route. The dated release record
+now establishes its deployment and the signed-in Trent feed readback.
 
 ## Release card
 
