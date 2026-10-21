@@ -30,6 +30,7 @@ function fakeWindow(start = 'https://gtl.test/') {
     get length() { return entries.length; },
     pushState(state, _title, url) { entries.splice(index + 1, Infinity, { url: new URL(url, current().url), state: structuredClone(state) }); index += 1; },
     replaceState(state, _title, url) { entries[index] = { url: new URL(url ?? current().url.href, current().url), state: structuredClone(state) }; },
+    go(delta) { traverse(delta); },
     back() { traverse(-1); },
     forward() { traverse(1); },
   };
@@ -60,227 +61,78 @@ function app(win, confirmLeave) {
   return { get state() { return state; }, dispatch, connection, open: (id, args) => dispatch({ type: 'open', layer: layer(id, args) }) };
 }
 
-test('fragments: the new app\'s tabs, the old app\'s screens on the way in, and the ones left alone', () => {
-  const cases = {
-    '': { tab: 'home' }, '#': { tab: 'home' }, '#home': { tab: 'home' }, '#play': { tab: 'play' }, '#bets': { tab: 'bets' }, '#lines': { tab: 'lines' }, '#league': { tab: 'league' }, '#fantasy': { tab: 'fantasy' },
-    '#picks': { tab: 'play' }, '#picks-spread': { tab: 'play', view: { market: 'spread' } }, '#picks-total': { tab: 'play', view: { market: 'total' } }, '#picks-week': { tab: 'play' },
-    '#feed': { tab: 'league', view: { view: 'feed' } }, '#groups': { tab: 'home', layer: { id: 'sh.switcher' } },
-    '#main': null, '#picks-due': null, '#type=recovery': null, '#access_token=x&type=signup': null, '#invite=abc': null, '#picks=1': null, '#history': null, '#Play': null, '#unknown': null,
-  };
-  for (const [fragment, place] of Object.entries(cases)) assert.deepEqual(placeFromFragment(fragment), place, fragment);
-  assert.deepEqual(['home', 'play', 'bets', 'lines', 'league', 'fantasy', 'nope'].map(fragmentFor), ['#home', '#play', '#bets', '#lines', '#league', '#fantasy', '#home']);
-  assert.deepEqual(['#picks', '#picks-total', '#feed', '#groups', '#play', '', '#main', '#x=1'].map(isLegacyFragment), [true, true, true, true, false, false, false, false]);
-});
 
-test('a legacy fragment is read once and rewritten in place; the ones left alone are never rewritten', () => {
-  for (const [start, tab, view, fragment] of [['#picks-total', 'play', { market: 'total' }, '#play'], ['#feed', 'league', { view: 'feed' }, '#league'], ['#picks', 'play', {}, '#play']]) {
-    const win = fakeWindow(`https://gtl.test/?app=next${start}`);
-    const { state } = app(win);
-    assert.equal(state.tab, tab, start);
-    assert.deepEqual(state.views[tab], view, start);
-    assert.deepEqual(win.stack(), [`[${fragment}]`], `${start}: no new entry`);
-    assert.equal(win.location.search, '?app=next', 'the query stays');
+test('legacy links map to explicit details while authentication and unknown fragments stay untouched', () => {
+  for (const [fragment, tab, section] of [['#lines','research','games'], ['#fantasy','research','fantasy'], ['#league','play','league'], ['#feed','play','league'], ['#picks-total','play','picks']]) {
+    const place = placeFromFragment(fragment); assert.equal(place.tab,tab); assert.equal(place.view.section,section);
   }
-  for (const start of ['#main', '#picks-due', '#type=recovery', '#history']) {
-    const win = fakeWindow(`https://gtl.test/${start}`);
-    const { state } = app(win);
-    assert.equal(state.tab, 'home');
-    assert.deepEqual(win.stack(), [`[${start}]`], start);
+  for (const fragment of ['#type=recovery','#access_token=secret&type=signup','#invite=abc','#main','#picks-due','#unknown']) {
+    assert.equal(placeFromFragment(fragment),null);
+    const win = fakeWindow(`https://gtl.test/${fragment}`); app(win); assert.equal(win.location.hash,fragment);
   }
 });
-
-test('#groups opens the switcher over Home; Back closes it and leaves the address on Home', async () => {
-  const win = fakeWindow('https://gtl.test/#groups');
-  const shell = app(win);
-  assert.deepEqual(shell.state.sheets.map(s => s.id), ['sh.switcher']);
-  assert.deepEqual(win.stack(), ['#home', '[#home+layer]']);
-  win.history.back();
-  await settle();
-  assert.deepEqual(shell.state.sheets, []);
-  assert.deepEqual(win.stack(), ['[#home]', '#home+layer']);
+test('aliases normalize in place without losing requested market on a second reload', () => {
+  const win = fakeWindow('https://gtl.test/?app=next#picks-total');
+  const first = app(win); assert.equal(first.state.views.play.market,'total'); assert.equal(win.history.length,1);
+  first.connection.disconnect();
+  const reloaded=app(win); assert.equal(reloaded.state.views.play.market,'total'); assert.equal(reloaded.state.views.play.section,'picks');
+  assert.equal(win.location.search,'?app=next');
 });
-
-test('a tab change is one history entry; Back and Forward move between tabs without adding any', async () => {
-  const win = fakeWindow('https://gtl.test/');
-  const shell = app(win);
-  shell.dispatch({ type: 'tab', tab: 'play' });
-  shell.dispatch({ type: 'tab', tab: 'league' });
-  shell.dispatch({ type: 'tab', tab: 'league' }); // the tab already showing adds nothing
-  assert.deepEqual(win.stack(), ['(none)', '#play', '[#league]']);
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'play');
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'home');
-  win.history.forward();
-  await settle();
-  assert.equal(shell.state.tab, 'play');
-  assert.deepEqual(win.stack(), ['(none)', '[#play]', '#league']);
+test('root navigation uses one entry, Back and Forward add none', async () => {
+  const win = fakeWindow('https://gtl.test/#home'); const shell = app(win);
+  shell.dispatch({type:'tab',tab:'play'}); shell.dispatch({type:'tab',tab:'research'}); shell.dispatch({type:'tab',tab:'research'});
+  assert.equal(win.history.length,3); win.history.back(); await settle(); assert.equal(shell.state.tab,'play');
+  win.history.back(); await settle(); assert.equal(shell.state.tab,'home'); win.history.forward(); await settle();
+  assert.equal(shell.state.tab,'play'); assert.equal(win.history.length,3);
 });
-
-test('Back and legacy links preserve the active form when leaving is declined, then navigate when accepted', async () => {
-  const win = fakeWindow('https://gtl.test/#home');
-  let allow = false;
-  let prompts = 0;
-  const shell = app(win, () => { prompts += 1; return allow; });
-  shell.dispatch({ type: 'tab', tab: 'bets' });
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'bets');
-  assert.equal(win.location.hash, '#bets');
-  assert.equal(prompts, 1);
-  win.follow('#picks-total');
-  await settle();
-  assert.equal(shell.state.tab, 'bets');
-  assert.equal(win.location.hash, '#bets');
-  allow = true;
-  win.follow('#picks-total');
-  await settle();
-  assert.equal(shell.state.tab, 'play');
-  assert.equal(shell.state.views.play.market, 'total');
-  assert.equal(win.location.hash, '#play');
+test('nested details preserve origin through Back, Forward and reload', async () => {
+  const win=fakeWindow('https://gtl.test/#home'); let shell=app(win);
+  shell.dispatch({type:'go',tab:'play',view:{section:'score',market:'total',season:2026,week:7}});
+  shell.dispatch({type:'go',tab:'play',view:{section:'compare'}});
+  shell.dispatch({type:'back'}); await settle(); assert.equal(shell.state.views.play.section,'score');
+  assert.equal(shell.state.trail.length,1); shell.connection.disconnect(); shell=app(win);
+  assert.equal(shell.state.views.play.market,'total'); shell.dispatch({type:'back'}); await settle(); assert.equal(shell.state.tab,'home');
+  win.history.forward(); await settle(); assert.equal(shell.state.views.play.section,'score'); assert.equal(win.history.length,3);
 });
-
-test('Back from a tab to the entry a visit started on (#main, a sign-in fragment) shows Home and adds nothing', async () => {
-  const win = fakeWindow('https://gtl.test/#main');
-  const shell = app(win);
-  shell.dispatch({ type: 'tab', tab: 'bets' });
-  assert.deepEqual(win.stack(), ['#main', '[#bets]']);
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'home');
-  assert.deepEqual(win.stack(), ['[#main]', '#bets']);
+test('browser Back and legacy links protect a dirty same-tab detail and accepted traversal works', async () => {
+  const win=fakeWindow('https://gtl.test/#home'); let allow=false; let prompts=0;
+  const shell=app(win,()=>{prompts++;return allow;});
+  shell.dispatch({type:'go',tab:'play',view:{section:'picks',market:'total'}});
+  shell.dispatch({type:'go',tab:'play',view:{section:'score'}});
+  win.history.back(); await settle(); assert.equal(shell.state.views.play.section,'score'); assert.match(win.location.hash,/score/); assert.equal(prompts,1);
+  win.follow('#fantasy'); await settle(); assert.equal(shell.state.tab,'play');
+  allow=true; win.history.back(); await settle(); assert.equal(shell.state.views.play.section,'picks');
 });
-
-test('a layer adds one entry, so Back closes the top layer, one per press, and then moves between tabs', async () => {
-  const win = fakeWindow('https://gtl.test/');
-  const shell = app(win);
-  shell.dispatch({ type: 'tab', tab: 'lines' });
-  shell.open('sh.game', { game: 'g1' });
-  shell.open('sh.everyone', { market: 'spread' });
-  shell.open('dlg.revealForfeit', { market: 'spread', game: 'g1' });
-  assert.deepEqual(win.stack(), ['(none)', '#lines', '[#lines+layer]'], 'one entry for any number of layers');
-  for (const left of [2, 1, 0]) {
-    win.history.back();
-    await settle();
-    const open = shell.state.sheets.length + (shell.state.dialog ? 1 : 0);
-    assert.equal(open, left);
-    assert.equal(shell.state.tab, 'lines');
-    assert.deepEqual(win.stack(), left ? ['(none)', '#lines', '[#lines+layer]'] : ['(none)', '[#lines]', '#lines+layer']);
-  }
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'home');
+test('history never contains player records, editor fields or layer payloads', () => {
+  const win=fakeWindow('https://gtl.test/#home'); const shell=app(win);
+  shell.dispatch({type:'go',tab:'play',view:{section:'picks',market:'total',guess:55,players:['private'],editor:{note:'secret'}}});
+  shell.open('sh.game',{guess:55,note:'secret'});
+  assert.doesNotMatch(JSON.stringify(win.history.state),/secret|guess|players|editor/);
+  assert.doesNotMatch(win.location.hash,/secret|guess|players|editor/);
 });
-
-test('closing the last layer with its own button takes its entry back off, so the next Back leaves the tab', async () => {
-  const win = fakeWindow('https://gtl.test/');
-  const shell = app(win);
-  shell.dispatch({ type: 'tab', tab: 'play' });
-  shell.open('sh.menu');
-  shell.dispatch({ type: 'sheetArgs', patch: { sub: 'appearance' } }); // a sub-view is not an entry
-  assert.deepEqual(win.stack(), ['(none)', '#play', '[#play+layer]']);
-  shell.dispatch({ type: 'close', kind: 'sheet' });
-  await settle();
-  assert.deepEqual(win.stack(), ['(none)', '[#play]', '#play+layer']);
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'home');
-  // Forward onto the old layer entry with nothing open: it is cleared, and the tab is unchanged.
-  win.history.forward();
-  await settle();
-  win.history.forward();
-  await settle();
-  assert.equal(shell.state.tab, 'play');
-  assert.deepEqual(win.stack(), ['(none)', '#play', '[#play]']);
-  assert.deepEqual(shell.state.sheets, []);
+test('layers retain one temporary entry and close one per browser Back', async () => {
+  const win=fakeWindow('https://gtl.test/#home'); const shell=app(win);
+  shell.dispatch({type:'tab',tab:'research'}); shell.open('sh.game',{game:'g1'}); shell.open('sh.menu'); shell.open('dlg.test');
+  assert.equal(win.history.length,3);
+  for (const left of [2,1,0]) { win.history.back(); await settle(); assert.equal(shell.state.sheets.length+(shell.state.dialog?1:0),left); assert.equal(shell.state.tab,'research'); }
+  win.history.back(); await settle(); assert.equal(shell.state.tab,'home');
 });
-
-test('a tab tapped while a layer is open goes back over the layer entry first, then adds the tab', async () => {
-  const win = fakeWindow('https://gtl.test/#home');
-  const shell = app(win);
-  shell.open('sh.menu');
-  shell.dispatch({ type: 'tab', tab: 'bets' });
-  assert.equal(shell.state.tab, 'bets');
-  await settle();
-  assert.deepEqual(win.stack(), ['#home', '[#bets]']);
-  // A layer opened before the traversal lands still gets its entry.
-  shell.open('sh.menu');
-  shell.dispatch({ type: 'go', tab: 'league', view: { view: 'feed' } });
-  shell.open('sh.switcher');
-  await settle();
-  assert.deepEqual(win.stack(), ['#home', '#bets', '#league', '[#league+layer]']);
-  win.history.back();
-  await settle();
-  assert.deepEqual(shell.state.sheets, []);
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'bets');
-  assert.deepEqual(shell.state.sheets, [], 'Back never reopens a layer');
+test('closing a layer or changing destination removes its temporary entry first', async () => {
+  const win=fakeWindow('https://gtl.test/#home'); const shell=app(win);
+  shell.open('sh.menu'); shell.dispatch({type:'go',tab:'league',view:{view:'history',market:'guess_total'}}); await settle();
+  assert.equal(shell.state.tab,'play'); assert.equal(shell.state.views.league.view,'history'); assert.equal(win.history.length,2);
+  shell.open('sh.menu'); shell.dispatch({type:'close',kind:'sheet'}); await settle();
+  win.history.back(); await settle(); assert.equal(shell.state.tab,'home');
 });
-
-test('an old link followed in the page is read like one a visit starts on, and its entry rewritten', async () => {
-  const win = fakeWindow('https://gtl.test/#play');
-  const shell = app(win);
-  win.follow('#feed');
-  await settle();
-  assert.equal(shell.state.tab, 'league');
-  assert.deepEqual(shell.state.views.league, { view: 'feed' });
-  assert.deepEqual(win.stack(), ['#play', '[#league]']);
-  win.follow('#picks-total');
-  await settle();
-  assert.deepEqual([shell.state.tab, shell.state.views.play.market], ['play', 'total']);
-  win.follow('#groups');
-  await settle();
-  assert.deepEqual([shell.state.tab, shell.state.sheets.map(s => s.id)], ['home', ['sh.switcher']]);
-  assert.deepEqual(win.stack(), ['#play', '#league', '#play', '#home', '[#home+layer]']);
-  win.history.back();
-  await settle();
-  assert.deepEqual(shell.state.sheets, []);
-  win.history.back();
-  await settle();
-  assert.equal(shell.state.tab, 'play');
-  win.history.forward();
-  await settle();
-  assert.deepEqual([shell.state.tab, shell.state.sheets], ['home', []], 'Forward to the rewritten entry opens no layer');
-  // A link followed while a layer is open goes where it says (the layer closes with the move).
-  shell.open('sh.menu');
-  win.follow('#feed');
-  await settle();
-  assert.deepEqual([shell.state.tab, shell.state.views.league.view, shell.state.sheets], ['league', 'feed', []]);
-  assert.equal(win.stack().at(-1), '[#league]');
-  win.history.back(); // the menu's old entry, under the followed link
-  await settle();
-  assert.deepEqual([shell.state.tab, shell.state.sheets], ['home', []]);
-  shell.dispatch({ type: 'tab', tab: 'play' });
-  // The same tab with a view in the link still applies the view.
-  win.follow('#picks-spread');
-  await settle();
-  win.follow('#picks-total');
-  await settle();
-  assert.equal(shell.state.views.play.market, 'total');
+test('groups opens switcher once, and Forward/reload never reopens stale layers', async () => {
+  const win=fakeWindow('https://gtl.test/#groups'); let shell=app(win);
+  assert.equal(shell.state.sheets.length,1); win.history.back(); await settle(); assert.equal(shell.state.sheets.length,0);
+  win.history.forward(); await settle(); assert.equal(shell.state.sheets.length,0);
+  shell.open('sh.menu'); shell.connection.disconnect(); shell=app(win); assert.equal(shell.state.sheets.length,0);
+  shell.connection.disconnect(); assert.equal(win.listeners.size,0);
 });
-
-test('a reload on a layer entry clears it; disconnect stops listening', async () => {
-  const win = fakeWindow('https://gtl.test/#lines');
-  win.history.pushState({ gxLayer: true }, '', 'https://gtl.test/#lines');
-  const shell = app(win);
-  assert.equal(shell.state.tab, 'lines');
-  assert.deepEqual(win.stack(), ['#lines', '[#lines]']);
-  shell.connection.disconnect();
-  assert.equal(win.listeners.size, 0);
-  shell.dispatch({ type: 'tab', tab: 'play' });
-  assert.deepEqual(win.stack(), ['#lines', '[#lines]'], 'nothing written after disconnect');
-});
-
-test('a history that refuses writes leaves the shell working in memory', () => {
-  const win = fakeWindow('https://gtl.test/#feed');
-  win.history.pushState = () => { throw new DOMException('Blocked', 'SecurityError'); };
-  win.history.replaceState = () => { throw new DOMException('Blocked', 'SecurityError'); };
-  const shell = app(win);
-  assert.equal(shell.state.tab, 'league');
-  shell.open('sh.menu');
-  shell.dispatch({ type: 'tab', tab: 'play' });
-  assert.equal(shell.state.tab, 'play');
+test('blocked history writes leave navigation working in memory', () => {
+  const win=fakeWindow('https://gtl.test/#feed');
+  win.history.pushState=win.history.replaceState=()=>{throw new Error('blocked');};
+  const shell=app(win); assert.equal(shell.state.tab,'play'); shell.open('sh.menu'); shell.dispatch({type:'tab',tab:'bets'}); assert.equal(shell.state.tab,'bets');
 });

@@ -21,11 +21,18 @@ test.use({ viewport: { width: 390, height: 844 } });
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const OLD = 'Use the old app';
-const TABS = ['Home', 'Play', 'Bets', 'Lines', 'League', 'Fantasy'];
+const TABS = ['Home', 'Play', 'Bets', 'Research'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 // A tab by its label; its name may add the counter's words ("Play, 2 ballots due", stage 11).
 const tab = (page, name) => tabBar(page).getByRole('button', { name: new RegExp(`^${name === 'Fantasy' ? 'Fantasy Football' : name}(, .+)?$`) });
 const title = (page, name) => page.getByRole('heading', { name: name === 'Fantasy' ? 'Fantasy Football' : name, level: 1, exact: true });
+// Retained local filters may add query metadata; the requested destination/market still must match.
+function expectFragment(page, expected) {
+  const [path, query] = expected.split('?');
+  const [actualPath, actualQuery] = new URL(page.url()).hash.split('?');
+  expect(actualPath).toBe(path);
+  for (const [key, value] of new URLSearchParams(query)) expect(new URLSearchParams(actualQuery).get(key)).toBe(value);
+}
 const sheet = (page, name) => page.getByRole('dialog', { name, exact: true });
 const inside = (page, selector) => page.evaluate(sel => !!document.activeElement?.closest(sel), selector);
 const focusOnBody = page => page.evaluate(() => document.activeElement === document.body || !document.activeElement);
@@ -93,7 +100,7 @@ async function openNewApp(page, baseURL, fragment = '') {
 }
 
 test.describe('the real app', () => {
-  test('six working tabs; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
+  test('four working tabs; the tab is in the address, survives a reload, and Back moves between tabs', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL);
     try {
@@ -109,17 +116,7 @@ test.describe('the real app', () => {
         await expect(title(page, name)).toBeVisible();
         await expect(tab(page, name)).toHaveAttribute('aria-current', 'page');
         await expect(tabBar(page).locator('[aria-current]')).toHaveCount(1);
-        if (name === 'Fantasy') {
-          await expect(page.getByRole('group', { name: 'Ranking period', exact: true })).toBeVisible();
-          await expect(page.getByRole('combobox', { name: 'Scoring', exact: true })).toBeVisible();
-          await expect(page.getByRole('list', { name: 'Ranked players', exact: true })).toBeVisible();
-          await expect(page.getByRole('button', { name: 'Back to Home', exact: true })).toBeVisible();
-          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
-        } else if (name === 'Lines') {
-          // Stage 13: Lines is the read-only board (tests/cloud-browser/next-lines.spec.js covers it).
-          await expect(page.locator('.gx-l-group').first()).toBeVisible();
-          await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
-        } else if (name === 'Home') {
+        if (name === 'Home') {
           // Stage 12: Home is the read-only hero and tiles (tests/cloud-browser/next-home.spec.js covers it).
           await expect(page.locator('[data-home="hero"]')).toBeVisible();
           await expect(page.getByRole('heading', { name: 'Coming next', level: 2 })).toHaveCount(0);
@@ -132,15 +129,15 @@ test.describe('the real app', () => {
       // The tab bar and top bar stay put while the page scrolls under them.
       const bar = await tabBar(page).boundingBox();
       expect(Math.round(bar.y + bar.height)).toBe(844);
-      await tab(page, 'Lines').click();
+      await tab(page, 'Research').click();
       await page.reload();
-      await expect(title(page, 'Lines')).toBeVisible();
-      await expect(tab(page, 'Lines')).toHaveAttribute('aria-current', 'page');
-      // Entries: Play, Bets, Lines, League, Fantasy, Home, Lines (reloaded).
+      await expect(title(page, 'Research')).toBeVisible();
+      await expect(tab(page, 'Research')).toHaveAttribute('aria-current', 'page');
+      // Entries: Play, Bets, Research, Home, Research (reloaded).
       await page.goBack();
       await expect(title(page, 'Home')).toBeVisible();
       await page.goBack();
-      await expect(title(page, 'Fantasy')).toBeVisible();
+      await expect(title(page, 'Research')).toBeVisible();
       await page.goForward();
       await expect(title(page, 'Home')).toBeVisible();
       expect(writes(calls), 'browsing writes nothing').toEqual([]);
@@ -148,20 +145,27 @@ test.describe('the real app', () => {
     } finally { await world.db.close(); }
   });
 
-  test('the old app\'s links: /#picks opens Play, /#feed opens League, /#groups opens the switcher and Back closes it', async ({ page, baseURL }) => {
+  test('the old app\'s links: /#picks opens guesses, /#feed opens League inside Play, /#groups opens the switcher and Back closes it', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL, '#picks');
     try {
-      await expect(title(page, 'Play')).toBeVisible();
-      expect(new URL(page.url()).hash, 'read once, then written as the new app\'s own').toBe('#play');
+      await expect(title(page, 'Your guesses')).toBeVisible();
+      expect(new URL(page.url()).hash, 'read once, then written as the new app\'s own').toBe('#play/picks');
       // Followed in the page (a fragment change, no new document), then on a fresh load.
-      for (const [fragment, name, hash] of [['#feed', 'League', '#league'], ['#picks-total', 'Play', '#play'], ['#fantasy', 'Fantasy', '#fantasy'], ['#main', 'Home', '#main']]) {
+      for (const [fragment, name, hash] of [['#feed', 'League', '#play/league?view=feed'], ['#picks-total', 'Your guesses', '#play/picks?market=total'], ['#fantasy', 'Fantasy', '#research/fantasy'], ['#lines', 'Lines', '#research/games'], ['#main', 'Home', '#main']]) {
         await page.goto(`/${fragment}`);
         await expect(title(page, name)).toBeVisible();
-        expect(new URL(page.url()).hash).toBe(hash);
+        expectFragment(page, hash);
         await load(page, fragment);
         await expect(title(page, name)).toBeVisible();
-        expect(new URL(page.url()).hash).toBe(hash);
+        expectFragment(page, hash);
+        if (name === 'Fantasy') {
+          await expect(page.getByRole('group', { name: 'Ranking period', exact: true })).toBeVisible();
+          await expect(page.getByRole('combobox', { name: 'Scoring', exact: true })).toBeVisible();
+          await expect(page.getByRole('list', { name: 'Ranked players', exact: true })).toBeVisible();
+          await expect(page.getByRole('button', { name: 'Back to Research', exact: true })).toBeVisible();
+        }
+        if (name === 'Lines') await expect(page.locator('.gx-l-group').first()).toBeVisible();
       }
       const switcher = sheet(page, 'Your leagues');
       for (const fresh of [false, true]) {
@@ -365,6 +369,83 @@ const events = page => page.evaluate(() => window.__events.slice());
 test.describe('the shell harness', () => {
   test.beforeAll(async () => { test.setTimeout(120000); await harnessBundle(); });
 
+  test('four tabs, nested detail Back, origin focus and reload preserve intent', async ({ page }) => {
+    await harness(page);
+    await expect(tabBar(page).getByRole('button')).toHaveCount(4);
+    await expect(tab(page, 'Research')).toBeVisible();
+    const opener = page.getByRole('button', { name: 'Open your scores' });
+    await opener.scrollIntoViewIfNeeded();
+    const originalScroll = await page.evaluate(() => scrollY);
+    await opener.click();
+    await expect(title(page, 'Your scores')).toBeVisible();
+    await expect(page).toHaveURL(/#play\/score.*market=total/);
+    await page.getByRole('button', { name: 'Compare players', exact: true }).click();
+    await expect(title(page, 'Compare players')).toBeVisible();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(title(page, 'Your scores')).toBeVisible();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(title(page, 'Shell harness')).toBeVisible();
+    await expect(opener).toBeFocused();
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(originalScroll);
+    await opener.click();
+    await page.reload();
+    await expect(title(page, 'Your scores')).toBeVisible();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(title(page, 'Shell harness')).toBeVisible();
+    await expect(title(page, 'Shell harness')).toBeFocused();
+    await page.setViewportSize({ width: 320, height: 700 });
+    const labels = await tabBar(page).locator('.gx-tab-label').evaluateAll(nodes => nodes.map(n => getComputedStyle(n).fontSize));
+    expect(labels).toEqual(['16px','16px','16px','16px']);
+    await phoneChecks(page);
+  });
+
+  test('Back restores scroll after delayed content expands and stops when the user interacts', async ({ page }) => {
+    await harness(page, '?long=1');
+    const opener = page.getByRole('button', { name: 'Open your scores' });
+    await opener.scrollIntoViewIfNeeded();
+    const original = await page.evaluate(() => scrollY);
+    expect(original).toBeGreaterThan(1000);
+    await page.evaluate(() => { history.scrollRestoration = 'manual'; document.documentElement.style.overflowAnchor = 'none'; window.__delayHome = true; });
+    await opener.click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(title(page, 'Shell harness')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(original);
+    await expect(opener).toBeFocused();
+    await opener.click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(title(page, 'Shell harness')).toBeVisible();
+    // A fresh pointer interaction cancels the pending restoration before the delayed list grows.
+    await title(page, 'Shell harness').click();
+    await expect(page.locator('[data-async-height]')).toHaveCSS('height', '1600px');
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+  });
+
+  test('Back retains detail preferences without losing root origin focus', async ({ page }) => {
+    await harness(page, '#play');
+    const opener = page.getByRole('button', { name: 'Compare players', exact: true });
+    await opener.click();
+    await expect(title(page, 'Compare players')).toBeVisible();
+    await page.getByRole('button', { name: 'Remember display filter' }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(title(page, 'Play')).toBeVisible();
+    await expect(opener).toBeFocused();
+  });
+
+  test('dirty details guard same-tab root, section changes, shared Back and browser Back', async ({ page }) => {
+    await harness(page);
+    await page.getByRole('button', { name: 'Open your scores' }).click();
+    await page.getByRole('textbox', { name: 'Unsaved test pick' }).fill('draft');
+    let prompts = 0;
+    page.on('dialog', async dialog => { prompts += 1; await dialog.dismiss(); });
+    for (const action of [() => tab(page, 'Play').click(), () => page.getByRole('button', { name: 'Compare players', exact: true }).click(), () => page.getByRole('button', { name: 'Back', exact: true }).click(), () => page.goBack()]) {
+      await action();
+      await expect(title(page, 'Your scores')).toBeVisible();
+      await expect(page.getByRole('textbox', { name: 'Unsaved test pick' })).toHaveValue('draft');
+    }
+    await expect.poll(() => prompts).toBe(4);
+    await expect(page).toHaveURL(/#play\/score/);
+  });
+
   test('a sheet\'s sub-view changes in place: focus stays inside, Tab stays inside and Escape still closes it (stage 8 review a)', async ({ page }) => {
     const { seen, errors } = await harness(page);
     const opener = page.getByRole('button', { name: 'Open the test sheet' });
@@ -508,7 +589,7 @@ test.describe('the shell harness', () => {
     expect(Math.round(dock.y - (toast.y + toast.height))).toBe(8);
     await phoneChecks(page);
     // The dock goes with its tab.
-    await tab(page, 'Lines').click();
+    await tab(page, 'Research').click();
     await expect(page.locator('.gx-dock-bar')).toHaveCount(0);
   });
 
