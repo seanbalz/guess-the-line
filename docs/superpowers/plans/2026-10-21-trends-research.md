@@ -211,7 +211,7 @@ Files: scoped fixes from review, `docs/TRENDS_RESEARCH.md`,
   check the complete branch. Fix material findings and recheck changed behavior.
 - [x] Document configuration, data refresh, reviewed-feed workflow, rollback
   feature switch, unconnected sources, tests and hosted/real-phone limits.
-- [ ] Update PR #161 title/body for final behavior and evidence; push and run
+- [x] Update PR #161 title/body for final behavior and evidence; push and run
   sync:check. Report full commit, PR and unpublished work. No deployment inferred.
 
 ## Execution record
@@ -255,3 +255,9 @@ Files: scoped fixes from review, `docs/TRENDS_RESEARCH.md`,
   tests passed afterward. The regenerated artifact matched --check, and the final
   four runtime response hashes stayed unchanged. Focused re-review approved the
   fix with no outstanding blocking findings.
+- Implementation and evidence were pushed on codex/trends-research-design;
+  PR #161 title/body now describe the completed upgrade. sync:check passed at
+  2026-10-21T20:46:34.327Z for 18d59690a53e98e1beecd61662ffc7bc1fed7135:
+  clean, zero ahead/behind, no unpublished tracked work. This documentation
+  closeout will receive its own push and fresh sync check; the final response
+  reports that exact head. CI, merge and deployment remain distinct states.
