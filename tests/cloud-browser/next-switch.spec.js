@@ -54,12 +54,22 @@ async function phoneChecks(page, root) {
       .map(el => { const r = el.getBoundingClientRect(); return { text: el.textContent.trim().slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) }; })
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
+    const scrollRail = scope.querySelector('.gx-tabbar [data-scroll-rail=navigation]');
+    const railBox = scrollRail?.getBoundingClientRect();
+    const navRail = scrollRail && ['auto', 'scroll'].includes(getComputedStyle(scrollRail).overflowX) && railBox.left >= -.5 && railBox.right <= innerWidth + .5 ? scrollRail : null;
+
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
       // Screen-reader-only text (the kit's .gx-sr-only, since stage 12's Home ranks) is clipped by design, as the later specs read it.
       if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
-      if (el.getBoundingClientRect().right > innerWidth + 0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+      const r = el.getBoundingClientRect();
+      if (!navRail?.contains(el) && (r.right > innerWidth + 0.5 || r.left < -0.5)) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+    }
+    if (navRail && visible(navRail)) {
+      const activeTab = navRail.querySelector(':focus') || navRail.querySelector('[aria-current=page]');
+      if (!activeTab) clipped.push('Navigation has no active tab');
+      else { const box = activeTab.getBoundingClientRect(); if (box.left < railBox.left - 1 || box.right > railBox.right + 1) clipped.push('Active tab clipped inside navigation rail'); }
     }
     return { targets, small, clipped };
   });
