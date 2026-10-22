@@ -18,7 +18,7 @@ const history = { viewer: 'me', members: [{ id: 'me', displayName: 'Avery Fixtur
 const render = (data = history, patch = {}) => renderToStaticMarkup(<div className="gx"><PlayerEvidence history={data} published={{ season: 2026, week: 6 }} view={{ market: 'spread', team: 'CAR', ...patch }} onChange={() => {}} scopeName="Fixture league"/></div>);
 describe('Trends UI evidence', () => {
  it('filters independent markets before highlight cap', () => { const cards = Object.fromEntries(['s1','s2','s3','t1'].map((id,i) => [id,{ title: id, market: i === 3 ? 'total' : 'home_ats', tier: 2, sideRule: 'A', score: { score: 100-i }, record: { W: 3,L: 2,P: 0 } }])); const week = { season: 2026, cards, games: [{ id: 'g', home: 'ATL', away: 'CAR', tier2: Object.keys(cards).map(card => ({ card })) }] }; expect(marketSituationCards(week,{ id: 'g',access: { spread: true,total: true },saved: {} },'total').map(c => c.id)).toEqual(['t1']); });
- it('preserves original tabs and adds Trends seventh', () => expect(TABS).toEqual(['home','play','bets','lines','league','fantasy','trends']));
+ it('keeps the approved four primary tabs', () => expect(TABS).toEqual(['home','play','bets','research']));
  it('separates saved market accuracy, hypothetical results and exact game evidence', () => {
   const html = render();
   expect(markupProblems(html)).toEqual([]);
@@ -82,7 +82,7 @@ const selectedMatchup = html => {
 const nextGame = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-25T20:00:00Z' };
 describe.each(['week','teams'])('published matchup filters in %s', section => {
  it('uses All matchups when the published week replaces the saved matchup', () => {
-  const view = { section, matchup: game.id };
+  const view = { trendSection: section, matchup: game.id };
   const initial = renderPublishedSlate(6,[game,nextGame],view);
   expect(selectedMatchup(initial)).toEqual([game.id]);
   expect(initial).toContain('Game details · CAR @ ATL');
@@ -96,7 +96,7 @@ describe.each(['week','teams'])('published matchup filters in %s', section => {
   expect(markupProblems(changed)).toEqual([]);
  });
  it('uses All matchups when the current team filter removes the saved matchup', () => {
-  const view = { section, matchup: game.id, weekTeam: 'DEN' };
+  const view = { trendSection: section, matchup: game.id, weekTeam: 'DEN' };
   const html = renderPublishedSlate(7,[game,nextGame],view);
   expect(selectedMatchup(html)).toEqual(['']);
   expect(html).toContain('Game details · SEA @ DEN');

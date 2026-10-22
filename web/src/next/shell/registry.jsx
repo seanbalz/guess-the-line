@@ -1,28 +1,22 @@
-import { TrendsScreen } from '../trends/TrendsScreen.jsx';
 // What the shell draws for each tab and each layer id (prototype CONTRACT section 9, the layer registry). A tab's or a
 // layer's own stage changes its one line here; the component lives in that tab's folder. Ids follow the prototype
 // (`sh.menu`, `dlg.sitOut`, `ov.flash`, `page.settings`); state.js knows the kind from the prefix.
 import { MenuSheet } from '../me/MenuSheet.jsx';
 import { SwitcherSheet } from '../league/SwitcherSheet.jsx';
 import { Home } from '../home/Home.jsx';
-import { LinesBoard } from '../lines/LinesBoard.jsx';
 import { GameSheet } from '../lines/GameSheet.jsx';
 import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
 import { ResearchSheet } from '../research/ResearchSheet.jsx';
 import { Play } from '../play/Play.jsx';
 import { Bets } from '../bets/Bets.jsx';
-import { LeagueScreen } from '../league/LeagueScreen.jsx';
-import { FantasyScreen } from '../fantasy/FantasyScreen.jsx';
+import { Research } from '../research/Research.jsx';
 
 /** The original tabs use live routes; Fantasy reads public player snapshots. The transitional editors retain the hosted rules until their migrations ship. */
 export const SCREENS = Object.freeze({
   home: Home, // stage 12: read-only Home (the hero, who's in and the rank tiles)
   play: Play,
   bets: Bets,
-  lines: LinesBoard, // stage 13: read-only Lines and game sheet
-  league: LeagueScreen,
-  fantasy: FantasyScreen,
-  trends: TrendsScreen,
+  research: Research,
 });
 
 /** Each layer id's component, with its owner (CONTRACT section 9). */

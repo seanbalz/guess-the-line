@@ -1,149 +1,162 @@
-// The new app's address and the browser's Back button (redesign build plan stage 10). The tab showing is the
-// address fragment, one history entry per tab change (#home, #play, #bets, #lines, #league, #fantasy), so a reload lands on the
-// same tab and Back moves between tabs. While any layer is open (a sheet, dialog, popover, overlay or page), one
-// extra "layer" entry sits on top of the tab's entry, so the phone's Back button closes the top layer instead of
-// leaving the tab or the site.
-//
-// Fragments the old app and its links use still work on the way in, then read as the new app's own:
-//   #picks, #picks-spread, #picks-total (any #picks… but #picks-due) open Play (on that market); #feed opens League on
-//   its Feed; #groups opens the league switcher over Home.
-// Fragments the shell leaves alone, never rewritten: any with "=" (sign-in, recovery and invite links), #main and
-// #picks-due (the old app's skip-link targets), and anything else it does not know.
-//
-// placeFromFragment is pure; connectHistory takes the window it works on, so tests drive it with a fake one.
-import { DEFAULT_TAB, TABS, hasLayers, isTab } from './state.js';
-
+// Four roots and allowlisted detail addresses. History contains navigation metadata only.
+import { DEFAULT_TAB, LEGACY_TABS, destination, hasLayers, isTab } from './state.js';
 const LEFT_ALONE = new Set(['main', 'picks-due']);
-const LAYER_ENTRY = Object.freeze({ gxLayer: true });
-
-/** The fragment the shell writes for a tab ("#play"). */
-export const fragmentFor = tab => (isTab(tab) ? `#${tab}` : '#home');
-
-/**
- * What a fragment asks for: `{ tab, view?, layer? }` (state.js initialState), or null for one the shell leaves alone.
- * An empty fragment is Home.
- */
+const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind']);
+const SECTIONS = { play: ['picks','score','compare','league'], research: ['games','fantasy','trends'], bets: ['active','settled','tracked','recommended','virtual','add'] };
+export function safeView(tab, view = {}) {
+  const result = {};
+  const routeKey = tab === 'bets' ? 'view' : 'section';
+  if (SECTIONS[tab]?.includes(view[routeKey])) result[routeKey] = view[routeKey];
+  const keys = tab === 'research' && result.section === 'trends' ? [...KEYS, 'trendSection', 'window', 'player', 'weekTeam', 'playerMatchup'] : KEYS;
+  for (const key of keys) {
+    const value = view[key];
+    if ((typeof value === 'string' && value.length <= 100 && /^[\w .:@/+\-]*$/.test(value)) || (typeof value === 'number' && Number.isFinite(value)) || value === null) result[key] = value;
+  }
+  // League's existing feed/board/history control remains an adapter preference.
+  if (tab === 'play' && result.section === 'league' && ['feed','board','history'].includes(view.view)) result.view = view.view;
+  return result;
+}
+const adapterFor = (tab, view) => tab === 'play' && view?.section === 'league' ? 'league' : tab === 'research' && view?.section === 'fantasy' ? 'fantasy' : tab === 'research' && view?.section === 'games' ? 'lines' : tab === 'research' && view?.section === 'trends' ? 'trends' : null;
+function routePlace(tab, view = {}, adapters = {}) {
+  const adapter = adapterFor(tab, view);
+  const clean = safeView(tab, { ...view, ...(adapter ? adapters[adapter] : {}), ...(view.section ? { section: view.section } : {}) });
+  const { section, ...adapterView } = clean;
+  return { tab, view: clean, ...(adapter ? { adapters: { [adapter]: adapterView } } : {}) };
+}
+export function fragmentFor(tab, view, adapters) {
+  const target = destination(tab, view);
+  if (!isTab(target.tab)) return '#home';
+  const place = routePlace(target.tab, target.view, adapters ?? (target.adapter ? { [target.adapter]: target.adapterView } : {}));
+  const key = target.tab === 'bets' ? 'view' : 'section';
+  const section = place.view[key];
+  const params = new URLSearchParams();
+  for (const [name, value] of Object.entries(place.view)) if (name !== key && value !== undefined) params.set(name, value === null ? '' : String(value));
+  return `#${target.tab}${section ? `/${section}` : ''}${params.size ? `?${params}` : ''}`;
+}
 export function placeFromFragment(fragment) {
   const name = String(fragment ?? '').replace(/^#/, '');
-  if (name === '') return { tab: 'home' };
-  if (name.includes('=') || LEFT_ALONE.has(name)) return null;
-  if (TABS.includes(name)) return { tab: name };
-  if (name.startsWith('picks')) {
-    const market = name.match(/^picks-(spread|total)$/)?.[1];
-    return market ? { tab: 'play', view: { market } } : { tab: 'play' };
-  }
-  if (name === 'feed') return { tab: 'league', view: { view: 'feed' } };
+  if (!name) return { tab: 'home' };
+  if (LEFT_ALONE.has(name)) return null;
+  if (LEGACY_TABS.includes(name)) { const target = destination(name); return routePlace(target.tab, target.view); }
+  if (name === 'feed') return routePlace('play', { section: 'league', view: 'feed' });
   if (name === 'groups') return { tab: 'home', layer: { id: 'sh.switcher' } };
-  return null;
+  if (name.startsWith('picks') && !name.includes('=')) {
+    const market = name.match(/^picks-(spread|total)$/)?.[1];
+    return { tab: 'play', view: { section: 'picks', ...(market ? { market } : {}) } };
+  }
+  const match = name.match(/^(home|play|bets|research)(?:\/([a-z]+))?(?:\?(.*))?$/);
+  if (!match) return null; // Includes all authentication, invite and recovery fragments.
+  const [, tab, section, query] = match;
+  if (section && !SECTIONS[tab]?.includes(section)) return null;
+  const values = Object.fromEntries(new URLSearchParams(query));
+  for (const key of ['season', 'week']) if (Object.hasOwn(values, key)) values[key] = values[key] === '' ? null : /^\d+$/.test(values[key]) ? Number(values[key]) : undefined;
+  const view = safeView(tab, { ...values, ...(section ? { [tab === 'bets' ? 'view' : 'section']: section } : {}) });
+  if (section) view[tab === 'bets' ? 'view' : 'section'] = section;
+  const place = routePlace(tab, view);
+  return Object.keys(view).length ? place : { tab };
 }
-
-/** True for a fragment from the old app (or its links) that the new app reads, then writes as its own. */
 export const isLegacyFragment = fragment => {
   const name = String(fragment ?? '').replace(/^#/, '');
-  return !!placeFromFragment(name) && name !== '' && !TABS.includes(name);
+  return LEGACY_TABS.includes(name) || name === 'feed' || name === 'groups' || (name.startsWith('picks') && !!placeFromFragment(fragment));
 };
-
-/** The tab an address shows: the one its fragment names, else Home. */
-const tabAt = location => (placeFromFragment(location.hash) ?? { tab: DEFAULT_TAB }).tab;
-const isLayerEntry = entryState => entryState !== null && typeof entryState === 'object' && entryState.gxLayer === true;
 const urlWith = (location, fragment) => `${location.pathname}${location.search}${fragment}`;
-
-/**
- * Reads the address once, when the shell starts: the place to start in. A legacy fragment is rewritten in place
- * (#picks-total becomes #play, #groups becomes #home) and a layer entry left by a reload is cleared, both without
- * adding a history entry.
- */
+const fromState = state => routePlace(state.tab, state.views[state.tab], state.views);
+const routeFragment = state => fragmentFor(state.tab, state.views[state.tab], state.views);
+function safePlace(place) {
+  if (!isTab(place?.tab)) return null;
+  return routePlace(place.tab, place.view, place.adapters);
+}
+function entryFor(state, layer = false) {
+  const place = fromState(state);
+  return { gxRoute: { ...place, trail: state.trail.map(safePlace).filter(Boolean) }, ...(layer ? { gxLayer: true } : {}) };
+}
+function readEntry(entry) {
+  const place = safePlace(entry?.gxRoute);
+  return place ? { ...place, trail: (Array.isArray(entry.gxRoute.trail) ? entry.gxRoute.trail : []).map(safePlace).filter(Boolean) } : null;
+}
 export function startPlace(win) {
-  const { history, location } = win;
-  const place = placeFromFragment(location.hash);
+  let place = placeFromFragment(win.location.hash);
+  const saved = readEntry(win.history.state);
+  if (place && saved && fragmentFor(saved.tab, saved.view, saved.adapters) === fragmentFor(place.tab, place.view, place.adapters)) place = { ...place, trail: saved.trail };
   try {
-    if (place && isLegacyFragment(location.hash)) history.replaceState(null, '', urlWith(location, fragmentFor(place.tab)));
-    else if (isLayerEntry(history.state)) history.replaceState(null, '', location.href);
-  } catch { /* The address stays as it is; the shell still starts in the right place. */ }
+    if (place && isLegacyFragment(win.location.hash)) win.history.replaceState(null, '', urlWith(win.location, fragmentFor(place.tab, place.view, place.adapters)));
+    else if (win.history.state?.gxLayer) win.history.replaceState(saved ? { gxRoute: saved, gxIndex: win.history.state.gxIndex } : null, '', win.location.href);
+  } catch { /* Navigation still works in memory. */ }
   return place;
 }
-
-/**
- * Keeps the address and history in step with the shell's state. `getState()` returns the current state and
- * `dispatch(action)` changes it. Call `sync(prev, next)` after every state change (an effect). Returns
- * `{ sync, disconnect }`.
- *
- * - A tab change the member made pushes the tab's fragment. A tab change that came from Back or Forward does not.
- * - A layer opening pushes the layer entry; the last layer closing goes back over it.
- * - Back while a layer is open closes the top layer (state.js closeTop); Back with none open moves to the tab the
- *   entry names (Home for an entry the shell did not write). An old link followed in the page is read and rewritten
- *   like one a visit starts on.
- */
-export function connectHistory(win, { getState, dispatch, confirmLeave = () => true }) {
+export function connectHistory(win, { getState, dispatch, confirmLeave = () => true, beforeNavigate = () => {} }) {
   const { history, location } = win;
-  let ours = 0; // popstate events still to come from our own history.back()
+  let index = Number.isInteger(history.state?.gxIndex) ? history.state.gxIndex : 0;
+  let ours = 0;
+  let pendingNavigation = false;
   let disconnected = false;
-
-  function push(entryState, fragment) {
-    try { history.pushState(entryState, '', fragment === undefined ? location.href : urlWith(location, fragment)); } catch { /* In memory only. */ }
+  function write(state, push = false, layer = false, preserveFragment = false) {
+    if (push) index += 1;
+    try { history[push ? 'pushState' : 'replaceState']({ ...entryFor(state, layer), gxIndex: index }, '', preserveFragment ? location.href : urlWith(location, routeFragment(state))); } catch { /* In memory only. */ }
   }
-  /** Brings history in line with `state`, assuming no traversal of ours is still on its way. */
-  function settle(state, tabChanged) {
-    const onLayer = isLayerEntry(history.state);
-    if (onLayer && (!hasLayers(state) || tabChanged)) {
+  function settle(state, navigation) {
+    const onLayer = history.state?.gxLayer === true;
+    if (onLayer && (!hasLayers(state) || navigation)) {
       ours += 1;
       try { history.back(); } catch { ours -= 1; }
       return;
     }
-    if (tabChanged && tabAt(location) !== state.tab) push(null, fragmentFor(state.tab));
-    if (hasLayers(state) && !isLayerEntry(history.state)) push(LAYER_ENTRY);
+    if (navigation) write(state, true);
+    else if (!onLayer) write(state, false, false, !placeFromFragment(location.hash));
+    if (hasLayers(state) && !history.state?.gxLayer) write(state, true, true, true);
   }
-  let pendingTab = false;
   function sync(prev, next) {
-    if (disconnected || !next) return;
-    const tabChanged = !!prev && prev.tab !== next.tab;
-    if (ours > 0) { pendingTab = pendingTab || tabChanged; return; }
-    settle(next, tabChanged);
-    if (ours > 0) pendingTab = tabChanged;
+    if (disconnected || !next || prev === next) return;
+    const navigation = !!prev && prev.nav !== next.nav;
+    if (ours) { pendingNavigation ||= navigation; return; }
+    if (navigation && next.navMode === 'restore') {
+      write(next, false, false, !placeFromFragment(location.hash));
+      // React may batch a followed #groups route with opening its switcher. It still needs its own Back entry.
+      if (hasLayers(next)) write(next, true, true, true);
+      return;
+    }
+    if (navigation && next.navMode === 'back' && history.state?.gxRoute?.trail?.length > next.trail.length) {
+      ours += 1;
+      try { history.back(); } catch { ours -= 1; }
+      return;
+    }
+    settle(next, navigation);
+    if (ours) pendingNavigation ||= navigation;
   }
   function onPopState() {
     if (disconnected) return;
     const state = getState();
-    if (ours > 0) {
+    if (ours) {
+      index = Number.isInteger(history.state?.gxIndex) ? history.state.gxIndex : index;
       ours -= 1;
-      if (ours === 0) {
-        const tabChanged = pendingTab && tabAt(location) !== state.tab;
-        pendingTab = false;
-        settle(state, tabChanged);
-        if (ours > 0) pendingTab = tabChanged;
+      if (!ours) {
+        const navigation = pendingNavigation;
+        pendingNavigation = false;
+        settle(state, navigation);
       }
       return;
     }
-    // A layer entry with nothing open (Forward onto one, or Back onto one a followed link left behind) marks nothing
-    // now: it becomes a plain entry for the tab it names.
-    if (isLayerEntry(history.state)) {
-      if (hasLayers(state)) return;
-      try { history.replaceState(null, '', location.href); } catch { /* Harmless. */ }
+    const targetIndex = Number.isInteger(history.state?.gxIndex) ? history.state.gxIndex : index + 1;
+    const rejectTraversal = () => {
+      const delta = index - targetIndex;
+      if (delta && typeof history.go === 'function') { ours += 1; history.go(delta); }
+      else write(state, true, hasLayers(state));
+    };
+    const address = placeFromFragment(location.hash);
+    const followed = isLegacyFragment(location.hash) || (address && fragmentFor(address.tab, address.view, address.adapters) !== routeFragment(state));
+    if (hasLayers(state) && !followed) {
+      if (!confirmLeave()) { rejectTraversal(); return; }
+      index = targetIndex;
+      dispatch({ type: 'closeTop' }); return;
     }
-    // Back from the layer entry lands on the tab's own entry: close the top layer. A link followed in the page while a
-    // layer is open names another place instead, and goes there.
-    const followed = isLegacyFragment(location.hash) || tabAt(location) !== state.tab;
-    if (hasLayers(state) && !followed) { dispatch({ type: 'closeTop' }); return; }
-    // An entry the shell did not write (the one a visit started on with #main or a sign-in fragment) is Home.
-    const place = placeFromFragment(location.hash) ?? { tab: tabAt(location) };
-    // Browser navigation must protect the same unsaved forms as tapping a tab. Restore the current tab's address
-    // when the member keeps editing; beforeunload covers navigation to another document.
-    if ((place.tab !== state.tab || place.view) && !confirmLeave()) {
-      push(null, fragmentFor(state.tab));
-      if (hasLayers(state)) push(LAYER_ENTRY);
-      return;
-    }
-    // An old link followed in the page (#feed, #picks-total, #groups) is read like one a visit starts on, and its entry
-    // rewritten as the new app's own, so Back to it later never reopens a layer.
-    if (isLegacyFragment(location.hash)) {
-      try { history.replaceState(null, '', urlWith(location, fragmentFor(place.tab))); } catch { /* Read once anyway. */ }
-    }
-    if (place.tab !== state.tab || place.view) dispatch({ type: 'go', tab: place.tab, view: place.view });
+    const saved = readEntry(history.state);
+    const place = saved ?? address ?? { tab: DEFAULT_TAB };
+    if (!confirmLeave()) { rejectTraversal(); return; }
+    index = targetIndex;
+    beforeNavigate();
+    dispatch({ type: 'restore', place });
     if (place.layer) dispatch({ type: 'open', layer: place.layer });
   }
   win.addEventListener('popstate', onPopState);
-  return {
-    sync,
-    disconnect() { disconnected = true; win.removeEventListener('popstate', onPopState); },
-  };
+  return { sync, disconnect() { disconnected = true; win.removeEventListener('popstate', onPopState); } };
 }

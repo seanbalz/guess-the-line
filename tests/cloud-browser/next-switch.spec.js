@@ -54,22 +54,13 @@ async function phoneChecks(page, root) {
       .map(el => { const r = el.getBoundingClientRect(); return { text: el.textContent.trim().slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) }; })
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
-    const scrollRail = scope.querySelector('.gx-tabbar [data-scroll-rail=navigation]');
-    const railBox = scrollRail?.getBoundingClientRect();
-    const navRail = scrollRail && ['auto', 'scroll'].includes(getComputedStyle(scrollRail).overflowX) && railBox.left >= -.5 && railBox.right <= innerWidth + .5 ? scrollRail : null;
-
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
       // Screen-reader-only text (the kit's .gx-sr-only, since stage 12's Home ranks) is clipped by design, as the later specs read it.
       if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
-      if (!navRail?.contains(el) && (r.right > innerWidth + 0.5 || r.left < -0.5)) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
-    }
-    if (navRail && visible(navRail)) {
-      const activeTab = navRail.querySelector(':focus') || navRail.querySelector('[aria-current=page]');
-      if (!activeTab) clipped.push('Navigation has no active tab');
-      else { const box = activeTab.getBoundingClientRect(); if (box.left < railBox.left - 1 || box.right > railBox.right + 1) clipped.push('Active tab clipped inside navigation rail'); }
+      if (r.right > innerWidth + 0.5 || r.left < -0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
     }
     return { targets, small, clipped };
   });
@@ -107,8 +98,9 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     // A reload keeps the device's choice.
     await page.reload();
     await expect(newApp(page)).toBeVisible();
-    // Shared account/Community reads occur once per page load. Home also reads preferences and scored history.
-    expect(calls.filter(call => !['POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history'].includes(call))).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
+    // Shared account/Community reads occur once per page load. Home also reads preferences, scored history and its ticket summary.
+    await expect.poll(() => calls.filter(call => call === 'POST /functions/v1/gtl-api/social/read').length).toBe(2);
+    expect(calls.filter(call => !['POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'POST /functions/v1/gtl-api/social/read'].includes(call))).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
 
     await (await oldAppButton(page)).click();
     await expect(communityHome(page)).toBeVisible();

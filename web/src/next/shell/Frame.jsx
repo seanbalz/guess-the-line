@@ -1,15 +1,15 @@
 // The new app's fixed frame pieces (prototype shell, CONTRACT section 2; spec 1.2 and 1.3): the top bar, the tab bar,
 // the offline banner, the dock host and the "coming next" card each tab shows until its own stage replaces it.
 import { createPortal } from 'react-dom';
-import { useEffect, useId, useRef } from 'react';
+import { useId } from 'react';
 import { Avatar, Button, FieldMark, Icon } from '../ui/index.js';
 import { cx } from '../ui/cx.js';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
-// Lucide house, target, ticket, chart-line and trophy (spec 1.2), by the kit's names.
-const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', lines: 'chart', league: 'trophy', fantasy: 'people', trends: 'chart' };
+// Four primary destinations, using the shared original icon language.
+const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
 /** Top bar (spec 1.3): the Field monogram (to Home), the league pill (the switcher) and your avatar (the menu). */
 export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
@@ -33,33 +33,19 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
   );
 }
 
+/** Shared detail navigation stays above the destination's own title. */
+export function DetailBack({ onBack }) {
+  return <div className="gx-detail-nav"><Button variant="ghost" onClick={onBack}><Icon icon="chevronLeft" size={20}/>Back</Button></div>;
+}
+
 /**
- * Tab bar (spec 1.2, plus Fantasy Football): the one showing marked with aria-current and the lime bar; a counter or dot
+ * Four-tab bar: the one showing marked with aria-current and the lime bar; a counter or dot
  * from each tab's slot file, in its name too ("Play, 1 ballot due").
  */
-function revealTab(button) {
-  const root = button?.closest('[data-scroll-rail=navigation]');
-  if (!root) return;
-  const rect = button.getBoundingClientRect(), box = root.getBoundingClientRect();
-  if (rect.right > box.right) root.scrollLeft += rect.right - box.right;
-  else if (rect.left < box.left) root.scrollLeft += rect.left - box.left;
-}
 export function TabBar({ current, data, onTab }) {
-  const rail = useRef(null);
-  useEffect(() => {
-    const show = (focused = false) => {
-      const root = rail.current;
-      const active = (focused && root?.querySelector(':focus')) || root?.querySelector('[aria-current=page]');
-      revealTab(active);
-    };
-    show();
-    const resize = new ResizeObserver(() => show(true));
-    if (rail.current) { resize.observe(rail.current); for (const tab of rail.current.children) resize.observe(tab); }
-    return () => resize.disconnect();
-  }, [current]);
   return (
     <nav className="gx-tabbar" aria-label={SHELL_COPY.tabs}>
-      <div className="gx-tabbar-inner" ref={rail} data-scroll-rail="navigation">
+      <div className="gx-tabbar-inner">
         {TABS.map(tab => {
           const on = tab === current;
           const badge = tabBadge(tab, data);
@@ -71,7 +57,6 @@ export function TabBar({ current, data, onTab }) {
               data-tab={tab}
               aria-current={on ? 'page' : undefined}
               aria-label={badge.name}
-              onFocus={event => revealTab(event.currentTarget)}
               onClick={() => onTab(tab)}
             >
               <span className="gx-tab-icon">

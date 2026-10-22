@@ -85,9 +85,8 @@ async function phoneChecks(page, root = '.gx') {
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
-      if (!el.closest('[data-scroll-rail=navigation]') && (r.right > innerWidth + 0.5 || r.left < -0.5)) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+      if (r.right > innerWidth + 0.5 || r.left < -0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
     }
-    for (const el of scope.querySelectorAll('[data-scroll-rail=navigation] [aria-current=page], [data-scroll-rail=navigation] :focus')) { const r = el.getBoundingClientRect(), box = el.closest('[data-scroll-rail=navigation]').getBoundingClientRect(); if (r.left < box.left - 1 || r.right > box.right + 1) clipped.push('Selected or focused tab is clipped'); }
     return { targets, small, clipped };
   });
   expect(report).toEqual({ targets: [], small: [], clipped: [] });

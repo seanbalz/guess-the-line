@@ -29,3 +29,8 @@ The player view uses /community/history in Community and /league/comparison in a
 ## Presentation and acceptance
 
 Use BRAND_GUIDE D-38 and tokens-next, semantic labelled charts with accessible tables, touch targets >=44px, 320px minimum viewport, light/dark themes and reduced motion. Navigation must keep all seven destinations reachable without shrinking targets. Preserve legacy records and old routes. Check Monday readiness, missing source, expired cache, errors/retry, both spread orientations, pushes/ties, totals, repeated observations, cross-season filters, hidden sentinels, private scope, account switching and focus/back behavior. Run brand, engine, API, UI and cloud-browser tests plus build and source-boundary audit. Commit named files, push, open PR and sync-check. Deployment and live acceptance need separate evidence.
+
+
+## Navigation integration after PR #162
+
+The independently approved four-tab design merged into main as c6afb02e71b6c88d09212dfc525fe0fe59da64f9 during Trends verification. Its Home / Play / Bets / Research navigation supersedes this document's initial seven-tab placement. The complete Trends destination lives under Research's Trends row, retaining This Week / Teams / Players, filters and all evidence. The #trends link must open Research > Trends and survive reload and Back. Game details retain the weather/highlights relationship. This integration changes navigation placement only; the weekly publication, data, privacy and analysis requirements above remain in force.

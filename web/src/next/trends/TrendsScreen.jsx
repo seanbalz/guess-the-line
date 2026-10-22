@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { marketRelevant as relevant, marketSituationCards } from './situations.js';
 import { gameSheet, gamesOf } from '../../../../shared/lines-view.mjs';
 import { allTrends, lookup, TRENDS_FOOTNOTE } from '../../../../shared/trends-view.mjs';
@@ -28,10 +29,20 @@ function WindowRecords({ card, week }) {
     </table></div>
   </details>;
 }
+// The Players filters belong to the account that chose them. The address restores them after a reload, but when a
+// different account signs in on this page it starts from its own defaults (not the previous account's selection).
+const PLAYER_FILTERS = Object.freeze({ player: undefined, team: undefined, playerMatchup: undefined, window: undefined });
+let filtersAccount = null;
 export function TrendsScreen() {
   const shell = useShell(), data = useLinesData(), { app, personal, community, shown, trends, trendsWeek } = data;
-  const view = shell.state.views.trends;
-  const section = sections.some(s => s.value === view.section) ? view.section : 'week', market = view.market === 'total' ? 'total' : 'spread';
+  const carried = Boolean(app.accountId && filtersAccount && filtersAccount !== app.accountId);
+  const view = carried ? { ...shell.state.views.trends, ...PLAYER_FILTERS } : shell.state.views.trends;
+  useEffect(() => {
+    if (!app.accountId) return;
+    if (filtersAccount && filtersAccount !== app.accountId) shell.setView('trends', PLAYER_FILTERS);
+    filtersAccount = app.accountId;
+  }, [app.accountId]); // The shell's actions are stable for its lifetime.
+  const section = sections.some(s => s.value === view.trendSection) ? view.trendSection : 'week', market = view.market === 'total' ? 'total' : 'spread';
   const onChange = patch => shell.setView('trends', patch);
   const history = useTrendsHistory(app, shown, view.window || 'season', section === 'players' && Boolean(shown));
   const views = personal.data ? gamesOf(personal.data).map(g => gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, gameId: g.id })).filter(Boolean) : [];
@@ -44,7 +55,7 @@ export function TrendsScreen() {
   return <div className="gx-screen gx-trends">
     <h1 className="gx-t-title">Trends</h1>
     <p className="gx-t-body gx-c-2">{shown ? 'Published week: ' + shown.season + ' Week ' + shown.week : 'Waiting for a published week.'} · {app.league?.name || 'Community'}</p>
-    <Segmented label="Trends section" value={section} options={sections} onChange={section => onChange({ section })}/>
+    <Segmented label="Trends section" value={section} options={sections} onChange={section => onChange({ trendSection: section })}/>
     <Segmented label="Trends market" value={market} options={markets} onChange={market => onChange({ market })}/>
     {section === 'players' ? <>{history.loading ? <p className="gx-t-body" role="status">Loading scoped player history…</p> : history.error ? <LeagueFailure error={history.error} onRetry={history.retry}/> : history.data && shown ? <PlayerEvidence history={history.data} published={shown} view={view} onChange={onChange} scopeName={app.league?.name || 'Community'}/> : <p className="gx-t-body">No published player history yet.</p>}<Button onClick={history.retry}>Refresh player history</Button></> : <>
       <TrendAvailability week={trendsWeek}/>

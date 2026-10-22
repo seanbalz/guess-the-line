@@ -10,7 +10,7 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 ## Active priority — weekly and player Trends, October 21
 
-Sean approved week-opening publication, a Trends tab with This Week / Teams / Players, recent and longer history, and player guess-versus-market outcome evidence. Work is isolated on `codex/weekly-player-trends` from `origin/main` at `368f5d4`; other checkouts and unpublished work are preserved. See the [approved design](superpowers/specs/2026-10-21-weekly-player-trends-design.md) and [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md) for implementation and verification state. No migration or hosted deployment is part of this implementation handoff. Private-league player history retains the separately staged D-53 comparison-reader dependency. Implementation and independent review are complete in [PR #166](https://github.com/seanbalz/guess-the-lines-repo/pull/166), integrated with main at `fb86a3e`. The full local check passed 1,552 Node and 235 Vitest tests with zero skips; 43 integrated browser cases and cloud bundle privacy passed. Final CI and task-branch synchronization are recorded in the PR receipt; merge and hosted release remain separate.
+Sean approved week-opening publication, a Trends tab with This Week / Teams / Players, recent and longer history, and player guess-versus-market outcome evidence. Work is isolated on `codex/weekly-player-trends` from `origin/main` at `368f5d4`; other checkouts and unpublished work are preserved. See the [approved design](superpowers/specs/2026-10-21-weekly-player-trends-design.md) and [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md) for implementation and verification state. No migration or hosted deployment is part of this implementation handoff. Private-league player history retains the separately staged D-53 comparison-reader dependency. Implementation and independent review are complete in [PR #166](https://github.com/seanbalz/guess-the-lines-repo/pull/166), integrated with main at `fb86a3e`. The full local check passed 1,552 Node and 235 Vitest tests with zero skips; 43 integrated browser cases and cloud bundle privacy passed. Main then advanced to c6afb02e with the approved four-tab redesign (PR #162). Integration is in progress: the complete Trends destination will live under Research > Trends while preserving its own views and game-detail highlights. Final integration review, CI and task-branch synchronization will be recorded in the PR receipt; merge and hosted release remain separate.
 
 ## Verified delivery
 
@@ -30,6 +30,43 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
   migration order, source/CI, fresh evidence, preservation and privacy remain.
 
 ## Current work and remaining boundaries
+
+October 21 design review: Sean selected a simpler four-tab application,
+**Home / Play / Bets / Research**, with League inside Play and Fantasy inside
+Research, and equal emphasis on guessing/competition and actual-bet tracking.
+He chose the third visual option, **One thing first**. The
+[four-tab design specification](superpowers/specs/2026-10-21-four-tab-simplification-design.md)
+records the selected direction, feature destinations and local preview evidence.
+Sean approved the specification and explicitly authorized the build. PR #162,
+branch `codex/four-tab-design`, implements the four roots, compact summaries,
+retained editors and reversible detail routes. League is inside Play and Fantasy
+inside Research; account/settings and old-app recovery remain accessible.
+The [implementation plan](superpowers/plans/2026-10-21-four-tab-simplification.md)
+records the work and verification. Read-only reconciliation of PR #144 and the
+Mini's unpublished shell found its Fantasy navigation changes already represented
+on main; no Mini files were changed.
+
+Local verification on October 21: `npm run check` passed (1,456 Node tests with
+zero skips, 198 Vitest tests, typecheck and production build). The legacy browser
+suite passed 41/41, performance 4/4, and critical-path accessibility 7/7. Brand QA
+and authenticated cloud-build boundary inspection passed. Focused browser coverage
+checks four roots at 320/390 in both themes, exactly one primary root action,
+fixed bottom navigation, nested/reloaded Back, restored scroll/focus, historical
+week scope, draft cancellation, exact recommendation ticket terms and explicit
+saves. The final corrected feature rerun passed 38/38; shell/router/token checks passed
+45/45, with 19 shell browser checks plus four focused follow-up checks passing.
+The plan records the earlier failures, corrections and verification scope; PR
+#162 and the conversation handoff record exact-head CI and branch sync.
+
+Sean subsequently authorized CI fixes, merge and deployment. PR #162 merged as
+`c6afb02` and the protected frontend-only release deployed it on October 21 at
+23:49 UTC as Pages `46fb8ae6-0df8-478c-8762-9607c2c6fdec`, keeping API v29; see
+the [four-tab release record](RELEASE_FOUR_TAB_REDESIGN.md) for CI, readiness,
+served-asset and preservation evidence.
+No migrations, live account edits or new data integrations are included.
+Physical-iPhone/Home Screen acceptance and the separate native iOS
+deliverable remain open. This entry does not close Q03/Q04/Q17 wholesale; the
+existing sequential queue and preservation of unpublished Mini work still apply.
 
 October 21 situational-trends upgrade: Sean confirmed a weekly and per-matchup
 shortlist of up to three consistent trends, emerging patterns under Explore,
@@ -57,8 +94,13 @@ The free nflverse source refreshed October 21 with completed games through
 October 19. Sean subsequently said "get it connected". The first reviewed feed
 was saved server-side on October 21 at 21:00 UTC and its digest matched the
 validated private input. This is a dated manual import, not automatic X ingestion.
-The [release card](TRENDS_RESEARCH_RELEASE.md) tracks merge, protected deployment
-and hosted acceptance, which remain pending at this checkpoint.
+PR #161 merged and protected release 39687111092 deployed API v29 and Pages
+0dde8b76. The first reviewed Trent feed was verified in the signed-in app;
+all preservation hashes matched. Live acceptance found research validation was
+reading a different nflverse mirror from offline preparation, so leans were
+correctly withheld. The reviewed API-only source-alignment fix passes its new
+regression and all 52 focused checks; CI and deployment remain pending.
+See the [dated release record](RELEASE_2026_10_21_TRENDS_RESEARCH.md).
 
 October 21: Sean authorized a separate private NBA archive and import of the
 saved NBA ledger. The [private NBA release card](PRIVATE_NBA_STORAGE.md) records
@@ -114,15 +156,19 @@ open branch, so it is an additional future release, not an omission from main's 
 October 21 follow-up to Recommended and Bets: Sean approved percentage-based
 cross-market gaps with a 3-point minimum for small spreads, plus compact
 expandable recommendations, historical trend context and clearer Bets view
-labels. Implementation is on the separate `codex/recommended-percent-trends`
-task branch. Local verification: `npm test` passed 1,457 Node tests (including
+labels. [PR #164](https://github.com/seanbalz/guess-the-lines-repo/pull/164)
+merged as `8ca21017c8e9ff84db26d17dc29eb39734799796` after all five PR
+checks passed. Local verification: `npm test` passed 1,457 Node tests (including
 the local PGlite fixture) and 202 React tests, all 12 Recommended browser tests
 passed, and typecheck, standard/cloud builds, Week 7 trend reproduction and
 brand QA passed. The generated cloud frontend passed the private-state scan;
 `npm run check:cloud` could not finish because this isolated worktree lacks
-`.env.cloud`. PR/release evidence belongs to that branch; this entry does not
-claim a merge or hosted deployment. The frozen v62 tracker
-remains unchanged. A separate redacted Week 7 nflverse snapshot was generated
+`.env.cloud`. Exact-commit main CI and the protected frontend release passed:
+Pages `1e349227` verified all 96 served assets at both URLs, retaining API v28,
+hosted migration history, privacy boundaries and unchanged data hashes. See the
+[release record](RECOMMENDED_PERCENT_RELEASE.md). Signed-in and physical-phone
+acceptance remain separate. The frozen v62 tracker remains unchanged.
+A separate redacted Week 7 nflverse snapshot was generated
 for current-week context; the Week 6 input remains frozen. See
 [the design](superpowers/specs/2026-10-21-recommended-percent-trends-design.md).
 

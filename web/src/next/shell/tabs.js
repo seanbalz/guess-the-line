@@ -18,10 +18,7 @@ export const TAB_INFO = Object.freeze({
   home: { label: 'Home', job: 'What’s due this week and the one next thing to do.' },
   play: { label: 'Play', job: 'Make your Guess the Line picks and see how close you were.' },
   bets: { label: 'Bets', job: 'Bet Virtual Units on games or against a friend, and track your bets.' },
-  lines: { label: 'Lines', job: 'Every game’s line and one thing worth knowing about it.' },
-  league: { label: 'League', job: 'How you stack up, and what friends are saying.' },
-  fantasy: { label: 'Fantasy', name: 'Fantasy Football', job: 'Filter weekly and rest-of-season player rankings, scoring formats and strong trends.' },
-  trends: { label: 'Trends', job: 'Explore published matchups and permitted player history.' },
+  research: { label: 'Research', job: 'Explore games, lines, Fantasy football and trends.' },
 });
 
 export const SHELL_COPY = Object.freeze({

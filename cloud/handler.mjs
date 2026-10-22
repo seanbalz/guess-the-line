@@ -27,6 +27,7 @@ import { handlePush, PUSH_METHODS, PushError, providerPushError, validVapidPubli
 // Redesign route groups and the optional-RPC reader (build plan, stage 4).
 import { handleLines, LINES_METHODS, LinesError, providerLinesError } from './lines.mjs';
 import { createResearchProvider } from './trends-research.mjs';
+import { TRENDS_SOURCE } from '../shared/trends.mjs';
 import researchVenues from '../shared/nfl-venues.json' with { type: 'json' };
 import researchCorrections from '../shared/trends-corrections.json' with { type: 'json' };
 import { handleBets, BETS_METHODS, BetsError, providerBetsError } from './bets.mjs';
@@ -381,6 +382,13 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     if (!response.ok) throw new Error('Public schedule unavailable.');
     return response.text();
   }
+  // Research must validate the same published history used by its offline
+  // snapshot. The schedule mirror can contain different historical values.
+  async function publicResearchHistory() {
+    const response = await fetchImpl(TRENDS_SOURCE.url, { redirect: 'follow', signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error('Public research history unavailable.');
+    return response.text();
+  }
   async function weeklyRpc(name, body) {
     const response = await request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
     if (!response.ok) {
@@ -439,7 +447,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
   }
   return {
     trends: createTrendsService({ rpc: groupRpc(providerLinesError).rpc, readSeason: createSeasonReader({ fetchImpl }), clock }),
-    lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicSchedule, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
+    lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {

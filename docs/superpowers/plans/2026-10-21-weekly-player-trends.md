@@ -78,5 +78,12 @@ Interfaces: consume existing useLinesData/useTrendWeek/useWind for published sla
 - [x] Review complete branch diff independently for source rights, sign errors, lookahead, gated aggregates, cross-scope races, data failures, browser/API compatibility, theme/navigation and missing requirements.
 - [x] Update docs/TRENDS.md, docs/COMPLETION_REGISTER.md and planning/PLATFORM_WORK_QUEUE.md with approval, actual source/tests, known hosted dependency and explicit no-deployment state. Preserve historical documents and records.
 - [x] Commit reviewed named files; push branch; open/attach PR; npm run sync:check (integrated source 7094557, clean and equal to its remote).
-- [ ] Final exact-commit CI and handoff receipt: record in PR #166 after the final test-only compatibility changes.
+- [ ] Final exact-commit CI and handoff receipt: record in PR #166 after the four-tab integration and its verification.
 - [ ] Report branch, full commit, PR, verification, ahead/behind and unpublished work. Do not merge/apply/deploy without the separate release process.
+
+
+## Main integration after PR #162
+
+- [x] Preserve exactly Home / Play / Bets / Research and place the full Trends destination behind Research > Trends, including the #trends alias and existing local filter state.
+- [x] Preserve the four-tab landing, route, Back/reload and draft behavior while removing obsolete seven-tab assumptions. Keep weather highlights and all scoped analysis.
+- [ ] Run focused integration coverage, full source checks and required CI; independently review the merge resolution. Record source/test evidence in the release record and final receipt in PR #166.

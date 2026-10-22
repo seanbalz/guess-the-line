@@ -50,8 +50,7 @@ async function phone(page) {
  const problems = await page.locator('.gx').evaluate(root => {
   const visible = e => e.getClientRects().length && !e.closest('[hidden],[inert],dialog:not([open])');
   const bad = [...root.querySelectorAll('button,a[href],select,summary')].filter(visible).filter(e => { const r=e.getBoundingClientRect();return r.width<43.5||r.height<43.5; }).map(e=>e.textContent);
-  const active = root.querySelector('[data-scroll-rail=navigation] :focus') || root.querySelector('[data-scroll-rail=navigation] [aria-current=page]');
-  if(active){ const r=active.getBoundingClientRect(),b=active.closest('[data-scroll-rail]').getBoundingClientRect(); if(r.left < b.left-1 || r.right>b.right+1)bad.push('Active tab clipped '+JSON.stringify({ left:r.left,right:r.right,railLeft:b.left,railRight:b.right,scroll:active.closest('[data-scroll-rail]').scrollLeft,full:active.closest('[data-scroll-rail]').scrollWidth })); }
+  for (const tab of root.querySelectorAll('.gx-tabbar button')) { const r = tab.getBoundingClientRect(); if (r.left < -.5 || r.right > innerWidth + .5) bad.push('Navigation tab clipped'); }
   return bad;
  });
  expect(problems).toEqual([]);
@@ -64,10 +63,10 @@ test('published week, market gates, team filters, game sheets/back, player windo
  const world=await ready(page,baseURL);
  try {
   await expect(page.getByText('Published week: 2026 Week 6',{exact:false})).toBeVisible();
-  await expect(nav(page).locator('button')).toHaveCount(7);
+  await expect(nav(page).locator('button')).toHaveCount(4);
   await page.setViewportSize({width:320,height:844}); await nav(page).getByRole('button',{name:'Home',exact:true}).focus();
-  for (let i=0;i<6;i++) { await page.keyboard.press('Tab'); await phone(page); }
-  await expect(nav(page).getByRole('button',{name:'Trends',exact:true})).toBeFocused(); await page.setViewportSize({width:390,height:844});
+  for (let i=0;i<3;i++) { await page.keyboard.press('Tab'); await phone(page); }
+  await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toBeFocused(); await page.setViewportSize({width:390,height:844});
   await group(page,'Trends market').getByRole('button',{name:'Total',exact:true}).click();
   await expect(page.getByText(/Total line-based records are hidden/).first()).toBeVisible();
   await noSentinel(page);
@@ -98,11 +97,11 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(page.getByText('Fixture saved books',{exact:false}).first()).toBeVisible();
   await expect(page.getByText('Panthers −7',{exact:true}).first()).toBeVisible();
   await noSentinel(page);
-  expect(new URL(page.url()).hash).toBe('#trends'); expect(new URL(page.url()).search).toBe('');
+  expect(new URL(page.url()).hash.startsWith('#research/trends?')).toBe(true); expect(new URL(page.url()).hash).not.toMatch(/guess|reference|points|99.125|97.625/); expect(new URL(page.url()).search).toBe('');
   await nav(page).getByRole('button',{name:'Home',exact:true}).click(); await page.goBack();
   await expect(page.getByRole('heading',{name:'Trends',level:1})).toBeVisible();
   await expect(page.getByRole('combobox',{name:'History window',exact:true})).toHaveValue('last5');
-  await page.reload(); await expect(group(page,'Trends section').getByRole('button',{name:'This Week',exact:true})).toHaveAttribute('aria-pressed','true');
+  await page.reload(); await expect(group(page,'Trends section').getByRole('button',{name:'Players',exact:true})).toHaveAttribute('aria-pressed','true'); await expect(page.getByRole('combobox',{name:'History window',exact:true})).toHaveValue('last5'); await expect(page.getByRole('combobox',{name:'Player team',exact:true})).toHaveValue('CAR'); await expect(page.getByRole('combobox',{name:'Player matchup',exact:true})).toHaveValue('CAR-ATL'); await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
   expect(world.errors).toEqual([]);
  } finally {await world.db.close();}
 });
@@ -172,7 +171,7 @@ test('populated scopes mask synchronously while private read waits; next account
   await expect(page.getByRole('heading',{name:'Market accuracy'})).toBeVisible();
   await page.getByRole('button',{name:'Your menu',exact:true}).click(); await page.getByRole('button',{name:'Sign out',exact:true}).click();
   await signIn(page,'sean',{navigate:false});await expect(page.getByRole('heading',{name:'Trends',level:1})).toBeVisible();
-  await nav(page).getByRole('button',{name:'Trends',exact:true}).click();
+  await nav(page).getByRole('button',{name:'Research',exact:true}).click(); await page.locator('[data-landing=research]').getByRole('button',{name:'Trends',exact:true}).click();
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
   await expect(page.getByRole('combobox',{name:'Player',exact:true})).toHaveValue(ACCOUNTS.sean.id);
   await expect(page.getByRole('combobox',{name:'Player team',exact:true})).toHaveValue('');
