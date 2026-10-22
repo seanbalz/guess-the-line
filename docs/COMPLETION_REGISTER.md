@@ -217,8 +217,9 @@ changes, no ancestor traps the fixed bars, no page scrolls sideways, and each
 page's end clears the tab bar. Tab focus landed under the tab bar or top bar on
 12 page and size combinations. The fix is root `scroll-padding` in
 `web/src/next/shell/shell.css`. A second test proves each check reports the
-failure it guards. Not deployed; real-iPhone reproduction and acceptance remain
-open.
+failure it guards. Merged in PR #181 and released October 22 in the
+protected release [39821362374](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39821362374) (API and frontend from `8dccc5c`, with #180 and #182) as Pages `9fb54fe4`; the served
+CSS carries both rules. Real-iPhone reproduction and acceptance remain open.
 
 October 22 weekly Trends CPU fix: from API v31 on, every signed-in `/trends/week`
 request hit the Edge CPU limit (HTTP 546), and Week 8 has no static fallback.
