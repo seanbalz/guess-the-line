@@ -210,6 +210,16 @@ PR #177. Released October 22 at 09:13 UTC as Pages `f092e744` (frontend only;
 API v31 unchanged); see the [round 3 release record](RELEASE_2026_10_22_ROUND3.md).
 Real-phone acceptance remains open.
 
+October 22 Q03 (UX-NEXT-01): `tests/cloud-browser/next-scroll-navigation.spec.js`
+covers 11 pages at 390 × 844 and 320 × 568 in both themes, on local fixtures.
+The tab bar stays at the screen's bottom through scrolling and window-height
+changes, no ancestor traps the fixed bars, no page scrolls sideways, and each
+page's end clears the tab bar. Tab focus landed under the tab bar or top bar on
+12 page and size combinations. The fix is root `scroll-padding` in
+`web/src/next/shell/shell.css`. A second test proves each check reports the
+failure it guards. Not deployed; real-iPhone reproduction and acceptance remain
+open.
+
 ## Evidence and limits
 
 The queue records all six open PR dispositions, old issue triage and local-work
