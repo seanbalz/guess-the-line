@@ -12,11 +12,15 @@ import { allTrends } from '../shared/trends-view.mjs';
 import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 
-const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false }));
+const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false, research: null }));
 // The native private-note editor uses the existing authenticated route wrapper. SSR never makes its effect read;
 // isolate that browser auth module here while the hosted-schema browser spec exercises the real handler and auth.
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), linesApi: vi.fn() }));
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => state.lines }));
+// The matchup research read (/lines/research): loading, as SSR leaves it, unless a test gives its answer.
+vi.mock('../web/src/next/research/useResearch.js', async importOriginal => ({
+  ...(await importOriginal()), useResearch: () => state.research ?? { status: 'loading', data: null, reload: () => {} },
+}));
 vi.mock('../web/src/next/lines/trendsHooks.js', () => ({
   useOfficials: () => state.officials,
   useWind: () => state.wind ?? { loading: false, wind: null, now: null },
@@ -60,7 +64,7 @@ const nodes = (html, test) => [...walk(parseMarkup(html))].filter(n => n.tag && 
 const attr = (name, value) => n => n.attrs[name] === value;
 const textOf = n => [...walk(n)].filter(x => x.text !== undefined).map(x => x.text).join(' ').replace(/\s+/g, ' ').trim();
 
-afterEach(() => { state.lines = null; state.wind = null; state.officials = null; state.openRows = false; });
+afterEach(() => { state.lines = null; state.wind = null; state.officials = null; state.openRows = false; state.research = null; });
 
 describe('the Lines board', () => {
   it('a lock is an icon on every closed market, never "—"; your tags; your own line at the guess; at most three trend lines', () => {
@@ -200,6 +204,52 @@ describe('the game sheet', () => {
     // Another week's /wind/read answer is never read for this game.
     state.wind = { ...state.wind, wind: { ...state.wind.wind, week: 7 } };
     expect(nodes(render(<GameSheet args={{ game: 'SEA-DEN' }}/>), attr('data-row', 'weather')).map(textOf)).toEqual(['Weather at kickoff No current forecast']);
+  });
+
+  // Sean, October 22: once /lines/research answered, the game sheet swapped its D-55 trend cards for "No qualifying research
+  // in this view". The weekly trends are the section; research for this game joins below them only when it has candidates.
+  it('keeps the weekly top trends whatever the matchup research read says; research joins below only with candidates', () => {
+    state.lines = data();
+    const record = { wins: 20, losses: 9, pushes: 1, sample: 30, illustrativeUnits: 9.18, coverage: { from: '2025-09-01T00:00:00Z', to: '2026-10-12T00:00:00Z' } };
+    const candidate = id => ({ id, title: `Synthetic research ${id}`, market: 'total', family: 'schedule', period: 'recent30', sourceState: 'computed', conditions: [], conditionDescriptions: ['Synthetic condition'],
+      qualification: { qualifies: true, label: 'Consistent, not proven' }, record, applications: [{ gameId: 'NO-NYG', direction: 'over', whyApplies: [] }],
+      series: { points: [{ ...record, from: record.coverage.from, to: record.coverage.to }], binned: true, selectedSample: 30 } });
+    const answer = (shortlist, candidates) => ({ status: 'ready', reload: () => {}, data: { now: new Date(NOW).toISOString(), shortlist, candidates, games: [], explore: [] } });
+    const shape = n => (n.text !== undefined ? n.text : [n.tag, n.attrs, n.children.map(shape)]);
+    const sheet = read => {
+      state.research = read;
+      const html = render(<GameSheet args={{ game: 'NO-NYG' }}/>);
+      expect(markupProblems(html)).toEqual([]);
+      const section = nodes(html, attr('data-section', 'trends'))[0];
+      const inSection = test => [...walk(section)].filter(n => n.tag && test(n));
+      const [top] = inSection(n => n.tag === 'ul' && n.attrs['aria-label'] === 'Top trends for this game');
+      return { html, section, top, research: inSection(n => n.attrs['data-research-card']), opened: inSection(n => n.attrs['data-trend-detail'] === ''),
+        button: inSection(n => n.tag === 'button' && textOf(n) === 'Open matchup research') };
+    };
+    const loading = sheet(null);
+    expect(loading.top.children).toHaveLength(3);
+    expect(loading.opened, 'the first trend opens with its chart').toHaveLength(1);
+    expect(loading.button).toHaveLength(1);
+    // Loading, failed, or answered with nothing for this game: the trend content is exactly the same and nothing is added.
+    for (const read of [{ status: 'error', error: { status: 503 }, data: null, reload: () => {} }, answer([], []), answer(['missing'], [])]) {
+      const view = sheet(read);
+      expect(view.top, `the top trends stay (${read.status})`).toBeDefined();
+      expect(shape(view.top)).toEqual(shape(loading.top));
+      expect(view.research).toHaveLength(0);
+      expect(text(view.html)).not.toContain('No qualifying research');
+      expect(textOf(view.section)).toBe(textOf(loading.section));
+    }
+    // Candidates for this game: the same trends, then the research rows (compact, so one trend stays open, D-55), then the button.
+    const found = sheet(answer(['synthetic-a', 'synthetic-b'], ['synthetic-a', 'synthetic-b'].map(candidate)));
+    expect(found.top, 'the top trends stay beside research').toBeDefined();
+    expect(shape(found.top)).toEqual(shape(loading.top));
+    expect(found.research.map(n => n.attrs['data-research-card'])).toEqual(['synthetic-a', 'synthetic-b']);
+    expect(found.opened).toHaveLength(1);
+    const order = [...walk(found.section)];
+    expect(order.indexOf(found.top)).toBeLessThan(order.indexOf(found.research[0]));
+    expect(order.indexOf(found.research[1])).toBeLessThan(order.indexOf(found.button[0]));
+    expect(textOf(found.section)).toContain('Matchup research');
+    expect(text(found.html)).not.toContain('No qualifying research');
   });
 });
 

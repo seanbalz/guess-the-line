@@ -113,10 +113,12 @@ function ResearchCard({ candidate, gameId, request, open, onToggle }) {
     </TrendDetail> : null}
   </li>;
 }
-/** Research as D-55 compact rows; the first opens on its own, and one opens at a time. */
-export function ResearchCards({ data, ids, limit = 3, gameId, request }) {
-  const selected = [...new Set(ids ?? data?.shortlist ?? [])].slice(0, limit).map(id => data?.candidates.find(c => c.id === id)).filter(Boolean);
-  const [open, setOpen] = useState(() => selected[0]?.id ?? null);
+/** The candidates a research list shows: `ids` (else the reply's shortlist), once each, at most `limit`, known ones only. */
+export const researchSelection = (data, ids, limit = 3) => [...new Set(ids ?? data?.shortlist ?? [])].slice(0, limit).map(id => data?.candidates.find(c => c.id === id)).filter(Boolean);
+/** Research as D-55 compact rows; one opens at a time, and the first opens on its own unless `openFirst` is false. */
+export function ResearchCards({ data, ids, limit = 3, gameId, request, openFirst = true }) {
+  const selected = researchSelection(data, ids, limit);
+  const [open, setOpen] = useState(() => (openFirst ? selected[0]?.id ?? null : null));
   return selected.length ? <ul className="gx-tc-list" aria-label="Research">{selected.map(c => <ResearchCard key={`${c.id}:${c.period}`} candidate={c} gameId={gameId} request={request}
     open={open === c.id} onToggle={() => setOpen(value => (value === c.id ? null : c.id))}/>)}</ul>
     : <p className="gx-t-body gx-c-2">No qualifying research in this view. Explore other situations.</p>;

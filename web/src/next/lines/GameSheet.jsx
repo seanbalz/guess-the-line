@@ -99,7 +99,7 @@ export function GameSheet({ args }) {
           <h3 className="gx-t-section gx-grow" id={trendsId}>{LINES_COPY.trends}</h3>
           <InfoButton title={INFO.trends.title} body={INFO.trends.body} links={INFO.trends.links}/>
         </div>
-        <MatchupResearch lines={lines} gameId={view.id} fallback={<><TrendAvailability week={trendsWeek}/>{t.notice ? <Missing text={t.notice}/>
+        <MatchupResearch lines={lines} gameId={view.id} trends={<><TrendAvailability week={trendsWeek}/>{t.notice ? <Missing text={t.notice}/>
           : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game" openFirst/>
             : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}</>}/>
       </section>
