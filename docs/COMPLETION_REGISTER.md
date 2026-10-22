@@ -152,8 +152,9 @@ Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 | Q17–Q20 platform completion | Partial; see per-item exit criteria | Remaining destinations, operations, full-week/device acceptance and new-only transition. |
 | Simulator/native iOS/other feeds | Separate later scope or decisions | No model validation, native-client or external-connection claim follows from existing planning. |
 
-The current migration registry lists only M-10 Bets reading and D-53 comparisons
-and account preferences as unhosted. The recommendation edit writer is on an
+Since October 22 the migration registry lists no unhosted file. M-10 Bets
+reading and the two D-53 files (comparisons, account preferences) were applied
+then; see the [M-10 record](M10_PREFLIGHT_2026_10_22.md). The recommendation edit writer is on an
 open branch, so it is an additional future release, not an omission from main's registry.
 
 October 21 follow-up to Recommended and Bets: Sean approved percentage-based
@@ -222,15 +223,28 @@ protected release [39821362374](https://github.com/seanbalz/guess-the-lines-repo
 CSS carries both rules. Real-iPhone reproduction and acceptance remain open.
 
 October 22 Q06 (M-10 Bets read): read-only preflight passed; see the
-[preflight record](M10_PREFLIGHT_2026_10_22.md). Hosted checks:
+[preflight record](M10_PREFLIGHT_2026_10_22.md). Hosted checks before the apply:
 - M-01 and M-04 are applied.
-- No M-10 object exists yet, so nothing is half-applied.
+- No M-10 object existed yet, so nothing was half-applied.
 - The five helper functions match the repository chain body for body, as do
   all 126 `gtl_*` functions.
 
 A PGlite rehearsal under the hosted default privileges was additive,
-service-only and idempotent. 108 repository tests passed. Not applied; awaiting
-Sean's "apply M-10".
+service-only and idempotent. 108 repository tests passed.
+
+Sean then said "apply M-10". Between 18:55 and 18:58 UTC, three files were
+applied from Sean's account, outside this session: M-10 as `20261022185535`,
+then both D-53 files as `20261022185719` and `20261022185832`.
+
+Verified read-only after the apply:
+- Each applied statement is byte-identical to its repository file.
+- All 132 `gtl_*` function bodies match a local rehearsal of the same chain.
+- The 126 earlier functions, with their grants, are unchanged.
+- The six new RPCs and two new tables are service-only, and all six RPCs
+  refuse signed-out calls.
+- Ballots and Virtual Units settlements are unchanged.
+
+No screen calls the new routes yet.
 
 October 22 weekly Trends CPU fix: from API v31 on, every signed-in `/trends/week`
 request hit the Edge CPU limit (HTTP 546), and Week 8 has no static fallback.

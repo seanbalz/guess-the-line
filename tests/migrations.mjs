@@ -24,11 +24,7 @@ export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', impor
 export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;";
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
-export const NOT_HOSTED = [
-  20261016010000, // D-53 comparisons, after M-07. Not applied.
-  20261016011000, // D-53 account preferences. Not applied.
-  20261015190820, // M-10 bets_read (stage 40): account-level Bets reader; apply after M-01 and M-04 on Sean's "apply M-10".
-];
+export const NOT_HOSTED = [];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
@@ -114,6 +110,9 @@ export const APPLIED = [
   20261015120000, // Hosted as 20261016223357; see CORE_SCORING_PRODUCTION_RELEASE.md.
   20261015143006, // D-48 recommended virtual pick: hosted as 20261015143006 on October 15, 2026.
   20261015190710, // Hosted as 20261019234729; see CORE_SCORING_PRODUCTION_RELEASE.md.
+  20261015190820, // M-10 gtl_bets_read: hosted as 20261022185535 on October 22, 2026; see M10_PREFLIGHT_2026_10_22.md.
+  20261016010000, // D-53 gtl_score_comparison: hosted as 20261022185719 on October 22, 2026.
+  20261016011000, // D-53 gtl_account_preferences: hosted as 20261022185832 on October 22, 2026.
   20261020211626, // Hosted 20261020220305: private current-week context.
   20261020211656, // Hosted 20261020220311: automatic final-results schedule.
   20261020211737, // Hosted 20261020220318: private settlement-results reader.

@@ -222,7 +222,7 @@ confirmed individual submission/edit-time scoring and supersedes this common
 reference behavior in the local implementation. See SUBMISSION_TIME_SCORING.md
 for verification and outstanding hosted delivery.
 
-## Virtual Units Bets read (M-10, staged)
+## Virtual Units Bets read (M-10)
 
 The new Bets reader uses the published community week for every signed-in
 community member, independent of a private group's older week. A group
@@ -237,7 +237,8 @@ consensus substitution is introduced. Weekly qualification counts one current
 row per game and market, including a voided row's original credit, and reaches
 the weekly board at three picks or 3U.
 
-M-10 is a staged migration and API route, not a hosted apply or deploy. The
-release order remains M-04, then M-10, with the explicit approvals and checks
-in [the redesign build plan](REDESIGN_BUILD_PLAN.md). The new Bets screen and
-the settlement scheduler remain later stages.
+M-10 was applied to the hosted project on October 22, 2026, after M-04, with
+the checks in [the redesign build plan](REDESIGN_BUILD_PLAN.md). The record is
+[the M-10 preflight and apply record](M10_PREFLIGHT_2026_10_22.md). The API
+route `POST /bets/read` answers signed-in members, but no screen reads it yet.
+The new Bets screen and the settlement scheduler remain later stages.

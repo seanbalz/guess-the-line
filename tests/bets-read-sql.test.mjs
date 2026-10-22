@@ -9,9 +9,9 @@ const MIGRATION = '20261015190820_gtl_bets_read.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed.';
 const USER = who => ACCOUNTS[who].id;
 
-test('M-10 remains unapplied until the hosted gate and has its own Bets reader', () => {
+test('M-10 is hosted (October 22 apply record) and has its own Bets reader', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'removed from NOT_HOSTED by the October 22 apply record (Gate M step 8)');
 });
 
 test('M-10 service-only table and functions deny browser roles', { skip }, async t => {

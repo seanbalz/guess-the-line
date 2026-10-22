@@ -57,8 +57,6 @@ export const workerChecks = Object.freeze([
 ]);
 
 export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_read_account_preferences': 'migration 20261016011000_gtl_account_preferences.sql',
-  'rpc/gtl_save_account_preferences': 'migration 20261016011000_gtl_account_preferences.sql',
   'gtl-api/me/preferences': 'the gtl-api deploy with /me/preferences',
   'gtl-api/me/preferences/save': 'the gtl-api deploy with /me/preferences/save',
 });
