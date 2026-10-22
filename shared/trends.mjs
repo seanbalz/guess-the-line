@@ -492,11 +492,13 @@ const conferenceOf = (venues, fr) => venues.teams[fr]?.conference ?? null;
  * null (input hidden or unknown: line, weather, roof) or 'pending' (an earlier game of
  * the team has no final yet, so a prior-result atom cannot be computed honestly).
  */
-export function buildFeatures(games, { venues, corrections }) {
+export function buildFeatures(games, { venues, corrections, resume = null, onState = null }) {
   const rules = corrections.rules ?? {};
   const noContest = new Set(Object.keys(corrections.noContest ?? {}));
   const all = games.filter(g => !noContest.has(g.id));
   const stadium = sid => venues.stadiums[sid] ?? null;
+  // resume: the rolling state after a frozen history (see featureState), so only later seasons are processed.
+  if (resume && all.some(g => g.season <= resume.through)) throw new Error('Resumed features accept only seasons after the prepared history.');
 
   // Season home stadium (most common designated-home stadium), dome and grass traits.
   const homeCount = new Map(), roofCount = new Map(), surfCount = new Map();
@@ -512,6 +514,13 @@ export function buildFeatures(games, { venues, corrections }) {
   const seasonInfo = (fr, season) => {
     const key = `${fr}|${season}`;
     if (infoCache.has(key)) return infoCache.get(key);
+    if (resume && season <= resume.through) {
+      if (season !== resume.through) throw new Error('Resumed features read only the last prepared season.');
+      const kept = resume.info[fr] ?? null;
+      const info = kept && { sid: kept.sid, venue: stadium(kept.sid), indoor: kept.indoor, grass: kept.grass };
+      infoCache.set(key, info);
+      return info;
+    }
     let info = null;
     if (homeCount.has(key)) {
       const sid = mostCommon(homeCount.get(key));
@@ -573,6 +582,7 @@ export function buildFeatures(games, { venues, corrections }) {
     coachFirstTeam: new Map(), coachFirstAny: new Map(), seasonCoach: new Map(),
     league: new LeagueScoring(), mkt: new MarketRatings(), mktN: new Map(),
   };
+  if (resume) restoreFeatureState(st, resume);
   const logsOf = (fr, season) => st.logs.get(`${fr}|${season}`) ?? [];
   const STATE_GAME = GAME_ATOMS.filter(k => ATOMS[k].state);
   const STATE_TEAM = TEAM_ATOMS.filter(k => ATOMS[k].state);
@@ -880,7 +890,54 @@ export function buildFeatures(games, { venues, corrections }) {
     for (let x = i; x < j; x++) if (all[x].played) update(all[x]);
     i = j;
   }
+  if (onState) onState({ st, seasonInfo });
   return all;
+}
+
+// ---------------------------------------------------------------------------
+// Prepared history (server CPU budget). A request for a season after the frozen history
+// resumes from this state instead of rebuilding every historical game. Only state that a
+// later season can read is kept: logs, team QB counts and season coaches are keyed by
+// season, so they start empty; the last three meetings of a pair cover every h2h read.
+// ---------------------------------------------------------------------------
+/** Serializable feature state after `through` (callers pass every franchise that may appear). */
+export function featureState({ st, seasonInfo }, { through, franchises }) {
+  const meetRow = m => [m.date, m.season, ...Object.keys(m.margin), m.id, m.homeApp, m.awayApp, m.homeScore, m.awayScore, m.spread, m.tl];
+  return {
+    through,
+    info: Object.fromEntries([...franchises].sort().map(fr => {
+      const i = seasonInfo(fr, through);
+      return [fr, i && { sid: i.sid, indoor: i.indoor, grass: i.grass }];
+    })),
+    meet: [...st.meet].map(([key, list]) => [key, list.slice(-3).map(meetRow)]),
+    qbStarts: [...st.qbStarts], coachAts: [...st.coachAts], coachFirstTeam: [...st.coachFirstTeam], coachFirstAny: [...st.coachFirstAny],
+    league: { buf: st.league.buf, sum: st.league.sum },
+    mkt: { m: [...st.mkt.m], seen: [...st.mkt.seen], hfaHist: st.mkt.hfaHist, hfaSum: st.mkt.hfaSum },
+    mktN: [...st.mktN],
+  };
+}
+function restoreFeatureState(st, state) {
+  // Rebuild each meeting with the expressions update() uses, so signed zeros and covers match.
+  const meeting = ([date, season, homeFr, awayFr, id, homeApp, awayApp, hs, as, spread, tl]) => {
+    const result = hs - as, total = hs + as;
+    const margin = { [homeFr]: result, [awayFr]: -result };
+    const cover = {};
+    for (const side of [0, 1]) {
+      const line = spread === null ? null : side === 0 ? spread : -spread;
+      cover[side === 0 ? homeFr : awayFr] = line === null ? null : margin[side === 0 ? homeFr : awayFr] - line;
+    }
+    return { date, season, margin, cover, total, tl, id, homeApp, awayApp, homeScore: hs, awayScore: as, spread };
+  };
+  for (const [key, list] of state.meet) st.meet.set(key, list.map(meeting));
+  for (const [k, v] of state.qbStarts) st.qbStarts.set(k, v);
+  for (const [k, v] of state.coachAts) st.coachAts.set(k, [...v]);
+  for (const [k, v] of state.coachFirstTeam) st.coachFirstTeam.set(k, v);
+  for (const [k, v] of state.coachFirstAny) st.coachFirstAny.set(k, v);
+  st.league.buf = [...state.league.buf]; st.league.sum = state.league.sum;
+  for (const [k, v] of state.mkt.m) st.mkt.m.set(k, v);
+  for (const [k, v] of state.mkt.seen) st.mkt.seen.set(k, v);
+  st.mkt.hfaHist = [...state.mkt.hfaHist]; st.mkt.hfaSum = state.mkt.hfaSum;
+  for (const [k, v] of state.mktN) st.mktN.set(k, v);
 }
 
 // ---------------------------------------------------------------------------
@@ -1221,6 +1278,165 @@ export function evaluatePreset(preset, ctx) {
   return result;
 }
 
+// Prepared preset history: the part of evaluatePreset that depends only on units before the
+// target season, kept so a request evaluates the current season's units alone. Floating sums
+// are stored as accumulated, then continued in the same unit order, so results are identical.
+const AGG_KEYS = ['wA', 'lA', 'p', 'uA', 'uB', 'uA110', 'uB110', 'rs', 'rss', 'rn'];
+const RES_CHAR = r => (r > 0 ? 'W' : r < 0 ? 'L' : 'P');
+const CHAR_RES = { W: 1, L: -1, P: 0 };
+function seriesPrefix(series) {
+  let W = 0, L = 0, P = 0, units = 0;
+  for (const b of series) {
+    if (b.r > 0) { W++; units += W110; } else if (b.r < 0) { L++; units -= 1; } else P++;
+  }
+  let streak = null;
+  for (let i = series.length - 1; i >= 0; i--) {
+    const r = series[i].r;
+    if (r === 0) continue;
+    if (!streak) streak = { result: r > 0 ? 'W' : 'L', length: 1 };
+    else if ((r > 0 ? 'W' : 'L') === streak.result) streak.length++;
+    else break;
+  }
+  return [W, L, P, units, streak ? streak.result : '', streak ? streak.length : 0, series.slice(-10).map(b => RES_CHAR(b.r)).join('')];
+}
+/** seriesRecord(history series + series) from a seriesPrefix of the history series (no spark or odds). */
+function resumeSeriesRecord([hW, hL, hP, hUnits, hResult, hLength, hTail], series) {
+  let W = hW, L = hL, P = hP, units = hUnits;
+  for (const b of series) {
+    if (b.r > 0) { W++; units += W110; } else if (b.r < 0) { L++; units -= 1; } else P++;
+  }
+  const n = W + L + P;
+  let streak = null, broken = false;
+  for (let i = series.length - 1; i >= 0; i--) {
+    const r = series[i].r;
+    if (r === 0) continue;
+    if (!streak) streak = { result: r > 0 ? 'W' : 'L', length: 1 };
+    else if ((r > 0 ? 'W' : 'L') === streak.result) streak.length++;
+    else { broken = true; break; }
+  }
+  if (!broken && hResult) {
+    if (!streak) streak = { result: hResult, length: hLength };
+    else if (streak.result === hResult) streak.length += hLength;
+  }
+  const last10 = { W: 0, L: 0, P: 0 };
+  for (const r of [...[...hTail].map(c => CHAR_RES[c]), ...series.map(b => b.r)].slice(-10)) { if (r > 0) last10.W++; else if (r < 0) last10.L++; else last10.P++; }
+  return { W, L, P, hit: W + L ? round4(W / (W + L)) : null, wilson95: wilson(W, W + L), units110: round4(units),
+    roi110: n ? round4(units / n) : null, streak, last10 };
+}
+const windowCounts = (units, keep) => {
+  let w = 0, l = 0, p = 0, from = null, to = null;
+  for (const u of units) {
+    if (!keep(u)) continue;
+    if (u.res > 0) w++; else if (u.res < 0) l++; else p++;
+    from ??= u.g.date; to = u.g.date;
+  }
+  return [w, l, p, from, to];
+};
+
+/** History summary of a preset's units, all from seasons before `season` (date order). */
+export function presetHistory(preset, units, { season }) {
+  if (units.some(u => u.g.season >= season)) throw new Error('Preset history must precede the target season.');
+  const agg = aggregate(units);
+  const sideOf = walkForward(agg, PERIODS.firstSeason + 1, season - 1).sideOf;
+  let A = 0, B = 0, P = 0;
+  for (const u of units) { if (u.res > 0) A++; else if (u.res < 0) B++; else P++; }
+  const h = {
+    n: units.length,
+    f: units.length ? [units[0].g.season, units[0].g.date] : null,
+    l: units.length ? [units.at(-1).g.season, units.at(-1).g.date] : null,
+    s: [A, B, P],
+    a: [...agg].map(([s, a]) => [s, ...AGG_KEYS.map(k => a[k])]),
+    w: seriesPrefix(betSeries(units, u => sideOf.get(u.g.season) ?? null)),
+    y3: windowCounts(units, u => u.g.season >= season - 2),
+    y5: windowCounts(units, u => u.g.season >= season - 4),
+    t: units.slice(-10).map(u => [u.res, u.g.date]),
+  };
+  if (preset.side) {
+    const series = betSeries(units, () => preset.side);
+    h.r = { r: series.map(b => RES_CHAR(b.r)).join(''), odds: series.map(b => b.odds),
+      seasons: series.reduce((runs, b) => { if (runs.at(-1)?.[0] === b.season) runs.at(-1)[1]++; else runs.push([b.season, 1]); return runs; }, []) };
+  }
+  if (preset.atoms.includes('g:g_indoor')) h.roof = roofCounts(units);
+  return h;
+}
+export const EMPTY_PRESET_HISTORY = Object.freeze({ n: 0, f: null, l: null, s: [0, 0, 0], a: [], w: [0, 0, 0, 0, '', 0, ''],
+  y3: [0, 0, 0, null, null], y5: [0, 0, 0, null, null], t: [] });
+const roofKind = u => (u.g.venue && u.g.venue.type === 'retractable' ? 'retractableClosed' : 'fixedDome');
+function roofCounts(units) {
+  const split = { fixedDome: [0, 0, 0], retractableClosed: [0, 0, 0] };
+  for (const u of units) split[roofKind(u)][u.res > 0 ? 0 : u.res < 0 ? 1 : 2]++;
+  return split;
+}
+
+/** evaluatePreset for history (presetHistory) plus the current season's units. */
+export function resumePreset(preset, ctx, hist, units) {
+  const { throughSeason, currentSeason, lastFinalDate } = ctx;
+  if (units.some(u => u.g.season <= throughSeason) || (hist.l && hist.l[0] > throughSeason)) throw new Error('Prepared history does not end before the current units.');
+  if (hist.l && hist.l[1] > lastFinalDate) throw new Error('Prepared history extends past the registration date.');
+  const agg = new Map(hist.a.map(([s, ...v]) => [s, Object.fromEntries(AGG_KEYS.map((k, i) => [k, v[i]]))]));
+  for (const [s, a] of aggregate(units)) agg.set(s, a);
+  const discA = summarize(agg, PERIODS.firstSeason, PERIODS.discoveryLast, 'A');
+  const discSide = discA.W >= discA.L ? 'A' : 'B';
+  const disc = { ...summarize(agg, PERIODS.firstSeason, PERIODS.discoveryLast, discSide), side: discSide };
+  disc.p2 = binomTwoSided(disc.W, disc.W + disc.L);
+  const oos = walkForward(agg, PERIODS.confirmationFirst, throughSeason, discSide);
+  const wfAll = walkForward(agg, PERIODS.firstSeason + 1, currentSeason, discSide);
+  let [aW, aL, aP] = hist.s;
+  for (const u of units) { if (u.res > 0) aW++; else if (u.res < 0) aL++; else aP++; }
+  const decidedThrough = hist.s[0] + hist.s[1] + units.filter(u => u.res !== 0 && u.g.season <= throughSeason).length;
+  const first = hist.f ?? (units.length ? [units[0].g.season, units[0].g.date] : null);
+  const last = units.length ? [units.at(-1).g.season, units.at(-1).g.date] : hist.l;
+  const result = {
+    units, history: hist, agg,
+    split: { A: aW, B: aL, P: aP },
+    games: hist.n + units.length, seasons: agg.size,
+    firstSeason: first ? first[0] : null, lastSeason: last ? last[0] : null,
+    firstDate: first ? first[1] : null, lastDate: last ? last[1] : null,
+    decided: aW + aL, decidedThrough, disc, oos, wfAll,
+  };
+  const wfSide = u => wfAll.sideOf.get(u.g.season) ?? null;
+  const wfFirst = wfAll.perSeason.length ? wfAll.perSeason[0][0] : null;
+  result.wf = { from: wfFirst, ...resumeSeriesRecord(hist.w, betSeries(units, wfSide)) };
+  const seasonSide = preset.side ?? wfAll.sideOf.get(currentSeason) ?? null;
+  result.seasonSide = seasonSide;
+  if (preset.side) {
+    if (!hist.r && hist.n) throw new Error('Prepared history lacks the registered series.');
+    const runs = hist.r?.seasons ?? [], before = [];
+    let k = 0;
+    for (const [season, count] of runs) for (let i = 0; i < count; i++, k++) before.push({ r: CHAR_RES[hist.r.r[k]], odds: hist.r.odds[k], season });
+    result.reg = seriesRecord([...before, ...betSeries(units, () => preset.side)], { spark: true, oddsUnits: true });
+  }
+  const inSeason = units.filter(u => u.g.season === currentSeason);
+  result.thisSeason = seasonSide ? recOnly(seriesRecord(betSeries(inSeason, () => seasonSide))) : null;
+  const since = units.filter(u => u.g.date > lastFinalDate);
+  result.sinceRegistered = seasonSide ? recOnly(seriesRecord(betSeries(since, () => seasonSide))) : null;
+  return result;
+}
+
+/** evidenceWindows for a full result or a resumed one (prepared history plus current units). */
+export function resultWindows(r, season, side = null) {
+  const h = r.history;
+  if (!h) return evidenceWindows(r.units, season, side);
+  const cur = keep => windowCounts(r.units, keep);
+  const join = (hc, cc) => [hc[0] + cc[0], hc[1] + cc[1], hc[2] + cc[2], hc[3] ?? cc[3], cc[4] ?? hc[4]];
+  const tail = [...h.t.map(([res, date]) => ({ res, g: { date } })), ...r.units];
+  const windows = { last5: windowCounts(tail.slice(-5), () => true), last10: windowCounts(tail.slice(-10), () => true),
+    season: cur(u => u.g.season === season), years3: join(h.y3, cur(u => u.g.season >= season - 2)),
+    years5: join(h.y5, cur(u => u.g.season >= season - 4)),
+    all: [r.split.A, r.split.B, r.split.P, r.firstDate, r.lastDate] };
+  const view = ([w, l, p, from, to], orientation) => (orientation === 'B'
+    ? { W: l, L: w, P: p, n: w + l + p, from, to } : { W: w, L: l, P: p, n: w + l + p, from, to });
+  return Object.fromEntries(Object.entries(windows).map(([key, c]) => [key, side ? view(c, side) : { A: view(c, 'A'), B: view(c, 'B') }]));
+}
+/** Played-game venue split of a card's units on its registered side. */
+function resultRoofSplit(p, r) {
+  const counts = roofCounts(r.units);
+  if (r.history?.n && !r.history.roof) throw new Error('Prepared history lacks the venue split.');
+  if (r.history?.n) for (const k of Object.keys(counts)) for (let i = 0; i < 3; i++) counts[k][i] += r.history.roof[k][i];
+  if (p.side !== 'A') for (const k of Object.keys(counts)) counts[k] = [counts[k][1], counts[k][0], counts[k][2]];
+  return counts;
+}
+
 // ---------------------------------------------------------------------------
 // GTL trend quality score (exact port of the S1 score.py) and tier gates
 // ---------------------------------------------------------------------------
@@ -1323,7 +1539,7 @@ export function gates(result, preset, { q = null, robustness = [] } = {}) {
 
 /** Robustness: a drop-one or loosen-one variant must bet the same side with hit >= 50% in 2002-2017 and in 2018-through. */
 export function robustnessCheck(variantResult, side, throughSeason) {
-  const agg = aggregate(variantResult.units);
+  const agg = variantResult.agg ?? aggregate(variantResult.units); // a resumed result keeps its merged aggregate
   const d = summarize(agg, PERIODS.firstSeason, PERIODS.discoveryLast, side);
   const c = summarize(agg, PERIODS.confirmationFirst, throughSeason, side);
   const dSide = variantResult.disc.side;
@@ -1458,19 +1674,120 @@ function normalizedBetSet(p, r) {
   }));
 }
 
+const REF_BANDS = ['g_t_le37', 'g_t_375_405', 'g_t_41_435', 'g_t_44_465', 'g_t_47_505', 'g_t_51p'];
+const ENTITY_SEEN = { team: 'franchises', hosts: 'franchises', visits: 'franchises', neutralteam: 'franchises', anyteam: 'franchises',
+  coach: 'coaches', anycoach: 'coaches', qb: 'qbs', anyqb: 'qbs', ref: 'referees' };
+const seenSets = new WeakMap();
+/** A preset's prepared history. Only an entity never seen in the prepared games may be absent (no historical units). */
+function preparedPresetHistory(history, p) {
+  const h = history.presets[p.id];
+  if (h) return h;
+  if (!seenSets.has(history)) seenSets.set(history, Object.fromEntries(Object.entries(history.entities).map(([k, v]) => [k, new Set(v)])));
+  const seen = seenSets.get(history);
+  const unseen = p.atoms.some(a => {
+    const kind = a.slice(0, a.indexOf(':')), set = ENTITY_SEEN[kind];
+    return set && !seen[set].has(a.slice(a.indexOf(':') + 1));
+  });
+  if (unseen) return EMPTY_PRESET_HISTORY;
+  throw new Error(`Prepared history lacks ${p.id}.`);
+}
+/** Shared normalized bets of two cards: prepared historical overlap plus the current units. */
+function preparedOverlap(history, pa, ra, pb, rb) {
+  const before = history.overlaps[pa.id]?.[pb.id];
+  if (before === undefined) throw new Error(`Prepared history lacks the overlap of ${pa.id} and ${pb.id}.`);
+  const a = normalizedBetSet(pa, ra), b = normalizedBetSet(pb, rb);
+  let inter = before;
+  for (const x of b) if (a.has(x)) inter++;
+  return { inter, a: ra.history.n + a.size, b: rb.history.n + b.size };
+}
+
+/**
+ * Everything generateWeek needs from the frozen history for `season`, so a request processes
+ * only that season's rows. Deterministic and JSON-serializable (scripts/trends-seed.mjs).
+ */
+export function prepareHistory({ historyCsv, registry, venues, corrections, season, registrySha256 = null }) {
+  const through = season - 1, rules = corrections.rules ?? {};
+  const games = redactUnplayed(normalizeRows(parseCsvRows(historyCsv).rows, { corrections, venues }));
+  if (!games.length || games.some(g => g.season > through)) throw new Error('Prepared history must end before the target season.');
+  let internals = null;
+  const fg = buildFeatures(games, { venues, corrections, onState: s => { internals = s; } });
+  const pop = evaluationGames(fg);
+  const sorted = set => [...set].sort();
+  const seen = { franchises: new Set(), coaches: new Set(), qbs: new Set(), referees: new Set() };
+  for (const g of pop) {
+    seen.franchises.add(g.homeFr).add(g.awayFr);
+    for (const c of g.coach) if (c) seen.coaches.add(c);
+    for (const q of g.qb) if (q) seen.qbs.add(q);
+    if (g.referee) seen.referees.add(g.referee);
+  }
+  // Every preset generateWeek can evaluate: the registry, its robustness variants and each seen entity.
+  const specs = new Map(registry.presets.map(p => [p.id, p]));
+  const add = (market, atoms) => { const id = `${market}|${atoms.join('+')}`; if (!specs.has(id)) specs.set(id, { id, market, atoms }); };
+  for (const p of registry.presets) for (const atoms of p.robustness ?? []) add(p.market, atoms);
+  for (const fr of sorted(seen.franchises)) {
+    for (const role of ['home', 'road', 'neutral']) {
+      add('team_ats', [`team:${fr}`, `venue:${role}`]);
+      add('total', [role === 'home' ? `hosts:${fr}` : role === 'road' ? `visits:${fr}` : `neutralteam:${fr}`]);
+      add('su', [`team:${fr}`, `venue:${role}`]);
+    }
+    add('team_ats', [`team:${fr}`, 'role:fav']);
+    add('team_ats', [`team:${fr}`, 'role:dog']);
+  }
+  for (const coach of sorted(seen.coaches)) { add('team_ats', [`coach:${coach}`]); add('total', [`anycoach:${coach}`]); }
+  for (const qb of sorted(seen.qbs)) { add('team_ats', [`qb:${qb}`]); add('total', [`anyqb:${qb}`]); }
+  for (const name of sorted(seen.referees)) {
+    for (const extra of [[], ['g:g_prime'], ['g:g_div']]) { add('total', [`ref:${name}`, ...extra]); add('home_ats', [`ref:${name}`, ...extra]); }
+    for (const band of REF_BANDS) add('total', [`ref:${name}`, `g:${band}`]);
+  }
+  const units = new Map([...specs.values()].map(p => [p.id, betUnits(p, pop, { rules })]));
+  const overlaps = {}, top = registry.presets.filter(p => p.tierCeiling < 3);
+  const sets = new Map(top.map(p => [p.id, normalizedBetSet(p, { units: units.get(p.id) })]));
+  for (const p of top) {
+    if (sets.get(p.id).size !== units.get(p.id).length) throw new Error(`Repeated bets in ${p.id}.`);
+    overlaps[p.id] = Object.fromEntries(top.map(o => [o.id, [...sets.get(o.id)].filter(x => sets.get(p.id).has(x)).length]));
+  }
+  const qbNames = new Map();
+  for (const g of fg) for (const side of [0, 1]) {
+    const id = g.qb[side];
+    if (!id || !g.qbName[side]) continue;
+    if (!qbNames.has(id)) qbNames.set(id, new Map());
+    const m = qbNames.get(id);
+    m.set(g.qbName[side], (m.get(g.qbName[side]) ?? 0) + 1);
+  }
+  const franchises = new Set([...fg.flatMap(g => [g.homeFr, g.awayFr]), ...Object.keys(venues.teams ?? {})]);
+  return {
+    version: 1, season,
+    registry: { version: registry.version, lastFinalDate: registry.lastFinalDate, sha256: registrySha256 },
+    rules,
+    features: featureState(internals, { through, franchises }),
+    asOf: fg.filter(g => g.played).reduce((m, g) => (g.date > m ? g.date : m), ''),
+    qbNames: [...qbNames].map(([id, names]) => [id, [...names]]),
+    recentReferees: [...new Set(fg.filter(g => g.played && g.referee && g.season >= season - 2).map(g => g.referee))],
+    entities: Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, sorted(v)])),
+    presets: Object.fromEntries([...specs.values()].map(p => [p.id, presetHistory(p, units.get(p.id), { season })])),
+    overlaps,
+  };
+}
+
 /**
  * Generate the committed week file for one regular-season week. Deterministic: the same
  * inputs give the same object (stable sorts, numbers rounded to 4 dp, no clock).
  */
-export function generateWeek({ historyCsv, seasonCsv, season, week, registry, venues, corrections, referees = {}, allowPending = false, sources = {}, includeWindows = false }) {
+export function generateWeek({ historyCsv, history = null, seasonCsv, season, week, registry, venues, corrections, referees = {}, allowPending = false, sources = {}, includeWindows = false }) {
   const rules = corrections.rules ?? {};
-  const rows = [...parseCsvRows(historyCsv).rows, ...parseCsvRows(seasonCsv).rows];
+  // history: a prepareHistory() result replaces historyCsv; only the season file is then processed.
+  if (history && (history.season !== season || history.features.through !== season - 1 || history.registry.version !== registry.version
+    || history.registry.lastFinalDate !== registry.lastFinalDate || history.registry.sha256 !== (sources.registrySha256 ?? null)
+    || JSON.stringify(history.rules) !== JSON.stringify(rules))) {
+    throw new Error('Prepared history does not match this season and registry.');
+  }
+  const rows = history ? parseCsvRows(seasonCsv).rows : [...parseCsvRows(historyCsv).rows, ...parseCsvRows(seasonCsv).rows];
   const games = redactUnplayed(normalizeRows(rows, { corrections, venues }));
-  const fg = buildFeatures(games, { venues, corrections });
+  const fg = buildFeatures(games, { venues, corrections, resume: history?.features ?? null });
   const pop = evaluationGames(fg);
   const throughSeason = season - 1;
   const lastFinalDate = registry.lastFinalDate;
-  const asOf = fg.filter(g => g.played).reduce((m, g) => (g.date > m ? g.date : m), '');
+  const asOf = fg.filter(g => g.played).reduce((m, g) => (g.date > m ? g.date : m), history?.asOf ?? '');
   const ctx = { pop, rules, throughSeason, currentSeason: season, lastFinalDate };
   const target = fg.filter(g => g.season === season && g.gameType === 'REG' && g.week === week)
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) || a.kick - b.kick || (a.id < b.id ? -1 : 1));
@@ -1490,7 +1807,7 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
   const byId = new Map(presets.map(p => [p.id, p]));
   const results = new Map();
   const resultOf = p => {
-    if (!results.has(p.id)) results.set(p.id, evaluatePreset(p, ctx));
+    if (!results.has(p.id)) results.set(p.id, history ? resumePreset(p, ctx, preparedPresetHistory(history, p), betUnits(p, pop, { rules })) : evaluatePreset(p, ctx));
     return results.get(p.id);
   };
   const graded = new Map();
@@ -1536,18 +1853,10 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
       timing: p.timing, gate: p.gate,
       gates: { eligible: gate.eligible, failed: gate.failed, robustness: robustness.map(v => ({ id: v.id, pass: v.pass, disc: recArr(v.disc), conf: recArr(v.conf) })) },
     };
-    if (includeWindows) card.windows = evidenceWindows(r.units, season, p.side);
+    if (includeWindows) card.windows = resultWindows(r, season, p.side);
     delete card.record.fileOdds; // file-odds ROI stays hidden until the commissioner approves odds-derived records
     if (p.note) card.note = p.note;
-    if (p.atoms.includes('g:g_indoor')) {
-      const split = { fixedDome: [0, 0, 0], retractableClosed: [0, 0, 0] };
-      for (const u of r.units) {
-        const k = u.g.venue && u.g.venue.type === 'retractable' ? 'retractableClosed' : 'fixedDome';
-        const res = p.side === 'A' ? u.res : -u.res;
-        split[k][res > 0 ? 0 : res < 0 ? 1 : 2]++;
-      }
-      card.roofSplit = split;
-    }
+    if (p.atoms.includes('g:g_indoor')) card.roofSplit = resultRoofSplit(p, r);
     if (p.splits) card.splits = p.splits.map(id => compactRow(byId.get(id)));
     cards[p.id] = card;
     return p.id;
@@ -1562,7 +1871,7 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
       oos: recArr(r.oos), side: r.seasonSide, season: r.thisSeason ? recArr(r.thisSeason) : [0, 0, 0],
       since: r.sinceRegistered ? recArr(r.sinceRegistered) : [0, 0, 0], score: sc.score,
     };
-    if (includeWindows) row.windows = evidenceWindows(r.units, season);
+    if (includeWindows) row.windows = resultWindows(r, season);
     if (sc.anecdote) row.anecdote = true;
     if (p.market === 'su') { row.score = null; row.descriptive = true; } // straight-up records are descriptive; GTL scores spread and total only
     if (row.years[0] !== null && row.seasons === row.years[1] - row.years[0] + 1) delete row.seasons;
@@ -1583,7 +1892,7 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
   const scoreOf = id => (cards[id]?.score.score ?? rowsOut[id]?.score ?? 0);
 
   // Entities (teams, coaches, quarterbacks) and referees use the same evaluation.
-  const qbNames = new Map();
+  const qbNames = new Map((history?.qbNames ?? []).map(([id, names]) => [id, new Map(names)]));
   for (const g of fg) for (const side of [0, 1]) {
     const id = g.qb[side];
     if (!id || !g.qbName[side]) continue;
@@ -1601,11 +1910,10 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
     return compactRow(byId.get(id), extra);
   };
 
-  const refSeen = new Set();
+  const refSeen = new Set(history?.recentReferees ?? []);
   for (const g of fg) if (g.played && g.referee && g.season >= season - 2) refSeen.add(g.referee);
   const refereeOptions = [...refSeen].sort();
   const assigned = {};
-  const REF_BANDS = ['g_t_le37', 'g_t_375_405', 'g_t_41_435', 'g_t_44_465', 'g_t_47_505', 'g_t_51p'];
   const refereesOut = {};
   for (const name of refereeOptions) {
     const q = id => registry.entityQ?.[id] ?? null;
@@ -1715,14 +2023,19 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
         if (k.betKey !== item.betKey) return false;
         const kp = byId.get(k.card);
         if (kp.dedupGroup && kp.dedupGroup === p.dedupGroup) return true;
-        return jaccard(normalizedBetSet(kp, grade(kp).r), normalizedBetSet(p, grade(p).r)) >= 0.5;
+        if (!history) return jaccard(normalizedBetSet(kp, grade(kp).r), normalizedBetSet(p, grade(p).r)) >= 0.5;
+        const o = preparedOverlap(history, kp, grade(kp).r, p, grade(p).r);
+        return (o.a || o.b ? o.inter / (o.a + o.b - o.inter) : 0) >= 0.5;
       });
       if (twin) { (twin.alternatives ??= []).push(item.card); continue; }
       const same = kept.find(k => k.betKey === item.betKey);
       if (same) {
-        const a = normalizedBetSet(byId.get(same.card), grade(byId.get(same.card)).r), b = normalizedBetSet(p, grade(p).r);
         let overlap = 0;
-        for (const x of b) if (a.has(x)) overlap++;
+        if (history) overlap = preparedOverlap(history, byId.get(same.card), grade(byId.get(same.card)).r, p, grade(p).r).inter;
+        else {
+          const a = normalizedBetSet(byId.get(same.card), grade(byId.get(same.card)).r), b = normalizedBetSet(p, grade(p).r);
+          for (const x of b) if (a.has(x)) overlap++;
+        }
         item.stacked = { with: same.card, overlapGames: overlap, note: COPY.stacked };
       }
       kept.push(item);

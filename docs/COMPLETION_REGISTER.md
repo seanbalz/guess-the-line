@@ -206,7 +206,9 @@ before its fix and passes after it. The affected browser suites (Bets, scoring,
 Play, four-tab, Lines, UI kit, Recommended and the new layout spec) passed 53/53
 locally, with token, app-view and brand-document checks. The Bets section switch keeps its deliberate
 2 + 1 layout below 520 px. D-55 records Sean's chart and brand direction; the
-hybrid chart boards await his approval before any token change. Not deployed.
+hybrid chart boards await his approval before any token change. Released
+October 22 in Pages `af617cd2`; see the [Trends and Recommended filter
+release](RELEASE_2026_10_22_TRENDS_FILTER.md).
 A later CI pass on Linux found "Rest of season" spilling out of its Fantasy
 segment at 320 px with the wider fallback font; segments now size by their labels
 and the layout spec gained a wide-font pass that reproduces it on any host.
@@ -218,8 +220,29 @@ open a chart card (headline units, a line you can drag, a by-season view of
 stems and a table, at most three tiles) built from the week file's own points and
 seasons or the research reply's bins. Fine print moved behind ⓘ buttons and into
 Menu › Guidance and sources. Home and Bets follow R3 and R4, and the D-55 tokens,
-brand guide section and rule of restraint 10 are recorded. Verification is in the
-branch's PR. Not deployed.
+brand guide section and rule of restraint 10 are recorded. Verification is in
+PR #177. Released October 22 at 09:13 UTC as Pages `f092e744` (frontend only;
+API v31 unchanged); see the [round 3 release record](RELEASE_2026_10_22_ROUND3.md).
+Real-phone acceptance remains open.
+
+October 22 Q03 (UX-NEXT-01): `tests/cloud-browser/next-scroll-navigation.spec.js`
+covers 11 pages at 390 × 844 and 320 × 568 in both themes, on local fixtures.
+The tab bar stays at the screen's bottom through scrolling and window-height
+changes, no ancestor traps the fixed bars, no page scrolls sideways, and each
+page's end clears the tab bar. Tab focus landed under the tab bar or top bar on
+12 page and size combinations. The fix is root `scroll-padding` in
+`web/src/next/shell/shell.css`. A second test proves each check reports the
+failure it guards. Merged in PR #181 and released October 22 in the
+protected release [39821362374](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39821362374) (API and frontend from `8dccc5c`, with #180 and #182) as Pages `9fb54fe4`; the served
+CSS carries both rules. Real-iPhone reproduction and acceptance remain open.
+
+October 22 weekly Trends CPU fix: from API v31 on, every signed-in `/trends/week`
+request hit the Edge CPU limit (HTTP 546), and Week 8 has no static fallback.
+The server seed now carries the prepared 2025 history state instead of the history
+CSV, so each request processes only the current season. Output is byte-identical,
+and local cold main-thread CPU fell from about 1.07 s to under 0.21 s in Node and
+Deno. Evidence is in the [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md#october-22--hosted-cpu-outage-and-prepared-history-fix-claude-code);
+branch `claude/trends-week-cpu`. Merge, API release and hosted readback remain pending.
 
 ## Evidence and limits
 
