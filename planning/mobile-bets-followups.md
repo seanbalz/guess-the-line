@@ -4,7 +4,7 @@ Owner: Sean Balsiger · Version 4 · October 22, 2026
 
 Status: two follow-ups requested by Sean, tracked as queue items Q03
 (UX-NEXT-01) and Q04 (BETS-NEXT-01). BETS-NEXT-01 is delivered and released.
-UX-NEXT-01 has a browser regression and a local repair; real-iPhone
+UX-NEXT-01 has a browser regression and a released focus repair; real-iPhone
 reproduction and acceptance remain open.
 
 **October 21 update.** Written on PR #144 (closed October 21) and carried to
@@ -30,7 +30,8 @@ main unchanged below this note. Since then:
   Recommended. The filter applies before the top-three limit. It was released
   in Pages `af617cd2`; see the
   [release record](../docs/RELEASE_2026_10_22_TRENDS_FILTER.md).
-- **UX-NEXT-01: regression added, local repair, not deployed.** A new browser
+- **UX-NEXT-01: regression added; the focus repair merged in PR #181 and was
+  released in protected release [39821362374](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39821362374) (API and frontend from `8dccc5c`, with #180 and #182) as Pages `9fb54fe4`.** A new browser
   contract, `tests/cloud-browser/next-scroll-navigation.spec.js`, runs on
   local fixtures. It covers 11 pages at 390 × 844 (Dark) and 320 × 568 (Light):
   every tab root, Play's picks and history, and Bets' Recommended, active and
@@ -120,7 +121,7 @@ Lane names are suggested routing from the build plan, not active assignments.
 
 | ID | Priority | Task | State | Suggested lane / owner | Dependencies | Target |
 |---|---|---|---|---|---|---|
-| UX-NEXT-01 | P1 | Fix mobile navigation displacement and scrolling/formatting | Open — browser regression and focus repair local (October 22); real-iPhone reproduction pending | A + C / TBD | D-48 Recommended integration; DASH-12; stages 10 and 79; coordinate pending D-51 work | Not committed |
+| UX-NEXT-01 | P1 | Fix mobile navigation displacement and scrolling/formatting | Open — browser regression and focus repair released in Pages `9fb54fe4` (October 22); real-iPhone reproduction pending | A + C / TBD | D-48 Recommended integration; DASH-12; stages 10 and 79; coordinate pending D-51 work | Not committed |
 | BETS-NEXT-01 | P1 | Filter Recommended by All, Spreads or Totals | Done — PR #175, released in Pages `af617cd2` (October 22) | C / TBD | D-48 recommendation list; DASH-4; stage 43; existing eligibility/reveal gates; coordinate pending D-51 work | Not committed |
 
 ### UX-NEXT-01 — stable navigation while scrolling
