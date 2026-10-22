@@ -14,6 +14,7 @@ const WEEK6 = state => {
 };
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
+const FIRST_LOAD = 15000;
 
 test('trends: off by default, one expander per game, gated by ballot, referee set by the commissioner for everyone', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { prepare: WEEK6, troyBallots: false });
@@ -34,7 +35,9 @@ test('trends: off by default, one expander per game, gated by ballot, referee se
   await expect(expander).toHaveAttribute('aria-expanded', 'true');
   await expect(expander).toBeFocused();
   const panel = page.locator(`#${await expander.getAttribute('aria-controls')}`);
-  await expect(panel.getByRole('heading', { name: 'Strongest historical evidence' })).toBeVisible();
+  // The panel's first open waits for the lazy panel and the authenticated week read (#166), which took 4.4 s on CI's
+  // fixture database; give that first load room instead of the default 5 s. Later checks keep the default.
+  await expect(panel.getByRole('heading', { name: 'Strongest historical evidence' })).toBeVisible({ timeout: FIRST_LOAD });
   // D-34: without a stored forecast (this spec's world has no Open-Meteo provider) the panel keeps the fallback note.
   await expect(panel).toContainText('Applies only if kickoff wind is 10+ mph; no current forecast for this game');
   await expect(panel).toContainText('Referee not assigned yet.');
@@ -80,7 +83,7 @@ test('trends: without a ballot both markets stay locked while the consistent-not
   await page.getByRole('button', { name: 'Show trends', exact: true }).click();
   // A Spread submission is required before spread bands unlock; with none, both markets stay locked.
   await page.getByRole('button', { name: 'Trends for HOU at JAX', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Unlocks after your Total ballot' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Unlocks after your Total ballot' })).toBeVisible({ timeout: FIRST_LOAD });
   await expect(page.getByRole('heading', { name: 'Spread-dependent records' })).toHaveCount(0);
   await expect(page.getByText('Back HOU ATS').first()).toBeVisible();
 });
