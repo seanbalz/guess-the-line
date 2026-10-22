@@ -109,10 +109,33 @@ function apiCalls(page) {
 }
 const READS = ['POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research'];
 
+/**
+ * A synthetic /lines/research reader for the games in `withResearch`: two consistent Total candidates for each open
+ * Total there, nothing for any other game. Fixture evidence through the real authenticated handler; never real research.
+ */
+function syntheticResearch(withResearch) {
+  const calls = [];
+  const read = async ({ board, gameId, period = 'recent30' }) => {
+    calls.push({ gameId, period });
+    const games = board.games.filter(g => !gameId || g.id === gameId), open = games.filter(g => g.total.visible && withResearch.includes(g.id));
+    const record = { wins: 20, losses: 9, pushes: 1, sample: 30, decisive: 29, hitRate: 20 / 29, illustrativeUnits: 9.18, actualUnits: null,
+      priceCoverage: { priced: 0, total: 30, complete: false }, coverage: { from: '2025-09-01T00:00:00Z', to: '2026-10-12T00:00:00Z' }, exclusions: {} };
+    const candidates = open.length ? ['A', 'B'].map(name => ({ id: `synthetic-${name.toLowerCase()}`, title: `Synthetic matchup pattern ${name}`, version: 1, market: 'total', family: 'schedule', period,
+      sourceState: 'computed', conditions: ['Synthetic schedule condition'], conditionDescriptions: ['Synthetic schedule condition'], qualification: { qualifies: true, label: 'Consistent, not proven', reasons: [] },
+      record, applications: open.map(g => ({ gameId: g.id, direction: 'over', whyApplies: ['Synthetic schedule'] })), registeredAt: '2026-10-12T00:00:00Z',
+      series: { points: [{ ...record, from: record.coverage.from, to: record.coverage.to }], binned: true, selectedSample: 30 } })) : [];
+    const shortlist = candidates.map(c => c.id);
+    return { version: 'synthetic-game-sheet-v1', now: new Date().toISOString(), season: board.season, week: board.week, shortlist, candidates, explore: shortlist,
+      history: { status: 'fresh', snapshotAsOf: '2026-10-12T00:00:00Z', periodAnchor: '2026-10-12T00:00:00Z' }, sources: [], trent: { id: 'bookitwithtrent', name: 'Book It With Trent', status: 'unavailable', checkedAt: null, plays: [] },
+      filters: { families: ['schedule'] }, games: games.map(g => ({ id: g.id, kickoff: g.kickoff, spread: { visible: false }, total: { visible: false } })) };
+  };
+  return { read, calls };
+}
+
 /** The world: Week 6 fixtures, Luke's sent Totals and Spread drafts, Troy's sent ballots, a stored collection and a wind stand-in. */
-async function lukesWeek(page, baseURL, { forge = true } = {}) {
+async function lukesWeek(page, baseURL, { forge = true, research } = {}) {
   const fake = forecastFetch(point => ({ values: () => VALUES[point.latitude.toFixed(3)] ?? {} }));
-  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }) });
+  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }), research });
   await storeBookLines(world, LINES);
   await sendBallot(world, 'luke', 'guess_total', LUKE_TOTALS);
   const workspace = await world.api('luke', 'personal');
@@ -313,6 +336,81 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     expect(calls.filter(call => call === 'POST /wind/read'), 'one wind read for the board and every sheet').toHaveLength(1);
     expect(calls.filter(call => !READS.includes(call)), 'browsing writes nothing').toEqual([]);
     expect(fake.calls).toHaveLength(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// Sean, October 22 (iPhone): the game sheet showed the D-55 trend cards, then swapped them for "No qualifying research in
+// this view" once /lines/research answered. The weekly trends are the section whatever research says; research for this
+// game joins below them only when it has candidates, and the empty-state line never shows in the game sheet.
+test('the game sheet keeps its weekly top trends after matchup research answers; research joins below only with candidates', async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(60000); // Axe and the phone rules in both themes on the sheet with research, plus the real database/auth fixture.
+  const research = syntheticResearch(['HOU-JAX']);
+  const { world } = await lukesWeek(page, baseURL, { research });
+  try {
+    await openLines(page);
+    const answer = gameId => page.waitForResponse(r => new URL(r.url()).pathname === '/functions/v1/gtl-api/lines/research' && r.request().postDataJSON()?.gameId === gameId);
+    const noResearchLine = page.getByText(/No qualifying research/);
+
+    // NO @ NYG: research answers 200 with nothing for this game.
+    let answered = answer('NO-NYG');
+    await card(page, 'NO-NYG').click();
+    const nyg = sheet(page, 'NO @ NYG');
+    const nygTrends = nyg.locator('[data-section="trends"]');
+    const nygTop = nygTrends.getByRole('list', { name: 'Top trends for this game' });
+    await expect(nygTop).toBeVisible();
+    const reply = await answered;
+    expect(reply.status()).toBe(200);
+    expect((await reply.json()).shortlist).toEqual([]);
+    // Wait until that answer is drawn, whichever way: the research wrapper says ready (the defect drew the empty-state line).
+    await expect(nygTrends.locator('[data-research="ready"]').or(noResearchLine)).toBeVisible();
+    await expect(noResearchLine).toHaveCount(0);
+    await expect(nygTop).toBeVisible();
+    await expect(nygTop.locator(':scope > li')).toHaveCount(3);
+    await expect(nygTop.locator('[data-trend-detail]'), 'the first trend stays open with its chart').toHaveCount(1);
+    await expect(nygTrends.locator('[data-research-card]')).toHaveCount(0);
+    await expect(nygTrends.getByText('Matchup research', { exact: true })).toHaveCount(0);
+    await expect(nygTrends.getByRole('button', { name: 'Open matchup research', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(nyg).toBeHidden();
+
+    // HOU @ JAX: research has two candidates for this game. They join below the same trends as compact rows.
+    answered = answer('HOU-JAX');
+    await card(page, 'HOU-JAX').click();
+    const hou = sheet(page, 'HOU @ JAX');
+    const houTrends = hou.locator('[data-section="trends"]');
+    const houTop = houTrends.getByRole('list', { name: 'Top trends for this game' });
+    expect((await (await answered).json()).shortlist).toEqual(['synthetic-a', 'synthetic-b']);
+    const rows = houTrends.getByRole('list', { name: 'Research' }).locator('[data-research-card]');
+    await expect(rows).toHaveCount(2);
+    await expect(houTop).toBeVisible();
+    await expect(houTop.locator(':scope > li').first()).toContainText('Rarely covering this season · HOU');
+    await expect(houTrends.getByText('Matchup research', { exact: true })).toBeVisible();
+    // D-55: one opened trend in view, the weekly one with its chart; the research rows stay closed until tapped.
+    await expect(houTop.locator('[data-trend-detail]')).toHaveCount(1);
+    await expect(houTrends.locator('[data-trend-detail]')).toHaveCount(1);
+    await expect(rows.getByRole('button', { expanded: true })).toHaveCount(0);
+    const top = async locator => (await locator.boundingBox()).y;
+    const open = houTrends.getByRole('button', { name: 'Open matchup research', exact: true });
+    expect(await top(houTop)).toBeLessThan(await top(rows.first()));
+    expect(await top(rows.last())).toBeLessThan(await top(open));
+    await expect(noResearchLine).toHaveCount(0);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(value => document.documentElement.setAttribute('data-theme', value), theme);
+      await phoneChecks(page);
+      expect(await axe(page), `axe in ${theme}`).toEqual([]);
+      // The whole section at 390 wide for review: a taller window, so the sheet holds it without scrolling.
+      await page.setViewportSize({ width: 390, height: 1800 });
+      await settle(page);
+      await houTrends.screenshot({ path: testInfo.outputPath(`game-sheet-trends-research-390-${theme}.png`) });
+      await page.setViewportSize({ width: 390, height: 844 });
+    }
+    await noLeak(page, world, 'the HOU @ JAX sheet with matchup research');
+    // A research row opens in place, beside the weekly trends rather than instead of them.
+    await rows.first().getByRole('button', { name: /^Synthetic matchup pattern A/ }).click();
+    await expect(rows.first().locator('[data-trend-detail]')).toBeVisible();
+    await expect(houTop.locator('[data-trend-detail]')).toBeVisible();
+    expect(research.calls.map(call => call.gameId)).toEqual(expect.arrayContaining(['NO-NYG', 'HOU-JAX']));
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
