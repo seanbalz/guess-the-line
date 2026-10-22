@@ -26,7 +26,9 @@ Players and sentiment consume authorized history, then reapply the viewer/game/m
 - Preserve public source attribution and free-only collection limits. Do not create new picks or force an odds collection to demonstrate this feature.
 - The API `trends` feature switch can stop dynamic generation. Older API deployments require an explicitly dated frontend fallback or an unavailable state; a fallback must never bypass an authentication or membership refusal.
 
-The anonymous boundary inventory includes /trends/week with valid read-shaped input, signed out and with an invalid token. Before release, only the exact missing-route response is reported as awaiting deployment; strict mode refuses it. Remove its awaiting-deploy entry after authorized hosted route verification. A gateway authentication denial by itself does not prove that this route is deployed.
+The anonymous boundary inventory includes /trends/week with valid read-shaped input, signed out and with an invalid token. Before release, only the exact missing-route response was reported as awaiting deployment; strict mode refused it. A gateway authentication denial by itself does not prove that this route is deployed.
+
+October 22, 2026: the /trends/week awaiting-deploy entry is removed from `scripts/boundary/lines.mjs`, so a missing route now fails the default `check:cloud`. Evidence, all in the [release record](RELEASE_2026_10_22_TRENDS_FILTER.md): before API v31 one `POST trends/week` probe returned the exact missing-route response, and after it the route refused signed-out requests; the v31 and v32 source checks matched the deployed files, including `cloud/trends.mjs`; and after the v32 deploy, hosted logs show signed-in `POST /trends/week` returning 200 at 18:21:50, 18:24:55 and 18:31:07 UTC. Every recorded boundary check since the v31 deploy counts only six awaiting probes, the RPCs of the three pending migrations.
 
 ## Verification and completion
 
