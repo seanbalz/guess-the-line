@@ -217,9 +217,8 @@ changes, no ancestor traps the fixed bars, no page scrolls sideways, and each
 page's end clears the tab bar. Tab focus landed under the tab bar or top bar on
 12 page and size combinations. The fix is root `scroll-padding` in
 `web/src/next/shell/shell.css`. A second test proves each check reports the
-failure it guards. Released October 22 at 17:19 UTC as Pages `9fb54fe4`; see the
-[Trends CPU release record](RELEASE_2026_10_22_TRENDS_CPU.md). Real-iPhone
-reproduction and acceptance remain open.
+failure it guards. Not deployed; real-iPhone reproduction and acceptance remain
+open.
 
 October 22 weekly Trends CPU fix: from API v31 on, every signed-in `/trends/week`
 request hit the Edge CPU limit (HTTP 546), and Week 8 has no static fallback.
