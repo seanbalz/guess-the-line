@@ -63,8 +63,10 @@ refused, and the retry five minutes later found it. A later check-only run
   retrieved API source files to the release commit. The session that wrote this
   record has no Supabase read permission, so the v32 source has not been
   independently matched to `8dccc5c`.
-- That session's network policy blocks `guess-the-line.pages.dev`, so the 98
-  assets were not fetched again outside the workflow.
+- That session's network policy blocks `guess-the-line.pages.dev`. Separately, the
+  session behind [PR #183](https://github.com/seanbalz/guess-the-lines-repo/pull/183)
+  fetched all 98 manifest assets from production and found every SHA-256 matched,
+  and confirmed the served CSS carries the Q03 `scroll-padding` rules.
 - No read-only preservation snapshot was taken for this release.
 - The CPU fix has not been read back on the hosted API: a signed-in
   `/trends/week` request returning this week's trends instead of HTTP 546.
