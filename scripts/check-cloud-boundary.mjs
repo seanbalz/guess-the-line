@@ -60,10 +60,11 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
 export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|leaseToken|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess|sportsbooks|guidanceCollapsed|tickets|source_record|source_payload|before_terms)"\s*:/;
-const notDeployed = (key, status, result) => Object.hasOwn(awaitingDeploy, key) && status === 404
+const notDeployed = (pendingDeploy, key, status, result) => Object.hasOwn(pendingDeploy, key) && status === 404
   && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : result?.error === 'Not found.' && Object.keys(result).length === 1);
 
-export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = console.log, strict = false }) {
+/** `pendingDeploy` defaults to the area files' awaitingDeploy; tests pass their own to exercise the awaiting path. */
+export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = console.log, strict = false, pendingDeploy = awaitingDeploy }) {
   assert.ok(/^https:\/\/onmrgvcehkflfaizvedl\.supabase\.co$/.test(url || ''), 'Unexpected cloud project URL.');
   assert.ok(/^sb_publishable_/.test(key || ''), 'A publishable key is required.');
   const requests = [
@@ -94,13 +95,13 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
       signal: AbortSignal.timeout(15000), redirect: 'error',
     });
     const text = await response.text();
-    if (!strict && !statuses.includes(response.status) && pending && Object.hasOwn(awaitingDeploy, pending)) {
+    if (!strict && !statuses.includes(response.status) && pending && Object.hasOwn(pendingDeploy, pending)) {
       let missing = null;
       try { missing = JSON.parse(text); } catch { /* Not the not-deployed answer; the checks below fail it. */ }
-      if (notDeployed(pending, response.status, missing)) {
+      if (notDeployed(pendingDeploy, pending, response.status, missing)) {
         assert.ok(!privateResponse.test(text), `${name}: private material in not-found response`);
-        awaiting.push({ name, until: awaitingDeploy[pending] });
-        log(`${name}: awaiting deploy (404, not found) until ${awaitingDeploy[pending]}`);
+        awaiting.push({ name, until: pendingDeploy[pending] });
+        log(`${name}: awaiting deploy (404, not found) until ${pendingDeploy[pending]}`);
         continue;
       }
     }

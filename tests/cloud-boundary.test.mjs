@@ -82,12 +82,13 @@ test('denied submission responses cannot expose intent, picks or scoring evidenc
   });
 });
 
-test('awaiting-deploy probes (M-10 Bets reader) pass only on the exact not-found answer, are reported, and fail under --strict', async t => {
-  // The checker's awaiting path, on pieces of a NOT_HOSTED migration (20261015190820). When M-10's apply record removes
-  // these entries, move the checks to another piece that is still awaiting.
+test('awaiting-deploy probes pass only on the exact not-found answer, are reported, and fail under --strict', async t => {
+  // The checker's awaiting path, exercised with an explicit pendingDeploy map for the M-10 Bets reader pieces, so it stays
+  // covered whether or not any area file lists a piece today.
   const rpcs = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market'];
-  for (const rpc of rpcs) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261015190820_gtl_bets_read.sql', rpc);
-  assert.equal(awaitingDeploy['gtl-api/bets/read'], 'the gtl-api deploy with /bets/read');
+  const pendingDeploy = { ...Object.fromEntries(rpcs.map(rpc => [`rpc/${rpc}`, 'migration 20261015190820_gtl_bets_read.sql'])),
+    'gtl-api/bets/read': 'the gtl-api deploy with /bets/read' };
+  const check = opts => checkCloudBoundary({ ...options, pendingDeploy, ...opts });
   const betsRpc = url => rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`));
   const betsRoute = url => url.endsWith('/functions/v1/gtl-api/bets/read');
   const beforeDeploy = async (url, request) => (betsRpc(url)
@@ -95,7 +96,7 @@ test('awaiting-deploy probes (M-10 Bets reader) pass only on the exact not-found
     : betsRoute(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   await t.test('before the migration and the gtl-api deploy: passes, every other probe still runs and denies', async () => {
     const lines = [];
-    const result = await checkCloudBoundary({ ...options, log: line => lines.push(line), fetchImpl: beforeDeploy });
+    const result = await check({ log: line => lines.push(line), fetchImpl: beforeDeploy });
     assert.equal(result.awaiting.length, 5, 'three RPCs, and the route signed out and with an invalid session');
     assert.equal(result.denied, result.checked - 5);
     assert.ok(lines.some(line => /^anonymous gtl_read_bets RPC: awaiting deploy \(404, not found\) until migration 20261015190820/.test(line)));
@@ -104,22 +105,22 @@ test('awaiting-deploy probes (M-10 Bets reader) pass only on the exact not-found
     assert.ok(lines.some(line => line.startsWith('anonymous vault schema: denied (406)')));
   });
   await t.test('--strict fails until they deny', async () => {
-    await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: beforeDeploy }), /gtl_bets_context RPC: unexpected 404/);
+    await assert.rejects(() => check({ strict: true, fetchImpl: beforeDeploy }), /gtl_bets_context RPC: unexpected 404/);
   });
   await t.test('after the deploy they must deny like every other probe', async () => {
-    const result = await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => denied(url, request) });
+    const result = await check({ strict: true, fetchImpl: async (url, request) => denied(url, request) });
     assert.deepEqual([result.awaiting, result.denied], [[], result.checked]);
-    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (betsRpc(url)
+    await assert.rejects(() => check({ fetchImpl: async (url, request) => (betsRpc(url)
       ? new Response(JSON.stringify([]), { status: 200 }) : denied(url, request)) }), /gtl_bets_context RPC: unexpected 200/);
   });
   await t.test('any other 404 still fails, a not-found answer may carry no private material, and only the listed probes may be awaiting deploy', async () => {
-    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (betsRpc(url)
+    await assert.rejects(() => check({ fetchImpl: async (url, request) => (betsRpc(url)
       ? new Response(JSON.stringify({ code: '42883', message: 'Unavailable.' }), { status: 404 }) : denied(url, request)) }), /gtl_bets_context RPC: unexpected 404/);
-    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (betsRoute(url)
+    await assert.rejects(() => check({ fetchImpl: async (url, request) => (betsRoute(url)
       ? new Response(JSON.stringify({ error: 'Not found.', picks: {} }), { status: 404 }) : denied(url, request)) }), /bets\/read without session: unexpected 404/);
-    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (betsRpc(url)
+    await assert.rejects(() => check({ fetchImpl: async (url, request) => (betsRpc(url)
       ? new Response(JSON.stringify({ code: 'PGRST202', stakeMinor: 500 }), { status: 404 }) : denied(url, request)) }), /private material in not-found response/);
-    await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/virtual-units/settle')
+    await assert.rejects(() => check({ fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/virtual-units/settle')
       ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /virtual-units\/settle without session: unexpected 404/);
   });
 });
