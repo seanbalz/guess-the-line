@@ -159,7 +159,12 @@
 .gx .gx-bets .gx-ticket-tracker .social-tabs > button { flex: 0 0 auto; min-height: var(--gx-size-touch); padding: var(--gx-space-2) var(--gx-space-3); border-color: transparent; background: none; }
 .gx .gx-bets .gx-ticket-tracker .social-tabs > button[aria-pressed="true"] { background: var(--gx-surface-1); color: var(--gx-text-1); box-shadow: var(--gx-e1); }
 .gx .gx-bets .gx-ticket-tracker .social-toolbar { padding: 0; border: 0; background: none; align-items: end; }
-.gx .gx-bets .gx-ticket-tracker .social-toolbar > label { grid-column: 1; }
+/* The week select shares row 1 with the 44px refresh button; the player select and the Following toggle
+   (shown outside My bets) each take their own full row, so no label is squeezed into the icon column. */
+.gx .gx-bets .gx-ticket-tracker .social-toolbar > label:first-child { grid-column: 1; grid-row: 1; }
+.gx .gx-bets .gx-ticket-tracker .social-toolbar > .icon-button { grid-column: 2; grid-row: 1; }
+.gx .gx-bets .gx-ticket-tracker .social-toolbar > label:not(:first-child) { grid-column: 1 / -1; }
+.gx .gx-bets .gx-ticket-tracker .social-toolbar > .secondary { grid-column: 1 / -1; justify-self: start; white-space: nowrap; }
 .gx .gx-bets .gx-ticket-tracker .social-toolbar > button { margin-bottom: var(--gx-space-1); }
 .gx .gx-bets .gx-ticket-tracker .social-metrics { gap: 0; overflow: hidden; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-lg); background: var(--gx-surface-1); box-shadow: var(--gx-e1); }
 .gx .gx-bets .gx-ticket-tracker .social-metrics > div { padding: var(--gx-space-3) var(--gx-space-4); border: 0; border-radius: 0; gap: var(--gx-space-1); }

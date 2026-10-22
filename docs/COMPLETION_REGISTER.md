@@ -168,6 +168,24 @@ A separate redacted Week 7 nflverse snapshot was generated
 for current-week context; the Week 6 input remains frozen. See
 [the design](superpowers/specs/2026-10-21-recommended-percent-trends-design.md).
 
+October 21 phone formatting pass: Sean's iPhone screenshot showed the Bets
+tracker toolbar's **Following** button squeezed into the 44px refresh column,
+spilling past the screen edge over the Player select, with refresh stretched
+across a row. A sweep of every new-app root, section, Bets view, sheet and menu
+(27 screens, Light and Dark, 320 and 390 px; local PGlite fixtures) reproduced it
+in all four non-owner Bets views and found no other clipped text, stray icon or
+overlapping control. The toolbar now places week + refresh on one row and the
+player select and Following toggle on their own rows. A visual pass also fixed the
+Pick'em chip's 4px label inset and the score page's button pair, which now shares a
+row only when both labels fit on one line. New contracts:
+`tests/cloud-browser/next-phone-layout.spec.js` (the sweep, plus the button and
+Pick'em checks) and a toolbar test in `next-bets-live.spec.js`; each failed
+before its fix and passes after it. The affected browser suites (Bets, scoring,
+Play, four-tab, Lines, UI kit, Recommended and the new layout spec) passed 53/53
+locally, with token, app-view and brand-document checks. The Bets section switch keeps its deliberate
+2 + 1 layout below 520 px. D-55 records Sean's chart and brand direction; the
+hybrid chart boards await his approval before any token change. Not deployed.
+
 ## Evidence and limits
 
 The queue records all six open PR dispositions, old issue triage and local-work
