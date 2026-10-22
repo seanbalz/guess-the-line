@@ -234,6 +234,8 @@ Sean, October 13, 2026: "go ahead with the wind forecast too" ([D-34](DECISIONS.
 
 The authenticated weekly reader generates Trends on the first read of a published 2026 slate. It does not wait for the preceding Monday game to finish. Earlier unfinished games remain pending and update on refresh; current and future outcomes and lines never enter the evidence. Cache entries expire after five minutes. Failed refreshes carry the source date and an explicit stale label.
 
+In the app, the same rule holds on the device. When a refresh of a loaded week fails for a reason other than an account or membership refusal (offline after waking, a timeout or a server error), the screen keeps that week. It is labeled stale, says the hosted refresh was unavailable and carries its source age forward. The app tries again on the next read after a minute. Only a week not loaded yet falls back to its dated static file, if one exists. A token refresh or a same-account sign-in event (auth-js sends one each time a tab becomes visible) does not clear loaded Trends. Signing out or switching accounts does.
+
 The server seed is generated from the existing frozen history, registry, venues, corrections and redacted season file. Run `node scripts/trends-seed.mjs --check` to verify it matches those inputs. The seed currently supports 2026 only. Before another season is supported, freeze the completed intervening seasons, update the season input and rebuild the server seed; unsupported seasons fail explicitly.
 
 Optional frozen snapshots use the existing operator workflow:
