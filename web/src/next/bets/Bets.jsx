@@ -8,9 +8,11 @@ import { Icon } from '../ui/Icon.jsx';
 import { InfoButton } from '../ui/InfoButton.jsx';
 import { INFO } from '../info.js';
 import { NetUnits } from './NetUnits.jsx';
+import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { useTicketSummary } from './useTicketSummary.js';
+import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
 import './bets.css';
 import '../../liveBets.css';
 
@@ -18,6 +20,7 @@ const SocialBetTracker = lazy(() => import('../../SocialBetTracker.jsx'));
 // Each view's fine print, behind the title's ⓘ (D-55).
 const TOPIC = Object.freeze({ tracked: 'trackedBets', recommended: 'recommended', virtual: 'virtual' });
 const VirtualUnits = lazy(() => import('../../VirtualUnits.jsx'));
+const RECOMMENDED_MARKETS = [{ value: 'all', label: 'All' }, { value: 'spread', label: 'Spreads' }, { value: 'total', label: 'Totals' }];
 
 // Recommendations follow the published account week. The existing All games Virtual Units editor keeps its league scope.
 export function Bets() {
@@ -54,6 +57,12 @@ function BetsDetail() {
     week: value.allHistory ? null : value.selectedWeek?.week ?? null,
     period: value.allHistory ? 'all' : null,
   }), [shell.setView, shell.state.views.bets.trackers, destination]);
+  // BETS-NEXT-01: Recommended's All / Spreads / Totals choice is a Bets view preference. It survives Track this bet
+  // and returning within Bets; it is not part of the address and changes nothing that is saved. The embedded
+  // Recommended list filters by it; the new app's own segmented control is drawn here and handed to that list.
+  const recommendedMarket = recommendationMarket(route.recommendedMarket);
+  const chooseRecommendedMarket = useCallback(value => shell.setView('bets', { recommendedMarket: value }), [shell.setView]);
+  const marketControl = <Segmented label="Recommendation market" value={recommendedMarket} onChange={chooseRecommendedMarket} options={RECOMMENDED_MARKETS}/>;
   const { setDirty } = shell;
   const [ticketRequest, setTicketRequest] = useState(null);
   const ticketConsumed = useCallback(() => setTicketRequest(null), []);
@@ -92,7 +101,7 @@ function BetsDetail() {
     {view === 'tracked' ? <>
       <DeferredScreen label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} ticketRequest={ticketRequest?.accountId === app.accountId ? ticketRequest : null} onTicketConsumed={ticketConsumed} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : view === 'recommended' ? <>
-      <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
+      <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : privateLeague ? <>
       <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Showing {league.name}</span></p>
       <DeferredScreen resetKey={league.id} label="Virtual Units"><VirtualUnits key={`${app.accountId}:${league.id}`} accountId={app.accountId} leagueId={league.id} embedded showViewTabs={false} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
