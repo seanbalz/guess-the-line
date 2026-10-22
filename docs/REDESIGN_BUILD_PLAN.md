@@ -96,7 +96,7 @@ Sean answered the open questions on October 14 (D-39). Where this section and a 
 - **Risky migrations stand alone** in a quiet window: the D-37 lock, the late window, the collector change, the Bets write path, feed kinds, challenges, settlement and kickoff posts.
 - **Nothing is rewritten or deleted.** Migrations add functions and tables. New tables are append-only or versioned. A rollback is the previous function bodies, or an off switch for new tables. Never a drop.
 - **Target calendar:** the last apply on Wed Dec 2; one full live week of checks (Week 14); the default flips Tue Dec 15. Latest Tue Dec 29 (Q10).
-- **The flip is one small PR.** Retiring the old app is a later PR, at least two weeks after.
+- **The flip is one small PR.** Retiring the old app is a later PR, at least two weeks after. (Superseded by D-52: stage 80 is a verified new-only cutover and stage 81 is source cleanup only.)
 
 ---
 
@@ -897,6 +897,14 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 - [ ] **Sean says go.**
 
 ### The flip (stage 80)
+
+> **D-52 amendment (October 15, carried to main October 21).** Sean asked to sunset
+> the previous app so no one can access it, without losing anything. Stage 80 is
+> therefore the verified new-only cutover: no classic default, saved preference,
+> menu item, query parameter, deep link or error fallback stays player-accessible,
+> and stage 81 is source cleanup only, without the two-week window below. The
+> bullets below are the original D-38 plan and remain historical where they
+> conflict. See [new-app retirement](../planning/new-app-retirement.md) (RETIRE-01–04).
 
 - One PR: `DEFAULT_APP = 'next'`. A device that chose `classic` keeps it. "Use the old app" stays in the menu. The old footer button becomes "Back to the new app". `web/index.html` fonts, meta description and the manifest move to the new app.
 - With Sean's OK, set `new_social_open` so everyone can challenge, share and react.
