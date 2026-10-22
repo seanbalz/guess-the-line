@@ -58,7 +58,7 @@ function review(migrationPath, rollbackSql) {
 async function applyWithRollback(migrationPath, rollbackSql) {
   const name = path.basename(migrationPath), db = new PGlite();
   const files = [...new Set([...HOSTED.filter(file => file <= name), ...requiredFiles(name), name])].sort();
-  const md5s = async () => new Map((await db.query("select p.proname, md5(p.prosrc) md5 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'")).rows.map(r => [`public.${r.proname}`, r.md5]));
+  const md5s = async () => new Map((await db.query("select n.nspname schema,p.proname, md5(p.prosrc) md5 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname in ('public','nba_private')")).rows.map(r => [`${r.schema}.${r.proname}`, r.md5]));
   let after, restored;
   try {
     await db.exec(PRELUDE);
@@ -96,7 +96,21 @@ test('the rollback convention: each file names a migration, restores exactly the
       const migration = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
       const statements = topLevel(fs.readFileSync(path.join(ROLLBACK_DIR, file), 'utf8')).split(';').map(s => s.trim()).filter(Boolean);
       assert.match(migration, /create table (?:if not exists )?/i, `${file}: a permission off switch must accompany new tables`);
-      assert.equal(parseFunctions(migration).length, 0, `${file}: table-only off switches define no functions`);
+      const addedFunctions = parseFunctions(migration);
+      if (addedFunctions.length) {
+        const reviewedOffSwitches = {
+          '20261021223000_gtl_nba_app_bets.sql': [
+            'revokeallonfunctionpublic.gtl_nba_read_bets(uuid,jsonb,jsonb,uuid)frompublic,anon,authenticated,service_role',
+            'revokeallonfunctionpublic.gtl_nba_save_bet(uuid,uuid,jsonb,integer,text)frompublic,anon,authenticated,service_role',
+          ],
+          '20261021223100_gtl_nba_game_cache.sql': [
+            'revokeallonfunctionpublic.gtl_nba_claim_games(date,boolean)frompublic,anon,authenticated,service_role',
+            'revokeallonfunctionpublic.gtl_nba_finish_games(date,uuid,jsonb)frompublic,anon,authenticated,service_role',
+          ],
+        };
+        assert.ok(Object.hasOwn(reviewedOffSwitches, file), `${file}: new RPC off switches require explicit review`);
+        assert.deepEqual(statements.map(statement => statement.replace(/\s/g, '').toLowerCase()), reviewedOffSwitches[file]);
+      }
       assert.ok(statements.length > 0 && statements.every(s => /^revoke\b/i.test(s)), `${file}: an off switch may only revoke access, never grant or delete`);
     }
   }
