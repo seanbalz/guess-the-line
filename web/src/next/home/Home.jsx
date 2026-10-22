@@ -65,8 +65,12 @@ function Hero({ hero, progress, onPicks, onLines }) {
   );
 }
 
-/** Three tiles: the Spread and Total ranks (ranked apart, never summed) with their chase lines, and active tickets. */
-function StatTiles({ tiles, tickets, onScore, onBets }) {
+/**
+ * Three tiles: the Spread and Total ranks (ranked apart, never summed) with their chase lines, and active tickets.
+ * The ticket read starts here, so Home reads tickets only once it has a week to show (as the old summary row did).
+ */
+function StatTiles({ app, tiles, onScore, onBets }) {
+  const tickets = useTicketSummary(app);
   const rank = tile => (tile.rank ? `#${tile.label}` : tile.label);
   const sub = (tile, chase) => (tile.rank ? chase ?? `of ${tile.of}` : HOME_COPY.notScored);
   return (
@@ -114,7 +118,6 @@ function WhosIn({ who, league, onBoard, onInvite }) {
 export function Home() {
   const shell = useShell();
   const { app, community } = useHomeData();
-  const tickets = useTicketSummary(app);
   const data = community.data ?? null;
   const hero = useMemo(() => (data ? homeHero({ community: data }) : null), [data]);
   const progress = useMemo(() => (data ? heroProgress({ community: data }) : []), [data]);
@@ -148,7 +151,7 @@ export function Home() {
       {head}
       <Hero hero={hero} progress={progress} onPicks={toPicks} onLines={toLines}/>
       {community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update.</p>}
-      <StatTiles tiles={tiles} tickets={tickets}
+      <StatTiles app={app} tiles={tiles}
         onScore={market => shell.go('play', { section: 'score', ...week, market, team: '', matchup: '', scoreGame: null })}
         onBets={() => shell.go('bets', { view: 'active', season: null, week: null, period: null })}/>
       {hero.week !== null && tiles.whosIn.of ? (
