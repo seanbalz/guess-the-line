@@ -11,9 +11,9 @@ const tab = (page, name) => page.getByRole('navigation', { name: 'Main' }).getBy
 const view = (page, name) => page.getByRole('group', { name: 'Bets view' }).getByRole('button', { name, exact: true });
 async function openBets(page) {
   await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
-  await page.goto('/#bets');
+  await page.goto('/#bets/tracked');
   await signIn(page, 'luke', { navigate: false });
-  await expect(page.getByRole('heading', { name: 'Bets', level: 1, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tracked bets', level: 1, exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add bet', exact: true })).toBeEnabled();
 }
 async function fillTicket(page, gameId) {
@@ -47,6 +47,37 @@ async function loseReplyAfterCommit(page, world, action) {
     await route.abort('failed');
   }, { times: 1 });
 }
+
+test('Bets roots open creation from fresh all-week lists and remembered Add scope without saving', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL);
+  try {
+    const calls = callsFrom(page);
+    await openBets(page);
+    for (const destination of ['Active tickets', 'Settled tickets']) {
+      await tab(page, 'Bets').click();
+      await page.getByRole('button', { name: destination, exact: true }).click();
+      await expect(page.getByLabel('Competition week')).toHaveValue('all');
+      await expect(page.getByRole('button', { name: 'Add bet', exact: true })).toBeEnabled();
+      await page.getByRole('button', { name: 'Add bet', exact: true }).click();
+      const editor = page.getByRole('dialog', { name: 'Add a tracked bet' });
+      await expect(editor).toBeVisible();
+      await expect(page.getByLabel('Competition week')).toHaveValue(`${world.state.league.season}:${world.state.league.week}`);
+      await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+    }
+    await tab(page, 'Bets').click();
+    await page.getByRole('button', { name: 'Add a bet', exact: true }).click();
+    const editor = page.getByRole('dialog', { name: 'Add a tracked bet' });
+    await expect(editor).toBeVisible();
+    await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await page.getByLabel('Competition week').selectOption('all');
+    await tab(page, 'Bets').click();
+    await page.getByRole('button', { name: 'Add a bet', exact: true }).click();
+    await expect(editor).toBeVisible();
+    await expect(editor.getByRole('button', { name: 'Save tracked bet', exact: true })).toBeDisabled();
+    expect(calls.filter(call => call.path === 'social/create')).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
 
 test('Community tracked bets work without private membership; create, own week and history retain the same ticket', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL);
@@ -218,12 +249,13 @@ test('Virtual Units uses the selected league, confirms a lost save by readback a
     expect(calls.filter(call => call.path === 'virtual-pick')).toHaveLength(1);
     page.once('dialog', dialog => dialog.dismiss());
     await tab(page, 'Home').click();
-    await expect(page.getByRole('heading', { name: 'Bets', level: 1, exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Virtual Units', level: 1, exact: true })).toBeVisible();
     await expect(page.locator('.virtual-save')).toHaveCount(1);
     page.once('dialog', dialog => dialog.accept());
     await tab(page, 'Home').click();
-    await expect(page.getByRole('heading', { name: 'Bets', level: 1, exact: true })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Tracked bets', level: 1, exact: true })).toHaveCount(0);
     await tab(page, 'Bets').click();
+    await page.getByRole('button', { name: 'Virtual Units', exact: true }).click();
     await expect(view(page, 'Virtual Units')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('.virtual-game-card')).toHaveCount(games.length);
     expect(world.errors).toEqual([]);
@@ -322,6 +354,16 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
     await expect(page.locator('.social-feed')).toContainText('PREVIOUS OWNER');
     expect(calls.at(-1).filters.playerId).toBe(ACCOUNTS.luke.id);
+    await page.reload();
+    await expect(page.getByLabel('Competition week')).toHaveValue(season + ':' + (week - 1));
+    await expect(page.locator('.social-bet-card')).toHaveCount(1);
+    await expect(page.locator('.social-feed')).toContainText('PREVIOUS OWNER');
+    await page.evaluate(({ season, week }) => { location.hash = `bets/tracked?season=${season}&week=${week}`; }, { season, week });
+    await expect(page.getByLabel('Competition week')).toHaveValue(season + ':' + week);
+    await expect(page.locator('.social-bet-card')).toHaveCount(5);
+    await page.goBack();
+    await expect(page.getByLabel('Competition week')).toHaveValue(season + ':' + (week - 1));
+    await expect(page.locator('.social-bet-card')).toHaveCount(1);
     await page.getByLabel('Competition week').selectOption('all');
     await page.getByLabel('Bet tracker view', { exact: true }).selectOption('feed');
     await expect(page.locator('.social-bet-card')).toHaveCount(8);

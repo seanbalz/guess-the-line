@@ -66,6 +66,7 @@
 /* ===== the page ===== */
 .gx-main {
   flex: 1 0 auto;
+  padding-bottom: var(--gx-dock-space, 0px);
   display: flex;
   flex-direction: column;
 }
@@ -147,7 +148,7 @@
 .gx-dock:empty { display: none; }
 .gx-dock .gx-dock-bar { pointer-events: auto; }
 
-/* ===== tab bar: Home, Play, Bets, Lines, League, Fantasy ===== */
+/* ===== tab bar: Home, Play, Bets, Research ===== */
 /* 64 tall with its top border, plus the home-indicator inset: a toast or dock 8 above it is 8 above the border. */
 .gx-tabbar {
   position: fixed;
@@ -162,9 +163,8 @@
 }
 .gx-tabbar-inner {
   display: grid;
-  /* Reserve each label's natural width before sharing spare room. League and Fantasy need more than a sixth
-     of a narrow phone, while the shorter labels still keep a full 44px touch target. */
-  grid-template-columns: repeat(6, minmax(max-content, 1fr));
+  /* Keep each label's full width when fallback fonts are wider than Figtree. */
+  grid-template-columns: repeat(4, minmax(max-content, 1fr));
   max-width: var(--gx-size-content);
   margin-inline: auto;
 }
@@ -177,13 +177,12 @@
   gap: 2px;
   min-width: var(--gx-size-touch);
   height: calc(var(--gx-size-tabbar) - 1px);
+  padding-inline: var(--gx-space-1);
   color: var(--gx-text-2);
 }
 .gx-tab .gx-ic { color: var(--gx-text-3); }
 .gx-tab-icon { position: relative; display: block; width: 24px; height: 24px; }
 .gx-tab-label { font: 600 16px/20px var(--gx-font-body); }
-/* Keep the existing narrow-phone type size; intrinsic grid tracks fit the two longer labels without clipping. */
-@media (max-width: 359.98px) { .gx-tab-label { font-size: 15px; } }
 .gx-tab--on { color: var(--gx-text-1); }
 .gx-tab--on .gx-tab-label { font-weight: 700; }
 .gx-tab--on .gx-ic { color: var(--gx-accent-ink); }
@@ -217,3 +216,5 @@
   .gx-solo-problem { border: 1px solid CanvasText; }
   .gx-tab--on::before { forced-color-adjust: none; background: Highlight; }
 }
+
+.gx .gx-detail-nav { width: 100%; max-width: var(--gx-size-content); margin-inline: auto; padding: var(--gx-space-2) var(--gx-space-4) 0; }

@@ -3,9 +3,8 @@
 // node tests (tests/next-shell-state.test.mjs) run it as is. Shell.jsx keeps it in useReducer and router.js keeps the
 // address and the browser's Back button in step with it.
 //
-// - A tab's view (its segment, market, scroll target) is its own: the shell keeps it for the visit and
-//   never reads it. Tapping a tab closes every sheet, dialog, popover and page and shows that tab as it was; tapping
-//   the tab already showing closes its page (the frame scrolls to the top when there is none).
+// - Four roots keep local filter preferences. Main tab selection returns to its root; detail navigation records
+//   its actual opening screen in an in-memory trail. Legacy adapter views remain available under their old keys.
 // - Layers are named by id, and the id's prefix says which kind: `sh.` sheet, `dlg.` dialog, `pop.` popover, `ov.`
 //   overlay, `page.` page. Their args are plain values and may not use the keys `id` (the layer id) or `key`.
 // - Every sheet, dialog, popover and overlay that opens gets its own `key`, which the hosts draw it by. A close that
@@ -16,7 +15,23 @@
 //   queue too: the first shows, never over an overlay.
 // - closeTop is Escape and Back: overlay, then popover, dialog, the top sheet, the page.
 
-export const TABS = Object.freeze(['home', 'play', 'bets', 'lines', 'league', 'fantasy']);
+export const TABS = Object.freeze(['home', 'play', 'bets', 'research']);
+export const LEGACY_TABS = Object.freeze(['league', 'lines', 'fantasy']);
+const ALIASES = { league: ['play', 'league'], lines: ['research', 'games'], fantasy: ['research', 'fantasy'] };
+export function destination(tab, view) {
+  if (Object.hasOwn(ALIASES, tab)) return { tab: ALIASES[tab][0], view: { section: ALIASES[tab][1] }, adapter: tab, adapterView: view };
+  const adapter = tab === 'play' && view?.section === 'league' ? 'league' : tab === 'research' && view?.section === 'games' ? 'lines' : tab === 'research' && view?.section === 'fantasy' ? 'fantasy' : null;
+  if (!adapter) return { tab, view };
+  const { section, ...adapterView } = view;
+  return { tab, view, adapter, adapterView };
+}
+export const isDetail = state => !!state.views[state.tab]?.section || (state.tab === 'bets' && !!state.views.bets.view);
+export const navigationPatch = (state, tab, patch) => !!patch && (
+  (Object.hasOwn(patch, 'section') && patch.section !== state.views[tab]?.section)
+  || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
+  || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
+);
+export const canGoBack = state => hasLayers(state) || state.trail.length > 0 || isDetail(state);
 export const DEFAULT_TAB = 'home';
 const KINDS = Object.freeze({ sh: 'sheet', dlg: 'dialog', pop: 'popover', ov: 'overlay', page: 'page' });
 export const LAYER_KINDS = Object.freeze(Object.values(KINDS));
@@ -49,20 +64,31 @@ export function layer(id, args = {}) {
 }
 
 function emptyViews() {
-  return Object.fromEntries(TABS.map(tab => [tab, {}]));
+  return Object.fromEntries([...TABS, ...LEGACY_TABS].map(tab => [tab, {}]));
 }
 
 /** The state a visit starts in: `place` is what the address asked for (router.js), `{ tab, view, layer }`. */
 export function initialState(place = null) {
-  const state = { tab: DEFAULT_TAB, views: emptyViews(), page: null, sheets: [], dialog: null, popover: null, overlays: [], toasts: [], seq: 0 };
-  if (!isRecord(place) || !isTab(place.tab)) return state;
+  const state = { tab: DEFAULT_TAB, views: emptyViews(), page: null, sheets: [], dialog: null, popover: null, overlays: [], toasts: [], seq: 0, trail: [], nav: 0, navMode: 'start' };
+  if (!isRecord(place) || (!isTab(place.tab) && !LEGACY_TABS.includes(place.tab))) return state;
   let next = reduce(state, { type: 'go', tab: place.tab, view: place.view });
+  if (isRecord(place.adapters)) next.views = { ...next.views, ...place.adapters };
+  next = { ...next, trail: Array.isArray(place.trail) ? place.trail : [], navMode: 'start' };
   if (isRecord(place.layer) && layerKind(place.layer.id)) next = reduce(next, { type: 'open', layer: place.layer });
   return next;
 }
 
 const closed = { sheets: [], dialog: null, popover: null, page: null };
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
+
+// Origin context is reversible; newer local list/filter preferences survive returning through a root.
+const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind'];
+function originView(current, prior, detail) {
+  const view = { ...prior, ...current };
+  for (const key of detail ? ROUTE_KEYS : ['section', 'view']) view[key] = prior?.[key];
+  return view;
+}
+const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...view }]));
 
 /** Every layer that is open, overlays queued behind the first one included. */
 export function layerCount(state) {
@@ -86,19 +112,37 @@ export const modalOpen = state => state.sheets.length > 0 || !!visibleOverlay(st
 export function reduce(state, action) {
   if (!isRecord(action)) return state;
   switch (action.type) {
-    case 'tab': {
-      if (!isTab(action.tab)) return state;
-      // The tab already showing: pop its page (nothing else changes; the frame scrolls to the top otherwise).
-      if (action.tab === state.tab) return state.page ? { ...state, ...closed } : state;
-      return { ...state, ...closed, tab: action.tab };
-    }
+    case 'tab':
     case 'go': {
-      if (!isTab(action.tab)) return state;
-      return { ...state, ...closed, tab: action.tab, views: withView(state.views, action.tab, action.view) };
+      const target = destination(action.tab, action.view);
+      if (!isTab(target.tab)) return state;
+      const current = state.views[target.tab];
+      const root = { ...current, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
+      const view = action.type === 'tab' || !target.view ? root : { ...current, ...target.view };
+      const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...state.views[target.adapter], ...target.adapterView } } : {}) };
+      const changed = state.tab !== target.tab || JSON.stringify(current) !== JSON.stringify(view) || !!target.adapter;
+      if (!changed && !hasLayers(state)) return state;
+      const trail = action.type === 'tab' || !target.view ? [] : [...state.trail, { tab: state.tab, view: state.views[state.tab], adapters: Object.fromEntries(LEGACY_TABS.map(tab => [tab, state.views[tab]])) }];
+      return { ...state, ...closed, tab: target.tab, views, trail, nav: state.nav + 1, navMode: 'go' };
     }
     case 'view': {
-      if (!isTab(action.tab) || !isRecord(action.patch)) return state;
+      if ((!isTab(action.tab) && !LEGACY_TABS.includes(action.tab)) || !isRecord(action.patch)) return state;
+      if (navigationPatch(state, action.tab, action.patch)) return reduce(state, { type: 'go', tab: action.tab, view: action.patch });
       return { ...state, views: withView(state.views, action.tab, action.patch) };
+    }
+    case 'back': {
+      if (hasLayers(state)) return reduce(state, { type: 'closeTop' });
+      const prior = state.trail.at(-1);
+      if (!prior) return isDetail(state) ? { ...reduce(state, { type: 'tab', tab: state.tab }), navMode: 'back' } : state;
+      const adapter = destination(prior.tab, prior.view).adapter;
+      const adapters = adapter && prior.adapters?.[adapter] ? { [adapter]: originView(state.views[adapter], prior.adapters[adapter], true) } : {};
+      const detail = !!prior.view?.section || (prior.tab === 'bets' && !!prior.view?.view);
+      return { ...state, ...closed, tab: prior.tab, views: { ...state.views, ...adapters, [prior.tab]: originView(state.views[prior.tab], prior.view, detail) }, trail: state.trail.slice(0, -1), nav: state.nav + 1, navMode: 'back' };
+    }
+    case 'restore': {
+      const place = action.place;
+      if (!isTab(place?.tab)) return state;
+      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, ...(place.tab === 'bets' ? { view: undefined } : {}), ...place.view } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
     }
     case 'open': {
       const kind = layerKind(action.layer?.id);

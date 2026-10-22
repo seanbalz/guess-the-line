@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 import { DEFAULT_FILTERS, SCORING_OPTIONS, POSITION_OPTIONS, SCOPE_OPTIONS, buildRankings, scoringRules, formatFantasyNumber } from '../../shared/fantasy-rankings.mjs';
 import { Button, Card, Segmented, Switch } from './next/ui/index.js';
@@ -77,7 +77,7 @@ function PlayerCard({ player, theme, scope, week, position }) {
 }
 
 /** Shared ranking/filter view for the current app and D-38 shell; the engine supplies all scoring and rank semantics. */
-export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, state, entries = FANTASY_AVAILABLE, selection = FANTASY_INITIAL, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now() }) {
+export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, backLabel = 'Back to Home', state, entries = FANTASY_AVAILABLE, selection = FANTASY_INITIAL, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now() }) {
   const c = name => nameClass(theme, name);
   const Heading = headingLevel === 2 ? 'h2' : 'h1';
   const SectionHeading = headingLevel === 2 ? 'h3' : 'h2';
@@ -95,7 +95,7 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
   const selectedScoring = optionLabel(SCORING_OPTIONS, filters.scoring);
   return <section className={theme === 'next' ? 'gx-screen gx-fantasy' : 'fantasy-football'} aria-label="Fantasy Football">
     <div className={c('heading')}><Heading className={theme === 'next' ? 'gx-t-title' : undefined}>Fantasy Football</Heading>
-      {onBack && <Action theme={theme} onClick={onBack}>Back to Home</Action>}
+      {onBack && <Action theme={theme} onClick={onBack}>{backLabel}</Action>}
     </div>
     <p className={c('intro')}>Weekly and rest-of-season player rankings from recent statistical pace. These are GTL estimates, not expert consensus or injury-adjusted projections.</p>
     <Surface theme={theme} className={c('filters')} aria-label="Fantasy rankings filters">
@@ -154,9 +154,12 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
 }
 
 export default function FantasyFootball(props) {
-  const [selection, setSelection] = useState(FANTASY_INITIAL);
-  const [filters, setFilters] = useState({ ...DEFAULT_FILTERS });
-  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [selection, setSelection] = useState(props.navigationState?.selection ?? FANTASY_INITIAL);
+  const [filters, setFilters] = useState(props.navigationState?.filters ?? { ...DEFAULT_FILTERS });
+  const [limit, setLimit] = useState(props.navigationState?.limit ?? PAGE_SIZE);
+  const changed = useRef(props.onNavigationState);
+  changed.current = props.onNavigationState;
+  useEffect(() => { changed.current?.({ selection, filters, limit }); }, [selection, filters, limit]);
   const state = useFantasySnapshot(selection);
   return <FantasyRankingsView {...props} state={state} selection={selection} onSelectionChange={value => { setSelection(value); setLimit(PAGE_SIZE); }} filters={filters} onFiltersChange={value => { setFilters(value); setLimit(PAGE_SIZE); }} limit={limit} onMore={() => setLimit(value => value + PAGE_SIZE)}/>;
 }

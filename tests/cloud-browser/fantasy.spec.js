@@ -104,8 +104,12 @@ test.describe('fantasy rankings', () => {
       await expect(screen.getByText(snapshot.method.description, { exact: true })).toBeVisible();
       await expect(screen.getByRole('link', { name: snapshot.sources[0].name, exact: true })).toHaveAttribute('href', snapshot.sources[0].url);
       expect(world.errors).toEqual([]);
-      await screen.getByRole('button', { name: 'Back to Home', exact: true }).click();
-      if (app === 'next') await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Home', exact: true })).toBeFocused();
+      await screen.getByRole('button', { name: app === 'next' ? 'Back to Research' : 'Back to Home', exact: true }).click();
+      if (app === 'next') {
+        await expect(page.getByRole('heading', { name: 'Research', exact: true })).toBeVisible();
+        await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Research', exact: true })).toHaveAttribute('aria-current', 'page');
+        await expect(page.getByRole('heading', { name: 'Research', exact: true })).toBeFocused();
+      }
       else await expect(page.getByRole('main')).toBeFocused();
     } finally { await world.db.close(); }
   });

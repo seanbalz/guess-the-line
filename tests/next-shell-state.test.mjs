@@ -16,8 +16,8 @@ test('a visit starts on Home with every tab\'s view empty and nothing open', () 
   const state = start();
   assert.equal(state.tab, 'home');
   assert.equal(DEFAULT_TAB, 'home');
-  assert.deepEqual(TABS, ['home', 'play', 'bets', 'lines', 'league', 'fantasy']);
-  assert.deepEqual(state.views, { home: {}, play: {}, bets: {}, lines: {}, league: {}, fantasy: {} });
+  assert.deepEqual(TABS, ['home', 'play', 'bets', 'research']);
+  assert.deepEqual(state.views, { home: {}, play: {}, bets: {}, research: {}, lines: {}, league: {}, fantasy: {} });
   assert.deepEqual([state.page, state.sheets, state.dialog, state.popover, state.overlays, state.toasts], [null, [], null, null, [], []]);
   assert.equal(hasLayers(state), false);
   assert.equal(modalOpen(state), false);
@@ -47,16 +47,16 @@ test('layer ids name their kind by prefix, and args may not use "id" or "key"', 
 });
 
 test('tapping a tab closes every sheet, dialog, popover and page and shows that tab as it was left', () => {
-  let state = run(start(), { type: 'view', tab: 'bets', patch: { view: 'mine' } }, { type: 'tab', tab: 'bets' });
+  let state = run(start(), { type: 'view', tab: 'bets', patch: { market: 'total' } }, { type: 'tab', tab: 'bets' });
   assert.equal(state.tab, 'bets');
   state = run(state, sheet('sh.menu'), sheet('dlg.pass', { challenge: 'c1' }), { type: 'open', layer: layer('page.settings') });
   state = run(state, sheet('sh.game', { game: 'g1' }), sheet('pop.reactions', { post: 'p1' }));
   assert.ok(hasLayers(state));
-  state = reduce(state, { type: 'tab', tab: 'lines' });
-  assert.equal(state.tab, 'lines');
+  state = reduce(state, { type: 'tab', tab: 'research' });
+  assert.equal(state.tab, 'research');
   assert.deepEqual([state.sheets, state.dialog, state.popover, state.page], [[], null, null, null]);
   state = reduce(state, { type: 'tab', tab: 'bets' });
-  assert.deepEqual(state.views.bets, { view: 'mine' }, 'the view it was left in');
+  assert.deepEqual(state.views.bets, { market: 'total', section: undefined, view: undefined }, 'filter preferences survive the root return');
 });
 
 test('the tab already showing closes its page, and is otherwise the same state (the frame scrolls to the top)', () => {

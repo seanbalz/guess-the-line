@@ -4,7 +4,7 @@
 // stage 10 tabs do not use yet: a dock bar, a tab that throws, layers that throw (on open, or later while hidden
 // under another sheet), a dialog whose onClose may refuse, an in-place sub-view whose control removes itself, a
 // popover, an overlay and a page. No account, data or network; fictional names only.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../../../web/src/styles.css';
 import '../../../web/src/next/styles/tokens.css';
@@ -24,9 +24,13 @@ const record = name => window.__events.push(name);
 function TestHome() {
   const shell = useShell();
   const [dock, setDock] = useState(false);
+  const long = new URLSearchParams(window.location.search).has('long');
+  const [loaded, setLoaded] = useState(!window.__delayHome);
+  useEffect(() => { if (!loaded) { const timer = setTimeout(() => setLoaded(true), 180); return () => clearTimeout(timer); } }, [loaded]);
   return (
     <div className="gx-screen gx-screen--dock">
       <h1 className="gx-t-title">Shell harness</h1>
+      {long && <div data-async-height="true" style={{ height: loaded ? 1600 : 0 }}/> }
       <div className="gx-vstack gx-gap-8">
         <Button onClick={() => shell.openSheet('sh.test')}>Open the test sheet</Button>
         <Button onClick={() => shell.openSheet('sh.broken')}>Open a broken sheet</Button>
@@ -38,6 +42,7 @@ function TestHome() {
         <Button onClick={() => shell.toast('Change saved · SEA @ DEN')}>Show a toast</Button>
         <Button onClick={() => shell.toast('Couldn’t save your reaction. Try again.', { tone: 'error' })}>Show an error toast</Button>
         <Button onClick={() => shell.toast('2 bets placed', { actionLabel: 'Show friends', action: () => record('toast-action') })}>Show a toast with an action</Button>
+        <Button onClick={() => shell.go('play', { section: 'score', market: 'total', week: 7 })}>Open your scores</Button>
         <Button onClick={() => setDock(on => !on)}>{dock ? 'Hide the dock' : 'Show the dock'}</Button>
       </div>
       {dock ? (
@@ -56,10 +61,17 @@ function Thrower() {
   throw new Error('This tab failed on purpose.');
 }
 function TestPlay() {
+  const shell = useShell();
+  const [edited, setEdited] = useState(false);
+  useEffect(() => { shell.setDirty('test-play', edited); return () => shell.setDirty('test-play', false); }, [edited]);
+  const section = shell.state.views.play.section;
   const [broken, setBroken] = useState(false);
   return (
     <div className="gx-screen">
-      <h1 className="gx-t-title">Play</h1>
+      <h1 className="gx-t-title">{section === 'score' ? 'Your scores' : section === 'compare' ? 'Compare players' : 'Play'}</h1>
+      <label>Unsaved test pick<input aria-label="Unsaved test pick" onChange={() => setEdited(true)}/></label>
+      <Button onClick={() => shell.go('play', { section: 'compare' })}>Compare players</Button>
+      <Button onClick={() => shell.setView('play', { filters: { display: 'compact' } })}>Remember display filter</Button>
       <Button onClick={() => setBroken(true)}>Break this tab</Button>
       {broken ? <Thrower/> : null}
     </div>
@@ -147,7 +159,7 @@ function TestPage({ args }) {
 }
 
 // Lines (stage 13) reads the app's data layer, which this harness does not mount; tests/cloud-browser/next-lines.spec.js covers it.
-const screens = { ...SCREENS, home: TestHome, play: TestPlay, lines: () => <ComingNext tab="lines"/>, bets: () => <ComingNext tab="bets"/>, league: () => <ComingNext tab="league"/> };
+const screens = { ...SCREENS, home: TestHome, play: TestPlay, research: () => <ComingNext tab="research"/>, lines: () => <ComingNext tab="lines"/>, bets: () => <ComingNext tab="bets"/>, league: () => <ComingNext tab="league"/> };
 const layers = { ...LAYERS, 'sh.test': TestSheet, 'sh.broken': BrokenSheet, 'sh.fragile': FragileSheet, 'dlg.busy': BusyDialog, 'ov.test': TestOverlay, 'pop.test': TestPopover, 'page.test': TestPage };
 const session = { user: { id: 'acct-3', email: 'casey@example.test', user_metadata: { full_name: 'Casey Moore' } } };
 async function onSignOut() {

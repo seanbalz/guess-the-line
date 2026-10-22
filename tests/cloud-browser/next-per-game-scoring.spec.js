@@ -37,6 +37,7 @@ async function fixture(page, baseURL) {
   await signIn(page, 'luke');
   await page.getByRole('button', { name: 'Try the new app', exact: true }).click();
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
   await expect(page.locator('.gx-per-game')).toBeVisible();
   return { ...world, personal, writes, control };
 }
@@ -172,6 +173,7 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: 'Try the new app', exact: true }).click();
     await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
     await expect(page.locator('.gx-per-game')).toBeVisible();
     const [first, second] = world.state.games, card = await choose(page, first.id);
     await card.getByRole('button', { name: 'Lock in Spread' }).click();

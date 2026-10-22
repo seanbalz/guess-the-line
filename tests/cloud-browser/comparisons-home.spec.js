@@ -15,18 +15,27 @@ async function ready(page, baseURL) {
   await expect(page.getByRole('heading',{ name: 'Home',exact: true })).toBeVisible();
   return world;
 }
+async function settings(page) {
+  await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Settings · sportsbooks and guidance', exact: true }).click();
+}
+async function guide(page) {
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.getByText('How to play', { exact: true }).click();
+}
 test('Home guide and account settings persist; comparisons use revealed common games, markets and mobile accessible tables', async ({ page, baseURL }, testInfo) => {
   const world = await ready(page,baseURL);
   try {
+    await guide(page);
     await expect(page.getByRole('heading',{ name: 'New here? Start here' })).toBeVisible();
-    await expect(page.getByText('Ranked wagers unavailable:',{ exact: false })).toBeVisible();
     await page.getByRole('button',{ name: 'Collapse guide',exact: true }).click();
     await expect(page.getByRole('button',{ name: 'Show getting started guide' })).toBeVisible();
-    await page.getByRole('button',{ name: 'Choose sportsbooks',exact: true }).click();
+    await settings(page);
     await page.getByRole('checkbox',{ name: 'DraftKings',exact: true }).check();
     await page.getByRole('button',{ name: 'Save settings',exact: true }).click();
     await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
+    await page.getByRole('button',{ name: 'Your results',exact: true }).click();
     await page.getByRole('button',{ name: 'Compare players',exact: true }).click();
     await expect(page.getByRole('heading',{ name: 'Compare players',exact: true })).toBeVisible();
     await expect(page.getByText('2 included · 0 excluded of 2 games in these filters')).toBeVisible();
@@ -56,7 +65,7 @@ test('Home guide and account settings persist; comparisons use revealed common g
 test('settings retain the draft on a concurrent account write; Home resets for the next account', async ({ page, baseURL }, testInfo) => {
   const world = await ready(page,baseURL);
   try {
-    await page.getByRole('button',{ name: 'Choose sportsbooks',exact: true }).click();
+    await settings(page);
     await page.getByRole('checkbox',{ name: 'DraftKings',exact: true }).check();
     const concurrent = await world.api('luke','me/preferences/save',{ revision: 0,sportsbooks: ['fanduel'],guidanceCollapsed: true });
     expect(concurrent.status).toBe(200);
@@ -71,8 +80,9 @@ test('settings retain the draft on a concurrent account write; Home resets for t
     await page.getByRole('button',{ name: /Open menu|Your menu|Account menu/ }).click();
     await page.getByRole('button',{ name: 'Sign out',exact: true }).click();
     await signIn(page,'sean');
+    await guide(page);
     await expect(page.getByRole('heading',{ name: 'New here? Start here' })).toBeVisible();
-    await page.getByRole('button',{ name: 'Choose sportsbooks',exact: true }).click();
+    await settings(page);
     await expect(page.getByRole('checkbox',{ name: 'DraftKings',exact: true })).not.toBeChecked();
   } finally { await world.db.close(); }
 });
@@ -81,7 +91,7 @@ test('settings retain the draft on a concurrent account write; Home resets for t
 test('a failed settings save keeps the draft and retry checks the saved version first', async ({ page,baseURL }) => {
   const world = await ready(page,baseURL);
   try {
-    await page.getByRole('button',{ name: 'Choose sportsbooks',exact: true }).click();
+    await settings(page);
     await page.getByRole('checkbox',{ name: 'DraftKings',exact: true }).check();
     const pattern = '**/functions/v1/gtl-api/me/preferences/save';
     await page.route(pattern,route => route.fulfill({ status: 500,contentType: 'application/json',body: JSON.stringify({ error: 'Service unavailable.' }) }));

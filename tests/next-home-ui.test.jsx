@@ -8,6 +8,7 @@ import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { HOME_COPY, homeTiles } from '../shared/home-view.mjs';
 
 vi.mock('../web/src/api.js', () => ({ meApi: vi.fn() }));
+vi.mock('../web/src/next/home/HomeSummaries.jsx', () => ({ ScoreSummaryRow: () => <p>Your scores</p>, BetsSummaryRow: () => <p>My bets</p> }));
 const state = vi.hoisted(() => ({ home: null }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => state.home }));
 
@@ -90,73 +91,14 @@ describe('Home while picks are due', () => {
     expect(nodes(html, attr('data-home', 'line'))).toHaveLength(0);
   });
 
-  it('who\'s in: "4 of 5 in", the faces of everyone in or sat out, never the one still out', () => {
+  it('uses short destination rows instead of rank tiles and participation cards', () => {
     home(reply());
     const html = render();
-    const who = nodes(html, attr('data-home', 'whos-in'))[0];
-    expect(textOf(who)).toContain('Who’s in');
-    expect(textOf(who)).toContain('4 of 5 in');
-    expect(homeTiles({ community: reply() }).whosIn.label).toBe('4 of 5 in');
-    // Four people are done (three in, Emery sat out); the stack shows up to four faces, so none is folded into "+N".
-    expect(nodes(who, hasClass('gx-av'))).toHaveLength(4);
-    expect(nodes(who, hasClass('gx-av-more'))).toHaveLength(0);
-    expect(textOf(who)).not.toContain('Casey');
-  });
-
-  it('the rank tiles: "T-2" in words for the tie, points to one decimal, the chase line under Spread; "—" and "No ballot yet" for Total, never 0', () => {
-    home(reply());
-    const html = render();
-    const spread = tile(html, 'spread');
-    expect(textOf(spread)).toContain('Spread rank');
-    expect(seen(spread)).toContain('T-2');
-    expect(textOf(spread)).toContain('Rank 2, tied');
-    expect(textOf(spread)).toContain('10.0 pts');
-    expect(nodes(spread, attr('data-home', 'chase')).map(textOf)).toEqual(['2 behind Blake Rivers']);
-    const total = tile(html, 'total');
-    expect(textOf(total)).toContain('Total rank');
-    expect(seen(total)).toContain('—');
-    expect(textOf(total)).toContain('Not ranked');
-    expect(textOf(total)).toContain('No ballot yet');
-    expect(seen(total)).not.toMatch(/\d/);
-    expect(nodes(total, attr('data-home', 'chase'))).toHaveLength(0);
-  });
-
-  it.each([[SPREAD, 'spread', TOTAL, 'total'], [TOTAL, 'total', SPREAD, 'spread']])('an unscored %s submission says "Not scored yet" while the other market still says "No ballot yet"', (submittedMode, submittedMarket, emptyMode, emptyMarket) => {
-    home(reply({
-      due: [{ mode: submittedMode, submitted: true, satOut: false, filled: 4, games: 4 }, { mode: emptyMode, submitted: false, satOut: false, filled: 0, games: 4 }],
-      submissions: [sent('u-casey', submittedMode)],
-      standings: [row('u-casey', submittedMode, 0, 0), row('u-casey', emptyMode, null, 0, { weeksSubmitted: 0 })],
-    }));
-    const html = render();
-    expect(markupProblems(html)).toEqual([]);
-    expect(textOf(tile(html, submittedMarket))).toContain('Not scored yet');
-    expect(textOf(tile(html, submittedMarket))).not.toContain('No ballot yet');
-    expect(textOf(tile(html, emptyMarket))).toContain('No ballot yet');
-    expect(textOf(tile(html, emptyMarket))).not.toContain('Not scored yet');
-    for (const market of ['spread', 'total']) {
-      expect(seen(tile(html, market))).toContain('—');
-      expect(seen(tile(html, market))).not.toMatch(/\d/);
-    }
-  });
-
-  it('a scored zero remains a ranked "0.0 pts", not an unscored ballot', () => {
-    home(reply({ standings: [row('u-casey', SPREAD, 0, 1)] }));
-    const spread = tile(render(), 'spread');
-    expect(textOf(spread)).toContain('Rank 1');
-    expect(textOf(spread)).toContain('0.0 pts');
-    expect(textOf(spread)).not.toContain('Not scored yet');
-    expect(textOf(spread)).not.toContain('No ballot yet');
-  });
-
-  it('the leader reads "You lead by 2"; first place keeps the kit\'s lime ring', () => {
-    home(reply({ viewer: 'u-blake' }), { viewer: 'u-blake' });
-    const html = render();
-    const spread = tile(html, 'spread');
-    expect(seen(spread)).toContain('1');
-    expect(nodes(spread, hasClass('gx-rank--1'))).toHaveLength(1);
-    expect(textOf(spread)).toContain('12.0 pts');
-    expect(nodes(spread, attr('data-home', 'chase')).map(textOf)).toEqual(['You lead by 2']);
-    expect(textOf(tile(html, 'total'))).toContain('7.5 pts');
+    expect(html).toContain('Your scores');
+    expect(html).toContain('My bets');
+    expect(html).toContain('My league');
+    expect(nodes(html, attr('data-home', 'whos-in'))).toHaveLength(0);
+    expect(nodes(html, attr('data-tile', 'spread'))).toHaveLength(0);
   });
 });
 
@@ -167,8 +109,8 @@ describe('the other hero states', () => {
     expect(markupProblems(html)).toEqual([]);
     expect(nodes(html, attr('data-home', 'hero'))[0].attrs['data-state']).toBe('not_open');
     expect(nodes(html, attr('role', 'timer'))[0].attrs['aria-label']).toBe('Picks open Monday 12:00 AM PT 11 hours 0 minutes');
-    expect(primaries(html)).toHaveLength(0);
-    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['See Lines']);
+    expect(primaries(html)).toHaveLength(1);
+    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['Explore games']);
   });
 
   it('closed: its one line instead of a countdown; done: "You’re in for this week"; no week: the title says so and nothing is due', () => {
@@ -176,13 +118,13 @@ describe('the other hero states', () => {
     let html = render();
     expect(nodes(html, attr('role', 'timer'))).toHaveLength(0);
     expect(nodes(html, attr('data-home', 'line')).map(textOf)).toEqual([HOME_COPY.closed]);
-    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['See Lines']);
+    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['Explore games']);
 
     home(reply({ due: [{ mode: SPREAD, submitted: true, satOut: false, filled: 4, games: 4 }, { mode: TOTAL, submitted: false, satOut: true, filled: 0, games: 4 }], picksDue: { state: 'done', modes: [] } }));
     html = render();
     expect(nodes(html, attr('data-home', 'line')).map(textOf)).toEqual([HOME_COPY.done]);
     expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread sent Total sat out']);
-    expect(primaries(html)).toHaveLength(0);
+    expect(primaries(html)).toHaveLength(1);
 
     home(reply({ week: null, due: [], submissions: [], standings: [], picksDue: { state: 'none', modes: [] } }));
     html = render();
@@ -190,8 +132,8 @@ describe('the other hero states', () => {
     expect(textOf(nodes(html, attr('data-home', 'hero'))[0])).toContain(HOME_COPY.noWeek);
     expect(nodes(html, attr('data-home', 'status'))).toHaveLength(0);
     expect(nodes(html, attr('role', 'timer'))).toHaveLength(0);
-    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['See Lines']);
-    expect(textOf(nodes(html, attr('data-home', 'whos-in'))[0])).toContain('0 of 5 in');
+    expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['Explore games']);
+    expect(nodes(html, attr('data-home', 'whos-in'))).toHaveLength(0);
   });
 });
 
