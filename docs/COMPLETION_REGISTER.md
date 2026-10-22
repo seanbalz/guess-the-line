@@ -31,6 +31,21 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
+October 21 NBA product direction: Sean selected **daily game board + private bet
+tracking first**, with NBA competitions later. The
+[approved NBA section design](superpowers/specs/2026-10-21-nba-section-design.md)
+defines a separate sport section sharing sign-in and settings, daily navigation,
+owner-only access to the existing archive and separate NBA accounting. Sean
+approved the design and authorized the [implementation plan](superpowers/plans/2026-10-21-nba-section.md)
+and build. The code is complete on draft PR #167 (owner ticket RPCs, bounded
+free-source game cache, Games/My Bets/History screens and the NFL/NBA selector in
+both the default classic app and the four-tab app), reconciled with `main` after
+the four-tab release. The [NBA release card](NBA_SECTION_RELEASE.md) records the
+migration order, preservation checks, rollback and the two open prerequisites:
+Sean adds `BALLDONTLIE_API_KEY` to the Edge Function secrets and approves applying
+`20261021223000` and `20261021223100`. This entry establishes no feed connection,
+hosted permission change or deployment. The private archive remains protected.
+
 October 21 design review: Sean selected a simpler four-tab application,
 **Home / Play / Bets / Research**, with League inside Play and Fantasy inside
 Research, and equal emphasis on guessing/competition and actual-bet tracking.
@@ -252,7 +267,12 @@ The server seed now carries the prepared 2025 history state instead of the histo
 CSV, so each request processes only the current season. Output is byte-identical,
 and local cold main-thread CPU fell from about 1.07 s to under 0.21 s in Node and
 Deno. Evidence is in the [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md#october-22--hosted-cpu-outage-and-prepared-history-fix-claude-code);
-branch `claude/trends-week-cpu`. Merge, API release and hosted readback remain pending.
+branch `claude/trends-week-cpu`. Merged in PR #182 and released October 22 at 17:19 UTC
+as API v32 with Pages `9fb54fe4`; see the
+[October 22 follow-up](RELEASE_2026_10_22_TRENDS_FILTER.md#october-22-follow-up-trends-outage-fixed-api-v32).
+Signed-in `POST /trends/week` returned 200 in hosted logs after the deploy, with no
+CPU errors. Real-phone acceptance and Week 8 publication on Monday, October 26 remain
+open.
 
 ## Evidence and limits
 

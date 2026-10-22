@@ -81,8 +81,17 @@ begin
   if (select count(*) from nba_private.bets where import_id=${quote(importId)} and owner_id=${quote(ownerId)}) <> ${rows.length}
     or exists (select 1 from jsonb_array_elements(${tickets}::jsonb) e
       left join nba_private.bets b on b.id=(e->>'id')::uuid
-      where b.id is null or to_jsonb(b)-'net_units'-'imported_at' <> e
-        or b.net_units is distinct from (e->'source_record'->>'netUnits')::numeric) then
+      where b.id is null
+        or b.owner_id is distinct from (e->>'owner_id')::uuid
+        or b.import_id is distinct from (e->>'import_id')::uuid
+        or b.sport is distinct from e->>'sport'
+        or b.source_record is distinct from e->'source_record'
+        or b.provenance is distinct from e->'provenance'
+        -- Before any app correction, verify current terms/net too. Later revisions
+        -- preserve their original source above without overwriting corrected terms.
+        or (coalesce((to_jsonb(b)->>'revision')::integer,1) <= 1 and
+          (to_jsonb(b)-'net_units'-'imported_at'-'revision'-'updated_at'-'price_input' <> e
+            or b.net_units is distinct from (e->'source_record'->>'netUnits')::numeric))) then
     raise exception 'NBA_TICKET_CONFLICT';
   end if;
 end ${delimiter};
