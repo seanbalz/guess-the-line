@@ -131,6 +131,53 @@ readback in Sean's Chrome:
   the Bets UI follows M-11.
 - No `gtl-api` 4xx/5xx and no "CPU Time exceeded" in the function logs after 18:55 UTC.
 
+### NBA section release (API then frontend)
+
+Source: `main` at `d65268e9855bc8577f315ab0499497d808ffa178` (PR #167). All three push
+workflows passed on that SHA:
+[Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39842061835),
+[Dashboard checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39842061823) and
+[Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39842061842). Release card:
+[NBA_SECTION_RELEASE.md at that SHA](https://github.com/seanbalz/guess-the-lines-repo/blob/d65268e9855bc8577f315ab0499497d808ffa178/docs/NBA_SECTION_RELEASE.md).
+Both production-environment gates were approved under Sean's "release the features that
+depend on them".
+
+| Gate | Run | Result |
+| --- | --- | --- |
+| Readiness | [39850208451](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39850208451) | 51 hosted migrations, digest `bd9da17a…` as computed above; 279 of 282 signed-out probes denied, the three `/nba/*` routes awaiting the deploy |
+| API then frontend | [39851990693](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39851990693) | Deployed and verified at 20:50:39 UTC |
+
+- **API:** `gtl-api` **v34**, ACTIVE, JWT verification on, bundle SHA-256
+  `b853a6fb24303f3279ca22a10429e2d53335f31c279bdc57cd0880a8c0739d44`. The baseline was v33, the
+  same bundle as v32 (`92ad9bbd…`). All 60 retrieved v34 source files equal `d65268e` after
+  CRLF→LF and all 109 relative imports resolve inside the set; since v32 only
+  `cloud/handler.mjs` and the entry point changed, and `cloud/nba.mjs`, `cloud/nba-games.mjs`,
+  `shared/nba-bets.mjs` and `shared/nba-games.mjs` are new. The other four workers kept their
+  bundles.
+- **Frontend:** Pages **`7ae80e71-dc3c-4e3d-b028-6ae3355e7088`**, frontend SHA-256
+  `c37a13efe5e93c06a4d334e048d5e343b21deac5f76f264d1b359362ba038c65`, served bytes verified by
+  the workflow. Previous: `9fb54fe4` (from `8dccc5c`).
+- **Boundaries after the deploy:** 282 of 282 signed-out probes denied, nothing awaiting.
+- **Preservation:** read-only snapshots at 20:48:43 (before) and 20:52:15 UTC (after) matched for
+  every NFL table, both D-53 and M-10 tables, all 10 NBA tickets in full (`e5fc2eee…`), the
+  imports and receipts, and all 136 `gtl_*` functions (`47334b01…`).
+
+**Signed-in readback in Sean's Chrome (the check the protected workflow cannot do).**
+
+- `POST /nba/games` **200** (1.3 s) at 20:51:22 UTC on v34: the Games screen shows "Observed ·
+  BALLDONTLIE · 1:51 PM · 0 min ago" with CLE at PHI and DEN at OKC for October 22 (Pacific). The
+  cache holds one row: 25 games across the three UTC dates around October 22, a complete reply
+  (the fetch asks for 100 per page and the normalizer refuses a reply with a further page). The
+  provider cooldown was set and released. This is the real-source acceptance the release card
+  required.
+- `POST /nba/read` **200** (0.6 s) at 20:51:42 UTC: My Bets lists the 10 archived tickets (4 wins,
+  2 losses, 4 pending; net +1.2181818 U), matching the import.
+- No "CPU Time exceeded", error or exception in the function logs after 20:50 UTC.
+
+Seen but not changed here: each NBA game's status pill shows the provider's raw start time
+(`2026-10-22T23:00:00Z`) for scheduled games, and imported odds converted from probabilities
+display four decimals (`+102.0202`).
+
 ## Rollback
 
 New functions and tables only; nothing replaced an existing body. Off switches:
@@ -138,4 +185,9 @@ New functions and tables only; nothing replaced an existing body. Off switches:
 `supabase/rollback/20261021223000_gtl_nba_app_bets.sql` and
 `supabase/rollback/20261021223100_gtl_nba_game_cache.sql` revoke the four RPCs and keep every
 ticket, original source, revision, receipt, cached game and provider budget. Never drop: saved
-preferences and NBA receipts are append-only player data.
+preferences and NBA receipts are append-only player data. API: redeploy from `8dccc5c` (v32
+source); Pages: restore `9fb54fe4-d7f0-41ea-a925-a0d86dbf277e`. The NFL application does not
+depend on any NBA object.
+
+Still open: real-phone acceptance of the NBA section, Compare players and preferences saves;
+the Bets screens and placement (M-11).

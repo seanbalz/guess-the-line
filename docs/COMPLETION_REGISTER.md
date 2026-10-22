@@ -43,10 +43,12 @@ and build. The code is complete on draft PR #167 (owner ticket RPCs, bounded
 free-source game cache, Games/My Bets/History screens and the NFL/NBA selector in
 both the default classic app and the four-tab app), reconciled with `main` after
 the four-tab release. The [NBA release card](NBA_SECTION_RELEASE.md) records the
-migration order, preservation checks, rollback and the two open prerequisites:
-Sean adds `BALLDONTLIE_API_KEY` to the Edge Function secrets and approves applying
-`20261021223000` and `20261021223100`. This entry establishes no feed connection,
-hosted permission change or deployment. The private archive remains protected.
+migration order, preservation checks and rollback. Released October 22: #167
+merged as `d65268e`, both migrations applied (`20261022194048`, `20261022194209`),
+`BALLDONTLIE_API_KEY` added by Sean, then `gtl-api` v34 and Pages `7ae80e71`.
+Signed-in `/nba/games` read live BALLDONTLIE games and `/nba/read` returned the 10
+archived tickets unchanged ([record](RELEASE_2026_10_22_MIGRATIONS.md)). The private
+archive remains owner-only. Physical-iPhone acceptance remains open.
 
 October 21 design review: Sean selected a simpler four-tab application,
 **Home / Play / Bets / Research**, with League inside Play and Fantasy inside
