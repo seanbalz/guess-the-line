@@ -20,12 +20,13 @@ function render(Screen, patch = {}) {
 }
 
 describe('One thing first roots', () => {
-  it('Home has one action and three summary rows instead of full boards and research', () => {
+  // D-55 round 3: Home keeps one lime action; stat tiles replace the summary rows, and research stays one row away.
+  it('Home has one action, three stat tiles and a trends row instead of full boards and research', () => {
     const html = render(Home);
     expect(markupProblems(html)).toEqual([]);
     expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
-    for (const name of ['Your scores', 'My bets', 'My league']) expect(html).toContain(name);
-    for (const removed of ['Who’s in', 'Explore the week', 'Research readiness', 'Spread rank', 'New here? Start here']) expect(html).not.toContain(removed);
+    for (const name of ['Spread rank', 'Total rank', 'My bets', 'This week’s trends']) expect(html).toContain(name);
+    for (const removed of ['Explore the week', 'Research readiness', 'New here? Start here', 'Your scores']) expect(html).not.toContain(removed);
   });
   it('Play leads with the still-due Total market and keeps Spread reachable', () => {
     const html = render(Play);

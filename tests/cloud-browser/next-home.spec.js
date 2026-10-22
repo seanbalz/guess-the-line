@@ -147,7 +147,7 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     expect(expectedHero.state).toBe('due');
     expect(expectedHero.statusLines).toEqual([`Spread ${LUKE_SPREAD_DRAFT.length} of ${world.state.games.length} picked`, `Total 0 of ${world.state.games.length} picked`]);
     await expect(hero(page)).toHaveAttribute('data-state', 'due');
-    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText('Finish your weekly guesses.');
+    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(`Lock in Week ${world.state.league.week}`);
     await expect(hero(page).locator('[data-home="status"] li')).toHaveText(expectedHero.statusLines);
 
     // The countdown: a timer named with its words and the time left, digits in tiles, not read every tick.
@@ -165,11 +165,13 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     await expect(page.locator('.gx .gx-btn--primary:visible')).toHaveCount(1);
     await expect(page.getByRole('button', { name: HOME_COPY.seeLines })).toHaveCount(0);
 
-    await expect(page.getByRole('button', { name: 'Your scores', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'My bets', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'My league', exact: true })).toBeVisible();
-    await expect(whosIn(page)).toHaveCount(0);
-    for (const market of ['spread', 'total']) await expect(rankTile(page, market)).toHaveCount(0);
+    // D-55 round 3 (approved October 21): three stat tiles, who's in for the league with Standings and Invite, and
+    // a progress bar under each market's status words.
+    for (const market of ['spread', 'total', 'tickets']) await expect(rankTile(page, market)).toBeVisible();
+    await expect(whosIn(page)).toHaveCount(1);
+    await expect(whosIn(page).getByRole('button', { name: 'Standings', exact: true })).toBeVisible();
+    await expect(whosIn(page).getByRole('button', { name: 'Invite', exact: true })).toBeVisible();
+    await expect(hero(page).locator('[data-home="status"] .gx-h-bar')).toHaveCount(expectedHero.statusLines.length);
 
     await phoneChecks(page);
     await noLeak(page, world, lines, 'Home');

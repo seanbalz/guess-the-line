@@ -91,14 +91,18 @@ describe('Home while picks are due', () => {
     expect(nodes(html, attr('data-home', 'line'))).toHaveLength(0);
   });
 
-  it('uses short destination rows instead of rank tiles and participation cards', () => {
+  // D-55 round 3 (Sean approved R3 on October 21): the rank tiles and who's in come back as D tiles and a league strip.
+  it('three stat tiles, who’s in with Standings and Invite, and a progress bar per market', () => {
     home(reply());
     const html = render();
-    expect(html).toContain('Your scores');
-    expect(html).toContain('My bets');
-    expect(html).toContain('My league');
-    expect(nodes(html, attr('data-home', 'whos-in'))).toHaveLength(0);
-    expect(nodes(html, attr('data-tile', 'spread'))).toHaveLength(0);
+    expect(markupProblems(html)).toEqual([]);
+    for (const tile of ['spread', 'total', 'tickets']) expect(nodes(html, attr('data-tile', tile))).toHaveLength(1);
+    expect(textOf(nodes(html, attr('data-tile', 'spread'))[0])).toContain(HOME_COPY.spreadRank);
+    const who = nodes(html, attr('data-home', 'whos-in'));
+    expect(who).toHaveLength(1);
+    expect(buttons(who[0])).toEqual(['Standings', 'Invite']);
+    expect(nodes(html, n => (n.attrs.class ?? '').split(/\s+/).includes('gx-h-bar'))).toHaveLength(2);
+    expect(html).not.toContain('Your scores');
   });
 });
 

@@ -10,12 +10,13 @@
 // do. The referee assignments (`/officials/read`) are read once this sheet opens. Stage 35 adds the owner's private game note.
 import { useId, useMemo } from 'react';
 import { LINES_COPY, gameSheet, refereeRow, sheetWeatherRow } from '../../../../shared/lines-view.mjs';
-import { TRENDS_FOOTNOTE, WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-view.mjs';
+import { WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-view.mjs';
 import { useOfficials, useWind } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
-import { Card, Icon, List, Pill, Row, Sheet } from '../ui/index.js';
+import { Card, Icon, InfoButton, List, Pill, Row, Sheet } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
-import { Credits, Expander, TrendList, WeatherDetail } from './parts.jsx';
+import { Expander, TrendList, WeatherDetail } from './parts.jsx';
+import { INFO } from '../info.js';
 import { GameNote } from './GameNote.jsx';
 import { MatchupResearch } from '../research/ResearchSheet.jsx';
 import './lines.css';
@@ -86,11 +87,13 @@ export function GameSheet({ args }) {
       </section>
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={trendsId} data-section="trends">
-        <h3 className="gx-t-section" id={trendsId}>{LINES_COPY.trends}</h3>
-        <MatchupResearch lines={lines} gameId={view.id} fallback={<>{t.notice ? <Missing text={t.notice}/>
-          : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game"/>
-            : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}
-        {t.status === 'ready' && t.top.length ? <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p> : null}</>}/>
+        <div className="gx-l-sechead">
+          <h3 className="gx-t-section gx-grow" id={trendsId}>{LINES_COPY.trends}</h3>
+          <InfoButton title={INFO.trends.title} body={INFO.trends.body} links={INFO.trends.links}/>
+        </div>
+        <MatchupResearch lines={lines} gameId={view.id} fallback={t.notice ? <Missing text={t.notice}/>
+          : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game" openFirst/>
+            : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}/>
       </section>
 
       <Card variant="flush">
@@ -114,7 +117,6 @@ export function GameSheet({ args }) {
       </Card>
 
       {app.accountId && shown && <GameNote key={`${app.accountId}:${shown.season}:${shown.week}:${view.id}`} accountId={app.accountId} season={shown.season} week={shown.week} gameId={view.id} requestSignIn={app.requestSignIn} onSaved={() => app.refresh({ only: ['personal'] })}/>}
-      <Credits footer={view.footer}/>
     </Sheet>
   );
 }

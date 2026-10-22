@@ -25,6 +25,7 @@ export { Strip, stripLayout, STRIP_NEAR } from './Strip.jsx';
 export { Avatar, AvatarStack, avatarFill, initials, AVATAR_FILLS, AVATAR_SIZES } from './Avatar.jsx';
 export { Sheet } from './Sheet.jsx';
 export { Dialog } from './Dialog.jsx';
+export { InfoButton } from './InfoButton.jsx';
 export { Toast, toastDuration, TOAST_TONES, TOAST_MS } from './Toast.jsx';
 export { Overlay } from './Overlay.jsx';
 export { TeamMark, teamCode, TEAM_MARK_SIZES } from './TeamMark.jsx';

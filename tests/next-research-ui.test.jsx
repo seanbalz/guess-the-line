@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems } from './helpers/ui-markup.mjs';
 vi.mock('../web/src/api.js', () => ({ linesApi: vi.fn() }));
-const { ResearchCards, ResearchLeans, ResearchSources, ResearchStatus } = await import('../web/src/next/research/ResearchCards.jsx');
+const { ResearchCards, ResearchLeans, ResearchSources, ResearchStatus, researchLine } = await import('../web/src/next/research/ResearchCards.jsx');
 const { default: ResearchChart } = await import('../web/src/next/research/ResearchChart.jsx');
 const { researchExpiry, researchRefreshDue, withoutExpiredLeans } = await import('../web/src/next/research/useResearch.js');
 const record = { wins: 20, losses: 9, pushes: 1, sample: 30, coverage: { from: '2025-01-01', to: '2026-10-20' } };
@@ -15,7 +15,9 @@ describe('shared research presentation', () => {
   it('caps the shared shortlist and labels canonical consistency separately', () => {
     const html = render(<ResearchCards data={data} ids={['a','b','c','fourth']} limit={3}/>);
     expect((html.match(/data-research-card=/g) || [])).toHaveLength(3);
-    expect(html).toContain('Consistency:'); expect(html).toContain('2025-01-01');
+    // D-55: the canonical consistency is the card's own pill ("Not proven"), apart from the selected period's dates;
+    // its full sentence is in the card's ⓘ.
+    expect(html).toContain('Not proven'); expect(html).toContain('2025-01-01 to 2026-10-20');
     expect(markupProblems(html)).toEqual([]);
   });
   it('shows team direction and yellow qualifying opposition outside the shortlist', () => {
@@ -30,11 +32,17 @@ describe('shared research presentation', () => {
     const html = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: { visible: false, lean: game.spread.lean } }] }}/>);
     expect(html).not.toContain('Synthetic fourth'); expect(html).not.toContain('DEN −2');
   });
-  it('chart and accessible binned table reconcile with the same selected sample and zero baseline', () => {
+  // D-55: the evidence table keeps the selected sample's bins; the chart drawn from the same series is the card's line.
+  it('the accessible binned table and the card’s line reconcile with the same selected sample and zero baseline', () => {
     const html = render(<ResearchChart candidate={candidates[0]}/>);
-    expect(html).toContain('Illustrative units at -110'); expect(html).toContain('data-zero-baseline');
-    expect(html).toContain('chronological bins'); expect(html).toContain('30'); expect(html).toContain('9.18');
+    expect(html).toContain('Illustrative units at -110'); expect(html).toContain('chronological bins');
+    expect(html).toContain('30'); expect(html).toContain('9.18');
     expect(markupProblems(html)).toEqual([]);
+    const line = researchLine(candidates[0]);
+    expect(line.values).toEqual([0, ...candidates[0].series.points.map(p => p.illustrativeUnits)]);
+    const card = render(<ResearchCards data={data} ids={[candidates[0].id]} limit={1}/>);
+    expect(card).toContain('data-zero-baseline'); expect(card).toContain('About this research');
+    expect(markupProblems(card)).toEqual([]);
   });
   it('Trent remains a separate unavailable original-play feed', () => {
     const html = render(<ResearchSources trent={{ status: 'unavailable', plays: [] }}/>);

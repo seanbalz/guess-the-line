@@ -6,12 +6,13 @@
 import { useId, useMemo } from 'react';
 import { LINES_COPY, gameSheet, lockedRecordsText } from '../../../../shared/lines-view.mjs';
 import { TEAM_NAMES } from '../../../../shared/nfl-schedule.mjs';
-import { TRENDS_FOOTNOTE, allTrends, refereeFor } from '../../../../shared/trends-view.mjs';
+import { allTrends, refereeFor } from '../../../../shared/trends-view.mjs';
 import { useOfficials } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
-import { Card, List, LockLine, Sheet } from '../ui/index.js';
+import { Card, InfoButton, List, LockLine, Sheet } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
-import { Credits, Expander, TrendList } from './parts.jsx';
+import { Expander, TrendList } from './parts.jsx';
+import { INFO } from '../info.js';
 import './lines.css';
 
 function summaryOf(group) {
@@ -58,6 +59,10 @@ export function AllTrendsSheet({ args }) {
     <Sheet title={LINES_COPY.allTrends} back={back} onClose={shell.closeSheet} closeLabel="Close All trends" tall className="gx-l-sheet">
       {!all ? <p className="gx-t-body gx-c-2" role="status">{view ? view.trends.notice || LINES_COPY.trendsLoading : personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}</p> : (
         <>
+          <div className="gx-l-sechead">
+            <p className="gx-t-meta gx-c-2 gx-grow">Every record for this game</p>
+            <InfoButton title={INFO.trends.title} body={[...INFO.trends.body, trendsWeek?.copy?.reference]} links={INFO.trends.links}/>
+          </div>
           <Card variant="flush">
             <List label="Trend groups">
               {all.groups.map(group => (
@@ -67,11 +72,8 @@ export function AllTrendsSheet({ args }) {
               ))}
             </List>
           </Card>
-          <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p>
-          <p className="gx-t-meta">{trendsWeek?.copy?.reference}</p>
         </>
       )}
-      {view ? <Credits footer={view.footer}/> : null}
     </Sheet>
   );
 }

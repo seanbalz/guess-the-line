@@ -44,12 +44,13 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
       }
     }
     await tab(page, 'Home').click();
-    await page.getByRole('button', { name: /^Your scores/ }).click();
+    // D-55 round 3: Home's Spread rank tile opens the weekly score.
+    await page.getByRole('button', { name: /^Spread rank/ }).click();
     await expect(page.getByRole('heading', { name: 'Your weekly score', exact: true })).toBeVisible();
     await expect(tab(page, 'Play')).toHaveAttribute('aria-current', 'page');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.locator('[data-landing="home"]')).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Your scores/ })).toBeFocused();
+    await expect(page.getByRole('button', { name: /^Spread rank/ })).toBeFocused();
     await tab(page, 'Research').click();
     await page.getByRole('button', { name: /^Fantasy/ }).click();
     await expect(page.getByRole('heading', { name: 'Fantasy Football', exact: true })).toBeVisible();

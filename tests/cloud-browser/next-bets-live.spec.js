@@ -87,7 +87,11 @@ test('Community tracked bets work without private membership; create, own week a
     const calls = callsFrom(page);
     await openBets(page);
     await expect(page.locator('body')).not.toContainText('PRIVATE NOTE SENTINEL');
-    await expect(page.locator('.gx-bets')).toContainText('Tracked bets are shared with all signed-in players');
+    // D-55: the sharing note is behind the title's ⓘ.
+    await expect(page.locator('.gx-bets')).not.toContainText('Tracked bets are shared with all signed-in players');
+    await page.getByRole('button', { name: 'About tracked bets', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About tracked bets' })).toContainText('Tracked bets are shared with all signed-in players');
+    await page.getByRole('dialog', { name: 'About tracked bets' }).getByRole('button', { name: 'Close', exact: true }).click();
     await view(page, 'Virtual Units').click();
     await expect(page.getByRole('button', { name: 'Choose league', exact: true })).toBeVisible();
     expect(calls.filter(call => call.path.startsWith('virtual-'))).toEqual([]);

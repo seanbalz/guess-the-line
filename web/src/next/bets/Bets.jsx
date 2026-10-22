@@ -5,6 +5,9 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Button } from '../ui/Button.jsx';
 import { Icon } from '../ui/Icon.jsx';
+import { InfoButton } from '../ui/InfoButton.jsx';
+import { INFO } from '../info.js';
+import { NetUnits } from './NetUnits.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { useTicketSummary } from './useTicketSummary.js';
@@ -12,6 +15,8 @@ import './bets.css';
 import '../../liveBets.css';
 
 const SocialBetTracker = lazy(() => import('../../SocialBetTracker.jsx'));
+// Each view's fine print, behind the title's ⓘ (D-55).
+const TOPIC = Object.freeze({ tracked: 'trackedBets', recommended: 'recommended', virtual: 'virtual' });
 const VirtualUnits = lazy(() => import('../../VirtualUnits.jsx'));
 
 // Recommendations follow the published account week. The existing All games Virtual Units editor keeps its league scope.
@@ -74,20 +79,22 @@ function BetsDetail() {
     virtual: 'Choose a league and place play-money picks.',
   };
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title">
-    <header className="gx-bets-heading"><h1 id="gx-bets-title" className="gx-t-title">{({ active: "Active tickets", settled: "Settled tickets", add: "Add a bet", recommended: "Recommended", virtual: "Virtual Units" })[destination] ?? "Tracked bets"}</h1><p className="gx-t-body gx-c-2">{introduction[view]}</p></header>
+    <header className="gx-bets-heading">
+      <div className="gx-bets-titlebar"><h1 id="gx-bets-title" className="gx-t-title gx-grow">{({ active: "Active tickets", settled: "Settled tickets", add: "Add a bet", recommended: "Recommended", virtual: "Virtual Units" })[destination] ?? "Tracked bets"}</h1><InfoButton title={INFO[TOPIC[view]].title} body={INFO[TOPIC[view]].body}/></div>
+      <p className="gx-t-body gx-c-2">{introduction[view]}</p>
+    </header>
+    {/* D-55: short visible labels, full accessible names, one row at every phone width. */}
     <div className="gx-bets-views" role="group" aria-label="Bets view">
-      <Button icon={NotebookPen} aria-pressed={view === 'tracked'} onClick={() => choose('tracked')}>Tracked bets</Button>
-      <Button icon={ListFilter} aria-pressed={view === 'recommended'} onClick={() => choose('recommended')}>Recommended</Button>
-      <Button icon={Coins} aria-pressed={view === 'virtual'} onClick={() => choose('virtual')}>Virtual Units</Button>
+      <Button aria-label="Tracked bets" aria-pressed={view === 'tracked'} onClick={() => choose('tracked')}>Tracked</Button>
+      <Button aria-label="Recommended" aria-pressed={view === 'recommended'} onClick={() => choose('recommended')}>Recommended</Button>
+      <Button aria-label="Virtual Units" aria-pressed={view === 'virtual'} onClick={() => choose('virtual')}>Virtual</Button>
     </div>
     {view === 'tracked' ? <>
-      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Tracked bets are shared with all signed-in players, including when you select a private league. Results are player reported.</span></p>
-      <DeferredScreen label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} ticketRequest={ticketRequest?.accountId === app.accountId ? ticketRequest : null} onTicketConsumed={ticketConsumed} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
+      <DeferredScreen label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} ticketRequest={ticketRequest?.accountId === app.accountId ? ticketRequest : null} onTicketConsumed={ticketConsumed} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : view === 'recommended' ? <>
-      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={NotebookPen} size={18}/><span>Compare your locked guesses with current lines. Track a ticket placed elsewhere, or play with Virtual Units.</span></p>
       <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : privateLeague ? <>
-      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Showing {league.name}. Your account’s Virtual Units picks are reused across your leagues.</span></p>
+      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Showing {league.name}</span></p>
       <DeferredScreen resetKey={league.id} label="Virtual Units"><VirtualUnits key={`${app.accountId}:${league.id}`} accountId={app.accountId} leagueId={league.id} embedded showViewTabs={false} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : <section className="gx-bets-choose"><span className="gx-bets-choose-icon"><Icon icon={Coins} size={28}/></span><h2 className="gx-t-section">Your league’s virtual picks</h2><p className="gx-t-body gx-c-2">Choose one of your private leagues to place Virtual Units picks.</p><Button icon={Users} onClick={() => shell.openSheet('sh.switcher')}>Choose league</Button></section>}
   </section>;

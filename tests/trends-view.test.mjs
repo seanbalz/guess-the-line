@@ -457,6 +457,27 @@ test('per-game access for the new app: the server\'s rules and now, one game\'s 
   assert.equal(V.lineGate(week, 'total|g:g_wind10'), null);
 });
 
+// Contract (D-55): an open card's chart is the week file's own numbers, unchanged: its cumulative units points, units,
+// last 10 and the selection period's seasons with the count of positive ones. A card with no points gets no line, a
+// two-sided row gets no chart, and a locked card still carries nothing (tested below).
+test('D-55 chart data: an open card carries the file\'s own points, units, last 10 and seasons; nothing is invented', () => {
+  const entry = week.cards['total|g:g_wind10'];
+  const card = V.shortCard(week, { card: 'total|g:g_wind10' }, { names: NAMES });
+  assert.deepEqual(card.chart.spark, entry.record.spark);
+  assert.equal(card.chart.units, entry.record.units110);
+  assert.deepEqual(card.chart.last10, { W: entry.record.last10.W, L: entry.record.last10.L, P: entry.record.last10.P });
+  assert.deepEqual(card.chart.seasons.map(s => [s.season, s.w, s.l, s.p, s.units]), entry.selection.perSeason.map(([season, , w, l, p, units]) => [season, w, l, p, units]));
+  assert.deepEqual([card.chart.seasonsPositive, card.chart.seasonsCounted], [entry.selection.seasonsPos, entry.selection.seasonsBet]);
+  assert.equal(card.chart.side, 'Under');
+  assert.deepEqual(card.chart.conditions, entry.filters);
+  const hou = game('HOU-JAX');
+  assert.equal(V.shortCard(week, hou.tier2[0], { game: hou, names: NAMES }).chart.side, hou.tier2[0].bet, 'the game\'s own side words win');
+  const noPoints = structuredClone(week);
+  delete noPoints.cards['total|g:g_wind10'].record.spark;
+  assert.equal(V.shortCard(noPoints, { card: 'total|g:g_wind10' }).chart.spark, null);
+  assert.equal('chart' in V.shortCard(week, { id: 'home_ats|g:g_all' }), false);
+});
+
 test('short cards: plain words, the file\'s own record and sample size, the tier in words; rows both ways', () => {
   const nyg = game('NO-NYG');
   const hot = V.shortCard(week, nyg.tier2[0], { game: nyg, access: CLOSED, names: NAMES });

@@ -616,6 +616,33 @@ function rowSentence(row, id, { names, season }) {
 }
 
 /**
+ * D-55 chart data for an open card (never for a locked one): the registered side in words, the cumulative units at
+ * −110 (`spark`, the week file's chronological points from the first season), the record's units and last 10, the
+ * selection period's seasons `{ season, w, l, p, units }` with how many were positive, and the plain-language
+ * conditions. Missing pieces stay null or empty; nothing is filled in.
+ */
+function cardChart(week, entry, ref, team) {
+  const record = entry.record ?? {}, r = rec(record);
+  const spark = Array.isArray(record.spark) && record.spark.length > 1 && record.spark.every(finite) ? [...record.spark] : null;
+  const selection = entry.selection ?? null;
+  const seasons = (Array.isArray(selection?.perSeason) ? selection.perSeason : [])
+    .filter(row => Array.isArray(row) && Number.isInteger(row[0]))
+    .map(([season, , w = 0, l = 0, p = 0, units = null]) => ({ season, w, l, p, units: finite(units) ? units : units110([w, l, p]) }));
+  return {
+    side: (typeof ref?.bet === 'string' && ref.bet) || sideText(week, entry.market, entry.sideRule, team) || (typeof entry.sideLabel === 'string' ? entry.sideLabel : null),
+    spark,
+    record: { W: r.W, L: r.L, P: r.P },
+    units: finite(record.units110) ? record.units110 : units110(r),
+    last10: record.last10 ? rec(record.last10) : null,
+    seasons,
+    seasonsLabel: typeof selection?.label === 'string' ? selection.label : null,
+    seasonsPositive: Number.isInteger(selection?.seasonsPos) ? selection.seasonsPos : seasons.filter(s => s.units > 0).length,
+    seasonsCounted: Number.isInteger(selection?.seasonsBet) ? selection.seasonsBet : seasons.length,
+    conditions: Array.isArray(entry.filters) ? entry.filters.filter(text => typeof text === 'string') : [],
+  };
+}
+
+/**
  * A short card for one trend in a game: `{ key, id, team, kind, gate, locked, title, sentence, record, sample, games,
  * pct, tier, tierLabel, strength, notes }`. `ref` is a card reference (`{ card, team?, stacked?, conflict? }`) or a row
  * item (`{ id, team? }`). `access` is the game's gate (gameAccess); a line trend whose market is closed comes back
@@ -641,6 +668,7 @@ export function shortCard(week, ref, { game = null, access = null, names = null 
       record: recordText(r.W, r.L, r.P), sample: sampleText(games), games,
       pct: r.W + r.L ? Math.round((100 * r.W) / (r.W + r.L)) : null,
       tier, tierLabel: TIER_WORDS[tier], strength, notes, years: yearsOf(entry, week?.season),
+      chart: cardChart(week, entry, ref, team),
     };
   }
   const [a = 0, b = 0, p = 0] = Array.isArray(entry.split) ? entry.split : [];

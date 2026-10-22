@@ -33,7 +33,8 @@ const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { LinesBoard } = await import('../web/src/next/lines/LinesBoard.jsx');
 const { GameSheet } = await import('../web/src/next/lines/GameSheet.jsx');
 const { AllTrendsSheet, GroupBody } = await import('../web/src/next/lines/AllTrendsSheet.jsx');
-const { ShortTrend } = await import('../web/src/next/lines/parts.jsx');
+const { ShortTrend, trendInfoBody, trendRowSub } = await import('../web/src/next/lines/parts.jsx');
+const { INFO } = await import('../web/src/next/info.js');
 
 const records = JSON.parse(fs.readFileSync(new URL('../shared/team-records-2026.json', import.meta.url), 'utf8'));
 const GAMES = week.games.map(g => ({ id: g.id, away: g.away, home: g.home, awayCode: g.away, homeCode: g.home, kickoff: g.kickoff }));
@@ -84,7 +85,9 @@ describe('the Lines board', () => {
     const chips = nodes(html, n => n.attrs['data-chip'] === 'trend');
     expect(chips.length).toBeLessThanOrEqual(3);
     for (const card of cards) expect([...walk(card)].filter(n => n.attrs?.['data-chip']).length).toBeLessThanOrEqual(1);
-    expect(text(html)).toContain('Line now arrives in a later update.');
+    // D-55: the credits and "Line now arrives…" are behind the title's ⓘ.
+    expect(nodes(html, n => n.tag === 'button' && n.attrs['aria-label'] === 'About trends')).toHaveLength(1);
+    expect(text(html)).not.toContain('Line now arrives in a later update.');
     // The forged line under the closed Spread (−11.5) never shows.
     expect(text(html)).not.toContain('11.5');
   });
@@ -121,7 +124,8 @@ describe('the Lines board', () => {
     state.lines = { ...data(), personal: { status: 'error', data: null, error: { status: 0 } } };
     const failed = render(<LinesBoard/>);
     expect(text(failed)).toContain('This week’s games didn’t load.');
-    expect(nodes(failed, n => n.tag === 'button').map(textOf)).toEqual(['Try again', 'Use the old app']);
+    // D-55: the title's ⓘ is the one icon-only button; it is named for its topic.
+    expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Use the old app']);
   });
 });
 
@@ -147,16 +151,30 @@ describe('the game sheet', () => {
     expect(locked).toHaveLength(1);
     expect(textOf(locked[0])).toBe('Line-based trend Submit your Spread picks to see this trend.');
     expect(textOf(locked[0])).not.toMatch(/\d/);
-    expect(t).toContain('Line now arrives in a later update.');
+    // D-55: the footnote, "Line now arrives…" and the nflverse credit sit behind the Trends heading's ⓘ.
+    expect(nodes(sea, n => n.tag === 'button' && n.attrs['aria-label'] === 'About trends')).toHaveLength(1);
+    expect(INFO.trends.body).toContain('Line now arrives in a later update.');
+    expect(INFO.trends.links.map(link => link.text).join(' ')).toMatch(/nflverse/);
+    expect(t).not.toContain('Line now arrives in a later update.');
 
     const nyg = render(<GameSheet args={{ game: 'NO-NYG' }}/>);
+    // D-55 round 3: compact rows, each with its percent and sample size; the first with a chart opens in place with
+    // its record since its first season and the stat tiles. Its plain sentence and tier words are in its ⓘ.
     const top = nodes(nyg, n => n.tag === 'li' && n.attrs['data-trend']);
-    expect(top.map(textOf)).toEqual([
-      'Covering almost every week this season · NYG 54% Teams in the Saints’ spot covered 442 times and missed 377 since 2002. Record 442–377–19 838 games Consistent, not proven',
-      'Totals reversion 53% Under after high-scoring starts and Over after low-scoring starts: right 830 times and wrong 724 since 2002. Record 830–724–17 1,571 games Watch list, no proven edge',
-      'Home team after an overtime game · NYG 57% Teams in the Saints’ spot covered 186 times and missed 142 since 2002. Record 186–142–13 341 games Watch list, no proven edge',
-    ]);
+    expect(top).toHaveLength(3);
+    expect(textOf(top[0])).toMatch(/^Covering almost every week this season · NYG .*54% · 838 games/);
+    expect(textOf(top[1])).toMatch(/^Totals reversion .*53% · 1,571 games/);
+    expect(textOf(top[2])).toMatch(/^Home team after an overtime game · NYG .*57% · 341 games/);
+    expect([...walk(top[0])].filter(n => n.attrs?.['data-trend-detail'] === '')).toHaveLength(1);
+    expect(textOf(top[0])).toContain('442–377–19 since 2002');
+    expect(textOf(top[0])).toContain('Win rate');
+    expect([...walk(top[1])].filter(n => n.attrs?.['data-trend-detail'] === '')).toHaveLength(0);
     expect(bannedCopy(top.map(textOf).join(' '))).toEqual([]);
+    const card = { sentence: 'Teams in the Saints’ spot covered 442 times and missed 377 since 2002.', tierLabel: 'Consistent, not proven', chart: { conditions: ['Team: covering 70%+'] }, notes: ['A note'] };
+    expect(trendInfoBody(card).slice(0, 4)).toEqual([card.sentence, card.tierLabel, 'Team: covering 70%+', 'A note']);
+    expect(trendInfoBody(card)).toEqual(expect.arrayContaining(INFO.trends.body));
+    expect(trendRowSub({ chart: { side: 'Under' }, pct: 55, record: '898–730–22', sample: '1,650 games' })).toBe('Under · 55% · 1,650 games');
+    expect(trendRowSub({ pct: null, record: '102–101–5', sample: '208 games' })).toBe('102–101–5 · 208 games');
     // Every game has a weather row (D-45): with no forecast read it says so, with nothing to open; no referee row
     // without an assignment; All trends is always there.
     expect(nodes(nyg, attr('data-row', 'weather')).map(textOf)).toEqual(['Weather at kickoff No current forecast']);
@@ -206,7 +224,7 @@ describe('the All trends sheet', () => {
     expect(items.length).toBeGreaterThan(10);
     expect(items[0].attrs['data-trend']).toBe('locked');
     expect(textOf(items[0])).not.toMatch(/\d/);
-    for (const item of items.slice(1)) expect(textOf(item)).toMatch(/Record [\d,]+–[\d,]+(–[\d,]+)? [\d,]+ games?/);
+    for (const item of items.slice(1)) expect(textOf(item)).toMatch(/(\d+%|[\d,]+–[\d,]+(–[\d,]+)?) · [\d,]+ games?/);
     const team = render(<GroupBody group={groups.team} rules={TODAY}/>);
     expect(text(team)).toContain('Last meetings (within four years)');
     expect(text(team)).toContain('2024-09-08: DEN 20, SEA 26');

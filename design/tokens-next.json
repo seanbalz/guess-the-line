@@ -2,7 +2,7 @@
   "name": "Guess The Line",
   "system": "D-38 redesign: Arena with three grafts",
   "version": "2.0.0",
-  "status": "Approved with the D-38 prototype (canvas version 2), October 14, 2026. Used only by the new app in web/src/next. design/tokens.json stays for the old app.",
+  "status": "Approved with the D-38 prototype (canvas version 2), October 14, 2026; D-55 glow, glass, chart and soft-card tokens approved October 21, 2026 (round 3 boards). Used only by the new app in web/src/next. design/tokens.json stays for the old app.",
   "css": {
     "root": ".gx",
     "classPrefix": "gx-",
@@ -144,7 +144,18 @@
         "focus": "#38BDF8",
         "overlay": "#070B16CC",
         "toast-bg": "#26314B",
-        "seg-on": "#26314B"
+        "seg-on": "#26314B",
+        "glass": "#FFFFFF1A",
+        "glass-line": "#FFFFFF33",
+        "track": "#FFFFFF29",
+        "hero-base": "#0C2540",
+        "hero-text-2": "#C9DCEB",
+        "chart-line": "#F5F7FB",
+        "glow-1": "#7DD3FC",
+        "glow-2": "#34D399",
+        "glow-3": "#B8F34B",
+        "bar-1": "#7DD3FC",
+        "bar-2": "#34D399"
       },
       "effect": {
         "e1": "inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.35)",
@@ -157,8 +168,13 @@
         "av-ring": "0 0 0 0 transparent",
         "float-ring": "0 0 0 0 transparent",
         "hero-shadow": "var(--gx-e1)",
-        "wash": "radial-gradient(120% 60% at 50% -10%, rgba(56, 189, 248, 0.1), transparent 60%)",
-        "yardlines": "repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 24px)"
+        "wash": "radial-gradient(120% 40% at 50% 0%, rgba(30, 99, 144, 0.35), transparent 60%)",
+        "yardlines": "repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 24px)",
+        "hero-card": "radial-gradient(110% 60% at 90% 25%, #1E6390 0%, rgba(30, 99, 144, 0) 62%), linear-gradient(170deg, #154870 0%, #0C2540 55%, #0A1730 100%)",
+        "hero-ring": "0 0 0 1px rgba(125, 211, 252, 0.3), 0 18px 48px rgba(0, 0, 0, 0.45)",
+        "glass-shadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.25)",
+        "glass-blur": "blur(14px)",
+        "chart-glow": "0.6"
       }
     },
     "light": {
@@ -191,10 +207,21 @@
         "focus": "#03658A",
         "overlay": "#0B102099",
         "toast-bg": "#FFFFFF",
-        "seg-on": "#FFFFFF"
+        "seg-on": "#FFFFFF",
+        "glass": "#FFFFFF",
+        "glass-line": "#E3E8F0",
+        "track": "#E3E8F0",
+        "hero-base": "#FFFFFF",
+        "hero-text-2": "#3C4A63",
+        "chart-line": "#03658A",
+        "glow-1": "#7DD3FC",
+        "glow-2": "#6EE7B7",
+        "glow-3": "#D9F99D",
+        "bar-1": "#0284C7",
+        "bar-2": "#059669"
       },
       "effect": {
-        "e1": "0 0 0 1px #D3DAE5, 0 1px 2px rgba(11, 16, 32, 0.06)",
+        "e1": "0 0 0 1px #E3E8F0, 0 8px 24px rgba(11, 16, 32, 0.07)",
         "e2": "0 8px 24px rgba(11, 16, 32, 0.12)",
         "e3": "0 -12px 40px rgba(11, 16, 32, 0.16)",
         "glow-accent": "0 0 0 2px #3B6309",
@@ -205,7 +232,12 @@
         "float-ring": "0 0 0 1px #6E7D96",
         "hero-shadow": "var(--gx-e2)",
         "wash": "none",
-        "yardlines": "none"
+        "yardlines": "none",
+        "hero-card": "linear-gradient(170deg, #FFFFFF 0%, #F4F9FD 100%)",
+        "hero-ring": "0 0 0 1px #E3E8F0, 0 10px 30px rgba(11, 16, 32, 0.08)",
+        "glass-shadow": "0 0 0 1px #E3E8F0, 0 6px 18px rgba(11, 16, 32, 0.07)",
+        "glass-blur": "none",
+        "chart-glow": "0"
       }
     }
   }
