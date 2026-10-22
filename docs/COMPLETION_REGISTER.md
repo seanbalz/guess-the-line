@@ -228,8 +228,11 @@ CSV, so each request processes only the current season. Output is byte-identical
 and local cold main-thread CPU fell from about 1.07 s to under 0.21 s in Node and
 Deno. Evidence is in the [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md#october-22--hosted-cpu-outage-and-prepared-history-fix-claude-code);
 branch `claude/trends-week-cpu`. Merged in PR #182 and released October 22 at 17:19 UTC
-as API v32; see the [Trends CPU release record](RELEASE_2026_10_22_TRENDS_CPU.md).
-Hosted signed-in readback remains pending.
+as API v32 with Pages `9fb54fe4`; see the
+[October 22 follow-up](RELEASE_2026_10_22_TRENDS_FILTER.md#october-22-follow-up-trends-outage-fixed-api-v32).
+Signed-in `POST /trends/week` returned 200 in hosted logs after the deploy, with no
+CPU errors. Real-phone acceptance and Week 8 publication on Monday, October 26 remain
+open.
 
 ## Evidence and limits
 

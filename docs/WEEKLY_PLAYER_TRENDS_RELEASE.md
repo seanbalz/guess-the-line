@@ -112,4 +112,4 @@ Hosted Edge CPU cannot be measured locally. Hosted readback after a reviewed API
 
 Not run: deployment, configuration or secret changes, SQL, merge, hosted readback and real-phone acceptance.
 
-Released October 22 at 17:19 UTC as API v32 and Pages `9fb54fe4` (PR #182 merged as `8dccc5c`); see the [release record](RELEASE_2026_10_22_TRENDS_CPU.md). Hosted readback and real-phone acceptance remain open.
+Released October 22 at 17:19 UTC as API v32 and Pages `9fb54fe4` (PR #182 merged as `8dccc5c`); see the [release record](RELEASE_2026_10_22_TRENDS_FILTER.md#october-22-follow-up-trends-outage-fixed-api-v32). Signed-in hosted readback passed; real-phone acceptance remains open.
