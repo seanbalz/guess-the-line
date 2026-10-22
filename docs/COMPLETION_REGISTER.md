@@ -191,7 +191,9 @@ before its fix and passes after it. The affected browser suites (Bets, scoring,
 Play, four-tab, Lines, UI kit, Recommended and the new layout spec) passed 53/53
 locally, with token, app-view and brand-document checks. The Bets section switch keeps its deliberate
 2 + 1 layout below 520 px. D-55 records Sean's chart and brand direction; the
-hybrid chart boards await his approval before any token change. Not deployed.
+hybrid chart boards await his approval before any token change. Released
+October 22 in Pages `af617cd2`; see the [Trends and Recommended filter
+release](RELEASE_2026_10_22_TRENDS_FILTER.md).
 A later CI pass on Linux found "Rest of season" spilling out of its Fantasy
 segment at 320 px with the wider fallback font; segments now size by their labels
 and the layout spec gained a wide-font pass that reproduces it on any host.
@@ -203,8 +205,10 @@ open a chart card (headline units, a line you can drag, a by-season view of
 stems and a table, at most three tiles) built from the week file's own points and
 seasons or the research reply's bins. Fine print moved behind ⓘ buttons and into
 Menu › Guidance and sources. Home and Bets follow R3 and R4, and the D-55 tokens,
-brand guide section and rule of restraint 10 are recorded. Verification is in the
-branch's PR. Not deployed.
+brand guide section and rule of restraint 10 are recorded. Verification is in
+PR #177. Released October 22 at 09:13 UTC as Pages `f092e744` (frontend only;
+API v31 unchanged); see the [round 3 release record](RELEASE_2026_10_22_ROUND3.md).
+Real-phone acceptance remains open.
 
 ## Evidence and limits
 
