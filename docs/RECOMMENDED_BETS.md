@@ -81,6 +81,38 @@ results when available. A week selector keeps earlier published weeks accessible
 as read-only cards. This feature adds no settlement scheduler, current-week
 commissioner settlement control or combined season leaderboard.
 
+## Market filter (BETS-NEXT-01) — October 21, 2026
+
+Sean asked for a way to see only spread or only total recommendations. Status:
+implemented on a review branch; not deployed, and real-phone acceptance is separate.
+
+- Bets → Recommended in the new app shows a labelled **All / Spreads / Totals**
+  control ("Recommendation market"), the new app's shared segmented control. The
+  selected segment is marked by `aria-pressed`, weight and an inset ring, not by
+  color alone, and each segment is a native button for keyboard and screen readers.
+- All is the default and keeps the mixed percentage-gap ranking above. Spreads
+  or Totals narrows the complete eligible ranked list first (`recommendationList`
+  in `shared/recommended-bets.mjs`); the top-three preview and "Show all" then
+  apply to that market, its order is unchanged, and "N available" counts it.
+- A market with nothing eligible says "No spread (or total) differences to show
+  yet." with **View all markets**, which returns to All. It never falls back to
+  the other market silently.
+- The filter is display-only: it adds no read or write and never changes a
+  selection, saved virtual pick, tracked ticket, guess or score. An unsaved
+  card selection in a hidden market stays in its own "Your card" review.
+  Eligibility, locks, reveal gates, named-book terms and timestamps come from the
+  unchanged ranking helper, so no locked line can appear.
+- The choice is kept in the Bets view state, so it survives Add to card, Track
+  this bet, switching Bets views and returning to the Bets root in the same
+  visit. It is not in the address or synced across devices; a reload starts at
+  All. The old app's Virtual Units → Recommended view stays on All.
+- Checks: `tests/recommended-bets.test.mjs` (order, filter before the limit,
+  empty market, no mutation) and the market-filter cases in
+  `tests/cloud-browser/recommended-bets.spec.js` (all three choices, an empty
+  market with draft-only guesses, the limit after filtering, a card selection
+  across filter changes, Track this bet and return, keyboard, 320/390px in both
+  themes, axe).
+
 ## Services and release scope
 
 `POST /bets/recommendations` defaults to the current published week and accepts

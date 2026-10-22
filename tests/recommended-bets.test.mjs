@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildRecommendations } from '../shared/recommended-bets.mjs';
+import { buildRecommendations, filterRecommendations, recommendationList, recommendationMarket, RECOMMENDATION_MARKETS, RECOMMENDATION_PREVIEW } from '../shared/recommended-bets.mjs';
 
 // Fixture guesses and quotes only. No player's picks or live bookmaker data.
 const observedAt = '2099-10-08T15:00:00.000Z', kickoff = '2099-10-08T20:00:00.000Z';
@@ -200,4 +200,66 @@ test('building recommendations does not mutate authenticated replies', () => {
   const input = fixture(), original = structuredClone(input);
   buildRecommendations(input);
   assert.deepEqual(input, original);
+});
+
+// BETS-NEXT-01: three games whose mixed percentage ranking puts every spread ahead of every total, so a market filter
+// that ran after the top-three limit would leave Totals empty.
+function mixedSlate() {
+  const input = fixture();
+  for (const [id, awayCode, homeCode, spread, total] of [['KC-DEN', 'KC', 'DEN', -10, 47.5], ['SF-SEA', 'SF', 'SEA', -5, 52]]) {
+    const game = { ...input.virtual.games[0], id, awayCode, homeCode, away: awayCode, home: homeCode };
+    input.virtual.games.push(game);
+    input.personal.games.push(game);
+    input.personal.ballots.guess_spread.picks[id] = spread;
+    input.personal.ballots.guess_total.picks[id] = total;
+  }
+  return buildRecommendations(input).rows;
+}
+const keys = rows => rows.map(item => item.key);
+
+test('All keeps the mixed percentage ranking; Spreads and Totals keep that order within one market', () => {
+  const rows = mixedSlate();
+  assert.deepEqual(keys(rows), ['KC-DEN:spread', 'NYJ-BUF:spread', 'SF-SEA:spread', 'SF-SEA:total', 'NYJ-BUF:total', 'KC-DEN:total']);
+  assert.deepEqual(RECOMMENDATION_MARKETS, ['all', 'spread', 'total']);
+  assert.strictEqual(filterRecommendations(rows, 'all'), rows, 'All is the unchanged mixed list');
+  assert.deepEqual(keys(filterRecommendations(rows, 'spread')), ['KC-DEN:spread', 'NYJ-BUF:spread', 'SF-SEA:spread']);
+  assert.deepEqual(keys(filterRecommendations(rows, 'total')), ['SF-SEA:total', 'NYJ-BUF:total', 'KC-DEN:total']);
+  for (const market of ['spread', 'total']) {
+    const chosen = filterRecommendations(rows, market);
+    assert.ok(chosen.every(item => rows.includes(item)), 'the same row objects, never rebuilt or re-ranked');
+    assert.deepEqual(chosen, rows.filter(item => item.market === market));
+  }
+});
+
+test('the market choice applies to the complete ranked set before the top-three display limit', () => {
+  const rows = mixedSlate();
+  assert.equal(RECOMMENDATION_PREVIEW, 3);
+  assert.deepEqual(rows.slice(0, 3).filter(item => item.market === 'total'), [], 'the fixture exposes a filter run after the limit');
+  const totals = recommendationList(rows, { market: 'total' });
+  assert.deepEqual(keys(totals.visible), ['SF-SEA:total', 'NYJ-BUF:total', 'KC-DEN:total']);
+  assert.equal(totals.rows.length, 3, 'counts describe the chosen market');
+  assert.equal(recommendationList(rows, { market: 'spread' }).visible.length, 3);
+  assert.deepEqual(keys(recommendationList(rows, { market: 'all' }).visible), keys(rows.slice(0, 3)));
+  assert.deepEqual(keys(recommendationList(rows, { market: 'all', expanded: true }).visible), keys(rows));
+  const fewer = recommendationList(rows.filter(item => item.key !== 'SF-SEA:spread'), { market: 'spread' });
+  assert.deepEqual(keys(fewer.visible), ['KC-DEN:spread', 'NYJ-BUF:spread'], 'fewer rows than the limit are all shown');
+});
+
+test('an empty market stays empty instead of falling back, and unknown choices mean All', () => {
+  const totalsOnly = mixedSlate().filter(item => item.market === 'total');
+  assert.deepEqual(recommendationList(totalsOnly, { market: 'spread' }), { rows: [], visible: [] });
+  for (const value of [undefined, null, '', 'spreads', 'moneyline', 'SPREAD', 3, {}]) {
+    assert.equal(recommendationMarket(value), 'all');
+    assert.strictEqual(filterRecommendations(totalsOnly, value), totalsOnly);
+  }
+  assert.equal(recommendationMarket('spread'), 'spread');
+  assert.equal(recommendationMarket('total'), 'total');
+  assert.deepEqual(filterRecommendations(undefined, 'total'), []);
+});
+
+test('the market filter is display-only and changes no row, offer or saved pick', () => {
+  const rows = mixedSlate(), before = structuredClone(rows);
+  Object.freeze(rows);
+  for (const market of RECOMMENDATION_MARKETS) for (const expanded of [false, true]) recommendationList(rows, { market, expanded });
+  assert.deepEqual(rows, before);
 });

@@ -12,6 +12,12 @@ test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never 
 
 const view = (page, name) => page.getByRole('group', { name: 'Bets view' }).getByRole('button', { name, exact: true });
 const cards = page => page.locator('.recommended-bet-card');
+// BETS-NEXT-01: the All / Spreads / Totals choice and what each card shows.
+const marketFilter = page => page.getByRole('group', { name: 'Recommendation market', exact: true });
+const market = (page, name) => marketFilter(page).getByRole('button', { name, exact: true });
+const cardMarkets = page => cards(page).evaluateAll(list => list.map(card => card.dataset.market));
+const percents = page => cards(page).locator('.recommended-percent').allTextContents();
+const region = page => page.getByRole('region', { name: 'Recommended bets', exact: true });
 async function openTotal(page, gameId) {
   const card = page.locator(`.recommended-bet-card[data-game-id="${gameId}"][data-market="total"]`);
   if (await card.count() === 0) await page.getByRole('button', { name: /Show all/i }).click();
@@ -456,6 +462,191 @@ test('the week selector keeps the player’s older saved card readable after Com
     await expect(page.getByRole('region', { name: 'Recommended bets', exact: true })).toContainText(`Week ${next.week}`);
     await expect(saved).toHaveCount(0);
     expect(placements(calls)).toHaveLength(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('All, Spreads and Totals filter the full ranked list before the top three, by pointer and keyboard, on phones', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const calls = requests(page);
+    await openRecommended(page);
+    await expect(market(page, 'All')).toHaveAttribute('aria-pressed', 'true');
+    await expect(market(page, 'Spreads')).toHaveAttribute('aria-pressed', 'false');
+    await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'false');
+    // All keeps the mixed D-54 ranking, whose three largest percentage gaps are all spreads here.
+    await expect(cards(page)).toHaveCount(3);
+    expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap']);
+    expect(await cardMarkets(page)).toEqual(['spread', 'spread', 'spread']);
+    await expect(region(page)).toContainText('7 available');
+    const reads = calls.filter(call => call.path === 'bets/recommendations').length;
+
+    // Totals filters the complete ranked set before the top-three limit, so its three totals appear in their order.
+    await market(page, 'Totals').click();
+    await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'true');
+    await expect(market(page, 'All')).toHaveAttribute('aria-pressed', 'false');
+    await expect(cards(page)).toHaveCount(3);
+    expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
+    expect(await percents(page)).toEqual(['23.6% gap', '10.1% gap', '3.4% gap']);
+    await expect(region(page)).toContainText('3 available');
+    await expect(page.getByRole('button', { name: /Show all/i })).toHaveCount(0);
+
+    // Keyboard: the segments are native buttons in one labelled group.
+    await market(page, 'Totals').focus();
+    await page.keyboard.press('Shift+Tab');
+    await expect(market(page, 'Spreads')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(market(page, 'Spreads')).toHaveAttribute('aria-pressed', 'true');
+    await expect(cards(page)).toHaveCount(3);
+    expect(await cardMarkets(page)).toEqual(['spread', 'spread', 'spread']);
+    await expect(region(page)).toContainText('4 available');
+    await page.getByRole('button', { name: /Show all 4 differences/ }).click();
+    await expect(cards(page)).toHaveCount(4);
+    expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap', '14.3% gap']);
+    await page.getByRole('button', { name: /Show top 3/ }).click();
+    await market(page, 'All').focus();
+    await page.keyboard.press('Space');
+    await expect(market(page, 'All')).toHaveAttribute('aria-pressed', 'true');
+    await expect(cards(page)).toHaveCount(3);
+    expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap']);
+
+    // Every filter change is display-only: no new read and no write of any kind.
+    expect(calls.filter(call => call.path === 'bets/recommendations')).toHaveLength(reads);
+    expect(placements(calls)).toEqual([]);
+    expect(calls.filter(call => call.path === 'social/create')).toEqual([]);
+    expect(await picksCount(world)).toBe(0);
+
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      for (const width of [390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.evaluate(() => scrollTo(0, 0));
+        await market(page, 'Totals').click();
+        await expect(cards(page)).toHaveCount(3);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px fits`).toBe(true);
+        const segments = await marketFilter(page).evaluate(group => [...group.querySelectorAll('button')].map(button => {
+          const box = button.getBoundingClientRect();
+          return { inside: box.left >= 0 && box.right <= innerWidth, tall: box.height >= 44, clipped: button.scrollWidth > button.clientWidth };
+        }));
+        expect(segments, `${theme} ${width}px segments`).toEqual(Array(3).fill({ inside: true, tall: true, clipped: false }));
+        // The whole filtered list scrolls fully above the fixed tab bar.
+        await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+        const reach = await page.evaluate(() => ({
+          list: document.querySelector('.recommended-bets').getBoundingClientRect().bottom,
+          nav: document.querySelector('nav[aria-label="Main"]').getBoundingClientRect().top,
+        }));
+        expect(reach.list, `${theme} ${width}px last card reachable`).toBeLessThanOrEqual(reach.nav);
+        const scan = await new AxeBuilder({ page }).include('.gx-bets').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+        expect(scan.violations.map(issue => ({ id: issue.id, targets: issue.nodes.map(node => node.target) }))).toEqual([]);
+        await page.evaluate(() => scrollTo(0, 0));
+        await page.screenshot({ path: `.local/previews/recommended-bets-totals-${theme}-${width}.png`, fullPage: true });
+        await market(page, 'All').click();
+      }
+    }
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a market without eligible recommendations says so, never shows draft guesses and returns to All', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL, { spread: false });
+  try {
+    const { season, week } = world.state.league;
+    const personal = await world.api('luke', 'personal');
+    const draft = await world.api('luke', 'personal/ballot', { season, week, mode: 'guess_spread', picks: world.guesses.spread,
+      submit: false, revision: personal.body.revision, weeklyRevision: personal.body.weeklyRevision, requestId: randomUUID() });
+    expect(draft.status).toBe(200);
+    const calls = requests(page);
+    await openRecommended(page);
+    await expect(cards(page)).toHaveCount(3);
+    expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
+    await market(page, 'Spreads').click();
+    await expect(cards(page)).toHaveCount(0);
+    await expect(region(page)).toContainText('No spread differences to show yet.');
+    await expect(region(page)).not.toContainText('No differences to show yet');
+    await expect(region(page)).toContainText('0 available');
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      for (const width of [390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px fits`).toBe(true);
+        const scan = await new AxeBuilder({ page }).include('.gx-bets').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+        expect(scan.violations.map(issue => ({ id: issue.id, targets: issue.nodes.map(node => node.target) }))).toEqual([]);
+        await page.screenshot({ path: `.local/previews/recommended-bets-empty-spreads-${theme}-${width}.png`, fullPage: true });
+      }
+    }
+    const back = region(page).getByRole('button', { name: 'View all markets', exact: true });
+    await back.focus();
+    await page.keyboard.press('Enter');
+    await expect(market(page, 'All')).toHaveAttribute('aria-pressed', 'true');
+    await expect(market(page, 'All')).toBeFocused();
+    await expect(cards(page)).toHaveCount(3);
+    await market(page, 'Totals').click();
+    expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
+    expect(placements(calls)).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a prepared card selection survives filter changes and places exactly its reviewed terms', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const calls = requests(page), first = world.state.games[0];
+    await openRecommended(page);
+    await market(page, 'Totals').click();
+    const total = page.locator(`.recommended-bet-card[data-game-id="${first.id}"][data-market="total"]`);
+    await total.locator('summary').click();
+    await total.getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
+    await total.getByRole('button', { name: '2U', exact: true }).click();
+    await expect(total.getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
+    const review = page.locator('.recommended-pending-review');
+    // Spreads hides the total card, never the unsaved selection: it stays on the card with its chosen terms.
+    await market(page, 'Spreads').click();
+    await expect(total).toHaveCount(0);
+    await expect(review).toHaveCount(1);
+    await expect(review).toContainText('Over +44.5 (−110) · 2U');
+    await expect(review.getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
+    await market(page, 'All').click();
+    await expect(review).toHaveCount(1);
+    await expect(review).toContainText('Over +44.5 (−110) · 2U');
+    await market(page, 'Totals').click();
+    await expect(review).toHaveCount(0);
+    if (!(await total.evaluate(card => card.open))) await total.locator('summary').click();
+    await expect(total.getByRole('button', { name: 'Review below', exact: true })).toBeDisabled();
+    await expect(total).toContainText('Over +44.5 (−110) · 2U');
+    expect(placements(calls)).toEqual([]);
+    expect(await picksCount(world)).toBe(0);
+    await total.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
+    await expect.poll(() => placements(calls).length).toBe(1);
+    expect(placements(calls)[0].body).toMatchObject({ gameId: first.id, market: 'total', side: 'over', line: 44.5, odds: -110, units: 2, source: 'betmgm', quotedAt: world.observedAt });
+    await expect.poll(() => picksCount(world)).toBe(1);
+    await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'true');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('the chosen market stays while tracking a bet and returning to Recommended within Bets', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const calls = requests(page);
+    await openRecommended(page);
+    await market(page, 'Totals').click();
+    await (await openTotal(page, world.state.games[0].id)).getByRole('button', { name: 'Track this bet', exact: true }).click();
+    await expect(view(page, 'Tracked bets')).toHaveAttribute('aria-pressed', 'true');
+    const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
+    await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    await view(page, 'Recommended').click();
+    await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'true');
+    await expect(cards(page)).toHaveCount(3);
+    expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Bets(,|$)/ }).click();
+    await expect(page.locator('[data-landing="bets"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Recommended', exact: true }).click();
+    await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'true');
+    await expect(cards(page)).toHaveCount(3);
+    expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
+    expect(calls.filter(call => call.path === 'social/create')).toEqual([]);
+    expect(placements(calls)).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
