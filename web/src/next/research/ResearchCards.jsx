@@ -1,5 +1,10 @@
-import { lazy, Suspense, useState } from 'react';
-import { Button, Card } from '../ui/index.js';
+import { lazy, Suspense, useId, useState } from 'react';
+import { Button, Card, InfoButton } from '../ui/index.js';
+import { TrendDetail } from '../charts/TrendDetail.jsx';
+import { TrendLine } from '../charts/TrendLine.jsx';
+import { TrendRow } from '../charts/TrendRow.jsx';
+import { hitPct, recordText, signed } from '../charts/geometry.js';
+import { INFO } from '../info.js';
 import { useResearch } from './useResearch.js';
 import './research.css';
 
@@ -31,29 +36,19 @@ export function ResearchStatus({ read }) {
     {read.status === 'error' ? <Button variant="secondary" onClick={read.reload}>Try research again</Button> : null}
   </div>;
 }
-function CompactChart({ series }) {
-  if (!series) return <p className="gx-t-meta">Open evidence for the selected-period chart.</p>;
-  if (!series.points.length) return <p className="gx-t-meta">No games in this period.</p>;
-  const values = [0, ...series.points.map(p => p.illustrativeUnits)], min = Math.min(...values), max = Math.max(...values);
-  const y = n => 52 - (n - min) / (max - min || 1) * 48;
-  return <svg className="gx-r-chart gx-r-chart--compact" viewBox="0 0 280 60" role="img" aria-label="Selected historical sample, illustrative units at minus one hundred ten, with zero baseline">
-    <line x1="0" x2="280" y1={y(0)} y2={y(0)} className="gx-r-zero"/>
-    <polyline className="gx-r-series" points={[[0, y(0)], ...series.points.map((p, i) => [(i + 1) * 280 / series.points.length, y(p.illustrativeUnits)])].map(p => p.join(',')).join(' ')}/>
-  </svg>;
-}
 function RecordSummary({ record, label }) {
   if (!record) return null;
   return <p className="gx-t-meta">{label}: {record.wins}-{record.losses}-{record.pushes} W-L-P · {record.sample} games · {researchDate(record.coverage?.from)} to {researchDate(record.coverage?.to)}</p>;
 }
-function ResearchDetail({ candidateId, request }) {
+function ResearchDetail({ candidateId, request, withChart }) {
   const read = useResearch({ ...request, filters: { ...request?.filters, candidateId }, enabled: Boolean(request) });
   const candidate = read.data?.candidates.find(c => c.id === candidateId);
+  const line = withChart && candidate ? researchLine(candidate) : null;
   return <div className="gx-r-detail gx-vstack gx-gap-12">
     <ResearchStatus read={read}/>
     {candidate ? <>
-      <Suspense fallback={<p className="gx-t-meta" role="status">Loading historical chart…</p>}><ResearchChart candidate={candidate}/></Suspense>
-      <p className="gx-t-body">Historical consistency does not establish a betting advantage.</p>
-      <p className="gx-t-meta">The frozen Tier 2 study qualified roughly as many patterns on shuffled outcomes as on actual outcomes. The recent consistency rule also produces chance qualifiers. Searching many situations can produce apparently strong records by chance; these are descriptive selections, not proven predictions.</p>
+      {line ? <TrendLine values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label}/> : null}
+      <Suspense fallback={<p className="gx-t-meta" role="status">Loading historical table…</p>}><ResearchChart candidate={candidate}/></Suspense>
       <p className="gx-t-meta">Qualification uses the canonical recent sample, regardless of this display period. {candidate.qualification.label}. {(candidate.qualification.reasons ?? []).map(reason).join(' ')}</p>
       <p className="gx-t-meta">Conditions: {candidate.conditionDescriptions?.join('; ') || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted NFL history'}.</p>
       <RecordSummary record={candidate.recent} label="Canonical recent sample"/>
@@ -68,22 +63,62 @@ function ResearchDetail({ candidateId, request }) {
     </> : null}
   </div>;
 }
-function ResearchCard({ candidate, gameId, request }) {
-  const [expanded, setExpanded] = useState(false);
-  const applications = candidate.applications?.filter(a => !gameId || a.gameId === gameId) ?? [];
-  return <Card className="gx-r-card" data-research-card={candidate.id}>
-    <h4 className="gx-t-strong">{candidate.title}</h4>
-    <p className="gx-t-meta">Consistency: {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : /^Tier [12] historical consistency$/.test(candidate.qualification.label) ? 'Historical consistency · not proven' : candidate.qualification.label}</p>
-    <RecordSummary record={candidate.record} label="Selected period"/>
-    <CompactChart series={candidate.series}/>
-    <p className="gx-t-meta">Why it applies: {candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}{applications.length ? ` · ${applications.map(a => `${a.gameId.replace('-', ' at ')} (${readable(a.direction)})`).join('; ')}` : ''}.</p>
-    <Button variant="ghost" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}>{expanded ? 'Hide evidence' : 'View evidence'}</Button>
-    {expanded && request ? <ResearchDetail candidateId={candidate.id} request={request}/> : null}
-  </Card>;
+/** The selected period's cumulative units as a D-55 line, from the research reply's own bins; null without a series. */
+export function researchLine(candidate) {
+  const points = candidate?.series?.points ?? [];
+  if (!points.length || !points.every(p => Number.isFinite(p.illustrativeUnits))) return null;
+  const values = [0, ...points.map(p => p.illustrativeUnits)];
+  const start = researchDate(points[0].from).slice(0, 4), end = researchDate(points.at(-1).to).slice(0, 4);
+  return {
+    values, start, end,
+    label: `Illustrative units at −110 for the selected sample, ending at ${signed(values.at(-1))}`,
+    tip: i => (i === 0 ? { value: '0.0 U', label: `Start, ${researchDate(points[0].from)}` }
+      : { value: `${signed(values[i])} U`, label: `${recordText(points[i - 1].wins, points[i - 1].losses, points[i - 1].pushes)} · to ${researchDate(points[i - 1].to)}` }),
+  };
 }
+const consistencyText = candidate => (candidate.sourceState === 'source-reported' ? 'Source-reported · not verified'
+  : /^Tier [12] historical consistency$/.test(candidate.qualification.label) ? 'Historical consistency · not proven' : candidate.qualification.label);
+const consistencyPill = candidate => (candidate.sourceState === 'source-reported' ? 'Not verified' : /not proven/i.test(consistencyText(candidate)) ? 'Not proven' : null);
+
+function ResearchCard({ candidate, gameId, request, open, onToggle }) {
+  const id = useId();
+  const [evidence, setEvidence] = useState(false);
+  const applications = candidate.applications?.filter(a => !gameId || a.gameId === gameId) ?? [];
+  const r = candidate.record ?? {}, pct = hitPct(r.wins ?? 0, r.losses ?? 0), line = researchLine(candidate);
+  const units = Number.isFinite(r.illustrativeUnits) ? r.illustrativeUnits : line?.values.at(-1);
+  const why = `Why it applies: ${candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}${applications.length ? ` · ${applications.map(a => `${a.gameId.replace('-', ' at ')} (${readable(a.direction)})`).join('; ')}` : ''}.`;
+  const info = <InfoButton title="About this research" body={[`Consistency: ${consistencyText(candidate)}`, why, ...INFO.research.body]} links={INFO.research.links}/>;
+  const evidenceBlock = <>
+    <Button variant="ghost" onClick={() => setEvidence(v => !v)} aria-expanded={evidence}>{evidence ? 'Hide evidence' : 'View evidence'}</Button>
+    {evidence && request ? <ResearchDetail candidateId={candidate.id} request={request} withChart={!line}/> : null}
+  </>;
+  const record = r.sample ? recordText(r.wins ?? 0, r.losses ?? 0, r.pushes ?? 0) : null;
+  const tiles = [
+    { label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct ?? 0 },
+    { label: 'Games', value: String(r.sample ?? '—'), sub: PERIODS[candidate.period] ?? 'Selected period' },
+  ];
+  return <li className="gx-tc-item gx-r-card" data-research-card={candidate.id}>
+    <div className="gx-tc-rowcard">
+      <TrendRow title={candidate.title} sub={[consistencyPill(candidate), record].filter(Boolean).join(' · ')}
+        values={line?.values} value={Number.isFinite(units) ? `${signed(units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
+      {open && !line ? <div className="gx-tc-rowtext" id={id}>
+        <RecordSummary record={candidate.record} label="Selected period"/>
+        <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">{consistencyText(candidate)}</p>{info}</div>
+        {evidenceBlock}
+      </div> : null}
+    </div>
+    {open && line ? <TrendDetail id={id} title={candidate.title} pill={consistencyPill(candidate)} info={info}
+      line={{ ...line, headline: { value: `${signed(units)} U`, sub: [record, r.coverage?.from ? `${researchDate(r.coverage.from)} to ${researchDate(r.coverage.to)}` : 'selected period'].filter(Boolean).join(' · ') }, tiles }}>
+      {evidenceBlock}
+    </TrendDetail> : null}
+  </li>;
+}
+/** Research as D-55 compact rows; the first opens on its own, and one opens at a time. */
 export function ResearchCards({ data, ids, limit = 3, gameId, request }) {
   const selected = [...new Set(ids ?? data?.shortlist ?? [])].slice(0, limit).map(id => data?.candidates.find(c => c.id === id)).filter(Boolean);
-  return selected.length ? <div className="gx-vstack gx-gap-12">{selected.map(c => <ResearchCard key={`${c.id}:${c.period}`} candidate={c} gameId={gameId} request={request}/>)}</div>
+  const [open, setOpen] = useState(() => selected[0]?.id ?? null);
+  return selected.length ? <ul className="gx-tc-list" aria-label="Research">{selected.map(c => <ResearchCard key={`${c.id}:${c.period}`} candidate={c} gameId={gameId} request={request}
+    open={open === c.id} onToggle={() => setOpen(value => (value === c.id ? null : c.id))}/>)}</ul>
     : <p className="gx-t-body gx-c-2">No qualifying research in this view. Explore other situations.</p>;
 }
 function directionLabel(game, market, direction) {
@@ -104,10 +139,9 @@ export function ResearchLeans({ data, gameId, request }) {
       if (!cell?.visible) return <p className="gx-t-body gx-c-2" key={market}>{label} research is locked. Lock in your guess or wait for kickoff.</p>;
       const lean = cell.lean;
       return <Card key={market} className="gx-vstack gx-gap-12" data-research-market={market}>
-        <h4 className="gx-t-strong">{label}</h4>
+        <div className="gx-l-sechead"><h4 className="gx-t-strong gx-grow">{label}</h4><InfoButton title={INFO.research.title} body={INFO.research.body} links={INFO.research.links}/></div>
         <p className={`gx-t-strong ${lean?.state === 'lean' ? 'gx-c-win' : 'gx-c-pending'}`}>{lean?.state === 'lean' ? `Research lean: ${directionLabel(game, market, lean.direction)}` : lean?.label ?? 'Research unavailable'}</p>
         {(lean?.reasons ?? []).map(code => <p className="gx-t-meta" key={code}>{reason(code)}</p>)}
-        <p className="gx-t-meta">Support describes a relationship to this lean. Consistency describes the historical pattern. Overlapping patterns share a group; groups are not independent probabilities.</p>
         {(lean?.supporting?.length || lean?.alternatives?.length ? [...(lean.supporting ?? []), ...(lean.alternatives ?? [])] : lean?.groups ?? []).map(group => <div className={`gx-r-group ${group.role === 'support' && lean.state === 'lean' ? 'gx-r-support' : 'gx-r-alternative'}`} key={group.id}>
           <p className="gx-t-label">{group.role === 'support' && lean.state === 'lean' ? 'Supports the lean' : group.mixed ? 'Alternative / mixed evidence' : 'Alternative — qualifying opposing or uncertain evidence'}{group.direction ? ` · ${directionLabel(game, market, group.direction)}` : ''}</p>
           {group.memberIds.map(id => {

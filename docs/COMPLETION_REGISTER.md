@@ -207,6 +207,19 @@ Play, four-tab, Lines, UI kit, Recommended and the new layout spec) passed 53/53
 locally, with token, app-view and brand-document checks. The Bets section switch keeps its deliberate
 2 + 1 layout below 520 px. D-55 records Sean's chart and brand direction; the
 hybrid chart boards await his approval before any token change. Not deployed.
+A later CI pass on Linux found "Rest of season" spilling out of its Fantasy
+segment at 320 px with the wider fallback font; segments now size by their labels
+and the layout spec gained a wide-font pass that reproduces it on any host.
+
+October 21 round 3 build (D-55): Sean approved the round 3 boards (R1–R5) and
+asked for them in the app with the tokens and guide to match and the fine print
+behind info buttons. Trend rows in the game sheet, All trends and research now
+open a chart card (headline units, a line you can drag, a by-season view of
+stems and a table, at most three tiles) built from the week file's own points and
+seasons or the research reply's bins. Fine print moved behind ⓘ buttons and into
+Menu › Guidance and sources. Home and Bets follow R3 and R4, and the D-55 tokens,
+brand guide section and rule of restraint 10 are recorded. Verification is in the
+branch's PR. Not deployed.
 
 ## Evidence and limits
 

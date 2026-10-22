@@ -9,10 +9,10 @@ import { useId, useMemo } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { LINES_COPY, linesBoard } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
-import { Button, CardButton, Icon, Pill, Tag, TeamMark } from '../ui/index.js';
+import { Button, CardButton, Icon, InfoButton, Pill, Tag, TeamMark } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
 import { useWind } from './trendsHooks.js';
-import { Credits } from './parts.jsx';
+import { INFO } from '../info.js';
 import './lines.css';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 
@@ -78,6 +78,8 @@ function Group({ label, time, cards, onOpen }) {
   );
 }
 
+const TRENDS_INTRO = 'Choose a matchup to see its available trends, sample sizes and sources. Hidden markets stay locked.';
+
 export function LinesBoard({ trendsOnly = false }) {
   const shell = useShell();
   const { app, personal, community, trendsWeek, shown } = useLinesData();
@@ -87,7 +89,10 @@ export function LinesBoard({ trendsOnly = false }) {
   const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', { game: gameId });
   const head = (
     <div className="gx-vstack gx-gap-2">
-      <h1 className="gx-t-title">{trendsOnly ? 'Trends' : LINES_COPY.title}</h1>
+      <div className="gx-l-sechead">
+        <h1 className="gx-t-title gx-grow">{trendsOnly ? 'Trends' : LINES_COPY.title}</h1>
+        <InfoButton title={INFO.trends.title} body={trendsOnly ? [TRENDS_INTRO, ...INFO.trends.body] : INFO.trends.body} links={INFO.trends.links}/>
+      </div>
       {board?.meta ? <p className="gx-t-meta">{board.meta}</p> : null}
     </div>
   );
@@ -114,12 +119,11 @@ export function LinesBoard({ trendsOnly = false }) {
     <div className="gx-screen">
       {head}
       <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
-      {trendsOnly ? <><p className="gx-t-body gx-c-2">Choose a matchup to see its available trends, sample sizes and sources. Hidden markets stay locked.</p><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
+      {trendsOnly ? <><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
         {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} onOpen={open}/>)}
         {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} onOpen={open}/> : null}
       </>}
       {!board.groups.length && !board.started ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}
-      <Credits footer={board.footer}/>
     </div>
   );
 }

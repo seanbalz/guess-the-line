@@ -70,12 +70,15 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
     const canonicalId = await first.getAttribute('data-research-card');
     await first.getByRole('button', { name: 'View evidence', exact: true }).click();
     await expect(first.getByRole('table')).toBeVisible();
-    await expect(first.getByText('Historical consistency does not establish a betting advantage.', { exact: true })).toBeVisible();
+    // D-55: the caveats are behind the card's ⓘ.
+    await first.getByRole('button', { name: 'About this research', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About this research' })).toContainText('Historical consistency does not establish a betting advantage.');
+    await page.getByRole('dialog', { name: 'About this research' }).getByRole('button', { name: 'Close', exact: true }).click();
     await expect(first.getByRole('table').getByRole('cell', { name: '30', exact: true })).toBeVisible();
     await expect(first.locator('[data-zero-baseline]')).toHaveCount(1);
     for (const theme of ['light', 'dark']) await phoneAndAxe(page, theme, testInfo);
     await dialog.getByLabel('Evidence period', { exact: true }).selectOption('recent25');
-    await expect(dialog.getByText(/Selected period: 15-9-1/).first()).toBeVisible();
+    await expect(dialog.locator('[data-research-card]').first()).toContainText('15–9–1');
     await dialog.getByRole('button', { name: 'Explore', exact: true }).click();
     await dialog.getByRole('button', { name: 'Emerging', exact: true }).click();
     await expect(dialog.locator('[data-research-card]')).toHaveCount(1);
@@ -107,7 +110,7 @@ test('filter changes synchronously hide old scope and ignore delayed older repli
     await expect(sheet(page).locator('[data-research-card]')).toHaveCount(3);
     synthetic.release();
     await expect(sheet(page).getByLabel('Evidence period')).toHaveValue('season');
-    await expect(sheet(page).getByText(/Selected period: 15-9-1/)).toHaveCount(0);
+    await expect(sheet(page).getByText(/15–9–1/)).toHaveCount(0);
     const before = synthetic.calls.length;
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await expect.poll(() => synthetic.calls.length).toBeGreaterThan(before);

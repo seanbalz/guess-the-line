@@ -1,0 +1,65 @@
+// D-55 line chart (direction A): cumulative units under a glow area, a solid 0 U baseline, and a crosshair with a glass
+// tooltip that follows a pointer or a finger dragged across the plot. A range input under it moves the same crosshair
+// from the keyboard and tells a screen reader the value at each point. Values only; the caller writes the words.
+import { useId, useMemo, useState } from 'react';
+import { linePath, nearestIndex } from './geometry.js';
+
+const W = 320;
+
+/**
+ * `values` are the cumulative points (the first is the start). `tip(i)` returns `{ value, label }` for point `i`.
+ * `start` and `end` label the two ends of the time axis; `label` names the whole chart for a screen reader.
+ */
+export function TrendLine({ values, tip, start, end, label, height = 160 }) {
+  const count = values.length;
+  const [index, setIndex] = useState(count - 1);
+  const at = Math.min(index, count - 1);
+  const geo = useMemo(() => linePath(values, { width: W, height }), [values, height]);
+  const id = useId().replace(/[^\w-]/g, '');
+  const follow = event => {
+    const box = event.currentTarget.getBoundingClientRect();
+    if (box.width > 0) setIndex(nearestIndex((event.clientX - box.left) / box.width, count));
+  };
+  const x = count > 1 ? (at / (count - 1)) * 100 : 0;
+  const y = (geo.y(values[at]) / height) * 100;
+  const now = tip(at);
+  return (
+    <div className="gx-tc-line">
+      <div className="gx-tc-tip" aria-hidden="true" style={{ left: `clamp(0px, calc(${x}% - 76px), calc(100% - 152px))` }}>
+        <span className="gx-tc-tip-value">{now.value}</span>
+        <span className="gx-tc-tip-label">{now.label}</span>
+      </div>
+      <div className="gx-tc-plot" onPointerDown={follow} onPointerMove={follow} style={{ height }}>
+        <svg className="gx-tc-svg" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img" aria-label={label}>
+          <defs>
+            <linearGradient id={`${id}g`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" className="gx-tc-s1"/>
+              <stop offset="0.55" className="gx-tc-s2"/>
+              <stop offset="1" className="gx-tc-s3"/>
+            </linearGradient>
+            <filter id={`${id}b`} x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
+          </defs>
+          <path className="gx-tc-glow" d={geo.area} fill={`url(#${id}g)`} filter={`url(#${id}b)`}/>
+          <path d={geo.area} fill={`url(#${id}g)`}/>
+          <line className="gx-tc-zero" x1="0" x2={W} y1={geo.zeroY} y2={geo.zeroY} data-zero-baseline="true"/>
+          <path className="gx-tc-path" d={geo.line}/>
+        </svg>
+        <span className="gx-tc-zero-label" aria-hidden="true" style={{ top: `${(geo.zeroY / height) * 100}%` }}>0 U</span>
+        <span className="gx-tc-cross" aria-hidden="true" style={{ left: `${x}%` }}></span>
+        <span className="gx-tc-dot" aria-hidden="true" style={{ left: `${x}%`, top: `${y}%` }}></span>
+      </div>
+      <div className="gx-tc-axis" aria-hidden="true"><span>{start}</span><span>{end}</span></div>
+      <input
+        className="gx-tc-scrub"
+        type="range"
+        min="0"
+        max={count - 1}
+        step="1"
+        value={at}
+        aria-label="Move along the line"
+        aria-valuetext={`${now.value}, ${now.label}`}
+        onChange={event => setIndex(Number(event.target.value))}
+      />
+    </div>
+  );
+}

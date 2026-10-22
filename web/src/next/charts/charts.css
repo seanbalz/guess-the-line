@@ -1,0 +1,197 @@
+/* D-55 trend charts (round 3 boards R1/R2): the glow card, glass pills and tooltips, the line, season stems, stat
+   tiles, season table and the compact row. Colors and effects are D-55 tokens; Light swaps them for E's soft report
+   look through the same names. Every class is gx-tc-. */
+
+/* ----- compact rows ----- */
+.gx-tc-list { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.gx-tc-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.gx-tc-rowcard { border-radius: var(--gx-radius-md); background: var(--gx-surface-1); box-shadow: var(--gx-e1); overflow: hidden; }
+.gx-tc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.gx-tc-row[aria-expanded="true"] { background: var(--gx-data-tint); }
+.gx-tc-row:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: -2px; }
+.gx-tc-row-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.gx-tc-row-sub { font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-text-2); }
+.gx-tc-mini { flex: none; width: 80px; height: 30px; }
+.gx-tc-mini-area { fill: var(--gx-data); fill-opacity: 0.2; }
+.gx-tc-mini-line { fill: none; stroke: var(--gx-data); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.gx-tc-row-value { flex: none; min-width: 56px; text-align: right; font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx-tc-chev { flex: none; color: var(--gx-text-3); }
+.gx-tc-chev--up { rotate: 180deg; }
+.gx-tc-rowtext { display: flex; flex-direction: column; gap: 8px; padding: 0 14px 14px; }
+
+/* ----- the opened trend: a glow card ----- */
+.gx-tc-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 16px 18px;
+  border-radius: var(--gx-radius-lg);
+  background: var(--gx-hero-card);
+  box-shadow: var(--gx-hero-ring);
+  color: var(--gx-text-1);
+}
+.gx-tc-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.gx-tc-head .gx-t-strong { min-width: 0; overflow-wrap: anywhere; }
+.gx-tc-pill {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-pending-tint);
+  color: var(--gx-pending);
+  font: 700 12px/16px var(--gx-font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.gx-tc-head .gx-info-btn,
+.gx-tc-glass-btn { color: var(--gx-text-1); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx-tc-seg {
+  align-self: flex-start;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  backdrop-filter: var(--gx-glass-blur);
+}
+.gx-tc-seg > button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--gx-radius-pill);
+  background: transparent;
+  color: var(--gx-hero-text-2);
+  font: 700 16px/20px var(--gx-font-body);
+  cursor: pointer;
+}
+.gx-tc-seg > button[aria-pressed="true"] { background: var(--gx-chart-line); color: var(--gx-hero-base); }
+.gx-tc-seg > button:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx-tc-headline { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 10px; margin: 4px 0 0; }
+.gx-tc-big { font: 700 56px/56px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx-tc-headline-sub { padding-bottom: 6px; font: 600 14px/20px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-hero-text-2); }
+
+/* ----- glass tooltip shared by the line and the stems ----- */
+.gx-tc-line,
+.gx-tc-seasons { position: relative; padding-top: 56px; }
+.gx-tc-tip {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  width: 152px;
+  padding: 5px 10px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  backdrop-filter: var(--gx-glass-blur);
+  pointer-events: none;
+}
+.gx-tc-tip-value { font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx-tc-tip-label { font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-hero-text-2); }
+
+/* ----- line ----- */
+.gx-tc-plot { position: relative; touch-action: pan-y; cursor: crosshair; }
+.gx-tc-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.gx-tc-s1 { stop-color: var(--gx-glow-1); stop-opacity: 0.9; }
+.gx-tc-s2 { stop-color: var(--gx-glow-2); stop-opacity: 0.65; }
+.gx-tc-s3 { stop-color: var(--gx-glow-3); stop-opacity: 0.35; }
+.gx-tc-glow { opacity: var(--gx-chart-glow); }
+.gx-tc-zero { stroke: var(--gx-chart-line); stroke-opacity: 0.55; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.gx-tc-path { fill: none; stroke: var(--gx-chart-line); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.gx-tc-zero-label {
+  position: absolute;
+  right: 0;
+  translate: 0 -120%;
+  color: var(--gx-hero-text-2);
+  font: 700 12px/16px var(--gx-font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+.gx-tc-cross { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--gx-chart-line); opacity: 0.7; translate: -0.5px 0; pointer-events: none; }
+.gx-tc-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-chart-line);
+  box-shadow: 0 0 0 3px var(--gx-glass-line);
+  translate: -50% -50%;
+  pointer-events: none;
+}
+.gx-tc-axis { display: flex; justify-content: space-between; margin-top: 6px; font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-hero-text-2); }
+.gx-tc-scrub { display: block; width: 100%; height: 44px; margin: 0; accent-color: var(--gx-chart-line); }
+.gx-tc-scrub:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+
+/* ----- season stems ----- */
+.gx-tc-stems { position: relative; display: flex; gap: 2px; height: 132px; touch-action: pan-y; cursor: crosshair; }
+.gx-tc-stems-zero { position: absolute; left: 0; right: 0; height: 1px; background: var(--gx-chart-line); opacity: 0.55; pointer-events: none; }
+.gx-tc-col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; border-radius: var(--gx-radius-sm); pointer-events: none; }
+.gx-tc-col--on { background: var(--gx-glass); }
+.gx-tc-stem { position: absolute; left: 50%; width: 10px; border-radius: var(--gx-radius-pill); translate: -50% 0; }
+.gx-tc-stem--up { background-image: linear-gradient(180deg, var(--gx-bar-1), var(--gx-bar-2)); }
+.gx-tc-stem--down { background-color: var(--gx-loss); }
+.gx-tc-stem--on { width: 14px; box-shadow: 0 0 0 2px var(--gx-chart-line); }
+.gx-tc-years { display: flex; gap: 2px; margin-top: 6px; }
+.gx-tc-years > span { flex: 1 1 0; text-align: center; font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-hero-text-2); }
+
+/* ----- stat tiles ----- */
+.gx-tc-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.gx-tc-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  backdrop-filter: var(--gx-glass-blur);
+}
+.gx-tc-tile-label,
+.gx-tc-tile-sub { font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-hero-text-2); }
+.gx-tc-tile-value { font: 700 24px/28px var(--gx-font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.gx-tc-bar { position: relative; display: block; height: 6px; margin-top: 4px; border-radius: var(--gx-radius-pill); background: var(--gx-track); }
+.gx-tc-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--gx-radius-pill); background-image: linear-gradient(90deg, var(--gx-bar-1), var(--gx-bar-2)); }
+.gx-tc-bar-fill--below { background-image: none; background-color: var(--gx-loss); }
+.gx-tc-bar-tick { position: absolute; top: -4px; width: 2px; height: 14px; border-radius: 1px; background: var(--gx-text-1); translate: -1px 0; }
+.gx-tc-blocks { display: flex; gap: 2px; margin-top: 4px; }
+.gx-tc-block { flex: 1 1 0; height: 6px; border-radius: 2px; background: var(--gx-track); }
+.gx-tc-block--on { background: var(--gx-bar-1); }
+
+/* ----- season table ----- */
+.gx-tc-table-wrap { overflow: hidden; border-radius: var(--gx-radius-md); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx-tc-table { width: 100%; border-collapse: collapse; }
+.gx-tc-table th,
+.gx-tc-table td { padding: 8px 10px; text-align: left; font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx-tc-table td:nth-child(2) { color: var(--gx-hero-text-2); }
+.gx-tc-table td:last-child { text-align: right; }
+.gx-tc-table-bar { width: 40%; }
+.gx-tc-table tbody tr + tr > * { border-top: 1px solid var(--gx-glass-line); }
+
+@media (max-width: 359px) {
+  .gx-tc-mini { display: none; }
+  .gx-tc-big { font-size: 48px; line-height: 48px; }
+}
+@media (forced-colors: active) {
+  .gx-tc-card,
+  .gx-tc-tile,
+  .gx-tc-tip,
+  .gx-tc-seg,
+  .gx-tc-rowcard { border: 1px solid CanvasText; }
+  .gx-tc-seg > button[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+}

@@ -27,13 +27,22 @@ cards, pill selectors, gradient bars, one insight line) in light. Charts return 
 the game sheet's trend rows. Every honesty rule stays: records, samples,
 "not proven" labels, the break-even line, hidden line trends and source credits.
 
-The broader brand shift toward C and E is a direction, not yet approved tokens.
-The hybrid boards on the review canvas show the proposal; new colors, effects
-and the change to "lime only for the primary action" (the glow gradient ends in
-lime) need Sean's approval of those boards before `design/tokens-next.json`,
-`docs/BRAND_GUIDE.md` and the token test change. Before this work continues,
-Sean asked that every formatting issue be fixed first, starting with the
-Bets toolbar's clipped Following button.
+Before this work continued, Sean asked that every formatting issue be fixed
+first, starting with the Bets toolbar's clipped Following button (PR #174).
+
+After the hybrid boards, Sean asked for less on-screen text ("some items … have
+unnecessary callout text … they can be on an information button or in the
+settings") and more of A, B and D. The round 3 boards (R1–R5) answered that, and
+Sean approved them on October 21: "build round 3 (R1–R5) into the app, update the
+brand tokens and guide to match, and move the fine print behind info buttons."
+This approves the D-55 tokens (glow, glass, track, chart line, bars and soft
+light cards), lime as the decorative last stop of the dark chart glow only, and
+the new rule of restraint 10: fine print lives behind ⓘ, collected in Menu ›
+Guidance and sources. It also brings back the Home rank tiles and who's in that
+the four-tab "One thing first" Home had removed, and sets the Bets section labels
+to Tracked / Recommended / Virtual. `docs/BRAND_GUIDE.md` (D-55 section) records
+the system. Data rules, labels, locks and the Open-Meteo credit beside forecasts
+are unchanged; the nflverse credit moves into each trend ⓘ and Guidance.
 
 ## D-54 — relative Recommended gaps and compact Bets (October 21, 2026)
 

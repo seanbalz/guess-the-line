@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { HOME_COPY, HOME_STATES, homeHero, homeTiles } from '../shared/home-view.mjs';
+import { HOME_COPY, HOME_STATES, heroProgress, homeHero, homeTiles } from '../shared/home-view.mjs';
 
 // Redesign build plan stage 12: the pure Home view model (shared/home-view.mjs) at the four moments the plan names:
 // M1 a fresh week, M2 a draft in progress, M5 both markets sent, M6 after the deadline; plus the not-open and no-week
@@ -174,4 +174,19 @@ test('per-game Home directs an unfinished late week to open games and counts dow
   assert.equal(hero.statusLines[0],'Spread: 2 locked · 3 still open');
   data.rules.perGameScoring=false;
   assert.equal(homeHero({ community: data }).action.kind,'lines');
+});
+
+// D-55: the hero's progress bars come from the same due rows as its status lines. Contract: a sent ballot is full, a
+// sit-out is empty, a draft counts what is filled, per-game locks count locked games out of locked plus still open,
+// counts never exceed the week's games, and there are no bars without a week.
+test('D-55 hero progress: one bar per market, filled from the due rows and never past the week', () => {
+  assert.deepEqual(heroProgress({ community: community({ due: [dueRow('guess_spread', { filled: 5 }), dueRow('guess_total')] }) }),
+    [{ mode: 'guess_spread', label: 'Spread', done: 5, of: 14, state: 'draft' }, { mode: 'guess_total', label: 'Total', done: 0, of: 14, state: 'draft' }]);
+  assert.deepEqual(heroProgress({ community: community({ due: [dueRow('guess_spread', { submitted: true }), dueRow('guess_total', { satOut: true })] }) }).map(b => [b.done, b.of, b.state]),
+    [[14, 14, 'sent'], [0, 14, 'satOut']]);
+  assert.equal(heroProgress({ community: community({ due: [dueRow('guess_spread', { filled: 40 }), dueRow('guess_total')] }) })[0].done, 14);
+  const perGame = { ...community({ due: [{ mode: 'guess_spread', locked: 3, openGames: 11, games: 14 }, { mode: 'guess_total', locked: 0, openGames: 14, games: 14 }] }), rules: { perGameScoring: true } };
+  assert.deepEqual(heroProgress({ community: perGame }).map(b => [b.done, b.of, b.state]), [[3, 14, 'locked'], [0, 14, 'locked']]);
+  assert.deepEqual(heroProgress({ community: community({ week: null }) }), []);
+  assert.deepEqual(heroProgress({}), []);
 });

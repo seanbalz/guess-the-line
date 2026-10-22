@@ -172,6 +172,7 @@ Every number style sets `font-variant-numeric: tabular-nums` after its font, bec
 7. Never color alone: every state has a word or an icon (WIN, LOST, PUSH, LIVE, Late · 12 min).
 8. Honest data: a value, "—" for missing (never 0), or a lock icon with a sentence for a hidden market. PROVISIONAL and FINAL are written out. No live score until a free live source is approved.
 9. Faces first: every social item leads with an avatar.
+10. Fine print lives behind ⓘ (D-55, below): explanations, disclaimers and credits open from an "About …" button; the one-word labels stay.
 
 ### Motion
 Durations: tap 100ms, quick 160ms, base 240ms (sheets in), exit 200ms, big 600ms (bursts, count-ups, at most), pulse 1800ms (the LIVE dot, the only loop). Easing: standard, enter, exit and pop (a small overshoot for selections, saves and wins). Only transform and opacity animate. Motion explains a change; saves get a small moment, verified wins a big one, losses stay quiet; one big moment at a time and never on page load; never more than 3 flashes a second. Reduced motion (the device setting, or `data-motion="reduce"` on the app root) stops every animation and transition; numbers show their final value.
@@ -203,3 +204,81 @@ Sean approved the written specification and authorized implementation on October
 identity, type, semantic colors and Light/Dark/System remain the baseline. The
 selection does not finalize unrelated brand categories, change game rules or
 establish a native iOS release.
+
+## D-55 glow, glass and trend charts — October 21, 2026
+
+Sean approved the round 3 boards on the review canvas (R1–R5): the trend detail
+and dragging of directions A and B, D's stat tiles and hit-rate bars, C's glow
+styling in Dark and E's soft report styling in Light, and less text on screen.
+This section extends the D-38 system for the new app; everything above still
+applies unless this section says otherwise. Values live in `design/tokens-next.json`
+and `web/src/next/styles/tokens.css`; `tests/next-tokens.test.mjs` checks them.
+
+### New tokens
+
+| Token | Dark | Light | Use |
+|---|---|---|---|
+| `hero-card` (effect) | deep-blue radial + linear glow | white to `#F4F9FD` | Home hero and an opened trend only |
+| `hero-ring` (effect) | 1px cyan edge + deep shadow | 1px `#E3E8F0` + soft shadow | The same two cards |
+| `hero-base` | `#0C2540` | `#FFFFFF` | The card's base color, for contrast checks |
+| `hero-text-2` | `#C9DCEB` | `#3C4A63` | Secondary words on a glow card |
+| `glass` / `glass-line` | `#FFFFFF1A` / `#FFFFFF33` | `#FFFFFF` / `#E3E8F0` | Pills, tooltips and tiles on a glow card |
+| `glass-shadow`, `glass-blur` (effects) | inner highlight, 14px blur | soft shadow, none | The same |
+| `track` | `#FFFFFF29` | `#E3E8F0` | Empty part of a bar or meter |
+| `chart-line` | `#F5F7FB` | `#03658A` | The line over a glow area |
+| `glow-1`, `glow-2`, `glow-3` | `#7DD3FC`, `#34D399`, `#B8F34B` | `#7DD3FC`, `#6EE7B7`, `#D9F99D` | Area fill, top to bottom |
+| `bar-1`, `bar-2` | `#7DD3FC`, `#34D399` | `#0284C7`, `#059669` | Hit-rate and progress bars, start to end |
+| `chart-glow` (effect) | `0.6` | `0` | Opacity of the blurred copy under a dark area |
+
+Light cards now float on a soft shadow (`e1`: `0 0 0 1px #E3E8F0, 0 8px 24px`)
+instead of a hairline border. Dark's page wash is a deeper blue at the top.
+
+### Where glow and glass may appear
+
+- At most two glow cards in view: the screen's one action card (each root's hero, the kit's
+  `gx-card--hero`) and one opened trend.
+- Glass only on a glow card: its pills, tooltips, segmented control and tiles.
+- **Lime exception:** in Dark, lime is the decorative last stop of the chart
+  glow (`glow-3`). It is never text, a state or a second button; the one primary
+  action keeps the lime fill. The token test allows lime only as `accent`,
+  `accent-ink` or `glow-3`.
+- The glow gradient means "this is the chart", never win or loss. A season below
+  break-even is drawn in `loss` with its sign and word.
+
+### Trend charts
+
+- **Compact row:** title, side and percent, a 80 × 30 mini area, and units.
+  Tapping opens the detail in place.
+- **Opened trend:** title, a one-word state pill ("Not proven"), an ⓘ button, and
+  a "Since 2002 / By season" control when seasons exist. Under them sit the
+  headline number ("+45.2 U" or "7 of 8"), the chart and at most three tiles.
+- **Line:** cumulative units, a 2px `chart-line` over the glow area, a solid
+  `0 U` baseline, and a crosshair with a glass tooltip that follows the pointer
+  or a finger. A range input moves it from the keyboard. The tooltip never
+  claims more than the data: binned points say "after about N games".
+- **Seasons:** one stem per season from the break-even line. Each stem is a
+  button that shows its record and units, and a table with hit-rate bars follows.
+- **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
+  10 as blocks, and games or units. Every bar carries its number in words.
+
+### Home and Bets (round 3)
+
+- **Home:** the hero says "Lock in Week N" over glass countdown tiles and one progress
+  bar per market (the status words stay beside each bar). Under it sit three stat tiles
+  (Spread rank, Total rank, active tickets), who's in for the league (faces, one status
+  word each, Standings and Invite) and a row to this week's trends. This brings the
+  rank tiles and who's in back, which the four-tab "One thing first" Home had left out.
+- **Bets:** one pill row of short labels (Tracked / Recommended / Virtual) with their
+  full names for screen readers. Each view's fine print sits behind the title's ⓘ, and
+  your tracked bets lead with a net-units line you can drag and Record / ROI / Win rate
+  tiles.
+
+### Rule of restraint 10: fine print lives behind ⓘ
+
+Screens keep the one-word labels (Not proven, Pending, Locked, Sample, PROVISIONAL,
+FINAL), missing values as "—", and the hidden-market lock lines. Explanations,
+disclaimers and data credits open from a 44px ⓘ button named "About …" beside
+the thing they explain. Every ⓘ topic is also listed in Menu › Guidance and
+sources. One exception: the Open-Meteo credit stays beside forecast values
+(D-34). The nflverse credit (CC BY 4.0) is one tap away in each trend ⓘ and in
+Guidance and sources.

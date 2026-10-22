@@ -275,3 +275,6 @@
 }
 .gx .gx-live-play .gx-play-help[open] summary svg { rotate: 180deg; }
 .gx .gx-live-play .gx-play-help-body { display: grid; gap: var(--gx-space-3); padding-top: var(--gx-space-3); }
+
+/* D-55: a screen title with its ⓘ at the end. */
+.gx .gx-play-titlebar { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
