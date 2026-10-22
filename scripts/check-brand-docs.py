@@ -23,7 +23,7 @@ assert "do not impose a quote-age cutoff" in PLAN.lower()
 assert "source" in PLAN.lower() and "age" in PLAN.lower()
 assert "D-18" in DECISIONS and "D-18" in RULES and "D-18" in README
 assert "M-10 Bets read delivery card" in PLAN and "Brand QA assertion" in PLAN
-assert "Virtual Units Bets read (M-10, staged)" in RULES
+assert "## Virtual Units Bets read (M-10)" in RULES and "M10_PREFLIGHT_2026_10_22.md" in RULES
 assert "![" not in PLAN, "Do not add unreviewed third-party marks to the task list"
 
 for path in (ROOT / "README.md", ROOT / "docs/DECISIONS.md", ROOT / "docs/RULES.md", ROOT / "planning/virtual-units-game.md"):

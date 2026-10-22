@@ -30,7 +30,5 @@ export const apiChecks = Object.freeze([
 
 export const workerChecks = Object.freeze([]);
 
-export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_read_score_comparison': 'migration 20261016010000_gtl_score_comparison.sql',
-  'gtl-api/league/comparison': 'the gtl-api deploy with /league/comparison',
-});
+// /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026.
+export const awaitingDeploy = Object.freeze({});

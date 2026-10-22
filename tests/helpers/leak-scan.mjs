@@ -63,9 +63,7 @@ export const READERS = Object.freeze([
  * HOSTED skips them and a suite on ALL runs them (readersOn); the apply record removes the entry with the file's
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
-export const READER_MIGRATIONS = Object.freeze({
-  '/bets/read': '20261015190820_gtl_bets_read.sql',
-});
+export const READER_MIGRATIONS = Object.freeze({});
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
 

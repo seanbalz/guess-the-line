@@ -21,6 +21,10 @@ import { sendBallot, serviceSql } from './helpers/guess-week.mjs';
 const ALL = FUTURE_MIGRATIONS.filter(file => file < '20261015190710_gtl_guess_write_window.sql');
 
 const MIGRATION = '20261015010000_gtl_lines_read.sql';
+// M-10 is hosted since October 22, 2026, but the worlds here stop before M-07 or M-06 and so before its file: its
+// reader runs only where the world installs it.
+const BETS_READ = '20261015190820_gtl_bets_read.sql';
+const readersIn = migrations => readersOn(migrations).filter(([route]) => route !== '/bets/read' || migrations.includes(BETS_READ));
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const HOUR = 3_600_000, MINUTE = 60_000;
 const BOOKS = ['draftkings', 'fanduel', 'betmgm'];
@@ -82,7 +86,8 @@ test('M-06 is a hosted repo migration; its readers run in the HOSTED leak scan',
   for (const [route, file] of Object.entries(READER_MIGRATIONS)) assert.ok(NOT_HOSTED.includes(version(file)), `${route}: ${file} is hosted; remove it from READER_MIGRATIONS`);
   assert.equal(readersOn(HOSTED).filter(([route]) => route.startsWith('/lines/')).length, 2, 'HOSTED scans both lines readers');
   assert.equal(readersOn(FUTURE_MIGRATIONS).length, READERS.length, 'the complete schema covers every registered reader');
-  assert.ok(!readersOn(ALL).some(([route]) => route === '/bets/read'), 'the pre-M-07 schema does not install M-10');
+  assert.ok(readersOn(HOSTED).some(([route]) => route === '/bets/read'), 'HOSTED scans the M-10 reader');
+  assert.ok(!readersIn(ALL).some(([route]) => route === '/bets/read'), 'the pre-M-07 schema does not install M-10');
 });
 
 test('M-06 takes all four functions from public, anon and authenticated and grants them to the service role only', () => {
@@ -263,7 +268,7 @@ test('the lines readers (M-06): a cell opens per game and market on a lock-in, a
       }
     }
     // Every reader in the leak scan list, for a viewer with nothing sent: no line and no pick of anyone else.
-    for (const [route, method, body] of readersOn(ALL)) {
+    for (const [route, method, body] of readersIn(ALL)) {
       const reply = await world.api('luke', route.slice(1), method === 'GET' ? undefined : body);
       assert.equal(reply.status, 200, `${route}: ${JSON.stringify(reply.body)}`);
       assertNoLeak(reply.body, { viewer: id('luke'), secrets: [...allLines, ...othersPicks('luke')] }, route);
@@ -423,10 +428,11 @@ test('the kickoff line, movement and named books with prices (M-06): the newest 
 });
 
 test('before the apply: on the hosted schema /lines/* answer the generic 503 and every other reader is unchanged', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file < MIGRATION), troyBallots: false, groupScreens: true, virtualUnits: true });
+  const before = HOSTED.filter(file => file < MIGRATION);
+  const world = await createCommunityWorld({ migrations: before, troyBallots: false, groupScreens: true, virtualUnits: true });
   t.after(() => world.db.close());
   for (const [route, body] of [['lines/read', {}], ['lines/game', { gameId: 'TB-DAL' }]]) {
     assert.deepEqual(await world.api('luke', route, body), { status: 503, body: { error: 'The saved data service is temporarily unavailable. Please try again.' } }, route);
   }
-  for (const [route, method, body] of readersOn(HOSTED).filter(([route]) => !route.startsWith('/lines/') && route !== '/community/picks')) assert.equal((await world.api('luke', route.slice(1), method === 'GET' ? undefined : body)).status, 200, route);
+  for (const [route, method, body] of readersIn(before).filter(([route]) => !route.startsWith('/lines/') && route !== '/community/picks')) assert.equal((await world.api('luke', route.slice(1), method === 'GET' ? undefined : body)).status, 200, route);
 });

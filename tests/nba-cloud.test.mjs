@@ -75,11 +75,11 @@ test('boundary inventory covers both private NBA RPCs/routes and detects source 
   const probes = BOUNDARY_AREAS.bets;
   for (const name of ['gtl_nba_read_bets', 'gtl_nba_save_bet']) {
     assert.ok(probes.rpcChecks.some(([rpc]) => rpc === name));
-    assert.equal(awaitingDeploy[`rpc/${name}`], 'migration 20261021223000_gtl_nba_app_bets.sql');
+    assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${name}`), `${name} is hosted since October 22, 2026`);
   }
   for (const route of ['nba/read', 'nba/save']) {
     assert.ok(probes.apiChecks.some(([path]) => path === route));
-    assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
+    assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), `/${route} is deployed since October 22, 2026`);
   }
   for (const field of ['tickets', 'source_record', 'source_payload', 'before_terms']) assert.ok(privateResponse.test(JSON.stringify({ [field]: {} })), field);
 });

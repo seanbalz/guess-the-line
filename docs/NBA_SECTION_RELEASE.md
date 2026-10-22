@@ -2,11 +2,13 @@
 
 Owner: Sean Balsiger · Version 1 · October 21, 2026
 
-Status: **code complete and locally verified; not released.** This card records
-what the [approved design](superpowers/specs/2026-10-21-nba-section-design.md)
-and [implementation plan](superpowers/plans/2026-10-21-nba-section.md) need
-before a release. It establishes no hosted migration, secret, API or Pages
-change, no provider connection and no physical-phone acceptance.
+Status: **released October 22, 2026.** PR #167 merged as `d65268e`; both
+migrations were applied (hosted `20261022194048` and `20261022194209`), Sean added
+`BALLDONTLIE_API_KEY`, and `gtl-api` v34 then Pages `7ae80e71` shipped from that
+commit. Signed-in `/nba/games` returned live BALLDONTLIE games and `/nba/read`
+the 10 archived tickets. See the
+[Gate M and release record](RELEASE_2026_10_22_MIGRATIONS.md). Physical-iPhone
+acceptance remains open. The card below is kept as written for the release.
 
 ## Release prerequisites (Sean)
 
