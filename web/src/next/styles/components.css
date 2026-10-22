@@ -469,11 +469,13 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   scrollbar-width: none;
 }
 .gx-chip-rail::-webkit-scrollbar { display: none; }
-.gx-seg { display: flex; height: var(--gx-size-touch); padding: 0; gap: 0; border-radius: var(--gx-radius-pill); background: var(--gx-surface-2); }
+/* Segments share the row by their labels' widths, so a long label ("Rest of season") takes the room it needs; if a
+   wider fallback font still cannot fit, the label wraps inside a taller segment instead of spilling out of it. */
+.gx-seg { display: flex; min-height: var(--gx-size-touch); padding: 0; gap: 0; border-radius: var(--gx-radius-pill); background: var(--gx-surface-2); }
 .gx-seg-btn {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 0;
-  height: var(--gx-size-touch);
+  min-height: var(--gx-size-touch);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -484,7 +486,8 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   background: transparent;
   color: var(--gx-text-2);
   font: 600 16px/20px var(--gx-font-body);
-  white-space: nowrap;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 .gx-seg-btn--on {
   background: var(--gx-seg-on);

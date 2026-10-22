@@ -11,8 +11,11 @@ const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', 
   '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
   '#bets/virtual', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends'];
 const BET_VIEWS = ['feed', 'myweek', 'compare', 'history'];
-// Two passes keep the suite short while covering both themes and both phone widths.
-const PASSES = [{ theme: 'dark', width: 320 }, { theme: 'light', width: 390 }];
+// Two passes cover both themes and both phone widths. The third draws reading text in a wide system sans, because a
+// phone whose web fonts do not load (and CI's Linux runner, October 21) falls back from Figtree to wider letters than
+// Windows draws, and the layout must still hold. Display and number fonts keep their own condensed fallbacks.
+const PASSES = [{ theme: 'dark', width: 320 }, { theme: 'light', width: 390 }, { theme: 'light', width: 320, wide: true }];
+const WIDE_FONT = '.gx { --gx-font-body: Verdana, "DejaVu Sans", sans-serif !important; }';
 // The committed trends file is 2026 Week 6, so the game sheet has trend rows and an All trends sheet to check.
 const WEEK6 = state => {
   state.league.season = 2026; state.league.week = 6;
@@ -25,11 +28,12 @@ test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(240000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
 
-async function open(page, address) {
+async function open(page, address, wide = false) {
   await page.goto('about:blank');
   await page.goto(`/${address}`);
   await page.waitForLoadState('networkidle');
   await expect(page.locator('.gx')).toBeVisible();
+  if (wide) await page.addStyleTag({ content: WIDE_FONT });
 }
 
 test('every new-app screen, sheet and menu fits a phone: no clipped text, stray icons or overlapping controls', async ({ page, baseURL }) => {
@@ -41,31 +45,32 @@ test('every new-app screen, sheet and menu fits a phone: no clipped text, stray 
     await expect(page.locator('[data-landing="home"]')).toBeVisible();
     const found = {};
     const check = async label => { const problems = await page.evaluate(layoutProblems); if (problems.length) found[label] = problems; };
-    for (const { theme, width } of PASSES) {
+    for (const { theme, width, wide = false } of PASSES) {
       await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
       await page.setViewportSize({ width, height: 844 });
+      const pass = `${theme} ${width}${wide ? ' wide font' : ''}`;
       for (const address of ADDRESSES) {
-        await open(page, address);
-        await check(`${theme} ${width} ${address}`);
+        await open(page, address, wide);
+        await check(`${pass} ${address}`);
         if (address === '#home') {
           await page.getByRole('button', { name: 'Your menu', exact: true }).click();
-          await check(`${theme} ${width} ${address} menu`);
+          await check(`${pass} ${address} menu`);
         }
         if (address === '#bets/active') {
           for (const value of BET_VIEWS) {
             await page.getByLabel('Bet tracker view').selectOption(value);
             await page.waitForLoadState('networkidle');
-            await check(`${theme} ${width} ${address} view ${value}`);
+            await check(`${pass} ${address} view ${value}`);
           }
         }
         if (address === '#research/games') {
           await page.locator('[data-game]').first().click();
-          await check(`${theme} ${width} game sheet`);
+          await check(`${pass} game sheet`);
           await page.getByRole('button', { name: /^All trends/ }).click();
-          await check(`${theme} ${width} all trends`);
-          await open(page, address);
+          await check(`${pass} all trends`);
+          await open(page, address, wide);
           await page.getByRole('button', { name: 'Open weekly research', exact: true }).click();
-          await check(`${theme} ${width} weekly research`);
+          await check(`${pass} weekly research`);
         }
       }
     }
