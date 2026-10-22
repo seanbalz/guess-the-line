@@ -59,7 +59,8 @@ async function phoneChecks(page, root) {
       if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
-      if (el.getBoundingClientRect().right > innerWidth + 0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+      const r = el.getBoundingClientRect();
+      if (r.right > innerWidth + 0.5 || r.left < -0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
     }
     return { targets, small, clipped };
   });

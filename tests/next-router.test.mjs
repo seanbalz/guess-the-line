@@ -63,7 +63,7 @@ function app(win, confirmLeave) {
 
 
 test('legacy links map to explicit details while authentication and unknown fragments stay untouched', () => {
-  for (const [fragment, tab, section] of [['#lines','research','games'], ['#fantasy','research','fantasy'], ['#league','play','league'], ['#feed','play','league'], ['#picks-total','play','picks']]) {
+  for (const [fragment, tab, section] of [['#trends','research','trends'], ['#lines','research','games'], ['#fantasy','research','fantasy'], ['#league','play','league'], ['#feed','play','league'], ['#picks-total','play','picks']]) {
     const place = placeFromFragment(fragment); assert.equal(place.tab,tab); assert.equal(place.view.section,section);
   }
   for (const fragment of ['#type=recovery','#access_token=secret&type=signup','#invite=abc','#main','#picks-due','#unknown']) {

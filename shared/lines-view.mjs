@@ -40,7 +40,7 @@ export const LINES_COPY = Object.freeze({
   trends: 'Trends',
   allTrends: 'All trends',
   noTrend: 'No trend fits this game.',
-  trendsMissing: week => `Trends for ${Number.isInteger(week) ? `Week ${week}` : 'this week'} publish after Monday night’s final.`,
+  trendsMissing: week => `Trends for ${Number.isInteger(week) ? `Week ${week}` : 'this week'} are available when the published week opens; pending records update after finals.`,
   trendsLoading: 'Loading trends…',
   trendsFailed: 'Trends didn’t load. Check your connection and try again.',
   trendsNone: 'No trends for this game in this week’s file.',
@@ -425,7 +425,7 @@ export function refereeRow(trends, gameId, officials) {
 
 /**
  * What a sheet says in place of its trends until they can show, true for each state: still loading, failed, no file
- * for the week yet ("publish after Monday night’s final"), or a file that does not hold this game. Empty once ready.
+ * for the week yet ("available when the published week opens"), or a file that does not hold this game. Empty once ready.
  */
 function trendsNotice(status, week) {
   if (status === 'ready') return '';

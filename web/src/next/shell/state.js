@@ -16,11 +16,11 @@
 // - closeTop is Escape and Back: overlay, then popover, dialog, the top sheet, the page.
 
 export const TABS = Object.freeze(['home', 'play', 'bets', 'research']);
-export const LEGACY_TABS = Object.freeze(['league', 'lines', 'fantasy']);
-const ALIASES = { league: ['play', 'league'], lines: ['research', 'games'], fantasy: ['research', 'fantasy'] };
+export const LEGACY_TABS = Object.freeze(['league', 'lines', 'fantasy', 'trends']);
+const ALIASES = { league: ['play', 'league'], lines: ['research', 'games'], fantasy: ['research', 'fantasy'], trends: ['research', 'trends'] };
 export function destination(tab, view) {
   if (Object.hasOwn(ALIASES, tab)) return { tab: ALIASES[tab][0], view: { section: ALIASES[tab][1] }, adapter: tab, adapterView: view };
-  const adapter = tab === 'play' && view?.section === 'league' ? 'league' : tab === 'research' && view?.section === 'games' ? 'lines' : tab === 'research' && view?.section === 'fantasy' ? 'fantasy' : null;
+  const adapter = tab === 'play' && view?.section === 'league' ? 'league' : tab === 'research' && view?.section === 'games' ? 'lines' : tab === 'research' && view?.section === 'fantasy' ? 'fantasy' : tab === 'research' && view?.section === 'trends' ? 'trends' : null;
   if (!adapter) return { tab, view };
   const { section, ...adapterView } = view;
   return { tab, view, adapter, adapterView };

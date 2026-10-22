@@ -7,7 +7,8 @@ export function safeView(tab, view = {}) {
   const result = {};
   const routeKey = tab === 'bets' ? 'view' : 'section';
   if (SECTIONS[tab]?.includes(view[routeKey])) result[routeKey] = view[routeKey];
-  for (const key of KEYS) {
+  const keys = tab === 'research' && result.section === 'trends' ? [...KEYS, 'trendSection', 'window', 'player', 'weekTeam', 'playerMatchup'] : KEYS;
+  for (const key of keys) {
     const value = view[key];
     if ((typeof value === 'string' && value.length <= 100 && /^[\w .:@/+\-]*$/.test(value)) || (typeof value === 'number' && Number.isFinite(value)) || value === null) result[key] = value;
   }
@@ -15,7 +16,7 @@ export function safeView(tab, view = {}) {
   if (tab === 'play' && result.section === 'league' && ['feed','board','history'].includes(view.view)) result.view = view.view;
   return result;
 }
-const adapterFor = (tab, view) => tab === 'play' && view?.section === 'league' ? 'league' : tab === 'research' && view?.section === 'fantasy' ? 'fantasy' : tab === 'research' && view?.section === 'games' ? 'lines' : null;
+const adapterFor = (tab, view) => tab === 'play' && view?.section === 'league' ? 'league' : tab === 'research' && view?.section === 'fantasy' ? 'fantasy' : tab === 'research' && view?.section === 'games' ? 'lines' : tab === 'research' && view?.section === 'trends' ? 'trends' : null;
 function routePlace(tab, view = {}, adapters = {}) {
   const adapter = adapterFor(tab, view);
   const clean = safeView(tab, { ...view, ...(adapter ? adapters[adapter] : {}), ...(view.section ? { section: view.section } : {}) });
@@ -49,7 +50,7 @@ export function placeFromFragment(fragment) {
   if (section && !SECTIONS[tab]?.includes(section)) return null;
   const values = Object.fromEntries(new URLSearchParams(query));
   for (const key of ['season', 'week']) if (Object.hasOwn(values, key)) values[key] = values[key] === '' ? null : /^\d+$/.test(values[key]) ? Number(values[key]) : undefined;
-  const view = safeView(tab, values);
+  const view = safeView(tab, { ...values, ...(section ? { [tab === 'bets' ? 'view' : 'section']: section } : {}) });
   if (section) view[tab === 'bets' ? 'view' : 'section'] = section;
   const place = routePlace(tab, view);
   return Object.keys(view).length ? place : { tab };

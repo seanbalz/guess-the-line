@@ -2,9 +2,15 @@
 
 Owner: Sean Balsiger · Version 5 · October 15, 2026
 
-Status: core scoring implemented and checked locally; hosted rollout and Trends discovery remain.
+Status: core scoring is active; weekly and player Trends implementation is authorized, with release verification tracked separately.
 No delivery dates are committed. Current implementation owners and verification
 state are recorded in the active checkpoint below.
+
+## Approved weekly and player Trends — October 21
+
+Core scoring is now applied and verified; see the [production release record](../docs/CORE_SCORING_PRODUCTION_RELEASE.md). Sean approved the [weekly and player Trends design](../docs/superpowers/specs/2026-10-21-weekly-player-trends-design.md), extending the earlier accuracy/bias scope with actual-outcome evidence and current permitted guesses. The [Trends release record](../docs/WEEKLY_PLAYER_TRENDS_RELEASE.md) tracks implementation, review and release separately. Earlier discovery questions below are historical where this design or D-53 supplies the answer; optional recaps, saved rival views and private journals remain separate scope.
+
+The approved defaults use mean miss and signed bias with exact samples, recent and multi-season windows, and small-sample descriptions. Recurring directional records require five decided games across three competition weeks, with exact W-L-P and uncertainty. Player profiles remain within the selected Community/private roster and existing game/market reveal gates. None of these records changes competition scoring or establishes profitability.
 
 ## Approved follow-up — October 16
 

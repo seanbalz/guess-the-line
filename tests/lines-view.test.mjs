@@ -266,7 +266,7 @@ test('the game sheet: header, the top three trends strongest first with records 
   assert.deepEqual(open.trends.top.map(c => [c.title, c.sentence, c.record, c.sample, c.pct]),
     [['Underdogs at altitude', 'Underdogs in this spot covered 117 times and missed 89 since 2002.', '117–89–7', '213 games', 57]]);
   // No trends file for the week: the sheet says when it publishes; no game in the file: nothing to show.
-  assert.equal(L.gameSheet({ personal: personal(), community: community(), trends: null, trendsStatus: 'missing', gameId: 'SEA-DEN' }).trends.missing, 'Trends for Week 6 publish after Monday night’s final.');
+  assert.equal(L.gameSheet({ personal: personal(), community: community(), trends: null, trendsStatus: 'missing', gameId: 'SEA-DEN' }).trends.missing, 'Trends for Week 6 are available when the published week opens; pending records update after finals.');
   assert.equal(L.gameSheet({ personal: personal(), community: community(), trends: week, gameId: 'XX-YY' }), null);
 });
 
@@ -278,13 +278,13 @@ test('the trends notice is true for every load state: loading, failed, not publi
   assert.deepEqual(view(null), LOADING);
   for (const trendsStatus of ['idle', 'loading', 'ready']) assert.deepEqual(view(null, { trendsStatus }), LOADING, trendsStatus);
   assert.deepEqual(view(null, { trendsStatus: 'error' }), ['error', 'Trends didn’t load. Check your connection and try again.', 0]);
-  assert.deepEqual(view(null, { trendsStatus: 'missing' }), ['missing', 'Trends for Week 6 publish after Monday night’s final.', 0]);
+  assert.deepEqual(view(null, { trendsStatus: 'missing' }), ['missing', 'Trends for Week 6 are available when the published week opens; pending records update after finals.', 0]);
   // The week's file is out but does not hold this game: it says that, not that the file is still to come.
   const without = { ...week, games: week.games.filter(g => g.id !== 'SEA-DEN') };
   assert.deepEqual(view(without, { trendsStatus: 'ready' }), ['none', 'No trends for this game in this week’s file.', 0]);
   // Another week's file is never read for this game.
   const other = sheet({ ...week, week: 7 }, { trendsStatus: 'ready' });
-  assert.deepEqual([other.trends.status, other.trends.notice, other.trends.top, other.trends.count, other.trendsGame], ['missing', 'Trends for Week 6 publish after Monday night’s final.', [], 0, null]);
+  assert.deepEqual([other.trends.status, other.trends.notice, other.trends.top, other.trends.count, other.trendsGame], ['missing', 'Trends for Week 6 are available when the published week opens; pending records update after finals.', [], 0, null]);
   assert.equal(other.when, 'Thu Oct 15 · 5:15 PM PT · Denver', 'no TNF or division flag from another week');
   assert.deepEqual(view(week, { trendsStatus: 'ready' }).slice(0, 2), ['ready', '']);
 });
