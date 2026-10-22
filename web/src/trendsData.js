@@ -8,19 +8,7 @@ import { firstTrendWeek, hasTrendWeek, loadOfficials, loadTrendWeek, loadWind, o
 
 export { firstTrendWeek, hasTrendWeek, loadOfficials, loadTrendWeek, loadWind, rememberOfficial };
 
-export function useTrendWeek(season, week, enabled = true) {
-  const [state, setState] = useState({ status: enabled ? 'loading' : 'idle', week: null });
-  const [attempt, setAttempt] = useState(0);
-  useEffect(() => {
-    if (!enabled || !Number.isInteger(season) || !Number.isInteger(week)) return undefined;
-    let live = true;
-    setState({ status: 'loading', week: null });
-    loadTrendWeek(season, week).then(data => { if (live) setState({ status: data ? 'ready' : 'missing', week: data }); }, () => { if (live) setState({ status: 'error', week: null }); });
-    return () => { live = false; };
-  }, [season, week, enabled, attempt]);
-  const retry = useCallback(() => setAttempt(n => n + 1), []);
-  return { ...state, retry };
-}
+export { useTrendWeek } from './trendsWeekHook.js';
 
 export function useOfficials(season, week, enabled = true) {
   const [value, setValue] = useState(null);

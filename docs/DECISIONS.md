@@ -12,6 +12,29 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-55 — trend charts and a softer brand direction (October 21, 2026)
+
+Sean reviewed five trend-chart directions for the game sheet (A headline line, B
+season stems, C glow area, D stat tiles, E light report), built from the real
+Week 7 IND @ MIN trends. He wrote: "I do like the detail of a and b but I like
+the styling of c and e. I want the brand styling to change more towards that but
+I love the information and detail of a and b and how you can drag the chart."
+
+Selected for trend charts: A's headline number, readable line with a drag
+crosshair and tooltip and B's per-season view, styled like C (deep-blue glow
+cards, gradient area under a white line, glass pills) in dark and E (white soft
+cards, pill selectors, gradient bars, one insight line) in light. Charts return to
+the game sheet's trend rows. Every honesty rule stays: records, samples,
+"not proven" labels, the break-even line, hidden line trends and source credits.
+
+The broader brand shift toward C and E is a direction, not yet approved tokens.
+The hybrid boards on the review canvas show the proposal; new colors, effects
+and the change to "lime only for the primary action" (the glow gradient ends in
+lime) need Sean's approval of those boards before `design/tokens-next.json`,
+`docs/BRAND_GUIDE.md` and the token test change. Before this work continues,
+Sean asked that every formatting issue be fixed first, starting with the
+Bets toolbar's clipped Following button.
+
 ## D-54 — relative Recommended gaps and compact Bets (October 21, 2026)
 
 Sean requested that Spread and Total differences be compared by percentage

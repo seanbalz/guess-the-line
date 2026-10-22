@@ -7,23 +7,84 @@
 // map. Without wind forecasts (signed out, local mode, not a member, or not deployed) the panels keep their "no current
 // forecast" note. Moved here unchanged from trendsData.js.
 import { TREND_WEEKS } from './trendWeeks.generated.js';
-import { cloudEnabled } from './auth';
-import { officialsApi, windApi } from './api';
+import { cloudEnabled, supabase } from './auth';
+import { officialsApi, windApi, trendsApi } from './api';
 import { weekKey } from '../../shared/trends-view.mjs';
 import { WIND_TICK_MS } from './windTimer.js';
 
-const weeks = new Map(), officials = new Map(), listeners = new Set(), winds = new Map();
+const officials = new Map(), listeners = new Set(), winds = new Map();
 const WIND_CACHE_MS = 5 * 60_000;
 let windOff = false;
 
-/** The week file, or null when no file is published for that week. Rejects only when the chunk fails to load. */
-export function loadTrendWeek(season, week) {
-  const key = weekKey(season, week), loader = TREND_WEEKS[key];
-  if (!loader) return Promise.resolve(null);
-  if (!weeks.has(key)) weeks.set(key, loader().then(module => module.default ?? module).catch(error => { weeks.delete(key); throw error; }));
-  return weeks.get(key);
+const TREND_FRESH_MS = 60_000, TREND_CACHE_MS = 5 * 60_000;
+const REFRESH_UNAVAILABLE = 'Hosted refresh unavailable; showing the last loaded evidence.';
+/**
+ * Hosted public evidence cache; membership refusals never become a static fallback. When a hosted refresh fails for
+ * any other reason (offline on wake, a timeout, a 5xx), the last good result for the same week is kept and marked
+ * stale, its source age carried forward; only a week not yet loaded falls back to its dated static file, or to null
+ * when it has none (Week 8 onward). A result from a failed read is reused for a minute, not five, so the next read
+ * after the network returns refreshes it.
+ */
+export function createTrendWeekLoader({ cloud = cloudEnabled, readHosted = trendsApi, staticWeeks = TREND_WEEKS, now = Date.now } = {}) {
+  const cache = new Map(); let epoch = 0;
+  const clear = () => { epoch++; cache.clear(); };
+  const load = (season, week, { fresh = false, retry = false } = {}) => {
+    const key = weekKey(season, week), hit = cache.get(key), age = hit ? now() - hit.at : Infinity;
+    if (hit && (hit.pending || (!retry && age < (fresh || hit.failed ? TREND_FRESH_MS : TREND_CACHE_MS)))) return hit.promise;
+    const loader = staticWeeks[key], version = epoch;
+    // A settled entry is always a fulfilled one (a rejected read leaves the cache), so this holds the last good result.
+    const prior = hit && !hit.pending ? hit : null;
+    const entry = { at: now(), pending: true, failed: false, promise: null };
+    const fallback = async reason => {
+      if (!loader) return null;
+      const module = await loader(), value = module.default ?? module;
+      return { ...value, availability: { generatedAt: null, sourceAsOf: value.asOf ?? null, stale: true, reason,
+        evidencePolicy: 'Frozen static snapshot; results are dated as of the saved file.' } };
+    };
+    const unavailable = async () => {
+      entry.failed = true;
+      const last = prior && await prior.promise;
+      if (!last) return fallback('Hosted trends unavailable; dated static fallback.');
+      const a = last.availability || {};
+      return { ...last, availability: { ...a, stale: true, reason: REFRESH_UNAVAILABLE,
+        ...(Number.isFinite(a.sourceAgeMs) ? { sourceAgeMs: a.sourceAgeMs + Math.max(0, entry.at - prior.at) } : {}) } };
+    };
+    entry.promise = (cloud
+      ? Promise.resolve().then(() => readHosted({ season, week })).catch(error => {
+          if ([400, 401, 403].includes(error?.status)) throw error;
+          return unavailable();
+        })
+      : fallback('Local mode; dated static snapshot.')).then(value => {
+        if (version !== epoch) throw Object.assign(new Error('Account changed. Reload trends.'), { status: 401 });
+        entry.pending = false;
+        return value;
+      }).catch(error => { if (cache.get(key) === entry) cache.delete(key); throw error; });
+    cache.set(key, entry);
+    while (cache.size > 8) cache.delete(cache.keys().next().value);
+    return entry.promise;
+  };
+  return { load, clear };
 }
-export const hasTrendWeek = (season, week) => Object.hasOwn(TREND_WEEKS, weekKey(season, week));
+/**
+ * The auth listener for the shared cache: it clears only when the signed-in account changes. auth-js 2.117.3 also
+ * reports TOKEN_REFRESHED, and a same-user SIGNED_IN each time a hidden tab becomes visible (relayed to other tabs),
+ * exactly when a returning phone starts its fresh read; clearing on those refused that read as "Account changed".
+ * The first event (INITIAL_SESSION, which auth-js sends each new listener once the session is restored) records the
+ * account without clearing; signing out or signing in as someone else clears.
+ */
+export function watchTrendAccount(clear) {
+  let account;
+  return (_event, session) => {
+    const id = session?.user?.id ?? null;
+    if (account !== undefined && id !== account) clear();
+    account = id;
+  };
+}
+const trendLoader = createTrendWeekLoader();
+export const loadTrendWeek = (season, week, options) => trendLoader.load(season, week, options);
+export const clearTrendWeeks = () => trendLoader.clear();
+supabase?.auth.onAuthStateChange(watchTrendAccount(clearTrendWeeks));
+export const hasTrendWeek = (season, week) => cloudEnabled || Object.hasOwn(TREND_WEEKS, weekKey(season, week));
 /** The first week of a season with a published trends file, or null. */
 export const firstTrendWeek = season => Object.keys(TREND_WEEKS).filter(key => key.startsWith(`${season}-`)).map(key => Number(key.slice(5))).sort((a, b) => a - b)[0] ?? null;
 

@@ -5,7 +5,7 @@ import { placeFromFragment, fragmentFor, startPlace, connectHistory } from '../w
 
 test('four roots retain legacy adapters and aliases', () => {
   assert.deepEqual(TABS, ['home','play','bets','research']);
-  for (const [alias, tab, section] of [['league','play','league'],['lines','research','games'],['fantasy','research','fantasy']]) {
+  for (const [alias, tab, section] of [['league','play','league'],['lines','research','games'],['fantasy','research','fantasy'],['trends','research','trends']]) {
     const state = reduce(initialState(), {type:'go',tab:alias,view:{market:'total'}});
     assert.equal(state.tab,tab); assert.equal(state.views[tab].section,section);
     assert.equal(state.views[alias].market,'total');
@@ -70,4 +70,34 @@ test('Back to a root preserves newer nested ticket and Fantasy preferences', () 
   assert.equal(state.views.fantasy.filters?.position,'WR'); assert.equal(state.views.fantasy.week,5);
   state=reduce(state,{type:'restore',place:{tab:'research',view:{section:'fantasy'},adapters:{fantasy:{season:2026,week:5}}}});
   assert.equal(state.views.fantasy.filters?.position,'WR');
+});
+
+test('Trends is a Research detail with isolated subviews, filters and reversible origins', () => {
+  let state = reduce(initialState(), { type: 'go', tab: 'research', view: { section: 'trends' } });
+  state = reduce(state, { type: 'view', tab: 'trends', patch: { trendSection: 'players', market: 'total', team: 'CAR', player: 'fixture', window: 'last5', playerMatchup: 'CAR-ATL' } });
+  assert.equal(state.views.research.section, 'trends');
+  assert.equal(state.trail.length, 1);
+  const fragment = fragmentFor(state.tab, state.views.research, state.views);
+  assert.match(fragment, /^#research\/trends\?/);
+  assert.doesNotMatch(fragment, /guess|reference|points/);
+  const reload = initialState(placeFromFragment(fragment));
+  assert.equal(reload.views.research.section, 'trends');
+  assert.equal(reload.views.trends.trendSection, 'players');
+  for (const key of ['market', 'team', 'player', 'window', 'playerMatchup']) assert.equal(reload.views.trends[key], state.views.trends[key]);
+  state = reduce(state, { type: 'back' });
+  assert.equal(state.tab, 'home');
+  state = reduce(state, { type: 'go', tab: 'research', view: { section: 'trends' } });
+  assert.equal(state.views.trends.window, 'last5');
+  state = reduce(state, { type: 'tab', tab: 'research' });
+  assert.equal(state.views.research.section, undefined);
+  assert.equal(state.views.trends.trendSection, 'players');
+});
+
+test('Trends route allowlist excludes evidence and does not leak filters into other Research details', () => {
+  const adapters = { trends: { trendSection: 'teams', weekTeam: 'CAR', matchup: 'CAR-PHI', guess: 77.125, reference: 71.625, points: 8, observations: [{ private: true }], editor: 'secret' } };
+  const fragment = fragmentFor('research', { section: 'trends' }, adapters);
+  assert.match(fragment, /trendSection=teams/);
+  assert.doesNotMatch(fragment, /guess|reference|points|observations|private|secret/);
+  assert.doesNotMatch(fragmentFor('research', { section: 'games', trendSection: 'players', window: 'last5', player: 'fixture' }), /trendSection|window|player/);
+  assert.deepEqual(placeFromFragment('#trends'), { tab: 'research', view: { section: 'trends' }, adapters: { trends: {} } });
 });

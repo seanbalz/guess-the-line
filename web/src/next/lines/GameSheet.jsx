@@ -15,7 +15,7 @@ import { useOfficials, useWind } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
 import { Card, Icon, List, Pill, Row, Sheet } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
-import { Credits, Expander, TrendList, WeatherDetail } from './parts.jsx';
+import { Credits, Expander, TrendList, TrendAvailability, WeatherDetail } from './parts.jsx';
 import { GameNote } from './GameNote.jsx';
 import { MatchupResearch } from '../research/ResearchSheet.jsx';
 import './lines.css';
@@ -85,9 +85,17 @@ export function GameSheet({ args }) {
         <YouRows rows={view.you}/>
       </section>
 
+      <Card variant="flush"><List label="Kickoff weather">
+          {weather.detail ? (
+            <Expander key="weather" title={weather.title} summary={weather.summary} data-row="weather" data-kind={weather.state}>
+              <WeatherDetail row={weather}/>
+            </Expander>
+          ) : <Row key="weather" title={weather.title} sub={weather.summary} data-row="weather" data-kind={weather.state}/>}
+      </List></Card>
+
       <section className="gx-vstack gx-gap-8" aria-labelledby={trendsId} data-section="trends">
         <h3 className="gx-t-section" id={trendsId}>{LINES_COPY.trends}</h3>
-        <MatchupResearch lines={lines} gameId={view.id} fallback={<>{t.notice ? <Missing text={t.notice}/>
+        <MatchupResearch lines={lines} gameId={view.id} fallback={<><TrendAvailability week={trendsWeek}/>{t.notice ? <Missing text={t.notice}/>
           : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game"/>
             : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}
         {t.status === 'ready' && t.top.length ? <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p> : null}</>}/>
@@ -95,11 +103,6 @@ export function GameSheet({ args }) {
 
       <Card variant="flush">
         <List label="More about this game">
-          {weather.detail ? (
-            <Expander key="weather" title={weather.title} summary={weather.summary} data-row="weather" data-kind={weather.state}>
-              <WeatherDetail row={weather}/>
-            </Expander>
-          ) : <Row key="weather" title={weather.title} sub={weather.summary} data-row="weather" data-kind={weather.state}/>}
           {referee ? (
             <Expander key="referee" title={LINES_COPY.referee} summary={referee.name} data-row="referee">
               <p className="gx-t-meta">{referee.source}</p>

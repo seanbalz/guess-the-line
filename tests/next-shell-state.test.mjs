@@ -17,7 +17,7 @@ test('a visit starts on Home with every tab\'s view empty and nothing open', () 
   assert.equal(state.tab, 'home');
   assert.equal(DEFAULT_TAB, 'home');
   assert.deepEqual(TABS, ['home', 'play', 'bets', 'research']);
-  assert.deepEqual(state.views, { home: {}, play: {}, bets: {}, research: {}, lines: {}, league: {}, fantasy: {} });
+  assert.deepEqual(state.views, { home: {}, play: {}, bets: {}, research: {}, lines: {}, league: {}, fantasy: {}, trends: {} });
   assert.deepEqual([state.page, state.sheets, state.dialog, state.popover, state.overlays, state.toasts], [null, [], null, null, [], []]);
   assert.equal(hasLayers(state), false);
   assert.equal(modalOpen(state), false);
@@ -208,7 +208,7 @@ test('unknown actions and malformed layers leave the state as it is', () => {
 });
 
 test('the tab slot files: every tab and Me has homeTiles, counter and sheetActions, empty until each slot\'s own stage', () => {
-  assert.deepEqual(Object.keys(SLOTS).sort(), ['bets', 'fantasy', 'home', 'league', 'lines', 'me', 'play']);
+  assert.deepEqual(Object.keys(SLOTS).sort(), ['bets', 'fantasy', 'home', 'league', 'lines', 'me', 'play', 'trends']);
   for (const [tab, slot] of Object.entries(SLOTS)) {
     assert.deepEqual(Object.keys(slot).sort(), ['counter', 'homeTiles', 'sheetActions'], tab);
     assert.ok(Array.isArray(slot.homeTiles) && Object.isFrozen(slot.homeTiles), `${tab} homeTiles`);

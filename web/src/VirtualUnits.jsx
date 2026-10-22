@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Check, ChevronDown, Circle, CircleCheckBig, Clock3, Eye, Lock, Minus, Plus, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
 import { cloudApi, date, signed } from './api';
 import { lockSentence } from './lineLock';
-import { buildRecommendations } from '../../shared/recommended-bets.mjs';
+import { buildRecommendations, recommendationList, recommendationMarket } from '../../shared/recommended-bets.mjs';
 import { RecommendationTrendDetail, useRecommendationTrends } from './RecommendationTrends.jsx';
 import './recommendedBets.css';
 
@@ -44,7 +44,7 @@ function closedReviewReason(game, now, result) {
   return null;
 }
 
-export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, onTrackTicket, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false }) {
+export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, onTrackTicket, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false, recommendedMarket, onRecommendedMarket, marketControl }) {
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [selections, setSelections] = useState({}), [uncertain, setUncertain] = useState(null);
   const [view, setView] = useState(initialView === 'recommended' ? 'recommended' : 'all');
@@ -99,7 +99,15 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
   }, [data]);
   const personal = personalRead?.scope === recommendationScope ? personalRead : null;
   const historical = currentRecommendations && (weekInfo?.current === false || data?.current === false);
-  const recommendations = useMemo(() => buildRecommendations({ personal: personal?.data, virtual: data, now }), [personal?.data, data, now]);
+  const ranked = useMemo(() => buildRecommendations({ personal: personal?.data, virtual: data, now }), [personal?.data, data, now]);
+  // BETS-NEXT-01: the new app's All / Spreads / Totals choice (kept by Bets, which also draws its control) narrows the
+  // complete ranked set before the top-three limit, in the same order. Display only: selections, saved picks and every
+  // gate above are unchanged.
+  const market = onRecommendedMarket ? recommendationMarket(recommendedMarket) : 'all';
+  const shown = useMemo(() => recommendationList(ranked.rows, { market, expanded }), [ranked.rows, market, expanded]);
+  const recommendations = useMemo(() => ({ ...ranked, rows: shown.rows }), [ranked, shown.rows]);
+  const marketGroup = useRef(null);
+  function showAllMarkets() { onRecommendedMarket?.('all'); marketGroup.current?.querySelector('button')?.focus(); }
   // Stage 20 line lock: a market that is locked in a newer reply (the community week moved past this group's week) shows no
   // side, units or save button, so a selection in progress on it can never be saved. It is dropped, and the unsaved-changes
   // flag clears when nothing else waits to be saved. A market saved on another device cannot be overwritten.
@@ -215,7 +223,7 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
     finally { setBusy(false); }
   }
   const Heading = embedded ? 'h2' : 'h1';
-  const visibleRecommendations = historical ? [] : expanded ? recommendations.rows : recommendations.rows.slice(0, 3);
+  const visibleRecommendations = historical ? [] : shown.visible;
   const separateReviews = Object.entries(selections).filter(([key]) => !visibleRecommendations.some(row => row.key === key));
   return <div className="virtual-units">
     <header className="page-heading"><div><div className="eyebrow"><span className="tiny-rule"/>PICKS · PLAY MONEY</div><Heading>{view === 'recommended' ? 'Recommended bets' : 'Virtual Units'}</Heading><p>{view === 'recommended' ? 'Largest percentage gaps between your guesses and current lines.' : 'Place one spread and one total pick per matchup. Every unit represents $100 virtual risk.'}</p></div><div className="heading-actions"><button className="secondary" onClick={refresh} disabled={loading || busy}><RefreshCw size={17} className={loading ? 'spin' : ''}/>Refresh lines</button>{commissioner && view !== 'recommended' && <button className="secondary" onClick={settle} disabled={loading || busy || Boolean(uncertain)}><CircleCheckBig size={17}/>Settle finals</button>}</div></header>
@@ -235,9 +243,10 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
         : !personal ? <p className="loading" role="status">Loading your saved guesses…</p>
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>
         : <>
+          {marketControl && <div ref={marketGroup} className="recommended-market-filter">{marketControl}</div>}
           <div className="recommended-list-heading"><h3>{expanded ? 'All differences' : 'Top 3 differences'}</h3><span>{recommendations.rows.length} available · Week {data.week}</span></div>
           {recommendations.rows.length ? <div className="recommended-bet-list">{visibleRecommendations.map(row => <RecommendationCard key={row.key} row={row} season={data.season} week={data.week} selection={selections[row.key]} pick={picks[row.key]} now={now} add={addRecommendation} track={onTrackTicket ? trackRecommendation : undefined} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div>
-            : <div className="recommended-empty" role="status"><p>No differences to show yet. Submit your guesses, then check back for available pregame lines.</p></div>}
+            : <div className="recommended-empty" role="status">{market === 'all' ? <p>No differences to show yet. Submit your guesses, then check back for available pregame lines.</p> : <><p>No {market} differences to show yet.</p><button className="secondary" onClick={showAllMarkets}>View all markets</button></>}</div>}
           {recommendations.rows.length > 3 && <button className="secondary recommended-expand" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? <><ArrowUp size={17}/>Show top 3</> : <><ArrowDown size={17}/>Show all {recommendations.rows.length} differences</>}</button>}
           {separateReviews.map(([key, selection]) => {
             const currentGame = data.games.find(item => item.id === selection.gameId), game = currentGame || selection.game;

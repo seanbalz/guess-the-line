@@ -12,6 +12,10 @@ The October 20 20:15 UTC scheduled collector, collection and Week 7 snapshot
 were verified successful. Core scoring is active; its PR and original three-machine
 sync are complete. See the [release record](../docs/CORE_SCORING_PRODUCTION_RELEASE.md).
 
+## Active priority — October 21: weekly and player Trends
+
+Sean approved a new Trends tab, highlights below weather, weekly availability at guess opening, recent/history windows and player guess-versus-market outcome analysis. This takes priority before the remaining ordered items. Work is isolated on `codex/weekly-player-trends` from freshly fetched `origin/main` at `368f5d4`. The [design](../docs/superpowers/specs/2026-10-21-weekly-player-trends-design.md) and [release record](../docs/WEEKLY_PLAYER_TRENDS_RELEASE.md) contain the accepted scope and actual verification state. This task does not reopen core scoring or apply migrations. Private-league player views retain the separate D-53 comparison-reader dependency. The initial implementation, independent review and local verification are in [PR #166](https://github.com/seanbalz/guess-the-lines-repo/pull/166). Integration with the subsequently merged four-tab redesign is in progress: Research > Trends retains the complete destination. Its receipt will record final integration review, CI and task-branch sync. Production release and acceptance remain separate.
+
 ## Ordered items
 
 October 20 priority update: after the deployed private-week/results repair, Sean

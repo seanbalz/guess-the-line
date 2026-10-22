@@ -5,27 +5,14 @@
 // after a snapshot was taken, 12 h and 2 h before kickoff), at kickoff and when the tab shows again, as the old trends
 // panel does, and never more often; reads that land within a minute of each other share one request. The referees are
 // read only once a sheet opens.
-import { useCallback, useEffect, useState } from 'react';
-import { firstTrendWeek, loadOfficials, loadTrendWeek, loadWind, onOfficialsChange } from '../../trendsLoaders.js';
+import { useEffect, useState } from 'react';
+import { loadOfficials, loadWind, onOfficialsChange } from '../../trendsLoaders.js';
 import { watchWind, windNowFor } from '../../windTimer.js';
 import { weekKey } from '../../../../shared/trends-view.mjs';
 
 const known = (season, week) => Number.isInteger(season) && Number.isInteger(week);
 
-/** `{ status: 'idle' | 'loading' | 'ready' | 'missing' | 'error', week, first, retry }` for one week's trends file. */
-export function useTrendWeek(season, week, enabled = true) {
-  const [state, setState] = useState({ status: enabled ? 'loading' : 'idle', week: null });
-  const [attempt, setAttempt] = useState(0);
-  useEffect(() => {
-    if (!enabled || !known(season, week)) return undefined;
-    let live = true;
-    setState({ status: 'loading', week: null });
-    loadTrendWeek(season, week).then(data => { if (live) setState({ status: data ? 'ready' : 'missing', week: data }); }, () => { if (live) setState({ status: 'error', week: null }); });
-    return () => { live = false; };
-  }, [season, week, enabled, attempt]);
-  const retry = useCallback(() => setAttempt(n => n + 1), []);
-  return { ...state, first: known(season, week) ? firstTrendWeek(season) : null, retry };
-}
+export { useTrendWeek } from '../../trendsWeekHook.js';
 
 /** The commissioner's referee assignments for the week, or null (a 404, signed out, or unavailable: the rows hide). */
 export function useOfficials(season, week, enabled = true) {

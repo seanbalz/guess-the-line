@@ -126,3 +126,21 @@ export function buildRecommendations({ personal, virtual, now = Date.now() } = {
   rows.sort((a, b) => b.gapPercent - a.gapPercent || time(a.game.kickoff) - time(b.game.kickoff) || a.key.localeCompare(b.key));
   return { status: 'ready', rows, counts };
 }
+
+// BETS-NEXT-01: the All / Spreads / Totals choice on Bets → Recommended. It is a display preference only: it narrows
+// the complete ranked rows (keeping their D-54 order), never rebuilds, re-ranks or changes a row, and never relaxes the
+// eligibility above. Anything other than 'spread' or 'total' means All.
+export const RECOMMENDATION_MARKETS = Object.freeze(['all', 'spread', 'total']);
+export const RECOMMENDATION_PREVIEW = 3;
+export const recommendationMarket = value => (value === 'spread' || value === 'total' ? value : 'all');
+
+export function filterRecommendations(rows, market) {
+  const chosen = recommendationMarket(market), list = Array.isArray(rows) ? rows : [];
+  return chosen === 'all' ? list : list.filter(row => row?.market === chosen);
+}
+
+/** The chosen market's ranked rows, then the top-three preview unless expanded: the filter runs before the limit. */
+export function recommendationList(rows, { market = 'all', expanded = false } = {}) {
+  const chosen = filterRecommendations(rows, market);
+  return { rows: chosen, visible: expanded ? chosen : chosen.slice(0, RECOMMENDATION_PREVIEW) };
+}

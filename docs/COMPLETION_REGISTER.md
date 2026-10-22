@@ -8,6 +8,10 @@ and local work; Q01 merged as PR #152; the authorized weekly-results repair take
 preserved as an [archived snapshot](COMPLETION_REGISTER_ARCHIVE_2026_10_19.md),
 not a current deployment ledger. The frozen v62 tracker is unchanged.
 
+## Active priority — weekly and player Trends, October 21
+
+Sean approved week-opening publication, a Trends tab with This Week / Teams / Players, recent and longer history, and player guess-versus-market outcome evidence. Work is isolated on `codex/weekly-player-trends` from `origin/main` at `368f5d4`; other checkouts and unpublished work are preserved. See the [approved design](superpowers/specs/2026-10-21-weekly-player-trends-design.md) and [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md) for implementation and verification state. No migration or hosted deployment is part of this implementation handoff. Private-league player history retains the separately staged D-53 comparison-reader dependency. Implementation and independent review are complete in [PR #166](https://github.com/seanbalz/guess-the-lines-repo/pull/166), integrated with main at `fb86a3e`. The full local check passed 1,552 Node and 235 Vitest tests with zero skips; 43 integrated browser cases and cloud bundle privacy passed. Main then advanced to c6afb02e with the approved four-tab redesign (PR #162). Integration is in progress: the complete Trends destination will live under Research > Trends while preserving its own views and game-detail highlights. Final integration review, CI and task-branch synchronization will be recorded in the PR receipt; merge and hosted release remain separate.
+
 ## Verified delivery
 
 - Core per-game locking, immediate personal points, receipts and weekly score
@@ -185,6 +189,24 @@ acceptance remain separate. The frozen v62 tracker remains unchanged.
 A separate redacted Week 7 nflverse snapshot was generated
 for current-week context; the Week 6 input remains frozen. See
 [the design](superpowers/specs/2026-10-21-recommended-percent-trends-design.md).
+
+October 21 phone formatting pass: Sean's iPhone screenshot showed the Bets
+tracker toolbar's **Following** button squeezed into the 44px refresh column,
+spilling past the screen edge over the Player select, with refresh stretched
+across a row. A sweep of every new-app root, section, Bets view, sheet and menu
+(27 screens, Light and Dark, 320 and 390 px; local PGlite fixtures) reproduced it
+in all four non-owner Bets views and found no other clipped text, stray icon or
+overlapping control. The toolbar now places week + refresh on one row and the
+player select and Following toggle on their own rows. A visual pass also fixed the
+Pick'em chip's 4px label inset and the score page's button pair, which now shares a
+row only when both labels fit on one line. New contracts:
+`tests/cloud-browser/next-phone-layout.spec.js` (the sweep, plus the button and
+Pick'em checks) and a toolbar test in `next-bets-live.spec.js`; each failed
+before its fix and passes after it. The affected browser suites (Bets, scoring,
+Play, four-tab, Lines, UI kit, Recommended and the new layout spec) passed 53/53
+locally, with token, app-view and brand-document checks. The Bets section switch keeps its deliberate
+2 + 1 layout below 520 px. D-55 records Sean's chart and brand direction; the
+hybrid chart boards await his approval before any token change. Not deployed.
 
 ## Evidence and limits
 
