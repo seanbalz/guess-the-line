@@ -1,6 +1,6 @@
 # Guess The Line — four-tab redesign release
 
-Owner: Sean Balsiger · October 21, 2026 · Release preparation
+Owner: Sean Balsiger · October 21, 2026 · Deployed and verified (frontend only)
 
 Sean authorized: “Check CI, fix anything that fails, then merge and deploy the
 four-tab redesign.” [PR #162](https://github.com/seanbalz/guess-the-lines-repo/pull/162)
@@ -31,6 +31,12 @@ the current compatible API and all stored records. This does not delete or rever
 picks, tickets, receipts, scores or groups. The protected production environment
 and source/CI checks remain in force. The prior release's provenance is in the
 [recommended tracking release](RECOMMENDED_TRACKING_RELEASE.md).
+
+The independent [research release 39687111092](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39687111092)
+subsequently verified Pages `0dde8b76-54c0-47e8-a0b0-08323bd60339` and API v29 at
+22:34 UTC, from `fb86a3ea55bd91db1b1937dcd40ee70063d37716`. The four-tab merged
+source changes no `cloud/`, `supabase/` or `shared/` files relative to that source.
+Readiness must reconfirm this newer rollback and compatibility baseline.
 
 ## CI investigation
 
@@ -110,12 +116,92 @@ five consecutive runs. No application behavior changed for this correction.
 
 ## Required deployment evidence
 
-Merge and deployment are pending at this preparation checkpoint. The final PR
-head must pass every required CI job; the exact merged main SHA must then pass
-its own push CI. The PR release card will name that SHA and the reviewed readiness
-digest before deploy. Fresh preservation snapshots, function permissions,
-schedule evidence, signed-out boundaries, deployment identifiers and served-asset
-hashes will be recorded here after the protected workflow finishes.
+PR #162 merged as `c6afb02e71b6c88d09212dfc525fe0fe59da64f9` from reviewed head
+`74238117939929b7224546a4599a6ba64298d72a`. Its tree
+`9dd01762fa42df2761fce0f4e35532fc5eeb1936` exactly matches the reviewed merge with
+main's documentation-only PR #168. All five final PR checks passed:
+[Tests and Windows](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39682783414),
+[Dashboard and Persona](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39682783411),
+and [Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39682783500).
+Results: 1,520 Node tests with zero skips, 217 component/engine tests, 278
+authenticated browser tests, 41 legacy browser tests, four performance checks and
+seven critical-path accessibility checks passed. The full local integrated
+browser run had 277/278 passes and only the subsequently corrected legacy-link
+assertion; the final hosted 278/278 result verifies that correction with the
+complete suite. Latest fixture screenshots of all four roots were reviewed.
+
+Windows `C:/Users/sbals/betting-repo`, Mini
+`/Users/seanbalsiger/.codex/worktrees/shared-sync/betting-repo` and Neo
+`/Users/seanbalsiger/betting-repo` passed sync:pull/check at the merged source on
+October 21, 22:36–22:37 UTC, with zero ahead/behind/changed files. Neo used the
+same synchronization script through its installed Codex Node runtime because
+its SSH environment has no npm command. Other worktrees and ignored state remain
+outside those checks.
+
+## October 21 production evidence
+
+Codex stopped at 23:06 UTC on a usage limit while waiting for merged-main CI.
+Sean then handed the release lane to Claude Code: “finish the four-tab frontend
+deploy from c6afb02 once main CI passes, then merge PR #169 and ship its API fix.”
+The [PR #162 release card](https://github.com/seanbalz/guess-the-lines-repo/pull/162)
+names the exact deploy inputs below.
+
+All three required main-push workflows passed on the exact merge SHA:
+[Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39687544007),
+[Dashboard checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39687544264)
+(including Persona) and
+[Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39687544251).
+`git diff fb86a3e..c6afb02 -- cloud supabase shared` is empty, so the hosted
+research API stays compatible and unchanged.
+
+- [Source check 39695324181](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39695324181) passed for `c6afb02`.
+- [Protected readiness 39695405810](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39695405810) passed with hosted evidence at 23:45:52 UTC.
+- [Protected frontend release 39695653304](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39695653304) passed, with live verification at 23:49:49 UTC.
+
+Readiness and deploy both found 46 hosted migrations with SHA-256
+`c571cd2de3d53ae0239a98d792cd0a1b542c2cbdda08190d2fa98ca4b126910f`, unchanged
+after deploy. Pending repository migrations `20261015190820`, `20261016010000`
+and `20261016011000` were not applied. The published Week 7 schedule (28 games)
+passed with timing restrictions disabled. Before and after boundary checks each
+covered 270 signed-out probes: 264 denials and the same six documented
+pending-migration allowances.
+
+Pages deployment `46fb8ae6-0df8-478c-8762-9607c2c6fdec` serves the exact
+frontend source at [the immutable URL](https://46fb8ae6.guess-the-line.pages.dev)
+and [production](https://guess-the-line.pages.dev). All 97 served assets at each
+URL matched the manifest; frontend SHA-256 was
+`86801ac6bafd555e5a002c17fd3cf4322b99334c99c0cc8a7f7820d54c65accd` and source
+SHA-256 `02d8c1bfe7f7a77ad048a197483c53d7f6d4a97c3715d1a9c692ce9fded1b43b`.
+An independent fetch of `/` from both URLs hashed to the manifest's
+`index.html` value. Hosted `gtl-api` remained v29 ACTIVE with JWT verification
+and bundle SHA-256 `de802dd78c3bb8e1b5eba843c92e8e2bd250a79a520f66634ae1d92279e8fe5b`;
+the other four Edge functions kept their versions and digests. Rollback: restore
+Pages `0dde8b76-54c0-47e8-a0b0-08323bd60339` (source `fb86a3e`) and keep API v29.
+
+Read-only hosted snapshots at 23:44:35 UTC (before) and 23:50:13 UTC (after)
+matched exactly in count and ordered whole-row MD5. Function bodies and ACLs
+for `gtl_read_social`, `gtl_commit_social`, `gtl_follow_social`,
+`gtl_mutate_personal` and `gtl_ballot_pick_scores` were also unchanged. These
+used a project-scoped read-only connection, which cannot execute
+`gtl_ballot_pick_scores`, so Week 5/6 score hashes were replaced by the ballot
+hash plus that function's body hash. These hashes are not comparable with
+earlier releases' tables (different connection, and players may have saved
+entries in between); only this same-connection before/after pair is compared.
+
+| Data | Rows | MD5 |
+| --- | ---: | --- |
+| Weekly ballots | 23 | `a45bf0bf9c59e4543407f544e86d6987` |
+| Social commits | 101 | `ea8de1440cc94cda79f188eb3433ca7b` |
+| Social weeks | 3 | `e2f2585903d04376035be78773b399fe` |
+| Leagues | 5 | `a1f06fa4c7aadced4df70a33d57437fb` |
+| Memberships | 9 | `04975f153218ad4228399f5929927c76` |
+| Virtual Units picks | 7 | `7d4859aeb58ce26d13cd6a00274e6bb8` |
+| Personal events | 17 | `962ad7b067517622e20c296c69af102e` |
+| Personal receipts | 17 | `5410ce89048b9aa8b7ff3b21e6645f7f` |
+| Personal versions | 6 | `c2b0a74efef7f28a05bdde8c88a47bb9` |
+
+Journal entries, forecasts, favorites/notes, weekly selections, opt-outs,
+forfeits, follows and follow receipts each had zero rows before and after.
 
 Automated mobile/browser verification does not establish physical iPhone or
 Home Screen acceptance. Those checks and the separate native iOS deliverable
