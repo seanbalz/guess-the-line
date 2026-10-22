@@ -118,6 +118,40 @@ Published expert rankings were not copied: the
 [FantasyPros API terms](https://www.fantasypros.com/api-data/) require suitable
 access and licensing. This implementation has no paid source or account dependency.
 
+## Usage Tracker requirements (queue Q11–Q14)
+
+Sean asked on October 15 to bring the analysis from his Fantasy Usage Tracker
+into GTL. The requirements were written on PR #147 (closed October 21) and are
+carried here as additions to the shipped Week 6 rankings above. They are
+requirements, not delivered features.
+
+- **Usage and production (Q12):** player-by-week usage, opportunity and actual
+  fantasy points; season and recent-week comparisons with sample sizes. Missing
+  metrics stay missing, and comparisons use one scoring format.
+- **Rankings and projections (Q11, Q13):** beyond GTL's own estimates, show
+  weekly and rest-of-season consensus, individual source rankings, projected
+  points and where sources disagree, in Standard, Half-PPR and PPR. Keep observed
+  production separate from forecasts, and grade past rankings only against
+  completed weeks.
+- **League context (Q14):** roster and ownership context for the signed-in
+  player's connected leagues once integrated. League IDs, rosters and private
+  account data never enter public repository assets.
+- **Refresh and provenance (Q11):** show each source's capture time, season and
+  week, actual-data coverage and saved, skipped or failed status. Free-source
+  availability and GTL reuse rights must be verified before any integration.
+- **Failure behavior:** keep the last good data with a visible stale or source
+  warning. Distinguish a successful build from complete source coverage, and
+  never label the forecast week as the latest week with actuals.
+- **Acceptance:** compare usage, actuals, rankings and projections by player,
+  week and scoring format; source, time, missing and stale states stay visible;
+  a partial source failure does not erase good data; roster access is
+  authenticated; checks cover scoring-format separation, week alignment, missing
+  data and partial refresh failures.
+
+PR #147 also recorded one October 15 local run of the private tracker (some
+sources failed with HTTP 403 or title validation). That is a dated observation
+of a separate tool, not a GTL integration, and is not repeated here.
+
 ## Local verification
 
 Focused engine, source-normalization and UI tests cover scoring, rank stability,
