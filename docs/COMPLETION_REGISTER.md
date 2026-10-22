@@ -1,6 +1,8 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Evidence reconciled October 19, 2026 (Pacific)
+Owner: Sean Balsiger · Evidence reconciled October 19, 2026 (Pacific) · Status of
+#140, #152, #160, #166, the six PRs open October 19, Q03–Q05, Q16 and D-55 boards
+rechecked October 22 at `523dd63`
 
 The [sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md) is the current
 itemized backlog. Work proceeds one item at a time. Q01 reconciles source, open PRs
@@ -10,7 +12,7 @@ not a current deployment ledger. The frozen v62 tracker is unchanged.
 
 ## Active priority — weekly and player Trends, October 21
 
-Sean approved week-opening publication, a Trends tab with This Week / Teams / Players, recent and longer history, and player guess-versus-market outcome evidence. Work is isolated on `codex/weekly-player-trends` from `origin/main` at `368f5d4`; other checkouts and unpublished work are preserved. See the [approved design](superpowers/specs/2026-10-21-weekly-player-trends-design.md) and [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md) for implementation and verification state. No migration or hosted deployment is part of this implementation handoff. Private-league player history retains the separately staged D-53 comparison-reader dependency. Implementation and independent review are complete in [PR #166](https://github.com/seanbalz/guess-the-lines-repo/pull/166), integrated with main at `fb86a3e`. The full local check passed 1,552 Node and 235 Vitest tests with zero skips; 43 integrated browser cases and cloud bundle privacy passed. Main then advanced to c6afb02e with the approved four-tab redesign (PR #162). Integration is in progress: the complete Trends destination will live under Research > Trends while preserving its own views and game-detail highlights. Final integration review, CI and task-branch synchronization will be recorded in the PR receipt; merge and hosted release remain separate.
+Sean approved week-opening publication, a Trends tab with This Week / Teams / Players, recent and longer history, and player guess-versus-market outcome evidence. Work is isolated on `codex/weekly-player-trends` from `origin/main` at `368f5d4`; other checkouts and unpublished work are preserved. See the [approved design](superpowers/specs/2026-10-21-weekly-player-trends-design.md) and [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md) for implementation and verification state. No migration or hosted deployment is part of this implementation handoff. Private-league player history retains the separately staged D-53 comparison-reader dependency. Implementation and independent review are complete in [PR #166](https://github.com/seanbalz/guess-the-lines-repo/pull/166), integrated with main at `fb86a3e`. The full local check passed 1,552 Node and 235 Vitest tests with zero skips; 43 integrated browser cases and cloud bundle privacy passed. Main then advanced to c6afb02e with the approved four-tab redesign (PR #162), and Trends moved under Research > Trends with its own views and game-detail highlights. PR #166 merged as `7e9a8a1` (October 22, 03:58 UTC); protected release 39724976560 shipped it at 04:56 UTC as API v31 and Pages `af617cd2` ([release record](RELEASE_2026_10_22_TRENDS_FILTER.md)). The v31 CPU outage was fixed in API v32 (below).
 
 ## Verified delivery
 
@@ -24,8 +26,8 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 - The scoring release PR #145 merged as `eb4e5e1a7f14a2a863e98ceed9e4744c11603393`
   after all five checks passed on `4736b4f2f6f521bf31c9d068792c5b5ec8a7e4d4`.
   Windows main, Mini shared-sync and Neo main were each verified clean at that
-  merge with zero ahead/behind/changed files. This reconciliation will receive
-  its own merge and sync evidence.
+  merge with zero ahead/behind/changed files. This reconciliation merged as
+  PR #152 (`97c08b9`); see the Q01 row below for its sync.
 - PR #151 permanently removed release timing restrictions. Player deadlines,
   migration order, source/CI, fresh evidence, preservation and privacy remain.
 
@@ -147,9 +149,9 @@ before Q03; see the [recommendation tracking release card](RECOMMENDED_TRACKING_
 PR #159 merged as `368f5d46cd036d74f9dc5c32cf572dd702d320b2` and protected frontend
 release 39652280151 verified Pages `dcfb977b`, with API v27 and all data hashes
 unchanged. All three integration checkouts passed clean sync at that runtime
-commit. Closeout CI/merge and the final documentation sync are pending at this
-evidence-submission checkpoint; the closeout PR body will record their results;
-Q03 remains the next queued item.
+commit. Closeout PR #160 passed all five checks and merged October 21 as
+`2e3e8fa`; its body records clean sync of all three checkouts at that merge.
+The queue then moved to Q03–Q05; see the Q03–Q05 row below.
 The weekly-results evidence PR #154 passed all five checks, merged as
 `eb1fa9330d715140f8e343a24daf51908ace5ba6`, and was verified clean/synced on Windows,
 Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
@@ -159,17 +161,18 @@ Mini shared-sync and Neo main. Other unpublished Mini worktrees were preserved.
 | Q01 backlog reconciliation | PR #152 merged as 97c08b987a26918b74db23138cf0793f70eba6d8; three clean integration checkouts verified at that commit | Complete. Preserve the two dirty Mini worktrees identified in the queue. |
 | Scheduled collector | October 20 20:15 UTC cron, worker, collection and Week 7 snapshot succeeded | Verified; see the core scoring release record. No forced provider collection. |
 | Q02 deployment verifier | PR #157 merged; protected source, readiness and frontend deploy/verification passed; 95 assets checked at both URLs | Evidence PR merge/sync recorded in its body; physical-phone acceptance remains separate. |
-| Q03–Q05 mobile/Bets/recommendations | Requirements and an implementation branch exist | Sequential navigation, filters, then recommendation refinement tasks. |
+| Q03–Q05 mobile/Bets/recommendations | Q03 focus fix (PR #181) released October 22 in Pages 9fb54fe4. Q04 done: Recommended filter (PR #175) released in Pages af617cd2. Q05: reviewed-quote fix merged as PR #173; PR #140 closed unmerged | Q03 real-iPhone reproduction and acceptance; Sean to reconfirm the remaining D-51 ideas before any Q05 rebuild. |
 | Q06–Q08 Bets/comparisons/preferences | Merged readers/settings code; three migrations remain unhosted | Separate dependency-aware release/readback; no generic database push. |
 | Q09–Q10 account/notification acceptance | Live components exist; real-world checks remain | Verify actual supported account/device flows and iPhone notification delivery. |
 | Q11–Q15 Fantasy | Static rankings/basic details exist; refresh and richer analysis remain | Refresh, profiles/usage, comparisons, matchups and newly requested sourced trade values. |
-| Q16 easier actual-bet tracking | PRs #155/#156 merged and three integration checkouts synced; API v27 retained, same source rebuilt as Pages ad10f1c1 by Q02 | October 21 follow-up merged in #159 and deployed as Pages dcfb977b; closeout CI/merge and final documentation sync pending; results will be recorded in its PR body. Physical-phone acceptance remains separate. |
+| Q16 easier actual-bet tracking | PRs #155/#156 merged and three integration checkouts synced; API v27 retained, same source rebuilt as Pages ad10f1c1 by Q02 | October 21 follow-up merged in #159 and deployed as Pages dcfb977b; closeout PR #160 merged as 2e3e8fa and all three checkouts synced. Physical-phone acceptance remains separate. |
 | Q17–Q20 platform completion | Partial; see per-item exit criteria | Remaining destinations, operations, full-week/device acceptance and new-only transition. |
 | Simulator/native iOS/other feeds | Separate later scope or decisions | No model validation, native-client or external-connection claim follows from existing planning. |
 
 The current migration registry lists only M-10 Bets reading and D-53 comparisons
 and account preferences as unhosted. The recommendation edit writer is on an
-open branch, so it is an additional future release, not an omission from main's registry.
+unmerged branch kept from PR #140 (closed October 21); its migration `20261015190955`
+is not in main's registry and awaits Sean's Q05 reconfirmation before any rebuild.
 
 October 21 follow-up to Recommended and Bets: Sean approved percentage-based
 cross-market gaps with a 3-point minimum for small spreads, plus compact
@@ -205,9 +208,10 @@ Pick'em checks) and a toolbar test in `next-bets-live.spec.js`; each failed
 before its fix and passes after it. The affected browser suites (Bets, scoring,
 Play, four-tab, Lines, UI kit, Recommended and the new layout spec) passed 53/53
 locally, with token, app-view and brand-document checks. The Bets section switch keeps its deliberate
-2 + 1 layout below 520 px. D-55 records Sean's chart and brand direction; the
-hybrid chart boards await his approval before any token change. Released
-October 22 in Pages `af617cd2`; see the [Trends and Recommended filter
+2 + 1 layout below 520 px. D-55 records Sean's chart and brand direction; he
+approved the round 3 boards and their tokens on October 21; round 3 shipped
+separately in Pages `f092e744` (below). This work was released October 22 in
+Pages `af617cd2`; see the [Trends and Recommended filter
 release](RELEASE_2026_10_22_TRENDS_FILTER.md).
 A later CI pass on Linux found "Rest of season" spilling out of its Fantasy
 segment at 320 px with the wider fallback font; segments now size by their labels
@@ -262,9 +266,10 @@ open.
 
 ## Evidence and limits
 
-The queue records all six open PR dispositions, old issue triage and local-work
-findings. Superseded scoring approval does not require another implementation
-merge. Useful pending code and requirements remain preserved in their branches.
+The queue records dispositions for the six PRs open on October 19 (all since
+closed unmerged), old issue triage and local-work findings. Superseded scoring
+approval does not require another implementation merge. Useful pending code and
+requirements remain preserved in their branches.
 The audit inspected GitHub and Git worktrees on Windows, Mini and Neo; it did not
 inspect every cloud sandbox, ignored file, credential or private Status Board.
 Two Mini worktrees contain unpublished changes; clean integration checkouts do

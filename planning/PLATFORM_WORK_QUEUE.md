@@ -1,6 +1,7 @@
 # Guess The Line — sequential platform work
 
-Owner: Sean Balsiger · Reconciled October 19, 2026 (Pacific)
+Owner: Sean Balsiger · Reconciled October 19, 2026 (Pacific) · Q05 and Q16 status
+rechecked October 22 at `523dd63`
 
 Sean requested one item at a time, completing and verifying each before the next.
 This is the current execution queue, not a claim that every feature is authorized
@@ -29,9 +30,8 @@ the evidence PR records final merge/sync. October 21: Sean prioritized the
 Recommended-to-tracked-bets handoff and a grouped ticket list before Q03. That
 follow-up merged in PR #159 and was verified in protected release 39652280151
 as Pages dcfb977b; all three integration checkouts synced cleanly to runtime
-commit 368f5d46cd036d74f9dc5c32cf572dd702d320b2. Closeout CI/merge and final documentation
-sync are pending at this evidence-submission checkpoint; its PR body will record
-the verified results;
+commit 368f5d46cd036d74f9dc5c32cf572dd702d320b2. Closeout PR #160 passed all five
+checks and merged October 21 as `2e3e8fa`; all three checkouts then synced cleanly;
 see the [release card](../docs/RECOMMENDED_TRACKING_RELEASE.md). See the
 [bet-tracking release card](../docs/EASIER_BET_TRACKING_RELEASE.md) and
 [verifier record](../docs/DEPLOYMENT_VERIFIER_RELEASE.md).
@@ -54,7 +54,7 @@ explicitly when it cannot be established by automated tests.
 | Q02 | Deployment verification | PR #157 merged; check-only 39521037481, readiness 39521105364 and frontend release 39521335125 passed. Pages ad10f1c1 verified 95 assets at both URLs, with API/data/migrations unchanged. Evidence PR carries final merge/sync. |
 | Q03 | Mobile navigation and scrolling | Requirements: UX-NEXT-01 in [mobile-bets-followups](mobile-bets-followups.md) (carried from closed PR #144; the four-tab shell from #162 covers part of it). Verify content and controls clear navigation/save bars at phone widths and safe areas in both themes. October 22: `next-scroll-navigation.spec.js` checks bar geometry through scrolling and window-height changes, containing blocks, sideways scroll, end-of-page reach and keyboard focus. The only failure found was Tab focus landing under the bars, fixed with `scroll-padding` in PR #181 and released in Pages `9fb54fe4` (protected release 39821362374, from `8dccc5c`). A real-iPhone reproduction and acceptance remain open. |
 | Q04 | Bets filters | Done. Q16 delivered visible result/market filters, owner-scoped weeks and empty states for actual tickets. Recommended All / Spreads / Totals (BETS-NEXT-01) merged in PR #175 and was released in Pages `af617cd2` on October 22; see the [release record](../docs/RELEASE_2026_10_22_TRENDS_FILTER.md). Native/Virtual Units reader delivery remains Q06. |
-| Q05 | Recommendation refinements | PR #140 (D-51) closed October 21: D-54 replaced its ranking and #159 moved Recommended to actual-ticket tracking. Its reviewed-quote fix for stake changes moved to a separate small PR. Sean to reconfirm before any rebuild: private forecasts as a comparison basis, editing pending Virtual Units picks, weekly summaries, actionable-first order. Its additive writer remains separate from the applied scoring chain. Exact-head tests and release/readback required. |
+| Q05 | Recommendation refinements | PR #140 (D-51) closed October 21: D-54 replaced its ranking and #159 moved Recommended to actual-ticket tracking. Its reviewed-quote fix for stake changes merged separately as PR #173 (`2b3d12c`) and shipped in Pages `af617cd2`. Sean to reconfirm before any rebuild: private forecasts as a comparison basis, editing pending Virtual Units picks, weekly summaries, actionable-first order. Its additive writer remains separate from the applied scoring chain. Exact-head tests and release/readback required. |
 | Q06 | Account-level Bets access | M-10 reader remains unhosted. Verify dependencies, grants, gated reads and scope. This does not finish account-level placement or all native Bets screens. October 22: the read-only preflight passed and supersedes PR #148's notes ([record](../docs/M10_PREFLIGHT_2026_10_22.md)). Prerequisites are hosted, nothing is half-applied, helper bodies match and the PGlite rehearsal is additive and service-only. Awaiting Sean's "apply M-10". |
 | Q07 | Guess score comparisons | D-53 comparison migration remains unhosted. Verify common-game eligibility, independent markets and private-roster boundaries; never mutate scoring references or official rank. |
 | Q08 | Account preferences | D-53 preferences migration remains unhosted. Verify saved settings, reload, revisions and account isolation. |
@@ -65,7 +65,7 @@ explicitly when it cannot be established by automated tests.
 | Q13 | NFL player comparisons | Side-by-side player analysis with common scoring format and period; distinct from Q07's Guess-player score comparisons. |
 | Q14 | Fantasy matchup tools | Extend basic opponent information with useful sourced matchup context. No unvalidated predictive advantage claims. |
 | Q15 | Trade-value charts | New requested scope: establish permitted free sources, league formats, attribution and timestamps. Different provider scales must not be silently combined. No source is connected by this task. |
-| Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. October 21 follow-up connects reviewed recommendations to actual tickets and adds a grouped owner list; #159 merged, Pages dcfb977b verified with preserved data/API. Closeout CI/merge and final documentation sync are pending; its PR body will record verified results. Phone acceptance remains separate. |
+| Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. October 21 follow-up connects reviewed recommendations to actual tickets and adds a grouped owner list; #159 merged, Pages dcfb977b verified with preserved data/API. Closeout PR #160 merged as 2e3e8fa and all three checkouts synced. Phone acceptance remains separate. |
 | Q17 | Remaining native destinations | Use RETIRE-01's preservation/recovery checklist in [new-app retirement](new-app-retirement.md) (carried from closed PR #144) and the inventory: League/Bets screens, history, exports, commissioner tools and old records must retain working homes. |
 | Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. |
 | Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. |

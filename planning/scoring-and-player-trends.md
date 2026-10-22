@@ -2,7 +2,7 @@
 
 Owner: Sean Balsiger · Version 5 · October 15, 2026
 
-Status: core scoring is active; weekly and player Trends implementation is authorized, with release verification tracked separately.
+Status (rechecked October 22): core scoring has been live since October 19; weekly and player Trends (PR #166) deployed October 22 as API v31 / Pages `af617cd2`, with its CPU fix in API v32.
 No delivery dates are committed. Current implementation owners and verification
 state are recorded in the active checkpoint below.
 
@@ -35,10 +35,10 @@ The original working checkout and its planning edits are preserved.
 
 | Scope | Current owner | State | Evidence / exit |
 | --- | --- | --- | --- |
-| 01–02, 08: locks, immediate personal scores, shared standings | Codex SQL and API lanes | Implemented locally; local checks pass | M-07 migration and adversarial SQL/engine/API tests; hosted gates remain |
-| 03–05: receipt, weekly scoring, filters | Codex UI lane | Local browser checks pass; phone acceptance pending | Shared per-game editor; weekly score page; mobile/theme/recovery tests |
-| 09: core acceptance | Codex integration and independent review | Local checks pass; release/device acceptance pending | [Release checklist](../docs/PER_GAME_SCORING_RELEASE.md); no live completion claim |
-| 06–07: player Trends metrics and charts | Unassigned | Open; decisions Q-03 onward remain | Separate acceptance checkpoint after core scoring |
+| 01–02, 08: locks, immediate personal scores, shared standings | Codex SQL and API lanes | Live October 19: M-02–M-08 applied and verified | M-07 migration and adversarial SQL/engine/API tests; [production release](../docs/CORE_SCORING_PRODUCTION_RELEASE.md) |
+| 03–05: receipt, weekly scoring, filters | Codex UI lane | Live October 19; phone acceptance pending | Shared per-game editor; weekly score page; mobile/theme/recovery tests |
+| 09: core acceptance | Codex integration and independent review | Live October 19; real-phone and multi-account acceptance pending | [Release checklist](../docs/PER_GAME_SCORING_RELEASE.md); [production release](../docs/CORE_SCORING_PRODUCTION_RELEASE.md) |
+| 06–07: player Trends metrics and charts | Codex and Claude Code (PRs #166, #180, #182) | Deployed October 22 (API v31 / Pages `af617cd2`; CPU fix API v32); real-phone acceptance open | [Trends release record](../docs/RELEASE_2026_10_22_TRENDS_FILTER.md) |
 
 The task table below expands this checkpoint. The pre-implementation evidence
 section preserves its dated source snapshot; no row is released until the hosted
@@ -59,7 +59,8 @@ Trends page, and targeted questions to identify useful additions. Sean confirmed
 accuracy and bias as the page's primary purpose (Q-01): whether guesses improve,
 which teams a player consistently misjudges, and whether guesses run too high or
 too low, with each insight linked to its contributing games. Exact metric
-definitions, comparison windows and audience remain open below.
+definitions, comparison windows and audience were open on October 15; D-53
+and the October 21 Trends design later answered them (Q-03a–Q-04 below).
 
 Q-02 is confirmed: personal weekly points update immediately; shared weekly and
 season standings count each game at its kickoff, using the same started games for
@@ -120,22 +121,25 @@ reconciliation does not change that deployed source or activate pending migratio
 
 ## Task register
 
-Updated October 15, 2026 for the isolated implementation workstream. Codex owns the
+Updated October 15, 2026 for the isolated implementation workstream; states
+rechecked October 22 against the [core scoring](../docs/CORE_SCORING_PRODUCTION_RELEASE.md)
+and [Trends](../docs/RELEASE_2026_10_22_TRENDS_FILTER.md) release records. Codex owns the
 core code and local checks; Sean owns product decisions and release approval.
 Owner “TBD” is an assignment gap for later work. P0 means correctness/privacy before
-release; P1 means the requested experience. No row claims hosted completion.
+release; P1 means the requested experience. Both releases still await real-phone
+acceptance; other open checks are noted per row.
 
 | ID | Priority | Task | State | Suggested lane / owner | Dependencies | Target |
 |---|---|---|---|---|---|---|
-| SCORE-NEXT-01 | P0 | Finish permanent per-game lock-in across every save path | Implemented locally; activation pending | Codex SQL/API/UI | Existing stages 15, 18, 24–25, 28–31 | Not scheduled |
-| SCORE-NEXT-02 | P0 | Count available per-game points immediately at lock-in | Implemented locally; activation pending | Codex SQL/API | SCORE-NEXT-01; stage 24/M-07; SCORE-NEXT-08 for shared reads | Not scheduled |
-| SCORE-NEXT-03 | P0 | Show a durable lock-in receipt and refresh weekly scoring | Implemented locally; device acceptance pending | Codex UI/API | SCORE-NEXT-02; per-game entry | Not scheduled |
-| SCORE-NEXT-04 | P1 | Add a clear weekly scoring destination and navigation | Implemented locally; visual/device acceptance pending | Codex UI | SCORE-NEXT-02/03; stages 57–58, 72–73 | Not scheduled |
-| SCORE-NEXT-05 | P1 | Filter scoring by season, week, market, team and matchup | Implemented locally; visual/device acceptance pending | Codex UI | SCORE-NEXT-04; canonical game identity | Not scheduled |
-| SCORE-NEXT-06 | P1 | Define and compute accuracy and bias metrics from scored guesses | Open; accuracy/bias focus confirmed by Q-01 | B + E / TBD | SCORE-NEXT-02/05/08; Q-03a–Q-03c | Not scheduled |
-| SCORE-NEXT-07 | P1 | Build the accuracy and bias Trends page with drill-down evidence | Open; focus confirmed, comparisons/audience in discovery | A + E / TBD | SCORE-NEXT-06; Q-03a–Q-03c, Q-04 | Not scheduled |
-| SCORE-NEXT-08 | P0 | Implement confirmed shared score visibility and protect hidden games | Implemented locally; hosted readback pending | Codex SQL/API/review | Existing D-39 reveal gates; Q-02 confirmed | Not scheduled |
-| SCORE-NEXT-09 | P0 | Verify core scoring first, then Trends in its own release | Core local checks pass; release and Trends checks remain | Codex integration | Core: 01–05/08; Trends: 06–07 when ready; existing release gates | Not scheduled |
+| SCORE-NEXT-01 | P0 | Finish permanent per-game lock-in across every save path | Live October 19 (M-02–M-08 verified); multi-account write acceptance pending | Codex SQL/API/UI | Existing stages 15, 18, 24–25, 28–31 | Not scheduled |
+| SCORE-NEXT-02 | P0 | Count available per-game points immediately at lock-in | Live October 19; a signed-in check confirmed immediate points | Codex SQL/API | SCORE-NEXT-01; stage 24/M-07; SCORE-NEXT-08 for shared reads | Not scheduled |
+| SCORE-NEXT-03 | P0 | Show a durable lock-in receipt and refresh weekly scoring | Live October 19; device acceptance pending | Codex UI/API | SCORE-NEXT-02; per-game entry | Not scheduled |
+| SCORE-NEXT-04 | P1 | Add a clear weekly scoring destination and navigation | Live October 19; visual/device acceptance pending | Codex UI | SCORE-NEXT-02/03; stages 57–58, 72–73 | Not scheduled |
+| SCORE-NEXT-05 | P1 | Filter scoring by season, week, market, team and matchup | Live October 19; visual/device acceptance pending | Codex UI | SCORE-NEXT-04; canonical game identity | Not scheduled |
+| SCORE-NEXT-06 | P1 | Define and compute accuracy and bias metrics from scored guesses | Deployed October 22 in PR #166 (October 21 Trends design); Week 8 publication on October 26 to be confirmed | B + E / TBD | SCORE-NEXT-02/05/08; Q-03a–Q-03c | Not scheduled |
+| SCORE-NEXT-07 | P1 | Build the accuracy and bias Trends page with drill-down evidence | Deployed October 22 in PR #166; signed-in real-phone check open; private-league views await the D-53 reader | A + E / TBD | SCORE-NEXT-06; Q-03a–Q-03c, Q-04 | Not scheduled |
+| SCORE-NEXT-08 | P0 | Implement confirmed shared score visibility and protect hidden games | Live October 19; multi-account acceptance pending | Codex SQL/API/review | Existing D-39 reveal gates; Q-02 confirmed | Not scheduled |
+| SCORE-NEXT-09 | P0 | Verify core scoring first, then Trends in its own release | Core live October 19; Trends October 22 (CPU fix API v32); device acceptance remains | Codex integration | Core: 01–05/08; Trends: 06–07 when ready; existing release gates | Not scheduled |
 
 ### SCORE-NEXT-01 — permanent lock-in
 
@@ -288,17 +292,18 @@ scoring fix; shared-board changes must pass the confirmed Q-02 visibility checks
 
 Ask one at a time. Answers become decisions and update affected tasks; proposed
 options below are not approvals unless explicitly marked confirmed. Q-01 and Q-02
-are confirmed; Q-03a is next. Each “Go ahead with rec” accepts the immediately
+are confirmed; D-53 and the October 21 Trends design answer Q-03a–Q-04, so their
+questions below are historical. Each “Go ahead with rec” accepts the immediately
 preceding recommendation, not the remaining queue.
 
 | ID | Decision to resolve | Concrete question and recommendation | Affects |
 |---|---|---|---|
 | Q-01 | Confirmed October 15: primary job of Trends | Sean: “Go ahead with rec”, accepting accuracy and bias first: show whether guesses improve, which teams are consistently misjudged and whether guesses run too high/low, with every insight linked to actual games. Exact formulas, sample thresholds and audience remain separate decisions. | SCORE-NEXT-06/07 |
 | Q-02 | Confirmed October 15: shared pre-kickoff scores | Sean: “Go ahead with rec”, accepting immediate personal weekly points and shared weekly/season standings that add each game at kickoff. Other-player per-game scores follow the existing viewer/game/market unlock. The shared board includes your own row on the same started-game basis, labelled separately from Your weekly points. An 8-point Monday lock counts personally now, then in shared standings at that game's kickoff. | SCORE-NEXT-02/04/08 |
-| Q-03a | Headline improvement metric — awaiting answer | Should Trends lead with average miss per scored guess, with competition points and scored-game count alongside? Recommended: yes. Lower average miss means closer guesses; Trends must not confuse playing more games with improved accuracy. Spread and Total stay separate; pending/unscored guesses do not enter this average. | SCORE-NEXT-06/07 |
-| Q-03b | Comparison window — not yet asked | Choose a recent period and a non-overlapping earlier baseline after Q-03a. Do not average averages from unequal samples or invent a baseline when history is missing. | SCORE-NEXT-06/07 |
-| Q-03c | Sample size — not yet asked | How many scored guesses are enough for a team strength/weakness or improvement label? Keep raw counts visible and small samples labelled; a threshold and claim wording still need selection. | SCORE-NEXT-06/07 |
-| Q-04 | Audience and rivalry | Is Trends your own learning page, every member's visible profile, or a side-by-side comparison with a chosen friend? A public-to-members view still needs per-game reveal rules; no draft or private-note access follows from it. | SCORE-NEXT-07/08 |
+| Q-03a | Headline improvement metric — answered October 21: the approved Trends defaults (above) use mean miss and signed bias with exact samples | Should Trends lead with average miss per scored guess, with competition points and scored-game count alongside? Recommended: yes. Lower average miss means closer guesses; Trends must not confuse playing more games with improved accuracy. Spread and Total stay separate; pending/unscored guesses do not enter this average. | SCORE-NEXT-06/07 |
+| Q-03b | Comparison window — answered October 21: last 5/10 games, current season, 3/5 seasons and all history, shown together | Choose a recent period and a non-overlapping earlier baseline after Q-03a. Do not average averages from unequal samples or invent a baseline when history is missing. | SCORE-NEXT-06/07 |
+| Q-03c | Sample size — answered October 21: a recurring label needs at least five decided directional games over at least three competition weeks; smaller samples stay visible | How many scored guesses are enough for a team strength/weakness or improvement label? Keep raw counts visible and small samples labelled; a threshold and claim wording still need selection. | SCORE-NEXT-06/07 |
+| Q-04 | Audience and rivalry — answered October 16 and 21: D-53 compares you with one, several or all Community members; October 21 player profiles stay within the selected Community or private roster | Is Trends your own learning page, every member's visible profile, or a side-by-side comparison with a chosen friend? A public-to-members view still needs per-game reveal rules; no draft or private-note access follows from it. | SCORE-NEXT-07/08 |
 | Q-05 | Highest-value filters | Beyond week/team/matchup, which question matters most: home/away bias, favorite/underdog bias, divisional games, or large/small lines? Add only the first useful slice, using existing permitted evidence. | SCORE-NEXT-05/06 |
 | Q-06 | Next useful asset | After reviewing a weak week, should the app provide a weekly learning recap, a saved comparison with a rival, or a personal game-review note? Choose the next action before adding more dashboard cards. | Candidate assets below |
 
