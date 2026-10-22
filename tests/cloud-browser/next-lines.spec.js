@@ -269,7 +269,8 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     const situational = all.locator('[data-group="situational"] li[data-trend]');
     expect(await situational.count()).toBeGreaterThan(10);
     await expect(situational.nth(0)).toHaveAttribute('data-trend', 'locked');
-    await expect(situational.nth(1).locator('.gx-l-tnums')).toContainText(/\d[\d,]*–\d[\d,]*.*\d[\d,]* games/);
+    // D-55: each row shows its percent (or two-sided record) and sample size; opening it shows the rest.
+    await expect(situational.nth(1).locator('.gx-tc-row-sub')).toContainText(/(\d+%|\d[\d,]*–\d[\d,]*(–\d[\d,]*)?) · \d[\d,]* games?/);
     await all.locator('[data-group="line"]').getByRole('button').click();
     await expect(all.locator('[data-group="line"]')).toContainText('Submit your Spread picks to see its Spread line-based records.');
     await expect(all.locator('[data-group="referee"] button')).toContainText('Not assigned yet');
