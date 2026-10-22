@@ -94,8 +94,11 @@ PR #161 merged and protected release 39687111092 deployed API v29 and Pages
 0dde8b76. The first reviewed Trent feed was verified in the signed-in app;
 all preservation hashes matched. Live acceptance found research validation was
 reading a different nflverse mirror from offline preparation, so leans were
-correctly withheld. The reviewed API-only source-alignment fix passes its new
-regression and all 52 focused checks; CI and deployment remain pending.
+correctly withheld. The API-only source-alignment fix (PR #169, merge
+`f22ee67`) passed exact-commit CI and deployed through protected release
+39700103221 as API v30 on October 22 at 00:32 UTC; the frontend stayed at the
+four-tab Pages `46fb8ae6` and all preservation hashes matched. Signed-in
+confirmation that current leans now appear remains open.
 See the [dated release record](RELEASE_2026_10_21_TRENDS_RESEARCH.md).
 
 October 21: Sean authorized a separate private NBA archive and import of the

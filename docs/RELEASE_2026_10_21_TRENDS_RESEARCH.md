@@ -7,8 +7,9 @@ Owner: Sean Balsiger · October 21, 2026
 Sean approved the trends upgrade and instructed "get it connected". The first
 dated reviewed source feed and trends UI are deployed. Automatic X collection
 is off. The initial signed-in acceptance found a history-source mismatch that
-correctly withholds current research leans; the API-only correction below is
-reviewed locally but not yet deployed at this checkpoint.
+correctly withheld current research leans. The API-only correction (PR #169)
+deployed as API v30 on October 22 at 00:32 UTC; see
+[API v30 source-alignment release](#api-v30-source-alignment-release).
 
 Runtime source: `fb86a3ea55bd91db1b1937dcd40ee70063d37716`, merged in
 [PR #161](https://github.com/seanbalz/guess-the-lines-repo/pull/161).
@@ -114,3 +115,56 @@ Rollback remains scoped: disable `research` with `GTL_FEATURE_OFF` if required,
 then restore the prior reviewed API/frontend through the shared workflow. Retain
 all player data and the reviewed feed. No data rewrite or migration rollback is
 needed.
+
+## API v30 source-alignment release
+
+Codex stopped on a usage limit before shipping the correction. Sean handed the
+release lane to Claude Code: "merge PR #169 and ship its API fix." PR #169 merged
+on its exact reviewed head as `f22ee67ea8b52d1387f81fabd8d626ac346f5d02`. The
+[PR #169 release card](https://github.com/seanbalz/guess-the-lines-repo/pull/169)
+names the deploy inputs below.
+
+All three required main-push workflows passed on that SHA:
+[Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39696111421),
+[Dashboard checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39696111492)
+(including Persona) and
+[Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39696111475).
+Between the v29 source `fb86a3e` and `f22ee67`, the only `cloud/`, `supabase/`
+or `shared/` change is `cloud/handler.mjs`, the research history loader.
+
+| Gate | Run | Result |
+| --- | --- | --- |
+| Source | [39699812771](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39699812771) | Exact source and main CI verified |
+| Readiness | [39699881135](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39699881135) | Hosted state checked; API v29 baseline |
+| API only | [39700103221](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39700103221) | Deployed and verified at 00:32:19 UTC October 22 |
+
+API **v30**, ACTIVE, JWT verification enabled, bundle SHA-256
+`ebd19152f42d14718913dbc9354e774772af0092749f2111eb4e8827b15593f7`. The frontend
+was not redeployed: Pages `46fb8ae6-0df8-478c-8762-9607c2c6fdec` (four-tab,
+`c6afb02`) keeps serving and already reads this API. Odds v5, week-open v4,
+push v3 and results v2 kept their versions and bundle hashes. Migration history
+stayed at 46 with digest
+`c571cd2de3d53ae0239a98d792cd0a1b542c2cbdda08190d2fa98ca4b126910f`; M-10 and
+both D-53 migrations remain unapplied. Before and after boundary checks each
+covered 270 signed-out probes: 264 denials and six documented pending allowances.
+
+Read-only hosted snapshots at 00:27:35 UTC (before) and 00:32:41 UTC (after)
+matched in count and ordered whole-row MD5 for 17 public tables, both
+`nba_private` tables (3 imports, 10 bets) and all 126 `gtl_*` function
+definitions with their configuration and grants (`d65491d0b2810fd7bce18b1815218cd1`).
+The project-scoped read-only connection cannot execute `gtl_ballot_pick_scores`,
+so finished-score hashes are covered by the ballot hash plus the unchanged
+function definitions. These hashes are not comparable with the earlier tables in
+this record, which used a different connection.
+
+The workflow reports `apiSourceVerified: false`. Independently, all **54 retrieved
+v30 API source files** matched `f22ee67` exactly after normalizing CRLF to LF,
+and the deployed `cloud/handler.mjs` loads research history from
+`TRENDS_SOURCE.url` through `publicResearchHistory`. Compared with `fb86a3e`,
+only `cloud/handler.mjs` differs. This verifies the retrieved source files, not a
+rebuild of the provider's bundle.
+
+Still open: signed-in confirmation that current research leans now appear, and
+physical-phone acceptance. Rollback: add `research` to `GTL_FEATURE_OFF` if
+needed, then redeploy the API from `fb86a3e` (v29 source) through the shared
+workflow. No data or migration rollback is needed.
