@@ -14,10 +14,11 @@
 // inside the frame's root, after the layers (the "sign in again" prompt).
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { switchApp } from '../../appView.js';
+import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
 import { ShellContext } from './context.js';
-import { DetailBack, OfflineBanner, TabBar, TopBar } from './Frame.jsx';
+import { DetailBack, OfflineBanner, SportControls, TabBar, TopBar } from './Frame.jsx';
 import { DialogHost, OverlayHost, PageHost, PopoverHost, SheetHost } from './LayerHosts.jsx';
 import { ToastHost } from './ToastHost.jsx';
 import { LAYERS, SCREENS } from './registry.jsx';
@@ -92,6 +93,11 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     return true;
   }, []);
   useEffect(() => {
+    const guard = event => { if (!confirmLeave()) event.preventDefault(); };
+    window.addEventListener('gtl:sport-leave', guard);
+    return () => window.removeEventListener('gtl:sport-leave', guard);
+  }, [confirmLeave]);
+  useEffect(() => {
     const warn = event => {
       if (!dirty.current.size) return;
       event.preventDefault();
@@ -118,6 +124,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     if (prev === state) return;
     synced.current = state;
     history.current?.sync(prev, state);
+    noteSportRoute();
   }, [state]);
 
   // Keep scroll/focus privately in memory; addresses/history never contain DOM or editor records.
@@ -264,6 +271,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       <div className="gx" data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
           <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
+          <SportControls/>
           <main className="gx-main" id="main" tabIndex={-1}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}

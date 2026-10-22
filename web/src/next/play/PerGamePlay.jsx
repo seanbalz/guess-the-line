@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSportGuard } from '../../sportNavigation.js';
 import { cloudApi, communityApi } from '../../api.js';
 import ChipPicker, { CHIP_HELP } from '../../ChipPicker.jsx';
 import { pickText, shortName } from '../../communityFormat.js';
@@ -37,8 +38,10 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', o
   ].filter(([, copy]) => copy));
   const pending = draft?.pending, ballot = data.ballots?.[mode], picks = mergeDraft(data, mode, draft), base = savedPicks({ ...data, mode });
   const sitOutPending = draft?.sitOutPending === true, uncertain = Boolean(pending || sitOutPending);
+  // The legacy Community surface has no Shell registry; its drafts still guard sport navigation.
   const now = Date.parse(data.now) + elapsed, openAt = Date.parse(weekOpenAt(data.deadline));
   const dirty = (data.games || []).some(game => now < Date.parse(game.kickoff) && String(picks[game.id]) !== String(base[game.id]));
+  useSportGuard(!setDirty && (dirty || uncertain));
   const receiptSitOut = data.scoring?.[mode]?.satOut;
   const satOut = typeof receiptSitOut === 'boolean' ? receiptSitOut : (data.optOuts || optOuts).includes(mode), active = perGameReady(data.rules), market = mode === 'guess_total' ? 'Total' : 'Spread';
   const canSitOut = active && !satOut && Number.isFinite(now) && now >= openAt && data.games.some(game => !lockedAt(ballot, game.id) && now < Date.parse(game.kickoff));

@@ -317,16 +317,18 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // Hosted and no longer awaiting: M-01 and M-09 (October 14, 2026); the D-48 recommendations writer and routes (October 15);
   // M-02, M-03, M-05, M-06 and M-08 (October 19); the referee and D-34 wind pieces (applied October 13, routes since gtl-api
   // v18 on October 14), /lines/research (v29, October 21) and /trends/week (v31, October 22), removed October 22.
-  // Still awaiting: the three migrations in NOT_HOSTED, M-10 Bets and D-53's comparison and account preferences.
+  // Still awaiting: the migrations in NOT_HOSTED: M-10 Bets, D-53's comparison and account preferences, and the two private
+  // NBA migrations with the /nba routes (October 22).
   const bets = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market'];
+  const nba = ['gtl_nba_read_bets', 'gtl_nba_save_bet', 'gtl_nba_claim_games', 'gtl_nba_finish_games'];
   const comparisonPreferences = ['gtl_read_score_comparison','gtl_read_account_preferences','gtl_save_account_preferences'];
-  const routes = ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save'];
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), [...routes.map(route => `gtl-api/${route}`), ...[...bets, ...comparisonPreferences].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
-  const missing = async (url, request) => ([...bets, ...comparisonPreferences].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  const routes = ['nba/games', 'nba/read', 'nba/save', 'bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save'];
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), [...routes.map(route => `gtl-api/${route}`), ...[...bets, ...nba, ...comparisonPreferences].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  const missing = async (url, request) => ([...bets, ...nba, ...comparisonPreferences].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/functions\/v1\/gtl-api\/(bets\/read|league\/comparison|me\/preferences(?:\/save)?)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/functions\/v1\/gtl-api\/(nba\/(read|save|games)|bets\/read|league\/comparison|me\/preferences(?:\/save)?)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, bets.length + comparisonPreferences.length + routes.length * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, bets.length + nba.length + comparisonPreferences.length + routes.length * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 

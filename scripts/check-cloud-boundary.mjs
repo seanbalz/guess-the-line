@@ -26,7 +26,7 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * after the deploy, then remove the entries from their area file in the change that records the hosted version.
  *
  * Each area file lists its own pieces. Since October 22, 2026 only scripts/boundary/bets.mjs, league.mjs and me.mjs list
- * any: the pieces of the three migrations in NOT_HOSTED (tests/migrations.mjs). The notes below record why earlier pieces
+ * any: the pieces of the migrations in NOT_HOSTED (tests/migrations.mjs) and the routes that need them. The notes below record why earlier pieces
  * were listed while they rolled out; each is hosted now and no longer listed.
  * scripts/boundary/lines.mjs listed the situational-trends referee pieces, the D-34 kickoff wind pieces, M-05's carryover
  * helper, /trends/week and /lines/research, and scripts/boundary/guess.mjs listed M-01's four per-game gate helpers and
@@ -59,7 +59,7 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
-export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess|sportsbooks|guidanceCollapsed)"\s*:/;
+export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|leaseToken|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess|sportsbooks|guidanceCollapsed|tickets|source_record|source_payload|before_terms)"\s*:/;
 const notDeployed = (key, status, result) => Object.hasOwn(awaitingDeploy, key) && status === 404
   && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : result?.error === 'Not found.' && Object.keys(result).length === 1);
 

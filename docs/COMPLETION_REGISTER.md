@@ -31,6 +31,21 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
+October 21 NBA product direction: Sean selected **daily game board + private bet
+tracking first**, with NBA competitions later. The
+[approved NBA section design](superpowers/specs/2026-10-21-nba-section-design.md)
+defines a separate sport section sharing sign-in and settings, daily navigation,
+owner-only access to the existing archive and separate NBA accounting. Sean
+approved the design and authorized the [implementation plan](superpowers/plans/2026-10-21-nba-section.md)
+and build. The code is complete on draft PR #167 (owner ticket RPCs, bounded
+free-source game cache, Games/My Bets/History screens and the NFL/NBA selector in
+both the default classic app and the four-tab app), reconciled with `main` after
+the four-tab release. The [NBA release card](NBA_SECTION_RELEASE.md) records the
+migration order, preservation checks, rollback and the two open prerequisites:
+Sean adds `BALLDONTLIE_API_KEY` to the Edge Function secrets and approves applying
+`20261021223000` and `20261021223100`. This entry establishes no feed connection,
+hosted permission change or deployment. The private archive remains protected.
+
 October 21 design review: Sean selected a simpler four-tab application,
 **Home / Play / Bets / Research**, with League inside Play and Fantasy inside
 Research, and equal emphasis on guessing/competition and actual-bet tracking.
@@ -249,8 +264,8 @@ October 22 boundary cleanup: `scripts/boundary/lines.mjs` no longer lists the
 referee, wind, `/trends/week` or `/lines/research` pieces in `awaitingDeploy`, so a
 missing one now fails the default `check:cloud`. All are hosted: both migrations are
 in `APPLIED`, the routes are in the verified v31 and v32 sources, and every boundary
-check since the v31 deploy counts only the six awaiting probes of the three
-`NOT_HOSTED` migrations. Evidence is in the
+check since the v31 deploy counts only the six awaiting probes of M-10 and the two
+D-53 migrations. Evidence is in the
 [weekly Trends record](WEEKLY_PLAYER_TRENDS_RELEASE.md) and
 [SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state). The M-10 test that
 exercises the awaiting path must move to another awaiting piece when M-10 is applied.

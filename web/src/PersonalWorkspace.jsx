@@ -4,6 +4,7 @@ import Brand from './Brand';
 import ThemeSelector from './Theme';
 import { TeamMatchup } from './TeamIdentity';
 import { cloudApi, date, signed } from './api';
+import { SportSlot, useSportGuard } from './sportNavigation.js';
 import LineAtGuess from './LineAtGuess';
 import { JOURNAL_CURRENCIES, JOURNAL_OUTCOMES, decimalToMinor, minorToDecimal } from '../../shared/journal-performance.mjs';
 import { FINAL_LABEL, FINAL_RULE, LOCKED_MESSAGE, ballotFinal, isBallotLocked, pickFinal, sentFinal } from './sentFinal';
@@ -172,6 +173,7 @@ export default function PersonalWorkspace({ accountId, onBack, onSignOut }) {
   const [uncertainSave, setUncertainSave] = useState(false), [readVersion, setReadVersion] = useState(0);
   const request = useRef(null), dirtyForms = useRef(new Set());
   const [dirty, setDirty] = useState(false);
+  useSportGuard(dirty);
   const onDirty = useCallback((key, changed) => { if (changed) dirtyForms.current.add(key); else dirtyForms.current.delete(key); setDirty(dirtyForms.current.size > 0); }, []);
   const discard = () => !dirtyForms.current.size || window.confirm(dirtyForms.current.size === 1 && dirtyForms.current.has('guess') ? 'Leave this form? Unsaved guesses are kept only in this tab when recovery is available.' : 'You have unsaved changes. Discard them and continue?');
   useEffect(() => { if (!dirty) return; const preventLoss = event => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', preventLoss); return () => window.removeEventListener('beforeunload', preventLoss); }, [dirty]);
@@ -214,6 +216,7 @@ export default function PersonalWorkspace({ accountId, onBack, onSignOut }) {
   return <div className="hub-shell personal-workspace">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><button className="secondary" disabled={busy} onClick={() => { if (discard()) onBack(); }}><ArrowLeft size={17}/>My games</button></header>
+    <SportSlot/>
     <main id="main" className="hub-main"><ThemeSelector/>
       <div className="hub-heading"><div><p className="eyebrow">PRIVATE TO YOUR ACCOUNT</p><h1>Solo</h1><p>Your weekly guesses, Favorites and private journal. No group needed.</p></div><ShieldCheck size={28} aria-hidden="true"/></div>
       {error && <div className="error-banner" role="alert">{error}</div>}

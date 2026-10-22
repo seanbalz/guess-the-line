@@ -34,6 +34,7 @@ function move(next, replace) {
   if (same(next, current)) return false;
   try { window.history[replace ? 'replaceState' : 'pushState'](null, '', fragmentOf(next)); } catch { /* The screen still changes in memory. */ }
   current = next; notify();
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('gtl:route-accepted'));
   return true;
 }
 export const currentScreen = () => current.screen;
