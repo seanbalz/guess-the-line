@@ -64,6 +64,8 @@ if (-not $ownerInherited) { throw 'Missing inheritable owner access' }
 Write-Output 'PRIVATE'
 `;
 
+export const PRIVATE_DIRECTORY_TIMEOUT_MS = 60000;
+
 export function makePrivateDirectory(directory, { recursive = false, exclusive = false } = {}) {
   if (process.platform !== 'win32') {
     fs.mkdirSync(directory, { recursive: recursive && !exclusive, mode: 0o700 });
@@ -73,9 +75,10 @@ export function makePrivateDirectory(directory, { recursive = false, exclusive =
   // Ancestors contain no recovery data; the protected leaf is created atomically.
   if (recursive) fs.mkdirSync(path.dirname(path.resolve(directory)), { recursive: true });
   try {
+    // A cold PowerShell start on a loaded Windows CI runner has exceeded 15 seconds. A timeout still fails closed.
     const result = execFileSync(path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
       ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(windowsDirectory, 'utf16le').toString('base64')], {
-        encoding: 'utf8', windowsHide: true, timeout: 15000, stdio: ['ignore', 'pipe', 'pipe'],
+        encoding: 'utf8', windowsHide: true, timeout: PRIVATE_DIRECTORY_TIMEOUT_MS, stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, GTL_RECOVERY_DIRECTORY: path.resolve(directory), GTL_RECOVERY_EXCLUSIVE: exclusive ? '1' : '0' },
       });
     if (result.trim() !== 'PRIVATE') throw new Error('Unverified permissions');
