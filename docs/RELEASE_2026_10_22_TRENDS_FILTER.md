@@ -85,3 +85,64 @@ from `f22ee67` (v30 source). `GTL_FEATURE_OFF` can switch off `trends` or
 Still open: signed-in confirmation of the Trends tab and Recommended filter on a
 real phone, and confirmation that Week 8 trends publish when the week opens
 Monday, October 26.
+
+## October 22 follow-up: Trends outage fixed (API v32)
+
+**What went wrong in v31.** The protected release checks only probe signed-out
+access, so they did not catch that every signed-in `POST /trends/week` returned
+HTTP 546. Each request rebuilt the full trend history and hit the Edge
+Function CPU limit; the function log reported "CPU Time exceeded" at the same
+instant. The app fell back to the frozen Week 7 file ("Stale evidence · Refresh
+unavailable"). Sean also saw the game sheet replace the Round 3 trend charts
+with "No qualifying research in this view" one to two seconds after opening:
+the sheet treated the trend cards as a placeholder until the matchup research
+read returned.
+
+**Fixes.**
+- [PR #182](https://github.com/seanbalz/guess-the-lines-repo/pull/182) ships the
+  prepared Trends history in the server seed. Local cold CPU fell from about
+  1.05 s to about 0.16 s under Deno, with byte-identical responses.
+- [PR #180](https://github.com/seanbalz/guess-the-lines-repo/pull/180) keeps the
+  weekly trend cards in the game sheet and adds matchup research below them only
+  when it has candidates for that game.
+
+**Release.** Source `main` at `8dccc5c9e0c4bfe66f2ed093ac3d2ec9bad0b100`. It also
+carries #181 (Q03 scroll padding) and the Round 3 docs record #179. All three push
+workflows passed:
+[Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39814675496),
+[Dashboard checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39814675596),
+[Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39814675506).
+The release card is in PR #182.
+
+| Gate | Run | Result |
+| --- | --- | --- |
+| Source | [39820215519](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39820215519) | Exact source and main CI verified |
+| Readiness | [39820267779](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39820267779) | Failed only at its source step: GitHub's filtered run search briefly returned no runs |
+| Readiness retry | [39821030893](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39821030893) | Passed; baseline API v31 and Pages `f092e744` (Round 3) |
+| API then frontend | [39821362374](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39821362374) | Deployed and verified at 17:20:11 UTC |
+
+- **API:** `gtl-api` **v32**, ACTIVE, JWT verification on, bundle SHA-256
+  `92ad9bbd4b358a8651d3e0a810f2c36e687bb90f228928de91099a74f34ea93e`. All 56
+  deployed source files match `8dccc5c`; only `cloud/trends.mjs`,
+  `cloud/trends-seed.mjs` and `shared/trends.mjs` differ from v31, and the seed
+  carries `preparedHistory` with no history CSV. The other four workers kept
+  their versions and hashes.
+- **Frontend:** Pages **`9fb54fe4-d7f0-41ea-a925-a0d86dbf277e`**, 98 assets
+  verified at both URLs, frontend SHA-256
+  `6d486dd8edbf12c0f54e69f350333fdcda010c2df87144bd16cb7e52fd872d62`.
+- **Migrations and boundaries:** 46 hosted, digest `c571cd2d…`, unchanged;
+  266 of 272 signed-out probes denied plus the six pending-migration RPCs.
+- **Preservation:** read-only snapshots at 17:17:31 and 17:20:44 UTC matched for
+  every table checked, both private NBA tables and all 126 `gtl_*` functions.
+  Social commits were 102 and social weeks hash `8cd0950c…` in both, reflecting
+  normal player activity since the previous release.
+
+**Signed-in acceptance (the check v31 lacked).** Hosted logs show signed-in
+`POST /trends/week` returning 200 at 18:21:50, 18:24:55 and 18:31:07 UTC, with no
+"CPU Time exceeded" after the deploy. In Sean's signed-in Chrome, the DAL @ PHI
+game sheet shows "Historical evidence ready · Oct 22, 2026 · 0 min old" and keeps
+the Round 3 chart card after research loads. Real-phone acceptance and Week 8
+publication on Monday remain to be confirmed.
+
+Rollback: restore Pages `f092e744-ef2e-427a-9328-dac3006a45ea` and redeploy the
+API from `7e9a8a1` (v31 source); `GTL_FEATURE_OFF` can switch `trends` off.
