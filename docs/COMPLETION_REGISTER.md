@@ -245,6 +245,16 @@ Signed-in `POST /trends/week` returned 200 in hosted logs after the deploy, with
 CPU errors. Real-phone acceptance and Week 8 publication on Monday, October 26 remain
 open.
 
+October 22 boundary cleanup: `scripts/boundary/lines.mjs` no longer lists the
+referee, wind, `/trends/week` or `/lines/research` pieces in `awaitingDeploy`, so a
+missing one now fails the default `check:cloud`. All are hosted: both migrations are
+in `APPLIED`, the routes are in the verified v31 and v32 sources, and every boundary
+check since the v31 deploy counts only the six awaiting probes of the three
+`NOT_HOSTED` migrations. Evidence is in the
+[weekly Trends record](WEEKLY_PLAYER_TRENDS_RELEASE.md) and
+[SOCIAL_COMMUNITY.md](SOCIAL_COMMUNITY.md#deployed-state). The M-10 test that
+exercises the awaiting path must move to another awaiting piece when M-10 is applied.
+
 ## Evidence and limits
 
 The queue records all six open PR dispositions, old issue triage and local-work

@@ -25,34 +25,37 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
  * after the deploy, then remove the entries from their area file in the change that records the hosted version.
  *
- * Each area file lists its own pieces; today scripts/boundary/lines.mjs has the situational-trends referee pieces, the
- * D-34 kickoff wind pieces and M-05's carryover helper, and scripts/boundary/guess.mjs has M-01's four per-game gate
- * helpers and gtl_live_rules (redesign stage 16: service-only SQL). gtl-api reads gtl_live_rules, and since stage 20
+ * Each area file lists its own pieces. Since October 22, 2026 only scripts/boundary/bets.mjs, league.mjs and me.mjs list
+ * any: the pieces of the three migrations in NOT_HOSTED (tests/migrations.mjs). The notes below record why earlier pieces
+ * were listed while they rolled out; each is hosted now and no longer listed.
+ * scripts/boundary/lines.mjs listed the situational-trends referee pieces, the D-34 kickoff wind pieces, M-05's carryover
+ * helper, /trends/week and /lines/research, and scripts/boundary/guess.mjs listed M-01's four per-game gate helpers and
+ * gtl_live_rules (redesign stage 16: service-only SQL). gtl-api reads gtl_live_rules, and since stage 20
  * /virtual-units and /virtual-pick read gtl_markets_visible, through cloud/optional-rpc.mjs: where M-01 is not applied
  * (PGRST202) the rules read as today's and the line gate falls back to today's hosted gtl_week_revealed
- * (cloud/line-lock.mjs), so the same gtl-api build passes the default check before and after the M-01 apply. No deployed
+ * (cloud/line-lock.mjs), so the same gtl-api build passed the default check before and after the M-01 apply. No deployed
  * route calls the other three helpers.
- * Both the gtl-api build and the Pages build fall back cleanly while the wind pieces are missing (the trends panel keeps its
- * "no current forecast" note), so a Pages-only deploy, or a gtl-api deploy before the migration is
- * applied, must not fail check:cloud on them alone; --strict runs after the migration and the gtl-api deploy.
+ * Both the gtl-api build and the Pages build fell back cleanly while the wind pieces were missing (the trends panel kept its
+ * "no current forecast" note), so a Pages-only deploy, or a gtl-api deploy before the migration was
+ * applied, did not fail check:cloud on them alone.
  * The Community history readers (20261012223000), the D-27 line-at-guess helpers (20261012230000) and the
  * /community/history route are deliberately not listed: any of them that is missing fails the default
  * check with `unexpected 404`, which is the release checklist's gate for applying those migrations hosted
  * before the gtl-api deploy that needs them.
- * scripts/boundary/me.mjs lists M-09's private notes pieces (redesign stage 27): its two RPCs and the /personal/notes and
+ * scripts/boundary/me.mjs listed M-09's private notes pieces (redesign stage 27): its two RPCs and the /personal/notes and
  * /personal/note routes. Nothing calls them until the new app's note field (stage 35), and a gtl-api deploy before the
  * apply answers those routes 503 "not available right now", so neither order fails check:cloud on them alone.
- * scripts/boundary/lines.mjs also lists M-06's lines readers (redesign stage 23): its four RPCs and the /lines/read and
+ * scripts/boundary/lines.mjs also listed M-06's lines readers (redesign stage 23): its four RPCs and the /lines/read and
  * /lines/game routes. The gtl-api deploy comes first (until the apply both routes answer 503 "not available right now"),
  * nothing calls them until stages 32 to 34, and the private-key pattern below includes the lines reply keys.
- * scripts/boundary/guess.mjs also lists M-08's everyone's picks pieces (redesign stage 26): gtl_read_guess_picks and the
+ * scripts/boundary/guess.mjs also listed M-08's everyone's picks pieces (redesign stage 26): gtl_read_guess_picks and the
  * /community/picks route. Nothing calls them until the new app's Everyone's picks (stage 31), and a gtl-api deploy before
  * the apply answers the route 503 "not available right now", so neither order fails check:cloud on them alone.
- * scripts/boundary/guess.mjs also lists M-03's skip and "See picks now" pieces (redesign stage 19): gtl_forfeit_markets,
+ * scripts/boundary/guess.mjs also listed M-03's skip and "See picks now" pieces (redesign stage 19): gtl_forfeit_markets,
  * gtl_forfeit_guess_week, gtl_read_forfeit and the /community/forfeit route. Nothing calls the route until the new app's
  * ForfeitDialog (stage 30); a gtl-api deploy before the apply answers it 503 "not available right now" and leaves
- * /community/read without `forfeit`, so neither order fails check:cloud on them alone. Its table, gtl_week_forfeits, joins
- * the table probes with the apply record, as the D-34 wind tables did.
+ * /community/read without `forfeit`, so neither order fails check:cloud on them alone. Its table, gtl_week_forfeits, joined
+ * the table probes with the apply record. The D-34 wind and referee tables are not in the table probes.
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
