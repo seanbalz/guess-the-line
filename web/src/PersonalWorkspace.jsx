@@ -4,7 +4,7 @@ import Brand from './Brand';
 import ThemeSelector from './Theme';
 import { TeamMatchup } from './TeamIdentity';
 import { cloudApi, date, signed } from './api';
-import { useSportGuard } from './sportNavigation.js';
+import { SportSlot, useSportGuard } from './sportNavigation.js';
 import LineAtGuess from './LineAtGuess';
 import { JOURNAL_CURRENCIES, JOURNAL_OUTCOMES, decimalToMinor, minorToDecimal } from '../../shared/journal-performance.mjs';
 import { FINAL_LABEL, FINAL_RULE, LOCKED_MESSAGE, ballotFinal, isBallotLocked, pickFinal, sentFinal } from './sentFinal';
@@ -216,6 +216,7 @@ export default function PersonalWorkspace({ accountId, onBack, onSignOut }) {
   return <div className="hub-shell personal-workspace">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><button className="secondary" disabled={busy} onClick={() => { if (discard()) onBack(); }}><ArrowLeft size={17}/>My games</button></header>
+    <SportSlot/>
     <main id="main" className="hub-main"><ThemeSelector/>
       <div className="hub-heading"><div><p className="eyebrow">PRIVATE TO YOUR ACCOUNT</p><h1>Solo</h1><p>Your weekly guesses, Favorites and private journal. No group needed.</p></div><ShieldCheck size={28} aria-hidden="true"/></div>
       {error && <div className="error-banner" role="alert">{error}</div>}

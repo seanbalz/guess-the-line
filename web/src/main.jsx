@@ -36,7 +36,7 @@ function NflSignedIn({ view, ...props }) {
 }
 
 function SignedIn({ view, ...props }) {
-  return <SportEntry {...props} classic={view !== 'next'}><NflSignedIn view={view} {...props}/></SportEntry>;
+  return <SportEntry {...props}><NflSignedIn view={view} {...props}/></SportEntry>;
 }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><ThemeProvider>{cloudRequested ? <AuthGate>{props => <SignedIn key={props.session.user.id} view={appView} {...props}/>}</AuthGate> : <DeferredScreen label="your league"><App/></DeferredScreen>}</ThemeProvider></React.StrictMode>);

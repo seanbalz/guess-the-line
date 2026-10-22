@@ -88,6 +88,8 @@ Node tests with zero skips, Vitest, build), the NBA Node/Vitest suites, the six
 NBA browser scenarios (both apps), the shell/four-tab/app-switch browser specs,
 the full cloud-browser suite, rollback and migration registry tests, Brand QA
 and the cloud bundle privacy scan. Open: real provider readback, hosted
-permission checks and physical-iPhone acceptance. Known limit (from code
-inspection): after a new-app crash, the classic fallback screen does not show
-the NFL/NBA selector; the default classic app and the new app both do.
+permission checks and physical-iPhone acceptance. The NFL/NBA selector sits
+in the new app's top bar and, in the old app (default, `?app=classic` and the
+new app's crash fallback), after each screen's skip link and header, so the
+skip link stays the first Tab stop; it adds two Tab stops before Community
+content (the keyboard persona budget moves from 13 to 15).

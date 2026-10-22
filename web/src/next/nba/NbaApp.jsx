@@ -5,7 +5,7 @@ import './nba.css';
 import { useEffect, useRef, useState } from 'react';
 import { useThemePreference } from '../../Theme.jsx';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
-import { noteSportRoute, useSportGuard } from '../../sportNavigation.js';
+import { noteSportRoute, SportSlotContext, useSportGuard } from '../../sportNavigation.js';
 import { Button, FieldMark, Segmented } from '../ui/index.js';
 import { Games } from './Games.jsx';
 import { Bets } from './Bets.jsx';
@@ -55,7 +55,7 @@ function NbaOwner({ session, onSignOut, onSportChange, api = nbaApi }) {
 }
 
 /** Mount above all NFL eligibility providers; cold NBA links issue no NFL reads. */
-export function SportEntry({ session, onSignOut, children, classic = false }) {
+export function SportEntry({ session, onSignOut, children }) {
   const [nba, setNba] = useState(() => Boolean(nbaRoute(window.location.hash)));
   const state = useRef(nba); state.current = nba;
   const previousNfl = useRef(nba ? '#home' : window.location.hash || '#home');
@@ -81,5 +81,7 @@ export function SportEntry({ session, onSignOut, children, classic = false }) {
     window.history.pushState(null, '', hash);
     const event = new PopStateEvent('popstate'); event.gtlSportApproved = true; event.gtlSportFrom = from; window.dispatchEvent(event);
   }
-  return nba ? <NbaApp session={session} onSignOut={onSignOut} onSportChange={() => navigate(previousNfl.current)}/> : <>{classic && <div className="gx gx-nba-sport-entry"><Segmented label="Sport" value="nfl" options={[{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]} onChange={() => navigate('#nba/games')}/></div>}{children}</>;
+  // The old app's shells (including the new app's crash fallback) place this after their skip link; the new app has its own in the top bar.
+  const selector = <div className="gx gx-nba-sport-entry"><Segmented label="Sport" value="nfl" options={[{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]} onChange={() => navigate('#nba/games')}/></div>;
+  return nba ? <NbaApp session={session} onSignOut={onSignOut} onSportChange={() => navigate(previousNfl.current)}/> : <SportSlotContext.Provider value={selector}>{children}</SportSlotContext.Provider>;
 }

@@ -182,9 +182,9 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // keys: the ThemeProvider main.jsx wraps both apps in (gtl.theme) and the motion preference (gtl.dashboard.preferences.v1).
   // Only these named hooks, never a component or a default import.
   // The retained Fantasy adapter also reuses the week-key formatter for reloadable Research addresses.
-  // The NBA section (docs/superpowers/plans/2026-10-21-nba-section.md) shares only the sport-switch draft guard and the
-  // accepted-route signal, so unsaved work in either app is confirmed before the sport changes.
-  const namedOnly = { 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'CommunityHistory.jsx': ['HistoryLine'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot', 'fantasyWeekKey'], 'sportNavigation.js': ['noteSportRoute', 'useSportGuard'] };
+  // The NBA section (docs/superpowers/plans/2026-10-21-nba-section.md) shares only the sport-switch draft guard, the
+  // accepted-route signal and the old app's selector slot, so unsaved work in either app is confirmed before the sport changes.
+  const namedOnly = { 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'CommunityHistory.jsx': ['HistoryLine'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot', 'fantasyWeekKey'], 'sportNavigation.js': ['noteSportRoute', 'SportSlotContext', 'useSportGuard'] };
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {

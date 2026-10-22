@@ -9,7 +9,7 @@ import ThemeSelector from './Theme';
 import Brand from './Brand';
 import LegalLinks from './LegalLinks';
 import { cloudApi, date } from './api';
-import { useSportGuard } from './sportNavigation.js';
+import { SportSlot, useSportGuard } from './sportNavigation.js';
 import { clearInvitation, pendingInvitation } from './invitations';
 import { goScreen, useScreen } from './screenHash';
 
@@ -56,6 +56,7 @@ function Shell({ who, busy, onSignOut, children }) {
   return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{who}</span><button className="secondary" onClick={onSignOut} disabled={busy}>Sign out</button></div></header>
+    <SportSlot/>
     <main className="hub-main" id="main" tabIndex={-1}>{children}</main>
   </div>;
 }
@@ -208,6 +209,7 @@ export default function GameHub({ session, onSignOut }) {
   if (['social', 'units'].includes(selected) && !token) return <div className="hub-shell">
     <a className="skip-link" href="#main">Skip to main content</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{lobby.profile.displayName}</span><button className="secondary" onClick={() => { if (!socialDirty || window.confirm('You have unsaved changes. Leave without saving?')) { setSocialDirty(false); choose(''); } }}>My games</button></div></header>
+    <SportSlot/>
     <main className="hub-main" id="main"><ThemeSelector/><DeferredScreen resetKey={selected} label={selected === 'units' ? 'your betting week' : 'bet tracker'}><SocialBetTracker key={selected} player={session.user.id} initialView={selected === 'units' ? 'units' : 'feed'} onDirty={setSocialDirty}/></DeferredScreen></main>
   </div>;
   return <>
@@ -215,6 +217,7 @@ export default function GameHub({ session, onSignOut }) {
       : <div className="hub-shell">
         <a className="skip-link" href="#main">Skip to main content</a>
         <header className="hub-header"><Brand /><div className="hub-account"><span>{lobby.profile.displayName}</span><button className="secondary" onClick={signOut} disabled={busy}>Sign out</button></div></header>
+        <SportSlot/>
         <main className="hub-main" id="main">
           <ThemeSelector/>
           {/* Persona audit #16: one sentence on what a group is for versus the Community. New game is the primary action only once a game exists; the empty state carries "Create your first game". */}

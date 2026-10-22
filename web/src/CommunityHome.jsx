@@ -16,7 +16,7 @@ import { PushReminderPrompt } from './PushReminders';
 import TryNewApp from './TryNewApp';
 import FantasyFootball from './FantasyFootball';
 import { cloudApi, communityApi, date } from './api';
-import { useSportGuard } from './sportNavigation.js';
+import { SportSlot, useSportGuard } from './sportNavigation.js';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
 import { MODE, lateText, pickText, shortName, show, team } from './communityFormat';
@@ -610,6 +610,7 @@ export default function CommunityHome({ accountId, onGroups, onSignOut, displayN
   return <div className="hub-shell community-home">
     <a className="skip-link" href={dueCard ? '#picks-due' : '#main'}>{dueCard ? 'Skip to picks due' : 'Skip to main content'}</a>
     <header className="hub-header"><Brand/><div className="hub-account"><span>{displayName}</span></div></header>
+    <SportSlot/>
     <main ref={main} className="hub-main" id="main" tabIndex={-1}>
       <div className="hub-heading"><div><p className="eyebrow">CALL THE NUMBER. OWN THE BOARD.</p><h1>Community</h1><p>Everyone's calls, scores and bets in one place.</p></div><Users size={28} aria-hidden="true"/></div>
       <LeagueSwitcher league={league} onSelect={setLeague}/>

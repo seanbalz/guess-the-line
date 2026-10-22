@@ -149,7 +149,9 @@ test('a blocked new-app chunk falls back to the old app, forgets the choice and 
     await tryButton(page).click();
     await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.fellBack}`));
     await expect(communityHome(page)).toBeVisible();
-    await expect(page.locator('.gx')).toHaveCount(0);
+    // The fallback is the old app, which keeps the NBA section's NFL/NBA selector (PR #167) and no new-app frame.
+    await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
+    await expect(page.locator('.gx-nba-sport-entry').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
     expect(await saved(page), 'the fallback clears gtl.app').toBeNull();
     await phoneChecks(page, '.hub-bottom');
     // With the chunk back, the same button opens the new app.
@@ -294,7 +296,7 @@ test('a new app that throws while rendering, after its chunk has loaded, falls b
     await tryButton(page).click();
     await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.fellBack}`));
     await expect(communityHome(page)).toBeVisible();
-    await expect(page.locator('.gx')).toHaveCount(0);
+    await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
     expect(served, 'the new app\'s chunk was served').toBeGreaterThan(0);
     expect(await saved(page), 'the fallback clears gtl.app').toBeNull();
     // A reload stays in the old app: the choice is gone, so the failing chunk is never asked for again.
