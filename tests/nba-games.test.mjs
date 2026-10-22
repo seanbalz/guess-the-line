@@ -149,11 +149,11 @@ test('NBA game cache adapter uses only reviewed service RPCs, and boundary probe
   assert.ok(calls.every(call => call.options.headers.Authorization === 'Bearer synthetic-secret'));
   for (const name of ['gtl_nba_claim_games', 'gtl_nba_finish_games']) {
     assert.ok(BOUNDARY_AREAS.bets.rpcChecks.some(([rpc]) => rpc === name));
-    assert.equal(awaitingDeploy[`rpc/${name}`], 'migration 20261021223100_gtl_nba_game_cache.sql');
+    assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${name}`), `${name} is hosted since October 22, 2026`);
     await assert.rejects(adapter.nba.rpc(name, {}), /Invalid operation/);
   }
   assert.ok(BOUNDARY_AREAS.bets.apiChecks.some(([route]) => route === 'nba/games'));
-  assert.equal(awaitingDeploy['gtl-api/nba/games'], 'the gtl-api deploy with /nba/games');
+  assert.ok(!Object.hasOwn(awaitingDeploy, 'gtl-api/nba/games'), '/nba/games is deployed since October 22, 2026');
   assert.ok(privateResponse.test('{"leaseToken":"synthetic"}'));
 });
 

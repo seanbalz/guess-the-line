@@ -56,7 +56,5 @@ export const workerChecks = Object.freeze([
   ['scheduled reminders', 'gtl-push-reminders', { runId: missingId }],
 ]);
 
-export const awaitingDeploy = Object.freeze({
-  'gtl-api/me/preferences': 'the gtl-api deploy with /me/preferences',
-  'gtl-api/me/preferences/save': 'the gtl-api deploy with /me/preferences/save',
-});
+// Both preferences routes are deployed (gtl-api v32) and their D-53 functions are hosted since October 22, 2026.
+export const awaitingDeploy = Object.freeze({});

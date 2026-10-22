@@ -305,17 +305,21 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // M-08 (stage 26): the everyone's picks reader and its route.
   // M-02 (stage 18): the service-only lock-in helper, awaiting the apply.
   // M-03 (stage 19): the forfeit writer, its reader and their market helper; the route, the gtl-api deploy.
-  // M-10 and both D-53 files are hosted since October 22, 2026: their six RPCs are no longer awaiting.
-  const nba = ['gtl_nba_read_bets', 'gtl_nba_save_bet', 'gtl_nba_claim_games', 'gtl_nba_finish_games'];
+  // M-10, both D-53 files and both NBA files are hosted since October 22, 2026, and their routes are deployed
+  // (RELEASE_2026_10_22_MIGRATIONS.md): none of their RPCs or routes is awaiting.
+  const hosted = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market', 'gtl_read_score_comparison', 'gtl_read_account_preferences',
+    'gtl_save_account_preferences', 'gtl_nba_read_bets', 'gtl_nba_save_bet', 'gtl_nba_claim_games', 'gtl_nba_finish_games'];
+  for (const rpc of hosted) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
+  for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
   // D-48 recommendations writer and routes are hosted since October 15, 2026.
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/nba/games', 'gtl-api/nba/read', 'gtl-api/nba/save', 'gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/bets/read', 'gtl-api/league/comparison', 'gtl-api/me/preferences', 'gtl-api/me/preferences/save', 'gtl-api/trends/week', 'gtl-api/lines/research', ...[...referees, ...winds, ...nba].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
+  assert.deepEqual(Object.keys(awaitingDeploy).sort(), ['gtl-api/officials/read', 'gtl-api/officials/set', 'gtl-api/wind/read', 'gtl-api/trends/week', 'gtl-api/lines/research', ...[...referees, ...winds].map(rpc => `rpc/${rpc}`)].sort(), 'nothing else is awaiting deploy');
   for (const rpc of referees) assert.equal(awaitingDeploy[`rpc/${rpc}`], 'migration 20261012234500_gtl_game_officials.sql', rpc);
   for (const route of ['officials/read', 'officials/set']) assert.equal(awaitingDeploy[`gtl-api/${route}`], `the gtl-api deploy with /${route}`);
-  const missing = async (url, request) => ([...referees, ...winds, ...nba].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+  const missing = async (url, request) => ([...referees, ...winds].some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/functions\/v1\/gtl-api\/(nba\/(read|save|games)|officials\/(read|set)|wind\/read|bets\/read|league\/comparison|me\/preferences(?:\/save)?|trends\/week|lines\/research)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/functions\/v1\/gtl-api\/(officials\/(read|set)|wind\/read|trends\/week|lines\/research)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, referees.length + winds.length + nba.length + 12 * 2, 'each RPC once; each route signed out and with an invalid session');
+  assert.equal(result.awaiting.length, referees.length + winds.length + 5 * 2, 'each RPC once; each route signed out and with an invalid session');
   assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 

@@ -45,13 +45,5 @@ export const workerChecks = Object.freeze([
   ['scheduled results refresh', 'gtl-results-refresh', {runId:missingId}],
 ]);
 
-export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_nba_claim_games': 'migration 20261021223100_gtl_nba_game_cache.sql',
-  'rpc/gtl_nba_finish_games': 'migration 20261021223100_gtl_nba_game_cache.sql',
-  'gtl-api/nba/games': 'the gtl-api deploy with /nba/games',
-  'rpc/gtl_nba_read_bets': 'migration 20261021223000_gtl_nba_app_bets.sql',
-  'rpc/gtl_nba_save_bet': 'migration 20261021223000_gtl_nba_app_bets.sql',
-  'gtl-api/nba/read': 'the gtl-api deploy with /nba/read',
-  'gtl-api/nba/save': 'the gtl-api deploy with /nba/save',
-  'gtl-api/bets/read': 'the gtl-api deploy with /bets/read',
-});
+// M-10 and both NBA migrations are hosted and /bets/read and /nba/* are deployed since October 22, 2026 (RELEASE_2026_10_22_MIGRATIONS.md).
+export const awaitingDeploy = Object.freeze({});
