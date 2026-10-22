@@ -203,6 +203,70 @@ base('line lock at 390px: every market is locked before a send, the Spread lines
     const first = card(page, world.state.games[0]);
     await expect(first.getByRole('button', { name: /^Dallas Cowboys -11\.5 \(−110\)/ })).toBeVisible();
     await expect(first.locator('.virtual-consensus')).toContainText('Consensus: -11.5 · 3 books');
+    // Changing units keeps the selected quote intact; only the stake changes, and nothing is written.
+    await first.getByRole('button', { name: /^Dallas Cowboys -11\.5 \(−110\)/ }).click();
+    const selected = first.locator('.virtual-selected-quote');
+    const originalQuote = await selected.innerText();
+    await first.getByRole('button', { name: '2U', exact: true }).click();
+    await expect(selected).toHaveText(originalQuote.replace(' · 1U · ', ' · 2U · '));
+    await first.getByRole('button', { name: 'Increase units', exact: true }).click();
+    await expect(selected).toHaveText(originalQuote.replace(' · 1U · ', ' · 2.5U · '));
+    expect(Number((await world.db.query('select count(*) as n from public.gtl_virtual_units_picks')).rows[0].n)).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// #140 salvage: Refresh lines can bring a newer book quote for the side a player already selected. Changing units must keep
+// the quote they reviewed (line, odds, book, time); the newer quote is shown beside it and applies only through
+// "Use updated quote", which keeps the side and units. The placed pick carries exactly the quote the player last chose.
+base('a refreshed quote never replaces the reviewed one when units change; Use updated quote applies it at 390px', async ({ page, baseURL }) => {
+  base.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { groupScreens: true, virtualUnits: true });
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const ids = world.state.games.map(game => game.id), byGame = values => Object.fromEntries(ids.map((id, i) => [id, values[i]]));
+    await storeBookLines(world, { spread: byGame(LOCK_LINES.spread), total: byGame(LOCK_LINES.total) }, { capturedAt: Date.now() - 120_000 });
+    await sendBallot(world, 'luke', 'guess_spread', byGame([-6.5, 2.5]));
+    await signIn(page, 'luke');
+    await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+    await openGroupVirtualUnits(page);
+    const first = card(page, world.state.games[0]), selected = first.locator('.virtual-selected-quote');
+    await first.getByRole('button', { name: /^Dallas Cowboys -11\.5 \(−110\)/ }).click();
+    await expect(selected).toContainText('Dallas Cowboys -11.5 (−110) · 1U · ');
+    const reviewed = await selected.innerText();
+    await expect(first.getByRole('button', { name: 'Use updated quote', exact: true })).toHaveCount(0);
+
+    // A newer collection moves the Dallas line by a point; the board shows it after Refresh lines.
+    const newerObservedAt = await storeBookLines(world, { spread: byGame([-10.5, 13.5]), total: byGame(LOCK_LINES.total) }, { capturedAt: Date.now() - 30_000 });
+    const refreshed = page.waitForResponse(response => response.url().includes('/gtl-api/virtual-units'));
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    await refreshed;
+    await expect(first.getByRole('button', { name: /^Dallas Cowboys -10\.5 \(−110\)/ })).toBeVisible();
+    await expect(selected).toHaveText(reviewed);
+    await expect(first).toContainText(/Updated quote: Dallas Cowboys -10\.5 \(−110\) · \w+/);
+    const useUpdated = first.getByRole('button', { name: 'Use updated quote', exact: true });
+    await expect(useUpdated).toBeVisible();
+    await first.screenshot({ path: '.local/previews/virtual-units-updated-quote-390.png' });
+
+    // Units change only the stake on the reviewed quote.
+    await first.getByRole('button', { name: '2U', exact: true }).click();
+    await expect(selected).toHaveText(reviewed.replace(' · 1U · ', ' · 2U · '));
+    await first.getByRole('button', { name: 'Increase units', exact: true }).click();
+    await expect(selected).toHaveText(reviewed.replace(' · 1U · ', ' · 2.5U · '));
+    await expect(useUpdated).toBeVisible();
+
+    // The explicit control takes the newer quote and keeps the side and units.
+    await useUpdated.click();
+    await expect(selected).toContainText('Dallas Cowboys -10.5 (−110) · 2.5U · ');
+    await expect(useUpdated).toHaveCount(0);
+    expect(Number((await world.db.query('select count(*) as n from public.gtl_virtual_units_picks')).rows[0].n)).toBe(0);
+    await first.getByRole('button', { name: 'Place virtual pick', exact: true }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Virtual pick saved' })).toBeVisible();
+    const saved = (await world.db.query("select selection from public.gtl_virtual_units_picks where game_id=$1 and market='spread'", [ids[0]])).rows;
+    expect(saved).toHaveLength(1);
+    expect(saved[0].selection).toMatchObject({ side: 'home', line: -10.5, odds: -110, units: 2.5 });
+    expect(Date.parse(saved[0].selection.quotedAt)).toBe(Date.parse(newerObservedAt));
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

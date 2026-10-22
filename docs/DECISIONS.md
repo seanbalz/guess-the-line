@@ -39,8 +39,9 @@ merge, deployment, real-phone acceptance or a new data integration.
 
 Sean approved the implementation plan after sequential product questions. His
 final sample clarification is “Just me + 1 other community member at least.”
-This extends D-50 and the wager research presentation in D-48/D-51. D-51 and
-D-52 are reserved on the separate recommendation and retirement PRs.
+This extends D-50 and the wager research presentation in D-48/D-51. D-51 was
+reserved on the separate recommendation PR (#140, closed October 21 without a
+log entry); D-52 is recorded below.
 
 - Compare yourself with one, several or all Community members. Inside a private
   league, restrict the response and selection to that league's roster. Retain
@@ -87,6 +88,44 @@ Implementation, dependency order and actual verification are recorded in
 [HOME_COMPARISONS_RELEASE.md](HOME_COMPARISONS_RELEASE.md). Approval to implement
 is not evidence of merge, SQL application or deployment. Existing release gates
 and unavailable production access remain unchanged.
+
+## D-52 — retire previous-app access while preserving records (October 15, 2026)
+
+Sean requested: “Let’s also make sure no one can access the previous version.
+Let’s sunset the previous version and only use the new app moving forward.
+Make sure nothing is lost though”. He then approved the recommendation to match
+the deployed app to current source before deciding what still needs work:
+“Move forward with rec”. This entry was recorded on PR #144 and carried to main
+on October 21, after PR #144 closed; the [dated October 15 audit](RETIREMENT_AUDIT_2026_10_15.md)
+is historical evidence for the app as deployed then (Pages `ed3fb50b`).
+
+- **New app only after cutover.** Remove classic selection through defaults,
+  preferences, query parameters, menus, deep links, error fallbacks and published
+  older entry points. Verify stale connected clients and installed launches too;
+  changing the default alone does not meet this request.
+- **Preservation before removal.** Retain accounts, memberships, guesses and
+  revisions, references, scores, bets, notes, journals, forecasts, Favorites,
+  history, audits and recoverable drafts with their permissions and provenance.
+  Finish missing new-app history/export/admin destinations and verify private
+  backup, recovery and before/after reconciliation before cutover. Do not
+  re-enter, re-score, silently submit or delete records to change the frontend.
+- **Keep working shared features.** The `WeekPicks`, `VirtualUnits` and
+  `SocialBetTracker` workflows already serve the new app. Preserve their
+  dependencies, add missing group draft recovery, and protect memory-only edits
+  and uncertain saves before any forced reload.
+- **Amends stages 80/81.** Stage 80 becomes the verified new-only cutover,
+  superseding D-38's optional classic mode and the two-week period of continued
+  old-app access. Stage 81 removes only unused source after cutover; shared code,
+  data readers and recovery support remain until proven unnecessary. Recovery
+  uses a compatible new-app build or a controlled recovery state, not an automatic
+  return to the previous UI.
+
+[RETIRE-01–04](../planning/new-app-retirement.md) track the work as queue item
+Q20; the [scrolling and recommendation-filter tasks](../planning/mobile-bets-followups.md)
+feed Q03 and Q04. October 21 context: the new app is now the four-tab Home / Play /
+Bets / Research shell (PR #162), with League inside Play and Lines and Fantasy
+inside Research, and `DEFAULT_APP` is still `classic`. This decision does not
+apply pending migrations, change Guess rules, or claim a production cutover.
 
 ## D-50 — immediate per-game scoring, score browsing and player trends (October 15, 2026)
 

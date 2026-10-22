@@ -48,31 +48,31 @@ explicitly when it cannot be established by automated tests.
 | --- | --- | --- |
 | Q01 | Backlog and branch reconciliation | Current register, this queue and the branch audit distinguish delivered, pending and unpublished work. PR #152 merged as 97c08b9 and all three integration checkouts were verified clean; preserve all other worktrees. |
 | Q02 | Deployment verification | PR #157 merged; check-only 39521037481, readiness 39521105364 and frontend release 39521335125 passed. Pages ad10f1c1 verified 95 assets at both URLs, with API/data/migrations unchanged. Evidence PR carries final merge/sync. |
-| Q03 | Mobile navigation and scrolling | Reconcile PR #144's UX-NEXT-01 and unpublished shell changes before implementing. Verify content and controls clear navigation/save bars at phone widths and safe areas in both themes. |
-| Q04 | Bets filters | Q16 delivered visible result/market filters, owner-scoped weeks and empty states for actual tickets. Reconcile PR #144's remaining BETS-NEXT-01 scope before closing this broader item; native/Virtual Units reader delivery remains Q06. |
-| Q05 | Recommendation refinements | Reconcile PR #140 against current main: actual-offer ranking, quote-preserving edits, private forecasts and weekly summaries. Its additive writer remains separate from the applied scoring chain. Exact-head tests and release/readback required. |
+| Q03 | Mobile navigation and scrolling | Requirements: UX-NEXT-01 in [mobile-bets-followups](mobile-bets-followups.md) (carried from closed PR #144; the four-tab shell from #162 covers part of it). Reconcile unpublished shell changes before implementing. Verify content and controls clear navigation/save bars at phone widths and safe areas in both themes. |
+| Q04 | Bets filters | Q16 delivered visible result/market filters, owner-scoped weeks and empty states for actual tickets. The remaining Recommended All / Spreads / Totals scope is BETS-NEXT-01 in [mobile-bets-followups](mobile-bets-followups.md) (carried from closed PR #144); native/Virtual Units reader delivery remains Q06. |
+| Q05 | Recommendation refinements | PR #140 (D-51) closed October 21: D-54 replaced its ranking and #159 moved Recommended to actual-ticket tracking. Its reviewed-quote fix for stake changes moved to a separate small PR. Sean to reconfirm before any rebuild: private forecasts as a comparison basis, editing pending Virtual Units picks, weekly summaries, actionable-first order. Its additive writer remains separate from the applied scoring chain. Exact-head tests and release/readback required. |
 | Q06 | Account-level Bets access | M-10 reader remains unhosted. Reconcile PR #148's release notes; verify dependencies, grants, gated reads and scope. This does not finish account-level placement or all native Bets screens. |
 | Q07 | Guess score comparisons | D-53 comparison migration remains unhosted. Verify common-game eligibility, independent markets and private-roster boundaries; never mutate scoring references or official rank. |
 | Q08 | Account preferences | D-53 preferences migration remains unhosted. Verify saved settings, reload, revisions and account isolation. |
 | Q09 | Onboarding and cross-device acceptance | Verify supported signup/sign-in, recovery, invitations and existing-account continuity on a second device. Old setup notes are not current live evidence. |
 | Q10 | Phone notification acceptance | Verify actual iPhone Home Screen opt-in, due delivery, tap destination, opt-out and deduplication. Existing sender deployment alone is insufficient. |
-| Q11 | Fantasy refresh | Existing rankings use a fixed Week 6 snapshot. Establish permitted refresh, source/time coverage, week alignment, stale and partial-failure behavior. Reconcile PR #147's usage-analysis requirements. |
+| Q11 | Fantasy refresh | Existing rankings use a fixed Week 6 snapshot. Establish permitted refresh, source/time coverage, week alignment, stale and partial-failure behavior. Usage-analysis requirements from closed PR #147 are in [FANTASY_FOOTBALL.md](../docs/FANTASY_FOOTBALL.md#usage-tracker-requirements-queue-q11q14). |
 | Q12 | Fantasy profiles and usage | Extend existing details with available usage, actuals, recent/season comparisons and samples. Preserve distinction between observed production and statistical pace estimates. |
 | Q13 | NFL player comparisons | Side-by-side player analysis with common scoring format and period; distinct from Q07's Guess-player score comparisons. |
 | Q14 | Fantasy matchup tools | Extend basic opponent information with useful sourced matchup context. No unvalidated predictive advantage claims. |
 | Q15 | Trade-value charts | New requested scope: establish permitted free sources, league formats, attribution and timestamps. Different provider scales must not be silently combined. No source is connected by this task. |
 | Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. October 21 follow-up connects reviewed recommendations to actual tickets and adds a grouped owner list; #159 merged, Pages dcfb977b verified with preserved data/API. Closeout CI/merge and final documentation sync are pending; its PR body will record verified results. Phone acceptance remains separate. |
-| Q17 | Remaining native destinations | Reconcile PR #144's preservation/recovery checklist and the inventory: League/Bets screens, history, exports, commissioner tools and old records must retain working homes. |
+| Q17 | Remaining native destinations | Use RETIRE-01's preservation/recovery checklist in [new-app retirement](new-app-retirement.md) (carried from closed PR #144) and the inventory: League/Bets screens, history, exports, commissioner tools and old records must retain working homes. |
 | Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. |
 | Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. |
-| Q20 | New-app-only transition | Follow D-52 direction in PR #144 after preservation, destinations, access and operator recovery are verified. Remove only unused screens/code; never player records. |
+| Q20 | New-app-only transition | Follow D-52 ([decision log](../docs/DECISIONS.md), [RETIRE-01–04](new-app-retirement.md)) after preservation, destinations, access and operator recovery are verified. Remove only unused screens/code; never player records. |
 
 ## Separate later scope
 
 - Simulated NFL games: input/model validation, held-out evaluation, serving and acceptance remain; the historical aggregate baseline does not validate a player simulator.
 - Native iPhone application: separate deliverable and scope/budget decision, not fulfilled by the mobile website.
 - Additional notifications and outside feeds: reconcile requested channels, free-only permissions and actual delivery requirements.
-- Private Fantasy league/roster integrations and expert projections from PR #147 need source/access decisions; existing static rankings do not provide them.
+- Private Fantasy league/roster integrations and expert projections (requirements in [FANTASY_FOOTBALL.md](../docs/FANTASY_FOOTBALL.md#usage-tracker-requirements-queue-q11q14)) need source/access decisions; existing static rankings do not provide them.
 - Other user suggestions need their actual request recorded before entering this queue.
 
 ## Branch and local-work audit
@@ -83,11 +83,11 @@ stashed, deleted or silently merged. Open PRs are source evidence, not hosted pr
 | Existing PR | Disposition |
 | --- | --- |
 | [Scoring release approval #142](https://github.com/seanbalz/guess-the-lines-repo/pull/142) | Superseded by applied/verified release #145 and permanent timing policy #151. Historical evidence retained in GitHub; no implementation merge needed. |
-| [Mobile/retirement audit #144](https://github.com/seanbalz/guess-the-lines-repo/pull/144) | Retain requirements; consume/reconcile in Q03, Q04, Q17 and Q20. Its old release snapshot is historical. |
-| [Fantasy usage requirements #147](https://github.com/seanbalz/guess-the-lines-repo/pull/147) | Retain requirements for Q11–Q14 and later private league context. Documentation only; not an integration. |
-| [Merged weather/Bets release #148](https://github.com/seanbalz/guess-the-lines-repo/pull/148) | Retain for Q06. Weather is already applied; access and scoring blockers are obsolete. M-10 still needs release. Do not replay weather/scoring migrations. |
-| [Home/Fantasy release verification #150](https://github.com/seanbalz/guess-the-lines-repo/pull/150) | Verifier fix reconciled and superseded by merged #157, verified in release 39521335125. Preserve remaining branch history; stale Pages/API/weather and registry claims were not imported. |
-| [Recommendation refinements #140](https://github.com/seanbalz/guess-the-lines-repo/pull/140) | Retain implementation for Q05. Earlier green checks are not checks of a future integration head. Old timing restrictions are superseded. |
+| [Mobile/retirement audit #144](https://github.com/seanbalz/guess-the-lines-repo/pull/144) | Closed October 21. D-52, RETIRE-01–04, UX-NEXT-01 and BETS-NEXT-01 and the dated audit were carried to main for Q03, Q04, Q17 and Q20. Its five-tab README/register notes were not carried. |
+| [Fantasy usage requirements #147](https://github.com/seanbalz/guess-the-lines-repo/pull/147) | Closed October 21. Requirements carried to FANTASY_FOOTBALL.md for Q11–Q14. Documentation only; not an integration. |
+| [Merged weather/Bets release #148](https://github.com/seanbalz/guess-the-lines-repo/pull/148) | Closed October 21 as obsolete. Weather is applied and core scoring is live. M-10 stays Q06 and needs a fresh preflight. Branch kept. |
+| [Home/Fantasy release verification #150](https://github.com/seanbalz/guess-the-lines-repo/pull/150) | Closed October 21 as superseded by #157. Branch kept for its October 16 Pages `0933a030` and D-47 apply evidence. |
+| [Recommendation refinements #140](https://github.com/seanbalz/guess-the-lines-repo/pull/140) | Closed October 21. D-54 and #159 replaced its ranking and Recommended flow; the reviewed-quote fix for stake changes moved to its own PR. Remaining D-51 ideas are listed under Q05 for Sean to reconfirm. Its migration `20261015190955` was never applied. Branch kept. |
 
 Windows main and Neo main were clean at `eb4e5e1a7f14a2a863e98ceed9e4744c11603393`;
 Mini shared-sync was clean at the same commit. The two existing Windows release
