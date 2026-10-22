@@ -211,6 +211,31 @@ test('contrast: text and icons at least 4.5:1, control edges and focus at least 
   assert.ok(read('docs/BRAND_GUIDE.md').includes(`lime on the light surfaces is only ${range}`), `docs/BRAND_GUIDE.md says lime on the light surfaces is ${range}`);
 });
 
+// D-55: the glow card (hero and opened trend), its glass pills and the chart marks. Glass and track are translucent
+// in dark, so each is composited over the card's base color before measuring. Contract: words on the card and on a
+// glass pill stay at least 4.5:1, and the chart line, the hit-rate bars and the break-even tick stay at least 3:1.
+test('D-55 glow card: text, glass, chart line, bars and the break-even tick keep contrast in both themes', () => {
+  const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  const over = (top, base) => {
+    const alpha = top.length === 9 ? parseInt(top.slice(7, 9), 16) / 255 : 1;
+    const [a, b] = [rgb(top), rgb(base)];
+    return `#${a.map((v, i) => Math.round(v * alpha + b[i] * (1 - alpha)).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+  };
+  for (const name of ['dark', 'light']) {
+    const c = tokens.themes[name].color, base = c['hero-base'], glass = over(c.glass, base), track = over(c.track, base);
+    const failures = [];
+    for (const [fg, bg, min, label] of [
+      [c['text-1'], base, 4.5, 'text-1 on the card'], [c['hero-text-2'], base, 4.5, 'hero-text-2 on the card'],
+      [c['text-1'], glass, 4.5, 'text-1 on glass'], [c['hero-text-2'], glass, 4.5, 'hero-text-2 on glass'],
+      [c['chart-line'], base, 3, 'chart line on the card'], [c['bar-1'], track, 3, 'bar start on its track'],
+      [c['text-1'], track, 3, 'break-even tick on the track'],
+    ]) { const ratio = contrast(fg, bg); if (ratio < min) failures.push(`${name} ${label}: ${ratio.toFixed(2)}`); }
+    assert.deepEqual(failures, []);
+    // Lime stays the primary action: as a chart color it is only the last, decorative stop of the glow.
+    assert.ok(!Object.entries(c).some(([key, value]) => value === c.accent && !['accent', 'accent-ink', 'glow-3'].includes(key)), `${name}: lime only as accent, accent-ink or glow-3`);
+  }
+});
+
 test('gx- prefix: every class, custom property and keyframe is gx-, and every selector stays inside .gx', () => {
   for (const rule of allRules) for (const selector of rule.selectors) {
     for (const [, name] of selector.replace(/\[[^\]]*\]/g, '').matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)) assert.match(name, /^gx(-|$)/, `${rule.file}: class .${name} in "${selector}"`);

@@ -10,6 +10,7 @@ import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { useShell } from '../shell/context.js';
 import { AccountPreferences } from './AccountPreferences.jsx';
 import { ProfileSettings } from './ProfileSettings.jsx';
+import { GUIDANCE_ORDER, INFO } from '../info.js';
 
 export const MENU_COPY = Object.freeze({
   title: 'Menu',
@@ -20,6 +21,7 @@ export const MENU_COPY = Object.freeze({
   signingOut: 'Signing out…',
   theme: 'Theme',
   themes: [{ value: 'dark', label: 'Dark' }, { value: 'light', label: 'Light' }, { value: 'system', label: 'System' }],
+  guidance: 'Guidance and sources',
   reduceMotion: 'Reduce motion',
   reduceMotionSub: 'Your device’s own setting also stops motion.',
   saved: 'Saved on this device, not your account. The old app uses the same setting.',
@@ -46,11 +48,32 @@ function Appearance() {
   );
 }
 
+/** D-55: every ⓘ topic in one list, with its sources and licenses. */
+function Guidance() {
+  return GUIDANCE_ORDER.map(key => {
+    const topic = INFO[key];
+    return (
+      <section key={key} className="gx-vstack gx-gap-8" data-guidance={key}>
+        <h3 className="gx-t-strong">{topic.title.replace(/^About /, '').replace(/^./, c => c.toUpperCase())}</h3>
+        {topic.body.map(text => <p key={text} className="gx-t-body gx-c-2">{text}</p>)}
+        {(topic.links ?? []).map(link => <a key={link.url + link.text} className="gx-t-meta gx-info-link" href={link.url} target="_blank" rel="noreferrer">{link.text}</a>)}
+      </section>
+    );
+  });
+}
+
 export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
   if (args.sub === 'preferences') return <AccountPreferences key={shell.you.id}/>;
   if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
+  if (args.sub === 'guidance') {
+    return (
+      <Sheet title={MENU_COPY.guidance} back={{ label: MENU_COPY.title, onBack: () => shell.setSheetArgs({ sub: null }) }} onClose={shell.closeSheet} tall>
+        <Guidance/>
+      </Sheet>
+    );
+  }
   if (args.sub === 'appearance') {
     return (
       <Sheet title={MENU_COPY.appearance} back={{ label: MENU_COPY.title, onBack: () => shell.setSheetArgs({ sub: null }) }} onClose={shell.closeSheet}>
@@ -74,6 +97,7 @@ export function MenuSheet({ args }) {
         <List>
           <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
+          <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
           <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
         </List>

@@ -29,7 +29,6 @@ export function WeeklyScoreContent({ data, view, onChange, onRefresh, onPicks })
   const immediate = entry?.scoreTiming === 'immediate';
   return <section className="gx-score gx-vstack gx-gap-16" aria-label="Your weekly score">
     <Button onClick={() => onChange({ section: 'compare' })}>Compare players</Button>
-    <p className="gx-t-body gx-c-2">Points measure how close your guess was to its saved scoring line. NFL results do not change those points.</p>
     <div className="gx-score-filters">
       <label className="gx-t-body">Season<select className="gx-input" value={data.season ?? ''} onChange={event => onChange({ season: Number(event.target.value), week: null, matchup: '' })}>{(data.seasons || []).map(value => <option key={value} value={value}>{value}</option>)}</select></label>
       <label className="gx-t-body">Week<select className="gx-input" value={weekNumber ?? ''} onChange={event => onChange({ week: Number(event.target.value), matchup: '' })}>{Number.isInteger(weekNumber) && !week && <option value={weekNumber}>Week {weekNumber} · no record</option>}{weeks.map(item => <option key={item.week} value={item.week}>Week {item.week}</option>)}</select></label>

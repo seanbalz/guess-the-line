@@ -89,6 +89,8 @@ test('score buttons keep one-line labels and Pick’em keeps its padding at 320 
     await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
     await page.goto('/#home');
     await signIn(page, 'luke', { navigate: false });
+    // Sign-in must land before the first navigation, or the reload can reopen signed out.
+    await expect(page.locator('[data-landing="home"]')).toBeVisible();
     for (const width of [320, 390]) {
       await page.setViewportSize({ width, height: 844 });
       await open(page, '#play/score');

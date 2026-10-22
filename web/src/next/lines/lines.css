@@ -91,3 +91,5 @@
 /* ----- All trends sheet ----- */
 .gx-l-agroup { display: flex; flex-direction: column; gap: 8px; }
 .gx-l-alist { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+/* D-55: a section heading or sheet line with its ⓘ at the end. */
+.gx-l-sechead { display: flex; align-items: center; gap: 8px; min-width: 0; }

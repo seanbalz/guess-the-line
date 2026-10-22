@@ -202,7 +202,12 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     await expect(sea.locator('[data-chip="weather"] svg, [data-chip="weather"] a')).toHaveCount(0);
     await expect(sea).toHaveAttribute('aria-label', /Kickoff weather: Rain likely\./);
     expect(await page.locator('[data-chip="weather"]').count()).toBe(1);
-    await expect(page.getByText('Line now arrives in a later update.')).toBeVisible();
+    // D-55: the credits and "Line now arrives…" are behind the title's ⓘ.
+    await page.getByRole('button', { name: 'About trends', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About trends' })).toContainText('Line now arrives in a later update.');
+    await expect(page.getByRole('dialog', { name: 'About trends' }).getByRole('link', { name: /nflverse/ })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'About trends' })).toBeHidden();
     await phoneChecks(page);
     await noLeak(page, world, 'the board');
 
@@ -264,7 +269,8 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     const situational = all.locator('[data-group="situational"] li[data-trend]');
     expect(await situational.count()).toBeGreaterThan(10);
     await expect(situational.nth(0)).toHaveAttribute('data-trend', 'locked');
-    await expect(situational.nth(1).locator('.gx-l-tnums')).toContainText(/\d[\d,]*–\d[\d,]*.*\d[\d,]* games/);
+    // D-55: each row shows its percent (or two-sided record) and sample size; opening it shows the rest.
+    await expect(situational.nth(1).locator('.gx-tc-row-sub')).toContainText(/(\d+%|\d[\d,]*–\d[\d,]*(–\d[\d,]*)?) · \d[\d,]* games?/);
     await all.locator('[data-group="line"]').getByRole('button').click();
     await expect(all.locator('[data-group="line"]')).toContainText('Submit your Spread picks to see its Spread line-based records.');
     await expect(all.locator('[data-group="referee"] button')).toContainText('Not assigned yet');
@@ -295,9 +301,13 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     // HOU @ JAX's top trend is a team trend that needs no line, with its record and sample size.
     const londonTop = london.getByRole('list', { name: 'Top trends for this game' }).getByRole('listitem');
     await expect(londonTop.first()).toContainText('Rarely covering this season · HOU');
-    await expect(londonTop.first()).toContainText('Teams in the Texans’ spot covered 444 times and missed 364 since 2002.');
     await expect(londonTop.first()).toContainText('444–364–22');
     await expect(londonTop.first()).toContainText('830 games');
+    // D-55: the chart opens with the trend, and its plain sentence is in the trend's ⓘ.
+    await expect(londonTop.first().locator('[data-trend-detail]')).toBeVisible();
+    await londonTop.first().getByRole('button', { name: 'About this trend', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About this trend' })).toContainText('Teams in the Texans’ spot covered 444 times and missed 364 since 2002.');
+    await page.getByRole('dialog', { name: 'About this trend' }).getByRole('button', { name: 'Close', exact: true }).click();
     await page.goBack();
     await expect(london).toBeHidden();
     expect(calls.filter(call => call === 'POST /wind/read'), 'one wind read for the board and every sheet').toHaveLength(1);

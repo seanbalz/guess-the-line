@@ -12,7 +12,6 @@
 .gx-h-status { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
 
 /* ----- who's in ----- */
-.gx-h-who { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .gx-h-who > .gx-vstack { min-width: 0; }
 
 /* ----- rank tiles ----- */
@@ -27,3 +26,41 @@
 .gx-h-tile .gx-t-meta { overflow-wrap: anywhere; }
 
 .gx .gx-home-guide { padding-left: var(--gx-space-6); display: grid; gap: var(--gx-space-3); }
+
+/* ----- D-55 round 3 ----- */
+/* One progress bar per market under its status line; the words carry the count. */
+.gx-h-progress { display: flex; flex-direction: column; gap: 6px; }
+.gx-h-bar { position: relative; display: block; height: 8px; border-radius: var(--gx-radius-pill); background: var(--gx-track); overflow: hidden; }
+.gx-h-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: var(--gx-radius-pill); background-image: linear-gradient(90deg, var(--gx-bar-1), var(--gx-bar-2)); }
+.gx-h-status { align-self: stretch; gap: 12px; }
+
+/* Three stat tiles: a label, one number and its chase line or count. */
+.gx-h-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.gx-h-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 96px;
+  padding: 12px 10px;
+  border: 0;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+  box-shadow: var(--gx-e1);
+  color: var(--gx-text-1);
+  text-align: start;
+  cursor: pointer;
+}
+.gx-h-stat > .gx-t-meta { overflow-wrap: anywhere; }
+.gx-h-stat:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx-h-stat-value { font: 700 28px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+
+/* Who's in: faces first, one status word each, then Standings and Invite. */
+.gx-h-who { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; }
+.gx-h-who-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.gx-h-people { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.gx-h-person { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.gx-h-person > .gx-t-body { min-width: 0; overflow-wrap: anywhere; }
+.gx-h-who-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.gx-h-who-actions > .gx-btn { flex: 1 1 140px; }

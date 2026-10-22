@@ -1,0 +1,73 @@
+// D-55 rule 10: the fine print every ⓘ opens, in one place. Each topic is `{ title, body, links }` for InfoButton;
+// Menu › Guidance and sources lists every topic, so nothing that left a screen is lost. Wording is carried over from
+// the screens it came from; the data credits are the same text and links the footers showed.
+import { TRENDS_FOOTNOTE } from '../../../shared/trends-view.mjs';
+import { LINES_COPY, footer } from '../../../shared/lines-view.mjs';
+
+const credits = footer({ forecastShown: true });
+export const TRENDS_LINKS = Object.freeze([
+  { text: credits.trends.text, url: credits.trends.url },
+  { text: `License: ${credits.trends.license}`, url: credits.trends.licenseUrl },
+]);
+export const WEATHER_LINKS = Object.freeze([
+  { text: credits.wind.text, url: credits.wind.url },
+  { text: `License: ${credits.wind.license}`, url: credits.wind.licenseUrl },
+]);
+
+export const INFO = Object.freeze({
+  trends: {
+    title: 'About trends',
+    body: [
+      TRENDS_FOOTNOTE,
+      'U means units at −110: a win adds 0.91 and a loss takes 1. Break-even is 52.4%, the tick on each bar.',
+      'Not proven: a pattern that held in 2002–2017 and in 2018–2025. Searching many situations finds some patterns by chance.',
+      'Line-based trends unlock when that market is open to you.',
+      LINES_COPY.lineLater,
+    ],
+    links: TRENDS_LINKS,
+  },
+  research: {
+    title: 'About research',
+    body: [
+      'Historical consistency does not establish a betting advantage.',
+      'The frozen Tier 2 study qualified roughly as many patterns on shuffled outcomes as on actual outcomes. The recent consistency rule also produces chance qualifiers. Searching many situations can produce apparently strong records by chance; these are descriptive selections, not proven predictions.',
+      'Support describes a relationship to a lean. Consistency describes the historical pattern. Overlapping patterns share a group; groups are not independent probabilities.',
+      'Chart and table use chronological bins of the same selected games; each point is a bin endpoint, not an individual result. Pushes return zero units.',
+    ],
+    links: TRENDS_LINKS,
+  },
+  trackedBets: {
+    title: 'About tracked bets',
+    body: [
+      'Tracked bets are shared with all signed-in players, including when you select a private league. Results are player reported.',
+      'This records a bet you placed elsewhere. It never places a wager or moves money.',
+      'ROI is net units divided by units risked on settled bets with complete returns.',
+    ],
+  },
+  recommended: {
+    title: 'About Recommended',
+    body: [
+      'Compare your locked guesses with current lines. Track a ticket placed elsewhere, or play with Virtual Units.',
+      'Differences are compared as a percentage of the line; they are not win probabilities.',
+    ],
+  },
+  virtual: {
+    title: 'About Virtual Units',
+    body: [
+      'Your account’s Virtual Units picks are reused across your leagues.',
+      'Virtual Units are play money: one unit is $100 of virtual money, and nothing is wagered.',
+    ],
+  },
+  scores: {
+    title: 'About your scores',
+    body: ['Points measure how close your guess was to its saved scoring line. NFL results do not change those points.'],
+  },
+  weather: {
+    title: 'About weather',
+    body: ['Forecasts come from Open-Meteo and are reference only. The credit also sits beside every forecast value.'],
+    links: WEATHER_LINKS,
+  },
+});
+
+/** The order Menu › Guidance and sources lists the topics in. */
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'trends', 'research', 'trackedBets', 'recommended', 'virtual', 'weather']);

@@ -11,13 +11,12 @@ export function ChartGraphic({ series, label = 'Selected historical sample' }) {
     <polyline points={coords.map(p => p.join(',')).join(' ')} className="gx-r-series"/>
   </svg>;
 }
+/** The evidence table for one candidate (D-55: its chart is the card's TrendLine, and the bins note is in ⓘ). */
 export default function ResearchChart({ candidate }) {
   const series = candidate.series;
-  if (!series) return <p className="gx-t-meta">Historical chart unavailable.</p>;
+  if (!series) return <p className="gx-t-meta">Historical table unavailable.</p>;
   return <div className="gx-vstack gx-gap-8">
-    <p className="gx-t-label">Illustrative units at -110</p>
-    <ChartGraphic series={series} label={candidate.title}/>
-    <p className="gx-t-meta">{series.binned ? 'Chart and table use chronological bins of the same selected games; each point is a bin endpoint, not an individual result.' : 'Chart and table use the same selected games.'} Pushes return zero units.</p>
+    <p className="gx-t-label">Illustrative units at -110{series.binned ? ' · chronological bins' : ''}</p>
     <div className="gx-r-table-wrap" tabIndex={0} role="region" aria-label="Historical results table">
       <table className="gx-r-table">
         <caption>Selected sample: {series.selectedSample} games · cumulative illustrative units at -110</caption>

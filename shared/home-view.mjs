@@ -78,6 +78,29 @@ export function homeHero({ community = null, now = null } = {}) {
 }
 
 /**
+ * D-55: one progress bar per market for the hero, from the same `due` rows as the status lines: `{ mode, label,
+ * done, of, state }` where state is 'locked' (per-game locks), 'sent', 'satOut' or 'draft'. A sent ballot is full, a
+ * sit-out is empty, and a draft or per-game market counts what is filled or locked out of the week's games. No week,
+ * no bars.
+ */
+export function heroProgress({ community = null } = {}) {
+  const week = record(community?.week) ? community.week : null;
+  const picksDue = record(community?.picksDue) ? community.picksDue : null;
+  if (!Number.isInteger(picksDue?.week) && !Number.isInteger(week?.week)) return [];
+  const perGame = community?.rules?.perGameScoring === true;
+  const games = Array.isArray(week?.games) ? week.games.length : Number(week?.games) || 0;
+  const due = Array.isArray(community?.due) ? community.due : [];
+  return MODES.map(mode => {
+    const row = due.find(d => d?.mode === mode) ?? null, label = MODE_LABEL[mode];
+    const of = Number(row?.games) || games;
+    if (perGame && Number.isInteger(row?.locked)) return { mode, label, done: row.locked, of: Math.max(of, row.locked + (Number(row.openGames) || 0)), state: 'locked' };
+    if (row?.submitted === true) return { mode, label, done: of, of, state: 'sent' };
+    if (row?.satOut === true) return { mode, label, done: 0, of, state: 'satOut' };
+    return { mode, label, done: Math.min(Number(row?.filled) || 0, of), of, state: 'draft' };
+  });
+}
+
+/**
  * The tiles under the hero: who's in (the Spread ballot, the one every member is asked for first), the Spread and
  * Total rank tiles (ranked apart, never summed) and the Spread chase line. `viewer` defaults to the reply's viewer.
  */

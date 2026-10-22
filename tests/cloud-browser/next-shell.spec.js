@@ -206,7 +206,7 @@ test.describe('the real app', () => {
       await expect(avatar).toBeFocused();
       await expect(title(page, 'Home')).toBeVisible();
 
-      // Keyboard: the menu wraps in both directions, then Profile and Settings precede Appearance in the tab order.
+      // Keyboard: the menu wraps in both directions, then Profile, Settings and Guidance precede Appearance in the tab order.
       // Appearance changes the view in place and focus stays in the sheet.
       await avatar.focus();
       await page.keyboard.press('Enter');
@@ -221,6 +221,9 @@ test.describe('the real app', () => {
       await expect(menu.getByRole('button', { name: 'Profile', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Settings · sportsbooks and guidance', exact: true })).toBeFocused();
+      await page.keyboard.press('Tab');
+      // D-55: every ⓘ topic is also listed under Guidance and sources.
+      await expect(menu.getByRole('button', { name: 'Guidance and sources', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Appearance', exact: true })).toBeFocused();
       await page.keyboard.press('Enter');

@@ -268,13 +268,15 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   background: var(--gx-surface-1);
   box-shadow: var(--gx-e1);
 }
-/* The Home hero: 24 radius, yard lines in dark (none in light). */
+/* D-55: each root's one action card glows (deep blue in Dark, a soft white report card in Light), with glass
+   countdown tiles. 24 radius. */
 .gx-card--hero {
   padding: 20px;
   border-radius: var(--gx-radius-lg);
-  background-image: var(--gx-yardlines);
-  box-shadow: var(--gx-hero-shadow);
+  background: var(--gx-hero-card);
+  box-shadow: var(--gx-hero-ring);
 }
+.gx-card--hero .gx-cd-tile { background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); backdrop-filter: var(--gx-glass-blur); }
 .gx-card--flush { padding: 0; overflow: hidden; }
 .gx-card--flush :focus-visible { outline-offset: -3px; }
 .gx-card--tint { background: var(--gx-accent-tint); }
@@ -757,6 +759,28 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   background: var(--gx-overlay);
   animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard);
 }
+/* D-55 ⓘ: a native dialog drawn as a bottom sheet, above any open sheet. */
+.gx-info {
+  width: 100%;
+  max-width: var(--gx-size-content);
+  max-height: calc(100% - var(--gx-size-topbar));
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--gx-radius-lg) var(--gx-radius-lg) 0 0;
+  background: var(--gx-surface-2);
+  color: var(--gx-text-1);
+  box-shadow: var(--gx-e3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.gx-info[open] { display: block; animation: gx-sheet-in var(--gx-dur-base) var(--gx-ease-enter); }
+.gx-info::backdrop { background: var(--gx-overlay); animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard); }
+.gx-info-panel { display: flex; flex-direction: column; gap: 12px; padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
+.gx-info-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gx-info-links { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.gx-info-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--gx-data); text-decoration: underline; }
+.gx-info-btn { flex: none; color: var(--gx-text-2); }
 .gx-dialog-title { font: 700 20px/24px var(--gx-font-display); text-transform: uppercase; letter-spacing: 0.04em; }
 .gx-dialog-text { color: var(--gx-text-2); }
 .gx-dialog-actions { display: flex; flex-direction: column; gap: 8px; }

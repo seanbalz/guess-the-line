@@ -5,7 +5,8 @@ import { WeekPicks } from '../../CommunityHome.jsx';
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { useShell } from '../shell/context.js';
-import { Button } from '../ui/index.js';
+import { Button, InfoButton } from '../ui/index.js';
+import { INFO } from '../info.js';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { HomeGuide } from '../home/HomeGuide.jsx';
 import { useAccountPreferences } from '../me/AccountPreferences.jsx';
@@ -87,7 +88,7 @@ function PlayDetail() {
   };
 
   if (shell.state.views.play.section === 'compare') return <div className="gx-screen gx-vstack gx-gap-16"><h1 className="gx-t-title">Compare players</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button><ScoreComparison/></div>;
-  if (score) return <div className="gx-screen gx-vstack gx-gap-16"><h1 className="gx-t-title">Your weekly score</h1><WeeklyScore/></div>;
+  if (score) return <div className="gx-screen gx-vstack gx-gap-16"><div className="gx-play-titlebar"><h1 className="gx-t-title gx-grow">Your weekly score</h1><InfoButton title={INFO.scores.title} body={INFO.scores.body}/></div><WeeklyScore/></div>;
   if (perGameReady(personal.data?.rules)) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16"><h1 className="gx-t-title">Your guesses</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button><SelectedPlay app={app} shell={shell} current={personal.data} mode={market || 'guess_spread'} onMode={marketNavigation.write}/></div>;
   return (
     <div className="gx-screen gx-live-workflow gx-live-play">
