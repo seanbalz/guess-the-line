@@ -131,6 +131,8 @@
   overflow: visible;
   text-overflow: clip;
 }
+/* Pick'em sits between the teams at its own width; give its label the same breathing room as the team chips. */
+.gx .gx-live-play .gx-play-entry button[class~="team-chip"][data-side="pickem"] { padding-inline: var(--gx-space-3); }
 /* Full team names stay in the matchup and accessible name; abbreviations fit the favorite controls. */
 .gx .gx-live-play .gx-play-entry button[class~="team-chip"]:not([data-side="pickem"]) {
   font: 700 20px/24px var(--gx-font-num);

@@ -423,3 +423,46 @@ test('an inclusion save finishing after a filter change does not invalidate the 
     await world.db.close();
   }
 });
+
+// Contract: on a phone, every tracker toolbar control keeps its whole label and icon inside its own box and inside
+// the screen, and no two controls overlap, in every view, both themes, at 320 and 390 (Sean's October 21 screenshot:
+// "Following" was squeezed into the 44px refresh column and spilled over the Player select).
+test('the tracked-bet toolbar fits a phone in every view: Following, Player and refresh never clip or overlap', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL);
+  try {
+    await openBets(page);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        for (const value of ['mybets', 'feed', 'myweek', 'compare', 'history']) {
+          await page.getByLabel('Bet tracker view').selectOption(value);
+          const toolbar = page.locator('.social-toolbar');
+          await expect(toolbar.getByRole('button', { name: 'Refresh bet tracker', exact: true })).toBeVisible();
+          if (value !== 'mybets') await expect(toolbar.getByRole('button', { name: 'Following', exact: true })).toBeVisible();
+          const problems = await toolbar.evaluate(bar => {
+            const out = [], vw = document.documentElement.clientWidth;
+            const controls = [...bar.querySelectorAll('button, select')].filter(el => el.getClientRects().length);
+            for (const el of controls) {
+              const r = el.getBoundingClientRect(), name = el.getAttribute('aria-label') || el.textContent.trim().slice(0, 30);
+              if (el.scrollWidth > el.clientWidth + 1) out.push(`${name}: content wider than its box`);
+              if (r.left < 0 || r.right > vw + 0.5) out.push(`${name}: outside the screen`);
+              for (const child of el.querySelectorAll('svg')) { const c = child.getBoundingClientRect(); if (c.left < r.left - 0.5 || c.right > r.right + 0.5) out.push(`${name}: icon outside its box`); }
+              for (const other of controls) {
+                if (other === el) continue;
+                const q = other.getBoundingClientRect();
+                if (Math.min(r.right, q.right) - Math.max(r.left, q.left) > 1 && Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top) > 1) out.push(`${name}: overlaps ${other.getAttribute('aria-label') || other.textContent.trim().slice(0, 30)}`);
+              }
+            }
+            const refresh = bar.querySelector('.icon-button').getBoundingClientRect();
+            if (refresh.width > 48) out.push(`refresh: ${Math.round(refresh.width)}px wide, expected the 44px icon button`);
+            return [...new Set(out)];
+          });
+          expect(problems, `${theme} ${width}px ${value}`).toEqual([]);
+        }
+      }
+    }
+  } finally {
+    await world.db.close();
+  }
+});
