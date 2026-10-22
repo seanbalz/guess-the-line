@@ -43,7 +43,7 @@ export const apiChecks = Object.freeze([
   ['journal/correct', {}],
   ['journal/archive', {}],
   ['journal/history', { entryId: missingId }],
-  // M-09 private notes routes (awaitingDeploy): signed-out probes prove only authentication protection.
+  // M-09 private notes routes: signed-out probes prove only authentication protection.
   ['personal/notes', {}],
   ['personal/note', {}],
   ['push/status', {}],

@@ -8,7 +8,7 @@ export const tables = Object.freeze(['odds_budget', 'odds_collections', 'market_
 export const rpcChecks = Object.freeze([
   // D-27 (20261012230000): the slate the scheduled collector reads; service-only.
   ['gtl_odds_schedule_slate', { p_season: 2026, p_week: 5, p_signature: {} }],
-  // M-05 (stage 22, 20261014221500): the previous week's unstarted games the collector keeps; service-only, awaiting the apply.
+  // M-05 (stage 22, 20261014221500, hosted as 20261019234718): the previous week's unstarted games the collector keeps; service-only.
   ['gtl_odds_carryover_slate', { p_at: null }],
   ['gtl_odds_commissioner', { p_user: missingId }],
   ['gtl_begin_odds_collection', { p_user: missingId, p_request: missingId, p_operation: 'preflight' }],
@@ -18,16 +18,16 @@ export const rpcChecks = Object.freeze([
   ['gtl_claim_odds_refresh', { p_token: '0'.repeat(64), p_run: missingId }],
   ['gtl_complete_odds_refresh', { p_run: missingId, p_claim: missingId, p_reason: 'provider_failed' }],
   ['gtl_read_odds_schedule', { p_user: missingId, p_league: missingLeague }],
-  // Game referees for situational trends (October 12, 2026 ruling): two service-only RPCs from 20261012234500_gtl_game_officials.sql.
-  // Awaiting deploy (see awaitingDeploy below), so they alone do not fail check:cloud for a Pages-only deploy of the trend panels.
+  // Game referees for situational trends (October 12, 2026 ruling): two service-only RPCs from 20261012234500_gtl_game_officials.sql,
+  // hosted as 20261013050416.
   ['gtl_read_game_officials', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_set_game_official', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_referee: null }],
-  // D-34 kickoff wind forecast: three service-only RPCs from 20261013060000_gtl_wind_forecasts.sql, awaiting deploy like the referee pieces.
+  // D-34 kickoff wind forecast: three service-only RPCs from 20261013060000_gtl_wind_forecasts.sql, hosted as 20261013072206.
   ['gtl_read_wind_forecasts', { p_user: missingId, p_season: 2026, p_week: 6 }],
   ['gtl_begin_wind_fetch', { p_user: missingId, p_request: missingId, p_season: 2026, p_week: 6, p_games: [] }],
   ['gtl_finish_wind_fetch', { p_request: missingId, p_lease: missingId, p_status: 'failed', p_error: 'WIND_UNAVAILABLE', p_http: null, p_rows: null }],
   // M-06 lines readers (20261015010000_gtl_lines_read.sql, redesign stage 23): two readers gated per game and market and
-  // two helpers, all service-only. Awaiting deploy (below) until the migration is applied to the hosted project.
+  // two helpers, all service-only. Hosted as 20261019234724.
   ['gtl_read_lines', { p_user: missingId, p_season: 2026, p_week: 6, p_now: null }],
   ['gtl_read_game_lines', { p_user: missingId, p_season: 2026, p_week: 6, p_game: 'AAA-BBB', p_now: null }],
   ['gtl_book_quotes_from_snapshot', { p_payload: {}, p_game: {}, p_market: 'spread' }],
@@ -37,17 +37,18 @@ export const rpcChecks = Object.freeze([
 export const apiChecks = Object.freeze([
   ['odds/preflight', { requestId: missingId }],
   ['odds/collect', { requestId: missingId }],
-  // Referee routes ship with the next gtl-api deploy (awaitingDeploy). gtl-api runs behind verify_jwt, so the
+  // Referee routes, deployed since gtl-api v18 (October 14, 2026). gtl-api runs behind verify_jwt, so the
   // gateway normally answers these signed-out probes with 401 before the function runs, deployed or not.
   ['officials/read', {}],
   ['officials/set', {}],
-  // D-34 kickoff wind route (awaitingDeploy): signed-out probes prove only authentication protection.
+  // D-34 kickoff wind route, deployed since gtl-api v18: signed-out probes prove only authentication protection.
   ['wind/read', {}],
-  // M-06 lines routes (awaitingDeploy): signed-out probes prove only authentication protection.
+  // M-06 lines routes: signed-out probes prove only authentication protection.
   ['lines/read', {}],
   ['lines/game', {}],
-  // Weekly Trends is authenticated even though its generated records are public history.
+  // Weekly Trends (deployed since gtl-api v31) is authenticated even though its generated records are public history.
   ['trends/week', { season: 2026, week: 6 }],
+  // Trends research, deployed since gtl-api v29.
   ['lines/research', {}],
 ]);
 
@@ -55,16 +56,5 @@ export const workerChecks = Object.freeze([
   ['scheduled refresh', 'gtl-odds-refresh', { runId: missingId }],
 ]);
 
-export const awaitingDeploy = Object.freeze({
-  'gtl-api/trends/week': 'the gtl-api deploy with /trends/week',
-  'gtl-api/lines/research': 'the gtl-api deploy with /lines/research; a signed-out gateway 401 does not prove route deployment',
-  'rpc/gtl_read_game_officials': 'migration 20261012234500_gtl_game_officials.sql',
-  'rpc/gtl_set_game_official': 'migration 20261012234500_gtl_game_officials.sql',
-  'gtl-api/officials/read': 'the gtl-api deploy with /officials/read',
-  'gtl-api/officials/set': 'the gtl-api deploy with /officials/set',
-  // D-34 (see docs/DECISIONS.md): remove these four with the release record of the hosted apply and deploy.
-  'rpc/gtl_read_wind_forecasts': 'migration 20261013060000_gtl_wind_forecasts.sql',
-  'rpc/gtl_begin_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
-  'rpc/gtl_finish_wind_fetch': 'migration 20261013060000_gtl_wind_forecasts.sql',
-  'gtl-api/wind/read': 'the gtl-api deploy with /wind/read',
-});
+/** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
+export const awaitingDeploy = Object.freeze({});

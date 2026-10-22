@@ -280,10 +280,12 @@ Rollback: `update public.gtl_week_open_schedule set enabled=false where id='nfl-
 ## Team records refresh
 
 ```sh
-node scripts/team-records.mjs --season 2026 --through-week 5
+node scripts/team-records.mjs --season 2026 --through-week 6
 ```
 
 The script downloads the public nflverse schedule file, counts finals only (regular season, both scores present) and writes `shared/team-records-2026.json`. Neutral-site games count toward overall records only. The nflverse repository publishes no explicit license; records are plain facts derived from final scores and are credited to nflverse (Lee Sharpe). Re-run after each week's Monday game.
+
+Latest run, October 22, 2026: through Week 6, 93 finals (79 through Week 5 plus all 14 Week 6 games; Cincinnati, Detroit, Miami and Minnesota had byes), 32 teams, `retrieved_at` 2026-10-22T19:18:48Z. No Week 7 game is counted. The file is bundled into the frontend, so players see these records (and the new "Records as of" date) only after the next Pages release.
 
 ## Trends refresh
 
@@ -306,7 +308,7 @@ as dated evidence and is not a command to replay old migrations.
 
 ## Release checklist — October 9, 2026
 
-One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 are **pending** and are Sean's, run from the machine with the Supabase and Cloudflare logins. Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
+One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 were Sean's, run from the machine with the Supabase and Cloudflare logins, and are **done** (steps 5–7 on October 12, step 8 on October 14). Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).
 
 1. **Done — hosted migrations.** The eight remaining repo files were applied through the Supabase MCP (five at midday, the D-25 and D-26 files in the afternoon, the D-18 save-path fix in the evening), so the hosted migration history carries MCP-assigned versions, not the repo filenames:
 
@@ -366,11 +368,11 @@ One ordered list for everything in this document (D-21, D-22, D-23, D-24) and fo
    ```
    Recorded in the v4 rows of [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md) (PR #50).
 
-8. **Pending (Sean) — team records after Week 5 finals.** After the Monday October 12 game is final:
+8. **Done (October 14, 2026) — team records after Week 5 finals.** After the Monday October 12 game was final:
    ```sh
    node scripts/team-records.mjs --season 2026 --through-week 5
    ```
-   The committed file already says `through_week: 5` but holds only 65 finals (Weeks 1–4 plus the Week 5 Thursday game). Commit the refreshed `shared/team-records-2026.json`, then rebuild and redeploy (step 6) so the full Week 5 records ship.
+   The file then said `through_week: 5` but held only 65 finals (Weeks 1–4 plus the Week 5 Thursday game). PR #118 (`792e74b`) refreshed it to 79 finals, and Pages `fa406a83` from `48f48dd` shipped it (see the [October 14 release record](RELEASE_2026_10_14.md)). On October 22 the file was refreshed through Week 6 (see [Team records refresh](#team-records-refresh)).
 
 9. **Done (October 9, 17:44 UTC, cloud session) — Ben's Week 5 picks (D-25), community leaderboard only.** Sean ruled on October 9 that the picks count on the shared community leaderboard and feed only; the Triple Threat roster stays Sean, Troy, Luke (no roster row, no group standings entry). The import path is the service-only, commissioner-only RPC `public.gtl_import_ruled_ballot(p_actor, p_user, p_season, p_week, p_mode, p_picks, p_submitted_at, p_ruling, p_reference)` from migration `20261009160000_gtl_ruled_ballot_import.sql`. It writes the ballot exactly as a submission-time save would, with the ruled eDraft 10:03 ET value as each game's `scoringReferences` value and `submittedAt` 2026-10-08T19:00:00Z (12:00 PM PT), records the ruling in `gtl_ruled_ballot_imports` and `gtl_access_audit`, and lets the unchanged `gtl_feed_on_ballot` trigger post `ballot_submitted` dated at that time, so the D-23 reveal gate applies as usual. `gtl_fresh_submission_guard` is bypassed only while that function is on the call stack (a transaction-local flag plus a `PG_CONTEXT` check); a direct insert, with or without the flag, is still refused. A second identical call returns `imported:false` and changes nothing; a different submitted ballot for the same key fails with `GTL_RULED_IMPORT_CONFLICT`. Applied and imported once from the cloud session after PR #32 merged: the migration is hosted version `20261009174341`; the step 9.4 select returned one row (`Ben 🫘`, 2026 / 5 / `guess_spread`, submitted 2026-10-08 19:00:00+00, decision D-25, 15 picks, 15 references, `payload_sha256` `076cbfc8bd65b03bb5b61f771227c6078c827accb9618102a95c5f772e49e223`, post `d07a0746-c4f0-4146-a6b9-7ac584fa3a6a`, 0 `sean-troy-luke` roster rows); a replay returned `imported:false`. The steps are kept for the record:
    1. **Apply the migration** (done: hosted `20261009174341`) through the Supabase MCP (`apply_migration`, name `gtl_ruled_ballot_import`, with the file's contents). It is the newest repo file, after `20261009150000_gtl_auto_open_week.sql`, and the hosted version will again differ from the filename (step 2 above). Never `db push`. Do this before step 6's `check:cloud` and step 7's boundary probe: both now expect `gtl_ruled_ballot_imports` and `gtl_import_ruled_ballot` to exist and report `unexpected 404` until it is applied. The migration is service-only and writes no data, so applying it ahead of the API deploy is safe.
@@ -441,3 +443,5 @@ October 13, 2026 addition: migration `20261013010000_gtl_line_at_guess_reads.sql
   - `select game_id, venue_id, forecast_hour, wind_mph, gust_mph, wind_direction_deg, temperature_f, precipitation_probability, fetched_at from public.gtl_wind_forecasts order by id desc limit 15;`
   - `succeeded`, `http_status` 200 and `stored` equal to the outdoor and retractable games due: egress works and the live response passed the unit, offset, shape and row checks. `WIND_UNAVAILABLE` or `WIND_TIMEOUT` with a null status: Edge egress to api.open-meteo.com is blocked or slow; investigate before announcing. `WIND_UNITS` or `WIND_PAYLOAD`: the schema drifted; do not loosen validation without reading a live body in a controlled check. `WIND_RATE_LIMIT*`: shared-IP limits; the backoff handles it.
   - Record the result in the release record and as a D-34 addendum.
+
+*October 22, 2026 — boundary check:* the referee and wind entries are removed from `awaitingDeploy` in `scripts/boundary/lines.mjs`, so a missing referee or wind function or route now fails the default `check:cloud` instead of passing as awaiting deploy. Both migrations are applied (above) and in `APPLIED` in `tests/migrations.mjs`. `gtl-api` v18 ([October 14 deploy](RELEASE_2026_10_09.md#october-14-deploy)) and every deploy since carry `/officials/read`, `/officials/set` and `/wind/read`; on v18 one wind fetch at 20:37 UTC that day succeeded and stored 11 forecasts ([live check](RELEASE_2026_10_09.md#october-14-evening-deploy-and-m-01)). The boundary checks after each October 21 and 22 deploy count only six awaiting probes, all for the three migrations then in `NOT_HOSTED` (M-10 and both D-53 files). `gtl_wind_fetches`, `gtl_wind_fetch_outcomes`, `gtl_wind_forecasts` and the two referee tables have not joined the table probes.

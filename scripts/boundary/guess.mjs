@@ -89,9 +89,9 @@ export const rpcChecks = Object.freeze([
 /** [gtl-api route, body or undefined for GET]: each is called signed out and with an invalid session and must answer 401. */
 export const apiChecks = Object.freeze([
   ['community/history', {}],
-  // M-08 (awaitingDeploy until the gtl-api deploy that carries it): signed-out probes prove only authentication protection.
+  // M-08 (hosted since October 19, 2026): signed-out probes prove only authentication protection.
   ['community/picks', { mode: 'guess_spread' }],
-  // M-03 (awaitingDeploy until the gtl-api deploy that carries it): signed-out probes prove only authentication protection.
+  // M-03 (hosted since October 19, 2026): signed-out probes prove only authentication protection.
   ['community/forfeit', { season: 2026, week: 5, reason: 'skip' }],
   ['state?mode=guess_spread', undefined],
   [`benchmark/freeze?league=${missingLeague}`, { requestId: missingId, actualKickoff: null, sourceURL: 'https://example.invalid/boundary-check' }],
