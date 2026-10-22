@@ -1,6 +1,6 @@
 # Weekly and player Trends release record
 
-Owner: Sean Balsiger · October 21, 2026 · Implemented, independently reviewed and checked locally; final CI receipt belongs to PR #166. No hosted release claimed.
+Owner: Sean Balsiger · October 22, 2026 · Released October 22 at 04:56 UTC as API v31 and Pages `af617cd2`; see the [release record](RELEASE_2026_10_22_TRENDS_FILTER.md). Real-phone acceptance remains open.
 
 ## Approved change
 
