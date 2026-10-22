@@ -33,8 +33,14 @@ tracking first**, with NBA competitions later. The
 defines a separate sport section sharing sign-in and settings, daily navigation,
 owner-only access to the existing archive and separate NBA accounting. Sean
 approved the design and authorized the [implementation plan](superpowers/plans/2026-10-21-nba-section.md)
-and build. Implementation is in progress; this entry establishes no feed
-connection, hosted permission change or deployment. The private archive remains protected.
+and build. The code is complete on draft PR #167 (owner ticket RPCs, bounded
+free-source game cache, Games/My Bets/History screens and the NFL/NBA selector in
+both the default classic app and the four-tab app), reconciled with `main` after
+the four-tab release. The [NBA release card](NBA_SECTION_RELEASE.md) records the
+migration order, preservation checks, rollback and the two open prerequisites:
+Sean adds `BALLDONTLIE_API_KEY` to the Edge Function secrets and approves applying
+`20261021223000` and `20261021223100`. This entry establishes no feed connection,
+hosted permission change or deployment. The private archive remains protected.
 
 October 21 design review: Sean selected a simpler four-tab application,
 **Home / Play / Bets / Research**, with League inside Play and Fantasy inside
