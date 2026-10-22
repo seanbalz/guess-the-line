@@ -10,6 +10,17 @@
   min-height: 100dvh;
   padding-bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px));
 }
+/* The document scrolls under the sticky top bar and the fixed tab bar. Scroll padding tells the browser where they are,
+   so a control reached with Tab (or brought into view by script) lands whole between them, not under one (UX-NEXT-01,
+   WCAG 2.4.11). It belongs on the scrolling root, outside .gx where the --gx- tokens do not reach, so it repeats them:
+   the top bar's 56 and its 1px border, the tab bar's 64, and 8 of air. Play's save dock carries the old app's
+   save-bar class, whose larger :root:has(.save-bar) padding (styles.css) already clears the dock, so the bottom yields. */
+:root:has(.gx-app) {
+  scroll-padding-top: calc(56px + 1px + env(safe-area-inset-top, 0px) + 8px);
+}
+:root:has(.gx-app):not(:has([class~="save-bar"])) {
+  scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 8px);
+}
 
 /* ===== top bar: the monogram (Home), the league pill (switcher), your avatar (menu) ===== */
 .gx-topbar {
