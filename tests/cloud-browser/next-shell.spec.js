@@ -254,7 +254,8 @@ test.describe('the real app', () => {
       await menu.getByRole('button', { name: OLD }).click();
       await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
       expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('classic');
-      await expect(page.locator('.gx')).toHaveCount(0);
+      // Only the NBA section's NFL/NBA selector (PR #167) uses new-app styles in the old app; the new-app frame is gone.
+      await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
 
       // Back to the new app, then Sign out from the menu.
       await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));

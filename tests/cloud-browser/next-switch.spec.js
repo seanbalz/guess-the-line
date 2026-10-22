@@ -104,7 +104,9 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     await (await oldAppButton(page)).click();
     await expect(communityHome(page)).toBeVisible();
     expect(await saved(page)).toBe('classic');
-    await expect(page.locator('.gx')).toHaveCount(0);
+    // The only new-app styled element in the old app is the NBA section's NFL/NBA selector (PR #167); no new-app frame mounts.
+    await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
+    await expect(page.locator('.gx-nba-sport-entry').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
     expect(named(await assets(page), 'NextApp')).toEqual([]);
     await expect(tryButton(page)).toBeVisible();
     await expect(page.locator('.try-new-app-note')).toHaveText('');
@@ -168,7 +170,7 @@ test('?app=classic always forces the old app; "Try the new app" from there drops
     await expect(newApp(page)).toBeVisible();
     await page.goto('/?app=classic');
     await expect(communityHome(page)).toBeVisible();
-    await expect(page.locator('.gx')).toHaveCount(0);
+    await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
     expect(await saved(page), 'the escape hatch is kept as this device\'s choice').toBe('classic');
     await page.goto('/');
     await expect(communityHome(page)).toBeVisible();

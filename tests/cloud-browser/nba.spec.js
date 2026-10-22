@@ -317,6 +317,8 @@ for (const view of ['classic', 'next']) test(`${view} sport entry/return, NFL an
     } else {
       await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
       await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
+      // The four-tab Play landing (c6afb02) opens the per-game editor from its one primary action.
+      await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
       // The current per-game entry owns the Shell dirty registry.
       await page.getByRole('button', { name: /Pick'em/i }).first().click();
     }

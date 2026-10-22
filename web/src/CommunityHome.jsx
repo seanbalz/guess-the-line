@@ -337,6 +337,9 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
   const [showTrends, toggleTrends] = useTrendsToggle();
   // The save-bar button behind the latest request ("draft" or "submit"); a banner action hands focus back to it.
   const action = useRef('draft');
+  // The sport-switch guard is registered before the early returns below (hooks keep one order); the render sets its value.
+  const sportDirty = useRef(false);
+  useSportGuard(sportDirty);
   const settled = useRef(entryMarket.current !== null), latest = useRef(null);
   latest.current = { accountId, initialMode, optOuts, marketNavigation, onSignInAgain };
   const load = useCallback(async () => {
@@ -377,6 +380,7 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
     setRecovery(null); setHint(''); setNotice('Unsaved picks restored. Save or submit to keep them.'); refocus('.week-pick-list .chip:not(:disabled)');
   }
   function discardRecovery() { if (busy) return; removeCommunityDraft(scope); setRecovery(null); refocus('.week-pick-list .chip:not(:disabled)'); }
+  sportDirty.current = false;
   if (!data) return unpublished ? <WeekUnpublished/>
     : error ? <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span><button type="button" className="text-button" onClick={loadWeek}>Retry</button></div>
     : <p role="status"><LoaderCircle className="spin"/>Loading this week…</p>;
@@ -396,7 +400,7 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
   const trendAccess = gameId => communityAccess(data, gameId, optOuts);
   const filled = Object.values(picks).filter(v => v !== '').length, remaining = data.games.length - filled;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
-  useSportGuard(dirty && editable);
+  sportDirty.current = dirty && editable;
   // Persona audit #8: every save failure names the problem and offers the next step, beside the save bar. "Sign in again" unmounts
   // this screen and its unsaved picks, so the banner says so and puts Retry first. Since October 12, 2026 a market-refresh limit
   // never refuses a save, so no banner exists for it; the only coded refusal left (GTL_SUBMISSION_QUOTES_REQUIRED, a failed check
