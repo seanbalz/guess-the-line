@@ -1,6 +1,6 @@
 // Public historical Trends assembled only after the existing membership/published-week reader authorizes.
 import seedData from './trends-seed.mjs';
-import { generateWeek, parseCsvRows, writeCompactCsv, rowPlayed, REDACTED_COLUMNS, TRENDS_SOURCE } from '../shared/trends.mjs';
+import { generateWeek, prepareHistory, parseCsvRows, writeCompactCsv, rowPlayed, REDACTED_COLUMNS, TRENDS_SOURCE } from '../shared/trends.mjs';
 import { easternToUtc, appCode } from '../shared/nfl-schedule.mjs';
 import { UUID_PATTERN } from './lobby.mjs';
 export const TRENDS_METHODS = Object.freeze({ '/trends/week': ['POST'] });
@@ -70,6 +70,33 @@ export function prepareSeason({ sourceCsv, seedCsv, season, week, now, slate = [
  for (const r of frozen) if (rowPlayed(r) && !ids.has(r.game_id)) throw new Error('Public season lost a frozen final.');
  return writeCompactCsv(rows, { redactUnplayed: true });
 }
+/** Inflate the seed's prepared history (raw-deflate base64 JSON written by scripts/trends-seed.mjs). */
+export async function decodePreparedHistory(encoded) {
+ let bytes;
+ if (typeof Uint8Array.fromBase64 === 'function') bytes = Uint8Array.fromBase64(encoded);
+ else { const text = atob(encoded); bytes = new Uint8Array(text.length); for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i); }
+ return JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text());
+}
+// The frozen history never changes within a worker: decode (or derive, for a seed carrying only its CSV) once.
+const preparedBySeed = new WeakMap();
+let derived = null;
+export function seedHistory(seed) {
+ if (preparedBySeed.has(seed)) return preparedBySeed.get(seed);
+ let promise;
+ if (typeof seed.preparedHistory === 'string') promise = decodePreparedHistory(seed.preparedHistory);
+ else {
+  const parts = [seed.historyCsv, seed.registry, seed.venues, seed.corrections, seed.season, seed.sources?.registrySha256 ?? null];
+  if (!derived || derived.parts.some((part, i) => part !== parts[i])) {
+   derived = { parts, promise: Promise.resolve().then(() => prepareHistory({ historyCsv: seed.historyCsv, registry: seed.registry, venues: seed.venues,
+    corrections: seed.corrections, season: seed.season, registrySha256: seed.sources?.registrySha256 ?? null })) };
+  }
+  promise = derived.promise;
+ }
+ // A failed decode is retried by the next request rather than kept for the worker's life.
+ const settled = promise.catch(error => { preparedBySeed.delete(seed); if (derived?.promise === promise) derived = null; throw error; });
+ preparedBySeed.set(seed, settled);
+ return settled;
+}
 export function createTrendsService({ rpc, readSeason = createSeasonReader(), clock = Date.now, seed = seedData } = {}) {
  const cache = new Map(), inflight = new Map();
  const publicCopy = value => {
@@ -112,7 +139,8 @@ export function createTrendsService({ rpc, readSeason = createSeasonReader(), cl
      catch { throw new TrendsError(503, 'Trends are unavailable for this week. Try again shortly.'); }
     }
     let result;
-    try { result = generateWeek({ ...seed, seasonCsv: input, season, week, allowPending: true, includeWindows: true }); }
+    // The prepared history replaces rebuilding every historical game (Edge CPU limit); output is unchanged.
+    try { result = generateWeek({ ...seed, history: await seedHistory(seed), seasonCsv: input, season, week, allowPending: true, includeWindows: true }); }
     catch { throw new TrendsError(503, 'Trends are unavailable for this week. Try again shortly.'); }
     const allowed = new Map(published.games.map(g => [g.id, g]));
     result.games = result.games.filter(g => allowed.has(g.id)).map(g => ({ ...g, kickoff: allowed.get(g.id).kickoff }));

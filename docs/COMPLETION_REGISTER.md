@@ -210,6 +210,14 @@ PR #177. Released October 22 at 09:13 UTC as Pages `f092e744` (frontend only;
 API v31 unchanged); see the [round 3 release record](RELEASE_2026_10_22_ROUND3.md).
 Real-phone acceptance remains open.
 
+October 22 weekly Trends CPU fix: from API v31 on, every signed-in `/trends/week`
+request hit the Edge CPU limit (HTTP 546), and Week 8 has no static fallback.
+The server seed now carries the prepared 2025 history state instead of the history
+CSV, so each request processes only the current season. Output is byte-identical,
+and local cold main-thread CPU fell from about 1.07 s to under 0.21 s in Node and
+Deno. Evidence is in the [release record](WEEKLY_PLAYER_TRENDS_RELEASE.md#october-22--hosted-cpu-outage-and-prepared-history-fix-claude-code);
+branch `claude/trends-week-cpu`. Merge, API release and hosted readback remain pending.
+
 ## Evidence and limits
 
 The queue records all six open PR dispositions, old issue triage and local-work

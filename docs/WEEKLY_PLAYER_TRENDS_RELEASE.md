@@ -61,3 +61,53 @@ Main advanced again to c6afb02e71b6c88d09212dfc525fe0fe59da64f9 with the approve
 October 21 takeover by Claude Code: Codex stopped on a usage limit partway through the four-tab merge. Claude Code continued on task branch `claude/trends-takeover`, starting from Codex's resolved working files for the c6afb02 merge, then merged current main `33f02cc979ff13a3b74b9e56a9032481b544ad1c` into PR head `5562ffcf` (merge base `fb86a3ea`). The one new conflict, `cloud/handler.mjs`, keeps both PR #169's `publicResearchHistory` loader for research validation and this PR's `/trends/week` service. Completion register entries from both sides are kept. One integration defect was fixed: the four-tab address now restores the Players filters after a reload, which had also handed a previous account's player, team, matchup and window to a different account signing in on the same page. The next account now starts from its own defaults; a same-account reload still restores them. A browser locator was updated for the Research landing's Trends row. Local verification of the merge tree: npm run check passed (typechecking, 1,560 Node tests with zero skips, 235 Vitest tests and the production build); the full cloud browser suite passed 282/282, with the account-switch case failing before the fix and passing after it; brand QA, the deterministic seed check, the snapshot check and the cloud bundle scan passed, with no server seed payload markers in its 27 JavaScript chunks; npm run check:cloud passed with 265 live denials and 7 awaiting-deploy probes, including /trends/week. Exact-head CI, an independent review of the merge resolution, merge, deployment, hosted readback and real-phone acceptance remain pending. No migration, configuration change or release was run.
 
 October 21 review fixes (Claude Code): two blocking findings on the shared Trends loader are fixed. First, the cache now clears only when the signed-in account changes (`watchTrendAccount`). Before, every auth event cleared it, including TOKEN_REFRESHED and the same-user SIGNED_IN that auth-js 2.117.3 sends when a hidden tab becomes visible. That refused the fresh read a reopened phone had just started, with "Account changed". Second, a failed hosted refresh for a reason other than 400, 401 or 403 keeps the last loaded week, marked stale with its source age carried forward. Before, Week 8 onward (no static file) was replaced by null for five minutes and shown as not yet available. A result from a failed read is reused for one minute, not five. The shared week hook also keeps a ready week when an interval or visibility refresh finds nothing or fails; an account or membership refusal still replaces it. Three new regression tests in `tests/weekly-trends.test.mjs` failed against the previous source and pass now. Local verification: npm run check passed (typechecking, 1,563 Node tests with zero skips, 235 Vitest tests and the production build); the Trends, Lines, data, shell and wind cloud browser specs passed 45/45; brand QA passed. Exact-head CI, merge, deployment and real-phone acceptance remain pending.
+
+## October 22 — hosted CPU outage and prepared-history fix (Claude Code)
+
+**Outage.** Since API v31 (October 22, 04:56 UTC), every signed-in `POST /functions/v1/gtl-api/trends/week` returned HTTP 546. At the same instant the function log reported "CPU Time exceeded". Supabase caps Edge CPU at 2 seconds per request; waiting on fetch does not count. The app fell back to the frozen static Week 7 file ("Stale evidence · Refresh unavailable"). Week 8 opens Monday, October 26, and has no static file, so weekly Trends would have been empty. This evidence comes from the hosted logs reported for this task; this change does not re-query them.
+
+**Cause.** Each cold request rebuilt the full history. It parsed the 1.7 MB history CSV from the seed, built features for 7,276 games, then evaluated about 900 presets over 6,499 historical games for that week's teams, coaches, quarterbacks and referees. Local profiling put about 715 ms in `betUnits` and `atomValue`, about 270 ms in `buildFeatures` and about 70 ms in CSV parsing. The per-worker cache never filled because every cold request was stopped first.
+
+**Fix.** Historical work now moves into the generated server seed, as the research route did with its prepared snapshot. `prepareHistory` in `shared/trends.mjs` records two things for 2026:
+
+- the rolling feature state after 2025
+- each preset's historical record: per-season aggregates, walk-forward prefix, streak and last-ten tail, window counts, the registered series, venue split and card overlaps
+
+Floating sums are stored as accumulated, then continued in the same order. A request inflates this once per worker and processes only the 2026 rows (`generateWeek({ history })`, `resumePreset`, `resultWindows`). The full-history path, `scripts/trends.mjs` and the committed week files are unchanged. A missing preset fails explicitly unless its entity never appeared in the prepared games. Authorization still precedes the cache. No current lines enter the shared cache, membership checks are unchanged and hidden markets stay hidden.
+
+The seed drops the history CSV, which the server no longer reads. It shrinks from 1,917,050 to 1,227,839 bytes (SHA-256 `270691dbb5c0ab8a80a40d6428061c292f04fd7a7d3a72a2affa27708f0b59ff`). The prepared history is 3,146,233 bytes of JSON for 2,394 presets (SHA-256 `3dff1bb6adc6a574ee15273f07e1f0261a2551a1346bfe779832ceafb658abac`), stored inside the seed as raw-deflate base64. Raw deflate avoids gzip's platform byte. `node scripts/trends-seed.mjs --check` inflates the stored history and compares it with a fresh preparation.
+
+**Measurements.** These came from a local harness that runs the real `handleTrends` and `createTrendsService` path with a published-slate RPC. It used the public nflverse release saved at 14:57 UTC (2,186,337 bytes, SHA-256 `3c9cae07…`). Each figure is the median of five cold processes, with the maximum in parentheses. Main-thread CPU is the closest local proxy for the per-request Edge CPU; process CPU adds GC and helper threads. Module import is excluded (0–47 ms).
+
+| Request | Runtime | Main-thread CPU before | Main-thread CPU after | Process CPU before | Process CPU after | Wall before | Wall after |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Week 7 (live source) | Node 24.11.0 | 1,079 (1,172) ms | 187 (189) ms | 1,640 (1,829) ms | 359 (374) ms | 1,089 ms | 200 ms |
+| Week 8 (synthetic: 13 fictional Week 7 finals, Monday pending) | Node 24.11.0 | 1,062 (1,079) ms | 188 (203) ms | 1,829 (2,093) ms | 313 (391) ms | 1,079 ms | 202 ms |
+| Week 7 (live source) | Deno 2.9.6 | 1,031 (1,094) ms | 156 (172) ms | 1,500 (1,547) ms | 282 (375) ms | 1,052 ms | 168 ms |
+| Week 8 (synthetic) | Deno 2.9.6 | 1,078 (1,156) ms | 172 (172) ms | 1,672 (1,828) ms | 266 (360) ms | 1,101 ms | 171 ms |
+
+Responses before and after were byte-identical: 974,040 bytes for Week 7 and 1,009,343 bytes for Week 8, in both runtimes. A warm cache hit stays at timer resolution (16 ms or less). Process RSS after the response fell from about 395 MB to 250 MB in Node and from about 345 MB to 190 MB in Deno. Remaining cold work, in local wall time:
+
+- about 60 ms inflating and parsing the prepared history (once per worker)
+- about 40 ms parsing the 2 MB public source
+- about 60 ms generating the week
+
+Hosted Edge CPU cannot be measured locally. Hosted readback after a reviewed API release remains the acceptance evidence.
+
+**Verification (local, Windows).**
+
+- **New contract tests.** `tests/weekly-trends-prepared.test.mjs` adds eight tests:
+  - Output is byte-identical to full generation for Week 6, a synthetic Week 8 with a pending Monday final, and a Week 1 without current finals.
+  - The committed Week 7 file is reproduced without the history CSV.
+  - All 2,394 prepared presets resume to the full evaluation, including streaks that continue, are interrupted or carry across the season boundary.
+  - History rows and mismatched preparation are refused.
+  - The shipped seed holds the current prepared history and no CSV, with a size budget.
+  - The hosted service returns full-generation evidence from the shipped seed.
+
+  Four deliberate defects each failed these tests: streak merge, robustness aggregate, restored meetings and the window start date.
+- **Full check.** `npm run check` passed typechecking, 1,583 Node tests with zero skips, 245 Vitest tests and the production build. The SQL fixtures used CI-pinned PGlite 0.5.8.
+- **Seed and frozen weeks.** `node scripts/trends-seed.mjs --check` passed. The Week 6 and Week 7 `scripts/trends.mjs --check` runs passed.
+- **Cloud boundary and bundle.** `npm run build:cloud` and `npm run check:cloud` passed: 266 live denials, with 6 probes awaiting the three pending migrations. No seed payload markers appeared in the 27 cloud JavaScript chunks.
+- **Cloud browser.** On a private port, the next-trends and trends specs passed 6/6. The Lines, data and shell specs, which also read `/trends/week`, passed 35/35.
+
+Not run: deployment, configuration or secret changes, SQL, merge, hosted readback and real-phone acceptance.
