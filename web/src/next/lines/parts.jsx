@@ -1,3 +1,4 @@
+import { trendAvailabilitySummary, trendAvailabilityText } from '../../trendsAvailability.js';
 // Pieces the Lines board, the game sheet and the All trends sheet share (redesign build plan stage 13): the short
 // trend card, a row that opens in place, and the credits. They draw what shared/lines-view.mjs and
 // shared/trends-view.mjs give them and decide nothing.
@@ -188,3 +189,7 @@ export function WeatherDetail({ row }) {
 export const Meta = ({ text, className }) => (text ? <p className={cx('gx-t-meta', className)}>{text}</p> : null);
 
 export { LockLine };
+
+export function TrendAvailability({ week }) {
+  return week ? <div className="gx-vstack gx-gap-4"><p className="gx-t-meta gx-c-2" data-trend-availability>{trendAvailabilitySummary(week)}</p><Expander title="Source details"><p className="gx-t-meta gx-c-2">{trendAvailabilityText(week)}</p></Expander></div> : null;
+}

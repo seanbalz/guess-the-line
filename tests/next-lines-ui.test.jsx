@@ -236,7 +236,7 @@ describe('the All trends sheet', () => {
     expect(said({ ...data(), trends: { status: 'loading', week: null }, trendsWeek: null })).toEqual(['Loading trends…']);
     expect(said({ ...data(), trends: { status: 'idle', week: null }, trendsWeek: null })).toEqual(['Loading trends…']);
     expect(said({ ...data(), trends: { status: 'error', week: null }, trendsWeek: null })).toEqual(['Trends didn’t load. Check your connection and try again.']);
-    expect(said({ ...data(), trends: { status: 'missing', week: null }, trendsWeek: null })).toEqual(['Trends for Week 6 publish after Monday night’s final.']);
+    expect(said({ ...data(), trends: { status: 'missing', week: null }, trendsWeek: null })).toEqual(['Trends for Week 6 are available when the published week opens; pending records update after finals.']);
     const without = { ...week, games: week.games.filter(g => g.id !== 'SEA-DEN') };
     expect(said({ ...data(), trends: { status: 'ready', week: without }, trendsWeek: without })).toEqual(['No trends for this game in this week’s file.']);
     expect(said({ ...data(), personal: { status: 'loading', data: null, error: null } })).toEqual(['Loading this week’s games…']);
@@ -346,4 +346,16 @@ describe('the leak rule on the rendered markup, attributes included', () => {
     expect(cells('HOU-JAX', 'line').map(textOf)).toEqual(['44.5 at your guess']);
     expect(cells('NO-NYG', 'locked')).toHaveLength(2);
   });
+});
+
+it('stale availability remains alongside usable game and All trends records', () => {
+  const stale = { ...week, availability: { stale: true, sourceAsOf: '2026-10-12', reason: 'Fixture source unavailable' } };
+  state.lines = { ...data(), trendsWeek: stale, trends: { status: 'ready', week: stale } };
+  for (const node of [<GameSheet args={{ game: 'HOU-JAX' }}/>, <AllTrendsSheet args={{ game: 'HOU-JAX' }}/>]) {
+    state.openRows = true;
+    const html = render(node);
+    expect(text(html)).toContain('2026-10-12');
+    expect(text(html)).toContain('Stale evidence');
+    expect(nodes(html, n => n.attrs['data-trend']).length).toBeGreaterThan(0);
+  }
 });

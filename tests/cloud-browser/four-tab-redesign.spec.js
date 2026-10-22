@@ -64,8 +64,11 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await page.getByRole('button', { name: /^Trends/ }).click();
     await expect(page.getByRole('heading', { name: 'Trends', exact: true })).toBeVisible();
-    await page.getByRole('list', { name: 'Matchup trends' }).getByRole('button').first().click();
+    await page.getByRole('button', { name: /^Game details/ }).first().click();
+    await expect(page.getByRole('dialog').last()).toBeVisible();
+    await page.getByRole('button', { name: /^All trends/ }).click();
     await expect(page.getByRole('dialog', { name: 'All trends', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.locator('[data-landing="research"]')).toBeVisible();

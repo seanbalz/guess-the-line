@@ -11,7 +11,7 @@ import { useOfficials } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
 import { Card, InfoButton, List, LockLine, Sheet } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
-import { Expander, TrendList } from './parts.jsx';
+import { Expander, TrendList, TrendAvailability } from './parts.jsx';
 import { INFO } from '../info.js';
 import './lines.css';
 
@@ -57,6 +57,7 @@ export function AllTrendsSheet({ args }) {
   const back = { label: view?.title ?? LINES_COPY.title, onBack: shell.closeSheet };
   return (
     <Sheet title={LINES_COPY.allTrends} back={back} onClose={shell.closeSheet} closeLabel="Close All trends" tall className="gx-l-sheet">
+      <TrendAvailability week={trendsWeek}/>
       {!all ? <p className="gx-t-body gx-c-2" role="status">{view ? view.trends.notice || LINES_COPY.trendsLoading : personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}</p> : (
         <>
           <div className="gx-l-sechead">

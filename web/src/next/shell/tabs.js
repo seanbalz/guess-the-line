@@ -1,3 +1,4 @@
+import * as trends from '../trends/index.js';
 // The tabs' names and jobs (prototype spec 1.1 and 1.2, plus Fantasy Football), the frame's fixed words, and the tab bar's reading of
 // each tab's slot file. Pure: no React, so the node tests read it directly.
 import * as home from '../home/index.js';
@@ -10,7 +11,7 @@ import * as me from '../me/index.js';
 import { TABS } from './state.js';
 
 /** Each tab's slot file (section 3.1), Me's too. */
-export const SLOTS = Object.freeze({ home, play, bets, lines, league, fantasy, me });
+export const SLOTS = Object.freeze({ home, play, bets, lines, league, fantasy, trends, me });
 
 /** One job per tab (spec 1.1): the tab's name, its screen title and the sentence its "coming next" card says. */
 export const TAB_INFO = Object.freeze({

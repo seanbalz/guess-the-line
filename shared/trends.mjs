@@ -1462,7 +1462,7 @@ function normalizedBetSet(p, r) {
  * Generate the committed week file for one regular-season week. Deterministic: the same
  * inputs give the same object (stable sorts, numbers rounded to 4 dp, no clock).
  */
-export function generateWeek({ historyCsv, seasonCsv, season, week, registry, venues, corrections, referees = {}, allowPending = false, sources = {} }) {
+export function generateWeek({ historyCsv, seasonCsv, season, week, registry, venues, corrections, referees = {}, allowPending = false, sources = {}, includeWindows = false }) {
   const rules = corrections.rules ?? {};
   const rows = [...parseCsvRows(historyCsv).rows, ...parseCsvRows(seasonCsv).rows];
   const games = redactUnplayed(normalizeRows(rows, { corrections, venues }));
@@ -1536,6 +1536,7 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
       timing: p.timing, gate: p.gate,
       gates: { eligible: gate.eligible, failed: gate.failed, robustness: robustness.map(v => ({ id: v.id, pass: v.pass, disc: recArr(v.disc), conf: recArr(v.conf) })) },
     };
+    if (includeWindows) card.windows = evidenceWindows(r.units, season, p.side);
     delete card.record.fileOdds; // file-odds ROI stays hidden until the commissioner approves odds-derived records
     if (p.note) card.note = p.note;
     if (p.atoms.includes('g:g_indoor')) {
@@ -1561,6 +1562,7 @@ export function generateWeek({ historyCsv, seasonCsv, season, week, registry, ve
       oos: recArr(r.oos), side: r.seasonSide, season: r.thisSeason ? recArr(r.thisSeason) : [0, 0, 0],
       since: r.sinceRegistered ? recArr(r.sinceRegistered) : [0, 0, 0], score: sc.score,
     };
+    if (includeWindows) row.windows = evidenceWindows(r.units, season);
     if (sc.anecdote) row.anecdote = true;
     if (p.market === 'su') { row.score = null; row.descriptive = true; } // straight-up records are descriptive; GTL scores spread and total only
     if (row.years[0] !== null && row.seasons === row.years[1] - row.years[0] + 1) delete row.seasons;
@@ -1824,4 +1826,21 @@ function normalizeNumbers(value) {
     return out;
   }
   return value;
+}
+
+/** Descriptive windows on the same qualifying units; never choose a winning side from the window. */
+export function evidenceWindows(units, season, side = null) {
+  const summarize = (sample, orientation) => {
+    let W = 0, L = 0, P = 0;
+    for (const u of sample) {
+      const res = orientation === 'B' ? -u.res : u.res;
+      if (res > 0) W++; else if (res < 0) L++; else P++;
+    }
+    return { W, L, P, n: sample.length, from: sample[0]?.g.date ?? null, to: sample.at(-1)?.g.date ?? null };
+  };
+  const windows = { last5: units.slice(-5), last10: units.slice(-10),
+    season: units.filter(u => u.g.season === season), years3: units.filter(u => u.g.season >= season - 2),
+    years5: units.filter(u => u.g.season >= season - 4), all: units };
+  return Object.fromEntries(Object.entries(windows).map(([key, sample]) =>
+    [key, side ? summarize(sample, side) : { A: summarize(sample, 'A'), B: summarize(sample, 'B') }]));
 }
