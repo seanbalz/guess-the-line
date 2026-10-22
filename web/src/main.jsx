@@ -5,6 +5,7 @@ import AuthGate from './AuthGate.jsx';
 import DeferredScreen from './DeferredScreen.jsx';
 import { cloudRequested } from './auth';
 import { ThemeProvider } from './Theme';
+import { SportEntry } from './next/nba/NbaApp.jsx';
 import { clearAppView, noteAppFallback, startAppView } from './appView.js';
 import './installPrompt.js';
 import './styles.css';
@@ -27,11 +28,15 @@ class NextAppFallback extends Component {
   render() { return this.state.failed ? <Classic {...this.props.app}/> : this.props.children; }
 }
 
-function SignedIn({ view, ...props }) {
+function NflSignedIn({ view, ...props }) {
   if (view !== 'next') return <Classic {...props}/>;
   return <NextAppFallback app={props}>
     <Suspense fallback={<div className="loading" role="status"><LoaderCircle className="spin" aria-hidden="true"/>Loading the new app…</div>}><NextApp {...props}/></Suspense>
   </NextAppFallback>;
+}
+
+function SignedIn({ view, ...props }) {
+  return <SportEntry {...props} classic={view !== 'next'}><NflSignedIn view={view} {...props}/></SportEntry>;
 }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><ThemeProvider>{cloudRequested ? <AuthGate>{props => <SignedIn key={props.session.user.id} view={appView} {...props}/>}</AuthGate> : <DeferredScreen label="your league"><App/></DeferredScreen>}</ThemeProvider></React.StrictMode>);

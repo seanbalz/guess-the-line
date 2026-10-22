@@ -16,6 +16,7 @@ import { PushReminderPrompt } from './PushReminders';
 import TryNewApp from './TryNewApp';
 import FantasyFootball from './FantasyFootball';
 import { cloudApi, communityApi, date } from './api';
+import { useSportGuard } from './sportNavigation.js';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
 import { MODE, lateText, pickText, shortName, show, team } from './communityFormat';
@@ -395,6 +396,7 @@ export function WeekPicks({ accountId, onSaved, optOuts = [], onSatOut, onSignOu
   const trendAccess = gameId => communityAccess(data, gameId, optOuts);
   const filled = Object.values(picks).filter(v => v !== '').length, remaining = data.games.length - filled;
   const dirty = data.games.some(g => String(picks[g.id]) !== String(ballot?.picks?.[g.id] ?? ''));
+  useSportGuard(dirty && editable);
   // Persona audit #8: every save failure names the problem and offers the next step, beside the save bar. "Sign in again" unmounts
   // this screen and its unsaved picks, so the banner says so and puts Retry first. Since October 12, 2026 a market-refresh limit
   // never refuses a save, so no banner exists for it; the only coded refusal left (GTL_SUBMISSION_QUOTES_REQUIRED, a failed check

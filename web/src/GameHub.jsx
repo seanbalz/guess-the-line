@@ -9,6 +9,7 @@ import ThemeSelector from './Theme';
 import Brand from './Brand';
 import LegalLinks from './LegalLinks';
 import { cloudApi, date } from './api';
+import { useSportGuard } from './sportNavigation.js';
 import { clearInvitation, pendingInvitation } from './invitations';
 import { goScreen, useScreen } from './screenHash';
 
@@ -161,6 +162,7 @@ export default function GameHub({ session, onSignOut }) {
   const [creating, setCreating] = useState(false), [editingProfile, setEditingProfile] = useState(false), [inviting, setInviting] = useState(null);
   const [token, setToken] = useState(pendingInvitation);
   const [socialDirty, setSocialDirty] = useState(false);
+  useSportGuard(socialDirty);
   // D-21: the community feed is home; groups and games are one step away. Persona audit #3: which screen is open lives in the URL hash
   // (#feed, #picks, #groups), one history entry each, so Back moves between screens and a reload lands on the same one.
   const screen = useScreen(), [communityOnline, setCommunityOnline] = useState(true);

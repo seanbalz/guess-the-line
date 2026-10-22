@@ -14,6 +14,7 @@
 // inside the frame's root, after the layers (the "sign in again" prompt).
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { switchApp } from '../../appView.js';
+import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
 import { ShellContext } from './context.js';
@@ -92,6 +93,11 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     return true;
   }, []);
   useEffect(() => {
+    const guard = event => { if (!confirmLeave()) event.preventDefault(); };
+    window.addEventListener('gtl:sport-leave', guard);
+    return () => window.removeEventListener('gtl:sport-leave', guard);
+  }, [confirmLeave]);
+  useEffect(() => {
     const warn = event => {
       if (!dirty.current.size) return;
       event.preventDefault();
@@ -118,6 +124,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     if (prev === state) return;
     synced.current = state;
     history.current?.sync(prev, state);
+    noteSportRoute();
     if (prev && prev.tab !== state.tab) window.scrollTo(0, 0);
   }, [state]);
 

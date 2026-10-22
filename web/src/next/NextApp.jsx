@@ -16,6 +16,7 @@ import { AppGate } from './shell/AppGate.jsx';
 import { addNextFontLinks } from './styles/fonts.js';
 
 export default function NextApp({ session, onSignOut }) {
+  // main.jsx's authenticated SportEntry mounts NBA before this NFL-only data provider.
   useEffect(() => { addNextFontLinks(); }, []);
   return (
     <AppDataProvider session={session}>

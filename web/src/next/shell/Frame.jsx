@@ -2,10 +2,11 @@
 // the offline banner, the dock host and the "coming next" card each tab shows until its own stage replaces it.
 import { createPortal } from 'react-dom';
 import { useId } from 'react';
-import { Avatar, Button, FieldMark, Icon } from '../ui/index.js';
+import { Avatar, Button, FieldMark, Icon, Segmented } from '../ui/index.js';
 import { cx } from '../ui/cx.js';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { useShell } from './context.js';
+import { navigateSport } from '../nba/route.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
 // Lucide house, target, ticket, chart-line and trophy (spec 1.2), by the kit's names.
@@ -29,6 +30,7 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
           <Avatar id={you.id} name={you.name} size={32}/>
         </button>
       </div>
+      <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={[{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]} onChange={() => navigateSport('#nba/games')}/></div>
     </header>
   );
 }

@@ -1,6 +1,7 @@
 import React, { lazy, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight, ArrowRight, ArrowLeft, LayoutDashboard, Crosshair, ChartNoAxesCombined, Trophy, History, Settings, ChevronDown, ChevronRight, Check, CheckCheck, LockKeyhole, CircleHelp, Plus, Minus, Download, SlidersHorizontal, Search, Menu, X, Users, Clock3, CalendarDays, TrendingUp, Layers3, Radio, RefreshCw, TriangleAlert, ShieldCheck, ExternalLink, Palette, Target, Flag, LoaderCircle } from 'lucide-react';
 import { api, fmt, signed, date, shortTeam } from './api';
+import { useSportGuard } from './sportNavigation.js';
 import { cloudEnabled } from './auth';
 import ThemeSelector from './Theme';
 import Brand from './Brand';
@@ -58,6 +59,7 @@ function ProvisionalAnalysisSummary({data}){if(submissionTimeScoring(data))retur
 export default function App({session,onSignOut,leagueId,leagues=[],onSelectLeague,onMyGames,onInvite}){
   const [page,setPage]=useState('overview'),[mode,setMode]=useState('guess_spread'),[player,setPlayer]=useState('sean'),[rawData,setData]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[mobile,setMobile]=useState(false),[busy,setBusy]=useState(false),[conflict,setConflict]=useState(false),[saveIssue,setSaveIssue]=useState(null),[membershipPending,setMembershipPending]=useState(false),[rules,setRules]=useState(false),[hasUnsaved,setHasUnsaved]=useState(false);
   const data=useMemo(()=>displayAnalysis(rawData),[rawData]);
+  useSportGuard(hasUnsaved);
   // Decision 4 (October 12): the Design lab is internal brand tooling, shown only to the game's commissioner.
   const commissioner=data?.league.roster.find(item=>item.id===data.playerId)?.role?.toLowerCase()==='commissioner';
   const main=useRef(null),sidebar=useRef(null),pageMounted=useRef(false);
