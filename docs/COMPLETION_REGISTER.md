@@ -221,6 +221,17 @@ failure it guards. Merged in PR #181 and released October 22 in the
 protected release [39821362374](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/39821362374) (API and frontend from `8dccc5c`, with #180 and #182) as Pages `9fb54fe4`; the served
 CSS carries both rules. Real-iPhone reproduction and acceptance remain open.
 
+October 22 Q06 (M-10 Bets read): read-only preflight passed; see the
+[preflight record](M10_PREFLIGHT_2026_10_22.md). Hosted checks:
+- M-01 and M-04 are applied.
+- No M-10 object exists yet, so nothing is half-applied.
+- The five helper functions match the repository chain body for body, as do
+  all 126 `gtl_*` functions.
+
+A PGlite rehearsal under the hosted default privileges was additive,
+service-only and idempotent. 108 repository tests passed. Not applied; awaiting
+Sean's "apply M-10".
+
 October 22 weekly Trends CPU fix: from API v31 on, every signed-in `/trends/week`
 request hit the Edge CPU limit (HTTP 546), and Week 8 has no static fallback.
 The server seed now carries the prepared 2025 history state instead of the history
