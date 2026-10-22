@@ -1,12 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nbaRoute, nbaHash, displayUnits, recoverOperation } from '../web/src/next/nba/route.js';
+import { nbaRoute, nbaHash, nbaFragment, displayUnits, recoverOperation } from '../web/src/next/nba/route.js';
 test('NBA namespace preserves date/filter routes without consuming NFL links', () => {
   assert.equal(nbaRoute('#play'), null);
   assert.deepEqual(nbaRoute('#nba/history?market=spread&from=2026-10-01'), { screen: 'history', filters: { status: 'settled', market: 'spread', from: '2026-10-01' } });
   assert.equal(nbaHash(nbaRoute('#nba/games?date=2026-10-21')), '#nba/games?date=2026-10-21');
   assert.deepEqual(nbaRoute('#nba/bets'), { screen: 'bets', filters: { status: 'pending' } });
   assert.deepEqual(nbaRoute('#nba/bets?status=all'), { screen: 'bets', filters: {} });
+});
+test('in-page #nba fragments stay in the NBA section; NFL addresses and empty hashes do not', () => {
+  // SportEntry keeps NBA mounted for these while NBA shows, so a skip-link anchor never reads as a sport change.
+  assert.equal(nbaRoute('#nba-main'), null);
+  assert.equal(nbaFragment('#nba-main'), true);
+  assert.equal(nbaFragment('#nba/games'), true);
+  for (const hash of ['#main', '#home', '#play', '', null, undefined]) assert.equal(nbaFragment(hash), false, String(hash));
 });
 test('decimal accounting display retains exact fractional digits', () => {
   assert.equal(displayUnits('9999991110.56790869'), '9999991110.56790869');

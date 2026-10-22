@@ -89,7 +89,12 @@ NBA browser scenarios (both apps), the shell/four-tab/app-switch browser specs,
 the full cloud-browser suite, rollback and migration registry tests, Brand QA
 and the cloud bundle privacy scan. Open: real provider readback, hosted
 permission checks and physical-iPhone acceptance. The NFL/NBA selector sits
-in the new app's top bar and, in the old app (default, `?app=classic` and the
-new app's crash fallback), after each screen's skip link and header, so the
-skip link stays the first Tab stop; it adds two Tab stops before Community
-content (the keyboard persona budget moves from 13 to 15).
+in a plain row right after the new app's top bar, outside the sticky bar so the
+bar keeps its 56px `--gx-size-topbar` height (sticky Research group headings and
+Play's focus scroll margin are offset by that token), and, in the old app
+(default, `?app=classic` and the new app's crash fallback), after each screen's
+skip link and header, so the skip link stays the first Tab stop; it adds two
+Tab stops before Community content (the keyboard persona budget moves from 13
+to 15). The NBA section's skip link moves focus to its main region without
+changing the address; while NBA shows, a non-route `#nba…` fragment never reads
+as a switch to NFL.

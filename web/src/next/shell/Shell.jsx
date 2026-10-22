@@ -18,7 +18,7 @@ import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
 import { ShellContext } from './context.js';
-import { DetailBack, OfflineBanner, TabBar, TopBar } from './Frame.jsx';
+import { DetailBack, OfflineBanner, SportControls, TabBar, TopBar } from './Frame.jsx';
 import { DialogHost, OverlayHost, PageHost, PopoverHost, SheetHost } from './LayerHosts.jsx';
 import { ToastHost } from './ToastHost.jsx';
 import { LAYERS, SCREENS } from './registry.jsx';
@@ -271,6 +271,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       <div className="gx" data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
           <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
+          <SportControls/>
           <main className="gx-main" id="main" tabIndex={-1}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}

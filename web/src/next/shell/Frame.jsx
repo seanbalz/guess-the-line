@@ -30,9 +30,16 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
           <Avatar id={you.id} name={you.name} size={32}/>
         </button>
       </div>
-      <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={[{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]} onChange={() => navigateSport('#nba/games')}/></div>
     </header>
   );
+}
+
+/**
+ * The NFL/NBA selector, a plain row right after the top bar. It stays out of the sticky bar so the bar keeps its
+ * --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
+ */
+export function SportControls() {
+  return <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={[{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]} onChange={() => navigateSport('#nba/games')}/></div>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */

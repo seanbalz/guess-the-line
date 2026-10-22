@@ -308,6 +308,22 @@ for (const view of ['classic', 'next']) test(`${view} sport entry/return, NFL an
   try {
     await enter(page, '#nba/games?date=2026-10-21', view);
     expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
+    // The skip link moves focus into NBA's main region and leaves the address alone, so it never reads as a sport change.
+    await page.locator('.gx-nba-skip').focus(); await page.keyboard.press('Enter');
+    await expect(page.locator('#nba-main')).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
+    expect(new URL(page.url()).hash).toBe('#nba/games?date=2026-10-21');
+    // Defense in depth: a non-route #nba fragment reached any other way keeps NBA mounted (no NFL reads, no guards).
+    await page.evaluate(() => new Promise(resolve => {
+      addEventListener('hashchange', () => requestAnimationFrame(() => requestAnimationFrame(resolve)), { once: true });
+      location.hash = '#nba-main';
+    }));
+    await expect(page.locator('.gx-nba')).toHaveCount(1);
+    await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
+    await page.goBack();
+    expect(new URL(page.url()).hash).toBe('#nba/games?date=2026-10-21');
+    await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
+    expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
     await page.getByRole('button', { name: 'NFL', exact: true }).click();
     await expect(page.locator('.gx-nba')).toHaveCount(0);
     if (view === 'classic') {
@@ -316,6 +332,18 @@ for (const view of ['classic', 'next']) test(`${view} sport entry/return, NFL an
       await page.getByRole('button', { name: /Pick'em/i }).first().click();
     } else {
       await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+      // The sport row sits outside the sticky top bar, which keeps its token height: sticky Research group headings
+      // and Play's focus scroll margin are offset by --gx-size-topbar.
+      await page.setViewportSize({ width: 390, height: 844 });
+      const bar = await page.locator('.gx-topbar').evaluate(el => {
+        const css = getComputedStyle(el);
+        return { height: el.getBoundingClientRect().height, expected: parseFloat(css.getPropertyValue('--gx-size-topbar')) + parseFloat(css.paddingTop) + parseFloat(css.borderBottomWidth) };
+      });
+      expect(bar.expected).toBeGreaterThanOrEqual(56);
+      expect(bar.height).toBe(bar.expected);
+      await expect(page.locator('.gx-topbar .gx-sport-controls')).toHaveCount(0);
+      await expect(page.locator('.gx-sport-controls').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
+      await page.setViewportSize({ width: 1440, height: 1000 });
       await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
       // The four-tab Play landing (c6afb02) opens the per-game editor from its one primary action.
       await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();

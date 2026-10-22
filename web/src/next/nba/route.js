@@ -11,6 +11,8 @@ export function nbaRoute(hash) {
   for (const key of ['from', 'to']) if (isNbaDate(query.get(key))) filters[key] = query.get(key);
   return { screen, filters };
 }
+/** Any #nba… fragment belongs to the NBA section, including in-page anchors that are not routes (#nba-main). */
+export const nbaFragment = hash => typeof hash === 'string' && hash.startsWith('#nba');
 export function nbaHash(route) {
   const query = new URLSearchParams(route.screen === 'games' ? (route.date ? { date: route.date } : {}) : { status: 'all', ...route.filters });
   return `#nba/${route.screen}${query.size ? `?${query}` : ''}`;
