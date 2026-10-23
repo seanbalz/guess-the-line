@@ -404,6 +404,10 @@ abbreviations, never logos for players, no player photos.
 - **Before build:** under the design-exploration rule, five visual alternatives
   for the ballot card and its results state go to Sean for a pick. That is a
   pre-build step, not part of this specification.
+  **Picked October 23, 2026:** option D, "Glow card" (the D-55 glow card with glass
+  pills; faces first after lock-in with each member's guess and the House; results
+  as You / Actual / Points tiles and one line naming the closest member). Recorded
+  as a D-56 addendum in [DECISIONS.md](../../DECISIONS.md).
 
 ## 6. Trade verdicts (phase 2)
 

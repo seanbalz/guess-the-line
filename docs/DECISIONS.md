@@ -74,6 +74,16 @@ Written design: [Guess the Points and Trade verdicts](superpowers/specs/2026-10-
 This decision authorizes an implementation plan for review. It does not apply a
 migration, deploy, or establish phone acceptance.
 
+*Addendum, October 23, 2026 — Ballot card: option D, Glow card (Oct 23, 2026).*
+Under the design-exploration rule (spec section 5, "Before build"), Sean reviewed
+five visual alternatives for the Points slot card and its results state and picked
+**option D, "Glow card"**: the D-55 deep-blue glow card with glass pills. After
+lock-in the card shows faces first, with each member's guess and the House; results
+show You / Actual / Points tiles and one line naming the closest member. It follows
+the D-55 rules (at most two glow cards in view, glass only on a glow card, lime only
+for the one primary action) and the spec's at-most-four-numbers rule. This selects
+the card's look only; it changes no rule above and builds no screen.
+
 ## D-55 — trend charts and a softer brand direction (October 21, 2026)
 
 Sean reviewed five trend-chart directions for the game sheet (A headline line, B
