@@ -4,8 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { createFantasyService, handleFantasy, FantasyError } from '../cloud/fantasy.mjs';
-import { snapshotFileName, reviewFileName, updateFantasyIndex } from '../shared/fantasy-index.mjs';
+import { createFantasyService, createAssetReader, handleFantasy, FantasyError } from '../cloud/fantasy.mjs';
+import { snapshotFileName, reviewFileName, updateFantasyIndex, validateFantasyIndex } from '../shared/fantasy-index.mjs';
 import { parseFeatureOff } from '../cloud/feature-off.mjs';
 
 const snapshotBytes = readFileSync(new URL('../shared/fantasy/2026-week-06.json', import.meta.url));
@@ -53,9 +53,19 @@ test('a checksum mismatch is 503 and is not cached', async () => {
   assert.equal((await handleFantasy({ route: '/fantasy/week', body: {}, user, service, clock })).snapshot.week, 6);
 });
 
-test('a redirect to another origin is refused', async () => {
-  const service = createFantasyService({ clock, fetchImpl: async () => new Response(null, { status: 302, headers: { location: 'https://evil.example/index.json' } }) });
+test('a redirect to another origin is refused before it is requested, with no credentials and manual redirects', async () => {
+  const urls = [], optionsSeen = [];
+  const fetchImpl = async (url, options) => {
+    urls.push(url); optionsSeen.push(options);
+    if (new URL(url).origin === 'https://evil.example') return new Response(JSON.stringify(index));
+    return new Response(null, { status: 302, headers: { location: 'https://evil.example/index.json' } });
+  };
+  const service = createFantasyService({ clock, fetchImpl });
   await assert.rejects(handleFantasy({ route: '/fantasy/week', body: {}, user, service, clock }), { status: 503 });
+  const allowed = new Set(['https://github.com', 'https://release-assets.githubusercontent.com', 'https://objects.githubusercontent.com']);
+  assert.ok(urls.length >= 1);
+  assert.deepEqual(urls.filter(url => !allowed.has(new URL(url).origin)), [], 'no request left the GitHub origins');
+  assert.ok(optionsSeen.every(options => options.credentials === 'omit' && options.redirect === 'manual'));
 });
 
 test('after the index TTL, an unreachable GitHub serves the cached index marked stale', async () => {
@@ -68,6 +78,7 @@ test('after the index TTL, an unreachable GitHub serves the cached index marked 
   assert.equal(reply.snapshot.week, 6, 'the verified file comes from the checksum cache');
 });
 
+const validateIndexShape = text => validateFantasyIndex(JSON.parse(text)).valid;
 const call = (service, body = {}) => handleFantasy({ route: '/fantasy/week', body, user, service, clock });
 const entryFor = (week, name, bytes) => ({ week, file: name, sha256: sha(bytes), bytes: bytes.byteLength, generatedAt: '2026-10-15T19:29:56.273Z', statsThroughWeek: week - 1, publishedAfterFreeze: false, rosterFallbackTeams: 0 });
 
@@ -96,15 +107,30 @@ test('a 404 index with nothing cached is "no data" and is not cached', async () 
   assert.equal((await call(service)).snapshot.week, 6);
 });
 
-test('a file over the size cap is 503, by content-length or by streamed bytes', async () => {
-  const viaHeader = createFantasyService({ clock, fetchImpl: async url => url.endsWith(file) ? new Response('x', { headers: { 'content-length': '3000001' } }) : serve(files)(url) });
-  await assert.rejects(call(viaHeader), { status: 503 });
-  const streamed = createFantasyService({ clock, fetchImpl: async url => {
-    if (!url.endsWith(file)) return serve(files)(url);
-    let sent = 0;
-    return new Response(new ReadableStream({ pull(controller) { if (sent >= 3_000_001) controller.close(); else { controller.enqueue(new Uint8Array(500_000)); sent += 500_000; } } }));
-  } });
-  await assert.rejects(call(streamed), { status: 503 });
+test('the asset reader refuses by content-length without pulling any body', async () => {
+  let pulls = 0, cancelled = false;
+  const body = new ReadableStream({ pull(controller) { pulls++; controller.enqueue(new Uint8Array(4)); }, cancel() { cancelled = true; } }, { highWaterMark: 0 });
+  const read = createAssetReader({ fetchImpl: async () => new Response(body, { headers: { 'content-length': '1000' } }) });
+  await assert.rejects(read('https://github.com/x', 10, 5000), /Too large/);
+  assert.equal(cancelled, true);
+  assert.equal(pulls, 0, 'the declared size alone stops the read');
+});
+
+test('the asset reader stops a stream without content-length at the cap', async () => {
+  let sent = 0, cancelled = false;
+  const body = new ReadableStream({ pull(controller) { controller.enqueue(new Uint8Array(4)); sent += 4; }, cancel() { cancelled = true; } }, { highWaterMark: 0 });
+  const read = createAssetReader({ fetchImpl: async () => new Response(body) });
+  await assert.rejects(read('https://github.com/x', 10, 5000), /Too large/);
+  assert.equal(cancelled, true);
+  assert.ok(sent <= 10 + 4, `read stopped at the cap plus one chunk (sent ${sent})`);
+});
+
+test('an index over the 64 KB cap is 503 even though it would parse and validate', async () => {
+  const padded = JSON.stringify(index).padEnd(70_000, ' ');
+  assert.equal(padded.length, 70_000);
+  assert.equal(validateIndexShape(padded), true);
+  const service = createFantasyService({ clock, fetchImpl: serve({ ...files, 'index.json': padded }) });
+  await assert.rejects(call(service), { status: 503 });
 });
 
 test('a file whose week differs from its index entry is 503 and is not cached', async () => {
