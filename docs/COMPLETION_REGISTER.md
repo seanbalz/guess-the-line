@@ -33,6 +33,15 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
+October 23 Guess the Points design (D-56): Sean approved the
+[written design](superpowers/specs/2026-10-22-guess-the-points-design.md) for a
+weekly fantasy guessing game in Play, with Trade verdicts as phase 2, after
+answering each rule question and approving each section in chat. Design only, on
+[PR #191](https://github.com/seanbalz/guess-the-lines-repo/pull/191): no
+implementation plan, code, migration or deploy yet. It depends on the fantasy
+refresh (queue Q11) producing fresh weekly estimates by Tuesday noon PT and a
+weekly actuals export, which `scripts/fantasy.mjs` does not produce today.
+
 October 21 NBA product direction: Sean selected **daily game board + private bet
 tracking first**, with NBA competitions later. The
 [approved NBA section design](superpowers/specs/2026-10-21-nba-section-design.md)
