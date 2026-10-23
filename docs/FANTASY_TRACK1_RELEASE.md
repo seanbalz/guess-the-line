@@ -3,7 +3,8 @@
 Prepared October 23, 2026; filled for release the same day (Pacific) from the
 check-only and readiness runs below. **Released October 23, 2026** as `gtl-api` v35 and
 Pages `78909363` on Sean's approval; see the
-[release record](RELEASE_2026_10_23_FANTASY_TRACK1.md). The refresh workflow has not run.
+[release record](RELEASE_2026_10_23_FANTASY_TRACK1.md). The first data publish ran the
+same day (run 40036071753); the daily schedule is not added.
 
 - Source SHA: `0bd4f1a588f20da90fea9d5931ce7bc0d20cad6d` (`main`, the merge of
   [PR #198](https://github.com/seanbalz/guess-the-lines-repo/pull/198); design and
@@ -84,14 +85,14 @@ Readiness report (read-only hosted snapshot, 21:58:13 UTC):
 1. Done: API v35, Pages `78909363`, release run 40031274160 and the verify evidence
    are in the [release record](RELEASE_2026_10_23_FANTASY_TRACK1.md).
 2. Done: signed-out `POST /fantasy/week` returns 401 (284 of 284 probes denied).
-3. Not yet run. With Sean's OK, a dry run of `fantasy-refresh.yml`, then the first real run;
+3. Done October 23 (dry run 40036011941, publish 40036071753; the publish step's own
+   readback timed out but the published files verified independently). With Sean's OK, a dry run of `fantasy-refresh.yml`, then the first real run;
    read back the `fantasy-data-2026` release and its `index.json`.
 
 ## Readback checklist
 
-- [ ] Signed-in 2xx for `POST /fantasy/week` in hosted logs, and a signed-out 401.
-  Signed-out 401 confirmed after the deploy; signed-in currently answers the expected
-  404 until the first data publish.
+- [x] Signed-in 2xx for `POST /fantasy/week` in hosted logs, and a signed-out 401.
+  Signed-out 401 after the deploy; signed-in 200 at 22:51:19 UTC after the first publish.
 - [ ] Phone-width check of the Fantasy tab (status line, context pill, accuracy card).
 - [ ] A lock line appears for a game whose spread or total is not yet visible.
 - [ ] Implied totals appear only after locking in or sitting out that game's markets

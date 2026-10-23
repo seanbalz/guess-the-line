@@ -53,14 +53,42 @@ approved SHA and target.
 - In Sean's signed-in Chrome, Research → Fantasy loaded the new bundle and showed
   "Showing saved Week 6 · live refresh unavailable" with the stale-snapshot notice: the
   committed fallback the release card describes.
-- A signed-in 2xx is not possible until the refresh workflow publishes the
-  `fantasy-data-2026` release.
+- A signed-in 2xx was not possible until the refresh workflow published the
+  `fantasy-data-2026` release (next section).
+
+## First data publish (Sean's OK, October 23)
+
+| Run | Result |
+| --- | --- |
+| Dry run [40036011941](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40036011941) | Passed on `0bd4f1a`; would build the Week 7 snapshot and the Week 6 review (six weeks complete) and uploaded nothing |
+| First publish [40036071753](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40036071753) | Build passed. Publish created the prerelease `fantasy-data-2026` and uploaded all three assets, then failed its own readback with "Readback mismatch: index.json" (four tries, five seconds apart) |
+
+Independent readback at about 22:50 UTC, through the public release URLs:
+
+- `index.json` (562 bytes, updated 22:49:55 UTC), `2026-week-07.a3eb8da7.json`
+  (1,007,019 bytes) and `2026-review-week-06.1e7cee3f.json` (289,385 bytes) all return
+  200.
+- The index passes `validateFantasyIndex`. Each file's size and SHA-256 match its index
+  entry. The snapshot (518 rows, stats through Week 6, `publishedAfterFreeze` false)
+  passes `validateFantasySnapshot`, and the review (370 rows, `PROVISIONAL`) passes
+  `validateFantasyReview`. Neither file has a spread, total, line, moneyline or implied
+  field.
+- The workflow's failure was therefore its readback window, not the data: on a first
+  upload, the public `index.json` was not yet served within about 20 seconds.
+
+Signed-in readback after the publish:
+
+- Hosted edge log, 22:51:19 UTC: signed-in `POST /functions/v1/gtl-api/fantasy/week` on
+  v35 returned **200 in 1,303 ms** after a 204 preflight. Function logs from 22:45 UTC
+  show no "CPU Time exceeded" or error lines.
+- In Sean's signed-in Chrome, Research → Fantasy shows Week 7, "Updated Oct 23, 3:49 PM
+  PDT", "Stats through Week 6 · Source updated Oct 23, 7:36 AM PDT", and the Week 6
+  accuracy card ("Provisional", off by 4.5 points per player in PPR).
 
 ## Not done
 
-- The refresh workflow has not run. Next, with Sean's OK: a dry run of
-  `fantasy-refresh.yml`, then the first real run, then a readback of the
-  `fantasy-data-2026` release and its `index.json` and a signed-in 2xx.
+- The publish readback window needs to be longer before the daily schedule is added;
+  otherwise a correct publish can report failure.
 - The phone-width check, the lock line and the implied-totals checks in the release
   card's readback checklist.
 - The daily schedule is a separate later change after a verified manual run.
