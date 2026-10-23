@@ -5,6 +5,7 @@ import { BETS_METHODS, BetsError, handleBets, providerBetsError } from '../cloud
 import { LEAGUE_METHODS, LeagueError, handleLeague, providerLeagueError } from '../cloud/league.mjs';
 import { LINES_METHODS, LinesError, handleLines, providerLinesError } from '../cloud/lines.mjs';
 import { ME_METHODS, MeError, handleMe, providerMeError } from '../cloud/me.mjs';
+import { POINTS_METHODS, PointsError, handlePoints, providerPointsError } from '../cloud/points.mjs';
 
 // Redesign build plan, stage 4: cloud/{lines,bets,league,me}.mjs are wired into cloud/handler.mjs once, so a
 // later server stage edits only its own module. The gtl-api route map of October 14, 2026 (main a5a218d):
@@ -26,6 +27,8 @@ const GROUPS = [
   ['bets', BETS_METHODS, handleBets, BetsError, providerBetsError, 'Bets are unavailable.'],
   ['league', LEAGUE_METHODS, handleLeague, LeagueError, providerLeagueError, 'League data is unavailable.'],
   ['me', ME_METHODS, handleMe, MeError, providerMeError, 'Your preferences are unavailable.'],
+  // Guess the Points (D-56): its adapter caller also refuses any function outside POINTS_RPCS.
+  ['points', POINTS_METHODS, handlePoints, PointsError, providerPointsError, 'Guess the Points is unavailable.', 'gtl_points_read'],
 ];
 const USER = { id: '00000000-0000-4000-8000-00000000000b', is_anonymous: false };
 
@@ -48,7 +51,7 @@ test('the merged route map is exactly the union of the modules\' maps, and no ro
   assert.ok(Object.isFrozen(ROUTE_METHODS) && Object.isFrozen(ROUTE_MODULES));
 });
 
-test('the four redesign groups are wired once, through their own maps', () => {
+test('the redesign groups are wired once, through their own maps', () => {
   for (const [name, methods] of GROUPS) {
     assert.equal(ROUTE_MODULES[name], methods, `${name}: the handler reads the module's own map`);
     assert.ok(Object.isFrozen(methods), name);
@@ -81,14 +84,16 @@ test('the adapter gives each group a service-only RPC caller mapped through its 
     requests.push({ url: new URL(url), options });
     return requests.length % 2 ? Response.json({ ok: true }) : Response.json({ message: 'database secret detail' }, { status: 400 });
   } });
-  for (const [name, , , , , generic] of GROUPS) {
-    assert.deepEqual(await adapter[name].rpc('gtl_fixture_read', { p_user: USER.id }), { ok: true });
-    await assert.rejects(adapter[name].rpc('gtl_fixture_read', {}), error => error.message === generic && !/secret/.test(error.message));
+  for (const [name, , , , , generic, rpc = 'gtl_fixture_read'] of GROUPS) {
+    assert.deepEqual(await adapter[name].rpc(rpc, { p_user: USER.id }), { ok: true });
+    await assert.rejects(adapter[name].rpc(rpc, {}), error => error.message === generic && !/secret/.test(error.message));
     await assert.rejects(adapter[name].rpc('../auth/v1/user', {}), /Invalid operation/);
   }
   assert.equal(requests.length, GROUPS.length * 2, 'an invalid name is never sent');
-  for (const { url, options } of requests) {
-    assert.equal(url.pathname, '/rest/v1/rpc/gtl_fixture_read');
+  await assert.rejects(adapter.points.rpc('gtl_fixture_read', {}), /Invalid operation/);
+  assert.equal(requests.length, GROUPS.length * 2, 'a Points call outside its list is never sent');
+  for (const [index, { url, options }] of requests.entries()) {
+    assert.equal(url.pathname, `/rest/v1/rpc/${GROUPS[Math.floor(index / 2)][6] ?? 'gtl_fixture_read'}`);
     assert.equal(options.method, 'POST'); assert.equal(options.redirect, 'error');
     assert.equal(options.headers.Authorization, 'Bearer server-test-secret');
   }
@@ -97,7 +102,7 @@ test('the adapter gives each group a service-only RPC caller mapped through its 
 test('a route outside every module is still 404 before any sign-in check, including the new group prefixes', async () => {
   let authenticated = 0;
   const handler = createCloudHandler({ authenticate: async () => { authenticated++; return null; } });
-  for (const path of ['/lines', '/bets', '/league', '/me', '/lines/', '/me/', '/unknown']) {
+  for (const path of ['/lines', '/bets', '/league', '/me', '/points', '/lines/', '/me/', '/points/', '/unknown']) {
     if (Object.hasOwn(ROUTE_METHODS, path)) continue;
     const response = await handler(new Request(`https://fixture.invalid/functions/v1/gtl-api${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }));
     assert.equal(response.status, 404, path);

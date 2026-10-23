@@ -11,10 +11,12 @@ import { COMMUNITY } from '../data/league.js';
 import { useShell } from '../shell/context.js';
 import { Avatar, Button, Card, List, Rank, Row, Segmented } from '../ui/index.js';
 import { LeagueHistory } from './LeagueHistory.jsx';
+import { PointsBoard } from '../play/points/PointsBoard.jsx';
 import { LeagueFailure, useLeagueRead } from './useLeagueRead.jsx';
 import './league.css';
 
-const MARKETS = Object.entries(MODE).map(([value, label]) => ({ value, label }));
+// D-56: the board switcher is Spread / Total / Points. Points is its own board and never adds to Spread or Total.
+const MARKETS = [...Object.entries(MODE).map(([value, label]) => ({ value, label })), { value: 'guess_points', label: 'Points' }];
 const message = error => error?.status ? error.message : 'No connection. Reconnect and try again.';
 
 function CommunityBoard({ feed, mode }) {
@@ -165,7 +167,7 @@ function PrivateLeague({ app, mode }) {
 
 export function LeagueScreen() {
   const app = useAppData(), shell = useShell(), view = shell.state.views.league || {};
-  const mode = view.market === 'total' || view.market === 'guess_total' ? 'guess_total' : 'guess_spread';
+  const mode = view.market === 'total' || view.market === 'guess_total' ? 'guess_total' : view.market === 'points' || view.market === 'guess_points' ? 'guess_points' : 'guess_spread';
   const section = ['board', 'history', 'feed'].includes(view.view) ? view.view : 'feed';
   const community = app.league.community === true, feed = app.community.data;
   return <div className="gx-screen gx-league">
@@ -174,9 +176,9 @@ export function LeagueScreen() {
     <Button onClick={() => shell.go('play', { section: 'compare', season: feed?.week?.season ?? null, week: feed?.week?.week ?? null, period: 'week', comparisonKind: 'all', players: [], team: '', matchup: '' })}>Compare players in {app.league.name}</Button>
     {community && <Segmented label="League sections" options={[{ value: 'feed', label: 'Feed' }, { value: 'board', label: 'Boards' }, { value: 'history', label: 'History' }]} value={section} onChange={value => shell.setView('league', { view: value })}/>}
     {(!community || section === 'board') && <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => shell.setView('league', { market: value })}/>}
-    {!community ? <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} mode={mode}/>
+    {!community ? mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={app.league.id}/> : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} mode={mode}/>
       : !feed ? app.community.error ? <LeagueFailure error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <p className="gx-t-body gx-c-2" role="status">Loading the Community…</p>
-      : section === 'board' ? <CommunityBoard feed={feed} mode={mode}/>
+      : section === 'board' ? mode === 'guess_points' ? <PointsBoard key={app.accountId} app={app}/> : <CommunityBoard feed={feed} mode={mode}/>
       : section === 'history' ? <LeagueHistory key={app.accountId} app={app}/>
       : <CommunityFeed key={app.accountId} feed={feed} app={app}/>}
     {community && <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh Community</Button>}

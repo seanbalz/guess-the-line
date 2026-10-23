@@ -21,6 +21,8 @@ import { PerGameEditor } from './PerGamePlay.jsx';
 import { ScoreComparison } from './ScoreComparison.jsx';
 import { WeeklyScore } from './WeeklyScore.jsx';
 import { perGameReady } from './scoring.js';
+// Guess the Points (D-56): the third Play game, its own ballot and read; "coming soon" until P-01 is applied.
+import { PointsBallot, PointsLandingCard, usePointsRead } from './points/PointsBallot.jsx';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
@@ -33,6 +35,7 @@ export function Play() {
   const shell = useShell();
   const section = shell.state.views.play.section;
   if (section === 'league') return <LeagueScreen/>;
+  if (section === 'points') return <PointsBallot/>;
   if (!['picks', 'score', 'compare'].includes(section)) return <PlayLanding/>;
   return <PlayDetail/>;
 }
@@ -40,6 +43,9 @@ export function Play() {
 function PlayLanding() {
   const app = useAppData(), shell = useShell(), data = app.community.data;
   const preferences = useAccountPreferences(app);
+  const points = usePointsRead(app);
+  // Decision 1C (D-56 addendum, Oct 23): Points is a glow card under the plain Spread and Total rows.
+  const pointsCard = <PointsLandingCard read={points} onOpen={() => shell.go('play', { section: 'points' })}/>;
   const hero = data ? homeHero({ community: data }) : null;
   const market = nextGuess(data), other = market === 'spread' ? 'total' : 'spread';
   const name = value => value === 'spread' ? 'Guess the Spread' : 'Guess the Total';
@@ -56,11 +62,15 @@ function PlayLanding() {
     {!hero ? <section className="gx-empty" role={app.community.status === 'error' ? 'alert' : 'status'}><p className="gx-t-body">{app.community.status === 'error' ? 'Your picks could not be loaded.' : 'Loading your picks…'}</p>{app.community.status === 'error' && <Button onClick={() => app.refresh({ only: ['community'] })}>Try again</Button>}</section>
       : <><FocusAction title={hero.action.primary ? name(market) : 'Your week, at a glance.'} eyebrow={hero.action.primary ? 'Your next move' : 'Your results'} description={hero.action.primary ? status(market) : hero.state === 'none' ? 'No week is open yet. Your past results are still here.' : 'Review your guesses and their saved scoring lines.'} action={hero.action.primary ? 'Continue guessing' : 'View your results'} onAction={() => hero.action.primary ? open(market) : shell.go('play', { section: 'score' })}/>
       {app.community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p>}
-      <FocusRows label="More in Play">
+      <FocusRows label="Spread and Total">
         {(!hero.action.primary ? [market, other] : [other]).map(value => <FocusRow key={value} icon="target" title={name(value)} sub={status(value)} onClick={() => open(value)}/>)}
+      </FocusRows>
+      {pointsCard}
+      <FocusRows label="More in Play">
         <FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/>
         {hero.action.primary && <FocusRow icon="chart" title="Your results" sub="Scores, comparisons and history" onClick={() => shell.go('play', { section: 'score' })}/>}
       </FocusRows></>}
+    {!hero && pointsCard}
     {!hero && <FocusRows label="More in Play"><FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/></FocusRows>}
     <details className="gx-focus-help"><summary className="gx-t-strong">How to play</summary><HomeGuide key={app.accountId} preferences={preferences} perGame={data?.rules?.perGameScoring === true}/></details>
   </div>;

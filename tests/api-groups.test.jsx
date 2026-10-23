@@ -9,15 +9,15 @@ vi.mock('../web/src/auth.js', () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: 'fixture-token' } }, error: null }) } },
 }));
 
-const { ApiError, GROUP_ACTIONS, betsApi, cloudApi, leagueApi, linesApi, meApi } = await import('../web/src/api.js');
+const { ApiError, GROUP_ACTIONS, betsApi, cloudApi, leagueApi, linesApi, meApi, pointsApi } = await import('../web/src/api.js');
 const { SaveUncertainError } = await import('../web/src/apiResponse.js');
 
-const wrappers = { lines: linesApi, bets: betsApi, league: leagueApi, me: meApi };
+const wrappers = { lines: linesApi, bets: betsApi, league: leagueApi, me: meApi, points: pointsApi };
 afterEach(() => vi.unstubAllGlobals());
 
 describe('route-group wrappers', () => {
-  it('cover the four groups, each with disjoint read and write action lists', () => {
-    expect(Object.keys(GROUP_ACTIONS)).toEqual(['lines', 'bets', 'league', 'me']);
+  it('cover the five groups, each with disjoint read and write action lists', () => {
+    expect(Object.keys(GROUP_ACTIONS)).toEqual(['lines', 'bets', 'league', 'me', 'points']);
     for (const { reads, writes } of Object.values(GROUP_ACTIONS)) {
       for (const action of [...reads, ...writes]) expect(action).toMatch(/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)*$/);
       expect(reads.filter(action => writes.includes(action))).toEqual([]);
@@ -54,6 +54,27 @@ describe('route-group wrappers', () => {
       ['https://fixture.invalid/functions/v1/gtl-api/lines/game', 'POST', '{"gameId":"SEA-DEN"}'],
       ['https://fixture.invalid/functions/v1/gtl-api/lines/research', 'POST', '{"period":"recent30"}'],
     ]);
+  });
+});
+
+describe('Guess the Points wrapper', () => {
+  it('reads the week as a read; drafts, lock-ins and slate changes are saves, never retried', async () => {
+    expect(GROUP_ACTIONS.points).toEqual({ reads: ['read'], writes: ['draft', 'lock', 'slate'] });
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ error: 'Unavailable' }), { status: 503, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetch);
+    const read = await pointsApi('read', {}).catch(caught => caught);
+    expect(read).toBeInstanceOf(ApiError);
+    expect(read).not.toBeInstanceOf(SaveUncertainError);
+    for (const action of ['draft', 'lock', 'slate']) expect(await pointsApi(action, { requestId: 'fixture' }).catch(caught => caught)).toBeInstanceOf(SaveUncertainError);
+    expect(fetch.mock.calls.map(([url]) => url)).toEqual(['read', 'draft', 'lock', 'slate'].map(action => `https://fixture.invalid/functions/v1/gtl-api/points/${action}`));
+  });
+
+  it('keeps the coming-soon and lock refusal codes so the screen can act on them', async () => {
+    for (const [status, code] of [[404, 'GTL_POINTS_OFF'], [409, 'GTL_POINTS_LOCKED'], [409, 'GTL_POINTS_CLOSED']]) {
+      vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'Refused', code }), { status, headers: { 'content-type': 'application/json' } })));
+      const error = await pointsApi(status === 404 ? 'read' : 'lock', {}).catch(caught => caught);
+      expect([error.status, error.code, error.message]).toEqual([status, code, 'Refused']);
+    }
   });
 });
 
