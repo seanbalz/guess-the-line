@@ -894,14 +894,14 @@ begin
         case when not has_row and played is false and ruling is distinct from 'played' then 'inactive' end) void_reason
     from joined)
   select v->>'slot', v->>'playerId', (v->>'kickoff')::timestamptz,
-    case when void_reason is not null then 'void'
+    case when resolved.void_reason is not null then 'void'
          when has_row and a_points is not null then 'scored'
          when not has_row and (played is true or ruling = 'played') then 'scored'
          else 'pending' end,
-    case when void_reason is not null then null
+    case when resolved.void_reason is not null then null
          when has_row then a_points
          when played is true or ruling = 'played' then 0.0 end,
-    void_reason, (v->>'house')::numeric
+    resolved.void_reason, (v->>'house')::numeric
   from resolved;
 end $$;
 
