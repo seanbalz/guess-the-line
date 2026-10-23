@@ -11,11 +11,12 @@ const dir = path.resolve(value('--dir') ?? '.local/fantasy-release');
 const manifest = JSON.parse(await readFile(path.join(dir, 'manifest.json'), 'utf8'));
 if (!manifest.files.length) { console.log(JSON.stringify({ published: 0, reason: 'Nothing to publish.' })); process.exit(0); }
 const tag = `fantasy-data-${manifest.season}`, repo = FANTASY_REPOSITORY;
-const gh = (...command) => execFileSync('gh', command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
+const gh = (...command) => execFileSync('gh', command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 let assets = [];
 try {
   assets = JSON.parse(gh('release', 'view', tag, '--repo', repo, '--json', 'assets')).assets.map(asset => ({ name: asset.name, createdAt: asset.createdAt }));
-} catch {
+} catch (error) {
+  if (!/release not found/i.test(String(error.stderr ?? error.message))) throw error;
   gh('release', 'create', tag, '--repo', repo, '--prerelease', '--title', `Fantasy data ${manifest.season}`,
     '--notes', 'Data only, not an app release. Public nflverse-derived Fantasy snapshots and weekly reviews (nflverse, CC BY 4.0). index.json lists the current files.');
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Scheduled Fantasy refresh (D-57): plans, builds and writes public, content-addressed files plus index.json and a
 // manifest to an output folder. scripts/fantasy-publish.mjs uploads them. Never reads GTL picks, lines or account data.
-import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +18,8 @@ const now = value('--now') ? Date.parse(value('--now')) : Date.now();
 if (!Number.isFinite(now)) throw new Error('Invalid --now.');
 const season = Number(value('--season') ?? fantasySeason(now));
 const out = path.resolve(root, value('--out') ?? '.local/fantasy-release');
+// A failed run must never leave an earlier run's manifest or index to be published.
+await Promise.all(['manifest.json', 'index.json'].map(name => rm(path.join(out, name), { force: true })));
 const base = `https://github.com/${FANTASY_REPOSITORY}/releases/download/fantasy-data-${season}`;
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 
