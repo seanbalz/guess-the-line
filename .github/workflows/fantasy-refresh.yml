@@ -1,0 +1,32 @@
+name: Fantasy refresh
+# D-57: builds the Fantasy snapshot and last week's review from nflverse and publishes them as release assets of this
+# repository (data only). Manual first; the daily schedule is added after a verified manual run.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build and validate without uploading
+        type: boolean
+        default: true
+permissions:
+  contents: write
+concurrency:
+  group: fantasy-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Build
+        run: node scripts/fantasy-refresh.mjs --out .local/fantasy-release
+      - name: Publish
+        if: ${{ github.event_name == 'schedule' || inputs.dry_run == false }}
+        run: node scripts/fantasy-publish.mjs --dir .local/fantasy-release
