@@ -61,6 +61,26 @@ export function estimatePace(history) {
   ]));
 }
 
+const MATCHUP_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
+const OFFENSE_STATS = ['passingYards', 'passingTds', 'interceptions', 'rushingYards', 'rushingTds', 'receptions', 'receivingYards', 'receivingTds', 'fumblesLost', 'twoPointConversions', 'specialTeamsTds'];
+const zeroStats = () => Object.fromEntries(OFFENSE_STATS.map(key => [key, 0]));
+const addStats = (total, stats) => Object.fromEntries(OFFENSE_STATS.map(key => [key, total[key] === null || stats[key] === null ? null : round(total[key] + stats[key])]));
+
+/** What each defense allowed to each offensive position, per game before the selected week. Raw stats, scored by the app. */
+export function buildMatchups(priorStats) {
+  const games = new Map();
+  for (const row of priorStats) {
+    if (!MATCHUP_POSITIONS.includes(row.position)) continue;
+    const defense = appCode(row.opponent_team), key = `${defense}|${row.week}`;
+    if (!games.has(key)) games.set(key, { defense, week: Number(row.week), opponent: appCode(row.team), allowed: Object.fromEntries(MATCHUP_POSITIONS.map(position => [position, zeroStats()])) });
+    const game = games.get(key);
+    game.allowed[row.position] = addStats(game.allowed[row.position], normalizePlayerStats(row));
+  }
+  const out = {};
+  for (const { defense, week, opponent, allowed } of [...games.values()].sort((a, b) => a.week - b.week)) (out[defense] ??= []).push({ week, opponent, allowed });
+  return Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b)));
+}
+
 /** Regular-season weeks whose every scheduled game has statistics rows for both teams. */
 export function completedWeeks({ season, schedule, stats }) {
   const sides = new Map();
@@ -158,8 +178,8 @@ export function buildFantasySnapshot({ season, week, stats, rosters, injuries, s
     };
   }).sort((a, b) => a.id.localeCompare(b.id));
   const snapshot = {
-    schemaVersion: 1, season, week, asOf: sources.find(source => source.name.includes('stats_player'))?.updatedAt || generatedAt,
-    generatedAt, statsThroughWeek, rosterFallbackTeams, method: FANTASY_METHOD, sources, players,
+    schemaVersion: 2, season, week, asOf: sources.find(source => source.name.includes('stats_player'))?.updatedAt || generatedAt,
+    generatedAt, statsThroughWeek, rosterFallbackTeams, matchups: buildMatchups(priorStats), method: FANTASY_METHOD, sources, players,
   };
   const validation = validateFantasySnapshot(snapshot, { now: Date.parse(generatedAt) });
   if (!validation.valid) throw new Error(validation.errors.join('\n'));

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { buildFantasySnapshot, completedWeeks, estimatePace, normalizePlayerStats, parseFantasyCsv } from '../shared/fantasy-build.mjs';
-import { buildRankings, scoreStats } from '../shared/fantasy-rankings.mjs';
+import { buildRankings, scoreStats, validateFantasySnapshot } from '../shared/fantasy-rankings.mjs';
 
 const TEAMS = Object.keys(TEAM_NAMES);
 const SEASON = 2026, WEEK = 6, GENERATED = '2026-10-15T12:00:00Z';
@@ -232,4 +232,32 @@ test('public player and stat output use a field allowlist; raw odds, identities,
   const scoringKeys = ['passingYards', 'passingTds', 'interceptions', 'rushingYards', 'rushingTds', 'receptions', 'receivingYards', 'receivingTds', 'fumblesLost', 'twoPointConversions', 'specialTeamsTds', 'targets', 'carries', 'passingAttempts'].sort();
   assert.deepEqual(Object.keys(sea.weekly.stats).sort(), scoringKeys);
   assert.deepEqual(Object.keys(sea.history[0]).sort(), [...scoringKeys, 'week'].sort());
+});
+
+test('matchups sum what each defense allowed by offensive position per prior game, as raw stats', () => {
+  const input = fixture();
+  input.stats.push(rawStats('SEA', 3, { player_id: 'fixture-SEA-wr', position: 'WR', receptions: '6', receiving_yards: '75', rushing_yards: '0', carries: '0' }));
+  const snapshot = buildFantasySnapshot(input);
+  assert.equal(snapshot.schemaVersion, 2);
+  const opponent = TEAMS[TEAMS.indexOf('SEA') ^ 1];
+  const game = snapshot.matchups[opponent].find(row => row.week === 3);
+  assert.equal(game.opponent, 'SEA');
+  assert.equal(game.allowed.WR.receptions, 6);
+  assert.equal(game.allowed.WR.receivingYards, 75);
+  assert.equal(game.allowed.RB.rushingYards, 30, 'the SEA fixture RB rushed 3 × 10 yards in Week 3');
+  assert.equal(game.allowed.TE.receptions, 0);
+  assert.ok(snapshot.matchups[opponent].every(row => row.week < 6));
+  assert.ok(!('CB' in game.allowed), 'only QB, RB, WR and TE are aggregated');
+  assert.equal(validateFantasySnapshot(snapshot, { now: GENERATED }).valid, true);
+});
+
+test('schema 1 snapshots stay valid and a schema 2 snapshot needs well-formed matchups', () => {
+  const snapshot = buildFantasySnapshot(fixture());
+  assert.equal(validateFantasySnapshot({ ...snapshot, schemaVersion: 1, matchups: undefined, rosterFallbackTeams: undefined }, { now: GENERATED }).valid, true);
+  assert.equal(validateFantasySnapshot({ ...snapshot, matchups: null }, { now: GENERATED }).valid, false);
+  const team = Object.keys(snapshot.matchups)[0];
+  const broken = structuredClone(snapshot); broken.matchups[team][0].allowed.WR = null;
+  assert.equal(validateFantasySnapshot(broken, { now: GENERATED }).valid, false);
+  const future = structuredClone(snapshot); future.matchups[team][0].week = 6;
+  assert.equal(validateFantasySnapshot(future, { now: GENERATED }).valid, false);
 });
