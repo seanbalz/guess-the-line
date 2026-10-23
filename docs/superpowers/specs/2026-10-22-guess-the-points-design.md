@@ -6,6 +6,11 @@ of the five design sections in chat, and then reviewed this written
 specification: "Spec approved as written." Nothing is built, migrated or deployed.
 No implementation plan exists yet; writing one needs Sean's go.
 
+*Update, October 23, 2026:* at Sean's request ("Update"), section 4.4 now maps
+Points' data onto the approved Track 1 design (D-57). Track 1's snapshot supplies
+the estimates and House. Its review file cannot be the only actuals source, so
+Points loads nflverse stats and snap counts itself. No game rule changes.
+
 Claim tags: **[inspected]** read in this repository; **[evidence]** from the
 October 22, 2026 fantasy research report and its evidence records (kept in
 Sean's local research folder, not in this repository; IDs such as B18 refer to
@@ -90,8 +95,8 @@ These are design defaults [assumed]. Sean can change any of them in review.
 ### 3.1 The week
 
 - **Open.** Tuesday 12:00 PM `America/Los_Angeles` of each NFL competition week,
-  after nflverse has loaded Monday night's stats and Track 1's weekly refresh has
-  built fresh estimates. A scheduler publishes the slate; the commissioner's
+  after nflverse has loaded Monday night's stats and Track 1's 11:00 UTC refresh
+  has published that week's estimate snapshot (section 4.4). A scheduler publishes the slate; the commissioner's
   "Preview / publish early (fallback)" follows the D-24 pattern. If no fresh
   estimate snapshot exists by the open, the week stays unopened and says why; no
   older snapshot is substituted. If nothing can be published before the slate's
@@ -157,8 +162,10 @@ These are design defaults [assumed]. Sean can change any of them in review.
 - **Slot points:** `max(0, 10 − |guess − actual|)`. A guess of 18 against an actual
   of 14.6 earns 6.6. Exact earns 10.
 - **Week maximum:** 50, minus 10 per void slot.
-- **PROVISIONAL:** points appear as soon as a slot's actual is loaded (the night
-  after the game, per nflverse's schedule [assumed]). Each later load re-grades
+- **PROVISIONAL:** points appear as soon as a slot's actual is loaded: the first
+  daily load after nflverse publishes that game's stats, usually the next morning
+  (nflverse updated the weekly stats file at 04:46 UTC on October 23, as observed
+  in Track 1's design; its timing varies). Each later load re-grades
   every non-FINAL week and records the before/after in the audit.
 - **FINAL:** the following Thursday at 12:00 PM PT, once every non-void slot has an
   actual. The week's member and House totals are then frozen. A correction that
@@ -253,8 +260,8 @@ tables do [inspected].
   worker refusing the wrong local hour):
   - open: Tuesday 12:00 PM PT (`0 19 * * 2` PDT, `0 20 * * 2` PST)
   - finalize: Thursday 12:00 PM PT (`0 19 * * 4` PDT, `0 20 * * 4` PST)
-  - actuals load: daily from Monday to Thursday after nflverse's nightly player-stats
-    build (exact hour to be set from the nflverse data schedule [assumed]).
+  - actuals load: daily from Monday to Thursday after Track 1's 11:00 UTC run,
+    plus once just before the Thursday finalize (section 4.4).
 
 ### 4.3 Small changes to existing code
 
@@ -273,40 +280,80 @@ tables do [inspected].
 
 ### 4.4 Dependency on Track 1 (the weekly fantasy refresh)
 
-Guess the Points cannot open, score or finalize without Track 1's weekly nflverse
-pipeline, which another session is designing. This spec does not edit
-`scripts/fantasy.mjs`, `shared/fantasy*`, `web/src/FantasyFootball.jsx`,
+Guess the Points cannot open without Track 1's weekly estimates. This spec does
+not edit `scripts/fantasy.mjs`, `shared/fantasy*`, `web/src/FantasyFootball.jsx`,
 `web/src/next/fantasy/` or the fantasy docs.
 
-Today [inspected]: `scripts/fantasy.mjs` downloads nflverse
-`stats_player_week_{season}.csv`, rosters, injuries and `games.csv`, but builds
-only forward-looking snapshots. `buildFantasySnapshot` requires stats to end
-exactly at the week before the selected week and refuses a past week. A week's
-actuals appear only as `players[].history` in the next week's snapshot. No
-separate actuals export exists, and only the Week 6 snapshot is committed.
+**Track 1 as designed.** Track 1 is the approved fantasy refresh (D-57,
+[PR #192](https://github.com/seanbalz/guess-the-lines-repo/pull/192), open and not
+built when this section was written; read on its branch October 23, 2026
+[inspected]):
+- a GitHub workflow, `fantasy-refresh.yml`, runs daily at 11:00 UTC, after
+  nflverse's nightly stats and its 07:00 UTC roster and injury refresh;
+- it publishes content-addressed data files and an `index.json` to the release
+  tag `fantasy-data-<season>`, with source URLs, retrieval times and SHA-256 inside
+  every file;
+- **snapshot W** (the coming week) is rebuilt every run until F(W), the first
+  Saturday or Sunday kickoff of week W, then frozen;
+- **review of week N** holds, for every player who had a weekly estimate in the
+  published week-N snapshot, the estimate, the actual week-N stats (or `null` when
+  nflverse has no stats row), a season-average baseline, the actual-stats source
+  time and checksum, and only a *count* of players who played without an
+  estimate. It is PROVISIONAL until F(N+1), then FINAL.
 
-Guess the Points needs two outputs from Track 1:
+Before Track 1 [inspected on `main`]: `scripts/fantasy.mjs` builds only
+forward-looking snapshots and refuses a past week; a week's actuals appear only as
+`players[].history` in the next week's snapshot, and only the Week 6 snapshot is
+committed.
 
-1. **A fresh weekly estimate snapshot** for the coming week, available by Tuesday
-   12:00 PM PT, with each player's weekly estimate under Full PPR and 4-point
-   passing TDs (or the stats to compute it), roster status, report status, team,
-   position and game.
-2. **A weekly actuals export** for the completed week, covering every player in
-   the nflverse weekly stats file (Trade verdicts needs players beyond the
-   slate): nflverse player ID, name, team, position, nflverse game ID, every stat
-   column `scoreStats` in `shared/fantasy-rankings.mjs` reads, a played flag
-   (true / false / unknown) with its basis, and the source record (release URL,
-   upstream publish time, retrieval time, SHA-256), with partial coverage reported
-   as such rather than silently.
+**Estimates and House: Track 1 snapshot.** The Tuesday 12:00 PM PT slate is built
+from the snapshot W in `index.json` at that moment (published by that morning's
+11:00 UTC run). The slate pins that file's name and SHA-256; the House estimates
+are that version's, even though Track 1 keeps rebuilding snapshot W until F(W).
+If no snapshot W built from stats through week W−1 is listed, the week does not
+open (section 3.1).
+
+**Actuals: not the review file alone.** The review file is the natural source of
+actual stats, but it has three gaps for Points:
+
+1. **Coverage follows the final estimates.** A player is in the review only if he
+   had an estimate in the *last* snapshot built before freeze. Estimates exclude
+   players reported Out or Doubtful, so a slate player downgraded to Doubtful
+   after Tuesday who then plays is missing; the review gives only a count. Trade
+   verdicts can name any player, so it has the same gap more often.
+2. **No played flag.** A `null` stats row does not separate an inactive player
+   (void) from one who played and recorded nothing (scored as 0). Track 1
+   deliberately excludes snap counts.
+3. **Freeze time.** The review freezes at the next week's first weekend kickoff;
+   Points goes FINAL earlier, Thursday 12:00 PM PT (section 3.5). This needs no rule
+   change; it only means Points cannot wait for the review's FINAL label.
+
+So Points loads actuals itself, from the same source Track 1 reads:
+- **Stats:** the nflverse `stats_player_week_{season}.csv` release asset, every
+  player and every row for the week (the same file and checksum the review
+  records). When a review file for that week exists and names a different
+  actual-stats checksum than the file Points loaded, the load is flagged for
+  review and nothing changes until the next load agrees.
+- **Played flag:** the nflverse snap counts file for the week, used on the server
+  only. Snap counts come from Pro Football Reference: GTL may use them and may not
+  republish the raw files in this public repository [evidence D38, D39]. A slate
+  player with no snap row stays pending (section 7) until a later load or a
+  commissioner ruling.
+- **When:** after Track 1's 11:00 UTC run each day from Monday to Thursday, and
+  once more just before the Thursday 12:00 PM PT finalize.
+- **Where it runs** is an implementation-plan decision with a measured check. One
+  option is a scheduled Supabase function that fetches and parses the CSVs. The
+  Trends release in API v31 hit the Edge CPU limit, so CSV parse time must be
+  measured on a full-season file first [assumed: a few MB by Week 18]. The other is
+  a compact all-player actuals file added to Track 1's release by its builder,
+  which Points reads with a small fetch. That second option changes Track 1's
+  files, so it needs the Track 1 owner's agreement and Sean's approval.
 
 The Points loader imports `scoreStats` from `shared/fantasy-rankings.mjs`
 read-only and computes points under the slate's pinned rules version. A loader
-that cannot reproduce that version refuses to write points.
-
-The played flag needs game participation. nflverse snap counts come from Pro
-Football Reference: GTL may use them on the server and may not republish the raw
-files in this public repository [evidence D38, D39]. If participation cannot be
-established, the slot stays pending (section 6).
+that cannot reproduce that version refuses to write points. Track 1 keeps
+`method.version` and states that scoring weights are unchanged; a later weight
+change must carry a version Points can pin.
 
 ## 5. Screens and copy
 
@@ -462,7 +509,13 @@ Fail closed; missing is never 0.
   eligibility, one slot per game and at least two kickoff windows always hold;
   no valid slate fails closed.
 - **Actuals loader:** idempotent per checksum; partial coverage reported, not
-  hidden; failure keeps the last good load; re-grades audited.
+  hidden; failure keeps the last good load; re-grades audited; a slate player
+  missing from the review file (downgraded to Doubtful, then played) is still
+  scored from the stats file; a checksum that differs from the review's recorded
+  actual-stats checksum is flagged and changes nothing; a slate player with no
+  snap row stays pending, never 0 or void.
+- **Slate pinning:** the slate keeps the snapshot file and SHA-256 it was built
+  from, and the House keeps those estimates after Track 1 rebuilds snapshot W.
 - **Trades:** window start and the end-of-season shrink; posting refused after
   Week 17's first kickoff; vote hidden until close and final once cast; withdraw
   only before the first vote; 5% push and 0–0 push; judge W-L-P.
@@ -484,7 +537,8 @@ Fail closed; missing is never 0.
 - `gtl-api` and Pages deploys follow the manual release workflow
   ([SHARED_DEPLOYMENT.md](../../SHARED_DEPLOYMENT.md)). The October 19 policy removed
   release timing windows; player locks are unchanged.
-- **Order:** Track 1's actuals export and weekly refresh first; then P-01, the
+- **Order:** Track 1's daily refresh (D-57) live first; then P-01 with the Points
+  actuals loader (section 4.4), the
   routes and the screens; then P-02 and P-03; the first live week is the next
   Tuesday open. Phase 2 follows after two FINAL Points weeks.
 - **Effort** [assumed]: phase 1 about 1–2 weeks (L) including tests and release
