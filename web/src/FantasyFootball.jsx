@@ -77,7 +77,9 @@ function PlayerCard({ player, theme, scope, week, position }) {
 }
 
 /** Shared ranking/filter view for the current app and D-38 shell; the engine supplies all scoring and rank semantics. */
-export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, backLabel = 'Back to Home', state, entries = FANTASY_AVAILABLE, selection = FANTASY_INITIAL, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now() }) {
+export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, backLabel = 'Back to Home', state, entries, selection, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now() }) {
+  entries = entries ?? (state?.weeks?.length ? state.weeks : FANTASY_AVAILABLE);
+  selection = selection ?? state?.selection ?? FANTASY_INITIAL;
   const c = name => nameClass(theme, name);
   const Heading = headingLevel === 2 ? 'h2' : 'h1';
   const SectionHeading = headingLevel === 2 ? 'h3' : 'h2';
@@ -154,12 +156,12 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
 }
 
 export default function FantasyFootball(props) {
-  const [selection, setSelection] = useState(props.navigationState?.selection ?? FANTASY_INITIAL);
+  const [selection, setSelection] = useState(props.navigationState?.selection ?? null);
   const [filters, setFilters] = useState(props.navigationState?.filters ?? { ...DEFAULT_FILTERS });
   const [limit, setLimit] = useState(props.navigationState?.limit ?? PAGE_SIZE);
   const changed = useRef(props.onNavigationState);
   changed.current = props.onNavigationState;
   useEffect(() => { changed.current?.({ selection, filters, limit }); }, [selection, filters, limit]);
   const state = useFantasySnapshot(selection);
-  return <FantasyRankingsView {...props} state={state} selection={selection} onSelectionChange={value => { setSelection(value); setLimit(PAGE_SIZE); }} filters={filters} onFiltersChange={value => { setFilters(value); setLimit(PAGE_SIZE); }} limit={limit} onMore={() => setLimit(value => value + PAGE_SIZE)}/>;
+  return <FantasyRankingsView {...props} state={state} selection={selection ?? undefined} onSelectionChange={value => { setSelection(value); setLimit(PAGE_SIZE); }} filters={filters} onFiltersChange={value => { setFilters(value); setLimit(PAGE_SIZE); }} limit={limit} onMore={() => setLimit(value => value + PAGE_SIZE)}/>;
 }
