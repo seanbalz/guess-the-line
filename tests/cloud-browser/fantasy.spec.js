@@ -153,4 +153,17 @@ test.describe('fantasy rankings', () => {
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
   });
+
+  test('new app: saved-copy fallback line, no ungated implied total, layout and axe at 390 px', async ({ page, baseURL }) => {
+    test.skip(!pgliteAvailable, 'PGlite runtime absent');
+    await page.setViewportSize({ width: 390, height: 844 });
+    const { screen } = await open(page, baseURL, 'next');
+    await expect(screen.getByText('Showing saved Week 6 · live refresh unavailable')).toBeVisible();
+    await list(screen).locator('summary').first().click();
+    // The signed-in player has locked nothing for this week, so no implied total may appear anywhere.
+    await expect(screen.getByText(/Implied team total \d/)).toHaveCount(0);
+    await layout(page, screen);
+    const results = await new AxeBuilder({ page }).include('.gx-fantasy').analyze();
+    expect(results.violations).toEqual([]);
+  });
 });
