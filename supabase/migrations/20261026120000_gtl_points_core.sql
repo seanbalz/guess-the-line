@@ -90,8 +90,9 @@ declare
   stored jsonb := '[]'; prov jsonb; version text;
 begin
   if not public.gtl_community_admin(p_actor) then raise exception 'GTL_POINTS_FORBIDDEN'; end if;
+  if p_season is null or p_week is null or p_season not between 2000 and 2200 or p_week not between 1 and 18 then raise exception 'GTL_POINTS_INVALID'; end if;
   if exists(select 1 from public.gtl_points_slates where season = p_season and week = p_week) then raise exception 'GTL_POINTS_PUBLISHED'; end if;
-  if p_season is null or p_week is null or p_now is null or p_finalize_at is null or p_slate is null
+  if p_now is null or p_finalize_at is null or p_slate is null
     or jsonb_typeof(p_slate) <> 'object' or jsonb_typeof(p_slate->'slots') is distinct from 'array'
     or jsonb_array_length(p_slate->'slots') <> 5 then raise exception 'GTL_POINTS_INVALID'; end if;
   for n in 1..5 loop
@@ -105,14 +106,16 @@ begin
       or jsonb_typeof(coalesce(s->'house', 'null'::jsonb)) not in ('number','null')
       or jsonb_typeof(s->'name') is distinct from 'string' or coalesce(s->>'name', '') = ''
       or jsonb_typeof(s->'team') is distinct from 'string' or coalesce(s->>'team', '') = ''
+      or s->>'team' <> all(string_to_array(s->>'gameId', '-'))
       or jsonb_typeof(s->'window') is distinct from 'string' or coalesce(s->>'window', '') = ''
-      or jsonb_typeof(s->'kickoff') is distinct from 'string' then raise exception 'GTL_POINTS_INVALID'; end if;
+      or jsonb_typeof(s->'kickoff') is distinct from 'string'
+      or s->>'kickoff' !~ '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$' then raise exception 'GTL_POINTS_INVALID'; end if;
     begin kick := (s->>'kickoff')::timestamptz; exception when others then raise exception 'GTL_POINTS_INVALID'; end;
-    if kick <= p_now then raise exception 'GTL_POINTS_INVALID'; end if;
+    if not isfinite(kick) or kick <= p_now then raise exception 'GTL_POINTS_INVALID'; end if;
     kicks := kicks || kick;
     stored := stored || jsonb_build_array(jsonb_build_object('slot', s->>'slot', 'playerId', s->>'playerId',
       'pfrId', coalesce(s->'pfrId', 'null'::jsonb), 'name', s->>'name', 'team', s->>'team', 'position', s->>'position',
-      'gameId', s->>'gameId', 'kickoff', s->>'kickoff', 'window', s->>'window', 'house', coalesce(s->'house', 'null'::jsonb), 'void', null));
+      'gameId', s->>'gameId', 'kickoff', to_jsonb(kick), 'window', s->>'window', 'house', coalesce(s->'house', 'null'::jsonb), 'void', null));
   end loop;
   if (select count(distinct x->>'gameId') from jsonb_array_elements(stored) x) <> 5
     or (select count(distinct x->>'playerId') from jsonb_array_elements(stored) x) <> 5
@@ -125,9 +128,12 @@ begin
     or jsonb_typeof(p_slate->'provenance'->'sha256') is distinct from 'string' or p_slate->'provenance'->>'sha256' !~ '^[0-9a-f]{64}$'
     or coalesce(version, '') = '' then raise exception 'GTL_POINTS_INVALID'; end if;
   prov := (p_slate->'provenance') || jsonb_build_object('selectionVersion', version);
-  insert into public.gtl_points_slates(season, week, opens_at, finalize_at, rules, slots, provenance, published_by, audit)
-    values(p_season, p_week, p_now, p_finalize_at, '{"format":"ppr","passingTds":4,"version":"points-1"}'::jsonb, stored, prov, p_actor,
-      jsonb_build_array(jsonb_build_object('at', p_now, 'by', p_actor, 'action', 'published')));
+  begin
+    insert into public.gtl_points_slates(season, week, opens_at, finalize_at, rules, slots, provenance, published_by, audit)
+      values(p_season, p_week, p_now, p_finalize_at, '{"format":"ppr","passingTds":4,"version":"points-1"}'::jsonb, stored, prov, p_actor,
+        jsonb_build_array(jsonb_build_object('at', p_now, 'by', p_actor, 'action', 'published')));
+  exception when unique_violation then raise exception 'GTL_POINTS_PUBLISHED';
+  end;
   return jsonb_build_object('season', p_season, 'week', p_week, 'opensAt', p_now);
 end $$;
 
