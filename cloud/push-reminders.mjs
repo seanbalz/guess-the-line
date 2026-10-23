@@ -14,6 +14,8 @@ export const REMINDER_LEAD_MS = 2 * 3_600_000;
 export const REMINDER_MODES = ['guess_spread', 'guess_total'];
 const MODE_LABEL = { guess_spread: 'Spread', guess_total: 'Total' };
 const SCHEDULE_CODES = ['GTL_SCHEDULE_AUTH', 'GTL_SCHEDULE_RUN', 'GTL_SCHEDULE_EXPIRED'];
+// PostgREST's answer (404) for a function the applied migrations do not have: the Points pass skips on it (P-02 not applied yet).
+const MISSING_FUNCTION = 'PGRST202';
 const MAX_PLAYERS = 500;
 class ReminderError extends Error { constructor(code) { super('Scheduled reminder request failed.'); this.code = code; } }
 const list = value => (Array.isArray(value) ? value : []);
@@ -59,22 +61,55 @@ export function reminderPayload({ season, week, deadline, modes }) {
   };
 }
 
+/**
+ * The Points reminder (P-02, D-56): one push per member and week, saying only the week, how many slots are still open and when
+ * the next one locks. Never a player, a guess or a score.
+ */
+export function pointsReminderPayload({ season, week, open, nextKickoff }) {
+  return {
+    title: 'Guess The Line',
+    body: `Week ${week} Points: ${open} ${open === 1 ? 'player' : 'players'} still open. Next locks ${pacificClock(nextKickoff)} PT.`,
+    tag: `gtl-points-${season}-${week}`,
+  };
+}
+
 export function createPushReminderAdapter({ url, serviceRoleKey, fetchImpl = fetch }) {
   const base = new URL(url);
   if (base.protocol !== 'https:' || base.pathname !== '/' || base.search || base.hash || base.username || base.password || !serviceRoleKey) throw new Error('Invalid reminder configuration.');
   return {
     async rpc(name, body) {
-      if (!['gtl_claim_push_reminders', 'gtl_mark_push_reminder', 'gtl_record_push_delivery', 'gtl_complete_push_reminders'].includes(name)) throw new Error('Invalid reminder operation.');
+      if (!['gtl_claim_push_reminders', 'gtl_mark_push_reminder', 'gtl_record_push_delivery', 'gtl_complete_push_reminders', 'gtl_points_reminder_candidates', 'gtl_mark_points_reminder'].includes(name)) throw new Error('Invalid reminder operation.');
       const response = await fetchImpl(new URL(`/rest/v1/rpc/${name}`, base), { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
         headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!response.ok) {
         let code;
-        try { code = (await response.json()).message; } catch { /* No raw provider error escapes. */ }
-        throw new ReminderError(SCHEDULE_CODES.includes(code) ? code : 'UNAVAILABLE');
+        try { const body = await response.json(); code = response.status === 404 && body.code === MISSING_FUNCTION ? MISSING_FUNCTION : body.message; } catch { /* No raw provider error escapes. */ }
+        throw new ReminderError(SCHEDULE_CODES.includes(code) || code === MISSING_FUNCTION ? code : 'UNAVAILABLE');
       }
       return response.json();
     },
   };
+}
+
+async function runPointsPass({ service, runId, claim, keys, now, fetchImpl }) {
+  let sent = 0, failed = 0;
+  const found = await service.rpc('gtl_points_reminder_candidates', { p_run: runId, p_claim: claim, p_now: new Date(now).toISOString() });
+  for (const player of list(found?.players).slice(0, MAX_PLAYERS)) {
+    const kickoff = Date.parse(player?.nextKickoff);
+    const subscriptions = list(player?.subscriptions);
+    if (typeof player?.userId !== 'string' || !Number.isInteger(player.season) || !Number.isInteger(player.week) || !Number.isInteger(player.open) || player.open < 1 || !Number.isFinite(kickoff) || !subscriptions.length) continue;
+    const marked = await service.rpc('gtl_mark_points_reminder', { p_run: runId, p_claim: claim, p_user: player.userId, p_season: player.season, p_week: player.week });
+    if (marked?.recorded !== true) continue;
+    const payload = pointsReminderPayload({ season: player.season, week: player.week, open: player.open, nextKickoff: player.nextKickoff });
+    const ttl = (kickoff - now) / 1000;
+    const results = await Promise.all(subscriptions.map(async subscription => {
+      const { outcome } = await sendWebPush({ subscription, payload, vapid: keys, ttl, fetchImpl, now });
+      await service.rpc('gtl_record_push_delivery', { p_run: runId, p_claim: claim, p_endpoint: subscription.endpoint, p_outcome: outcome });
+      return outcome;
+    }));
+    for (const outcome of results) outcome === 'ok' ? sent++ : failed++;
+  }
+  return { sent, failed };
 }
 
 const safe = result => ({ runId: result.runId, status: result.status, reason: result.reason ?? null, sent: Number(result.sent) || 0, failed: Number(result.failed) || 0 });
@@ -95,24 +130,31 @@ export function createPushReminderHandler({ service, vapid, clock = Date.now, fe
       if (job.replay) return json(safe(job));
       const finish = async (reason, sent = 0, failed = 0) => json(safe(await service.rpc('gtl_complete_push_reminders', { p_run: runId, p_claim: job.claim, p_reason: reason, p_sent: sent, p_failed: failed })));
       const now = clock(), plan = planReminders(job, now);
-      if (plan.reason) return finish(plan.reason);
-      let keys;
-      try { keys = await importVapid(vapid || {}); } catch { return finish('vapid_unavailable'); }
-      let sent = 0, failed = 0;
-      for (const player of plan.due) {
-        const marked = await service.rpc('gtl_mark_push_reminder', { p_run: runId, p_claim: job.claim, p_user: player.userId, p_season: plan.season, p_week: plan.week, p_modes: player.modes });
-        const modes = list(marked?.modes).filter(mode => player.modes.includes(mode));
-        if (!modes.length) continue;
-        const payload = reminderPayload({ season: plan.season, week: plan.week, deadline: plan.deadline, modes });
-        const ttl = (Date.parse(plan.deadline) - now) / 1000;
-        const results = await Promise.all(player.subscriptions.map(async subscription => {
-          const { outcome } = await sendWebPush({ subscription, payload, vapid: keys, ttl, fetchImpl, now });
-          await service.rpc('gtl_record_push_delivery', { p_run: runId, p_claim: job.claim, p_endpoint: subscription.endpoint, p_outcome: outcome });
-          return outcome;
-        }));
-        for (const outcome of results) outcome === 'ok' ? sent++ : failed++;
+      let sent = 0, failed = 0, keys;
+      if (!plan.reason) {
+        try { keys = await importVapid(vapid || {}); } catch { return finish('vapid_unavailable'); }
+        for (const player of plan.due) {
+          const marked = await service.rpc('gtl_mark_push_reminder', { p_run: runId, p_claim: job.claim, p_user: player.userId, p_season: plan.season, p_week: plan.week, p_modes: player.modes });
+          const modes = list(marked?.modes).filter(mode => player.modes.includes(mode));
+          if (!modes.length) continue;
+          const payload = reminderPayload({ season: plan.season, week: plan.week, deadline: plan.deadline, modes });
+          const ttl = (Date.parse(plan.deadline) - now) / 1000;
+          const results = await Promise.all(player.subscriptions.map(async subscription => {
+            const { outcome } = await sendWebPush({ subscription, payload, vapid: keys, ttl, fetchImpl, now });
+            await service.rpc('gtl_record_push_delivery', { p_run: runId, p_claim: job.claim, p_endpoint: subscription.endpoint, p_outcome: outcome });
+            return outcome;
+          }));
+          for (const outcome of results) outcome === 'ok' ? sent++ : failed++;
+        }
       }
-      return finish(failed && !sent ? 'send_failed' : null, sent, failed);
+      // P-02: the Points pass, whatever the Spread/Total pass found. It never ends the run early: a missing function (P-02 not applied)
+      // skips it silently; any other failure counts as one failed send.
+      try {
+        if (!keys) keys = await importVapid(vapid || {});
+        const points = await runPointsPass({ service, runId, claim: job.claim, keys, now, fetchImpl });
+        sent += points.sent; failed += points.failed;
+      } catch (error) { if (error?.code !== MISSING_FUNCTION && error?.code !== 'VAPID') failed++; }
+      return finish(failed && !sent ? 'send_failed' : sent ? null : plan.reason, sent, failed);
     } catch (error) {
       if (error?.code === 'GTL_SCHEDULE_AUTH') return json({ error: 'Unauthorized.' }, 401);
       if (['INPUT', 'GTL_SCHEDULE_RUN'].includes(error?.code)) return json({ error: 'Invalid reminder request.' }, 400);

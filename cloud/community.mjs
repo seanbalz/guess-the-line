@@ -34,7 +34,15 @@ const fields = (value, allowed) => { if (!record(value) || Object.keys(value).so
 const MODES = ['guess_spread', 'guess_total'];
 // D-22: coming-soon leagues. NFL is the only live league.
 export const COMING_SOON_LEAGUES = ['nba', 'mlb', 'nhl', 'cfb', 'cbb'];
-const KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published'];
+const KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published', 'points_played', 'points_final'];
+// P-02 (D-56): a points_final post carries { winners: [{ userId, points }], house: number | null, max: 0..50 }; anything else is dropped,
+// never repaired. Nothing else from the payload passes.
+function pointsFinal(payload) {
+  if (!record(payload) || !Array.isArray(payload.winners) || !payload.winners.length || payload.winners.length > 100) return null;
+  if (!payload.winners.every(w => record(w) && UUID_PATTERN.test(w.userId ?? '') && finite(w.points) !== null)) return null;
+  if (!(payload.house === null || finite(payload.house) !== null) || !Number.isInteger(payload.max) || payload.max < 0 || payload.max > 50) return null;
+  return { winners: payload.winners.map(w => ({ userId: w.userId, points: w.points })), house: payload.house, max: payload.max };
+}
 
 // Redesign stage 17 (D-39, D-31, D-23; M-01). The database lets another member's pick through one game at a time and
 // names the games it withheld in `hiddenGames`; this filter is the second gate: a number under a withheld game never
@@ -57,13 +65,14 @@ const boardPoints = value => (typeof value === 'number' ? (Number.isFinite(value
 function normalize(raw) {
   if (!record(raw) || !Array.isArray(raw.members) || !Array.isArray(raw.posts) || !Array.isArray(raw.due) || !Array.isArray(raw.submissions)) throw new Error('Invalid community feed.');
   const members = raw.members.map(m => ({ id: String(m.id), displayName: String(m.displayName), removed: m.removed === true }));
-  const posts = raw.posts.filter(p => KINDS.includes(p.kind)).map(p => ({
+  const posts = raw.posts.filter(p => KINDS.includes(p.kind) && (p.kind !== 'points_final' || pointsFinal(p.payload))).map(p => ({
     id: String(p.id), actorId: String(p.actorId), kind: p.kind, season: p.season ?? null, week: p.week ?? null,
     mode: MODES.includes(p.mode) ? p.mode : null, createdAt: p.createdAt,
     likes: Number(p.likes) || 0, likedByMe: p.likedByMe === true,
     comments: (Array.isArray(p.comments) ? p.comments : []).map(c => ({ id: String(c.id), userId: String(c.userId), body: String(c.body), createdAt: c.createdAt })),
     ...(p.kind === 'ballot_submitted' ? { ...postPicks(p), late: normalizeLate(p.late) } : {}),
     ...(p.kind.startsWith('bet_') ? { entryId: typeof p.payload?.entryId === 'string' ? p.payload.entryId : null } : {}),
+    ...(p.kind === 'points_final' ? { payload: pointsFinal(p.payload) } : {}),
     ...(p.kind === 'week_published' ? { games: Number(p.payload?.games) || 0, deadline: p.payload?.deadline ?? null } : {}),
   }));
   const week = record(raw.week) ? { season: raw.week.season, week: raw.week.week, deadline: raw.week.deadline, games: raw.week.games } : null;

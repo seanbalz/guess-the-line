@@ -51,6 +51,8 @@ async function fixture(t) {
   const service = { rpc: async (name, args) => { try { return await rpc(name, args); } catch (error) { throw providerPushError(error.message); } } };
   return { db, as, rpc, service };
 }
+// PostgREST answers a call to a function the applied migrations lack with 404/PGRST202; PGlite's error for it gets the same code (P-02 is not in this file's list).
+const missingAsPostgrest = rpc => (name, args) => rpc(name, args).catch(error => { throw /does not exist/.test(error.message) ? Object.assign(error, { code: 'PGRST202' }) : error; });
 async function deviceKeys() {
   const pair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
   return { p256dh: b64uEncode(new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey))), auth: b64uEncode(crypto.getRandomValues(new Uint8Array(16))) };
@@ -129,7 +131,7 @@ test('dispatch, claim, mark-once, delivery outcomes and completion with a real-c
   const vapidPair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']);
   const vapid = { publicKey: b64uEncode(new Uint8Array(await crypto.subtle.exportKey('raw', vapidPair.publicKey))), privateKey: (await crypto.subtle.exportKey('jwk', vapidPair.privateKey)).d, subject: 'mailto:reminders@example.test' };
   const fetchImpl = async url => { sends.push(url); return new Response(null, { status: url === endpoint(SEAN) ? 410 : 201 }); };
-  const handler = createPushReminderHandler({ service: { rpc: f.rpc }, vapid, fetchImpl, clock: () => now });
+  const handler = createPushReminderHandler({ service: { rpc: missingAsPostgrest(f.rpc) }, vapid, fetchImpl, clock: () => now });
   const request = () => handler(new Request('https://example.supabase.co/functions/v1/gtl-push-reminders', { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify({ runId: queued.runId }) }));
   const result = await (await request()).json();
   assert.deepEqual(result, { runId: queued.runId, status: 'succeeded', reason: null, sent: 1, failed: 1 });

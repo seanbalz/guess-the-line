@@ -26,6 +26,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
   20261026120000, // P-01 gtl_points_core (D-56): written and tested locally, not applied
+  20261026120100, // P-02 gtl_points_feed_push (D-56): feed posts and the Points reminder; written and tested locally, not applied
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

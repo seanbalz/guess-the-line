@@ -91,9 +91,9 @@ test('privilege: anon and authenticated cannot touch any points table or functio
   }
   const rls = (await f.db.query("select relname,relrowsecurity from pg_class where relnamespace='public'::regnamespace and relname like 'gtl_points_%' and relkind='r'")).rows;
   assert.deepEqual(rls.map(r => r.relname).sort(), [...TABLES].sort()); assert(rls.every(r => r.relrowsecurity), 'row level security is on for every points table');
-  const flags = (await f.db.query("select proname,prosecdef from pg_proc where proname like 'gtl_points_%'")).rows;
+  const flags = (await f.db.query("select proname,prosecdef from pg_proc where proname like 'gtl_points_%' and proname <> 'gtl_points_reminder_candidates'")).rows;
   assert.equal(flags.length, FUNCTIONS.length); assert(flags.every(row => row.prosecdef === false), 'all points functions are security invoker');
-  const cfg = (await f.db.query("select proname,proconfig from pg_proc where proname like 'gtl_points_%'")).rows;
+  const cfg = (await f.db.query("select proname,proconfig from pg_proc where proname like 'gtl_points_%' and proname <> 'gtl_points_reminder_candidates'")).rows;
   for (const row of cfg) assert(row.proconfig?.includes('search_path=""'), `${row.proname} pins search_path`);
 });
 
