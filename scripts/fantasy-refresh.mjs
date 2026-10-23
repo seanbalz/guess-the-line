@@ -35,16 +35,19 @@ const indexBytes = await download('index.json', { optional: true });
 const index = indexBytes ? JSON.parse(indexBytes.toString('utf8')) : null;
 if (index && !validateFantasyIndex(index).valid) throw new Error('The published index is invalid.');
 const { rows, sources } = await readFantasySources({ season, inputDir: value('--input-dir') ?? null, root });
+// Stamp after the sources are read: a snapshot may not predate its own source retrieval.
+const generatedAt = new Date(Math.max(now, ...sources.map(source => Date.parse(source.retrievedAt)))).toISOString();
+const builtAt = Date.parse(generatedAt);
 const committed = (await readdir(path.join(root, 'shared/fantasy')))
   .map(name => name.match(new RegExp(`^${season}-week-(\\d{2})\\.json$`))).filter(Boolean).map(match => Number(match[1]));
 const plan = planFantasyRefresh({ season, schedule: rows.schedule, stats: rows.stats, index, committedWeeks: committed, now });
 await mkdir(out, { recursive: true });
-const generatedAt = new Date(now).toISOString(), files = [];
+const files = [];
 let snapshotEntry = null, reviewEntry = null;
 
 if (plan.snapshot?.build) {
   const snapshot = buildFantasySnapshot({ season, week: plan.snapshot.week, ...rows, sources, generatedAt });
-  const rankings = buildRankings(snapshot, {}, { now });
+  const rankings = buildRankings(snapshot, {}, { now: builtAt });
   if (rankings.error || !rankings.rows.length) throw new Error('No verified rankings could be generated.');
   const bytes = Buffer.from(`${JSON.stringify(snapshot)}\n`), hash = sha(bytes), file = snapshotFileName(season, snapshot.week, hash);
   await writeFile(path.join(out, file), bytes); files.push(file);
