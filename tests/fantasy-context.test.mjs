@@ -78,3 +78,12 @@ test('player context: away team total, lock line, weather and matchup text', () 
   assert.equal(locked.implied, null);
   assert.equal(describePlayerContext({ ...wr, weekly: { status: 'bye', opponent: null } }, {}), null);
 });
+
+test('a hidden market never yields a number: lineAtGuess on the viewer\'s own pick is not read', () => {
+  const game = { id: 'SEA-DEN', spread: { visible: false }, total: { visible: false },
+    mine: { spread: { lineAtGuess: -3 }, total: { lineAtGuess: 47 } } };
+  assert.deepEqual(impliedTotals(game), { locked: ['spread', 'total'] });
+  const context = describePlayerContext(wr, { lines: { status: 'ready', games: new Map([['SEA-DEN', game]]) }, scoringLabel: 'PPR' });
+  assert.equal(context.implied, null);
+  assert.equal(context.pill, '@ DEN · Sun late', 'no implied total in the pill');
+});

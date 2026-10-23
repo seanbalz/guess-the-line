@@ -77,3 +77,9 @@ test('the baseline is compared on the same players: a player without two prior g
   assert.equal(wr.pairedMae, 5);
   assert.equal(wr.baselineMae, 8);
 });
+
+test('privacy contract: a review carries no lines, odds, guesses or account fields at any depth', () => {
+  const keys = new Set();
+  JSON.parse(JSON.stringify(review({ final: true })), function collect(key, value) { keys.add(key); return value; });
+  for (const forbidden of ['spread', 'total', 'odds', 'price', 'lineAtGuess', 'user', 'email']) assert.equal(keys.has(forbidden), false, `review must not contain "${forbidden}"`);
+});
