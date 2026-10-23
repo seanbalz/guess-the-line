@@ -8,6 +8,7 @@ vi.mock('../web/src/fantasyData.js', () => ({
   FANTASY_INITIAL: '2026-06',
   useFantasySnapshot: () => ({ status: 'loading' }),
 }));
+vi.mock('../web/src/fantasyContext.js', () => ({ useFantasyGameContext: () => ({ key: null, lines: null, wind: null }) }));
 import { FantasyRankingsView } from '../web/src/FantasyFootball.jsx';
 
 // Fictional, fully specified players are render fixtures only; the production component imports no fixtures.
@@ -89,5 +90,41 @@ describe('fantasy rankings view', () => {
     expect(html).toContain('<h3>Player rankings</h3>');
     expect(html).not.toContain('class="gx-');
     expect(text(html)).toContain('Test Receiver');
+  });
+  it('shows the hosted update line, a context pill with the visible implied total, and detail context', () => {
+    const wr = player('ctx');
+    wr.weekly = { ...wr.weekly, opponent: '@ SF', kickoff: '2026-10-18T20:25:00Z' };
+    const v2 = { ...snapshot, schemaVersion: 2, rosterFallbackTeams: [], matchups: {}, players: [wr] };
+    const lines = { status: 'ready', games: new Map([['SEA-SF', { spread: { visible: true, value: -3, capturedAt: '2026-10-18T13:15:00Z', bookCount: 3 }, total: { visible: true, value: 47, capturedAt: '2026-10-18T13:15:00Z', bookCount: 3 } }]]) };
+    const out = text(render({ state: { status: 'ready', origin: 'hosted', fallback: false, snapshot: v2 }, gameContext: { lines, wind: null } }));
+    expect(out).toContain('Updated');
+    expect(out).toContain('@ SF · Sun late · 22.0');
+    expect(out).toContain('Implied team total 22.0');
+  });
+  it('shows the lock line, never a number, when either market is hidden', () => {
+    const wr = player('lock');
+    wr.weekly = { ...wr.weekly, opponent: '@ SF', kickoff: '2026-10-18T20:25:00Z' };
+    const lines = { status: 'ready', games: new Map([['SEA-SF', { spread: { visible: true, value: -3 }, total: { visible: false } }]]) };
+    const html = render({ state: { status: 'ready', snapshot: { ...snapshot, players: [wr] } }, gameContext: { lines, wind: null } });
+    expect(markupProblems(html)).toEqual([]);
+    const out = text(html);
+    expect(out).toContain('Lock your SEA–SF total guess to see the implied team total.');
+    expect(out).not.toContain('Implied team total 2');
+  });
+  it('says when the saved copy is shown', () => {
+    expect(text(render({ state: { status: 'ready', origin: 'saved', fallback: true, snapshot } }))).toContain('Showing saved Week 6 · live refresh unavailable');
+  });
+  it('renders the accuracy card with PROVISIONAL, the baseline and no zero for missing stats', () => {
+    const review = { schemaVersion: 1, season: 2026, week: 5, generatedAt: '2026-10-14T11:00:00Z', status: 'PROVISIONAL',
+      estimate: { file: 'f', sha256: 'a'.repeat(64), generatedAt: '2026-10-07T12:00:00Z', publishedBeforeFreeze: true },
+      actuals: { url: 'https://example.com' }, playedWithoutEstimate: 2,
+      players: [
+        { id: 'a', name: 'Alpha', team: 'SEA', position: 'WR', estimate: { ...zero, receptions: 5, receivingYards: 70 }, actual: { ...zero, receptions: 7, receivingYards: 100 }, baseline: { ...zero, receptions: 4, receivingYards: 50 } },
+        { id: 'b', name: 'Bravo', team: 'SF', position: 'WR', estimate: { ...zero, receptions: 3, receivingYards: 30 }, actual: null, baseline: null },
+      ] };
+    const html = render({ state: { status: 'ready', origin: 'hosted', snapshot, review } });
+    expect(markupProblems(html)).toEqual([]);
+    const out = text(html);
+    for (const value of ['Week 5 estimates', 'PROVISIONAL', 'Off by 5.0 points per player', 'Season average: 8.0', 'Within 5 points', '100%', 'Listed available, no stats row: 1', 'Played without an estimate: 2']) expect(out).toContain(value);
   });
 });
