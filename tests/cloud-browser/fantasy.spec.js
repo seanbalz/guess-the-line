@@ -1,9 +1,12 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { buildRankings, DEFAULT_FILTERS } from '../../shared/fantasy-rankings.mjs';
+import { snapshotFileName, reviewFileName, updateFantasyIndex, FANTASY_REPOSITORY } from '../../shared/fantasy-index.mjs';
+import { validateFantasyReview } from '../../shared/fantasy-review.mjs';
 
 // The shipped public snapshot is exercised in both apps; authentication and community reads stay local in PGlite.
 const snapshot = JSON.parse(fs.readFileSync(new URL('../../shared/fantasy/2026-week-06.json', import.meta.url), 'utf8'));
@@ -12,8 +15,8 @@ const root = (page, app) => page.locator(app === 'next' ? '.gx-fantasy' : '.fant
 const list = screen => screen.getByRole('list', { name: 'Ranked players', exact: true });
 const rowNames = async screen => list(screen).locator('summary').evaluateAll(rows => rows.map(row => row.querySelector('[class$="fantasy-player-main"] > strong').textContent));
 
-async function open(page, baseURL, app) {
-  const world = await communityWorld(page, baseURL, { migrations: ALL });
+async function open(page, baseURL, app, worldOptions = {}) {
+  const world = await communityWorld(page, baseURL, { migrations: ALL, ...worldOptions });
   await signIn(page, 'luke');
   await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
   if (app === 'next') {
@@ -165,5 +168,55 @@ test.describe('fantasy rankings', () => {
     await layout(page, screen);
     const results = await new AxeBuilder({ page }).include('.gx-fantasy').analyze();
     expect(results.violations).toEqual([]);
+  });
+
+  test('new app: hosted index serves the snapshot and a PROVISIONAL accuracy card; layout and axe at 320 px in both themes', async ({ page, baseURL }) => {
+    test.skip(!pgliteAvailable, 'PGlite runtime absent');
+    const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+    const snapshotBytes = fs.readFileSync(new URL('../../shared/fantasy/2026-week-06.json', import.meta.url));
+    const snapshotSha = sha(snapshotBytes), generatedAt = snapshot.generatedAt;
+    const graded = snapshot.players.filter(player => player.weekly.status === 'scheduled' && player.weekly.stats && player.history.some(row => row.week === 5) && ['QB', 'RB', 'WR'].includes(player.position)).slice(0, 3);
+    expect(graded).toHaveLength(3);
+    const review = {
+      schemaVersion: 1, season: 2026, week: 5, generatedAt, status: 'PROVISIONAL',
+      estimate: { file: snapshotFileName(2026, 5, 'a'.repeat(64)), sha256: 'a'.repeat(64), generatedAt, publishedBeforeFreeze: true },
+      actuals: { name: 'nflverse stats_player_week', url: 'https://github.com/nflverse/nflverse-data/releases/tag/stats_player_week', retrievedAt: generatedAt },
+      playedWithoutEstimate: 0,
+      players: graded.map(player => ({ id: player.id, name: player.name, team: player.team, position: player.position, estimate: player.weekly.stats,
+        actual: player.history.find(row => row.week === 5), baseline: player.history.find(row => row.week === 5) })).sort((a, b) => a.id.localeCompare(b.id)),
+    };
+    expect(validateFantasyReview(review).valid).toBe(true);
+    const reviewBytes = Buffer.from(`${JSON.stringify(review)}
+`), reviewSha = sha(reviewBytes);
+    const index = updateFantasyIndex(updateFantasyIndex(null, { season: 2026, updatedAt: generatedAt, review: null, snapshot: {
+      week: 6, file: snapshotFileName(2026, 6, snapshotSha), sha256: snapshotSha, bytes: snapshotBytes.byteLength, generatedAt, statsThroughWeek: 5, publishedAfterFreeze: false, rosterFallbackTeams: 0 } }),
+    { season: 2026, updatedAt: generatedAt, snapshot: null, review: { week: 5, file: reviewFileName(2026, 5, reviewSha), sha256: reviewSha, bytes: reviewBytes.byteLength, generatedAt, status: 'PROVISIONAL' } });
+    const base = `https://github.com/${FANTASY_REPOSITORY}/releases/download/fantasy-data-2026/`;
+    const served = new Map([['index.json', Buffer.from(JSON.stringify(index))], [index.snapshots[0].file, snapshotBytes], [index.reviews[0].file, reviewBytes]]);
+    const fantasyFetch = async url => {
+      const name = String(url).startsWith(base) ? String(url).slice(base.length) : null;
+      return served.has(name) ? new Response(served.get(name), { status: 200 }) : new Response(null, { status: 404 });
+    };
+    await page.setViewportSize({ width: 390, height: 844 });
+    const { world } = await open(page, baseURL, 'next', { fantasyFetch });
+    try {
+      for (const theme of ['dark', 'light']) {
+        await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
+        await page.reload();
+        await page.setViewportSize({ width: 320, height: 844 });
+        const screen = root(page, 'next');
+        await expect(list(screen)).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await expect(screen.getByRole('status').filter({ hasText: /^Updated / })).toBeVisible();
+        await expect(screen.getByText('Showing saved Week 6', { exact: false })).toHaveCount(0);
+        const card = screen.getByLabel('Week 5 accuracy');
+        await expect(card).toBeVisible();
+        await expect(card.getByText('PROVISIONAL', { exact: true })).toBeVisible();
+        await layout(page, screen);
+        const results = await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+        expect(results.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
+      }
+      expect(world.errors).toEqual([]);
+    } finally { await world.db.close(); }
   });
 });
