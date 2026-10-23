@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { planReminders, reminderPayload, pacificClock, createPushReminderHandler } from '../cloud/push-reminders.mjs';
+import { planReminders, reminderPayload, pointsReminderPayload, pacificClock, createPushReminderHandler, createPushReminderAdapter } from '../cloud/push-reminders.mjs';
 import { handlePush, providerPushError, PUSH_METHODS } from '../cloud/push.mjs';
 import { b64uDecode, b64uEncode, encryptPayload, importVapid, validPushEndpoint, vapidAuthorization, sendWebPush } from '../cloud/web-push.mjs';
 import { createCloudHandler } from '../cloud/handler.mjs';
@@ -15,6 +15,14 @@ const week = { season: 2026, week: 6, deadline: DEADLINE, openAt: weekOpenAt(DEA
 const sub = n => ({ endpoint: `https://fcm.googleapis.com/fcm/send/device-${n}`, p256dh: `B${'A'.repeat(86)}`, auth: 'A'.repeat(22) });
 const player = (n, extra = {}) => ({ userId: id(n), submitted: [], satOut: [], reminded: [], subscriptions: [sub(n)], ...extra });
 const inWindow = Date.parse(DEADLINE) - 90 * 60_000;
+// gtl_complete_push_reminders as 20261013030000 writes it: a null reason succeeded, a safe no-op reason skipped, a named failure
+// failed, anything else is refused (GTL_SCHEDULE_RUN).
+const COMPLETION_STATUS = { no_week: 'skipped', not_open: 'skipped', closed: 'skipped', not_due_yet: 'skipped', nothing_due: 'skipped', vapid_unavailable: 'failed', send_failed: 'failed' };
+const completes = args => {
+  const status = args.p_reason === null ? 'succeeded' : COMPLETION_STATUS[args.p_reason];
+  if (!status || !Number.isInteger(args.p_sent) || !Number.isInteger(args.p_failed)) throw Object.assign(new Error('GTL_SCHEDULE_RUN'), { code: 'GTL_SCHEDULE_RUN' });
+  return { runId: args.p_run, status, reason: args.p_reason, sent: args.p_sent, failed: args.p_failed };
+};
 
 test('due-player selection: incomplete, submitted, sat out, already reminded, no device', () => {
   const plan = planReminders({ week, players: [
@@ -188,7 +196,8 @@ test('sendWebPush maps 201 to ok, 404/410 to gone and anything else (or a timeou
   assert.equal((await sendWebPush({ subscription: { ...subscription, endpoint: 'https://evil.example.com/abcdefghijklmnopqrstuvwxyz' }, payload: {}, vapid, ttl: 10, fetchImpl: async () => { throw new Error('never called'); } })).outcome, 'gone');
 });
 
-test('reminder worker: claim, mark before send, encrypted spoiler-free payload, stale endpoints removed, counts recorded', async () => {
+test('reminder worker: claim, mark before send, encrypted spoiler-free payload, stale endpoints removed, counts recorded', async t => {
+  t.mock.method(console, 'info', () => {}); // the worker's two count lines (asserted in the Points tests below)
   const keys = await vapidPair(), devices = [await subscriber(), await subscriber(), await subscriber()];
   const endpoints = ['https://fcm.googleapis.com/fcm/send/live', 'https://web.push.apple.com/QGgone', 'https://updates.push.services.mozilla.com/wpush/v2/err'];
   const calls = [], marked = new Set();
@@ -202,8 +211,9 @@ test('reminder worker: claim, mark before send, encrypted spoiler-free payload, 
     calls.push([name, args]);
     if (name === 'gtl_claim_push_reminders') return args.p_token === 'a'.repeat(64) ? claim : Promise.reject(Object.assign(new Error(), { code: 'GTL_SCHEDULE_AUTH' }));
     if (name === 'gtl_mark_push_reminder') { const fresh = args.p_modes.filter(m => !marked.has(`${args.p_user}:${m}`)); fresh.forEach(m => marked.add(`${args.p_user}:${m}`)); return { modes: fresh }; }
+    if (name === 'gtl_points_reminder_candidates') return { players: [] };
     if (name === 'gtl_record_push_delivery') return { outcome: args.p_outcome };
-    if (name === 'gtl_complete_push_reminders') return { runId: args.p_run, status: args.p_reason ? 'failed' : 'succeeded', reason: args.p_reason, sent: args.p_sent, failed: args.p_failed };
+    if (name === 'gtl_complete_push_reminders') return completes(args);
     throw new Error(name);
   } };
   const delivered = [];
@@ -243,10 +253,12 @@ test('reminder worker: claim, mark before send, encrypted spoiler-free payload, 
   assert.equal(delivered.length, 0);
 });
 
-test('reminder worker: skips outside the window and fails closed without VAPID secrets', async () => {
+test('reminder worker: skips outside the window and fails closed without VAPID secrets', async t => {
+  t.mock.method(console, 'info', () => {});
   const completes = [];
   const service = { rpc: async (name, args) => {
     if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [player(1)] };
+    if (name === 'gtl_points_reminder_candidates') return { players: [] };
     if (name === 'gtl_complete_push_reminders') { completes.push(args.p_reason); return { runId: args.p_run, status: 'skipped', reason: args.p_reason, sent: 0, failed: 0 }; }
     throw new Error(`unexpected ${name}`);
   } };
@@ -276,4 +288,180 @@ test('service worker handles push and notification clicks only; CSP names worker
     const response = await fetch(`http://127.0.0.1:${server.address().port}/`);
     assert.match(response.headers.get('content-security-policy'), /script-src 'self'; worker-src 'self';/);
   } finally { server.close(); }
+});
+
+// P-02 (D-56): the one weekly Points reminder, sent after the Spread/Total pass of the same run.
+test('pointsReminderPayload: week, count and the next lock time only (singular and plural)', () => {
+  const next = '2026-11-01T18:00:00Z';
+  assert.deepEqual(pointsReminderPayload({ season: 2026, week: 8, open: 3, nextKickoff: next }),
+    { title: 'Guess The Line', body: 'Week 8 Points: 3 players still open. Next locks 10:00 AM PT.', tag: 'gtl-points-2026-8' });
+  assert.equal(pointsReminderPayload({ season: 2026, week: 8, open: 1, nextKickoff: next }).body, 'Week 8 Points: 1 player still open. Next locks 10:00 AM PT.');
+});
+
+const POINTS_NOW = Date.parse('2026-11-01T16:30:00Z');
+const POINTS_ENDPOINTS = ['https://fcm.googleapis.com/fcm/send/points-a', 'https://fcm.googleapis.com/fcm/send/points-b'];
+const REQUEST = () => new Request('https://x.supabase.co/functions/v1/gtl-push-reminders',
+  { method: 'POST', headers: { authorization: `Bearer ${'a'.repeat(64)}`, 'content-type': 'application/json' }, body: JSON.stringify({ runId: id(900) }) });
+// A player the database returns, plus sentinel fields the worker must never copy into a payload.
+const pointsPlayer = (n, subscription, extra = {}) => ({ userId: id(n), season: 2026, week: 8, open: 3, nextKickoff: '2026-11-01T18:00:00Z', subscriptions: [subscription],
+  name: 'SENTINEL_NAME', guess: 'SENTINEL_GUESS_57', score: 'SENTINEL_SCORE_38.4', ...extra });
+
+test('reminder worker: after the Spread/Total pass it asks for Points candidates, marks first and sends the spoiler-free payload', async t => {
+  t.mock.method(console, 'info', () => {});
+  const keys = await vapidPair(), devices = [await subscriber(), await subscriber()], calls = [], delivered = [], marked = new Set();
+  const service = { rpc: async (name, args) => {
+    calls.push([name, args]);
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [] };
+    if (name === 'gtl_points_reminder_candidates') return { players: [pointsPlayer(1, { endpoint: POINTS_ENDPOINTS[0], ...devices[0].subscription }), pointsPlayer(2, { endpoint: POINTS_ENDPOINTS[1], ...devices[1].subscription }, { open: 1 })] };
+    if (name === 'gtl_mark_points_reminder') { const fresh = !marked.has(args.p_user); marked.add(args.p_user); return { recorded: fresh }; }
+    if (name === 'gtl_record_push_delivery') return { outcome: args.p_outcome };
+    if (name === 'gtl_complete_push_reminders') return completes(args);
+    throw new Error(`unexpected ${name}`);
+  } };
+  const fetchImpl = async (url, init) => { delivered.push({ url, payload: JSON.parse(await decrypt(new Uint8Array(init.body), devices[POINTS_ENDPOINTS.indexOf(url)])), ttl: init.headers.TTL }); return new Response(null, { status: 201 }); };
+  const response = await createPushReminderHandler({ service, vapid: keys, clock: () => POINTS_NOW, fetchImpl })(REQUEST());
+  assert.equal(response.status, 200);
+  // The Spread/Total week has nothing due (it is far from its deadline); the Points pass still ran and sent.
+  assert.deepEqual(await response.json(), { runId: id(900), status: 'succeeded', reason: null, sent: 2, failed: 0 });
+  const names = calls.map(([name]) => name), withoutDelivery = names.filter(n => n !== 'gtl_record_push_delivery');
+  assert.deepEqual(withoutDelivery, ['gtl_claim_push_reminders', 'gtl_points_reminder_candidates', 'gtl_mark_points_reminder', 'gtl_mark_points_reminder', 'gtl_complete_push_reminders']);
+  assert(names.indexOf('gtl_mark_points_reminder') < names.indexOf('gtl_record_push_delivery'), 'the reminder is recorded before any send');
+  assert.deepEqual(calls.find(([name]) => name === 'gtl_points_reminder_candidates')[1], { p_run: id(900), p_claim: id(901), p_now: new Date(POINTS_NOW).toISOString() });
+  assert.deepEqual(calls.find(([name]) => name === 'gtl_mark_points_reminder')[1], { p_run: id(900), p_claim: id(901), p_user: id(1), p_season: 2026, p_week: 8 });
+  assert.equal(delivered.length, 2);
+  assert.equal(delivered[0].payload.body, 'Week 8 Points: 3 players still open. Next locks 10:00 AM PT.');
+  assert.equal(delivered[1].payload.body, 'Week 8 Points: 1 player still open. Next locks 10:00 AM PT.');
+  for (const { payload, ttl } of delivered) {
+    assert.deepEqual(Object.keys(payload).sort(), ['body', 'tag', 'title']);
+    assert.doesNotMatch(JSON.stringify(payload), /SENTINEL|57|38\.4/, 'no player name, guess or score');
+    assert.equal(payload.tag, 'gtl-points-2026-8');
+    assert.equal(Number(ttl), 5400, 'expires when the next slot locks (90 minutes away)');
+  }
+});
+
+test('reminder worker: a Points reminder the database says is already recorded is not sent again', async t => {
+  t.mock.method(console, 'info', () => {});
+  const device = await subscriber();
+  const service = { rpc: async (name, args) => {
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [] };
+    if (name === 'gtl_points_reminder_candidates') return { players: [pointsPlayer(1, { endpoint: POINTS_ENDPOINTS[0], ...device.subscription })] };
+    if (name === 'gtl_mark_points_reminder') return { recorded: false };
+    if (name === 'gtl_complete_push_reminders') return completes(args);
+    throw new Error(`unexpected ${name}`);
+  } };
+  const response = await createPushReminderHandler({ service, vapid: await vapidPair(), clock: () => POINTS_NOW, fetchImpl: async () => { throw new Error('no send'); } })(REQUEST());
+  // Nothing sent and nothing failed: the run is a safe no-op with the Spread/Total reason (the week's deadline has passed).
+  assert.deepEqual(await response.json(), { runId: id(900), status: 'skipped', reason: 'closed', sent: 0, failed: 0 });
+});
+
+test('reminder worker: when the Points RPC is missing (PGRST202) the Points pass is skipped with one warning and the Spread/Total pass still completes', async t => {
+  const warn = t.mock.method(console, 'warn', () => {}); t.mock.method(console, 'info', () => {});
+  const keys = await vapidPair(), device = await subscriber(), calls = [], delivered = [];
+  const service = { rpc: async (name, args) => {
+    calls.push(name);
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [player(1, { subscriptions: [{ endpoint: POINTS_ENDPOINTS[0], ...device.subscription }] })] };
+    if (name === 'gtl_points_reminder_candidates') throw Object.assign(new Error(), { code: 'PGRST202' });
+    if (name === 'gtl_mark_push_reminder') return { modes: args.p_modes };
+    if (name === 'gtl_record_push_delivery') return { outcome: args.p_outcome };
+    if (name === 'gtl_complete_push_reminders') return completes(args);
+    throw new Error(`unexpected ${name}`);
+  } };
+  const fetchImpl = async (url, init) => { delivered.push(JSON.parse(await decrypt(new Uint8Array(init.body), device))); return new Response(null, { status: 201 }); };
+  const response = await createPushReminderHandler({ service, vapid: keys, clock: () => inWindow, fetchImpl })(REQUEST());
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { runId: id(900), status: 'succeeded', reason: null, sent: 1, failed: 0 });
+  assert.equal(delivered.length, 1); assert.equal(delivered[0].body, 'Week 6 picks are due 5:15 PM PT. Spread and Total still open.');
+  assert(calls.includes('gtl_points_reminder_candidates')); assert.equal(calls.at(-1), 'gtl_complete_push_reminders');
+  assert.deepEqual(warn.mock.calls.map(call => call.arguments), [['Points reminders skipped: candidates function unavailable']], 'one line, no player data');
+});
+
+test('reminder worker: a Points failure other than a missing function counts as failed and never stops the run from completing', async t => {
+  t.mock.method(console, 'info', () => {});
+  const service = { rpc: async (name, args) => {
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [] };
+    if (name === 'gtl_points_reminder_candidates') throw Object.assign(new Error(), { code: 'UNAVAILABLE' });
+    if (name === 'gtl_complete_push_reminders') return completes(args);
+    throw new Error(`unexpected ${name}`);
+  } };
+  const response = await createPushReminderHandler({ service, vapid: await vapidPair(), clock: () => POINTS_NOW, fetchImpl: async () => { throw new Error('no send'); } })(REQUEST());
+  assert.deepEqual(await response.json(), { runId: id(900), status: 'failed', reason: 'send_failed', sent: 0, failed: 1 });
+});
+
+test('reminder worker: the Points pass asks for candidates first and needs VAPID keys only to send; bad keys then fail the run before any mark', async t => {
+  t.mock.method(console, 'info', () => {});
+  const device = await subscriber(), calls = [];
+  let candidates = [];
+  const service = { rpc: async (name, args) => {
+    calls.push(name);
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [] };
+    if (name === 'gtl_points_reminder_candidates') return { players: candidates };
+    if (name === 'gtl_complete_push_reminders') return completes(args);
+    throw new Error(`unexpected ${name}`);
+  } };
+  const run = async () => (await createPushReminderHandler({ service, vapid: { publicKey: '', privateKey: '', subject: '' }, clock: () => POINTS_NOW,
+    fetchImpl: async () => { throw new Error('no send'); } })(REQUEST())).json();
+  // Nobody to remind: no keys are needed, so the run is the safe Spread/Total no-op it would have been without the Points pass.
+  assert.deepEqual(await run(), { runId: id(900), status: 'skipped', reason: 'closed', sent: 0, failed: 0 });
+  candidates = [pointsPlayer(1, { endpoint: POINTS_ENDPOINTS[0], ...device.subscription })];
+  calls.length = 0;
+  assert.deepEqual(await run(), { runId: id(900), status: 'failed', reason: 'vapid_unavailable', sent: 0, failed: 0 });
+  assert.deepEqual(calls, ['gtl_claim_push_reminders', 'gtl_points_reminder_candidates', 'gtl_complete_push_reminders'], 'no mark without keys, so the week\'s one reminder is not used up');
+});
+
+test('reminder worker: a failure for one Points player keeps the counts already made, and the pass goes on to the next player', async t => {
+  t.mock.method(console, 'info', () => {});
+  const keys = await vapidPair(), devices = [await subscriber(), await subscriber(), await subscriber()], sends = [], marks = [];
+  const endpoints = ['a', 'b', 'c'].map(n => `https://fcm.googleapis.com/fcm/send/points-${n}`);
+  const unavailable = () => Object.assign(new Error(), { code: 'UNAVAILABLE' });
+  const service = { rpc: async (name, args) => {
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [] };
+    if (name === 'gtl_points_reminder_candidates') return { players: [1, 2, 3].map(n => pointsPlayer(n, { endpoint: endpoints[n - 1], ...devices[n - 1].subscription })) };
+    // Player 2's mark fails, so nothing is sent to player 2.
+    if (name === 'gtl_mark_points_reminder') { marks.push(args.p_user); if (args.p_user === id(2)) throw unavailable(); return { recorded: true }; }
+    // Player 1's push is delivered and recording that outcome fails: the delivered push still counts as sent.
+    if (name === 'gtl_record_push_delivery') { if (args.p_endpoint === endpoints[0]) throw unavailable(); return { outcome: args.p_outcome }; }
+    if (name === 'gtl_complete_push_reminders') return completes(args);
+    throw new Error(`unexpected ${name}`);
+  } };
+  const fetchImpl = async url => { sends.push(url); return new Response(null, { status: 201 }); };
+  const response = await createPushReminderHandler({ service, vapid: keys, clock: () => POINTS_NOW, fetchImpl })(REQUEST());
+  assert.deepEqual(await response.json(), { runId: id(900), status: 'succeeded', reason: null, sent: 2, failed: 1 });
+  assert.deepEqual(marks, [id(1), id(2), id(3)], 'every player is tried');
+  assert.deepEqual(sends.sort(), [endpoints[0], endpoints[2]].sort());
+});
+
+test('reminder worker: either pass failing every send fails the run, the other pass\'s sends never mask it, and each pass logs counts only', async t => {
+  const info = t.mock.method(console, 'info', () => {});
+  const keys = await vapidPair(), spreadDevice = await subscriber(), pointsDevice = await subscriber();
+  const spreadEndpoint = 'https://fcm.googleapis.com/fcm/send/spread-a';
+  const service = { rpc: async (name, args) => {
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [player(1, { subscriptions: [{ endpoint: spreadEndpoint, ...spreadDevice.subscription }] })] };
+    if (name === 'gtl_mark_push_reminder') return { modes: args.p_modes };
+    if (name === 'gtl_points_reminder_candidates') return { players: [pointsPlayer(2, { endpoint: POINTS_ENDPOINTS[0], ...pointsDevice.subscription })] };
+    if (name === 'gtl_mark_points_reminder') return { recorded: true };
+    if (name === 'gtl_record_push_delivery') return { outcome: args.p_outcome };
+    if (name === 'gtl_complete_push_reminders') return completes(args);
+    throw new Error(`unexpected ${name}`);
+  } };
+  const run = async refused => (await createPushReminderHandler({ service, vapid: keys, clock: () => inWindow,
+    fetchImpl: async url => new Response(null, { status: url === refused ? 500 : 201 }) })(REQUEST())).json();
+  // The push service refuses the Spread/Total push and accepts the Points push: the Spread/Total failure stands.
+  assert.deepEqual(await run(spreadEndpoint), { runId: id(900), status: 'failed', reason: 'send_failed', sent: 1, failed: 1 });
+  assert.deepEqual(info.mock.calls.map(call => call.arguments), [['Spread/Total reminders: 0 sent, 1 failed.'], ['Points reminders: 1 sent, 0 failed.']], 'counts only: no player, device or text');
+  // And the other way round.
+  assert.deepEqual(await run(POINTS_ENDPOINTS[0]), { runId: id(900), status: 'failed', reason: 'send_failed', sent: 1, failed: 1 });
+  // Both passes delivering is the plain success it was before the Points pass.
+  assert.deepEqual(await run(null), { runId: id(900), status: 'succeeded', reason: null, sent: 2, failed: 0 });
+});
+
+test('push adapter: both Points RPC names are allowed and a PostgREST 404 PGRST202 surfaces as the PGRST202 code', async () => {
+  const seen = [];
+  const adapter = createPushReminderAdapter({ url: 'https://abc.supabase.co', serviceRoleKey: 'k', fetchImpl: async url => {
+    seen.push(String(url));
+    return new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function public.gtl_points_reminder_candidates' }), { status: 404 });
+  } });
+  await assert.rejects(() => adapter.rpc('gtl_points_reminder_candidates', {}), error => error.code === 'PGRST202');
+  await assert.rejects(() => adapter.rpc('gtl_mark_points_reminder', {}), error => error.code === 'PGRST202');
+  assert.deepEqual(seen, ['https://abc.supabase.co/rest/v1/rpc/gtl_points_reminder_candidates', 'https://abc.supabase.co/rest/v1/rpc/gtl_mark_points_reminder']);
+  await assert.rejects(() => adapter.rpc('gtl_something_else', {}), /Invalid reminder operation/);
 });

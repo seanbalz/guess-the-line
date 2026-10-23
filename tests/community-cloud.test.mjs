@@ -397,3 +397,30 @@ test('per-game due counts keep later games open after Thursday without reopening
   assert.equal(picksDue({ ...feed, due: feed.due.map(d => ({ ...d, openGames: 0 })) }, now, { perGameScoring: true }).state, 'done');
   assert.equal(picksDue(feed, now).state, 'closed', 'legacy timing does not change before M-07');
 });
+
+// P-02 (D-56): the two Points post kinds pass the normalizer; a malformed points_final is dropped, not repaired.
+test('P-02: points_played and a well-formed points_final pass; a malformed points_final payload is dropped', async () => {
+  const A = '00000000-0000-4000-8000-0000000000a1', B = '00000000-0000-4000-8000-0000000000b2';
+  const base = { actorId: A, season: 2026, week: 8, mode: null, createdAt: '2026-11-02T00:00:00Z', likes: 0, likedByMe: false, comments: [] };
+  const final = (n, payload) => ({ ...base, id: `00000000-0000-4000-8000-0000000000c${n}`, kind: 'points_final', payload });
+  const good = { winners: [{ userId: A, points: 38.4 }, { userId: B, points: 38.4 }], house: 31.2, max: 5 };
+  const posts = [
+    { ...base, id: '00000000-0000-4000-8000-0000000000c0', kind: 'points_played', payload: {} },
+    final(1, { ...good, extra: 'never shown' }), final(2, { ...good, house: null }),
+    final(3, { ...good, winners: 'A' }), final(4, { ...good, winners: [{ userId: 'not-a-uuid', points: 1 }] }), final(5, { ...good, winners: [{ userId: A, points: '38' }] }),
+    final(6, { ...good, house: '31' }), final(7, { ...good, max: 51 }), final(8, { ...good, max: 2.5 }), final(9, { ...good, max: -1 }), final(0, null),
+  ];
+  const app = createCloudHandler({
+    authenticate: async () => ({ id: USER, emailConfirmed: true, email: 'ben@example.invalid' }),
+    storage: forbidden, weekly: forbidden, lobby: forbidden, social: forbidden,
+    community: { rpc: async () => ({ ...feed, members: [{ id: USER, displayName: 'Ben' }], posts }) },
+    clock: () => Date.parse('2026-11-02T01:00:00Z'),
+  });
+  const response = await app(new Request('https://fixture.invalid/community/read', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: '{}' }));
+  assert.equal(response.status, 200);
+  const kept = (await response.json()).posts;
+  assert.deepEqual(kept.map(p => p.id.slice(-2)), ['c0', 'c1', 'c2']);
+  assert.equal(kept[0].kind, 'points_played'); assert.equal(kept[0].mode, null);
+  assert.deepEqual(kept[1].payload, good, 'only winners, house and max pass');
+  assert.deepEqual(kept[2].payload, { ...good, house: null });
+});

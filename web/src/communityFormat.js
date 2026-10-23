@@ -29,3 +29,11 @@ export function lateText(late) {
   const parts = d > 0 ? (h > 0 ? [[d, 'd'], [h, 'h']] : [[d, 'd']]) : h > 0 ? (m > 0 ? [[h, 'h'], [m, 'min']] : [[h, 'h']]) : [[m, 'min']];
   return `Late · ${parts.map(([v, u]) => `${v} ${u}`).join(' ')}`;
 }
+
+/** P-02 (D-56): the feed wording for the two Points post kinds, shared by both apps; a missing House total reads "—". */
+export function pointsPostText(post) {
+  if (post?.kind === 'points_played') return `is playing Week ${post.week} Points.`;
+  if (post?.kind !== 'points_final') return null;
+  const winners = Array.isArray(post.payload?.winners) ? post.payload.winners : [];
+  return `${winners.length > 1 ? 'tied for the win in' : 'won'} Week ${post.week} Points with ${show(winners[0]?.points)} · House ${show(post.payload?.house)} · FINAL.`;
+}

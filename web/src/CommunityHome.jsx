@@ -19,7 +19,7 @@ import { cloudApi, communityApi, date } from './api';
 import { SportSlot, useSportGuard } from './sportNavigation.js';
 import { communityDraftScope, communityDraftEdits, communityPicksDiffer, mergeCommunityDraft, readCommunityDraft, removeCommunityDraft, writeCommunityDraft } from './communityDraft';
 import { currentMarket, goScreen, setMarket, useScreen } from './screenHash';
-import { MODE, lateText, pickText, shortName, show, team } from './communityFormat';
+import { MODE, lateText, pickText, pointsPostText, shortName, show, team } from './communityFormat';
 import { pacificDate, weekOpenAt } from '../../shared/nfl-schedule.mjs';
 import { FINAL_LABEL, FINAL_SHORT, LOCKED_MESSAGE, ballotFinal, isBallotLocked, pickFinal, sentFinal } from './sentFinal';
 import { boardRows, dueState, postPicksView } from './communityBoard';
@@ -173,6 +173,8 @@ function PostText({ post, name }) {
     case 'ballot_submitted': return <p>{who} submitted Week {post.week} {MODE[post.mode]} picks.{post.late && <span className="late-marker"> {lateText(post.late)}</span>}</p>;
     case 'bet_posted': return <p>{who} posted a bet in Bet Tracker.</p>;
     case 'bet_settled': return <p>{who} settled a Bet Tracker bet.</p>;
+    // P-02 (D-56): the same Points wording as the new app (communityFormat.pointsPostText), never an empty card.
+    case 'points_played': case 'points_final': return <p>{who} {pointsPostText(post)}</p>;
     default: return null;
   }
 }

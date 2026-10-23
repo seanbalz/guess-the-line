@@ -222,6 +222,15 @@ language sql stable security invoker set search_path='' as $$
   from (select (p_opens_at at time zone 'America/Los_Angeles')::date d,extract(isodow from p_opens_at at time zone 'America/Los_Angeles')::integer dw) x
 $$;
 
+-- Canonical kickoff text: UTC with milliseconds, identical to JavaScript toISOString(). Slate kickoffs are stored in this
+-- form so every later cast reads the same instant whatever the session time zone.
+create or replace function public.gtl_points_canonical_slots(p_slots jsonb) returns jsonb
+language sql stable security invoker set search_path='' as $$
+  select coalesce(jsonb_agg(jsonb_set(e,'{kickoff}',to_jsonb(to_char(((e->>'kickoff')::timestamptz) at time zone 'UTC',
+    'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))) order by n),'[]'::jsonb)
+  from jsonb_array_elements(p_slots) with ordinality a(e,n)
+$$;
+
 -- The first problem with five slots, or null (shared/points-slate.mjs slateProblem).
 create or replace function public.gtl_points_slate_problem(p_slots jsonb) returns text
 language plpgsql stable security invoker set search_path='' as $$
@@ -234,10 +243,13 @@ begin
     if not coalesce(x->>'position'=any(case when i=5 then array['RB','WR','TE'] else array[expected[i]] end),false) then return 'position'; end if;
     if coalesce(x->>'playerId','')!~'^[0-9A-Za-z-]{1,40}$' or char_length(coalesce(x->>'name','')) not between 1 and 80
       or coalesce(x->>'team','')!~'^[A-Z]{2,3}$' or coalesce(x->>'gameKey','')!~'^[0-9A-Za-z_-]{1,40}$' then return 'player'; end if;
+    -- Only an absolute ISO instant with an explicit offset: never a relative word ('now', 'tomorrow'), which later casts
+    -- would re-evaluate, and never an offset-less value, which the session time zone would decide.
+    if jsonb_typeof(x->'kickoff')<>'string' or x->>'kickoff'!~'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?(Z|[+-]\d{2}:?\d{2})$' then return 'kickoff'; end if;
     begin k:=(x->>'kickoff')::timestamptz;
     exception when invalid_datetime_format or datetime_field_overflow or invalid_text_representation then return 'kickoff';
     end;
-    if k is null then return 'kickoff'; end if;
+    if k is null or not isfinite(k) then return 'kickoff'; end if;
   end loop;
   if (select count(distinct e->>'playerId') from jsonb_array_elements(p_slots) e)<>5 then return 'duplicate_player'; end if;
   if (select count(distinct e->>'gameKey') from jsonb_array_elements(p_slots) e)<>5 then return 'same_game'; end if;
@@ -607,7 +619,7 @@ begin
         or jsonb_typeof(h.value)<>'number' or (h.value::text)::numeric not between 0 and 100)
       then raise exception 'GTL_POINTS_INVALID'; end if;
     insert into public.gtl_points_slates(season,week,status,opens_at,finalize_at,scoring_rules,slots,house,provenance,created_by,audit,created_at,updated_at)
-    values(p_season,p_week,'draft',opens,public.gtl_points_finalize_at(opens),p_slate->'scoringRules',p_slate->'slots',v_house,
+    values(p_season,p_week,'draft',opens,public.gtl_points_finalize_at(opens),p_slate->'scoringRules',public.gtl_points_canonical_slots(p_slate->'slots'),v_house,
       p_slate->'provenance',p_actor,jsonb_build_array(entry),now_at,now_at)
     on conflict (season,week) do update set opens_at=excluded.opens_at,finalize_at=excluded.finalize_at,scoring_rules=excluded.scoring_rules,
       slots=excluded.slots,house=excluded.house,provenance=excluded.provenance,audit=public.gtl_points_slates.audit||jsonb_build_array(entry),
@@ -624,7 +636,7 @@ begin
     if problem is not null then raise exception 'GTL_POINTS_SLATE_INVALID' using detail=problem; end if;
     select min((x->>'kickoff')::timestamptz) into first_kick from jsonb_array_elements(sl.slots) x;
     if now_at>=first_kick then raise exception 'GTL_POINTS_TOO_LATE'; end if;
-    update public.gtl_points_slates set status='published',published_at=now_at,published_by=p_actor,opens_at=least(opens_at,now_at),
+    update public.gtl_points_slates set status='published',slots=public.gtl_points_canonical_slots(slots),published_at=now_at,published_by=p_actor,opens_at=least(opens_at,now_at),
       audit=audit||jsonb_build_array(entry),updated_at=now_at
     where season=p_season and week=p_week returning * into sl;
     return public.gtl_points_slate_json(sl);
@@ -643,7 +655,7 @@ begin
   if problem is not null then raise exception 'GTL_POINTS_SLATE_INVALID' using detail=problem; end if;
   if jsonb_typeof(p_slate->'house')='number' and (p_slate->>'house')::numeric not between 0 and 100 then raise exception 'GTL_POINTS_INVALID'; end if;
   entry:=entry||jsonb_build_object('slot',p_slate->>'slot','from',sl.slots->(idx-1)->'playerId','to',player->'playerId');
-  update public.gtl_points_slates set slots=jsonb_set(slots,array[(idx-1)::text],player),
+  update public.gtl_points_slates set slots=public.gtl_points_canonical_slots(jsonb_set(slots,array[(idx-1)::text],player)),
     house=case when jsonb_typeof(p_slate->'house')='number' then jsonb_set(house,array[p_slate->>'slot'],p_slate->'house') else house-(p_slate->>'slot') end,
     audit=audit||jsonb_build_array(entry),updated_at=now_at
   where season=p_season and week=p_week returning * into sl;
@@ -652,7 +664,7 @@ end $$;
 
 revoke all on function public.gtl_points_slate_guard(),public.gtl_points_guess_guard(),public.gtl_points_append_only(),
   public.gtl_points_final_guard(),public.gtl_points_slot_points(numeric,numeric),public.gtl_points_kickoff_window(timestamptz),
-  public.gtl_points_finalize_at(timestamptz),public.gtl_points_slate_problem(jsonb),
+  public.gtl_points_finalize_at(timestamptz),public.gtl_points_canonical_slots(jsonb),public.gtl_points_slate_problem(jsonb),
   public.gtl_points_slot_outcomes(integer,integer,timestamptz),public.gtl_points_week_scores(integer,integer,timestamptz),
   public.gtl_points_revealed(uuid,integer,integer,text,timestamptz),
   public.gtl_points_write(uuid,uuid,integer,integer,text,numeric,boolean),
@@ -663,7 +675,7 @@ revoke all on function public.gtl_points_slate_guard(),public.gtl_points_guess_g
   from public,anon,authenticated;
 grant execute on function public.gtl_points_slate_guard(),public.gtl_points_guess_guard(),public.gtl_points_append_only(),
   public.gtl_points_final_guard(),public.gtl_points_slot_points(numeric,numeric),public.gtl_points_kickoff_window(timestamptz),
-  public.gtl_points_finalize_at(timestamptz),public.gtl_points_slate_problem(jsonb),
+  public.gtl_points_finalize_at(timestamptz),public.gtl_points_canonical_slots(jsonb),public.gtl_points_slate_problem(jsonb),
   public.gtl_points_slot_outcomes(integer,integer,timestamptz),public.gtl_points_week_scores(integer,integer,timestamptz),
   public.gtl_points_revealed(uuid,integer,integer,text,timestamptz),
   public.gtl_points_write(uuid,uuid,integer,integer,text,numeric,boolean),
