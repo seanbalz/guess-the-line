@@ -164,7 +164,7 @@ test('windows: no slate, closed after kickoff (function and real-clock trigger),
   await assert.rejects(() => f.save(randomUUID(), 'QB', 10), code('GTL_POINTS_MEMBER'));
   assert.equal(await f.count('gtl_points_guesses'), 0, 'refused saves store nothing');
   // The trigger refuses on the real clock even if a caller bypasses the function: make QB's kickoff past.
-  await f.db.query("update public.gtl_points_slates set slots=jsonb_set(slots,'{0,kickoff}',to_jsonb((now()-interval '1 hour')::text))");
+  await f.db.query("update public.gtl_points_slates set slots=jsonb_set(slots,'{0,kickoff}',to_jsonb(now()-interval '1 hour'))");
   await assert.rejects(() => f.as('service_role', `insert into public.gtl_points_guesses(user_id,season,week,slot,guess) values('${LUKE}',2026,8,'QB',5)`), code('GTL_POINTS_CLOSED'));
 });
 
@@ -296,6 +296,73 @@ test('void: no snap, a team change or a game moved out of the week voids a slot 
   assert.equal((await f.db.query('select jsonb_array_length(audit) n from public.gtl_points_slates')).rows[0].n, 5, 'appending to the audit is allowed');
 });
 
+test('schedule: an empty map or one with no game in the week is refused and changes nothing; a valid map still voids a missing game', { skip }, async t => {
+  const f = await fixture(t), { now, at } = f; await f.publish();
+  await f.save(LUKE, 'QB', 18, true);
+  await f.load(f.payload({ actuals: { QB: 14.6 } }));   // a fixture only: QB is scored before any schedule call
+  const stored = async () => (await f.db.query('select slots,audit from public.gtl_points_slates')).rows[0];
+  const was = await stored();
+  // An empty or failed schedule fetch must never read as every game cancelled.
+  const refused = { 'an empty map': {}, 'only slate games in another week': Object.fromEntries(slate(now).slots.map(s => [s.gameId, { week: 9, kickoff: at(now + 8 * DAY) }])),
+    'only an unrelated game in another week': { 'GB-CHI': { week: 7, kickoff: at(now - 6 * DAY) } } };
+  for (const [name, games] of Object.entries(refused)) await assert.rejects(() => f.schedule(games, at(now)), code('GTL_POINTS_INVALID'), name);
+  assert.deepEqual(await stored(), was, 'a refused schedule changes no slot and adds no audit entry');
+  assert.equal((await f.results()).QB.status, 'scored', 'the scored slot stays scored');
+  const allButRb = Object.fromEntries(slate(now).slots.filter(s => s.slot !== 'RB').map(s => [s.gameId, { week: 8, kickoff: s.kickoff }]));
+  assert.deepEqual(await f.schedule(allButRb, at(now)), { changed: ['RB'] }, 'KC-LV is missing from a map that has week 8 games: cancelled');
+  assert.deepEqual((await stored()).slots.map(s => s.void), [null, 'postponed', null, null, null]);
+  assert.equal((await f.results()).QB.status, 'scored');
+});
+
+test('schedule: a kickoff moved earlier moves the lock with it, even to a time already past; a kickoff that has passed never changes', { skip }, async t => {
+  const f = await fixture(t), { now, at } = f; await f.publish();
+  const kick = slate(now).slots.map(s => s.kickoff);
+  const games = Object.fromEntries(slate(now).slots.map(s => [s.gameId, { week: 8, kickoff: s.kickoff }]));
+  // BUF-NYJ (WR) moved earlier but still ahead of p_now; DAL-PHI (TE) moved earlier to an hour ago.
+  const moved = { ...games, 'BUF-NYJ': { week: 8, kickoff: at(now + 20 * HOUR) }, 'DAL-PHI': { week: 8, kickoff: at(now - HOUR) } };
+  assert.deepEqual(await f.schedule(moved, at(now)), { changed: ['WR', 'TE'] });
+  const stored = (await f.db.query('select slots,audit from public.gtl_points_slates')).rows[0];
+  assert.deepEqual(stored.slots.map(s => new Date(s.kickoff).toISOString()), [kick[0], kick[1], at(now + 20 * HOUR), at(now - HOUR), kick[4]]);
+  assert.deepEqual(stored.slots.map(s => s.void), [null, null, null, null, null]);
+  const audit = stored.audit.slice(1);
+  assert.deepEqual(audit.map(a => [a.slot, new Date(a.before.kickoff).toISOString(), new Date(a.after.kickoff).toISOString()]),
+    [['WR', kick[2], at(now + 20 * HOUR)], ['TE', kick[3], at(now - HOUR)]]);
+  await assert.rejects(() => f.save(TROY, 'TE', 5), code('GTL_POINTS_CLOSED'), 'a game moved earlier than now closes its slot');
+  await assert.rejects(() => f.save(TROY, 'WR', 5, false, randomUUID(), at(now + 20 * HOUR)), code('GTL_POINTS_CLOSED'), 'the WR lock is now at its new kickoff');
+  assert.equal((await f.save(TROY, 'WR', 5, true)).guess, 5, 'before it, WR stays open');
+  // At p_now = now + 3h, QB (now + 2h) and TE (now - 1h) have kicked off: neither moves, earlier or later.
+  const again = { ...moved, 'SEA-DEN': { week: 8, kickoff: at(now + HOUR) }, 'DAL-PHI': { week: 8, kickoff: at(now + 5 * HOUR) } };
+  assert.deepEqual(await f.schedule(again, at(now + 3 * HOUR)), { changed: [] }, 'a kickoff that already passed never moves');
+});
+
+test('slate guard: each published column and slot identity field is frozen; a written kickoff is a canonical instant and void is null or postponed', { skip }, async t => {
+  const f = await fixture(t); await f.publish();
+  const columns = {
+    season: 'season=season+1', week: 'week=week+1', opens_at: "opens_at=opens_at-interval '1 hour'", finalize_at: "finalize_at=finalize_at+interval '1 day'",
+    rules: `rules=rules||'{"format":"half"}'`, provenance: `provenance=provenance||'{"seed":"x"}'`, published_by: `published_by='${LUKE}'`,
+    published_at: "published_at=published_at+interval '1 second'" };
+  const all = (await f.db.query("select column_name from information_schema.columns where table_schema='public' and table_name='gtl_points_slates'")).rows.map(r => r.column_name);
+  assert.deepEqual(Object.keys(columns).sort(), all.filter(c => !['slots', 'audit'].includes(c)).sort(), 'every column but slots and audit is covered');
+  // service_role may update slots and audit only, so these run as the owner: the guard, not a grant, refuses them.
+  for (const [column, set] of Object.entries(columns)) await assert.rejects(() => f.db.query(`update public.gtl_points_slates set ${set}`), code('GTL_POINTS_INVALID'), column);
+  const identity = { slot: '"XX"', playerId: '"00-0000077"', pfrId: '"Zz9"', name: '"Q9"', team: '"DEN"', position: '"RB"', gameId: '"SEA-KC"', window: '"Sun late"', house: '99' };
+  const published = (await f.db.query('select slots,audit from public.gtl_points_slates')).rows[0];
+  assert.deepEqual(Object.keys(published.slots[0]).sort(), [...Object.keys(identity), 'kickoff', 'void'].sort(), 'every stored slot field is covered');
+  const slotSet = (path, value) => f.as('service_role', `update public.gtl_points_slates set slots=jsonb_set(slots,'{${path}}','${value}')`);
+  for (const [field, value] of Object.entries(identity)) await assert.rejects(() => slotSet(`0,${field}`, value), code('GTL_POINTS_INVALID'), field);
+  await assert.rejects(() => slotSet('0,extra', '1'), code('GTL_POINTS_INVALID'), 'an added field');
+  // A kickoff must be the stored rendering of a finite instant (to_jsonb of a timestamptz, as publish and the schedule write it).
+  const kickoffs = { 'relative text': '"tomorrow"', 'no offset': '"2026-10-30T12:00:00"', 'a space and a short offset': '"2026-10-30 12:00:00+00"',
+    'a browser ISO string': JSON.stringify(new Date(f.now + 3 * DAY).toISOString()), infinity: '"infinity"', 'a number': '1', null: 'null' };
+  for (const [name, value] of Object.entries(kickoffs)) await assert.rejects(() => slotSet('2,kickoff', value), code('GTL_POINTS_INVALID'), `kickoff ${name}`);
+  for (const value of ['"ruled"', '"inactive"', '""', '1', 'true', '{}']) await assert.rejects(() => slotSet('2,void', value), code('GTL_POINTS_INVALID'), `void ${value}`);
+  assert.deepEqual((await f.db.query('select slots,audit from public.gtl_points_slates')).rows[0], published, 'every refused write left the slate as published');
+  // The forms the schedule writes pass: a canonical instant and void 'postponed'.
+  await f.as('service_role', `update public.gtl_points_slates set slots=jsonb_set(jsonb_set(slots,'{2,kickoff}',to_jsonb(now()+interval '3 days')),'{3,void}','"postponed"')`);
+  const written = (await f.db.query('select slots from public.gtl_points_slates')).rows[0].slots;
+  assert.deepEqual([written[3].void, Math.abs(new Date(written[2].kickoff) - (Date.now() + 3 * DAY)) < HOUR], ['postponed', true]);
+});
+
 test('pending: no stats and no played flag stays pending until the commissioner rules on it after kickoff', { skip }, async t => {
   const f = await fixture(t), { now, at } = f; await f.publish();
   await f.save(LUKE, 'QB', 18, true); await f.save(LUKE, 'WR', 12, true); await f.save(LUKE, 'FLEX', 4, true);
@@ -324,6 +391,24 @@ test('pending: no stats and no played flag stays pending until the commissioner 
   r = await f.read(LUKE, at(now + 3 * DAY));
   assert.deepEqual([r.weekBoard.max, r.weekBoard.mine, slotOf(r, 'WR').void, slotOf(r, 'FLEX').mine.points], [40, 12.6, 'ruled', 6]);
   assert.deepEqual(await f.finalize(at(now + 7 * DAY)), { status: 'final' });
+});
+
+test('ruling precedence: played overrides inactive, the newest ruling counts, a void ruling voids a scored row, a stats row from another game is postponed', { skip }, async t => {
+  const f = await fixture(t), { now, at } = f; await f.publish();
+  const later = at(now + 3 * DAY);
+  // QB scored; RB a stats row from another KC game; WR no row and played false; TE a row with a missing stat; FLEX no row and played null.
+  await f.load(f.payload({ actuals: { QB: 14.6, RB: { points: 6, gameId: 'KC-DEN' }, TE: null }, played: { WR: false } }));
+  const view = async () => Object.fromEntries(Object.entries(await f.results()).map(([k, v]) => [k, [v.status, v.actual, v.void_reason]]));
+  assert.deepEqual(await view(), { QB: ['scored', 14.6, null], RB: ['void', null, 'postponed'], WR: ['void', null, 'inactive'], TE: ['pending', null, null], FLEX: ['pending', null, null] });
+  const ruled = async (slot, ruling) => { const r = await f.rule(SEAN, slot, ruling, `Fixture ${ruling}`, later); return [r.status, r.actual, r.voidReason]; };
+  assert.deepEqual(await ruled('WR', 'played'), ['scored', 0, null], 'a played ruling overrides a no-snap inactive');
+  assert.deepEqual(await ruled('WR', 'void'), ['void', null, 'ruled'], 'played then void: the newer void counts');
+  assert.deepEqual(await ruled('FLEX', 'void'), ['void', null, 'ruled']);
+  assert.deepEqual(await ruled('FLEX', 'played'), ['scored', 0, null], 'void then played with no stats row: the newer played scores 0');
+  assert.deepEqual(await ruled('TE', 'void'), ['void', null, 'ruled']);
+  assert.deepEqual(await ruled('TE', 'played'), ['pending', null, null], 'void then played on a row with a missing stat: pending, never 0');
+  assert.deepEqual(await ruled('QB', 'void'), ['void', null, 'ruled'], 'a void ruling voids a scored row');
+  assert.deepEqual(await view(), { QB: ['void', null, 'ruled'], RB: ['void', null, 'postponed'], WR: ['void', null, 'ruled'], TE: ['pending', null, null], FLEX: ['scored', 0, null] });
 });
 
 test('re-grade: a corrected actual re-scores with one audit row; the identical payload replays and writes nothing', { skip }, async t => {
@@ -411,10 +496,60 @@ test('FINAL: finalize waits for its time and every result, freezes once, and lat
   assert.deepEqual(await f.finalize(at(now + 7 * DAY)), { status: 'replay' });
   assert.equal(await f.count('gtl_points_week_final'), 1);
   await assert.rejects(() => f.rule(SEAN, 'QB', 'void', 'Late ruling', at(now + 7 * DAY)), code('GTL_POINTS_FINAL'));
-  assert.deepEqual(await f.schedule({}, at(now + 7 * DAY)), { changed: [] }, 'a FINAL week never changes its schedule');
+  const allButRb = Object.fromEntries(slate(now).slots.filter(s => s.slot !== 'RB').map(s => [s.gameId, { week: 8, kickoff: s.kickoff }]));
+  assert.deepEqual(await f.schedule(allButRb, at(now + 7 * DAY)), { changed: [] }, 'a FINAL week never changes its schedule, even for a cancelled game');
   assert.deepEqual((await f.db.query('select slots from public.gtl_points_slates')).rows[0].slots.map(s => s.void), [null, null, null, null, null]);
   const r = await f.read(LUKE, at(now + 7 * DAY));
   assert.deepEqual([r.status, slotOf(r, 'QB').result.actual, slotOf(r, 'QB').mine.points, r.weekBoard.mine, r.weekBoard.house], ['final', 14.6, 6.6, 7.6, 18.8]);
+});
+
+// A week finalized with every slot scored: luke locked QB 18 and RB 9, troy locked WR 30 and keeps a TE draft. Returns the frozen results.
+async function finalWeek(f) {
+  await f.publish();
+  await f.save(LUKE, 'QB', 18, true); await f.save(LUKE, 'RB', 9, true); await f.save(TROY, 'WR', 30, true); await f.save(TROY, 'TE', 6);
+  await f.load(f.payload({ actuals: { QB: 14.6, RB: 0, WR: 10.2, TE: 5.2, FLEX: 7 } }));
+  assert.deepEqual(await f.finalize(f.at(f.now + 6 * DAY)), { status: 'final' });
+  return (await f.db.query('select results from public.gtl_points_week_final')).rows[0].results;
+}
+
+test('FINAL in the tables: the slate and guess guards refuse every write to a FINAL week, whoever makes it', { skip }, async t => {
+  const f = await fixture(t); await finalWeek(f);
+  const slates = async () => (await f.db.query('select slots,audit from public.gtl_points_slates')).rows[0];
+  const frozen = await slates();
+  // Each write is one the slate guard accepts on an open week (a canonical kickoff, the schedule's void, an audit note): only FINAL refuses it.
+  const writes = {
+    'a kickoff moved later': `update public.gtl_points_slates set slots=jsonb_set(slots,'{2,kickoff}',to_jsonb(now()+interval '30 days'))`,
+    'a slot voided': `update public.gtl_points_slates set slots=jsonb_set(slots,'{2,void}','"postponed"')`,
+    'an audit note': `update public.gtl_points_slates set audit=audit||'[{"action":"note"}]'`,
+  };
+  for (const [name, sql] of Object.entries(writes)) await assert.rejects(() => f.as('service_role', sql), code('GTL_POINTS_FINAL'), name);
+  await assert.rejects(() => f.db.query(`update public.gtl_points_slates set finalize_at=finalize_at+interval '1 day'`), code('GTL_POINTS_FINAL'), 'any update, by the owner too');
+  assert.deepEqual(await slates(), frozen, 'the FINAL slate is unchanged');
+  // WR, TE and FLEX kick off after the real clock's now and none is void, so only FINAL stops these guess writes.
+  const guesses = async () => (await f.db.query('select user_id,slot,guess,locked_at from public.gtl_points_guesses order by user_id,slot')).rows;
+  const before = await guesses();
+  await assert.rejects(() => f.save(TROY, 'FLEX', 15, true), code('GTL_POINTS_FINAL'), 'a lock-in through the function');
+  await assert.rejects(() => f.save(TROY, 'TE', 7), code('GTL_POINTS_FINAL'), 'a draft edit through the function');
+  await assert.rejects(() => f.as('service_role', `insert into public.gtl_points_guesses(user_id,season,week,slot,guess,locked_at) values('${SEAN}',2026,8,'WR',10,now())`),
+    code('GTL_POINTS_FINAL'), 'a direct insert');
+  await assert.rejects(() => f.as('service_role', `update public.gtl_points_guesses set locked_at=now() where user_id='${TROY}' and slot='TE'`), code('GTL_POINTS_FINAL'), 'a direct lock of a draft');
+  assert.deepEqual(await guesses(), before, 'no guess changed');
+});
+
+test('FINAL in the read: a FINAL week\'s week and season boards come from the frozen record, not the live guesses', { skip }, async t => {
+  const f = await fixture(t), { now, at } = f; const results = await finalWeek(f);
+  const frozenRows = results.members.map(m => ({ userId: m.userId, points: m.points, slotsScored: Object.values(m.slots).filter(v => v !== null).length }));
+  const boards = r => [r.weekBoard.mine, r.weekBoard.house, r.weekBoard.standings, r.seasonBoard.standings.map(s => ({ userId: s.userId, points: s.points })), r.seasonBoard.house];
+  const want = [7.6, results.house, frozenRows, frozenRows.map(({ userId, points }) => ({ userId, points })), results.house];
+  assert.deepEqual(boards(await f.read(LUKE, at(now + 7 * DAY))), want);
+  // Change luke's locked QB guess underneath the guard (an owner-level bypass): a live recompute now gives 9.4 + 1 = 10.4.
+  await f.db.exec(`alter table public.gtl_points_guesses disable trigger gtl_points_guess_guard;
+    update public.gtl_points_guesses set guess=14 where user_id='${LUKE}' and slot='QB';
+    alter table public.gtl_points_guesses enable trigger gtl_points_guess_guard;`);
+  assert.equal((await f.db.query(`select sum(points)::float8 n from public.gtl_points_member_points(2026,8) where user_id='${LUKE}'`)).rows[0].n, 10.4, 'the live recompute moved');
+  const r = await f.read(LUKE, at(now + 7 * DAY));
+  assert.equal(r.status, 'final');
+  assert.deepEqual(boards(r), want, 'the boards still equal the frozen members and House');
 });
 
 test('gate in the read: another member\'s guess, points and the House show only after the viewer locks that slot or at its kickoff', { skip }, async t => {
@@ -441,6 +576,20 @@ test('gate in the read: another member\'s guess, points and the House show only 
   const later = await f.read(SEAN, at(now + 3 * DAY));
   assert(later.slots.every(s => s.revealed && s.house.visible && Array.isArray(s.others)), 'every slot shows from its kickoff');
   assert.deepEqual([slotOf(later, 'WR').others, slotOf(later, 'WR').lockedBy], [[], []], 'a draft never shows to anyone else');
+});
+
+test('House in the read: a hidden slot with no House value neither nulls the House week nor shows; once revealed, it makes the week incomplete', { skip }, async t => {
+  const f = await fixture(t), { now, at } = f;
+  const s = slate(now); s.slots[2].house = 41.7; s.slots[3].house = 42.9; s.slots[4].house = null;   // WR and TE values are sentinels
+  await f.publish({ slate: s });
+  await f.load(f.payload({ actuals: { QB: 14.6 } }));
+  const r = await f.read(TROY, at(now + 2 * HOUR));
+  assert.deepEqual(r.slots.map(x => x.revealed), [true, true, false, false, false]);
+  assert.deepEqual(r.slots.slice(2).map(x => x.house), [{ visible: false }, { visible: false }, { visible: false }]);
+  assert.deepEqual([r.weekBoard.house, r.seasonBoard.house], [5.4, 5.4], 'the revealed QB House points (10 against 14.6), not nulled by hidden FLEX');
+  assert.doesNotMatch(withoutTimes(r), /41\.7|42\.9/, 'no hidden House value appears');
+  const full = await f.read(TROY, at(now + 3 * DAY));
+  assert.deepEqual([full.weekBoard.house, full.seasonBoard.house], [null, null], 'revealed, FLEX\'s missing House value makes the week incomplete');
 });
 
 test('boards: standings list opted-in members only, sum exact tenths, and count weeks that beat a complete House week', { skip }, async t => {

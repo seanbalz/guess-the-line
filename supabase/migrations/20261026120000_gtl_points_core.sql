@@ -52,12 +52,14 @@ create table public.gtl_points_receipts (
 );
 
 -- (2) Guard trigger: defense in depth under the functions' p_now checks. A locked guess never changes, nothing is
--- ever deleted (D-23), and no guess is written for a void slot or a slot whose kickoff has passed by the real clock.
+-- ever deleted (D-23), no guess is written for a FINAL week (gtl_points_week_final, part 2), and no guess is written
+-- for a void slot or a slot whose kickoff has passed by the real clock.
 create function public.gtl_points_guess_guard() returns trigger
 language plpgsql security invoker set search_path='' as $$
 declare kickoff timestamptz; is_void boolean;
 begin
   if tg_op = 'DELETE' then raise exception 'GTL_POINTS_DELETE'; end if;
+  if exists(select 1 from public.gtl_points_week_final f where f.season = new.season and f.week = new.week) then raise exception 'GTL_POINTS_FINAL'; end if;
   if tg_op = 'UPDATE' and old.locked_at is not null then raise exception 'GTL_POINTS_LOCKED'; end if;
   select (s->>'kickoff')::timestamptz, s->>'void' is not null into kickoff, is_void
     from public.gtl_points_slates p, jsonb_array_elements(p.slots) s
@@ -256,13 +258,17 @@ grant select, insert on public.gtl_points_actual_loads, public.gtl_points_actual
   public.gtl_points_week_final to service_role;
 grant usage on sequence public.gtl_points_rulings_id_seq, public.gtl_points_regrades_id_seq to service_role;
 
--- (7) Slate guard: after publish, gtl_points_update_schedule is the only writer of a slate. It may change a slot's
--- kickoff and void and append to the audit; the slot order, every other slot field and every other column stay as
--- published (the column grant update(slots, audit) cannot express this on its own).
+-- (7) Slate guard: after publish, gtl_points_update_schedule is the only writer of a slate, and a FINAL week's slate
+-- never changes at all (GTL_POINTS_FINAL, for every writer). Otherwise it may change a slot's kickoff and void and
+-- append to the audit: a written kickoff must be the canonical rendering of a finite instant (to_jsonb of a
+-- timestamptz, as publish and the schedule store it) and void must be null or 'postponed' (the only value the
+-- schedule writes). The slot order, every other slot field and every other column stay as published (the column
+-- grant update(slots, audit) cannot express this on its own).
 create function public.gtl_points_slate_guard() returns trigger
 language plpgsql security invoker set search_path='' as $$
 declare n integer; was jsonb; changed jsonb; kick timestamptz;
 begin
+  if exists(select 1 from public.gtl_points_week_final f where f.season = old.season and f.week = old.week) then raise exception 'GTL_POINTS_FINAL'; end if;
   if (new.season, new.week, new.opens_at, new.finalize_at, new.rules, new.provenance, new.published_by, new.published_at)
     is distinct from (old.season, old.week, old.opens_at, old.finalize_at, old.rules, old.provenance, old.published_by, old.published_at) then
     raise exception 'GTL_POINTS_INVALID'; end if;
@@ -277,9 +283,11 @@ begin
     if jsonb_typeof(changed) is distinct from 'object' then raise exception 'GTL_POINTS_INVALID'; end if;
     if (changed - 'kickoff' - 'void') is distinct from (was - 'kickoff' - 'void')
       or jsonb_typeof(changed->'kickoff') is distinct from 'string'
-      or coalesce(jsonb_typeof(changed->'void'), 'missing') not in ('null', 'string') then raise exception 'GTL_POINTS_INVALID'; end if;
+      or (changed->'void' is distinct from 'null'::jsonb and changed->'void' is distinct from '"postponed"'::jsonb) then raise exception 'GTL_POINTS_INVALID'; end if;
     begin kick := (changed->>'kickoff')::timestamptz; exception when others then raise exception 'GTL_POINTS_INVALID'; end;
-    if not isfinite(kick) then raise exception 'GTL_POINTS_INVALID'; end if;
+    -- An unchanged kickoff stays as stored; a changed one must equal the canonical rendering of its instant.
+    if not isfinite(kick) or (changed->'kickoff' is distinct from was->'kickoff' and changed->'kickoff' is distinct from to_jsonb(kick)) then
+      raise exception 'GTL_POINTS_INVALID'; end if;
   end loop;
   return new;
 end $$;
@@ -342,17 +350,21 @@ language sql stable security invoker set search_path='' as $$
   where g.season = p_season and g.week = p_week and g.locked_at is not null
 $$;
 
--- Apply the NFL schedule to a week's slots. p_games maps a game key to { week, kickoff }; a missing key is a cancelled
--- game. A game cancelled or moved out of the week voids its slot ('postponed'); a kickoff that moved while both times
--- are still ahead of p_now moves that slot's lock time with it. Every change is appended to the audit. Player, team,
--- game and House never change, and a FINAL week never changes at all.
+-- Apply the NFL schedule to a week's slots. p_games maps a game key to { week, kickoff } and must be a non-empty object
+-- with at least one game whose week is p_week: an empty or failed fetch is refused, never read as every game
+-- cancelled. In such a map a missing key is a cancelled game. A game cancelled or moved out of the week voids its slot
+-- ('postponed'); a kickoff that moved while the stored kickoff is still ahead of p_now moves that slot's lock time with
+-- it, earlier (even to a time already past, which closes the slot) or later; a kickoff that has passed never changes.
+-- Every change is appended to the audit. Player, team, game and House never change, and a FINAL week never changes.
 create function public.gtl_points_update_schedule(p_season integer, p_week integer, p_games jsonb, p_now timestamptz) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 declare
   v_slate public.gtl_points_slates; v_slot jsonb; v_game jsonb; n integer; v_was timestamptz; v_moved timestamptz;
   v_slots jsonb := '[]'; v_entries jsonb := '[]'; v_changed text[] := '{}';
 begin
-  if p_season is null or p_week is null or p_now is null or jsonb_typeof(p_games) is distinct from 'object' then raise exception 'GTL_POINTS_INVALID'; end if;
+  if p_season is null or p_week is null or p_now is null or jsonb_typeof(p_games) is distinct from 'object'
+    or not exists(select 1 from jsonb_each(p_games) e where jsonb_typeof(e.value) = 'object' and jsonb_typeof(e.value->'week') = 'number'
+      and (e.value->>'week')::numeric = p_week) then raise exception 'GTL_POINTS_INVALID'; end if;
   perform pg_advisory_xact_lock(hashtextextended('gtl_points_week:' || p_season || ':' || p_week, 0));
   select * into v_slate from public.gtl_points_slates s where s.season = p_season and s.week = p_week for update;
   if not found then raise exception 'GTL_POINTS_NO_SLATE'; end if;
@@ -376,7 +388,7 @@ begin
         begin v_moved := (v_game->>'kickoff')::timestamptz; exception when others then raise exception 'GTL_POINTS_INVALID'; end;
         if not isfinite(v_moved) then raise exception 'GTL_POINTS_INVALID'; end if;
         v_was := (v_slot->>'kickoff')::timestamptz;
-        if v_moved <> v_was and v_was > p_now and v_moved > p_now then
+        if v_moved <> v_was and v_was > p_now then
           v_entries := v_entries || jsonb_build_array(jsonb_build_object('at', p_now, 'action', 'schedule', 'slot', v_slot->>'slot',
             'before', jsonb_build_object('kickoff', v_slot->'kickoff'), 'after', jsonb_build_object('kickoff', to_jsonb(v_moved))));
           v_slot := jsonb_set(v_slot, '{kickoff}', to_jsonb(v_moved)); v_changed := v_changed || (v_slot->>'slot');
@@ -541,7 +553,8 @@ language sql stable security invoker set search_path='' as $$ select public.gtl_
 -- locked in (faces, no numbers), and the gated part. Another member's guess and points and the House value show on a
 -- slot only once the viewer has locked in that slot or from its kickoff (gtl_points_revealed); the week and season
 -- boards count another member's or the House's points only on slots revealed to the viewer, so nothing derived from a
--- hidden guess is shown. p_league scopes members, lock-ins, others and both boards to that league's active roster.
+-- hidden guess is shown. A FINAL week's boards read its frozen per-slot points (results.members), not the live guesses.
+-- p_league scopes members, lock-ins, others and both boards to that league's active roster.
 create function public.gtl_points_read(p_user uuid, p_season integer, p_week integer, p_league text, p_now timestamptz) returns jsonb
 language plpgsql stable security invoker set search_path='' as $$
 declare
@@ -578,7 +591,9 @@ begin
     when not exists(select 1 from jsonb_array_elements(v_slate.slots) x where x->>'void' is null and (x->>'kickoff')::timestamptz > p_now) then 'closed'
     else 'open' end;
   with weeks as (
-    select s.season, s.week from public.gtl_points_slates s where s.season = v_slate.season and s.opens_at <= p_now),
+    select s.season, s.week, f.results frozen from public.gtl_points_slates s
+      left join public.gtl_points_week_final f on f.season = s.season and f.week = s.week
+    where s.season = v_slate.season and s.opens_at <= p_now),
   res as (
     select w.week, r.slot, r.status, r.actual, r.void_reason, r.house,
       public.gtl_points_revealed(p_user, w.season, w.week, r.slot, p_now) revealed,
@@ -589,10 +604,21 @@ begin
     from weeks w cross join lateral public.gtl_points_member_points(w.season, w.week) mp
     join res on res.week = w.week and res.slot = mp.slot
     where mp.user_id = any(v_scope)),
+  -- The boards' per-slot member points: live for an open or closed week; for a FINAL week, the frozen per-slot points
+  -- in results.members (never the live guesses), under the same reveal gate.
+  board as (
+    select pts.week, pts.user_id, pts.points from pts join weeks w on w.week = pts.week where w.frozen is null
+    union all
+    select w.week, (m->>'userId')::uuid, case when (m->>'userId')::uuid = p_user or res.revealed then e.value::numeric end
+    from weeks w cross join lateral jsonb_array_elements(w.frozen->'members') m cross join lateral jsonb_each_text(m->'slots') e
+      join res on res.week = w.week and res.slot = e.key
+    where w.frozen is not null and (m->>'userId')::uuid = any(v_scope)),
   member_week as (
-    select pts.week, pts.user_id, coalesce(sum(pts.points), 0) points, count(pts.points) scored from pts group by pts.week, pts.user_id),
+    select board.week, board.user_id, coalesce(sum(board.points), 0) points, count(board.points) scored from board group by board.week, board.user_id),
+  -- A House week is null when a revealed non-void slot has no House value; a hidden slot never decides it. For a FINAL
+  -- week res is the frozen results.slots, so this is results.house once every slot is revealed.
   house_week as (
-    select res.week, case when bool_or(res.status <> 'void' and res.house is null) then null
+    select res.week, case when bool_or(res.revealed and res.status <> 'void' and res.house is null) then null
       else coalesce(sum(res.house_points) filter (where res.revealed), 0) end points
     from res group by res.week),
   opted as (
