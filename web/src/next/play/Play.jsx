@@ -21,6 +21,9 @@ import { PerGameEditor } from './PerGamePlay.jsx';
 import { ScoreComparison } from './ScoreComparison.jsx';
 import { WeeklyScore } from './WeeklyScore.jsx';
 import { perGameReady } from './scoring.js';
+// Guess the Points (D-56): the third Play game, its own ballot and read; "coming soon" until P-01 is applied.
+import { PointsBallot, usePointsRead } from './points/PointsBallot.jsx';
+import { landingStatus } from './points/pointsModel.js';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
@@ -33,6 +36,7 @@ export function Play() {
   const shell = useShell();
   const section = shell.state.views.play.section;
   if (section === 'league') return <LeagueScreen/>;
+  if (section === 'points') return <PointsBallot/>;
   if (!['picks', 'score', 'compare'].includes(section)) return <PlayLanding/>;
   return <PlayDetail/>;
 }
@@ -40,6 +44,8 @@ export function Play() {
 function PlayLanding() {
   const app = useAppData(), shell = useShell(), data = app.community.data;
   const preferences = useAccountPreferences(app);
+  const points = usePointsRead(app);
+  const pointsRow = <FocusRow key="points" icon="target" title="Guess the Points" sub={landingStatus(points.data, points.error)} onClick={() => shell.go('play', { section: 'points' })}/>;
   const hero = data ? homeHero({ community: data }) : null;
   const market = nextGuess(data), other = market === 'spread' ? 'total' : 'spread';
   const name = value => value === 'spread' ? 'Guess the Spread' : 'Guess the Total';
@@ -58,10 +64,11 @@ function PlayLanding() {
       {app.community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p>}
       <FocusRows label="More in Play">
         {(!hero.action.primary ? [market, other] : [other]).map(value => <FocusRow key={value} icon="target" title={name(value)} sub={status(value)} onClick={() => open(value)}/>)}
+        {pointsRow}
         <FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/>
         {hero.action.primary && <FocusRow icon="chart" title="Your results" sub="Scores, comparisons and history" onClick={() => shell.go('play', { section: 'score' })}/>}
       </FocusRows></>}
-    {!hero && <FocusRows label="More in Play"><FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/></FocusRows>}
+    {!hero && <FocusRows label="More in Play">{pointsRow}<FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/></FocusRows>}
     <details className="gx-focus-help"><summary className="gx-t-strong">How to play</summary><HomeGuide key={app.accountId} preferences={preferences} perGame={data?.rules?.perGameScoring === true}/></details>
   </div>;
 }

@@ -3,8 +3,9 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
     this.status = status;
-    // Codes a screen acts on: the submission refusals, and M-02's GTL_BALLOT_LOCKED (a locked-in pick is final; reload).
-    this.code = typeof code === 'string' && (/^GTL_SUBMISSION_[A-Z_]+$/.test(code) || ['GTL_BALLOT_LOCKED', 'GTL_GAME_CLOSED'].includes(code)) ? code : null;
+    // Codes a screen acts on: the submission refusals, M-02's GTL_BALLOT_LOCKED (a locked-in pick is final; reload) and
+    // Guess the Points' refusals (GTL_POINTS_OFF: coming soon; LOCKED / CLOSED / NOT_OPEN: reload the week).
+    this.code = typeof code === 'string' && (/^GTL_SUBMISSION_[A-Z_]+$/.test(code) || ['GTL_BALLOT_LOCKED', 'GTL_GAME_CLOSED', 'GTL_POINTS_OFF', 'GTL_POINTS_LOCKED', 'GTL_POINTS_CLOSED', 'GTL_POINTS_NOT_OPEN'].includes(code)) ? code : null;
   }
 }
 

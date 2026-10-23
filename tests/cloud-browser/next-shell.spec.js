@@ -79,7 +79,7 @@ function apiCalls(page) {
  * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
  * for its D-45 weather chips on Lines): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read'].includes(call));
+const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/points/read'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {

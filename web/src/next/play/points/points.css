@@ -1,0 +1,70 @@
+/* Guess the Points (D-56; ballot card option D, "Glow card", D-56 addendum). Tokens only (D-38, D-55): the glow card is the
+   kit's gx-card--hero, and glass pills and tiles appear only on it. Plain cards use surface-2 for the same pills. */
+.gx .gx-pt-slots { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
+.gx .gx-pt-card { width: 100%; min-height: var(--gx-size-touch); align-items: stretch; text-align: left; color: var(--gx-text-1); }
+.gx .gx-pt-head { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-pt-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border);
+  color: var(--gx-text-1);
+  white-space: nowrap;
+}
+.gx .gx-pt-pill--on { box-shadow: inset 0 0 0 1px var(--gx-border-strong); font-weight: 700; }
+.gx .gx-pt-sub { color: var(--gx-text-2); }
+.gx .gx-pt-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-pt-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--gx-space-2) var(--gx-space-3);
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border);
+}
+.gx .gx-pt-tile-label { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-pt-tile-value { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.gx .gx-pt-faces { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-pt-face {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 2px 10px 2px 4px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border);
+}
+.gx .gx-pt-house { padding-left: 10px; }
+/* Option D on the glow card: glass pills, faces and tiles, and the glow card's own secondary words. */
+.gx .gx-card--hero .gx-pt-pill,
+.gx .gx-card--hero .gx-pt-face,
+.gx .gx-card--hero .gx-pt-tile { background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); backdrop-filter: var(--gx-glass-blur); }
+.gx .gx-card--hero .gx-pt-sub,
+.gx .gx-card--hero .gx-pt-tile-label { color: var(--gx-hero-text-2); }
+/* The sheet's editor: −1, the value, +1; every control keeps a 44px target. */
+.gx .gx-pt-stepper { display: flex; align-items: center; justify-content: center; gap: var(--gx-space-4); }
+.gx .gx-pt-value { min-width: 72px; text-align: center; font-variant-numeric: tabular-nums; }
+.gx .gx-pt-everyone { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-pt-person { display: flex; align-items: center; gap: var(--gx-space-3); min-height: var(--gx-size-touch); }
+.gx .gx-pt-house-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--gx-radius-pill);
+  border: 1px dashed var(--gx-border-strong);
+  color: var(--gx-text-2);
+  font: 700 13px/1 var(--gx-font-body);
+}
+.gx .gx-pt-board-house { color: var(--gx-text-2); }
+@media (forced-colors: active) {
+  .gx .gx-pt-pill,
+  .gx .gx-pt-face,
+  .gx .gx-pt-tile { border: 1px solid CanvasText; }
+}
