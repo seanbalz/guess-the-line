@@ -65,6 +65,7 @@ test('a forfeit\'s sit-outs stop the deadline reminder for those markets; a mark
   const sends = [];
   const vapidPair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']);
   const vapid = { publicKey: b64uEncode(new Uint8Array(await crypto.subtle.exportKey('raw', vapidPair.publicKey))), privateKey: (await crypto.subtle.exportKey('jwk', vapidPair.privateKey)).d, subject: 'mailto:reminders@example.test' };
+  t.mock.method(console, 'info', () => {}); // the worker's per-pass count lines (P-02)
   const handler = createPushReminderHandler({ service: { rpc: sql }, vapid, fetchImpl: async url => { sends.push(String(url)); return new Response(null, { status: 201 }); } });
   const response = await handler(new Request('https://example.supabase.co/functions/v1/gtl-push-reminders', { method: 'POST',
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify({ runId: queued.runId }) }));

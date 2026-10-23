@@ -26,6 +26,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
   20261023180000, // P-01 gtl_points_core (D-56 Guess the Points): written, not applied; waits for Sean's "apply P-01".
+  20261023190000, // P-02 gtl_points_feed_push (D-56): Points feed posts and the weekly Points reminder; written, not applied; waits for Sean's "apply P-02".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -39,7 +40,9 @@ export const FIX_FORWARD = [];
  * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
-export const REQUIRES = Object.freeze({});
+export const REQUIRES = Object.freeze({
+  20261023190000: [20261023180000], // P-02 after P-01: its triggers, candidates and dispatcher read P-01's Points tables.
+});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
