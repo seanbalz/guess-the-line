@@ -3,7 +3,7 @@ import { appCode, easternToUtc } from './nfl-schedule.mjs';
 import { scoreStats, validateFantasySnapshot } from './fantasy-rankings.mjs';
 
 export const FANTASY_METHOD = Object.freeze({
-  name: 'GTL statistical pace', version: '1.0',
+  name: 'GTL statistical pace', version: '1.1',
   description: 'For each statistic, 60% of the last three recorded appearances plus 40% of the season-to-date average, using only games before the selected week. At least two recorded appearances are required. Weekly estimates exclude byes, non-active rosters and reported Out or Doubtful players. Rest-of-season totals multiply that pace by scheduled regular-season games from the selected week through Week 18, assuming an active-roster player is available for all of them. No injury return date, depth-chart role or matchup adjustment is forecast. Overall means total fantasy points, not draft value. These are descriptive pace estimates, not published expert rankings.',
 });
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE', 'K']);
@@ -61,6 +61,24 @@ export function estimatePace(history) {
   ]));
 }
 
+/** Regular-season weeks whose every scheduled game has statistics rows for both teams. */
+export function completedWeeks({ season, schedule, stats }) {
+  const sides = new Map();
+  for (const row of stats) {
+    if (Number(row.season) !== season || row.season_type !== 'REG') continue;
+    if (!sides.has(row.game_id)) sides.set(row.game_id, new Set());
+    sides.get(row.game_id).add(appCode(row.team));
+  }
+  const weeks = new Map();
+  for (const game of schedule) {
+    if (Number(game.season) !== season || game.game_type !== 'REG') continue;
+    const week = Number(game.week);
+    if (!weeks.has(week)) weeks.set(week, true);
+    if (sides.get(game.game_id)?.size !== 2) weeks.set(week, false);
+  }
+  return new Set([...weeks].filter(([, complete]) => complete).map(([week]) => week));
+}
+
 export function buildFantasySnapshot({ season, week, stats, rosters, injuries, schedule, sources, generatedAt }) {
   if (!Number.isInteger(season) || !Number.isInteger(week) || week < 1 || week > 18) throw new Error('Invalid fantasy season or week.');
   const games = schedule.filter(row => Number(row.season) === season && row.game_type === 'REG');
@@ -72,22 +90,31 @@ export function buildFantasySnapshot({ season, week, stats, rosters, injuries, s
   }
   if (teamGames.size !== 32 || [...teamGames.values()].some(rows => rows.length !== 17 || new Set(rows.map(row => Number(row.week))).size !== 17)) throw new Error('Schedule team coverage is incomplete.');
   const seasonStats = stats.filter(row => Number(row.season) === season && row.season_type === 'REG');
-  if (Math.max(0, ...seasonStats.map(row => Number(row.week))) !== week - 1) throw new Error('Source must end immediately before the selected week; retrospective forecasts are not supported.');
-  const priorGames = new Map(games.filter(row => Number(row.week) < week).map(row => [row.game_id, row]));
+  // Partial selected-week rows (Thursday, Saturday, early Sunday) are identity-checked, then ignored. Later weeks, or a
+  // selected week whose games are all played, would turn current data into a historical pseudo-forecast.
+  if (Math.max(0, ...seasonStats.map(row => Number(row.week))) > week) throw new Error('Source contains statistics after the selected week; retrospective forecasts are not supported.');
+  if (completedWeeks({ season, schedule, stats }).has(week)) throw new Error('The selected week is already complete; retrospective forecasts are not supported.');
+  const knownGames = new Map(games.filter(row => Number(row.week) <= week).map(row => [row.game_id, row]));
+  const priorGames = new Map([...knownGames].filter(([, row]) => Number(row.week) < week));
   const seenTeams = new Map();
   for (const row of seasonStats) {
-    const game = priorGames.get(row.game_id), team = appCode(row.team);
+    const game = knownGames.get(row.game_id), team = appCode(row.team);
     if (!game || Number(row.week) !== Number(game.week) || ![appCode(game.home_team), appCode(game.away_team)].includes(team)
       || appCode(row.opponent_team) !== (team === appCode(game.home_team) ? appCode(game.away_team) : appCode(game.home_team))) throw new Error('Stats and schedule game identity do not match.');
+    if (!priorGames.has(row.game_id)) continue;
     if (!seenTeams.has(row.game_id)) seenTeams.set(row.game_id, new Set());
     seenTeams.get(row.game_id).add(team);
   }
   if ([...priorGames.keys()].some(id => seenTeams.get(id)?.size !== 2)) throw new Error('Prior-game statistics coverage is incomplete.');
   const priorRosters = rosters.filter(row => Number(row.season) === season && Number(row.week) <= week && row.game_type === 'REG');
-  // nflverse omits bye-team rows. Only those teams use their most recent prior roster.
-  const rosterWeek = new Map([...teamGames].map(([team, rows]) => [team,
-    rows.some(row => Number(row.week) === week) ? week : Math.max(0, ...priorRosters.filter(row => appCode(row.team) === team).map(row => Number(row.week))),
+  const plays = team => teamGames.get(team).some(row => Number(row.week) === week);
+  // Byes keep their most recent roster. A playing team may use last week's roster until nflverse publishes this week's;
+  // it is counted in rosterFallbackTeams and each player's status names the roster week. Anything older fails closed.
+  const rosterWeek = new Map([...teamGames.keys()].map(team => [team,
+    Math.max(0, ...priorRosters.filter(row => appCode(row.team) === team).map(row => Number(row.week))),
   ]));
+  if ([...rosterWeek].some(([team, latest]) => latest < 1 || (plays(team) && latest < week - 1))) throw new Error('Selected week roster coverage is incomplete.');
+  const rosterFallbackTeams = [...rosterWeek].filter(([team, latest]) => plays(team) && latest === week - 1).map(([team]) => team).sort();
   const selectedRosters = priorRosters.filter(row => Number(row.week) === rosterWeek.get(appCode(row.team)));
   if (new Set(selectedRosters.map(row => appCode(row.team))).size !== 32) throw new Error('Selected week roster coverage is incomplete.');
   const rosterById = new Map();
@@ -96,7 +123,7 @@ export function buildFantasySnapshot({ season, week, stats, rosters, injuries, s
     rosterById.set(row.gsis_id, row);
   }
   const historyById = new Map();
-  const priorStats = seasonStats.filter(row => Number(row.week) >= 1 && POSITIONS.has(row.position));
+  const priorStats = seasonStats.filter(row => Number(row.week) >= 1 && Number(row.week) < week && POSITIONS.has(row.position));
   for (const row of priorStats) {
     if (!historyById.has(row.player_id)) historyById.set(row.player_id, []);
     const history = historyById.get(row.player_id);
@@ -132,7 +159,7 @@ export function buildFantasySnapshot({ season, week, stats, rosters, injuries, s
   }).sort((a, b) => a.id.localeCompare(b.id));
   const snapshot = {
     schemaVersion: 1, season, week, asOf: sources.find(source => source.name.includes('stats_player'))?.updatedAt || generatedAt,
-    generatedAt, statsThroughWeek, method: FANTASY_METHOD, sources, players,
+    generatedAt, statsThroughWeek, rosterFallbackTeams, method: FANTASY_METHOD, sources, players,
   };
   const validation = validateFantasySnapshot(snapshot, { now: Date.parse(generatedAt) });
   if (!validation.valid) throw new Error(validation.errors.join('\n'));

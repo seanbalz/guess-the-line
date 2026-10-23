@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
-import { buildFantasySnapshot, estimatePace, normalizePlayerStats, parseFantasyCsv } from '../shared/fantasy-build.mjs';
+import { buildFantasySnapshot, completedWeeks, estimatePace, normalizePlayerStats, parseFantasyCsv } from '../shared/fantasy-build.mjs';
 import { buildRankings, scoreStats } from '../shared/fantasy-rankings.mjs';
 
 const TEAMS = Object.keys(TEAM_NAMES);
@@ -115,14 +115,25 @@ test('snapshot uses prior regular-season appearances and ignores other-season/po
   assert.equal(snapshot.players.length, 32);
 });
 
-test('selected/future-week statistics reject retrospective forecasts instead of contaminating the pace', () => {
-  for (const week of [6, 7]) {
-    const input = fixture(); input.stats.push(rawStats('SEA', week, { rushing_yards: '99999' }));
-    assert.throws(() => buildFantasySnapshot(input), /retrospective forecasts are not supported/);
-  }
+test('partial selected-week statistics are ignored; later weeks and a completed selected week still fail closed', () => {
+  const clean = buildFantasySnapshot(fixture());
+  const partial = fixture(); partial.stats.push(rawStats('SEA', 6, { rushing_yards: '99999' }));
+  assert.deepEqual(buildFantasySnapshot(partial).players, clean.players, 'a Thursday game never changes any estimate');
+  const later = fixture(); later.stats.push(rawStats('SEA', 7, { rushing_yards: '99999' }));
+  assert.throws(() => buildFantasySnapshot(later), /after the selected week; retrospective forecasts are not supported/);
+  const complete = fixture();
+  for (const team of TEAMS.slice(2)) complete.stats.push(rawStats(team, 6));
+  assert.throws(() => buildFantasySnapshot(complete), /already complete; retrospective forecasts are not supported/);
 });
 
-test('bye teams retain their most recent roster for ROS while playing teams require the selected week', () => {
+test('completedWeeks counts a week only when every scheduled game has both teams', () => {
+  const input = fixture();
+  assert.deepEqual([...completedWeeks(input)].sort((a, b) => a - b), [1, 2, 3, 4, 5]);
+  input.stats = input.stats.filter(row => !(row.week === '5' && row.team === 'SEA'));
+  assert.deepEqual([...completedWeeks(input)].sort((a, b) => a - b), [1, 2, 3, 4]);
+});
+
+test("bye teams retain their most recent roster; playing teams may use last week's roster, counted, never older", () => {
   const input = fixture();
   input.rosters.push(roster('ARI', 4, { full_name: 'Older name' }), roster('ARI', 7, { full_name: 'Future name' }));
   const snapshot = buildFantasySnapshot(input), bye = find(snapshot, 'ARI');
@@ -138,9 +149,15 @@ test('bye teams retain their most recent roster for ROS while playing teams requ
   const ros = buildRankings(snapshot, { scope: 'ros' }, { now: GENERATED });
   assert.equal(ros.rows.length, 32);
   assert.equal(ros.rows.find(row => row.id === bye.id).perGame, 3.6);
-  const missing = fixture();
-  missing.rosters.find(row => row.team === 'SEA').week = '5';
-  assert.throws(() => buildFantasySnapshot(missing), /roster coverage/i, 'stale playing-team roster is not treated as current');
+  assert.deepEqual(snapshot.rosterFallbackTeams, []);
+  const lastWeek = fixture();
+  lastWeek.rosters.find(row => row.team === 'SEA').week = '5';
+  const fallback = buildFantasySnapshot(lastWeek);
+  assert.deepEqual(fallback.rosterFallbackTeams, ['SEA'], "a playing team may use last week's roster and is counted");
+  assert.match(find(fallback, 'SEA').status, /active roster as of Week 5/);
+  const older = fixture();
+  older.rosters.find(row => row.team === 'SEA').week = '4';
+  assert.throws(() => buildFantasySnapshot(older), /roster coverage/i, 'a roster two weeks old is not treated as current');
 });
 
 test('Out and Doubtful suppress weekly estimates but retain conditional ROS pace; old reports are ignored', () => {
