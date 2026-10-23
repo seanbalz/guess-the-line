@@ -33,7 +33,7 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
-October 23 Fantasy Track 1 implementation (D-57, Q11 and part of Q14): implemented on branch `claude/fantasy-track1-impl` and linked from its implementation pull request (number recorded when opened). It adds the refresh builder, weekly review, release index and publisher, a manual-only workflow, the signed-in `/fantasy/week` route and the app status line, gated game context and accuracy card. Awaiting API and frontend releases and the first scheduled run; see the [release card](FANTASY_TRACK1_RELEASE.md). No release, deployment, workflow run or hosted verification has happened.
+October 23 Fantasy Track 1 implementation (D-57, Q11 and part of Q14): merged in [PR #198](https://github.com/seanbalz/guess-the-lines-repo/pull/198) as `0bd4f1a`. It adds the refresh builder, weekly review, release index and publisher, a manual-only workflow, the signed-in `/fantasy/week` route and the app status line, gated game context and accuracy card. Released October 23 as `gtl-api` v35 and Pages `78909363` from `0bd4f1a` (protected release 40031274160; [release record](RELEASE_2026_10_23_FANTASY_TRACK1.md), [release card](FANTASY_TRACK1_RELEASE.md)). The refresh workflow has not run, so the app shows the saved Week 6 snapshot; the first data publish waits for Sean's OK.
 
 October 23 Fantasy Track 1 design (D-57): Sean approved the
 [written design](superpowers/specs/2026-10-23-fantasy-track1-design.md) for a

@@ -1,8 +1,9 @@
 # Fantasy Track 1 release card (D-57)
 
 Prepared October 23, 2026; filled for release the same day (Pacific) from the
-check-only and readiness runs below. **Not deployed.** The production deploy waits
-for Sean's approval of this card.
+check-only and readiness runs below. **Released October 23, 2026** as `gtl-api` v35 and
+Pages `78909363` on Sean's approval; see the
+[release record](RELEASE_2026_10_23_FANTASY_TRACK1.md). The refresh workflow has not run.
 
 - Source SHA: `0bd4f1a588f20da90fea9d5931ce7bc0d20cad6d` (`main`, the merge of
   [PR #198](https://github.com/seanbalz/guess-the-lines-repo/pull/198); design and
@@ -50,7 +51,7 @@ Either deploy order is safe, and so is the window before the first data publish:
 | Main CI on the exact SHA | [Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40025300650), [Dashboard checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40025300646) (Persona suite and dashboard), [Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40025300571) | All passed on the `push` runs |
 | Check-only | [40030329389](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40030329389) | Exact source and main CI verified |
 | Readiness | [40030382826](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40030382826) | Passed at 21:58 UTC; deploy steps skipped |
-| Deploy | Not run | Waits for Sean's approval |
+| Deploy | [40031013541](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40031013541), retry [40031274160](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40031274160) | First attempt timed out in the read-only preflight before deploying; the retry deployed and verified at 22:07 UTC |
 
 Readiness report (read-only hosted snapshot, 21:58:13 UTC):
 
@@ -74,21 +75,23 @@ Readiness report (read-only hosted snapshot, 21:58:13 UTC):
 
 ## Approval
 
-- Sean's approval: **pending**. Deploy dispatch inputs once approved: mode `deploy`,
-  the SHA above, target `api-and-frontend`, this card's URL, the digest above and
+- Sean approved the deploy on October 23, 2026: `api-and-frontend` from the SHA
+  above, release card PR #200, the digest above. Dispatched with mode `deploy` and
   `compatibility_reviewed` checked.
 
 ## After the deploy
 
-1. Record the deployed API version and Pages deployment ID, the release run ID and
-   the verify step's evidence in a dated release record.
-2. Signed-out `POST /fantasy/week` returns 401 (the awaiting probe becomes a denial).
-3. With Sean's OK, a dry run of `fantasy-refresh.yml`, then the first real run;
+1. Done: API v35, Pages `78909363`, release run 40031274160 and the verify evidence
+   are in the [release record](RELEASE_2026_10_23_FANTASY_TRACK1.md).
+2. Done: signed-out `POST /fantasy/week` returns 401 (284 of 284 probes denied).
+3. Not yet run. With Sean's OK, a dry run of `fantasy-refresh.yml`, then the first real run;
    read back the `fantasy-data-2026` release and its `index.json`.
 
 ## Readback checklist
 
 - [ ] Signed-in 2xx for `POST /fantasy/week` in hosted logs, and a signed-out 401.
+  Signed-out 401 confirmed after the deploy; signed-in currently answers the expected
+  404 until the first data publish.
 - [ ] Phone-width check of the Fantasy tab (status line, context pill, accuracy card).
 - [ ] A lock line appears for a game whose spread or total is not yet visible.
 - [ ] Implied totals appear only after locking in or sitting out that game's markets
