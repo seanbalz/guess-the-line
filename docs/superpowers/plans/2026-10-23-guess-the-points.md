@@ -795,7 +795,7 @@ git commit -m "P-01 part 1: Guess the Points tables, guards, publish, lock-in an
 
 1. **Scoring:** after a `saved` load with actuals QB 14.6 and RB 0, luke's locked QB guess 18 scores 6.6; luke's locked RB guess 9 scores 1.0; luke's unlocked TE draft scores nothing and its `mine.points` is null; week `mine` = 7.6, `max` = 50.
 2. **Played but no stats:** `played["00-0000003"] = true` with no stats row → WR `scored` with actual 0.
-3. **Void:** `played[...] = false` → `void_reason 'inactive'`, `max` 40, no one scores it; a stats row whose team differs from the slate → `'team_change'`; `gtl_points_update_schedule` with that game in week 9 or missing → `'postponed'` and later saves refuse `GTL_POINTS_CLOSED`; a kickoff moved later (still future) updates the slot kickoff and audits it.
+3. **Void:** `played[...] = false` → `void_reason 'inactive'`, `max` 40, no one scores it; a stats row whose team differs from the slate → `'team_change'`; `gtl_points_update_schedule` with that game in week 9 → `'postponed'` (a map missing a slate game is refused) and later saves refuse `GTL_POINTS_CLOSED`; a kickoff moved later (still future) updates the slot kickoff and audits it.
 4. **Pending:** `played = null` and no stats row → `pending`, excluded from standings, `gtl_points_finalize` returns `waiting_on_stats`; `gtl_points_rule_slot(sean, …, 'void', 'Inactive per team report')` resolves it; luke cannot rule (`GTL_POINTS_FORBIDDEN`).
 5. **Re-grade audit:** a second load with a corrected actual changes the score and inserts one `gtl_points_regrades` row with before/after; the identical payload again returns `replay` and writes nothing.
 6. **Flagged:** `review: { checked: true, agrees: false }` → `status 'flagged'`; results still use the previous `saved` load.
@@ -934,7 +934,7 @@ A played row with `points` null (a missing stat) is `pending`, never 0.
 
 `gtl_points_update_schedule`: for each slot whose `void` is null:
 - Refuse (`GTL_POINTS_INVALID`) an empty map, a map with no game in `p_week`, or a map missing any slate game. If the game's `week <> p_week`, set `void = 'postponed'`.
-- Else if the game's kickoff differs from the stored one and both are after `p_now`, update `kickoff`.
+- Else if the game's kickoff differs from the stored one and the stored kickoff is still after `p_now`, update `kickoff` (a game moved earlier closes its slot; a passed kickoff never moves).
 
 Append `{ at, action: 'schedule', slot, before, after }` to `audit` for each change. Never change `playerId`, `team`, `gameId` or `house`.
 
