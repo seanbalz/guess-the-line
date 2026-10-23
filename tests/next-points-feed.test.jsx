@@ -26,9 +26,8 @@ describe('Points posts in the Community feed', () => {
     expect(html).toContain('is playing Week 8 Points.');
     expect(html).toContain('won Week 8 Points with 38.4 · House 31.2 · FINAL.');
   });
-  it('shares a tied win and leaves the House out when there is none', () => {
+  it('shares a tied win and shows a missing House as "—" (brand rule)', () => {
     const html = feedText([post('00000000-0000-4000-8000-0000000000a3', { kind: 'points_final', payload: { winners: [{ userId: A, points: 38 }, { userId: B, points: 38 }], house: null, max: 5 } })]);
-    expect(html).toContain('tied for the win in Week 8 Points with 38 · FINAL.');
-    expect(html).not.toContain('House');
+    expect(html).toContain('tied for the win in Week 8 Points with 38 · House — · FINAL.');
   });
 });

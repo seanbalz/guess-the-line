@@ -4,27 +4,54 @@ import { randomUUID } from 'node:crypto';
 import { ALL } from './migrations.mjs';
 import { createCommunityWorld, id, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql } from './helpers/guess-week.mjs';
+import { createPushReminderHandler } from '../cloud/push-reminders.mjs';
+import { b64uEncode } from '../cloud/web-push.mjs';
 
 // P-02 (20261026120100_gtl_points_feed_push.sql, D-56): the Points feed posts and the one weekly Points reminder.
 // Local PGlite only; fixture accounts only. Slate kickoffs are relative to Date.now() because the guess guard uses the real
 // clock; the reminder functions take p_now, so a test moves time by passing it.
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const [LUKE, TROY, SEAN, ZED] = [id(1), id(2), id(3), id(4)];
-const HOUR = 3_600_000, DAY = 24 * HOUR;
+const MINUTE = 60_000, HOUR = 60 * MINUTE, DAY = 24 * HOUR;
 const KEYS = { p256dh: `B${'A'.repeat(86)}`, auth: 'A'.repeat(22) };
 const endpoint = n => `https://fcm.googleapis.com/fcm/send/points-${n}`;
+const SLOTS = ['QB', 'RB', 'WR', 'TE', 'FLEX'];
+// Every function P-02 creates or replaces.
+const P02_FUNCTIONS = ['gtl_feed_points_played_post', 'gtl_feed_points_final_post', 'gtl_points_reminder_candidates', 'gtl_mark_points_reminder', 'gtl_dispatch_push_reminders'];
 
-// Same shape as tests/points-sql.test.mjs: QB and RB kick off in 2 hours, WR, TE and FLEX in 50.
-const slate = now => ({ selectionVersion: 'slate-1', provenance: { file: '2026-week-08.3f9c1a2b.json', sha256: 'f'.repeat(64), generatedAt: new Date(now).toISOString() },
-  slots: ['QB', 'RB', 'WR', 'TE', 'FLEX'].map((slot, i) => ({ slot, playerId: `00-000000${i + 1}`, pfrId: `Pf${i}`, name: `P${i}`, team: ['SEA', 'KC', 'BUF', 'DAL', 'MIA'][i],
+// Same shape as tests/points-sql.test.mjs: QB and RB kick off in 2 hours (or `early`), WR, TE and FLEX in 50.
+const slate = (now, early = 2 * HOUR) => ({ selectionVersion: 'slate-1', provenance: { file: '2026-week-08.3f9c1a2b.json', sha256: 'f'.repeat(64), generatedAt: new Date(now).toISOString() },
+  slots: SLOTS.map((slot, i) => ({ slot, playerId: `00-000000${i + 1}`, pfrId: `Pf${i}`, name: `P${i}`, team: ['SEA', 'KC', 'BUF', 'DAL', 'MIA'][i],
     position: slot === 'FLEX' ? 'WR' : slot, gameId: ['SEA-DEN', 'KC-LV', 'BUF-NYJ', 'DAL-PHI', 'MIA-NE'][i],
-    kickoff: new Date(now + (i < 2 ? 2 : 50) * HOUR).toISOString(), window: i < 2 ? 'Sun early' : 'Mon night', house: 10 + i })) });
+    kickoff: new Date(now + (i < 2 ? early : 50 * HOUR)).toISOString(), window: i < 2 ? 'Sun early' : 'Mon night', house: 10 + i })) });
+// An actuals payload in the shape tests/points-sql.test.mjs loads: a stats row (points by slot) for each slate player named.
+const actuals = (now, points) => {
+  const slots = slate(now).slots;
+  return { season: 2026, week: 8, rulesVersion: 'points-1', sources: { stats: { sha256: 'a'.repeat(64), updatedAt: '2026-10-27T04:46:00Z' } }, review: { checked: false, agrees: null },
+    played: Object.fromEntries(slots.map(s => [s.playerId, s.slot in points ? true : null])),
+    players: slots.filter(s => s.slot in points).map(s => ({ playerId: s.playerId, name: s.name, team: s.team, position: s.position, gameId: s.gameId, stats: { receptions: 1 }, points: points[s.slot] })) };
+};
+// Every leaf value of a reply (strings and numbers), to look for a guess by value rather than by a pattern that also matches clock times.
+const leaves = value => (value !== null && typeof value === 'object' ? Object.values(value).flatMap(leaves) : [value]);
+/** The candidates reply carries the reminder's facts and the devices only: no guess value, player name or slot name. */
+function assertSpoilerFree(players, guesses) {
+  for (const player of players) {
+    assert.deepEqual(Object.keys(player).sort(), ['nextKickoff', 'open', 'season', 'subscriptions', 'userId', 'week']);
+    for (const subscription of player.subscriptions) assert.deepEqual(Object.keys(subscription).sort(), ['auth', 'endpoint', 'p256dh']);
+    for (const leaf of leaves(player)) assert.equal(guesses.includes(leaf), false, `a guess value (${leaf}) leaves the function`);
+  }
+  assert.doesNotMatch(JSON.stringify(players), /Fixture|\bP[0-4]\b|\b(?:QB|RB|WR|TE|FLEX)\b/, 'no player, member or slot name');
+}
+async function deviceKeys() {
+  const pair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  return { p256dh: b64uEncode(new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey))), auth: b64uEncode(crypto.getRandomValues(new Uint8Array(16))) };
+}
 
 async function fixture(t) {
   const world = await createCommunityWorld({ migrations: ALL, games: 2, troyBallots: false });
   t.after(() => world.db.close());
   const { db } = world, call = serviceSql(db), now = Date.now(), at = ms => new Date(ms).toISOString();
-  const publish = (week = 8) => call('gtl_points_publish_slate', { p_actor: SEAN, p_season: 2026, p_week: week, p_slate: slate(now), p_finalize_at: at(now + 6 * DAY), p_now: at(now) });
+  const publish = (week = 8, early = 2 * HOUR) => call('gtl_points_publish_slate', { p_actor: SEAN, p_season: 2026, p_week: week, p_slate: slate(now, early), p_finalize_at: at(now + 6 * DAY), p_now: at(now) });
   const save = (user, slot, guess, lock = false, week = 8) => call('gtl_points_save', { p_user: user, p_season: 2026, p_week: week, p_slot: slot, p_guess: guess,
     p_lock: lock, p_request: randomUUID(), p_now: at(Date.now()) });
   const posts = async kind => (await db.query('select actor_id,kind,season,week,mode,payload,dedupe_key from public.gtl_feed_posts where kind=$1 order by created_at,id', [kind])).rows;
@@ -96,6 +123,19 @@ test('feed: a finalize writes one points_final post for the top scorer, a tie li
   assert.equal((await f.posts('points_final')).length, 2);
 });
 
+test('feed: gtl_points_finalize, called as service_role like the P-03 worker, writes the points_final post once', { skip }, async t => {
+  const f = await fixture(t);
+  await f.publish();
+  // Luke locks QB 18 and RB 9, Troy WR 30 (the P-01 finalWeek fixture): Luke 6.6 + 1 = 7.6, Troy 0, House 18.8.
+  await f.save(LUKE, 'QB', 18, true); await f.save(LUKE, 'RB', 9, true); await f.save(TROY, 'WR', 30, true);
+  await f.call('gtl_points_load_actuals', { p_season: 2026, p_week: 8, p_payload: actuals(f.now, { QB: 14.6, RB: 0, WR: 10.2, TE: 5.2, FLEX: 7 }), p_now: f.at(Date.now()) });
+  assert.deepEqual(await f.call('gtl_points_finalize', { p_season: 2026, p_week: 8, p_now: f.at(f.now + 6 * DAY) }), { status: 'final' });
+  const posts = (await f.posts('points_final')).map(p => ({ actor: p.actor_id, season: p.season, week: p.week, mode: p.mode, payload: p.payload, key: p.dedupe_key }));
+  assert.deepEqual(posts, [{ actor: LUKE, season: 2026, week: 8, mode: null, payload: { winners: [{ userId: LUKE, points: 7.6 }], house: 18.8, max: 50 }, key: 'points_final:2026:8' }]);
+  assert.deepEqual(await f.call('gtl_points_finalize', { p_season: 2026, p_week: 8, p_now: f.at(f.now + 7 * DAY) }), { status: 'replay' });
+  assert.equal((await f.posts('points_final')).length, 1, 'a replayed finalize writes no second post');
+});
+
 test('push SQL: candidates are opted-in, subscribed members with an unlocked slot kicking off within two hours and no reminder yet', { skip }, async t => {
   const f = await fixture(t);
   await f.addMember(4, 'Zed Fixture');
@@ -112,10 +152,12 @@ test('push SQL: candidates are opted-in, subscribed members with an unlocked slo
   assert.deepEqual({ userId: luke.userId, season: luke.season, week: luke.week, open: luke.open }, { userId: LUKE, season: 2026, week: 8, open: 4 });
   assert.equal(Date.parse(luke.nextKickoff), f.now + 2 * HOUR, 'the earliest open kickoff');
   assert.deepEqual(luke.subscriptions, [{ endpoint: endpoint(1), p256dh: KEYS.p256dh, auth: KEYS.auth }]);
-  assert.doesNotMatch(JSON.stringify(players), /"guess"|\b20\b/, 'no guess or name leaves the function');
+  assertSpoilerFree(players, [20, 11]);
   // An unsubscribed Zed joins once a device exists; a disabled device does not count.
   await f.subscribe(ZED, 4);
-  assert.deepEqual((await f.candidates(r, pNow)).players.map(p => p.userId).sort(), [LUKE, ZED].sort());
+  ({ players } = await f.candidates(r, pNow));
+  assert.deepEqual(players.map(p => p.userId).sort(), [LUKE, ZED].sort());
+  assertSpoilerFree(players, [20, 11]);
   await f.db.query('update public.gtl_push_subscriptions set disabled_at=clock_timestamp() where user_id=$1', [ZED]);
   assert.deepEqual((await f.candidates(r, pNow)).players.map(p => p.userId), [LUKE]);
   // Past every kickoff in the window (the RB slot is behind p_now), Luke's open slots are the far ones: nothing within two hours.
@@ -123,6 +165,75 @@ test('push SQL: candidates are opted-in, subscribed members with an unlocked slo
   // Locking the last slot inside the window removes the reason to remind.
   await f.save(LUKE, 'RB', 15, true);
   assert.deepEqual((await f.candidates(r, pNow)).players, []);
+});
+
+test('push SQL: the candidate window is (p_now, p_now + 2 hours] exactly', { skip }, async t => {
+  const f = await fixture(t);
+  await f.publish(); await f.subscribe(LUKE, 1); await f.save(LUKE, 'QB', 20, true);
+  const r = await f.run(), kickoff = f.now + 2 * HOUR; // RB, still open, kicks off with QB
+  const who = async pNow => (await f.candidates(r, pNow)).players.map(p => p.userId);
+  assert.deepEqual(await who(kickoff - 2 * HOUR - 1), [], 'one millisecond more than two hours ahead is outside');
+  assert.deepEqual(await who(kickoff - 2 * HOUR), [LUKE], 'a kickoff at exactly p_now + 2 hours is inside');
+  assert.deepEqual(await who(kickoff - 1), [LUKE]);
+  assert.deepEqual(await who(kickoff), [], 'a kickoff at p_now has locked: it is not open');
+});
+
+test('push SQL: a postponed (void) slot, a FINAL week and a removed member are never candidates', { skip }, async t => {
+  const f = await fixture(t);
+  await f.publish(8); await f.publish(9);
+  await f.subscribe(LUKE, 1); await f.subscribe(TROY, 2);
+  // Luke locks QB in both weeks; Troy locks QB in week 8 only, which opts him in for the season.
+  await f.save(LUKE, 'QB', 20, true, 8); await f.save(LUKE, 'QB', 20, true, 9); await f.save(TROY, 'QB', 20, true, 8);
+  const r = await f.run(), pNow = f.now + 30 * MINUTE;
+  const who = async () => (await f.candidates(r, pNow)).players.map(p => `${p.week}:${p.userId}`);
+  assert.deepEqual(await who(), [`8:${LUKE}`, `8:${TROY}`, `9:${LUKE}`, `9:${TROY}`], 'control: both members, both weeks');
+  await f.db.query('insert into public.gtl_community_removals(user_id,removed_by) values($1,$2)', [TROY, SEAN]);
+  assert.deepEqual(await who(), [`8:${LUKE}`, `9:${LUKE}`], 'a removed member (D-23) is not reminded');
+  await f.final(9, { members: [], house: null, max: 50 });
+  assert.deepEqual(await who(), [`8:${LUKE}`], 'a FINAL week reminds no one');
+  // Luke's one open slot inside the window (RB) is postponed; his other open slots are 50 hours out.
+  await f.db.query(`update public.gtl_points_slates set slots=jsonb_set(slots,'{1,void}','"postponed"') where season=2026 and week=8`);
+  assert.deepEqual(await who(), [], 'a void slot inside the window is not a reason to remind');
+});
+
+test('dispatch: with no Spread/Total deadline near, an open Points slot kicking off within two hours queues a run that reminds', { skip }, async t => {
+  const f = await fixture(t);
+  // Local-only pg_net double, as in tests/web-push-sql.test.mjs.
+  await f.db.exec("create schema net;create table net.outbox(id bigserial primary key,url text,body jsonb,headers jsonb);create function net.http_post(url text,body jsonb,headers jsonb,timeout_milliseconds integer) returns bigint language sql as 'insert into net.outbox(url,body,headers) values(url,body,headers) returning id';");
+  await f.db.query("insert into public.gtl_push_reminder_schedule(id,enabled,endpoint) values('deadline-2h',true,'https://example.supabase.co/functions/v1/gtl-push-reminders')");
+  // The Spread/Total deadline three days out: its two-hour window is nowhere near.
+  await f.db.query("update public.gtl_weekly_slates set signature=jsonb_set(signature,'{deadline}',to_jsonb(extract(epoch from now()+interval '3 days')))");
+  const dispatch = async () => (await f.db.query('select public.gtl_dispatch_push_reminders() value')).rows[0].value;
+  const count = async table => Number((await f.db.query(`select count(*) n from ${table}`)).rows[0].n);
+  assert.deepEqual(await dispatch(), { status: 'not_due' }, 'no Points slate and no Spread/Total window');
+  await f.publish(8, 3 * HOUR);
+  assert.deepEqual(await dispatch(), { status: 'not_due' }, 'week 8: no slot kicks off within two hours');
+  await f.publish(9, 90 * MINUTE); await f.final(9, { members: [], house: null, max: 50 });
+  assert.deepEqual(await dispatch(), { status: 'not_due' }, 'week 9: a FINAL week reminds no one');
+  await f.publish(10, 90 * MINUTE);
+  await f.db.query(`update public.gtl_points_slates set slots=jsonb_set(jsonb_set(slots,'{0,void}','"postponed"'),'{1,void}','"postponed"') where week=10`);
+  assert.deepEqual(await dispatch(), { status: 'not_due' }, 'week 10: both slots inside the window are postponed (void)');
+  assert.deepEqual([await count('public.gtl_push_reminder_runs'), await count('net.outbox')], [0, 0], 'not_due writes no run and calls nothing');
+  // Week 11: QB and RB kick off in 90 minutes. Luke is opted in (QB locked) with RB open and one device.
+  await f.publish(11, 90 * MINUTE);
+  const device = await deviceKeys();
+  await f.call('gtl_push_subscribe', { p_user: LUKE, p_endpoint: endpoint(1), p_p256dh: device.p256dh, p_auth: device.auth });
+  await f.save(LUKE, 'QB', 20, true, 11);
+  const queued = await dispatch();
+  assert.equal(queued.status, 'queued');
+  assert.deepEqual(await dispatch(), { status: 'already_dispatched' }, 'one run per 15-minute slot, as for Spread/Total');
+  const outbox = (await f.db.query('select url,body,headers from net.outbox')).rows;
+  assert.deepEqual(outbox.map(o => [o.url, o.body]), [['https://example.supabase.co/functions/v1/gtl-push-reminders', { runId: queued.runId }]]);
+  // The real worker on that run sends Luke the Points reminder (the Spread/Total pass has nothing due).
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']);
+  const vapid = { publicKey: b64uEncode(new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey))), privateKey: (await crypto.subtle.exportKey('jwk', pair.privateKey)).d, subject: 'mailto:reminders@example.test' };
+  const sends = [];
+  const handler = createPushReminderHandler({ service: { rpc: f.call }, vapid, fetchImpl: async url => { sends.push(url); return new Response(null, { status: 201 }); } });
+  const response = await handler(new Request('https://example.supabase.co/functions/v1/gtl-push-reminders',
+    { method: 'POST', headers: { authorization: outbox[0].headers.Authorization, 'content-type': 'application/json' }, body: JSON.stringify({ runId: queued.runId }) }));
+  assert.deepEqual(await response.json(), { runId: queued.runId, status: 'succeeded', reason: null, sent: 1, failed: 0 });
+  assert.deepEqual(sends, [endpoint(1)]);
+  assert.deepEqual((await f.db.query('select user_id,week,mode,kind from public.gtl_push_reminders_sent')).rows, [{ user_id: LUKE, week: 11, mode: 'guess_points', kind: 'points_next_2h' }]);
 });
 
 test('push SQL: marking is idempotent, removes the member from the candidates, and a wrong claim or finished run raises GTL_SCHEDULE_RUN', { skip }, async t => {
@@ -154,6 +265,12 @@ test('push SQL: gtl_mark_push_reminder still refuses guess_points, and the new f
     for (const role of ['anon', 'authenticated']) assert.equal((await f.db.query('select has_function_privilege($1,$2,$3) ok', [role, `public.${signature}`, 'EXECUTE'])).rows[0].ok, false, `${role} ${signature}`);
     assert.equal((await f.db.query('select has_function_privilege($1,$2,$3) ok', ['service_role', `public.${signature}`, 'EXECUTE'])).rows[0].ok, true, signature);
   }
-  const flags = (await f.db.query("select prosecdef from pg_proc where proname in ('gtl_points_reminder_candidates','gtl_mark_points_reminder','gtl_feed_points_played_post','gtl_feed_points_final_post')")).rows;
-  assert.equal(flags.length, 4); assert(flags.every(row => row.prosecdef === false));
+  // The replaced dispatcher keeps its grants: only cron (postgres) runs it.
+  for (const role of ['anon', 'authenticated', 'service_role']) assert.equal((await f.db.query('select has_function_privilege($1,$2,$3) ok', [role, 'public.gtl_dispatch_push_reminders()', 'EXECUTE'])).rows[0].ok, false, `${role} dispatch`);
+  const flags = (await f.db.query('select proname,prosecdef,proconfig from pg_proc where proname = any($1)', [P02_FUNCTIONS])).rows;
+  assert.deepEqual(flags.map(row => row.proname).sort(), [...P02_FUNCTIONS].sort(), 'one definition each');
+  for (const row of flags) {
+    assert.equal(row.prosecdef, false, `${row.proname} is security invoker`);
+    assert(row.proconfig?.includes('search_path=""'), `${row.proname} pins an empty search_path`);
+  }
 });

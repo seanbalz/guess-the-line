@@ -51,8 +51,9 @@ function postText(post) {
   if (post.kind === 'bet_settled') return 'settled a real slip in Bet Tracker.';
   if (post.kind === 'points_played') return `is playing Week ${post.week} Points.`;
   if (post.kind === 'points_final') {
-    const winners = Array.isArray(post.payload?.winners) ? post.payload.winners : [], house = Number.isFinite(post.payload?.house) ? ` · House ${show(post.payload.house)}` : '';
-    return `${winners.length > 1 ? 'tied for the win in' : 'won'} Week ${post.week} Points with ${show(winners[0]?.points)}${house} · FINAL.`;
+    // A week without a House total shows "House —" (brand rule: "—" for missing; show() returns it for null).
+    const winners = Array.isArray(post.payload?.winners) ? post.payload.winners : [];
+    return `${winners.length > 1 ? 'tied for the win in' : 'won'} Week ${post.week} Points with ${show(winners[0]?.points)} · House ${show(post.payload?.house)} · FINAL.`;
   }
   return 'posted an update.';
 }

@@ -52,7 +52,7 @@ async function fixture(t) {
   return { db, as, rpc, service };
 }
 // PostgREST answers a call to a function the applied migrations lack with 404/PGRST202; PGlite's error for it gets the same code (P-02 is not in this file's list).
-const missingAsPostgrest = rpc => (name, args) => rpc(name, args).catch(error => { throw /does not exist/.test(error.message) ? Object.assign(error, { code: 'PGRST202' }) : error; });
+const missingAsPostgrest = rpc => (name, args) => rpc(name, args).catch(error => { throw /function .* does not exist/.test(error.message) ? Object.assign(error, { code: 'PGRST202' }) : error; });
 async function deviceKeys() {
   const pair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
   return { p256dh: b64uEncode(new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey))), auth: b64uEncode(crypto.getRandomValues(new Uint8Array(16))) };
