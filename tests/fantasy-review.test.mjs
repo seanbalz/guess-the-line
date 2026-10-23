@@ -62,3 +62,18 @@ test('FINAL is written out, an incomplete week refuses to grade, and invalid rev
   assert.equal(validateFantasyReview({ ...review(), status: 'DONE' }).valid, false);
   assert.equal(validateFantasyReview({ ...review(), players: [{ id: 'x' }] }).valid, false);
 });
+
+test('the baseline is compared on the same players: a player without two prior games counts in mae only', () => {
+  const newcomer = { ...player('new1', 'AAA', 'WR', s({ receptions: 2, receivingYards: 20 }), s({})), history: [{ week: 4, ...s({ receptions: 2, receivingYards: 20 }) }] };
+  const r = review({ published: { ...published, players: [...published.players, newcomer] }, stats: [...stats, raw('new1', 'AAA', 'WR', { receptions: '2', receiving_yards: '20' })] });
+  const ppr = summarizeReview(r, { scoring: 'ppr', passingTds: 4 });
+  assert.equal(ppr.graded, 3);
+  assert.equal(ppr.mae, 3);
+  assert.equal(ppr.pairedMae, 4.5);
+  assert.equal(ppr.baselineMae, 5);
+  assert.equal(ppr.withoutBaseline, 1);
+  assert.deepEqual(ppr.beatBaseline, ['WR']);
+  const wr = ppr.byPosition.find(row => row.position === 'WR');
+  assert.equal(wr.pairedMae, 5);
+  assert.equal(wr.baselineMae, 8);
+});

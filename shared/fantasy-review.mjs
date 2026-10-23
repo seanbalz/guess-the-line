@@ -71,13 +71,15 @@ export function summarizeReview(review, settings = {}) {
     graded.push({ id: player.id, name: player.name, team: player.team, position: player.position, estimate, actual, baseline, diff: estimate - actual, miss: Math.abs(estimate - actual) });
   }
   const mae = list => list.length ? mean(list.map(row => row.miss)) : null;
-  const baselineMae = list => { const rows = list.filter(row => row.baseline !== null); return rows.length ? mean(rows.map(row => Math.abs(row.baseline - row.actual))) : null; };
-  const byPosition = POSITIONS.map(position => { const list = graded.filter(row => row.position === position); return { position, graded: list.length, mae: mae(list), baselineMae: baselineMae(list) }; }).filter(row => row.graded);
+  const withBaseline = list => list.filter(row => row.baseline !== null);
+  const pairedMae = list => { const rows = withBaseline(list); return rows.length ? mean(rows.map(row => row.miss)) : null; };
+  const baselineMae = list => { const rows = withBaseline(list); return rows.length ? mean(rows.map(row => Math.abs(row.baseline - row.actual))) : null; };
+  const byPosition = POSITIONS.map(position => { const list = graded.filter(row => row.position === position); return { position, graded: list.length, mae: mae(list), pairedMae: pairedMae(list), baselineMae: baselineMae(list) }; }).filter(row => row.graded);
   const pick = ({ id, name, team, position, estimate, actual, diff }) => ({ id, name, team, position, estimate, actual, diff });
   return {
-    graded: graded.length, mae: mae(graded), baselineMae: baselineMae(graded),
+    graded: graded.length, mae: mae(graded), pairedMae: pairedMae(graded), baselineMae: baselineMae(graded), withoutBaseline: graded.length - withBaseline(graded).length,
     within5: graded.length ? graded.filter(row => row.miss <= 5).length / graded.length : null,
-    beatBaseline: byPosition.filter(row => row.baselineMae !== null && row.mae < row.baselineMae).map(row => row.position),
+    beatBaseline: byPosition.filter(row => row.baselineMae !== null && row.pairedMae < row.baselineMae).map(row => row.position),
     byPosition,
     overs: graded.filter(row => row.diff > 0).sort((a, b) => b.diff - a.diff || a.id.localeCompare(b.id)).slice(0, 5).map(pick),
     unders: graded.filter(row => row.diff < 0).sort((a, b) => a.diff - b.diff || a.id.localeCompare(b.id)).slice(0, 5).map(pick),
