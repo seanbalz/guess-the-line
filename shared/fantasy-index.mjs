@@ -27,7 +27,7 @@ export function validateFantasyIndex(index) {
     for (const entry of list) {
       const match = isRecord(entry) && typeof entry.file === 'string' ? entry.file.match(pattern) : null;
       if (!match || Number(match[1]) !== index.season || Number(match[2]) !== entry.week || !Number.isInteger(entry.week) || entry.week < 1 || entry.week > 18
-        || weeks.has(entry.week) || !/^[a-f0-9]{64}$/.test(entry.sha256 ?? '') || !entry.file.includes(`.${entry.sha256.slice(0, 8)}.`)
+        || weeks.has(entry.week) || typeof entry.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(entry.sha256) || !entry.file.includes(`.${entry.sha256.slice(0, 8)}.`)
         || !Number.isInteger(entry.bytes) || entry.bytes < 1 || entry.bytes > MAX_FILE_BYTES || !iso(entry.generatedAt) || !extra(entry)) { fail(`Index ${name} entry is invalid.`); continue; }
       weeks.add(entry.week);
     }
@@ -50,6 +50,10 @@ export function assetsToPrune(assets, index, keep = 3) {
 }
 
 export function publishPlan({ files, existing, index, assets }) {
+  if (!validateFantasyIndex(index).valid) throw new Error('Refusing to publish an invalid index.');
+  const available = new Set([...files, ...existing]);
+  const missing = [...index.snapshots, ...index.reviews].map(entry => entry.file).filter(name => !available.has(name));
+  if (missing.length) throw new Error(`Refusing to publish an index that names missing files: ${missing.join(', ')}`);
   return [
     ...files.filter(name => !existing.includes(name)).map(name => ({ action: 'upload', name, clobber: false })),
     { action: 'upload', name: 'index.json', clobber: true },

@@ -49,3 +49,20 @@ test('publish order: new data files without clobber, then index.json with clobbe
     { action: 'upload', name: 'index.json', clobber: true },
   ]);
 });
+
+test('publishing refuses an index that names a file neither uploaded nor already present, or an invalid index', () => {
+  const index = updateFantasyIndex(null, { season: 2026, snapshot: snap(7, 'a'), review: rev(6, 'b'), updatedAt: '2026-10-20T11:00:00Z' });
+  assert.throws(() => publishPlan({ files: [index.snapshots[0].file], existing: [], index, assets: [] }), /names missing files: 2026-review-week-06\.bbbbbbbb\.json/);
+  assert.throws(() => publishPlan({ files: [], existing: [], index: { ...index, schemaVersion: 2 }, assets: [] }), /invalid index/);
+  assert.equal(validateFantasyIndex({ ...index, snapshots: [{ ...index.snapshots[0], sha256: ['a'.repeat(64)] }] }).valid, false, 'a non-string checksum is refused');
+});
+
+test('superseded copies are deleted only after index.json is uploaded', () => {
+  const index = updateFantasyIndex(null, { season: 2026, snapshot: snap(7, 'f'), review: null, updatedAt: '2026-10-21T11:00:00Z' });
+  const assets = ['a', 'b', 'c', 'd', 'e'].map((c, i) => ({ name: snapshotFileName(2026, 7, sha(c)), createdAt: `2026-10-1${i}T11:00:00Z` }));
+  const steps = publishPlan({ files: [index.snapshots[0].file], existing: assets.map(a => a.name), index, assets });
+  assert.deepEqual(steps.map(s => `${s.action}:${s.name}`), [
+    `upload:${index.snapshots[0].file}`, 'upload:index.json',
+    `delete:${snapshotFileName(2026, 7, sha('a'))}`, `delete:${snapshotFileName(2026, 7, sha('b'))}`,
+  ]);
+});
