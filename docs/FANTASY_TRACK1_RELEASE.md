@@ -21,7 +21,12 @@ GitHub. Fill the blanks at release time.
 - Deployed API version and Pages deployment ID, with the source SHA.
 - Dry-run and first publish workflow run links; the `fantasy-data-<season>` release
   and its `index.json` readback.
-- Fresh verification evidence from the exact release source.
+- Fresh verification evidence from the exact release source, with the CI results for
+  that exact SHA.
+- The release workflow run IDs for the API and for the frontend.
+- Rollback readiness: the previous API version and Pages deployment, and the
+  kill switch `fantasy` in `cloud/feature-off.mjs` (`GTL_FEATURE_OFF=fantasy`).
+  Setting `GTL_FEATURE_OFF` is a hosted secret change and needs Sean's OK.
 
 ## Readback checklist
 

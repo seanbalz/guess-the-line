@@ -109,8 +109,9 @@ node scripts/fantasy.mjs --season 2026 --week 6 \
   --input-dir .local/fantasy-sources --check
 ```
 
-The UI lazily imports the registered JSON from the same origin. Refreshing is
-automated by `.github/workflows/fantasy-refresh.yml` (D-57); the manual command remains for local checks.
+The UI lazily imports the registered JSON from the same origin. A workflow
+(`.github/workflows/fantasy-refresh.yml`, D-57) can refresh it. It is manual-only
+today; no daily schedule is enabled yet. The manual command remains for local checks.
 Raw caches stay in ignored `.local/`. Committed fantasy JSON is an allowlisted
 public subset under `shared/fantasy/`. Historical snapshot files stay available.
 
@@ -133,17 +134,27 @@ only replaced asset. Each week keeps its three newest superseded copies.
 
 **Schedule.** `.github/workflows/fantasy-refresh.yml` is manual only and a dry run
 by default. It publishes only on a schedule or a non-dry manual run; no daily
-schedule is enabled yet, and no run has happened.
+schedule is enabled yet, and no run has happened. `GH_TOKEN` is given only to the
+Publish step, and checkout does not persist credentials.
 
 **Weekend freeze.** A week's snapshot is rebuilt each run until the first kickoff
 of its weekend slate (Saturday or Sunday Pacific), then frozen. A week never
-published is built once late and flagged `publishedAfterFreeze`.
+published is built once late, until the week's last kickoff, and flagged
+`publishedAfterFreeze`.
+
+**Refresh runs.** Each run first clears any previous `manifest.json` and `index.json`
+in its output folder, and stamps its output only after the sources are read. A season
+whose nflverse files are not published yet (and has no index) reports nothing to
+publish instead of failing. Overdue PROVISIONAL reviews of earlier weeks are
+finalized, not only the newest week's, and a missing freeze time is never treated as
+frozen. Publishing refuses an index that drops a published week.
 
 **Builder rules (method version 1.1, schema 2).** Partial current-week stats are
 ignored. Stats for later weeks, or a completed selected week, fail the build. A team
 with no roster rows for the week may use the prior week's roster once; the count is
 `rosterFallbackTeams` and each player's status names the roster week. Schema 2 adds
-`matchups` (opponent, kickoff window and points allowed by position).
+`matchups`, which hold the raw offensive stats each defense allowed to QB, RB, WR and TE
+per prior game (no kickoff window: kickoff windows are computed in the app).
 
 **Review and baseline.** `shared/fantasy-review.mjs` grades the published estimates
 against nflverse actuals. `mae` is the headline over all graded players. The
@@ -154,10 +165,10 @@ weekend freeze, then FINAL.
 
 **Route and fallback.** `POST /fantasy/week` is signed-in only. It serves verified
 files (index checksum and validator, week match), caches by checksum, reads the
-index at most every 10 minutes (single-flight) and uses a stale index if the fetch
-fails or the index is missing. `GTL_FEATURE_OFF=fantasy` turns it off. The app loads
-hosted data first and falls back to the committed snapshots, with a status line
-showing which. The route's boundary probe awaits deployment.
+index at most every 10 minutes (single-flight). A stale index is served only when a
+cached index exists (when the fetch fails or the index is temporarily missing). `GTL_FEATURE_OFF=fantasy` turns it off. The app reads
+hosted data first when signed in and falls back to the committed snapshots, with a
+status line showing which; it never falls back on a 400, 401 or 403. The route's boundary probe awaits deployment.
 
 **Game context and D-57 gating.** Matchup, kickoff and weather context is observed
 public data and is not gated. Implied team totals are calculated in the viewer's
