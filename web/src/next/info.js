@@ -58,6 +58,14 @@ export const INFO = Object.freeze({
       'Virtual Units are play money: one unit is $100 of virtual money, and nothing is wagered.',
     ],
   },
+  everyone: {
+    title: 'About everyone’s picks',
+    body: [
+      'Everyone’s Virtual Units picks for this week, for the league showing. A pick’s side and units show as soon as it is placed (D-36).',
+      'A friend’s line, price, book and result show once you lock in that game’s guess for that market, sit it out, or the game kicks off. Your own picks always show in full.',
+      'A player qualifies for the weekly board at three picks or 3U. Virtual Units are play money; nothing is wagered.',
+    ],
+  },
   scores: {
     title: 'About your scores',
     body: ['Points measure how close your guess was to its saved scoring line. NFL results do not change those points.'],
@@ -70,4 +78,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'trends', 'research', 'trackedBets', 'recommended', 'virtual', 'weather']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'trends', 'research', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);

@@ -287,8 +287,27 @@ Verified read-only after the apply:
   refuse signed-out calls.
 - Ballots and Virtual Units settlements are unchanged.
 
-No screen calls `/bets/read` yet. Play → Compare players (`/league/comparison`) and the four-tab app's
+Until October 23, no screen called `/bets/read`. Play → Compare players (`/league/comparison`) and the four-tab app's
 preferences read (`/me/preferences`) went from 503 to 200 signed-in; see the [Gate M record](RELEASE_2026_10_22_MIGRATIONS.md).
+
+October 23 Q06 screen: Bets › Virtual › Everyone (`#bets/everyone`, reached from a
+Bets landing row and a Your picks / Everyone switch) reads `/bets/read` for the
+league showing.
+- Each game card lists its picks, faces first, with yours leading in full.
+- A friend's pick keeps side and units, and shows its line, price, book and
+  result only where the reply opens that market for the viewer. Even a reply
+  that carried terms cannot put them on screen otherwise.
+- One banner sits above a weekly qualification list.
+
+Contracts:
+- `tests/next-bets-everyone.test.mjs`: the view model.
+- `tests/next-bets-everyone-ui.test.jsx`: the markup.
+- `tests/cloud-browser/next-bets-everyone.spec.js`: the real handler on PGlite.
+  Before Luke locks in, the reply and the page carry no friend terms; after his
+  Spread guesses, only Spread terms show. It also covers the league id, the
+  switch, nothing written, the phone rules and axe in both themes.
+
+The app-wide phone layout and scroll sweeps include the new address. Not deployed.
 
 October 22 weekly Trends CPU fix: from API v31 on, every signed-in `/trends/week`
 request hit the Edge CPU limit (HTTP 546), and Week 8 has no static fallback.
