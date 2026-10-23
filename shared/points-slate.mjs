@@ -130,6 +130,9 @@ export function buildPointsSlate({ season, week, players, selectionVersion = SEL
   };
 }
 
+/** An absolute ISO 8601 instant with an explicit offset (the same pattern gtl_points_slate_problem enforces). */
+const KICKOFF_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?(Z|[+-]\d{2}:?\d{2})$/;
+
 /**
  * Checks a slate against the same constraints (a commissioner swap or a manual slate, spec 3.2 and 7). Returns null
  * when valid, or the first problem: 'slots', 'position', 'player', 'kickoff', 'duplicate_player', 'same_game' or
@@ -141,7 +144,7 @@ export function slateProblem(slots) {
     const allowed = s.slot === 'FLEX' ? ['RB', 'WR', 'TE'] : [s.slot];
     if (!allowed.includes(s.position)) return 'position';
     if (!s.playerId || !s.name || !s.team || !s.gameKey) return 'player';
-    if (!Number.isFinite(Date.parse(s.kickoff))) return 'kickoff';
+    if (typeof s.kickoff !== 'string' || !KICKOFF_PATTERN.test(s.kickoff) || !Number.isFinite(Date.parse(s.kickoff))) return 'kickoff';
   }
   if (new Set(slots.map(s => s.playerId)).size !== slots.length) return 'duplicate_player';
   if (new Set(slots.map(s => s.gameKey)).size !== slots.length) return 'same_game';

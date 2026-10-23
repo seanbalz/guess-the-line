@@ -339,4 +339,82 @@ test('P-01 on PGlite: RLS, grants, locks, the gate, the read, scoring, loads and
     const group = (await f.read('sean', 8, { group: 'second-group' })).standings.season;
     assert.deepEqual(group.map(r => r.displayName).sort(), ['Sean Fixture', 'Troy Fixture']);
   });
+
+  await t.test('kickoffs: only absolute, offset-bearing timestamps are accepted, and they are stored as canonical UTC (toISOString form)', async () => {
+    const opensAt = iso(NOW + 30 * 60_000);
+    const base = slotsAt(NOW + 2 * HOUR, 'K13');
+    const publish = (week, action, slate) => f.sql('gtl_points_publish_slate', { p_actor: action === 'swap' ? USERS.sean : null, p_action: action, p_season: SEASON, p_week: week, p_slate: slate });
+    const draftWith = (week, kickoff, index = 0) => publish(week, 'draft', { opensAt, scoringRules: RULES, slots: base.map((x, i) => i === index ? { ...x, kickoff } : x), house: {}, provenance: PROVENANCE });
+    const invalid = detail => err => /GTL_POINTS_SLATE_INVALID/.test(err.message) && err.detail === detail;
+    // Relative words are re-evaluated on every later cast, and an offset-less value is read in the session time zone.
+    for (const kickoff of ['tomorrow', 'now', 'today', 'infinity', '2026-10-25T13:00:00', '2026-10-25 13:00:00Z', '2026-10-25', '2026-10-25T13:00Z ', 20261025, null, {}])
+      await assert.rejects(() => draftWith(13, kickoff), invalid('kickoff'), JSON.stringify(kickoff));
+    assert.equal(await f.count('gtl_points_slates', 'week=13'), 0, 'a refused draft stores nothing');
+    const stored = await draftWith(13, '2026-10-25T10:00:00-07:00');
+    assert.equal(stored.slots[0].kickoff, '2026-10-25T17:00:00.000Z', 'an offset kickoff is stored as UTC with milliseconds');
+    assert.deepEqual(stored.slots.slice(1).map(x => x.kickoff), base.slice(1).map(x => x.kickoff), 'canonical kickoffs are unchanged');
+    assert.equal((await f.db.query("select slots->0->>'kickoff' k from public.gtl_points_slates where week=13")).rows[0].k, '2026-10-25T17:00:00.000Z');
+    // Replacing the draft canonicalizes again, including fractions and compact offsets.
+    const replaced = await draftWith(13, '2026-10-25T10:00:00.5+0000', 1);
+    assert.equal(replaced.slots[1].kickoff, '2026-10-25T10:00:00.500Z');
+    // A swap validates the same way and stores the same form.
+    const te = { playerId: 'K13-9', name: 'K13 TE Swap Fixture', team: 'FFF', position: 'TE', gameKey: 'K13G9' };
+    await assert.rejects(() => publish(13, 'swap', { slot: 'TE', player: { ...te, kickoff: 'tomorrow' } }), invalid('kickoff'));
+    await assert.rejects(() => publish(13, 'swap', { slot: 'TE', player: { ...te, kickoff: '2026-10-28T09:30:00' } }), invalid('kickoff'));
+    const swapped = await publish(13, 'swap', { slot: 'TE', player: { ...te, kickoff: '2026-10-28T09:30:00-07:00' } });
+    assert.equal(swapped.slots[3].playerId, 'K13-9');
+    assert.equal(swapped.slots[3].kickoff, '2026-10-28T16:30:00.000Z');
+  });
+
+  await t.test('FINAL is not reopenable: slate slots, guesses and the frozen read hold even against altered live rows', async () => {
+    assert.equal(await f.count('gtl_points_week_final', 'week=7'), 1, 'week 7 is FINAL (earlier subtest)');
+    const slots = JSON.stringify(slotsAt(Date.now(), 'W7X'));
+    await assert.rejects(() => f.as('service_role', 'update public.gtl_points_slates set slots=$1::jsonb where season=2026 and week=7', [slots]), /GTL_POINTS_SLATE_FIXED/);
+    await assert.rejects(() => f.as('service_role', "update public.gtl_points_slates set status='draft', published_at=null where season=2026 and week=7"), /GTL_POINTS_SLATE_FIXED/);
+    // Dana's unlocked WR draft cannot be updated or locked; no new row can be inserted; a locked row stays locked.
+    await assert.rejects(() => f.as('service_role', "update public.gtl_points_guesses set guess=1, locked_at=now() where user_id=$1 and week=7 and slot='WR'", [USERS.dana]), /GTL_POINTS_CLOSED/);
+    await assert.rejects(() => f.as('service_role', "insert into public.gtl_points_guesses(user_id,season,week,slot,guess) values($1,2026,7,'RB',5)", [USERS.sean]), /GTL_POINTS_CLOSED/);
+    await assert.rejects(() => f.as('service_role', "update public.gtl_points_guesses set guess=0 where user_id=$1 and week=7 and slot='QB'", [USERS.troy]), /GTL_POINTS_LOCKED/);
+    await assert.rejects(() => f.lock('dana', 7, 'WR', 30), /GTL_POINTS_CLOSED/);
+    const frozen = await f.read('troy', 7);
+    assert.equal(frozen.result.status, 'FINAL');
+    // Alter live guess rows with triggers off, read as the service role inside the same transaction, then roll back.
+    const sentinel = new Error('rollback');
+    let altered;
+    await f.db.transaction(async tx => {
+      await tx.exec('set local session_replication_role = replica');
+      await tx.query("update public.gtl_points_guesses set guess=0 where week=7 and slot in ('QB','FLEX')");
+      await tx.query('update public.gtl_points_guesses set locked_at=null where week=7 and user_id=$1', [USERS.luke]);
+      await tx.exec('set local session_replication_role = origin');
+      await tx.exec('set local role service_role');
+      altered = (await tx.query('select public.gtl_points_read($1,2026,7,null,null) value', [USERS.troy])).rows[0].value;
+      throw sentinel;
+    }).catch(err => { if (err !== sentinel) throw err; });
+    assert.deepEqual(altered.result, frozen.result, 'the frozen result is read from week_final, not recomputed from live guesses');
+    assert.deepEqual(altered.standings, frozen.standings);
+    assert.deepEqual(altered.slots.map(x => [x.slot, x.state, x.actual]), frozen.slots.map(x => [x.slot, x.state, x.actual]));
+    const after = await f.read('troy', 7);
+    assert.deepEqual([after.result, after.standings], [frozen.result, frozen.standings], 'the rollback left the live rows as they were');
+  });
+
+  await t.test("gate: a viewer's own DRAFT opens nothing before kickoff; locking the same slot does", async () => {
+    const W12 = slotsAt(NOW + 2 * HOUR, 'W12');
+    await f.publishedSlate(12, NOW - HOUR, W12, { QB: 19, RB: 23.7, WR: 15, TE: 9, FLEX: 12 });
+    await f.lock('luke', 12, 'RB', 30);
+    await f.draft('dana', 12, 'RB', 41);
+    const gate = () => f.sql('gtl_points_revealed', { p_viewer: USERS.dana, p_season: SEASON, p_week: 12, p_slot: 'RB', p_now: null });
+    assert.equal(await gate(), false, 'a draft is not a lock-in');
+    const hidden = await f.read('dana', 12);
+    const rb = hidden.slots.find(x => x.slot === 'RB');
+    assert.deepEqual([rb.revealed, rb.house, rb.guesses], [false, null, []]);
+    assert.deepEqual([rb.own.guess, rb.own.locked], [41, false], 'her own draft is hers to see');
+    assert.doesNotMatch(JSON.stringify(rb.guesses) + JSON.stringify(rb.house), /30|23\.7/);
+    // Another slot's lock-in does not open this slot either.
+    await f.lock('dana', 12, 'WR', 12);
+    assert.equal(await gate(), false);
+    await f.lock('dana', 12, 'RB', 41);
+    assert.equal(await gate(), true, 'locking the same slot opens it');
+    const open = (await f.read('dana', 12)).slots.find(x => x.slot === 'RB');
+    assert.deepEqual([open.revealed, open.house.estimate, open.guesses.map(g => g.guess)], [true, 23.7, [30]]);
+  });
 });

@@ -126,3 +126,14 @@ test('slateProblem checks a swapped or manual slate against the same constraints
   assert.equal(slateProblem(slots.map((s, i) => i === 1 ? { ...s, gameKey: slots[0].gameKey } : s)), 'same_game');
   assert.equal(slateProblem(slots.map(s => ({ ...s, kickoff: KICKOFFS.late1 }))), 'one_kickoff_window');
 });
+
+test('slateProblem accepts only absolute, offset-bearing ISO kickoffs (no relative words, no offset-less values)', () => {
+  const { slate } = buildPointsSlate({ season: 2026, week: 8, players: fixturePlayers() });
+  const withKickoff = kickoff => slate.slots.map((s, i) => i === 2 ? { ...s, kickoff } : s);
+  for (const bad of ['tomorrow', 'now', 'today', 'infinity', '2026-10-25T13:00:00', '2026-10-25', '2026-10-25 13:00:00Z', '2026-10-25T13:00Z ', 'Oct 25 2026 1:00 PM PDT', 20261025, null, undefined, {}]) {
+    assert.equal(slateProblem(withKickoff(bad)), 'kickoff', JSON.stringify(bad));
+  }
+  for (const ok of ['2026-10-25T10:00:00-07:00', '2026-10-25T17:00Z', '2026-10-25T17:00:00.123456Z', '2026-10-25T10:00:00-0700', '2026-10-25T17:00:00.000Z']) {
+    assert.equal(slateProblem(withKickoff(ok)), null, ok);
+  }
+});
