@@ -65,11 +65,12 @@ export function createFantasyService({ fetchImpl = fetch, clock = Date.now, repo
     try {
       const value = await once(`index:${season}`, async () => {
         const bytes = await read(`${base(season)}/index.json`, MAX_INDEX_BYTES, 10_000);
-        if (!bytes) return null;
+        if (!bytes) return undefined;
         const parsed = parse(bytes);
         if (!validateFantasyIndex(parsed).valid || parsed.season !== season) throw new Error('Invalid index.');
         return parsed;
       });
+      if (value === undefined) return hit ? { value: hit.value, stale: true } : { value: null, stale: false };
       indexes.set(season, { at: now, value });
       return { value, stale: false };
     } catch {
@@ -80,8 +81,8 @@ export function createFantasyService({ fetchImpl = fetch, clock = Date.now, repo
   async function file(season, entry, valid) {
     if (files.has(entry.sha256)) {
       const value = files.get(entry.sha256);
-      files.delete(entry.sha256); files.set(entry.sha256, value);
-      return value;
+      files.delete(entry.sha256);
+      if (valid(value)) { files.set(entry.sha256, value); return value; }
     }
     return once(`file:${entry.sha256}`, async () => {
       const bytes = await read(`${base(season)}/${entry.file}`, MAX_FILE_BYTES, 15_000);
