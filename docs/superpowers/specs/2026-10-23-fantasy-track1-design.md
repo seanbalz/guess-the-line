@@ -1,6 +1,6 @@
 # Fantasy Track 1 design — weekly refresh, accuracy record, game context
 
-Owner: Sean Balsiger · Design approved in chat October 23, 2026 · Status: design only. No code, migration, workflow, release or hosted change is claimed by this document.
+Owner: Sean Balsiger · Design approved in chat October 23, 2026 · Status: **written specification approved October 23, 2026 ("Approved"); recorded as D-57.** No code, migration, workflow, release or hosted change is claimed by this document.
 
 ## Decisions made in chat
 
@@ -196,11 +196,13 @@ No migration is needed (Gate M does not apply). **Rollback:** disable the workfl
 
 Documentation updated at implementation: `docs/FANTASY_FOOTBALL.md`, `planning/PLATFORM_WORK_QUEUE.md` (Q11, Q14), `docs/COMPLETION_REGISTER.md`, `docs/DECISIONS.md` once D-57 is approved, and a release card.
 
-## 8. Proposed D-57 — implied team totals in Fantasy follow D-39 (October 22, 2026)
+## 8. D-57 — implied team totals in Fantasy follow D-39 (approved October 23, 2026)
+
+Recorded in [DECISIONS.md](../../DECISIONS.md) with the publishing and accuracy decisions. The rule as reviewed:
 
 > Fantasy may show a game's implied team totals, calculated from the median collected spread and total GTL already shows, only to a viewer for whom both that game's spread and total are visible under D-39 (that viewer locked in or sat out that market, or the game kicked off). Otherwise Fantasy shows a lock line naming the hidden market. Totals are calculated in the viewer's app from the viewer's own gated lines reply; no line enters a Fantasy snapshot, review, static asset or Fantasy route. Public nflverse matchup context (points allowed by position, kickoff window) and the existing weather forecast are shown without that gate. Nothing else in D-39 changes.
 
-Numbering note: Guess the Points ([PR #191](https://github.com/seanbalz/guess-the-lines-repo/pull/191)) proposes D-56. Whichever is approved first takes the lower number.
+Numbering note: Guess the Points ([PR #191](https://github.com/seanbalz/guess-the-lines-repo/pull/191)) holds D-56.
 
 ## 9. Open items and risks
 
