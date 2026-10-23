@@ -110,8 +110,8 @@ node scripts/fantasy.mjs --season 2026 --week 6 \
 ```
 
 The UI lazily imports the registered JSON from the same origin. A workflow
-(`.github/workflows/fantasy-refresh.yml`, D-57) can refresh it. It is manual-only
-today; no daily schedule is enabled yet. The manual command remains for local checks.
+(`.github/workflows/fantasy-refresh.yml`, D-57) refreshes it daily at 11:00 UTC and
+on demand. The manual command remains for local checks.
 Raw caches stay in ignored `.local/`. Committed fantasy JSON is an allowlisted
 public subset under `shared/fantasy/`. Historical snapshot files stay available.
 
@@ -123,7 +123,7 @@ access and licensing. This implementation has no paid source or account dependen
 
 Status October 23, 2026: merged in PR #198 and released as `gtl-api` v35 and Pages
 `78909363` ([release record](RELEASE_2026_10_23_FANTASY_TRACK1.md)); the first data publish
-ran the same day and the daily schedule is not added yet. See [the release card](FANTASY_TRACK1_RELEASE.md)
+ran the same day and the daily schedule (11:00 UTC) was added afterwards. See [the release card](FANTASY_TRACK1_RELEASE.md)
 and the [approved design](superpowers/specs/2026-10-23-fantasy-track1-design.md).
 
 **Release tag and files.** Refreshed data is published as data-only prerelease
@@ -133,9 +133,9 @@ automatically). Snapshots are `<season>-week-NN.<sha8>.json` and reviews are
 SHA-256 and never replaced. `index.json` lists them, is uploaded last and is the
 only replaced asset. Each week keeps its three newest superseded copies.
 
-**Schedule.** `.github/workflows/fantasy-refresh.yml` is manual only and a dry run
-by default. It publishes only on a non-dry manual run today; the daily schedule
-will be added later, and no run has happened. `GH_TOKEN` is given only to the
+**Schedule.** `.github/workflows/fantasy-refresh.yml` runs daily at 11:00 UTC
+(4:00 AM PT in daylight time) and publishes on that run; a manual run is a dry run
+by default and publishes only when `dry_run` is false. `GH_TOKEN` is given only to the
 Publish step, and checkout does not persist credentials.
 
 **Weekend freeze.** A week's snapshot is rebuilt each run until the first kickoff

@@ -4,7 +4,7 @@ Prepared October 23, 2026; filled for release the same day (Pacific) from the
 check-only and readiness runs below. **Released October 23, 2026** as `gtl-api` v35 and
 Pages `78909363` on Sean's approval; see the
 [release record](RELEASE_2026_10_23_FANTASY_TRACK1.md). The first data publish ran the
-same day (run 40036071753); the daily schedule is not added.
+same day (run 40036071753); the daily schedule (11:00 UTC) was added afterwards.
 
 - Source SHA: `0bd4f1a588f20da90fea9d5931ce7bc0d20cad6d` (`main`, the merge of
   [PR #198](https://github.com/seanbalz/guess-the-lines-repo/pull/198); design and

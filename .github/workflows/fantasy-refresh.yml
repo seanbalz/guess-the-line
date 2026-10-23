@@ -1,7 +1,10 @@
 name: Fantasy refresh
 # D-57: builds the Fantasy snapshot and last week's review from nflverse and publishes them as release assets of this
-# repository (data only). Manual first; the daily schedule is added after a verified manual run.
+# repository (data only). Daily at 11:00 UTC (4:00 AM PT; 3:00 AM PT in standard time), after nflverse's overnight
+# updates; manual runs stay available and default to a dry run.
 on:
+  schedule:
+    - cron: '0 11 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
