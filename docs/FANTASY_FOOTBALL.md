@@ -133,8 +133,8 @@ SHA-256 and never replaced. `index.json` lists them, is uploaded last and is the
 only replaced asset. Each week keeps its three newest superseded copies.
 
 **Schedule.** `.github/workflows/fantasy-refresh.yml` is manual only and a dry run
-by default. It publishes only on a schedule or a non-dry manual run; no daily
-schedule is enabled yet, and no run has happened. `GH_TOKEN` is given only to the
+by default. It publishes only on a non-dry manual run today; the daily schedule
+will be added later, and no run has happened. `GH_TOKEN` is given only to the
 Publish step, and checkout does not persist credentials.
 
 **Weekend freeze.** A week's snapshot is rebuilt each run until the first kickoff
@@ -166,9 +166,10 @@ weekend freeze, then FINAL.
 **Route and fallback.** `POST /fantasy/week` is signed-in only. It serves verified
 files (index checksum and validator, week match), caches by checksum, reads the
 index at most every 10 minutes (single-flight). A stale index is served only when a
-cached index exists (when the fetch fails or the index is temporarily missing). `GTL_FEATURE_OFF=fantasy` turns it off. The app reads
-hosted data first when signed in and falls back to the committed snapshots, with a
-status line showing which; it never falls back on a 400, 401 or 403. The route's boundary probe awaits deployment.
+cached index exists (when the fetch fails or the index is temporarily missing).
+`GTL_FEATURE_OFF=fantasy` turns it off. The app reads hosted data first when signed
+in and falls back to the committed snapshots, with a status line showing which; it
+never falls back on a 400, 401 or 403. The route's boundary probe awaits deployment.
 
 **Game context and D-57 gating.** Matchup, kickoff and weather context is observed
 public data and is not gated. Implied team totals are calculated in the viewer's
