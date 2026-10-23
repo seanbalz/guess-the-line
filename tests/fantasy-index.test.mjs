@@ -66,3 +66,16 @@ test('superseded copies are deleted only after index.json is uploaded', () => {
     `delete:${snapshotFileName(2026, 7, sha('a'))}`, `delete:${snapshotFileName(2026, 7, sha('b'))}`,
   ]);
 });
+
+test('publishing refuses an index that drops a published week, but allows a superseded copy of an indexed week', () => {
+  const only7 = updateFantasyIndex(null, { season: 2026, snapshot: snap(7, 'b'), review: null, updatedAt: '2026-10-21T11:00:00Z' });
+  const keep = [only7.snapshots[0].file];
+  assert.throws(() => publishPlan({ files: [], existing: [snapshotFileName(2026, 6, sha('a')), ...keep], index: only7, assets: [] }),
+    /drops published weeks: .*week 6/i, 'a snapshot week missing from the index');
+  assert.doesNotThrow(() => publishPlan({ files: [], existing: [snapshotFileName(2026, 7, sha('a')), ...keep], index: only7, assets: [] }), 'older copy of an indexed week');
+  const withReview = updateFantasyIndex(only7, { season: 2026, snapshot: null, review: rev(6, 'd'), updatedAt: '2026-10-21T11:00:00Z' });
+  const files = [...keep, withReview.reviews[0].file];
+  assert.doesNotThrow(() => publishPlan({ files: [], existing: [reviewFileName(2026, 6, sha('c')), ...files], index: withReview, assets: [] }), 'older review copy of an indexed week');
+  assert.throws(() => publishPlan({ files: [], existing: [reviewFileName(2026, 5, sha('c')), ...files], index: withReview, assets: [] }),
+    /drops published weeks: .*review.*week 5/i, 'a review week missing from the index');
+});

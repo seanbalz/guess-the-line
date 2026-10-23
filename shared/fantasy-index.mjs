@@ -54,6 +54,15 @@ export function publishPlan({ files, existing, index, assets }) {
   const available = new Set([...files, ...existing]);
   const missing = [...index.snapshots, ...index.reviews].map(entry => entry.file).filter(name => !available.has(name));
   if (missing.length) throw new Error(`Refusing to publish an index that names missing files: ${missing.join(', ')}`);
+  const indexed = { snapshot: new Set(index.snapshots.map(entry => entry.week)), review: new Set(index.reviews.map(entry => entry.week)) };
+  const dropped = [];
+  for (const name of existing) {
+    for (const [kind, pattern] of [['snapshot', SNAPSHOT_FILE], ['review', REVIEW_FILE]]) {
+      const match = name.match(pattern);
+      if (match && Number(match[1]) === index.season && !indexed[kind].has(Number(match[2]))) dropped.push(`${kind} week ${Number(match[2])}`);
+    }
+  }
+  if (dropped.length) throw new Error(`Refusing to publish an index that drops published weeks: ${[...new Set(dropped)].join(', ')}`);
   return [
     ...files.filter(name => !existing.includes(name)).map(name => ({ action: 'upload', name, clobber: false })),
     { action: 'upload', name: 'index.json', clobber: true },
