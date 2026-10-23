@@ -12,6 +12,29 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-57 — Fantasy Track 1: refresh, accuracy record and gated game context (October 23, 2026)
+
+After the October 22 fantasy research review, Sean chose Track 1 first and
+answered its two design questions in chat. Fantasy may show a game's implied
+team totals, calculated from the median collected spread and total GTL already
+shows, only to a viewer for whom both that game's spread and total are visible
+under D-39 (that viewer locked in or sat out that market, or the game kicked
+off). Otherwise Fantasy shows a lock line naming the hidden market. Totals are
+calculated in the viewer's app from the viewer's own gated lines reply; no line
+enters a Fantasy snapshot, review, static asset or Fantasy route. Public nflverse
+matchup context (points allowed by position, kickoff window) and the existing
+weather forecast are shown without that gate.
+
+Refreshed snapshots are published by a scheduled GitHub build as release files in
+this repository (Option A) and read through a new signed-in `/fantasy/week`
+route; the committed snapshots remain the fallback. Each finished week's
+published estimates are graded against nflverse actuals with a season-average
+baseline. Sean approved the design on October 23 and then the
+[written specification](superpowers/specs/2026-10-23-fantasy-track1-design.md)
+("Approved"). Nothing else in D-39 changes. Nothing is built, released or
+applied by this entry.
+
+
 ## D-56 — Guess the Points and Trade verdicts (October 23, 2026)
 
 Sean designed a weekly fantasy guessing game and a trade-grading add-on in chat

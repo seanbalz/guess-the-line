@@ -160,7 +160,10 @@ async function fixture(t) {
     catch (error) { return new Response(JSON.stringify({ message: error.message }), { status: 400 }); }
   } }) };
   // A real-clock slate: Week 6 TNF (Thursday ~5:15 PM PT) in a week whose Monday open is still ahead; Week 7 a week later.
-  const now = Date.now(), monday = Date.parse(weekOpenAt(now + 10 * DAY)), deadline6 = monday + 3 * DAY + 17.25 * 3_600_000, deadline7 = deadline6 + 7 * DAY;
+  // Two hours past ten days: a fall-back week is 169 hours long, so exactly ten days from just after midnight PT on the
+  // Friday ten days before the November clock change lands on the Sunday before and picks a Monday under three days away
+  // (CI, 2026-10-23T07:44Z).
+  const now = Date.now(), monday = Date.parse(weekOpenAt(now + 10 * DAY + 7_200_000)), deadline6 = monday + 3 * DAY + 17.25 * 3_600_000, deadline7 = deadline6 + 7 * DAY;
   assert(monday > now + 3 * DAY);
   service.schedule = async () => [HEADER, row(2026, 6, deadline6, 'SEA', 'DEN'), row(2026, 6, deadline6 + 3 * DAY, 'ARI', 'LA'), row(2026, 7, deadline7, 'KC', 'BUF')].join('\n');
   const request = async (runId, auth, clock) => {

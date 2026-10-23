@@ -33,6 +33,13 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
+October 23 Fantasy Track 1 design (D-57): Sean approved the
+[written design](superpowers/specs/2026-10-23-fantasy-track1-design.md) for a
+scheduled Fantasy refresh published as release files, a signed-in
+`/fantasy/week` route, a weekly accuracy record and matchup, kickoff and weather
+context, with implied team totals gated by D-39. It covers Q11 and part of Q14.
+Design and implementation plan only; no code, workflow, release or hosted change.
+
 October 23 Guess the Points design (D-56): Sean approved the
 [written design](superpowers/specs/2026-10-22-guess-the-points-design.md) for a
 weekly fantasy guessing game in Play, with Trade verdicts as phase 2, after
