@@ -2,7 +2,7 @@
 import { DEFAULT_TAB, LEGACY_TABS, destination, hasLayers, isTab } from './state.js';
 const LEFT_ALONE = new Set(['main', 'picks-due']);
 const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind']);
-const SECTIONS = { play: ['picks','score','compare','league'], research: ['games','fantasy','trends'], bets: ['active','settled','tracked','recommended','virtual','everyone','add'] };
+const SECTIONS = { play: ['picks','score','compare','league','points'], research: ['games','fantasy','trends'], bets: ['active','settled','tracked','recommended','virtual','everyone','add'] };
 export function safeView(tab, view = {}) {
   const result = {};
   const routeKey = tab === 'bets' ? 'view' : 'section';

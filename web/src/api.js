@@ -68,8 +68,11 @@ export const GROUP_ACTIONS = Object.freeze({
   bets: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze([]) }),
   league: Object.freeze({ reads: Object.freeze(['comparison']), writes: Object.freeze([]) }),
   me: Object.freeze({ reads: Object.freeze(['preferences']), writes: Object.freeze(['preferences/save']) }),
+  // Guess the Points (D-56, cloud/points.mjs): the gated week read, and draft saves, lock-ins and the commissioner's slate.
+  // Until P-01 is applied every route answers 404 (code GTL_POINTS_OFF, or gtl-api's own "Not found."): "coming soon".
+  points: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze(['draft', 'lock', 'slate']) }),
 });
-const GROUP_LABELS = Object.freeze({ lines: 'lines', bets: 'bets', league: 'league', me: 'Me' });
+const GROUP_LABELS = Object.freeze({ lines: 'lines', bets: 'bets', league: 'league', me: 'Me', points: 'Points' });
 async function groupApi(group, action, body, signal) {
   const { reads, writes } = GROUP_ACTIONS[group];
   const save = writes.includes(action);
@@ -80,6 +83,7 @@ export const linesApi = (action, body = {}, signal) => groupApi('lines', action,
 export const betsApi = (action, body = {}, signal) => groupApi('bets', action, body, signal);
 export const leagueApi = (action, body = {}, signal) => groupApi('league', action, body, signal);
 export const meApi = (action, body = {}, signal) => groupApi('me', action, body, signal);
+export const pointsApi = (action, body = {}, signal) => groupApi('points', action, body, signal);
 
 
 /** Public historical Trends for an authorized published week. */
