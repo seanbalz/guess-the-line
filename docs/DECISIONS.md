@@ -35,6 +35,45 @@ baseline. Sean approved the design on October 23 and then the
 applied by this entry.
 
 
+## D-56 — Guess the Points and Trade verdicts (October 23, 2026)
+
+Sean designed a weekly fantasy guessing game and a trade-grading add-on in chat
+on October 22–23, 2026, answering each question one at a time and approving each
+design section, then reviewed the written design: "Spec approved as written."
+Written design: [Guess the Points and Trade verdicts](superpowers/specs/2026-10-22-guess-the-points-design.md).
+
+- **Guess the Points.** A third Play game. Each week GTL publishes one slate of
+  five NFL players (QB, RB, WR, TE, FLEX), drawn from its weekly estimates, no two
+  from the same game, across at least two kickoff windows; the commissioner may
+  swap before the open. The week opens Tuesday 12:00 PM PT. Each member guesses
+  each player's Full PPR fantasy points (4-point passing TD, whole numbers 0–60).
+  Each slot locks in on its own, is final once locked, and closes at its game's
+  kickoff; an unlocked slot scores nothing.
+- **Reveal.** Other members' guesses and GTL's House estimate for a slot show
+  once the viewer has locked in that slot, or at its kickoff.
+- **Scoring.** 10 minus fantasy points off, floor 0, per slot, against nflverse
+  actuals. PROVISIONAL when stats land; corrections re-grade until the following
+  Thursday 12:00 PM PT, then FINAL and frozen. A player with no snap, a team change
+  or a game moved out of the week voids the slot for everyone.
+- **Boards.** A separate Points board with weekly and season standings, reused in
+  the Community and every private group, never added to Spread or Total. Ties
+  share the rank. House is an unranked row. Optional: a member joins the board,
+  due list and reminder with their first lock-in of the season.
+- **Push.** One opt-in reminder 2 hours before the member's next unlocked slot
+  kicks off, at most once a week, never naming a player, guess or score.
+- **Trade verdicts (phase 2).** Any member posts 1–3 players per side (at most 2
+  open trades a week); members cast one hidden, final vote until the first kickoff
+  of the four-week window; GTL grades each side's Full PPR points over that window
+  (push within 5%); voters earn a Trade judge W-L-P record that never enters a
+  points board.
+- **Data and limits.** Free nflverse data only (CC BY 4.0, credited); no league
+  data, odds, props or money. Built in its own tables beside the Guess machinery
+  (approach A). Depends on the weekly fantasy refresh producing fresh estimates
+  and a weekly actuals export. Guesses and votes never enter public assets.
+
+This decision authorizes an implementation plan for review. It does not apply a
+migration, deploy, or establish phone acceptance.
+
 ## D-55 — trend charts and a softer brand direction (October 21, 2026)
 
 Sean reviewed five trend-chart directions for the game sheet (A headline line, B
