@@ -48,6 +48,9 @@ answering each rule question and approving each section in chat. Design only, on
 implementation plan, code, migration or deploy yet. It depends on the fantasy
 refresh (queue Q11, D-57) publishing fresh weekly estimates by Tuesday noon PT;
 Points loads actual stats and snap counts from nflverse itself (spec section 4.4).
+The [phase 1 implementation plan](superpowers/plans/2026-10-23-guess-the-points.md)
+(12 tasks, migrations P-01 to P-03) was written October 23; tasks 1, 4, 5 and 8 do
+not wait for Track 1. Nothing is applied or deployed.
 
 October 21 NBA product direction: Sean selected **daily game board + private bet
 tracking first**, with NBA competitions later. The
