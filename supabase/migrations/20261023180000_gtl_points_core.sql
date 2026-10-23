@@ -636,7 +636,7 @@ begin
     if problem is not null then raise exception 'GTL_POINTS_SLATE_INVALID' using detail=problem; end if;
     select min((x->>'kickoff')::timestamptz) into first_kick from jsonb_array_elements(sl.slots) x;
     if now_at>=first_kick then raise exception 'GTL_POINTS_TOO_LATE'; end if;
-    update public.gtl_points_slates set status='published',published_at=now_at,published_by=p_actor,opens_at=least(opens_at,now_at),
+    update public.gtl_points_slates set status='published',slots=public.gtl_points_canonical_slots(slots),published_at=now_at,published_by=p_actor,opens_at=least(opens_at,now_at),
       audit=audit||jsonb_build_array(entry),updated_at=now_at
     where season=p_season and week=p_week returning * into sl;
     return public.gtl_points_slate_json(sl);

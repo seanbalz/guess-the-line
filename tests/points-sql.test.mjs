@@ -366,6 +366,45 @@ test('P-01 on PGlite: RLS, grants, locks, the gate, the read, scoring, loads and
     assert.equal(swapped.slots[3].kickoff, '2026-10-28T16:30:00.000Z');
   });
 
+  await t.test('kickoffs: publishing canonicalizes a draft edited directly, a swap needs a kickoff, and canonical text ignores the session time zone', async () => {
+    const opensAt = iso(NOW + 30 * 60_000);
+    const base = slotsAt(NOW + 2 * HOUR, 'K14');
+    const publish = (action, slate) => f.sql('gtl_points_publish_slate', { p_actor: USERS.sean, p_action: action, p_season: SEASON, p_week: 14, p_slate: slate });
+    await publish('draft', { opensAt, scoringRules: RULES, slots: base, house: {}, provenance: PROVENANCE });
+    // service_role may update a DRAFT slate directly (the guard freezes only published rows), so a non-canonical offset kickoff can be stored.
+    // Offset-bearing but non-canonical: -07:00 and a +05:30 with a fraction (both still in the future).
+    const at = (ms, offsetMin) => { const sign = offsetMin < 0 ? '-' : '+', m = Math.abs(offsetMin);
+      return new Date(ms + offsetMin * 60_000).toISOString().replace('Z', `${sign}${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`); };
+    const future = base.map(x => ({ ...x }));
+    future[0].kickoff = at(Date.parse(base[0].kickoff), -420);
+    future[1].kickoff = at(Date.parse(base[1].kickoff) + 500, 330);
+    await f.as('service_role', 'update public.gtl_points_slates set slots=$1::jsonb where season=2026 and week=14', [JSON.stringify(future)]);
+    assert.match((await f.db.query("select slots->0->>'kickoff' k from public.gtl_points_slates where week=14")).rows[0].k, /-07:00$/, 'fixture: the draft holds a non-canonical kickoff');
+    const published = await publish('publish');
+    assert.equal(published.status, 'published');
+    const stored = (await f.db.query("select slots from public.gtl_points_slates where week=14")).rows[0].slots;
+    assert.equal(stored[0].kickoff, base[0].kickoff, 'publishing stores the exact toISOString() form');
+    assert.equal(stored[1].kickoff, iso(Date.parse(base[1].kickoff) + 500));
+    assert.deepEqual(stored.map(x => x.kickoff), published.slots.map(x => x.kickoff));
+    for (const slot of stored) assert.equal(slot.kickoff, new Date(slot.kickoff).toISOString());
+
+    // A swap whose player kickoff is JSON null or missing is refused as a bad kickoff.
+    const swapIn = (week, kickoff) => f.sql('gtl_points_publish_slate', { p_actor: USERS.sean, p_action: 'swap', p_season: SEASON, p_week: week, p_slate: { slot: 'TE', player: { playerId: 'K15-9', name: 'K15 TE Swap Fixture', team: 'FFF', position: 'TE', gameKey: 'K15G9', ...kickoff } } });
+    await f.sql('gtl_points_publish_slate', { p_actor: USERS.sean, p_action: 'draft', p_season: SEASON, p_week: 15, p_slate: { opensAt, scoringRules: RULES, slots: slotsAt(NOW + 2 * HOUR, 'K15'), house: {}, provenance: PROVENANCE } });
+    const kickoffInvalid = err => /GTL_POINTS_SLATE_INVALID/.test(err.message) && err.detail === 'kickoff';
+    await assert.rejects(() => swapIn(15, { kickoff: null }), kickoffInvalid, 'JSON null kickoff');
+    await assert.rejects(() => swapIn(15, {}), kickoffInvalid, 'missing kickoff');
+
+    // Canonical output does not depend on the session time zone.
+    const inZone = zone => f.db.transaction(async tx => {
+      await tx.exec(`set local time zone '${zone}'`);
+      return (await tx.query("select public.gtl_points_canonical_slots($1::jsonb) s", [JSON.stringify(future)])).rows[0].s;
+    });
+    const utc = await inZone('UTC');
+    assert.deepEqual(await inZone('Asia/Tokyo'), utc);
+    assert.equal(utc[0].kickoff, base[0].kickoff);
+  });
+
   await t.test('FINAL is not reopenable: slate slots, guesses and the frozen read hold even against altered live rows', async () => {
     assert.equal(await f.count('gtl_points_week_final', 'week=7'), 1, 'week 7 is FINAL (earlier subtest)');
     const slots = JSON.stringify(slotsAt(Date.now(), 'W7X'));
