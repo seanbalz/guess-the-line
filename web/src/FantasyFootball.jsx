@@ -1,7 +1,10 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 import { DEFAULT_FILTERS, SCORING_OPTIONS, POSITION_OPTIONS, SCOPE_OPTIONS, buildRankings, scoringRules, formatFantasyNumber } from '../../shared/fantasy-rankings.mjs';
-import { Button, Card, Segmented, Switch } from './next/ui/index.js';
+import { MATCHUP_POSITIONS, matchupTable, describePlayerContext } from '../../shared/fantasy-context.mjs';
+import { Button, Card, LockLine, Segmented, Switch } from './next/ui/index.js';
+import { FantasyAccuracy } from './FantasyAccuracy.jsx';
+import { useFantasyGameContext } from './fantasyContext.js';
 import { FANTASY_AVAILABLE, FANTASY_INITIAL, useFantasySnapshot } from './fantasyData.js';
 import './fantasyFootball.css';
 
@@ -33,7 +36,7 @@ function Select({ theme, label, value, onChange, options, ...props }) {
   </div>;
 }
 
-function PlayerCard({ player, theme, scope, week, position }) {
+function PlayerCard({ player, theme, scope, week, position, context }) {
   const c = name => nameClass(theme, name);
   const trends = player.trendHighlights || [];
   const matchup = player.weekly?.status === 'bye' ? 'Bye this week'
@@ -49,7 +52,7 @@ function PlayerCard({ player, theme, scope, week, position }) {
           </span>
           <span className={c('player-points')}><strong>{number(player.points)}</strong><span className={c('meta')}>est. pts</span></span>
           <ChevronDown size={18} aria-hidden="true" className={c('chevron')}/>
-          <span className={c('matchup')}>{matchup}</span>
+          <span className={c('matchup')}>{context?.pill ?? matchup}</span>
           {player.status && <span className={c('player-status')}>{player.status}</span>}
           {scope === 'ros' && <span className={c('per-game')}>{number(player.perGame)} / game · {player.games ?? '—'} scheduled games</span>}
           {trends.length > 0 && <span className={c('trend-tags')}>
@@ -60,6 +63,16 @@ function PlayerCard({ player, theme, scope, week, position }) {
           <span className={c('open-hint')}>Player details &amp; trends</span>
         </summary>
         <div className={c('player-detail')}>
+          {context && <div className={c('context')}>
+            <strong>This week</strong>
+            {context.matchup && <p>{context.matchup}{context.seasonMatchup && <span className={c('meta')}> · {context.seasonMatchup}</span>}</p>}
+            {context.kickoff && <p>Kickoff: {context.kickoff} · {date(player.weekly.kickoff)}</p>}
+            {context.weather && <p>{context.weather}{context.weatherCredit && <> · <a href={httpLink(context.weatherCredit.url)} target="_blank" rel="noreferrer">{context.weatherCredit.text}</a> (<a href={httpLink(context.weatherCredit.licenseUrl)} target="_blank" rel="noreferrer">{context.weatherCredit.license}</a>)</>}</p>}
+            {context.implied ? <p>Implied team total {number(context.implied.value)} · median of {context.implied.bookCount} sportsbooks · captured {date(context.implied.capturedAt)}</p>
+              : context.lock ? (theme === 'next' ? <LockLine>{context.lock}</LockLine> : <p>{context.lock}</p>)
+              : context.linesNote ? <p>{context.linesNote}</p> : null}
+            <p className={c('meta')}>Matchup and kickoff context are observed nflverse data, not predictions.</p>
+          </div>}
           <p>{player.sampleGames ?? '—'} recorded games in the pace estimate. Player availability is not injury-adjusted.</p>
           {player.status && <p>Roster status in source: {player.status}.</p>}
           <strong>Trends entering Week {week}</strong>
@@ -77,7 +90,9 @@ function PlayerCard({ player, theme, scope, week, position }) {
 }
 
 /** Shared ranking/filter view for the current app and D-38 shell; the engine supplies all scoring and rank semantics. */
-export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, backLabel = 'Back to Home', state, entries = FANTASY_AVAILABLE, selection = FANTASY_INITIAL, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now() }) {
+export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, backLabel = 'Back to Home', state, entries, selection, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now(), gameContext }) {
+  entries = entries ?? (state?.weeks?.length ? state.weeks : FANTASY_AVAILABLE);
+  selection = selection ?? state?.selection ?? FANTASY_INITIAL;
   const c = name => nameClass(theme, name);
   const Heading = headingLevel === 2 ? 'h2' : 'h1';
   const SectionHeading = headingLevel === 2 ? 'h3' : 'h2';
@@ -93,6 +108,14 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
   const rows = rankings?.rows || [];
   const reset = () => onFiltersChange?.({ ...DEFAULT_FILTERS });
   const selectedScoring = optionLabel(SCORING_OPTIONS, filters.scoring);
+  const matchups = useMemo(() => snapshot?.matchups
+    ? Object.fromEntries(MATCHUP_POSITIONS.map(position => [position, matchupTable(snapshot, position, filters)]))
+    : null, [snapshot, filters]);
+  const contextFor = player => (filters.scope === 'weekly'
+    ? describePlayerContext(player, { matchups, lines: gameContext?.lines, wind: gameContext?.wind, scoringLabel: selectedScoring })
+    : null);
+  const origin = state?.fallback ? `Showing saved Week ${snapshot?.week} · live refresh unavailable`
+    : state?.origin === 'hosted' && snapshot ? `Updated ${date(snapshot.generatedAt)}${state.indexStale ? ' · refresh check delayed' : ''}` : null;
   return <section className={theme === 'next' ? 'gx-screen gx-fantasy' : 'fantasy-football'} aria-label="Fantasy Football">
     <div className={c('heading')}><Heading className={theme === 'next' ? 'gx-t-title' : undefined}>Fantasy Football</Heading>
       {onBack && <Action theme={theme} onClick={onBack}>{backLabel}</Action>}
@@ -120,15 +143,18 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
     {snapshot && <>
       <div className={c('source-summary')}>
         <p>{snapshot.season} · Week {snapshot.week} · {filters.scope === 'ros' ? 'Rest of season from this week' : 'Weekly estimates'} · {selectedScoring}</p>
+        {origin && <p className={c('meta')} role="status">{origin}</p>}
         <p className={c('meta')}>Stats through Week {snapshot.statsThroughWeek ?? '—'} · Source updated {date(snapshot.asOf)}</p>
         {stale && <p className={c('warning')} role="status">Stale snapshot: the source is more than 7 days old. These estimates may miss recent games and roster changes.</p>}
         {unknownAge && <p className={c('warning')}>Source freshness is unavailable.</p>}
       </div>
+      {filters.scope === 'weekly' && state?.origin === 'hosted' && !state.review && snapshot.week > 2 && <p className={c('meta')}>Not graded: no estimate was published for Week {snapshot.week - 1}.</p>}
+      {filters.scope === 'weekly' && state?.review && <FantasyAccuracy theme={theme} review={state.review} filters={filters} scoringLabel={selectedScoring} headingLevel={headingLevel === 2 ? 3 : 2}/>}
       <section className={c('results')} aria-label="Player rankings">
         <div className={c('results-heading')}><SectionHeading className={theme === 'next' ? 'gx-t-section' : undefined}>Player rankings</SectionHeading><span className={c('meta')} role="status" aria-live="polite">{rankings.error ? 'Unavailable' : `${rows.length} players`}</span></div>
         <p className={c('meta')}>Sorted by estimated total points. The leading rank follows the selected position; team, player and trend filters keep ranks fixed.</p>
         {!rankings.error && <p className={c('meta')}>All positions: {rankings.summary.ranked} rankable · {rankings.summary.byes} on bye · {rankings.summary.unavailable} without an estimate in this period.</p>}
-        {rankings.error ? <Surface theme={theme} className={c('empty')}><p role="alert">{rankings.error}</p><Action theme={theme} onClick={state.retry}>Try again</Action></Surface> : rows.length > 0 ? <><ol className={c('players')} aria-label="Ranked players">{rows.slice(0, limit).map(player => <PlayerCard key={player.id} player={player} theme={theme} scope={filters.scope} week={snapshot.week} position={filters.position}/>)}</ol>
+        {rankings.error ? <Surface theme={theme} className={c('empty')}><p role="alert">{rankings.error}</p><Action theme={theme} onClick={state.retry}>Try again</Action></Surface> : rows.length > 0 ? <><ol className={c('players')} aria-label="Ranked players">{rows.slice(0, limit).map(player => <PlayerCard key={player.id} player={player} theme={theme} scope={filters.scope} week={snapshot.week} position={filters.position} context={contextFor(player)}/>)}</ol>
           {rows.length > limit && <Action theme={theme} onClick={onMore}>Show more players ({rows.length - limit} left)</Action>}</>
           : <Surface theme={theme} className={c('empty')}><p>{filters.position === 'DST' ? 'Defense and special teams rankings are unavailable: this source does not include a verified scoring model for D/ST.' : snapshot.players.length === 0 ? 'This snapshot has no eligible player statistics yet.' : 'No players match these filters.'}</p><Action theme={theme} onClick={reset}>Reset filters</Action></Surface>}
       </section>
@@ -154,12 +180,13 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
 }
 
 export default function FantasyFootball(props) {
-  const [selection, setSelection] = useState(props.navigationState?.selection ?? FANTASY_INITIAL);
+  const [selection, setSelection] = useState(props.navigationState?.selection ?? null);
   const [filters, setFilters] = useState(props.navigationState?.filters ?? { ...DEFAULT_FILTERS });
   const [limit, setLimit] = useState(props.navigationState?.limit ?? PAGE_SIZE);
   const changed = useRef(props.onNavigationState);
   changed.current = props.onNavigationState;
   useEffect(() => { changed.current?.({ selection, filters, limit }); }, [selection, filters, limit]);
   const state = useFantasySnapshot(selection);
-  return <FantasyRankingsView {...props} state={state} selection={selection} onSelectionChange={value => { setSelection(value); setLimit(PAGE_SIZE); }} filters={filters} onFiltersChange={value => { setFilters(value); setLimit(PAGE_SIZE); }} limit={limit} onMore={() => setLimit(value => value + PAGE_SIZE)}/>;
+  const gameContext = useFantasyGameContext(state.snapshot?.season, state.snapshot?.week);
+  return <FantasyRankingsView {...props} state={state} gameContext={gameContext} selection={selection ?? undefined} onSelectionChange={value => { setSelection(value); setLimit(PAGE_SIZE); }} filters={filters} onFiltersChange={value => { setFilters(value); setLimit(PAGE_SIZE); }} limit={limit} onMore={() => setLimit(value => value + PAGE_SIZE)}/>;
 }

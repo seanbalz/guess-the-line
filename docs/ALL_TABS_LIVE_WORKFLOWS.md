@@ -102,5 +102,6 @@ actual test outcomes, GitHub checks, deployment source and production readback.
 D-53 reuses #143: the new FantasyScreen wraps FantasyFootball with its next theme,
 and FantasyHomeTile shares the named public snapshot hook from fantasyData.js.
 The app shells remain separate; the shared snapshot contains no account data.
-FantasyFootball uses only Button, Card, Segmented and Switch from the presentation
-kit for its next theme; it does not import the next shell or account context.
+FantasyFootball uses only Button, Card, Segmented, Switch and LockLine from the
+presentation kit for its next theme, and FantasyAccuracy.jsx uses Card and Pill; it
+does not import the next shell or account context.

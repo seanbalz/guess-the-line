@@ -256,7 +256,11 @@ test('the apps keep separate shells and allow only documented workflow and pick-
         continue;
       }
       if (file === 'FantasyFootball.jsx' && spec === './next/ui/index.js') {
-        assert.match(text, /import \{ Button, Card, Segmented, Switch \} from '\.\/next\/ui\/index\.js'/);
+        assert.match(text, /import \{ Button, Card, LockLine, Segmented, Switch \} from '\.\/next\/ui\/index\.js'/);
+        continue;
+      }
+      if (file === 'FantasyAccuracy.jsx' && spec === './next/ui/index.js') {
+        assert.match(text, /import \{ Card, Pill \} from '\.\/next\/ui\/index\.js'/);
         continue;
       }
       assert.ok(!spec.startsWith('./next/'), `web/src/${file} imports ${spec}`);

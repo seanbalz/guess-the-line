@@ -48,6 +48,8 @@ export const apiChecks = Object.freeze([
   ['lines/game', {}],
   // Weekly Trends (deployed since gtl-api v31) is authenticated even though its generated records are public history.
   ['trends/week', { season: 2026, week: 6 }],
+  // Fantasy Track 1 (D-57): public nflverse-derived files, served only to signed-in players.
+  ['fantasy/week', {}],
   // Trends research, deployed since gtl-api v29.
   ['lines/research', {}],
 ]);
@@ -57,4 +59,4 @@ export const workerChecks = Object.freeze([
 ]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({ 'gtl-api/fantasy/week': 'the gtl-api deploy with /fantasy/week (D-57)' });

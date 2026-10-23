@@ -320,15 +320,19 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // v18 on October 14), /lines/research (v29, October 21) and /trends/week (v31, October 22), removed October 22.
   // M-10 Bets, D-53's comparison and account preferences, and the two private NBA migrations are hosted since October 22,
   // 2026, with /bets/read, /league/comparison, /me/preferences and the /nba routes deployed (RELEASE_2026_10_22_MIGRATIONS.md).
-  // Nothing is awaiting; the awaiting path itself is covered with an explicit pendingDeploy map above.
+  // One route is awaiting (/fantasy/week, below); the awaiting path itself is covered with an explicit pendingDeploy map above.
   const hosted = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market', 'gtl_read_score_comparison', 'gtl_read_account_preferences',
     'gtl_save_account_preferences', 'gtl_nba_read_bets', 'gtl_nba_save_bet', 'gtl_nba_claim_games', 'gtl_nba_finish_games'];
   for (const rpc of hosted) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
   for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
-  assert.deepEqual(Object.keys(awaitingDeploy), [], 'nothing is awaiting deploy');
+  // Fantasy Track 1 (D-57): /fantasy/week awaits its gtl-api deploy; remove it here and in scripts/boundary/lines.mjs after.
+  assert.deepEqual(Object.keys(awaitingDeploy), ['gtl-api/fantasy/week']);
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
-  assert.equal(result.awaiting.length, 0, 'every probe denies');
-  assert.deepEqual(new Set(result.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
+  assert.equal(result.awaiting.length, 0, 'every probe denies once deployed');
+  // An entry is live when its probe answers the exact not-deployed 404 and is then reported as awaiting.
+  const notDeployed = await checkCloudBoundary({ ...options, log: () => {}, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/fantasy/week')
+    ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) });
+  assert.deepEqual(new Set(notDeployed.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
 });
 
 test('Community history and D-27 line-at-guess probes stay fail-closed: not applied or not deployed fails the default check', async t => {

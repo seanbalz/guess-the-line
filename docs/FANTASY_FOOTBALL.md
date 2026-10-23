@@ -109,14 +109,79 @@ node scripts/fantasy.mjs --season 2026 --week 6 \
   --input-dir .local/fantasy-sources --check
 ```
 
-The UI lazily imports the registered JSON from the same origin. Refreshing data
-requires rerunning the command and rebuilding; no scheduled job was created.
+The UI lazily imports the registered JSON from the same origin. A workflow
+(`.github/workflows/fantasy-refresh.yml`, D-57) can refresh it. It is manual-only
+today; no daily schedule is enabled yet. The manual command remains for local checks.
 Raw caches stay in ignored `.local/`. Committed fantasy JSON is an allowlisted
 public subset under `shared/fantasy/`. Historical snapshot files stay available.
 
 Published expert rankings were not copied: the
 [FantasyPros API terms](https://www.fantasypros.com/api-data/) require suitable
 access and licensing. This implementation has no paid source or account dependency.
+
+## Track 1 — refresh, accuracy and game context (D-57)
+
+Status October 23, 2026: implemented on branch `claude/fantasy-track1-impl`; not
+released, deployed or run on GitHub. See [the release card](FANTASY_TRACK1_RELEASE.md)
+and the [approved design](superpowers/specs/2026-10-23-fantasy-track1-design.md).
+
+**Release tag and files.** Refreshed data is published as data-only prerelease
+assets on the tag `fantasy-data-<season>` (a new season gets a new tag
+automatically). Snapshots are `<season>-week-NN.<sha8>.json` and reviews are
+`<season>-review-week-NN.<sha8>.json`, named by the first eight characters of their
+SHA-256 and never replaced. `index.json` lists them, is uploaded last and is the
+only replaced asset. Each week keeps its three newest superseded copies.
+
+**Schedule.** `.github/workflows/fantasy-refresh.yml` is manual only and a dry run
+by default. It publishes only on a non-dry manual run today; the daily schedule
+will be added later, and no run has happened. `GH_TOKEN` is given only to the
+Publish step, and checkout does not persist credentials.
+
+**Weekend freeze.** A week's snapshot is rebuilt each run until the first kickoff
+of its weekend slate (Saturday or Sunday Pacific), then frozen. A week never
+published is built once late, until the week's last kickoff, and flagged
+`publishedAfterFreeze`.
+
+**Refresh runs.** Each run first clears any previous `manifest.json` and `index.json`
+in its output folder, and stamps its output only after the sources are read. A season
+whose nflverse files are not published yet (and has no index) reports nothing to
+publish instead of failing. Overdue PROVISIONAL reviews of earlier weeks are
+finalized, not only the newest week's, and a missing freeze time is never treated as
+frozen. Publishing refuses an index that drops a published week.
+
+**Builder rules (method version 1.1, schema 2).** Partial current-week stats are
+ignored. Stats for later weeks, or a completed selected week, fail the build. A team
+with no roster rows for the week may use the prior week's roster once; the count is
+`rosterFallbackTeams` and each player's status names the roster week. Schema 2 adds
+`matchups`, which hold the raw offensive stats each defense allowed to QB, RB, WR and TE
+per prior game (no kickoff window: kickoff windows are computed in the app).
+
+**Review and baseline.** `shared/fantasy-review.mjs` grades the published estimates
+against nflverse actuals. `mae` is the headline over all graded players. The
+season-average comparison uses `pairedMae` against `baselineMae` on the same
+players only; `withoutBaseline`, `noStatsRow` and `playedWithoutEstimate` count the
+players left out or unestimated. A review is PROVISIONAL until the next week's
+weekend freeze, then FINAL.
+
+**Route and fallback.** `POST /fantasy/week` is signed-in only. It serves verified
+files (index checksum and validator, week match), caches by checksum, reads the
+index at most every 10 minutes (single-flight). A stale index is served only when a
+cached index exists (when the fetch fails or the index is temporarily missing).
+`GTL_FEATURE_OFF=fantasy` turns it off. The app reads hosted data first when signed
+in and falls back to the committed snapshots, with a status line showing which; it
+never falls back on a 400, 401 or 403. The route's boundary probe awaits deployment.
+
+**Game context and D-57 gating.** Matchup, kickoff and weather context is observed
+public data and is not gated. Implied team totals are calculated in the viewer's
+app from the viewer's own gated lines reply, and only when both the spread and the
+total of that game are visible under D-39; otherwise a lock line names the hidden
+market. The lines context resets on account change. No line enters a snapshot,
+review, static asset or Fantasy route. Matchup and kickoff context is not a
+predictive claim.
+
+**Local evidence.** A live local refresh on October 23 planned Week 7 and wrote the
+Week 7 snapshot and a PROVISIONAL Week 6 review from the committed file. Nothing
+was published.
 
 ## Usage Tracker requirements (queue Q11–Q14)
 

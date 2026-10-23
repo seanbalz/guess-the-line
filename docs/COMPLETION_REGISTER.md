@@ -33,6 +33,8 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
+October 23 Fantasy Track 1 implementation (D-57, Q11 and part of Q14): implemented on branch `claude/fantasy-track1-impl` and linked from its implementation pull request (number recorded when opened). It adds the refresh builder, weekly review, release index and publisher, a manual-only workflow, the signed-in `/fantasy/week` route and the app status line, gated game context and accuracy card. Awaiting API and frontend releases and the first scheduled run; see the [release card](FANTASY_TRACK1_RELEASE.md). No release, deployment, workflow run or hosted verification has happened.
+
 October 23 Fantasy Track 1 design (D-57): Sean approved the
 [written design](superpowers/specs/2026-10-23-fantasy-track1-design.md) for a
 scheduled Fantasy refresh published as release files, a signed-in
