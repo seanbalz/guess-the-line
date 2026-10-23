@@ -243,9 +243,9 @@ test('void: no snap, a team change or a game moved out of the week voids a slot 
   const f = await fixture(t), { now, at } = f; await f.publish();
   const kick = slate(now).slots.map(s => s.kickoff);
   await f.save(LUKE, 'QB', 18, true); await f.save(LUKE, 'WR', 12, true); await f.save(TROY, 'TE', 5, true); await f.save(TROY, 'RB', 7);
-  // KC-LV (RB) is missing from the schedule (cancelled); MIA-NE (FLEX) moved to week 9; SEA-DEN (QB) moved an hour later.
+  // KC-LV (RB) and MIA-NE (FLEX) moved to week 9; SEA-DEN (QB) moved an hour later.
   const games = { 'SEA-DEN': { week: 8, kickoff: at(now + 3 * HOUR) }, 'BUF-NYJ': { week: 8, kickoff: kick[2] }, 'DAL-PHI': { week: 8, kickoff: kick[3] },
-    'MIA-NE': { week: 9, kickoff: at(now + 8 * DAY) } };
+    'KC-LV': { week: 9, kickoff: at(now + 8 * DAY) }, 'MIA-NE': { week: 9, kickoff: at(now + 8 * DAY) } };
   for (const bad of [null, [], { ...games, 'SEA-DEN': { week: '8', kickoff: kick[0] } }, { ...games, 'SEA-DEN': { week: 8, kickoff: 'soon' } }, { ...games, 'SEA-DEN': { week: 8 } }]) {
     await assert.rejects(() => f.schedule(bad, at(now)), code('GTL_POINTS_INVALID'), JSON.stringify(bad));
   }
@@ -296,7 +296,7 @@ test('void: no snap, a team change or a game moved out of the week voids a slot 
   assert.equal((await f.db.query('select jsonb_array_length(audit) n from public.gtl_points_slates')).rows[0].n, 5, 'appending to the audit is allowed');
 });
 
-test('schedule: an empty map or one with no game in the week is refused and changes nothing; a valid map still voids a missing game', { skip }, async t => {
+test('schedule: an empty map, one with no game in the week or a partial one is refused and changes nothing; only a game present in another week voids its slot', { skip }, async t => {
   const f = await fixture(t), { now, at } = f; await f.publish();
   await f.save(LUKE, 'QB', 18, true);
   await f.load(f.payload({ actuals: { QB: 14.6 } }));   // a fixture only: QB is scored before any schedule call
@@ -304,12 +304,14 @@ test('schedule: an empty map or one with no game in the week is refused and chan
   const was = await stored();
   // An empty or failed schedule fetch must never read as every game cancelled.
   const refused = { 'an empty map': {}, 'only slate games in another week': Object.fromEntries(slate(now).slots.map(s => [s.gameId, { week: 9, kickoff: at(now + 8 * DAY) }])),
-    'only an unrelated game in another week': { 'GB-CHI': { week: 7, kickoff: at(now - 6 * DAY) } } };
+    'only an unrelated game in another week': { 'GB-CHI': { week: 7, kickoff: at(now - 6 * DAY) } },
+    'a partial feed: one unrelated game in the week': { 'GB-CHI': { week: 8, kickoff: at(now + 2 * HOUR) } },
+    'every slate game but RB (a missing key is not a cancellation)': Object.fromEntries(slate(now).slots.filter(s => s.slot !== 'RB').map(s => [s.gameId, { week: 8, kickoff: s.kickoff }])) };
   for (const [name, games] of Object.entries(refused)) await assert.rejects(() => f.schedule(games, at(now)), code('GTL_POINTS_INVALID'), name);
   assert.deepEqual(await stored(), was, 'a refused schedule changes no slot and adds no audit entry');
   assert.equal((await f.results()).QB.status, 'scored', 'the scored slot stays scored');
-  const allButRb = Object.fromEntries(slate(now).slots.filter(s => s.slot !== 'RB').map(s => [s.gameId, { week: 8, kickoff: s.kickoff }]));
-  assert.deepEqual(await f.schedule(allButRb, at(now)), { changed: ['RB'] }, 'KC-LV is missing from a map that has week 8 games: cancelled');
+  const full = Object.fromEntries(slate(now).slots.map(s => [s.gameId, { week: 8, kickoff: s.kickoff }]));
+  assert.deepEqual(await f.schedule({ ...full, 'KC-LV': { week: 9, kickoff: at(now + 8 * DAY) } }, at(now)), { changed: ['RB'] }, 'KC-LV moved to week 9: only that slot is voided');
   assert.deepEqual((await stored()).slots.map(s => s.void), [null, 'postponed', null, null, null]);
   assert.equal((await f.results()).QB.status, 'scored');
 });
@@ -361,6 +363,11 @@ test('slate guard: each published column and slot identity field is frozen; a wr
   await f.as('service_role', `update public.gtl_points_slates set slots=jsonb_set(jsonb_set(slots,'{2,kickoff}',to_jsonb(now()+interval '3 days')),'{3,void}','"postponed"')`);
   const written = (await f.db.query('select slots from public.gtl_points_slates')).rows[0].slots;
   assert.deepEqual([written[3].void, Math.abs(new Date(written[2].kickoff) - (Date.now() + 3 * DAY)) < HOUR], ['postponed', true]);
+  // Once voided, a slot stays void: the only other legal value, null, is refused, and so is a change to a kickoff alongside it.
+  await assert.rejects(() => slotSet('3,void', 'null'), code('GTL_POINTS_INVALID'), 'un-voiding a voided slot');
+  await assert.rejects(() => f.as('service_role', `update public.gtl_points_slates set slots=jsonb_set(jsonb_set(slots,'{3,void}','null'),'{3,kickoff}',to_jsonb(now()+interval '4 days'))`),
+    code('GTL_POINTS_INVALID'), 'un-voiding with a later kickoff');
+  assert.equal((await f.db.query('select slots from public.gtl_points_slates')).rows[0].slots[3].void, 'postponed', 'the slot is still void');
 });
 
 test('pending: no stats and no played flag stays pending until the commissioner rules on it after kickoff', { skip }, async t => {
@@ -496,8 +503,8 @@ test('FINAL: finalize waits for its time and every result, freezes once, and lat
   assert.deepEqual(await f.finalize(at(now + 7 * DAY)), { status: 'replay' });
   assert.equal(await f.count('gtl_points_week_final'), 1);
   await assert.rejects(() => f.rule(SEAN, 'QB', 'void', 'Late ruling', at(now + 7 * DAY)), code('GTL_POINTS_FINAL'));
-  const allButRb = Object.fromEntries(slate(now).slots.filter(s => s.slot !== 'RB').map(s => [s.gameId, { week: 8, kickoff: s.kickoff }]));
-  assert.deepEqual(await f.schedule(allButRb, at(now + 7 * DAY)), { changed: [] }, 'a FINAL week never changes its schedule, even for a cancelled game');
+  const rbMoved = { ...Object.fromEntries(slate(now).slots.map(s => [s.gameId, { week: 8, kickoff: s.kickoff }])), 'KC-LV': { week: 9, kickoff: at(now + 8 * DAY) } };
+  assert.deepEqual(await f.schedule(rbMoved, at(now + 7 * DAY)), { changed: [] }, 'a FINAL week never changes its schedule, even for a moved game');
   assert.deepEqual((await f.db.query('select slots from public.gtl_points_slates')).rows[0].slots.map(s => s.void), [null, null, null, null, null]);
   const r = await f.read(LUKE, at(now + 7 * DAY));
   assert.deepEqual([r.status, slotOf(r, 'QB').result.actual, slotOf(r, 'QB').mine.points, r.weekBoard.mine, r.weekBoard.house], ['final', 14.6, 6.6, 7.6, 18.8]);
@@ -550,6 +557,35 @@ test('FINAL in the read: a FINAL week\'s week and season boards come from the fr
   const r = await f.read(LUKE, at(now + 7 * DAY));
   assert.equal(r.status, 'final');
   assert.deepEqual(boards(r), want, 'the boards still equal the frozen members and House');
+});
+
+test('FINAL in the read: slot-level points and opted-in membership come from the frozen record, not the live guesses', { skip }, async t => {
+  const f = await fixture(t), { now, at } = f; const results = await finalWeek(f);
+  const when = at(now + 7 * DAY);
+  const frozenQb = results.members.find(m => m.userId === LUKE).slots.QB, frozenWr = results.members.find(m => m.userId === TROY).slots.WR;
+  assert.deepEqual([frozenQb, frozenWr], [6.6, 0]);
+  const check = async (label) => {
+    const luke = await f.read(LUKE, when), troy = await f.read(TROY, when);
+    assert.equal(slotOf(luke, 'QB').mine.points, frozenQb, `${label}: mine.points is the frozen value`);
+    assert.equal(slotOf(troy, 'WR').mine.points, frozenWr, `${label}: the other member's mine.points is the frozen value`);
+    assert.equal(slotOf(troy, 'QB').others.find(o => o.userId === LUKE).points, frozenQb, `${label}: others[].points is the frozen value`);
+    assert.equal(slotOf(luke, 'WR').others.find(o => o.userId === TROY).points, frozenWr, `${label}: others[].points of the other member`);
+  };
+  await check('before');
+  // Change locked guesses underneath the guard (an owner-level bypass): a live recompute now differs for both.
+  await f.db.exec(`alter table public.gtl_points_guesses disable trigger gtl_points_guess_guard;
+    update public.gtl_points_guesses set guess=14 where user_id='${LUKE}' and slot='QB';
+    update public.gtl_points_guesses set guess=10 where user_id='${TROY}' and slot='WR';
+    alter table public.gtl_points_guesses enable trigger gtl_points_guess_guard;`);
+  assert.deepEqual((await f.db.query(`select slot,points::float8 p from public.gtl_points_member_points(2026,8) where (user_id,slot) in (('${LUKE}','QB'),('${TROY}','WR')) order by slot`)).rows.map(r => r.p), [9.4, 9.8], 'the live recompute moved');
+  await check('after');
+  // Opted-in membership of a FINAL week is the frozen members: unlock troy's only lock underneath the guard and he stays opted in.
+  await f.db.exec(`alter table public.gtl_points_guesses disable trigger gtl_points_guess_guard;
+    update public.gtl_points_guesses set locked_at=null where user_id='${TROY}';
+    alter table public.gtl_points_guesses enable trigger gtl_points_guess_guard;`);
+  const luke = await f.read(LUKE, when);
+  assert.equal((await f.read(TROY, when)).optedIn, true, 'troy is opted in by the frozen members');
+  assert.deepEqual(luke.seasonBoard.standings.map(s => s.userId).sort(), results.members.map(m => m.userId).sort(), 'standings membership is the frozen members');
 });
 
 test('gate in the read: another member\'s guess, points and the House show only after the viewer locks that slot or at its kickoff', { skip }, async t => {

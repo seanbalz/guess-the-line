@@ -284,6 +284,8 @@ begin
     if (changed - 'kickoff' - 'void') is distinct from (was - 'kickoff' - 'void')
       or jsonb_typeof(changed->'kickoff') is distinct from 'string'
       or (changed->'void' is distinct from 'null'::jsonb and changed->'void' is distinct from '"postponed"'::jsonb) then raise exception 'GTL_POINTS_INVALID'; end if;
+    -- Once voided, a slot stays void.
+    if was->'void' is distinct from 'null'::jsonb and changed->'void' is distinct from was->'void' then raise exception 'GTL_POINTS_INVALID'; end if;
     begin kick := (changed->>'kickoff')::timestamptz; exception when others then raise exception 'GTL_POINTS_INVALID'; end;
     -- An unchanged kickoff stays as stored; a changed one must equal the canonical rendering of its instant.
     if not isfinite(kick) or (changed->'kickoff' is distinct from was->'kickoff' and changed->'kickoff' is distinct from to_jsonb(kick)) then
@@ -352,8 +354,9 @@ $$;
 
 -- Apply the NFL schedule to a week's slots. p_games maps a game key to { week, kickoff } and must be a non-empty object
 -- with at least one game whose week is p_week: an empty or failed fetch is refused, never read as every game
--- cancelled. In such a map a missing key is a cancelled game. A game cancelled or moved out of the week voids its slot
--- ('postponed'); a kickoff that moved while the stored kickoff is still ahead of p_now moves that slot's lock time with
+-- cancelled. Fail closed: every slot that is not already void must have its gameId in the map, or the whole call is
+-- refused (GTL_POINTS_INVALID) and nothing changes; a missing key is never a cancellation (the commissioner's 'void'
+-- ruling handles a cancelled game). A game present with another week voids its slot ('postponed'); a kickoff that moved while the stored kickoff is still ahead of p_now moves that slot's lock time with
 -- it, earlier (even to a time already past, which closes the slot) or later; a kickoff that has passed never changes.
 -- Every change is appended to the audit. Player, team, game and House never change, and a FINAL week never changes.
 create function public.gtl_points_update_schedule(p_season integer, p_week integer, p_games jsonb, p_now timestamptz) returns jsonb
@@ -374,11 +377,9 @@ begin
   for n in 0..jsonb_array_length(v_slate.slots) - 1 loop
     v_slot := v_slate.slots->n; v_game := p_games->(v_slot->>'gameId');
     if v_slot->>'void' is null then
-      if v_game is not null then
-        if jsonb_typeof(v_game) <> 'object' or jsonb_typeof(v_game->'week') is distinct from 'number' then raise exception 'GTL_POINTS_INVALID'; end if;
-        if (v_game->>'week')::numeric <> trunc((v_game->>'week')::numeric) then raise exception 'GTL_POINTS_INVALID'; end if;
-      end if;
-      if v_game is null or (v_game->>'week')::numeric <> p_week then
+      if v_game is null or jsonb_typeof(v_game) <> 'object' or jsonb_typeof(v_game->'week') is distinct from 'number' then raise exception 'GTL_POINTS_INVALID'; end if;
+      if (v_game->>'week')::numeric <> trunc((v_game->>'week')::numeric) then raise exception 'GTL_POINTS_INVALID'; end if;
+      if (v_game->>'week')::numeric <> p_week then
         v_entries := v_entries || jsonb_build_array(jsonb_build_object('at', p_now, 'action', 'schedule', 'slot', v_slot->>'slot',
           'before', jsonb_build_object('void', null), 'after', jsonb_build_object('void', 'postponed')));
         v_slot := jsonb_set(v_slot, '{void}', '"postponed"'); v_changed := v_changed || (v_slot->>'slot');
@@ -580,8 +581,12 @@ begin
     select * into v_slate from public.gtl_points_slates s where s.season = p_season and s.week = p_week and s.opens_at <= p_now;
   end if;
   v_found := found;
+  -- Opted in: a locked guess in a week that is not FINAL, or membership in a FINAL week's frozen results.members.
   v_opted := exists(select 1 from public.gtl_points_guesses g
-    where g.user_id = p_user and g.season = coalesce(v_slate.season, p_season) and g.locked_at is not null);
+      where g.user_id = p_user and g.season = coalesce(v_slate.season, p_season) and g.locked_at is not null
+        and not exists(select 1 from public.gtl_points_week_final f where f.season = g.season and f.week = g.week))
+    or exists(select 1 from public.gtl_points_week_final f, jsonb_array_elements(f.results->'members') m
+      where f.season = coalesce(v_slate.season, p_season) and m->>'userId' = p_user::text);
   if not v_found then
     return jsonb_build_object('status', 'none', 'viewer', p_user, 'admin', v_admin, 'leagueId', p_league, 'optedIn', v_opted, 'members', v_members);
   end if;
@@ -600,7 +605,10 @@ begin
       case when r.status = 'scored' and r.house is not null then greatest(0, 10 - abs(round(r.house, 1) - r.actual)) end house_points
     from weeks w cross join lateral public.gtl_points_slot_results(w.season, w.week) r),
   pts as (
-    select w.week, mp.user_id, mp.slot, mp.guess, case when mp.user_id = p_user or res.revealed then mp.points end points
+    select w.week, mp.user_id, mp.slot, mp.guess,
+      case when mp.user_id = p_user or res.revealed then
+        case when w.frozen is null then mp.points
+          else (select (m->'slots'->>mp.slot)::numeric from jsonb_array_elements(w.frozen->'members') m where m->>'userId' = mp.user_id::text) end end points
     from weeks w cross join lateral public.gtl_points_member_points(w.season, w.week) mp
     join res on res.week = w.week and res.slot = mp.slot
     where mp.user_id = any(v_scope)),
@@ -622,8 +630,12 @@ begin
       else coalesce(sum(res.house_points) filter (where res.revealed), 0) end points
     from res group by res.week),
   opted as (
-    select distinct g.user_id from public.gtl_points_guesses g
-    where g.season = v_slate.season and g.locked_at is not null and g.user_id = any(v_scope))
+    select g.user_id from public.gtl_points_guesses g
+    where g.season = v_slate.season and g.locked_at is not null and g.user_id = any(v_scope)
+      and not exists(select 1 from public.gtl_points_week_final f where f.season = g.season and f.week = g.week)
+    union
+    select (m->>'userId')::uuid from public.gtl_points_week_final f, jsonb_array_elements(f.results->'members') m
+    where f.season = v_slate.season and (m->>'userId')::uuid = any(v_scope))
   select jsonb_build_object(
     'status', v_status, 'season', v_slate.season, 'week', v_slate.week, 'opensAt', v_slate.opens_at, 'finalizeAt', v_slate.finalize_at,
     'rules', v_slate.rules, 'viewer', p_user, 'admin', v_admin, 'leagueId', p_league, 'optedIn', v_opted, 'members', v_members,
