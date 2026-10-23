@@ -1,9 +1,10 @@
 # Guess the Points and Trade verdicts design
 
 Owner: Sean Balsiger · Designed with Sean in chat October 22–23, 2026 · Status:
-**proposed, not approved.** Sean answered every question below and approved each
-of the five design sections in chat; this written specification awaits his
-review. Nothing is built, migrated or deployed. No implementation plan exists yet.
+**approved as written (D-56).** Sean answered every question below, approved each
+of the five design sections in chat, and then reviewed this written
+specification: "Spec approved as written." Nothing is built, migrated or deployed.
+No implementation plan exists yet; writing one needs Sean's go.
 
 Claim tags: **[inspected]** read in this repository; **[evidence]** from the
 October 22, 2026 fantasy research report and its evidence records (kept in
@@ -498,11 +499,11 @@ rankings; LLM-written text; superflex or TE-premium scoring; a combined
 cross-game standing; back-filled weeks; push for trades. The weekly league paper
 (R7) is a separate item that may later read Points results.
 
-## 12. Proposed decision entry (draft, not approved)
+## 12. Decision entry
 
-To be added to `docs/DECISIONS.md` only after Sean approves this specification.
-The number D-56 is provisional: if another decision takes D-56 first, this entry
-takes the next free number.
+Sean approved this specification on October 23, 2026; the entry below is recorded
+as D-56 in [DECISIONS.md](../../DECISIONS.md#d-56--guess-the-points-and-trade-verdicts-october-23-2026),
+with the approval added. The draft as reviewed:
 
 > ## D-56 — Guess the Points and Trade verdicts (proposed October 22, 2026)
 >
