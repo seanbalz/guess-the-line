@@ -22,6 +22,7 @@ export const FEATURES = Object.freeze({
   forfeit: 'POST /community/forfeit: "Skip this week\'s Guess the Line" and "See picks now" (M-03, redesign stage 19)',
   recommendations: 'POST /bets/recommendations and /bets/recommendations/place: current-account recommendation reads and new Virtual Units picks',
   bets: 'POST /bets/read: account-level Virtual Units reads and other players’ gated saved terms (M-10, redesign stage 40)',
+  fantasy: 'POST /fantasy/week: signed-in Fantasy Track 1 snapshot and review read (D-57)',
   points: 'POST /points/draft, /points/lock and /points/slate: Guess the Points draft saves, lock-ins and slate changes (D-56, P-01); POST /points/read keeps working',
 });
 

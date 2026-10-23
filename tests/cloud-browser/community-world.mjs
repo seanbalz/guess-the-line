@@ -1,4 +1,5 @@
 import { createTrendsService } from '../../cloud/trends.mjs';
+import { createFantasyService } from '../../cloud/fantasy.mjs';
 import trendsSeed from '../../cloud/trends-seed.mjs';
 // Shared community world for the D-21/D-23/D-24 browser specs: the real cloud handler and
 // the real migrations on local PGlite (the community.spec.js pattern) with three fixture
@@ -80,7 +81,7 @@ export async function communityWorld(page, baseURL, options = {}) {
 }
 
 /** The same world without a browser: the database, the real handler and world.api (options as communityWorld). */
-export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false, research, trendsReadSeason = async () => trendsSeed.seasonCsv } = {}) {
+export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false, research, trendsReadSeason = async () => trendsSeed.seasonCsv, fantasyFetch = null } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec(PRELUDE);
   await db.exec(migrationSql(migrations[0]));
@@ -139,6 +140,7 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     // so /lines/* answer the generic 503 and every other route is unchanged.
     lines: { rpc: rpc(providerLinesError), ...(research ? { research } : {}) },
     trends: createTrendsService({ rpc: rpc(providerLinesError), readSeason: trendsReadSeason, clock, seed: trendsSeed }),
+    fantasy: fantasyFetch ? createFantasyService({ fetchImpl: fantasyFetch, clock }) : undefined,
     league: { rpc: rpc(providerLeagueError) }, me: { rpc: rpc(providerMeError) },
     // Guess the Points (D-56): on a schema without P-01 (HOSTED today) its functions are missing and PostgREST's PGRST202
     // reads as GTL_FEATURE_OFF, so /points/* answer 404 "coming soon", as the production adapter does.

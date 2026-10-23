@@ -26,7 +26,8 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * after the deploy, then remove the entries from their area file in the change that records the hosted version.
  *
  * Each area file lists its own pieces: the pieces of the migrations in NOT_HOSTED (tests/migrations.mjs) and the routes that
- * need them. Since October 23, 2026 only scripts/boundary/guess.mjs lists any: P-01's Guess the Points functions
+ * need them. Since October 23, 2026 two areas list any: scripts/boundary/lines.mjs lists /fantasy/week (D-57) until its
+ * gtl-api deploy, and scripts/boundary/guess.mjs lists P-01's Guess the Points functions
  * (20261023180000_gtl_points_core.sql) and the /points/* routes that call them (cloud/points.mjs). Those routes answer 404
  * "coming soon" with code GTL_POINTS_OFF until P-01 is applied, and the app shows "Points is coming soon", so neither a
  * gtl-api deploy before the apply nor the apply before the deploy fails check:cloud on them alone. The notes below record

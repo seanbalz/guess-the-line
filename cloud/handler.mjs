@@ -1,4 +1,5 @@
 import { handleTrends, TRENDS_METHODS, TrendsError, createTrendsService, createSeasonReader } from './trends.mjs';
+import { handleFantasy, FANTASY_METHODS, FantasyError, createFantasyService } from './fantasy.mjs';
 import { handlePersonal, PERSONAL_METHODS, PersonalError, providerPersonalError } from './personal.mjs';
 import { handleSocial, SOCIAL_METHODS, SocialError, providerSocialError } from './social.mjs';
 import { socialBetExport } from '../shared/social-export.mjs';
@@ -74,6 +75,7 @@ const SAFE_VALIDATION_ERRORS = new Set([
  */
 const ROUTE_GROUPS = Object.freeze([
   Object.freeze({ service: 'trends', methods: TRENDS_METHODS, handle: handleTrends, Error: TrendsError }),
+  Object.freeze({ service: 'fantasy', methods: FANTASY_METHODS, handle: handleFantasy, Error: FantasyError }),
   Object.freeze({ service: 'lines', methods: LINES_METHODS, handle: handleLines, Error: LinesError }),
   Object.freeze({ service: 'bets', methods: BETS_METHODS, handle: handleBets, Error: BetsError }),
   Object.freeze({ service: 'league', methods: LEAGUE_METHODS, handle: handleLeague, Error: LeagueError }),
@@ -144,13 +146,13 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, me, trends, points, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, me, trends, fantasy, points, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
   // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
   const featuresOff = parseFeatureOff(featureOff);
-  const groupServices = { lines, bets, league, me, trends, points };
+  const groupServices = { lines, bets, league, me, trends, fantasy, points };
   // The live Guess rules ride along with the views both apps render (build plan, section 3.4).
   // The read fails closed on an outage; only an explicitly missing RPC carries legacy rules.
   async function withRules(view, rules = readLiveRules(optionalRpc)) {
@@ -456,6 +458,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     nba: groupRpc(providerNbaError, ['gtl_nba_read_bets', 'gtl_nba_save_bet']),
     nbaGamesCache: createNbaGamesCache(groupRpc(providerNbaError, ['gtl_nba_claim_games', 'gtl_nba_finish_games'])),
     trends: createTrendsService({ rpc: groupRpc(providerLinesError).rpc, readSeason: createSeasonReader({ fetchImpl }), clock }),
+    fantasy: createFantasyService({ fetchImpl, clock }),
     lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     points: groupRpc(providerPointsError, POINTS_RPCS),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".

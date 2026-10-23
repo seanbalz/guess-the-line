@@ -88,3 +88,5 @@ export const pointsApi = (action, body = {}, signal) => groupApi('points', actio
 
 /** Public historical Trends for an authorized published week. */
 export const trendsApi = (body, signal) => cloudApi('trends/week', body, { signal });
+/** Public Fantasy snapshots published by the scheduled refresh (D-57), for signed-in players. */
+export const fantasyApi = (body, signal) => cloudApi('fantasy/week', body, { signal });

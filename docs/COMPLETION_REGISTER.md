@@ -33,6 +33,8 @@ Sean approved week-opening publication, a Trends tab with This Week / Teams / Pl
 
 ## Current work and remaining boundaries
 
+October 23 Fantasy Track 1 implementation (D-57, Q11 and part of Q14): implemented on branch `claude/fantasy-track1-impl` and linked from its implementation pull request (number recorded when opened). It adds the refresh builder, weekly review, release index and publisher, a manual-only workflow, the signed-in `/fantasy/week` route and the app status line, gated game context and accuracy card. Awaiting API and frontend releases and the first scheduled run; see the [release card](FANTASY_TRACK1_RELEASE.md). No release, deployment, workflow run or hosted verification has happened.
+
 October 23 Fantasy Track 1 design (D-57): Sean approved the
 [written design](superpowers/specs/2026-10-23-fantasy-track1-design.md) for a
 scheduled Fantasy refresh published as release files, a signed-in
@@ -48,6 +50,9 @@ answering each rule question and approving each section in chat. Design only, on
 implementation plan, code, migration or deploy yet. It depends on the fantasy
 refresh (queue Q11, D-57) publishing fresh weekly estimates by Tuesday noon PT;
 Points loads actual stats and snap counts from nflverse itself (spec section 4.4).
+The [phase 1 implementation plan](superpowers/plans/2026-10-23-guess-the-points.md)
+(12 tasks, migrations P-01 to P-03) was written October 23; tasks 1, 4, 5 and 8 do
+not wait for Track 1. Nothing is applied or deployed.
 
 October 21 NBA product direction: Sean selected **daily game board + private bet
 tracking first**, with NBA competitions later. The

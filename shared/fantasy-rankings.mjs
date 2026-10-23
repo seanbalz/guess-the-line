@@ -93,7 +93,21 @@ export function validateFantasySnapshot(snapshot, { now = Date.now() } = {}) {
   if (!isRecord(snapshot)) return { valid: false, errors: ['Snapshot is missing.'] };
   const instant = typeof now === 'string' ? Date.parse(now) : now;
   if (!finite(instant)) fail('Current time is invalid.');
-  if (snapshot.schemaVersion !== 1) fail('Unsupported snapshot version.');
+  if (![1, 2].includes(snapshot.schemaVersion)) fail('Unsupported snapshot version.');
+  if (snapshot.schemaVersion === 2) {
+    if (!Array.isArray(snapshot.rosterFallbackTeams) || snapshot.rosterFallbackTeams.some(team => !validText(team))) fail('Roster fallback list is invalid.');
+    if (!isRecord(snapshot.matchups)) fail('Matchups are missing.');
+    else for (const [team, games] of Object.entries(snapshot.matchups)) {
+      if (!Array.isArray(games)) { fail(`Matchups for ${team} are invalid.`); continue; }
+      for (const game of games) {
+        if (!isRecord(game) || !Number.isInteger(game.week) || game.week < 1 || game.week >= snapshot.week || !validText(game.opponent) || !isRecord(game.allowed)) { fail(`Matchups for ${team} are invalid.`); continue; }
+        for (const position of ['QB', 'RB', 'WR', 'TE']) {
+          if (!isRecord(game.allowed[position])) fail(`Matchups for ${team} Week ${game.week} ${position} are missing.`);
+          else stats(game.allowed[position], `Matchups ${team} Week ${game.week} ${position}`);
+        }
+      }
+    }
+  }
   if (!Number.isInteger(snapshot.season) || snapshot.season < 1900 || snapshot.season > 2200) fail('Season is invalid.');
   if (!Number.isInteger(snapshot.week) || snapshot.week < 1 || snapshot.week > 18) fail('Week is invalid.');
   if (!Number.isInteger(snapshot.statsThroughWeek) || snapshot.statsThroughWeek < 0 || snapshot.statsThroughWeek >= snapshot.week) fail('Stats coverage must precede the selected week.');
