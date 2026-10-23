@@ -84,6 +84,26 @@ the D-55 rules (at most two glow cards in view, glass only on a glow card, lime 
 for the one primary action) and the spec's at-most-four-numbers rule. This selects
 the card's look only; it changes no rule above and builds no screen.
 
+*Addendum, October 23, 2026 — Points screens: glow cards and decisions 1C 2A 3B 4A 5B 6A.*
+Sean, Oct 23: any number of glow cards may be on screen; this replaces D-55's two-card limit.
+Sean then reviewed six Points screen mockups ("Points screens: six decisions", built for PR #199 with made-up
+sample data) and chose, as relayed to the Points build by the coordinator:
+- **1C, Play tab row:** Points is a glow card with a glass pill "Guess the Points", a big "2/5" (locked of 5) and
+  the line "Next locks Sun 10:00 AM PT". The Spread and Total rows stay plain.
+- **2A, slot cards:** full cards, all five glowing. Each has a glass pill "POS · Player", a status word and the
+  matchup and kickoff line; then the You / Actual / Points tiles once scored (PROVISIONAL or FINAL), "You N" once
+  locked in, "Draft N" for a draft, and nothing more while the slot is still to pick.
+- **3B, entering a guess:** a big stepper (− / the number in lime / +, at 56px; holding moves by 5) instead of the
+  chip rail, clamped to 0–60. Save draft, the one lime "Lock in N" with its confirm dialog, and Retry same save stay.
+- **4A, before the gate opens:** faces of the members who locked in, with no numbers, and "N locked in · guesses
+  open at kickoff".
+- **5B, after the gate opens:** a number line from 0 to max(30, the highest guess or House estimate rounded up to
+  10). Faces sit at their guesses (yours is the lime "You" face) and the House is a tick labelled "House N"; a tap
+  shows the exact number, and each face and the tick name their value for keyboard and screen readers. Overlapping
+  faces are offset vertically; every target stays 44px.
+- **6A, League board:** the House stays unranked at the bottom, with "Beat the House ›".
+These choose the screens' look only; no game rule above changes.
+
 ## D-55 — trend charts and a softer brand direction (October 21, 2026)
 
 Sean reviewed five trend-chart directions for the game sheet (A headline line, B

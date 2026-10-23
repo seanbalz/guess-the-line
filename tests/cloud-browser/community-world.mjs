@@ -23,6 +23,7 @@ import { providerVirtualError } from '../../cloud/virtual-units.mjs';
 import { providerLeagueError } from '../../cloud/league.mjs';
 import { providerMeError } from '../../cloud/me.mjs';
 import { providerBetsError } from '../../cloud/bets.mjs';
+import { providerPointsError } from '../../cloud/points.mjs';
 import { createOptionalRpc } from '../../cloud/optional-rpc.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { openDeadline } from './fixture-deadline.mjs';
@@ -141,6 +142,9 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     trends: createTrendsService({ rpc: rpc(providerLinesError), readSeason: trendsReadSeason, clock, seed: trendsSeed }),
     fantasy: fantasyFetch ? createFantasyService({ fetchImpl: fantasyFetch, clock }) : undefined,
     league: { rpc: rpc(providerLeagueError) }, me: { rpc: rpc(providerMeError) },
+    // Guess the Points (D-56): on a schema without P-01 (HOSTED today) its functions are missing and PostgREST's PGRST202
+    // reads as GTL_FEATURE_OFF, so /points/* answer 404 "coming soon", as the production adapter does.
+    points: { rpc: rpc(message => providerPointsError(/^function public\.\w+\(.*\) does not exist$/.test(message) ? 'GTL_FEATURE_OFF' : message)) },
     // Recommendations use the published account week, even when every private
     // group remains on an older slate. These are the production adapter's exact
     // stored-row filters, executed locally; never an odds provider request.

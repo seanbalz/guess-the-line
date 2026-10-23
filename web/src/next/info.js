@@ -67,7 +67,23 @@ export const INFO = Object.freeze({
     body: ['Forecasts come from Open-Meteo and are reference only. The credit also sits beside every forecast value.'],
     links: WEATHER_LINKS,
   },
+  // Guess the Points (D-56 spec section 5, "ⓘ About Guess the Points"): rules, weights, void, timing, the House note and the credit.
+  points: {
+    title: 'About Guess the Points',
+    body: [
+      'Each week opens Tuesday at 12:00 PM PT with five players: QB, RB, WR, TE and FLEX. Guess each one’s fantasy points, a whole number from 0 to 60, and lock it in before his game kicks off. A locked guess is final; a slot never locked in scores nothing and shows —.',
+      'Scoring is Full PPR: 1 point per reception and 4 per passing touchdown, with the rest of GTL’s disclosed offensive weights. Each slot earns 10 minus the fantasy points you were off, never below 0. The week’s maximum is 50.',
+      'A player with no snap, a team change or a game moved out of the week is Void · inactive for everyone, and the maximum drops by 10.',
+      'Points are PROVISIONAL as stats load and re-grade on corrections until the following Thursday at 12:00 PM PT, then FINAL.',
+      'Other members’ guesses and the House open once you lock in that player, or at his kickoff. The House is GTL’s own weekly estimate, shown as an unranked row. It is public in Research › Fantasy; the ballot holds it back only so it does not anchor your guess.',
+      'Points has its own board and never adds to Spread or Total.',
+    ],
+    links: [
+      { text: 'Player stats: nflverse', url: 'https://github.com/nflverse/nflverse-data' },
+      { text: 'License: CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
+    ],
+  },
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'trends', 'research', 'trackedBets', 'recommended', 'virtual', 'weather']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'trackedBets', 'recommended', 'virtual', 'weather']);
