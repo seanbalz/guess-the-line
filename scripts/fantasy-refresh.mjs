@@ -36,7 +36,18 @@ async function download(name, { optional = false, expectSha } = {}) {
 const indexBytes = await download('index.json', { optional: true });
 const index = indexBytes ? JSON.parse(indexBytes.toString('utf8')) : null;
 if (index && !validateFantasyIndex(index).valid) throw new Error('The published index is invalid.');
-const { rows, sources } = await readFantasySources({ season, inputDir: value('--input-dir') ?? null, root });
+let sourceRead;
+try { sourceRead = await readFantasySources({ season, inputDir: value('--input-dir') ?? null, root }); } catch (error) {
+  // Off-season: the new season's nflverse files do not exist yet and nothing was ever published for it. Only that case is quiet.
+  if (index || !/^Source asset unavailable:/.test(String(error?.message))) throw error;
+  const reason = 'Season sources not published yet.';
+  await mkdir(out, { recursive: true });
+  await writeFile(path.join(out, 'manifest.json'), `${JSON.stringify({ season, plan: null, files: [], index: null, reason }, null, 2)}
+`);
+  console.log(JSON.stringify({ season, plan: null, files: [], reason }));
+  process.exit(0);
+}
+const { rows, sources } = sourceRead;
 // Stamp after the sources are read: a snapshot may not predate its own source retrieval.
 const generatedAt = new Date(Math.max(now, ...sources.map(source => Date.parse(source.retrievedAt)))).toISOString();
 const builtAt = Date.parse(generatedAt);
