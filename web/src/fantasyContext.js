@@ -34,21 +34,26 @@ export function loadFantasyLines(season, week) {
 
 export function useFantasyGameContext(season, week) {
   const key = season && week ? `${season}-${week}` : null;
-  const [state, setState] = useState({ key: null, lines: null, wind: null });
+  const [state, setState] = useState({ key: null, generation: accountGeneration, lines: null, wind: null });
   const [generation, setGeneration] = useState(accountGeneration);
   useEffect(() => {
-    const listener = next => { setGeneration(next); setState({ key: null, lines: null, wind: null }); };
+    const listener = next => { setGeneration(next); setState({ key: null, generation: next, lines: null, wind: null }); };
     accountListeners.add(listener);
     // The account may have changed between the first render and this subscription.
     if (accountGeneration !== generation) listener(accountGeneration);
     return () => { accountListeners.delete(listener); };
+    // Intentionally empty: subscribe once per mount; the generation is read (not tracked) to catch a change before this ran.
   }, []);
   useEffect(() => {
     if (!key) return undefined;
     let current = true;
+    const startedGeneration = accountGeneration;
     Promise.all([loadFantasyLines(season, week), loadWind(season, week)])
-      .then(([lines, wind]) => { if (current) setState({ key, lines, wind: wind?.data ?? null }); });
+      .then(([lines, wind]) => {
+        // The cleanup may run after the account-change reset, so a reply that began under another account is dropped here.
+        if (current && startedGeneration === accountGeneration) setState({ key, generation: startedGeneration, lines, wind: wind?.data ?? null });
+      });
     return () => { current = false; };
   }, [key, season, week, generation]);
-  return state.key === key ? state : { key, lines: null, wind: null };
+  return state.key === key && state.generation === accountGeneration ? state : { key, lines: null, wind: null };
 }
