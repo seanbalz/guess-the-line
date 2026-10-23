@@ -127,4 +127,9 @@ describe('fantasy rankings view', () => {
     const out = text(html);
     for (const value of ['Week 5 estimates', 'PROVISIONAL', 'Off by 5.0 points per player', 'Season average: 8.0', 'Within 5 points', '100%', 'Listed available, no stats row: 1', 'Played without an estimate: 2']) expect(out).toContain(value);
   });
+  it('says a week was not graded only for hosted data without a review', () => {
+    const note = 'Not graded: no estimate was published for Week 5.';
+    expect(text(render({ state: { status: 'ready', origin: 'hosted', snapshot, review: null } }))).toContain(note);
+    expect(text(render({ state: { status: 'ready', origin: 'saved', fallback: true, snapshot, review: null } }))).not.toContain('Not graded');
+  });
 });

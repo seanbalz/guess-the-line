@@ -148,6 +148,7 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
         {stale && <p className={c('warning')} role="status">Stale snapshot: the source is more than 7 days old. These estimates may miss recent games and roster changes.</p>}
         {unknownAge && <p className={c('warning')}>Source freshness is unavailable.</p>}
       </div>
+      {filters.scope === 'weekly' && state?.origin === 'hosted' && !state.review && snapshot.week > 2 && <p className={c('meta')}>Not graded: no estimate was published for Week {snapshot.week - 1}.</p>}
       {filters.scope === 'weekly' && state?.review && <FantasyAccuracy theme={theme} review={state.review} filters={filters} scoringLabel={selectedScoring} headingLevel={headingLevel === 2 ? 3 : 2}/>}
       <section className={c('results')} aria-label="Player rankings">
         <div className={c('results-heading')}><SectionHeading className={theme === 'next' ? 'gx-t-section' : undefined}>Player rankings</SectionHeading><span className={c('meta')} role="status" aria-live="polite">{rankings.error ? 'Unavailable' : `${rows.length} players`}</span></div>
