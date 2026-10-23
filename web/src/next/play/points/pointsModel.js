@@ -4,9 +4,6 @@
 import { GUESS_MAX, GUESS_MIN } from '../../../../../shared/points-scoring.mjs';
 
 export { GUESS_MAX, GUESS_MIN };
-/** The sheet's chip rail: 0, 5 … 40, and More for 45 … 60 (spec 5). */
-export const QUICK_GUESSES = Object.freeze([0, 5, 10, 15, 20, 25, 30, 35, 40]);
-export const MORE_GUESSES = Object.freeze([45, 50, 55, 60]);
 export const SLOT_NAMES = Object.freeze({ QB: 'Quarterback', RB: 'Running back', WR: 'Wide receiver', TE: 'Tight end', FLEX: 'Flex' });
 
 /** The read failed because Points is not hosted yet: gtl-api's coming-soon 404 (GTL_POINTS_OFF) or its own "Not found.". */
@@ -34,20 +31,18 @@ export function matchupText(slot) {
 /** Whether the viewer can still save or lock this slot: the week is open, the game has not kicked off, it is not locked. */
 export const editable = (read, slot) => read?.status === 'open' && slot.closed !== true && slot.own?.locked !== true;
 
-/** The card's one status word (spec 5): To pick, Draft, Locked in, Closed, Void · inactive, Pending stats. */
-export function slotStatus(slot) {
+/**
+ * The card's one status word (spec 5): To pick, Draft, Locked in, Closed, Void · inactive, Pending stats, and for a scored
+ * slot the week's PROVISIONAL or FINAL (decision 2A, D-56 addendum of October 23).
+ */
+export function slotStatus(slot, weekStatus = null) {
   if (slot.state === 'void') return 'Void · inactive';
+  if (slot.state === 'scored' && weekStatus) return weekStatus;
   if (slot.closed && slot.state === 'pending' && slot.own?.locked) return 'Pending stats';
   if (slot.own?.locked) return 'Locked in';
   if (slot.closed) return 'Closed';
   if (slot.own) return 'Draft';
   return 'To pick';
-}
-
-/** The card that glows (at most two glow cards in view, D-55): the next slot to pick, else the first slot. */
-export function heroSlot(read) {
-  const slots = read?.slots || [];
-  return (slots.find(slot => editable(read, slot)) ?? slots[0])?.slot ?? null;
 }
 
 /** "You 24.6 of 50 · PROVISIONAL" (spec 5); before any stats, "You — of 50". */
@@ -85,20 +80,46 @@ export function resultTiles(slot) {
   ];
 }
 
-/** The Play landing's Points status line (spec 5). `read` is the reply or null; `error` the failed read. */
-export function landingStatus(read, error) {
-  if (comingSoon(error)) return 'Points is coming soon';
-  if (error) return 'Points could not be loaded';
-  if (!read) return 'Loading Points…';
-  if (read.status !== 'open') return 'Opens Tuesdays at 12:00 PM PT';
+/**
+ * The Play landing's glow row (decision 1C): `{ progress, meta, label }`. `progress` is "2/5" (locked of five) while a week
+ * is open, else null; `meta` is the line under it ("Next locks Sun 10:00 AM PT"); `label` reads both in words.
+ */
+export function landingCard(read, error) {
+  const plain = meta => ({ progress: null, meta, label: `Guess the Points, ${meta}` });
+  if (comingSoon(error)) return plain('Points is coming soon');
+  if (error) return plain('Points could not be loaded');
+  if (!read) return plain('Loading Points…');
+  if (read.status !== 'open') return plain('Opens Tuesdays at 12:00 PM PT');
   const slots = read.slots || [];
   const locked = slots.filter(slot => slot.own?.locked).length;
   const next = slots.filter(slot => editable(read, slot)).map(slot => slot.kickoff).sort()[0];
-  if (next) return `${locked} of ${slots.length} locked · next locks ${kickoffText(next)}`;
-  return `Week ${read.week} · ${summaryLine(read)}`;
+  const meta = next ? `Next locks ${kickoffText(next)}` : `Week ${read.week} · ${summaryLine(read)}`;
+  return { progress: `${locked}/${slots.length}`, meta, label: `Guess the Points, ${locked} of ${slots.length} locked, ${meta}` };
 }
 
-/** Clamp a −1 / +1 step to 0 … 60; from nothing, −1 and +1 both start at 0. */
+/**
+ * The number line after the gate opens (decision 5B). The scale runs from 0 to max(30, the highest guess or House estimate
+ * rounded up to 10). Each member is a marker at their guess (the viewer's is "You"); markers closer than a sixth of the scale
+ * share no lane, so overlapping faces are offset vertically. The House is a tick with its own label.
+ */
+export function numberLine(slot, viewer) {
+  const rows = everyone(slot, viewer);
+  const house = typeof slot.house?.estimate === 'number' ? slot.house.estimate : null;
+  const values = [...rows.map(row => row.guess), ...(house === null ? [] : [house])];
+  const max = Math.max(30, Math.ceil(Math.max(0, ...values) / 10) * 10);
+  const gap = max / 6, lanes = [];
+  const markers = [...rows].sort((a, b) => a.guess - b.guess || (a.you ? -1 : 1)).map(row => {
+    let lane = lanes.findIndex(last => row.guess - last >= gap);
+    if (lane < 0) { lane = lanes.length; lanes.push(row.guess); } else lanes[lane] = row.guess;
+    return { ...row, lane, pct: (row.guess / max) * 100 };
+  });
+  return { max, lanes: Math.max(1, lanes.length), markers, house: house === null ? null : { value: house, points: slot.house?.points ?? null, pct: (house / max) * 100 } };
+}
+
+/** Exact values in words for a number line, for an accessible name: "You 22, Troy Fixture 24, House 19.4". */
+export const lineWords = line => [...line.markers.map(m => `${m.name} ${pts(m.guess)}`), ...(line.house ? [`House ${pts(line.house.value)}`] : [])].join(', ');
+
+/** Clamp a stepper move (±1, or ±5 while held) to 0 … 60; from nothing, every move starts at 0. */
 export function step(value, by) {
   if (!Number.isInteger(value)) return GUESS_MIN;
   return Math.min(GUESS_MAX, Math.max(GUESS_MIN, value + by));

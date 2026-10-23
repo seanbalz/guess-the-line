@@ -1,8 +1,9 @@
-/* Guess the Points (D-56; ballot card option D, "Glow card", D-56 addendum). Tokens only (D-38, D-55): the glow card is the
-   kit's gx-card--hero, and glass pills and tiles appear only on it. Plain cards use surface-2 for the same pills. */
+/* Guess the Points (D-56; ballot card option D, "Glow card", D-56 addendum). Tokens only (D-38, D-55): every slot card is the
+   kit's gx-card--hero (any number may be on screen, D-56 addendum of October 23), and glass pills and tiles appear only on a
+   glow card. Outside one, the same pills fall back to surface-2. */
 .gx .gx-pt-slots { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
 .gx .gx-pt-card { width: 100%; min-height: var(--gx-size-touch); align-items: stretch; text-align: left; color: var(--gx-text-1); }
-.gx .gx-pt-head { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-pt-head { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-pt-pill {
   display: inline-flex;
   align-items: center;
@@ -14,7 +15,13 @@
   color: var(--gx-text-1);
   white-space: nowrap;
 }
-.gx .gx-pt-pill--on { box-shadow: inset 0 0 0 1px var(--gx-border-strong); font-weight: 700; }
+.gx .gx-pt-head .gx-pt-pill { min-width: 0; min-height: 28px; padding-block: 2px; white-space: normal; overflow-wrap: anywhere; }
+/* The status word: uppercase micro text after a dot, never color alone. */
+.gx .gx-pt-word { display: inline-flex; flex: none; align-items: center; gap: 6px; color: var(--gx-text-1); white-space: nowrap; }
+.gx .gx-pt-word::before { content: ""; width: 6px; height: 6px; border-radius: var(--gx-radius-pill); background: currentColor; }
+.gx .gx-pt-value-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-pt-locked-faces { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-pt-center { text-align: center; }
 .gx .gx-pt-sub { color: var(--gx-text-2); }
 .gx .gx-pt-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-2); }
 .gx .gx-pt-tile {
@@ -29,29 +36,90 @@
 }
 .gx .gx-pt-tile-label { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
 .gx .gx-pt-tile-value { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.gx .gx-pt-faces { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
-.gx .gx-pt-face {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 2px 10px 2px 4px;
-  border-radius: var(--gx-radius-pill);
-  background: var(--gx-surface-2);
-  box-shadow: inset 0 0 0 1px var(--gx-border);
-}
-.gx .gx-pt-house { padding-left: 10px; }
+/* Decision 1C: the Play landing's Points row is a glow card with a glass pill, a big "2/5" and one meta line. */
+.gx .gx-pt-landing { width: 100%; min-height: var(--gx-size-touch); text-align: left; color: var(--gx-text-1); }
+.gx .gx-pt-landing-top { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
 /* Option D on the glow card: glass pills, faces and tiles, and the glow card's own secondary words. */
 .gx .gx-card--hero .gx-pt-pill,
-.gx .gx-card--hero .gx-pt-face,
 .gx .gx-card--hero .gx-pt-tile { background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); backdrop-filter: var(--gx-glass-blur); }
 .gx .gx-card--hero .gx-pt-sub,
 .gx .gx-card--hero .gx-pt-tile-label { color: var(--gx-hero-text-2); }
-/* The sheet's editor: −1, the value, +1; every control keeps a 44px target. */
-.gx .gx-pt-stepper { display: flex; align-items: center; justify-content: center; gap: var(--gx-space-4); }
-.gx .gx-pt-value { min-width: 72px; text-align: center; font-variant-numeric: tabular-nums; }
-.gx .gx-pt-everyone { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
-.gx .gx-pt-person { display: flex; align-items: center; gap: var(--gx-space-3); min-height: var(--gx-size-touch); }
+/* Decision 3B, the big stepper: − / the number in lime (accent-ink: lime in Dark, dark green in Light) / +, at 56px. */
+.gx .gx-pt-stepper { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-pt-step {
+  display: grid;
+  place-items: center;
+  min-width: 56px;
+  min-height: 56px;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  color: var(--gx-text-1);
+  touch-action: manipulation;
+  user-select: none;
+}
+.gx .gx-pt-step:disabled { color: var(--gx-text-3); }
+.gx .gx-pt-big { min-height: 56px; display: grid; place-items: center; border-radius: var(--gx-radius-sm); color: var(--gx-accent-ink); font-variant-numeric: tabular-nums; }
+/* Decision 5B, the number line: faces at their guesses (lanes 48px apart when they would overlap), the House as a tick. */
+.gx .gx-pt-line {
+  position: relative;
+  display: block;
+  margin-inline: 22px;
+}
+.gx .gx-pt-line-track { position: absolute; left: 0; right: 0; bottom: 34px; height: 4px; border-radius: 2px; background: var(--gx-track); }
+.gx .gx-pt-line-marker {
+  position: absolute;
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--gx-radius-pill);
+  background: transparent;
+  color: var(--gx-text-1);
+}
+.gx .gx-pt-you-face {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-accent);
+  box-shadow: 0 0 0 1px var(--gx-accent-ink);
+  color: var(--gx-accent-text);
+  font: 700 13px/1 var(--gx-font-body);
+}
+.gx .gx-pt-line-tip {
+  position: absolute;
+  bottom: 100%;
+  padding: 2px 8px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  white-space: nowrap;
+}
+.gx .gx-pt-line-house {
+  position: absolute;
+  bottom: 0;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gx-text-1);
+}
+.gx .gx-pt-line-tick { width: 2px; height: 24px; background: var(--gx-text-2); }
+.gx .gx-pt-line-house-label { white-space: nowrap; }
+.gx .gx-pt-line-axis { position: absolute; left: -22px; right: -22px; bottom: -20px; display: flex; justify-content: space-between; color: var(--gx-text-2); }
+.gx .gx-card--hero .gx-pt-line-axis { color: var(--gx-hero-text-2); }
+.gx .gx-pt-line { margin-bottom: 20px; }
 .gx .gx-pt-house-mark {
   display: inline-grid;
   place-items: center;
@@ -65,6 +133,8 @@
 .gx .gx-pt-board-house { color: var(--gx-text-2); }
 @media (forced-colors: active) {
   .gx .gx-pt-pill,
-  .gx .gx-pt-face,
-  .gx .gx-pt-tile { border: 1px solid CanvasText; }
+  .gx .gx-pt-tile,
+  .gx .gx-pt-step { border: 1px solid CanvasText; }
+  .gx .gx-pt-line-track,
+  .gx .gx-pt-line-tick { background: CanvasText; }
 }
