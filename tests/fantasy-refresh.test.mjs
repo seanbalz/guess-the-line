@@ -60,3 +60,25 @@ test('Week 18: no next snapshot; review freezes four days after its last kickoff
   assert.equal(fantasySeason(at('2027-01-15T00:00:00Z')), 2026);
   assert.equal(fantasySeason(at('2026-09-01T00:00:00Z')), 2026);
 });
+
+test('a missing freeze time (no kickoffs for the target week) is never treated as frozen', () => {
+  const noWeek6 = schedule.filter(game => Number(game.week) !== 6);
+  const plan = planFantasyRefresh({ season: 2026, schedule: noWeek6, stats: statsFor(weeks(5)), index: index([5]), now: at('2026-10-13T11:00:00Z') });
+  assert.equal(plan.completed, 5);
+  assert.equal(plan.review.freezeAt, null);
+  assert.equal(plan.review.final, false, 'null freeze must not make the review FINAL');
+});
+
+test('every overdue PROVISIONAL review is finalized, not only the newest completed week', () => {
+  const stats = statsFor(weeks(6)), now = at('2026-10-25T18:00:00Z');
+  const plan = planFantasyRefresh({ season: 2026, schedule, stats, index: index([5, 6], [{ week: 5, status: 'PROVISIONAL' }]), now });
+  assert.equal(plan.review.week, 6);
+  assert.deepEqual(plan.finalize.map(item => [item.week, item.source]), [[5, 'release']]);
+  assert.equal(plan.finalize[0].freezeAt, freezeTime(schedule, 2026, 6));
+  const done = planFantasyRefresh({ season: 2026, schedule, stats, index: index([5, 6], [{ week: 5, status: 'FINAL' }]), now });
+  assert.deepEqual(done.finalize, [], 'a FINAL review is not finalized again');
+  const early = planFantasyRefresh({ season: 2026, schedule, stats, index: index([5, 6], [{ week: 5, status: 'PROVISIONAL' }]), now: at('2026-10-17T11:00:00Z') });
+  assert.deepEqual(early.finalize, [], 'before the Week 5 freeze nothing is overdue');
+  const noSnapshot = planFantasyRefresh({ season: 2026, schedule, stats, index: index([6], [{ week: 5, status: 'PROVISIONAL' }]), now });
+  assert.deepEqual(noSnapshot.finalize, [], 'no published snapshot, nothing to grade');
+});

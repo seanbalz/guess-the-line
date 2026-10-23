@@ -32,7 +32,14 @@ export function planFantasyRefresh({ season, schedule, stats, index, committedWe
   if (completed >= 2) {
     const freezeAt = target ? freezeTime(schedule, season, target) : kickoffs(schedule, season, completed).at(-1) + 4 * DAY;
     const source = snapshots.has(completed) ? 'release' : committedWeeks.includes(completed) ? 'committed' : null;
-    review = { week: completed, source, final: now >= freezeAt, build: source !== null && reviews.get(completed)?.status !== 'FINAL', freezeAt };
+    review = { week: completed, source, final: freezeAt !== null && now >= freezeAt, build: source !== null && reviews.get(completed)?.status !== 'FINAL', freezeAt };
   }
-  return { season, completed, snapshot, review };
+  // Reviews of earlier weeks that a missed run left PROVISIONAL: finalize each once its own freeze has passed.
+  const finalize = [];
+  for (let week = 2; week < completed; week++) {
+    if (reviews.get(week)?.status !== 'PROVISIONAL' || !snapshots.has(week)) continue;
+    const freezeAt = week + 1 <= 18 ? freezeTime(schedule, season, week + 1) : kickoffs(schedule, season, week).at(-1) + 4 * DAY;
+    if (freezeAt !== null && Number.isFinite(freezeAt) && freezeAt <= now) finalize.push({ week, source: 'release', freezeAt });
+  }
+  return { season, completed, snapshot, review, finalize };
 }
