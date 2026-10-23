@@ -122,8 +122,8 @@ access and licensing. This implementation has no paid source or account dependen
 ## Track 1 — refresh, accuracy and game context (D-57)
 
 Status October 23, 2026: merged in PR #198 and released as `gtl-api` v35 and Pages
-`78909363` ([release record](RELEASE_2026_10_23_FANTASY_TRACK1.md)); the refresh workflow
-has not run yet. See [the release card](FANTASY_TRACK1_RELEASE.md)
+`78909363` ([release record](RELEASE_2026_10_23_FANTASY_TRACK1.md)); the first data publish
+ran the same day and the daily schedule is not added yet. See [the release card](FANTASY_TRACK1_RELEASE.md)
 and the [approved design](superpowers/specs/2026-10-23-fantasy-track1-design.md).
 
 **Release tag and files.** Refreshed data is published as data-only prerelease
