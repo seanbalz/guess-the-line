@@ -762,7 +762,7 @@ git commit -m "P-01 part 1: Guess the Points tables, guards, publish, lock-in an
 **Interfaces:**
 - Consumes: Task 4 tables and functions; payload from `actualsPayload` (Task 3).
 - Produces:
-  - `gtl_points_update_schedule(p_season integer, p_week integer, p_games jsonb, p_now timestamptz) → jsonb { changed: [slot] }`. `p_games` is `{ "<gameId>": { "week": int, "kickoff": iso } }`; a missing gameId means cancelled.
+  - `gtl_points_update_schedule(p_season integer, p_week integer, p_games jsonb, p_now timestamptz) → jsonb { changed: [slot] }`. `p_games` is `{ "<gameId>": { "week": int, "kickoff": iso } }`. Every slate game must be present (fail closed, decided during the build): a missing one refuses the update with `GTL_POINTS_INVALID`; a cancellation is the commissioner's `void` ruling.
   - `gtl_points_load_actuals(p_season integer, p_week integer, p_payload jsonb, p_now timestamptz) → jsonb { status: 'saved' | 'flagged' | 'after_final' | 'replay', loadId, regraded: [slot] }`.
   - `gtl_points_rule_slot(p_actor uuid, p_season integer, p_week integer, p_slot text, p_ruling text, p_reason text, p_now timestamptz) → jsonb`, where `p_ruling` is `'void'` or `'played'`.
   - `gtl_points_slot_results(p_season integer, p_week integer) → table(slot text, player_id text, kickoff timestamptz, status text, actual numeric, void_reason text, house numeric)`, where `status` is `pending`, `scored` or `void`.
@@ -933,7 +933,7 @@ A played row with `points` null (a missing stat) is `pending`, never 0.
 7. Return.
 
 `gtl_points_update_schedule`: for each slot whose `void` is null:
-- If `p_games` lacks its `gameId`, or the game's `week <> p_week`, set `void = 'postponed'`.
+- Refuse (`GTL_POINTS_INVALID`) an empty map, a map with no game in `p_week`, or a map missing any slate game. If the game's `week <> p_week`, set `void = 'postponed'`.
 - Else if the game's kickoff differs from the stored one and both are after `p_now`, update `kickoff`.
 
 Append `{ at, action: 'schedule', slot, before, after }` to `audit` for each change. Never change `playerId`, `team`, `gameId` or `house`.
