@@ -11,9 +11,18 @@ export const ACCOUNT = '83bd659d712e968e7a61efa14107465a';
 export const TARGETS = ['frontend', 'api', 'api-and-frontend'];
 export const REQUIRED_CI = {
   'test.yml': ['Typecheck and test'],
-  'dashboard-checks.yml': ['dashboard', 'Persona suite', 'Cloud browser suite (1/4)', 'Cloud browser suite (2/4)', 'Cloud browser suite (3/4)', 'Cloud browser suite (4/4)'],
+  'dashboard-checks.yml': ['dashboard', 'Persona suite'],
   'brand-qa.yml': ['Brand QA'],
 };
+/** The cloud browser suite's shard jobs. Before they existed, the dashboard job ran that suite itself. */
+export const CLOUD_SHARDS = Object.freeze([1, 2, 3, 4].map(shard => `Cloud browser suite (${shard}/4)`));
+const SHARD_JOB = 'name: Cloud browser suite (${{ matrix.shard }}/4)';
+/** The jobs a release needs from one workflow: every suite job that the release commit's own workflow defines. */
+export function requiredJobs(cwd, workflow) {
+  const file = path.join(cwd, '.github/workflows', workflow);
+  const shards = workflow === 'dashboard-checks.yml' && fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes(SHARD_JOB);
+  return shards ? [...REQUIRED_CI[workflow], ...CLOUD_SHARDS] : REQUIRED_CI[workflow];
+}
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 const fail = message => { throw new Error(message); };
@@ -59,16 +68,16 @@ export async function jsonRequest(url, token, options = {}, fetchImpl = fetch) {
   catch { fail('Read-only service response was not valid JSON.'); }
 }
 
-export function successfulRun(runs, jobs, sha, workflow) {
+export function successfulRun(runs, jobs, sha, workflow, required = REQUIRED_CI[workflow]) {
   const exact = runs.filter(run => run.head_sha === sha && run.event === 'push' && run.head_branch === 'main'
     && run.path === `.github/workflows/${workflow}` && run.repository?.full_name === REPOSITORY)
     .sort((a, b) => b.id - a.id);
   const latest = exact[0];
   assert.ok(latest && latest.status === 'completed' && latest.conclusion === 'success', `${workflow}: the latest main push run for the exact source SHA must succeed.`);
-  for (const name of REQUIRED_CI[workflow]) {
+  for (const name of required) {
     assert.ok(jobs.some(job => job.name === name && job.status === 'completed' && job.conclusion === 'success'), `${workflow}: required job ${name} did not pass.`);
   }
-  return { workflow, runId: latest.id, attempt: latest.run_attempt, url: latest.html_url, jobs: REQUIRED_CI[workflow] };
+  return { workflow, runId: latest.id, attempt: latest.run_attempt, url: latest.html_url, jobs: required };
 }
 
 export async function checkSource(cwd, env, fetchImpl = fetch) {
@@ -89,7 +98,7 @@ export async function checkSource(cwd, env, fetchImpl = fetch) {
     assert.ok(latest, `${workflow}: no main push run exists for the exact source SHA.`);
     const jobs = await jsonRequest(`${base}/actions/runs/${latest.id}/attempts/${latest.run_attempt}/jobs?per_page=100`, env.GITHUB_TOKEN, {}, fetchImpl);
     assert.ok(jobs.total_count <= 100, 'Too many CI jobs to verify in one page; update the verifier.');
-    checks.push(successfulRun(runs, jobs.jobs || [], env.RELEASE_SHA, workflow));
+    checks.push(successfulRun(runs, jobs.jobs || [], env.RELEASE_SHA, workflow, requiredJobs(cwd, workflow)));
   }
   return { source: env.RELEASE_SHA, workflowSource: env.GITHUB_SHA || null, fetchedMain: git(cwd, 'rev-parse', 'refs/remotes/origin/main'), target: env.RELEASE_TARGET, checks, deployed: false };
 }

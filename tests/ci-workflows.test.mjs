@@ -3,8 +3,11 @@
 // together cover every top-level cloud browser spec, and the release gate requires every job that carries a suite.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { REQUIRED_CI } from '../scripts/release-preflight.mjs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { REQUIRED_CI, CLOUD_SHARDS, requiredJobs, successfulRun, REPOSITORY } from '../scripts/release-preflight.mjs';
 
 const read = name => readFileSync(new URL(`../.github/workflows/${name}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const workflows = Object.fromEntries(['test.yml', 'dashboard-checks.yml', 'brand-qa.yml'].map(name => [name, read(name)]));
@@ -41,11 +44,36 @@ test('the dashboard job keeps its other suites', () => {
 
 test('the release gate requires every job that carries a suite, by its rendered name', () => {
   const shards = [1, 2, 3, 4].map(shard => `Cloud browser suite (${shard}/4)`);
-  assert.deepEqual(REQUIRED_CI['dashboard-checks.yml'], ['dashboard', 'Persona suite', ...shards]);
+  assert.deepEqual(CLOUD_SHARDS, shards);
+  const repo = fileURLToPath(new URL('..', import.meta.url));
+  assert.deepEqual(requiredJobs(repo, 'dashboard-checks.yml'), ['dashboard', 'Persona suite', ...shards]);
   assert.deepEqual(REQUIRED_CI['test.yml'], ['Typecheck and test']);
   assert.deepEqual(REQUIRED_CI['brand-qa.yml'], ['Brand QA']);
   assert.match(dashboard, /^ {2}dashboard:$/m);
   assert.match(dashboard, /^ {4}name: Persona suite$/m);
   assert.match(workflows['test.yml'], /^ {4}name: Typecheck and test$/m);
   assert.match(workflows['brand-qa.yml'], /^ {4}name: Brand QA$/m);
+});
+
+test('the gate requires the jobs the release commit itself defines: shards from this change on, the dashboard job before it', t => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'gtl-ci-jobs-'));
+  t.after(() => rmSync(dir, { force: true, recursive: true }));
+  mkdirSync(path.join(dir, '.github/workflows'), { recursive: true });
+  const file = path.join(dir, '.github/workflows/dashboard-checks.yml');
+  const sha = 'a'.repeat(40);
+  const run = { id: 9, run_attempt: 1, head_sha: sha, event: 'push', head_branch: 'main', path: '.github/workflows/dashboard-checks.yml', repository: { full_name: REPOSITORY }, status: 'completed', conclusion: 'success' };
+  const passed = names => names.map(name => ({ name, status: 'completed', conclusion: 'success' }));
+
+  // A commit from before the shards: its dashboard job ran the cloud browser suite itself.
+  writeFileSync(file, 'jobs:\n  dashboard:\n    runs-on: ubuntu-latest\n  personas:\n    name: Persona suite\n');
+  assert.deepEqual(requiredJobs(dir, 'dashboard-checks.yml'), ['dashboard', 'Persona suite']);
+  assert.doesNotThrow(() => successfulRun([run], passed(['dashboard', 'Persona suite']), sha, 'dashboard-checks.yml', requiredJobs(dir, 'dashboard-checks.yml')));
+
+  // A commit with the shards: every shard job must have passed.
+  writeFileSync(file, dashboard);
+  const required = requiredJobs(dir, 'dashboard-checks.yml');
+  assert.doesNotThrow(() => successfulRun([run], passed(required), sha, 'dashboard-checks.yml', required));
+  assert.throws(() => successfulRun([run], passed(required.filter(name => name !== 'Cloud browser suite (3/4)')), sha, 'dashboard-checks.yml', required), /required job Cloud browser suite \(3\/4\) did not pass/);
+  assert.throws(() => successfulRun([run], passed(required).map(job => job.name === 'Cloud browser suite (1/4)' ? { ...job, conclusion: 'skipped' } : job), sha, 'dashboard-checks.yml', required), /Cloud browser suite \(1\/4\)/);
+  assert.deepEqual(requiredJobs(dir, 'test.yml'), ['Typecheck and test']);
 });
