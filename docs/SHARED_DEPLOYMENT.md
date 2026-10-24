@@ -70,10 +70,12 @@ existing CI. It never installs `latest` deploy tools.
 ## Run a release
 
 1. Merge the reviewed source to `main`, fetch it locally where needed, and wait
-   for **Tests**, **Dashboard checks** (including Persona suite), and **Brand QA**
-   to pass on that exact full SHA in their `push` runs. A passing PR merge-test
-   or different commit is insufficient. The latest run and every required job
-   must succeed; skipped jobs do not count.
+   for **Tests**, **Dashboard checks** (including Persona suite and the four
+   Cloud browser suite shards), and **Brand QA** to pass on that exact full SHA in
+   their `push` runs. A passing PR merge-test or different commit is insufficient.
+   The latest run and every required job must succeed; skipped jobs do not count.
+   Each `main` commit gets its own runs, so a later merge neither queues nor
+   cancels an earlier commit's checks.
 2. In **Actions → Shared production release → Run workflow**, select branch
    `main`, mode `check-only`, the full SHA and the intended target. Review its
    source report. A clean source SHA reachable from `main` is required. Local

@@ -11,7 +11,7 @@ export const ACCOUNT = '83bd659d712e968e7a61efa14107465a';
 export const TARGETS = ['frontend', 'api', 'api-and-frontend'];
 export const REQUIRED_CI = {
   'test.yml': ['Typecheck and test'],
-  'dashboard-checks.yml': ['dashboard', 'Persona suite'],
+  'dashboard-checks.yml': ['dashboard', 'Persona suite', 'Cloud browser suite (1/4)', 'Cloud browser suite (2/4)', 'Cloud browser suite (3/4)', 'Cloud browser suite (4/4)'],
   'brand-qa.yml': ['Brand QA'],
 };
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
