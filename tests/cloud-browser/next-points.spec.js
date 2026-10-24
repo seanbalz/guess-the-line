@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { ALL, HOSTED } from '../migrations.mjs';
+import { ALL } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // Guess the Points in the new app (D-56 spec section 5; ballot card option D, the D-56 addendum) on local PGlite through the
-// real gtl-api handler: HOSTED (no P-01) shows "Points is coming soon"; ALL (P-01 applied locally only) plays a fixture week.
+// real gtl-api handler: the schema before P-01 shows "Points is coming soon" (what any project without P-01 serves);
+// ALL (P-01 and P-02, hosted since October 23, 2026) plays a fixture week.
 // Fixture accounts, players and guesses only; never a hosted project or a real pick.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(120000);
@@ -34,10 +35,11 @@ async function openNewApp(page) {
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
   await expect(page.locator('[data-landing="play"]')).toBeVisible();
 }
+const BEFORE_POINTS = ALL.filter(file => file < '20261023180000');
 const guessRow = (world, slot) => world.db.query('select guess,locked_at from public.gtl_points_guesses where user_id=$1 and season=2026 and week=7 and slot=$2', [ACCOUNTS.luke.id, slot]).then(r => r.rows[0] ?? null);
 
 test('without P-01 the routes answer 404 and Play and the League board say "Points is coming soon"', async ({ page, baseURL }) => {
-  const world = await communityWorld(page, baseURL, { migrations: HOSTED });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_POINTS });
   expect((await world.api('luke', 'points/read', {})).status).toBe(404);
   await openNewApp(page);
   const row = page.getByRole('button', { name: 'Guess the Points, Points is coming soon', exact: true });

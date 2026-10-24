@@ -320,27 +320,24 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // v18 on October 14), /lines/research (v29, October 21) and /trends/week (v31, October 22), removed October 22.
   // M-10 Bets, D-53's comparison and account preferences, and the two private NBA migrations are hosted since October 22,
   // 2026, with /bets/read, /league/comparison, /me/preferences and the /nba routes deployed (RELEASE_2026_10_22_MIGRATIONS.md).
-  // /fantasy/week (D-57) is deployed since gtl-api v35 (October 23, RELEASE_2026_10_23_FANTASY_TRACK1.md).
-  // Awaiting: P-01's Guess the Points functions (written, not applied) with the /points/* routes that call them
-  // (cloud/points.mjs, not deployed).
-  const hosted = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market', 'gtl_read_score_comparison', 'gtl_read_account_preferences',
-    'gtl_save_account_preferences', 'gtl_nba_read_bets', 'gtl_nba_save_bet', 'gtl_nba_claim_games', 'gtl_nba_finish_games'];
-  for (const rpc of hosted) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
-  for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games', 'fantasy/week']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
-  // Guess the Points: P-01's functions and the /points/* routes await "apply P-01" and the gtl-api deploy (scripts/boundary/guess.mjs).
+  // /fantasy/week (D-57) is deployed since gtl-api v35 (October 23, RELEASE_2026_10_23_FANTASY_TRACK1.md). Guess the Points
+  // (D-56): P-01 and P-02 are hosted since October 23, 2026 and the /points/* routes ship in every gtl-api since v36
+  // (RELEASE_2026_10_23_POINTS.md), so nothing is awaiting deploy.
   const points = ['slot_points', 'kickoff_window', 'finalize_at', 'slate_problem', 'slot_outcomes', 'week_scores', 'revealed', 'write', 'save_draft',
-    'lock_in', 'read', 'load_actuals', 'finalize', 'publish_slate'].map(name => `rpc/gtl_points_${name}`);
-  assert.deepEqual(Object.keys(awaitingDeploy).sort(), [...points, ...['read', 'draft', 'lock', 'slate'].map(action => `gtl-api/points/${action}`)].sort());
+    'lock_in', 'read', 'load_actuals', 'finalize', 'publish_slate'].map(name => `gtl_points_${name}`);
+  const hosted = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market', 'gtl_read_score_comparison', 'gtl_read_account_preferences',
+    'gtl_save_account_preferences', 'gtl_nba_read_bets', 'gtl_nba_save_bet', 'gtl_nba_claim_games', 'gtl_nba_finish_games', ...points];
+  for (const rpc of hosted) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
+  for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games', 'fantasy/week',
+    'points/read', 'points/draft', 'points/lock', 'points/slate']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
+  assert.deepEqual({ ...awaitingDeploy }, {}, 'nothing is awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
-  // An entry is live when its probe answers the exact not-hosted 404 (PGRST202, or gtl-api's "Not found.") and is then reported as awaiting.
-  const missing = await checkCloudBoundary({ ...options, log: () => {}, fetchImpl: async (url, request) => {
-    if (/\/rest\/v1\/rpc\/gtl_points_/.test(url)) return new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 });
-    if (/\/gtl-api\/points\//.test(url)) return new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 });
-    return denied(url, request);
-  } });
-  assert.deepEqual(new Set(missing.awaiting.map(a => a.until)), new Set(Object.values(awaitingDeploy)), 'no awaitingDeploy entry is dead');
-  assert.equal(missing.awaiting.length, points.length + 4 * 2);
+  // A missing Points function or route is now an unexpected 404, never awaiting.
+  await assert.rejects(() => checkCloudBoundary({ ...options, log: () => {}, fetchImpl: async (url, request) => (/\/rest\/v1\/rpc\/gtl_points_read$/.test(url)
+    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 }) : denied(url, request)) }), /gtl_points_read RPC: unexpected 404/);
+  await assert.rejects(() => checkCloudBoundary({ ...options, log: () => {}, fetchImpl: async (url, request) => (/\/gtl-api\/points\/read$/.test(url)
+    ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /points\/read without session: unexpected 404/);
 });
 
 test('Community history and D-27 line-at-guess probes stay fail-closed: not applied or not deployed fails the default check', async t => {

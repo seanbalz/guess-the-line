@@ -24,10 +24,7 @@ export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', impor
 export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;";
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
-export const NOT_HOSTED = [
-  20261023180000, // P-01 gtl_points_core (D-56 Guess the Points): written, not applied; waits for Sean's "apply P-01".
-  20261023190000, // P-02 gtl_points_feed_push (D-56): Points feed posts and the weekly Points reminder; written, not applied; waits for Sean's "apply P-02".
-];
+export const NOT_HOSTED = [];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
@@ -40,9 +37,7 @@ export const FIX_FORWARD = [];
  * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
-export const REQUIRES = Object.freeze({
-  20261023190000: [20261023180000], // P-02 after P-01: its triggers, candidates and dispatcher read P-01's Points tables.
-});
+export const REQUIRES = Object.freeze({});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -124,4 +119,6 @@ export const APPLIED = [
   20261021201054, // Hosted 20261021205118: isolated private NBA archive; see PRIVATE_NBA_STORAGE.md.
   20261021223000, // NBA gtl_nba_app_bets: hosted as 20261022194048 on October 22, 2026; see RELEASE_2026_10_22_MIGRATIONS.md.
   20261021223100, // NBA gtl_nba_game_cache: hosted as 20261022194209 on October 22, 2026; see RELEASE_2026_10_22_MIGRATIONS.md.
+  20261023180000, // P-01 gtl_points_core (D-56): hosted as 20261024000059 on October 23, 2026 (Pacific); see RELEASE_2026_10_23_POINTS.md.
+  20261023190000, // P-02 gtl_points_feed_push (D-56): hosted as 20261024000315 on October 23, 2026 (Pacific); see RELEASE_2026_10_23_POINTS.md.
 ];

@@ -85,7 +85,7 @@ export const rpcChecks = Object.freeze([
   ['gtl_forfeit_guess_week', { p_user: missingId, p_season: 2026, p_week: 5, p_reason: 'boundary-check', p_now: null }],
   ['gtl_read_forfeit', { p_user: missingId, p_season: 2026, p_week: 5, p_now: null }],
   // P-01, Guess the Points core (20261023180000_gtl_points_core.sql, D-56): every callable service-only function. The
-  // routes call four of them (cloud/points.mjs POINTS_RPCS). Awaiting deploy (below) until Sean's "apply P-01". The probes
+  // routes call four of them (cloud/points.mjs POINTS_RPCS). Hosted since October 23, 2026 (hosted as 20261024000059). The probes
   // name no real member, slate or player; the writers' request id is unused and every body would refuse before writing.
   ['gtl_points_slot_points', { p_guess: 0, p_actual: 0 }],
   ['gtl_points_kickoff_window', { p_kickoff: '2026-10-25T17:00:00Z' }],
@@ -114,7 +114,7 @@ export const apiChecks = Object.freeze([
   [`benchmark/freeze?league=${missingLeague}`, { requestId: missingId, actualKickoff: null, sourceURL: 'https://example.invalid/boundary-check' }],
   ['results/review', {}],
   // Guess the Points routes (cloud/points.mjs, D-56): signed-out probes prove only authentication protection. A gtl-api
-  // build with these routes answers them 404 "coming soon" while P-01 is missing; awaiting deploy (below) until then.
+  // build with these routes answers them 404 "coming soon" while P-01 is missing; deployed since gtl-api v36 (October 23, 2026).
   ['points/read', {}],
   ['points/draft', { season: 2026, week: 5, slot: 'QB', guess: 0, requestId: missingId }],
   ['points/lock', { season: 2026, week: 5, slot: 'QB', guess: 0, requestId: missingId }],
@@ -125,10 +125,4 @@ export const apiChecks = Object.freeze([
 export const workerChecks = Object.freeze([]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-const P01 = 'P-01 (20261023180000_gtl_points_core.sql) applied after Sean\'s "apply P-01"';
-const POINTS_ROUTES = 'gtl-api with cloud/points.mjs deployed (Guess the Points routes)';
-export const awaitingDeploy = Object.freeze({
-  ...Object.fromEntries(['slot_points', 'kickoff_window', 'finalize_at', 'slate_problem', 'slot_outcomes', 'week_scores', 'revealed', 'write',
-    'save_draft', 'lock_in', 'read', 'load_actuals', 'finalize', 'publish_slate'].map(name => [`rpc/gtl_points_${name}`, P01])),
-  ...Object.fromEntries(['read', 'draft', 'lock', 'slate'].map(action => [`gtl-api/points/${action}`, POINTS_ROUTES])),
-});
+export const awaitingDeploy = Object.freeze({});
