@@ -4,7 +4,7 @@ Prepared October 23, 2026 (Pacific) on Sean's instruction to release, deploy and
 every open item. Sean approved applying both Points migrations through the Supabase SQL
 editor in his signed-in Chrome, then the API and frontend release.
 
-- Source SHA: `@@SHA@@` (`main`, after
+- Source SHA: `1efd802bea78d298b1c30ede7824b6a6213c23aa` (`main`, after
   [PR #199](https://github.com/seanbalz/guess-the-lines-repo/pull/199) (routes and screens),
   [PR #203](https://github.com/seanbalz/guess-the-lines-repo/pull/203) (P-02 feed and
   reminders, P-01 kickoff fix),
@@ -90,10 +90,9 @@ Gate M evidence (read-only checks through the `supabase-gtl` connection unless n
 
 | Gate | Run | Result |
 | --- | --- | --- |
-| Main CI on the exact SHA | @@CI@@ | |
-| Check-only | @@CHECK@@ | |
-| Readiness | @@READY@@ | |
-| Deploy | @@DEPLOY@@ | |
+| Main CI on the exact SHA | [Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045090231), [Dashboard checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045090207), [Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045090241) | All passed on the `push` runs |
+| Check-only and readiness | Folded into the deploy run (Sean: "expedite"); the deploy repeats both. Hosted readiness at 00:30:31 UTC ([40045245964](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045245964), on `eda1da2`) read 53 migrations and the digest above | Passed |
+| Deploy | [40048239489](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40048239489) | In progress |
 
 ## Rollback
 
