@@ -240,5 +240,16 @@ the weekly board at three picks or 3U.
 M-10 was applied to the hosted project on October 22, 2026, after M-04, with
 the checks in [the redesign build plan](REDESIGN_BUILD_PLAN.md). The record is
 [the M-10 preflight and apply record](M10_PREFLIGHT_2026_10_22.md). The API
-route `POST /bets/read` answers signed-in members, but no screen reads it yet.
-The new Bets screen and the settlement scheduler remain later stages.
+route `POST /bets/read` answers signed-in members.
+
+The new app's Bets › Virtual › Everyone (`#bets/everyone`) reads this route for
+the league showing. It is built on October 23 and not deployed yet.
+- Each game lists its picks, faces first, with your own picks leading and in
+  full.
+- A friend's line, price, book and result show only where the reply opens that
+  game's market for you. Otherwise the row keeps the side and units, with a
+  lock sentence, under one banner.
+- A weekly list shows picks, units and who qualified.
+
+Placing from this screen (M-11) and the settlement scheduler remain later
+stages.

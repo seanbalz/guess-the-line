@@ -272,6 +272,14 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   full names for screen readers. Each view's fine print sits behind the title's ⓘ, and
   your tracked bets lead with a net-units line you can drag and Record / ROI / Win rate
   tiles.
+- **Bets › Virtual › Everyone (M-10):** a Your picks / Everyone switch under the pill row.
+  - Everyone starts with this week's players: face, name, picks and units, and a
+    Qualified pill.
+  - Then one card per game: both team marks, the matchup, the kickoff and its faces.
+  - Each pick row leads with a face. Your rows wear the your-row tint and lime
+    edge.
+  - A friend's closed market keeps side and units with a lock line (rule 8). One
+    gate banner per screen.
 
 ### Rule of restraint 10: fine print lives behind ⓘ
 

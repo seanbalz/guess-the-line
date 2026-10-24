@@ -1,0 +1,25 @@
+/* Bets › Everyone (M-10, D-36): this week's list of players, then one card per game with its picks, faces first.
+   Your rows wear the your-row tint (accent-tint); friends' rows stay on the card. Nothing here decides what is
+   hidden: a closed row simply has a lock line where the terms would be. */
+.gx .gx-ev { min-width: 0; }
+.gx .gx-ev-people,
+.gx .gx-ev-picks { display: grid; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-ev-person,
+.gx .gx-ev-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gx-space-3);
+  min-width: 0;
+  padding: var(--gx-space-3);
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-2);
+}
+.gx .gx-ev-person { align-items: center; background: var(--gx-surface-1); box-shadow: var(--gx-e1); }
+.gx .gx-ev-person > .gx-grow,
+.gx .gx-ev-pick > .gx-grow { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-ev-you { background: var(--gx-accent-tint); box-shadow: inset 3px 0 0 var(--gx-accent-ink); }
+.gx .gx-ev-game-head { display: flex; align-items: center; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-ev-game-head > .gx-grow { min-width: 0; }
+.gx .gx-ev-pick-head,
+.gx .gx-ev-pick-value { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--gx-space-2); }
+.gx .gx-ev-pick > .gx-pill { flex: none; }
