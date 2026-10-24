@@ -1,5 +1,5 @@
-// Contract: the Fantasy refresh runs only on main, can write release assets and nothing else, ships manual-only, and
-// uploads only when not a dry run.
+// Contract: the Fantasy refresh runs only on main, can write release assets and nothing else, runs daily at 11:00 UTC
+// plus on demand, and a manual run uploads only when not a dry run.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -13,12 +13,11 @@ test('permissions, branch guard and concurrency', () => {
   assert.match(yaml, /concurrency:\n {2}group: fantasy-refresh\n {2}cancel-in-progress: false/);
 });
 
-test('manual trigger with dry run by default; no schedule until Task 14', () => {
-  assert.match(yaml, /workflow_dispatch:/);
+test('daily schedule at 11:00 UTC plus a manual trigger that is a dry run by default', () => {
+  const on = yaml.slice(yaml.indexOf('\non:\n') + 5, yaml.indexOf('\npermissions:'));
+  assert.deepEqual(on.match(/^ {2}[a-z_]+:/gm), ['  schedule:', '  workflow_dispatch:'], 'exactly the schedule and manual triggers');
+  assert.deepEqual(on.match(/cron: '[^']*'/g), ["cron: '0 11 * * *'"], 'one daily run at 11:00 UTC');
   assert.match(yaml, /dry_run:[\s\S]*?default: true/);
-  assert.doesNotMatch(yaml, /^\s*schedule:/m);
-  const triggers = yaml.slice(yaml.indexOf('\non:\n') + 5, yaml.indexOf('\npermissions:')).match(/^ {2}[a-z_]+:/gm);
-  assert.deepEqual(triggers, ['  workflow_dispatch:'], 'manual is the only trigger until the schedule is added');
 });
 
 test('build always; publish only on schedule or a non-dry manual run; the token reaches only Publish', () => {

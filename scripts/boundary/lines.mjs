@@ -59,4 +59,4 @@ export const workerChecks = Object.freeze([
 ]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-export const awaitingDeploy = Object.freeze({ 'gtl-api/fantasy/week': 'the gtl-api deploy with /fantasy/week (D-57)' });
+export const awaitingDeploy = Object.freeze({});
