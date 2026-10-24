@@ -3,8 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
+# Every main commit gets its own run: releases need green push CI on the exact SHA, and a shared main group
+# queued commits behind each other and cancelled the ones still waiting. PR runs still replace older runs.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 permissions:
   contents: read
