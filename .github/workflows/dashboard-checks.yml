@@ -3,8 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
+# Every main commit gets its own run: releases need green push CI on the exact SHA, and a shared main group
+# queued commits behind each other and cancelled the ones still waiting. PR runs still replace older runs.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 permissions:
   contents: read
@@ -20,13 +22,11 @@ jobs:
       - run: npm ci
       - name: Install disposable database test runtime
         run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
-      - run: npm test
+      # npm test runs in the Tests workflow (Typecheck and test, which also asserts that nothing was skipped).
       - run: npm run build
       - name: Install Chromium for Playwright
         uses: ./.github/actions/playwright-chromium
       - run: npm run test:browser
-      - name: Cloud browser suite (the persona specs run in the personas job)
-        run: npx playwright test --config playwright.cloud.config.js tests/cloud-browser/*.spec.js
       - name: Lazy-loading performance suite
         run: npm run test:performance
       - name: Accessibility suite (axe on the critical paths)
@@ -67,9 +67,39 @@ jobs:
           name: dashboard-browser-evidence
           path: |
             test-results/
-            .local/cloud-browser-results/
             .local/performance-browser-results/
             .local/accessibility-browser-results/
+          include-hidden-files: true
+          retention-days: 7
+  cloud-browser:
+    # The cloud browser suite, split by file across four runners (the persona specs run in the personas job).
+    name: Cloud browser suite (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install disposable database test runtime
+        run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - name: Install Chromium for Playwright
+        uses: ./.github/actions/playwright-chromium
+      - name: Cloud browser suite, shard ${{ matrix.shard }} of 4
+        run: npx playwright test --config playwright.cloud.config.js --shard=${{ matrix.shard }}/4 tests/cloud-browser/*.spec.js
+      - name: Save browser evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cloud-browser-evidence-${{ matrix.shard }}
+          path: |
+            test-results/
+            .local/cloud-browser-results/
           include-hidden-files: true
           retention-days: 7
   personas:
