@@ -26,10 +26,8 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  * after the deploy, then remove the entries from their area file in the change that records the hosted version.
  *
  * Each area file lists its own pieces: the pieces of the migrations in NOT_HOSTED (tests/migrations.mjs) and the routes that
- * need them. Since October 23, 2026 one area lists any: scripts/boundary/guess.mjs lists P-01's Guess the Points functions
- * (20261023180000_gtl_points_core.sql) and the /points/* routes that call them (cloud/points.mjs). Those routes answer 404
- * "coming soon" with code GTL_POINTS_OFF until P-01 is applied, and the app shows "Points is coming soon", so neither a
- * gtl-api deploy before the apply nor the apply before the deploy fails check:cloud on them alone. The notes below record
+ * need them. Since October 23, 2026 no area lists any: P-01's Guess the Points functions and the /points/* routes were
+ * listed in scripts/boundary/guess.mjs until P-01 was applied and gtl-api v36 shipped the routes. The notes below record
  * why earlier pieces were listed while they rolled out; each is hosted now and no longer listed.
  * scripts/boundary/lines.mjs listed the situational-trends referee pieces, the D-34 kickoff wind pieces, M-05's carryover
  * helper, /trends/week and /lines/research, and scripts/boundary/guess.mjs listed M-01's four per-game gate helpers and

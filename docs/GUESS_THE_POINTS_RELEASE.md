@@ -1,7 +1,8 @@
 # Guess the Points release card (D-56)
 
 Prepared October 23, 2026 (Pacific) on Sean's instruction to release, deploy and merge
-every open item. Sean approved applying both Points migrations through the Supabase SQL
+every open item. **Released October 24, 2026 at 01:09 UTC** as `gtl-api` v36 and Pages
+`3d274d87`; see the [release record](RELEASE_2026_10_23_POINTS.md). Sean approved applying both Points migrations through the Supabase SQL
 editor in his signed-in Chrome, then the API and frontend release.
 
 - Source SHA: `1efd802bea78d298b1c30ede7824b6a6213c23aa` (`main`, after
@@ -92,7 +93,7 @@ Gate M evidence (read-only checks through the `supabase-gtl` connection unless n
 | --- | --- | --- |
 | Main CI on the exact SHA | [Tests](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045090231), [Dashboard checks](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045090207), [Brand QA](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045090241) | All passed on the `push` runs |
 | Check-only and readiness | Folded into the deploy run (Sean: "expedite"); the deploy repeats both. Hosted readiness at 00:30:31 UTC ([40045245964](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40045245964), on `eda1da2`) read 53 migrations and the digest above | Passed |
-| Deploy | [40048239489](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40048239489) | In progress |
+| Deploy | [40048239489](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40048239489) | API then frontend deployed; verify passed at 01:09:13 UTC (306 of 306 probes denied, digest unchanged) |
 
 ## Rollback
 
