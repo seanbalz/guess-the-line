@@ -195,14 +195,14 @@ test('the reply reader refuses a malformed read instead of guessing', () => {
   }
 });
 
-test('boundary: the routes and every P-01 function are probed in the guess area and await deploy until "apply P-01"', () => {
+test('boundary: the routes and every P-01 function are probed in the guess area; hosted and deployed since October 23, so none awaits deploy', () => {
   const { guess } = BOUNDARY_AREAS;
   for (const name of POINTS_RPCS) {
     assert.ok(guess.rpcChecks.some(([rpc]) => rpc === name), name);
-    assert.ok(Object.hasOwn(awaitingDeploy, `rpc/${name}`), name);
+    assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${name}`), name);
   }
   for (const action of ['read', 'draft', 'lock', 'slate']) {
     assert.ok(guess.apiChecks.some(([route]) => route === `points/${action}`), action);
-    assert.ok(Object.hasOwn(awaitingDeploy, `gtl-api/points/${action}`), action);
+    assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/points/${action}`), action);
   }
 });
