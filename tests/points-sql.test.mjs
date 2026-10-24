@@ -67,10 +67,10 @@ async function fixture(t) {
   return { db, as, sql, draft, lock, read, publishedSlate, pastGuesses, count };
 }
 
-test('P-01 is a new, unapplied migration: six tables and only new functions; nothing dropped, deleted or replaced', () => {
+test('P-01 is hosted (applied October 23, 2026 as 20261024000059): six tables and only new functions; nothing dropped, deleted or replaced', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'not applied: it waits for Sean\'s "apply P-01"');
-  assert.ok(!HOSTED.includes(MIGRATION));
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'removed from NOT_HOSTED by the October 23 apply record (Gate M step 8)');
+  assert.ok(HOSTED.includes(MIGRATION));
   const source = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8');
   const defined = parseFunctions(source, MIGRATION);
   const before = catalog(readMigrations(ALL.filter(file => file < MIGRATION))).latest;

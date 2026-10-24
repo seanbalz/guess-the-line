@@ -68,14 +68,14 @@ explicitly when it cannot be established by automated tests.
 | Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. October 21 follow-up connects reviewed recommendations to actual tickets and adds a grouped owner list; #159 merged, Pages dcfb977b verified with preserved data/API. Closeout PR #160 merged as 2e3e8fa and all three checkouts synced. Phone acceptance remains separate. |
 | Q17 | Remaining native destinations | Use RETIRE-01's preservation/recovery checklist in [new-app retirement](new-app-retirement.md) (carried from closed PR #144) and the inventory: League/Bets screens, history, exports, commissioner tools and old records must retain working homes. |
 | Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. |
-| Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. |
+| Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. Includes Sean's phone review of the mobile formatting and visual-depth criteria from closed issue #126 (Photo 1 baseline; implemented in PR #127, Pages `fc7f3cd2`). |
 | Q20 | New-app-only transition | Follow D-52 ([decision log](../docs/DECISIONS.md), [RETIRE-01–04](new-app-retirement.md)) after preservation, destinations, access and operator recovery are verified. Remove only unused screens/code; never player records. |
 
 ## Separate later scope
 
-- Simulated NFL games: input/model validation, held-out evaluation, serving and acceptance remain; the historical aggregate baseline does not validate a player simulator.
-- Native iPhone application: separate deliverable and scope/budget decision, not fulfilled by the mobile website.
-- Additional notifications and outside feeds: reconcile requested channels, free-only permissions and actual delivery requirements.
+- Simulated NFL games (closed issue #128; research foundation in PR #131): input/model validation, held-out evaluation, serving and acceptance remain; the historical aggregate baseline does not validate a player simulator.
+- Native iPhone application (from closed roadmap issue #5): separate deliverable and scope/budget decision, not fulfilled by the mobile website.
+- Additional notifications and outside feeds (from closed roadmap issue #5; the current notification decision is web push only, no email or SMS): reconcile requested channels, free-only permissions and actual delivery requirements.
 - Private Fantasy league/roster integrations and expert projections (requirements in [FANTASY_FOOTBALL.md](../docs/FANTASY_FOOTBALL.md#usage-tracker-requirements-queue-q11q14)) need source/access decisions; existing static rankings do not provide them.
 - Other user suggestions need their actual request recorded before entering this queue.
 
