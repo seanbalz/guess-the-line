@@ -41,6 +41,14 @@ continuity. Its reported Lighthouse measurements are PR-author evidence, not a
 new production or physical-phone measurement by this task. Neither merge alone
 establishes deployment. This task has not deployed the app or applied SQL.
 
+[PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) merged as
+`36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed on
+`5680b3add4928b88663e741bc1d21a773d3ce58e`. It delivers native Community member
+management. Integrating #212 repaired the hidden-disclosure browser assertion
+and startup test isolation; no new app scroll bug was found. CI passed 1,779
+Node tests with zero skips and all 25 Vitest files. Release and phone acceptance
+remain separate.
+
 ## Delivered versus remaining
 
 | Area | Implemented and released evidence | Still open |
@@ -63,8 +71,8 @@ Their production/recipient/device readback remains separate. Both use existing
 routes, include uncertain-write recovery and load only when opened; see the
 [implementation record](REDESIGN_COMPLETION_2026_10_26.md).
 
-Q17-C is in progress. Native **Menu → Community members** is implemented in
-PR #211; its CI follow-through is recorded in the
+Q17-C is in progress. Native **Menu → Community members** is merged in
+PR #211; its CI and merge evidence is recorded in the
 [preservation matrix](REDESIGN_PRESERVATION_2026_10_26.md). Release and signed-in
 phone acceptance remain separate.
 

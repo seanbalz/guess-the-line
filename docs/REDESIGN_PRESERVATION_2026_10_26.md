@@ -20,7 +20,7 @@ no real membership changes are performed by this work.
 | Journal and archived journal records | Classic `PersonalWorkspace.jsx` includes archived records and revision history | Read-only native journal, summary and changes: stage 74. No new journal writer in the redesign. |
 | Exports | Classic `App.jsx` downloads the existing group-week `/export` | Account-wide owner-only `/me/export`, excluding push endpoints: M-28 / stage 75. |
 | Creation and invitations | Q17-A/B, PR #209: merged native creation and host invitation management with passing CI | Production release and recipient/device readback remain separate milestones. |
-| Community membership | This change: Menu → Community members for the Community commissioner | Source/tests below; release and signed-in readback still required. This implements the Members slice of stage 78, not the complete stage 77/78 hub. |
+| Community membership | Merged PR #211: Menu → Community members for the Community commissioner | Source/tests below; release and signed-in readback still required. This implements the Members slice of stage 78, not the complete stage 77/78 hub. |
 | Settlement | Native manual Virtual Units console implemented in the [next source batch](REDESIGN_SETTLEMENT_2026_10_26.md); classic remains reachable | CI/merge/release and phone acceptance separate. M-18 challenge grading and M-19 scheduled settlement/status remain open. |
 | Other commissioner operations | Classic Week opening, referees, odds connection, final scores | Next native page: Week opening, then remaining stage 78 pages. Keep settlement separate from Final scores; no secrets on Odds connection. |
 | Sign-in and recovery | Shared existing AuthGate | Stage 76 native skin with unchanged auth/recovery behavior and account/device acceptance. |
@@ -92,3 +92,14 @@ requests. This branch incorporates #212. This is a browser-test repair, not a
 new product scroll defect; Sean's corrected no-scroll-bug report stays in force.
 The 18 focused member, startup-data and scroll browser checks passed locally
 with #212 integrated, including the scroll check's deliberate-failure tests.
+
+
+### Verified merge of PR #211
+
+All nine checks passed on `5680b3add4928b88663e741bc1d21a773d3ce58e`, including
+all four browser shards, dashboard, personas, Brand QA, Windows portability and
+the Node/Vitest job (1,779 Node tests, zero skips; 25 Vitest files). PR #211 merged
+October 26 at 19:55 UTC as `36024875d7a04b01eaafc2bc3d46b3625538d16e`.
+The manual Settlement branch incorporates this merge without changing the
+Members implementation. Deployment, authenticated hosted readback and physical
+phone acceptance remain open; this task performed no production release.
