@@ -186,9 +186,9 @@ function partialCoverage(payload, slots, version) {
 function weekPayload({ season, slate, files }) {
   const { week } = slate;
   // Snaps-only players score 0 inside actualsPayload, which needs every player id in the week's stats rows.
-  const { rows: statsRows, playerIds: statsPlayerIds } = weekStats(files.statsLines, { season, week });
+  const { rows: statsRows, playerIds: statsPlayerIds, offPosition: statsOffPosition } = weekStats(files.statsLines, { season, week });
   const payload = actualsPayload({
-    season, week, statsRows, statsPlayerIds, slots: slate.slots, versions: [POINTS_RULES.version], games: files.games.list,
+    season, week, statsRows, statsPlayerIds, statsOffPosition, slots: slate.slots, versions: [POINTS_RULES.version], games: files.games.list,
     snaps: weekSnaps(files.snapLines, { season, week }),
     roster: rosterFacts(files.rosterLines, { season, week, playerIds: slate.slots.map(slot => slot.playerId) }),
     source: { url: files.stats.url, release: files.stats.release, publishedAt: files.stats.publishedAt, retrievedAt: files.stats.retrievedAt, sha256: files.stats.sha256 },

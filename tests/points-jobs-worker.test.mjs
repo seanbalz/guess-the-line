@@ -329,16 +329,16 @@ test('contract: a slate player with snaps but no stats row stays pending while h
   assert.deepEqual(out.summary.actuals, [{ week: 5, status: 'saved', rowsSaved: 5, partial: true }]);
 });
 
-test('contract: a slate player with snaps whose only stats row is at a non-scoring position (FB) stays pending, never 0', async () => {
-  // The real stats file lists FB, CB, LB and other positions; a row at any of them is a stats row for that player.
+test('contract: a slate player with snaps whose only stats row is at a non-scoring position (FB) is scored from that row at his slot position', async () => {
+  // The real stats file lists FB, CB, LB and other positions; a slate player listed there is scored with his slot's position (D-56 review).
   const asFullback = `${statsCsv}\n${statRow({ player_id: '00-0000504', player_display_name: 'Fixture End Five', position: 'FB', season: SEASON, week: '5', season_type: 'REG', game_id: gid(5, 'DAL', 'NYG'), team: 'DAL', receptions: '2', receiving_yards: '15', receiving_tds: '1' })}`;
   const service = memoryService({ slates: [stateSlate(5, SLATE_5, KICK_5)] });
   const out = await runPointsJobs({ service, sources: fileSources({ ...ACTUAL_FILES, [FILES.stats]: asFullback }), now: Date.now() });
   const payload = service.calls.find(([name]) => name === 'gtl_points_load_actuals')[1].p_payload;
   const te = payload.players.find(p => p.playerId === '00-0000504');
-  assert.deepEqual([te.played, te.playedBasis, te.points], [true, 'snaps', {}], 'he recorded stats the scored rows do not carry: never scored 0');
+  assert.deepEqual([te.played, te.playedBasis, te.points], [true, 'stats', { 'ppr4-v1': 9.5 }], 'real Full PPR points from his FB row: 2 + 1.5 + 6');
   assert.equal(payload.players.filter(p => p.playerId === '00-0000504').length, 1);
-  assert.deepEqual(out.summary.actuals, [{ week: 5, status: 'saved', rowsSaved: 6, partial: true }], 'the week stays partial, so FINAL waits for the commissioner');
+  assert.deepEqual(out.summary.actuals, [{ week: 5, status: 'saved', rowsSaved: 6, partial: false }], 'his slot is scored, so FINAL no longer waits on him');
 });
 
 test('failure: a due week with no rows yet in a season file (no snap counts for it) still loads; it is not a failed load', async () => {

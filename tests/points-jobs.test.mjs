@@ -351,3 +351,19 @@ test('contract: linesFor keeps the header and only matching lines', () => {
   assert.equal(linesFor('h1,h2\na,1\nb,2\nc,1', ['1']), 'h1,h2\na,1\nc,1');
   assert.throws(() => linesFor('header only', ['x']), /no rows/);
 });
+
+test('contract: a slate player the stats file lists at FB scores his real Full PPR points under the slot position; a non-slate FB row stays out; a missing stat is pending, never 0', () => {
+  const fb = (id, o = {}) => statRow({ player_id: id, player_name: 'X.Fb', player_display_name: `Fb ${id}`, position: 'FB', season: '2026', week: '7', season_type: 'REG', game_id: '2026_07_SEA_LA', team: 'LA', opponent_team: 'SEA', rushing_yards: '50', receptions: '2', receiving_yards: '15', ...o });
+  const csv = `${statsCsv}\n${fb('FB-SLATE')}\n${fb('FB-OTHER')}\n${fb('FB-NA', { rushing_yards: 'NA' })}`;
+  const { rows: statsRows, playerIds: statsPlayerIds, offPosition: statsOffPosition } = weekStats(csv, { season: 2026, week: 7 });
+  assert.equal(statsRows.some(r => r.playerId.startsWith('FB-')), false, 'weekStatsRows output is unchanged');
+  const slots = slotsFor([['RB', 'FB-SLATE', '2026_07_SEA_LA', 'LAR', 'RB'], ['TE', 'FB-NA', '2026_07_SEA_LA', 'LAR', 'TE']]);
+  const payload = actualsPayload({ season: 2026, week: 7, statsRows, statsPlayerIds, statsOffPosition, slots, snaps: new Map(), roster: new Map(), games: [], versions: ['ppr4-v1', 'ppr6-v1'], source: SOURCE, coverage: {} });
+  const byId = Object.fromEntries(payload.players.map(p => [p.playerId, p]));
+  const row = byId['FB-SLATE'];
+  assert.deepEqual([row.position, row.team, row.gameKey, row.played, row.playedBasis, row.points], ['RB', 'LAR', '2026_07_SEA_LA', true, 'stats', { 'ppr4-v1': 8.5, 'ppr6-v1': 8.5 }]); // 5 + 2 + 1.5
+  assert.equal(byId['FB-OTHER'], undefined, 'not on the slate: excluded');
+  const na = byId['FB-NA'];
+  assert.deepEqual([na.position, na.played, na.playedBasis, na.points], ['TE', true, 'stats', {}]);
+  assert.equal(payload.coverage.slatePlayersWithoutStats, 0);
+});

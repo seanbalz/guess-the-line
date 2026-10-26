@@ -96,14 +96,21 @@ export function draftSlate({ snapshot, snapshotFile, snapshotSha256, season, wee
 /**
  * The week's regular-season stats: `rows`, the QB/RB/WR/TE/K rows scored, one per player (a duplicate fails closed), and
  * `playerIds`, every player with a row in the week at any position (the real file also lists FB, CB, LB and others), so
- * "no stats row" can be told apart from "a row at a position that is not scored".
+ * "no stats row" can be told apart from "a row at a position that is not scored". `offPosition` holds those other-position
+ * rows by player id (a player listed twice off-position is left out: ambiguous), for slate players the payload scores at
+ * their slot's position.
  */
 export function weekStats(statsCsv, { season, week }) {
   const all = parseFantasyCsv(linesFor(statsCsv, [`,${season}_${pad(week)}_`]), STATS_REQUIRED)
     .filter(row => Number(row.season) === season && Number(row.week) === week && row.season_type === 'REG');
   const players = new Map();
+  const offPosition = new Map(), offTwice = new Set();
   for (const row of all) {
-    if (!STAT_POSITIONS.has(row.position)) continue;
+    if (!STAT_POSITIONS.has(row.position)) {
+      if (offPosition.has(row.player_id)) offTwice.add(row.player_id);
+      else offPosition.set(row.player_id, { playerId: row.player_id, name: row.player_display_name || row.player_name, team: appCode(row.team), gameKey: row.game_id, stats: normalizePlayerStats(row) });
+      continue;
+    }
     if (players.has(row.player_id)) throw new Error(`Duplicate stats row for ${row.player_id}.`);
     const stats = normalizePlayerStats(row);
     const points = scoreStats(stats, { scoring: POINTS_RULES.format, passingTds: POINTS_RULES.passingTds, position: row.position });
@@ -112,7 +119,8 @@ export function weekStats(statsCsv, { season, week }) {
       gameKey: row.game_id, stats, points: Number.isFinite(points) ? roundTenth(points) : null,
     });
   }
-  return { rows: [...players.values()], playerIds: new Set(all.map(row => row.player_id)) };
+  for (const id of offTwice) offPosition.delete(id);
+  return { rows: [...players.values()], playerIds: new Set(all.map(row => row.player_id)), offPosition };
 }
 
 /** QB/RB/WR/TE/K regular-season rows of the week, one per player (a duplicate fails closed). */
@@ -173,10 +181,10 @@ function movedOutOfWeek(slot, { season, week, games }) {
 }
 
 /**
- * The gtl_points_load_actuals payload for the week. `statsRows` and `statsPlayerIds` come from weekStats (the scored rows,
- * and every player id with a row in the week at any position); `games` is the season's scheduleGames list.
+ * The gtl_points_load_actuals payload for the week. `statsRows`, `statsPlayerIds` and `statsOffPosition` come from weekStats (the scored rows,
+ * every player id with a row in the week at any position, and the rows at positions not scored); `games` is the season's scheduleGames list.
  */
-export function actualsPayload({ season, week, statsRows, statsPlayerIds, slots, snaps, roster, games, versions, source, coverage }) {
+export function actualsPayload({ season, week, statsRows, statsPlayerIds, slots, snaps, roster, games, versions, source, coverage, statsOffPosition }) {
   const pointsFor = value => (typeof value === 'number' && Number.isFinite(value) ? Object.fromEntries(versions.map(v => [v, value])) : {});
   const players = statsRows.map(row => ({
     playerId: row.playerId, name: row.name, team: row.team, position: row.position, gameKey: row.gameKey,
@@ -187,6 +195,13 @@ export function actualsPayload({ season, week, statsRows, statsPlayerIds, slots,
   let without = 0;
   for (const slot of slots) {
     if (have.has(slot.playerId)) continue;
+    // A slate player the stats file lists at a position that is not scored (FB, CB, blank) is scored at his slot's position.
+    const off = statsOffPosition?.get(slot.playerId);
+    if (off) {
+      const points = scoreStats(off.stats, { scoring: POINTS_RULES.format, passingTds: POINTS_RULES.passingTds, position: slot.position });
+      players.push({ playerId: slot.playerId, name: off.name, team: off.team, position: slot.position, gameKey: off.gameKey, stats: off.stats, points: pointsFor(Number.isFinite(points) ? roundTenth(points) : null), played: true, playedBasis: 'stats' });
+      continue;
+    }
     without += 1;
     const fact = roster?.get(slot.playerId);
     const snapCount = fact?.pfrId ? snaps?.get(fact.pfrId) : undefined;
