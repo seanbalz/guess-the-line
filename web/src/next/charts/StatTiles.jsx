@@ -10,7 +10,7 @@ export function StatTiles({ tiles }) {
         <li key={tile.label} className="gx-tc-tile">
           <span className="gx-tc-tile-label">{tile.label}</span>
           <span className="gx-tc-tile-value">{tile.value}</span>
-          {typeof tile.meter === 'number' ? (
+          {Number.isFinite(tile.meter) ? (
             <span className="gx-tc-bar" aria-hidden="true">
               <span className="gx-tc-bar-fill" style={{ width: `${Math.min(100, Math.max(0, tile.meter))}%` }}></span>
               <span className="gx-tc-bar-tick" style={{ left: `${BREAK_EVEN_PCT}%` }}></span>

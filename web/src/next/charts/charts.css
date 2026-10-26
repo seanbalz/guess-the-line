@@ -180,8 +180,12 @@
 .gx-tc-table th,
 .gx-tc-table td { padding: 8px 10px; text-align: left; font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 .gx-tc-table td:nth-child(2) { color: var(--gx-hero-text-2); }
+.gx-tc-table thead th { font: 600 13px/18px var(--gx-font-body); color: var(--gx-hero-text-2); border-bottom: 1px solid var(--gx-glass-line); }
+.gx-tc-table thead th:last-child,
 .gx-tc-table td:last-child { text-align: right; }
-.gx-tc-table-bar { width: 40%; }
+.gx-tc-table-bar { width: 35%; }
+.gx-tc-table-rate { display: block; }
+.gx-tc-table-bar .gx-tc-bar { margin-bottom: 4px; }
 .gx-tc-table tbody tr + tr > * { border-top: 1px solid var(--gx-glass-line); }
 
 @media (max-width: 359px) {

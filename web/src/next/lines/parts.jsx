@@ -89,6 +89,11 @@ export function WindCredit({ credit }) {
 /** The one-word state pill for a tier (D-55): the full tier words live in the trend's ⓘ. */
 const tierPill = tier => BOARD_TIER_WORDS[tier] ?? (tier === 'watch' ? 'Watch list' : 'No proven edge');
 
+const winRateTile = (w, l) => {
+  const pct = hitPct(w, l);
+  return { label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct, sub: pct === null ? 'No decided games' : undefined };
+};
+
 /**
  * The opened trend's chart props from a short card's D-55 chart data: the line since its first season (headline
  * units, win rate, last 10, games) and, when the file has its selection seasons, the "By season" view (headline
@@ -106,7 +111,7 @@ export function trendDetailProps(card) {
     // The file's points are chronological bins, so a point between the ends gives an approximate game count.
     tip: i => ({ value: `${signed(c.spark[i])} U`, label: i === 0 ? `Start, ${first}` : i === n - 1 ? `${games.toLocaleString('en-US')} games, through ${last}` : `after about ${Math.round((i * games) / (n - 1)).toLocaleString('en-US')} games` }),
     headline: { value: `${signed(c.units)} U`, sub: `${recordText(W, L, P)} since ${first}` },
-    tiles: [{ label: 'Win rate', value: `${hitPct(W, L) ?? '—'}%`, meter: hitPct(W, L) ?? 0 }, lastTen, { label: 'Games', value: games.toLocaleString('en-US'), sub: `since ${first}` }].filter(Boolean),
+    tiles: [winRateTile(W, L), lastTen, { label: 'Games', value: games.toLocaleString('en-US'), sub: `since ${first}` }].filter(Boolean),
   };
   if (c.seasons.length < 2) return { line, seasons: null };
   const sum = c.seasons.reduce((a, s) => ({ w: a.w + s.w, l: a.l + s.l, units: a.units + s.units }), { w: 0, l: 0, units: 0 });
@@ -117,7 +122,7 @@ export function trendDetailProps(card) {
       rows: c.seasons,
       caption: c.seasonsLabel ?? `Seasons ${span}`,
       headline: { value: `${c.seasonsPositive} of ${c.seasonsCounted}`, sub: `seasons above break-even, ${span}` },
-      tiles: [{ label: 'Win rate', value: `${hitPct(sum.w, sum.l) ?? '—'}%`, meter: hitPct(sum.w, sum.l) ?? 0 }, lastTen, { label: 'Units', value: signed(sum.units), sub: span }].filter(Boolean),
+      tiles: [winRateTile(sum.w, sum.l), lastTen, { label: 'Units', value: signed(sum.units), sub: span }].filter(Boolean),
     },
   };
 }

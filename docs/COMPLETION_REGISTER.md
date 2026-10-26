@@ -70,8 +70,15 @@ Sean’s next priority is **Research and charts**, selected October 26. The curr
 [design batch](RESEARCH_DESIGN_2026_10_26.md) applies D-55 to Research’s information
 hierarchy, tooltip spacing, narrow-screen stat/season layouts and chart gestures.
 It also fixes Escape closing the underlying sheet when dismissing chart
-information. Source verification, CI/merge, release and device acceptance are
-tracked separately.
+information. PR #216 merged as `275c57fa1fedd4876cdf706e7b16a5e77bb52d66`
+after all nine checks passed on `06c500a124ca5eaf8730d41f024063edb625cbd7`.
+The follow-up source batch prevents curve overshoot, adds visible season headings
+and percentages, and distinguishes missing win-rate samples from genuine 0%.
+Local verification passed: 14 integrated browser tests, one final focused rerun,
+seven rendered-chart tests, 20 chart/token tests, typecheck, Brand QA, build and
+bundle privacy scan. CI/merge, release and physical-device acceptance
+remain separate; the next DESIGN-01 exit is hosted and iPhone acceptance, not a
+claim that all Research work is complete.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
