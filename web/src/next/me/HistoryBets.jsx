@@ -58,7 +58,7 @@ function BetsWeek({ season, week }) {
   return players.map(member => {
     const name = member.userId === viewer ? 'You' : member.displayName || 'Player', summary = betsRecord(member.bets);
     return (
-      <Card as="section" key={member.userId} className="gx-vstack gx-gap-12" aria-label={`${name}, Week ${week} bets`} data-bets-player={member.userId}>
+      <Card as="section" key={member.userId} variant={member.userId === viewer ? 'tint' : undefined} className="gx-vstack gx-gap-12" aria-label={`${name}, Week ${week} bets`} data-bets-player={member.userId}>
         <div className="gx-hstack gx-gap-12">
           <Avatar id={member.userId} name={member.displayName} size={40}/>
           <div className="gx-vstack gx-grow">
