@@ -22,7 +22,7 @@ Owner: Sean Balsiger · Version 3 · Updated 2026-10-14 · Decision [D-28](DECIS
 | Storage | migration `20261013030000_gtl_web_push_reminders.sql` | `gtl_push_subscriptions`, `gtl_push_reminders_sent`, `gtl_push_reminder_schedule` (row disabled by default), `gtl_push_reminder_runs`. RLS on, no browser grants, every function security invoker and service-only |
 | API | `gtl-api`: `POST /push/status`, `/push/subscribe`, `/push/unsubscribe` | Signed-in and email-confirmed like every other route; endpoint must be https on a known push service (FCM, Mozilla, Windows, Apple); keys and sizes checked in the handler and again in SQL; at most 10 devices per player |
 | Sender | Edge Function `gtl-push-reminders` → `cloud/push-reminders.mjs`, `cloud/web-push.mjs` | D-24 pattern: pg_cron → one-run capability → claim in SQL. VAPID (ES256) and aes128gcm encryption with WebCrypto, no extra dependency. Reads `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` from Edge Function secrets at run time |
-| Cron | `supabase/admin/web_push_reminders_cron.sql` | Not a migration. Every 15 minutes; outside the 2-hour window the dispatcher writes nothing and calls nothing |
+| Cron | `supabase/admin/web_push_reminders_cron.sql` | Not a migration. Every 15 minutes. Since P-02 (hosted October 23, 2026) the dispatcher also opens a run when a published, non-FINAL Guess the Points slot kicks off in the next 2 hours; otherwise, outside the 2-hour deadline window, it writes nothing and calls nothing. The Points reminder pass needs `gtl-push-reminders` redeployed from the Mac mini (hosted v4 skips it) |
 
 ## Sean's steps, in order
 

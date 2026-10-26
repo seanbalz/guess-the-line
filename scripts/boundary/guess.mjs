@@ -101,6 +101,17 @@ export const rpcChecks = Object.freeze([
   ['gtl_points_load_actuals', { p_payload: {} }],
   ['gtl_points_finalize', { p_season: 2026, p_week: 5 }],
   ['gtl_points_publish_slate', { p_actor: missingId, p_action: 'preview', p_season: 2026, p_week: 5, p_slate: null }],
+  // P-03, Guess the Points scheduled jobs (20261026120000_gtl_points_jobs.sql, D-56): the cron-only dispatcher, the
+  // gtl-points-jobs worker's claim and complete, and its service-only jobs-state read. The capability is all zeros, the run
+  // and claim name no run and the season is out of range, so a wrongly granted claim, complete or read refuses before it
+  // reads or writes anything. Awaiting deploy (below) until the migration is applied to the hosted project. Its two tables
+  // (points_job_schedule, points_job_runs) and the worker probe ['scheduled Points jobs', 'gtl-points-jobs',
+  // { runId: missingId }] join with that apply and the worker's deploy: the checker has no awaiting path for a table or a
+  // worker, so listing them before then fails the default check, and release preflight, with an unexpected 404.
+  ['gtl_dispatch_points_jobs', {}],
+  ['gtl_claim_points_jobs', { p_token: '0'.repeat(64), p_run: missingId }],
+  ['gtl_complete_points_jobs', { p_run: missingId, p_claim: missingId, p_reason: null, p_summary: null }],
+  ['gtl_points_jobs_state', { p_season: 1999 }],
 ]);
 
 /** [gtl-api route, body or undefined for GET]: each is called signed out and with an invalid session and must answer 401. */
@@ -125,4 +136,10 @@ export const apiChecks = Object.freeze([
 export const workerChecks = Object.freeze([]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({
+  // P-03: remove with the release record of its hosted apply and the gtl-points-jobs deploy (Gate M step 8).
+  'rpc/gtl_dispatch_points_jobs': 'migration 20261026120000_gtl_points_jobs.sql',
+  'rpc/gtl_claim_points_jobs': 'migration 20261026120000_gtl_points_jobs.sql',
+  'rpc/gtl_complete_points_jobs': 'migration 20261026120000_gtl_points_jobs.sql',
+  'rpc/gtl_points_jobs_state': 'migration 20261026120000_gtl_points_jobs.sql',
+});
