@@ -85,5 +85,10 @@ test('trends: without a ballot both markets stay locked while the consistent-not
   await page.getByRole('button', { name: 'Trends for HOU at JAX', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Unlocks after your Total ballot' })).toBeVisible({ timeout: FIRST_LOAD });
   await expect(page.getByRole('heading', { name: 'Spread-dependent records' })).toHaveCount(0);
-  await expect(page.getByText('Back HOU ATS').first()).toBeVisible();
+  // The fixture moves kickoff into the current open week. HOU's later scheduled games
+  // have no finals in the pinned season CSV, so previous-game trends may correctly wait.
+  // The wind condition is stable and needs neither a current line nor a previous final.
+  const consistent = page.getByRole('region', { name: 'Consistent, not proven', exact: true });
+  await expect(consistent.locator('summary').getByText('Very strong wind', { exact: true })).toBeVisible();
+  await expect(consistent).toContainText('Applies only if kickoff wind is 15+ mph; no current forecast for this game');
 });

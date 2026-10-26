@@ -2,16 +2,19 @@
 // The league pill and the old `#groups` link open it. Invitations come first: the invite link saved in this tab (Join
 // or Dismiss) and the invites sent to this account's email (Join). Then the leagues: the Community first, then this
 // account's groups, the one showing checked; tapping one shows it ("Showing …") and keeps the choice on this device.
-// Creating a league and inviting friends arrive in stage 59; until then the old app does both.
+// Hosts manage private-league invitations here; members can create a Duel or Group without leaving the new app.
 //
 // Join is a write: it is sent once and never retried by itself. A lost answer says to check, and the leagues below are
 // read again, so a league that was joined shows up there.
-import { useId, useState } from 'react';
+import { lazy, Suspense, useId, useState } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { useAppData } from '../data/AppData.jsx';
 import { fmtFull, plural } from '../format.js';
 import { useShell } from '../shell/context.js';
 import { Avatar, Button, Card, Icon, LinkRow, List, Row, Sheet } from '../ui/index.js';
+
+const CreateLeague = lazy(() => import('./CreateLeague.jsx').then(module => ({ default: module.CreateLeague })));
+const InvitePlayers = lazy(() => import('./InvitePlayers.jsx').then(module => ({ default: module.InvitePlayers })));
 
 export const SWITCHER_COPY = Object.freeze({
   title: 'Your leagues',
@@ -30,7 +33,6 @@ export const SWITCHER_COPY = Object.freeze({
   players: n => plural(n, 'player'),
   host: 'You host',
   everyLeague: 'Picks and bets count in every league you’re in.',
-  laterTitle: 'Create a league or invite friends in the old app for now.',
   showing: name => `Showing ${name}`,
   joined: name => (name ? `You’re in ${name}` : 'You joined.'),
   uncertain: 'We couldn’t confirm you joined. Your leagues below were checked again; if it isn’t there, try Join again.',
@@ -66,7 +68,7 @@ function InviteCard({ who, title, meta, primary, joinLabel, busy, problem, onJoi
   );
 }
 
-export function SwitcherSheet() {
+export function SwitcherSheet({ args = {} }) {
   const shell = useShell();
   const app = useAppData();
   const [busy, setBusy] = useState(null);
@@ -96,6 +98,16 @@ export function SwitcherSheet() {
     }
     shell.closeSheet();
   }
+
+  if (args.createLeague) return <Suspense fallback={<Sheet title="Create a league" onClose={shell.closeSheet}><p className="gx-t-body" role="status">Loading league creation…</p></Sheet>}>
+    <CreateLeague key={app.accountId}/>
+  </Suspense>;
+  const hosted = app.leagues.filter(row => row.host && !row.community && row.id !== 'sean-troy-luke');
+  const inviteLeague = hosted.find(row => row.id === args.inviteLeagueId);
+  if (inviteLeague) return <Suspense fallback={<Sheet title={`Invite to ${inviteLeague.name}`} onClose={shell.closeSheet}
+    back={{ label: 'Your leagues', onBack: () => shell.setSheetArgs({ inviteLeagueId: null }) }}><p className="gx-t-body" role="status">Loading invitations…</p></Sheet>}>
+    <InvitePlayers key={`${app.accountId}:${inviteLeague.id}`} league={inviteLeague}/>
+  </Suspense>;
 
   return (
     <Sheet title={SWITCHER_COPY.title} onClose={shell.closeSheet}>
@@ -148,7 +160,10 @@ export function SwitcherSheet() {
         </List>
       </Card>
       <p className="gx-t-meta">{SWITCHER_COPY.everyLeague}</p>
-      <p className="gx-t-meta">{SWITCHER_COPY.laterTitle}</p>
+      {hosted.length > 0 && <Card variant="flush"><List label="Leagues you host">
+        {hosted.map(row => <LinkRow key={row.id} icon="plus" onClick={() => shell.setSheetArgs({ inviteLeagueId: row.id })}>Invite to {row.name}</LinkRow>)}
+      </List></Card>}
+      <Button variant={hasInvites ? 'secondary' : 'primary'} block onClick={() => shell.setSheetArgs({ createLeague: true, inviteLeagueId: null })}>Create a league</Button>
       <Card variant="flush">
         <List>
           <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
