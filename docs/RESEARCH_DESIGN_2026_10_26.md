@@ -91,3 +91,27 @@ step is release verification and Research/chart acceptance on iPhone Safari and
 Home Screen in both themes, including long labels, drag/keyboard selection and
 missing/stale evidence. Sean's corrected no-scroll-bug report is retained; this
 batch does not reopen that symptom or close broader Q19.
+
+
+## Season selection follow-through
+
+The next approved D-55 interaction connects the season table to the stem chart.
+Each year is a named button with a touch target of at least 44 × 44px and a 16px
+number. The selected year has a check, outline and pressed state; the selection
+is not conveyed by color alone. Table activation, dragging and the keyboard
+slider all update the same season. Switching to the cumulative line and back
+retains the chosen year. Selection stays keyed to the year rather than a row
+position; if that year is unavailable, the latest supplied season is shown.
+
+Table activation keeps focus on its button and does not force a scroll to the
+chart. An accessible controls relationship identifies the connected chart. A
+zero-unit season is described as “at break-even,” not “above break-even.” The
+existing records, units, data gates and seasonal summaries remain unchanged.
+
+Nine rendered-chart tests, 20 chart/token tests, typecheck, Brand QA, the
+fixture build and bundle privacy scan passed. Two focused browser checks passed
+for selection, view switching, dragging, keyboard control, 44px targets, 320px
+layout and accessibility. Light/Dark selected-row screenshots were inspected.
+All 19 integrated Research/Lines/Trends browser tests also passed. CI/merge, deployment and
+physical-iPhone acceptance remain separate. Source branch:
+`codex/research-season-selection`.

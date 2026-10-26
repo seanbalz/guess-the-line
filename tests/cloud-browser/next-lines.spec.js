@@ -566,14 +566,14 @@ test('chart dragging stays on the nearest endpoint outside the plot and keyboard
       await page.setViewportSize({ width: 320, height: 844 });
       await trend.scrollIntoViewIfNeeded();
       await phoneChecks(page);
-      await axe(page);
+      expect(await axe(page)).toEqual([]);
       for (const heading of ['Season', 'Record', 'Win rate', 'Units']) {
         await expect(trend.getByRole('columnheader', { name: heading, exact: true })).toBeVisible();
       }
       const rates = trend.locator('.gx-tc-table-rate');
       expect(await rates.count()).toBeGreaterThan(1);
       for (const rate of await rates.all()) await expect(rate).toHaveText(/^\d+(\.\d+)?%$/);
-      const splitValues = await trend.locator('.gx-tc-tile-value, .gx-tc-table-rate, .gx-tc-table th, .gx-tc-table td:not(.gx-tc-table-bar)').evaluateAll(nodes => nodes.filter(node => {
+      const splitValues = await trend.locator('.gx-tc-tile-value, .gx-tc-table-rate, .gx-tc-table thead th, .gx-tc-table td:not(.gx-tc-table-bar)').evaluateAll(nodes => nodes.filter(node => {
         const range = document.createRange(); range.selectNodeContents(node);
         const lines = new Set([...range.getClientRects()].map(rect => Math.round(rect.top)));
         return lines.size > 1 || node.scrollWidth > node.clientWidth + 1;
@@ -584,5 +584,50 @@ test('chart dragging stays on the nearest endpoint outside the plot and keyboard
       await trend.locator('.gx-tc-table').scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`research-season-table-${theme}.png`) });
     }
+  } finally { await world.db.close(); }
+});
+
+
+test('season table selection stays in sync with the chart and survives view switching', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    await trend.getByRole('button', { name: 'By season', exact: true }).click();
+    const season = year => trend.getByRole('button', { name: `Show ${year} season on chart`, exact: true });
+    const scrub = trend.getByRole('slider', { name: 'Move across the seasons' });
+    await expect(season(2025)).toHaveAttribute('aria-pressed', 'true');
+    await season(2024).click();
+    await expect(season(2024)).toBeFocused();
+    await expect(season(2024)).toHaveAttribute('aria-pressed', 'true');
+    await expect(season(2025)).toHaveAttribute('aria-pressed', 'false');
+    await expect(scrub).toHaveValue('6');
+    await expect(scrub).toHaveAttribute('aria-valuetext', /2024:.*below break-even/);
+    await expect(trend.locator('.gx-tc-tip-value')).toHaveText('−11.5 U');
+    await expect(trend.locator('.gx-tc-col--on')).toHaveCount(1);
+    const chartId = await season(2024).getAttribute('aria-controls');
+    expect(await trend.locator('.gx-tc-seasons').getAttribute('id')).toBe(chartId);
+    await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+    await trend.getByRole('button', { name: 'By season', exact: true }).click();
+    await expect(season(2024)).toHaveAttribute('aria-pressed', 'true');
+    await expect(scrub).toHaveValue('6');
+    await season(2019).focus(); await page.keyboard.press('Space');
+    await expect(scrub).toHaveValue('1');
+    await expect(season(2019)).toBeFocused();
+    await scrub.focus(); await page.keyboard.press('Home');
+    await expect(season(2018)).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('End');
+    await expect(season(2025)).toHaveAttribute('aria-pressed', 'true');
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await season(2024).click();
+      await phoneChecks(page);
+      expect(await axe(page)).toEqual([]);
+      const table = trend.locator('.gx-tc-table');
+      await table.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`selected-season-${theme}.png`) });
+    }
+    expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
