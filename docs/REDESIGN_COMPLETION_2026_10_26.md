@@ -66,6 +66,17 @@ route baseline and representative-phone measurements. The existing main entry
 and static Fantasy chunks still trigger Vite's large-chunk advisory; this change
 does not claim to solve those separate bottlenecks.
 
+## PR #209 CI follow-up
+
+Initial CI found two failures after the creation flow was added: the switcher
+showed two primary actions when an invitation was waiting, and an older Trends
+assertion expected a Houston season-form card even when its pinned source had
+an earlier game without a final. The switcher now prioritizes Join and makes
+Create a league secondary while invitations are present. The Trends test checks
+the stable ungated wind card instead, retaining both market-lock assertions and
+the conditional/no-current-forecast wording. No missing final is fabricated.
+The 17 account/league/invitation browser cases and both Trends cases passed locally after the fixes. Typecheck and Brand QA passed. Current-head GitHub CI remains a merge gate.
+
 ## Mobile report correction
 
 Sean's latest October 26 answer explicitly says the app does not have the scroll

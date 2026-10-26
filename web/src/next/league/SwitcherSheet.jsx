@@ -163,7 +163,7 @@ export function SwitcherSheet({ args = {} }) {
       {hosted.length > 0 && <Card variant="flush"><List label="Leagues you host">
         {hosted.map(row => <LinkRow key={row.id} icon="plus" onClick={() => shell.setSheetArgs({ inviteLeagueId: row.id })}>Invite to {row.name}</LinkRow>)}
       </List></Card>}
-      <Button variant="primary" block onClick={() => shell.setSheetArgs({ createLeague: true, inviteLeagueId: null })}>Create a league</Button>
+      <Button variant={hasInvites ? 'secondary' : 'primary'} block onClick={() => shell.setSheetArgs({ createLeague: true, inviteLeagueId: null })}>Create a league</Button>
       <Card variant="flush">
         <List>
           <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
