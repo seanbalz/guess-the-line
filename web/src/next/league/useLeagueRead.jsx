@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { connectRefresh } from '../data/store.js';
 import { Button, Card } from '../ui/index.js';
+import { sharedRead } from '../../sharedReads.js';
 
-/** A private group or history season has its own abortable read. Old scopes never flash on a new one. */
-export function useLeagueRead(key, read, onRefused) {
+/**
+ * A private group or history season has its own abortable read. Old scopes never flash on a new one. With
+ * `shared: true` (account-scoped keys only) screens share one request and its fresh answer; a refresh or retry reads again.
+ */
+export function useLeagueRead(key, read, onRefused, { shared = false } = {}) {
   const [snapshot, setSnapshot] = useState(null), [revision, setRevision] = useState(0);
   const readRef = useRef(read), refusedRef = useRef(onRefused), lastGood = useRef(null), running = useRef(false);
   readRef.current = read; refusedRef.current = onRefused;
@@ -17,7 +21,7 @@ export function useLeagueRead(key, read, onRefused) {
     const controller = new AbortController();
     running.current = true;
     setSnapshot({ key, loading: true, data: null, error: null });
-    Promise.resolve().then(() => readRef.current(controller.signal)).then(data => {
+    Promise.resolve().then(() => (shared ? sharedRead(key, readRef.current, controller.signal, { reuse: revision === 0 }) : readRef.current(controller.signal))).then(data => {
       if (!controller.signal.aborted) { lastGood.current = Date.now(); setSnapshot({ key, loading: false, data, error: null }); }
     }).catch(error => {
       if (controller.signal.aborted) return;

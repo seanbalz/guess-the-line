@@ -10,6 +10,8 @@ import { clearCommunityDrafts } from './communityDraft';
 import { clearNextDrafts } from './nextDrafts';
 import { pendingInvitation } from './invitations';
 import { oauthReturnError, startGoogleSignIn } from './oauth';
+import { forgetSharedReads } from './sharedReads.js';
+import { signInMayBePending } from './signInPending.js';
 
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null);
@@ -18,9 +20,12 @@ export default function AuthGate({ children }) {
     const next = nextSession?.user?.id || null;
     // Redesign stage 11: the new app's typed-text drafts go with the old app's, so another account never sees them.
     if (lastAccount.current && lastAccount.current !== next) { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); clearNextDrafts(); }
+    // Answers screens share (sharedReads.js) are account-keyed; a new account starts with none kept.
+    if (lastAccount.current !== next) forgetSharedReads();
     lastAccount.current = next;
   }
-  const [loading, setLoading] = useState(true);
+  // Waits for the session check only when one may exist; a signed-out visitor sees the form at once (signInPending.js).
+  const [loading, setLoading] = useState(() => Boolean(supabase) && signInMayBePending());
   const [creating, setCreating] = useState(false);
   const [forgotten, setForgotten] = useState(false);
   const [recovering, setRecovering] = useState(passwordRecoveryRequested);

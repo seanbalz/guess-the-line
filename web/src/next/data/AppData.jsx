@@ -18,6 +18,16 @@ import { COMMUNITY, currentLeague, leagueRows, pendingInvites, readLeagueChoice,
 
 const AppDataContext = createContext(null);
 
+// This device has seen the account with a name, so its Community read can start with /lobby (a hint only, never a
+// rule: the server still refuses an account with no name). Nothing else is stored.
+const NAMED = 'gtl.next.named.v1.';
+function rememberedName(accountId) {
+  try { return Boolean(accountId) && localStorage.getItem(NAMED + accountId) === '1'; } catch { return false; }
+}
+function rememberName(accountId) {
+  try { if (accountId) localStorage.setItem(NAMED + accountId, '1'); } catch { /* A private window keeps the old order. */ }
+}
+
 /**
  * The shared reads. `/community/read` is the same call the old app's Community home makes. `/personal` (stage 13, the
  * Lines tab) is the viewer's own week, the same call the old app's Community Picks makes: it is read only once a screen
@@ -36,10 +46,12 @@ export function AppDataProvider({ session, sources, children }) {
   const [write] = useState(() => createWriter(store));
   useSyncExternalStore(store.subscribe, store.version, store.version);
 
-  // The first read, the refresh triggers, and the abort on unmount (StrictMode mounts twice; the store survives).
+  // The first read, the refresh triggers, and the abort on unmount (StrictMode mounts twice; the store survives). An
+  // account this device has seen with a name reads the Community alongside /lobby instead of after it.
   useEffect(() => {
     const disconnect = connectRefresh(window, store);
     store.load('lobby');
+    if (rememberedName(accountId)) store.load('community');
     return () => { disconnect(); store.abortAll(); };
   }, [store]);
 
@@ -47,7 +59,7 @@ export function AppDataProvider({ session, sources, children }) {
   const community = store.get('community');
   const name = profileName(lobby.data);
   // `/community/read` refuses an account with no name; it is read once the name step is done.
-  useEffect(() => { if (name) store.load('community'); }, [name, store]);
+  useEffect(() => { if (name) { rememberName(accountId); store.load('community'); } }, [name, store, accountId]);
 
   // A fresh session (signed in again in place) clears the prompt and reads again what the 401 stopped.
   const token = session?.access_token;

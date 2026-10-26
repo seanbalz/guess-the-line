@@ -47,6 +47,8 @@ const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  // A browser reuses the preflight for two hours (Chromium's cap) instead of sending one before every call.
+  'Access-Control-Max-Age': '7200',
   'Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff',
 };
