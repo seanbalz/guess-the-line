@@ -22,9 +22,18 @@ export const INFO = Object.freeze({
       'U means units at −110: a win adds 0.91 and a loss takes 1. Break-even is 52.4%, the tick on each bar.',
       'Not proven: a pattern that held in 2002–2017 and in 2018–2025. Searching many situations finds some patterns by chance.',
       'Line-based trends unlock when that market is open to you.',
-      'Open a game for market lines, book quotes and recorded line movement.',
+      'The Lines board shows permitted market quotes with source times. Quotes older than six hours are labelled Latest recorded line; saved scoring references remain in the game sheet. Open a game for market lines, book quotes and recorded line movement.',
     ],
     links: TRENDS_LINKS,
+  },
+  guessPicks: {
+    title: 'About community guesses',
+    body: [
+      'This list shows Community guesses for this game and market, regardless of the private league selected in the app header.',
+      'Your own saved draft stays visible to you. Another player’s draft is never shown; their locked guess opens after your lock-in, sit-out or the game’s kickoff.',
+      'Points and distance use each guess’s saved scoring reference. Score pending is not zero. Closest, ties and rank appear only when returned after kickoff; the screen does not calculate standings.',
+      'Late guesses and former members keep their labels and records. Opening this list never locks in a guess or sits you out.',
+    ],
   },
   marketLines: {
     title: 'About market lines',
@@ -114,4 +123,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);

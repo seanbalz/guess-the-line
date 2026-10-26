@@ -154,6 +154,42 @@ from their kickoff).
   - the backfill matching the dry run, run once;
   - the real `cloud/week-open.mjs` flow on PGlite.
 
+### Feed screens: posts, digest, comments and reactions (stages 64 and 65)
+
+The new app's League feed (`web/src/next/feed/`), inside Play › League. It reads `/league/feed`; until that answers (M-22
+not applied, `GTL_FEATURE_OFF=feed`, or an older `gtl-api`) the League screen shows the Community feed from
+`/community/read`, unchanged. A private group shows its own feed under its standings once the reader exists.
+
+- **Posts** (`PostCard.jsx`) lead with a face, or with the Guess The Line mark for a week-opened or kickoff post.
+  - Every old kind renders, with the Late marker on ballot posts and "Real slip" on Bet Tracker posts.
+  - A friend's ballot post opens their picks in `sh.picks` (`/community/picks`); a market still hidden is a lock row
+    with a sentence, never a number.
+  - A shared result shows its guess and points only as the server allows.
+  - A kickoff post lists each game with who is in and opens the game sheet. Its comments are the game thread.
+- **Digest** (`DigestCard.jsx`): friends' ballot posts of one Pacific day fold into one card. A post with reactions or
+  comments never folds, and "Show each post" opens every folded post in place.
+- **Comments** (`sh.comments`): oldest first, paged from `/league/comments`. Each comment is 1 to 500 characters
+  (typing stops at 500, with a counter from 450) and can't be edited or deleted. The typed text and its request id are
+  kept for the account in this tab, so a lost answer keeps the text and a retry records one comment.
+- **Reactions** (`pop.reactions`, `sh.reactors`):
+  - The row shows at most three chips, most first, with yours always in view. Tapping yours takes it back.
+  - The picker offers the six reactions; "See who reacted" lists one reaction per person.
+  - A change shows at once. A refusal puts the old reaction back with a toast, and a lost answer reads the feed again.
+- **Result sharing:** in your own picks sheet, each scored game has "Share". It posts the result to the league showing
+  (`/league/share-result`), once per game, market and league.
+- **New-posts dot** (per device): the Feed segment shows a dot when someone else posted after the newest post this
+  device showed.
+- **Tests:**
+  - `tests/next-feed.test.jsx`: folding, reaction chips, card markup and gates, Pacific kickoff slots across Nov 1, the
+    comment limit and the dot.
+  - `tests/cloud-browser/next-feed.spec.js`: every old kind; the lock row, then the picks; the kickoff thread; 500
+    characters; the digest; the fallback.
+  - `tests/cloud-browser/next-reactions.spec.js`: a reaction changes, survives a reload and counts as the old heart;
+    who reacted; sharing a result.
+  - Both specs run at 390 × 844 with the phone-layout checks and axe in Dark and Light at 390 and 320.
+  - `next-phone-layout` and `next-scroll-navigation` add `#play/league?view=feed`, with the comments sheet and the
+    reactions picker.
+
 ## Historical implementation and release notes
 
 The dated sections below preserve their original implementation state and API
