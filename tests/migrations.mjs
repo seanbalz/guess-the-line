@@ -35,12 +35,15 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 export const NOT_HOSTED = [
   20261026120000, // gtl_points_jobs (D-56 P-03: Points job schedule, run queue, jobs state; waits for "apply P-03")
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
+  20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
  */
-export const FIX_FORWARD = [];
+export const FIX_FORWARD = [
+  20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
+];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan
  * ledger's "Apply after" (section 6), for a migration whose functions or rollback call another unapplied file's functions.
