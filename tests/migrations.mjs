@@ -24,12 +24,16 @@ export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', impor
 export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;";
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
-export const NOT_HOSTED = [];
+export const NOT_HOSTED = [
+  20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
+];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
  */
-export const FIX_FORWARD = [];
+export const FIX_FORWARD = [
+  20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
+];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan
  * ledger's "Apply after" (section 6), for a migration whose functions or rollback call another unapplied file's functions.
