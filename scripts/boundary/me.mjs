@@ -20,6 +20,12 @@ export const rpcChecks = Object.freeze([
   // Awaiting deploy (below) until the migration is applied to the hosted project.
   ['gtl_read_game_notes', { p_user: missingId, p_season: 2026, p_week: 5 }],
   ['gtl_set_game_note', { p_user: missingId, p_request: missingId, p_season: 2026, p_week: 5, p_game: 'AAA-BBB', p_note: '', p_revision: 0 }],
+  // M-27 Me › History (20261026230000_gtl_me_history.sql, redesign stage 72): two service-only readers and their two helpers.
+  // Awaiting deploy (below) until the migration is applied to the hosted project.
+  ['gtl_me_slate', { p_season: 2026, p_week: 5 }],
+  ['gtl_me_results', { p_season: 2026, p_week: 5 }],
+  ['gtl_read_ballot_changes', { p_user: missingId, p_season: null, p_week: null, p_now: null }],
+  ['gtl_read_me_records', { p_user: missingId, p_now: null }],
   // D-28 web push reminders (20261013030000): device subscriptions and the reminder scheduler are service-only.
   ['gtl_push_subscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_p256dh: `B${'A'.repeat(86)}`, p_auth: 'A'.repeat(22) }],
   ['gtl_push_unsubscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check' }],
@@ -34,6 +40,9 @@ export const rpcChecks = Object.freeze([
 export const apiChecks = Object.freeze([
   ['me/preferences', {}],
   ['me/preferences/save', {}],
+  // M-27 History routes: signed-out probes prove only authentication protection.
+  ['me/changes', {}],
+  ['me/records', {}],
   ['personal', undefined],
   ['personal/read', {}],
   ['personal/ballot', {}],
@@ -57,4 +66,10 @@ export const workerChecks = Object.freeze([
 ]);
 
 // Both preferences routes are deployed (gtl-api v32) and their D-53 functions are hosted since October 22, 2026.
-export const awaitingDeploy = Object.freeze({});
+// M-27 (stage 72): its four functions await "apply M-27" and the History routes await the gtl-api deploy that carries them. The
+// apply record removes these entries (Gate M step 8).
+const M27 = 'migration 20261026230000_gtl_me_history.sql';
+export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_me_slate': M27, 'rpc/gtl_me_results': M27, 'rpc/gtl_read_ballot_changes': M27, 'rpc/gtl_read_me_records': M27,
+  'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records',
+});

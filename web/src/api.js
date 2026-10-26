@@ -67,7 +67,8 @@ export const GROUP_ACTIONS = Object.freeze({
   lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research']), writes: Object.freeze([]) }),
   bets: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze([]) }),
   league: Object.freeze({ reads: Object.freeze(['comparison']), writes: Object.freeze([]) }),
-  me: Object.freeze({ reads: Object.freeze(['preferences']), writes: Object.freeze(['preferences/save']) }),
+  // Stage 72 (M-27): Me › History, your own changes and the older records.
+  me: Object.freeze({ reads: Object.freeze(['preferences', 'changes', 'records']), writes: Object.freeze(['preferences/save']) }),
   // Guess the Points (D-56, cloud/points.mjs): the gated week read, and draft saves, lock-ins and the commissioner's slate.
   // Until P-01 is applied every route answers 404 (code GTL_POINTS_OFF, or gtl-api's own "Not found."): "coming soon".
   points: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze(['draft', 'lock', 'slate']) }),

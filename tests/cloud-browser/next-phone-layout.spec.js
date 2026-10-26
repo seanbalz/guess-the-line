@@ -9,7 +9,9 @@ import { layoutProblems } from '../helpers/phone-layout.mjs';
 
 const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/compare', '#play/league',
   '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
-  '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends'];
+  '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends',
+  // Me › History (stage 73).
+  '#history', '#history/bets'];
 const BET_VIEWS = ['feed', 'myweek', 'compare', 'history'];
 // Two passes cover both themes and both phone widths. The third draws reading text in a wide system sans, because a
 // phone whose web fonts do not load (and CI's Linux runner, October 21) falls back from Figtree to wider letters than
