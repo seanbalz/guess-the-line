@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { ALL } from '../migrations.mjs';
+import { ALL, without } from '../migrations.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { useOldApp } from './old-app.mjs';
 
@@ -18,7 +18,8 @@ test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; neve
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 // Stage 17 verifies M-01 reveal and the original classic trends editor. M-07's replacement entry/scoring
 // surface is exercised separately in next-per-game-scoring.spec.js; keep this historical regression intact.
-const BEFORE_M07 = ALL.filter(file => file !== '20261015190710_gtl_guess_write_window.sql');
+// Without M-07, and without the later files that rebuild on its bodies (M-21's gtl_read_community): tests/migrations.mjs without().
+const BEFORE_M07 = without(ALL, '20261015190710_gtl_guess_write_window.sql');
 const WEEK6 = state => {
   state.league.season = 2026; state.league.week = 6;
   const [a, b] = state.games;

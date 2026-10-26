@@ -6,7 +6,7 @@ import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { FEATURE_OFF } from '../../cloud/optional-rpc.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
-import { ALL, HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
+import { ALL, HOSTED, PRELUDE, migrationSql, without } from '../migrations.mjs';
 import { useOldApp } from './old-app.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip. */ }
@@ -264,7 +264,7 @@ test('solo submitted guesses are final once the live rules say so, and editable 
 test.describe('stage 18 on the schema with M-02 applied mid-session', () => {
   // Begin before both immutable-writer migrations, then apply M-02 alone below. M-07 would already make
   // sent guesses final before the transition this historical Solo test is meant to exercise.
-  test.use({ schema: ALL.filter(file => file !== '20261015030000_gtl_sent_picks_final.sql' && file !== '20261015190710_gtl_guess_write_window.sql') });
+  test.use({ schema: without(without(ALL, '20261015190710_gtl_guess_write_window.sql'), '20261015030000_gtl_sent_picks_final.sql') });
   test('a Solo edit refused once M-02 is applied shows the final ballot with "Sent picks are final."',async({page,personal})=>{
     await openSolo(page);
     await submitSpread(page, personal);

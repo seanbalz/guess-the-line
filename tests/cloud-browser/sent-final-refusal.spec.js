@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import { pickSpread, expectPick, expectPickEnabled } from '../chip-entry.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, sendBallot, signIn } from './community-world.mjs';
-import { ALL, migrationSql } from '../migrations.mjs';
+import { ALL, migrationSql, without } from '../migrations.mjs';
 import { useOldApp } from './old-app.mjs';
 
 // Redesign stage 18 (M-02) in the old app, on the real handler, migrations and PGlite: the day M-02 is applied while a tab still holds
@@ -13,7 +13,8 @@ import { useOldApp } from './old-app.mjs';
 const M02 = '20261015030000_gtl_sent_picks_final.sql';
 // These stage-18 tests exercise the M-02 transition and the original classic editor. M-07 later replaces that
 // writer and editor; its native per-game behavior is covered by next-per-game-scoring.spec.js.
-const BEFORE_M07 = ALL.filter(file => file !== '20261015190710_gtl_guess_write_window.sql');
+// Without M-07, and without the later files that rebuild on its bodies (M-21's gtl_read_community): tests/migrations.mjs without().
+const BEFORE_M07 = without(ALL, '20261015190710_gtl_guess_write_window.sql');
 const BEFORE = BEFORE_M07.filter(file => file !== M02);
 const { luke } = ACCOUNTS;
 const NOTICE = 'Sent picks are final. Your saved picks are shown.';
