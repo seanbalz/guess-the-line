@@ -533,3 +533,48 @@ test('axe in Light and Dark at 390, 320 and 1440 on the board, the game sheet an
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+test('chart dragging stays on the nearest endpoint outside the plot and keyboard selection matches', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    await expect(trend).toBeVisible();
+    for (const seasons of [false, true]) {
+      if (seasons) await trend.getByRole('button', { name: 'By season', exact: true }).click();
+      const plot = trend.locator(seasons ? '.gx-tc-stems' : '.gx-tc-plot');
+      const scrub = trend.getByRole('slider');
+      await plot.scrollIntoViewIfNeeded();
+      const box = await plot.boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x - 25, box.y + box.height / 2, { steps: 5 });
+      await expect(scrub).toHaveValue('0');
+      const first = await scrub.getAttribute('aria-valuetext');
+      await page.mouse.move(box.x + box.width + 25, box.y + box.height / 2, { steps: 5 });
+      await expect(scrub).toHaveValue(await scrub.getAttribute('max'));
+      const last = await scrub.getAttribute('aria-valuetext');
+      await page.mouse.up();
+      await scrub.focus(); await page.keyboard.press('Home');
+      await expect(scrub).toHaveAttribute('aria-valuetext', first);
+      await page.keyboard.press('End');
+      await expect(scrub).toHaveAttribute('aria-valuetext', last);
+      expect(world.errors).toEqual([]);
+    }
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await trend.scrollIntoViewIfNeeded();
+      await phoneChecks(page);
+      await axe(page);
+      const splitValues = await trend.locator('.gx-tc-tile-value, .gx-tc-table td:not(.gx-tc-table-bar)').evaluateAll(nodes => nodes.filter(node => {
+        const range = document.createRange(); range.selectNodeContents(node);
+        const lines = new Set([...range.getClientRects()].map(rect => Math.round(rect.top)));
+        return lines.size > 1 || node.scrollWidth > node.clientWidth + 1;
+      }).map(node => node.textContent));
+      expect(splitValues).toEqual([]);
+      await trend.locator('.gx-tc-tiles').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`research-seasons-${theme}.png`) });
+    }
+  } finally { await world.db.close(); }
+});

@@ -36,6 +36,15 @@ export const INFO = Object.freeze({
     ],
     links: TRENDS_LINKS,
   },
+  researchData: {
+    title: 'About research data',
+    body: [
+      'Consistent, not proven. Display periods do not change qualification or lean evidence.',
+      'Emerging research does not vote on a lean. Filters change this list and selected records, not the full evidence used for leans.',
+      'The research screen’s data information shows its snapshot time, period anchor and source. Missing dates stay Unknown.',
+    ],
+    links: TRENDS_LINKS,
+  },
   trackedBets: {
     title: 'About tracked bets',
     body: [
@@ -94,4 +103,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);
