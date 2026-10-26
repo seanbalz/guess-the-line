@@ -10,7 +10,7 @@ import { createFeaturesHandler } from '../cloud/features-run.mjs';
 // M-26 features_schedule (redesign build plan stage 70): the disabled schedule, the 15-minute dispatcher, the one-run claim
 // and completion, and the gtl-league-features worker end to end on local PGlite (ALL). pg_net is hosted-only, so net.http_post
 // is a stand-in that records each call in an outbox (as tests/web-push-sql.test.mjs does). Fixture accounts only.
-const MIGRATION = '20261026233000_gtl_features_schedule.sql';
+const MIGRATION = '20261026235000_gtl_features_schedule.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const SEAN = ACCOUNTS.sean.id, LUKE = ACCOUNTS.luke.id;
 const ENDPOINT = 'https://onmrgvcehkflfaizvedl.supabase.co/functions/v1/gtl-league-features';

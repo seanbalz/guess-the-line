@@ -65,7 +65,7 @@ export const READERS = Object.freeze([
  * HOSTED skips them and a suite on ALL runs them (readersOn); the apply record removes the entry with the file's
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
-export const READER_MIGRATIONS = Object.freeze({ '/league/features': '20261026230000_gtl_league_features.sql' });
+export const READER_MIGRATIONS = Object.freeze({ '/league/features': '20261026234000_gtl_league_features.sql' });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
 
