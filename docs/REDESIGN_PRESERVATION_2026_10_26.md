@@ -80,3 +80,13 @@ against that integration. Typecheck, the 72 focused contracts, authenticated
 cloud build and bundle-only privacy scan also passed again. This specifically
 checks the new screen alongside #210's shared/parallel reads and the two PRs'
 historical Trends fixture corrections. The broader phone baseline remains open.
+
+### PR #211 CI follow-through
+
+The only initial CI failure counted an invisible nested disclosure summary in
+`next-scroll-navigation` as content obscured by the tab bar. Main's PR #212 fixes
+that visibility helper and isolates the startup-read test from the prior page's
+requests. This branch incorporates #212. This is a browser-test repair, not a
+new product scroll defect; Sean's corrected no-scroll-bug report stays in force.
+The 18 focused member, startup-data and scroll browser checks passed locally
+with #212 integrated, including the scroll check's deliberate-failure tests.
