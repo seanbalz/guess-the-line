@@ -57,8 +57,18 @@ confirmation in Play. A verified live-game status needs a suitable status
 contract; the reader only supplies `started` and a recorded final. These are
 explicit residual stage-33 items, not silently marked complete.
 
-Stage 34's Everyone's picks, slot-based actions and League bets destinations
-remain open under their existing dependencies. Hosted release, signed-in
+Stage 34's slot-based actions and League bets destinations remain open under
+their dependencies. The next source batch adds [per-game Community guesses](RESEARCH_GAME_GUESSES_2026_10_26.md). Hosted release, signed-in
 readback and physical iPhone Safari/Home Screen acceptance remain separate.
 The frozen v62 tracker, SQL, collectors, saved guesses and scoring references
 are unchanged. Sean's corrected no-scroll-bug report is retained.
+
+
+## PR #225 merge follow-through
+
+[PR #225](https://github.com/seanbalz/guess-the-lines-repo/pull/225) merged October 26
+as `733e95d586e005427350ba156d7ad1a05c139094` after all nine checks passed on
+`cf9ebe16c88975fefcc0d0a2168cc069741152c3`: Brand QA, Windows, Typecheck/test,
+dashboard, personas and all four browser shards. Reviews and review threads
+were empty before merge; no CI fixes were needed. This is source delivery;
+hosted release and physical-iPhone acceptance remain open.

@@ -19,6 +19,7 @@ import { Expander, TrendList, TrendAvailability, WeatherDetail } from './parts.j
 import { INFO } from '../info.js';
 import { GameNote } from './GameNote.jsx';
 import { MatchupResearch } from '../research/ResearchSheet.jsx';
+import { EveryoneGuesses } from './EveryoneGuesses.jsx';
 import { MarketDetails } from './MarketDetails.jsx';
 import './lines.css';
 
@@ -88,6 +89,10 @@ export function GameSheet({ args }) {
       </section>
 
       <MarketDetails lines={lines} gameId={view.id}/>
+
+      {app.accountId && shown && <Card variant="flush"><Expander key={`${app.accountId}:${shown.season}:${shown.week}:${view.id}`} title="Everyone’s guesses" summary="Community · Spread and Total">
+        <EveryoneGuesses lines={lines} game={{ id: view.id, awayCode: view.away.code, homeCode: view.home.code }} onGuess={market => shell.go('play', { section: 'picks', market, season: shown.season, week: shown.week })}/>
+      </Expander></Card>}
 
       <Card variant="flush"><List label="Kickoff weather">
           {weather.detail ? (
