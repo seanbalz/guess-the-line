@@ -254,7 +254,7 @@ the league showing. It is built on October 23 and not deployed yet.
 Placing from this screen (M-11) and the settlement scheduler remain later
 stages.
 
-## Me › History (M-27, redesign stages 72–73)
+## Me › History (M-27, redesign stages 72–74)
 
 Me › History (`page.history`, opened from the Menu or `#history`) reads what the
 existing readers and the M-27 readers (`20261026230000_gtl_me_history.sql`,
