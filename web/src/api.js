@@ -66,7 +66,10 @@ export const GROUP_ACTIONS = Object.freeze({
   // Stage 23 (M-06): the gated lines readers, POST /lines/read (a week's board) and /lines/game (one game in full).
   lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research']), writes: Object.freeze([]) }),
   bets: Object.freeze({ reads: Object.freeze(['read', 'board', 'season']), writes: Object.freeze([]) }),
-  league: Object.freeze({ reads: Object.freeze(['comparison']), writes: Object.freeze([]) }),
+  // The league feed (cloud/feed.mjs, redesign stages 61 to 65): 'react' sets or takes back an emoji reaction (M-21);
+  // 'feed', 'comments' and 'reactors' read a league's feed, a post's comments and who reacted, and 'share-result' posts
+  // your own scored guess (M-22). Comments are still written through communityApi('comment').
+  league: Object.freeze({ reads: Object.freeze(['comparison', 'feed', 'comments', 'reactors']), writes: Object.freeze(['react', 'share-result']) }),
   me: Object.freeze({ reads: Object.freeze(['preferences']), writes: Object.freeze(['preferences/save']) }),
   // Guess the Points (D-56, cloud/points.mjs): the gated week read, and draft saves, lock-ins and the commissioner's slate.
   // Until P-01 is applied every route answers 404 (code GTL_POINTS_OFF, or gtl-api's own "Not found."): "coming soon".
