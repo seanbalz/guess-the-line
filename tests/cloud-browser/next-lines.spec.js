@@ -567,7 +567,13 @@ test('chart dragging stays on the nearest endpoint outside the plot and keyboard
       await trend.scrollIntoViewIfNeeded();
       await phoneChecks(page);
       await axe(page);
-      const splitValues = await trend.locator('.gx-tc-tile-value, .gx-tc-table td:not(.gx-tc-table-bar)').evaluateAll(nodes => nodes.filter(node => {
+      for (const heading of ['Season', 'Record', 'Win rate', 'Units']) {
+        await expect(trend.getByRole('columnheader', { name: heading, exact: true })).toBeVisible();
+      }
+      const rates = trend.locator('.gx-tc-table-rate');
+      expect(await rates.count()).toBeGreaterThan(1);
+      for (const rate of await rates.all()) await expect(rate).toHaveText(/^\d+(\.\d+)?%$/);
+      const splitValues = await trend.locator('.gx-tc-tile-value, .gx-tc-table-rate, .gx-tc-table th, .gx-tc-table td:not(.gx-tc-table-bar)').evaluateAll(nodes => nodes.filter(node => {
         const range = document.createRange(); range.selectNodeContents(node);
         const lines = new Set([...range.getClientRects()].map(rect => Math.round(rect.top)));
         return lines.size > 1 || node.scrollWidth > node.clientWidth + 1;
@@ -575,6 +581,8 @@ test('chart dragging stays on the nearest endpoint outside the plot and keyboard
       expect(splitValues).toEqual([]);
       await trend.locator('.gx-tc-tiles').scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`research-seasons-${theme}.png`) });
+      await trend.locator('.gx-tc-table').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`research-season-table-${theme}.png`) });
     }
   } finally { await world.db.close(); }
 });

@@ -9,6 +9,8 @@ import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 const { TrendDetail } = await import('../web/src/next/charts/TrendDetail.jsx');
 const { TrendRow } = await import('../web/src/next/charts/TrendRow.jsx');
 const { StatTiles } = await import('../web/src/next/charts/StatTiles.jsx');
+const { SeasonTable } = await import('../web/src/next/charts/SeasonTable.jsx');
+const { trendDetailProps } = await import('../web/src/next/lines/parts.jsx');
 const { InfoButton } = await import('../web/src/next/ui/InfoButton.jsx');
 
 const render = node => renderToStaticMarkup(<div className="gx">{node}</div>);
@@ -64,5 +66,35 @@ describe('the compact row and the ⓘ', () => {
     expect(all(html).filter(n => n.tag === 'button').map(n => n.attrs['aria-label'])).toEqual(['About trends']);
     expect(all(html).find(n => n.tag === 'dialog').attrs['aria-label']).toBe('About trends');
     expect(html).not.toContain('Past results since 2002.');
+  });
+});
+
+describe('win-rate evidence', () => {
+  it('keeps no decided games distinct from a genuine zero in both trend views', () => {
+    for (const losses of [0, 3]) {
+      const rows = [2024, 2025].map(season => ({ season, w: 0, l: losses, p: 2, units: 0 }));
+      const props = trendDetailProps({ years: [2024, 2025], chart: { record: { W: 0, L: losses, P: 4 }, spark: [0, 0], units: 0, seasons: rows, seasonsPositive: 0, seasonsCounted: 2 } });
+      for (const view of [props.line, props.seasons]) {
+        const html = render(<StatTiles tiles={view.tiles}/>);
+        const bars = all(html).filter(n => n.attrs.class === 'gx-tc-bar');
+        expect(bars).toHaveLength(losses ? 1 : 0);
+        expect(view.tiles[0].value).toBe(losses ? '0%' : '—');
+        if (!losses) expect(html).toContain('No decided games');
+      }
+    }
+  });
+  it('labels season columns visibly and displays percentages without fabricating an empty sample', () => {
+    const html = render(<SeasonTable caption="Sample seasons" seasons={[
+      { season: 2023, w: 0, l: 0, p: 2, units: 0 },
+      { season: 2024, w: 0, l: 2, p: 0, units: -2 },
+      { season: 2025, w: 2, l: 1, p: 0, units: 0.82 },
+    ]}/>);
+    expect(markupProblems(html)).toEqual([]);
+    expect(all(html).find(n => n.tag === 'thead').attrs.class).not.toBe('gx-sr-only');
+    expect(all(html).filter(n => n.attrs.scope === 'col')).toHaveLength(4);
+    expect(all(html).filter(n => n.attrs.class === 'gx-tc-bar')).toHaveLength(2);
+    expect(html).toContain('No decided games');
+    expect(html).toContain('0%');
+    expect(html).toContain('66.7%');
   });
 });

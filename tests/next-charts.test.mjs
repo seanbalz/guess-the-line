@@ -59,3 +59,29 @@ test('win rate leaves pushes out, and break-even is 52.4% at −110', () => {
   assert.equal(hitPct(0, 0), null);
   assert.equal(BREAK_EVEN_PCT, Math.round((1000 * 110) / 210) / 10);
 });
+
+test('smoothed segments never invent peaks, troughs or reversals between reported values', () => {
+  // Equal endpoints used to overshoot beyond the highest value, even above the plot.
+  const cases = [[0, 10, 10, 0], [0, -10, -10, 0], [0, 100, 101, 201], [0, -100, -101, -201], [0, 8, -2, 9, 9, -20], [4, 4, 4], [0, 3]];
+  for (const values of cases) {
+    const geo = linePath(values);
+    const segments = [...geo.line.matchAll(/C([\d.-]+) ([\d.-]+) ([\d.-]+) ([\d.-]+) ([\d.-]+) ([\d.-]+)/g)].map(match => match.slice(1).map(Number));
+    assert.equal(segments.length, values.length - 1);
+    let previous = [0, Number(geo.line.match(/^M[\d.-]+ ([\d.-]+)/)[1])];
+    for (const segment of segments) {
+      const [x1, y1, x2, y2, x3, y3] = segment, [x0, y0] = previous;
+      const lo = Math.min(y0, y3), hi = Math.max(y0, y3), direction = Math.sign(y3 - y0);
+      let lastY = y0, lastX = x0;
+      for (let step = 1; step <= 100; step++) {
+        const t = step / 100, a = 1 - t;
+        const y = a ** 3 * y0 + 3 * a ** 2 * t * y1 + 3 * a * t ** 2 * y2 + t ** 3 * y3;
+        const x = a ** 3 * x0 + 3 * a ** 2 * t * x1 + 3 * a * t ** 2 * x2 + t ** 3 * x3;
+        assert.ok(y >= lo - 1e-8 && y <= hi + 1e-8, `segment overshoot for ${values}`);
+        assert.ok(direction === 0 ? Math.abs(y - y0) < 1e-8 : direction * (y - lastY) >= -1e-8, 'no extra direction change');
+        assert.ok(x >= lastX, 'time only moves forward');
+        lastY = y; lastX = x;
+      }
+      previous = [x3, y3];
+    }
+  }
+});
