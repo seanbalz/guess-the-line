@@ -58,7 +58,8 @@ freshness-boundary test passed with a deliberately wrong device wall clock and
 no additional odds read. The 26 rendered-component tests, 37 model/API-contract/
 price-order/token tests, typecheck, Brand QA, fixture build and bundle-only
 privacy scan passed. Light/Dark 320px movement screenshots were inspected.
-Tests use a disposable database, the existing handler and synthetic sportsbook
+Two market-display/account-isolation checks also passed after integrating the
+new main test harness. Tests use a disposable database, the existing handler and synthetic sportsbook
 snapshots. They are not live account or hosted
 release evidence. CI/merge, frontend release, signed-in hosted readback and
 physical-iPhone Safari/Home Screen acceptance remain separate.
