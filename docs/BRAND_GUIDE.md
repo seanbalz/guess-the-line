@@ -80,13 +80,13 @@ Never display a provisional score as final; use explicit PROVISIONAL or LOCKED t
 6. Design deviations require an explicit documented exception.
 
 ## Deliverables still needed
-The selected original logo and app icon are implemented. The broader component library, native iOS asset catalog, and final type/palette/theme approval remain incomplete. The provisional functional theme is described below.
+The selected original logo and app icon are implemented. The final type, palette, icon and motion selection is the new app's D-38 and D-55 system (D-58, October 26, 2026). This section's old-app type and palette are legacy until the old app retires. The new app's component kit is `web/src/next/ui/`. The native iOS asset catalog remains incomplete. The provisional functional theme is described below.
 
 ## Provisional functional theme option — 2026-10-08
 The user requested a working Light option alongside Dark and System. This is a functional exception to waiting for final visual selection, not approval of the final brand identity. Dark remains the default. The preference is saved per browser/device, not synchronized to the game account. Light uses the existing print-paper white and print-ink navy, with pale surfaces; lime action fills retain dark text. `themes.light.primaryForeground` supplies dark green for readable accent text; cyan, win, loss, pending and tie foregrounds are darkened for contrast on light surfaces. Both themes use shared semantic tokens and respect the device choice only when System is selected. The five-option identity review remains open.
 
 ## D-38 redesign system (the new app) — October 14, 2026
-Status: the prototype is approved; this written section awaits Sean's review (build plan stage 6). Sean approved the redesign prototype (canvas version 2) on October 14, 2026 (D-38) and asked for it as soon as possible (D-39). This section is the brand system for the new app in `web/src/next/`, built beside the old app. Where it differs from the sections above, it governs the new app only. The old app keeps the sections above and `design/tokens.json` until the flip (build plan stage 80); `design/tokens.json` is retired only when nothing uses it (stage 81).
+Status: **final** (D-58, October 26, 2026). Sean confirmed the D-38 prototype and D-55 approvals as his final selection for typography, palette, supporting icons and motion, which also settles this section's review (build plan stage 6). Sean approved the redesign prototype (canvas version 2) on October 14, 2026 (D-38) and asked for it as soon as possible (D-39). This section is the brand system for the new app in `web/src/next/`, built beside the old app. Where it differs from the sections above, it governs the new app only. The old app keeps the sections above and `design/tokens.json` until the flip (build plan stage 80); `design/tokens.json` is retired only when nothing uses it (stage 81).
 
 Sources of truth, in this order:
 - `design/tokens-next.json`: every value (colors per theme, type scale, spacing, radii, motion, layers, avatar fills, the font link).

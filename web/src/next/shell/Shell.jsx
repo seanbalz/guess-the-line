@@ -248,8 +248,9 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const leagueId = shown?.id ?? 'community';
   const leagueLabelName = shown?.name ?? leagueName;
   const league = useMemo(() => ({ id: leagueId, name: leagueLabelName }), [leagueId, leagueLabelName]);
-  const value = useMemo(() => ({ ...actions, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
-    [actions, state, dockHost, member, league, online]);
+  const communityAdmin = data?.community?.admin === true;
+  const value = useMemo(() => ({ ...actions, communityAdmin, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
+    [actions, state, dockHost, member, league, online, communityAdmin]);
 
   // A notice from outside the frame (the name just saved), once per key.
   const noticeKey = notice?.key;

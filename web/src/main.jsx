@@ -9,6 +9,10 @@ import { SportEntry } from './next/nba/NbaApp.jsx';
 import { clearAppView, noteAppFallback, startAppView } from './appView.js';
 import './installPrompt.js';
 import './styles.css';
+
+// The Google Fonts stylesheet loads as media="print" so it never blocks the first paint (display=swap shows the system
+// fallback until the webfont arrives); it applies to the screen as soon as the app starts.
+document.querySelector('link[data-gtl-fonts]')?.setAttribute('media', 'all');
 const App = lazy(() => import('./App.jsx'));
 const GameHub = lazy(() => import('./GameHub.jsx'));
 // D-38: the new app is one lazy chunk (with its own CSS). A device that never chose it never downloads it.

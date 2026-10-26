@@ -65,9 +65,13 @@ function endProblems() {
   for (const el of main.querySelectorAll('*')) {
     const r = el.getBoundingClientRect(), s = getComputedStyle(el);
     if (r.width < 2 || r.height < 2 || s.visibility === 'hidden' || s.position === 'fixed' || s.position === 'sticky' || el.closest('.gx-sr, [aria-hidden="true"]')) continue;
-    // A closed <details> draws only its summary; Chromium still gives the hidden body boxes.
-    const shut = el.closest('details:not([open])');
-    if (shut && !el.closest('summary')?.parentElement?.isSameNode(shut)) continue;
+    // A closed <details> draws only its summary; Chromium still gives the hidden body boxes. At every level: a nested
+    // <details> inside a closed one is hidden too, its summary included (Research > Trends' "Matchup evidence").
+    let hidden = false;
+    for (let shut = el.closest('details:not([open])'); shut && !hidden; shut = shut.parentElement?.closest('details:not([open])')) {
+      hidden = !el.closest('summary')?.parentElement?.isSameNode(shut);
+    }
+    if (hidden) continue;
     // Only the part a player can see counts: an ancestor that clips or scrolls its overflow cuts the box.
     let low = r.bottom, high = r.top;
     for (let n = el.parentElement; n && n !== main; n = n.parentElement) {

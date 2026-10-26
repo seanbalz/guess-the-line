@@ -5,12 +5,13 @@ import { preferenceValue, SPORTSBOOK_NAMES } from '../../../../shared/account-pr
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
+import { forgetSharedReads } from '../../sharedReads.js';
 import { Button, Card, Sheet } from '../ui/index.js';
 import '../play/comparison.css';
 const DRAFT = 'account-preferences';
 const same = (a,b) => JSON.stringify(preferenceValue(a)) === JSON.stringify(preferenceValue(b));
 export function useAccountPreferences(app) {
-  return useLeagueRead(`${app.accountId}:preferences`, signal => meApi('preferences', {}, signal), error => { if (error.status === 401) app.requestSignIn?.(); });
+  return useLeagueRead(`${app.accountId}:preferences`, signal => meApi('preferences', {}, signal), error => { if (error.status === 401) app.requestSignIn?.(); }, { shared: true });
 }
 export function AccountPreferences() {
   const app = useAppData(), shell = useShell(), read = useAccountPreferences(app);
@@ -56,6 +57,7 @@ export function PreferencesEditor({ accountId, initial, setDirty }) {
       if (fresh.revision !== base.revision) { setProblem('Saved settings changed. Your draft is kept. Review it, then Save settings again to use this draft.'); return; }
       setUncertain(true);
       await meApi('preferences/save', { revision: fresh.revision,...preferenceValue(draft) });
+      forgetSharedReads(`${accountId}:preferences`);
       if (!live.current) return;
       const confirmed = await check();
       if (!confirmed) return;

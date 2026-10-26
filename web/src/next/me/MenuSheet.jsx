@@ -2,7 +2,7 @@
 // Sign out. Profile, History, How to play and Settings join it in the Me stages. Appearance opens in place as a
 // sub-view ("‹ Menu"), with Dark, Light or System and Reduce motion. Both are kept on this device under the old app's
 // own keys (`gtl.theme`, and the motion choice in `gtl.dashboard.preferences.v1`), so the two apps always agree.
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch } from '../ui/index.js';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { useThemePreference } from '../../Theme.jsx';
@@ -11,6 +11,8 @@ import { useShell } from '../shell/context.js';
 import { AccountPreferences } from './AccountPreferences.jsx';
 import { ProfileSettings } from './ProfileSettings.jsx';
 import { GUIDANCE_ORDER, INFO } from '../info.js';
+
+const Members = lazy(() => import('./CommunityMembers.jsx').then(module => ({ default: module.CommunityMembers })));
 
 export const MENU_COPY = Object.freeze({
   title: 'Menu',
@@ -65,6 +67,7 @@ function Guidance() {
 export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
+  if (args.sub === 'members') return <Suspense fallback={<Sheet title="Community members" onClose={shell.closeSheet}><p role="status">Loading members…</p></Sheet>}><Members key={shell.you.id}/></Suspense>;
   if (args.sub === 'preferences') return <AccountPreferences key={shell.you.id}/>;
   if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
   if (args.sub === 'guidance') {
@@ -95,6 +98,7 @@ export function MenuSheet({ args }) {
       </div></Card>
       <Card variant="flush">
         <List>
+          {shell.communityAdmin && <LinkRow icon="people" onClick={() => shell.setSheetArgs({ sub: 'members' })}>Community members</LinkRow>}
           <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
           <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>

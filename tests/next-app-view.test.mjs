@@ -207,7 +207,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // use, so both apps share one cache and one request per week.
   // Weekly/player Trends reuses trendsAvailability.js as a pure formatter and only useTrendWeek from the shared React hook.
   // Stage 25 retains the classic recovery copies using the same pure account/week draft helpers.
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'trendsAvailability.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js']);
+  // The account-keyed read sharing (sharedReads.js) is forgotten by AuthGate on every account change, like nextDrafts.js.
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'trendsAvailability.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js', 'sharedReads.js']);
   for (const shared of allowed) {
     assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
   }
