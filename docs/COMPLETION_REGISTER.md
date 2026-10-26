@@ -72,13 +72,21 @@ hierarchy, tooltip spacing, narrow-screen stat/season layouts and chart gestures
 It also fixes Escape closing the underlying sheet when dismissing chart
 information. PR #216 merged as `275c57fa1fedd4876cdf706e7b16a5e77bb52d66`
 after all nine checks passed on `06c500a124ca5eaf8730d41f024063edb625cbd7`.
-The follow-up source batch prevents curve overshoot, adds visible season headings
-and percentages, and distinguishes missing win-rate samples from genuine 0%.
-Local verification passed: 14 integrated browser tests, one final focused rerun,
-seven rendered-chart tests, 20 chart/token tests, typecheck, Brand QA, build and
-bundle privacy scan. CI/merge, release and physical-device acceptance
-remain separate; the next DESIGN-01 exit is hosted and iPhone acceptance, not a
-claim that all Research work is complete.
+[PR #218](https://github.com/seanbalz/guess-the-lines-repo/pull/218) merged as
+`657eb1946b20927cc8a668373276c3844127095e` after all nine checks passed on
+`7bfbe8546bcc5370dc8e1f57555f318031386a95`; no CI fixes were needed. It adds
+faithful curve geometry, visible season headings/percentages and missing-versus-zero
+win rates. Neither Research merge establishes a new deployment.
+
+The next source batch makes each season in the table selectable, synchronizes it
+with dragging and the keyboard slider, and retains the selected year when
+switching chart views. A check and outline identify the selection, with 44px
+minimum touch targets. All 19 integrated Research/Lines/Trends browser tests,
+two focused tests, nine rendered-chart tests, 20 chart/token tests, typecheck,
+Brand QA, fixture build and bundle privacy scan passed. Light/Dark 320px
+screenshots were inspected. Follow-up CI/merge, hosted release and physical-device
+acceptance remain open; the queue lists each checkpoint separately. This does
+not close all Research work or Q19.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

@@ -85,9 +85,12 @@ tests, 20 chart/token Node tests, typecheck, Brand QA, the authenticated fixture
 build and bundle-only privacy scan passed. Browser coverage includes 320/390/1440px
 and Light/Dark accessibility; final 320px season-table screenshots were inspected.
 The fixtures use synthetic/disposable data, not a live account or physical phone.
-The source is on `codex/research-chart-integrity`; CI/merge, hosted release and
-actual-device acceptance remain open. After source CI/review, the next DESIGN-01
-step is release verification and Research/chart acceptance on iPhone Safari and
+[PR #218](https://github.com/seanbalz/guess-the-lines-repo/pull/218) merged October 26
+as `657eb1946b20927cc8a668373276c3844127095e`, after all nine checks passed on
+`7bfbe8546bcc5370dc8e1f57555f318031386a95`. No CI fixes or review requests were
+needed. Hosted release and actual-device acceptance remain open. After the
+season-selection source batch below, DESIGN-01 still needs release verification
+and Research/chart acceptance on iPhone Safari and
 Home Screen in both themes, including long labels, drag/keyboard selection and
 missing/stale evidence. Sean's corrected no-scroll-bug report is retained; this
 batch does not reopen that symptom or close broader Q19.
