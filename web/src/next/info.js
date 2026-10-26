@@ -2,7 +2,7 @@
 // Menu › Guidance and sources lists every topic, so nothing that left a screen is lost. Wording is carried over from
 // the screens it came from; the data credits are the same text and links the footers showed.
 import { TRENDS_FOOTNOTE } from '../../../shared/trends-view.mjs';
-import { LINES_COPY, footer } from '../../../shared/lines-view.mjs';
+import { footer } from '../../../shared/lines-view.mjs';
 
 const credits = footer({ forecastShown: true });
 export const TRENDS_LINKS = Object.freeze([
@@ -22,9 +22,20 @@ export const INFO = Object.freeze({
       'U means units at −110: a win adds 0.91 and a loss takes 1. Break-even is 52.4%, the tick on each bar.',
       'Not proven: a pattern that held in 2002–2017 and in 2018–2025. Searching many situations finds some patterns by chance.',
       'Line-based trends unlock when that market is open to you.',
-      LINES_COPY.lineLater,
+      'The Lines board shows permitted market quotes with source times. Quotes older than six hours are labelled Latest recorded line; saved scoring references remain in the game sheet. Open a game for market lines, book quotes and recorded line movement.',
     ],
     links: TRENDS_LINKS,
+  },
+  marketLines: {
+    title: 'About market lines',
+    body: [
+      'Each game and market opens after your lock-in, your weekly sit-out, or that game’s kickoff. Missing lines stay unavailable.',
+      'Consensus compares the qualifying named-book quotes; it is not an executable offer. It does not replace the saved scoring reference shown under You on this game.',
+      'Current line requires a source observation no older than six hours. Older quotes say Latest recorded line; missing or future observation times are unverified.',
+      'Best recorded compares the selected side by point line, then price, then observation time. It describes stored quotes, not guaranteed current availability at a sportsbook.',
+      'Movement uses recorded consensus and collection times, with up to 48 observations. It is not a continuous feed, and a missing observation breaks the plotted line. Spread values always name the home team.',
+    ],
+    links: [],
   },
   research: {
     title: 'About research',
@@ -103,4 +114,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);

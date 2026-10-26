@@ -2,7 +2,8 @@
 // (supabase/rollback/README.md); when its feature writes rows, or opens data a player could not read before, the release
 // card names an off switch instead, and a switch never drops or deletes anything (D-23).
 //
-// The switch is the gtl-api secret GTL_FEATURE_OFF: a comma-separated list of the feature names below. A listed
+// The switch is the function secret GTL_FEATURE_OFF, read by gtl-api and by gtl-fantasy-ingest (Supabase function secrets
+// are project-wide, D-59): a comma-separated list of the feature names below. A listed
 // feature's writer refuses with GTL_FEATURE_OFF (503, "nothing you saved is lost"); its reads keep working and every
 // stored row stays (M-03's forfeit: the writer refuses, /community/read keeps reporting the stored forfeit with open
 // false, and every sit-out it wrote keeps counting). A listed reader that opens data (M-06's lines readers, M-08's everyone's picks) refuses with a 503
@@ -23,6 +24,7 @@ export const FEATURES = Object.freeze({
   recommendations: 'POST /bets/recommendations and /bets/recommendations/place: current-account recommendation reads and new Virtual Units picks',
   bets: 'POST /bets/read, /bets/board and /bets/season: account-level Virtual Units reads, other players’ gated saved terms (M-10, stage 40) and the weekly and season boards (M-12, stage 42)',
   fantasy: 'POST /fantasy/week: signed-in Fantasy Track 1 snapshot and review read (D-57)',
+  'fantasy-feed': 'POST gtl-fantasy-ingest: fantasy feed uploads from Sean\'s exporter (D-59); stored feed files stay',
   points: 'POST /points/draft, /points/lock and /points/slate: Guess the Points draft saves, lock-ins and slate changes (D-56, P-01); POST /points/read keeps working',
 });
 

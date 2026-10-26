@@ -113,7 +113,7 @@ function apiCalls(page) {
   });
   return calls;
 }
-const READS = ['POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research'];
+const READS = ['POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research'];
 
 /**
  * A synthetic /lines/research reader for the games in `withResearch`: two consistent Total candidates for each open
@@ -194,7 +194,7 @@ async function noLeak(page, world, where) {
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
 
-test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), his own line at the guess, no writes', async ({ page, baseURL }) => {
+test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), current permitted quotes, no writes', async ({ page, baseURL }) => {
   const { world, fake } = await lukesWeek(page, baseURL);
   try {
     const calls = apiCalls(page);
@@ -211,7 +211,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     await expect(sea.locator('.gx-l-cfoot .gx-tag')).toHaveText('You41');
     // HOU @ JAX: the draft JAX −9 sits on the Jacksonville (home) row.
     await expect(card(page, 'HOU-JAX').locator('.gx-l-tag2')).toHaveText('You−9');
-    // Every Spread is locked for Luke: an icon, never a dash or a number; his sent Totals show his line at the guess.
+    // Every Spread is locked for Luke: an icon, never a dash or a number; his sent Totals show the current reader quotes.
     for (const id of GAMES) {
       const cell = card(page, id).locator('.gx-l-val');
       await expect(cell).toHaveAttribute('data-cell', 'locked');
@@ -220,7 +220,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
       await expect(card(page, id).locator('.gx-l-cfoot [data-cell="line"] .gx-n-s')).toHaveText(String(LINES.total[id]));
     }
     for (const text of await page.locator('.gx-l-card [data-cell="locked"]').allInnerTexts()) expect(text).not.toContain('—');
-    await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5 at your guess\. Your spread pick SEA −4\. Your total pick 41\./);
+    await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5\. Current line\..*Your spread pick SEA −4\. Your total pick 41\./);
     // Board trends: at most three trend lines on the board; one chip per card at most (a trend line or a weather word).
     const chips = page.locator('.gx-l-trend[data-chip="trend"]');
     expect(await chips.count()).toBeLessThanOrEqual(3);
@@ -231,9 +231,9 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     await expect(sea.locator('[data-chip="weather"] svg, [data-chip="weather"] a')).toHaveCount(0);
     await expect(sea).toHaveAttribute('aria-label', /Kickoff weather: Rain likely\./);
     expect(await page.locator('[data-chip="weather"]').count()).toBe(1);
-    // D-55: the credits and "Line now arrives…" are behind the title's ⓘ.
+    // D-55: credits and the game-detail destination are behind the title's ⓘ.
     await page.getByRole('button', { name: 'About trends', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'About trends' })).toContainText('Line now arrives in a later update.');
+    await expect(page.getByRole('dialog', { name: 'About trends' })).toContainText('Open a game for market lines, book quotes and recorded line movement.');
     await expect(page.getByRole('dialog', { name: 'About trends' }).getByRole('link', { name: /nflverse/ })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'About trends' })).toBeHidden();
@@ -566,8 +566,14 @@ test('chart dragging stays on the nearest endpoint outside the plot and keyboard
       await page.setViewportSize({ width: 320, height: 844 });
       await trend.scrollIntoViewIfNeeded();
       await phoneChecks(page);
-      await axe(page);
-      const splitValues = await trend.locator('.gx-tc-tile-value, .gx-tc-table td:not(.gx-tc-table-bar)').evaluateAll(nodes => nodes.filter(node => {
+      expect(await axe(page)).toEqual([]);
+      for (const heading of ['Season', 'Record', 'Win rate', 'Units']) {
+        await expect(trend.getByRole('columnheader', { name: heading, exact: true })).toBeVisible();
+      }
+      const rates = trend.locator('.gx-tc-table-rate');
+      expect(await rates.count()).toBeGreaterThan(1);
+      for (const rate of await rates.all()) await expect(rate).toHaveText(/^\d+(\.\d+)?%$/);
+      const splitValues = await trend.locator('.gx-tc-tile-value, .gx-tc-table-rate, .gx-tc-table thead th, .gx-tc-table td:not(.gx-tc-table-bar)').evaluateAll(nodes => nodes.filter(node => {
         const range = document.createRange(); range.selectNodeContents(node);
         const lines = new Set([...range.getClientRects()].map(rect => Math.round(rect.top)));
         return lines.size > 1 || node.scrollWidth > node.clientWidth + 1;
@@ -575,6 +581,294 @@ test('chart dragging stays on the nearest endpoint outside the plot and keyboard
       expect(splitValues).toEqual([]);
       await trend.locator('.gx-tc-tiles').scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`research-seasons-${theme}.png`) });
+      await trend.locator('.gx-tc-table').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`research-season-table-${theme}.png`) });
     }
   } finally { await world.db.close(); }
+});
+
+
+test('season table selection stays in sync with the chart and survives view switching', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    await trend.getByRole('button', { name: 'By season', exact: true }).click();
+    const season = year => trend.getByRole('button', { name: `Show ${year} season on chart`, exact: true });
+    const scrub = trend.getByRole('slider', { name: 'Move across the seasons' });
+    await expect(season(2025)).toHaveAttribute('aria-pressed', 'true');
+    await season(2024).click();
+    await expect(season(2024)).toBeFocused();
+    await expect(season(2024)).toHaveAttribute('aria-pressed', 'true');
+    await expect(season(2025)).toHaveAttribute('aria-pressed', 'false');
+    await expect(scrub).toHaveValue('6');
+    await expect(scrub).toHaveAttribute('aria-valuetext', /2024:.*below break-even/);
+    await expect(trend.locator('.gx-tc-tip-value')).toHaveText('−11.5 U');
+    await expect(trend.locator('.gx-tc-col--on')).toHaveCount(1);
+    const chartId = await season(2024).getAttribute('aria-controls');
+    expect(await trend.locator('.gx-tc-seasons').getAttribute('id')).toBe(chartId);
+    await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+    await trend.getByRole('button', { name: 'By season', exact: true }).click();
+    await expect(season(2024)).toHaveAttribute('aria-pressed', 'true');
+    await expect(scrub).toHaveValue('6');
+    await season(2019).focus(); await page.keyboard.press('Space');
+    await expect(scrub).toHaveValue('1');
+    await expect(season(2019)).toBeFocused();
+    await scrub.focus(); await page.keyboard.press('Home');
+    await expect(season(2018)).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('End');
+    await expect(season(2025)).toHaveAttribute('aria-pressed', 'true');
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await season(2024).click();
+      await phoneChecks(page);
+      expect(await axe(page)).toEqual([]);
+      const table = trend.locator('.gx-tc-table');
+      await table.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`selected-season-${theme}.png`) });
+    }
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('game market details preserve saved references, gate quotes and show recorded movement in both themes', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'SEA-DEN': 45.5 } }, { capturedAt: Date.now() - 1000 });
+    const calls = apiCalls(page);
+    await openLines(page);
+    expect(calls.filter(call => call === 'POST /lines/game')).toHaveLength(0);
+    await card(page, 'SEA-DEN').click();
+    const game = sheet(page, 'SEA @ DEN'), markets = game.getByRole('region', { name: 'Market lines', exact: true });
+    await expect(markets).toContainText('Spread lines are locked');
+    const total = markets.locator('[data-market-details="total"]');
+    await expect(total).toContainText('Current line'); await expect(total).toContainText('45.5');
+    await expect(game.getByRole('list', { name: 'You on this game' })).toContainText('Line at your guess 43.5');
+    await total.locator('summary', { hasText: 'Book lines' }).click();
+    await expect(total).toContainText('DraftKings'); await expect(total).toContainText('Best recorded');
+    await total.getByLabel('Compare side').selectOption('under');
+    await expect(total).toContainText('Under 45.5');
+    await total.locator('summary', { hasText: 'Line movement' }).click();
+    const slider = total.getByRole('slider', { name: 'Move along total movement' });
+    await expect(slider).toHaveAttribute('aria-valuetext', /45.5,.*PT/);
+    await slider.focus(); await page.keyboard.press('Home');
+    await expect(slider).toHaveAttribute('aria-valuetext', /43.5,.*PT/);
+    await page.keyboard.press('End'); await expect(slider).toHaveAttribute('aria-valuetext', /45.5,.*PT/);
+    await expect(total.getByRole('table')).toContainText('Collected (PT)');
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await total.locator('.gx-md-movement').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`market-movement-${theme}.png`) });
+    }
+    await noLeak(page, world, 'market detail quotes and movement');
+    expect(calls.filter(call => !READS.includes(call))).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('market details hide previous quotes on refresh failure and recover from the existing reader', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    const markets = sheet(page, 'SEA @ DEN').getByRole('region', { name: 'Market lines', exact: true });
+    await expect(markets.locator('[data-market-details="total"]')).toContainText('43.5');
+    const matcher = url => url.origin === SUPABASE && url.pathname.endsWith('/lines/game');
+    await page.route(matcher, route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Unavailable' }) }));
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(markets).toContainText('Market lines are unavailable');
+    await expect(markets).not.toContainText('43.5');
+    await page.unroute(matcher);
+    await markets.getByRole('button', { name: 'Retry market lines' }).click();
+    await expect(markets.locator('[data-market-details="total"]')).toContainText('43.5');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a delayed market reply for a closed sheet cannot populate a different game', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/game'), async route => {
+      const request = route.request(), body = request.postDataJSON();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const payload = await response.text();
+      if (body.gameId === 'SEA-DEN') await hold;
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: payload }).catch(() => {});
+    });
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    await expect(sheet(page, 'SEA @ DEN').getByRole('region', { name: 'Market lines', exact: true })).toContainText('Loading market lines');
+    await page.keyboard.press('Escape');
+    await card(page, 'HOU-JAX').click();
+    const markets = sheet(page, 'HOU @ JAX').getByRole('region', { name: 'Market lines', exact: true });
+    await expect(markets.locator('[data-market-details="total"]')).toContainText(String(LINES.total['HOU-JAX']));
+    release();
+    await expect(markets.locator('[data-market-details="total"]')).not.toContainText('43.5');
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
+
+test('switching accounts cannot restore a delayed market reply with the previous player’s access', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release, held = false, holdNext = true;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await openLines(page);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false }); await page.goto('/#lines');
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/game'), async route => {
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const payload = await response.text();
+      if (holdNext) { holdNext = false; held = true; await hold; }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: payload }).catch(() => {});
+    });
+    await card(page, 'SEA-DEN').click(); await expect.poll(() => held).toBe(true);
+    await sheet(page, 'SEA @ DEN').getByRole('button', { name: 'Close', exact: true }).click();
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines');
+    await card(page, 'SEA-DEN').click();
+    const markets = sheet(page, 'SEA @ DEN').getByRole('region', { name: 'Market lines', exact: true });
+    await expect(markets).toContainText('Spread lines are locked'); release();
+    await expect(markets.locator('[data-market-details="spread"]')).toHaveCount(0);
+    await noLeak(page, world, 'market lines after account switch');
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
+
+test('market freshness expires using server time without another odds read', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let reads = 0;
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/game'), async route => {
+      reads += 1;
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const body = await response.json();
+      body.total.line.observedAt = new Date(Date.parse(body.now) - 6 * 3600000 + 2000).toISOString();
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    const total = sheet(page, 'SEA @ DEN').locator('[data-market-details="total"]');
+    await expect(total).toContainText('Current line');
+    // Deliberately wrong device wall clock must not extend freshness.
+    await page.evaluate(() => { Date.now = () => 0; });
+    await expect(total).toContainText('Latest recorded line', { timeout: 5000 });
+    expect(reads).toBe(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('the market board shows latest quotes separately from saved receipts and sends its gate to Play', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  const bodies = [], replies = [];
+  try {
+    await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'SEA-DEN': 45.5 } }, { capturedAt: Date.now() - 1000 });
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      const req = route.request(); bodies.push(req.postDataJSON());
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); replies.push(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page);
+    const sea = card(page, 'SEA-DEN');
+    await expect(sea).toContainText('45.5'); await expect(sea).not.toContainText('43.5');
+    await expect(sea).toContainText('Current line');
+    expect(bodies.every(body => body.season === 2026 && body.week === 6)).toBe(true);
+    expect(replies.every(body => body.games.every(game => JSON.stringify(game.spread) === '{"visible":false}'))).toBe(true);
+    await expect(page.locator('.gx-lock-card')).toHaveCount(1);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`market-board-${theme}.png`), fullPage: true });
+    }
+    await sea.click();
+    await expect(sheet(page, 'SEA @ DEN')).toContainText('Line at your guess 43.5');
+    await page.keyboard.press('Escape');
+    const calls = apiCalls(page);
+    await page.getByRole('button', { name: 'Review sit-out in Play', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Your guesses', exact: true })).toBeVisible();
+    expect(calls.some(call => /opt-out|forfeit|ballot/.test(call))).toBe(false);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('board refresh failures and wrong-week replies hide market values until retry succeeds', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let failure = 'offline';
+  const matcher = url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read');
+  try {
+    await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    await page.route(matcher, async route => {
+      if (failure === 'offline') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Unavailable' }) });
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); body.week += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    });
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
+    await expect(card(page, 'SEA-DEN')).not.toContainText('43.5');
+    await expect(card(page, 'SEA-DEN')).toContainText('You41');
+    failure = 'wrong-week'; await page.getByRole('button', { name: 'Retry market lines' }).click();
+    await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
+    await expect(card(page, 'SEA-DEN')).not.toContainText('43.5');
+    await page.unroute(matcher); await page.getByRole('button', { name: 'Retry market lines' }).click();
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('board freshness expires from server time without polling for quotes', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let reads = 0;
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      reads += 1;
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      for (const game of body.games) if (game.total.visible) game.total.observedAt = new Date(Date.parse(body.now) - 6 * 3600000 + 2000).toISOString();
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); const sea = card(page, 'SEA-DEN');
+    await expect(sea).toContainText('Current line');
+    await page.evaluate(() => { Date.now = () => 0; });
+    await expect(sea).toContainText('Latest recorded line', { timeout: 5000 });
+    expect(reads).toBe(1); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a delayed board reply cannot restore another account’s unlocked markets', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release, held = false, holdNext = true;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await openLines(page);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false }); await page.goto('/#lines');
+    await expect(card(page, 'SEA-DEN').locator('.gx-l-val')).toHaveAttribute('data-cell', 'line');
+    await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.text();
+      if (holdNext) { holdNext = false; held = true; await hold; }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body }).catch(() => {});
+    });
+    await page.getByRole('button', { name: 'Refresh market lines', exact: true }).click();
+    await expect.poll(() => held).toBe(true);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines');
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5'); release();
+    await expect(card(page, 'SEA-DEN').locator('.gx-l-val')).toHaveAttribute('data-cell', 'locked');
+    await noLeak(page, world, 'board after account switch'); expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
 });

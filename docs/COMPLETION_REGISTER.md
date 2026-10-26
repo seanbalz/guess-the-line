@@ -54,8 +54,8 @@ establishes deployment. This task has not deployed the app or applied SQL.
 | Scoring and comparisons | [Core scoring](CORE_SCORING_PRODUCTION_RELEASE.md): per-game lock, personal points and receipts. [Migrations release](RELEASE_2026_10_22_MIGRATIONS.md): D-53 comparisons/preferences applied and signed-in reads verified. | Q07/Q08 phone privacy, save/reload and account-isolation acceptance; Q18 operating evidence. |
 | Trends and optimization | [Trends release](RELEASE_2026_10_22_TRENDS_FILTER.md); PR #182 CPU repair shipped as API v32. PR #207 runs the Node/Vitest suite once and shards browser CI; PR #208 restores release compatibility gates. | PR #210 startup optimizations and signed-out measurements have a [recorded October 26 release](RELEASE_2026_10_26_PERF.md). Signed-in startup and phone performance measurements remain open. On-demand invitation, creation and Members code is verified locally; lazy-loading checks are not phone performance evidence. |
 | NBA | [October 22 release](RELEASE_2026_10_22_MIGRATIONS.md): daily games and private bet tracking, migrations, API v34 and Pages `7ae80e71`; archived tickets preserved. | Physical-iPhone acceptance. NBA competitions remain later scope. |
-| Fantasy | [Track 1](RELEASE_2026_10_23_FANTASY_TRACK1.md) released, first data published, readback retry fixed in #202, daily schedule in #205. Scheduled runs succeeded October 24–26; [October 26 run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40365251250). | Phone readback; richer usage/comparisons/matchup/trade tools Q12–Q15 and connected roster work follow current redesign completion. |
-| Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs and Points reminder-worker pass. Automatic Points scoring is not complete. |
+| Fantasy | [Track 1](RELEASE_2026_10_23_FANTASY_TRACK1.md) released, first data published, readback retry fixed in #202, daily schedule in #205. Scheduled runs succeeded October 24–26; [October 26 run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40365251250). | Phone readback; richer usage/comparisons/matchup/trade tools Q12–Q15 and connected roster work follow current redesign completion. D-59 fantasy feed: the private `fantasy-feed` bucket migration `20261026220000` (in `NOT_HOSTED`) and the machine-only `gtl-fantasy-ingest` upload are in the repository but not applied or deployed; the read route, app views and exporter follow ([release card](FANTASY_FEED_RELEASE.md)). |
+| Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs merged independently in PR #219 October 26 (`9da3ce6`), with release-workflow preparation in PR #223 (`839c928`) (unapplied migration `20261026120000`, `gtl-points-jobs` worker; [release card](GUESS_THE_POINTS_P03.md)); not applied or deployed. Points reminder-worker pass (`gtl-push-reminders`) still awaits its Mac mini deploy. Automatic Points scoring is not complete until P-03 is applied, deployed and verified. |
 | Social and rewards | Existing feed/comments and group membership work. | Remaining approved friend challenges, player/social detail screens and badge/streak/award/recap pipeline; each needs its real contract and implementation gate, not a completion claim based on a mockup. |
 | Preservation and transition | [RETIRE-01–04 checklist](../planning/new-app-retirement.md) exists. | Q17 history/export, commissioner tools, invitations/creation and older-record destinations; Q09/Q10/Q19 device/full-week acceptance, then Q20 transition. No cutover or record deletion authorized by this audit. |
 
@@ -70,8 +70,47 @@ Sean’s next priority is **Research and charts**, selected October 26. The curr
 [design batch](RESEARCH_DESIGN_2026_10_26.md) applies D-55 to Research’s information
 hierarchy, tooltip spacing, narrow-screen stat/season layouts and chart gestures.
 It also fixes Escape closing the underlying sheet when dismissing chart
-information. Source verification, CI/merge, release and device acceptance are
-tracked separately.
+information. PR #216 merged as `275c57fa1fedd4876cdf706e7b16a5e77bb52d66`
+after all nine checks passed on `06c500a124ca5eaf8730d41f024063edb625cbd7`.
+[PR #218](https://github.com/seanbalz/guess-the-lines-repo/pull/218) merged as
+`657eb1946b20927cc8a668373276c3844127095e` after all nine checks passed on
+`7bfbe8546bcc5370dc8e1f57555f318031386a95`; no CI fixes were needed. It adds
+faithful curve geometry, visible season headings/percentages and missing-versus-zero
+win rates. Neither Research merge establishes a new deployment.
+
+PR #222 makes each season in the table selectable, synchronizes it
+with dragging and the keyboard slider, and retains the selected year when
+switching chart views. A check and outline identify the selection, with 44px
+minimum touch targets. All 19 integrated Research/Lines/Trends browser tests,
+two focused tests, nine rendered-chart tests, 20 chart/token tests, typecheck,
+Brand QA, fixture build and bundle privacy scan passed. Light/Dark 320px
+screenshots were inspected. [PR #222](https://github.com/seanbalz/guess-the-lines-repo/pull/222)
+merged as `71bb47b46737fc309ad778a593a72d130a1c67d5` after all nine checks passed
+on `8cc4042b6bdd94c65095d2bd8105e6a27a00a969`; no CI fixes were needed.
+Hosted release and physical-device acceptance remain open. The queue lists each
+checkpoint separately; this does not close all Research work or Q19.
+
+PR #224 supplies [game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md):
+per-market current/latest consensus with source times, named-book quote comparison,
+and recorded line movement with a chart and table. Local verification passed:
+23 integrated browser tests, five focused market/freshness cases, 26 rendered
+component tests, 37 model/API-contract/price-order/token tests, typecheck, Brand
+QA, fixture build and bundle privacy scan. [PR #224](https://github.com/seanbalz/guess-the-lines-repo/pull/224)
+merged as `97273e9652cf29dca77208488deb7c6c858646a4` after all nine checks passed on
+`473be765f015fcf7d88853979bc8d246f878ddf1`. No CI fixes or review responses were needed.
+Release and physical-device acceptance remain open.
+The next source batch adds [board current quotes and gate entry](RESEARCH_BOARD_LINES_2026_10_26.md):
+current/latest values with source times, one banner leading to Play, scoped
+failure/retry behavior and time-based freshness without odds polling. All 28
+selected browser cases passed across integrated/focused runs; 26 component,
+43 model/contract/token and 19 SQL gate tests passed, plus typecheck, Brand QA,
+build/privacy scan and inspected Light/Dark 320px screenshots. Board CI/merge
+and release remain open.
+
+Residual stage 33 work stays explicit: direct in-board forfeit confirmation
+(the banner uses the existing Play flow) and verified live-game status beyond
+kickoff/final evidence. Stage 34's competition/action destinations and device
+acceptance remain open. These batches do not complete either whole stage.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

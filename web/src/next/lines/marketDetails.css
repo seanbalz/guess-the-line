@@ -1,0 +1,24 @@
+.gx-md-lock { display: flex; align-items: flex-start; gap: var(--gx-space-2); }
+.gx-md-lock .gx-ic { flex: none; margin-top: var(--gx-space-1); }
+.gx-md-disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-height: 44px; cursor: pointer; color: var(--gx-data); font: 600 16px/24px var(--gx-font-body); }
+.gx-md-select { min-height: 44px; min-width: 0; width: 100%; padding: var(--gx-space-2); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); color: var(--gx-text-1); }
+.gx-md-books { display: flex; flex-direction: column; gap: var(--gx-space-3); list-style: none; margin: 0; padding: 0; }
+.gx-md-books > li + li { border-top: 1px solid var(--gx-border); padding-top: var(--gx-space-3); }
+.gx-md-best { display: inline-block; margin-inline-start: var(--gx-space-2); color: var(--gx-data); }
+.gx-md-date { display: block; color: var(--gx-text-2); }
+.gx-md-plot { touch-action: pan-y; cursor: crosshair; }
+.gx-md-plot svg { display: block; width: 100%; height: auto; }
+.gx-md-path { fill: none; stroke: var(--gx-data); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.gx-md-point { fill: var(--gx-data); }
+.gx-md-cross { stroke: var(--gx-text-3); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.gx-md-axis { display: flex; justify-content: space-between; gap: var(--gx-space-3); color: var(--gx-text-2); }
+.gx-md-axis > span { flex: 1; min-width: 0; }
+.gx-md-axis > span:last-child { text-align: right; }
+.gx-md-scrub { width: 100%; min-height: 44px; margin: 0; accent-color: var(--gx-data); }
+.gx-md-table-wrap { max-width: 100%; }
+.gx-md-table { width: 100%; border-collapse: collapse; font: 500 13px/18px var(--gx-font-body); }
+.gx-md-table :where(th, td) { padding: var(--gx-space-2) var(--gx-space-1); border-bottom: 1px solid var(--gx-border); text-align: left; }
+.gx-md-table td { font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gx-md-select:focus-visible, .gx-md-disclosure > summary:focus-visible, .gx-md-scrub:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+
+.gx-md-disclosure[open] > summary .gx-ic { rotate: 180deg; }
