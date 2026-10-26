@@ -248,7 +248,14 @@ test('failure: fetchText refuses other hosts, plain-http redirects, missing or f
   await assert.rejects(() => createPointsSources({ fetchImpl: async () => new Response(stream()) }).fetchText(NFLVERSE.games(), { maxBytes: 10, timeoutMs: 1000 }), /Too large/, 'the cap holds while reading, without a length header');
   await assert.rejects(() => createPointsSources({ fetchImpl: async () => new Response(new Uint8Array([0x61, 0xff, 0x62])) }).fetchText(NFLVERSE.games(), SOURCE_LIMITS.games), /./);
   const slow = createPointsSources({ fetchImpl: (url, { signal }) => new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason))) });
-  await assert.rejects(() => slow.fetchText(NFLVERSE.games(), { maxBytes: 100, timeoutMs: 30 }), /./, 'the timeout aborts the fetch');
+  // AbortSignal.timeout's timer does not keep the event loop alive, and Node 22 cancels the file while the fetch is still
+  // pending; a plain timer holds the loop open until the abort lands.
+  const hold = setTimeout(() => {}, 5000);
+  try {
+    await assert.rejects(() => slow.fetchText(NFLVERSE.games(), { maxBytes: 100, timeoutMs: 30 }), /./, 'the timeout aborts the fetch');
+  } finally {
+    clearTimeout(hold);
+  }
 });
 
 /**
