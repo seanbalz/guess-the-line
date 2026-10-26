@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { NFLVERSE, POINTS_RULES, actualsPayload, draftSlate, linesFor, playedEvidence, pointsOpensAt, rosterFacts, scheduleGames, slatePlayers, weekSnaps, weekStatsRows } from '../shared/points-jobs.mjs';
+import { NFLVERSE, POINTS_RULES, actualsPayload, draftSlate, linesFor, playedEvidence, pointsOpensAt, rosterFacts, scheduleGames, slatePlayers, weekSnaps, weekStats, weekStatsRows } from '../shared/points-jobs.mjs';
 import { slateProblem } from '../shared/points-slate.mjs';
 
 // D-56 / P-03 pure job logic: snapshot -> draft slate, nflverse CSVs -> actuals payload. Fixture CSVs copy the real
@@ -159,6 +159,15 @@ test('failure: a missing stat leaves points null (never zero) and a duplicate pl
   assert.throws(() => weekStatsRows(`${statsCsv}\n${statsCsv.split('\n')[1]}`, { season: 2026, week: 7 }), /Duplicate/);
 });
 
+test('contract: weekStats keeps the scored rows unchanged and lists every player id in the week at any position', () => {
+  const week = weekStats(statsCsv, { season: 2026, week: 7 });
+  assert.deepEqual(week.rows, weekStatsRows(statsCsv, { season: 2026, week: 7 }));
+  // The OL row counts as a row for its player; the POST row and the week 6 row do not.
+  assert.deepEqual([...week.playerIds].sort(), ['00-0000001', '00-0000003', '00-0000004', '00-0000006']);
+  assert.deepEqual([...weekStats(statsCsv, { season: 2026, week: 6 }).playerIds], ['00-0000002']);
+  assert.equal(weekStats(statsCsv, { season: 2026, week: 9 }).playerIds.size, 0);
+});
+
 const SNAP_HEADER = 'game_id,pfr_game_id,season,game_type,week,player,pfr_player_id,position,team,opponent,offense_snaps,offense_pct,defense_snaps,defense_pct,st_snaps,st_pct';
 const snapsCsv = [SNAP_HEADER,
   '2026_07_SEA_LA,x,2026,REG,7,Al Wr,WrAl00,WR,SEA,LA,40,0.6,0,0,2,0.1',
@@ -215,12 +224,13 @@ const SOURCE = { url: NFLVERSE.stats(2026), release: 'stats_player', publishedAt
 const slotsFor = ids => ids.map(([slot, playerId, gameKey, team = 'SEA', position = 'WR']) => ({ slot, playerId, name: `Name ${playerId}`, team, position, gameKey, kickoff: '2026-10-18T17:00:00.000Z' }));
 
 test('contract: actualsPayload adds slate players without stats with the right evidence and passes the loader shape', () => {
-  const statsRows = weekStatsRows(statsCsv, { season: 2026, week: 7 });
-  const slots = slotsFor([['QB', '00-0000003', '2026_07_SEA_LA', 'SEA', 'QB'], ['RB', 'PM-1', '2026_08_X_Y', 'AAA', 'RB'],
+  const { rows: statsRows, playerIds: statsPlayerIds } = weekStats(statsCsv, { season: 2026, week: 7 });
+  // PM-1's game was moved to week 8: nflverse lists it only under its new id (the slot keeps the week 7 id).
+  const slots = slotsFor([['QB', '00-0000003', '2026_07_SEA_LA', 'SEA', 'QB'], ['RB', 'PM-1', '2026_07_BUF_NYJ', 'BUF', 'RB'],
     ['WR', 'IN-1', '2026_07_SEA_LA'], ['TE', 'RS-1', '2026_07_SEA_LA', 'SEA', 'TE'], ['FLEX', 'SN-1', '2026_07_SEA_LA']]);
   const roster = new Map([['IN-1', { pfrId: null, status: 'INA' }], ['RS-1', { pfrId: null, status: 'RES' }], ['SN-1', { pfrId: 'WrAl00', status: 'ACT' }]]);
-  const games = [{ gameId: '2026_08_X_Y', week: 8, away: 'X', home: 'Y', kickoff: '2026-10-25T17:00:00.000Z' }, { gameId: '2026_07_SEA_LA', week: 7, away: 'SEA', home: 'LAR', kickoff: '2026-10-18T17:00:00.000Z' }];
-  const payload = actualsPayload({ season: 2026, week: 7, statsRows, slots, snaps: weekSnaps(snapsCsv, { season: 2026, week: 7 }), roster, games, versions: ['ppr4-v1'], source: SOURCE, coverage: { snapsSha256: 'b'.repeat(64), partial: false } });
+  const games = [{ gameId: '2026_08_BUF_NYJ', week: 8, away: 'BUF', home: 'NYJ', kickoff: '2026-10-25T17:00:00.000Z' }, { gameId: '2026_07_SEA_LA', week: 7, away: 'SEA', home: 'LAR', kickoff: '2026-10-18T17:00:00.000Z' }];
+  const payload = actualsPayload({ season: 2026, week: 7, statsRows, statsPlayerIds, slots, snaps: weekSnaps(snapsCsv, { season: 2026, week: 7 }), roster, games, versions: ['ppr4-v1'], source: SOURCE, coverage: { snapsSha256: 'b'.repeat(64), partial: false } });
   assert.equal(payload.season, 2026);
   assert.equal(payload.week, 7);
   assert.deepEqual(payload.source, SOURCE);
@@ -235,7 +245,7 @@ test('contract: actualsPayload adds slate players without stats with the right e
   assert.deepEqual([byId['IN-1'].played, byId['IN-1'].playedBasis], [false, 'inactive']);
   assert.deepEqual([byId['RS-1'].played, byId['RS-1'].playedBasis], [false, 'reserve']);
   assert.deepEqual([byId['SN-1'].played, byId['SN-1'].playedBasis], [true, 'snaps']);
-  assert.deepEqual(byId['SN-1'].points, {});
+  assert.deepEqual(byId['SN-1'].points, { 'ppr4-v1': 0 }, 'snaps, no stats row, and his game is in the stats file: he played and scored 0');
   assert.deepEqual(byId['SN-1'].stats, {});
   // P-01 gtl_points_load_actuals row validation (migration lines 497-502).
   for (const p of payload.players) {
@@ -249,6 +259,56 @@ test('contract: actualsPayload adds slate players without stats with the right e
     assert.ok([true, false, null].includes(p.played));
     assert.ok(p.playedBasis.length <= 60);
   }
+});
+
+test('contract: a game moved to another week (nflverse gives it a new game_id) voids postponed; a reversed rematch, a cancelled game or an id still in the week never does', () => {
+  // Real games.csv shape: 2020 DEN at NE, first set for Week 5, exists only as 2020_06_DEN_NE; PIT at TEN (Week 4) only as
+  // 2020_07_PIT_TEN. The slate keeps the id it was drawn with, so the move shows as that id gone and the same away and home
+  // teams (same orientation) in another week.
+  const row = (id, week, day) => { const [, , away, home] = id.split('_'); return `${id},2026,REG,${week},${day},Sunday,13:00,${away},,${home},,Home`; };
+  const games = (...rows) => scheduleGames([GAME_COLS, '2026_06_SEA_DEN,2026,REG,6,2026-10-15,Thursday,20:15,SEA,,DEN,,Home', ...rows].join('\n'), { season: 2026 });
+  const evidence = (list, { slot = ['WR', 'BN-1', '2026_06_BUF_NYJ', 'BUF'], roster = new Map() } = {}) => {
+    const [p] = actualsPayload({ season: 2026, week: 6, statsRows: [], slots: slotsFor([slot]), snaps: new Map(), roster, games: list, versions: ['ppr4-v1'], source: SOURCE, coverage: {} }).players;
+    return [p.played, p.playedBasis, p.points];
+  };
+  assert.deepEqual(evidence(games(row('2026_07_BUF_NYJ', 7, '2026-10-25'))), [false, 'postponed', {}], 'BUF at NYJ moved from week 6 to week 7');
+  assert.deepEqual(evidence(games(row('2026_07_BUF_NYJ', 7, '2026-10-25')), { roster: new Map([['BN-1', { pfrId: null, status: 'INA' }]]) }), [false, 'postponed', {}], 'postponed precedes the roster');
+  assert.deepEqual(evidence(games(row('2026_08_SEA_LA', 8, '2026-11-08')), { slot: ['WR', 'LA-1', '2026_06_SEA_LA', 'LAR'] }), [false, 'postponed', {}], 'the nflverse LA code maps to LAR on both sides');
+  // A division rematch has home and away reversed: a different game, so never a move.
+  assert.deepEqual(evidence(games(row('2026_12_NYJ_BUF', 12, '2026-11-29'))), [null, 'unknown', {}], 'NYJ at BUF is not BUF at NYJ');
+  // Cancelled, or not in the file at all: never postponed; it stays pending for the commissioner (fail closed).
+  assert.deepEqual(evidence(games()), [null, 'unknown', {}], 'no BUF at NYJ game anywhere');
+  assert.deepEqual(evidence([]), [null, 'unknown', {}], 'an empty schedule');
+  // The id still in the week: nothing changes, even with a same-orientation game listed elsewhere.
+  assert.deepEqual(evidence(games(row('2026_06_BUF_NYJ', 6, '2026-10-18'), row('2026_07_BUF_NYJ', 7, '2026-10-25'))), [null, 'unknown', {}]);
+  // The id listed in another week (a shape nflverse never produces) is not a move by itself either.
+  assert.deepEqual(evidence([{ gameId: '2026_06_BUF_NYJ', week: 7, away: 'BUF', home: 'NYJ', kickoff: '2026-10-25T17:00:00.000Z' }]), [null, 'unknown', {}]);
+  // The same teams still in week 6 under another id: not a move.
+  assert.deepEqual(evidence([{ gameId: '2026_06_BUF_NYJ_B', week: 6, away: 'BUF', home: 'NYJ', kickoff: '2026-10-18T17:00:00.000Z' },
+    { gameId: '2026_07_BUF_NYJ', week: 7, away: 'BUF', home: 'NYJ', kickoff: '2026-10-25T17:00:00.000Z' }]), [null, 'unknown', {}]);
+  // Another season's game, or a slot id that is not YYYY_WW_AWAY_HOME, is never a move.
+  assert.deepEqual(evidence([{ gameId: '2025_07_BUF_NYJ', week: 7, away: 'BUF', home: 'NYJ', kickoff: '2025-10-26T17:00:00.000Z' }]), [null, 'unknown', {}]);
+  assert.deepEqual(evidence(games(row('2026_07_BUF_NYJ', 7, '2026-10-25')), { slot: ['WR', 'BN-1', 'BUF-NYJ', 'BUF'] }), [null, 'unknown', {}]);
+  assert.deepEqual(evidence(games(row('2026_07_BUF_NYJ', 7, '2026-10-25')), { slot: ['WR', 'BN-1', '2025_06_BUF_NYJ', 'BUF'] }), [null, 'unknown', {}]);
+});
+
+test('contract: snaps and no stats row at any position scores 0 for every version once the stats file covers his game; until then, or with any stats row, he stays pending', () => {
+  // FB-row: 00-0000007 played (snaps) and has a stats row as FB, which no scored row carries: not "no stats row", so never 0.
+  const csv = `${statsCsv}\n${statRow({ player_id: '00-0000007', player_name: 'G.Fb', player_display_name: 'Gus Fb', position: 'FB', season: '2026', week: '7', season_type: 'REG', game_id: '2026_07_SEA_LA', team: 'SEA', opponent_team: 'LA', receptions: '1', receiving_yards: '9', receiving_tds: '1' })}`;
+  const { rows: statsRows, playerIds: statsPlayerIds } = weekStats(csv, { season: 2026, week: 7 });
+  assert.equal(statsRows.some(r => r.playerId === '00-0000007'), false, 'an FB row is not a scored row');
+  const snaps = new Map([['SnCo00', 30], ['SnUn00', 30], ['FbGu00', 20]]);
+  const roster = new Map([['SN-C', { pfrId: 'SnCo00', status: 'ACT' }], ['SN-U', { pfrId: 'SnUn00', status: 'ACT' }], ['00-0000007', { pfrId: 'FbGu00', status: 'ACT' }]]);
+  const slots = slotsFor([['TE', 'SN-C', '2026_07_SEA_LA', 'SEA', 'TE'], ['WR', 'SN-U', '2026_07_DAL_NYG', 'DAL'], ['FLEX', '00-0000007', '2026_07_SEA_LA', 'SEA', 'TE']]);
+  const build = extra => actualsPayload({ season: 2026, week: 7, statsRows, slots, snaps, roster, games: [], versions: ['ppr4-v1', 'ppr6-v1'], source: SOURCE, coverage: {}, ...extra });
+  const byId = Object.fromEntries(build({ statsPlayerIds }).players.map(p => [p.playerId, [p.played, p.playedBasis, p.points]]));
+  assert.deepEqual(byId['SN-C'], [true, 'snaps', { 'ppr4-v1': 0, 'ppr6-v1': 0 }], 'his game (2026_07_SEA_LA) is in the stats file');
+  assert.deepEqual(byId['SN-U'], [true, 'snaps', {}], 'no stats row carries 2026_07_DAL_NYG yet: missing is never 0');
+  assert.deepEqual(byId['00-0000007'], [true, 'snaps', {}], 'a stats row at another position: pending for the commissioner, never 0');
+  // Without the week's player ids the payload cannot show "no stats row", so nothing scores 0 (fail closed).
+  assert.deepEqual(build({}).players.find(p => p.playerId === 'SN-C').points, {});
+  // The scored rows are unchanged by the rule.
+  assert.deepEqual(build({ statsPlayerIds }).players.slice(0, statsRows.length), build({}).players.slice(0, statsRows.length));
 });
 
 test('contract: stats rows with an empty name or team are counted in coverage so the loader gap is visible', () => {

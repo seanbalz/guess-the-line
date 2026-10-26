@@ -83,7 +83,7 @@ const gid = (week, away, home) => `${SEASON}_${pad(week)}_${away}_${home}`;
 const SLATE_6 = [
   { slot: 'QB', playerId: '00-0000601', name: 'Fixture Passer Six', team: 'SEA', position: 'QB', gameKey: gid(6, 'SEA', 'DEN') }, // stats: scored 18
   { slot: 'RB', playerId: '00-0000602', name: 'Fixture Runner Six', team: 'KC', position: 'RB', gameKey: gid(6, 'KC', 'LV') }, // roster INA: void inactive
-  { slot: 'WR', playerId: '00-0000603', name: 'Fixture Catcher Six', team: 'BUF', position: 'WR', gameKey: gid(6, 'BUF', 'NYJ') }, // game moved to week 7: void postponed
+  { slot: 'WR', playerId: '00-0000603', name: 'Fixture Catcher Six', team: 'BUF', position: 'WR', gameKey: gid(6, 'BUF', 'NYJ') }, // game moved to week 7 (new id): void postponed
   { slot: 'TE', playerId: '00-0000604', name: 'Fixture End Six', team: 'DAL', position: 'TE', gameKey: gid(6, 'DAL', 'PHI') }, // no evidence: pending
   { slot: 'FLEX', playerId: '00-0000605', name: 'Fixture Flex Six', team: 'MIA', position: 'WR', gameKey: gid(6, 'MIA', 'NE') }, // stats: scored 20
 ];
@@ -116,8 +116,13 @@ const rostersCsv = [ROSTER_HEADER,
   `${SEASON},LA,RB,ACT,Fixture Flex Five,00-0000505,FlFi00,5,REG`].join('\n');
 const KICK_6 = Date.now() - 4 * DAY, KICK_5 = Date.now() - 11 * DAY;
 const withKickoffs = (slots, first) => slots.map((s, i) => ({ ...s, kickoff: iso(first + i * HOUR) }));
+// As nflverse lists a moved game (real games.csv: 2020 DEN at NE, first Week 5, exists only as 2020_06_DEN_NE): BUF at NYJ
+// left week 6 and is listed only under its new week 7 id, a week later. The slate keeps the week 6 id it was drawn with.
 const gamesCsv = [GAME_HEADER,
-  ...withKickoffs(SLATE_6, KICK_6).map(s => { const [, , away, home] = s.gameKey.split('_'); return gameRow(s.gameKey, s.gameKey.endsWith('BUF_NYJ') ? 7 : 6, Date.parse(s.kickoff), away, home); }),
+  ...withKickoffs(SLATE_6, KICK_6).map(s => {
+    const [, , away, home] = s.gameKey.split('_');
+    return s.gameKey === gid(6, 'BUF', 'NYJ') ? gameRow(gid(7, away, home), 7, Date.parse(s.kickoff) + WEEK, away, home) : gameRow(s.gameKey, 6, Date.parse(s.kickoff), away, home);
+  }),
   ...withKickoffs(SLATE_5, KICK_5).map(s => { const [, , away, home] = s.gameKey.split('_'); return gameRow(s.gameKey, 5, Date.parse(s.kickoff), away, home); }),
 ].join('\n');
 const ACTUAL_FILES = { [FILES.stats]: statsCsv, [FILES.snaps]: snapsCsv, [FILES.rosters]: rostersCsv, [FILES.games]: gamesCsv };
@@ -201,8 +206,8 @@ test('contract: the adapter reaches only the six Points job RPCs, never follows 
 });
 
 test('contract: the source caps are the design caps, with the weekly-roster cap sized for a full season', () => {
-  // Design caps: stats 16 MB / 30 s; snaps and games 8 MB / 20 s. The real 2026 weekly-roster file was 5.74 MB through
-  // Week 7 (about 0.8 MB a week), so the design's 8 MB would refuse it from about Week 10: it gets 24 MB / 30 s.
+  // Design caps: stats 16 MiB / 30 s; snaps and games 8 MiB / 20 s; roster 24 MiB / 30 s. The real 2026 weekly-roster file
+  // was 5.74 MB through Week 7 (about 0.8 MB a week), so 8 MiB would refuse it from about Week 10.
   assert.deepEqual(SOURCE_LIMITS, { stats: { maxBytes: 16 * MIB, timeoutMs: 30_000 }, snaps: { maxBytes: 8 * MIB, timeoutMs: 20_000 },
     rosters: { maxBytes: 24 * MIB, timeoutMs: 30_000 }, games: { maxBytes: 8 * MIB, timeoutMs: 20_000 } });
   assert.ok(Object.isFrozen(SOURCE_LIMITS) && Object.values(SOURCE_LIMITS).every(Object.isFrozen));
@@ -246,14 +251,19 @@ test('failure: fetchText refuses other hosts, plain-http redirects, missing or f
   await assert.rejects(() => slow.fetchText(NFLVERSE.games(), { maxBytes: 100, timeoutMs: 30 }), /./, 'the timeout aborts the fetch');
 });
 
-/** An in-memory stand-in for the six RPCs, recording calls. */
+/**
+ * An in-memory stand-in for the six RPCs, recording calls. `slates` is the stored state, or a function of the state read's
+ * number (1, 2, ...) to change it between reads; `fail[name]` is an error code, or a function of the arguments returning one.
+ */
 function memoryService({ slates = [], fail = {}, finalize = () => ({ final: false, reason: 'not_yet' }) } = {}) {
   const calls = [];
   const loads = new Map();
+  let reads = 0;
   return { calls, loads, async rpc(name, args) {
     calls.push([name, args]);
-    if (fail[name]) { const error = new Error('fixture'); error.code = fail[name]; throw error; }
-    if (name === 'gtl_points_jobs_state') return { season: args.p_season, slates };
+    const code = typeof fail[name] === 'function' ? fail[name](args) : fail[name];
+    if (code) { const error = new Error('fixture'); error.code = code; throw error; }
+    if (name === 'gtl_points_jobs_state') { reads += 1; return { season: args.p_season, slates: typeof slates === 'function' ? slates(reads) : slates }; }
     if (name === 'gtl_points_load_actuals') {
       const key = `${args.p_payload.week}:${args.p_payload.source?.sha256}`;
       if (args.p_payload.status === 'failed') return { loadId: 'x', status: 'failed', replayed: false };
@@ -319,11 +329,126 @@ test('contract: a slate player with snaps but no stats row stays pending while h
   assert.deepEqual(out.summary.actuals, [{ week: 5, status: 'saved', rowsSaved: 5, partial: true }]);
 });
 
+test('contract: a slate player with snaps whose only stats row is at a non-scoring position (FB) stays pending, never 0', async () => {
+  // The real stats file lists FB, CB, LB and other positions; a row at any of them is a stats row for that player.
+  const asFullback = `${statsCsv}\n${statRow({ player_id: '00-0000504', player_display_name: 'Fixture End Five', position: 'FB', season: SEASON, week: '5', season_type: 'REG', game_id: gid(5, 'DAL', 'NYG'), team: 'DAL', receptions: '2', receiving_yards: '15', receiving_tds: '1' })}`;
+  const service = memoryService({ slates: [stateSlate(5, SLATE_5, KICK_5)] });
+  const out = await runPointsJobs({ service, sources: fileSources({ ...ACTUAL_FILES, [FILES.stats]: asFullback }), now: Date.now() });
+  const payload = service.calls.find(([name]) => name === 'gtl_points_load_actuals')[1].p_payload;
+  const te = payload.players.find(p => p.playerId === '00-0000504');
+  assert.deepEqual([te.played, te.playedBasis, te.points], [true, 'snaps', {}], 'he recorded stats the scored rows do not carry: never scored 0');
+  assert.equal(payload.players.filter(p => p.playerId === '00-0000504').length, 1);
+  assert.deepEqual(out.summary.actuals, [{ week: 5, status: 'saved', rowsSaved: 6, partial: true }], 'the week stays partial, so FINAL waits for the commissioner');
+});
+
 test('failure: a due week with no rows yet in a season file (no snap counts for it) still loads; it is not a failed load', async () => {
   const service = memoryService({ slates: [stateSlate(6, SLATE_6, KICK_6)] });
   const out = await runPointsJobs({ service, sources: fileSources(ACTUAL_FILES), now: Date.now() });
   assert.deepEqual(out, { reason: null, summary: { season: SEASON, slate: { action: 'skipped', reason: 'no_fresh_snapshot' }, actuals: [{ week: 6, status: 'saved', rowsSaved: 5, partial: true }], finalize: [] } });
   assert.equal(service.calls.filter(([name, args]) => name === 'gtl_points_load_actuals' && args.p_payload.status === 'failed').length, 0);
+});
+
+// ---- unit: the slate step on the in-memory service ----
+const callNames = calls => calls.map(([name, args]) => (name === 'gtl_points_publish_slate' ? `${name}:${args.p_action}` : name));
+/** Week 9 from the committed snapshot: the snapshot fixture, its schedule, its first kickoff and fresh sources for a run. */
+function week9() {
+  const fx = snapshotFor({ week: 9 });
+  const games = scheduleGames(fx.gamesCsv, { season: SEASON });
+  const first = Math.min(...games.filter(g => g.week === 9).map(g => Date.parse(g.kickoff)));
+  return { fx, games, first, sources: () => ({ fantasy: fantasyFor(fx), fetchText: github({ [FILES.games]: fx.gamesCsv }).fetchText }) };
+}
+
+test('contract: a due draft the server refuses to publish as not open or too late is a safe no-op; any other refusal is a worker error', async () => {
+  const now = Date.now();
+  const draft = stateSlate(9, SLATE_6, now + DAY, { status: 'draft' }); // opened two days ago, kicks off tomorrow
+  for (const [code, reason, runReason] of [['GTL_POINTS_NOT_OPEN', 'not_open', 'nothing_due'], ['GTL_POINTS_TOO_LATE', 'kicked_off', 'nothing_due'],
+    ['GTL_POINTS_FORBIDDEN', 'publish_refused', 'worker_error'], ['UNAVAILABLE', 'publish_refused', 'worker_error']]) {
+    const fantasy = fantasyStub(fantasyError(404));
+    const service = memoryService({ slates: [draft], fail: { gtl_points_publish_slate: code } });
+    const out = await runPointsJobs({ service, sources: { fantasy, fetchText: github({}).fetchText }, now });
+    assert.deepEqual(out.summary.slate, { week: 9, action: 'skipped', reason }, code);
+    assert.equal(out.reason, runReason, code);
+    assert.deepEqual(callNames(service.calls), ['gtl_points_jobs_state', 'gtl_points_publish_slate:publish'], code);
+    assert.deepEqual(service.calls[1][1], { p_actor: null, p_action: 'publish', p_season: SEASON, p_week: 9, p_slate: null }, 'published by the scheduler, as stored');
+    assert.equal(fantasy.calls.length, 0, 'publishing a stored draft reads no snapshot');
+  }
+});
+
+test('contract: a scheduler draft refused because the week is fixed is kept; any other draft refusal is a worker error and nothing is published', async () => {
+  const w = week9();
+  for (const [code, slate, runReason] of [['GTL_POINTS_SLATE_FIXED', { week: 9, action: 'kept' }, 'nothing_due'],
+    ['GTL_POINTS_SLATE_INVALID', { week: 9, action: 'skipped', reason: 'draft_refused' }, 'worker_error'], ['UNAVAILABLE', { week: 9, action: 'skipped', reason: 'draft_refused' }, 'worker_error']]) {
+    const service = memoryService({ fail: { gtl_points_publish_slate: args => (args.p_action === 'draft' ? code : undefined) } });
+    const out = await runPointsJobs({ service, sources: w.sources(), now: Date.now() });
+    assert.deepEqual(out.summary.slate, slate, code);
+    assert.equal(out.reason, runReason, code);
+    assert.deepEqual(callNames(service.calls), ['gtl_points_jobs_state', 'gtl_points_jobs_state', 'gtl_points_publish_slate:draft'], code);
+  }
+});
+
+test('contract: a stored draft past its first kickoff is never published or redrafted', async () => {
+  const w = week9();
+  const now = Date.now();
+  const service = memoryService({ slates: [stateSlate(9, SLATE_6, now - HOUR, { status: 'draft' })] });
+  const sources = w.sources();
+  const out = await runPointsJobs({ service, sources, now });
+  assert.deepEqual(out.summary.slate, { week: 9, action: 'skipped', reason: 'kicked_off' });
+  assert.equal(out.reason, 'nothing_due');
+  assert.deepEqual(callNames(service.calls), ['gtl_points_jobs_state'], 'no publish and no draft');
+  assert.deepEqual(sources.fantasy.calls, [{ season: SEASON, week: null }]);
+});
+
+test('contract: a draft made after its open (a late snapshot) is published in the same run, before the first kickoff', async () => {
+  const w = week9();
+  const now = w.first - HOUR;
+  const opensAt = pointsOpensAt(iso(w.first));
+  assert.ok(Date.parse(opensAt) <= now, 'the Tuesday open has passed');
+  const service = memoryService();
+  const out = await runPointsJobs({ service, sources: w.sources(), now });
+  assert.deepEqual(out.summary.slate, { week: 9, action: 'published' });
+  assert.equal(out.reason, null);
+  assert.deepEqual(callNames(service.calls), ['gtl_points_jobs_state', 'gtl_points_jobs_state', 'gtl_points_publish_slate:draft', 'gtl_points_publish_slate:publish']);
+  const expected = draftSlate({ snapshot: w.fx.snapshot, snapshotFile: w.fx.entry.file, snapshotSha256: w.fx.entry.sha256, season: SEASON, week: 9, games: w.games, now });
+  assert.equal(expected.slate.opensAt, opensAt);
+  assert.deepEqual(service.calls[2][1], { p_actor: null, p_action: 'draft', p_season: SEASON, p_week: 9, p_slate: expected.slate });
+  assert.deepEqual(service.calls[3][1], { p_actor: null, p_action: 'publish', p_season: SEASON, p_week: 9, p_slate: null });
+  // Server time decides: a publish refused as not yet open leaves the new draft for the next run.
+  const behind = memoryService({ fail: { gtl_points_publish_slate: args => (args.p_action === 'publish' ? 'GTL_POINTS_NOT_OPEN' : undefined) } });
+  const drafted = await runPointsJobs({ service: behind, sources: w.sources(), now });
+  assert.deepEqual(drafted.summary.slate, { week: 9, action: 'drafted', reason: 'not_open' });
+  assert.equal(drafted.reason, null, 'the draft is a change');
+  // At or after the first kickoff nothing is drafted at all.
+  const late = memoryService();
+  assert.deepEqual((await runPointsJobs({ service: late, sources: w.sources(), now: w.first })).summary.slate, { week: 9, action: 'skipped', reason: 'kicked_off' });
+  assert.equal(late.calls.filter(([name]) => name === 'gtl_points_publish_slate').length, 0);
+});
+
+test('contract: the scheduler re-reads the stored slates just before it drafts, and keeps a slate stored meanwhile (the commissioner draft race)', async () => {
+  const w = week9();
+  const now = Date.now();
+  // The commissioner drafts week 9 after the run's first state read and before its draft.
+  const raced = memoryService({ slates: read => (read === 1 ? [] : [stateSlate(9, SLATE_6, w.first, { status: 'draft' })]) });
+  const out = await runPointsJobs({ service: raced, sources: w.sources(), now });
+  assert.deepEqual(out.summary.slate, { week: 9, action: 'kept' });
+  assert.equal(out.reason, 'nothing_due');
+  assert.deepEqual(callNames(raced.calls), ['gtl_points_jobs_state', 'gtl_points_jobs_state'], 'no draft is sent over the stored slate');
+  const published = memoryService({ slates: read => (read === 1 ? [] : [stateSlate(9, SLATE_6, w.first)]) });
+  assert.deepEqual((await runPointsJobs({ service: published, sources: w.sources(), now })).summary.slate, { week: 9, action: 'kept' });
+  assert.equal(published.calls.filter(([name]) => name === 'gtl_points_publish_slate').length, 0);
+  // The re-read is the last call before the draft.
+  const clean = memoryService();
+  assert.deepEqual((await runPointsJobs({ service: clean, sources: w.sources(), now })).summary.slate, { week: 9, action: 'drafted' });
+  assert.deepEqual(callNames(clean.calls), ['gtl_points_jobs_state', 'gtl_points_jobs_state', 'gtl_points_publish_slate:draft']);
+  // A re-read that fails or is malformed sends nothing: the worker never drafts over a slate it cannot see.
+  let reads = 0;
+  const down = memoryService({ fail: { gtl_points_jobs_state: () => ((reads += 1) > 1 ? 'UNAVAILABLE' : undefined) } });
+  const malformed = memoryService({ slates: read => (read === 1 ? [] : null) });
+  for (const service of [down, malformed]) {
+    const blind = await runPointsJobs({ service, sources: w.sources(), now });
+    assert.deepEqual(blind.summary.slate, { week: 9, action: 'skipped', reason: 'state_unavailable' });
+    assert.equal(blind.reason, 'worker_error');
+    assert.deepEqual(callNames(service.calls), ['gtl_points_jobs_state', 'gtl_points_jobs_state']);
+  }
 });
 
 test('performance bound: two weeks of actuals from full-season-size files are prepared in under 1,000 ms', async () => {
@@ -525,6 +650,7 @@ test('actuals and finalize: loads, voids, pending, scores, FINAL, replay of the 
   assert.equal(iso(loads[0].upstream_published_at), '2026-10-26T04:46:00.000Z');
   assert.deepEqual(loads[1].coverage, { rows: 2, rowsWithoutNameOrTeam: 0, slatePlayersWithoutStats: 3, snapsSha256: sha(snapsCsv), rosterSha256: sha(rostersCsv), gamesSha256: sha(gamesCsv), partial: true });
   const slots = async week => Object.fromEntries((await f.sql('gtl_points_read', { p_viewer: ACCOUNTS.luke.id, p_season: SEASON, p_week: week, p_group: null, p_now: null })).slots.map(s => [s.slot, [s.state, s.actual, s.voidReason]]));
+  assert.equal(gamesCsv.includes(gid(6, 'BUF', 'NYJ')), false, 'the moved game is listed only under its new id, as nflverse does');
   assert.deepEqual(await slots(6), { QB: ['scored', 18, null], RB: ['void', null, 'inactive'], WR: ['void', null, 'postponed'], TE: ['pending', null, null], FLEX: ['scored', 20, null] });
   assert.deepEqual(await slots(5), { QB: ['scored', 24, null], RB: ['scored', 19, null], WR: ['scored', 8.5, null], TE: ['scored', 0, null], FLEX: ['void', null, 'no_snaps'] });
   assert.deepEqual((await f.rows('select week from public.gtl_points_week_final order by week')).map(r => r.week), [5], 'week 5 is FINAL; week 6 waits on its TE');

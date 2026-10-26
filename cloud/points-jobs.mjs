@@ -11,7 +11,7 @@
 import { readRunBody } from './odds-refresh.mjs';
 import { createAssetReader, createFantasyService } from './fantasy.mjs';
 import { fantasySeason } from '../shared/fantasy-refresh.mjs';
-import { NFLVERSE, POINTS_RULES, actualsPayload, draftSlate, linesFor, rosterFacts, scheduleGames, weekSnaps, weekStatsRows } from '../shared/points-jobs.mjs';
+import { NFLVERSE, POINTS_RULES, actualsPayload, draftSlate, linesFor, rosterFacts, scheduleGames, weekSnaps, weekStats } from '../shared/points-jobs.mjs';
 
 const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers });
@@ -25,9 +25,9 @@ class PointsJobsError extends Error { constructor(code) { super('Scheduled Point
 
 const MIB = 1024 * 1024;
 /**
- * Fetch caps (design "Limits"): stats 16 MB / 30 s; snaps and games 8 MB / 20 s. The weekly-roster file holds every week
- * of the season: 5.74 MB through Week 7 of 2026 (about 0.8 MB a week, read October 23), so the design's 8 MB would refuse
- * it from about Week 10. It gets 24 MB / 30 s, room for 18 weeks and the postseason.
+ * Fetch caps (design "Limits"): stats 16 MiB / 30 s; snaps and games 8 MiB / 20 s; roster 24 MiB / 30 s. The weekly-roster
+ * file holds every week of the season: 5.74 MB through Week 7 of 2026 (about 0.8 MB a week, read October 23), so 8 MiB would
+ * refuse it from about Week 10; 24 MiB leaves room for 18 weeks and the postseason.
  */
 export const SOURCE_LIMITS = Object.freeze({
   stats: Object.freeze({ maxBytes: 16 * MIB, timeoutMs: 30_000 }),
@@ -127,6 +127,15 @@ async function slateStep(ctx, state) {
   try { games = (await ctx.games()).list; } catch { ctx.failures.add('source_unavailable'); return { week, action: 'skipped', reason: 'schedule_unavailable' }; }
   const drafted = draftSlate({ snapshot, snapshotFile: entry.file, snapshotSha256: entry.sha256, season, week, games, now });
   if (!drafted.ok) return { week, action: 'skipped', reason: DRAFT_REASONS[drafted.reason] ?? 'no_valid_slate' };
+  // A scheduler draft replaces an unpublished slate (P-01), so the stored slates are read again just before it is sent: a
+  // commissioner draft stored since the run's first read (while the snapshot and schedule were fetched) is kept. This
+  // narrows the race to one round trip; it cannot close it, as P-01 has no compare-and-set for drafts.
+  let current;
+  try {
+    current = await service.rpc('gtl_points_jobs_state', { p_season: season });
+    if (!Array.isArray(current?.slates)) throw new Error('Invalid jobs state.');
+  } catch { ctx.failures.add('worker_error'); return { week, action: 'skipped', reason: 'state_unavailable' }; }
+  if (current.slates.some(s => s.week === week)) return { week, action: 'kept' };
   try {
     await service.rpc('gtl_points_publish_slate', { p_actor: null, p_action: 'draft', p_season: season, p_week: week, p_slate: drafted.slate });
   } catch (error) {
@@ -162,17 +171,6 @@ async function actualFiles(ctx, due) {
   } catch { return { stats: stats.value, problem: 'source unreadable' }; }
 }
 
-/**
- * Design step 2: a slate player with snaps and no stats row played and recorded nothing, so he scores 0. That holds only
- * once the stats file covers his game (some row carries its game id); until then he stays pending: missing is never 0.
- */
-function scoreSnapsOnly(payload, statsRows, versions) {
-  const covered = new Set(statsRows.map(row => row.gameKey));
-  for (const row of payload.players) {
-    if (row.played === true && row.playedBasis === 'snaps' && covered.has(row.gameKey) && !Object.keys(row.points).length) row.points = Object.fromEntries(versions.map(v => [v, 0]));
-  }
-}
-
 /** Partial: a slate slot this load leaves unresolved (no played evidence, or played without points), or a stats row the loader cannot store. */
 function partialCoverage(payload, slots, version) {
   const rows = new Map(payload.players.map(row => [row.playerId, row]));
@@ -186,16 +184,16 @@ function partialCoverage(payload, slots, version) {
 }
 
 function weekPayload({ season, slate, files }) {
-  const { week } = slate, versions = [POINTS_RULES.version];
-  const statsRows = weekStatsRows(files.statsLines, { season, week });
+  const { week } = slate;
+  // Snaps-only players score 0 inside actualsPayload, which needs every player id in the week's stats rows.
+  const { rows: statsRows, playerIds: statsPlayerIds } = weekStats(files.statsLines, { season, week });
   const payload = actualsPayload({
-    season, week, statsRows, slots: slate.slots, versions, games: files.games.list,
+    season, week, statsRows, statsPlayerIds, slots: slate.slots, versions: [POINTS_RULES.version], games: files.games.list,
     snaps: weekSnaps(files.snapLines, { season, week }),
     roster: rosterFacts(files.rosterLines, { season, week, playerIds: slate.slots.map(slot => slot.playerId) }),
     source: { url: files.stats.url, release: files.stats.release, publishedAt: files.stats.publishedAt, retrievedAt: files.stats.retrievedAt, sha256: files.stats.sha256 },
     coverage: { snapsSha256: files.snaps.sha256, rosterSha256: files.rosters.sha256, gamesSha256: files.games.sha256 },
   });
-  scoreSnapsOnly(payload, statsRows, versions);
   payload.coverage.partial = partialCoverage(payload, slate.slots, POINTS_RULES.version);
   return payload;
 }

@@ -93,12 +93,17 @@ export function draftSlate({ snapshot, snapshotFile, snapshotSha256, season, wee
   };
 }
 
-/** QB/RB/WR/TE/K regular-season rows of the week, one per player (a duplicate fails closed). */
-export function weekStatsRows(statsCsv, { season, week }) {
-  const rows = parseFantasyCsv(linesFor(statsCsv, [`,${season}_${pad(week)}_`]), STATS_REQUIRED)
-    .filter(row => Number(row.season) === season && Number(row.week) === week && row.season_type === 'REG' && STAT_POSITIONS.has(row.position));
+/**
+ * The week's regular-season stats: `rows`, the QB/RB/WR/TE/K rows scored, one per player (a duplicate fails closed), and
+ * `playerIds`, every player with a row in the week at any position (the real file also lists FB, CB, LB and others), so
+ * "no stats row" can be told apart from "a row at a position that is not scored".
+ */
+export function weekStats(statsCsv, { season, week }) {
+  const all = parseFantasyCsv(linesFor(statsCsv, [`,${season}_${pad(week)}_`]), STATS_REQUIRED)
+    .filter(row => Number(row.season) === season && Number(row.week) === week && row.season_type === 'REG');
   const players = new Map();
-  for (const row of rows) {
+  for (const row of all) {
+    if (!STAT_POSITIONS.has(row.position)) continue;
     if (players.has(row.player_id)) throw new Error(`Duplicate stats row for ${row.player_id}.`);
     const stats = normalizePlayerStats(row);
     const points = scoreStats(stats, { scoring: POINTS_RULES.format, passingTds: POINTS_RULES.passingTds, position: row.position });
@@ -107,7 +112,12 @@ export function weekStatsRows(statsCsv, { season, week }) {
       gameKey: row.game_id, stats, points: Number.isFinite(points) ? roundTenth(points) : null,
     });
   }
-  return [...players.values()];
+  return { rows: [...players.values()], playerIds: new Set(all.map(row => row.player_id)) };
+}
+
+/** QB/RB/WR/TE/K regular-season rows of the week, one per player (a duplicate fails closed). */
+export function weekStatsRows(statsCsv, options) {
+  return weekStats(statsCsv, options).rows;
 }
 
 /** Offense plus special-teams snaps of the week by pfr_player_id. */
@@ -146,23 +156,47 @@ export function playedEvidence({ hasStats, snapCount, rosterStatus, movedOutOfWe
   return { played: null, basis: 'unknown' };
 }
 
-/** The gtl_points_load_actuals payload for the week. */
-export function actualsPayload({ season, week, statsRows, slots, snaps, roster, games, versions, source, coverage }) {
+const GAME_KEY = /^(\d{4})_(\d{2})_([A-Z]{2,3})_([A-Z]{2,3})$/;
+
+/**
+ * Whether the slot's game left week W. nflverse gives a game moved to another week a new game_id (games.csv, 2020: DEN at
+ * NE, first set for Week 5, exists only as 2020_06_DEN_NE), so a move is the slot's own id gone from the season's games
+ * while a game with the same away and home teams (same orientation: a division rematch is a different game) is in another
+ * week and none is in week W. A game absent altogether (cancelled, or unknown) is never a move: fail closed.
+ */
+function movedOutOfWeek(slot, { season, week, games }) {
+  const key = GAME_KEY.exec(slot.gameKey ?? '');
+  if (!key || Number(key[1]) !== season || games.some(g => g.gameId === slot.gameKey)) return false;
+  const away = appCode(key[3]), home = appCode(key[4]);
+  const pair = games.filter(g => g.away === away && g.home === home && String(g.gameId).startsWith(`${season}_`));
+  return pair.some(g => g.week !== week) && !pair.some(g => g.week === week);
+}
+
+/**
+ * The gtl_points_load_actuals payload for the week. `statsRows` and `statsPlayerIds` come from weekStats (the scored rows,
+ * and every player id with a row in the week at any position); `games` is the season's scheduleGames list.
+ */
+export function actualsPayload({ season, week, statsRows, statsPlayerIds, slots, snaps, roster, games, versions, source, coverage }) {
   const pointsFor = value => (typeof value === 'number' && Number.isFinite(value) ? Object.fromEntries(versions.map(v => [v, value])) : {});
   const players = statsRows.map(row => ({
     playerId: row.playerId, name: row.name, team: row.team, position: row.position, gameKey: row.gameKey,
     stats: row.stats, points: pointsFor(row.points), played: true, playedBasis: 'stats',
   }));
   const have = new Set(statsRows.map(row => row.playerId));
+  const covered = new Set(statsRows.map(row => row.gameKey));
   let without = 0;
   for (const slot of slots) {
     if (have.has(slot.playerId)) continue;
     without += 1;
     const fact = roster?.get(slot.playerId);
     const snapCount = fact?.pfrId ? snaps?.get(fact.pfrId) : undefined;
-    const movedOutOfWeek = (games ?? []).some(g => g.gameId === slot.gameKey && g.week !== week);
-    const { played, basis } = playedEvidence({ hasStats: false, snapCount, rosterStatus: fact?.status, movedOutOfWeek });
-    players.push({ playerId: slot.playerId, name: slot.name, team: slot.team, position: slot.position, gameKey: slot.gameKey, stats: {}, points: {}, played, playedBasis: basis });
+    const moved = movedOutOfWeek(slot, { season, week, games: games ?? [] });
+    const { played, basis } = playedEvidence({ hasStats: false, snapCount, rosterStatus: fact?.status, movedOutOfWeek: moved });
+    // Design step 2: snaps and no stats row at any position means he played and recorded nothing, so he scores 0. That holds
+    // only once the stats file covers his game (a scored row carries its id); until then, with a row at a position that is
+    // not scored, or without the week's player ids, he stays pending: missing is never 0.
+    const zero = played === true && basis === 'snaps' && statsPlayerIds instanceof Set && !statsPlayerIds.has(slot.playerId) && covered.has(slot.gameKey);
+    players.push({ playerId: slot.playerId, name: slot.name, team: slot.team, position: slot.position, gameKey: slot.gameKey, stats: {}, points: zero ? pointsFor(0) : {}, played, playedBasis: basis });
   }
   return { season, week, source, coverage: { rows: statsRows.length, rowsWithoutNameOrTeam: statsRows.filter(row => !row.name || !row.team).length, slatePlayersWithoutStats: without, ...coverage }, players };
 }
