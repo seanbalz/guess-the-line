@@ -14,9 +14,9 @@ on:
         type: string
         required: true
       target:
-        description: One component (push-reminders is the gtl-push-reminders worker only), or backward-compatible API then frontend
+        description: One component (push-reminders and points-jobs are one worker each), or backward-compatible API then frontend
         type: choice
-        options: [frontend, api, api-and-frontend, push-reminders]
+        options: [frontend, api, api-and-frontend, push-reminders, points-jobs]
         default: frontend
         required: true
       release_card:
@@ -147,6 +147,12 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: ./node_modules/.bin/supabase functions deploy gtl-push-reminders --project-ref "$SUPABASE_PROJECT_REF" --use-api
+      - name: Deploy only the Guess the Points jobs worker (config.toml keeps verify_jwt off; a first deploy creates it)
+        if: inputs.mode == 'deploy' && inputs.target == 'points-jobs'
+        working-directory: source
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: ./node_modules/.bin/supabase functions deploy gtl-points-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api
       - name: Deploy only the scanned frontend
         if: inputs.mode == 'deploy' && (inputs.target == 'frontend' || inputs.target == 'api-and-frontend')
         working-directory: source
