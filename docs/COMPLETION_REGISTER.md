@@ -25,6 +25,22 @@ These are dated deployment records, not a new authenticated production audit.
 Current physical-iPhone acceptance and cross-machine synchronization were not
 established by this repository audit.
 
+## October 26 merge follow-through
+
+[PR #209](https://github.com/seanbalz/guess-the-lines-repo/pull/209) merged as
+`c42148747ecdc6c3190c4a1582baa921807376af` after all nine checks passed on
+`ea4daae2cd7206db9316ee2c0c163ff88b37c660`. Its CI fixes preserve Join as the
+single primary action when an invitation is pending and stabilize historical
+Trends/Lines browser fixtures. The full Node suite passed 1,766 tests with zero
+skips; all 25 Vitest files passed. The initial audit above remains dated evidence.
+
+The refreshed main also includes [PR #210](https://github.com/seanbalz/guess-the-lines-repo/pull/210),
+merged separately as `417b800e735242560c45ef7e275520c3a6e61e59`: shared/parallel
+startup reads, preflight and hashed-asset caching, nonblocking fonts and sign-in
+continuity. Its reported Lighthouse measurements are PR-author evidence, not a
+new production or physical-phone measurement by this task. Neither merge alone
+establishes deployment. This task has not deployed the app or applied SQL.
+
 ## Delivered versus remaining
 
 | Area | Implemented and released evidence | Still open |
@@ -33,7 +49,7 @@ established by this repository audit.
 | Mobile layout | PR #174 toolbar/spacing fixes; PR #181 focus scroll padding released as Pages `9fb54fe4`. | October 26: Sean corrected his initial reply and reports the app does not have the scroll bug. The movement symptom is user-reported resolved. Broader Q19 device acceptance remains separate. |
 | Bets | [Actual tracking](EASIER_BET_TRACKING_RELEASE.md), [recommendation handoff](RECOMMENDED_TRACKING_RELEASE.md), [Recommended filters](RELEASE_2026_10_22_TRENDS_FILTER.md), M-10 reader and PR #204 Everyone are released. | Q06 account-level placement M-11, boards M-12 and remaining dedicated Virtual Units screens. Reader delivery does not close the full Bets plan. |
 | Scoring and comparisons | [Core scoring](CORE_SCORING_PRODUCTION_RELEASE.md): per-game lock, personal points and receipts. [Migrations release](RELEASE_2026_10_22_MIGRATIONS.md): D-53 comparisons/preferences applied and signed-in reads verified. | Q07/Q08 phone privacy, save/reload and account-isolation acceptance; Q18 operating evidence. |
-| Trends and optimization | [Trends release](RELEASE_2026_10_22_TRENDS_FILTER.md); PR #182 CPU repair shipped as API v32. PR #207 runs the Node/Vitest suite once and shards browser CI; PR #208 restores release compatibility gates. | Establish a current reproducible frontend performance baseline and fix measured bottlenecks. Historic local lazy-loading tests are not present-day phone performance evidence. |
+| Trends and optimization | [Trends release](RELEASE_2026_10_22_TRENDS_FILTER.md); PR #182 CPU repair shipped as API v32. PR #207 runs the Node/Vitest suite once and shards browser CI; PR #208 restores release compatibility gates. | PR #210 startup optimizations are merged (see above). Release/readback and current integrated/phone performance measurements remain open. On-demand invitation, creation and Members code is verified locally; lazy-loading checks are not phone performance evidence. |
 | NBA | [October 22 release](RELEASE_2026_10_22_MIGRATIONS.md): daily games and private bet tracking, migrations, API v34 and Pages `7ae80e71`; archived tickets preserved. | Physical-iPhone acceptance. NBA competitions remain later scope. |
 | Fantasy | [Track 1](RELEASE_2026_10_23_FANTASY_TRACK1.md) released, first data published, readback retry fixed in #202, daily schedule in #205. Scheduled runs succeeded October 24–26; [October 26 run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40365251250). | Phone readback; richer usage/comparisons/matchup/trade tools Q12–Q15 and connected roster work follow current redesign completion. |
 | Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs and Points reminder-worker pass. Automatic Points scoring is not complete. |
@@ -42,16 +58,24 @@ established by this repository audit.
 
 ## Current implementation lane
 
-Q17-A and Q17-B are implemented and checked locally October 26. Q17-A brings host invitation management into the new app using the existing
-`/invites` and `/invite/revoke` routes. It includes explicit link creation, copying,
-status, revocation and uncertain-write recovery. It sends no email and requires
-no migration. Q17-B adds Duel/Group creation, a draft kept per account in the tab, and explicit recovery of an uncertain creation using the same request ID. Both screens load only when opened. See the [implementation record](REDESIGN_COMPLETION_2026_10_26.md) for checks and publication/release boundaries.
+Q17-A invitation management and Q17-B Duel/Group creation are merged in #209.
+Their production/recipient/device readback remains separate. Both use existing
+routes, include uncertain-write recovery and load only when opened; see the
+[implementation record](REDESIGN_COMPLETION_2026_10_26.md).
 
-After this lane: the remaining preservation destinations,
-then measured performance fixes and remaining approved feature dependencies.
-Keep one implementation lane at a time; device-only acceptance can remain
-explicitly open while independent source work proceeds. New Fantasy integrations,
-simulator work and native iOS do not take priority over this completion work.
+Q17-C is in progress. The next source batch implements **Menu → Community
+members** for the Community commissioner: explicit remove/restore review,
+fresh permission checks, no record deletion, and readback after uncertain saves,
+including reload. Six member browser tests and the existing shell/D-23 checks
+passed locally. CI/merge and release/phone acceptance remain separate. The
+[preservation matrix and evidence](REDESIGN_PRESERVATION_2026_10_26.md) name the
+remaining history, export, journal, older-record and draft-recovery gaps.
+
+Next: the commissioner Settlement and schedule status page, then the remaining
+preservation destinations and measured performance follow-through. Keep one
+implementation lane at a time; device-only acceptance can remain explicitly open
+while independent source work proceeds. New Fantasy integrations, simulator work
+and native iOS do not take priority over this completion work.
 
 ## What needs Sean
 

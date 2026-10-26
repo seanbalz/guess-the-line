@@ -103,3 +103,17 @@ cards. This layout/research fixture now bounds its source at Week 6. All six Lin
 browser cases pass locally, retaining the exact trend records, chart/research
 assertions, market leak scan, wind cadence, and Light/Dark accessibility checks
 at 320/390/1440. Production Trends logic and missing-final tests are unchanged.
+
+
+## Merge verification
+
+PR #209 merged October 26 at 19:00:29 UTC as
+`c42148747ecdc6c3190c4a1582baa921807376af`. All nine checks passed on PR head
+`ea4daae2cd7206db9316ee2c0c163ff88b37c660`: Brand QA, Windows portability,
+Typecheck and test, dashboard, personas and all four cloud-browser shards.
+[Test workflow](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40379959528)
+and [dashboard workflow](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40379959727).
+The branch was clean and equal to its remote after pushing (ahead 0 / behind 0).
+This is a source merge, not a production release. Main also gained the separate
+PR #210 optimizations while this CI ran; the next Members batch checks their
+integration and records that work in the current completion register.
