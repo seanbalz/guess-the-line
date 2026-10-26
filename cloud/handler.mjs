@@ -33,6 +33,8 @@ import researchVenues from '../shared/nfl-venues.json' with { type: 'json' };
 import researchCorrections from '../shared/trends-corrections.json' with { type: 'json' };
 import { handleBets, BETS_METHODS, BetsError, providerBetsError } from './bets.mjs';
 import { handleLeague, LEAGUE_METHODS, LeagueError, providerLeagueError } from './league.mjs';
+// The league feed (redesign stages 61 to 65): reactions, the feed reader, comments and result sharing, under /league/*.
+import { handleFeed, FEED_METHODS, FeedError, providerFeedError } from './feed.mjs';
 import { handleMe, ME_METHODS, MeError, providerMeError } from './me.mjs';
 import { createOptionalRpc, FUNCTION_NOT_FOUND } from './optional-rpc.mjs';
 import { parseFeatureOff } from './feature-off.mjs';
@@ -83,6 +85,7 @@ const ROUTE_GROUPS = Object.freeze([
   Object.freeze({ service: 'lines', methods: LINES_METHODS, handle: handleLines, Error: LinesError }),
   Object.freeze({ service: 'bets', methods: BETS_METHODS, handle: handleBets, Error: BetsError }),
   Object.freeze({ service: 'league', methods: LEAGUE_METHODS, handle: handleLeague, Error: LeagueError }),
+  Object.freeze({ service: 'feed', methods: FEED_METHODS, handle: handleFeed, Error: FeedError }),
   Object.freeze({ service: 'me', methods: ME_METHODS, handle: handleMe, Error: MeError }),
   Object.freeze({ service: 'points', methods: POINTS_METHODS, handle: handlePoints, Error: PointsError }),
   Object.freeze({ service: 'features', methods: FEATURES_METHODS, handle: handleFeatures, Error: FeaturesError }),
@@ -151,13 +154,13 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, me, trends, fantasy, points, features, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, feed, me, trends, fantasy, points, features, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
   // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
   const featuresOff = parseFeatureOff(featureOff);
-  const groupServices = { lines, bets, league, me, trends, fantasy, points, features };
+  const groupServices = { lines, bets, league, feed, me, trends, fantasy, points, features };
   // The live Guess rules ride along with the views both apps render (build plan, section 3.4).
   // The read fails closed on an outage; only an explicitly missing RPC carries legacy rules.
   async function withRules(view, rules = readLiveRules(optionalRpc)) {
@@ -465,6 +468,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     trends: createTrendsService({ rpc: groupRpc(providerLinesError).rpc, readSeason: createSeasonReader({ fetchImpl }), clock }),
     fantasy: createFantasyService({ fetchImpl, clock }),
     lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
+    feed: groupRpc(providerFeedError),
     points: groupRpc(providerPointsError, POINTS_RPCS),
     features: groupRpc(providerFeaturesError, FEATURES_RPCS),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".

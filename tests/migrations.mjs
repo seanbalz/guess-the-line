@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { catalog, readMigrations } from '../scripts/migration-functions.mjs';
 
 export const MIGRATIONS_DIR = fileURLToPath(new URL('../supabase/migrations/', import.meta.url));
 export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', import.meta.url));
@@ -36,6 +37,8 @@ export const NOT_HOSTED = [
   20261026120000, // gtl_points_jobs (D-56 P-03: Points job schedule, run queue, jobs state; waits for "apply P-03")
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
   20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
+  20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
+  20261026132000, // M-22 gtl_league_feed (redesign stage 62): written, awaiting Sean's "apply M-22" (after M-13 and M-21)
   20261026234000, // M-25 league_features (redesign stage 69): badges, awards, streaks; apply after M-13 (feed kinds) on Sean's "apply M-25".
   20261026235000, // M-26 features_schedule (redesign stage 70): the features job's schedule, disabled; apply after M-25 on "apply M-26".
 ];
@@ -45,6 +48,7 @@ export const NOT_HOSTED = [
  */
 export const FIX_FORWARD = [
   20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
+  20261026131000, // M-21 gtl_feed_reactions: append-only reactions; the old like keeps reading from its own table
 ];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan
@@ -53,7 +57,10 @@ export const FIX_FORWARD = [
  * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
-export const REQUIRES = Object.freeze({});
+export const REQUIRES = Object.freeze({
+  // M-22 reads M-13's league_id (its index) and calls M-21's gtl_feed_reactions and gtl_feed_post_visible.
+  20261026132000: [20261026130000, 20261026131000],
+});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -73,6 +80,25 @@ export const ALL = [...new Set([...FILES.filter(file => !EXTENSION_ONLY.includes
 export const HOSTED = ALL.filter(file => (!extra || file <= extra) && (file === extra || required.includes(version(file)) || !NOT_HOSTED.includes(version(file))));
 
 /** The SQL to apply for a file in ALL or HOSTED (in a rollback check, the checked migration followed by its rollback). */
+/**
+ * `list` (filenames in apply order) without `file` and without every later file that cannot stand without it: one that
+ * rebuilds a function on a body a dropped file wrote (its `-- replaces` header names that body), or one whose REQUIRES
+ * names a dropped file. A spec that pins an older rule by leaving one migration out (stage 17's old-app reveal, M-02's
+ * refusal on the old screens) gets a schema that could exist, instead of a later body calling helpers that are not there:
+ * M-21's gtl_read_community, for example, is M-07's body and calls M-07's helpers.
+ */
+export function without(list, file) {
+  const dropped = new Set([file]);
+  const files = catalog(readMigrations(list)).files;
+  for (const { file: later, functions } of files) {
+    if (later <= file || dropped.has(later)) continue;
+    const rebuilds = functions.some(fn => fn.previous && dropped.has(fn.previous.file));
+    const needs = (REQUIRES[version(later)] ?? []).some(v => [...dropped].some(f => version(f) === v));
+    if (rebuilds || needs) dropped.add(later);
+  }
+  return list.filter(name => !dropped.has(name));
+}
+
 export function migrationSql(file) {
   if (check && file === extra) {
     return [check.migration, ...(check.rollback ? [check.rollback] : [])].map(source => fs.readFileSync(source, 'utf8')).join('\n');
