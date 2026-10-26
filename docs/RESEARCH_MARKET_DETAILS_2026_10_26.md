@@ -69,3 +69,15 @@ banner; then the remaining stage 34 competition/action destinations according to
 their existing dependencies. The earlier source/hosted/phone distinction remains
 mandatory; the completion register and queue must not close Research on chart
 polish alone. The frozen v62 tracker remains unchanged.
+
+
+## PR #224 merge follow-through
+
+[PR #224](https://github.com/seanbalz/guess-the-lines-repo/pull/224) merged October 26
+as `97273e9652cf29dca77208488deb7c6c858646a4` after all nine checks passed on
+`473be765f015fcf7d88853979bc8d246f878ddf1`: Brand QA, Windows, Typecheck/test,
+dashboard, personas and all four browser shards. Reviews and review threads were
+empty before merge; no CI fixes were needed. Hosted release and physical-device
+acceptance remain open. The next approved source batch is the
+[Lines board](RESEARCH_BOARD_LINES_2026_10_26.md); remaining full-sheet destinations
+stay in the platform queue.

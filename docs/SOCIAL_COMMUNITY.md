@@ -16,6 +16,30 @@ traffic-light comparisons and explicit Virtual Units review. Only its additive
 writer `20261015143006` was applied; the six pending redesign migrations remain
 unapplied. No production pick was saved during verification.
 
+## Redesign league feed (stages 48 and 61 to 65) — October 26, 2026
+
+The new app's League feed, reactions and comments (D-35 social ruling, D-36, D-31, D-23). Built and tested on local
+PGlite; **nothing below is applied or deployed**. Each migration waits for Sean's "apply M-xx" (Gate M), one at a time.
+
+### Feed kinds (M-13, stage 48)
+
+`20261026130000_gtl_feed_kinds.sql`. High risk, alone, fix forward (no rollback file; `FIX_FORWARD` in
+`tests/migrations.mjs`). Expect the Supabase MCP to ask to confirm the `alter table`; Sean is present or uses the SQL editor.
+
+- **One kind-check swap** on `gtl_feed_posts` to the final list: the five D-21 kinds, Guess the Points' `points_played`
+  and `points_final` (P-02, hosted), and `bet_shared`, `challenge_offered`, `challenge_matched`, `challenge_settled`,
+  `kickoff`, `bets_week_settled`, `badge_earned`, `streak_milestone`, `weekly_recap`, `result_shared`, `season_champion`.
+  The check only adds kinds, so every existing row stays valid.
+- **A nullable `league_id`** referencing `gtl_leagues`: null is the Community (every post today); a private group's id
+  scopes a post to that group's members, so group standings stay private (RULES.md).
+- **No row changes**, and no function, trigger or grant. `gtl_read_community` names its fields, so the new column changes
+  no reply; `cloud/community.mjs` `normalize()` drops every kind it does not know, so the old app never shows a new kind.
+  Nothing writes a new kind or a `league_id` until M-15, M-17, M-22, M-23 or M-25 is applied (build plan section 5,
+  rule 6). Rerunning the file changes nothing.
+- **Tests:** `tests/feed-kinds-sql.test.mjs` (every earlier row unchanged and the check validated; each new kind inserts
+  and an unknown one is refused; a missing league is refused; grants unchanged; the old reader and handler ignore the new
+  kinds; a rerun is a no-op; every migration applies in order).
+
 ## Historical implementation and release notes
 
 The dated sections below preserve their original implementation state and API

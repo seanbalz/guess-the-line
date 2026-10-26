@@ -113,7 +113,7 @@ function apiCalls(page) {
   });
   return calls;
 }
-const READS = ['POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research',
+const READS = ['POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research',
   // D-60: sign-in lands on Home first, which reads the account's preferences and its tracked-ticket summary.
   'POST /me/preferences', 'POST /social/read'];
 
@@ -141,9 +141,9 @@ function syntheticResearch(withResearch) {
 }
 
 /** The world: Week 6 fixtures, Luke's sent Totals and Spread drafts, Troy's sent ballots, a stored collection and a wind stand-in. */
-async function lukesWeek(page, baseURL, { forge = true, research } = {}) {
+async function lukesWeek(page, baseURL, { forge = true, research, clock } = {}) {
   const fake = forecastFetch(point => ({ values: () => VALUES[point.latitude.toFixed(3)] ?? {} }));
-  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, trendsReadSeason: async () => WEEK6_SOURCE, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }), research });
+  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, clock, trendsReadSeason: async () => WEEK6_SOURCE, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }), research });
   await storeBookLines(world, LINES);
   await sendBallot(world, 'luke', 'guess_total', LUKE_TOTALS);
   const workspace = await world.api('luke', 'personal');
@@ -196,7 +196,7 @@ async function noLeak(page, world, where) {
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
 
-test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), his own line at the guess, no writes', async ({ page, baseURL }) => {
+test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), current permitted quotes, no writes', async ({ page, baseURL }) => {
   const { world, fake } = await lukesWeek(page, baseURL);
   try {
     const calls = apiCalls(page);
@@ -213,7 +213,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     await expect(sea.locator('.gx-l-cfoot .gx-tag')).toHaveText('You41');
     // HOU @ JAX: the draft JAX −9 sits on the Jacksonville (home) row.
     await expect(card(page, 'HOU-JAX').locator('.gx-l-tag2')).toHaveText('You−9');
-    // Every Spread is locked for Luke: an icon, never a dash or a number; his sent Totals show his line at the guess.
+    // Every Spread is locked for Luke: an icon, never a dash or a number; his sent Totals show the current reader quotes.
     for (const id of GAMES) {
       const cell = card(page, id).locator('.gx-l-val');
       await expect(cell).toHaveAttribute('data-cell', 'locked');
@@ -222,7 +222,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
       await expect(card(page, id).locator('.gx-l-cfoot [data-cell="line"] .gx-n-s')).toHaveText(String(LINES.total[id]));
     }
     for (const text of await page.locator('.gx-l-card [data-cell="locked"]').allInnerTexts()) expect(text).not.toContain('—');
-    await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5 at your guess\. Your spread pick SEA −4\. Your total pick 41\./);
+    await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5\. Current line\..*Your spread pick SEA −4\. Your total pick 41\./);
     // Board trends: at most three trend lines on the board; one chip per card at most (a trend line or a weather word).
     const chips = page.locator('.gx-l-trend[data-chip="trend"]');
     expect(await chips.count()).toBeLessThanOrEqual(3);
@@ -764,6 +764,242 @@ test('market freshness expires using server time without another odds read', asy
     await page.evaluate(() => { Date.now = () => 0; });
     await expect(total).toContainText('Latest recorded line', { timeout: 5000 });
     expect(reads).toBe(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('the market board shows latest quotes separately from saved receipts and sends its gate to Play', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  const bodies = [], replies = [];
+  try {
+    await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'SEA-DEN': 45.5 } }, { capturedAt: Date.now() - 1000 });
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      const req = route.request(); bodies.push(req.postDataJSON());
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); replies.push(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page);
+    const sea = card(page, 'SEA-DEN');
+    await expect(sea).toContainText('45.5'); await expect(sea).not.toContainText('43.5');
+    await expect(sea).toContainText('Current line');
+    expect(bodies.every(body => body.season === 2026 && body.week === 6)).toBe(true);
+    expect(replies.every(body => body.games.every(game => JSON.stringify(game.spread) === '{"visible":false}'))).toBe(true);
+    await expect(page.locator('.gx-lock-card')).toHaveCount(1);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`market-board-${theme}.png`), fullPage: true });
+    }
+    await sea.click();
+    await expect(sheet(page, 'SEA @ DEN')).toContainText('Line at your guess 43.5');
+    await page.keyboard.press('Escape');
+    const calls = apiCalls(page);
+    await page.getByRole('button', { name: 'Review sit-out in Play', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Your guesses', exact: true })).toBeVisible();
+    expect(calls.some(call => /opt-out|forfeit|ballot/.test(call))).toBe(false);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('board refresh failures and wrong-week replies hide market values until retry succeeds', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let failure = 'offline';
+  const matcher = url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read');
+  try {
+    await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    await page.route(matcher, async route => {
+      if (failure === 'offline') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Unavailable' }) });
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); body.week += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    });
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
+    await expect(card(page, 'SEA-DEN')).not.toContainText('43.5');
+    await expect(card(page, 'SEA-DEN')).toContainText('You41');
+    failure = 'wrong-week'; await page.getByRole('button', { name: 'Retry market lines' }).click();
+    await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
+    await expect(card(page, 'SEA-DEN')).not.toContainText('43.5');
+    await page.unroute(matcher); await page.getByRole('button', { name: 'Retry market lines' }).click();
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('board freshness expires from server time without polling for quotes', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let reads = 0;
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      reads += 1;
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      for (const game of body.games) if (game.total.visible) game.total.observedAt = new Date(Date.parse(body.now) - 6 * 3600000 + 2000).toISOString();
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); const sea = card(page, 'SEA-DEN');
+    await expect(sea).toContainText('Current line');
+    await page.evaluate(() => { Date.now = () => 0; });
+    await expect(sea).toContainText('Latest recorded line', { timeout: 5000 });
+    expect(reads).toBe(1); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a delayed board reply cannot restore another account’s unlocked markets', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release, held = false, holdNext = true;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await openLines(page);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false }); await page.goto('/#lines');
+    await expect(card(page, 'SEA-DEN').locator('.gx-l-val')).toHaveAttribute('data-cell', 'line');
+    await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.text();
+      if (holdNext) { holdNext = false; held = true; await hold; }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body }).catch(() => {});
+    });
+    await page.getByRole('button', { name: 'Refresh market lines', exact: true }).click();
+    await expect.poll(() => held).toBe(true);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines');
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5'); release();
+    await expect(card(page, 'SEA-DEN').locator('.gx-l-val')).toHaveAttribute('data-cell', 'locked');
+    await noLeak(page, world, 'board after account switch'); expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
+const guesses = page => page.getByRole('region', { name: 'Everyone’s guesses', exact: true });
+async function openGuesses(page, game = 'HOU-JAX') {
+  await card(page, game).click();
+  await sheet(page, game.replace('-', ' @ ')).getByRole('button', { name: /Everyone’s guesses/ }).click();
+  await expect(guesses(page).getByRole('list', { name: 'Community Spread guesses' })).toBeVisible();
+}
+
+test('community guesses load on demand, keep drafts private, switch independent markets and write nothing', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  const requests = [], responses = [], calls = apiCalls(page);
+  try {
+    const longName = 'A Very Long Community Display Name For Small Screens';
+    await world.db.query('update public.gtl_profiles set display_name=$1 where user_id=$2', [longName, ACCOUNTS.troy.id]);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/picks'), async route => {
+      const req = route.request(); requests.push(req.postDataJSON());
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); responses.push(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    await expect(sheet(page, 'HOU @ JAX').getByRole('button', { name: /Everyone’s guesses/ })).toHaveAttribute('aria-expanded', 'false');
+    expect(requests).toHaveLength(0);
+    await sheet(page, 'HOU @ JAX').getByRole('button', { name: /Everyone’s guesses/ }).click();
+    const section = guesses(page);
+    await expect(section).toContainText(longName); await expect(section).toContainText('Your draft');
+    await expect(section).toContainText('JAX −9'); await expect(section).toContainText('Guess hidden');
+    expect(responses[0].games[0].rows.find(row => row.userId === ACCOUNTS.troy.id).pick).toBeNull();
+    await noLeak(page, world, 'community Spread guesses while locked');
+    await section.getByRole('button', { name: 'Total', exact: true }).click();
+    await expect(section.getByRole('list', { name: 'Community Total guesses' })).toBeVisible();
+    await expect(section).toContainText('47.5'); await expect(section).not.toContainText('Your draft');
+    expect(requests).toEqual(['guess_spread', 'guess_total'].map(mode => ({ season: 2026, week: 6, gameId: 'HOU-JAX', mode })));
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await section.scrollIntoViewIfNeeded(); await page.screenshot({ path: testInfo.outputPath(`community-guesses-${theme}.png`) });
+    }
+    await section.getByRole('button', { name: 'About community guesses' }).click();
+    await expect(page.getByRole('dialog', { name: 'About community guesses' })).toContainText('regardless of the private league selected');
+    await page.keyboard.press('Escape'); await expect(sheet(page, 'HOU @ JAX')).toBeVisible();
+    expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('guess refresh failure and mismatched reply clear old guesses until retry succeeds', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let wrong = false;
+  const matcher = url => url.origin === SUPABASE && url.pathname.endsWith('/community/picks');
+  try {
+    await openLines(page); await openGuesses(page);
+    const section = guesses(page); await section.getByRole('button', { name: 'Total', exact: true }).click();
+    await expect(section).toContainText('47.5');
+    await page.route(matcher, async route => {
+      if (!wrong) return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Unavailable' }) });
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); body.viewer = ACCOUNTS.troy.id;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    });
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(section.getByRole('button', { name: 'Retry guesses' })).toBeVisible(); await expect(section).not.toContainText('47.5');
+    wrong = true; await section.getByRole('button', { name: 'Retry guesses' }).click();
+    await expect(section.getByRole('button', { name: 'Retry guesses' })).toBeVisible(); await expect(section).not.toContainText('47.5');
+    await page.unroute(matcher); await section.getByRole('button', { name: 'Retry guesses' }).click();
+    await expect(section).toContainText('47.5'); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('delayed Total guesses cannot populate the selected locked Spread market', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release, held = false;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/picks'), async route => {
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.text();
+      if (req.postDataJSON().mode === 'guess_total') { held = true; await hold; }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body }).catch(() => {});
+    });
+    await openLines(page); await openGuesses(page); const section = guesses(page);
+    await section.getByRole('button', { name: 'Total', exact: true }).click(); await expect.poll(() => held).toBe(true);
+    await expect(section).toContainText('Loading community guesses');
+    await section.getByRole('button', { name: 'Spread', exact: true }).click();
+    await expect(section).toContainText('Guess hidden'); release();
+    await expect(section).not.toContainText('47.5'); await noLeak(page, world, 'delayed Total after Spread selected');
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
+test('a delayed guesses reply cannot restore the previous account’s revealed picks', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release, held = false, holdNext = true;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await openLines(page);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click(); await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false }); await page.goto('/#lines');
+    await openGuesses(page); await expect(guesses(page)).toContainText('HOU −2.5');
+    // Hold Troy's Total reply, which includes Luke's locked Total; Luke's next Spread scope must stay closed.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/picks'), async route => {
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.text();
+      if (holdNext) { holdNext = false; held = true; await hold; }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body }).catch(() => {});
+    });
+    await guesses(page).getByRole('button', { name: 'Total', exact: true }).click(); await expect.poll(() => held).toBe(true);
+    await sheet(page, 'HOU @ JAX').getByRole('button', { name: 'Close', exact: true }).click();
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click(); await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines'); await openGuesses(page);
+    await expect(guesses(page)).toContainText('Guess hidden'); release();
+    await noLeak(page, world, 'community guesses after account switch'); expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
+test('after the deadline only the kicked-off game opens guesses and ranks; later games remain gated', async ({ page, baseURL }) => {
+  let now = Date.now();
+  const { world } = await lukesWeek(page, baseURL, { clock: () => now });
+  try {
+    now = Date.parse(world.state.games[0].kickoff) + 60000;
+    await openLines(page); await openGuesses(page, 'HOU-JAX');
+    await expect(guesses(page)).toContainText('Guess hidden'); await expect(guesses(page)).not.toContainText('Closest');
+    await page.keyboard.press('Escape'); await openGuesses(page, 'SEA-DEN');
+    const section = guesses(page);
+    await expect(section).toContainText('DEN −3'); await expect(section).not.toContainText('Guess hidden');
+    await expect(section).toContainText('Closest');
+    await expect(section).toContainText('Your draft'); // Kickoff never locks in or scores the owner's unsent guess.
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
