@@ -128,7 +128,9 @@ branch `claude/redesign-history`: M-27 (`20261026230000_gtl_me_history.sql`), th
 `/me/changes` and `/me/records` routes, and Me › History with Guess and Bets weeks.
 M-27 is written and not applied; its routes await Sean's "apply M-27" and a
 gtl-api deploy. Local PGlite, handler and browser checks are recorded in its PR;
-they are not hosted or phone evidence.
+they are not hosted or phone evidence. Stages 72–73 are [PR #232](https://github.com/seanbalz/guess-the-lines-repo/pull/232).
+Stage 74 (History › Older records, read-only, no migration of its own) is on branch
+`claude/redesign-history-older`, stacked on #232.
 
 ## What needs Sean
 
