@@ -78,15 +78,27 @@ after all nine checks passed on `06c500a124ca5eaf8730d41f024063edb625cbd7`.
 faithful curve geometry, visible season headings/percentages and missing-versus-zero
 win rates. Neither Research merge establishes a new deployment.
 
-The next source batch makes each season in the table selectable, synchronizes it
+PR #222 makes each season in the table selectable, synchronizes it
 with dragging and the keyboard slider, and retains the selected year when
 switching chart views. A check and outline identify the selection, with 44px
 minimum touch targets. All 19 integrated Research/Lines/Trends browser tests,
 two focused tests, nine rendered-chart tests, 20 chart/token tests, typecheck,
 Brand QA, fixture build and bundle privacy scan passed. Light/Dark 320px
-screenshots were inspected. Follow-up CI/merge, hosted release and physical-device
-acceptance remain open; the queue lists each checkpoint separately. This does
-not close all Research work or Q19.
+screenshots were inspected. [PR #222](https://github.com/seanbalz/guess-the-lines-repo/pull/222)
+merged as `71bb47b46737fc309ad778a593a72d130a1c67d5` after all nine checks passed
+on `8cc4042b6bdd94c65095d2bd8105e6a27a00a969`; no CI fixes were needed.
+Hosted release and physical-device acceptance remain open. The queue lists each
+checkpoint separately; this does not close all Research work or Q19.
+
+The next approved Research batch supplies [game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md):
+per-market current/latest consensus with source times, named-book quote comparison,
+and recorded line movement with a chart and table. Local verification passed:
+23 integrated browser tests, five focused market/freshness cases, 26 rendered
+component tests, 37 model/API-contract/price-order/token tests, typecheck, Brand
+QA, fixture build and bundle privacy scan. Source CI/merge and release remain open.
+The audit also restored explicit unfinished scope: stage 33 board-wide current
+lines/gate banner and stage 34's remaining competition/action destinations.
+The source improvements above do not close these items or device acceptance.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

@@ -115,6 +115,12 @@ Nine rendered-chart tests, 20 chart/token tests, typecheck, Brand QA, the
 fixture build and bundle privacy scan passed. Two focused browser checks passed
 for selection, view switching, dragging, keyboard control, 44px targets, 320px
 layout and accessibility. Light/Dark selected-row screenshots were inspected.
-All 19 integrated Research/Lines/Trends browser tests also passed. CI/merge, deployment and
-physical-iPhone acceptance remain separate. Source branch:
-`codex/research-season-selection`.
+All 19 integrated Research/Lines/Trends browser tests also passed.
+[PR #222](https://github.com/seanbalz/guess-the-lines-repo/pull/222) merged as
+`71bb47b46737fc309ad778a593a72d130a1c67d5` after all nine checks passed on
+`8cc4042b6bdd94c65095d2bd8105e6a27a00a969`. No CI fixes or review requests
+were needed. Deployment and physical-iPhone acceptance remain open.
+
+The next approved source work is [per-game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md).
+The remaining board-wide lines and full game-sheet destinations are explicit in
+the queue; these chart refinements do not complete stages 33–34.
