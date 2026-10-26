@@ -199,7 +199,7 @@ export function actualsPayload({ season, week, statsRows, statsPlayerIds, slots,
     const off = statsOffPosition?.get(slot.playerId);
     if (off) {
       const points = scoreStats(off.stats, { scoring: POINTS_RULES.format, passingTds: POINTS_RULES.passingTds, position: slot.position });
-      players.push({ playerId: slot.playerId, name: off.name, team: off.team, position: slot.position, gameKey: off.gameKey, stats: off.stats, points: pointsFor(Number.isFinite(points) ? roundTenth(points) : null), played: true, playedBasis: 'stats' });
+      players.push({ playerId: slot.playerId, name: off.name || slot.name, team: off.team || slot.team, position: slot.position, gameKey: off.gameKey, stats: off.stats, points: pointsFor(Number.isFinite(points) ? roundTenth(points) : null), played: true, playedBasis: 'stats' });
       continue;
     }
     without += 1;

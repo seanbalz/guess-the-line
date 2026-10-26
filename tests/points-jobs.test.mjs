@@ -304,7 +304,7 @@ test('contract: snaps and no stats row at any position scores 0 for every versio
   const byId = Object.fromEntries(build({ statsPlayerIds }).players.map(p => [p.playerId, [p.played, p.playedBasis, p.points]]));
   assert.deepEqual(byId['SN-C'], [true, 'snaps', { 'ppr4-v1': 0, 'ppr6-v1': 0 }], 'his game (2026_07_SEA_LA) is in the stats file');
   assert.deepEqual(byId['SN-U'], [true, 'snaps', {}], 'no stats row carries 2026_07_DAL_NYG yet: missing is never 0');
-  assert.deepEqual(byId['00-0000007'], [true, 'snaps', {}], 'a stats row at another position: pending for the commissioner, never 0');
+  assert.deepEqual(byId['00-0000007'], [true, 'snaps', {}], 'a stats row at another position without statsOffPosition: pending, never 0 (the worker passes statsOffPosition, which scores it at the slot position)');
   // Without the week's player ids the payload cannot show "no stats row", so nothing scores 0 (fail closed).
   assert.deepEqual(build({}).players.find(p => p.playerId === 'SN-C').points, {});
   // The scored rows are unchanged by the rule.
@@ -366,4 +366,9 @@ test('contract: a slate player the stats file lists at FB scores his real Full P
   const na = byId['FB-NA'];
   assert.deepEqual([na.position, na.played, na.playedBasis, na.points], ['TE', true, 'stats', {}]);
   assert.equal(payload.coverage.slatePlayersWithoutStats, 0);
+  // A blank stats name (7 real off-position rows in 2026 Weeks 1–7) falls back to the slot's name, so the loader keeps the row.
+  const blank = weekStats(`${statsCsv}\n${fb('FB-BLANK', { player_name: '', player_display_name: '' })}`, { season: 2026, week: 7 });
+  const named = actualsPayload({ season: 2026, week: 7, statsRows: blank.rows, statsPlayerIds: blank.playerIds, statsOffPosition: blank.offPosition,
+    slots: slotsFor([['RB', 'FB-BLANK', '2026_07_SEA_LA', 'LAR', 'RB']]), snaps: new Map(), roster: new Map(), games: [], versions: ['ppr4-v1'], source: SOURCE, coverage: {} });
+  assert.equal(named.players.find(p => p.playerId === 'FB-BLANK').name, 'Name FB-BLANK');
 });

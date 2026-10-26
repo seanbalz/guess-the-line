@@ -61,5 +61,8 @@ Disable the schedule row (`update public.gtl_points_job_schedule set enabled=fal
   all (cancelled) stays pending for the commissioner.
 - **Loads key on the stats file only.** A roster or snap change made after the week's last stats change waits for the
   next stats change, so a Thursday-noon FINAL can slip to Friday's run.
+- **A commissioner draft can still be replaced in a short race.** The scheduler re-reads the state just before it
+  drafts. P-01's draft is an upsert, though, so a commissioner draft saved in that one round trip would be replaced.
+  Closing it fully needs P-01's scheduler draft to refuse when a slate already exists.
 - **A missed week raises no alarm.** A draft never published before its first kickoff finishes the run as
   `skipped/nothing_due`. Treating that as a failure is a separate decision.
