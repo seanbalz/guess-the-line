@@ -98,3 +98,9 @@
 .gx-l-observation { display: block; margin-top: 8px; overflow-wrap: anywhere; text-align: left; }
 .gx-l-val { max-width: 104px; }
 .gx-l-cfoot > .gx-hstack { min-width: 0; flex-wrap: wrap; }
+
+/* Community guesses keep names and numbers in the same flexible column at phone widths. */
+.gx-l-guess-row { align-items: flex-start; }
+.gx-l-guess-row .gx-row-title { overflow-wrap: anywhere; }
+.gx-l-guess-value { display: block; margin-top: 4px; }
+.gx-l-guess-place { display: block; margin-top: 4px; }
