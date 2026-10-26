@@ -256,7 +256,7 @@ stages.
 
 ## Virtual Units boards (M-12, written)
 
-M-12 (`20261026230000_gtl_bets_boards.sql`, build plan stage 42) adds two
+M-12 (`20261026233000_gtl_bets_boards.sql`, build plan stage 42) adds two
 read-only routes for the league showing: the Community roster, or a private
 league's. It is written and not yet applied; it needs Sean's "apply M-12".
 - **`POST /bets/board`** gives one week's board.

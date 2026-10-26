@@ -14,7 +14,7 @@ import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser
 import { serviceSql } from './helpers/guess-week.mjs';
 import { weekFromPicks } from '../shared/bets-qual.mjs';
 
-const MIGRATION = '20261026230000_gtl_bets_boards.sql';
+const MIGRATION = '20261026233000_gtl_bets_boards.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed.';
 const USER = who => ACCOUNTS[who].id;
 const FUNCTIONS = ['gtl_bets_week_rows(integer,integer,uuid[])', 'gtl_read_bets_board(uuid,integer,integer,text)', 'gtl_read_bets_season(uuid,integer,text,uuid)'];
