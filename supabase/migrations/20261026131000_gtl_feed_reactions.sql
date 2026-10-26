@@ -21,7 +21,10 @@
 --   5. gtl_read_community (same arguments and reply, M-07's body): `likes` counts the current reactions and `likedByMe`
 --      says the viewer has one, so a fire from the new app is a heart in the old one. It also lists Community posts only
 --      (league_id is null): a post scoped to a private group (M-22's group result shares, M-25's group recaps) never
---      reaches the whole Community (RULES.md: group standings stay private). Nothing else in the body changes.
+--      reaches the whole Community (RULES.md: group standings stay private). And it lists only the kinds the old app
+--      draws (the D-21 five and P-02's two): cloud/community.mjs normalize() drops every other kind, so without this a page of
+--      30 could come back short once M-22, M-23 or M-25 write new kinds, and the old feeds would stop offering older posts.
+--      Nothing else in the body changes.
 --
 -- No existing row is updated or deleted; the delete grant on gtl_feed_likes is revoked, so no path deletes a like again.
 -- Off switch: GTL_FEATURE_OFF=reactions stops POST /league/react before the database (cloud/feature-off.mjs); the old
@@ -105,8 +108,8 @@ begin
     'likedByMe',exists(select 1 from public.gtl_feed_reactions(p_post) r where r.user_id=p_user));
 end $$;
 
--- M-07's body (20261015190710_gtl_guess_write_window.sql) with three changes: likes and likedByMe read gtl_feed_reactions,
--- and the posts page lists Community posts only (f.league_id is null).
+-- M-07's body (20261015190710_gtl_guess_write_window.sql) with four changes: likes and likedByMe read gtl_feed_reactions,
+-- and the posts page lists Community posts only (f.league_id is null) of the kinds the old app draws.
 create or replace function public.gtl_read_community(p_user uuid,p_before timestamptz default null,p_limit integer default 30,p_now timestamptz default null)
 returns jsonb language plpgsql stable security invoker set search_path='' as $$
 declare s integer; w integer; sig jsonb; deadline timestamptz; game_count integer; result jsonb; now_at timestamptz:=coalesce(p_now,clock_timestamp());
@@ -174,7 +177,9 @@ begin
         'hiddenGames',case when p.kind='ballot_submitted' then coalesce(g.hidden,'[]'::jsonb) end,
         'late',case when p.kind='ballot_submitted' then public.gtl_ballot_late(pb.ballot) end
       ) post
-      from (select * from public.gtl_feed_posts f where f.league_id is null and (p_before is null or f.created_at<p_before) and f.created_at<=now_at
+      from (select * from public.gtl_feed_posts f where f.league_id is null
+              and f.kind in ('joined','ballot_submitted','bet_posted','bet_settled','week_published','points_played','points_final')
+              and (p_before is null or f.created_at<p_before) and f.created_at<=now_at
             order by f.created_at desc,f.id desc limit p_limit) p
       left join public.gtl_weekly_ballots pb on p.kind='ballot_submitted' and pb.user_id=p.actor_id and pb.season=p.season and pb.week=p.week and pb.mode=p.mode
       left join lateral (select jsonb_object_agg(k.key,k.value) filter (where k.visible) shown,
