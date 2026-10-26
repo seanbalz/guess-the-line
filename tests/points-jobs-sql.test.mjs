@@ -32,7 +32,7 @@ async function fixture(t, { enabled = true } = {}) {
   return { db, as, rpc, dispatch, token, claimed };
 }
 
-test('migration is registered as unapplied and creates exactly the documented objects', { skip }, async t => {
+test('migration is registered as unapplied and creates the four functions and the documented table columns', { skip }, async t => {
   assert(NOT_HOSTED.includes(20261026120000), 'written, not applied: waits for the apply word');
   const f = await fixture(t);
   const functions = (await f.db.query("select proname,prosecdef,proconfig from pg_proc where proname in ('gtl_dispatch_points_jobs','gtl_claim_points_jobs','gtl_complete_points_jobs','gtl_points_jobs_state')")).rows;
@@ -41,6 +41,8 @@ test('migration is registered as unapplied and creates exactly the documented ob
   assert(functions.every(row => row.proconfig?.includes('search_path=""')), 'every function pins an empty search_path');
   assert.deepEqual((await f.db.query("select column_name from information_schema.columns where table_name='gtl_points_job_runs'")).rows.map(r => r.column_name).sort(),
     ['capability_hash', 'claim_token', 'claimed_at', 'created_at', 'finished_at', 'id', 'reason', 'schedule_id', 'slot_start', 'status', 'summary']);
+  assert.deepEqual((await f.db.query("select column_name from information_schema.columns where table_name='gtl_points_job_schedule'")).rows.map(r => r.column_name).sort(),
+    ['created_at', 'enabled', 'endpoint', 'id']);
 });
 
 test('privileges: tables and functions are closed to players; dispatch is cron only; the service role gets the narrow set', { skip }, async t => {
@@ -164,8 +166,6 @@ test('complete: the reason decides the status, the claim is required, the summar
   await assert.rejects(() => f.rpc('gtl_complete_points_jobs', [runId, '00000000-0000-4000-8000-000000000009', null, null]), /GTL_SCHEDULE_RUN/, 'wrong claim');
   await assert.rejects(() => f.rpc('gtl_complete_points_jobs', [runId, null, null, null]), /GTL_SCHEDULE_RUN/, 'no claim');
   await assert.rejects(() => f.rpc('gtl_complete_points_jobs', [runId, reply.claim, 'already_published', null]), /GTL_SCHEDULE_RUN/, 'a reason from another vocabulary');
-  await assert.rejects(() => f.rpc('gtl_complete_points_jobs', [runId, reply.claim, null, [1]]), /GTL_SCHEDULE_RUN/, 'a summary is an object');
-  await assert.rejects(() => f.rpc('gtl_complete_points_jobs', [runId, reply.claim, null, { text: 'x'.repeat(5000) }]), /GTL_SCHEDULE_RUN/, 'a summary is at most 4 KB');
   assert.equal((await f.db.query('select status from public.gtl_points_job_runs')).rows[0].status, 'running', 'refusals leave the run running');
   assert.equal((await f.rpc('gtl_complete_points_jobs', [runId, reply.claim, null, null])).status, 'succeeded', 'a null summary is allowed');
   assert.equal((await f.db.query('select summary from public.gtl_points_job_runs')).rows[0].summary, null);
@@ -174,6 +174,58 @@ test('complete: the reason decides the status, the claim is required, the summar
   const l = await late.claimed();
   await late.db.query("update public.gtl_points_job_runs set claimed_at=clock_timestamp()-interval '11 minutes'");
   await assert.rejects(() => late.rpc('gtl_complete_points_jobs', [l.runId, l.reply.claim, null, null]), /GTL_SCHEDULE_EXPIRED/);
+});
+
+test('complete: a bad summary never strands the run; a non-object is stored as null, an oversize one (in bytes) as a truncation marker', { skip }, async t => {
+  for (const [label, literal, reason, status] of [['array', '[1]', null, 'succeeded'], ['string', '"x"', 'worker_error', 'failed'], ['json null', 'null', 'nothing_due', 'skipped']]) {
+    const f = await fixture(t);
+    const { runId, reply } = await f.claimed();
+    const done = (await f.as('service_role', `select public.gtl_complete_points_jobs($1,$2,$3,'${literal}'::jsonb) value`, [runId, reply.claim, reason])).rows[0].value;
+    assert.deepEqual(done, { runId, status, reason }, label);
+    const row = (await f.db.query('select status,reason,summary,finished_at from public.gtl_points_job_runs')).rows[0];
+    assert.equal(row.status, status, `${label}: the transition still lands`); assert.equal(row.reason, reason);
+    assert.equal(row.summary, null, `${label}: stored as null`); assert(row.finished_at);
+  }
+  for (const [label, text, reason, status] of [['succeeded', 'x'.repeat(5000), null, 'succeeded'], ['failed', 'y'.repeat(5000), 'load_failed', 'failed']]) {
+    const f = await fixture(t);
+    const { runId, reply } = await f.claimed();
+    const done = await f.rpc('gtl_complete_points_jobs', [runId, reply.claim, reason, JSON.stringify({ text })]);
+    assert.deepEqual(done, { runId, status, reason }, label);
+    const row = (await f.db.query('select status,summary from public.gtl_points_job_runs')).rows[0];
+    assert.equal(row.status, status, `${label}: the transition still lands`);
+    assert.deepEqual(Object.keys(row.summary).sort(), ['bytes', 'truncated']); assert.equal(row.summary.truncated, true);
+    assert(row.summary.bytes > 5000 && row.summary.bytes < 5100, `${label}: the marker reports the size`);
+  }
+  // Under 4096 characters but over 4096 bytes: only octet_length catches it.
+  const f = await fixture(t);
+  const { runId, reply } = await f.claimed();
+  const multibyte = { text: '\u00e9'.repeat(2100) };
+  const stored = (await f.db.query("select octet_length($1::jsonb::text) b,char_length($1::jsonb::text) c", [JSON.stringify(multibyte)])).rows[0];
+  assert(stored.c < 4096 && stored.b > 4096, 'fixture is under 4096 characters but over 4096 bytes');
+  await f.rpc('gtl_complete_points_jobs', [runId, reply.claim, null, JSON.stringify(multibyte)]);
+  assert.deepEqual((await f.db.query('select summary from public.gtl_points_job_runs')).rows[0].summary, { truncated: true, bytes: stored.b }, 'octet_length, not char_length');
+  const small = await fixture(t);
+  const sm = await small.claimed();
+  await small.rpc('gtl_complete_points_jobs', [sm.runId, sm.reply.claim, null, JSON.stringify({ ok: 1 })]);
+  assert.deepEqual((await small.db.query('select summary from public.gtl_points_job_runs')).rows[0].summary, { ok: 1 }, 'a small object is stored untouched');
+});
+
+test('dispatch: a stale queued run that was never claimed is timed out as worker_timeout by the next dispatch', { skip }, async t => {
+  const f = await fixture(t);
+  const first = await f.dispatch();
+  await f.db.query("update public.gtl_points_job_runs set created_at=clock_timestamp()-interval '11 minutes',slot_start=slot_start-interval '2 hours' where id=$1", [first.runId]);
+  const next = await f.dispatch(); assert.equal(next.status, 'queued');
+  const row = (await f.db.query('select status,reason,claimed_at,finished_at from public.gtl_points_job_runs where id=$1', [first.runId])).rows[0];
+  assert.equal(row.status, 'failed'); assert.equal(row.reason, 'worker_timeout'); assert.equal(row.claimed_at, null); assert(row.finished_at);
+});
+
+test('claim: after completion a claim replays the final status and hands out no claim token', { skip }, async t => {
+  const f = await fixture(t);
+  const { runId, cap, reply } = await f.claimed();
+  await f.rpc('gtl_complete_points_jobs', [runId, reply.claim, null, null]);
+  const again = await f.rpc('gtl_claim_points_jobs', [cap, runId]);
+  assert.deepEqual(again, { replay: true, runId, status: 'succeeded', reason: null });
+  assert.equal('claim' in again, false);
 });
 
 test('jobs state: every slate of the season in week order with only the documented keys and no House, provenance or guess value', { skip }, async t => {

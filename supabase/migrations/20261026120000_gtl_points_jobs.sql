@@ -72,7 +72,7 @@ begin
 end $$;
 
 -- A null reason means the worker did its steps; nothing_due is a safe no-op (skipped); the other named reasons are failures
--- the administrator should look at. The summary is an object of counts and step outcomes (at most 4 KB), never player data.
+-- the administrator should look at. The summary is an object of counts and step outcomes (at most 4 KB; anything else is stored as null or a truncation marker), never player data.
 create function public.gtl_complete_points_jobs(p_run uuid,p_claim uuid,p_reason text,p_summary jsonb) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 declare run public.gtl_points_job_runs; state text;
@@ -85,7 +85,11 @@ begin
     when p_reason='nothing_due' then 'skipped'
     when p_reason in ('source_unavailable','load_failed','worker_error','worker_timeout','dispatch_unavailable') then 'failed' end;
   if state is null then raise exception 'GTL_SCHEDULE_RUN'; end if;
-  if p_summary is not null and (jsonb_typeof(p_summary)<>'object' or char_length(p_summary::text)>4096) then raise exception 'GTL_SCHEDULE_RUN'; end if;
+  -- The status transition always lands: a summary that is not an object is dropped, and one over 4 KB (bytes) is replaced by a marker.
+  if p_summary is not null and jsonb_typeof(p_summary)<>'object' then p_summary:=null; end if;
+  if p_summary is not null and octet_length(p_summary::text)>4096 then
+    p_summary:=jsonb_build_object('truncated',true,'bytes',octet_length(p_summary::text));
+  end if;
   update public.gtl_points_job_runs set status=state,reason=p_reason,summary=p_summary,finished_at=clock_timestamp() where id=run.id;
   return jsonb_build_object('runId',run.id,'status',state,'reason',p_reason);
 end $$;

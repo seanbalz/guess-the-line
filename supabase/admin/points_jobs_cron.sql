@@ -19,15 +19,17 @@ insert into public.gtl_points_job_schedule(id,enabled,endpoint)
 values('nfl-points',false,'https://<project-ref>.supabase.co/functions/v1/gtl-points-jobs')
 on conflict(id) do nothing;
 
--- 2. Dry run: while enabled=false the dispatcher returns {"status":"disabled"} and posts nothing.
-select public.gtl_dispatch_points_jobs();
-
--- 3. The cron jobs (also safe while disabled: each call returns disabled).
+-- 2. The cron jobs (also safe while disabled: each call returns disabled).
 select cron.schedule('gtl-points-daily','30 11 * * *',$$select public.gtl_dispatch_points_jobs()$$);
 select cron.schedule('gtl-points-tuesday-pdt','0 19 * * 2',$$select public.gtl_dispatch_points_jobs()$$);
 select cron.schedule('gtl-points-tuesday-pst','0 20 * * 2',$$select public.gtl_dispatch_points_jobs()$$);
 select cron.schedule('gtl-points-thursday-pdt','0 19 * * 4',$$select public.gtl_dispatch_points_jobs()$$);
 select cron.schedule('gtl-points-thursday-pst','0 20 * * 4',$$select public.gtl_dispatch_points_jobs()$$);
+
+-- 3. Optional dry run, ONLY while enabled=false (the dispatcher then returns {"status":"disabled"} and posts nothing). It is
+--    commented out on purpose: once the schedule is enabled, the same call queues and posts a REAL run, so re-running this file
+--    after enabling can never reach it.
+-- select public.gtl_dispatch_points_jobs();
 
 -- 4. Enable, then verify one real run in public.gtl_points_job_runs (status succeeded or skipped).
 -- update public.gtl_points_job_schedule set enabled=true where id='nfl-points';
