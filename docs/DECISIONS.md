@@ -12,6 +12,38 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-58 — the D-38 and D-55 system is the final brand selection (October 26, 2026)
+
+Sean answered the open decision recorded in
+[DESIGN_EXPLORATION.md](DESIGN_EXPLORATION.md#open-decision-for-sean):
+"Yes: the D-38 prototype and D-55 approvals are my final selection for typography, palette, supporting icons and motion."
+
+- **Final selection:** the four categories that never went through the
+  five-option boards are now selected. Each is the system as approved and built
+  for the new app.
+  - **Typography:** Figtree for reading text, Big Shoulders Display for words 20px
+    and up, Barlow Condensed for every number and team abbreviation.
+  - **Palette:** `design/tokens-next.json`. This is the D-38 darker system (canvas
+    `#070B16`, Electric Lime for the one primary action, cyan for data in dark,
+    violet for live only, and a Light theme), together with the D-55 glow, glass,
+    track, chart-line, bar and soft-light-card tokens.
+  - **Supporting icons:** the Lucide outline set.
+  - **Motion:** the durations, easings, one-loop rule and reduced-motion behavior
+    in the brand guide's D-38 Motion section.
+- **Already selected:** the logo (Yardline G) and the app icon (Field monogram)
+  were selected October 8 (D-12) and refined by D-14 and D-44. UI and layout were
+  chosen through D-35, D-38, the four-tab "One thing first" and D-55. Team marks
+  follow D-46.
+- **Brand guide review:** this answer also settles the review that the written
+  D-38 section of `docs/BRAND_GUIDE.md` was waiting for (build plan stage 6).
+- **The old app:** its earlier sections in `docs/BRAND_GUIDE.md` and
+  `design/tokens.json` are not re-selected. They stay as the old app's legacy
+  styling until it retires (D-52, queue Q20). New work uses the new app's system.
+- **Unchanged:** every data-integrity, contrast, accessibility and
+  rule-of-restraint requirement stays. A new token still needs both themes and the
+  contrast test. Changing any selected category later needs a new decision.
+- **Scope:** this changes no code, token or asset, and deploys nothing.
+
 ## D-57 — Fantasy Track 1: refresh, accuracy record and gated game context (October 23, 2026)
 
 After the October 22 fantasy research review, Sean chose Track 1 first and

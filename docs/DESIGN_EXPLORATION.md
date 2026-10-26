@@ -5,20 +5,21 @@
 This table is the current status. Each row cites the decision that set it, with
 Sean's words. The October 8 option lists further down are kept as history.
 
-"Selected" means Sean chose one of five options. "Approved for the build" means
-Sean approved a design that uses the choice (the D-38 prototype, or a D-55
-board), but it was never picked from five options in its own category.
+"Selected" means Sean has made the final choice. For the logo and the app icon he
+chose one of five options. For type, palette, supporting icons and motion he
+confirmed the approved D-38 and D-55 system as final (D-58). "Approved, and
+chosen from options" means Sean approved layouts picked from sets of options.
 
 | Category | Status | In use | Source | Still open |
 | --- | --- | --- | --- | --- |
 | Primary logo | **Selected** (option 01 of 5) | Yardline G. Since D-44 it is the G alone, in the theme green (lime `#B8F34B` on dark, deep green `#3B6309` on light) on a transparent background, with no tile | D-12 (October 8); D-14 (October 8, icon only); D-44 (October 14: "the G with a more subtle backgroud like transparent and green logo") | Nothing |
 | App icon | **Selected** (option 01 of 5) | Field monogram, now the transparent lime G, used everywhere, including Android and push notifications. Low contrast on a white launcher circle is accepted | D-12; D-14; D-44 (Sean: "Transparent everywhere") | Nothing |
 | UI and layout | **Approved, and chosen from options** | Detailed under the table | D-35 (October 13); D-38 (October 14); four-tab design (October 21); D-55 (October 21) | Real-phone acceptance (queue Q19). The new app is not yet the default (`DEFAULT_APP` is still `classic`; Q20) |
-| Color palette | **Approved for the build, new app only.** Not selected from the October 8 schemes | `design/tokens-next.json`: darker navy canvas `#070B16`, Electric Lime `#B8F34B` for the one primary action, cyan `#38BDF8` for data in dark, violet for live games only, plus a Light theme. D-55 adds glow, glass, track, chart-line, bar and soft-light-card tokens, and lets lime close the dark chart glow (decoration only). It is closest to October 8 scheme 1 (Midnight / Lime / Cyan), made darker | D-35 ("refresh colors, type and spacing into a darker, higher-energy system"); D-38 prototype; D-55 ("This approves the D-55 tokens …") | Final selection (below). The old app keeps the October 8 baseline, still provisional |
-| Typography | **Approved for the build, new app only.** Not selected from the October 8 pairings; none of the five is the face in use | Figtree for reading text, Big Shoulders Display for titles and other words 20px and up, Barlow Condensed for every number and team abbreviation. Loaded from Google Fonts, never distributed | D-35; D-38 prototype | Final selection (below). The old app keeps Inter, Barlow Condensed and IBM Plex Mono, still provisional |
-| Supporting icon language | **Approved for the build, as used in the prototype.** Not selected from the October 8 options | Lucide outline icons (open-source set) in the new app. Team marks are separate (row below) | D-38 prototype | Final selection (below) |
+| Color palette | **Selected** (D-58, October 26): the D-38 and D-55 palette is final. It was never one of the October 8 schemes | `design/tokens-next.json`: darker navy canvas `#070B16`, Electric Lime `#B8F34B` for the one primary action, cyan `#38BDF8` for data in dark, violet for live games only, plus a Light theme. D-55 adds glow, glass, track, chart-line, bar and soft-light-card tokens, and lets lime close the dark chart glow (decoration only). It is closest to October 8 scheme 1 (Midnight / Lime / Cyan), made darker | D-35 ("refresh colors, type and spacing into a darker, higher-energy system"); D-38 prototype; D-55 ("This approves the D-55 tokens …"); D-58 | Nothing. The old app keeps its October 8 styling as legacy until it retires |
+| Typography | **Selected** (D-58, October 26). It is not one of the October 8 pairings | Figtree for reading text, Big Shoulders Display for titles and other words 20px and up, Barlow Condensed for every number and team abbreviation. Loaded from Google Fonts, never distributed | D-35; D-38 prototype; D-58 | Nothing. The old app keeps Inter, Barlow Condensed and IBM Plex Mono as legacy until it retires |
+| Supporting icon language | **Selected** (D-58, October 26): Lucide, as used in the prototype | Lucide outline icons (open-source set) in the new app. Team marks are separate (row below) | D-38 prototype; D-58 | Nothing |
 | Team marks (not one of the five categories) | **Decided** | Official logos for all 32 teams, used only to identify teams next to their names, with the trademark notice. The D-22 original badges are the fallback. No backing chip | D-46 (October 14–15) | Nothing |
-| Notifications and motion | **Motion approved for the build, as specified in the D-38 system.** Not selected from the October 8 examples | The durations, easings, one-loop rule and reduced-motion behavior in [the brand guide's Motion section](BRAND_GUIDE.md#motion). The push icon and badge are the transparent G (D-44) | D-38 prototype; D-44 | Final selection (below). Opt-in web push with one deadline reminder (D-28) is a product rule, not a visual choice |
+| Notifications and motion | **Motion selected** (D-58, October 26): the D-38 system | The durations, easings, one-loop rule and reduced-motion behavior in [the brand guide's Motion section](BRAND_GUIDE.md#motion). The push icon and badge are the transparent G (D-44) | D-38 prototype; D-44; D-58 | Nothing. Opt-in web push with one deadline reminder (D-28) is a product rule, not a visual choice |
 
 The UI and layout row covers these approvals:
 - **D-35 direction:**
@@ -34,18 +35,19 @@ The UI and layout row covers these approvals:
 
 ### Open decision for Sean
 
-Type, palette, supporting icons and motion are in use because Sean approved the
-D-38 prototype and the D-55 boards. None of the four went through the five-option
-selection this document requires. In addition, the written D-38 section of
-`docs/BRAND_GUIDE.md` says it "awaits Sean's review (build plan stage 6)", and no
-review of it is recorded.
+*Resolved October 26, 2026 (D-58).*
 
-Sean can do either of these:
-- **Confirm** that the D-38 and D-55 approvals are the final selection for those
-  four categories. The rows above then become **Selected**.
-- **Review five options** for any category he wants to reconsider.
+Type, palette, supporting icons and motion were in use because Sean approved the
+D-38 prototype and the D-55 boards, but none of the four had gone through the
+five-option selection. The written D-38 section of `docs/BRAND_GUIDE.md` was also
+still waiting for his review (build plan stage 6). Sean answered: "Yes: the D-38
+prototype and D-55 approvals are my final selection for typography, palette,
+supporting icons and motion."
 
-Until he does, those choices are approved for the build, not final identity.
+All four categories are now **Selected**, and that answer also settles the
+brand-guide review. Every category in this document now has a selection.
+Changing one needs a new decision. A new choice in that category is presented as
+five options first, by the rule below.
 
 ## Where this document applies
 
@@ -53,10 +55,10 @@ The rule below still holds: "Before locking any visible brand decision, present
 five distinct, original examples per category. Obtain explicit user selection
 before marking an option approved."
 - The old app's `docs/BRAND_GUIDE.md` sections (before "D-38 redesign system")
-  and `design/tokens.json` remain **provisional**. Only the logo and the app icon
-  are selected.
-- The new app follows the D-38 and D-55 sections and `design/tokens-next.json`,
-  with the status shown in the table above.
+  and `design/tokens.json` are **legacy**, not re-selected (D-58). They stay until
+  the old app retires. New work uses the new app's system.
+- The new app's D-38 and D-55 sections and `design/tokens-next.json` are the
+  **selected brand system** (D-58).
 
 
 ## Confirmed constraints
