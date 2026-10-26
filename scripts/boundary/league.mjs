@@ -15,6 +15,14 @@ export const rpcChecks = Object.freeze([
   ['gtl_list_invites', { ...actor, p_league_id: missingLeague }],
   ['gtl_accept_invite', { ...actor, p_email: fixtureEmail, p_token_hash: null, p_invite_id: missingId }],
   ['gtl_revoke_invite', { ...actor, p_league_id: missingLeague, p_invite_id: missingId }],
+  // M-25 league_features (redesign stage 69): the features job's inputs, its writer, the feed post helper and the reader, all
+  // service-only. Awaiting deploy (below) until M-25 is applied. Its four tables (feature_runs, badge_events, weekly_awards,
+  // player_streaks) join the table probes with the apply record, as a missing table cannot pass as a denial.
+  ['gtl_feature_results', { p_season: 2026, p_week: 5 }],
+  ['gtl_read_feature_inputs', { p_season: 2026, p_now: null }],
+  ['gtl_feature_post', { p_actor: missingId, p_kind: 'badge_earned', p_season: 2026, p_week: 5, p_payload: {}, p_dedupe: 'boundary-check', p_at: null }],
+  ['gtl_record_feature_results', { p_run: missingId, p_trigger: 'manual', p_actor: missingId, p_results: {} }],
+  ['gtl_read_features', { p_user: missingId, p_league: null, p_season: null, p_now: null }],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -26,9 +34,22 @@ export const apiChecks = Object.freeze([
   [`invites?league=${missingLeague}`, { email: fixtureEmail, requestId: missingId }],
   ['invite/accept', { inviteId: missingId }],
   [`invite/revoke?league=${missingLeague}`, { inviteId: missingId }],
+  // M-25 routes (redesign stage 69): signed-out probes prove only authentication protection.
+  ['league/features', {}],
+  ['league/features/run', {}],
 ]);
 
 export const workerChecks = Object.freeze([]);
 
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026.
-export const awaitingDeploy = Object.freeze({});
+// M-25 (redesign stage 69) is written and not applied, and no gtl-api deploy carries /league/features yet.
+const M25 = 'migration 20261026230000_gtl_league_features.sql';
+export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_feature_results': M25,
+  'rpc/gtl_read_feature_inputs': M25,
+  'rpc/gtl_feature_post': M25,
+  'rpc/gtl_record_feature_results': M25,
+  'rpc/gtl_read_features': M25,
+  'gtl-api/league/features': 'the gtl-api deploy with /league/features',
+  'gtl-api/league/features/run': 'the gtl-api deploy with /league/features/run',
+});

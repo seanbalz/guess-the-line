@@ -26,6 +26,7 @@ export const FEATURES = Object.freeze({
   fantasy: 'POST /fantasy/week: signed-in Fantasy Track 1 snapshot and review read (D-57)',
   'fantasy-feed': 'POST gtl-fantasy-ingest: fantasy feed uploads from Sean\'s exporter (D-59); stored feed files stay',
   points: 'POST /points/draft, /points/lock and /points/slate: Guess the Points draft saves, lock-ins and slate changes (D-56, P-01); POST /points/read keeps working',
+  features: 'POST /league/features/run: the commissioner’s run of the badges, awards and streaks job (M-25, redesign stage 69); POST /league/features keeps reading',
 });
 
 /** The set of known feature names the secret turns off (empty when it is unset or names nothing known). */
