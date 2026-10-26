@@ -22,6 +22,9 @@ The latest recorded app release is October 23 Eastern / October 24 UTC:
 API v36 and Pages `3d274d87-8b1c-470d-9ede-de1287b2ea9f`, including Points P-01/P-02
 and Bets Everyone. See the [Points release evidence](RELEASE_2026_10_23_POINTS.md).
 These are dated deployment records, not a new authenticated production audit.
+Since then, October 26: `gtl-api` v37 and Pages `b8a31940` from `17afa76` (faster app
+start: cached preflights, shared and parallel boot reads, immutable assets, no sign-in
+jump; also #209); see the [release record](RELEASE_2026_10_26_PERF.md).
 Current physical-iPhone acceptance and cross-machine synchronization were not
 established by this repository audit.
 
