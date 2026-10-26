@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
+import trendsSeed from '../../cloud/trends-seed.mjs';
+import { parseCsvRows, writeCompactCsv } from '../../shared/trends.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, sendBallot, signIn, storeBookLines } from './community-world.mjs';
 import { createOpenMeteoProvider } from '../../cloud/open-meteo.mjs';
 import { windNextDue } from '../../cloud/wind.mjs';
@@ -25,6 +27,10 @@ test.use({ viewport: { width: 390, height: 844 } });
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const TEAMS = { SEA: 'Seattle Seahawks', DEN: 'Denver Broncos', HOU: 'Houston Texans', JAX: 'Jacksonville Jaguars', NO: 'New Orleans Saints', NYG: 'New York Giants', WAS: 'Washington Commanders', SF: 'San Francisco 49ers' };
 const GAMES = ['SEA-DEN', 'HOU-JAX', 'NO-NYG', 'WAS-SF'];
+// These tests deliberately move Week 6's games to an open deadline today. Keep the historical
+// source at Week 6 too: later scheduled weeks must not become fictitious unfinished prior games
+// when the calendar advances. Real missing-final behavior has separate Trends service tests.
+const WEEK6_SOURCE = writeCompactCsv(parseCsvRows(trendsSeed.seasonCsv).rows.filter(row => Number(row.week) <= 6));
 /** The committed trends file is 2026 Week 6; the fixture week uses four of its games so the sheet has real trends. */
 const week6 = state => {
   state.league.season = 2026; state.league.week = 6;
@@ -135,7 +141,7 @@ function syntheticResearch(withResearch) {
 /** The world: Week 6 fixtures, Luke's sent Totals and Spread drafts, Troy's sent ballots, a stored collection and a wind stand-in. */
 async function lukesWeek(page, baseURL, { forge = true, research } = {}) {
   const fake = forecastFetch(point => ({ values: () => VALUES[point.latitude.toFixed(3)] ?? {} }));
-  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }), research });
+  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, trendsReadSeason: async () => WEEK6_SOURCE, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }), research });
   await storeBookLines(world, LINES);
   await sendBallot(world, 'luke', 'guess_total', LUKE_TOTALS);
   const workspace = await world.api('luke', 'personal');

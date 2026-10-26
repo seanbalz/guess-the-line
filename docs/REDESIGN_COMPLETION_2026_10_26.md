@@ -94,3 +94,12 @@ reproduction is claimed. Q19's broader acceptance checks remain separate.
    actuals/reminder automation stays in Q18.
 4. Q20 transition only after preservation and acceptance evidence and an explicit
    cutover. The wider redesign is not complete merely because these two flows work.
+
+The next CI pass also exposed three date-dependent expectations in `next-lines`:
+it moves Week 6 into the current open week but previously retained later scheduled
+weeks in its pinned season source. Those later games could become unfinished
+"prior" games as the calendar advanced, correctly withholding the expected form
+cards. This layout/research fixture now bounds its source at Week 6. All six Lines
+browser cases pass locally, retaining the exact trend records, chart/research
+assertions, market leak scan, wind cadence, and Light/Dark accessibility checks
+at 320/390/1440. Production Trends logic and missing-final tests are unchanged.
