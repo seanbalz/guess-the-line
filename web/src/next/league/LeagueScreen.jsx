@@ -16,6 +16,8 @@ import { LeagueFailure, useLeagueRead } from './useLeagueRead.jsx';
 // Stage 71: one fact on a board row when true ("Won Week 7", the prototype's line 2), from the features read.
 import { boardFact } from '../features/model.js';
 import { useFeatures } from '../features/useFeatures.js';
+// The new feed (stages 64 and 65) draws CommunityFeed below, unchanged, while the server has no feed reader (M-22).
+import { Feed, useNewPostsDot } from '../feed/Feed.jsx';
 import './league.css';
 
 // D-56: the board switcher is Spread / Total / Points. Points is its own board and never adds to Spread or Total.
@@ -164,6 +166,7 @@ function PrivateLeague({ app, mode }) {
       end={<Rank rank={hasScore(row) ? 1 + ranked.filter(other => other.points > row.points).length : null} tied={hasScore(row) && ranked.filter(other => other.points === row.points).length > 1}/>}/>)}</List></Card>
     <p className="gx-t-meta gx-c-2">{data.league.practice ? 'Practice results · unofficial. ' : ''}— means no scored result. Weekly guesses are reused across groups; each group keeps its own roster.</p>
     <Button onClick={read.retry}>Refresh group</Button>
+    <Feed key={`${app.accountId}:${id}`} app={app} leagueId={id} leagueName={data.league.name} legacy={null}/>
     <Button variant="ghost" onClick={() => app.chooseLeague(COMMUNITY)}>Open Community feed and history</Button>
   </section>;
 }
@@ -174,17 +177,20 @@ export function LeagueScreen() {
   const section = ['board', 'history', 'feed'].includes(view.view) ? view.view : 'feed';
   const community = app.league.community === true, feed = app.community.data;
   const features = useFeatures(app, shell);
+  const dot = useNewPostsDot(app) && section !== 'feed';
+  const feedLabel = dot ? <>Feed<span className="gx-feed-dot" aria-hidden="true"></span><span className="gx-sr-only">, new posts</span></> : 'Feed';
   return <div className="gx-screen gx-league">
     <div className="gx-league-heading"><div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">League</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>Your leagues</Button></div>
       <p className="gx-t-body gx-c-2">{app.league.name}</p></div>
     <Button onClick={() => shell.go('play', { section: 'compare', season: feed?.week?.season ?? null, week: feed?.week?.week ?? null, period: 'week', comparisonKind: 'all', players: [], team: '', matchup: '' })}>Compare players in {app.league.name}</Button>
-    {community && <Segmented label="League sections" options={[{ value: 'feed', label: 'Feed' }, { value: 'board', label: 'Boards' }, { value: 'history', label: 'History' }]} value={section} onChange={value => shell.setView('league', { view: value })}/>}
+    {community && <Segmented label="League sections" options={[{ value: 'feed', label: feedLabel }, { value: 'board', label: 'Boards' }, { value: 'history', label: 'History' }]} value={section} onChange={value => shell.setView('league', { view: value })}/>}
     {(!community || section === 'board') && <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => shell.setView('league', { market: value })}/>}
     {!community ? mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={app.league.id}/> : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} mode={mode}/>
       : !feed ? app.community.error ? <LeagueFailure error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <p className="gx-t-body gx-c-2" role="status">Loading the Community…</p>
       : section === 'board' ? mode === 'guess_points' ? <PointsBoard key={app.accountId} app={app}/> : <CommunityBoard feed={feed} mode={mode} features={features.model}/>
       : section === 'history' ? <LeagueHistory key={app.accountId} app={app}/>
-      : <CommunityFeed key={app.accountId} feed={feed} app={app}/>}
+      : <Feed key={app.accountId} app={app} leagueName={app.league.name} legacy={<CommunityFeed key={app.accountId} feed={feed} app={app}/>}
+        onRefused={error => { if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['community'] }); }}/>}
     {community && <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh Community</Button>}
   </div>;
 }

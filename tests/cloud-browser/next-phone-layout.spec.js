@@ -8,7 +8,7 @@ import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 
 const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/compare', '#play/features', '#play/league',
-  '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
+  '#play/league?view=feed', '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
   '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends'];
 const BET_VIEWS = ['feed', 'myweek', 'compare', 'history'];
 // Two passes cover both themes and both phone widths. The third draws reading text in a wide system sans, because a
@@ -55,6 +55,16 @@ test('every new-app screen, sheet and menu fits a phone: no clipped text, stray 
         if (address === '#home') {
           await page.getByRole('button', { name: 'Your menu', exact: true }).click();
           await check(`${pass} ${address} menu`);
+        }
+        if (address === '#play/league?view=feed') {
+          // The league feed (stages 64 and 65): a post's comments sheet and the reactions picker.
+          const post = page.locator('.gx-feed-post').first();
+          await post.getByRole('button', { name: 'Comment' }).click();
+          await check(`${pass} feed comments`);
+          await page.keyboard.press('Escape');
+          await post.getByRole('button', { name: 'Add a reaction' }).click();
+          await check(`${pass} feed reactions picker`);
+          await page.keyboard.press('Escape');
         }
         if (address === '#bets/active') {
           for (const value of BET_VIEWS) {
