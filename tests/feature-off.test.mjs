@@ -9,7 +9,7 @@ import { FEATURES, parseFeatureOff } from '../cloud/feature-off.mjs';
 // (POST /community/picks), whose rollback is switching it off; stage 18 adds `lock-in` (M-02's per-game lock-in on a draft);
 // stage 19 adds `forfeit`, M-03's writer (POST /community/forfeit), which writes sit-outs and forfeit rows.
 test('GTL_FEATURE_OFF lists known feature names; anything else, or no secret, turns nothing off', () => {
-  assert.deepEqual(Object.keys(FEATURES), ['trends', 'comparisons', 'preferences', 'notes', 'lines', 'research', 'picks', 'lock-in', 'forfeit', 'recommendations', 'bets', 'fantasy', 'points', 'reactions']);
+  assert.deepEqual(Object.keys(FEATURES), ['trends', 'comparisons', 'preferences', 'notes', 'lines', 'research', 'picks', 'lock-in', 'forfeit', 'recommendations', 'bets', 'fantasy', 'fantasy-feed', 'points', 'reactions']);
   assert.deepEqual([...parseFeatureOff('Reactions, reaction')], ['reactions']);
   assert.deepEqual([...parseFeatureOff('Points')], ['points']);
   assert.deepEqual([...parseFeatureOff('bets')], ['bets']);
@@ -28,10 +28,12 @@ test('GTL_FEATURE_OFF lists known feature names; anything else, or no secret, tu
   }
 });
 
-test('gtl-api reads the switch from its own secret, and only there', () => {
+test('gtl-api and gtl-fantasy-ingest read the switch from the function secret; the modules read no environment', () => {
   const entry = fs.readFileSync(new URL('../supabase/functions/gtl-api/index.ts', import.meta.url), 'utf8');
   assert.match(entry, /featureOff: Deno\.env\.get\('GTL_FEATURE_OFF'\)/);
-  for (const file of ['cloud/handler.mjs', 'cloud/personal.mjs', 'cloud/community.mjs', 'cloud/lines.mjs', 'cloud/feature-off.mjs']) {
+  const ingest = fs.readFileSync(new URL('../supabase/functions/gtl-fantasy-ingest/index.ts', import.meta.url), 'utf8');
+  assert.match(ingest, /featureOff: parseFeatureOff\(Deno\.env\.get\('GTL_FEATURE_OFF'\)\)/);
+  for (const file of ['cloud/handler.mjs', 'cloud/personal.mjs', 'cloud/community.mjs', 'cloud/lines.mjs', 'cloud/feature-off.mjs', 'cloud/fantasy-feed-ingest.mjs']) {
     assert.doesNotMatch(fs.readFileSync(new URL(`../${file}`, import.meta.url), 'utf8'), /Deno\.env|process\.env/, `${file} reads no environment itself`);
   }
 });

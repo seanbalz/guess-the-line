@@ -1,6 +1,6 @@
 # Guess The Line shared production releases
 
-Owner: Sean Balsiger · Version 1 · October 15, 2026
+Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets)
 
 The manual **Shared production release** workflow gives a local or online agent
 the same release path: an exact GitHub commit, successful CI, Sean's production
@@ -27,21 +27,68 @@ not a claim that administrators cannot override repository settings.
 | --- | --- | --- |
 | `check-only` (default) | GitHub's read-only job token | Checks source identity and successful exact-commit CI. No production environment approval or deployment credentials are requested. |
 | `readiness` | Protected environment secrets, after approval | Builds and scans the frontend, reads hosted schedule and migration history, validates fresh published schedule evidence and probes signed-out boundaries. Produces the migration-history digest for review; does not deploy. |
-| `deploy` | Protected environment secrets, after approval | Repeats readiness, compares the reviewed migration digest, deploys the selected component(s), then verifies metadata, boundaries and served frontend bytes. |
+| `deploy` | Protected environment secrets, after approval | Repeats readiness, compares the reviewed migration digest, deploys the selected component(s), then verifies metadata, boundaries and, for targets that upload Pages, served frontend bytes. |
 
-Targets are `frontend`, `api`, or `api-and-frontend`. The combined target deploys
+Targets are `frontend`, `api`, `api-and-frontend`, `push-reminders`, or `points-jobs`. The combined target deploys
 only `gtl-api`, then only `.local/cloud-dist` to the existing Pages production
 project. Choose it only when that order is compatible. A reply-shape change that
 needs tolerant Pages first uses two separately approved runs, frontend then API.
 There is no automatic deploy on push, pull request, merge, or schedule.
 
+| Target | Deploys | Cloudflare values needed |
+| --- | --- | --- |
+| `frontend` | Only `.local/cloud-dist` to Pages | Yes |
+| `api` | Only `gtl-api` | No |
+| `api-and-frontend` | `gtl-api`, then Pages | Yes |
+| `push-reminders` | Only the `gtl-push-reminders` Edge Function (the D-28 reminder worker) | No |
+| `points-jobs` | Only the `gtl-points-jobs` Edge Function (the D-56 P-03 Guess the Points jobs worker); its first deploy creates it | No |
+
+Every deploy step's condition names the targets it serves; none selects by
+exclusion, so a target reaches only its own deploy step.
+
+`push-reminders` was added on October 26, 2026 at Sean's request ("Add it to the
+release workflow"). It runs the same source/CI check, `production` approval,
+build/scan/fingerprint, read-only hosted preflight with the reviewed migration
+digest, and verification as every other target, and the same deploy requirements
+(release card, digest, `compatibility_reviewed`). Its deploy step mirrors the API
+step: `./node_modules/.bin/supabase functions deploy gtl-push-reminders --project-ref
+"$SUPABASE_PROJECT_REF" --use-api` from the `source` checkout of the exact SHA, with
+only `SUPABASE_ACCESS_TOKEN`, so `supabase/config.toml`'s `verify_jwt = false` for the
+worker applies. It never deploys `gtl-api` or Pages. The source check also requires
+that config line and `supabase/functions/gtl-push-reminders/index.ts`, and the
+hosted preflight requires the worker to exist already: this target updates the
+worker, it never creates it. It does not set VAPID
+secrets, register or change the cron job, or enable the schedule row; those stay
+the manual steps in [Web push reminders](WEB_PUSH_SETUP.md). No `push-reminders`
+run had been dispatched when this target was added.
+
+`points-jobs` was added the same day, also approved by Sean, for the Guess the
+Points jobs worker from PR #219 (`supabase/functions/gtl-points-jobs/index.ts`,
+`cloud/points-jobs.mjs`). It runs the same gates and deploy requirements, and
+its deploy step mirrors the `push-reminders` step exactly, with
+`gtl-points-jobs` as the function. The source check requires
+`[functions.gtl-points-jobs] verify_jwt = false` in `supabase/config.toml` and the
+entry file `supabase/functions/gtl-points-jobs/index.ts` in the release source, so
+a SHA from before that worker reached `main` is refused before any credentials are
+used. The worker was not hosted when this target was added, so unlike
+`push-reminders` its first deploy may create it: the hosted preflight records
+`pointsJobsBefore: { present, version }`, and verification applies the create or the
+update rule from that record. Applying the P-03 migration, registering its cron
+jobs and adding the worker's boundary probe stay separate steps
+([Gate M](REDESIGN_BUILD_PLAN.md#42-gate-m-applying-a-migration) and the P-03
+release notes). Until that probe is added, the boundary checks do not call
+`gtl-points-jobs`. No `points-jobs` run had been dispatched when this target was
+added.
+
 The workflow does not apply SQL, run `db push`, deploy collector functions,
 change cron schedules or data budgets, or flip the default app. Existing
 [Gate M](REDESIGN_BUILD_PLAN.md#42-gate-m-applying-a-migration) and
 [Gate D](REDESIGN_BUILD_PLAN.md#43-gate-d-deploys) remain binding. This shared path
-replaces the requirement to hold CLI logins on the Mac mini for these two release
-targets: protected API and frontend runs are now verified. Existing dated
-release records remain historical evidence of the Mac mini releases.
+replaces the requirement to hold CLI logins on the Mac mini for the API, frontend
+and worker targets: protected API and frontend runs are verified; the
+`push-reminders` and `points-jobs` targets are covered by local tests only until
+their first runs. Existing dated release records remain historical evidence of the
+Mac mini releases.
 
 ## One-time configuration
 
@@ -57,7 +104,7 @@ allowlisted and checked against the existing production project/account.
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | `83bd659d712e968e7a61efa14107465a` |
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | `guess-the-line` |
 | Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. |
-| Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only releases |
+| Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only, `push-reminders` or `points-jobs` releases |
 
 Create dedicated tokens in the providers' secure interfaces, then enter them
 directly into GitHub environment secrets. Do not paste them into a task, commit
@@ -126,7 +173,7 @@ migration probes and lists them as awaiting deployment. These are not successful
 denials and are included in the evidence. This workflow does not claim strict
 redesign rollout completion or route existence from a signed-out gateway denial.
 
-A failed job can follow a successful API or Pages deployment. Inspect provider
+A failed job can follow a successful API, worker or Pages deployment. Inspect provider
 state and the artifact before retrying. The workflow verifies other Edge
 function versions/configuration and migration history stayed unchanged; it does
 not hash all player data or automatically roll back production. Use the release
@@ -145,6 +192,28 @@ API bundle's bytes to the source checkout. The report explicitly sets
 equivalence. Review API provenance and record this limitation before accepting
 an API release. The workflow cannot exclude an out-of-band deployment merely by
 observing metadata. Frontend asset equivalence is independently checked.
+
+For `frontend`, `api` and `api-and-frontend`, any Edge Function other than
+`gtl-api` that changes, appears or disappears during the run (either worker
+included) fails verification, as before. For `push-reminders` and `points-jobs`,
+verification requires:
+
+- the target's worker is ACTIVE, `verify_jwt` is false, and its `ezbr_sha256`
+  bundle digest is present;
+- for `push-reminders`, its version went up by exactly one; for `points-jobs`,
+  version 1 if the preflight recorded it absent (created), otherwise exactly one
+  up. A pre-deploy report without a matching `pointsJobsBefore` record is refused;
+- `gtl-api` is unchanged (version, status, JWT setting and bundle digest) and
+  still ACTIVE with JWT verification, the other worker and every other function
+  are unchanged, and no function was added or removed;
+- the migration-history digest is unchanged;
+- the signed-out boundary checks pass, including `gtl-push-reminders` refusing a
+  call with no machine token or an invalid one;
+- Pages is neither deployed nor read: the report has `pages: null`.
+
+The report adds `pushReminders` with `pushRemindersSourceVerified: false`, or
+`pointsJobs` with `pointsJobsCreated` and `pointsJobsSourceVerified: false`: as with
+the API, the worker's hosted bytes are not independently matched to the checkout.
 
 Artifact retention is 30
 days, so durable evidence belongs in the repository release record.

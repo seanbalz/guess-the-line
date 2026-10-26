@@ -2,24 +2,22 @@
 // it in loss with the sign, so no season reads by color alone. Like the line, a pointer or a finger anywhere over the
 // plot picks the nearest season and a range input does the same from the keyboard (eight 40px-wide columns would be
 // under the 44px target), and the glass tooltip shows that season's record and units. The table below is the record.
-import { useState } from 'react';
 import { recordText, signed, stemLayout } from './geometry.js';
 
-/** `seasons` are `{ season, w, l, p, units }`; the latest season starts selected. */
-export function SeasonStems({ seasons }) {
+/** `seasons` are `{ season, w, l, p, units }`; selection is shared with the season table. */
+export function SeasonStems({ seasons, selectedIndex, onSelect, id }) {
   const count = seasons.length;
-  const [picked, setPicked] = useState(count - 1);
-  const at = Math.min(picked, count - 1);
+  const at = Math.max(0, Math.min(selectedIndex, count - 1));
   const layout = stemLayout(seasons.map(s => s.units));
   const shown = seasons[at];
   const x = count ? ((at + 0.5) / count) * 100 : 0;
   const follow = event => {
     const box = event.currentTarget.getBoundingClientRect();
-    if (box.width > 0) setPicked(Math.max(0, Math.min(count - 1, Math.floor(((event.clientX - box.left) / box.width) * count))));
+    if (box.width > 0) onSelect(Math.max(0, Math.min(count - 1, Math.floor(((event.clientX - box.left) / box.width) * count))));
   };
-  const text = s => `${s.season}: ${recordText(s.w, s.l, s.p)}, ${signed(s.units)} units, ${s.units >= 0 ? 'above' : 'below'} break-even`;
+  const text = s => `${s.season}: ${recordText(s.w, s.l, s.p)}, ${signed(s.units)} units, ${s.units === 0 ? 'at' : s.units > 0 ? 'above' : 'below'} break-even`;
   return (
-    <div className="gx-tc-seasons">
+    <div className="gx-tc-seasons" id={id}>
       <div className="gx-tc-tip" aria-hidden="true" style={{ left: `clamp(0px, calc(${x}% - 76px), calc(100% - 152px))` }}>
         <span className="gx-tc-tip-value">{signed(shown.units)} U</span>
         <span className="gx-tc-tip-label">{shown.season} · {recordText(shown.w, shown.l, shown.p)}</span>
@@ -50,7 +48,7 @@ export function SeasonStems({ seasons }) {
         value={at}
         aria-label="Move across the seasons"
         aria-valuetext={text(shown)}
-        onChange={event => setPicked(Number(event.target.value))}
+        onChange={event => onSelect(Number(event.target.value))}
       />
     </div>
   );
