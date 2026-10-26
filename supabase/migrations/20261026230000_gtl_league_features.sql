@@ -26,7 +26,7 @@
 --   the existing check and counted in the run summary as skipped, and the badges and awards are still recorded.
 --   Group recaps are never posted: the Community feed reader would show them to everyone (stage 62 scopes posts).
 --
--- Apply after M-13 (feed kinds) and M-06 (gtl_kickoff_line, hosted). Rerunnable: tables and indexes are created only if
+-- Apply after M-13 (20261026130000_gtl_feed_kinds.sql, the feed kinds) and M-06 (gtl_kickoff_line, hosted). Rerunnable: tables and indexes are created only if
 -- missing, every function is create or replace with this exact argument list, and every grant is restated. Every
 -- function and table is service-role only; no browser role gets anything. Off switches: GTL_FEATURE_OFF=features stops
 -- the commissioner's run, M-26's schedule starts disabled, and no row is ever dropped. No hosted action is performed by
