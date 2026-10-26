@@ -43,7 +43,7 @@ export function CommunityMembers() {
     }
     const fresh = result.data;
     setData(fresh);
-    if (!fresh.admin) {
+    if (fresh.admin !== true) {
       setSelected(null);
       setProblem('Only the Community commissioner can manage members.');
       return null;
