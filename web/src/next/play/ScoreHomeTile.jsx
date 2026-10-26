@@ -7,7 +7,7 @@ import { Card, Button } from '../ui/index.js';
 import { ownEntry, scoreRows, scoreSummary, SCORE_MARKETS } from './scoring.js';
 export function ScoreHomeTile() {
   const app = useAppData(), shell = useShell(), current = app.community.data?.week;
-  const read = useLeagueRead(`${app.accountId}:home-score:${current?.season}:${current?.week}`, signal => communityApi('history', current?.season ? { season: current.season } : {},signal), error => { if (error.status === 401) app.requestSignIn(); });
+  const read = useLeagueRead(`${app.accountId}:home-score:${current?.season}:${current?.week}`, signal => communityApi('history', current?.season ? { season: current.season } : {},signal), error => { if (error.status === 401) app.requestSignIn(); }, { shared: true });
   const week = read.data?.weeks?.find(w => w.season === current?.season && w.week === current?.week);
   return <Card as="section" className="gx-vstack gx-gap-12" aria-label="Your score"><h2 className="gx-t-section">Your week</h2>
     {read.loading ? <p className="gx-t-body" role="status">Loading your score…</p> : read.error ? <LeagueFailure error={read.error} onRetry={read.retry}/> : !week ? <p className="gx-t-body">No scoring record for this week yet.</p> : SCORE_MARKETS.map(({ value,label }) => {

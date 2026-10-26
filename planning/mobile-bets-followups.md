@@ -1,5 +1,13 @@
 # Guess The Line — mobile layout and Bets recommendations
 
+
+October 26 user update: Sean corrected his initial phone reply and explicitly
+confirmed that the app does not have the scroll bug. The navigation-movement
+symptom is user-reported resolved; no new navigation patch is indicated by that
+report. The historical reproduction checklist below remains provenance, not an
+active request to reproduce a symptom Sean says is absent. Wider phone/full-week
+acceptance remains Q19.
+
 Owner: Sean Balsiger · Version 4 · October 22, 2026
 
 Status: two follow-ups requested by Sean, tracked as queue items Q03

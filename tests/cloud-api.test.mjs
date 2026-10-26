@@ -312,6 +312,8 @@ test('CORS preflight exposes no data and cannot bypass bearer authentication', a
   const preflight = await app.request('/state', { method: 'OPTIONS', token: null, headers: { Origin: 'https://frontend.invalid', 'Access-Control-Request-Headers': 'authorization,apikey' } });
   assert.equal(preflight.response.status, 204); assert.equal(preflight.response.headers.get('access-control-allow-origin'), '*');
   assert.equal(preflight.response.headers.has('access-control-allow-credentials'), false);
+  // Browsers may reuse a preflight for two hours (Chromium's cap), so each read is one round trip, not two.
+  assert.equal(preflight.response.headers.get('access-control-max-age'), '7200');
   assert.equal(app.calls.auth, 0); assert.equal(app.calls.load, 0);
   assert.equal((await app.request('/state', { token: null, headers: { Origin: 'https://frontend.invalid', Cookie: 'player=sean' } })).response.status, 401);
 });

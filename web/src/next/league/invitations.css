@@ -1,0 +1,5 @@
+.gx .gx-invite-stack { display: grid; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-invite-email { overflow-wrap: anywhere; }
+.gx .gx-invite-problem { color: var(--gx-loss); }
+.gx .gx-league-format { border: 0; padding: 0; margin: 0; }
+.gx .gx-league-format legend { margin-bottom: var(--gx-space-3); }
