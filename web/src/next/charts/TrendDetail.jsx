@@ -14,7 +14,11 @@ import './charts.css';
  */
 export function TrendDetail({ title, pill, info, line, seasons, children, id }) {
   const [view, setView] = useState('line');
-  const headingId = useId();
+  const headingId = useId(), seasonChartId = useId();
+  const [selectedSeason, setSelectedSeason] = useState(null);
+  const rows = seasons?.rows ?? [];
+  const matchingSeason = rows.findIndex(row => row.season === selectedSeason);
+  const seasonIndex = matchingSeason < 0 ? rows.length - 1 : matchingSeason;
   const bySeason = view === 'seasons' && seasons;
   const shown = bySeason ? seasons : line;
   return (
@@ -34,9 +38,9 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
         <span className="gx-tc-big">{shown.headline.value}</span>
         <span className="gx-tc-headline-sub">{shown.headline.sub}</span>
       </p>
-      {bySeason ? <SeasonStems seasons={seasons.rows}/> : <TrendLine values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label}/>}
+      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label}/>}
       <StatTiles tiles={shown.tiles}/>
-      {bySeason ? <SeasonTable seasons={seasons.rows} caption={seasons.caption}/> : null}
+      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
       {children}
     </section>
   );
