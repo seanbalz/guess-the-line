@@ -228,7 +228,9 @@ begin
   into slates from (
     select (x->>'season')::integer season,(x->>'week')::integer week from jsonb_array_elements(challenge||saved||forecasts||journal) x
     union select season,week from public.gtl_week_forfeits where user_id=p_user
-    union select season,week from public.gtl_weekly_optouts where user_id=p_user) w
+    union select season,week from public.gtl_weekly_optouts where user_id=p_user
+    union select x.season,x.week from public.gtl_benchmark_policies x
+      where exists(select 1 from public.gtl_memberships m where m.league_id=x.league_id and m.user_id=p_user)) w
   where exists(select 1 from public.gtl_weekly_slates z where z.season=w.season and z.week=w.week);
 
   return jsonb_build_object('ownerId',p_user,'now',now_at,'member',member,
