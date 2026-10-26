@@ -295,3 +295,25 @@ writes nothing and changes no rule, score or visibility gate.
 - **Until M-27 is applied** both routes answer "History is not available yet";
   Guess weeks, the week detail and Bets weeks still work, without your change
   list and forfeit reasons. Every existing route answers as before.
+
+## Export my data (M-28, redesign stage 75)
+
+Me › Menu › Export my data downloads one JSON file of the signed-in account's own
+rows (`POST /me/export`, `gtl_export_me` in `20261026231000_gtl_me_export.sql`,
+written and not applied; apply after M-27). It replaces the old app's group-week
+download, which stays for the old app until stage 81.
+- **Your own rows, whole.** Every Guess ballot with every revision, its saved
+  lines and the Late marker (D-30); sit-outs, forfeits and the eligibility
+  rulings on your ballots; Betting Challenge selections, Virtual Units bets, NBA
+  tickets and the real slips you posted with their changes; saved games and
+  notes, forecasts, the journal (archived records included) and their change
+  history; Guess the Points guesses; your posts, comments and likes; your
+  profile, settings, memberships and access log. Nothing of yours is redacted
+  (D-23), and nothing of another player's is included: no request can name
+  another account.
+- **Left out.** Push reminder devices (D-28: their endpoints and keys are device
+  secrets) and internal version counters; the file says so.
+- **Nothing changes.** The export reads only; the file is made in the browser
+  and sent nowhere else. Until M-28 is applied the button answers "Export is not
+  available yet", and every existing route, the old `/export` included, answers
+  as before.

@@ -36,6 +36,7 @@ export const NOT_HOSTED = [
   20261026120000, // gtl_points_jobs (D-56 P-03: Points job schedule, run queue, jobs state; waits for "apply P-03")
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
   20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
+  20261026231000, // M-28 gtl_me_export (redesign stage 75): Export my data, awaiting Sean's "apply M-28" (after M-27).
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

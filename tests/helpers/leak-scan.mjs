@@ -60,6 +60,8 @@ export const READERS = Object.freeze([
   // Stage 72 (M-27): Me › History, the owner's own changes and the older records.
   ['/me/changes', 'POST', {}],
   ['/me/records', 'POST', {}],
+  // Stage 75 (M-28): Export my data, the owner's own rows only.
+  ['/me/export', 'POST', {}],
 ]);
 
 /**
@@ -70,6 +72,7 @@ export const READERS = Object.freeze([
 export const READER_MIGRATIONS = Object.freeze({
   '/me/changes': '20261026230000_gtl_me_history.sql',
   '/me/records': '20261026230000_gtl_me_history.sql',
+  '/me/export': '20261026231000_gtl_me_export.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));

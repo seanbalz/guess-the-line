@@ -370,16 +370,17 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
     ...Object.fromEntries(P03_RPCS.map(rpc => [`rpc/${rpc}`, 'migration 20261026120000_gtl_points_jobs.sql'])),
     'rpc/gtl_me_slate': M27, 'rpc/gtl_me_results': M27, 'rpc/gtl_read_ballot_changes': M27, 'rpc/gtl_read_me_records': M27,
     'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records',
-  }, 'only P-03 and M-27 are awaiting deploy');
+    'rpc/gtl_export_me': 'migration 20261026231000_gtl_me_export.sql', 'gtl-api/me/export': 'the gtl-api deploy with /me/export',
+  }, 'only P-03, M-27 and M-28 are awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
-  // Before the apply and the deploy: each M-27 function answers PGRST202 and each History route "Not found."; all six pass as
+  // Before the applies and the deploy: each M-27 and M-28 function answers PGRST202 and each /me route "Not found."; all pass as
   // awaiting by default (each route signed out and with an invalid session) and fail under --strict.
-  const m27 = async (url, request) => (/\/rest\/v1\/rpc\/gtl_(?:me_slate|me_results|read_ballot_changes|read_me_records)$/.test(url)
+  const m27 = async (url, request) => (/\/rest\/v1\/rpc\/gtl_(?:me_slate|me_results|read_ballot_changes|read_me_records|export_me)$/.test(url)
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/gtl-api\/me\/(?:changes|records)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
+    : /\/gtl-api\/me\/(?:changes|records|export)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
   const before = await checkCloudBoundary({ ...options, fetchImpl: m27 });
-  assert.equal(before.awaiting.length, 8, 'four RPCs and two routes, each signed out and with an invalid session');
+  assert.equal(before.awaiting.length, 11, 'five RPCs and three routes, each route signed out and with an invalid session');
   await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: m27 }), /unexpected 404/);
   // The not-found answer may never carry a record: a History route's 404 with picks fails.
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (/\/gtl-api\/me\/changes$/.test(url)

@@ -165,7 +165,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 69 | Signed-in chip and Sign out | Stage | 10, 37 | Avatar menu › Sign out | None |
 | 70 | Local player view switch | Cut, data kept | 81 | Leaves (a local owner preview, not a sign-in) | None |
 | 71 | Page heading | Stage | 10 | One short plain title per tab | None |
-| 72 | Heading actions | Stage | 31, 36, 75 | Home's one next action; Everyone's picks; Me › Settings › Export my data | None |
+| 72 | Heading actions | Stage | 31, 36, 75 | Home's one next action; Everyone's picks; Me › Menu › Export my data | None |
 | 73 | Practice banners | History | 59, 73 | "Practice" tag on an existing practice game in the switcher; "Practice · unofficial" in History | Practice games and practice-origin ballots, still unofficial |
 | 74 | Commissioner eligibility ruling | History | 73 | Week detail ruling label | Every eligibility ruling |
 | 75 | Challenge results unavailable callout | History | 74 | Betting Challenge · retired page, with its own unavailable state | None |
@@ -238,7 +238,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 | 127 | Source timeline | History | 74 | Older group scoring views | None |
 | 128 | Your revision audit | History | 73 | Week detail › your changes, in plain words (DP-15) | Every revision and audit event (D-16) |
 | 129 | Archived invalid-matchup note | History | 74 | Older group scoring views list the archived predictions | Archived predictions (`gtl_prediction_archives`) |
-| 130 | Export my data | Stage | 75 | Me › Settings › Export my data | Your own rows, Late marker included |
+| 130 | Export my data | Stage | 75 | Me › Menu › Export my data, beside History (stage 75) | Your own rows, Late marker included |
 
 ### J. Settings and commissioner controls (`App.jsx` SettingsPage, `Theme.jsx`, `InstallApp.jsx`, `PushReminders.jsx` and the control components)
 
