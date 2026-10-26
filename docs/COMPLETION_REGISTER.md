@@ -99,13 +99,15 @@ QA, fixture build and bundle privacy scan. [PR #224](https://github.com/seanbalz
 merged as `97273e9652cf29dca77208488deb7c6c858646a4` after all nine checks passed on
 `473be765f015fcf7d88853979bc8d246f878ddf1`. No CI fixes or review responses were needed.
 Release and physical-device acceptance remain open.
-The next source batch adds [board current quotes and gate entry](RESEARCH_BOARD_LINES_2026_10_26.md):
+PR #225 adds [board current quotes and gate entry](RESEARCH_BOARD_LINES_2026_10_26.md):
 current/latest values with source times, one banner leading to Play, scoped
 failure/retry behavior and time-based freshness without odds polling. All 28
 selected browser cases passed across integrated/focused runs; 26 component,
 43 model/contract/token and 19 SQL gate tests passed, plus typecheck, Brand QA,
-build/privacy scan and inspected Light/Dark 320px screenshots. Board CI/merge
-and release remain open.
+build/privacy scan and inspected Light/Dark 320px screenshots. [PR #225](https://github.com/seanbalz/guess-the-lines-repo/pull/225)
+merged as `733e95d586e005427350ba156d7ad1a05c139094` after all nine checks passed on
+`cf9ebe16c88975fefcc0d0a2168cc069741152c3`; no CI fixes or review responses were needed.
+Hosted release and physical-device acceptance remain open.
 
 Residual stage 33 work stays explicit: direct in-board forfeit confirmation
 (the banner uses the existing Play flow) and verified live-game status beyond
