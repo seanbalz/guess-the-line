@@ -13,13 +13,16 @@ import { Avatar, Button, Card, List, Rank, Row, Segmented } from '../ui/index.js
 import { LeagueHistory } from './LeagueHistory.jsx';
 import { PointsBoard } from '../play/points/PointsBoard.jsx';
 import { LeagueFailure, useLeagueRead } from './useLeagueRead.jsx';
+// Stage 71: one fact on a board row when true ("Won Week 7", the prototype's line 2), from the features read.
+import { boardFact } from '../features/model.js';
+import { useFeatures } from '../features/useFeatures.js';
 import './league.css';
 
 // D-56: the board switcher is Spread / Total / Points. Points is its own board and never adds to Spread or Total.
 const MARKETS = [...Object.entries(MODE).map(([value, label]) => ({ value, label })), { value: 'guess_points', label: 'Points' }];
 const message = error => error?.status ? error.message : 'No connection. Reconnect and try again.';
 
-function CommunityBoard({ feed, mode }) {
+function CommunityBoard({ feed, mode, features = null }) {
   const ranked = boardFor({ ...feed, mode }), seen = new Set(ranked.map(row => row.id));
   const rows = [...ranked, ...(feed.members || []).filter(member => !seen.has(member.id)).map(member => ({ id: member.id, name: member.displayName, rank: null, points: null, you: member.id === feed.viewer }))];
   const standings = feed.standings || [];
@@ -30,7 +33,7 @@ function CommunityBoard({ feed, mode }) {
       const standing = standings.find(item => item.userId === row.id && item.mode === mode);
       const removed = feed.members?.find(member => member.id === row.id)?.removed;
       return <Row key={row.id} you={row.you} start={<Avatar id={row.id} name={row.name}/>} title={<>{row.name}{row.you ? ' · You' : ''}</>}
-        sub={`${removed ? 'Removed · ' : ''}Week: ${standing?.satOut ? 'Sat out' : standing?.weekScored > 0 ? show(standing.weekPoints) : '—'} · Season: ${standing?.seasonScored > 0 ? show(standing.seasonPoints) : '—'}`}
+        sub={`${removed ? 'Removed · ' : ''}Week: ${standing?.satOut ? 'Sat out' : standing?.weekScored > 0 ? show(standing.weekPoints) : '—'} · Season: ${standing?.seasonScored > 0 ? show(standing.seasonPoints) : '—'}${boardFact(features, row.id, mode) ? ` · ${boardFact(features, row.id, mode)}` : ''}`}
         end={<Rank rank={row.rank} tied={row.tied}/>}/>;
     })}</List></Card>
     {!rows.length && <p className="gx-t-body gx-c-2">No members yet.</p>}
@@ -170,6 +173,7 @@ export function LeagueScreen() {
   const mode = view.market === 'total' || view.market === 'guess_total' ? 'guess_total' : view.market === 'points' || view.market === 'guess_points' ? 'guess_points' : 'guess_spread';
   const section = ['board', 'history', 'feed'].includes(view.view) ? view.view : 'feed';
   const community = app.league.community === true, feed = app.community.data;
+  const features = useFeatures(app, shell);
   return <div className="gx-screen gx-league">
     <div className="gx-league-heading"><div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">League</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>Your leagues</Button></div>
       <p className="gx-t-body gx-c-2">{app.league.name}</p></div>
@@ -178,7 +182,7 @@ export function LeagueScreen() {
     {(!community || section === 'board') && <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => shell.setView('league', { market: value })}/>}
     {!community ? mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={app.league.id}/> : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} mode={mode}/>
       : !feed ? app.community.error ? <LeagueFailure error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <p className="gx-t-body gx-c-2" role="status">Loading the Community…</p>
-      : section === 'board' ? mode === 'guess_points' ? <PointsBoard key={app.accountId} app={app}/> : <CommunityBoard feed={feed} mode={mode}/>
+      : section === 'board' ? mode === 'guess_points' ? <PointsBoard key={app.accountId} app={app}/> : <CommunityBoard feed={feed} mode={mode} features={features.model}/>
       : section === 'history' ? <LeagueHistory key={app.accountId} app={app}/>
       : <CommunityFeed key={app.accountId} feed={feed} app={app}/>}
     {community && <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh Community</Button>}

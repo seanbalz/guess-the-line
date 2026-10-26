@@ -17,7 +17,8 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const TRY = 'Try the new app';
-const READS = ['GET /lobby', 'POST /community/read', 'POST /social/read', 'POST /community/history', 'POST /me/preferences'];
+// Stage 71: Home's recap row reads POST /league/features (badges and awards; nothing is written).
+const READS = ['GET /lobby', 'POST /community/read', 'POST /social/read', 'POST /community/history', 'POST /me/preferences', 'POST /league/features'];
 // Luke's own draft (whole numbers: his own picks are never secrets, and whole numbers collide with counts in the scan).
 const LUKE_SPREAD_DRAFT = [4, -9];
 // Stored book lines for the week (fixture values, never live odds), half-points so the scan can tell them from counts.

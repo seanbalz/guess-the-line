@@ -7,7 +7,7 @@ import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 
-const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/compare', '#play/league',
+const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/compare', '#play/features', '#play/league',
   '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
   '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends'];
 const BET_VIEWS = ['feed', 'myweek', 'compare', 'history'];

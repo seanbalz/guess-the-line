@@ -23,6 +23,9 @@ import { WeeklyScore } from './WeeklyScore.jsx';
 import { perGameReady } from './scoring.js';
 // Guess the Points (D-56): the third Play game, its own ballot and read; "coming soon" until P-01 is applied.
 import { PointsBallot, PointsLandingCard, usePointsRead } from './points/PointsBallot.jsx';
+// Badges, streaks and awards (redesign stage 71): their own screen and one row in More in Play; nothing shows until M-25 answers.
+import { FeaturesScreen } from '../features/FeaturesScreen.jsx';
+import { PlayFeaturesRow } from '../features/FeatureRows.jsx';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
@@ -36,6 +39,7 @@ export function Play() {
   const section = shell.state.views.play.section;
   if (section === 'league') return <LeagueScreen/>;
   if (section === 'points') return <PointsBallot/>;
+  if (section === 'features') return <FeaturesScreen/>;
   if (!['picks', 'score', 'compare'].includes(section)) return <PlayLanding/>;
   return <PlayDetail/>;
 }
@@ -69,9 +73,10 @@ function PlayLanding() {
       <FocusRows label="More in Play">
         <FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/>
         {hero.action.primary && <FocusRow icon="chart" title="Your results" sub="Scores, comparisons and history" onClick={() => shell.go('play', { section: 'score' })}/>}
+        <PlayFeaturesRow app={app}/>
       </FocusRows></>}
     {!hero && pointsCard}
-    {!hero && <FocusRows label="More in Play"><FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/></FocusRows>}
+    {!hero && <FocusRows label="More in Play"><FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/><PlayFeaturesRow app={app}/></FocusRows>}
     <details className="gx-focus-help"><summary className="gx-t-strong">How to play</summary><HomeGuide key={app.accountId} preferences={preferences} perGame={data?.rules?.perGameScoring === true}/></details>
   </div>;
 }

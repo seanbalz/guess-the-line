@@ -10,6 +10,8 @@ import { ResearchSheet } from '../research/ResearchSheet.jsx';
 import { Play } from '../play/Play.jsx';
 import { Bets } from '../bets/Bets.jsx';
 import { Research } from '../research/Research.jsx';
+import { BadgeSheet } from '../features/BadgeSheet.jsx';
+import { FlashOverlay } from '../features/FlashOverlay.jsx';
 
 /** The original tabs use live routes; Fantasy reads public player snapshots. The transitional editors retain the hosted rules until their migrations ship. */
 export const SCREENS = Object.freeze({
@@ -26,4 +28,6 @@ export const LAYERS = Object.freeze({
   'sh.game': GameSheet, // lines (stage 13): one game, read-only
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
   'sh.research': ResearchSheet,
+  'sh.badge': BadgeSheet, // play (stage 71): one badge's detail
+  'ov.flash': FlashOverlay, // play (stage 71): a new badge or award of your own, one at a time
 });

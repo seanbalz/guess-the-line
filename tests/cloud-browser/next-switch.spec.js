@@ -100,7 +100,7 @@ test('a signed-in member sees "Try the new app", switches to the new app, and co
     await expect(newApp(page)).toBeVisible();
     // Shared account/Community reads occur once per page load. Home also reads preferences, scored history and its ticket summary.
     await expect.poll(() => calls.filter(call => call === 'POST /functions/v1/gtl-api/social/read').length).toBe(2);
-    expect(calls.filter(call => !['POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'POST /functions/v1/gtl-api/social/read'].includes(call))).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
+    expect(calls.filter(call => !['POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/league/features'].includes(call))).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
 
     await (await oldAppButton(page)).click();
     await expect(communityHome(page)).toBeVisible();
