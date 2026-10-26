@@ -1,6 +1,10 @@
 import { Button, Card, Pill } from '../ui/index.js';
 import { today } from './route.js';
+import { fmtWhen } from '../format.js';
 const titles = { scheduled: 'Scheduled', in_progress: 'In progress', final: 'Final', other: 'Schedule updates' };
+// The provider puts the raw ISO start time in the status field of games not yet started; show it as a Pacific label (same helper as the NFL kickoffs). Live and final labels pass through.
+const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+export const statusLabel = game => game.status === 'in_progress' ? 'LIVE' : game.status === 'scheduled' && ISO_TIME.test(game.statusText ?? '') ? fmtWhen(game.startTime || game.statusText) : game.statusText || game.status;
 const shiftDate = (date, days) => { const value = new Date(`${date}T12:00:00Z`); value.setUTCDate(value.getUTCDate() + days); return value.toISOString().slice(0, 10); };
 export function Games({ board, date, timeZone, onDate, onTrack, refresh, loading, error }) {
   const groups = Object.keys(titles).map(key => [key, (board?.games ?? []).filter(game => (['scheduled', 'in_progress', 'final'].includes(game.status) ? game.status : 'other') === key)]);
@@ -14,10 +18,10 @@ export function Games({ board, date, timeZone, onDate, onTrack, refresh, loading
     <Button disabled={loading} onClick={() => refresh()}>Refresh games</Button>
     {board && !board.unavailable && !board.games.length && <Card>No games on this date.</Card>}
     {groups.map(([key, games]) => games.length ? <section className="gx-nba-stack" key={key} aria-label={titles[key]}><h2 className="gx-t-section">{titles[key]}</h2>{games.map(game => <Card key={game.id} className="gx-nba-stack">
-      <div className="gx-nba-row"><strong>{game.away.abbreviation} at {game.home.abbreviation}</strong><Pill tone={game.status === 'in_progress' ? 'live' : 'neutral'}>{game.status === 'in_progress' ? 'LIVE' : game.statusText || game.status}</Pill></div>
+      <div className="gx-nba-row"><strong>{game.away.abbreviation} at {game.home.abbreviation}</strong><Pill tone={game.status === 'in_progress' ? 'live' : 'neutral'}>{statusLabel(game)}</Pill></div>
       <p>{game.away.name} <span className="gx-t-n-s">{game.awayScore ?? '—'}</span> · {game.home.name} <span className="gx-t-n-s">{game.homeScore ?? '—'}</span></p>
       <p className="gx-t-meta gx-c-2">{game.startTime ? new Date(game.startTime).toLocaleString(undefined, { timeZone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : `${game.sourceDate} · Time unavailable`}</p>
-      <details><summary>Game details</summary><p>{game.statusText || game.status}</p><p className="gx-t-meta">{board.source} · {game.observedAt || board.observedAt || 'Observation unavailable'}</p></details>
+      <details><summary>Game details</summary><p>{game.status === 'scheduled' ? statusLabel(game) : game.statusText || game.status}</p><p className="gx-t-meta">{board.source} · {game.observedAt || board.observedAt || 'Observation unavailable'}</p></details>
       <Button onClick={() => onTrack(game)}>Track bet</Button>
     </Card>)}</section> : null)}
   </div>;
