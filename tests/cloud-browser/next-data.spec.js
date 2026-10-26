@@ -181,6 +181,30 @@ test('only his leagues, the Community first; a choice is kept across a reload; a
   } finally { await world.db.close(); }
 });
 
+test('once this device has seen the account with a name, the Community read starts alongside /lobby, not after it', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  try {
+    await openNewApp(page, 'luke');
+    await expect(title(page, 'Home')).toBeVisible();
+    // The next load: /lobby is held, and the Community read still goes out while it waits.
+    const held = await holdNext(page, 'lobby');
+    const calls = apiCalls(page);
+    const community = page.waitForRequest(request => new URL(request.url()).pathname === '/functions/v1/gtl-api/community/read');
+    await page.reload();
+    await held.reached;
+    await community;
+    expect(calls.slice(0, 2).sort(), 'both reads leave before /lobby answers').toEqual([READS[0], READS[1]].sort());
+    await held.release();
+    await expect(title(page, 'Home')).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    expect(calls.filter(call => call === READS[1]), 'still one Community read per load').toHaveLength(1);
+    // Screens that show the same account read share it (sharedReads.js): Home asks for preferences and tickets once.
+    for (const read of [READS[2], READS[8]]) expect(calls.filter(call => call === read).length, `${read} at most once per load`).toBeLessThanOrEqual(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('the name step on an empty display name: typed text survives a reload; Continue saves it through /profile', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   const world = await communityWorld(page, baseURL, { migrations: ALL });

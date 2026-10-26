@@ -1,6 +1,8 @@
 import { createTrendsService } from '../../cloud/trends.mjs';
 import { createFantasyService } from '../../cloud/fantasy.mjs';
 import trendsSeed from '../../cloud/trends-seed.mjs';
+import { parseCsvRows } from '../../shared/trends.mjs';
+import { appCode, easternToUtc } from '../../shared/nfl-schedule.mjs';
 // Shared community world for the D-21/D-23/D-24 browser specs: the real cloud handler and
 // the real migrations on local PGlite (the community.spec.js pattern) with three fixture
 // accounts. Luke views, Troy plays and Sean is the sean-troy-luke commissioner, so the
@@ -81,6 +83,21 @@ export async function communityWorld(page, baseURL, options = {}) {
 }
 
 /** The same world without a browser: the database, the real handler and world.api (options as communityWorld). */
+/**
+ * Fixture games kick off "tonight" (openDeadline), but trends are real 2026 history: the weekday and rest-day situations
+ * come from each game's kickoff, so the cards drifted with the date the suite ran (they changed after October 24, 2026).
+ * The trends service gets each fixture game's real kickoff from the committed season file instead; every other route
+ * keeps the fixture kickoff, and the reply carries the fixture kickoff back.
+ */
+function realKickoffTrends(service) {
+  const real = new Map(parseCsvRows(trendsSeed.seasonCsv).rows.map(r => [`${r.week}:${appCode(r.away_team)}-${appCode(r.home_team)}`, easternToUtc(r.gameday, r.gametime)]));
+  return { ...service, async week(published) {
+    const fixture = new Map(published.games.map(g => [g.id, g.kickoff]));
+    const result = await service.week({ ...published, games: published.games.map(g => ({ ...g, kickoff: real.get(`${published.week}:${g.id}`) ?? g.kickoff })) });
+    return { ...result, games: result.games.map(g => ({ ...g, kickoff: fixture.get(g.id) ?? g.kickoff })) };
+  } };
+}
+
 export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false, research, trendsReadSeason = async () => trendsSeed.seasonCsv, fantasyFetch = null } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec(PRELUDE);
@@ -139,7 +156,7 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     // Redesign stage 23 (M-06): the gated lines readers. On a schema without M-06 (HOSTED today) their RPCs are missing,
     // so /lines/* answer the generic 503 and every other route is unchanged.
     lines: { rpc: rpc(providerLinesError), ...(research ? { research } : {}) },
-    trends: createTrendsService({ rpc: rpc(providerLinesError), readSeason: trendsReadSeason, clock, seed: trendsSeed }),
+    trends: realKickoffTrends(createTrendsService({ rpc: rpc(providerLinesError), readSeason: trendsReadSeason, clock, seed: trendsSeed })),
     fantasy: fantasyFetch ? createFantasyService({ fetchImpl: fantasyFetch, clock }) : undefined,
     league: { rpc: rpc(providerLeagueError) }, me: { rpc: rpc(providerMeError) },
     // Guess the Points (D-56): on a schema without P-01 (HOSTED today) its functions are missing and PostgREST's PGRST202
