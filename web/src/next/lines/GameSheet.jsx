@@ -3,7 +3,7 @@
 // words (each with its record and sample size, strongest first, a line trend locked with its market), then the
 // weather row on every game (D-45: the kickoff forecast, "Indoors" or "No current forecast"), the referee row (hidden
 // until a referee is known, a 404 included) and "All trends", which opens its own sheet over this one. The current line
-// arrives with stage 33 ("Line now arrives in a later update.").
+// and its book quotes/movement are read from the gated /lines/game route when the sheet opens.
 //
 // The kickoff wind forecast (`/wind/read`, D-34) comes through the old app's loaders and their 5-minute cache, so the
 // sheet reuses the board's read; while open it re-reads at the D-47 due points, as the board and the old trends panel
@@ -19,6 +19,7 @@ import { Expander, TrendList, TrendAvailability, WeatherDetail } from './parts.j
 import { INFO } from '../info.js';
 import { GameNote } from './GameNote.jsx';
 import { MatchupResearch } from '../research/ResearchSheet.jsx';
+import { MarketDetails } from './MarketDetails.jsx';
 import './lines.css';
 
 function YouRows({ rows }) {
@@ -85,6 +86,8 @@ export function GameSheet({ args }) {
         <h3 className="gx-t-section" id={youId}>{LINES_COPY.youOnGame}</h3>
         <YouRows rows={view.you}/>
       </section>
+
+      <MarketDetails lines={lines} gameId={view.id}/>
 
       <Card variant="flush"><List label="Kickoff weather">
           {weather.detail ? (

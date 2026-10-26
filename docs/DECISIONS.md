@@ -12,6 +12,26 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-59 — Fantasy feed bucket and machine upload (October 26, 2026)
+
+Sean wants his private fantasy toolkit (`seanbalz/fantasy-football`) usable inside GTL. On
+October 26 he chose separate repositories plus a data feed, and the whole community as the
+audience. He then approved the per-feature gates: "Spec approved with the proposed audience
+gates." Community players see nflverse-derived usage only. FantasyPros ECR, per-source expert
+ranks, league tools and draft/SHFL intel (which names league members) are Sean-only, by his
+user id rather than the commissioner role. None of it may enter this public repository or
+the Pages bundle.
+
+For transport he chose a private Supabase Storage bucket over private release files: "Use
+the fantasy-feed bucket. Draft the migration plus a gtl-fantasy-ingest function with its own
+upload secret on a task branch; apply nothing live." The bucket has no storage policy, so
+only `service_role` reaches it. A machine-only `gtl-fantasy-ingest` function, holding its own
+`GTL_FANTASY_FEED_UPLOAD_SECRET`, stores each validated file once and fixes its audience by
+feature. A community file must fit an exact table and column allowlist of nflverse-derived
+columns and carry no owner-only name or email address; adding a column there is a reviewed
+widening. See the [release card](FANTASY_FEED_RELEASE.md). Nothing is applied, deployed or
+served by this entry. The signed-in read route and app views are later work.
+
 ## D-58 — the D-38 and D-55 system is the final brand selection (October 26, 2026)
 
 Sean answered the open decision recorded in

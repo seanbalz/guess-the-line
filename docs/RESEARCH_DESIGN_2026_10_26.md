@@ -85,9 +85,42 @@ tests, 20 chart/token Node tests, typecheck, Brand QA, the authenticated fixture
 build and bundle-only privacy scan passed. Browser coverage includes 320/390/1440px
 and Light/Dark accessibility; final 320px season-table screenshots were inspected.
 The fixtures use synthetic/disposable data, not a live account or physical phone.
-The source is on `codex/research-chart-integrity`; CI/merge, hosted release and
-actual-device acceptance remain open. After source CI/review, the next DESIGN-01
-step is release verification and Research/chart acceptance on iPhone Safari and
+[PR #218](https://github.com/seanbalz/guess-the-lines-repo/pull/218) merged October 26
+as `657eb1946b20927cc8a668373276c3844127095e`, after all nine checks passed on
+`7bfbe8546bcc5370dc8e1f57555f318031386a95`. No CI fixes or review requests were
+needed. Hosted release and actual-device acceptance remain open. After the
+season-selection source batch below, DESIGN-01 still needs release verification
+and Research/chart acceptance on iPhone Safari and
 Home Screen in both themes, including long labels, drag/keyboard selection and
 missing/stale evidence. Sean's corrected no-scroll-bug report is retained; this
 batch does not reopen that symptom or close broader Q19.
+
+
+## Season selection follow-through
+
+The next approved D-55 interaction connects the season table to the stem chart.
+Each year is a named button with a touch target of at least 44 × 44px and a 16px
+number. The selected year has a check, outline and pressed state; the selection
+is not conveyed by color alone. Table activation, dragging and the keyboard
+slider all update the same season. Switching to the cumulative line and back
+retains the chosen year. Selection stays keyed to the year rather than a row
+position; if that year is unavailable, the latest supplied season is shown.
+
+Table activation keeps focus on its button and does not force a scroll to the
+chart. An accessible controls relationship identifies the connected chart. A
+zero-unit season is described as “at break-even,” not “above break-even.” The
+existing records, units, data gates and seasonal summaries remain unchanged.
+
+Nine rendered-chart tests, 20 chart/token tests, typecheck, Brand QA, the
+fixture build and bundle privacy scan passed. Two focused browser checks passed
+for selection, view switching, dragging, keyboard control, 44px targets, 320px
+layout and accessibility. Light/Dark selected-row screenshots were inspected.
+All 19 integrated Research/Lines/Trends browser tests also passed.
+[PR #222](https://github.com/seanbalz/guess-the-lines-repo/pull/222) merged as
+`71bb47b46737fc309ad778a593a72d130a1c67d5` after all nine checks passed on
+`8cc4042b6bdd94c65095d2bd8105e6a27a00a969`. No CI fixes or review requests
+were needed. Deployment and physical-iPhone acceptance remain open.
+
+The next approved source work is [per-game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md).
+The remaining board-wide lines and full game-sheet destinations are explicit in
+the queue; these chart refinements do not complete stages 33–34.

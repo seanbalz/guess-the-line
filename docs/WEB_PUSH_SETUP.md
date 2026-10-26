@@ -22,7 +22,7 @@ Owner: Sean Balsiger · Version 3 · Updated 2026-10-14 · Decision [D-28](DECIS
 | Storage | migration `20261013030000_gtl_web_push_reminders.sql` | `gtl_push_subscriptions`, `gtl_push_reminders_sent`, `gtl_push_reminder_schedule` (row disabled by default), `gtl_push_reminder_runs`. RLS on, no browser grants, every function security invoker and service-only |
 | API | `gtl-api`: `POST /push/status`, `/push/subscribe`, `/push/unsubscribe` | Signed-in and email-confirmed like every other route; endpoint must be https on a known push service (FCM, Mozilla, Windows, Apple); keys and sizes checked in the handler and again in SQL; at most 10 devices per player |
 | Sender | Edge Function `gtl-push-reminders` → `cloud/push-reminders.mjs`, `cloud/web-push.mjs` | D-24 pattern: pg_cron → one-run capability → claim in SQL. VAPID (ES256) and aes128gcm encryption with WebCrypto, no extra dependency. Reads `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` from Edge Function secrets at run time |
-| Cron | `supabase/admin/web_push_reminders_cron.sql` | Not a migration. Every 15 minutes; outside the 2-hour window the dispatcher writes nothing and calls nothing |
+| Cron | `supabase/admin/web_push_reminders_cron.sql` | Not a migration. Every 15 minutes. Since P-02 (hosted October 23, 2026) the dispatcher also opens a run when a published, non-FINAL Guess the Points slot kicks off in the next 2 hours; otherwise, outside the 2-hour deadline window, it writes nothing and calls nothing. The Points reminder pass needs `gtl-push-reminders` redeployed from the Mac mini (hosted v4 skips it) |
 
 ## Sean's steps, in order
 
@@ -45,12 +45,11 @@ Do these from the Mac mini on an up-to-date `main` (`git pull && npm ci`). Never
 
 3. **Apply the migration** through the Supabase MCP (`apply_migration`, name `gtl_web_push_reminders`, with the contents of `supabase/migrations/20261013030000_gtl_web_push_reminders.sql`) or paste it into the SQL editor. Apply files in repo order: it is numbered after the D-27 file `20261012230000_gtl_submit_with_line_at_guess.sql` and the other October 12–13 files, so apply those first. It reads only a ballot's `submittedAt`, the D-23 opt-outs and the published slate, and changes none of them. The hosted version will differ from the filename; add it to the two `migration repair` lists in the release checklist.
 
-4. **Deploy both functions.**
+4. **Deploy both functions through the release workflow.** Since October 26, 2026 worker deploys go through the [Shared production release](SHARED_DEPLOYMENT.md) workflow, not the Mac mini terminal: dispatch it once with target `api` (deploys only `gtl-api`) and once with target `push-reminders` (deploys only `gtl-push-reminders`), each through check-only, readiness and an approved deploy with its release card. Each run deploys from the exact `main` SHA with the committed CLI, so `supabase/config.toml` still applies: `verify_jwt = true` for `gtl-api` and `verify_jwt = false` for `gtl-push-reminders` (its one-run capability is checked in SQL, like `gtl-week-open`). The `push-reminders` run checks that line in the source, then verifies that only the worker changed (one version up, ACTIVE, `verify_jwt` false) and that the frontend was not deployed. It updates an existing worker and never creates one; if the function were ever deleted from the project, recreating it is a separate decision. The October 14 deploy (worker v1) was made by hand, before this target existed:
    ```sh
    npx supabase functions deploy gtl-api
    npx supabase functions deploy gtl-push-reminders
    ```
-   `supabase/config.toml` keeps `verify_jwt = true` for `gtl-api` and sets `verify_jwt = false` for `gtl-push-reminders` (its one-run capability is checked in SQL, like `gtl-week-open`).
 
 5. **Deploy the frontend** (adds `sw.js`, the CSP change and the opt-in UI):
    ```sh
