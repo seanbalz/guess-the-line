@@ -60,6 +60,18 @@ test('contract: scheduleGames keeps this season REG games only, maps LA to LAR a
   assert.equal(games[3].week, 9);
 });
 
+test('contract: the LA game keeps its nflverse game_id and joins a LAR snapshot player', () => {
+  const csv = `${GAME_COLS}
+2026_06_SEA_LA,2026,REG,6,2026-10-18,Sunday,16:25,SEA,,LA,,Home`;
+  const games = scheduleGames(csv, { season: 2026 });
+  assert.deepEqual([games[0].away, games[0].home], ['SEA', 'LAR']);
+  const stats = { passingYards: 0, passingTds: 0, interceptions: 0, rushingYards: 0, rushingTds: 0, receptions: 5, receivingYards: 50, receivingTds: 0, fumblesLost: 0, twoPointConversions: 0, specialTeamsTds: 0 };
+  const player = { id: 'la-wr', name: 'La Wr', team: 'LAR', position: 'WR', status: 'Active', weekly: { status: 'scheduled', opponent: 'vs SEA', kickoff: '2026-10-18T20:25:00.000Z', stats } };
+  const rows = slatePlayers({ players: [player] }, { season: 2026, week: 6, games });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].gameKey, '2026_06_SEA_LA');
+});
+
 test('contract: a game with no date or time is left out, never invented', () => {
   const csv = `${GAME_COLS}\n2026_20_AAA_BBB,2026,REG,20,,,,AAA,,BBB,,Home`;
   assert.deepEqual(scheduleGames(csv, { season: 2026 }), []);
@@ -174,6 +186,18 @@ test('contract: roster facts are the requested players for the week, with a null
   assert.equal(facts.size, 3);
 });
 
+test('failure: conflicting duplicate roster rows for one player-week have no status; identical duplicates are fine', () => {
+  const csv = [ROSTER_HEADER,
+    '2026,SEA,WR,ACT,Al Wr,00-0000001,WrAl00,7,REG',
+    '2026,SEA,WR,INA,Al Wr,00-0000001,WrAl00,7,REG',
+    '2026,SEA,RB,INA,Bo Rb,00-0000002,RbBo00,7,REG',
+    '2026,SEA,RB,INA,Bo Rb,00-0000002,RbBo00,7,REG'].join('\n');
+  const facts = rosterFacts(csv, { season: 2026, week: 7, playerIds: ['00-0000001', '00-0000002'] });
+  assert.deepEqual(facts.get('00-0000001'), { pfrId: 'WrAl00', status: null });
+  assert.deepEqual(facts.get('00-0000002'), { pfrId: 'RbBo00', status: 'INA' });
+  assert.deepEqual(playedEvidence({ hasStats: false, rosterStatus: facts.get('00-0000001').status }), { played: null, basis: 'unknown' });
+});
+
 test('contract: played evidence follows the design precedence', () => {
   const e = playedEvidence;
   assert.deepEqual(e({ hasStats: true, snapCount: 0, rosterStatus: 'INA', movedOutOfWeek: true }), { played: true, basis: 'stats' });
@@ -200,7 +224,7 @@ test('contract: actualsPayload adds slate players without stats with the right e
   assert.equal(payload.season, 2026);
   assert.equal(payload.week, 7);
   assert.deepEqual(payload.source, SOURCE);
-  assert.deepEqual(payload.coverage, { rows: 3, slatePlayersWithoutStats: 4, snapsSha256: 'b'.repeat(64), partial: false });
+  assert.deepEqual(payload.coverage, { rows: 3, rowsWithoutNameOrTeam: 0, slatePlayersWithoutStats: 4, snapsSha256: 'b'.repeat(64), partial: false });
   const byId = Object.fromEntries(payload.players.map(p => [p.playerId, p]));
   assert.equal(payload.players.length, 7);
   assert.deepEqual(byId['00-0000001'].points, { 'ppr4-v1': 17.6 });
@@ -227,6 +251,15 @@ test('contract: actualsPayload adds slate players without stats with the right e
   }
 });
 
+test('contract: stats rows with an empty name or team are counted in coverage so the loader gap is visible', () => {
+  const statsRows = [
+    { playerId: 'a', name: 'A', team: 'SEA', position: 'WR', gameKey: 'g', stats: {}, points: 1 },
+    { playerId: 'b', name: '', team: 'SEA', position: 'WR', gameKey: 'g', stats: {}, points: 1 },
+    { playerId: 'c', name: 'C', team: '', position: 'WR', gameKey: 'g', stats: {}, points: 1 }];
+  const payload = actualsPayload({ season: 2026, week: 7, statsRows, slots: [], snaps: new Map(), roster: new Map(), games: [], versions: ['ppr4-v1'], source: SOURCE, coverage: {} });
+  assert.equal(payload.coverage.rowsWithoutNameOrTeam, 2);
+});
+
 test('contract: no evidence stays unknown, a game absent from the schedule is never postponed, a null score has no points key', () => {
   const broken = statsCsv.replace(/,66,/, ',NA,');
   const statsRows = weekStatsRows(broken, { season: 2026, week: 7 });
@@ -242,14 +275,14 @@ test('performance bound: a full-season-size stats file (20,000 rows, over 8 MB) 
   const filler = Array.from({ length: 120 }, (_, i) => `x${i}`);
   const lines = [[...STAT_COLS, ...filler].join(',')];
   for (let week = 1; week <= 18; week += 1) {
-    for (let i = 0; i < 1110; i += 1) {
+    for (let i = 0; i < 1120; i += 1) {
       lines.push([statRow({ player_id: `00-${String(week * 10000 + i).padStart(7, '0')}`, player_display_name: `P ${week} ${i}`, position: 'WR', season: '2026', week: String(week), season_type: 'REG', game_id: `2026_${String(week).padStart(2, '0')}_SEA_LA`, team: 'SEA', opponent_team: 'LA', receptions: '3' }), ...filler.map(() => '0.123456')].join(','));
     }
   }
   const text = lines.join('\n');
   assert.ok(text.length > 8_000_000, `fixture is ${text.length} bytes`);
   const started = performance.now();
-  assert.equal(weekStatsRows(text, { season: 2026, week: 9 }).length, 1110);
+  assert.equal(weekStatsRows(text, { season: 2026, week: 9 }).length, 1120);
   const took = performance.now() - started;
   assert.ok(took < 1000, `took ${Math.round(took)} ms`);
 });

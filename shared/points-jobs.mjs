@@ -125,7 +125,14 @@ export function rosterFacts(rosterCsv, { season, week, playerIds }) {
   if (!wanted.size) return new Map();
   const rows = parseFantasyCsv(linesFor(rosterCsv, [...wanted]), ROSTER_REQUIRED)
     .filter(row => Number(row.season) === season && Number(row.week) === week && row.game_type === 'REG' && wanted.has(row.gsis_id));
-  return new Map(rows.map(row => [row.gsis_id, { pfrId: row.pfr_id || null, status: row.status }]));
+  const facts = new Map();
+  for (const row of rows) {
+    const prior = facts.get(row.gsis_id);
+    // Conflicting duplicate rows for one player-week fail closed: no status, so the slot stays pending.
+    if (prior && prior.status !== row.status) facts.set(row.gsis_id, { pfrId: prior.pfrId, status: null });
+    else if (!prior) facts.set(row.gsis_id, { pfrId: row.pfr_id || null, status: row.status });
+  }
+  return facts;
 }
 
 /** Whether a slate player played, with the evidence (design step 2 precedence). Unknown stays null so the slot stays pending. */
@@ -157,5 +164,5 @@ export function actualsPayload({ season, week, statsRows, slots, snaps, roster, 
     const { played, basis } = playedEvidence({ hasStats: false, snapCount, rosterStatus: fact?.status, movedOutOfWeek });
     players.push({ playerId: slot.playerId, name: slot.name, team: slot.team, position: slot.position, gameKey: slot.gameKey, stats: {}, points: {}, played, playedBasis: basis });
   }
-  return { season, week, source, coverage: { rows: statsRows.length, slatePlayersWithoutStats: without, ...coverage }, players };
+  return { season, week, source, coverage: { rows: statsRows.length, rowsWithoutNameOrTeam: statsRows.filter(row => !row.name || !row.team).length, slatePlayersWithoutStats: without, ...coverage }, players };
 }
