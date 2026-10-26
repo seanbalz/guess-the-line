@@ -19,16 +19,18 @@ no real membership changes are performed by this work.
 | Saved games, private notes and forecasts | New-app `lines/GameNote.jsx` edits private game notes; classic `PersonalWorkspace.jsx` retains saved games and forecasts | Owner-only read-only saved games/forecasts/history and revisions: M-27 / stage 74. |
 | Journal and archived journal records | Classic `PersonalWorkspace.jsx` includes archived records and revision history | Read-only native journal, summary and changes: stage 74. No new journal writer in the redesign. |
 | Exports | Classic `App.jsx` downloads the existing group-week `/export` | Account-wide owner-only `/me/export`, excluding push endpoints: M-28 / stage 75. |
-| Creation and invitations | Q17-A/B, PR #209: native creation and host invitation management | Merge/CI, production release and recipient/device readback are separate milestones. |
+| Creation and invitations | Q17-A/B, PR #209: merged native creation and host invitation management with passing CI | Production release and recipient/device readback remain separate milestones. |
 | Community membership | This change: Menu → Community members for the Community commissioner | Source/tests below; release and signed-in readback still required. This implements the Members slice of stage 78, not the complete stage 77/78 hub. |
-| Other commissioner operations | Classic Week opening, referees, settlement/schedule, odds connection, final scores | Native tools hub and the remaining stage 78 pages. Keep settlement separate from Final scores; no secrets on Odds connection. |
+| Settlement | Native manual Virtual Units console implemented in the [next source batch](REDESIGN_SETTLEMENT_2026_10_26.md); classic remains reachable | CI/merge/release and phone acceptance separate. M-18 challenge grading and M-19 scheduled settlement/status remain open. |
+| Other commissioner operations | Classic Week opening, referees, odds connection, final scores | Next native page: Week opening, then remaining stage 78 pages. Keep settlement separate from Final scores; no secrets on Odds connection. |
 | Sign-in and recovery | Shared existing AuthGate | Stage 76 native skin with unchanged auth/recovery behavior and account/device acceptance. |
 | Unsaved drafts and legacy access | Existing classic escape path and tab recovery mechanisms remain | Group-draft reconciliation and actual-device recovery remain RETIRE-01. No access closure or cleanup before RETIRE-01–04 evidence. |
 
-The next commissioner page after Members is **Settlement and schedule status**.
-Its source/permissions and the current settlement contract must be reconciled
-before implementation. Q17's record destinations, OPT-01 measured performance,
-and the current queue remain open; a new Menu row does not complete them.
+The [manual Settlement batch](REDESIGN_SETTLEMENT_2026_10_26.md) reconciles the
+existing D-26 source and permission contract. Its unavailable automatic schedule
+status is explicit; M-18/M-19 remain open. Week opening is the next independent
+commissioner page. Q17's record destinations and OPT-01 measured performance
+remain open; these Menu rows do not complete them.
 
 ## Members implementation
 

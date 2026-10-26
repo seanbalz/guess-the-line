@@ -179,6 +179,9 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     odds: { rpc: (fn, args) => (fn === 'gtl_preflight_submission' ? Promise.resolve({ requiresReferences: false, ready: true }) : personalRpc(fn, args)),
       ...(virtualUnits ? { marketSnapshot: (userId, leagueId) => rawRpc('gtl_read_market_snapshot', { p_user: userId, p_league: leagueId }) } : {}) },
     ...(virtualUnits ? { virtual: {
+      admin: userId => rawRpc('gtl_community_admin', { p_user: userId }),
+      schedule: async () => { if (typeof world.schedule !== 'function') throw new Error('No schedule fixture.'); return world.schedule(); },
+      settle: (season, week, results) => virtualRpc('gtl_settle_virtual_units', { p_season: season, p_week: week, p_results: results }),
       read: (userId, leagueId) => virtualRpc('gtl_read_virtual_units', { p_user: userId, p_league: leagueId }),
       save: (userId, leagueId, revision, body) => virtualRpc('gtl_save_virtual_units_pick', { p_user: userId, p_league: leagueId, p_revision: revision, p_body: body }),
       publishedWeek: async () => (await db.query('select season,week from public.gtl_weekly_slates order by season desc,week desc limit 1')).rows[0] || null,

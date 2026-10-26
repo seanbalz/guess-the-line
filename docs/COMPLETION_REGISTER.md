@@ -49,7 +49,7 @@ establishes deployment. This task has not deployed the app or applied SQL.
 | Mobile layout | PR #174 toolbar/spacing fixes; PR #181 focus scroll padding released as Pages `9fb54fe4`. | October 26: Sean corrected his initial reply and reports the app does not have the scroll bug. The movement symptom is user-reported resolved. Broader Q19 device acceptance remains separate. |
 | Bets | [Actual tracking](EASIER_BET_TRACKING_RELEASE.md), [recommendation handoff](RECOMMENDED_TRACKING_RELEASE.md), [Recommended filters](RELEASE_2026_10_22_TRENDS_FILTER.md), M-10 reader and PR #204 Everyone are released. | Q06 account-level placement M-11, boards M-12 and remaining dedicated Virtual Units screens. Reader delivery does not close the full Bets plan. |
 | Scoring and comparisons | [Core scoring](CORE_SCORING_PRODUCTION_RELEASE.md): per-game lock, personal points and receipts. [Migrations release](RELEASE_2026_10_22_MIGRATIONS.md): D-53 comparisons/preferences applied and signed-in reads verified. | Q07/Q08 phone privacy, save/reload and account-isolation acceptance; Q18 operating evidence. |
-| Trends and optimization | [Trends release](RELEASE_2026_10_22_TRENDS_FILTER.md); PR #182 CPU repair shipped as API v32. PR #207 runs the Node/Vitest suite once and shards browser CI; PR #208 restores release compatibility gates. | PR #210 startup optimizations are merged (see above). Release/readback and current integrated/phone performance measurements remain open. On-demand invitation, creation and Members code is verified locally; lazy-loading checks are not phone performance evidence. |
+| Trends and optimization | [Trends release](RELEASE_2026_10_22_TRENDS_FILTER.md); PR #182 CPU repair shipped as API v32. PR #207 runs the Node/Vitest suite once and shards browser CI; PR #208 restores release compatibility gates. | PR #210 startup optimizations are merged (see above). Release/readback and current integrated/phone performance measurements remain open. On-demand invitation, creation, Members and Settlement code is verified locally; lazy-loading checks are not phone performance evidence. |
 | NBA | [October 22 release](RELEASE_2026_10_22_MIGRATIONS.md): daily games and private bet tracking, migrations, API v34 and Pages `7ae80e71`; archived tickets preserved. | Physical-iPhone acceptance. NBA competitions remain later scope. |
 | Fantasy | [Track 1](RELEASE_2026_10_23_FANTASY_TRACK1.md) released, first data published, readback retry fixed in #202, daily schedule in #205. Scheduled runs succeeded October 24–26; [October 26 run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40365251250). | Phone readback; richer usage/comparisons/matchup/trade tools Q12–Q15 and connected roster work follow current redesign completion. |
 | Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs and Points reminder-worker pass. Automatic Points scoring is not complete. |
@@ -63,16 +63,20 @@ Their production/recipient/device readback remains separate. Both use existing
 routes, include uncertain-write recovery and load only when opened; see the
 [implementation record](REDESIGN_COMPLETION_2026_10_26.md).
 
-Q17-C is in progress. The next source batch implements **Menu → Community
-members** for the Community commissioner: explicit remove/restore review,
-fresh permission checks, no record deletion, and readback after uncertain saves,
-including reload. Six member browser tests and the existing shell/D-23 checks
-passed locally. CI/merge and release/phone acceptance remain separate. The
-[preservation matrix and evidence](REDESIGN_PRESERVATION_2026_10_26.md) name the
-remaining history, export, journal, older-record and draft-recovery gaps.
+Q17-C is in progress. Native **Menu → Community members** is implemented in
+PR #211; its CI follow-through is recorded in the
+[preservation matrix](REDESIGN_PRESERVATION_2026_10_26.md). Release and signed-in
+phone acceptance remain separate.
 
-Next: the commissioner Settlement and schedule status page, then the remaining
-preservation destinations and measured performance follow-through. Keep one
+The next source batch adds **Menu → Settlement**, the native manual Virtual
+Units console with explicit review, saved-result versions, fresh permissions and
+readback after uncertain replies. The [settlement record](REDESIGN_SETTLEMENT_2026_10_26.md)
+separates this source implementation from CI, merge and release. M-18 challenge
+grading and M-19 scheduled settlement/status remain open, so this does not close
+the full Settlement and schedule-status stage.
+
+Next independent page: **Week opening**, followed by the remaining commissioner
+and preservation destinations and measured performance follow-through. Keep one
 implementation lane at a time; device-only acceptance can remain explicitly open
 while independent source work proceeds. New Fantasy integrations, simulator work
 and native iOS do not take priority over this completion work.

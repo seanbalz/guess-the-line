@@ -14,6 +14,8 @@ import { GUIDANCE_ORDER, INFO } from '../info.js';
 
 const Members = lazy(() => import('./CommunityMembers.jsx').then(module => ({ default: module.CommunityMembers })));
 
+const Settlement = lazy(() => import('./Settlement.jsx').then(module => ({ default: module.Settlement })));
+
 export const MENU_COPY = Object.freeze({
   title: 'Menu',
   appearance: 'Appearance',
@@ -67,6 +69,7 @@ function Guidance() {
 export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
+  if (args.sub === 'settlement') return <Suspense fallback={<Sheet title="Settlement" onClose={shell.closeSheet}><p role="status">Loading settlement…</p></Sheet>}><Settlement key={shell.you.id}/></Suspense>;
   if (args.sub === 'members') return <Suspense fallback={<Sheet title="Community members" onClose={shell.closeSheet}><p role="status">Loading members…</p></Sheet>}><Members key={shell.you.id}/></Suspense>;
   if (args.sub === 'preferences') return <AccountPreferences key={shell.you.id}/>;
   if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
@@ -99,6 +102,7 @@ export function MenuSheet({ args }) {
       <Card variant="flush">
         <List>
           {shell.communityAdmin && <LinkRow icon="people" onClick={() => shell.setSheetArgs({ sub: 'members' })}>Community members</LinkRow>}
+          {shell.communityAdmin && <LinkRow icon="check" onClick={() => shell.setSheetArgs({ sub: 'settlement' })}>Settlement</LinkRow>}
           <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
           <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>

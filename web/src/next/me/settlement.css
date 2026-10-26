@@ -1,0 +1,2 @@
+.gx .gx-settlement-stack { display: grid; gap: var(--gx-space-3); min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-settlement-problem { color: var(--gx-loss); }
