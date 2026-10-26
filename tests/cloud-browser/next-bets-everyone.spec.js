@@ -57,6 +57,11 @@ async function openEveryone(page) {
   return { response, body: await response.text(), request: response.request().postDataJSON() };
 }
 
+// Reply timestamps carry milliseconds ("20:42:44.599"), which can contain a secret's digits by chance.
+const ISO_TIME = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})/g;
+function untimed(body) {
+  return body.replace(ISO_TIME, '<time>');
+}
 async function pageText(page) {
   return page.evaluate(() => `${document.body.innerText}\n${[...document.querySelectorAll('*')].flatMap(el => [...el.attributes].map(a => a.value)).join('\n')}`);
 }
@@ -75,7 +80,7 @@ test('a friend’s pick shows side and units until Luke’s gate opens; then onl
     // Closed: the reply and the page carry Troy's and Sean's side and units only.
     let opened = await openEveryone(page);
     expect(opened.request).toEqual({});
-    for (const secret of [...TROY_SECRETS, ...SEAN_SECRETS]) expect(opened.body, `reply: ${secret}`).not.toContain(secret);
+    for (const secret of [...TROY_SECRETS, ...SEAN_SECRETS]) expect(untimed(opened.body), `reply: ${secret}`).not.toContain(secret);
     await expect(row(page, 'troy', 'spread')).toHaveAttribute('data-open', 'false');
     await expect(row(page, 'troy', 'spread')).toContainText(g0.homeCode);
     await expect(row(page, 'troy', 'spread')).toContainText('1.5U');
@@ -97,7 +102,7 @@ test('a friend’s pick shows side and units until Luke’s gate opens; then onl
     await expect(row(page, 'troy', 'spread')).toContainText('−115 · BetMGM');
     await expect(row(page, 'sean', 'total')).toHaveAttribute('data-open', 'false');
     for (const secret of SEAN_SECRETS) {
-      expect(opened.body, `reply after Spread: ${secret}`).not.toContain(secret);
+      expect(untimed(opened.body), `reply after Spread: ${secret}`).not.toContain(secret);
       expect(await pageText(page), `page after Spread: ${secret}`).not.toContain(secret);
     }
     expect(writes(calls), 'browsing writes nothing').toEqual([]);
