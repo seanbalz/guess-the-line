@@ -9,7 +9,9 @@ import { FEATURES, parseFeatureOff } from '../cloud/feature-off.mjs';
 // (POST /community/picks), whose rollback is switching it off; stage 18 adds `lock-in` (M-02's per-game lock-in on a draft);
 // stage 19 adds `forfeit`, M-03's writer (POST /community/forfeit), which writes sit-outs and forfeit rows.
 test('GTL_FEATURE_OFF lists known feature names; anything else, or no secret, turns nothing off', () => {
-  assert.deepEqual(Object.keys(FEATURES), ['trends', 'comparisons', 'preferences', 'notes', 'lines', 'research', 'picks', 'lock-in', 'forfeit', 'recommendations', 'bets', 'fantasy', 'fantasy-feed', 'points', 'reactions']);
+  assert.deepEqual(Object.keys(FEATURES), ['trends', 'comparisons', 'preferences', 'notes', 'lines', 'research', 'picks', 'lock-in', 'forfeit', 'recommendations', 'bets', 'fantasy', 'fantasy-feed', 'points', 'reactions', 'feed']);
+  assert.deepEqual([...parseFeatureOff('feed,FEEDS')], ['feed']);
+  assert.deepEqual([...parseFeatureOff('Reactions, reaction')], ['reactions']);
   assert.deepEqual([...parseFeatureOff('Reactions, reaction')], ['reactions']);
   assert.deepEqual([...parseFeatureOff('Points')], ['points']);
   assert.deepEqual([...parseFeatureOff('bets')], ['bets']);

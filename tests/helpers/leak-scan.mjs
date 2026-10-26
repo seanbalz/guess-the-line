@@ -56,6 +56,9 @@ export const READERS = Object.freeze([
   ['/bets/recommendations', 'POST', {}],
   ['/bets/read', 'POST', {}],
   ['/community/picks', 'POST', { mode: 'guess_spread' }],
+  // Stage 62 (M-22): the league feed reader, every embed gated per viewer. Scanned on ALL in tests/league-feed-sql.test.mjs
+  // (with /league/comments and /league/reactors, which need a post id) until M-22 is hosted.
+  ['/league/feed', 'POST', {}],
 ]);
 
 /**
@@ -63,7 +66,9 @@ export const READERS = Object.freeze([
  * HOSTED skips them and a suite on ALL runs them (readersOn); the apply record removes the entry with the file's
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
-export const READER_MIGRATIONS = Object.freeze({});
+export const READER_MIGRATIONS = Object.freeze({
+  '/league/feed': '20261026132000_gtl_league_feed.sql',
+});
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
 

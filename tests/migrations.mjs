@@ -38,6 +38,7 @@ export const NOT_HOSTED = [
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
   20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
   20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
+  20261026132000, // M-22 gtl_league_feed (redesign stage 62): written, awaiting Sean's "apply M-22" (after M-13 and M-21)
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -54,7 +55,10 @@ export const FIX_FORWARD = [
  * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
-export const REQUIRES = Object.freeze({});
+export const REQUIRES = Object.freeze({
+  // M-22 reads M-13's league_id (its index) and calls M-21's gtl_feed_reactions and gtl_feed_post_visible.
+  20261026132000: [20261026130000, 20261026131000],
+});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
