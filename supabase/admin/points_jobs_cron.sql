@@ -8,7 +8,11 @@
 -- Supabase pg_cron evaluates schedules in UTC. Every job calls the same dispatcher; the worker's steps are idempotent and
 -- safe at any time, and one run is queued per clock hour. Tuesday and Thursday noon Pacific are registered twice (PDT, PST):
 -- the run that lands an hour early or late is a harmless no-op.
---   30 11 * * *   daily, after Track 1's 11:00 UTC refresh: draft the next slate, load actuals, finalize what is due
+--   30 11 * * *   daily: draft the next slate, load actuals, finalize what is due
+--   30 12-18,21-23 * * 2   Tuesday catch-up: Track 1's 11:00 UTC refresh has landed 3-6 hours late (scheduled runs started
+--                 14:11, 14:42 and 17:04 UTC, October 24-26), so these runs draft the slate as soon as its snapshot is
+--                 published, keeping the commissioner's preview window before the open; the runs after the open also
+--                 draft and publish in one run if the snapshot arrives later still. Each run is in its own clock hour.
 --   0 19 * * 2    Tuesday 12:00 PM PDT: publish the drafted slate (opens_at is Tuesday 12:00 PM PT)
 --   0 20 * * 2    Tuesday 12:00 PM PST
 --   0 19 * * 4    Thursday 12:00 PM PDT: last load and finalize
@@ -21,6 +25,7 @@ on conflict(id) do nothing;
 
 -- 2. The cron jobs (also safe while disabled: each call returns disabled).
 select cron.schedule('gtl-points-daily','30 11 * * *',$$select public.gtl_dispatch_points_jobs()$$);
+select cron.schedule('gtl-points-tuesday-catchup','30 12-18,21-23 * * 2',$$select public.gtl_dispatch_points_jobs()$$);
 select cron.schedule('gtl-points-tuesday-pdt','0 19 * * 2',$$select public.gtl_dispatch_points_jobs()$$);
 select cron.schedule('gtl-points-tuesday-pst','0 20 * * 2',$$select public.gtl_dispatch_points_jobs()$$);
 select cron.schedule('gtl-points-thursday-pdt','0 19 * * 4',$$select public.gtl_dispatch_points_jobs()$$);
@@ -31,10 +36,11 @@ select cron.schedule('gtl-points-thursday-pst','0 20 * * 4',$$select public.gtl_
 --    after enabling can never reach it.
 -- select public.gtl_dispatch_points_jobs();
 
--- 4. Enable, then verify one real run in public.gtl_points_job_runs (status succeeded or skipped).
+-- 4. Enable, then verify one real run in public.gtl_points_job_runs (status succeeded or skipped). A manual dispatch uses up its
+--    clock hour (one run per hour), so do it outside an hour that has a cron run, e.g. not in the 11:00 UTC hour.
 -- update public.gtl_points_job_schedule set enabled=true where id='nfl-points';
 -- select public.gtl_dispatch_points_jobs();
 
 -- Off switch (Sean approves the hosted change): stops new runs; every run, slate, actual and FINAL week stays (D-23).
 -- update public.gtl_points_job_schedule set enabled=false where id='nfl-points';
--- Remove a cron job: select cron.unschedule('gtl-points-daily');  (and the four others)
+-- Remove a cron job: select cron.unschedule('gtl-points-daily');  (and the five others)
