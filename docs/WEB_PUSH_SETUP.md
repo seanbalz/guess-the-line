@@ -45,12 +45,11 @@ Do these from the Mac mini on an up-to-date `main` (`git pull && npm ci`). Never
 
 3. **Apply the migration** through the Supabase MCP (`apply_migration`, name `gtl_web_push_reminders`, with the contents of `supabase/migrations/20261013030000_gtl_web_push_reminders.sql`) or paste it into the SQL editor. Apply files in repo order: it is numbered after the D-27 file `20261012230000_gtl_submit_with_line_at_guess.sql` and the other October 12–13 files, so apply those first. It reads only a ballot's `submittedAt`, the D-23 opt-outs and the published slate, and changes none of them. The hosted version will differ from the filename; add it to the two `migration repair` lists in the release checklist.
 
-4. **Deploy both functions.**
+4. **Deploy both functions through the release workflow.** Since October 26, 2026 worker deploys go through the [Shared production release](SHARED_DEPLOYMENT.md) workflow, not the Mac mini terminal: dispatch it once with target `api` (deploys only `gtl-api`) and once with target `push-reminders` (deploys only `gtl-push-reminders`), each through check-only, readiness and an approved deploy with its release card. Each run deploys from the exact `main` SHA with the committed CLI, so `supabase/config.toml` still applies: `verify_jwt = true` for `gtl-api` and `verify_jwt = false` for `gtl-push-reminders` (its one-run capability is checked in SQL, like `gtl-week-open`). The `push-reminders` run checks that line in the source, then verifies that only the worker changed (one version up, ACTIVE, `verify_jwt` false) and that the frontend was not deployed. It updates an existing worker and never creates one; if the function were ever deleted from the project, recreating it is a separate decision. The October 14 deploy (worker v1) was made by hand, before this target existed:
    ```sh
    npx supabase functions deploy gtl-api
    npx supabase functions deploy gtl-push-reminders
    ```
-   `supabase/config.toml` keeps `verify_jwt = true` for `gtl-api` and sets `verify_jwt = false` for `gtl-push-reminders` (its one-run capability is checked in SQL, like `gtl-week-open`).
 
 5. **Deploy the frontend** (adds `sw.js`, the CSP change and the opt-in UI):
    ```sh
