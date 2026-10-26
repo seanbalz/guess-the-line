@@ -113,7 +113,7 @@ function apiCalls(page) {
   });
   return calls;
 }
-const READS = ['POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research'];
+const READS = ['POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research'];
 
 /**
  * A synthetic /lines/research reader for the games in `withResearch`: two consistent Total candidates for each open
@@ -194,7 +194,7 @@ async function noLeak(page, world, where) {
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
 
-test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), his own line at the guess, no writes', async ({ page, baseURL }) => {
+test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), current permitted quotes, no writes', async ({ page, baseURL }) => {
   const { world, fake } = await lukesWeek(page, baseURL);
   try {
     const calls = apiCalls(page);
@@ -211,7 +211,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     await expect(sea.locator('.gx-l-cfoot .gx-tag')).toHaveText('You41');
     // HOU @ JAX: the draft JAX −9 sits on the Jacksonville (home) row.
     await expect(card(page, 'HOU-JAX').locator('.gx-l-tag2')).toHaveText('You−9');
-    // Every Spread is locked for Luke: an icon, never a dash or a number; his sent Totals show his line at the guess.
+    // Every Spread is locked for Luke: an icon, never a dash or a number; his sent Totals show the current reader quotes.
     for (const id of GAMES) {
       const cell = card(page, id).locator('.gx-l-val');
       await expect(cell).toHaveAttribute('data-cell', 'locked');
@@ -220,7 +220,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
       await expect(card(page, id).locator('.gx-l-cfoot [data-cell="line"] .gx-n-s')).toHaveText(String(LINES.total[id]));
     }
     for (const text of await page.locator('.gx-l-card [data-cell="locked"]').allInnerTexts()) expect(text).not.toContain('—');
-    await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5 at your guess\. Your spread pick SEA −4\. Your total pick 41\./);
+    await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5\. Current line\..*Your spread pick SEA −4\. Your total pick 41\./);
     // Board trends: at most three trend lines on the board; one chip per card at most (a trend line or a weather word).
     const chips = page.locator('.gx-l-trend[data-chip="trend"]');
     expect(await chips.count()).toBeLessThanOrEqual(3);
@@ -764,4 +764,111 @@ test('market freshness expires using server time without another odds read', asy
     expect(reads).toBe(1);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+test('the market board shows latest quotes separately from saved receipts and sends its gate to Play', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  const bodies = [], replies = [];
+  try {
+    await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'SEA-DEN': 45.5 } }, { capturedAt: Date.now() - 1000 });
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      const req = route.request(); bodies.push(req.postDataJSON());
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); replies.push(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page);
+    const sea = card(page, 'SEA-DEN');
+    await expect(sea).toContainText('45.5'); await expect(sea).not.toContainText('43.5');
+    await expect(sea).toContainText('Current line');
+    expect(bodies.every(body => body.season === 2026 && body.week === 6)).toBe(true);
+    expect(replies.every(body => body.games.every(game => JSON.stringify(game.spread) === '{"visible":false}'))).toBe(true);
+    await expect(page.locator('.gx-lock-card')).toHaveCount(1);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`market-board-${theme}.png`), fullPage: true });
+    }
+    await sea.click();
+    await expect(sheet(page, 'SEA @ DEN')).toContainText('Line at your guess 43.5');
+    await page.keyboard.press('Escape');
+    const calls = apiCalls(page);
+    await page.getByRole('button', { name: 'Review sit-out in Play', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Your guesses', exact: true })).toBeVisible();
+    expect(calls.some(call => /opt-out|forfeit|ballot/.test(call))).toBe(false);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('board refresh failures and wrong-week replies hide market values until retry succeeds', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let failure = 'offline';
+  const matcher = url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read');
+  try {
+    await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    await page.route(matcher, async route => {
+      if (failure === 'offline') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Unavailable' }) });
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json(); body.week += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    });
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
+    await expect(card(page, 'SEA-DEN')).not.toContainText('43.5');
+    await expect(card(page, 'SEA-DEN')).toContainText('You41');
+    failure = 'wrong-week'; await page.getByRole('button', { name: 'Retry market lines' }).click();
+    await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
+    await expect(card(page, 'SEA-DEN')).not.toContainText('43.5');
+    await page.unroute(matcher); await page.getByRole('button', { name: 'Retry market lines' }).click();
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('board freshness expires from server time without polling for quotes', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let reads = 0;
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      reads += 1;
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      for (const game of body.games) if (game.total.visible) game.total.observedAt = new Date(Date.parse(body.now) - 6 * 3600000 + 2000).toISOString();
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); const sea = card(page, 'SEA-DEN');
+    await expect(sea).toContainText('Current line');
+    await page.evaluate(() => { Date.now = () => 0; });
+    await expect(sea).toContainText('Latest recorded line', { timeout: 5000 });
+    expect(reads).toBe(1); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a delayed board reply cannot restore another account’s unlocked markets', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release, held = false, holdNext = true;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await openLines(page);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false }); await page.goto('/#lines');
+    await expect(card(page, 'SEA-DEN').locator('.gx-l-val')).toHaveAttribute('data-cell', 'line');
+    await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.text();
+      if (holdNext) { holdNext = false; held = true; await hold; }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body }).catch(() => {});
+    });
+    await page.getByRole('button', { name: 'Refresh market lines', exact: true }).click();
+    await expect.poll(() => held).toBe(true);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines');
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5'); release();
+    await expect(card(page, 'SEA-DEN').locator('.gx-l-val')).toHaveAttribute('data-cell', 'locked');
+    await noLeak(page, world, 'board after account switch'); expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
 });
