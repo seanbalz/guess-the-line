@@ -40,6 +40,42 @@ PGlite; **nothing below is applied or deployed**. Each migration waits for Sean'
   and an unknown one is refused; a missing league is refused; grants unchanged; the old reader and handler ignore the new
   kinds; a rerun is a no-op; every migration applies in order).
 
+### Reactions, append-only (M-21, stage 61)
+
+`20261026131000_gtl_feed_reactions.sql`. Medium risk, fix forward (`FIX_FORWARD`). Apply after M-13: its
+`gtl_read_community` reads `league_id`. D-39 dropped the ledger's other dependency (M-14, the tester list).
+
+- **`gtl_feed_reaction_events`**: append-only, select and insert for the service role only. Each row is one change to
+  one person's reaction on one post: a key (`thumbs_up`, `fire`, `laughing`, `grimace`, `bullseye`, `clap`) or null for
+  none. The latest event (by `seq`) is that person's one current reaction.
+- **`gtl_feed_reactions(post)`**: every current reaction. A row in the old `gtl_feed_likes` reads as a thumbs up until
+  that person's first event on the post. The like rows all stay, and their delete grant is revoked.
+- **`gtl_react_feed`** sets or takes back the caller's reaction on a post they can see now
+  (`gtl_feed_post_visible`: a Community post, a post of a league they belong to, a kickoff post from its kickoff). It
+  adds an event only when the reaction changes, and answers `{ postId, counts, total, mine, changed }`.
+- **`gtl_like_feed`** keeps its arguments and its reply `{ likes, likedByMe }`. A like adds a thumbs-up event when the
+  caller has no reaction. An unlike adds a null event; it no longer deletes.
+- **`gtl_read_community`** is M-07's body with `likes` counting current reactions and `likedByMe` true for any reaction,
+  so a fire from the new app is a heart in the old one. It also lists Community posts only (`league_id` is null), so a
+  post scoped to a private group never reaches the whole Community. It lists only the kinds the old app draws, so a page
+  of 30 stays full once later migrations write new kinds, and "Older activity" still reaches every post. Apply M-21
+  before M-22, M-23 or M-25.
+- **Route:** `POST /league/react` `{ postId, reaction: key | null }` answers `{ postId, counts, total, mine, changed }`
+  (`cloud/feed.mjs`, a new route group wired once into `cloud/handler.mjs`). It answers 400 for a bad key or a hidden
+  post, 403 for a removed or profile-less account, and 503 until M-21 is applied or while `GTL_FEATURE_OFF` names
+  `reactions`. The old `/community/like` keeps working throughout.
+- **Open question for Sean (before "apply M-21"):** with the tester list dropped, should the five non-thumbs reactions
+  open to every member once M-21 is applied (the old app shows each as a heart), or wait behind one switch until the
+  flip? As built, they open with the apply. The old heart is unchanged either way.
+- **Tests:**
+  - `tests/feed-reactions-sql.test.mjs`:
+    - one reaction per person; a replay adds nothing; a bad key is refused;
+    - an old like reads as a thumbs up and is never deleted; the old heart counts any reaction;
+    - group, future and removed-member cases;
+    - on `HOSTED`, `/league/react` answers 503 and the like is unchanged.
+  - `tests/feed-cloud.test.mjs`: body checks, the off switch, and the reply rebuilt from known keys.
+  - `tests/cloud-boundary.test.mjs`: the M-21 pieces and the route are awaiting deploy.
+
 ## Historical implementation and release notes
 
 The dated sections below preserve their original implementation state and API
