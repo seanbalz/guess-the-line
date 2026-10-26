@@ -9,14 +9,13 @@ import { HOME_COPY, homeHero } from '../../shared/home-view.mjs';
 // Redesign build plan stage 12: the read-only Home at 390 x 844 (section 4.1), on the real app (main.jsx, AuthGate, the
 // lazy NextApp) and the real handler with every migration (ALL) on local PGlite. The fixture week is open: Troy has sent
 // both markets, Sean has sat out Spread, Luke keeps a Spread draft of two picks and no Total ballot. Checked: Home is the
-// default screen after "Try the new app"; exactly one primary "Make picks" action opens the retained editor;
+// default screen when a member signs in (D-60); exactly one primary "Make picks" action opens the retained editor;
 // compact score/ticket/league shortcuts; the rendered-page leak scan; no writes; axe in Dark and Light at 390 and 320
 // with CI's fallback font. Score missing/zero semantics are separately covered in four-tab-landings.test.jsx.
 // Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const TRY = 'Try the new app';
 const READS = ['GET /lobby', 'POST /community/read', 'POST /social/read', 'POST /community/history', 'POST /me/preferences'];
 // Luke's own draft (whole numbers: his own picks are never secrets, and whole numbers collide with counts in the scan).
 const LUKE_SPREAD_DRAFT = [4, -9];
@@ -101,12 +100,10 @@ async function lukesWeek(page, baseURL) {
   return { world, lines };
 }
 
-/** Signs Luke in on the old app and taps "Try the new app" in its footer: the new app opens on Home. */
+/** Signs Luke in: since D-60 everyone lands in the new app, on Home. Calls are recorded from the first read. */
 async function tryNewApp(page) {
-  await signIn(page, 'luke');
-  await expect(communityHome(page)).toBeVisible();
   const calls = apiCalls(page);
-  await page.locator('.hub-bottom').getByRole('button', { name: TRY, exact: true }).click();
+  await signIn(page, 'luke');
   await expect(tabBar(page)).toBeVisible();
   await expect(hero(page)).toBeVisible();
   return calls;
@@ -189,7 +186,7 @@ test('"Make picks" opens the live Play tab without leaving the new app; "See Lin
     await expect(title(page, 'Your guesses')).toBeVisible();
     await expect(tab(page, 'Play')).toHaveAttribute('aria-current', 'page');
     expect(new URL(page.url()).hash).toMatch(/^#play\/picks/);
-    expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('next');
+    expect(new URL(page.url()).searchParams.get('app'), 'still the new app (D-60: nothing is saved)').toBeNull();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

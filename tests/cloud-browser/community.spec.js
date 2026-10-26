@@ -10,6 +10,7 @@ import { isWebfont } from '../fixtures/webfonts.mjs';
 import { openDeadline } from './fixture-deadline.mjs';
 import { shiftBrowserClock } from './test-clock.mjs';
 import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
+import { useOldApp } from './old-app.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -249,3 +250,6 @@ test('community home: a week that has not opened shows its Monday 12:00 AM PT op
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

@@ -243,6 +243,8 @@ export async function signIn(page, account = 'luke', { navigate = true } = {}) {
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
 }
 
+export { useOldApp } from './old-app.mjs';
+
 /** Signs out from the community home and signs in as another account in the same tab. */
 export async function switchAccount(page, account) {
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();

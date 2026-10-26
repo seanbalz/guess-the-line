@@ -2,6 +2,7 @@
 // with one market submitted and the other sat out, and with no groups. Are the states explained?
 import { test, expect, pgliteAvailable, futureDeadline, id } from './harness.mjs';
 import { weekOpenAt } from '../../../shared/nfl-schedule.mjs';
+import { useOldApp } from '../old-app.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -367,3 +368,6 @@ test('confused: no groups, and what groups are for', async ({ page, persona }) =
   await expect(page.locator('.picks-due')).toBeVisible();
   expect(await persona.noOverflow()).toBe(true);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

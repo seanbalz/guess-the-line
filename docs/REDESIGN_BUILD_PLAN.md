@@ -898,6 +898,13 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 
 ### The flip (stage 80)
 
+> **D-60 (October 26, 2026).** Sean asked to remove the old app entirely and chose two
+> steps. Step 1 is the flip: every member gets the new app, saved `classic` choices
+> no longer count, and the old app opens only at `?app=classic` from Menu › Older
+> records and tools and the failure screens. Step 2 deletes it once every item in
+> [the D-60 checklist](../planning/new-app-retirement.md#d-60-two-step-retirement-october-26-2026)
+> has a native home.
+
 > **D-52 amendment (October 15, carried to main October 21).** Sean asked to sunset
 > the previous app so no one can access it, without losing anything. Stage 80 is
 > therefore the verified new-only cutover: no classic default, saved preference,
