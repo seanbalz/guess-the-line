@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI } from '../scripts/release-preflight.mjs';
+import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS } from '../scripts/release-preflight.mjs';
 
 const sha = 'a'.repeat(40);
 const request = (extra = {}) => ({ RELEASE_SHA: sha, RELEASE_TARGET: 'frontend', RELEASE_MODE: 'check-only', ...extra });
@@ -219,4 +219,236 @@ test('hosted preflight uses only the read-only endpoint and stops on reviewed mi
   functions[1] = before.functions.find(item => item.slug === 'gtl-week-open');
   functions[0] = { ...functions[0], verify_jwt: false };
   await assert.rejects(verifyRelease(cwd, env, before, fake), /JWT verification/);
+});
+
+// Contract (October 26, 2026, Sean: "Add it to the release workflow"): the `push-reminders` target deploys only the
+// gtl-push-reminders Edge Function, through every existing gate, and the frontend, api and api-and-frontend targets
+// keep exactly their previous deploy commands, configuration and verification.
+const releaseYaml = fs.readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+const API_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-api --project-ref "$SUPABASE_PROJECT_REF" --use-api';
+const WORKER_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-push-reminders --project-ref "$SUPABASE_PROJECT_REF" --use-api';
+const PAGES_DEPLOY = './node_modules/.bin/wrangler pages deploy .local/cloud-dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$RELEASE_SHA" --commit-dirty=false';
+
+/** The production job's steps as release.yml declares them: name, condition, directory, step env and one-line command. */
+function productionSteps() {
+  const job = releaseYaml.split(/^ {2}production:\n/m)[1];
+  assert.ok(job, 'release.yml has no production job');
+  return job.split(/^ {4}steps:\n/m)[1].split(/^ {6}- /m).slice(1).map(block => {
+    const field = key => block.match(new RegExp(`^(?: {8})?${key}: (.+)$`, 'm'))?.[1];
+    const env = block.match(/^ {8}env:\n((?: {10}.+\n?)+)/m)?.[1];
+    return { name: field('name') || field('uses'), if: field('if'), workingDirectory: field('working-directory'), run: field('run'),
+      env: env ? Object.fromEntries(env.trimEnd().split('\n').map(line => { const [key, ...value] = line.trim().split(': '); return [key, value.join(': ')]; })) : {} };
+  });
+}
+/** Evaluates the small GitHub expression subset the release steps use; anything else fails the test rather than guessing. */
+function stepRuns(condition, inputs) {
+  if (!condition) return true;
+  assert.match(condition, /^(?:\s+|inputs\.(?:mode|target)|'[a-z-]+'|==|!=|&&|\|\||[()]|always\(\))+$/, `Unsupported step condition: ${condition}`);
+  return Function('inputs', `return (${condition.replace(/always\(\)/g, 'true').replace(/(==|!=)/g, '$1=')});`)(inputs);
+}
+const stepsRun = (mode, target) => productionSteps().filter(step => stepRuns(step.if, { mode, target }));
+const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step.run).filter(run => / deploy /.test(run || ''));
+
+test('release.yml offers exactly the preflight targets, push-reminders included', () => {
+  const options = releaseYaml.match(/^ {6}target:\n(?: {8}.+\n)*? {8}options: \[([^\]]+)\]/m)?.[1].split(',').map(item => item.trim());
+  assert.deepEqual(options, TARGETS);
+  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders']);
+});
+
+test('each target deploys only its own component; push-reminders never deploys gtl-api or Pages', () => {
+  assert.deepEqual(deployCommands('deploy', 'frontend'), [PAGES_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'api'), [API_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'api-and-frontend'), [API_DEPLOY, PAGES_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'push-reminders'), [WORKER_DEPLOY]);
+  for (const target of TARGETS) for (const mode of ['check-only', 'readiness']) assert.deepEqual(deployCommands(mode, target), [], `${mode} ${target} deploys nothing`);
+});
+
+test('the worker deploy mirrors the API deploy step: same checkout directory, same single secret, project ref from the environment', () => {
+  const steps = productionSteps();
+  const api = steps.find(step => step.run === API_DEPLOY), worker = steps.find(step => step.run === WORKER_DEPLOY), pages = steps.find(step => step.run === PAGES_DEPLOY);
+  assert.ok(api && worker && pages);
+  assert.equal(worker.workingDirectory, 'source');
+  assert.equal(worker.workingDirectory, api.workingDirectory);
+  assert.deepEqual(worker.env, { SUPABASE_ACCESS_TOKEN: '${{ secrets.SUPABASE_ACCESS_TOKEN }}' });
+  assert.deepEqual(worker.env, api.env);
+  assert.deepEqual(pages.env, { CLOUDFLARE_API_TOKEN: '${{ secrets.CLOUDFLARE_API_TOKEN }}' });
+  const job = releaseYaml.split(/^ {2}production:\n/m)[1].split(/^ {4}steps:\n/m)[0];
+  assert.match(job, /^ {4}needs: source$/m);
+  assert.match(job, /^ {4}environment: production$/m);
+  assert.match(job, /^ {6}SUPABASE_PROJECT_REF: \$\{\{ vars\.SUPABASE_PROJECT_REF \}\}$/m);
+});
+
+test('push-reminders runs every API gate in the same order, with the worker deploy in the API deploy slot', () => {
+  const apiDeploy = productionSteps().find(step => step.run === API_DEPLOY).name;
+  const workerDeploy = productionSteps().find(step => step.run === WORKER_DEPLOY).name;
+  for (const mode of ['readiness', 'deploy']) {
+    assert.deepEqual(stepsRun(mode, 'push-reminders').map(step => step.name), stepsRun(mode, 'api').map(step => step.name === apiDeploy ? workerDeploy : step.name), mode);
+  }
+  const deploy = stepsRun('deploy', 'push-reminders').map(step => step.name);
+  for (const gate of ['Require environment configuration (names only on failure)', 'Build, scan and fingerprint exact release source', 'Recheck exact source and CI after environment approval', 'Read-only hosted preflight and schedule evidence']) {
+    assert.ok(deploy.indexOf(gate) >= 0 && deploy.indexOf(gate) < deploy.indexOf(workerDeploy), `${gate} runs before the worker deploy`);
+  }
+  assert.ok(deploy.indexOf('Verify live metadata, unchanged migration history, boundaries and frontend bytes') > deploy.indexOf(workerDeploy));
+});
+
+test('push-reminders is accepted with the same dispatch and deploy requirements as every other target', () => {
+  const env = request({ RELEASE_TARGET: 'push-reminders', GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_REF: 'refs/heads/main', GITHUB_REPOSITORY: REPOSITORY });
+  validateRequest(env);
+  validateRequest({ ...env, RELEASE_MODE: 'readiness' });
+  const deploy = { ...env, RELEASE_MODE: 'deploy', RELEASE_CARD: `https://github.com/${REPOSITORY}/pull/1`, RELEASE_HISTORY_SHA256: 'b'.repeat(64), RELEASE_COMPATIBLE: 'true' };
+  validateRequest(deploy);
+  for (const change of [{ RELEASE_CARD: '' }, { RELEASE_CARD: 'https://github.com/other/repo/pull/1' }, { RELEASE_HISTORY_SHA256: 'b'.repeat(63) }, { RELEASE_COMPATIBLE: 'false' }, { GITHUB_REF: 'refs/heads/feature' }]) {
+    assert.throws(() => validateRequest({ ...deploy, ...change }), JSON.stringify(change));
+  }
+  assert.throws(() => validateRequest({ ...env, RELEASE_TARGET: 'gtl-push-reminders' }));
+});
+
+test('configuration: push-reminders needs no Cloudflare values; the other targets need exactly what they did', () => {
+  const supabaseNames = ['SUPABASE_PROJECT_REF', 'VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_ACCESS_TOKEN'];
+  const cloudflareNames = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_PAGES_PROJECT', 'CLOUDFLARE_API_TOKEN'];
+  assert.deepEqual(configuration({}, 'push-reminders').missing, supabaseNames);
+  assert.deepEqual(configuration({}, 'api').missing, supabaseNames);
+  assert.deepEqual(configuration({}, 'frontend').missing, [...supabaseNames, ...cloudflareNames]);
+  assert.deepEqual(configuration({}, 'api-and-frontend').missing, [...supabaseNames, ...cloudflareNames]);
+  const env = { SUPABASE_PROJECT_REF: PROJECT, VITE_SUPABASE_URL: `https://${PROJECT}.supabase.co`, VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', SUPABASE_ACCESS_TOKEN: 'private' };
+  assert.deepEqual(configuration(env, 'push-reminders'), { ready: true, missing: [] });
+  assert.throws(() => configuration({ ...env, SUPABASE_PROJECT_REF: 'another-project' }, 'push-reminders'));
+});
+
+test('push-reminders source must keep the worker on its one-run capability (verify_jwt = false) before any API request', async t => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'gtl-release-worker-src-'));
+  t.after(() => fs.rmSync(cwd, { force: true, recursive: true }));
+  const git = (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  git('init', '-b', 'main'); git('config', 'user.email', 'test@example.invalid'); git('config', 'user.name', 'Test');
+  fs.mkdirSync(path.join(cwd, 'supabase'));
+  const commit = workerJwt => {
+    fs.writeFileSync(path.join(cwd, 'supabase/config.toml'), `[functions.gtl-api]\nverify_jwt = true\n\n[functions.gtl-push-reminders]\nverify_jwt = ${workerJwt}\n`);
+    git('add', '.'); git('commit', '-m', `worker verify_jwt ${workerJwt}`);
+    const head = git('rev-parse', 'HEAD'); git('update-ref', 'refs/remotes/origin/main', head);
+    return head;
+  };
+  const workflows = Object.keys(REQUIRED_CI);
+  let calls = 0;
+  const fake = async url => {
+    calls++;
+    const name = workflows.find(workflow => url.includes(`/workflows/${workflow}/runs?`));
+    if (name) return { ok: true, json: async () => ({ workflow_runs: [ciRun({ id: workflows.indexOf(name) + 1, head_sha: url.match(/head_sha=([a-f0-9]{40})/)[1], path: `.github/workflows/${name}` })] }) };
+    const index = Number(url.match(/\/runs\/(\d+)\//)[1]) - 1;
+    return { ok: true, json: async () => ({ total_count: REQUIRED_CI[workflows[index]].length, jobs: REQUIRED_CI[workflows[index]].map(job => ({ name: job, status: 'completed', conclusion: 'success' })) }) };
+  };
+  const safe = commit('false');
+  assert.equal((await checkSource(cwd, request({ RELEASE_SHA: safe, RELEASE_TARGET: 'push-reminders' }), fake)).target, 'push-reminders');
+  assert.equal(calls, 6);
+  const unsafe = commit('true');
+  await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: unsafe, RELEASE_TARGET: 'push-reminders' }), fake), /gtl-push-reminders/);
+  assert.equal(calls, 6);
+  // The rule is the worker target's alone: an API release does not deploy the worker and keeps its previous source gate.
+  await checkSource(cwd, request({ RELEASE_SHA: unsafe, RELEASE_TARGET: 'api' }), fake);
+  assert.equal(calls, 12);
+});
+
+/** A verify/preflight fixture: a boundary checker that passes unless a test sets globalThis.gtlBoundaryFailure. */
+function hostedFixture(t) {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'gtl-release-worker-'));
+  t.after(() => { fs.rmSync(cwd, { force: true, recursive: true }); delete globalThis.gtlBoundaryFailure; });
+  fs.mkdirSync(path.join(cwd, 'scripts')); fs.mkdirSync(path.join(cwd, 'tests'));
+  fs.writeFileSync(path.join(cwd, 'scripts/check-cloud-boundary.mjs'), 'export async function checkCloudBoundary() { if (globalThis.gtlBoundaryFailure) throw new Error(globalThis.gtlBoundaryFailure); return { checked: 10, denied: 10, awaiting: [] }; }');
+  fs.writeFileSync(path.join(cwd, 'tests/migrations.mjs'), 'export const NOT_HOSTED = [];');
+  const migrations = [{ version: '20261008164249', name: 'base' }];
+  const functions = [
+    { slug: 'gtl-api', version: 31, status: 'ACTIVE', verify_jwt: true, bundleSha256: 'b'.repeat(64) },
+    { slug: 'gtl-push-reminders', version: 4, status: 'ACTIVE', verify_jwt: false, bundleSha256: 'c'.repeat(64) },
+    { slug: 'gtl-week-open', version: 3, status: 'ACTIVE', verify_jwt: false, bundleSha256: null },
+  ];
+  const state = { functions, migrations, calls: [] };
+  const fake = async (url, options = {}) => {
+    state.calls.push(url);
+    assert.ok(url.startsWith(`https://api.supabase.com/v1/projects/${PROJECT}/`), `Unexpected request ${url}`);
+    if (url.endsWith('/functions')) return { ok: true, json: async () => state.functions.map(({ bundleSha256, ...item }) => ({ ...item, ezbr_sha256: bundleSha256 })) };
+    assert.ok(url.endsWith('/database/query/read-only') && options.method === 'POST');
+    return { ok: true, json: async () => [{ observed_at: new Date(Date.now()).toISOString(), migrations: state.migrations, slates: slate(['2026-10-30T00:15:00Z', '2026-11-03T01:15:00Z']) }] };
+  };
+  const before = { functions, observedAt: '2026-10-26T20:00:00Z', migrationHistorySha256: migrationDigest(migrations), pendingRepoMigrations: [] };
+  const change = (slug, values) => functions.map(item => item.slug === slug ? { ...item, ...values } : item);
+  return { cwd, state, fake, before, change, migrations };
+}
+
+test('hosted preflight for push-reminders reads no Pages state and requires the existing worker', async t => {
+  const { cwd, state, fake, migrations } = hostedFixture(t);
+  t.mock.method(Date, 'now', () => Date.parse('2026-10-26T20:00:00Z'));
+  const env = request({ RELEASE_TARGET: 'push-reminders', RELEASE_MODE: 'deploy', RELEASE_HISTORY_SHA256: migrationDigest(migrations), SUPABASE_PROJECT_REF: PROJECT, VITE_SUPABASE_URL: `https://${PROJECT}.supabase.co`, VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', SUPABASE_ACCESS_TOKEN: 'private-value' });
+  const before = await livePreflight(cwd, env, fake);
+  assert.equal(before.target, 'push-reminders');
+  assert.equal(before.previousPages, null);
+  assert.equal(state.calls.length, 2);
+  assert.equal(before.functions.find(item => item.slug === 'gtl-push-reminders').version, 4);
+  assert.ok(!JSON.stringify(before).includes('private-value'));
+  await assert.rejects(livePreflight(cwd, { ...env, RELEASE_HISTORY_SHA256: 'a'.repeat(64) }, fake), /differs/);
+  state.functions = state.functions.filter(item => item.slug !== 'gtl-push-reminders');
+  await assert.rejects(livePreflight(cwd, env, fake), /push reminder worker/);
+});
+
+test('push-reminders verification: only the worker changes, by exactly one version, ACTIVE with JWT verification off', async t => {
+  const { cwd, state, fake, before, change, migrations } = hostedFixture(t);
+  const env = request({ RELEASE_TARGET: 'push-reminders', RELEASE_MODE: 'deploy' });
+  const deployed = (values = {}) => change('gtl-push-reminders', { version: 5, bundleSha256: 'e'.repeat(64), ...values });
+  state.functions = deployed();
+  const report = await verifyRelease(cwd, env, before, fake);
+  assert.deepEqual(report.pushReminders, { slug: 'gtl-push-reminders', version: 5, status: 'ACTIVE', verify_jwt: false, bundleSha256: 'e'.repeat(64) });
+  assert.equal(report.pushRemindersSourceVerified, false);
+  assert.deepEqual(report.api, before.functions[0]);
+  assert.equal(report.pages, null, 'the frontend is not deployed or checked');
+  assert.equal(report.target, 'push-reminders');
+  assert.ok(state.calls.every(url => url.startsWith('https://api.supabase.com/')), 'no Cloudflare or Pages request');
+
+  for (const [values, error] of [
+    [{ version: 4, bundleSha256: 'c'.repeat(64) }, /exactly one push reminder worker version/],
+    [{ version: 6 }, /exactly one push reminder worker version/],
+    [{ verify_jwt: true }, /JWT verification off/],
+    [{ status: 'THROTTLED' }, /ACTIVE/],
+    [{ bundleSha256: null }, /bundle digest/],
+  ]) {
+    state.functions = deployed(values);
+    await assert.rejects(verifyRelease(cwd, env, before, fake), error, JSON.stringify(values));
+  }
+  state.functions = deployed().filter(item => item.slug !== 'gtl-push-reminders');
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /push reminder worker must be ACTIVE/);
+
+  for (const values of [{ version: 32 }, { bundleSha256: 'f'.repeat(64) }]) {
+    state.functions = deployed().map(item => item.slug === 'gtl-api' ? { ...item, ...values } : item);
+    await assert.rejects(verifyRelease(cwd, env, before, fake), /API changed during push-reminders-only release/, JSON.stringify(values));
+  }
+  state.functions = deployed().map(item => item.slug === 'gtl-api' ? { ...item, verify_jwt: false } : item);
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /JWT verification/);
+  state.functions = deployed().map(item => item.slug === 'gtl-week-open' ? { ...item, version: 4 } : item);
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /Another Edge function changed/);
+  state.functions = [...deployed(), { slug: 'gtl-zz-new', version: 1, status: 'ACTIVE', verify_jwt: false, bundleSha256: null }];
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /Another Edge function changed/);
+
+  state.functions = deployed();
+  state.migrations = [...migrations, { version: '20261026000000', name: 'drift' }];
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /Migration history changed/);
+  state.migrations = migrations;
+  globalThis.gtlBoundaryFailure = 'POST scheduled reminders without machine token: unexpected 200';
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /scheduled reminders/);
+  delete globalThis.gtlBoundaryFailure;
+  assert.equal((await verifyRelease(cwd, env, before, fake)).pushReminders.version, 5);
+});
+
+test('existing targets: any function other than gtl-api changing still fails, the reminder worker included', async t => {
+  const { cwd, state, fake, before, change } = hostedFixture(t);
+  for (const target of ['frontend', 'api', 'api-and-frontend']) {
+    const env = request({ RELEASE_TARGET: target, RELEASE_MODE: 'deploy' });
+    const api = target === 'frontend' ? {} : { version: 32 };
+    state.functions = change('gtl-push-reminders', { version: 5 }).map(item => item.slug === 'gtl-api' ? { ...item, ...api } : item);
+    await assert.rejects(verifyRelease(cwd, env, before, fake), /Another Edge function changed/, target);
+  }
+  // Unchanged rules and report shape for the API-only and frontend-only targets.
+  state.functions = change('gtl-api', { version: 32 });
+  const report = await verifyRelease(cwd, request({ RELEASE_TARGET: 'api', RELEASE_MODE: 'deploy' }), before, fake);
+  assert.deepEqual(Object.keys(report), ['requestedSource', 'target', 'checkedAt', 'api', 'pages', 'boundary', 'apiDeploymentMetadataVerified', 'apiSourceVerified', 'apiBundleMatchesCheckout', 'apiSourceLimitation', 'migrationHistorySha256', 'pendingRepoMigrations', 'limitation']);
+  assert.equal(report.api.version, 32);
+  await assert.rejects(verifyRelease(cwd, request({ RELEASE_TARGET: 'frontend', RELEASE_MODE: 'deploy' }), before, fake), /API changed during frontend-only release/);
+  state.functions = change('gtl-api', { version: 33 });
+  await assert.rejects(verifyRelease(cwd, request({ RELEASE_TARGET: 'api-and-frontend', RELEASE_MODE: 'deploy' }), before, fake), /exactly one API version/);
 });

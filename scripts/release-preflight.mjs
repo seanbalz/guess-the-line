@@ -8,7 +8,17 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 export const REPOSITORY = 'seanbalz/guess-the-lines-repo';
 export const PROJECT = 'onmrgvcehkflfaizvedl';
 export const ACCOUNT = '83bd659d712e968e7a61efa14107465a';
-export const TARGETS = ['frontend', 'api', 'api-and-frontend'];
+export const PUSH_REMINDERS = 'gtl-push-reminders';
+/** What each target deploys: at most one Edge Function (with its supabase/config.toml settings) and whether Pages is uploaded. */
+export const TARGET_DEPLOYS = Object.freeze({
+  frontend: Object.freeze({ edgeFunction: null, pages: true }),
+  api: Object.freeze({ edgeFunction: 'gtl-api', pages: false }),
+  'api-and-frontend': Object.freeze({ edgeFunction: 'gtl-api', pages: true }),
+  // Sean, October 26, 2026: "Add it to the release workflow". Only the D-28 reminder worker; never gtl-api or Pages.
+  'push-reminders': Object.freeze({ edgeFunction: PUSH_REMINDERS, pages: false }),
+});
+export const TARGETS = Object.keys(TARGET_DEPLOYS);
+const deploys = target => { assert.ok(Object.hasOwn(TARGET_DEPLOYS, target), 'Unknown release target.'); return TARGET_DEPLOYS[target]; };
 export const REQUIRED_CI = {
   'test.yml': ['Typecheck and test'],
   'dashboard-checks.yml': ['dashboard', 'Persona suite'],
@@ -29,7 +39,7 @@ const fail = message => { throw new Error(message); };
 
 export function validateRequest(env) {
   assert.match(env.RELEASE_SHA || '', /^[a-f0-9]{40}$/, 'Use a full lowercase 40-character source SHA.');
-  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, or api-and-frontend.');
+  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, or push-reminders.');
   assert.ok(['check-only', 'readiness', 'deploy'].includes(env.RELEASE_MODE), 'Unknown release mode.');
   if (env.GITHUB_ACTIONS === 'true') {
     assert.equal(env.GITHUB_EVENT_NAME, 'workflow_dispatch', 'Releases are manual only.');
@@ -46,14 +56,15 @@ export function validateRequest(env) {
 }
 
 export function configuration(env, target) {
+  const { pages } = deploys(target);
   const needed = ['SUPABASE_PROJECT_REF', 'VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_ACCESS_TOKEN'];
-  if (target !== 'api') needed.push('CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_PAGES_PROJECT', 'CLOUDFLARE_API_TOKEN');
+  if (pages) needed.push('CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_PAGES_PROJECT', 'CLOUDFLARE_API_TOKEN');
   const missing = needed.filter(name => !env[name]);
   if (missing.length) return { ready: false, missing };
   assert.equal(env.SUPABASE_PROJECT_REF, PROJECT, 'Unexpected Supabase project.');
   assert.equal(env.VITE_SUPABASE_URL, `https://${PROJECT}.supabase.co`, 'Unexpected Supabase URL.');
   assert.ok(/^sb_publishable_[A-Za-z0-9_-]+$/.test(env.VITE_SUPABASE_PUBLISHABLE_KEY), 'Use the public publishable key, never a service key.');
-  if (target !== 'api') {
+  if (pages) {
     assert.equal(env.CLOUDFLARE_ACCOUNT_ID, ACCOUNT, 'Unexpected Cloudflare account.');
     assert.equal(env.CLOUDFLARE_PAGES_PROJECT, 'guess-the-line', 'Unexpected Pages project.');
   }
@@ -87,8 +98,12 @@ export async function checkSource(cwd, env, fetchImpl = fetch) {
   try { git(cwd, 'merge-base', '--is-ancestor', env.RELEASE_SHA, 'refs/remotes/origin/main'); }
   catch { fail('The source SHA must be reachable from fetched origin/main.'); }
   const config = fs.readFileSync(path.join(cwd, 'supabase/config.toml'), 'utf8');
-  const apiConfig = config.split('[functions.gtl-api]')[1]?.split(/^\[/m)[0] || '';
-  assert.match(apiConfig, /^verify_jwt\s*=\s*true\s*$/m, 'Release source must retain gtl-api JWT verification.');
+  const functionConfig = slug => config.split(`[functions.${slug}]`)[1]?.split(/^\[/m)[0] || '';
+  assert.match(functionConfig('gtl-api'), /^verify_jwt\s*=\s*true\s*$/m, 'Release source must retain gtl-api JWT verification.');
+  // The deploy applies config.toml; the cron calls the worker with a one-run capability (checked in SQL), not a user JWT.
+  if (deploys(env.RELEASE_TARGET).edgeFunction === PUSH_REMINDERS) {
+    assert.match(functionConfig(PUSH_REMINDERS), /^verify_jwt\s*=\s*false\s*$/m, 'Release source must keep gtl-push-reminders on its one-run capability (verify_jwt = false).');
+  }
   const base = `https://api.github.com/repos/${REPOSITORY}`;
   const checks = [];
   for (const workflow of Object.keys(REQUIRED_CI)) {
@@ -148,6 +163,7 @@ function functionSummary(list) {
 }
 
 export async function livePreflight(cwd, env, fetchImpl = fetch) {
+  const scope = deploys(env.RELEASE_TARGET);
   const config = configuration(env, env.RELEASE_TARGET);
   assert.ok(config.ready, `Missing configuration: ${config.missing.join(', ')}`);
   const rows = await supabase('database/query/read-only', env, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: LIVE_QUERY }) }, fetchImpl);
@@ -160,8 +176,12 @@ export async function livePreflight(cwd, env, fetchImpl = fetch) {
   const functions = functionSummary(await supabase('functions', env, {}, fetchImpl));
   const api = functions.find(item => item.slug === 'gtl-api');
   assert.ok(api?.status === 'ACTIVE' && api.verify_jwt === true, 'Hosted API must be ACTIVE with JWT verification.');
+  if (scope.edgeFunction === PUSH_REMINDERS) {
+    // Verification expects exactly one version increment, so the worker must already exist; this workflow never creates it.
+    assert.ok(Number.isInteger(functions.find(item => item.slug === PUSH_REMINDERS)?.version), 'Hosted push reminder worker is missing; this workflow updates the existing worker and never creates it.');
+  }
   let previousPages = null;
-  if (env.RELEASE_TARGET !== 'api') {
+  if (scope.pages) {
     const result = await jsonRequest(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/pages/projects/guess-the-line`, env.CLOUDFLARE_API_TOKEN, {}, fetchImpl);
     assert.ok(result.success && result.result?.production_branch === 'main', 'Pages production branch must be main.');
     const prior = result.result.canonical_deployment;
@@ -174,21 +194,33 @@ export async function livePreflight(cwd, env, fetchImpl = fetch) {
 }
 
 export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
+  const scope = deploys(env.RELEASE_TARGET);
   const after = functionSummary(await supabase('functions', env, {}, fetchImpl));
+  const prior = slug => before.functions.find(item => item.slug === slug);
   const api = after.find(item => item.slug === 'gtl-api');
   assert.ok(api?.status === 'ACTIVE' && api.verify_jwt === true, 'Deployed API must be ACTIVE with JWT verification.');
-  assert.deepEqual(after.filter(item => item.slug !== 'gtl-api'), before.functions.filter(item => item.slug !== 'gtl-api'), 'Another Edge function changed during release; review before continuing.');
-  if (env.RELEASE_TARGET !== 'frontend') {
-    assert.equal(api.version, before.functions.find(item => item.slug === 'gtl-api').version + 1, 'Expected exactly one API version increment; investigate missing or concurrent deployments.');
+  // gtl-api and the target's own function are checked below; every other function must keep version, status, JWT setting and bundle digest.
+  const others = list => list.filter(item => item.slug !== 'gtl-api' && item.slug !== scope.edgeFunction);
+  assert.deepEqual(others(after), others(before.functions), 'Another Edge function changed during release; review before continuing.');
+  if (scope.edgeFunction === 'gtl-api') {
+    assert.equal(api.version, prior('gtl-api').version + 1, 'Expected exactly one API version increment; investigate missing or concurrent deployments.');
     assert.ok(/^[a-f0-9]{64}$/.test(api.bundleSha256 || ''), 'Hosted API bundle digest is missing or malformed.');
   }
-  else assert.deepEqual(api, before.functions.find(item => item.slug === 'gtl-api'), 'API changed during frontend-only release.');
+  else assert.deepEqual(api, prior('gtl-api'), `API changed during ${env.RELEASE_TARGET}-only release.`);
+  let pushReminders = null;
+  if (scope.edgeFunction === PUSH_REMINDERS) {
+    pushReminders = after.find(item => item.slug === PUSH_REMINDERS) || null;
+    assert.ok(pushReminders?.status === 'ACTIVE' && pushReminders.verify_jwt === false, 'Deployed push reminder worker must be ACTIVE with gateway JWT verification off (its one-run capability is checked in SQL).');
+    assert.ok(Number.isInteger(prior(PUSH_REMINDERS)?.version), 'The pre-deploy report has no push reminder worker version.');
+    assert.equal(pushReminders.version, prior(PUSH_REMINDERS).version + 1, 'Expected exactly one push reminder worker version increment; investigate missing or concurrent deployments.');
+    assert.ok(/^[a-f0-9]{64}$/.test(pushReminders.bundleSha256 || ''), 'Hosted push reminder worker bundle digest is missing or malformed.');
+  }
   const rows = await supabase('database/query/read-only', env, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: LIVE_QUERY }) }, fetchImpl);
   assert.equal(migrationDigest(rows[0]?.migrations), before.migrationHistorySha256, 'Migration history changed during release.');
   const { checkCloudBoundary } = await import(pathToFileURL(path.join(cwd, 'scripts/check-cloud-boundary.mjs')));
   const boundary = await checkCloudBoundary({ url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_PUBLISHABLE_KEY, fetchImpl, log: () => {} });
   let pages = null;
-  if (env.RELEASE_TARGET !== 'api') {
+  if (scope.pages) {
     const result = await jsonRequest(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/pages/projects/guess-the-line/deployments?env=production`, env.CLOUDFLARE_API_TOKEN, {}, fetchImpl);
     assert.ok(result.success, 'Could not inspect Pages deployment.');
     const deployment = result.result.find(item => item.deployment_trigger?.metadata?.commit_hash === env.RELEASE_SHA
@@ -211,6 +243,8 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
     pages = { id: deployment.id, url: deployment.url, productionUrl: 'https://guess-the-line.pages.dev', checkedAssetsPerUrl: served.length, frontendSha256: manifest.frontendSha256 };
   }
   return { requestedSource: env.RELEASE_SHA, target: env.RELEASE_TARGET, checkedAt: new Date().toISOString(), api, pages, boundary,
+    ...(pushReminders ? { pushReminders, pushRemindersSourceVerified: false,
+      pushRemindersSourceLimitation: 'The worker was deployed from the clean requested checkout and its remote bundle digest is recorded, but remote worker bytes have not been independently matched to that checkout. The frontend was neither deployed nor checked.' } : {}),
     apiDeploymentMetadataVerified: true, apiSourceVerified: false, apiBundleMatchesCheckout: 'not-independently-verified',
     apiSourceLimitation: 'The deploy command uses the clean requested checkout. The remote bundle digest is recorded, but remote API bytes have not been independently matched to that checkout. API source acceptance remains a manual release-record gate.',
     migrationHistorySha256: before.migrationHistorySha256, pendingRepoMigrations: before.pendingRepoMigrations,
@@ -220,7 +254,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
 export async function main(args, env = process.env) {
   const [command, ...rest] = args;
   if (!command || command === '--help') {
-    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
+    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
     return;
   }
   assert.ok(['source', 'configuration', 'live', 'verify'].includes(command), 'Unknown preflight command.');
