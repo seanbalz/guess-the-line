@@ -74,6 +74,58 @@ PGlite; **nothing below is applied or deployed**. Each migration waits for Sean'
   - `tests/feed-cloud.test.mjs`: body checks, the off switch, and the reply rebuilt from known keys.
   - `tests/cloud-boundary.test.mjs`: the M-21 pieces and the route are awaiting deploy.
 
+### League feed reader and comments (M-22, stage 62)
+
+`20261026132000_gtl_league_feed.sql`. Medium risk. Apply after M-13 and M-21 (`REQUIRES` in `tests/migrations.mjs`).
+Rollback: `supabase/rollback/20261026132000_gtl_league_feed.sql` restores `gtl_comment_feed`; the added functions stay.
+Every function is service-only.
+
+- **Which posts a league's feed lists** (`gtl_feed_in_league`). The Community feed lists every Community post
+  (`league_id` null). A group's feed lists its own posts, the system posts (`week_published`, `kickoff`) and the
+  Community posts of anyone ever on its roster (D-23: a member who left keeps their posts). Reading a group needs active
+  membership (`GTL_LEAGUE_MEMBER`, 403).
+- **Per-viewer embeds** (`gtl_feed_embed`, the one place a post's details are built). No payload ever passes through raw.
+  - A ballot post's picks pass one game at a time: the actor's own, or the actor's locked-in guess on a game the viewer
+    may see (M-01's `gtl_guess_revealed`). Withheld games are named in `hiddenGames`.
+  - A shared result passes its guess and points on the same terms (D-50: other players' per-game scores follow the reveal
+    gate). A hidden one carries only its game.
+  - A kickoff post lists, per game, who is in (a locked-in guess, never its number) and how many Virtual Units bets it has
+    (D-36: bets are visible any time). A group's feed counts its roster only.
+  - A Bet Tracker post carries its entry id only; a real slip's legs stay behind M-04's gate on `/social/read`.
+  - Kinds whose writers come later (M-15, M-17, M-25) get an empty embed until those migrations replace this function.
+- **`gtl_read_league_feed`** returns one page, newest first. It pages by keyset on `(created_at, id)`, so posts at the
+  same time page correctly, and a post dated later (a kickoff post) lists from its time. Each post carries its reaction
+  summary, its newest two comments and its comment count, alongside every profile's name and, for a group, its roster.
+- **`gtl_read_post_comments`** returns a visible post's comments a page at a time (the newest page first, each page read
+  oldest first). **`gtl_read_post_reactors`** returns who reacted to a visible post, and with what.
+- **`gtl_comment_feed`** keeps its arguments and its reply. It accepts a comment only on a post visible to the member now;
+  a replay of a saved comment still answers with its id.
+- **`gtl_share_result`** posts the caller's own locked-in, eligible, scored guess for one game as a `result_shared` post,
+  to the Community or to one of their groups. There is one post per result and league, and a repeat answers the stored
+  post. A guess that is not scored yet is refused with `GTL_RESULT_UNAVAILABLE` (409).
+- **Routes** (`cloud/feed.mjs`), each rebuilt from known keys with a second gate (a number under a withheld game, or a
+  hidden result's guess or points, never passes):
+  - `POST /league/feed` `{ leagueId?, before?: { at, id }, limit? }` answers
+    `{ viewer, leagueId, now, members, roster, posts[], next }`.
+  - `/league/comments` `{ postId, before?, limit? }` answers `{ postId, total, comments, next }`.
+  - `/league/reactors` `{ postId }` answers `{ postId, reactors }`.
+  - `/league/share-result` `{ requestId, leagueId?, season, week, mode, gameId }` answers `{ postId, replayed }`.
+  - Comments are still written through `/community/comment`.
+  - Each route answers 503 until M-22 is applied, and while `GTL_FEATURE_OFF` names `feed`; the new app then shows the
+    Community feed from `/community/read`.
+- **Tests:**
+  - `tests/league-feed-sql.test.mjs`:
+    - the leak scan over every embed, comment list and reactor list, before and after the viewer locks in;
+    - group scope;
+    - paging at a shared timestamp;
+    - comments and reactors;
+    - result sharing;
+    - kickoff embeds;
+    - service-only grants;
+    - on `HOSTED`, 503 from the new routes and the old routes unchanged.
+  - `tests/feed-cloud.test.mjs` for the handler.
+  - `/league/feed` joins the leak scan's `READERS` (with `READER_MIGRATIONS` until M-22 is applied).
+
 ## Historical implementation and release notes
 
 The dated sections below preserve their original implementation state and API

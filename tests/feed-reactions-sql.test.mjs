@@ -116,7 +116,7 @@ test('on the hosted schema (no M-21) /league/react answers 503 and /community/li
   t.after(() => w.db.close());
   const post = (await w.db.query("select id from public.gtl_feed_posts where kind='ballot_submitted' limit 1")).rows[0].id;
   const refused = await w.api('luke', 'league/react', { postId: post, reaction: 'fire' });
-  assert.deepEqual([refused.status, refused.body.error], [503, 'Reactions are not available right now. Nothing was changed.']);
+  assert.deepEqual([refused.status, refused.body.error], [503, 'This part of the feed is not available right now. Nothing was changed.']);
   assert.deepEqual((await w.api('luke', 'community/like', { postId: post, like: true })).body, { likes: 1, likedByMe: true });
   assert.deepEqual((await w.api('luke', 'community/like', { postId: post, like: false })).body, { likes: 0, likedByMe: false });
 });
