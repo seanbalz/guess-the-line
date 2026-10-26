@@ -3,7 +3,7 @@
 // plot picks the nearest season and a range input does the same from the keyboard (eight 40px-wide columns would be
 // under the 44px target), and the glass tooltip shows that season's record and units. The table below is the record.
 import { useState } from 'react';
-import { nearestIndex, recordText, signed, stemLayout } from './geometry.js';
+import { recordText, signed, stemLayout } from './geometry.js';
 
 /** `seasons` are `{ season, w, l, p, units }`; the latest season starts selected. */
 export function SeasonStems({ seasons }) {
@@ -15,7 +15,7 @@ export function SeasonStems({ seasons }) {
   const x = count ? ((at + 0.5) / count) * 100 : 0;
   const follow = event => {
     const box = event.currentTarget.getBoundingClientRect();
-    if (box.width > 0) setPicked(Math.min(count - 1, Math.floor(((event.clientX - box.left) / box.width) * count)));
+    if (box.width > 0) setPicked(Math.max(0, Math.min(count - 1, Math.floor(((event.clientX - box.left) / box.width) * count))));
   };
   const text = s => `${s.season}: ${recordText(s.w, s.l, s.p)}, ${signed(s.units)} units, ${s.units >= 0 ? 'above' : 'below'} break-even`;
   return (
@@ -24,7 +24,12 @@ export function SeasonStems({ seasons }) {
         <span className="gx-tc-tip-value">{signed(shown.units)} U</span>
         <span className="gx-tc-tip-label">{shown.season} · {recordText(shown.w, shown.l, shown.p)}</span>
       </div>
-      <div className="gx-tc-stems" onPointerDown={follow} onPointerMove={follow} role="img" aria-label={`Units by season: ${seasons.map(text).join('; ')}`}>
+      <div className="gx-tc-stems" onPointerDown={event => {
+        if (!event.isPrimary || event.button !== 0) return;
+        event.currentTarget.setPointerCapture(event.pointerId); follow(event);
+      }} onPointerMove={follow} onPointerUp={event => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      }} role="img" aria-label={`Units by season: ${seasons.map(text).join('; ')}`}>
         <span className="gx-tc-stems-zero" style={{ top: `${layout.zeroY * 100}%` }}></span>
         {seasons.map((s, i) => {
           const stem = layout.stems[i];

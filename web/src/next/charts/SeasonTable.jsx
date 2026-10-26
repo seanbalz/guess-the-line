@@ -7,7 +7,7 @@ export function SeasonTable({ seasons, caption }) {
     <div className="gx-tc-table-wrap">
       <table className="gx-tc-table">
         <caption className="gx-sr-only">{caption}</caption>
-        <thead className="gx-sr-only"><tr><th scope="col">Season</th><th scope="col">Record</th><th scope="col">Win rate</th><th scope="col">Units</th></tr></thead>
+        <thead><tr><th scope="col">Season</th><th scope="col">Record</th><th scope="col">Win rate</th><th scope="col">Units</th></tr></thead>
         <tbody>
           {seasons.map(s => {
             const pct = hitPct(s.w, s.l);
@@ -16,11 +16,11 @@ export function SeasonTable({ seasons, caption }) {
                 <th scope="row">{s.season}</th>
                 <td>{recordText(s.w, s.l, s.p)}</td>
                 <td className="gx-tc-table-bar">
-                  <span className="gx-tc-bar" aria-hidden="true">
-                    <span className={pct !== null && pct < BREAK_EVEN_PCT ? 'gx-tc-bar-fill gx-tc-bar-fill--below' : 'gx-tc-bar-fill'} style={{ width: `${pct ?? 0}%` }}></span>
+                  <span className="gx-tc-table-rate">{pct === null ? <><span aria-hidden="true">—</span><span className="gx-sr-only">No decided games</span></> : `${pct}%`}</span>
+                  {pct !== null && <span className="gx-tc-bar" aria-hidden="true">
+                    <span className={pct < BREAK_EVEN_PCT ? 'gx-tc-bar-fill gx-tc-bar-fill--below' : 'gx-tc-bar-fill'} style={{ width: `${pct}%` }}></span>
                     <span className="gx-tc-bar-tick" style={{ left: `${BREAK_EVEN_PCT}%` }}></span>
-                  </span>
-                  <span className="gx-sr-only">{pct === null ? '—' : `${pct}%`}</span>
+                  </span>}
                 </td>
                 <td>{signed(s.units)}</td>
               </tr>

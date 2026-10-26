@@ -86,9 +86,10 @@
 
 /* ----- glass tooltip shared by the line and the stems ----- */
 .gx-tc-line,
-.gx-tc-seasons { position: relative; padding-top: 56px; }
+.gx-tc-seasons { position: relative; display: flex; flex-direction: column; gap: var(--gx-space-2); }
 .gx-tc-tip {
-  position: absolute;
+  position: relative;
+  max-width: 100%;
   top: 0;
   display: flex;
   flex-direction: column;
@@ -179,13 +180,21 @@
 .gx-tc-table th,
 .gx-tc-table td { padding: 8px 10px; text-align: left; font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 .gx-tc-table td:nth-child(2) { color: var(--gx-hero-text-2); }
+.gx-tc-table thead th { font: 600 13px/18px var(--gx-font-body); color: var(--gx-hero-text-2); border-bottom: 1px solid var(--gx-glass-line); }
+.gx-tc-table thead th:last-child,
 .gx-tc-table td:last-child { text-align: right; }
-.gx-tc-table-bar { width: 40%; }
+.gx-tc-table-bar { width: 35%; }
+.gx-tc-table-rate { display: block; }
+.gx-tc-table-bar .gx-tc-bar { margin-bottom: 4px; }
 .gx-tc-table tbody tr + tr > * { border-top: 1px solid var(--gx-glass-line); }
 
 @media (max-width: 359px) {
   .gx-tc-mini { display: none; }
   .gx-tc-big { font-size: 48px; line-height: 48px; }
+  .gx-tc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gx-tc-tile:last-child:nth-child(3) { grid-column: 1 / -1; }
+  .gx-tc-table th,
+  .gx-tc-table td { padding-inline: var(--gx-space-1); font-size: 13px; line-height: 18px; white-space: nowrap; }
 }
 @media (forced-colors: active) {
   .gx-tc-card,

@@ -22,3 +22,7 @@ verify_jwt = false
 [functions.gtl-points-jobs]
 # D-56 P-03 Guess the Points slate, actuals and finalize jobs; same one-run capability pattern as gtl-week-open.
 verify_jwt = false
+
+[functions.gtl-fantasy-ingest]
+# D-59 fantasy feed uploads from Sean's exporter; its own upload secret replaces the JWT check.
+verify_jwt = false

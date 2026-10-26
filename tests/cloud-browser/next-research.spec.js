@@ -7,7 +7,7 @@ test.use({ viewport: { width: 320, height: 844 } });
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required. No hosted data.'));
 
 // Every research result in this spec is synthetic, returned through the real authenticated handler.
-function syntheticResearch({ expiry = false, delay = false } = {}) {
+function syntheticResearch({ expiry = false, delay = false, historyStatus = 'fresh' } = {}) {
   const calls = [];
   let release, held, expireAt;
   const gate = new Promise(resolve => { release = resolve; });
@@ -24,7 +24,7 @@ function syntheticResearch({ expiry = false, delay = false } = {}) {
     const group = (id, member, direction, role) => ({ id, memberIds: [`synthetic-${member}`], direction, role, mixed: false, overlaps: [] });
     const supporting = [group('support-a', 'a', 'over', 'support'), group('support-b', 'b', 'over', 'support')], alternatives = [group('opposition', 'opposition', 'under', 'alternative')];
     const ids = candidates.map(c => c.id), shortlist = ids.slice(0, 3);
-    return { version: 'synthetic-browser-v1', now: new Date(now).toISOString(), season: board.season, week: board.week, shortlist, candidates, explore: ids.filter(id => !filters.family || candidates.find(c => c.id === id).family === filters.family), history: { status: 'fresh', snapshotAsOf: '2026-10-21T00:00:00Z', periodAnchor: '2026-10-21T00:00:00Z' }, sources: [{ id: 'synthetic-source', name: 'Synthetic source', status: 'unavailable', checkedAt: null, plays: [] }], trent: { id: 'bookitwithtrent', name: 'Book It With Trent', status: 'unavailable', checkedAt: null, plays: [] }, filters: { families: ['rest', 'schedule'] }, games: board.games.map(g => ({ id: g.id, kickoff: expiry && expiry !== 'quote' ? new Date(expireAt).toISOString() : g.kickoff, spread: { visible: false }, total: !g.total.visible ? { visible: false } : { visible: true, ownGuess: g.mine?.total?.guess, savedReference: g.mine?.total?.lineAtGuess, currentReference: { ...g.total, observedAt: new Date(expiry === 'quote' ? expireAt - 12 * 3600000 : now - 60000).toISOString() }, guessGap: { value: 2 }, candidateIds: ids, shortlist, lean: { state: expiry && now >= expireAt ? 'unavailable' : 'lean', label: expiry && now >= expireAt ? 'Research unavailable' : 'Research lean: over', direction: 'over', reasons: expiry && now >= expireAt ? [expiry === 'quote' ? 'reference_stale' : 'not_pregame'] : [], supporting, alternatives, groups: [...supporting, ...alternatives], context: ['synthetic-emerging'] } } })) };
+    return { version: 'synthetic-browser-v1', now: new Date(now).toISOString(), season: board.season, week: board.week, shortlist, candidates, explore: ids.filter(id => !filters.family || candidates.find(c => c.id === id).family === filters.family), history: { status: historyStatus, snapshotAsOf: '2026-10-21T00:00:00Z', periodAnchor: '2026-10-21T00:00:00Z', source: { credit: 'Fixture nflverse credit', url: 'https://example.test/history', modified: 'Fixture derived historical records.', caveat: 'Fixture estimates are not forecasts.', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/' } }, sources: [{ id: 'synthetic-source', name: 'Synthetic source', status: 'unavailable', checkedAt: null, plays: [] }], trent: { id: 'bookitwithtrent', name: 'Book It With Trent', status: 'unavailable', checkedAt: null, plays: [] }, filters: { families: ['rest', 'schedule'] }, games: board.games.map(g => ({ id: g.id, kickoff: expiry && expiry !== 'quote' ? new Date(expireAt).toISOString() : g.kickoff, spread: { visible: false }, total: !g.total.visible ? { visible: false } : { visible: true, ownGuess: g.mine?.total?.guess, savedReference: g.mine?.total?.lineAtGuess, currentReference: { ...g.total, observedAt: new Date(expiry === 'quote' ? expireAt - 12 * 3600000 : now - 60000).toISOString() }, guessGap: { value: 2 }, candidateIds: ids, shortlist, lean: { state: expiry && now >= expireAt ? 'unavailable' : 'lean', label: expiry && now >= expireAt ? 'Research unavailable' : 'Research lean: over', direction: 'over', reasons: expiry && now >= expireAt ? [expiry === 'quote' ? 'reference_stale' : 'not_pregame'] : [], supporting, alternatives, groups: [...supporting, ...alternatives], context: ['synthetic-emerging'] } } })) };
   } };
   return { provider, calls, release, get held() { return held; } };
 }
@@ -66,6 +66,25 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
     await expect(dialog.locator('.gx-r-support').first()).toContainText('Supports the lean');
     await expect(dialog.getByText('Spread research is locked.', { exact: false }).first()).toBeVisible();
     await expect(dialog.locator('[data-research-market="spread"]')).toHaveCount(0);
+    await expect(dialog.getByText('History: fresh', { exact: true })).toBeVisible();
+    await expect(dialog.getByText(/Snapshot:/)).toHaveCount(0);
+    const dataInfo = dialog.getByRole('button', { name: 'About research data', exact: true });
+    await dataInfo.click();
+    const provenance = page.getByRole('dialog', { name: 'About research data', exact: true });
+    await expect(provenance).toContainText('Snapshot: 2026-10-21T00:00:00Z');
+    await expect(provenance).toContainText('Period anchored to');
+    await expect(provenance).toContainText('Filters change this list');
+    await expect(provenance).toContainText('Fixture derived historical records.');
+    await expect(provenance).toContainText('Fixture estimates are not forecasts.');
+    await expect(provenance.getByRole('link', { name: 'Fixture nflverse credit', exact: true })).toHaveAttribute('href', 'https://example.test/history');
+    await expect(provenance.getByRole('link', { name: 'CC BY 4.0', exact: true })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by/4.0/');
+    await provenance.getByRole('button', { name: 'Close', exact: true }).focus();
+    await page.keyboard.press('Tab');
+    await expect(provenance.getByRole('link').first()).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(provenance.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dataInfo).toBeFocused();
     const first = dialog.locator('[data-research-card]').first();
     const canonicalId = await first.getAttribute('data-research-card');
     await first.getByRole('button', { name: 'View evidence', exact: true }).click();
@@ -76,7 +95,12 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
     await page.getByRole('dialog', { name: 'About this research' }).getByRole('button', { name: 'Close', exact: true }).click();
     await expect(first.getByRole('table').getByRole('cell', { name: '30', exact: true })).toBeVisible();
     await expect(first.locator('[data-zero-baseline]')).toHaveCount(1);
+    const tooltipBottom = await first.locator('.gx-tc-tip').evaluate(el => el.getBoundingClientRect().bottom);
+    const plotTop = await first.locator('.gx-tc-plot').evaluate(el => el.getBoundingClientRect().top);
+    expect(tooltipBottom).toBeLessThanOrEqual(plotTop);
     for (const theme of ['light', 'dark']) await phoneAndAxe(page, theme, testInfo);
+    await dialog.locator('.gx-r-tabs').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath('research-overview-dark.png') });
     await dialog.getByLabel('Evidence period', { exact: true }).selectOption('recent25');
     await expect(dialog.locator('[data-research-card]').first()).toContainText('15–9–1');
     await dialog.getByRole('button', { name: 'Explore', exact: true }).click();
@@ -188,6 +212,20 @@ test('quote expiry removes the live lean while retaining the dated reference', a
     await expect(sheet(page).getByText('Current reference is older than twelve hours.', { exact: true })).toBeVisible();
     await expect(sheet(page).locator('.gx-r-references > div').nth(2)).toContainText('44');
     expect(synthetic.calls.length).toBeGreaterThan(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+
+test('compact research keeps stale-history warnings visible before opening its information', async ({ page, baseURL }) => {
+  const { world } = await setup(page, baseURL, { historyStatus: 'stale' });
+  try {
+    await openResearch(page);
+    await expect(sheet(page).getByText('History: stale', { exact: true })).toBeVisible();
+    await expect(sheet(page).getByText('Current leans may be unavailable; dated historical evidence remains descriptive.', { exact: true })).toBeVisible();
+    await expect(sheet(page).getByText(/Snapshot:/)).toHaveCount(0);
+    await sheet(page).getByRole('button', { name: 'About research data', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About research data', exact: true })).toContainText('Snapshot: 2026-10-21T00:00:00Z');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

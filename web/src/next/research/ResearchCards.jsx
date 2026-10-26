@@ -94,7 +94,7 @@ function ResearchCard({ candidate, gameId, request, open, onToggle }) {
   </>;
   const record = r.sample ? recordText(r.wins ?? 0, r.losses ?? 0, r.pushes ?? 0) : null;
   const tiles = [
-    { label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct ?? 0 },
+    { label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct, sub: pct === null ? 'No decided games' : undefined },
     { label: 'Games', value: String(r.sample ?? '—'), sub: PERIODS[candidate.period] ?? 'Selected period' },
   ];
   return <li className="gx-tc-item gx-r-card" data-research-card={candidate.id}>
