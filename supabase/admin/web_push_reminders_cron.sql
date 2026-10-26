@@ -7,7 +7,9 @@
 -- pg_cron and pg_net are already enabled on the hosted project (the odds and
 -- week-open schedulers use them). The dispatcher writes no run and makes no
 -- network call outside the two hours before the latest published week's
--- deadline, so a 15-minute tick costs nothing for the rest of the week.
+-- deadline, or (since P-02, hosted October 23, 2026) the two hours before a
+-- published, non-FINAL Guess the Points slot kicks off, so a 15-minute tick
+-- costs nothing for the rest of the week.
 
 -- 1. The schedule row, disabled. Replace <project-ref> with the project ref.
 insert into public.gtl_push_reminder_schedule(id,enabled,endpoint)
@@ -21,7 +23,7 @@ select public.gtl_dispatch_push_reminders();
 
 -- 4. Turn it on (only when Sean decides to):
 --   update public.gtl_push_reminder_schedule set enabled=true where id='deadline-2h';
---   select public.gtl_dispatch_push_reminders();   -- outside the window: {"status":"not_due"}
+--   select public.gtl_dispatch_push_reminders();   -- outside both windows: {"status":"not_due"}
 
 -- Check recent runs (counts only; never tokens or endpoints):
 --   select slot_start,status,reason,sent,failed from public.gtl_push_reminder_runs order by slot_start desc limit 10;
