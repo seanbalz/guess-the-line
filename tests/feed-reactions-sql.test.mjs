@@ -111,6 +111,27 @@ test('only a post the member may see now takes a reaction: not a group post of a
   assert.deepEqual((await w.api('luke', 'league/react', { postId: post, reaction: null })).body.counts, { grimace: 1 }, 'a removed member\'s reaction still counts');
 });
 
+test('the old reader lists only the kinds the old app draws, so a page of 30 stays full and paging reaches every old post', { skip }, async t => {
+  const w = await world(t, { troyBallots: false });
+  const base = Date.now() - 10 * 3_600_000;
+  // 40 old-kind posts, each followed by a post of a kind only the new feed draws (kickoff, result_shared).
+  for (let i = 0; i < 40; i++) {
+    await w.db.query("insert into public.gtl_feed_posts(actor_id,kind,dedupe_key,created_at) values($1,'joined',$2,$3)", [ACCOUNTS.troy.id, `old:${i}`, new Date(base + i * 60_000).toISOString()]);
+    await w.db.query('insert into public.gtl_feed_posts(actor_id,kind,dedupe_key,created_at) values($1,$2,$3,$4)', [ACCOUNTS.sean.id, i % 2 ? 'kickoff' : 'result_shared', `new:${i}`, new Date(base + i * 60_000 + 1000).toISOString()]);
+  }
+  const first = await w.api('luke', 'community/read', {});
+  assert.equal(first.body.posts.length, 30, 'a full page of posts the old app draws');
+  const second = await w.api('luke', 'community/read', { before: first.body.posts.at(-1).createdAt });
+  const seen = new Set([...first.body.posts, ...second.body.posts].map(p => p.id));
+  const old = (await w.db.query("select id from public.gtl_feed_posts where kind in ('joined','ballot_submitted','bet_posted','bet_settled','week_published','points_played','points_final')")).rows;
+  assert.deepEqual(old.filter(row => !seen.has(row.id)), [], 'two pages reach every old post');
+  // The list is cloud/community.mjs's KINDS: the kinds normalize() keeps.
+  const { readFileSync } = await import('node:fs');
+  const kinds = readFileSync(new URL('../cloud/community.mjs', import.meta.url), 'utf8').match(/const KINDS = \[([^\]]*)\]/)[1].match(/'([a-z_]+)'/g).map(k => k.slice(1, -1));
+  const listed = migrationSql(M21).match(/and f\.kind in \(([^)]*)\)/)[1].match(/'([a-z_]+)'/g).map(k => k.slice(1, -1));
+  assert.deepEqual(listed.sort(), kinds.sort());
+});
+
 test('on the hosted schema (no M-21) /league/react answers 503 and /community/like works exactly as before', { skip }, async t => {
   const w = await createCommunityWorld({ migrations: HOSTED });
   t.after(() => w.db.close());

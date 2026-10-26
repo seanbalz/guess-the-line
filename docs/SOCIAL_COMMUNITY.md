@@ -57,7 +57,9 @@ PGlite; **nothing below is applied or deployed**. Each migration waits for Sean'
   caller has no reaction. An unlike adds a null event; it no longer deletes.
 - **`gtl_read_community`** is M-07's body with `likes` counting current reactions and `likedByMe` true for any reaction,
   so a fire from the new app is a heart in the old one. It also lists Community posts only (`league_id` is null), so a
-  post scoped to a private group never reaches the whole Community.
+  post scoped to a private group never reaches the whole Community. It lists only the kinds the old app draws, so a page
+  of 30 stays full once later migrations write new kinds, and "Older activity" still reaches every post. Apply M-21
+  before M-22, M-23 or M-25.
 - **Route:** `POST /league/react` `{ postId, reaction: key | null }` answers `{ postId, counts, total, mine, changed }`
   (`cloud/feed.mjs`, a new route group wired once into `cloud/handler.mjs`). It answers 400 for a bad key or a hidden
   post, 403 for a removed or profile-less account, and 503 until M-21 is applied or while `GTL_FEATURE_OFF` names
