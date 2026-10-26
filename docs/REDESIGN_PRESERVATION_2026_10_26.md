@@ -70,3 +70,13 @@ bundle-only privacy scan and manifest generation also passed. These used the
 fixture Supabase URL/key; no hosted environment was contacted.
 CI, merge, deployment and physical-iPhone acceptance must be recorded as their
 own outcomes. Fixture browser tests do not establish hosted or phone acceptance.
+
+### Integration after PR #209 and the separate optimization PR #210
+
+The Members branch incorporates main at
+`c42148747ecdc6c3190c4a1582baa921807376af`, including both merged PRs. All 24
+combined Members, new-app data, Lines and classic Trends browser cases passed
+against that integration. Typecheck, the 72 focused contracts, authenticated
+cloud build and bundle-only privacy scan also passed again. This specifically
+checks the new screen alongside #210's shared/parallel reads and the two PRs'
+historical Trends fixture corrections. The broader phone baseline remains open.
