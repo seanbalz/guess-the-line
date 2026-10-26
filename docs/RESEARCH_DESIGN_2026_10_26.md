@@ -128,7 +128,7 @@ the queue; these chart refinements do not complete stages 33–34.
 
 ## Board current quotes and gate entry
 
-The next source batch is [the Lines board](RESEARCH_BOARD_LINES_2026_10_26.md).
+PR #225 supplies [the Lines board](RESEARCH_BOARD_LINES_2026_10_26.md).
 It uses the displayed week’s existing reader for current/latest quotes, while
 the game sheet preserves saved scoring references. The banner leads to Play’s
 existing lock-in/sit-out flow. The queue retains direct in-board confirmation,
@@ -139,3 +139,18 @@ verified live status and remaining full-sheet destinations as unfinished.
 `473be765f015fcf7d88853979bc8d246f878ddf1`. No CI fixes or review responses were
 needed. The board batch follows on a separate branch; neither merge nor local
 verification establishes a hosted release or phone acceptance.
+
+
+## Community guesses in the game sheet
+
+The next source batch adds [Everyone’s guesses](RESEARCH_GAME_GUESSES_2026_10_26.md)
+to each game sheet. It reads only on expansion and distinguishes Community scope,
+private drafts, locked guesses, score availability and kickoff ranks. The current
+queue retains the direct reveal flow, full game-sheet actions, League bets,
+release verification and device acceptance as unfinished.
+
+[PR #225](https://github.com/seanbalz/guess-the-lines-repo/pull/225) merged as
+`733e95d586e005427350ba156d7ad1a05c139094` after all nine checks passed on
+`cf9ebe16c88975fefcc0d0a2168cc069741152c3`. No CI fixes or review responses were needed.
+Community guesses follow on a separate branch; release and phone acceptance
+remain open for the source batches.
