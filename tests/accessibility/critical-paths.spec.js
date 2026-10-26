@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import { test, signIn } from '../fixtures/cloud-ui.mjs';
 import { pickTotal } from '../chip-entry.mjs';
+import { useOldApp } from '../cloud-browser/old-app.mjs';
 
 const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 async function scan(page, testInfo, name) {
@@ -72,3 +73,6 @@ for (const theme of ['dark', 'light']) test(`${theme} critical flows: automated 
   await scan(page, testInfo, 'bet-tracker-desktop');
   expect(fixture.apiRequests.filter(request => request.method !== 'GET' && !request.pathname.endsWith('/social/read'))).toHaveLength(0);
 });
+
+// D-60: this suite covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));
