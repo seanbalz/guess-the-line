@@ -1,9 +1,10 @@
 import { useId, useState } from 'react';
 import { useLinesData } from '../lines/linesData.js';
 import { useShell } from '../shell/context.js';
-import { Button, Segmented, Sheet } from '../ui/index.js';
+import { Button, InfoButton, Segmented, Sheet } from '../ui/index.js';
 import { PERIODS, ResearchCards, ResearchLeans, ResearchSources, ResearchStatus, researchSelection } from './ResearchCards.jsx';
 import { useResearch } from './useResearch.js';
+import { INFO } from '../info.js';
 import './research.css';
 
 function Select({ label, value, onChange, options }) {
@@ -40,21 +41,28 @@ export function ResearchSheet({ args = {} }) {
     </> : null}
     <ResearchStatus read={read}/>
     {data ? <>
-      {section !== 'trent' ? <p className="gx-t-meta" role="status">History: {data.history.status}. Snapshot: {data.history.snapshotAsOf ?? 'Unknown'}. Period anchored to {data.history.periodAnchor ?? 'Unknown'}. {data.history.status !== 'fresh' ? 'Current leans may be unavailable; dated historical evidence remains descriptive.' : ''}</p> : null}
-      {section !== 'trent' && data.history.source ? <div className="gx-vstack gx-gap-2">
-        <a className="gx-r-link gx-t-meta" href={data.history.source.url} target="_blank" rel="noopener noreferrer">{data.history.source.credit}</a>
-        <p className="gx-t-meta">{data.history.source.modified} {data.history.source.caveat}</p>
-        <a className="gx-r-link gx-t-meta" href={data.history.source.licenseUrl} target="_blank" rel="noopener noreferrer">{data.history.source.license}</a>
-      </div> : null}
+      {section !== 'trent' ? <>
+        <div className="gx-r-context">
+          <p className="gx-t-meta gx-grow" role="status">History: {data.history.status}</p>
+          <InfoButton {...INFO.researchData} body={[
+            `Snapshot: ${data.history.snapshotAsOf ?? 'Unknown'}.`,
+            `Period anchored to ${data.history.periodAnchor ?? 'Unknown'}.`,
+            ...INFO.researchData.body,
+            data.history.source?.modified, data.history.source?.caveat,
+          ]} links={data.history.source ? [
+            { text: data.history.source.credit, url: data.history.source.url },
+            { text: data.history.source.license, url: data.history.source.licenseUrl },
+          ] : INFO.researchData.links}/>
+        </div>
+        {data.history.status !== 'fresh' ? <p className="gx-t-meta">Current leans may be unavailable; dated historical evidence remains descriptive.</p> : null}
+      </> : null}
       {section === 'week' ? <>
         <h3 className="gx-t-section">{args.game ? 'For this matchup' : 'This week’s shortlist'}</h3>
-        <p className="gx-t-meta">Consistent, not proven. Display periods do not change qualification or lean evidence.</p>
         <ResearchCards data={data} limit={3} request={request} gameId={args.game}/>
         <Button variant="secondary" onClick={() => setSection('explore')}>Explore situations</Button>
         {!args.game ? <Select label="Research lean for matchup" value={selectedGame ?? ''} onChange={setLeanGame} options={data.games.map(g => [g.id, g.id.replace('-', ' at ')])}/> : null}
         <ResearchLeans data={data} gameId={selectedGame} request={{ ...request, gameId: selectedGame }}/>
       </> : section === 'explore' ? <>
-        <p className="gx-t-meta">Emerging research does not vote on a lean. Filters change this list and selected records, not the full evidence used for leans.</p>
         <ResearchCards data={data} ids={explore} limit={limit} request={request} gameId={args.game}/>
         {explore.length > limit ? <Button variant="secondary" onClick={() => setLimit(n => n + 12)}>Show more situations</Button> : null}
         <ResearchSources sources={data.sources}/>

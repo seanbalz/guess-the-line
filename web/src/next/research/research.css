@@ -23,3 +23,5 @@
 .gx .gx-r-evidence :where(summary) { display: flex; align-items: center; min-height: var(--gx-size-touch); cursor: pointer; font-size: 16px; color: var(--gx-data); }
 .gx .gx-r-link { display: inline-flex; align-items: center; min-height: var(--gx-size-touch); color: var(--gx-data); }
 .gx .gx-r-filter :where(select:focus-visible), .gx .gx-r-evidence :where(summary:focus-visible), .gx .gx-r-table-wrap:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+
+.gx .gx-r-context { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }

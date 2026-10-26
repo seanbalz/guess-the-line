@@ -29,7 +29,12 @@ export function TrendLine({ values, tip, start, end, label, height = 160 }) {
         <span className="gx-tc-tip-value">{now.value}</span>
         <span className="gx-tc-tip-label">{now.label}</span>
       </div>
-      <div className="gx-tc-plot" onPointerDown={follow} onPointerMove={follow} style={{ height }}>
+      <div className="gx-tc-plot" onPointerDown={event => {
+        if (!event.isPrimary || event.button !== 0) return;
+        event.currentTarget.setPointerCapture(event.pointerId); follow(event);
+      }} onPointerMove={follow} onPointerUp={event => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      }} style={{ height }}>
         <svg className="gx-tc-svg" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img" aria-label={label}>
           <defs>
             <linearGradient id={`${id}g`} x1="0" y1="0" x2="0" y2="1">

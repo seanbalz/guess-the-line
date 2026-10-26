@@ -34,6 +34,8 @@ export function InfoButton({ title, body = [], links = [], children, size = 20, 
         ref={dialog}
         className="gx-info"
         aria-label={title}
+        // The native modal owns these keys; an enclosing Sheet must not also close or trap focus.
+        onKeyDown={event => { if (event.key === 'Escape' || event.key === 'Tab') event.stopPropagation(); }}
         onClose={() => { setOpen(false); opener.current?.focus({ preventScroll: true }); }}
         onClick={event => { if (event.target === dialog.current) close(); }}
       >

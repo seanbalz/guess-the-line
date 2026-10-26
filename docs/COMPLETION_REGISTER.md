@@ -63,19 +63,23 @@ Their production/recipient/device readback remains separate. Both use existing
 routes, include uncertain-write recovery and load only when opened; see the
 [implementation record](REDESIGN_COMPLETION_2026_10_26.md).
 
-Q17-C is in progress. The next source batch implements **Menu → Community
-members** for the Community commissioner: explicit remove/restore review,
-fresh permission checks, no record deletion, and readback after uncertain saves,
-including reload. Six member browser tests and the existing shell/D-23 checks
-passed locally. CI/merge and release/phone acceptance remain separate. The
-[preservation matrix and evidence](REDESIGN_PRESERVATION_2026_10_26.md) name the
-remaining history, export, journal, older-record and draft-recovery gaps.
+Sean’s next priority is **Research and charts**, selected October 26. The current
+[design batch](RESEARCH_DESIGN_2026_10_26.md) applies D-55 to Research’s information
+hierarchy, tooltip spacing, narrow-screen stat/season layouts and chart gestures.
+It also fixes Escape closing the underlying sheet when dismissing chart
+information. Source verification, CI/merge, release and device acceptance are
+tracked separately.
 
-Next: the commissioner Settlement and schedule status page, then the remaining
-preservation destinations and measured performance follow-through. Keep one
-implementation lane at a time; device-only acceptance can remain explicitly open
-while independent source work proceeds. New Fantasy integrations, simulator work
-and native iOS do not take priority over this completion work.
+Q17-C remains open. Community Members merged in
+[PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
+`36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.
+Manual Settlement is in [PR #214](https://github.com/seanbalz/guess-the-lines-repo/pull/214).
+It does not close M-18 challenge grading or M-19 scheduled settlement/status.
+Week opening is the next commissioner page after the current design focus.
+The [preservation matrix](REDESIGN_PRESERVATION_2026_10_26.md) still identifies
+history, export, journal, older-record and recovery gaps. Keep one implementation
+lane at a time; new Fantasy integrations, simulator work and native iOS remain
+later scope. The broader redesign and measured performance work are unfinished.
 
 ## What needs Sean
 
