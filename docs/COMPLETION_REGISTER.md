@@ -90,15 +90,27 @@ on `8cc4042b6bdd94c65095d2bd8105e6a27a00a969`; no CI fixes were needed.
 Hosted release and physical-device acceptance remain open. The queue lists each
 checkpoint separately; this does not close all Research work or Q19.
 
-The next approved Research batch supplies [game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md):
+PR #224 supplies [game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md):
 per-market current/latest consensus with source times, named-book quote comparison,
 and recorded line movement with a chart and table. Local verification passed:
 23 integrated browser tests, five focused market/freshness cases, 26 rendered
 component tests, 37 model/API-contract/price-order/token tests, typecheck, Brand
-QA, fixture build and bundle privacy scan. Source CI/merge and release remain open.
-The audit also restored explicit unfinished scope: stage 33 board-wide current
-lines/gate banner and stage 34's remaining competition/action destinations.
-The source improvements above do not close these items or device acceptance.
+QA, fixture build and bundle privacy scan. [PR #224](https://github.com/seanbalz/guess-the-lines-repo/pull/224)
+merged as `97273e9652cf29dca77208488deb7c6c858646a4` after all nine checks passed on
+`473be765f015fcf7d88853979bc8d246f878ddf1`. No CI fixes or review responses were needed.
+Release and physical-device acceptance remain open.
+The next source batch adds [board current quotes and gate entry](RESEARCH_BOARD_LINES_2026_10_26.md):
+current/latest values with source times, one banner leading to Play, scoped
+failure/retry behavior and time-based freshness without odds polling. All 28
+selected browser cases passed across integrated/focused runs; 26 component,
+43 model/contract/token and 19 SQL gate tests passed, plus typecheck, Brand QA,
+build/privacy scan and inspected Light/Dark 320px screenshots. Board CI/merge
+and release remain open.
+
+Residual stage 33 work stays explicit: direct in-board forfeit confirmation
+(the banner uses the existing Play flow) and verified live-game status beyond
+kickoff/final evidence. Stage 34's competition/action destinations and device
+acceptance remain open. These batches do not complete either whole stage.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

@@ -121,6 +121,21 @@ All 19 integrated Research/Lines/Trends browser tests also passed.
 `8cc4042b6bdd94c65095d2bd8105e6a27a00a969`. No CI fixes or review requests
 were needed. Deployment and physical-iPhone acceptance remain open.
 
-The next approved source work is [per-game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md).
+PR #224 delivers [per-game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md).
 The remaining board-wide lines and full game-sheet destinations are explicit in
 the queue; these chart refinements do not complete stages 33–34.
+
+
+## Board current quotes and gate entry
+
+The next source batch is [the Lines board](RESEARCH_BOARD_LINES_2026_10_26.md).
+It uses the displayed week’s existing reader for current/latest quotes, while
+the game sheet preserves saved scoring references. The banner leads to Play’s
+existing lock-in/sit-out flow. The queue retains direct in-board confirmation,
+verified live status and remaining full-sheet destinations as unfinished.
+
+[PR #224](https://github.com/seanbalz/guess-the-lines-repo/pull/224) merged as
+`97273e9652cf29dca77208488deb7c6c858646a4` after all nine checks passed on
+`473be765f015fcf7d88853979bc8d246f878ddf1`. No CI fixes or review responses were
+needed. The board batch follows on a separate branch; neither merge nor local
+verification establishes a hosted release or phone acceptance.
