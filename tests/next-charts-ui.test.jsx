@@ -9,6 +9,7 @@ import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 const { TrendDetail } = await import('../web/src/next/charts/TrendDetail.jsx');
 const { TrendRow } = await import('../web/src/next/charts/TrendRow.jsx');
 const { StatTiles } = await import('../web/src/next/charts/StatTiles.jsx');
+const { SeasonStems } = await import('../web/src/next/charts/SeasonStems.jsx');
 const { SeasonTable } = await import('../web/src/next/charts/SeasonTable.jsx');
 const { trendDetailProps } = await import('../web/src/next/lines/parts.jsx');
 const { InfoButton } = await import('../web/src/next/ui/InfoButton.jsx');
@@ -96,5 +97,26 @@ describe('win-rate evidence', () => {
     expect(html).toContain('No decided games');
     expect(html).toContain('0%');
     expect(html).toContain('66.7%');
+  });
+});
+
+
+describe('season selection', () => {
+  it('exposes named table controls with one selected season and the chart relationship', () => {
+    const html = render(<SeasonTable seasons={seasons} caption="Seasons" selectedSeason={2020} onSelect={() => {}} chartId="season-plot"/>);
+    expect(markupProblems(html)).toEqual([]);
+    const buttons = all(html).filter(n => n.tag === 'button');
+    expect(buttons.map(n => n.attrs['aria-label'])).toEqual(seasons.map(s => `Show ${s.season} season on chart`));
+    expect(buttons.map(n => n.attrs['aria-pressed'])).toEqual(['false', 'false', 'true', 'false']);
+    expect(buttons.every(n => n.attrs['aria-controls'] === 'season-plot')).toBe(true);
+  });
+  it('uses the shared selection and describes zero units as at break-even', () => {
+    const rows = [{ season: 2024, w: 0, l: 0, p: 1, units: 0 }, ...seasons];
+    const html = render(<SeasonStems seasons={rows} selectedIndex={0} onSelect={() => {}} id="season-plot"/>);
+    expect(markupProblems(html)).toEqual([]);
+    const slider = all(html).find(n => n.tag === 'input');
+    expect(slider.attrs.value).toBe('0');
+    expect(slider.attrs['aria-valuetext']).toBe('2024: 0–0–1, 0.0 units, at break-even');
+    expect(html).toContain('id="season-plot"');
   });
 });

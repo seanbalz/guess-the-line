@@ -14,9 +14,9 @@ on:
         type: string
         required: true
       target:
-        description: One component, or backward-compatible API then frontend
+        description: One component (push-reminders and points-jobs are one worker each), or backward-compatible API then frontend
         type: choice
-        options: [frontend, api, api-and-frontend]
+        options: [frontend, api, api-and-frontend, push-reminders, points-jobs]
         default: frontend
         required: true
       release_card:
@@ -136,13 +136,25 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: node control/scripts/release-preflight.mjs live --source source --out evidence/before.json
       - name: Deploy only the API (JWT verification remains enabled)
-        if: inputs.mode == 'deploy' && inputs.target != 'frontend'
+        if: inputs.mode == 'deploy' && (inputs.target == 'api' || inputs.target == 'api-and-frontend')
         working-directory: source
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: ./node_modules/.bin/supabase functions deploy gtl-api --project-ref "$SUPABASE_PROJECT_REF" --use-api
+      - name: Deploy only the push reminder worker (config.toml keeps verify_jwt off; SQL checks its one-run capability)
+        if: inputs.mode == 'deploy' && inputs.target == 'push-reminders'
+        working-directory: source
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: ./node_modules/.bin/supabase functions deploy gtl-push-reminders --project-ref "$SUPABASE_PROJECT_REF" --use-api
+      - name: Deploy only the Guess the Points jobs worker (config.toml keeps verify_jwt off; a first deploy creates it)
+        if: inputs.mode == 'deploy' && inputs.target == 'points-jobs'
+        working-directory: source
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: ./node_modules/.bin/supabase functions deploy gtl-points-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api
       - name: Deploy only the scanned frontend
-        if: inputs.mode == 'deploy' && inputs.target != 'api'
+        if: inputs.mode == 'deploy' && (inputs.target == 'frontend' || inputs.target == 'api-and-frontend')
         working-directory: source
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
