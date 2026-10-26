@@ -24,6 +24,7 @@ export const FEATURES = Object.freeze({
   bets: 'POST /bets/read: account-level Virtual Units reads and other players’ gated saved terms (M-10, redesign stage 40)',
   fantasy: 'POST /fantasy/week: signed-in Fantasy Track 1 snapshot and review read (D-57)',
   points: 'POST /points/draft, /points/lock and /points/slate: Guess the Points draft saves, lock-ins and slate changes (D-56, P-01); POST /points/read keeps working',
+  reactions: 'POST /league/react: emoji reactions on feed posts (M-21, redesign stage 61); the old heart (/community/like) keeps working',
 });
 
 /** The set of known feature names the secret turns off (empty when it is unset or names nothing known). */

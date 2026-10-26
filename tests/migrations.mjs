@@ -26,6 +26,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
   20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
+  20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -33,6 +34,7 @@ export const NOT_HOSTED = [
  */
 export const FIX_FORWARD = [
   20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
+  20261026131000, // M-21 gtl_feed_reactions: append-only reactions; the old like keeps reading from its own table
 ];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan

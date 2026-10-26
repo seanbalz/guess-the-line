@@ -23,6 +23,7 @@ import { providerWeeklyError } from '../../cloud/weekly.mjs';
 import { providerLinesError } from '../../cloud/lines.mjs';
 import { providerVirtualError } from '../../cloud/virtual-units.mjs';
 import { providerLeagueError } from '../../cloud/league.mjs';
+import { providerFeedError } from '../../cloud/feed.mjs';
 import { providerMeError } from '../../cloud/me.mjs';
 import { providerBetsError } from '../../cloud/bets.mjs';
 import { providerPointsError } from '../../cloud/points.mjs';
@@ -159,6 +160,9 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
     trends: realKickoffTrends(createTrendsService({ rpc: rpc(providerLinesError), readSeason: trendsReadSeason, clock, seed: trendsSeed })),
     fantasy: fantasyFetch ? createFantasyService({ fetchImpl: fantasyFetch, clock }) : undefined,
     league: { rpc: rpc(providerLeagueError) }, me: { rpc: rpc(providerMeError) },
+    // The league feed (redesign stages 61 to 65): on a schema without its migration (HOSTED today) a function is missing and
+    // PostgREST's PGRST202 reads as GTL_FEATURE_OFF (503), as the production adapter does.
+    feed: { rpc: rpc(message => providerFeedError(/^function public\.\w+\(.*\) does not exist$/.test(message) ? 'GTL_FEATURE_OFF' : message)) },
     // Guess the Points (D-56): on a schema without P-01 (HOSTED today) its functions are missing and PostgREST's PGRST202
     // reads as GTL_FEATURE_OFF, so /points/* answer 404 "coming soon", as the production adapter does.
     points: { rpc: rpc(message => providerPointsError(/^function public\.\w+\(.*\) does not exist$/.test(message) ? 'GTL_FEATURE_OFF' : message)) },

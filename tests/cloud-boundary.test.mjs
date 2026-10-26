@@ -314,6 +314,31 @@ test('M-03 skip and "See picks now" probes are hosted and fail closed on missing
   });
 });
 
+// The league feed (redesign stages 61 to 63, scripts/boundary/league.mjs): written, not applied or deployed.
+const FEED_RPCS = ['gtl_feed_reactions', 'gtl_feed_post_visible', 'gtl_feed_reaction_summary', 'gtl_react_feed'];
+const FEED_ROUTES = ['league/react'];
+const FEED_PIECES = [...FEED_RPCS.map(rpc => `rpc/${rpc}`), ...FEED_ROUTES.map(route => `gtl-api/${route}`)];
+
+test('the league feed pieces are awaiting deploy: a missing function or route answers awaiting, never denied, and --strict fails it', async () => {
+  assert.deepEqual(Object.keys(awaitingDeploy).filter(key => FEED_PIECES.includes(key)).sort(), [...FEED_PIECES].sort());
+  const captured = [];
+  const missing = async (url, request) => {
+    captured.push({ url, request });
+    if (FEED_RPCS.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))) return new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 });
+    if (FEED_ROUTES.some(route => url.endsWith(`/functions/v1/gtl-api/${route}`))) return new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 });
+    return denied(url, request);
+  };
+  const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
+  assert.equal(result.awaiting.length, FEED_RPCS.length + FEED_ROUTES.length * 2, 'each RPC once, each route signed out and with an invalid session');
+  for (const { url, request } of captured.filter(({ url }) => FEED_RPCS.some(rpc => url.endsWith(`/rpc/${rpc}`)) || FEED_ROUTES.some(route => url.endsWith(`/gtl-api/${route}`)))) {
+    if (url.includes('/rest/v1/rpc/')) assert.equal(request.headers.Authorization, undefined, url);
+    assert.doesNotMatch(request.body, /0000-4000-8000/, 'no fixture or real member id is sent');
+  }
+  await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: missing, strict: true }), /unexpected 404/);
+  const after = await checkCloudBoundary({ ...options, fetchImpl: denied });
+  assert.deepEqual([after.awaiting.length, after.denied], [0, after.checked], 'once applied and deployed they deny like every other probe');
+});
+
 test('only the registered rollout pieces are awaiting deploy, and every awaitingDeploy entry is a real probe', async () => {
   // Hosted and no longer awaiting: M-01 and M-09 (October 14, 2026); the D-48 recommendations writer and routes (October 15);
   // M-02, M-03, M-05, M-06 and M-08 (October 19); the referee and D-34 wind pieces (applied October 13, routes since gtl-api
@@ -330,7 +355,7 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const rpc of hosted) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
   for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games', 'fantasy/week',
     'points/read', 'points/draft', 'points/lock', 'points/slate']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
-  assert.deepEqual({ ...awaitingDeploy }, {}, 'nothing is awaiting deploy');
+  assert.deepEqual(Object.keys(awaitingDeploy).filter(key => !FEED_PIECES.includes(key)), [], 'only the league feed pieces are awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
   // A missing Points function or route is now an unexpected 404, never awaiting.
