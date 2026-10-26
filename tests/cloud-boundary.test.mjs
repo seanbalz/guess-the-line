@@ -126,10 +126,10 @@ test('awaiting-deploy probes pass only on the exact not-found answer, are report
 });
 
 test('M-25 game features: its five RPCs and two routes are probed with inert fixtures and stay awaiting deploy until "apply M-25"', async () => {
-  // 20261026230000_gtl_league_features.sql (redesign stage 69) is written and not applied, and no gtl-api deploy has its routes.
+  // 20261026234000_gtl_league_features.sql (redesign stage 69) is written and not applied, and no gtl-api deploy has its routes.
   const rpcs = ['gtl_feature_results', 'gtl_read_feature_inputs', 'gtl_feature_post', 'gtl_record_feature_results', 'gtl_read_features'];
   const routes = ['league/features', 'league/features/run'];
-  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026230000_gtl_league_features\.sql/, rpc);
+  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026234000_gtl_league_features\.sql/, rpc);
   for (const route of routes) assert.match(awaitingDeploy[`gtl-api/${route}`] ?? '', /gtl-api deploy/, route);
   const captured = [];
   const result = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => {
@@ -152,9 +152,9 @@ test('M-25 game features: its five RPCs and two routes are probed with inert fix
 });
 
 test('M-26 features schedule: the dispatcher, claim and completion are probed with inert fixtures and stay awaiting deploy until "apply M-26"', async () => {
-  // 20261026233000_gtl_features_schedule.sql (redesign stage 70) is written and not applied; its worker is not deployed.
+  // 20261026235000_gtl_features_schedule.sql (redesign stage 70) is written and not applied; its worker is not deployed.
   const rpcs = ['gtl_dispatch_league_features', 'gtl_claim_league_features', 'gtl_complete_league_features'];
-  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026233000_gtl_features_schedule\.sql/, rpc);
+  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026235000_gtl_features_schedule\.sql/, rpc);
   const captured = [];
   const result = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => {
     captured.push({ url, request });
@@ -406,7 +406,7 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games', 'fantasy/week',
     'points/read', 'points/draft', 'points/lock', 'points/slate']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
   // M-25 and M-26 (redesign stages 69 and 70) are written and not applied too; their own tests above check their entries.
-  const features = Object.fromEntries(Object.entries(awaitingDeploy).filter(([key, until]) => /20261026230000_gtl_league_features|20261026233000_gtl_features_schedule|\/league\/features/.test(until) || key.startsWith('gtl-api/league/features')));
+  const features = Object.fromEntries(Object.entries(awaitingDeploy).filter(([key, until]) => /20261026234000_gtl_league_features|20261026235000_gtl_features_schedule|\/league\/features/.test(until) || key.startsWith('gtl-api/league/features')));
   assert.deepEqual(Object.keys(features).length, 10);
   assert.deepEqual(Object.fromEntries(Object.entries(awaitingDeploy).filter(([key]) => !Object.hasOwn(features, key))),
     Object.fromEntries(P03_RPCS.map(rpc => [`rpc/${rpc}`, 'migration 20261026120000_gtl_points_jobs.sql'])), 'only P-03, M-25 and M-26 are awaiting deploy');

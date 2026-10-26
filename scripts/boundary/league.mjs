@@ -48,7 +48,7 @@ export const workerChecks = Object.freeze([]);
 
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026.
 // M-25 (redesign stage 69) is written and not applied, and no gtl-api deploy carries /league/features yet.
-const M25 = 'migration 20261026230000_gtl_league_features.sql';
+const M25 = 'migration 20261026234000_gtl_league_features.sql';
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_feature_results': M25,
   'rpc/gtl_read_feature_inputs': M25,
@@ -58,7 +58,7 @@ export const awaitingDeploy = Object.freeze({
   'gtl-api/league/features': 'the gtl-api deploy with /league/features',
   'gtl-api/league/features/run': 'the gtl-api deploy with /league/features/run',
   // M-26 (redesign stage 70) is written and not applied either.
-  'rpc/gtl_dispatch_league_features': 'migration 20261026233000_gtl_features_schedule.sql',
-  'rpc/gtl_claim_league_features': 'migration 20261026233000_gtl_features_schedule.sql',
-  'rpc/gtl_complete_league_features': 'migration 20261026233000_gtl_features_schedule.sql',
+  'rpc/gtl_dispatch_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
+  'rpc/gtl_claim_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
+  'rpc/gtl_complete_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
 });
