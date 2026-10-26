@@ -88,6 +88,16 @@ screenshots were inspected. Follow-up CI/merge, hosted release and physical-devi
 acceptance remain open; the queue lists each checkpoint separately. This does
 not close all Research work or Q19.
 
+The next approved Research batch supplies [game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md):
+per-market current/latest consensus with source times, named-book quote comparison,
+and recorded line movement with a chart and table. Local verification passed:
+23 integrated browser tests, five focused market/freshness cases, 26 rendered
+component tests, 37 model/API-contract/price-order/token tests, typecheck, Brand
+QA, fixture build and bundle privacy scan. Source CI/merge and release remain open.
+The audit also restored explicit unfinished scope: stage 33 board-wide current
+lines/gate banner and stage 34's remaining competition/action destinations.
+The source improvements above do not close these items or device acceptance.
+
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.
