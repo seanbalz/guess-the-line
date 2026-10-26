@@ -9,6 +9,7 @@ import week from '../shared/trends/2026-week-06.json';
 import { bannedCopy } from '../shared/trends.mjs';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { allTrends } from '../shared/trends-view.mjs';
+import { accessFor, lineAtGuess, gamesOf } from '../shared/lines-view.mjs';
 import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 
@@ -17,6 +18,17 @@ const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, open
 // isolate that browser auth module here while the hosted-schema browser spec exercises the real handler and auth.
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), linesApi: vi.fn() }));
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => state.lines }));
+vi.mock('../web/src/next/lines/useGameLines.js', () => ({
+  useGameLines: () => ({ status: 'loading', data: null }),
+  useBoardLines: () => {
+    const personal = state.lines.personal.data;
+    return { status: 'ready', now: Date.parse(personal?.now), reload: vi.fn(), data: { games: gamesOf(personal).map(g => {
+      const access = accessFor(personal, state.lines.community, g.id);
+      return { ...g, awayCode: g.away, homeCode: g.home, started: Date.parse(personal.now) >= Date.parse(g.kickoff),
+        ...Object.fromEntries(['spread', 'total'].map(m => [m, { visible: access[m], value: lineAtGuess(personal, g, m, access)?.value ?? null, source: 'fixture', observedAt: personal.now }])) };
+    }) } };
+  },
+}));
 // The matchup research read (/lines/research): loading, as SSR leaves it, unless a test gives its answer.
 vi.mock('../web/src/next/research/useResearch.js', async importOriginal => ({
   ...(await importOriginal()), useResearch: () => state.research ?? { status: 'loading', data: null, reload: () => {} },
@@ -67,7 +79,7 @@ const textOf = n => [...walk(n)].filter(x => x.text !== undefined).map(x => x.te
 afterEach(() => { state.lines = null; state.wind = null; state.officials = null; state.openRows = false; state.research = null; });
 
 describe('the Lines board', () => {
-  it('a lock is an icon on every closed market, never "—"; your tags; your own line at the guess; at most three trend lines', () => {
+  it('a lock is an icon on every closed market, never "—"; your tags; current quote; at most three trend lines', () => {
     state.lines = data();
     const html = render(<LinesBoard/>);
     expect(markupProblems(html)).toEqual([]);
@@ -79,13 +91,13 @@ describe('the Lines board', () => {
       expect(cell.children.filter(c => c.tag === 'svg')).toHaveLength(1);
       expect(textOf(cell)).toBe('');
     }
-    // Every Total is open (sent): his line at the guess where one is saved, else "—" (a missing value, not a lock).
-    expect(nodes(html, attr('data-cell', 'line')).map(textOf)).toEqual(['43.5 at your guess']);
+    // Every Total is open: the reader fixture carries one quote; missing quotes are not locks.
+    expect(nodes(html, attr('data-cell', 'line')).map(textOf)).toEqual(['43.5 Current line']);
     expect(nodes(html, attr('data-cell', 'none'))).toHaveLength(13);
-    expect(nodes(html, attr('data-cell', 'none')).every(n => textOf(n) === '—')).toBe(true);
+    expect(nodes(html, attr('data-cell', 'none')).every(n => textOf(n) === '— Unavailable')).toBe(true);
     const sea = cards.find(attr('data-game', 'SEA-DEN'));
     expect(textOf(sea)).toContain('You −4');
-    expect(sea.attrs['aria-label']).toBe('Seahawks at Broncos, Thu 5:15 PM PT. Spread line hidden. Total 43.5 at your guess. Your spread pick SEA −4. Your total pick 44. Open game details');
+    expect(sea.attrs['aria-label']).toContain('Spread line hidden. Total 43.5. Current line. fixture. Updated');
     const chips = nodes(html, n => n.attrs['data-chip'] === 'trend');
     expect(chips.length).toBeLessThanOrEqual(3);
     for (const card of cards) expect([...walk(card)].filter(n => n.attrs?.['data-chip']).length).toBeLessThanOrEqual(1);
@@ -157,7 +169,7 @@ describe('the game sheet', () => {
     expect(textOf(locked[0])).not.toMatch(/\d/);
     // D-55: the footnote, market-detail destination and nflverse credit sit behind the Trends heading's ⓘ.
     expect(nodes(sea, n => n.tag === 'button' && n.attrs['aria-label'] === 'About trends')).toHaveLength(1);
-    expect(INFO.trends.body).toContain('Open a game for market lines, book quotes and recorded line movement.');
+    expect(INFO.trends.body.join(' ')).toContain('Open a game for market lines, book quotes and recorded line movement.');
     expect(INFO.trends.links.map(link => link.text).join(' ')).toMatch(/nflverse/);
     expect(t).not.toContain('Line now arrives in a later update.');
 
@@ -393,7 +405,7 @@ describe('the leak rule on the rendered markup, attributes included', () => {
     const cards = Object.fromEntries(nodes(html, n => n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
     const cells = (id, kind) => [...walk(cards[id])].filter(n => n.attrs?.['data-cell'] === kind);
     expect(cells('SEA-DEN', 'locked')).toHaveLength(0);
-    expect(cells('HOU-JAX', 'line').map(textOf)).toEqual(['44.5 at your guess']);
+    expect(cells('HOU-JAX', 'line').map(textOf)).toEqual(['44.5 Current line']);
     expect(cells('NO-NYG', 'locked')).toHaveLength(2);
   });
 });

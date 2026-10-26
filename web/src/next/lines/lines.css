@@ -93,3 +93,8 @@
 .gx-l-alist { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 /* D-55: a section heading or sheet line with its ⓘ at the end. */
 .gx-l-sechead { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
+/* Current quotes keep provenance below the team grid so narrow screens can wrap it. */
+.gx-l-observation { display: block; margin-top: 8px; overflow-wrap: anywhere; text-align: left; }
+.gx-l-val { max-width: 104px; }
+.gx-l-cfoot > .gx-hstack { min-width: 0; flex-wrap: wrap; }

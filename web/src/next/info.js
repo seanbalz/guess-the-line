@@ -22,7 +22,7 @@ export const INFO = Object.freeze({
       'U means units at −110: a win adds 0.91 and a loss takes 1. Break-even is 52.4%, the tick on each bar.',
       'Not proven: a pattern that held in 2002–2017 and in 2018–2025. Searching many situations finds some patterns by chance.',
       'Line-based trends unlock when that market is open to you.',
-      'Open a game for market lines, book quotes and recorded line movement.',
+      'The Lines board shows permitted market quotes with source times. Quotes older than six hours are labelled Latest recorded line; saved scoring references remain in the game sheet. Open a game for market lines, book quotes and recorded line movement.',
     ],
     links: TRENDS_LINKS,
   },
