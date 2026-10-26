@@ -134,6 +134,7 @@ test('groups opens switcher once, and Forward/reload never reopens stale layers'
 test('#history opens Me › History over Home once (stages 73 and 74); #history/bets opens its Bets view; reload never reopens it', async () => {
   assert.deepEqual(placeFromFragment('#history'), { tab: 'home', layer: { id: 'page.history' } });
   assert.deepEqual(placeFromFragment('#history/bets'), { tab: 'home', layer: { id: 'page.history', view: 'bets' } });
+  assert.deepEqual(placeFromFragment('#history/older'), { tab: 'home', layer: { id: 'page.history', view: 'older' } }, 'stage 74');
   for (const fragment of ['#history/', '#history/other', '#history?week=5', '#historyx']) assert.equal(placeFromFragment(fragment), null, fragment);
   assert.ok(isLegacyFragment('#history') && isLegacyFragment('#history/bets') && !isLegacyFragment('#history/other'));
   const win=fakeWindow('https://gtl.test/#history/bets'); let shell=app(win);
