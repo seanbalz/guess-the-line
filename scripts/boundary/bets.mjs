@@ -27,6 +27,10 @@ export const rpcChecks = Object.freeze([
   ['gtl_bets_context', { p_user: missingId, p_season: null, p_week: null, p_league: null }],
   ['gtl_read_bets', { p_user: missingId, p_season: null, p_week: null, p_league: null, p_now: null }],
   ['gtl_read_bets_market', { p_user: missingId, p_game: 'AAA-BBB', p_market: 'spread', p_season: null, p_week: null, p_now: null }],
+  // M-12 (stage 42): the weekly and season board readers and their shared week-totals helper.
+  ['gtl_bets_week_rows', { p_season: 2026, p_week: 5, p_users: [missingId] }],
+  ['gtl_read_bets_board', { p_user: missingId, p_season: null, p_week: null, p_league: null }],
+  ['gtl_read_bets_season', { p_user: missingId, p_season: null, p_league: null, p_who: null }],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -39,6 +43,8 @@ export const apiChecks = Object.freeze([
   ['bets/recommendations', {}],
   ['bets/recommendations/place', {}],
   ['bets/read', {}],
+  ['bets/board', {}],
+  ['bets/season', {}],
 ]);
 
 export const workerChecks = Object.freeze([
@@ -46,4 +52,11 @@ export const workerChecks = Object.freeze([
 ]);
 
 // M-10 and both NBA migrations are hosted and /bets/read and /nba/* are deployed since October 22, 2026 (RELEASE_2026_10_22_MIGRATIONS.md).
-export const awaitingDeploy = Object.freeze({});
+// M-12 (stage 42) is written, not applied, and its routes wait for the next gtl-api deploy.
+export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_bets_week_rows': 'migration 20261026230000_gtl_bets_boards.sql',
+  'rpc/gtl_read_bets_board': 'migration 20261026230000_gtl_bets_boards.sql',
+  'rpc/gtl_read_bets_season': 'migration 20261026230000_gtl_bets_boards.sql',
+  'gtl-api/bets/board': 'the gtl-api deploy with /bets/board',
+  'gtl-api/bets/season': 'the gtl-api deploy with /bets/season',
+});

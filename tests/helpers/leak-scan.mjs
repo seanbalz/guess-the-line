@@ -55,6 +55,9 @@ export const READERS = Object.freeze([
   // D-48: own current-week guesses/card and M-01-gated lines; no new read migration.
   ['/bets/recommendations', 'POST', {}],
   ['/bets/read', 'POST', {}],
+  // M-12 boards: totals only (side and units are public under D-36; a settled game has kicked off).
+  ['/bets/board', 'POST', {}],
+  ['/bets/season', 'POST', {}],
   ['/community/picks', 'POST', { mode: 'guess_spread' }],
 ]);
 
@@ -63,7 +66,10 @@ export const READERS = Object.freeze([
  * HOSTED skips them and a suite on ALL runs them (readersOn); the apply record removes the entry with the file's
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
-export const READER_MIGRATIONS = Object.freeze({});
+export const READER_MIGRATIONS = Object.freeze({
+  '/bets/board': '20261026230000_gtl_bets_boards.sql',
+  '/bets/season': '20261026230000_gtl_bets_boards.sql',
+});
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
 
