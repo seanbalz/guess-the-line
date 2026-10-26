@@ -43,7 +43,7 @@ export const workerChecks = Object.freeze([]);
 
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026.
 // M-25 (redesign stage 69) is written and not applied, and no gtl-api deploy carries /league/features yet.
-const M25 = 'migration 20261026230000_gtl_league_features.sql';
+const M25 = 'migration 20261026234000_gtl_league_features.sql';
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_feature_results': M25,
   'rpc/gtl_read_feature_inputs': M25,

@@ -36,7 +36,7 @@ export const NOT_HOSTED = [
   20261026120000, // gtl_points_jobs (D-56 P-03: Points job schedule, run queue, jobs state; waits for "apply P-03")
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
   20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
-  20261026230000, // M-25 league_features (redesign stage 69): badges, awards, streaks; apply after M-13 (feed kinds) on Sean's "apply M-25".
+  20261026234000, // M-25 league_features (redesign stage 69): badges, awards, streaks; apply after M-13 (feed kinds) on Sean's "apply M-25".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

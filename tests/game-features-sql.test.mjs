@@ -12,7 +12,7 @@ import { computeFeatures } from '../cloud/features.mjs';
 // through the real gtl-api handler on local PGlite (ALL migrations). Fixture accounts, games, lines, guesses and bets only.
 // The finished fixture Week 4 (SEA @ DEN 26 hours ago, KC @ LV 2 hours ago) is tests/helpers/features-week.mjs. Week 5 is the
 // world's own open week, kicking off tonight.
-const MIGRATION = '20261026230000_gtl_league_features.sql';
+const MIGRATION = '20261026234000_gtl_league_features.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const LUKE = ACCOUNTS.luke.id, TROY = ACCOUNTS.troy.id, SEAN = ACCOUNTS.sean.id;
 const HOUR = 3_600_000, GROUP = `g_${'a'.repeat(32)}`;

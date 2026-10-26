@@ -126,10 +126,10 @@ test('awaiting-deploy probes pass only on the exact not-found answer, are report
 });
 
 test('M-25 game features: its five RPCs and two routes are probed with inert fixtures and stay awaiting deploy until "apply M-25"', async () => {
-  // 20261026230000_gtl_league_features.sql (redesign stage 69) is written and not applied, and no gtl-api deploy has its routes.
+  // 20261026234000_gtl_league_features.sql (redesign stage 69) is written and not applied, and no gtl-api deploy has its routes.
   const rpcs = ['gtl_feature_results', 'gtl_read_feature_inputs', 'gtl_feature_post', 'gtl_record_feature_results', 'gtl_read_features'];
   const routes = ['league/features', 'league/features/run'];
-  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026230000_gtl_league_features\.sql/, rpc);
+  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026234000_gtl_league_features\.sql/, rpc);
   for (const route of routes) assert.match(awaitingDeploy[`gtl-api/${route}`] ?? '', /gtl-api deploy/, route);
   const captured = [];
   const result = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => {
@@ -389,8 +389,8 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const rpc of hosted) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
   for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games', 'fantasy/week',
     'points/read', 'points/draft', 'points/lock', 'points/slate']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
-  // M-25 (redesign stage 69, 20261026230000_gtl_league_features.sql) is written and not applied too; its own test above checks its entries.
-  const m25 = Object.fromEntries(Object.entries(awaitingDeploy).filter(([key, until]) => /20261026230000_gtl_league_features|\/league\/features/.test(until) || key.startsWith('gtl-api/league/features')));
+  // M-25 (redesign stage 69, 20261026234000_gtl_league_features.sql) is written and not applied too; its own test above checks its entries.
+  const m25 = Object.fromEntries(Object.entries(awaitingDeploy).filter(([key, until]) => /20261026234000_gtl_league_features|\/league\/features/.test(until) || key.startsWith('gtl-api/league/features')));
   assert.deepEqual(Object.keys(m25).length, 7);
   assert.deepEqual(Object.fromEntries(Object.entries(awaitingDeploy).filter(([key]) => !Object.hasOwn(m25, key))),
     Object.fromEntries(P03_RPCS.map(rpc => [`rpc/${rpc}`, 'migration 20261026120000_gtl_points_jobs.sql'])), 'only P-03 and M-25 are awaiting deploy');
