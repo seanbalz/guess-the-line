@@ -37,7 +37,7 @@ export const COMING_SOON_LEAGUES = ['nba', 'mlb', 'nhl', 'cfb', 'cbb'];
 const KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published', 'points_played', 'points_final'];
 // P-02 (D-56): a points_final post carries { winners: [{ userId, points }], house: number | null, max: 0..50 }; anything else is dropped,
 // never repaired. Nothing else from the payload passes.
-function pointsFinal(payload) {
+export function pointsFinal(payload) {
   if (!record(payload) || !Array.isArray(payload.winners) || !payload.winners.length || payload.winners.length > 100) return null;
   if (!payload.winners.every(w => record(w) && UUID_PATTERN.test(w.userId ?? '') && finite(w.points) !== null)) return null;
   if (!(payload.house === null || finite(payload.house) !== null) || !Number.isInteger(payload.max) || payload.max < 0 || payload.max > 50) return null;
