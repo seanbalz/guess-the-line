@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { catalog, readMigrations } from '../scripts/migration-functions.mjs';
 
 export const MIGRATIONS_DIR = fileURLToPath(new URL('../supabase/migrations/', import.meta.url));
 export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', import.meta.url));
@@ -77,6 +78,25 @@ export const ALL = [...new Set([...FILES.filter(file => !EXTENSION_ONLY.includes
 export const HOSTED = ALL.filter(file => (!extra || file <= extra) && (file === extra || required.includes(version(file)) || !NOT_HOSTED.includes(version(file))));
 
 /** The SQL to apply for a file in ALL or HOSTED (in a rollback check, the checked migration followed by its rollback). */
+/**
+ * `list` (filenames in apply order) without `file` and without every later file that cannot stand without it: one that
+ * rebuilds a function on a body a dropped file wrote (its `-- replaces` header names that body), or one whose REQUIRES
+ * names a dropped file. A spec that pins an older rule by leaving one migration out (stage 17's old-app reveal, M-02's
+ * refusal on the old screens) gets a schema that could exist, instead of a later body calling helpers that are not there:
+ * M-21's gtl_read_community, for example, is M-07's body and calls M-07's helpers.
+ */
+export function without(list, file) {
+  const dropped = new Set([file]);
+  const files = catalog(readMigrations(list)).files;
+  for (const { file: later, functions } of files) {
+    if (later <= file || dropped.has(later)) continue;
+    const rebuilds = functions.some(fn => fn.previous && dropped.has(fn.previous.file));
+    const needs = (REQUIRES[version(later)] ?? []).some(v => [...dropped].some(f => version(f) === v));
+    if (rebuilds || needs) dropped.add(later);
+  }
+  return list.filter(name => !dropped.has(name));
+}
+
 export function migrationSql(file) {
   if (check && file === extra) {
     return [check.migration, ...(check.rollback ? [check.rollback] : [])].map(source => fs.readFileSync(source, 'utf8')).join('\n');
