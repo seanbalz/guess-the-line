@@ -155,9 +155,9 @@ describe('the game sheet', () => {
     expect(locked).toHaveLength(1);
     expect(textOf(locked[0])).toBe('Line-based trend Submit your Spread picks to see this trend.');
     expect(textOf(locked[0])).not.toMatch(/\d/);
-    // D-55: the footnote, "Line now arrives…" and the nflverse credit sit behind the Trends heading's ⓘ.
+    // D-55: the footnote, market-detail destination and nflverse credit sit behind the Trends heading's ⓘ.
     expect(nodes(sea, n => n.tag === 'button' && n.attrs['aria-label'] === 'About trends')).toHaveLength(1);
-    expect(INFO.trends.body).toContain('Line now arrives in a later update.');
+    expect(INFO.trends.body).toContain('Open a game for market lines, book quotes and recorded line movement.');
     expect(INFO.trends.links.map(link => link.text).join(' ')).toMatch(/nflverse/);
     expect(t).not.toContain('Line now arrives in a later update.');
 

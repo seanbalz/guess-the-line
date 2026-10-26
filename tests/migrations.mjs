@@ -18,13 +18,23 @@ import { fileURLToPath } from 'node:url';
 
 export const MIGRATIONS_DIR = fileURLToPath(new URL('../supabase/migrations/', import.meta.url));
 export const ROLLBACK_DIR = fileURLToPath(new URL('../supabase/rollback/', import.meta.url));
+/** The PGlite stand-in for Supabase Storage's two tables (the columns D-59's bucket migration writes, plus what its tests read).
+ *  As on Supabase, both have row level security on and no policies, and anon and authenticated hold table grants, so
+ *  only row level security keeps them out. */
+export const STORAGE = "create schema storage;grant usage on schema storage to anon,authenticated,service_role;"
+  + "create table storage.buckets(id text primary key,name text not null unique,public boolean default false,file_size_limit bigint,allowed_mime_types text[]);"
+  + "create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text not null,unique(bucket_id,name));"
+  + "alter table storage.buckets enable row level security;alter table storage.objects enable row level security;"
+  + "grant all on storage.buckets,storage.objects to anon,authenticated,service_role;";
 /** The PGlite stand-in for the Supabase roles and auth schema that every migration expects. Supabase databases run in
  *  UTC, but PGlite starts in a fixed offset taken from the host (Etc/GMT+8 on a Mac in Pacific time), which changes how a
  *  timestamptz reads in a jsonb reply ("…-08:00" instead of "…+00:00"); the session is set to UTC as on the hosted project and CI. */
-export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;";
+export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;" + STORAGE;
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261026120000, // gtl_points_jobs (D-56 P-03: Points job schedule, run queue, jobs state; waits for "apply P-03")
+  20261026220000, // gtl_fantasy_feed_bucket (D-59)
   20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
 ];
 /**
