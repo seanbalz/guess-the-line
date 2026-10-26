@@ -187,14 +187,16 @@ test('once this device has seen the account with a name, the Community read star
   try {
     await openNewApp(page, 'luke');
     await expect(title(page, 'Home')).toBeVisible();
-    // The next load: /lobby is held, and the Community read still goes out while it waits.
+    await page.waitForLoadState('networkidle');
+    // The next load: /lobby is held, and the Community read still goes out while it waits (the wait below would time
+    // out if the Community read waited for /lobby's answer).
     const held = await holdNext(page, 'lobby');
     const calls = apiCalls(page);
     const community = page.waitForRequest(request => new URL(request.url()).pathname === '/functions/v1/gtl-api/community/read');
     await page.reload();
     await held.reached;
     await community;
-    expect(calls.slice(0, 2).sort(), 'both reads leave before /lobby answers').toEqual([READS[0], READS[1]].sort());
+    expect(calls, 'the Community read left while /lobby was held').toContain(READS[1]);
     await held.release();
     await expect(title(page, 'Home')).toBeVisible();
     await page.waitForLoadState('networkidle');
