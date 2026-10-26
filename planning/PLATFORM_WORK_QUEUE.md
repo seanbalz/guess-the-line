@@ -41,7 +41,7 @@ cutover, external invitations or deletion of existing player records.
 | Hosted Research/chart verification | Codex | Open: release the approved source through the manual release workflow, then verify the served source and signed-in Research, Lines and Trends. Local fixture checks do not establish this. |
 | Physical iPhone acceptance (Q19) | Sean with Codex | Open after release: Safari and Home Screen, Light/Dark, narrow table readability, season taps/dragging and preserved selection, long labels, missing/stale evidence and market locks. Retain Sean's corrected no-scroll-bug report. |
 
-Q18's missing Points actuals/reminder automation remains visible below; delivered
+Q18's pending Points actuals/reminder release remains visible below; delivered
 Points screens must not imply automatic scoring. Q05 needs reconfirmation only
 when revisited. New Fantasy integrations, simulator and native iOS follow this
 approved completion work.
@@ -67,7 +67,7 @@ approved completion work.
 | Q15 | Trade-value charts | New requested scope: establish permitted free sources, league formats, attribution and timestamps. Different provider scales must not be silently combined. No source is connected by this task. |
 | Q16 | Easier bet entry/tracking | Released and verified October 20: actual bets first, separate Virtual Units, button entry, explicit unknown terms, pending/settled and market filters. PR #155 merged, API v27 / Pages 9ef3f651 verified, all three integration checkouts clean/synced. October 21 follow-up connects reviewed recommendations to actual tickets and adds a grouped owner list; #159 merged, Pages dcfb977b verified with preserved data/API. Closeout PR #160 merged as 2e3e8fa and all three checkouts synced. Phone acceptance remains separate. |
 | Q17 | Remaining native destinations | Use RETIRE-01's preservation/recovery checklist in [new-app retirement](new-app-retirement.md) (carried from closed PR #144) and the inventory: League/Bets screens, history, exports, commissioner tools and old records must retain working homes. |
-| Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. Points P-03 actuals loader/jobs and the Points reminder-worker pass remain open despite P-01/P-02 and the UI being released. |
+| Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. P-03 source merged independently in PR #219 and release preparation in #223; its migration remains unapplied and the jobs/reminder deployment and operational verification remain open. P-01/P-02 and the UI are released; merged source does not establish automatic scoring. |
 | Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. Includes Sean's phone review of the mobile formatting and visual-depth criteria from closed issue #126 (Photo 1 baseline; implemented in PR #127, Pages `fc7f3cd2`). |
 | Q20 | New-app-only transition | Follow D-52 ([decision log](../docs/DECISIONS.md), [RETIRE-01–04](new-app-retirement.md)) after preservation, destinations, access and operator recovery are verified. Remove only unused screens/code; never player records. |
 

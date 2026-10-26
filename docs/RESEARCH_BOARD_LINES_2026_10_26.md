@@ -44,7 +44,10 @@ browser cases passed across the integrated and focused runs. The final 26 render
 component tests, 43 model/API-contract/token tests, 19 existing SQL gate tests,
 typecheck, Brand QA, fixture build and bundle-only privacy scan passed. Final
 320px Light/Dark board screenshots were inspected. CI/merge and release of this
-board batch are still separate checkpoints.
+board batch are still separate checkpoints. After incorporating main’s independently
+merged Points jobs/release preparation (#219/#223), the market-board display and
+delayed-account isolation cases passed again using the updated migration harness.
+No migration was applied to a hosted project.
 
 ## What remains
 
