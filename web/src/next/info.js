@@ -135,7 +135,7 @@ export const INFO = Object.freeze({
   points: {
     title: 'About Guess the Points',
     body: [
-      'Each week opens Tuesday at 12:00 PM PT with five players: QB, RB, WR, TE and FLEX. Guess each one’s fantasy points, a whole number from 0 to 60, and lock it in before his game kicks off. A locked guess is final; a slot never locked in scores nothing and shows —.',
+      'Each week opens Tuesday at 12:00 AM PT with five players: QB, RB, WR, TE and FLEX. Guess each one’s fantasy points, a whole number from 0 to 60, and lock it in before his game kicks off. A locked guess is final; a slot never locked in scores nothing and shows —.',
       'Scoring is Full PPR: 1 point per reception and 4 per passing touchdown, with the rest of GTL’s disclosed offensive weights. Each slot earns 10 minus the fantasy points you were off, never below 0. The week’s maximum is 50.',
       'A player with no snap, a team change or a game moved out of the week is Void · inactive for everyone, and the maximum drops by 10.',
       'Points are PROVISIONAL as stats load and re-grade on corrections until the following Thursday at 12:00 PM PT, then FINAL.',

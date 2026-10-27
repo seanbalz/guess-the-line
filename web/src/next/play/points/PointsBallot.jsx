@@ -71,7 +71,7 @@ export function PointsBallotView({ app, shell, read, initialSlot = null }) {
   if (read.loading) return <div className="gx-screen gx-vstack gx-gap-16">{heading}<p className="gx-t-body" role="status">Loading Points…</p></div>;
   if (read.error) return <div className="gx-screen gx-vstack gx-gap-16">{heading}{comingSoon(read.error) ? <PointsComingSoon/> : <LeagueFailure error={read.error} onRetry={read.retry}/>}</div>;
   const data = read.data;
-  if (data.status !== 'open') return <div className="gx-screen gx-vstack gx-gap-16">{heading}<Card className="gx-vstack gx-gap-12" role="status"><h2 className="gx-t-section">No Points week is open</h2><p className="gx-t-body gx-c-2">A new week opens Tuesdays at 12:00 PM PT.</p></Card></div>;
+  if (data.status !== 'open') return <div className="gx-screen gx-vstack gx-gap-16">{heading}<Card className="gx-vstack gx-gap-12" role="status"><h2 className="gx-t-section">No Points week is open</h2><p className="gx-t-body gx-c-2">A new week opens Tuesdays at 12:00 AM PT.</p></Card></div>;
   const selected = data.slots.find(slot => slot.slot === open);
   return <div className="gx-screen gx-vstack gx-gap-16 gx-pt" data-screen="points">
     {heading}

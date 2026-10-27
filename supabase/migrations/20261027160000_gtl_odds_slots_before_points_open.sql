@@ -1,0 +1,103 @@
+-- D-61: market data refreshes before the Tuesday 12:00 AM PT Points open. The twelve-hour odds slots move from 08:15/20:15
+-- UTC to 06:15/18:15 UTC (11:15 PM / 11:15 AM PDT, 10:15 PM / 10:15 AM PST), so a run lands 45 minutes before the open in
+-- daylight time and 1 hour 45 minutes before it in standard time. The same two runs a day, the same credits.
+-- Only the slot anchor changes, in the three functions that use it: the dispatcher queues a run in the new slot, the claim
+-- accepts only a run queued in the current new slot, and the schedule reader reports the new next run and times. Each body is
+-- otherwise the current hosted definition, byte for byte. No table, row, grant or credential changes.
+-- After apply: move the hosted cron job (supabase/admin/odds_refresh_cron_d61.sql). A run queued in an old 08:15/20:15 slot
+-- before the apply and claimed after it is refused (GTL_SCHEDULE_AUTH) and its next slot runs normally.
+
+create or replace function public.gtl_dispatch_odds_refresh() returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare cfg public.gtl_odds_schedule; run public.gtl_odds_refresh_runs; token text; stamp timestamptz:=clock_timestamp(); net_id bigint;
+begin
+  select * into cfg from public.gtl_odds_schedule where id='nfl-12h' for update;
+  stamp:=clock_timestamp();
+  if not found or not cfg.enabled then return jsonb_build_object('status','disabled'); end if;
+  update public.gtl_odds_refresh_runs set status='failed',reason='worker_timeout',finished_at=stamp
+    where schedule_id=cfg.id and status in ('queued','running') and coalesce(claimed_at,created_at)<stamp-interval '10 minutes';
+  token:=encode(sha256(convert_to(gen_random_uuid()::text||gen_random_uuid()::text||gen_random_uuid()::text,'UTF8')),'hex');
+  insert into public.gtl_odds_refresh_runs(schedule_id,slot_start,capability_hash)
+    values(cfg.id,date_bin(interval '12 hours',stamp,timestamptz '2000-01-01 06:15:00+00'),encode(sha256(convert_to(token,'UTF8')),'hex'))
+    on conflict(schedule_id,slot_start) do nothing returning * into run;
+  if not found then return jsonb_build_object('status','already_dispatched'); end if;
+  begin
+    select net.http_post(url:=cfg.endpoint,body:=jsonb_build_object('runId',run.id),
+      headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||token),timeout_milliseconds:=60000) into net_id;
+  exception when others then
+    update public.gtl_odds_refresh_runs set status='failed',reason='dispatch_unavailable',finished_at=clock_timestamp() where id=run.id;
+    return jsonb_build_object('status','failed','reason','dispatch_unavailable');
+  end;
+  return jsonb_build_object('status','queued','runId',run.id);
+end $$;
+
+create or replace function public.gtl_claim_odds_refresh(p_token text,p_run uuid) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare cfg public.gtl_odds_schedule; run public.gtl_odds_refresh_runs; c jsonb; failure text;
+  stamp timestamptz:=clock_timestamp(); upcoming integer; claim uuid; budget public.gtl_odds_budget;
+begin
+  select * into cfg from public.gtl_odds_schedule where id='nfl-12h';
+  if not found or not cfg.enabled or p_token is null or p_token !~ '^[0-9a-f]{64}$' then raise exception 'GTL_SCHEDULE_AUTH'; end if;
+  select * into run from public.gtl_odds_refresh_runs where id=p_run and schedule_id=cfg.id for update;
+  stamp:=clock_timestamp();
+  -- Authenticate against this exact private run BEFORE returning even a replay.
+  -- A leaked/redirected queue token cannot choose actor, slate, budget or another
+  -- run, and expires regardless of whether the original worker ever claimed it.
+  if not found or encode(sha256(convert_to(p_token,'UTF8')),'hex') is distinct from run.capability_hash
+    or run.slot_start<>date_bin(interval '12 hours',stamp,timestamptz '2000-01-01 06:15:00+00')
+    or run.created_at<stamp-interval '5 minutes' or run.created_at>stamp then raise exception 'GTL_SCHEDULE_AUTH'; end if;
+  if run.status<>'queued' then return jsonb_build_object('replay',true,'runId',run.id,'status',run.status,'reason',run.reason); end if;
+  begin c:=public.gtl_odds_collection_slate(cfg.authorized_by);
+  exception when others then failure:=case when sqlerrm='GTL_ODDS_FORBIDDEN' then 'commissioner_unavailable' else 'slate_unavailable' end; end;
+  if failure is null then
+    if public.gtl_odds_schedule_slate(cfg.season,cfg.week,cfg.slate_signature) is null
+      or c->'signature' is distinct from cfg.slate_signature or (c->>'season')::integer<>cfg.season or (c->>'week')::integer<>cfg.week then failure:='slate_changed';
+    elsif jsonb_typeof(c->'games') is distinct from 'array' or jsonb_array_length(c->'games')<1
+      or jsonb_array_length(c->'games')<>jsonb_array_length(cfg.slate_signature->'games') then failure:='slate_unavailable';
+    else
+      select count(*) into upcoming from jsonb_array_elements(c->'games') g where (g->>'kickoff')::timestamptz>stamp;
+      if upcoming=0 then failure:='all_games_started'; end if;
+    end if;
+  end if;
+  if failure is not null then
+    update public.gtl_odds_refresh_runs set status='skipped',reason=failure,finished_at=stamp where id=run.id;
+    return jsonb_build_object('replay',true,'runId',run.id,'status','skipped','reason',failure);
+  end if;
+  claim:=gen_random_uuid();
+  update public.gtl_odds_refresh_runs set status='running',claim_token=claim,claimed_at=stamp where id=run.id;
+  select * into budget from public.gtl_odds_budget where provider='the-odds-api';
+  return jsonb_build_object('replay',false,'runId',run.id,'claim',claim,'actorId',cfg.authorized_by,
+    'preflightRequestId',run.preflight_request_id,'collectionRequestId',run.collection_request_id,
+    'needsPreflight',budget.last_successful_preflight_at is null or budget.last_successful_preflight_at<stamp-interval '24 hours' or budget.conservative_remaining is null);
+end $$;
+
+create or replace function public.gtl_read_odds_schedule(p_user uuid,p_league text) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare c jsonb; cfg public.gtl_odds_schedule; run public.gtl_odds_refresh_runs; slate text:='unavailable'; upcoming integer; n integer;
+  budget public.gtl_odds_budget; pause_reason text; effective boolean;
+begin
+  perform public.gtl_weekly_context(p_user,p_league);
+  select * into cfg from public.gtl_odds_schedule where id='nfl-12h';
+  if found then c:=public.gtl_odds_schedule_slate(cfg.season,cfg.week,cfg.slate_signature); end if;
+  if c is not null then
+    n:=jsonb_array_length(c->'games');
+    select count(*) into upcoming from jsonb_array_elements(c->'games') g where (g->>'kickoff')::timestamptz>clock_timestamp();
+    slate:=case when upcoming=0 then 'complete' when upcoming<n then 'partial' else 'eligible' end;
+  end if;
+  select * into budget from public.gtl_odds_budget where provider='the-odds-api';
+  if cfg.enabled then
+    if slate='unavailable' then pause_reason:='slate_changed';
+    elsif slate='complete' then pause_reason:='all_games_started';
+    elsif not exists(select 1 from public.gtl_memberships where user_id=cfg.authorized_by and league_id='sean-troy-luke' and player_id='sean' and role='commissioner' and active) then pause_reason:='commissioner_unavailable';
+    elsif budget.paused then pause_reason:='budget_paused';
+    elsif budget.conservative_remaining<52 then pause_reason:='budget_guard'; end if;
+  end if;
+  effective:=coalesce(cfg.enabled,false) and pause_reason is null;
+  select * into run from public.gtl_odds_refresh_runs where schedule_id=cfg.id order by slot_start desc limit 1;
+  if run.status in ('queued','running') and coalesce(run.claimed_at,run.created_at)<clock_timestamp()-interval '10 minutes' then run.status:='failed'; run.reason:='worker_timeout'; end if;
+  return jsonb_build_object('configured',coalesce(cfg.enabled,false),'enabled',effective,'operationalStatus',case when effective then 'active' when cfg.enabled then 'blocked' else 'disabled' end,
+    'pauseReason',pause_reason,'cadenceHours',12,'timeZone','UTC','utcTimes',jsonb_build_array('06:15','18:15'),
+    'season',cfg.season,'week',cfg.week,
+    'nextRunAt',case when effective then date_bin(interval '12 hours',clock_timestamp(),timestamptz '2000-01-01 06:15:00+00')+interval '12 hours' else null end,
+    'lastRunAt',run.created_at,'lastStatus',run.status,'lastReason',run.reason,'slateStatus',slate,'referenceOnly',true);
+end $$;

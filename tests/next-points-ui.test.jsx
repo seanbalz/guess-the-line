@@ -203,7 +203,7 @@ describe('feature flag and empty states', () => {
 
   it('an unopened week says when weeks open', () => {
     const html = ballot(ready({ season: null, week: null, status: 'unopened', groupId: null, slots: [], result: null, standings: { week: [], season: [] } }));
-    expect(html).toContain('A new week opens Tuesdays at 12:00 PM PT.');
+    expect(html).toContain('A new week opens Tuesdays at 12:00 AM PT.');
   });
 });
 
@@ -225,7 +225,7 @@ describe('Play landing row', () => {
     expect(model.landingCard(READ, null)).toEqual({ progress: '2/5', meta: 'Next locks Sun 10:00 AM PT', label: 'Guess the Points, 2 of 5 locked, Next locks Sun 10:00 AM PT' });
     const done = { ...READ, slots: READ.slots.map(s => ({ ...s, closed: true })) };
     expect(model.landingCard(done, null).meta).toBe('Week 7 · You 6.6 of 50 · PROVISIONAL');
-    expect(model.landingCard({ status: 'unopened', slots: [] }, null)).toMatchObject({ progress: null, meta: 'Opens Tuesdays at 12:00 PM PT' });
+    expect(model.landingCard({ status: 'unopened', slots: [] }, null)).toMatchObject({ progress: null, meta: 'Opens Tuesdays at 12:00 AM PT' });
     expect(model.landingCard(null, { status: 503 }).meta).toBe('Points could not be loaded');
     const html = renderToStaticMarkup(<div className="gx"><PointsLandingCard read={ready()} onOpen={() => {}}/></div>);
     expect(markupProblems(html)).toEqual([]);

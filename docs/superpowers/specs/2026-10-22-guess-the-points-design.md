@@ -59,7 +59,7 @@ Each question was asked one at a time with a recommended option.
 | Push | **One reminder 2 hours before your next unlocked slot's kickoff**, at most once per week, spoiler-free. |
 | GTL's own estimate | **Unranked House row**, hidden until you lock in that slot or it kicks off. |
 | Where it lives | **Play, beside Spread and Total**; Home hero bar for opted-in players; one row in Research › Fantasy. |
-| When the week opens | **Tuesday 12:00 PM PT**, with a commissioner early-publish fallback. |
+| When the week opens | **Tuesday 12:00 AM PT** (D-61; was 12:00 PM), with a commissioner early-publish fallback. |
 | Trade grading window | **Next 4 NFL weeks**, shrinking near season's end. |
 | Trade voting | **Hidden vote** until the window's first kickoff; voters earn a **Trade judge W-L-P** record. |
 | Who posts trades | **Any member, Community-wide**, 1–3 players per side, at most 2 open trades per member per week. |
@@ -94,7 +94,7 @@ These are design defaults [assumed]. Sean can change any of them in review.
 
 ### 3.1 The week
 
-- **Open.** Tuesday 12:00 PM `America/Los_Angeles` of each NFL competition week,
+- **Open.** Tuesday 12:00 AM `America/Los_Angeles` (D-61; was 12:00 PM) of each NFL competition week,
   after nflverse has loaded Monday night's stats and Track 1's 11:00 UTC refresh
   has published that week's estimate snapshot (section 4.4). A scheduler publishes the slate; the commissioner's
   "Preview / publish early (fallback)" follows the D-24 pattern. If no fresh
@@ -258,7 +258,7 @@ tables do [inspected].
   returns the slate. It is tested on its own.
 - **Schedules** (pg_cron, two UTC jobs per local time, as D-24 does, with the
   worker refusing the wrong local hour):
-  - open: Tuesday 12:00 PM PT (`0 19 * * 2` PDT, `0 20 * * 2` PST)
+  - open: Tuesday 12:00 AM PT (D-61: `0 7 * * 2` PDT, `0 8 * * 2` PST)
   - finalize: Thursday 12:00 PM PT (`0 19 * * 4` PDT, `0 20 * * 4` PST)
   - actuals load: daily from Monday to Thursday after Track 1's 11:00 UTC run,
     plus once just before the Thursday finalize (section 4.4).

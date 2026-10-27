@@ -143,6 +143,8 @@ test('season standings: a member appears from their first lock-in, weeks not pla
 test('FINAL time is the following Thursday 12:00 PM PT, across the November DST change', () => {
   assert.equal(finalizeAt('2026-10-20T19:00:00Z'), '2026-10-29T19:00:00.000Z', 'Tue Oct 20 12:00 PDT → Thu Oct 29 12:00 PDT');
   assert.equal(finalizeAt('2026-10-27T19:00:00Z'), '2026-11-05T20:00:00.000Z', 'Tue Oct 27 12:00 PDT → Thu Nov 5 12:00 PST');
+  assert.equal(finalizeAt('2026-10-27T07:00:00Z'), '2026-11-05T20:00:00.000Z', 'D-61 midnight open: Tue Oct 27 00:00 PDT → Thu Nov 5 12:00 PST');
+  assert.equal(finalizeAt('2026-11-03T08:00:00Z'), '2026-11-12T20:00:00.000Z', 'D-61 midnight open: Tue Nov 3 00:00 PST → Thu Nov 12 12:00 PST');
   const outcomes = [{ state: 'scored' }, { state: 'void' }];
   assert.deepEqual(canFinalize({ finalizeAt: '2026-10-29T19:00:00Z', outcomes, now: '2026-10-29T18:59:59Z' }), { ready: false, reason: 'not_yet' });
   assert.deepEqual(canFinalize({ finalizeAt: '2026-10-29T19:00:00Z', outcomes: [...outcomes, { state: 'pending' }], now: '2026-10-29T19:00:00Z' }), { ready: false, reason: 'pending_stats' });

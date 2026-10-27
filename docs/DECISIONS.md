@@ -12,6 +12,25 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-61 — Fantasy (Guess the Points) opens Tuesday 12:00 AM PT, with every data feed refreshed first (October 27, 2026)
+
+Sean: "change the start of the fantasy guess the line to post at 12AM PST on tuesdays. i need all data to be updated as
+well so that people can make informed decisions and bets." "12AM PST" is read as midnight Pacific time all season: 07:00
+UTC in daylight time, 08:00 UTC in standard time. This replaces "Tuesday 12:00 PM PT" everywhere for Points. FINAL time
+(the following Thursday 12:00 PM PT) is unchanged.
+
+| Data | Before the open |
+|---|---|
+| Fantasy projections (Track 1 snapshot) and last week's fantasy scores | Tuesday Fantasy refresh runs at 06:17, 06:47 and 07:17 UTC, after nflverse's Monday-night stats run (05:33 UTC); the 11:00 UTC daily run stays. |
+| Points slate | Points jobs at 07:00 and 08:00 UTC Tuesday draft and publish; hourly catch-ups publish as soon as a late snapshot lands. |
+| Market data (odds) | The twelve-hour odds slots move from 08:15/20:15 to 06:15/18:15 UTC: a refresh 45 minutes (PDT) or 1 hour 45 minutes (PST) before the open. Same two runs a day, same credits. |
+| Games, scores and trends | Unchanged: results every 30 minutes and league features every 15 minutes, all week. |
+
+Hosted steps, each on Sean's word: deploy `gtl-points-jobs` from this commit; run
+`supabase/admin/points_jobs_cron_d61.sql`; apply `20261027160000_gtl_odds_slots_before_points_open.sql`, then run
+`supabase/admin/odds_refresh_cron_d61.sql`; deploy the frontend for the new copy. The Fantasy refresh schedule takes
+effect when this merges to main.
+
 ## D-60 — everyone uses the new app; the old app retires in two steps (October 26, 2026)
 
 Sean asked to "remove the old app entirely, just use the new app". Some records and

@@ -1,7 +1,7 @@
 // Guess the Points scheduled jobs (D-56 P-03; .superpowers/sdd/p03-design.md, job steps 1-3). A machine-only endpoint,
 // gtl-points-jobs, that pg_cron dispatches (supabase/admin/points_jobs_cron.sql) with a one-run capability verified in SQL
 // (20261026120000_gtl_points_jobs.sql). Each run claims its capability, then does three steps, each on its own:
-//   1. slate     publish a stored draft whose Tuesday 12:00 PM PT open has arrived (the scheduler, actor null), or draft
+//   1. slate     publish a stored draft whose Tuesday 12:00 AM PT open (D-61) has arrived (the scheduler, actor null), or draft
 //                the coming week from Track 1's newest estimate snapshot when that week has no slate yet;
 //   2. actuals   load nflverse actuals for the newest two published weeks under way and not FINAL;
 //   3. finalize  freeze every published week whose FINAL time has come.

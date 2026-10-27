@@ -111,7 +111,7 @@ export function freezeWeek(scored) {
 
 /**
  * FINAL time: the following Thursday at 12:00 PM America/Los_Angeles, i.e. the Thursday after the week's own
- * Thursday (spec 3.5). From a Tuesday 12:00 PM PT open that is nine days later, across a DST change in local time.
+ * Thursday (spec 3.5). From a Tuesday 12:00 AM PT open (D-61) that is nine and a half days later, across a DST change in local time.
  */
 export function finalizeAt(opensAt) {
   const { date, weekday } = pacificDate(Date.parse(opensAt));
