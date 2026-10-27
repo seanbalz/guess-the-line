@@ -1612,8 +1612,11 @@ test('season stems mark break-even without inflating small gains or losses', asy
         expect(geo.heights[0] / geo.heights[2]).toBeCloseTo(0.001, 8);
         expect(geo.heights[1] / geo.heights[2]).toBeCloseTo(0.001, 8);
         expect(geo.fill).not.toBe(geo.border);
+        const plotOffset = () => trend.locator('.gx-tc-seasons').evaluate(el => el.querySelector('.gx-tc-stems').getBoundingClientRect().top - el.getBoundingClientRect().top);
+        const before = await plotOffset();
         await slider.focus(); await page.keyboard.press('ArrowRight');
         await expect(slider).toHaveAttribute('aria-valuetext', /2019:.*\+0.1 units, above break-even/);
+        expect(await plotOffset()).toBeCloseTo(before, 1);
         await page.keyboard.press('Home');
         await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
         await trend.getByRole('button', { name: 'By season', exact: true }).click();

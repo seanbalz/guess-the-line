@@ -250,6 +250,15 @@ on `codex/season-zero-markers`; all 56 integrated browser cases, focused browser
 Brand QA and build/privacy checks. Four 320px ordinary/forced-color screenshots
 were inspected. CI/merge, release and device acceptance remain open.
 
+The next [steady-tooltip batch](RESEARCH_STABLE_TOOLTIP_2026_10_27.md)
+keeps line and season plots in place when tooltip labels wrap during scrubbing.
+The browser regression reproduced an 18px shift and passed after the fix;
+49 component and 26 geometry/token/brand-mark tests passed. All 57 browser cases
+are covered by the integrated run and corrected season-fixture rerun. Eight
+320px ordinary/forced-color screenshots inspected; typecheck, Brand QA and
+fixture build/privacy checks passed. Source on `codex/chart-stable-tooltip`;
+CI/merge, release/readback and device acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.
