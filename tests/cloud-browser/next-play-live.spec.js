@@ -37,7 +37,6 @@ async function enterSpread(page) {
 }
 async function openPlay(page) {
   await signIn(page, 'luke');
-  await page.getByRole('button', { name: 'Try the new app', exact: true }).click();
   await enterSpread(page);
   await expect(editor(page)).toBeVisible();
   await expect(page).toHaveURL(/#play\/picks/);

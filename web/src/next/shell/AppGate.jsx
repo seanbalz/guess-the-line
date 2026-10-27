@@ -4,7 +4,7 @@
 // `/community/read` answers 403), the access-pending screen for a saved league this account is not in. A 401 from
 // any read or write opens "Sign in again" over whatever shows, so nothing typed is lost.
 import { useMemo, useState } from 'react';
-import { switchApp } from '../../appView.js';
+import { openOldApp } from '../../appView.js';
 import { useAppData } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { NameStep } from '../me/NameStep.jsx';
@@ -13,7 +13,7 @@ import { AccessPending, FrameRoot, LoadFailed, RemovedScreen, StartScreen } from
 import { useShell } from './context.js';
 import { Shell } from './Shell.jsx';
 
-const toOldApp = () => switchApp('classic');
+const toOldApp = () => openOldApp();
 
 /** The cover for the league showing, drawn inside the frame (it uses the frame's switcher and toasts). */
 function LeagueCover({ app }) {

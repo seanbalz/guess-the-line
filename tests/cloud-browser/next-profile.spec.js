@@ -19,7 +19,6 @@ async function openProfile(page) {
 }
 async function open(page) {
   await signIn(page, 'luke');
-  await page.getByRole('button', { name: 'Try the new app', exact: true }).click();
   await openProfile(page);
 }
 

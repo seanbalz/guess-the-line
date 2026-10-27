@@ -13,7 +13,7 @@
 // unless the address already opens one. `notice` (`{ key, text }`) shows as a toast once per key. `children` render
 // inside the frame's root, after the layers (the "sign in again" prompt).
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { switchApp } from '../../appView.js';
+import { openOldApp } from '../../appView.js';
 import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
@@ -228,7 +228,8 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       },
       toast,
       dismissToast: key => dispatch({ type: 'dismissToast', key }),
-      toOldApp: () => { if (confirmLeave()) { dirty.current.clear(); switchApp('classic'); } },
+      // D-60: the old app holds only what has no new home yet (older records and some commissioner tools).
+      toOldApp: () => { if (confirmLeave()) { dirty.current.clear(); openOldApp(); } },
       /** Signs out; true when it worked (AuthGate then shows sign-in), false after saying why in a toast. */
       signOut: async () => {
         if (!confirmLeave()) return false;

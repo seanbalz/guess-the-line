@@ -1,6 +1,7 @@
 // Persona (b): casual phone user at 390px on a slow connection (every request delayed),
 // interrupted mid-ballot: tab switch, reload, back button. Does the draft survive?
 import { test, expect, pgliteAvailable, id, dueDay } from './harness.mjs';
+import { useOldApp } from '../old-app.mjs';
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
@@ -268,3 +269,6 @@ test('phone: sent picks are final once the server says so, at 390px', async ({ p
   // The receipt's remaining actions keep thumb-sized targets.
   expect((await persona.smallTargets('submitted-final')).filter(target => ['Make Total picks', "See everyone's Spread picks"].includes(target.text))).toEqual([]);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

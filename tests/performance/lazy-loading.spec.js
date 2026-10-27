@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { test, signIn } from '../fixtures/cloud-ui.mjs';
+import { useOldApp } from '../cloud-browser/old-app.mjs';
 
 // Optional screens ship as their own chunks; the pick route must never wait on them.
 const loaded = (fixture, name) => fixture.chunks.filter(url => url.match(new RegExp(`/assets/${name}-[^/]+\\.js$`)));
@@ -12,6 +13,7 @@ async function navigate(page, name) {
 const noWrites = fixture => expect(fixture.apiRequests.filter(request => request.method !== 'GET' && !request.pathname.endsWith('/social/read'))).toHaveLength(0);
 
 test('sign-in, lobby, league and optional screens load only the code they use', async ({ page, fixture }) => {
+  await useOldApp(page); // D-60: the old app opens only at ?app=classic (Menu › "Older records and tools").
   await page.goto('/');
   await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
   for (const name of ['App', 'GameHub', 'NextApp', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
@@ -39,9 +41,8 @@ test('sign-in, lobby, league and optional screens load only the code they use', 
   noWrites(fixture);
 });
 
-// Redesign stage 9 (D-38, D-39): a device that chose the new app loads only its chunk, never the old app's screens.
-test('a device that chose the new app loads NextApp and none of the old app\'s screens', async ({ page, fixture }) => {
-  await page.addInitScript(() => { try { localStorage.setItem('gtl.app', 'next'); } catch { /* Private mode: the old app opens. */ } });
+// Redesign stage 9 (D-38, D-39) and D-60: every device opens the new app, which loads only its chunk, never the old app's screens.
+test('the new app loads NextApp and none of the old app\'s screens', async ({ page, fixture }) => {
   await page.goto('/');
   await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
   for (const name of ['App', 'GameHub', 'NextApp', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
@@ -60,6 +61,7 @@ test('a delayed optional chunk shows a status and leaves the pick route usable',
   let release;
   const waiting = new Promise(resolve => { release = resolve; });
   await page.route('**/assets/SocialBetTracker-*.js', async route => { await waiting; await route.continue(); });
+  await useOldApp(page); // D-60: the old app opens only at ?app=classic.
   await page.goto('/'); await signIn(page);
   await page.getByRole('button', { name: 'Open game', exact: true }).click();
   await navigate(page, 'Bet Tracker');
@@ -75,6 +77,7 @@ test('a delayed optional chunk shows a status and leaves the pick route usable',
 test('a failed optional chunk stays contained and recovers only after explicit reload', async ({ page, fixture }) => {
   const blocked = '**/assets/SocialBetTracker-*.js';
   await page.route(blocked, route => route.abort('failed'));
+  await useOldApp(page); // D-60: the old app opens only at ?app=classic.
   await page.goto('/'); await signIn(page);
   await page.getByRole('button', { name: 'Open game', exact: true }).click();
   await navigate(page, 'Bet Tracker');
