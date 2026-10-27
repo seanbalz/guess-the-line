@@ -1,11 +1,12 @@
 // A chip (design system 7.6): a 44px toggle button. Selected is lime with a check before the value, so it never relies
 // on color alone, and it pops once when it becomes selected (never on first render, never under reduced motion).
 // `text` uses body type instead of numerals; `tall` makes it 48. `label` names it in words ("Seattle by 2.5") when the
-// visible value is a bare number.
+// visible value is a bare number. Pressed, it dips and dims (press.css).
 import { Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon.jsx';
 import { cx } from './cx.js';
+import './press.css';
 
 export function Chip({ ref, selected = false, text = false, tall = false, label, className, children, onAnimationEnd, ...rest }) {
   const was = useRef(selected);

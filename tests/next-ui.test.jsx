@@ -606,6 +606,46 @@ describe('Sheet, Dialog, Toast, Overlay', () => {
   });
 });
 
+describe('design upgrade: paging sheets and loading skeletons', () => {
+  it('a paging sheet keeps its title as its name, shows its place in words and has 44px previous and next buttons', () => {
+    const pager = { index: 0, count: 3, unit: 'game', onMove: () => {}, prevLabel: 'Previous game', nextLabel: 'Next game, KC @ BUF' };
+    const node = <Sheet title="SEA @ DEN" onClose={() => {}} pager={pager}><p className="gx-t-body">x</p></Sheet>;
+    const panel = one(node, n => n.attrs.role === 'dialog');
+    expect(panel.attrs.class).toBe('gx-sheet');
+    expect(nameFrom(one(node, n => n.attrs.id === panel.attrs['aria-labelledby']))).toBe('SEA @ DEN');
+    const place = one(node, n => n.attrs['aria-live'] === 'polite');
+    expect(nameFrom(place)).toBe('SEA @ DEN, game 1 of 3');
+    const pages = els(node, byClass('gx-sheet-page'));
+    expect(pages.map(n => [n.tag, n.attrs.type, n.attrs['aria-label'], n.attrs['aria-disabled']])).toEqual([
+      ['button', 'button', 'Previous game', 'true'], ['button', 'button', 'Next game, KC @ BUF', undefined]]);
+    for (const page of pages) expect(classes(page)).toContain('gx-icon-btn');
+    expect(classes(one(node, byClass('gx-sheet-body')))).toEqual(['gx-sheet-body', 'gx-sheet-body--pager']);
+    clean(node);
+    // Without two pages it is an ordinary sheet: no place, no page buttons, the plain body.
+    const single = <Sheet title="SEA @ DEN" onClose={() => {}} pager={{ ...pager, count: 1 }}>x</Sheet>;
+    expect(els(single, byClass('gx-sheet-page'))).toHaveLength(0);
+    expect(els(single, n => n.attrs['aria-live'] === 'polite')).toHaveLength(0);
+    expect(classes(one(single, byClass('gx-sheet-body')))).toEqual(['gx-sheet-body']);
+  });
+
+  it('a skeleton is a status that names what is loading; its blocks are hidden decoration with no words', () => {
+    expect(() => html(<ui.Skeleton/>)).toThrow(/accessible name/);
+    for (const shape of ui.SKELETON_SHAPES) {
+      const node = <ui.Skeleton label="Loading market lines…" shape={shape} count={2}/>;
+      const status = one(node, n => n.attrs.role === 'status');
+      expect(classes(status)).toEqual(['gx-skel', `gx-skel--${shape}`]);
+      expect(nameFrom(status)).toBe('Loading market lines…');
+      const art = one(node, byClass('gx-skel-art'));
+      expect(art.attrs['aria-hidden']).toBe('true');
+      expect(nameFrom(art)).toBe('');
+      expect(els(node, n => n.tag === 'svg' || n.tag === 'button')).toHaveLength(0);
+      clean(node);
+    }
+    expect(els(<ui.Skeleton label="Loading" shape="cards" count={9}/>, byClass('gx-skel-card'))).toHaveLength(6);
+    expect(classes(one(<ui.Skeleton label="Loading" shape="nope"/>, n => n.attrs.role === 'status'))).toContain('gx-skel--lines');
+  });
+});
+
 describe('TeamMark (D-46 official logos, D-22 badge fallback, sized for DP-27) and the Field monogram', () => {
   it('every team resolves to its registered mark in a fixed box, with the code shown until the image decodes', () => {
     expect(Object.keys(teamMarks)).toHaveLength(32);

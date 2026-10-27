@@ -9,7 +9,7 @@ import { TEAM_NAMES } from '../../../../shared/nfl-schedule.mjs';
 import { allTrends, refereeFor } from '../../../../shared/trends-view.mjs';
 import { useOfficials } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
-import { Card, InfoButton, List, LockLine, Sheet } from '../ui/index.js';
+import { Card, InfoButton, List, LockLine, Sheet, Skeleton } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
 import { Expander, TrendList, TrendAvailability } from './parts.jsx';
 import { INFO } from '../info.js';
@@ -44,6 +44,13 @@ export function GroupBody({ group, rules }) {
   );
 }
 
+/** What the sheet says until its trends can show; while they load, skeleton rows stand in (the words stay for screen readers). */
+function Waiting({ text }) {
+  return text === LINES_COPY.trendsLoading || text === LINES_COPY.loading
+    ? <Skeleton label={text} shape="rows" count={4}/>
+    : <p className="gx-t-body gx-c-2" role="status">{text}</p>;
+}
+
 export function AllTrendsSheet({ args }) {
   const shell = useShell();
   const { personal, community, trends, trendsWeek, records, shown } = useLinesData();
@@ -58,7 +65,7 @@ export function AllTrendsSheet({ args }) {
   return (
     <Sheet title={LINES_COPY.allTrends} back={back} onClose={shell.closeSheet} closeLabel="Close All trends" tall className="gx-l-sheet">
       <TrendAvailability week={trendsWeek}/>
-      {!all ? <p className="gx-t-body gx-c-2" role="status">{view ? view.trends.notice || LINES_COPY.trendsLoading : personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}</p> : (
+      {!all ? <Waiting text={view ? view.trends.notice || LINES_COPY.trendsLoading : personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}/> : (
         <>
           <div className="gx-l-sechead">
             <p className="gx-t-meta gx-c-2 gx-grow">Every record for this game</p>

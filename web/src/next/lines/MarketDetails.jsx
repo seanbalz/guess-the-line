@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from 'react';
-import { Button, Card, Icon, InfoButton } from '../ui/index.js';
+import { Button, Card, Icon, InfoButton, Skeleton } from '../ui/index.js';
 import { fmtNum, fmtOdds, fmtSide } from '../format.js';
 import { INFO } from '../info.js';
 import { bestRecordedBook, lineState, marketTime, marketValue, movementGeometry } from './marketDetails.js';
@@ -66,7 +66,7 @@ export function MarketDetails({ lines, gameId }) {
   const read = useGameLines(lines, gameId);
   return <section className="gx-vstack gx-gap-12" aria-label="Market lines">
     <div className="gx-l-sechead"><h3 className="gx-t-section gx-grow">Market lines</h3><InfoButton {...INFO.marketLines}/></div>
-    {read.status === 'loading' ? <p className="gx-t-body" role="status">Loading market lines…</p> : read.status === 'error' ? <><p className="gx-t-body" role="status">Market lines are unavailable.</p><Button onClick={read.reload}>Retry market lines</Button></> : <>
+    {read.status === 'loading' ? <Skeleton label="Loading market lines…" shape="panels" count={2}/> : read.status === 'error' ? <><p className="gx-t-body" role="status">Market lines are unavailable.</p><Button onClick={read.reload}>Retry market lines</Button></> : <>
       {['spread', 'total'].map(market => <MarketPanel key={`${gameId}:${market}`} game={read.data.game} market={market} cell={read.data[market]} now={read.now}/>)}
       <Button variant="ghost" onClick={read.reload}>Refresh market lines</Button>
     </>}

@@ -144,6 +144,63 @@ describe('the Lines board', () => {
     // D-55: the title's ⓘ is the one icon-only button; it is named for its topic.
     expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Use the old app']);
   });
+
+  it('design upgrade: while the week loads, skeleton game cards stand in, with the words kept as the status a screen reader hears', () => {
+    state.lines = { ...data(), personal: { status: 'loading', data: null, error: null } };
+    const html = render(<LinesBoard/>);
+    expect(markupProblems(html)).toEqual([]);
+    const [status] = nodes(html, attr('role', 'status'));
+    expect(status.attrs['data-skeleton']).toBe('cards');
+    expect(textOf(status)).toBe('Loading this week’s games…');
+    const [words] = nodes(html, attr('class', 'gx-sr-only'));
+    expect(textOf(words)).toBe('Loading this week’s games…');
+    const [art] = nodes(html, attr('class', 'gx-skel-art'));
+    expect(art.attrs['aria-hidden']).toBe('true');
+    expect(nodes(html, attr('class', 'gx-skel-card'))).toHaveLength(3);
+    expect(textOf(art)).toBe('');
+  });
+});
+
+describe('the game sheet pages through the week (design upgrade)', () => {
+  const order = () => gamesOf(data().personal.data);
+  const pageButtons = html => nodes(html, n => n.tag === 'button' && (n.attrs.class ?? '').split(' ').includes('gx-sheet-page'));
+  it('shows its place under the title and names the neighbouring games on 44px previous and next buttons', () => {
+    state.lines = data();
+    const games = order();
+    expect(games.length).toBeGreaterThan(2);
+    const second = render(<GameSheet args={{ game: games[1].id }}/>);
+    expect(markupProblems(second)).toEqual([]);
+    const title = `${games[1].away} @ ${games[1].home}`;
+    const [dialog] = nodes(second, attr('role', 'dialog'));
+    expect(textOf(nodes(second, n => n.attrs.id === dialog.attrs['aria-labelledby'])[0])).toBe(title);
+    const [place] = nodes(second, attr('aria-live', 'polite'));
+    expect(textOf(place)).toBe(`${title}, game 2 of ${games.length}`);
+    expect(pageButtons(second).map(n => [n.attrs['aria-label'], n.attrs['aria-disabled']])).toEqual([
+      [`Previous game, ${games[0].away} @ ${games[0].home}`, undefined],
+      [`Next game, ${games[2].away} @ ${games[2].home}`, undefined],
+    ]);
+    expect(nodes(second, n => (n.attrs.class ?? '').split(' ').includes('gx-sheet-body--pager'))).toHaveLength(1);
+    // At the first game the previous button stays, named and focusable, but unavailable.
+    const first = render(<GameSheet args={{ game: games[0].id }}/>);
+    expect(pageButtons(first).map(n => [n.attrs['aria-label'], n.attrs['aria-disabled']])).toEqual([
+      ['Previous game', 'true'], [`Next game, ${games[1].away} @ ${games[1].home}`, undefined],
+    ]);
+    expect(textOf(nodes(first, attr('aria-live', 'polite'))[0])).toMatch(new RegExp(`game 1 of ${games.length}$`));
+    const last = render(<GameSheet args={{ game: games.at(-1).id }}/>);
+    expect(pageButtons(last).map(n => n.attrs['aria-disabled'])).toEqual([undefined, 'true']);
+    // A game not on the board has no pager.
+    expect(pageButtons(render(<GameSheet args={{ game: 'XX-YY' }}/>))).toHaveLength(0);
+  });
+
+  it('while its market lines load, skeleton panels stand in with the status in words', () => {
+    state.lines = data();
+    const html = render(<GameSheet args={{ game: 'SEA-DEN' }}/>);
+    const [market] = nodes(html, attr('aria-label', 'Market lines'));
+    const [status] = [...walk(market)].filter(n => n.attrs?.role === 'status');
+    expect(status.attrs['data-skeleton']).toBe('panels');
+    expect(textOf(status)).toBe('Loading market lines…');
+    expect([...walk(status)].filter(n => n.attrs?.class === 'gx-skel-card')).toHaveLength(2);
+  });
 });
 
 describe('the game sheet', () => {
