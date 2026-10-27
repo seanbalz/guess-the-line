@@ -19,8 +19,8 @@ export default function ResearchChart({ candidate }) {
     <p className="gx-t-label">Illustrative units at -110{series.binned ? ' · chronological bins' : ''}</p>
     <div className="gx-r-table-wrap" tabIndex={0} role="region" aria-label="Historical results table">
       <table className="gx-r-table">
-        <caption>Selected sample: {series.selectedSample} games · cumulative illustrative units at -110</caption>
-        <thead><tr><th scope="col">Dates</th><th scope="col">W-L-P</th><th scope="col">Games</th><th scope="col">Units</th></tr></thead>
+        <caption>Selected sample: {series.selectedSample} games · records and games per period; cumulative illustrative units at -110</caption>
+        <thead><tr><th scope="col">Dates</th><th scope="col">Period W-L-P</th><th scope="col">Games</th><th scope="col">Total units</th></tr></thead>
         <tbody>{series.points.map((p, i) => <tr key={i}><th scope="row"><span className="gx-r-table-date">{p.from.slice(0, 10)}</span>{p.to !== p.from ? <span className="gx-r-table-date">to {p.to.slice(0, 10)}</span> : null}</th><td>{p.wins}-{p.losses}-{p.pushes}</td><td>{p.sample}</td><td>{p.illustrativeUnits}</td></tr>)}</tbody>
       </table>
     </div>

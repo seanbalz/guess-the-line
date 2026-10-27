@@ -79,3 +79,12 @@ Prerequisite PR #245 merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c
 all nine checks passed on `58f4d14240308e999cbede1aec1de13dd65d4362`, with no CI fixes or
 review findings. The updated main also contains separate release-lane evidence;
 this task has not independently repeated that hosted verification.
+
+## Merge verification
+
+[PR #246](https://github.com/seanbalz/guess-the-lines-repo/pull/246) merged October 27
+as `6494a629e567d54aa05520ac339472322ee062bb` after all nine checks passed on
+`c191ec8a8e56a71f4023002a1e2df18296331096`: Brand QA, Typecheck/test,
+Windows portability, dashboard, personas and all four browser shards. There were
+no CI failures or review findings to fix. Hosted release and phone acceptance
+remain separate; this task performed neither a deployment nor a migration apply.

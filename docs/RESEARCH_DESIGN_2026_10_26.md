@@ -154,3 +154,28 @@ release verification and device acceptance as unfinished.
 `cf9ebe16c88975fefcc0d0a2168cc069741152c3`. No CI fixes or review responses were needed.
 Community guesses follow on a separate branch; release and phone acceptance
 remain open for the source batches.
+
+## Cumulative chart records — October 27
+
+The D-55 Research line now pairs cumulative units with a cumulative win/loss/push
+record in its tooltip and keyboard announcement. Previously each plotted point
+used the cumulative units supplied by the reader but only that date bin's record.
+For example, a first bin of 2–1–1 followed by a 0–2 bin showed 0–2 next to the
+running −1.18 units; the tooltip now correctly shows 2–3–1 through that date.
+The plotted units remain the reader's values, with no recalculation.
+
+The evidence table retains its exact per-period records and games, with explicit
+“Period W-L-P” and “Total units” headings and a caption explaining the distinction.
+The correction applies to shortlist charts and charts loaded through an evidence
+expansion. It uses the existing tokens and compact tooltip; no data eligibility,
+qualification, market visibility or collection behavior changes.
+
+A regression failed against the old tooltip and passed after the repair. All 25
+Research/chart component tests and 72 chart/token/Research model and handler tests
+passed with zero skips. The focused browser case checks multiple bins, pushes,
+keyboard selection, a changed display period, retained market locks, 320px layout
+and Light/Dark accessibility. Both themes' chart and table screenshots were
+inspected. Typecheck, Brand QA, the fixture build and bundle privacy scan passed.
+All 50 integrated Research, Lines, Trends and League-bets browser tests also
+passed. [PR #248](https://github.com/seanbalz/guess-the-lines-repo/pull/248) carries this source batch.
+CI/merge, hosted release and physical-iPhone acceptance remain separate.

@@ -7,7 +7,7 @@ test.use({ viewport: { width: 320, height: 844 } });
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required. No hosted data.'));
 
 // Every research result in this spec is synthetic, returned through the real authenticated handler.
-function syntheticResearch({ expiry = false, delay = false, historyStatus = 'fresh' } = {}) {
+function syntheticResearch({ expiry = false, delay = false, historyStatus = 'fresh', multipleBins = false } = {}) {
   const calls = [];
   let release, held, expireAt;
   const gate = new Promise(resolve => { release = resolve; });
@@ -21,6 +21,10 @@ function syntheticResearch({ expiry = false, delay = false, historyStatus = 'fre
     const definitions = ['A', 'B', 'C', 'Opposition', 'Emerging'];
     const open = board.games.filter(g => g.total.visible);
     const candidates = open.length ? definitions.map((name, i) => ({ id: `synthetic-${name.toLowerCase()}`, title: `Synthetic pattern ${name}`, version: 1, market: 'total', family: i === 4 ? 'rest' : 'schedule', period, sourceState: 'computed', conditions: ['Synthetic verified schedule condition'], conditionDescriptions: ['Synthetic verified schedule condition'], qualification: { qualifies: i < 4, label: i < 4 ? 'Consistent, not proven' : 'Emerging', reasons: [] }, record: sample, applications: open.map(g => ({ gameId: g.id, direction: i === 3 ? 'under' : 'over', whyApplies: ['Synthetic schedule'] })), registeredAt: '2026-10-21T00:00:00Z', ...(i < 3 || candidateId === `synthetic-${name.toLowerCase()}` ? { series: { points: [{ from: sample.coverage.from, to: sample.coverage.to, ...sample }], binned: true, selectedSample }, recent: sample, historical: sample, retrospective: sample, prospective: { ...sample, sample: 0, wins: 0, losses: 0, pushes: 0 }, seasonRecord: sample, inputCoverage: {} } : {}) })) : [];
+    if (multipleBins) for (const candidate of candidates.filter(c => c.series)) candidate.series.points = [
+      { from: sample.coverage.from, to: '2025-10-20T00:00:00Z', wins: 2, losses: 1, pushes: 1, sample: 4, illustrativeUnits: 0.82 },
+      { from: '2025-10-21T00:00:00Z', to: sample.coverage.to, wins: sample.wins - 2, losses: 8, pushes: 0, sample: selectedSample - 4, illustrativeUnits: sample.illustrativeUnits },
+    ];
     const group = (id, member, direction, role) => ({ id, memberIds: [`synthetic-${member}`], direction, role, mixed: false, overlaps: [] });
     const supporting = [group('support-a', 'a', 'over', 'support'), group('support-b', 'b', 'over', 'support')], alternatives = [group('opposition', 'opposition', 'under', 'alternative')];
     const ids = candidates.map(c => c.id), shortlist = ids.slice(0, 3);
@@ -226,6 +230,44 @@ test('compact research keeps stale-history warnings visible before opening its i
     await expect(sheet(page).getByText(/Snapshot:/)).toHaveCount(0);
     await sheet(page).getByRole('button', { name: 'About research data', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'About research data', exact: true })).toContainText('Snapshot: 2026-10-21T00:00:00Z');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// Two bins deliberately have different period and cumulative records. A single-bin
+// fixture cannot detect a tooltip accidentally pairing period W-L-P with total units.
+test('research chart records accumulate with units while the evidence table keeps period records', async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(60000);
+  const { world } = await setup(page, baseURL, { multipleBins: true });
+  try {
+    await openResearch(page);
+    const first = sheet(page).locator('[data-research-card]').first();
+    const slider = first.getByRole('slider', { name: 'Move along the line' });
+    await expect(slider).toHaveAttribute('aria-valuetext', '+9.2 U, 20–9–1 total · through 2026-10-20');
+    await slider.focus(); await page.keyboard.press('Home');
+    await expect(slider).toHaveAttribute('aria-valuetext', '0.0 U, Start, 2025-09-01');
+    await page.keyboard.press('ArrowRight');
+    await expect(slider).toHaveAttribute('aria-valuetext', '+0.8 U, 2–1–1 total · through 2025-10-20');
+    await page.keyboard.press('End');
+    await expect(first.locator('.gx-tc-tip-label')).toHaveText('20–9–1 total · through 2026-10-20');
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    const table = first.getByRole('table');
+    await expect(table.getByRole('columnheader', { name: 'Period W-L-P', exact: true })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Total units', exact: true })).toBeVisible();
+    await expect(table.getByRole('cell', { name: '18-8-0', exact: true })).toBeVisible();
+    await expect(table.getByRole('cell', { name: '9.18', exact: true })).toBeVisible();
+    for (const theme of ['light', 'dark']) {
+      await first.locator('.gx-tc-line').scrollIntoViewIfNeeded();
+      await phoneAndAxe(page, theme, testInfo);
+      expect(await first.locator('.gx-tc-tip').evaluate(el => el.getBoundingClientRect().bottom))
+        .toBeLessThanOrEqual(await first.locator('.gx-tc-plot').evaluate(el => el.getBoundingClientRect().top));
+      await page.screenshot({ path: testInfo.outputPath(`cumulative-record-${theme}.png`) });
+      await table.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`period-record-${theme}.png`) });
+    }
+    await sheet(page).getByLabel('Evidence period', { exact: true }).selectOption('recent25');
+    await expect(slider).toHaveAttribute('aria-valuetext', '+4.6 U, 15–9–1 total · through 2026-10-20');
+    await expect(sheet(page).getByText('Spread research is locked.', { exact: false }).first()).toBeVisible();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
