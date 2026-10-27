@@ -247,6 +247,11 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
 
 ### Trend charts
 
+- **Research loading:** reuse the static loading skeletons from the shared kit:
+  panels for a full Research read, compact lines for expanded evidence and its
+  historical table. Keep the status in words for assistive technology; never
+  draw sample charts or records while waiting. A failed read replaces the
+  placeholder with its explanation and retry action. No shimmer or new loop.
 - **Compact row:** title, side and percent, a 80 × 30 mini area, and units.
   Tapping opens the detail in place.
 - **Opened trend:** title, a one-word state pill ("Not proven"), an ⓘ button, and
