@@ -183,3 +183,29 @@ describe('recent outcome counts', () => {
     expect(props(null).line.tiles.map(t => t.label)).toEqual(['Win rate', 'Games']);
   });
 });
+
+describe('visible chart scales', () => {
+  it('states the plotted unit range, preserving small nonzero values and missing evidence', async () => {
+    const { ChartScale } = await import('../web/src/next/charts/ChartScale.jsx');
+    for (const [extent, text] of [
+      [{ low: 0, high: 45.18 }, '0 to +45.18 U'],
+      [{ low: -2.22, high: 0 }, '−2.22 to 0 U'],
+      [{ low: -0.001, high: 0.002 }, '−0.001 to +0.002 U'],
+      [{ low: 0, high: 0 }, '0 U · break-even'], [null, 'Unavailable'],
+    ]) {
+      const html = render(<ChartScale extent={extent} id="unit-scale"/>);
+      expect(html).toContain(text); expect(markupProblems(html)).toEqual([]);
+    }
+  });
+  it('connects each chart image to its own scale, which stays independent of point selection', () => {
+    for (const node of [
+      <TrendLine values={[0, -2, 5]} selectedIndex={0} tip={i => ({ value: `${i} U`, label: 'Sample' })} label="Units"/>,
+      <SeasonStems seasons={[{ season: 2024, w: 1, l: 2, units: -2 }, { season: 2025, w: 3, l: 0, units: 5 }]} selectedIndex={0} onSelect={() => {}}/>,
+    ]) {
+      const html = render(node), nodes = all(html);
+      const scale = nodes.find(n => n.attrs.class === 'gx-tc-scale');
+      expect(nodes.find(n => n.attrs.role === 'img').attrs['aria-describedby']).toBe(scale.attrs.id);
+      expect(html).toContain('−2 to +5 U'); expect(markupProblems(html)).toEqual([]);
+    }
+  });
+});

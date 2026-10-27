@@ -284,6 +284,15 @@ and per-game scoring. Four 320px ordinary/forced-color screenshots were inspecte
 Source is in [PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265)
 on `codex/market-movement-selection`. CI/merge, release/readback and physical-device acceptance remain open.
 
+The next [visible unit-scale batch](RESEARCH_CHART_SCALES_2026_10_27.md)
+adds the plotted unit bounds to line and season charts. Zero and missing evidence
+stay distinct; each image references its own accessible scale. All 59 component,
+31 geometry/token/brand tests and typecheck passed. Browser coverage includes
+59 passing integrated cases and all 12 Research cases after correcting a scale
+expectation to match the plotted fixture value. Eight 320px Light/Dark and
+forced-color screenshots were inspected; Brand QA and fixture build/privacy
+checks passed. CI/merge, release/readback and phone acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.

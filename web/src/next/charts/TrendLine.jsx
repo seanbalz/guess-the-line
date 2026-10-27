@@ -4,6 +4,7 @@
 import { useId, useMemo, useState } from 'react';
 import { linePath, nearestIndex } from './geometry.js';
 import { ChartTooltip } from './ChartTooltip.jsx';
+import { ChartScale } from './ChartScale.jsx';
 
 const W = 320;
 
@@ -30,13 +31,14 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
   return (
     <div className="gx-tc-line" id={chartId}>
       <ChartTooltip readouts={readouts} index={at} x={x}/>
+      <ChartScale extent={geo.extent} id={`${id}scale`}/>
       <div className="gx-tc-plot" onPointerDown={event => {
         if (!event.isPrimary || event.button !== 0) return;
         event.currentTarget.setPointerCapture(event.pointerId); follow(event);
       }} onPointerMove={follow} onPointerUp={event => {
         if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
       }} style={{ height }}>
-        <svg className="gx-tc-svg" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img" aria-label={label}>
+        <svg className="gx-tc-svg" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img" aria-label={label} aria-describedby={`${id}scale`}>
           <defs>
             <linearGradient id={`${id}g`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" className="gx-tc-s1"/>
