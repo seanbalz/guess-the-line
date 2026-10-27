@@ -99,3 +99,75 @@ export async function createHistoryWorld(options = {}) {
   await fill(world);
   return world;
 }
+
+// Stage 74's older records, added on demand (addOlderRecords): Week 5 Betting Challenge selections with the reviewed finals
+// they are graded from, Sean's saved game, note, forecast and journal records, a tracked real slip of Troy's, and the D-09
+// Week 5 benchmark freeze record of Sean's group. Fixture values; the finals are not the real Week 5 scores.
+export const FINALS = { 'TB-DAL': { home: 31, away: 17 }, 'SF-SEA': { home: 20, away: 23 } };
+export const SELECTIONS = [
+  ['troy', 'TB-DAL', 'spread', 'home', -8.5],
+  ['troy', 'SF-SEA', 'total', 'under', 46.5],
+  ['luke', 'TB-DAL', 'total', 'over', 48.5],
+];
+const BENCHMARK_LEAGUE = 'g_a697831088e94d5eba8ca0fd51054076';
+
+export async function addOlderRecords(world) {
+  const { db, state } = world, sean = ACCOUNTS.sean.id;
+  const at = value => new Date(value).toISOString(), deadline = Date.parse(state.league.deadline);
+  for (const [who, gameId, market, side, line] of SELECTIONS) {
+    const user = ACCOUNTS[who].id;
+    await stored(db, 'insert into public.gtl_weekly_versions(user_id,season,week) values($1,2026,5) on conflict do nothing', [user]);
+    const selection = { gameId, market, side, line, odds: -110, source: 'DraftKings', quotedAt: at(deadline - 7_200_000), id: randomUUID(), selectedAt: at(deadline - 3_600_000),
+      enteredAt: at(deadline - 3_600_000), verification: 'Manually entered; not independently verified' };
+    await stored(db, "insert into public.gtl_weekly_selections(user_id,season,week,game_id,selection,audit,provenance) values($1,2026,5,$2,$3,jsonb_build_array(jsonb_build_object('type','selection_recorded','after',$3::jsonb)),$4)",
+      [user, gameId, selection, JSON.stringify([{ leagueId: 'sean-troy-luke', playerId: who }])]);
+  }
+  for (const [gameId, score] of Object.entries(FINALS)) {
+    await stored(db, "insert into public.gtl_reviewed_result_events(season,week,game_id,version,actor_id,request_id,payload,result,reviewed_at) values(2026,5,$1,1,$2,$3,'{}'::jsonb,$4,$5)",
+      [gameId, sean, randomUUID(), { status: 'final', ...score }, at(deadline + 4 * 86_400_000)]);
+  }
+  // Sean's own records through the real routes: a saved game with a note, a note on an unsaved game, a forecast changed once,
+  // and a journal record (his Spread was sent) that he later archived.
+  const personal = async (route, body) => {
+    const workspace = await world.api('sean', 'personal');
+    const reply = await world.api('sean', route, { ...body, requestId: randomUUID(), revision: workspace.body.revision });
+    if (reply.status !== 200) throw new Error(`${route}: ${JSON.stringify(reply.body)}`);
+    return reply.body;
+  };
+  await personal('favorite/set', { season: 2026, week: 5, gameId: 'TB-DAL', saved: true, notes: 'Dallas at home after the bye.' });
+  const notes = await world.api('sean', 'personal/notes', { season: 2026, week: 5 });
+  const revision = notes.body.notes.find(n => n.gameId === 'SF-SEA')?.revision ?? 0;
+  const note = await world.api('sean', 'personal/note', { requestId: randomUUID(), season: 2026, week: 5, gameId: 'SF-SEA', note: 'Wind check before kickoff.', revision });
+  if (note.status !== 200) throw new Error(`personal/note: ${JSON.stringify(note.body)}`);
+  await personal('personal/forecast', { season: 2026, week: 5, gameId: 'BUF-LAR', market: 'total', value: 47 });
+  await personal('personal/forecast', { season: 2026, week: 5, gameId: 'BUF-LAR', market: 'total', value: 49.5 });
+  const journal = await personal('journal/create', { season: 2026, week: 5, gameId: 'TB-DAL', kind: 'user_reported_placed_bet', market: 'spread', side: 'home', line: -8.5, odds: -110,
+    source: 'FanDuel', quotedAt: at(Date.now() - 3_600_000), placedAt: at(Date.now() - 3_000_000), notes: 'Small play.', outcome: 'win', currency: 'USD', stakeMinor: 1100, returnedMinor: 2100 });
+  await personal('journal/archive', { entryId: journal.entryId, reason: 'Recorded twice by mistake', archived: true });
+  await personal('journal/create', { season: 2026, week: 5, gameId: 'SF-SEA', kind: 'research_note', market: 'spread', side: 'away', line: 3, odds: -105,
+    source: 'Fixture Book', quotedAt: at(Date.now() - 3_600_000), placedAt: null, notes: 'Lean the road side.', outcome: 'pending', currency: null, stakeMinor: null, returnedMinor: null });
+  // Troy's tracked real slip, reported after the game and settled (D-19: user-reported, never on a board).
+  const read = await world.api('troy', 'social/read', { season: 2026, week: 5 });
+  const created = await world.api('troy', 'social/create', { season: 2026, week: 5, weekRevision: read.body.weekRevision, requestId: randomUUID(), kind: 'single', origin: 'tracked',
+    legs: [{ gameId: 'TB-DAL', market: 'spread', side: 'home', line: -8.5 }], odds: -110, stakeUnits: 1, source: 'FanDuel', quotedAt: at(deadline - 7_200_000), placedAt: at(deadline - 7_000_000), notes: 'Took it early.' });
+  if (created.status !== 200) throw new Error(`social/create: ${JSON.stringify(created.body)}`);
+  const slip = created.body.entries.find(entry => entry.ownerId === ACCOUNTS.troy.id);
+  const settled = await world.api('troy', 'social/settle', { season: 2026, week: 5, weekRevision: created.body.weekRevision, requestId: randomUUID(), entryId: slip.id, revision: slip.revision,
+    outcome: 'win', actualReturnUnits: 1.91, reason: 'Final score' });
+  if (settled.status !== 200) throw new Error(`social/settle: ${JSON.stringify(settled.body)}`);
+  // The D-09 Week 5 benchmark freeze record of Sean's group, as stored (DP-4): the policy, one 3-book collection and the freeze.
+  const signature = (await db.query('select signature from public.gtl_weekly_slates where season=2026 and week=5')).rows[0].signature;
+  const league = { ...seed(), league: { ...seed().league, id: BENCHMARK_LEAGUE, name: 'Fixture group' }, ballots: {} };
+  await stored(db, 'insert into public.gtl_leagues(id,state) values($1,$2)', [BENCHMARK_LEAGUE, league]);
+  await stored(db, "insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,$2,'sean','commissioner')", [sean, BENCHMARK_LEAGUE]);
+  await stored(db, "insert into public.gtl_benchmark_policies(id,league_id,season,week,mode,slate_signature,created_by,decision_text) values('d09-2026-w05-sean-steven-spread',$1,2026,5,'guess_spread',$2,$3,'D-09: freeze the Week 5 spread benchmark at kickoff (fixture text).')",
+    [BENCHMARK_LEAGUE, signature, sean]);
+  const snapshot = randomUUID(), captured = at(deadline - 120_000);
+  await stored(db, "insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) values($1,$2,'collect','succeeded',$1,$3,$3::timestamptz+interval '90 seconds',2,2026,5,$4)",
+    [snapshot, sean, captured, signature]);
+  await stored(db, "insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,2026,5,$2,'{}'::jsonb,$3)", [snapshot, signature, captured]);
+  await stored(db, 'insert into public.gtl_frozen_benchmarks(policy_id,request_id,snapshot_id,actor_id,actual_kickoff,source_url,benchmark,frozen_at) values($1,$2,$3,$4,$5,$6,$7,$8)',
+    ['d09-2026-w05-sean-steven-spread', randomUUID(), snapshot, sean, at(deadline), 'https://the-odds-api.com/',
+      { games: { 'TB-DAL': { value: -8.5, oldestObservedAt: captured, newestObservedAt: captured }, 'SF-SEA': { value: -3, oldestObservedAt: captured, newestObservedAt: captured } }, capturedAt: captured, quotedAt: captured, actualKickoff: at(deadline), stale: false },
+      at(deadline + 60_000)]);
+}

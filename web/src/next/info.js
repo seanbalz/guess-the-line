@@ -128,9 +128,18 @@ export const INFO = Object.freeze({
       'Your drafts and your changes are yours alone. A change to a draft shows here once that game is locked in or kicks off.',
       'A ballot whose original submission time was not recorded is compared at the time it stores, and says so.',
       'Bets weeks list everyone’s Virtual Units picks. A friend’s line and price show once that game’s market is open to you.',
+      'Older records are read-only: the retired Betting Challenge, your saved games and notes, forecasts and journal, real slips by week, the older group scoring views and the Week 5 benchmark freeze. Your saved games, notes, forecasts and journal are yours alone.',
+    ],
+  },
+  export: {
+    title: 'About Export my data',
+    body: [
+      'The file holds every record of your own account: your guesses with every revision and the line saved with each, the Late marker, sit-outs and forfeits, Betting Challenge selections, Virtual Units bets, NBA tickets, real slips you posted, saved games and notes, forecasts, your journal (archived records included), Guess the Points guesses, your posts, comments and likes, your settings and memberships.',
+      'It holds nothing of another player\u2019s. Push reminder devices are left out: their addresses and keys stay on the server.',
+      'The file is made in this browser from your own records and is not sent anywhere else. Nothing is changed or deleted.',
     ],
   },
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);

@@ -1,11 +1,12 @@
 import { UUID_PATTERN } from './lobby.mjs';
 import { validBooks, preferenceValue } from '../shared/account-preferences.mjs';
-import { projectChanges, projectRecords } from './me-history.mjs';
+import { projectChanges, projectExport, projectRecords } from './me-history.mjs';
 export class MeError extends Error {
   constructor(status, message) { super(message); this.name = 'MeError'; this.status = status; }
 }
 // /me/changes and /me/records: Me › History (redesign build plan stage 72, M-27), your own Guess changes and the older records.
-export const ME_METHODS = Object.freeze({ '/me/preferences': ['POST'], '/me/preferences/save': ['POST'], '/me/changes': ['POST'], '/me/records': ['POST'] });
+// /me/export: Export my data (stage 75, M-28), every row of your own account.
+export const ME_METHODS = Object.freeze({ '/me/preferences': ['POST'], '/me/preferences/save': ['POST'], '/me/changes': ['POST'], '/me/records': ['POST'], '/me/export': ['POST'] });
 const ERRORS = Object.freeze({
   GTL_PREFERENCES_INVALID: [400, 'Check your preferences and try again.'],
   GTL_PREFERENCES_PROFILE: [403, 'Save your profile before changing preferences.'],
@@ -17,9 +18,9 @@ const ERRORS = Object.freeze({
   GTL_ME_INVALID: [400, 'Choose a season and week, or neither.'],
 });
 export const providerMeError = message => Object.hasOwn(ERRORS, message) ? new MeError(...ERRORS[message]) : new Error('Your preferences are unavailable.');
-const HISTORY = Object.freeze({ '/me/changes': 'gtl_read_ballot_changes', '/me/records': 'gtl_read_me_records' });
+const HISTORY = Object.freeze({ '/me/changes': 'gtl_read_ballot_changes', '/me/records': 'gtl_read_me_records', '/me/export': 'gtl_export_me' });
 // While M-27 is not applied (or rolled back), PostgREST's PGRST202 arrives as GTL_FEATURE_OFF: History says so, not Preferences.
-const HISTORY_OFF = 'History is not available yet. Your records are kept.';
+const HISTORY_OFF = 'History is not available yet. Your records are kept.', EXPORT_OFF = 'Export is not available yet. Every record is kept.';
 const week = value => Number.isInteger(value) && value >= 1 && value <= 25, season = value => Number.isInteger(value) && value >= 2000 && value <= 2200;
 
 async function history({ route, body, user, service, clock }) {
@@ -34,10 +35,10 @@ async function history({ route, body, user, service, clock }) {
   try {
     raw = await service.rpc(HISTORY[route], changes ? { p_user: user.id, p_season: body.season ?? null, p_week: body.week ?? null, p_now: now } : { p_user: user.id, p_now: now });
   } catch (error) {
-    if (error instanceof MeError && error.status === 503) throw new MeError(503, HISTORY_OFF);
-    throw error instanceof MeError ? error : new Error('History is unavailable.');
+    if (error instanceof MeError && error.status === 503) throw new MeError(503, route === '/me/export' ? EXPORT_OFF : HISTORY_OFF);
+    throw error instanceof MeError ? error : new Error(route === '/me/export' ? 'Export is unavailable.' : 'History is unavailable.');
   }
-  return changes ? projectChanges(raw, user.id) : projectRecords(raw, user.id);
+  return changes ? projectChanges(raw, user.id) : route === '/me/export' ? projectExport(raw, user.id) : projectRecords(raw, user.id);
 }
 
 export async function handleMe({ route, body, user, service, clock = Date.now, featureOff = new Set() }) {

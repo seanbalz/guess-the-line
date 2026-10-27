@@ -87,3 +87,33 @@ test('Virtual Units bets in words: side, line and units; a closed market keeps s
     { record: '1–1–0', net: '−1.09U', bets: '3 bets' });
   assert.equal(betsRecord([{ status: 'pending' }]).net, '—', 'nothing settled is not a zero');
 });
+
+// Stage 74: the older records in words (read-only; Q8). Contracts: a selection reads with its grade and final; an archived
+// journal record keeps its label and its reasons; the journal summary counts active placed bets only; a real slip's locked
+// leg says its line is hidden; a note's change reads as what changed.
+test('older records in words: Betting Challenge selections, notes, forecasts, the journal and real slips', async () => {
+  const { challengeWeeks, forecastWords, journalChanges, journalSummary, journalWords, noteChanges, olderSections, selectionWords, slipWords } = await import('../web/src/next/me/historyFormat.js');
+  assert.deepEqual(olderSections.map(s => s.id), ['challenge', 'saved', 'forecasts', 'journal', 'slips', 'archives', 'benchmark']);
+  const won = selectionWords(GAME, { market: 'spread', side: 'home', line: -3, grade: 'W', final: { status: 'final', home: 24, away: 20 } });
+  assert.deepEqual(won, { pick: 'DEN −3', grade: 'Won', final: 'Final · SEA 20, DEN 24' });
+  assert.equal(selectionWords(GAME, { market: 'total', side: 'over', line: 44.5, grade: null, final: null }).grade, 'Not graded yet');
+  assert.equal(selectionWords(GAME, { market: 'total', side: 'over', line: 44.5, grade: null, final: { status: 'postponed' } }).grade, 'Postponed');
+  const weeks = challengeWeeks({ challenge: { selections: [{ season: 2026, week: 5 }, { season: 2026, week: 6 }], hidden: [{ season: 2026, week: 6, userId: 'x', count: 2 }] } });
+  assert.deepEqual(weeks.map(w => [w.week, w.selections.length, w.hidden.length]), [[6, 1, 1], [5, 1, 0]]);
+  assert.deepEqual(noteChanges([{ at: null, before: null, after: { saved: false, notes: 'Wind' } }, { at: null, before: { saved: false, notes: 'Wind' }, after: { saved: true, notes: 'Wind' } },
+    { at: null, before: { saved: true, notes: 'Wind' }, after: { saved: true, notes: '' } }]).map(l => l.text), ['Note: Wind', 'Saved', 'Note cleared']);
+  const forecast = forecastWords(GAME, { market: 'total', value: 49.5, savedAt: '2026-10-15T20:00:00Z', changes: [{ after: 47 }, { after: 49.5 }] });
+  assert.deepEqual([forecast.market, forecast.value, forecast.history], ['Total', '49.5', '47 → 49.5 · saved Thu Oct 15, 1:00 PM PT']);
+  const bet = { kind: 'user_reported_placed_bet', market: 'spread', side: 'home', line: -3, odds: -110, source: 'FanDuel', outcome: 'win', currency: 'USD', stakeMinor: 1100, returnedMinor: 2100,
+    archived: false, createdAt: '2026-10-15T20:00:00Z', quotedAt: null, retrospective: false };
+  assert.deepEqual(journalWords(GAME, bet), { kind: 'Placed bet', pick: 'DEN −3 −110 · FanDuel', outcome: 'WIN', tone: 'win', money: 'Stake USD 11.00 · returned USD 21.00',
+    meta: 'Recorded Thu Oct 15, 1:00 PM PT · user-reported' });
+  assert.deepEqual(journalChanges([{ action: 'journal/create', at: null, reason: null }, { action: 'journal/archive', at: null, reason: 'Twice', after: { archived: true } },
+    { action: 'journal/archive', at: null, reason: 'Kept', after: { archived: false } }]).map(l => l.text), ['Recorded', 'Archived: Twice', 'Restored: Kept']);
+  const summary = journalSummary([bet, { ...bet, archived: true, outcome: 'loss' }, { ...bet, kind: 'research_note', currency: null, stakeMinor: null, returnedMinor: null }]);
+  assert.equal(summary.headline, '3 records · 1 placed bet · 1–0–0', 'the archived bet and the note are listed, never counted');
+  assert.deepEqual(summary.lines, ['USD · net USD 10.00 · ROI 90.9% · 1 settled bet']);
+  const slip = slipWords({ ownerName: 'Troy', outcome: 'win', kind: 'single', legs: [{ selection: 'DAL -8.5' }, { selection: 'Seahawks', locked: true }], odds: -110, stakeUnits: 1, netUnits: 0.91, source: 'FanDuel', notes: 'Early' }, false);
+  assert.deepEqual(slip, { owner: 'Troy', outcome: 'WIN', tone: 'win', legs: ['DAL -8.5', 'Seahawks · line hidden until your pick is in, or kickoff'], terms: '−110 · 1U · +0.91U · FanDuel', note: 'Early' });
+  assert.equal(slipWords({ outcome: 'pending', legs: [] }, true).owner, 'You');
+});
