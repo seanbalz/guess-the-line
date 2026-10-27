@@ -26,8 +26,14 @@ const matchesSave = (data, request) => request.lockIn?.length ? lockConfirmed(da
   : data.season === request.season && data.week === request.week && Object.entries(request.picks).every(([id, value]) => data.ballots?.[request.mode]?.picks?.[id] === value);
 
 /** Shared by both apps once the server reports M-07. No speculative local success and no silent write retry. */
-export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', optOuts = [], onMode, onScore, onSaved, onSignInAgain, setDirty }) {
+export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', focusGame, optOuts = [], onMode, onScore, onSaved, onSignInAgain, setDirty }) {
   const key = keyOf(accountId, initialData, mode);
+  const focusedGame = useRef(null);
+  // Move once per destination, never on timer ticks or saves; all other games/drafts stay mounted.
+  useEffect(() => {
+    focusedGame.current?.focus({ preventScroll: true });
+    focusedGame.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }, [focusGame, key]);
   const [data, setData] = useState(initialData), [draft, setDraft] = useState(() => readDraft(key, initialData, mode));
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [confirm, setConfirm] = useState(null), [confirmSitOut, setConfirmSitOut] = useState(false), [checked, setChecked] = useState(false);
   const [storageFailed, setStorageFailed] = useState(false), [elapsed, setElapsed] = useState(0);
@@ -157,7 +163,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', o
       const lock = lockedAt(ballot, game.id), value = picks[game.id], closed = !Number.isFinite(now) || !(now < Date.parse(game.kickoff)), notOpen = Number.isFinite(openAt) && now < openAt;
       const unavailable = Boolean(lock || busy || uncertain || satOut || closed || notOpen || !active);
       const receipt = data.scoring?.[mode]?.games?.find(row => row.gameId === game.id);
-      return <Card as="article" key={game.id} className="gx-vstack gx-gap-16 gx-play-game" aria-label={`${game.awayCode} at ${game.homeCode} ${market}`} data-game={game.id}>
+      return <Card as="article" key={game.id} className="gx-vstack gx-gap-16 gx-play-game" aria-label={`${game.awayCode} at ${game.homeCode} ${market}`} data-game={game.id} ref={game.id === focusGame ? focusedGame : undefined} tabIndex={game.id === focusGame ? -1 : undefined}>
         <header className="gx-vstack gx-gap-8"><p className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)} · {lock ? 'Locked in' : closed ? 'Closed at kickoff' : satOut ? 'Skipped' : notOpen ? 'Not open' : number(value) !== null ? 'Draft' : 'To pick'}</p><h2 className="gx-score-matchup gx-t-strong"><TeamMark code={game.awayCode} size={32} decorative/><span>{game.awayCode} at {game.homeCode}</span><TeamMark code={game.homeCode} size={32} decorative/></h2></header>
         {lock ? <ScoreReceipt game={game} mode={mode} row={receipt} guess={number(ballot.picks?.[game.id])} lockedAt={lock} onScore={onScore ? () => onScore({ season: data.season, week: data.week, market: mode, scoreGame: game.id }) : undefined}/>
           : <><div className="gx-play-entry"><ChipPicker mode={mode} value={value} away={shortName(game.awayCode)} home={shortName(game.homeCode)} teamLabels={{ away: teamCode(game.awayCode), home: teamCode(game.homeCode) }} disabled={unavailable} label={`${game.awayCode} at ${game.homeCode} ${market} guess`} onChange={value => { keep({ picks: { ...picks, [game.id]: value }, base, pending: null }); setNotice(''); }}/></div>

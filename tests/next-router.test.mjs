@@ -150,3 +150,20 @@ test('blocked history writes leave navigation working in memory', () => {
   win.history.pushState=win.history.replaceState=()=>{throw new Error('blocked');};
   const shell=app(win); assert.equal(shell.state.tab,'play'); shell.open('sh.menu'); shell.dispatch({type:'tab',tab:'bets'}); assert.equal(shell.state.tab,'bets');
 });
+
+
+test('Research game actions round-trip only a game id on the picks destination', () => {
+  const view = { section: 'picks', market: 'total', season: 2026, week: 6, pickGame: 'HOU-JAX' };
+  assert.deepEqual(placeFromFragment(fragmentFor('play', view)), { tab: 'play', view });
+  assert.equal(placeFromFragment('#play/score?pickGame=HOU-JAX').view.pickGame, undefined);
+  assert.equal(placeFromFragment('#play/picks?pickGame=%3Cscript%3E').view.pickGame, undefined);
+});
+
+
+test('a game focus follows Back but is cleared for a fresh general Play destination', () => {
+  let state = initialState({ tab: 'play', view: { section: 'picks', pickGame: 'HOU-JAX', week: 6 } });
+  state = reduce(state, { type: 'go', tab: 'research', view: { section: 'games' } });
+  assert.equal(reduce(state, { type: 'back' }).views.play.pickGame, 'HOU-JAX');
+  assert.equal(reduce(state, { type: 'go', tab: 'play', view: { section: 'picks' } }).views.play.pickGame, undefined);
+  assert.equal(reduce(state, { type: 'restore', place: { tab: 'play', view: { section: 'picks' } } }).views.play.pickGame, undefined);
+});
