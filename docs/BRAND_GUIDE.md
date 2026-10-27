@@ -262,6 +262,12 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   button that shows its record and units, and a table with hit-rate bars follows.
   Stem lengths stay proportional; exact zero uses a hollow baseline marker.
   A visible 0 U key names break-even, and missing units have no mark.
+- **Research evidence:** date buttons in the historical table select matching
+  cumulative endpoints; scrubbing selects the matching period row. The initial
+  zero baseline has no period row. Keep period records distinct from cumulative
+  chart records, preserve keyboard focus and use a check plus a tint/outline.
+  Link separate reads only when their charted evidence matches. Keep the sample
+  description outside the horizontal scroll region, with a native table caption.
 - **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
   10 as blocks, and games or units. Every bar carries its number in words.
 
