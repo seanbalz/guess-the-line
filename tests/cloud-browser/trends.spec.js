@@ -4,6 +4,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { communityWorld, pgliteAvailable, signIn, switchAccount, ACCOUNTS } from './community-world.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // The committed trends file is 2026 Week 6; the fixture week uses two of its games so the panel has real data.
 const WEEK6 = state => {
@@ -92,3 +93,6 @@ test('trends: without a ballot both markets stay locked while the consistent-not
   await expect(consistent.locator('summary').getByText('Very strong wind', { exact: true })).toBeVisible();
   await expect(consistent).toContainText('Applies only if kickoff wind is 15+ mph; no current forecast for this game');
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

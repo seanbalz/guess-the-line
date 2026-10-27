@@ -4,6 +4,7 @@ import { createCloudHandler } from '../../cloud/handler.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { communityWorld, pgliteAvailable, sendBallot, signIn, storeBookLines } from './community-world.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // D-26: the Virtual Units screen with settled, pending and voided picks. The real
 // cloud handler serves /state, /virtual-units and /virtual-units/settle over
@@ -314,3 +315,6 @@ base('a market that locks again on a refresh drops the selection in progress, an
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

@@ -1,6 +1,7 @@
 // Persona (a): first-time player who has never made a spread pick. Reads the Picks tab cold.
 // Questions: is it clear what −3 means, which team, what "total" means, what is due and when?
 import { test, expect, pgliteAvailable, dueDay } from './harness.mjs';
+import { useOldApp } from '../old-app.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -223,3 +224,6 @@ test('first-timer: sign in, name prompt, feed, and the Picks tab read cold', asy
   expect(await page.evaluate(() => ['guess_spread', 'guess_total'].map(m => localStorage.getItem(`gtl.chipHelp.${m}`)))).toEqual(['off', 'off']);
   expect(await persona.noOverflow()).toBe(true);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

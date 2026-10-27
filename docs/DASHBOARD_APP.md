@@ -214,17 +214,19 @@ is on sign-in and My games. It remembers this browser/device’s choice, with Da
 the default. Final brand approval remains separate. Current deployment and exact
 preservation/readback evidence are in [CLOUD_SETUP.md](CLOUD_SETUP.md).
 
-## The new app switch (redesign stage 9, D-38 and D-39)
-Every signed-in member sees **Try the new app** in the Community footer (D-39:
-the whole league, opt-in; no tester list) since the first-look deploy of October 14, 2026.
-A build with `VITE_GTL_OFFER_NEW_APP=0` leaves it out (`NEW_APP_OFFERED`), the off
-switch if the new app has to be withdrawn without a code change. The choice is kept on this device
-(`gtl.app` in localStorage, `web/src/appView.js`) and the page reloads into the
-new app, a separate lazy chunk (`web/src/next/NextApp.jsx`, with its own CSS)
-that a device on the old app never downloads. **Use the old app** in the new app
-switches back. Every switch reloads the page, so the two apps never run together;
-both use the same sign-in, routes and tables, so a pick or bet made in one shows in
-the other. The switch is a convenience, not a security gate.
+## One app (D-60, October 26, 2026)
+Every signed-in member uses the new app (`web/src/next/NextApp.jsx`, a lazy chunk with its own CSS). The opt-in
+switch that ran from October 14 ("Try the new app", D-38 and D-39) is gone, and a device's old saved choice
+(`gtl.app`) no longer counts. The old app stays reachable only for what has no new home yet:
+- The new app's Menu › **Older records and tools** opens the old app at `?app=classic` (`web/src/appView.js`). The
+  address works only for that visit, nothing is saved, and the old app's footer offers **Back to the new app**.
+- The new app's failure screens keep **Use the old app** as a way out.
+- If the new app's code cannot load, the old app opens on that page instead and says so; the next visit tries the new
+  app again.
+
+Both apps use the same sign-in, routes and tables, so a pick or bet made in one shows in the other. Moving between them
+always loads a new page. The switch is a convenience, not a security gate. The old app is deleted in D-60's step 2, once
+its remaining records and commissioner tools have new homes.
 
 - The default stays the old app until the flip (build plan stage 80). Nothing
   saved, an unknown value or storage that throws all mean the default.

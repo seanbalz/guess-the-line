@@ -2,6 +2,7 @@
 // browser-zoom equivalent of a 1280px laptop), CSS zoom, forced-colors emulation, an axe scan on
 // every screen, and the screen-reader names from the accessibility tree.
 import { test, expect, pgliteAvailable } from './harness.mjs';
+import { useOldApp } from '../old-app.mjs';
 
 test.use({ viewport: { width: 640, height: 450 }, deviceScaleFactor: 2 });
 
@@ -138,3 +139,5 @@ test('low vision: 200% zoom, forced colors, axe on every screen and accessible n
   expect(await persona.noOverflow()).toBe(true);
 });
 
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

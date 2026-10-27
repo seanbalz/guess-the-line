@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // D-28 opt-in web push on the real community home and Settings, with the real handler and
 // migrations on PGlite for everything except /push/*, which a spec-owned mock answers.
@@ -238,3 +239,6 @@ test('push configured: /community/read says so and never carries the VAPID key',
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

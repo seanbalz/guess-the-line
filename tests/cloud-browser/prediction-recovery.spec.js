@@ -4,6 +4,7 @@ import { createEngine } from '../../server/engine.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { pickTotal, expectPick, expectNoPick, expectPickEnabled, totalText } from '../chip-entry.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { useOldApp } from './old-app.mjs';
 
 const start = '2026-10-08T18:00:00Z', deadline = '2026-10-08T18:01:00Z';
 const actorA = '11111111-1111-4111-8111-111111111111', actorB = '33333333-3333-4333-8333-333333333333';
@@ -168,3 +169,6 @@ test('unknown uncommitted save survives reload and failed read before an explici
   await page.getByRole('dialog').getByRole('button', { name: 'Submit & reveal analysis' }).click();
   await expect.poll(() => recovery.attempts.length).toBe(2); expect(recovery.revision).toBe(1); expect(recovery.states[actorA].audit).toHaveLength(1);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

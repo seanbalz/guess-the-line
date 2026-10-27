@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import { pickSpread, expectPick, expectPickEnabled } from '../chip-entry.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, sendBallot, signIn } from './community-world.mjs';
 import { ALL, migrationSql, without } from '../migrations.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // Redesign stage 18 (M-02) in the old app, on the real handler, migrations and PGlite: the day M-02 is applied while a tab still holds
 // the rules from before it. Luke sent Spread under D-16 (editable until the deadline), the tab shows it editable, then M-02 is applied
@@ -158,3 +159,6 @@ test('Community Picks at 390px: a game locked in on its own is read-only, and th
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));
