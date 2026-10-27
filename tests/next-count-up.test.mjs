@@ -96,4 +96,12 @@ test('timing: the big token held to the 600 ms cap with the enter easing; withou
   assert.equal(none.ms, 600);
   assert.equal(none.ease(0.3), 0.3);
   assert.equal(C.countUpTiming(() => 'nonsense').ms, 600);
+  // The built stylesheet is minified: 600ms arrives as ".6s" and the easing as "cubic-bezier(.05, .7, .1, 1)" (seen in
+  // the browser run); both must time the same 600 ms count, never a 0.6 ms one.
+  const built = C.countUpTiming(name => ({ '--gx-dur-big': '.6s', '--gx-ease-enter': 'cubic-bezier(.05, .7, .1, 1)' })[name]);
+  assert.equal(built.ms, 600);
+  assert.ok(Math.abs(built.ease(0.25) - timing.ease(0.25)) < 1e-9);
+  for (const [text, ms] of [['600ms', 600], ['.6s', 600], ['0.24s', 240], [' 100ms ', 100], ['600', Number.NaN], ['-1s', Number.NaN], ['', Number.NaN]]) {
+    assert.ok(Object.is(C.cssTimeMs(text), ms), `${text} → ${ms}`);
+  }
 });

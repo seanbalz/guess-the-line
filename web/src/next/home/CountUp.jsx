@@ -52,10 +52,12 @@ export function CountUp({ value, account, figure, format = formatCount, classNam
     if (!plan.animate) { setFrame(null); return undefined; }
     const { ms, ease } = timingOf(ref.current);
     const decimals = Math.max(decimalsOf(plan.from), decimalsOf(plan.to));
-    let raf = 0;
-    const start = performance.now();
+    let raf = 0, start = null;
     setFrame(formatCount(plan.from, decimals));
+    // The clock starts at the first frame drawn, not when the value arrived: a busy first render (a page load) must
+    // not use up the count before anyone can see it.
     const step = now => {
+      start ??= now;
       const progress = (now - start) / ms;
       if (progress >= 1) { setFrame(null); return; }
       setFrame(formatCount(frameAt({ from: plan.from, to: plan.to, progress, ease }), decimals));

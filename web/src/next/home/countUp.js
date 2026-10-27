@@ -78,6 +78,15 @@ export function bezierEasing(points) {
   };
 }
 
+/**
+ * A CSS time in milliseconds: "600ms" and ".6s" (the built stylesheet's minifier writes tokens.css's 600ms that way)
+ * are both 600; anything else is NaN.
+ */
+export function cssTimeMs(value) {
+  const m = /^\s*(\d*\.?\d+)(ms|s)\s*$/i.exec(String(value ?? ''));
+  return m ? Number(m[1]) * (m[2].toLowerCase() === 's' ? 1000 : 1) : Number.NaN;
+}
+
 /** The brand's cap for a count-up (BRAND_GUIDE D-38 Motion: `big`, 600 ms, "count-ups, at most"). */
 export const COUNT_UP_CAP_MS = 600;
 /** The tokens the count-up is timed with, as the --gx- custom properties tokens.css defines from design/tokens-next.json. */
@@ -89,7 +98,7 @@ export const COUNT_UP_TOKENS = Object.freeze({ duration: '--gx-dur-big', ease: '
  * is the cap with a plain linear count.
  */
 export function countUpTiming(read = () => '') {
-  const ms = Number.parseFloat(String(read(COUNT_UP_TOKENS.duration) ?? ''));
+  const ms = cssTimeMs(read(COUNT_UP_TOKENS.duration));
   return {
     ms: Number.isFinite(ms) && ms > 0 ? Math.min(ms, COUNT_UP_CAP_MS) : COUNT_UP_CAP_MS,
     ease: bezierEasing(parseBezier(String(read(COUNT_UP_TOKENS.ease) ?? '').trim())),
