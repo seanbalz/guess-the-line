@@ -339,5 +339,6 @@ After the narrow-table correction, all five Trends browser cases passed again.
 All 52 component and 24 chart/token/market model tests, typecheck, Brand QA,
 fixture build and bundle privacy checks passed. Six 320px ordinary/forced-color
 screenshots were inspected, including the corrected Light/Dark percentage tables.
-Publication is pending on `codex/research-chart-values`. Hosted release and
+Source is in [PR #258](https://github.com/seanbalz/guess-the-lines-repo/pull/258)
+on `codex/research-chart-values`; CI/merge remain open. Hosted release and
 physical-device acceptance remain separate; no deployment or migration apply.

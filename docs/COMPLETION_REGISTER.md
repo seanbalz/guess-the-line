@@ -224,7 +224,8 @@ PR #253 merged October 27 as
 The next [player comparison chart batch](RESEARCH_DESIGN_2026_10_26.md#labelled-player-comparison-charts--october-27)
 labels each observation and value directly, preserves shared scales and the
 evidence table, and distinguishes real zero from a missing sample. A forced-color
-avatar fallback accompanies it. Source is on `codex/research-chart-values`;
+avatar fallback accompanies it. Source is in [PR #258](https://github.com/seanbalz/guess-the-lines-repo/pull/258)
+on `codex/research-chart-values`;
 54 integrated browser cases and five final Trends cases passed, along with 52
 component and 24 model/token tests, typecheck, Brand QA and build/privacy checks.
 Six 320px screenshots were inspected; narrow evidence tables keep whole headings
