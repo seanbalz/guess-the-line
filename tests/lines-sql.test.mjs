@@ -26,7 +26,8 @@ const MIGRATION = '20261015010000_gtl_lines_read.sql';
 const BETS_READ = '20261015190820_gtl_bets_read.sql';
 // So are M-22 (the league feed reader), M-25 (/league/features), M-27 (History) and M-28 (Export), hosted since October 27, 2026.
 const INSTALLED_BY = { '/bets/read': BETS_READ, '/league/feed': '20261026132000_gtl_league_feed.sql', '/league/features': '20261026234000_gtl_league_features.sql',
-  '/me/changes': '20261026230000_gtl_me_history.sql', '/me/records': '20261026230000_gtl_me_history.sql', '/me/export': '20261026231000_gtl_me_export.sql' };
+  '/me/changes': '20261026230000_gtl_me_history.sql', '/me/records': '20261026230000_gtl_me_history.sql', '/me/export': '20261026231000_gtl_me_export.sql',
+  '/bets/board': '20261026233000_gtl_bets_boards.sql', '/bets/season': '20261026233000_gtl_bets_boards.sql' };
 const readersIn = migrations => readersOn(migrations).filter(([route]) => !Object.hasOwn(INSTALLED_BY, route) || migrations.includes(INSTALLED_BY[route]));
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const HOUR = 3_600_000, MINUTE = 60_000;
