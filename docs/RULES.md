@@ -279,7 +279,7 @@ definition for the API and the screens.
 - **No terms:** both routes return totals only, never a line, price or book.
   Real slips never count.
 
-## Me › History (M-27, redesign stages 72–73)
+## Me › History (M-27, redesign stages 72–74)
 
 Me › History (`page.history`, opened from the Menu or `#history`) reads what the
 existing readers and the M-27 readers (`20261026230000_gtl_me_history.sql`,
@@ -304,7 +304,7 @@ writes nothing and changes no rule, score or visibility gate.
   `/bets/read` (M-10's gate: a friend's line, price and result only where that
   market is open to you). The season reader (`/bets/season`, stage 42) is not
   built yet; until it is, History reads one published week at a time.
-- **Older records** (`/me/records`, the History screens follow in stage 74): the
+- **Older records** (`/me/records`; History › Older, `#history/older`, stage 74): the
   retired Betting Challenge with every player's selections after their game's
   kickoff (D-21; before kickoff a count), graded by the old engine from each
   week's newest final; your saved games and notes, forecasts, journal (Q8,
@@ -313,6 +313,10 @@ writes nothing and changes no rule, score or visibility gate.
   you; your groups' archived scoring views, whose original picks, points and
   score movement go only to the commissioner seat, as the old History page
   showed them; and the Week 5 benchmark freeze record for its group's members.
+  History › Older also lists the real slips record by week (`/social/read`, M-04's
+  line lock unchanged). Every older record is read-only: there is no form to add,
+  correct, archive or save anything, and the journal summary counts active placed
+  bets only, as the old Journal performance did.
 - **Until M-27 is applied** both routes answer "History is not available yet";
   Guess weeks, the week detail and Bets weeks still work, without your change
   list and forfeit reasons. Every existing route answers as before.

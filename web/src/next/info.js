@@ -128,6 +128,7 @@ export const INFO = Object.freeze({
       'Your drafts and your changes are yours alone. A change to a draft shows here once that game is locked in or kicks off.',
       'A ballot whose original submission time was not recorded is compared at the time it stores, and says so.',
       'Bets weeks list everyone’s Virtual Units picks. A friend’s line and price show once that game’s market is open to you.',
+      'Older records are read-only: the retired Betting Challenge, your saved games and notes, forecasts and journal, real slips by week, the older group scoring views and the Week 5 benchmark freeze. Your saved games, notes, forecasts and journal are yours alone.',
     ],
   },
 });

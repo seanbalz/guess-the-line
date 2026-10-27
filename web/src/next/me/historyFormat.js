@@ -1,7 +1,8 @@
 // Me › History in plain words (redesign build plan stages 73 and 74; DP-15: never a raw id or JSON). Pure: it reads only
 // what the server sent (/community/history, /me/changes, /me/records, /bets/read) and words it; the server decides what
 // each viewer may see, and a value it withheld stays "—" or hidden here (rule of restraint 8).
-import { DASH, SEP, fmtAmt, fmtFull, fmtLate, fmtMatchup, fmtNum, fmtRecord, fmtSpreadPick, fmtU, plural } from '../format.js';
+import { DASH, SEP, fmtAmt, fmtFull, fmtLate, fmtMatchup, fmtNum, fmtOdds, fmtPct, fmtRecord, fmtSpreadPick, fmtU, plural } from '../format.js';
+import { summarizeJournal } from '../../../../shared/journal-performance.mjs';
 import { pickText } from '../bets/everyone.js';
 import { FORFEIT_LABEL, closedDraft } from '../copy.js';
 
@@ -151,4 +152,101 @@ export function betsRecord(bets) {
     if (number(bet.result?.netUnits) !== null) { net += bet.result.netUnits; settled += 1; }
   }
   return { record: fmtRecord(tally.win, tally.loss, tally.push), net: settled ? fmtAmt(Math.round(net * 100) / 100) : DASH, bets: plural(bets.length, 'bet') };
+}
+
+// ---------- Stage 74: older records (read-only, D-23, Q8) ----------
+
+/** The Older records list, in the order the page shows it. */
+export const olderSections = Object.freeze([
+  { id: 'challenge', label: 'Betting Challenge · retired', icon: 'trophy' },
+  { id: 'saved', label: 'Saved games and notes', icon: 'pencil' },
+  { id: 'forecasts', label: 'Forecasts', icon: 'target' },
+  { id: 'journal', label: 'Journal', icon: 'receipt' },
+  { id: 'slips', label: 'Real slips by week', icon: 'ticket' },
+  { id: 'archives', label: 'Older group scoring views', icon: 'chart' },
+  { id: 'benchmark', label: 'Week 5 benchmark freeze', icon: 'lock' },
+]);
+
+const GRADE = Object.freeze({ W: 'Won', L: 'Lost', P: 'Push' });
+/** One Betting Challenge selection: { pick: "DAL −8.5" or "Over 44.5", grade: "Won", final }. */
+export function selectionWords(game, selection) {
+  return {
+    pick: pickText(game, selection.market, selection),
+    grade: selection.grade ? GRADE[selection.grade] : selection.final?.status && selection.final.status !== 'final' ? finalWords(game, selection.final) : 'Not graded yet',
+    final: selection.final?.status === 'final' ? finalWords(game, selection.final) : null,
+  };
+}
+
+/** Selections and the hidden counts grouped by week, newest first. */
+export function challengeWeeks(data) {
+  const keys = new Map();
+  const at = (season, week) => { const key = `${season}:${week}`; if (!keys.has(key)) keys.set(key, { season, week, selections: [], hidden: [] }); return keys.get(key); };
+  for (const s of data.challenge.selections) at(s.season, s.week).selections.push(s);
+  for (const h of data.challenge.hidden) at(h.season, h.week).hidden.push(h);
+  return [...keys.values()].sort((a, b) => b.season - a.season || b.week - a.week);
+}
+
+/** A saved game's changes in words: "Saved", "Note: …", "No longer saved", "Note cleared". */
+export function noteChanges(changes) {
+  return changes.map(change => {
+    const before = change.before ?? {}, after = change.after ?? {};
+    const parts = [];
+    if ((before.saved ?? false) !== (after.saved ?? false)) parts.push(after.saved ? 'Saved' : 'No longer saved');
+    if ((before.notes ?? '') !== (after.notes ?? '')) parts.push(after.notes ? `Note: ${after.notes}` : 'Note cleared');
+    return { text: parts.join(SEP) || 'Saved again, unchanged', at: change.at ? fmtFull(change.at) : 'Time not recorded' };
+  });
+}
+
+/** A forecast: { market, value, history } with each saved value in order. */
+export function forecastWords(game, forecast) {
+  const mode = forecast.market === 'total' ? 'guess_total' : 'guess_spread';
+  const values = forecast.changes.length ? forecast.changes.map(change => guessWords(mode, game, change.after)) : [guessWords(mode, game, forecast.value)];
+  return { market: forecast.market === 'total' ? 'Total' : 'Spread', value: guessWords(mode, game, forecast.value),
+    history: `${values.length > 1 ? `${values.join(' → ')}${SEP}` : ''}saved ${forecast.savedAt ? fmtFull(forecast.savedAt) : DASH}` };
+}
+
+const OUTCOME = Object.freeze({ pending: ['PENDING', 'pending'], win: ['WIN', 'win'], loss: ['LOST', 'loss'], push: ['PUSH', 'pending'], void: ['VOID', 'neutral'] });
+const money = (minor, currency) => (Number.isSafeInteger(minor) && currency ? `${minor < 0 ? '−' : ''}${currency} ${(Math.abs(minor) / 100).toFixed(2)}` : DASH);
+/** One journal record, read-only: { kind, pick, money, outcome, tone, meta }. */
+export function journalWords(game, entry) {
+  const [outcome, tone] = OUTCOME[entry.outcome] ?? OUTCOME.pending;
+  const pick = `${pickText(game, entry.market, entry)}${entry.odds !== null ? ` ${fmtOdds(entry.odds)}` : ''}${entry.source ? `${SEP}${entry.source}` : ''}`;
+  return {
+    kind: entry.kind === 'user_reported_placed_bet' ? 'Placed bet' : 'Research note', pick, outcome, tone,
+    money: entry.kind === 'user_reported_placed_bet' ? `Stake ${money(entry.stakeMinor, entry.currency)}${entry.returnedMinor !== null ? `${SEP}returned ${money(entry.returnedMinor, entry.currency)}` : ''}` : null,
+    meta: [`Recorded ${fmtFull(entry.createdAt)}`, entry.quotedAt ? `quote ${fmtFull(entry.quotedAt)}` : null, entry.retrospective ? 'entered after kickoff' : null, 'user-reported'].filter(Boolean).join(SEP),
+  };
+}
+
+const JOURNAL_ACTION = Object.freeze({ 'journal/create': 'Recorded', 'journal/correct': 'Corrected', 'journal/archive': 'Archived' });
+/** A journal record's changes in words: "Recorded", "Corrected: <reason>", "Archived: <reason>", "Restored". */
+export function journalChanges(changes) {
+  return changes.map(change => {
+    const restored = change.action === 'journal/archive' && change.after?.archived === false;
+    const word = restored ? 'Restored' : JOURNAL_ACTION[change.action] ?? 'Changed';
+    return { text: `${word}${change.reason ? `: ${change.reason}` : ''}`, at: change.at ? fmtFull(change.at) : 'Time not recorded' };
+  });
+}
+
+/** The journal summary (the old Journal performance, read-only): placed bets only; archived ones are listed and never counted. */
+export function journalSummary(entries) {
+  const stats = summarizeJournal(entries);
+  const lines = stats.currencies.map(c => `${c.currency}${SEP}net ${c.netMinor === null ? DASH : money(c.netMinor, c.currency)}${SEP}ROI ${c.roiPercent === null ? DASH : fmtPct(c.roiPercent)}${SEP}${plural(c.sampleCount, 'settled bet')}`);
+  return {
+    headline: `${plural(entries.length, 'record')}${SEP}${plural(stats.recordCount, 'placed bet')}${SEP}${fmtRecord(stats.outcomes.win, stats.outcomes.loss, stats.outcomes.push)}`,
+    lines,
+  };
+}
+
+/** One real slip for the record by week: { owner, legs, terms, note, outcome, tone }. A locked leg keeps no line. */
+export function slipWords(entry, own) {
+  const [outcome, tone] = OUTCOME[entry.outcome] ?? OUTCOME.pending;
+  return {
+    owner: own ? 'You' : entry.ownerName || 'Player', outcome, tone,
+    legs: (entry.legs || []).map(leg => `${leg.selection ?? DASH}${leg.locked ? `${SEP}line hidden until your pick is in, or kickoff` : ''}`),
+    terms: [entry.kind === 'parlay' ? `Parlay of ${entry.legs.length}` : null, Number.isFinite(entry.odds) ? fmtOdds(entry.odds) : null,
+      Number.isFinite(entry.stakeUnits) ? fmtU(entry.stakeUnits) : null, Number.isFinite(entry.netUnits) ? fmtAmt(entry.netUnits) : null,
+      entry.source || null, entry.lateEntry ? 'entered after kickoff' : null].filter(Boolean).join(SEP),
+    note: entry.notes || null,
+  };
 }

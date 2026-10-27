@@ -766,6 +766,11 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 **74. History: older records**
 - Scope: Betting Challenge · retired (every player's record); saved games and notes; forecasts; the journal (Q8); the real slips record by week; older group scoring views (`gtl_prediction_archives`) as a read-only page with dates on every axis (DP-17); the Week 5 benchmark freeze record, read-only (DP-4).
 - Tests: Playwright 390 `next-history-older.spec.js` (the Betting Challenge record matches the old screen).
+- Built October 26 (branch `claude/redesign-history-older`, on stage 73's): History › Older (`#history/older`), read-only,
+  from `/me/records` (M-27) and `/social/read`. The old screen's record is checked against `server/engine.mjs`'s Betting
+  Challenge standings for the same selections and finals. The archived invalid-matchup predictions are not stored in
+  `gtl_prediction_archives` (only their count, `archivedCount`, is), so the page shows the count as the old History page
+  did; the predictions themselves stay in the committed `data/picks/2026-week-05.json`.
 
 **75. Export my data (M-28)**
 - Scope: `gtl_export_me` and `POST /me/export`: your own rows only, no push endpoints, Late marker included (D-30); a Settings row. It replaces the old group-week download.
