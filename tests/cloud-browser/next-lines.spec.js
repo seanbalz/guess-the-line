@@ -1104,7 +1104,27 @@ test('your pick sheet separates draft and locked references and returns focus to
     await total.getByRole('button', { name: 'About your saved pick' }).click();
     await expect(sheet(page, 'About your saved pick')).toContainText('Later market movement never replaces a saved reference');
     await page.keyboard.press('Escape'); await expect(total).toBeVisible();
+    // Hold navigation's animation frames until the destination has focused itself.
+    // This reproduces the race where the shell's later frame replaces game focus with the title.
+    await total.getByRole('button', { name: 'Open Total in Play', exact: true }).evaluate(button => {
+      button.addEventListener('click', () => {
+        const native = window.requestAnimationFrame, pending = new Map();
+        window.requestAnimationFrame = callback => {
+          const id = native(time => { pending.set(id, () => callback(time)); });
+          return id;
+        };
+        window.resumeRouteFrames = () => {
+          window.requestAnimationFrame = native;
+          return new Promise(resolve => native(() => {
+            for (const callback of pending.values()) callback();
+            native(resolve);
+          }));
+        };
+      }, { once: true, capture: true });
+    });
     await total.getByRole('button', { name: 'Open Total in Play', exact: true }).click();
+    await expect(page.getByRole('article', { name: 'SEA at DEN Total', exact: true })).toBeFocused();
+    await page.evaluate(() => window.resumeRouteFrames());
     await expect(page.getByRole('article', { name: 'SEA at DEN Total', exact: true })).toBeFocused();
     expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -1516,6 +1536,192 @@ test('movement marks kickoff without adding a quote or opening a closed market',
     await page.keyboard.press('End');
     await expect(slider).toHaveAttribute('aria-valuetext', /43.5,.*PT/);
     await expect(marker).toHaveAttribute('x1', '160');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('recent trend tiles distinguish grouped wins losses and pushes in both chart views', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let replaced = 0;
+  try {
+    // Fictional recent counts; the source supplies aggregates, never a game sequence.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/trends/week'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      const replace = value => {
+        if (!value || typeof value !== 'object') return;
+        if (value.last10 && 'W' in value.last10) { value.last10 = { W: 7, L: 2, P: 1 }; replaced++; }
+        Object.values(value).forEach(replace);
+      };
+      replace(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const recent = trend.locator('.gx-tc-tile').filter({ has: page.locator('.gx-tc-tile-label', { hasText: 'Last 10' }) });
+    for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width: 320, height: 844 });
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme });
+        for (const view of ['Since 2002', 'By season']) {
+          await trend.getByRole('button', { name: view, exact: true }).click();
+          await expect(recent.locator('.gx-tc-tile-value')).toHaveText('7–2–1');
+          await expect(recent).toContainText('W · L · P; grouped counts');
+          await expect(recent.locator('.gx-tc-block--on')).toHaveCount(7);
+          await expect(recent.locator('.gx-tc-block--push')).toHaveCount(1);
+          await expect(recent.locator('.gx-tc-block:not(.gx-tc-block--on):not(.gx-tc-block--push)')).toHaveCount(2);
+          expect(await recent.locator('.gx-tc-block--push').evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('dashed');
+        }
+        await recent.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: testInfo.outputPath(`recent-${theme}-${forcedColors}.png`) });
+        await phoneChecks(page); expect(await axe(page)).toEqual([]);
+        // The public 2024 season has −11.5 units, which collides with the forged-pick sentinel.
+        // Scan the cumulative view; season data is independently asserted above.
+        await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+        await noLeak(page, world, 'recent grouped counts');
+      }
+    }
+    expect(replaced).toBeGreaterThan(0); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('season stems mark break-even without inflating small gains or losses', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let replaced = 0;
+  try {
+    // Synthetic chart geometry only; these sample unit values are not historical results.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/trends/week'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      const replace = value => {
+        if (!value || typeof value !== 'object') return;
+        if (Array.isArray(value.perSeason)) {
+          value.perSeason = [[2018,21,11,10,0,0],[2019,3,2,1,0,0.1],[2020,3,1,2,0,-0.1],[2021,100,80,20,0,100]];
+          value.seasonsPos = 2; value.seasonsBet = 4; replaced++;
+        }
+        Object.values(value).forEach(replace);
+      };
+      replace(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width: 320, height: 844 });
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme });
+        await trend.getByRole('button', { name: 'By season', exact: true }).click();
+        await expect(trend.getByText('0 U · break-even', { exact: true })).toBeVisible();
+        await expect(trend.locator('.gx-tc-stem--zero')).toHaveCount(1);
+        await expect(trend.locator('.gx-tc-stem--up')).toHaveCount(2);
+        await expect(trend.locator('.gx-tc-stem--down')).toHaveCount(1);
+        await trend.getByRole('button', { name: 'Show 2018 season on chart', exact: true }).click();
+        const slider = trend.getByRole('slider'), marker = trend.locator('.gx-tc-stem--zero');
+        await expect(slider).toHaveAttribute('aria-valuetext', '2018: 11–10, 0.0 units, at break-even');
+        const geo = await trend.evaluate(el => {
+          const marker = el.querySelector('.gx-tc-stem--zero'), box = marker.getBoundingClientRect();
+          const baseline = el.querySelector('.gx-tc-stems-zero').getBoundingClientRect();
+          const bars = [...el.querySelectorAll('.gx-tc-stem:not(.gx-tc-stem--zero)')];
+          return { center: box.y + box.height / 2, baseline: baseline.y, heights: bars.map(b => parseFloat(b.style.height)), fill: getComputedStyle(marker).backgroundColor, border: getComputedStyle(marker).borderTopColor };
+        });
+        expect(Math.abs(geo.center - geo.baseline)).toBeLessThan(1);
+        expect(geo.heights[0] / geo.heights[2]).toBeCloseTo(0.001, 8);
+        expect(geo.heights[1] / geo.heights[2]).toBeCloseTo(0.001, 8);
+        expect(geo.fill).not.toBe(geo.border);
+        const plotOffset = () => trend.locator('.gx-tc-seasons').evaluate(el => el.querySelector('.gx-tc-stems').getBoundingClientRect().top - el.getBoundingClientRect().top);
+        const before = await plotOffset();
+        await slider.focus(); await page.keyboard.press('ArrowRight');
+        await expect(slider).toHaveAttribute('aria-valuetext', /2019:.*\+0.1 units, above break-even/);
+        expect(await plotOffset()).toBeCloseTo(before, 1);
+        await page.keyboard.press('Home');
+        await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+        await trend.getByRole('button', { name: 'By season', exact: true }).click();
+        await expect(slider).toHaveValue('0');
+        await expect(marker).toHaveClass(/gx-tc-stem--on/);
+        await trend.locator('.gx-tc-seasons').evaluate(el => el.scrollIntoView({ block: 'center' }));
+        await page.screenshot({ path: testInfo.outputPath(`season-zero-${theme}-${forcedColors}.png`) });
+        await phoneChecks(page); expect(await axe(page)).toEqual([]);
+        await noLeak(page, world, 'season baseline markers');
+      }
+    }
+    expect(replaced).toBeGreaterThan(0); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('recorded movement timestamps select chart observations while missing rows stay readable', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let revision = 0;
+  try {
+    // Synthetic observations on the authenticated fixture, including a gap and duplicate times.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/game'), async route => {
+      const req = route.request();
+      const res = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await res.json(), start = Date.parse(body.now) - 3600000;
+      body.total.movement = [
+        { value: 41.5, capturedAt: new Date(start).toISOString() },
+        { value: null, capturedAt: new Date(start + 60000).toISOString() },
+        { value: 42.5, capturedAt: new Date(start + 600000).toISOString() },
+        { value: 43.5 + revision, capturedAt: new Date(start + 600000).toISOString() },
+        { value: 44.5, capturedAt: null },
+      ];
+      body.spread = { visible: false, movement: body.total.movement };
+      await route.fulfill({ status: res.status, headers: Object.fromEntries(res.headers), body: JSON.stringify(body) });
+    });
+    const calls = apiCalls(page);
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const game = sheet(page, 'HOU @ JAX'), total = game.locator('[data-market-details="total"]');
+    const disclosure = total.locator('summary', { hasText: 'Line movement' });
+    await disclosure.click();
+    const slider = total.getByRole('slider', { name: 'Move along total movement' });
+    const table = total.getByRole('table'), buttons = table.getByRole('button');
+    await expect(buttons).toHaveCount(3);
+    await expect(table.locator('tbody tr')).toHaveCount(5);
+    const first = buttons.nth(0), middle = buttons.nth(1), last = buttons.nth(2);
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    await expect(middle).toHaveAccessibleName(/^Show observation 3:/);
+    await expect(last).toHaveAccessibleName(/^Show observation 4:/);
+    const count = calls.filter(call => call === 'POST /lines/game').length;
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme });
+        await first.click();
+        await expect(slider).toHaveValue('0'); await expect(first).toBeFocused();
+        await expect(slider).toHaveAttribute('aria-valuetext', /41.5,.*PT/);
+        await expect(table.locator('tr[data-selected="true"]')).toContainText('41.5');
+        await expect(first).toHaveAttribute('aria-controls', await total.locator('.gx-md-plot').getAttribute('id'));
+        await middle.focus(); await page.keyboard.press('Enter');
+        await expect(slider).toHaveValue('1'); await expect(middle).toBeFocused();
+        await expect(slider).toHaveAttribute('aria-valuetext', /42.5,.*PT/);
+        await slider.focus(); await page.keyboard.press('End');
+        await expect(last).toHaveAttribute('aria-pressed', 'true');
+        await page.keyboard.press('Home');
+        await expect(first).toHaveAttribute('aria-pressed', 'true');
+        await total.locator('.gx-md-movement').scrollIntoViewIfNeeded();
+        await phoneChecks(page); expect(await axe(page)).toEqual([]);
+        await page.screenshot({ path: testInfo.outputPath(`movement-selection-${theme}-${forcedColors}.png`) });
+      }
+    }
+    const plot = total.locator('.gx-md-plot');
+    await plot.scrollIntoViewIfNeeded(); const box = await plot.boundingBox();
+    await page.mouse.click(box.x + box.width * 0.9, box.y + box.height / 2);
+    await expect(slider).toHaveValue('1'); await expect(middle).toHaveAttribute('aria-pressed', 'true');
+    await disclosure.click(); await disclosure.click();
+    await expect(middle).toHaveAttribute('aria-pressed', 'true');
+    expect(calls.filter(call => call === 'POST /lines/game')).toHaveLength(count);
+    await expect(game).toContainText('Spread lines are locked');
+    await expect(game.locator('[data-market-details="spread"]')).toHaveCount(0);
+    revision = 1;
+    await game.getByRole('button', { name: 'Refresh market lines' }).click();
+    await disclosure.click();
+    await expect(slider).toHaveAttribute('aria-valuetext', /44.5,.*PT/);
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    await noLeak(page, world, 'linked movement table');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

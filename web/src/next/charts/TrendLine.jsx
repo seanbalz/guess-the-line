@@ -3,6 +3,7 @@
 // from the keyboard and tells a screen reader the value at each point. Values only; the caller writes the words.
 import { useId, useMemo, useState } from 'react';
 import { linePath, nearestIndex } from './geometry.js';
+import { ChartTooltip } from './ChartTooltip.jsx';
 
 const W = 320;
 
@@ -11,7 +12,7 @@ const W = 320;
  * `start` and `end` label the two ends of the time axis; `label` names the whole chart for a screen reader.
  * Pass `selectedIndex` and `onSelect` together to retain selection outside a swapped view.
  */
-export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect }) {
+export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect, id: chartId }) {
   const count = values.length;
   const [index, setIndex] = useState(count - 1);
   const at = Math.max(0, Math.min(selectedIndex ?? index, count - 1));
@@ -24,13 +25,11 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
   };
   const x = count > 1 ? (at / (count - 1)) * 100 : 0;
   const y = (geo.y(values[at]) / height) * 100;
-  const now = tip(at);
+  const readouts = useMemo(() => values.map((_, i) => tip(i)), [values, tip]);
+  const now = readouts[at];
   return (
-    <div className="gx-tc-line">
-      <div className="gx-tc-tip" aria-hidden="true" style={{ left: `clamp(0px, calc(${x}% - 76px), calc(100% - 152px))` }}>
-        <span className="gx-tc-tip-value">{now.value}</span>
-        <span className="gx-tc-tip-label">{now.label}</span>
-      </div>
+    <div className="gx-tc-line" id={chartId}>
+      <ChartTooltip readouts={readouts} index={at} x={x}/>
       <div className="gx-tc-plot" onPointerDown={event => {
         if (!event.isPrimary || event.button !== 0) return;
         event.currentTarget.setPointerCapture(event.pointerId); follow(event);

@@ -256,8 +256,23 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   `0 U` baseline, and a crosshair with a glass tooltip that follows the pointer
   or a finger. A range input moves it from the keyboard. The tooltip never
   claims more than the data: binned points say "after about N games".
+  Line and season tooltips reserve the tallest supplied readout so wrapped labels
+  never move the plot while scrubbing; the full current text remains visible.
 - **Seasons:** one stem per season from the break-even line. Each stem is a
   button that shows its record and units, and a table with hit-rate bars follows.
+  Stem lengths stay proportional; exact zero uses a hollow baseline marker.
+  A visible 0 U key names break-even, and missing units have no mark.
+- **Research evidence:** date buttons in the historical table select matching
+  cumulative endpoints; scrubbing selects the matching period row. The initial
+  zero baseline has no period row. Keep period records distinct from cumulative
+  chart records, preserve keyboard focus and use a check plus a tint/outline.
+  Link separate reads only when their charted evidence matches. Keep the sample
+  description outside the horizontal scroll region, with a native table caption.
+- **Recorded market movement:** collected-time buttons select their charted
+  observations, with the same check and selected-row treatment as Research.
+  Keep missing observations as plain readable rows and preserve gaps in the
+  chart. Duplicate timestamps have distinct observation names. One observation
+  stays a static readout; selection adds no collection or network requests.
 - **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
   10 as blocks, and games or units. Every bar carries its number in words.
 

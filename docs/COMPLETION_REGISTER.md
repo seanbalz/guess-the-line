@@ -56,7 +56,7 @@ establishes deployment. This task has not deployed the app or applied SQL.
 | NBA | [October 22 release](RELEASE_2026_10_22_MIGRATIONS.md): daily games and private bet tracking, migrations, API v34 and Pages `7ae80e71`; archived tickets preserved. | Physical-iPhone acceptance. NBA competitions remain later scope. |
 | Fantasy | [Track 1](RELEASE_2026_10_23_FANTASY_TRACK1.md) released, first data published, readback retry fixed in #202, daily schedule in #205. Scheduled runs succeeded October 24–26; [October 26 run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40365251250). | Phone readback; richer usage/comparisons/matchup/trade tools Q12–Q15 and connected roster work follow current redesign completion. D-59 fantasy feed: the private `fantasy-feed` bucket migration `20261026220000` (in `NOT_HOSTED`) and the machine-only `gtl-fantasy-ingest` upload are in the repository but not applied or deployed; the read route, app views and exporter follow ([release card](FANTASY_FEED_RELEASE.md)). |
 | Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs (PR #219) and the worker release targets (PR #223) merged October 26 (`9da3ce6`). [October 26 release](RELEASE_2026_10_26_POINTS_JOBS.md): P-03 applied (hosted `20261026213106`, 54 migrations, digest `bd53dcf4…`), `gtl-points-jobs` v1 and `gtl-push-reminders` v5 deployed, cron jobs registered with the schedule row disabled. Open: [release card](GUESS_THE_POINTS_P03.md) step 5 (enable and one verified run) and step 6 (first actuals readback); until then no slate is drafted or published automatically and automatic Points scoring is not verified. |
-| Social and rewards | Existing feed/comments and group membership work. League feed (stages 61–63) and badges, awards and streaks (stage 69): routes in `gtl-api` v38 and M-13, M-21, M-22, M-23, M-25, M-26 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); signed-in feed and features reads answer 200 in hosted logs. Open: the features schedule (admin script, worker deploy), a first features run, phone checks. | Remaining approved friend challenges, player/social detail screens and badge/streak/award/recap pipeline; each needs its real contract and implementation gate, not a completion claim based on a mockup. |
+| Social and rewards | Existing feed/comments and group membership work. League feed (stages 61–63) and badges, awards and streaks (stage 69): routes in `gtl-api` v38 and M-13, M-21, M-22, M-23, M-25, M-26 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); signed-in feed and features reads answer 200 in hosted logs. Badges worker `gtl-league-features` v1 and its weekly schedule (Tuesday 12:00 UTC, on Sean's "once a week") are live since October 27 ([release record](RELEASE_2026_10_27_LEAGUE_FEATURES.md)); the first scheduled run recorded 58 badges, 18 awards and 10 streaks and posted the Week 7 recap. Open: phone checks. | Remaining approved friend challenges, player/social detail screens and badge/streak/award/recap pipeline; each needs its real contract and implementation gate, not a completion claim based on a mockup. |
 | Preservation and transition | [RETIRE-01–04 checklist](../planning/new-app-retirement.md) exists. Me › History (older records included) and Export my data: routes in `gtl-api` v38, M-27 and M-28 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); no signed-in use yet. | Q17 history/export, commissioner tools, invitations/creation and older-record destinations; Q09/Q10/Q19 device/full-week acceptance, then Q20 transition. No cutover or record deletion authorized by this audit. |
 
 ## Current implementation lane
@@ -87,7 +87,7 @@ Brand QA, fixture build and bundle privacy scan passed. Light/Dark 320px
 screenshots were inspected. [PR #222](https://github.com/seanbalz/guess-the-lines-repo/pull/222)
 merged as `71bb47b46737fc309ad778a593a72d130a1c67d5` after all nine checks passed
 on `8cc4042b6bdd94c65095d2bd8105e6a27a00a969`; no CI fixes were needed.
-Hosted release and physical-device acceptance remain open. The queue lists each
+Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open. The queue lists each
 checkpoint separately; this does not close all Research work or Q19.
 
 PR #224 supplies [game market details](RESEARCH_MARKET_DETAILS_2026_10_26.md):
@@ -98,7 +98,7 @@ component tests, 37 model/API-contract/price-order/token tests, typecheck, Brand
 QA, fixture build and bundle privacy scan. [PR #224](https://github.com/seanbalz/guess-the-lines-repo/pull/224)
 merged as `97273e9652cf29dca77208488deb7c6c858646a4` after all nine checks passed on
 `473be765f015fcf7d88853979bc8d246f878ddf1`. No CI fixes or review responses were needed.
-Release and physical-device acceptance remain open.
+Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 PR #225 adds [board current quotes and gate entry](RESEARCH_BOARD_LINES_2026_10_26.md):
 current/latest values with source times, one banner leading to Play, scoped
 failure/retry behavior and time-based freshness without odds polling. All 28
@@ -107,7 +107,7 @@ selected browser cases passed across integrated/focused runs; 26 component,
 build/privacy scan and inspected Light/Dark 320px screenshots. [PR #225](https://github.com/seanbalz/guess-the-lines-repo/pull/225)
 merged as `733e95d586e005427350ba156d7ad1a05c139094` after all nine checks passed on
 `cf9ebe16c88975fefcc0d0a2168cc069741152c3`; no CI fixes or review responses were needed.
-Hosted release and physical-device acceptance remain open.
+Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
 Stage 33’s direct in-board confirmation is supplied by the Research reveal
 batch recorded below. Verified live-game status beyond kickoff/final evidence
@@ -128,8 +128,7 @@ Spread and Total slots open the explicit week and focus the selected matchup in
 Play. Existing drafts, receipts and lock-in confirmations remain in the full
 ballot. [PR #242](https://github.com/seanbalz/guess-the-lines-repo/pull/242) merged
 October 27 as `ec5c0358c70aee273edcfea70c6b39799a14f443` after all nine checks passed on
-`b163ceaaf1ebe41802b36f79e6f3301d3d22f852`. No CI fixes or review findings. Hosted release
-and physical-device acceptance remain separate.
+`b163ceaaf1ebe41802b36f79e6f3301d3d22f852`. No CI fixes or review findings. Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
 PR #243 supplies stage 31's [Your pick sheet](RESEARCH_YOUR_PICK_2026_10_27.md):
 per-market saved references, explicit pending/first-after/commissioner labels,
@@ -145,7 +144,7 @@ the Bets action slot, using the existing M-10 reader and shared Everyone rows.
 along with typecheck, Brand QA, build/privacy scan and inspected 320px screenshots.
 It merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6` after all nine checks
 passed on `58f4d14240308e999cbede1aec1de13dd65d4362`, with no CI fixes or review findings.
-Hosted release/readback and device acceptance remain separate.
+Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
 [PR #246](https://github.com/seanbalz/guess-the-lines-repo/pull/246) supplies [direct Research reveal confirmation](RESEARCH_REVEAL_2026_10_27.md)
 from the board and closed game guesses. It uses the existing whole-week M-03
@@ -156,7 +155,7 @@ passed, along with typecheck, Brand QA, build/privacy scan and inspected 320px
 Light/Dark screenshots. PR #246 merged October 27 as
 `6494a629e567d54aa05520ac339472322ee062bb` after all nine checks passed on
 `c191ec8a8e56a71f4023002a1e2df18296331096`; no CI fixes or review findings.
-Hosted release/readback and device acceptance stay open.
+Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
 The [Research chart correction](RESEARCH_DESIGN_2026_10_26.md#cumulative-chart-records--october-27)
 pairs cumulative units with a cumulative record in tooltips and keyboard
@@ -167,8 +166,7 @@ browser tests, 25 component and 72 model/handler tests passed, as did typecheck,
 Brand QA and build/privacy validation. Light/Dark 320px screenshots were inspected.
 PR #248 merged October 27 as `bc5a06cb74252c8da7af6c87a4531878b7ea67fe`
 after all nine checks passed on `459e24f3680a3ee0fb0792ba5905dfe7d7d397ee`;
-no CI fixes or review findings. Hosted release/readback and phone acceptance
-remain open.
+no CI fixes or review findings. Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
 The [chart interaction correction](RESEARCH_DESIGN_2026_10_26.md#retained-line-selection--october-27)
 retains the cumulative-line point while comparing the season view. Line and
@@ -180,12 +178,15 @@ chart/token tests passed, along with typecheck, Brand QA and build/privacy check
 Light/Dark 320px screenshots were inspected. PR #249 merged October 27 as
 `b1bc64b493e6a6723ba7ee58582fdbd2569d448c` after all nine checks passed on
 `0c1918d992eaba0b595ab029877e87857a068daf`, with no CI fixes or review findings.
-Hosted release/readback and device acceptance remain open.
+Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
-The updated main also includes PR #247’s [October 27 release record](RELEASE_2026_10_27_API_FRONTEND.md):
-API v38 and Pages `4a03e6cd` from `1db1c44`, covering Research source through PR
-#245. This is release-lane evidence, not a hosted audit repeated by this task;
-the card explicitly leaves signed-in use unverified. PRs #246, #248, #249, #250, #252 and #253 plus the comparison-chart follow-up require a later release.
+The [D-61 release card](RELEASE_2026_10_27_D61.md), merged in PR #256,
+records Pages `84cba88f-4d58-4fdf-9c38-4faf9380867f` from
+`a887fd162560e3aa6e6eb29fe3cdd3686fcfb137`, covering Research source through
+PR #253. It supersedes the earlier Pages `4a03e6cd` checkpoint; API v38 was
+unchanged. This is release-lane evidence, not a hosted audit repeated by this
+task. Signed-in readback and real-phone acceptance remain unverified. PRs #258,
+#259, #261, #262, #263 and the movement-selection follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -196,7 +197,7 @@ all 51 integrated browser tests, 30 component and 23 model/token tests passed,
 along with typecheck, Brand QA and build/privacy checks. Before/after screenshots
 were inspected. PR #250 merged October 27 as
 `fddcaf3d1ae6211324a80a9d3fef3f65d87ca003` after all nine checks passed on
-`a8b0571f32577ee05517db59dacadc1faa2935bf`, with no CI fixes or review findings. Hosted release/readback and device acceptance remain open.
+`a8b0571f32577ee05517db59dacadc1faa2935bf`, with no CI fixes or review findings. Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
 The [kickoff-marker batch](RESEARCH_DESIGN_2026_10_26.md#kickoff-marker-in-market-movement--october-27)
 adds a dashed, timestamped landmark within recorded movement history, preserving
@@ -207,7 +208,7 @@ and 31 component tests passed, along with typecheck, Brand QA and build/privacy
 checks. Four 320px ordinary/forced-color screenshots were inspected. PR #252 merged October 27 as
 `c54cc42045af534da0b1b474e45282858768f0ed` after all nine checks passed on
 `0d143f95e68215ce9b153dbbdcb3757908923868`, with no CI fixes or review findings.
-Hosted release/readback and device acceptance remain open.
+Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
 The [Research source-time batch](RESEARCH_DESIGN_2026_10_26.md#pacific-source-times-in-research--october-27)
 uses readable Pacific times for quotes, source posts and provenance, retaining
@@ -219,9 +220,9 @@ the combined branch, 33 component and 27 format/token tests. Typecheck, Brand QA
 and build/privacy checks passed; six 320px Light/Dark screenshots inspected.
 PR #253 merged October 27 as
 `a887fd162560e3aa6e6eb29fe3cdd3686fcfb137` after all nine checks passed on
-`d58d94addcf63f20aef980fc772b371bcb843903`, with no CI fixes or review findings. Hosted release/readback and device acceptance remain open.
+`d58d94addcf63f20aef980fc772b371bcb843903`, with no CI fixes or review findings. Frontend release is recorded through #253 below; signed-in readback and device acceptance remain open.
 
-The next [player comparison chart batch](RESEARCH_DESIGN_2026_10_26.md#labelled-player-comparison-charts--october-27)
+The [player comparison chart batch](RESEARCH_DESIGN_2026_10_26.md#labelled-player-comparison-charts--october-27)
 labels each observation and value directly, preserves shared scales and the
 evidence table, and distinguishes real zero from a missing sample. A forced-color
 avatar fallback accompanies it. Source is in [PR #258](https://github.com/seanbalz/guess-the-lines-repo/pull/258)
@@ -229,7 +230,59 @@ on `codex/research-chart-values`;
 54 integrated browser cases and five final Trends cases passed, along with 52
 component and 24 model/token tests, typecheck, Brand QA and build/privacy checks.
 Six 320px screenshots were inspected; narrow evidence tables keep whole headings
-inside their scroll container. CI/merge, hosted release and device acceptance remain open.
+inside their scroll container. PR #258 merged October 27 as `e4c0c07ecf3d75bb68f87789cd7c1ea4e8bb1484` after all nine checks passed on repaired head `b0874306f81477f79dae38240d8238d929fe2406`. The CI brand-mark failure was fixed with an explicit initials-avatar class; no review findings remained.
+Hosted release and device acceptance remain open.
+
+The [recent-result tile batch](RESEARCH_RECENT_RECORDS_2026_10_27.md)
+shows actual sample sizes and all three W–L–P counts, with pushes distinct from
+losses and an explicit grouped-count label. Source is in [PR #259](https://github.com/seanbalz/guess-the-lines-repo/pull/259)
+on `codex/research-recent-records`; 55 integrated browser cases on current main plus
+repaired #258, two focused combined-chart
+cases, 48 component and 20 model/token tests passed. Four 320px Light/Dark and
+forced-color screenshots were inspected. Typecheck, Brand QA and build/privacy
+checks passed. PR #259 merged October 27 as `ba9c043e156229e10b97b4edf0851a7fa5833408` after all nine checks passed on `80aa7f1eb4835aee593548fdfa5223e21ad62952`, with no CI fixes or review findings.
+Hosted release and device acceptance remain open.
+
+The [season-baseline batch](RESEARCH_SEASON_BASELINE_2026_10_27.md)
+removes the minimum positive stub for zero and small values, uses a hollow
+break-even marker and keeps missing units unplotted. Source is in [PR #261](https://github.com/seanbalz/guess-the-lines-repo/pull/261)
+on `codex/season-zero-markers`; all 56 integrated browser cases, focused browser,
+49 component and 26 geometry/token/brand-mark tests passed, along with typecheck,
+Brand QA and build/privacy checks. Four 320px ordinary/forced-color screenshots
+were inspected. PR #261 merged October 27 as `95eaa18b027c5ccdafffa571ee1083540f0591e6` after all nine checks passed on `1a9add3b3024b274ef12b515a0d528868d0eb32f`, with no CI fixes or review findings.
+Release/readback and device acceptance remain open.
+
+The [steady-tooltip batch](RESEARCH_STABLE_TOOLTIP_2026_10_27.md)
+keeps line and season plots in place when tooltip labels wrap during scrubbing.
+The browser regression reproduced an 18px shift and passed after the fix;
+49 component and 26 geometry/token/brand-mark tests passed. All 57 browser cases
+are covered by the integrated run and corrected season-fixture rerun. Eight
+320px ordinary/forced-color screenshots inspected; typecheck, Brand QA and
+fixture build/privacy checks passed. Source is in [PR #262](https://github.com/seanbalz/guess-the-lines-repo/pull/262)
+on `codex/chart-stable-tooltip`. PR #262 merged October 27 as `6799e78e90a73805f9a337953a92d90f9fb0991e` after all nine checks passed on `d77e0ecca6300dd8d5ba48a5c089677e664160e0`, with no CI fixes or review findings.
+Release/readback and device acceptance remain open.
+
+The [Research evidence-selection batch](RESEARCH_EVIDENCE_SELECTION_2026_10_27.md)
+links historical date rows and cumulative chart points, retaining period records,
+focus and market gates while refusing controls for mismatched snapshots.
+All 59 integrated browser cases and 12 final Research cases, 51 component and
+26 geometry/token/brand-mark tests passed, along with typecheck, Brand QA and
+fixture build/privacy checks. Four final 320px ordinary/forced-color screenshots
+inspected. Source is in [PR #263](https://github.com/seanbalz/guess-the-lines-repo/pull/263)
+on `codex/research-evidence-selection`. PR #263 merged October 27 as `6f427fb8ba00e1dc7b751a9aacb730ea4bc0f0e2` after all nine checks passed on `25b0dc5824a4050d6bea142262aabc2b2f70ebaf`, with no CI fixes or review findings.
+Release/readback and device acceptance remain open.
+
+The next [recorded-movement selection batch](RESEARCH_MOVEMENT_SELECTION_2026_10_27.md)
+links game-sheet timestamps to their chart observations, preserving missing
+rows, duplicate times, keyboard focus and the locked-market boundary. The
+focused browser regression, 57 component checks, 30 geometry/token/brand checks,
+typecheck and fixture build/privacy checks passed locally. The first integrated
+run exposed a Research-to-Play focus race; a deterministic regression failed
+before and passed after the shell was repaired to preserve the requested game’s
+focus. All 85 final integrated browser cases passed, including shell/navigation
+and per-game scoring. Four 320px ordinary/forced-color screenshots were inspected.
+Source is in [PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265)
+on `codex/market-movement-selection`. CI/merge, release/readback and physical-device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

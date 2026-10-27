@@ -2,7 +2,7 @@
 // hit-rate bar with the break-even tick, last-10 blocks, or a short line of words. The number is always text.
 import { BREAK_EVEN_PCT } from './geometry.js';
 
-/** `tiles` are `{ label, value, sub?, meter?: percent, blocks?: { on, of } }`. */
+/** `tiles` are `{ label, value, sub?, meter?: percent, blocks?: { on, of, pushes? } }`. */
 export function StatTiles({ tiles }) {
   return (
     <ul className="gx-tc-tiles">
@@ -17,9 +17,10 @@ export function StatTiles({ tiles }) {
             </span>
           ) : tile.blocks ? (
             <span className="gx-tc-blocks" aria-hidden="true">
-              {Array.from({ length: tile.blocks.of }, (_, i) => <span key={i} className={i < tile.blocks.on ? 'gx-tc-block gx-tc-block--on' : 'gx-tc-block'}></span>)}
+              {Array.from({ length: tile.blocks.of }, (_, i) => <span key={i} className={i < tile.blocks.on ? 'gx-tc-block gx-tc-block--on' : i >= tile.blocks.of - (tile.blocks.pushes ?? 0) ? 'gx-tc-block gx-tc-block--push' : 'gx-tc-block'}></span>)}
             </span>
-          ) : tile.sub ? <span className="gx-tc-tile-sub">{tile.sub}</span> : null}
+          ) : null}
+          {tile.sub ? <span className="gx-tc-tile-sub">{tile.sub}</span> : null}
         </li>
       ))}
     </ul>

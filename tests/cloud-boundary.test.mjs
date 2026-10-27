@@ -160,7 +160,12 @@ test('M-26 features schedule: the dispatcher, claim and completion and its two t
   const body = rpc => JSON.parse(captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`)).request.body);
   assert.deepEqual(body('gtl_dispatch_league_features'), {});
   assert.deepEqual(body('gtl_claim_league_features'), { p_token: '0'.repeat(64), p_run: '00000000-0000-0000-0000-000000000000' }, 'never a real capability');
-  assert.ok(!captured.some(({ url }) => url.includes('/functions/v1/gtl-league-features')), 'the worker joins the worker probes with its deploy');
+  // The worker (deployed October 27, 2026) is called without and with an invalid machine token, naming no run.
+  const worker = captured.filter(({ url }) => url.endsWith('/functions/v1/gtl-league-features'));
+  assert.deepEqual(worker.map(({ request }) => [request.headers.Authorization ?? null, JSON.parse(request.body)]),
+    [[null, { runId: '00000000-0000-0000-0000-000000000000' }], [`Bearer ${'0'.repeat(64)}`, { runId: '00000000-0000-0000-0000-000000000000' }]]);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-league-features')
+    ? new Response(JSON.stringify({ code: 'NOT_FOUND' }), { status: 404 }) : denied(url, request)) }), /scheduled league features without machine token: unexpected 404/);
 });
 
 test('referee probes are hosted and deployed, so they are no longer awaiting and a not-found answer fails', async t => {

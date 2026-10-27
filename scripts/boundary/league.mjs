@@ -45,8 +45,8 @@ export const rpcChecks = Object.freeze([
   ['gtl_record_feature_results', { p_run: missingId, p_trigger: 'manual', p_actor: missingId, p_results: {} }],
   ['gtl_read_features', { p_user: missingId, p_league: null, p_season: null, p_now: null }],
   // M-26 features_schedule (redesign stage 70): the cron-only dispatcher and the worker's claim and completion. Hosted as
-  // 20261027153637 since October 27, 2026; its two tables are in the table probes. gtl-league-features is not deployed, so it
-  // joins the worker probes with its first deploy.
+  // 20261027153637 since October 27, 2026; its two tables are in the table probes and the gtl-league-features worker (deployed
+  // October 27, 2026) in workerChecks.
   ['gtl_dispatch_league_features', {}],
   ['gtl_claim_league_features', { p_token: '0'.repeat(64), p_run: missingId }],
   ['gtl_complete_league_features', { p_run: missingId, p_claim: missingId, p_reason: null }],
@@ -78,7 +78,10 @@ export const apiChecks = Object.freeze([
   ['league/features/run', {}],
 ]);
 
-export const workerChecks = Object.freeze([]);
+export const workerChecks = Object.freeze([
+  // M-26 (redesign stage 70): the badges, awards and streaks worker, deployed as gtl-league-features v1 on October 27, 2026.
+  ['scheduled league features', 'gtl-league-features', { runId: missingId }],
+]);
 
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026. The league feed
 // (redesign stages 61 to 63) is hosted and deployed since October 27, 2026: M-21, M-22 and M-23 applied, and the five

@@ -200,7 +200,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
       const receipt = data.scoring?.[mode]?.games?.find(row => row.gameId === game.id);
       const state = progress.games[index].state, [word, tone] = CARD_STATE[state], stamping = moment?.ids.includes(game.id) === true;
       const opened = reveal && picksRead.data ? revealRows(picksRead.data, accountId, reveal.members, game.id) : null;
-      return <Card as="article" key={game.id} className={cx('gx-vstack gx-gap-16 gx-play-game', stamping && 'gx-play-stamp')} aria-label={`${game.awayCode} at ${game.homeCode} ${market}`} data-game={game.id} data-state={state} ref={game.id === focusGame ? focusedGame : undefined} tabIndex={-1}>
+      return <Card as="article" key={game.id} className={cx('gx-vstack gx-gap-16 gx-play-game', stamping && 'gx-play-stamp')} aria-label={`${game.awayCode} at ${game.homeCode} ${market}`} data-game={game.id} data-state={state} data-route-focus={game.id === focusGame ? '' : undefined} ref={game.id === focusGame ? focusedGame : undefined} tabIndex={-1}>
         <header className="gx-vstack gx-gap-8">
           <div className="gx-play-card-meta"><p className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)}</p><Pill tone={tone} className={cx('gx-play-card-pill', stamping && 'gx-play-stamp-pill')}><Icon icon={STATE_ICONS[state]} size={12}/>{word}</Pill></div>
           <h2 className="gx-score-matchup gx-t-strong"><TeamMark code={game.awayCode} size={32} decorative/><span>{game.awayCode} at {game.homeCode}</span><TeamMark code={game.homeCode} size={32} decorative/></h2>

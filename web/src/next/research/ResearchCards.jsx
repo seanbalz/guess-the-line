@@ -1,7 +1,8 @@
 import { lazy, Suspense, useId, useState } from 'react';
 import { Button, Card, InfoButton } from '../ui/index.js';
-import { TrendDetail } from '../charts/TrendDetail.jsx';
+import { TrendDetail, lineSelectionKey } from '../charts/TrendDetail.jsx';
 import { TrendLine } from '../charts/TrendLine.jsx';
+import { useChartSelection } from '../charts/useChartSelection.js';
 import { TrendRow } from '../charts/TrendRow.jsx';
 import { hitPct, recordText, signed } from '../charts/geometry.js';
 import { INFO } from '../info.js';
@@ -53,15 +54,19 @@ function RecordSummary({ record, label }) {
   if (!record) return null;
   return <p className="gx-t-meta">{label}: {record.wins}-{record.losses}-{record.pushes} W-L-P · {record.sample} games · {researchDate(record.coverage?.from)} to {researchDate(record.coverage?.to)}</p>;
 }
-function ResearchDetail({ candidateId, request, withChart }) {
+function ResearchDetail({ candidateId, request, withChart, selection }) {
   const read = useResearch({ ...request, filters: { ...request?.filters, candidateId }, enabled: Boolean(request) });
   const candidate = read.data?.candidates.find(c => c.id === candidateId);
-  const line = withChart && candidate ? researchLine(candidate) : null;
+  const line = candidate ? researchLine(candidate) : null;
+  const key = line ? lineSelectionKey(candidate.title, line) : null;
+  const localSelection = useChartSelection(key, line?.values.length ?? 0), chartId = useId();
+  // The detail is a separate read. Link only equivalent chart evidence, never a stale summary.
+  const linked = !line ? null : withChart ? { ...localSelection, chartId } : selection?.key === key ? selection : null;
   return <div className="gx-r-detail gx-vstack gx-gap-12">
     <ResearchStatus read={read}/>
     {candidate ? <>
-      {line ? <TrendLine values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label}/> : null}
-      <Suspense fallback={<p className="gx-t-meta" role="status">Loading historical table…</p>}><ResearchChart candidate={candidate}/></Suspense>
+      {withChart && line ? <TrendLine id={chartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} selectedIndex={localSelection.index} onSelect={localSelection.onSelect}/> : null}
+      <Suspense fallback={<p className="gx-t-meta" role="status">Loading historical table…</p>}><ResearchChart candidate={candidate} selection={linked}/></Suspense>
       <p className="gx-t-meta">Qualification uses the canonical recent sample, regardless of this display period. {candidate.qualification.label}. {(candidate.qualification.reasons ?? []).map(reason).join(' ')}</p>
       <p className="gx-t-meta">Conditions: {candidate.conditionDescriptions?.join('; ') || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted NFL history'}.</p>
       <RecordSummary record={candidate.recent} label="Canonical recent sample"/>
@@ -108,9 +113,9 @@ function ResearchCard({ candidate, gameId, request, open, onToggle }) {
   const units = Number.isFinite(r.illustrativeUnits) ? r.illustrativeUnits : line?.values.at(-1);
   const why = `Why it applies: ${candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}${applications.length ? ` · ${applications.map(a => `${a.gameId.replace('-', ' at ')} (${readable(a.direction)})`).join('; ')}` : ''}.`;
   const info = <InfoButton title="About this research" body={[`Consistency: ${consistencyText(candidate)}`, why, ...INFO.research.body]} links={INFO.research.links}/>;
-  const evidenceBlock = <>
+  const evidenceBlock = selection => <>
     <Button variant="ghost" onClick={() => setEvidence(v => !v)} aria-expanded={evidence}>{evidence ? 'Hide evidence' : 'View evidence'}</Button>
-    {evidence && request ? <ResearchDetail candidateId={candidate.id} request={request} withChart={!line}/> : null}
+    {evidence && request ? <ResearchDetail candidateId={candidate.id} request={request} withChart={!line} selection={selection}/> : null}
   </>;
   const record = r.sample ? recordText(r.wins ?? 0, r.losses ?? 0, r.pushes ?? 0) : null;
   const tiles = [
@@ -124,7 +129,7 @@ function ResearchCard({ candidate, gameId, request, open, onToggle }) {
       {open && !line ? <div className="gx-tc-rowtext" id={id}>
         <RecordSummary record={candidate.record} label="Selected period"/>
         <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">{consistencyText(candidate)}</p>{info}</div>
-        {evidenceBlock}
+        {evidenceBlock()}
       </div> : null}
     </div>
     {open && line ? <TrendDetail id={id} title={candidate.title} pill={consistencyPill(candidate)} info={info}
