@@ -2,7 +2,7 @@
 
 Sean's instruction (October 26–27, 2026): "I need changes on the design added asap", then "Deploy".
 
-- **Source:** `main` at `d2a7b29bfe793495cc5d215c569ce9f3ef8522b9` (#238 merged). Main CI on this exact SHA
+- **Source:** `main` at `de4295308c56d6e9b95d1e810ada9b5fbf45df04` (#240 merged). Main CI on this exact SHA
   passed: Tests, Dashboard checks (dashboard, Persona suite, four cloud browser shards) and Brand QA, all on the
   `push` runs.
 - **Target:** `frontend` only (Pages). `gtl-api` stays at v37 (from `17afa76`, the October 26 release).
@@ -12,7 +12,10 @@ Sean's instruction (October 26–27, 2026): "I need changes on the design added 
 
 Frontend changes since `17afa76`: Research charts and season tables (#216, #218), Research season selection, market
 details, board lines and gated Community guesses (#222, #224, #225, #230), the NBA scheduled-game label (#217), the
-League feed screens with comments and reactions (#238), and the new-app commissioner Settlement screen (#214).
+League feed screens with comments and reactions (#238), the new-app commissioner Settlement screen (#214), and D-60
+step 1 (#240): every signed-in member opens the new app; the old app opens only at `?app=classic`.
+
+Run 40425215206 (from `d2a7b29`, without #240) was cancelled before approval and replaced by this one.
 
 ## Compatibility with `gtl-api` v37
 
@@ -36,5 +39,4 @@ changes to undo.
 
 ## Note
 
-The redesign is the new app. Until D-60 (#240) makes it the default, a device sees it after "Try the new app" in the
-Community footer.
+With #240 the new app is the default; `?app=classic` still opens the old app on any device.
