@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { ALL, APPLIED, HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
-import { assertNoLeak, leakScan, lineSecrets, pickSecrets, readerReply, READER_MIGRATIONS } from './helpers/leak-scan.mjs';
+import { assertNoLeak, leakScan, lineSecrets, pickSecrets, readerReply, READER_MIGRATIONS, withoutTimes } from './helpers/leak-scan.mjs';
 import { storeLines } from './helpers/guess-week.mjs';
 import { catalog, readMigrations } from '../scripts/migration-functions.mjs';
 
@@ -96,7 +96,8 @@ test('/me/changes: the owner\'s own changes only, drafts held until locked in, k
       ...pickSecrets(map(TROY.spread), { market: 'spread', owner: 'troy' }),
       ...pickSecrets({ [ids[1]]: LUKE.spread[1], [ids[2]]: LUKE.spread[2] }, { market: 'spread', owner: 'luke-draft' }),
     ] }, '/me/changes luke');
-    assert.ok(!JSON.stringify(reply.body).includes(String(LUKE.changed)), 'the held draft change is not in the reply');
+    // Timestamps are cut first: a save at :05.5xx seconds would otherwise read as the held 5.5.
+    assert.ok(!withoutTimes(JSON.stringify(reply.body)).includes(String(LUKE.changed)), 'the held draft change is not in the reply');
   });
 
   await t.test('Troy\'s whole-market send reads as three lock-ins with their lines; Sean, with no ballot, has none', async () => {
