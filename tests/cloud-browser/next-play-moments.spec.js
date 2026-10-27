@@ -328,6 +328,40 @@ test('a game the server keeps closed draws no reveal, whatever the device clock 
   } finally { await world.db.close(); }
 });
 
+test('the native guess control keeps the classic keyboard model: one Tab stop a row, arrows, type-ahead and "="', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const [, game] = world.personal.games, entry = card(page, game.id);
+    const summary = entry.locator('.gx-guess-summary');
+    await entry.locator('[data-side="away"]').focus();
+    await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
+    await expect(entry.locator('[data-side="home"]')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(entry.locator('[data-side="home"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Tab');
+    await expect(entry.locator('.gx-guess-num[data-value="1"]')).toBeFocused();
+    await page.keyboard.type('3');
+    await expect(entry.locator('.gx-guess-num[data-value="3"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(entry.locator('.gx-guess-num[data-value="3"]')).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(summary).toHaveText(/ −3\.5$/);
+    await page.keyboard.press('=');
+    const typed = entry.getByRole('textbox');
+    await expect(typed).toBeFocused();
+    await typed.fill('12.5'); await page.keyboard.press('Enter');
+    await expect(summary).toHaveText(/ −12\.5$/);
+    await expect(entry.locator('.gx-guess-num[data-value="12.5"]')).toBeFocused();
+    await entry.getByRole('button', { name: 'Raise by half a point' }).click();
+    await expect(summary).toHaveText(/ −13$/);
+    // The guess the editor keeps is the classic value: home favored by 13 is −13, and Save draft sends exactly that.
+    await page.getByRole('button', { name: 'Save draft', exact: true }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
+    expect(world.writes.at(-1).picks[game.id]).toBe(-13);
+    expect(world.writes.at(-1).lockIn).toBeUndefined();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('quiet states: loading is one line, a failed read is one line with Try again, and the retry loads the week', async ({ page, baseURL }, info) => {
   const world = await fixture(page, baseURL, { beforeOpen: ({ control }) => { control.personalRead = gate(); control.failRead = 1; } });
   try {
