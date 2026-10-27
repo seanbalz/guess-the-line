@@ -234,8 +234,8 @@ Hosted release and device acceptance remain open.
 
 The next [recent-result tile batch](RESEARCH_RECENT_RECORDS_2026_10_27.md)
 shows actual sample sizes and all three W–L–P counts, with pushes distinct from
-losses and an explicit grouped-count label. Source is on
-`codex/research-recent-records`; 55 integrated browser cases on current main plus
+losses and an explicit grouped-count label. Source is in [PR #259](https://github.com/seanbalz/guess-the-lines-repo/pull/259)
+on `codex/research-recent-records`; 55 integrated browser cases on current main plus
 repaired #258, two focused combined-chart
 cases, 48 component and 20 model/token tests passed. Four 320px Light/Dark and
 forced-color screenshots were inspected. Typecheck, Brand QA and build/privacy

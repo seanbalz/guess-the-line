@@ -27,8 +27,8 @@ public season has a value that collides with a hidden-pick sentinel, so the leak
 scan uses the cumulative view rather than treating public season units as a
 private-data exposure. All 55 integrated Research/Lines/Trends/League-bets browser
 cases passed after combining current main and the repaired PR #258. Two focused
-combined-chart cases also passed. Publication remains in progress on
-`codex/research-recent-records`.
+combined-chart cases also passed. Source is in [PR #259](https://github.com/seanbalz/guess-the-lines-repo/pull/259)
+on `codex/research-recent-records`.
 
 CI/merge, hosted release/readback and physical-iPhone acceptance remain separate.
 This task does not deploy or apply migrations; the frozen v62 tracker is intact.
