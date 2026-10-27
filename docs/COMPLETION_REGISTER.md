@@ -186,16 +186,27 @@ The updated main also includes PR #247’s [October 27 release record](RELEASE_2
 API v38 and Pages `4a03e6cd` from `1db1c44`, covering Research source through PR
 #245. This is release-lane evidence, not a hosted audit repeated by this task;
 the card explicitly leaves signed-in use unverified. PRs #246, #248 and #249
-and the high-contrast follow-up require a later release.
+and #250 plus the kickoff-marker follow-up require a later release.
 
-The next [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
+The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
 and Last 10 blocks. It also preserves selected-season boundaries and uses system
 foregrounds for line and movement plots. Source is in [PR #250](https://github.com/seanbalz/guess-the-lines-repo/pull/250)
 on `codex/chart-high-contrast`;
 all 51 integrated browser tests, 30 component and 23 model/token tests passed,
 along with typecheck, Brand QA and build/privacy checks. Before/after screenshots
-were inspected. CI/merge, release and device acceptance remain open.
+were inspected. PR #250 merged October 27 as
+`fddcaf3d1ae6211324a80a9d3fef3f65d87ca003` after all nine checks passed on
+`a8b0571f32577ee05517db59dacadc1faa2935bf`, with no CI fixes or review findings. Hosted release/readback and device acceptance remain open.
+
+The next [kickoff-marker batch](RESEARCH_DESIGN_2026_10_26.md#kickoff-marker-in-market-movement--october-27)
+adds a dashed, timestamped landmark within recorded movement history, preserving
+quote selection, gaps and market gates. Source is in [PR #252](https://github.com/seanbalz/guess-the-lines-repo/pull/252)
+on `codex/movement-kickoff`;
+all 52 integrated browser tests, the focused browser test, 24 model/token tests
+and 31 component tests passed, along with typecheck, Brand QA and build/privacy
+checks. Four 320px ordinary/forced-color screenshots were inspected. CI/merge,
+release and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

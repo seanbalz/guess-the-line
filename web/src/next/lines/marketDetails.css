@@ -11,6 +11,9 @@
 .gx-md-path { fill: none; stroke: var(--gx-data); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .gx-md-point { fill: var(--gx-data); }
 .gx-md-cross { stroke: var(--gx-text-3); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.gx-md-kickoff { stroke: var(--gx-text-2); stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.gx-md-kickoff-key { display: flex; align-items: baseline; gap: var(--gx-space-2); color: var(--gx-text-2); }
+.gx-md-kickoff-key > span { flex: none; width: 24px; border-top: 2px dashed var(--gx-text-2); }
 .gx-md-axis { display: flex; justify-content: space-between; gap: var(--gx-space-3); color: var(--gx-text-2); }
 .gx-md-axis > span { flex: 1; min-width: 0; }
 .gx-md-axis > span:last-child { text-align: right; }
@@ -28,4 +31,6 @@
   .gx-md-path { stroke: CanvasText; }
   .gx-md-point { fill: CanvasText; stroke: Canvas; stroke-width: 1; }
   .gx-md-cross { stroke: CanvasText; stroke-dasharray: 4 3; }
+  .gx-md-kickoff { stroke: CanvasText; }
+  .gx-md-kickoff-key > span { border-color: CanvasText; }
 }

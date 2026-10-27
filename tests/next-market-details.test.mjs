@@ -39,3 +39,21 @@ test('movement uses elapsed time, retains zero and breaks at missing observation
   assert.equal(movementGeometry([row(0, 0)]).points[0].y, 70);
   assert.equal(movementGeometry([{ capturedAt: null, value: 3 }]).points.length, 0);
 });
+
+test('kickoff uses the recorded time scale without extending or inventing history', () => {
+  const time = minutes => new Date(now + minutes * 60000).toISOString();
+  const rows = [{ capturedAt: time(0), value: -2 }, { capturedAt: time(10), value: 2 }];
+  for (const [minutes, x] of [[0, 12], [2, 71.2], [5, 160], [10, 308]]) {
+    const marked = movementGeometry(rows, time(minutes));
+    assert.equal(marked.kickoffX, x);
+    assert.equal(marked.path, movementGeometry(rows).path);
+    assert.deepEqual(marked.points, movementGeometry(rows).points);
+  }
+  for (const kickoff of [null, undefined, 'invalid', time(-1), time(11)]) assert.equal(movementGeometry(rows, kickoff).kickoffX, null);
+  for (const observations of [[], [rows[0]], [rows[0], rows[0]], [{ capturedAt: null, value: -2 }]]) {
+    assert.equal(movementGeometry(observations, time(0)).kickoffX, null);
+  }
+  const missing = movementGeometry([rows[0], { capturedAt: time(5), value: null }, rows[1]], time(5));
+  assert.equal(missing.kickoffX, 160);
+  assert.equal(missing.path.includes('L'), false);
+});
