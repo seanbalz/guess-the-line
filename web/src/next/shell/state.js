@@ -82,7 +82,7 @@ const closed = { sheets: [], dialog: null, popover: null, page: null };
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
-const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind'];
+const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame'];
 function originView(current, prior, detail) {
   const view = { ...prior, ...current };
   for (const key of detail ? ROUTE_KEYS : ['section', 'view']) view[key] = prior?.[key];
@@ -117,8 +117,9 @@ export function reduce(state, action) {
       const target = destination(action.tab, action.view);
       if (!isTab(target.tab)) return state;
       const current = state.views[target.tab];
-      const root = { ...current, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
-      const view = action.type === 'tab' || !target.view ? root : { ...current, ...target.view };
+      const next = target.tab === 'play' && Object.hasOwn(current, 'pickGame') ? Object.fromEntries(Object.entries(current).filter(([key]) => key !== 'pickGame')) : current;
+      const root = { ...next, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
+      const view = action.type === 'tab' || !target.view ? root : { ...next, ...target.view };
       const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...state.views[target.adapter], ...target.adapterView } } : {}) };
       const changed = state.tab !== target.tab || JSON.stringify(current) !== JSON.stringify(view) || !!target.adapter;
       if (!changed && !hasLayers(state)) return state;
@@ -142,7 +143,7 @@ export function reduce(state, action) {
     case 'restore': {
       const place = action.place;
       if (!isTab(place?.tab)) return state;
-      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, ...(place.tab === 'bets' ? { view: undefined } : {}), ...place.view } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
+      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, pickGame: undefined, ...(place.tab === 'bets' ? { view: undefined } : {}), ...place.view } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
     }
     case 'open': {
       const kind = layerKind(action.layer?.id);
