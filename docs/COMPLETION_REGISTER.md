@@ -231,6 +231,16 @@ component and 24 model/token tests, typecheck, Brand QA and build/privacy checks
 Six 320px screenshots were inspected; narrow evidence tables keep whole headings
 inside their scroll container. CI/merge, hosted release and device acceptance remain open.
 
+The next [recent-result tile batch](RESEARCH_RECENT_RECORDS_2026_10_27.md)
+shows actual sample sizes and all three W–L–P counts, with pushes distinct from
+losses and an explicit grouped-count label. Source is on
+`codex/research-recent-records`; 55 integrated browser cases on current main plus
+repaired #258, two focused combined-chart
+cases, 48 component and 20 model/token tests passed. Four 320px Light/Dark and
+forced-color screenshots were inspected. Typecheck, Brand QA and build/privacy
+checks passed. CI/merge, hosted
+release and device acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.
