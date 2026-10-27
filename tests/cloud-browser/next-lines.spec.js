@@ -1112,3 +1112,137 @@ test('your saved pick keeps pending and first-after labels and survives independ
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+// Stage 34: the existing M-10 week reader, projected to one game. Fictional bets only.
+async function seedGameBets(world) {
+  const now = new Date().toISOString();
+  for (const [who, gameId, market, selection] of [
+    ['troy', 'SEA-DEN', 'spread', { side: 'home', line: -13.5, odds: -115, units: 1.5, source: 'BetMGM' }],
+    ['luke', 'SEA-DEN', 'total', { side: 'under', line: 51.5, odds: -110, units: 2, source: 'DraftKings' }],
+    ['sean', 'HOU-JAX', 'total', { side: 'over', line: 44.5, odds: -105, units: 1, source: 'FanDuel' }],
+  ]) {
+    await world.db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,2026,6) on conflict do nothing', [ACCOUNTS[who].id]);
+    await world.db.query('insert into public.gtl_virtual_units_picks(user_id,season,week,game_id,market,selection) values($1,2026,6,$2,$3,$4)',
+      [ACCOUNTS[who].id, gameId, market, { gameId, market, ...selection, quotedAt: now, selectedAt: now }]);
+  }
+}
+const betsRoute = url => url.origin === SUPABASE && url.pathname.endsWith('/bets/read');
+async function openGameBets(page, game = 'SEA-DEN') {
+  await card(page, game).click();
+  await sheet(page, game.replace('-', ' @ ')).getByRole('button', { name: /^Open League bets for / }).click();
+  return sheet(page, 'League bets');
+}
+
+test('League bets loads one game on demand with protected terms, phone layout and no writes', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  const calls = apiCalls(page);
+  try {
+    await seedGameBets(world); await openLines(page);
+    expect(calls.filter(call => call === 'POST /bets/read')).toEqual([]);
+    const response = page.waitForResponse(response => betsRoute(new URL(response.url())));
+    const bets = await openGameBets(page);
+    const read = await response;
+    expect(read.request().postDataJSON()).toEqual({ season: 2026, week: 6 });
+    const reply = await read.json();
+    expect(reply.bets.find(bet => bet.userId === ACCOUNTS.troy.id).selection).not.toHaveProperty('line');
+    const troy = bets.locator(`[data-pick="${ACCOUNTS.troy.id}:spread"]`);
+    await expect(troy).toContainText('DEN'); await expect(troy).toContainText('1.5U');
+    await expect(troy).toHaveAttribute('data-open', 'false');
+    await expect(bets).not.toContainText('BetMGM'); await expect(bets).not.toContainText('13.5');
+    await expect(bets.locator(`[data-pick="${ACCOUNTS.luke.id}:total"]`)).toContainText('Under 51.5');
+    await expect(bets).toContainText('DraftKings'); await expect(bets.locator('.gx-ev-game')).toHaveCount(1);
+    await expect(bets.locator('[data-game="HOU-JAX"]')).toHaveCount(0);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`game-bets-${theme}.png`) });
+    }
+    await page.keyboard.press('Escape');
+    const action = sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Open League bets for / });
+    await expect(action).toBeFocused(); await phoneChecks(page); expect(await axe(page)).toEqual([]);
+    await action.click(); await bets.getByRole('button', { name: 'Open Spread in Play', exact: true }).click();
+    await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toBeFocused();
+    expect(calls.filter(call => ![...READS, 'POST /bets/read'].includes(call))).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('League bets clears failures and wrong-week replies, recovers and ignores an abandoned game read', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  let mode = 'ok', release, held;
+  const waiting = new Promise(resolve => { held = resolve; });
+  await page.route(betsRoute, async route => {
+    const request = route.request();
+    const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+    const data = await response.json();
+    const behavior = mode;
+    if (behavior === 'hold') { held(); await new Promise(resolve => { release = resolve; }); }
+    if (behavior === 'wrong') data.week += 1;
+    await route.fulfill({ status: behavior === 'fail' ? 503 : response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(data) }).catch(() => {});
+  });
+  try {
+    await seedGameBets(world); await openLines(page); const bets = await openGameBets(page);
+    await expect(bets).toContainText('DraftKings');
+    mode = 'wrong'; await bets.getByRole('button', { name: 'Refresh league bets' }).click();
+    await expect(bets).toContainText('League bets are unavailable'); await expect(bets).not.toContainText('DraftKings');
+    mode = 'fail'; await bets.getByRole('button', { name: 'Retry league bets' }).click(); await expect(bets).toContainText('League bets are unavailable');
+    mode = 'ok'; await bets.getByRole('button', { name: 'Retry league bets' }).click(); await expect(bets).toContainText('DraftKings');
+    mode = 'hold'; await bets.getByRole('button', { name: 'Refresh league bets' }).click(); await waiting;
+    await expect(bets).not.toContainText('DraftKings'); await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+    mode = 'ok'; await openGameBets(page, 'HOU-JAX'); await expect(bets).toContainText('FanDuel');
+    release(); await expect(bets).not.toContainText('DraftKings');
+    await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+    await openGameBets(page, 'NO-NYG'); await expect(bets).toContainText('No Virtual Units picks for this game in Community yet.');
+    expect(world.errors).toEqual([]);
+  } finally { release?.(); await world.db.close(); }
+});
+
+test('League bets uses the selected private roster and never falls back after refusal', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  try {
+    await seedGameBets(world); await openLines(page);
+    await world.db.query('update public.gtl_memberships set active=false where league_id=$1 and user_id=$2', ['sean-troy-luke', ACCOUNTS.troy.id]);
+    await page.evaluate(id => localStorage.setItem(`gtl.next.league.v1.${encodeURIComponent(id)}`, JSON.stringify({ id: 'sean-troy-luke', name: 'Triple Threat' })), ACCOUNTS.luke.id);
+    await page.reload(); await expect(card(page, 'SEA-DEN')).toBeVisible();
+    const response = page.waitForResponse(response => betsRoute(new URL(response.url())));
+    const bets = await openGameBets(page);
+    expect((await response).request().postDataJSON()).toEqual({ season: 2026, week: 6, leagueId: 'sean-troy-luke' });
+    await expect(bets).toContainText('DraftKings'); await expect(bets).not.toContainText('Community · Week');
+    await expect(bets.locator(`[data-pick="${ACCOUNTS.troy.id}:spread"]`)).toHaveCount(0);
+    await world.db.query('update public.gtl_memberships set active=false where league_id=$1 and user_id=$2', ['sean-troy-luke', ACCOUNTS.luke.id]);
+    const refused = page.waitForResponse(response => betsRoute(new URL(response.url())));
+    await bets.getByRole('button', { name: 'Refresh league bets' }).click();
+    expect((await refused).status()).toBe(400);
+    await expect(bets).toContainText('League bets are unavailable'); await expect(bets).not.toContainText('DraftKings');
+    await expect(bets).not.toContainText('Community · Week');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('League bets discards another account’s delayed own-pick terms', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  let release, held = false, holdNext = true;
+  const hold = new Promise(resolve => { release = resolve; });
+  try {
+    await seedGameBets(world); await openLines(page);
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false }); await page.goto('/#lines');
+    await page.route(betsRoute, async route => {
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const payload = await response.text();
+      if (holdNext) { holdNext = false; held = true; await hold; }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: payload }).catch(() => {});
+    });
+    await openGameBets(page); await expect.poll(() => held).toBe(true);
+    await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines');
+    const bets = await openGameBets(page); await expect(bets).toContainText('DraftKings');
+    release(); await expect(bets).not.toContainText('BetMGM'); await expect(bets).not.toContainText('13.5');
+    await expect(bets.locator(`[data-pick="${ACCOUNTS.troy.id}:spread"]`)).toHaveAttribute('data-open', 'false');
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});

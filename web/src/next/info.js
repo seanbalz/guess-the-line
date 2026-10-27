@@ -26,6 +26,14 @@ export const INFO = Object.freeze({
     ],
     links: TRENDS_LINKS,
   },
+  gameBets: {
+    title: 'About league bets for this game',
+    body: [
+      'Virtual Units picks for this game and week, limited to the league selected in the header. Community and private leagues have separate rosters.',
+      'Friends’ sides and units are visible. Their lines, prices, books and results remain hidden until your guess for that game and market is locked in, you sit out that market, or the game kicks off. Your own picks stay visible in full.',
+      'These are saved picks, not current sportsbook offers. Opening this sheet never places a bet, locks in a guess or sits you out.',
+    ],
+  },
   yourPick: {
     title: 'About your saved pick',
     body: [
@@ -161,4 +169,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'research', 'researchData', 'marketLines', 'yourPick', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'research', 'researchData', 'marketLines', 'gameBets', 'yourPick', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);

@@ -10,4 +10,8 @@
 // Bets' counter (challenge updates) and Home tile arrive with the Bets and challenge stages.
 export const homeTiles = Object.freeze([]);
 export const counter = null;
-export const sheetActions = Object.freeze([]);
+export const sheetActions = Object.freeze([Object.freeze({
+  id: 'bets.game', order: 30, label: 'League bets',
+  show: (game, data) => Boolean(data?.accountId && game?.id && Number.isInteger(game.season) && Number.isInteger(game.week)),
+  run: (game, shell) => shell.openSheet('sh.gameBets', { game: game.id, season: game.season, week: game.week }),
+})]);
