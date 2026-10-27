@@ -256,6 +256,8 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   `0 U` baseline, and a crosshair with a glass tooltip that follows the pointer
   or a finger. A range input moves it from the keyboard. The tooltip never
   claims more than the data: binned points say "after about N games".
+  Line and season tooltips reserve the tallest supplied readout so wrapped labels
+  never move the plot while scrubbing; the full current text remains visible.
 - **Seasons:** one stem per season from the break-even line. Each stem is a
   button that shows its record and units, and a table with hit-rate bars follows.
   Stem lengths stay proportional; exact zero uses a hollow baseline marker.

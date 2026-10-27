@@ -326,3 +326,51 @@ test('research chart records accumulate with units while the evidence table keep
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+test('chart scrubbing keeps the plot steady across short and wrapped tooltip labels', async ({ page, baseURL }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const { world } = await setup(page, baseURL, { multipleBins: true });
+  try {
+    await openResearch(page);
+    const first = sheet(page).locator('[data-research-card]').first();
+    const chart = first.locator('.gx-tc-line'), slider = chart.getByRole('slider');
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+        await chart.evaluate(el => el.scrollIntoView({ block: 'center' }));
+        const positions = [];
+        for (const key of ['Home', 'ArrowRight', 'End', 'Home']) {
+          await slider.focus(); await page.keyboard.press(key);
+          positions.push(await chart.evaluate(el => {
+            const top = el.getBoundingClientRect().top;
+            return { plot: el.querySelector('.gx-tc-plot').getBoundingClientRect().top - top,
+              control: el.querySelector('input').getBoundingClientRect().top - top,
+              tip: el.querySelector('.gx-tc-tip').getBoundingClientRect().height };
+          }));
+        }
+        for (const pos of positions) for (const key of ['plot', 'control', 'tip']) expect(Math.abs(pos[key] - positions[0][key])).toBeLessThan(0.2);
+        const plot = chart.locator('.gx-tc-plot'), box = await plot.boundingBox();
+        await page.mouse.move(box.x + 1, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await expect(slider).toHaveValue('1');
+        await page.mouse.move(box.x + box.width - 1, box.y + box.height / 2);
+        await page.mouse.up();
+        await expect(slider).toHaveValue('2');
+        await expect(slider).toHaveAttribute('aria-valuetext', '+9.2 U, 20–9–1 total · through 2026-10-20');
+        await expect(first.locator('.gx-tc-tip-label')).toHaveText('20–9–1 total · through 2026-10-20');
+        expect(await chart.evaluate(el => el.querySelector('.gx-tc-plot').getBoundingClientRect().top - el.getBoundingClientRect().top)).toBeCloseTo(positions[0].plot, 1);
+        await page.screenshot({ path: testInfo.outputPath(`stable-tooltip-${theme}-${forcedColors}.png`) });
+        expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      }
+    }
+    await sheet(page).getByLabel('Evidence period', { exact: true }).selectOption('recent25');
+    await expect(slider).toHaveAttribute('aria-valuetext', '+4.6 U, 15–9–1 total · through 2026-10-20');
+    await expect(first.locator('.gx-tc-tip-label')).toHaveText('15–9–1 total · through 2026-10-20');
+    await expect(first.locator('.gx-tc-tip-sizing')).not.toContainText('20–9–1 total');
+    await expect(sheet(page).getByText('Spread research is locked.', { exact: false }).first()).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
