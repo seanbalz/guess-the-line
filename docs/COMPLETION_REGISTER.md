@@ -185,7 +185,7 @@ Hosted release/readback and device acceptance remain open.
 The updated main also includes PR #247’s [October 27 release record](RELEASE_2026_10_27_API_FRONTEND.md):
 API v38 and Pages `4a03e6cd` from `1db1c44`, covering Research source through PR
 #245. This is release-lane evidence, not a hosted audit repeated by this task;
-the card explicitly leaves signed-in use unverified. PRs #246, #248, #249, #250 and #252 plus the source-time follow-up require a later release.
+the card explicitly leaves signed-in use unverified. PRs #246, #248, #249, #250, #252 and #253 plus the comparison-chart follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -209,7 +209,7 @@ checks. Four 320px ordinary/forced-color screenshots were inspected. PR #252 mer
 `0d143f95e68215ce9b153dbbdcb3757908923868`, with no CI fixes or review findings.
 Hosted release/readback and device acceptance remain open.
 
-The next [Research source-time batch](RESEARCH_DESIGN_2026_10_26.md#pacific-source-times-in-research--october-27)
+The [Research source-time batch](RESEARCH_DESIGN_2026_10_26.md#pacific-source-times-in-research--october-27)
 uses readable Pacific times for quotes, source posts and provenance, retaining
 exact source timestamps and historical calendar dates. Missing or unzoned times
 stay unavailable. Source is in [PR #253](https://github.com/seanbalz/guess-the-lines-repo/pull/253)
@@ -217,7 +217,19 @@ on `codex/research-source-times`: nine Research and
 52 integrated browser cases passed, followed by kickoff/source-time checks on
 the combined branch, 33 component and 27 format/token tests. Typecheck, Brand QA
 and build/privacy checks passed; six 320px Light/Dark screenshots inspected.
-CI/merge, release and device acceptance remain open.
+PR #253 merged October 27 as
+`a887fd162560e3aa6e6eb29fe3cdd3686fcfb137` after all nine checks passed on
+`d58d94addcf63f20aef980fc772b371bcb843903`, with no CI fixes or review findings. Hosted release/readback and device acceptance remain open.
+
+The next [player comparison chart batch](RESEARCH_DESIGN_2026_10_26.md#labelled-player-comparison-charts--october-27)
+labels each observation and value directly, preserves shared scales and the
+evidence table, and distinguishes real zero from a missing sample. A forced-color
+avatar fallback accompanies it. Source is in [PR #258](https://github.com/seanbalz/guess-the-lines-repo/pull/258)
+on `codex/research-chart-values`;
+54 integrated browser cases and five final Trends cases passed, along with 52
+component and 24 model/token tests, typecheck, Brand QA and build/privacy checks.
+Six 320px screenshots were inspected; narrow evidence tables keep whole headings
+inside their scroll container. CI/merge, hosted release and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

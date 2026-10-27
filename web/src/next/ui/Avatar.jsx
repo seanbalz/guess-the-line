@@ -39,7 +39,7 @@ export function Avatar({ id, name, fill, size = 32, you = false, anyone = false,
     );
   }
   const tone = oneOf(fill, AVATAR_FILLS, avatarFill(id ?? name));
-  return <span className={cx('gx-av', `gx-av--${px}`, `gx-av-${tone}`, you && 'gx-av--you', className)} aria-hidden="true" {...rest}>{initials(name)}</span>;
+  return <span className={cx('gx-av', 'gx-av-initials', `gx-av--${px}`, `gx-av-${tone}`, you && 'gx-av--you', className)} aria-hidden="true" {...rest}>{initials(name)}</span>;
 }
 
 /**

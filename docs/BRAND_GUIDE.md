@@ -266,6 +266,7 @@ selection uses Highlight/HighlightText. Decorative glow and area fills hide;
 lines, a dashed zero baseline, stems, bar tracks and last-ten blocks retain their
 shapes. The selected season keeps its check and gains a visible border; the
 selected stem has an outline. Use real borders instead of relying on shadows.
+Initials avatars use Canvas/CanvasText with a real border in forced colors.
 This follows the user’s contrast palette without changing ordinary Light/Dark.
 
 ### Home and Bets (round 3)

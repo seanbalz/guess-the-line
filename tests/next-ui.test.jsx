@@ -499,8 +499,8 @@ describe('Strip and avatars (faces first)', () => {
     expect(ui.AVATAR_FILLS).toContain(ui.avatarFill('acct-1'));
     const seen = new Set(Array.from({ length: 200 }, (_, i) => ui.avatarFill(`account-${i}`)));
     expect(seen.size).toBe(8);
-    expect(classes(one(<Avatar id="acct-1" name="Avery Stone" size={40}/>, byClass('gx-av')))).toEqual(['gx-av', 'gx-av--40', `gx-av-${ui.avatarFill('acct-1')}`]);
-    expect(classes(one(<Avatar id="acct-1" name="Avery Stone" fill="mint" you/>, byClass('gx-av')))).toEqual(['gx-av', 'gx-av--32', 'gx-av-mint', 'gx-av--you']);
+    expect(classes(one(<Avatar id="acct-1" name="Avery Stone" size={40}/>, byClass('gx-av')))).toEqual(['gx-av', 'gx-av-initials', 'gx-av--40', `gx-av-${ui.avatarFill('acct-1')}`]);
+    expect(classes(one(<Avatar id="acct-1" name="Avery Stone" fill="mint" you/>, byClass('gx-av')))).toEqual(['gx-av', 'gx-av-initials', 'gx-av--32', 'gx-av-mint', 'gx-av--you']);
   });
 
   it('shows initials, hidden beside the name; a stack shows three faces then "+N"', () => {
