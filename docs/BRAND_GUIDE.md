@@ -261,6 +261,13 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
 - **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
   10 as blocks, and games or units. Every bar carries its number in words.
 
+In forced-colors mode, chart marks use the system Canvas/CanvasText colors and
+selection uses Highlight/HighlightText. Decorative glow and area fills hide;
+lines, a dashed zero baseline, stems, bar tracks and last-ten blocks retain their
+shapes. The selected season keeps its check and gains a visible border; the
+selected stem has an outline. Use real borders instead of relying on shadows.
+This follows the user’s contrast palette without changing ordinary Light/Dark.
+
 ### Home and Bets (round 3)
 
 - **Home:** the hero says "Lock in Week N" over glass countdown tiles and one progress
