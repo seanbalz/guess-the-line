@@ -29,7 +29,8 @@ refinements. Same-day periods have distinct control names; chart/table selection
 adds no detail requests. Brand QA and fixture build/privacy checks passed.
 Four final 320px Light/Dark and forced-color screenshots were inspected using
 synthetic fixture data.
-Source publication is pending on `codex/research-evidence-selection`.
+Source is in [PR #263](https://github.com/seanbalz/guess-the-lines-repo/pull/263)
+on `codex/research-evidence-selection`.
 
 CI/merge, hosted release/readback and physical-iPhone acceptance remain open.
 No deployment, migration apply or frozen v62 tracker changes are included.
