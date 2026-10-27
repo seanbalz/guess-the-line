@@ -138,7 +138,7 @@ validation and publication checkpoints are recorded separately. It merged Octobe
 as `f5a9551bd2c7d5e9a1d617dee54445c3da499f11` after all nine checks passed on
 `4dfb665a259ba98220d2ad6be48a708b468507b2`. No CI fixes or review findings.
 
-The next batch adds [per-game League bets](RESEARCH_GAME_BETS_2026_10_27.md) from
+[PR #245](https://github.com/seanbalz/guess-the-lines-repo/pull/245) adds [per-game League bets](RESEARCH_GAME_BETS_2026_10_27.md) from
 the Bets action slot, using the existing M-10 reader and shared Everyone rows.
 43 integrated browser cases plus four final focused cases, 24 component and
 42 model/shell/token tests passed,

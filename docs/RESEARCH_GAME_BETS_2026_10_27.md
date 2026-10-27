@@ -2,6 +2,9 @@
 
 Owner: Codex · Source batch for approved redesign stage 34.
 
+[PR #245](https://github.com/seanbalz/guess-the-lines-repo/pull/245), branch
+`codex/research-game-bets`: published for CI/review; merge and release pending.
+
 The game action bar now includes **League bets**, supplied by the Bets slot.
 It opens the selected matchup's Virtual Units picks for the Community or the
 private league selected in the header. The shared Bets rows show each person's
