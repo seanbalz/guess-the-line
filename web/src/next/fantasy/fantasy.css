@@ -60,3 +60,35 @@
 .gx .gx-fantasy-accuracy-tiles dt { color: var(--gx-text-2); }
 .gx .gx-fantasy-accuracy-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .gx .gx-fantasy-accuracy-table th, .gx .gx-fantasy-accuracy-table td { text-align: left; padding: var(--gx-space-1); border-bottom: 1px solid var(--gx-border); }
+/* Q12–Q14 player tools: profile sheet, comparison card, weekly chart and compact tables (phone-first, 320px up). */
+.gx .gx-fantasy-tool-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-fantasy-tool-actions > .gx-t-meta { flex-basis: 100%; }
+.gx .gx-fantasy-profile .gx-sheet-body { display: grid; gap: var(--gx-space-4); }
+.gx .gx-fantasy-chart { display: flex; align-items: stretch; gap: 2px; height: 132px; padding: var(--gx-space-2) 0; min-width: 0; }
+.gx .gx-fantasy-chart-col { flex: 1 1 0; min-width: 0; display: grid; grid-template-rows: 1fr 18px; justify-items: center; gap: 2px; }
+.gx .gx-fantasy-chart-week { font: 500 13px/18px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-3); white-space: nowrap; }
+.gx .gx-fantasy-chart-track { position: relative; width: 100%; max-width: 28px; border-bottom: 1px solid var(--gx-border-strong); }
+.gx .gx-fantasy-chart-bar { position: absolute; inset: auto 0 0 0; border-radius: var(--gx-radius-xs) var(--gx-radius-xs) 0 0; background: var(--gx-data); }
+.gx .gx-fantasy-chart-bar--neg { background: var(--gx-loss); }
+.gx .gx-fantasy-table-wrap { max-width: 100%; overflow-x: auto; }
+.gx .gx-fantasy-table { width: 100%; border-collapse: collapse; font: 500 14px/20px var(--gx-font-body); font-variant-numeric: tabular-nums; }
+.gx .gx-fantasy-table :where(th, td) { padding: var(--gx-space-2) var(--gx-space-1); border-bottom: 1px solid var(--gx-border); text-align: right; vertical-align: top; }
+.gx .gx-fantasy-table :where(th:first-child) { text-align: left; }
+.gx .gx-fantasy-table thead th { color: var(--gx-text-2); font-weight: 600; }
+.gx .gx-fantasy-table abbr { text-decoration: none; }
+.gx .gx-fantasy-th-sub, .gx .gx-fantasy-n { display: block; color: var(--gx-text-3); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-fantasy-pts { color: var(--gx-data); font-weight: 700; }
+.gx .gx-fantasy-table td.gx-fantasy-gap { color: var(--gx-text-3); text-align: left; }
+.gx .gx-fantasy-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: var(--gx-space-3); margin: 0; }
+.gx .gx-fantasy-facts dt { color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-fantasy-facts dd { margin: 0; font: 600 18px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-fantasy-facts dd.gx-fantasy-n { font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-fantasy-compare .gx-seg { max-width: 100%; overflow-x: auto; }
+.gx .gx-fantasy-compare-table thead th:not(:first-child) { overflow-wrap: anywhere; min-width: 72px; }
+.gx .gx-fantasy-chosen, .gx .gx-fantasy-pick-list { display: grid; gap: var(--gx-space-1); list-style: none; padding: 0; margin: 0; }
+.gx .gx-fantasy-chosen > li { display: flex; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-fantasy-chosen-name { flex: 1 1 auto; min-width: 0; min-height: var(--gx-size-touch); text-align: left; background: none; border: 0; padding: 0; color: var(--gx-data); font: 600 16px/22px var(--gx-font-body); cursor: pointer; overflow-wrap: anywhere; }
+.gx .gx-fantasy-pick-list .gx-btn { justify-content: flex-start; text-align: left; white-space: normal; }
+.gx .gx-fantasy-chosen-name:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+@media (max-width: 359px) { .gx .gx-fantasy-table { font-size: 13px; } }
+.gx .gx-fantasy-compare .gx-seg-btn { white-space: nowrap; padding: 0 8px; }

@@ -36,7 +36,7 @@ function Select({ theme, label, value, onChange, options, ...props }) {
   </div>;
 }
 
-function PlayerCard({ player, theme, scope, week, position, context }) {
+function PlayerCard({ player, theme, scope, week, position, context, tools }) {
   const c = name => nameClass(theme, name);
   const trends = player.trendHighlights || [];
   const matchup = player.weekly?.status === 'bye' ? 'Bye this week'
@@ -63,6 +63,7 @@ function PlayerCard({ player, theme, scope, week, position, context }) {
           <span className={c('open-hint')}>Player details &amp; trends</span>
         </summary>
         <div className={c('player-detail')}>
+          {tools}
           {context && <div className={c('context')}>
             <strong>This week</strong>
             {context.matchup && <p>{context.matchup}{context.seasonMatchup && <span className={c('meta')}> · {context.seasonMatchup}</span>}</p>}
@@ -90,7 +91,7 @@ function PlayerCard({ player, theme, scope, week, position, context }) {
 }
 
 /** Shared ranking/filter view for the current app and D-38 shell; the engine supplies all scoring and rank semantics. */
-export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, backLabel = 'Back to Home', state, entries, selection, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now(), gameContext }) {
+export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBack, backLabel = 'Back to Home', state, entries, selection, onSelectionChange, filters = DEFAULT_FILTERS, onFiltersChange, limit = PAGE_SIZE, onMore, now = Date.now(), gameContext, renderTools, renderPlayerTools }) {
   entries = entries ?? (state?.weeks?.length ? state.weeks : FANTASY_AVAILABLE);
   selection = selection ?? state?.selection ?? FANTASY_INITIAL;
   const c = name => nameClass(theme, name);
@@ -148,13 +149,14 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
         {stale && <p className={c('warning')} role="status">Stale snapshot: the source is more than 7 days old. These estimates may miss recent games and roster changes.</p>}
         {unknownAge && <p className={c('warning')}>Source freshness is unavailable.</p>}
       </div>
+      {renderTools?.({ snapshot, filters })}
       {filters.scope === 'weekly' && state?.origin === 'hosted' && !state.review && snapshot.week > 2 && <p className={c('meta')}>Not graded: no estimate was published for Week {snapshot.week - 1}.</p>}
       {filters.scope === 'weekly' && state?.review && <FantasyAccuracy theme={theme} review={state.review} filters={filters} scoringLabel={selectedScoring} headingLevel={headingLevel === 2 ? 3 : 2}/>}
       <section className={c('results')} aria-label="Player rankings">
         <div className={c('results-heading')}><SectionHeading className={theme === 'next' ? 'gx-t-section' : undefined}>Player rankings</SectionHeading><span className={c('meta')} role="status" aria-live="polite">{rankings.error ? 'Unavailable' : `${rows.length} players`}</span></div>
         <p className={c('meta')}>Sorted by estimated total points. The leading rank follows the selected position; team, player and trend filters keep ranks fixed.</p>
         {!rankings.error && <p className={c('meta')}>All positions: {rankings.summary.ranked} rankable · {rankings.summary.byes} on bye · {rankings.summary.unavailable} without an estimate in this period.</p>}
-        {rankings.error ? <Surface theme={theme} className={c('empty')}><p role="alert">{rankings.error}</p><Action theme={theme} onClick={state.retry}>Try again</Action></Surface> : rows.length > 0 ? <><ol className={c('players')} aria-label="Ranked players">{rows.slice(0, limit).map(player => <PlayerCard key={player.id} player={player} theme={theme} scope={filters.scope} week={snapshot.week} position={filters.position} context={contextFor(player)}/>)}</ol>
+        {rankings.error ? <Surface theme={theme} className={c('empty')}><p role="alert">{rankings.error}</p><Action theme={theme} onClick={state.retry}>Try again</Action></Surface> : rows.length > 0 ? <><ol className={c('players')} aria-label="Ranked players">{rows.slice(0, limit).map(player => <PlayerCard key={player.id} player={player} theme={theme} scope={filters.scope} week={snapshot.week} position={filters.position} context={contextFor(player)} tools={renderPlayerTools?.(player)}/>)}</ol>
           {rows.length > limit && <Action theme={theme} onClick={onMore}>Show more players ({rows.length - limit} left)</Action>}</>
           : <Surface theme={theme} className={c('empty')}><p>{filters.position === 'DST' ? 'Defense and special teams rankings are unavailable: this source does not include a verified scoring model for D/ST.' : snapshot.players.length === 0 ? 'This snapshot has no eligible player statistics yet.' : 'No players match these filters.'}</p><Action theme={theme} onClick={reset}>Reset filters</Action></Surface>}
       </section>
