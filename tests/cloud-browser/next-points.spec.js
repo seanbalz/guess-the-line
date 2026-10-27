@@ -31,7 +31,6 @@ async function seedWeek(world) {
 }
 async function openNewApp(page) {
   await signIn(page, 'luke');
-  await page.getByRole('button', { name: 'Try the new app', exact: true }).click();
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
   await expect(page.locator('[data-landing="play"]')).toBeVisible();
 }

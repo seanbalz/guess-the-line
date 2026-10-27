@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { expectPick, expectPickEnabled, pickTotal } from '../chip-entry.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn, switchAccount } from './community-world.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // D-23 on the real handler, migrations and PGlite: (1) "Sit out this week" from the group
 // ballot screen (PredictionEntry) is final for that mode only and reveals the other
@@ -189,3 +190,6 @@ test('D-23: removing a member hides nothing from the others and blocks only the 
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

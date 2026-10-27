@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
-import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { communityWorld, pgliteAvailable, signIn, useOldApp } from './community-world.mjs';
 import { buildRankings, DEFAULT_FILTERS } from '../../shared/fantasy-rankings.mjs';
 import { snapshotFileName, reviewFileName, updateFantasyIndex, FANTASY_REPOSITORY } from '../../shared/fantasy-index.mjs';
 import { validateFantasyReview } from '../../shared/fantasy-review.mjs';
@@ -17,13 +17,16 @@ const rowNames = async screen => list(screen).locator('summary').evaluateAll(row
 
 async function open(page, baseURL, app, worldOptions = {}) {
   const world = await communityWorld(page, baseURL, { migrations: ALL, ...worldOptions });
+  // D-60: the new app is the default; the old app opens at ?app=classic, as Menu › Older records and tools does.
+  if (app === 'classic') await useOldApp(page);
   await signIn(page, 'luke');
-  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
   if (app === 'next') {
-    await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
+    await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
     await page.goto('/#fantasy');
-    await page.reload();
-  } else await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Fantasy Football', exact: true }).click();
+  } else {
+    await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
+    await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: 'Fantasy Football', exact: true }).click();
+  }
   const screen = root(page, app);
   await expect(list(screen)).toBeVisible();
   return { world, screen };

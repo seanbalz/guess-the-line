@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL, without } from '../migrations.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // Redesign build plan stage 17 (D-39 per-game lock-in, D-31 kickoff, D-23, D-36, DP-1, DP-2): the old app on the per-game gate,
 // with the real handler and the pre-M-07 migrations (including M-01) on local PGlite, and live rules read from the database
@@ -147,3 +148,6 @@ test('stage 17: the old app opens picks game by game at kickoff, shows "—" for
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

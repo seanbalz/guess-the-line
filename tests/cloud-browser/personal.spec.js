@@ -7,6 +7,7 @@ import { FEATURE_OFF } from '../../cloud/optional-rpc.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
 import { ALL, HOSTED, PRELUDE, migrationSql, without } from '../migrations.mjs';
+import { useOldApp } from './old-app.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
@@ -285,3 +286,6 @@ test.describe('stage 18 on the schema with M-02 applied mid-session', () => {
     expect((await personal.db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and mode='guess_spread'",[id(1)])).rows[0].ballot).toEqual(sent);
   });
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

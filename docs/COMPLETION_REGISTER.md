@@ -134,6 +134,13 @@ history, export, journal, older-record and recovery gaps. Keep one implementatio
 lane at a time; new Fantasy integrations, simulator work and native iOS remain
 later scope. The broader redesign and measured performance work are unfinished.
 
+History and export (Q17-C, stages 72–75) is in parallel review. Stages 72–73 are on
+branch `claude/redesign-history`: M-27 (`20261026230000_gtl_me_history.sql`), the
+`/me/changes` and `/me/records` routes, and Me › History with Guess and Bets weeks.
+M-27 is written and not applied; its routes await Sean's "apply M-27" and a
+gtl-api deploy. Local PGlite, handler and browser checks are recorded in its PR;
+they are not hosted or phone evidence.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance

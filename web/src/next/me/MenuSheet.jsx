@@ -18,6 +18,7 @@ export const MENU_COPY = Object.freeze({
   title: 'Menu',
   appearance: 'Appearance',
   profile: 'Profile',
+  history: 'History',
   signedInAs: email => `Signed in as ${email}`,
   signOut: 'Sign out',
   signingOut: 'Signing out…',
@@ -100,10 +101,12 @@ export function MenuSheet({ args }) {
         <List>
           {shell.communityAdmin && <LinkRow icon="people" onClick={() => shell.setSheetArgs({ sub: 'members' })}>Community members</LinkRow>}
           <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
+          <LinkRow key="history" icon="clock" onClick={() => shell.openPage('page.history', {})}>{MENU_COPY.history}</LinkRow>
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
           <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
-          <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
+          {/* D-60: the one everyday way into the old app, until older records and tools have new homes. */}
+          <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.olderRecords}</LinkRow>
         </List>
       </Card>
       <Button variant="ghost-2" icon="logOut" className="gx-menu-signout" onClick={signOut} aria-disabled={busy || undefined}>

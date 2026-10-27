@@ -278,3 +278,41 @@ definition for the API and the screens.
   are ranked over every week of the season, unqualified weeks included.
 - **No terms:** both routes return totals only, never a line, price or book.
   Real slips never count.
+
+## Me › History (M-27, redesign stages 72–73)
+
+Me › History (`page.history`, opened from the Menu or `#history`) reads what the
+existing readers and the M-27 readers (`20261026230000_gtl_me_history.sql`,
+written and not applied; `POST /me/changes` and `POST /me/records`) allow. It
+writes nothing and changes no rule, score or visibility gate.
+- **Guess weeks.** Any member's weeks, newest first, from `/community/history`
+  under the same per-game gate as every other reader (D-31, D-39): another
+  member's guess shows once you lock in that game and market, sit it out, or
+  the game kicks off. Removed members stay listed and labelled (D-23). The week
+  detail shows the status, the Late marker (D-30), "Original time not recorded",
+  practice and eligibility rulings (D-08), commissioner-ruled lines (D-25), the
+  points from the one scoring function, and each game's line at the guess with
+  its provenance behind a tap.
+- **Your own records only.** Your drafts closed at kickoff and your changes in
+  plain words (`/me/changes`: every stored revision of your own ballots, D-16)
+  are shown to you alone; no request can name another account. A change to a
+  draft that can still change is counted, not listed, until that game is locked
+  in, kicks off or its market is sat out; no change carries a line before its
+  game is locked in (D-36). Your forfeit reason reads "Skipped" or "Saw picks
+  early"; another member's forfeit reads "Sat out", as Home's who's in shows it.
+- **Bets weeks.** Everyone's Virtual Units picks for a chosen week from
+  `/bets/read` (M-10's gate: a friend's line, price and result only where that
+  market is open to you). The season reader (`/bets/season`, stage 42) is not
+  built yet; until it is, History reads one published week at a time.
+- **Older records** (`/me/records`, the History screens follow in stage 74): the
+  retired Betting Challenge with every player's selections after their game's
+  kickoff (D-21; before kickoff a count), graded by the old engine from each
+  week's newest final; your saved games and notes, forecasts, journal (Q8,
+  read-only; archived records included) and forfeit records, to you only; a
+  journal record stays counted, not listed, until its game's line is open to
+  you; your groups' archived scoring views, whose original picks, points and
+  score movement go only to the commissioner seat, as the old History page
+  showed them; and the Week 5 benchmark freeze record for its group's members.
+- **Until M-27 is applied** both routes answer "History is not available yet";
+  Guess weeks, the week detail and Bets weeks still work, without your change
+  list and forfeit reasons. Every existing route answers as before.

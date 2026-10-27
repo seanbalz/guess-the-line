@@ -747,10 +747,21 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 **72. History server (M-27)**
 - Scope: `gtl_read_ballot_changes`: your own changes with before and after values in plain words, for markets already sent or past kickoff, never another player's (D-16). `gtl_read_me_records`: Betting Challenge selections graded by the old engine, any player's after kickoff (D-21); saved games and notes; personal forecasts; the private journal; forfeit records; closed-at-kickoff drafts. Private records go only to their owner. `cloud/me.mjs`; `POST /me/changes`, `/me/records`.
 - Tests: SQL `me-history-sql`, `me-records-sql`; handler `me-cloud`; the leak scan adds both routes.
+- Built October 26 (branch `claude/redesign-history`; not applied, not deployed): `20261026230000_gtl_me_history.sql` adds
+  `gtl_read_ballot_changes` and `gtl_read_me_records` with two helpers, all service-only; nothing is replaced, so there is no
+  rollback file. Choices the card did not spell out: closed-at-kickoff drafts are not repeated in `/me/records`, because
+  `/community/history` (M-07) already gives the owner every draft with its kickoff and lock-in state; the forfeit reason
+  (`skip`/`reveal`) stays the owner's own (another member reads "Sat out", as Home's who's in does); and `/me/records` also
+  carries the older group scoring views (`gtl_prediction_archives`) and the Week 5 freeze record that stage 74 shows, since
+  stage 74 has no migration of its own.
 
 **73. History: Guess and Bets weeks**
 - Scope: `web/src/next/me/history/*`: Guess weeks for any member (person chips; removed members listed) with the week detail; the Late pill; "Skipped" or "Saw picks early"; "Closed at kickoff · draft SEA −2.5 not sent" (owner only); "original time not recorded"; Bets weeks from `/bets/season` with `who`.
 - Tests: Playwright 390 `next-history.spec.js` (Week 5: Sean 95.8, Steven 91.4, Ben 37.6; Steven's ruled-eligible spread and Ben's ruled lines labelled).
+- Built October 26 with stage 72: `page.history` (Menu › History, `#history`, `#history/bets`), code loaded on open. Until
+  stage 42's `/bets/season` exists, Bets weeks read `/bets/read` one published week at a time. The spec's Week 5 replay
+  (`tests/cloud-browser/history-world.mjs`) uses the committed seed, eDraft pages and Ben's file; Steven's picks are
+  fictional values chosen to reproduce the hosted 91.4.
 
 **74. History: older records**
 - Scope: Betting Challenge · retired (every player's record); saved games and notes; forecasts; the journal (Q8); the real slips record by week; older group scoring views (`gtl_prediction_archives`) as a read-only page with dates on every axis (DP-17); the Week 5 benchmark freeze record, read-only (DP-4).
@@ -897,6 +908,13 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 - [ ] **Sean says go.**
 
 ### The flip (stage 80)
+
+> **D-60 (October 26, 2026).** Sean asked to remove the old app entirely and chose two
+> steps. Step 1 is the flip: every member gets the new app, saved `classic` choices
+> no longer count, and the old app opens only at `?app=classic` from Menu › Older
+> records and tools and the failure screens. Step 2 deletes it once every item in
+> [the D-60 checklist](../planning/new-app-retirement.md#d-60-two-step-retirement-october-26-2026)
+> has a native home.
 
 > **D-52 amendment (October 15, carried to main October 21).** Sean asked to sunset
 > the previous app so no one can access it, without losing anything. Stage 80 is
