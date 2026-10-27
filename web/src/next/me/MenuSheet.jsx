@@ -13,12 +13,14 @@ import { ProfileSettings } from './ProfileSettings.jsx';
 import { GUIDANCE_ORDER, INFO } from '../info.js';
 
 const Members = lazy(() => import('./CommunityMembers.jsx').then(module => ({ default: module.CommunityMembers })));
+const ExportData = lazy(() => import('./ExportSheet.jsx').then(module => ({ default: module.ExportSheet })));
 
 export const MENU_COPY = Object.freeze({
   title: 'Menu',
   appearance: 'Appearance',
   profile: 'Profile',
   history: 'History',
+  export: 'Export my data',
   signedInAs: email => `Signed in as ${email}`,
   signOut: 'Sign out',
   signingOut: 'Signing out…',
@@ -69,6 +71,7 @@ export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
   if (args.sub === 'members') return <Suspense fallback={<Sheet title="Community members" onClose={shell.closeSheet}><p role="status">Loading members…</p></Sheet>}><Members key={shell.you.id}/></Suspense>;
+  if (args.sub === 'export') return <Suspense fallback={<Sheet title={MENU_COPY.export} onClose={shell.closeSheet}><p role="status">Loading…</p></Sheet>}><ExportData key={shell.you.id}/></Suspense>;
   if (args.sub === 'preferences') return <AccountPreferences key={shell.you.id}/>;
   if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
   if (args.sub === 'guidance') {
@@ -102,6 +105,7 @@ export function MenuSheet({ args }) {
           {shell.communityAdmin && <LinkRow icon="people" onClick={() => shell.setSheetArgs({ sub: 'members' })}>Community members</LinkRow>}
           <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
           <LinkRow key="history" icon="clock" onClick={() => shell.openPage('page.history', {})}>{MENU_COPY.history}</LinkRow>
+          <LinkRow key="export" icon="receipt" onClick={() => shell.setSheetArgs({ sub: 'export' })}>{MENU_COPY.export}</LinkRow>
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
           <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>

@@ -766,10 +766,19 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 **74. History: older records**
 - Scope: Betting Challenge · retired (every player's record); saved games and notes; forecasts; the journal (Q8); the real slips record by week; older group scoring views (`gtl_prediction_archives`) as a read-only page with dates on every axis (DP-17); the Week 5 benchmark freeze record, read-only (DP-4).
 - Tests: Playwright 390 `next-history-older.spec.js` (the Betting Challenge record matches the old screen).
+- Built October 26 (branch `claude/redesign-history-older`, on stage 73's): History › Older (`#history/older`), read-only,
+  from `/me/records` (M-27) and `/social/read`. The old screen's record is checked against `server/engine.mjs`'s Betting
+  Challenge standings for the same selections and finals. The archived invalid-matchup predictions are not stored in
+  `gtl_prediction_archives` (only their count, `archivedCount`, is), so the page shows the count as the old History page
+  did; the predictions themselves stay in the committed `data/picks/2026-week-05.json`.
 
 **75. Export my data (M-28)**
 - Scope: `gtl_export_me` and `POST /me/export`: your own rows only, no push endpoints, Late marker included (D-30); a Settings row. It replaces the old group-week download.
 - Tests: SQL own rows only; handler; the leak scan.
+- Built October 26 (branch `claude/redesign-export`, on stage 74's; not applied, not deployed): `20261026231000_gtl_me_export.sql`
+  adds `gtl_export_me`, service-only; nothing is replaced, so there is no rollback file. The row is in the Menu, after History,
+  not inside Settings (`AccountPreferences.jsx` is outside this lane). NBA tickets are included through their own definer
+  reader. Playwright `next-export.spec.js` downloads the file.
 
 **76. Sign-in skin**
 - Scope: AuthGate's logic moves into `useAuthSession()` and `useSignInForm()` with no change in behavior; `NextSignIn` (email, Google, recovery, resend, confirmation) on devices with `gtl.app = next`; the restyled name step (the logic stays in stage 11); legal links.

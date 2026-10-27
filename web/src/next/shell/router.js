@@ -41,7 +41,7 @@ export function placeFromFragment(fragment) {
   if (name === 'feed') return routePlace('play', { section: 'league', view: 'feed' });
   if (name === 'groups') return { tab: 'home', layer: { id: 'sh.switcher' } };
   // Me › History (stages 73 and 74) opens over Home, like #groups opens the switcher; its views are the page's own args.
-  const history = name.match(/^history(?:\/(bets))?$/);
+  const history = name.match(/^history(?:\/(bets|older))?$/);
   if (history) return { tab: 'home', layer: { id: 'page.history', ...(history[1] ? { view: history[1] } : {}) } };
   if (name.startsWith('picks') && !name.includes('=')) {
     const market = name.match(/^picks-(spread|total)$/)?.[1];
