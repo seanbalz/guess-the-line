@@ -147,3 +147,15 @@ describe('retained line selection', () => {
     }
   });
 });
+
+
+it('draws zero seasons as baseline markers and missing units as no mark', () => {
+  const rows = [{ season: 2022, w: 1, l: 1, p: 0, units: 0 }, { season: 2023, w: 2, l: 1, p: 0, units: 0.1 }, { season: 2024, w: 1, l: 2, p: 0, units: -0.1 }, { season: 2025, w: 0, l: 0, p: 0, units: null }];
+  const html = render(<SeasonStems seasons={rows} selectedIndex={0} onSelect={() => {}}/>), nodes = all(html);
+  expect(nodes.filter(n => (n.attrs.class || '').split(' ').includes('gx-tc-stem--zero'))).toHaveLength(1);
+  expect(nodes.filter(n => (n.attrs.class || '').split(' ').includes('gx-tc-stem--up'))).toHaveLength(1);
+  expect(nodes.filter(n => (n.attrs.class || '').split(' ').includes('gx-tc-stem--down'))).toHaveLength(1);
+  expect(html).toContain('0 U · break-even');
+  expect(html).toContain('2025: 0–0, units unavailable');
+  expect(markupProblems(html)).toEqual([]);
+});

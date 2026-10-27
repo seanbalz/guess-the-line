@@ -57,8 +57,8 @@ export function nearestIndex(fraction, count) {
 
 /**
  * One stem per season from the zero line: `{ zeroY, stems: [{ top, height, up }] }` in a box `height` tall, as
- * fractions of that height (0 to 1) so the HTML stems scale with their container. A season at exactly zero gets a
- * 2% stub so it still shows.
+ * fractions of that height (0 to 1) so the HTML stems scale with their container. Zero has no length;
+ * the view supplies a distinct baseline marker rather than a fabricated positive stem.
  */
 export function stemLayout(units, { pad = 0.06 } = {}) {
   const v = units.map(n => (finite(n) ? n : 0));
@@ -68,7 +68,7 @@ export function stemLayout(units, { pad = 0.06 } = {}) {
   return {
     zeroY,
     stems: v.map(value => {
-      const end = y(value), height = Math.max(0.02, Math.abs(end - zeroY));
+      const end = y(value), height = Math.abs(end - zeroY);
       return { top: value >= 0 ? zeroY - height : zeroY, height, up: value >= 0 };
     }),
   };
