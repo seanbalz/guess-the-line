@@ -128,6 +128,32 @@ Every function is service-only.
   - `tests/feed-cloud.test.mjs` for the handler.
   - `/league/feed` joins the leak scan's `READERS` (with `READER_MIGRATIONS` until M-22 is applied).
 
+### Kickoff posts (M-23, stage 63)
+
+`20261026133000_gtl_kickoff_posts.sql`. High risk (it writes rows), alone, fix forward (`FIX_FORWARD`). Apply after M-13,
+M-21 (the old reader keeps its pages full of kinds it draws) and M-22 (the reader draws kickoff posts and accepts comments
+from their kickoff).
+
+- **How posts are written.** An AFTER INSERT trigger on `gtl_feed_posts` for a `week_published` post (`gtl_feed_on_slate`)
+  calls `gtl_write_kickoff_posts`. It writes one `kickoff` post per distinct kickoff instant (`gtl_kickoff_slots`), dated
+  at that kickoff and by the week's publisher. The payload is `{ kickoff, games }` only. The dedupe key is
+  `kickoff:<season>:<week>:<epoch>`, so a rerun writes nothing.
+- **Publishing never fails because of it.** The trigger catches any error and writes one `gtl_access_audit` row
+  (`kickoff_posts_failed:<season>:<week>:<sqlstate>`), and the week still opens. The D-24 `gtl-week-open` job publishes
+  through the same `gtl_publish_week`, so it writes them too.
+- **One-time backfill.** The migration writes the newest published week's posts once, as its publisher (or the founding
+  league's commissioner when that week has no `week_published` post).
+- **Dry run (read only), before the apply:** `supabase/admin/kickoff_posts_dry_run.sql` lists the exact posts and whether
+  each exists. Check the post counts before and after the apply, and the next Monday `gtl_week_open_runs` row.
+- **Off switch.** None in code; the posts are rows and stay (D-23). To stop new ones, Sean may approve
+  `alter table public.gtl_feed_posts disable trigger gtl_feed_on_slate`.
+- **Tests:** `tests/kickoff-posts-sql.test.mjs` covers:
+  - one post per slot across the Nov 1 change, and a rerun that writes nothing;
+  - nothing listed or commentable before kickoff;
+  - a failing writer that leaves the publish and one audit row;
+  - the backfill matching the dry run, run once;
+  - the real `cloud/week-open.mjs` flow on PGlite.
+
 ### Feed screens: posts, digest, comments and reactions (stages 64 and 65)
 
 The new app's League feed (`web/src/next/feed/`), inside Play › League. It reads `/league/feed`; until that answers (M-22
