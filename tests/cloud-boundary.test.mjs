@@ -358,7 +358,8 @@ test('M-03 skip and "See picks now" probes are hosted and fail closed on missing
 
 // The league feed (redesign stages 61 to 63, scripts/boundary/league.mjs): written, not applied or deployed.
 const FEED_RPCS = ['gtl_feed_reactions', 'gtl_feed_post_visible', 'gtl_feed_reaction_summary', 'gtl_react_feed',
-  'gtl_feed_league_access', 'gtl_feed_in_league', 'gtl_feed_embed', 'gtl_read_league_feed', 'gtl_read_post_comments', 'gtl_read_post_reactors', 'gtl_share_result'];
+  'gtl_feed_league_access', 'gtl_feed_in_league', 'gtl_feed_embed', 'gtl_read_league_feed', 'gtl_read_post_comments', 'gtl_read_post_reactors', 'gtl_share_result',
+  'gtl_kickoff_slots', 'gtl_write_kickoff_posts'];
 const FEED_ROUTES = ['league/react', 'league/feed', 'league/comments', 'league/reactors', 'league/share-result'];
 const FEED_PIECES = [...FEED_RPCS.map(rpc => `rpc/${rpc}`), ...FEED_ROUTES.map(route => `gtl-api/${route}`)];
 
