@@ -147,7 +147,7 @@ It merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6` after all nin
 passed on `58f4d14240308e999cbede1aec1de13dd65d4362`, with no CI fixes or review findings.
 Hosted release/readback and device acceptance remain separate.
 
-The next source batch supplies [direct Research reveal confirmation](RESEARCH_REVEAL_2026_10_27.md)
+[PR #246](https://github.com/seanbalz/guess-the-lines-repo/pull/246) supplies [direct Research reveal confirmation](RESEARCH_REVEAL_2026_10_27.md)
 from the board and closed game guesses. It uses the existing whole-week M-03
 forfeit contract, with fresh eligibility, an explicit warning, preserved locked
 scores/drafts and recovery by checking an uncertain write. All 49 integrated

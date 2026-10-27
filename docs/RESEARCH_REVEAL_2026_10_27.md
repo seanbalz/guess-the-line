@@ -2,6 +2,9 @@
 
 Owner: Codex · Approved redesign stages 31 and 33, following D-36/D-39/D-41.
 
+[PR #246](https://github.com/seanbalz/guess-the-lines-repo/pull/246), branch
+`codex/research-reveal`: published for CI/review; merge and release pending.
+
 **See picks now** now opens one shared confirmation from the Lines gate banner
 and the closed Community guesses section in a game or Your pick sheet. The
 existing Play entry stays available for players who want to keep guessing.
