@@ -167,6 +167,15 @@ browser tests, 25 component and 72 model/handler tests passed, as did typecheck,
 Brand QA and build/privacy validation. Light/Dark 320px screenshots were inspected.
 CI/merge, hosted release and phone acceptance remain separate.
 
+The next [chart interaction correction](RESEARCH_DESIGN_2026_10_26.md#retained-line-selection--october-27)
+retains the cumulative-line point while comparing the season view. Line and
+season selections remain independent; changed evidence and reopened details
+start at the latest line point. Source is on `codex/chart-selection`: all 50
+integrated browser tests plus two final focused checks, 27 component and 20
+chart/token tests passed, along with typecheck, Brand QA and build/privacy checks.
+Light/Dark 320px screenshots were inspected. CI/merge, release and device
+acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.

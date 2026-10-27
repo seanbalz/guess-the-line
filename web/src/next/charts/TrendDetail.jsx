@@ -1,12 +1,15 @@
 // D-55 opened trend (round 3 board R1/R2): the glow card with the title, a one-word state pill and its ⓘ, a
 // "Since … / By season" switch when seasons exist, the headline number, the chart (line or stems), up to three tiles
 // and, by season, the season table. It draws what it is given; shared/trends-view.mjs and the research reply decide.
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { SeasonStems } from './SeasonStems.jsx';
 import { SeasonTable } from './SeasonTable.jsx';
 import { StatTiles } from './StatTiles.jsx';
 import { TrendLine } from './TrendLine.jsx';
 import './charts.css';
+
+/** Equal-valued points with different dates/records are different evidence. */
+export const lineSelectionKey = (title, line) => JSON.stringify([title, line.start, line.end, line.label, line.values.map((value, i) => [value, line.tip(i)])]);
 
 /**
  * `line`: `{ values, tip, start, end, label, headline: { value, sub }, tiles }`.
@@ -16,6 +19,13 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
   const [view, setView] = useState('line');
   const headingId = useId(), seasonChartId = useId();
   const [selectedSeason, setSelectedSeason] = useState(null);
+  // Keep the line point outside the swapped chart, just like the selected year.
+  // Include the point labels: equal values can still represent a different sample.
+  const lineKey = useMemo(() => lineSelectionKey(title, line), [title, line]);
+  const [lineSelection, setLineSelection] = useState({ key: lineKey, index: line.values.length - 1 });
+  if (lineSelection.key !== lineKey) setLineSelection({ key: lineKey, index: line.values.length - 1 });
+  const lineIndex = lineSelection.key === lineKey ? lineSelection.index : line.values.length - 1;
+  const selectLine = index => setLineSelection(current => current.key === lineKey && current.index === index ? current : { key: lineKey, index });
   const rows = seasons?.rows ?? [];
   const matchingSeason = rows.findIndex(row => row.season === selectedSeason);
   const seasonIndex = matchingSeason < 0 ? rows.length - 1 : matchingSeason;
@@ -38,7 +48,8 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
         <span className="gx-tc-big">{shown.headline.value}</span>
         <span className="gx-tc-headline-sub">{shown.headline.sub}</span>
       </p>
-      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label}/>}
+      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label}
+        selectedIndex={lineIndex} onSelect={selectLine}/>}
       <StatTiles tiles={shown.tiles}/>
       {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
       {children}
