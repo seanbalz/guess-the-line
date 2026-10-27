@@ -7,9 +7,10 @@ import { SEASON_FINAL_WEEK } from '../../../../shared/game-features/catalog.mjs'
 import { useAppData } from '../data/AppData.jsx';
 import { INFO } from '../info.js';
 import { useShell } from '../shell/context.js';
-import { Avatar, Badge, Button, Card, DriveMeter, InfoButton, List, Row } from '../ui/index.js';
+import { Badge, Button, Card, DriveMeter, InfoButton } from '../ui/index.js';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
 import { earnedText } from './model.js';
+import { AwardRows } from './AwardRows.jsx';
 import { useFeatures } from './useFeatures.js';
 import './features.css';
 
@@ -22,17 +23,8 @@ export const FEATURES_COPY = Object.freeze({
   season: `Decided after Week ${SEASON_FINAL_WEEK}.`,
 });
 
-/** One award as a row: its icon, its name, then the winners' faces with their names and the value. */
-export function AwardRows({ rows, label }) {
-  return (
-    <List label={label}>
-      {rows.map(row => (
-        <Row key={row.id} you={row.you} size={64} start={<Badge iconPath={row.icon} size={40} rarity={row.you ? 'rare' : 'common'}/>} title={row.name}
-          sub={<span className="gx-fx-who">{row.people.slice(0, 3).map(p => <Avatar key={p.id} id={p.id} name={p.name} size={24} you={p.you}/>)}<span>{row.who}{' · '}{row.value}</span></span>}/>
-      ))}
-    </List>
-  );
-}
+// One award as a row lives in AwardRows.jsx (the League's recap post draws it too); it is re-exported here.
+export { AwardRows };
 
 function RecapCard({ recap }) {
   const id = useId();

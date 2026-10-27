@@ -5,6 +5,7 @@ import { ALL } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, storeBookLines } from './community-world.mjs';
 import { assertNoLeak, lineSecrets, pickSecrets } from '../helpers/leak-scan.mjs';
 import { HOME_COPY, homeHero } from '../../shared/home-view.mjs';
+import { heroHeadline } from '../../web/src/next/home/homeModel.js';
 
 // Redesign build plan stage 12: the read-only Home at 390 x 844 (section 4.1), on the real app (main.jsx, AuthGate, the
 // lazy NextApp) and the real handler with every migration (ALL) on local PGlite. The fixture week is open: Troy has sent
@@ -145,7 +146,12 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     expect(expectedHero.state).toBe('due');
     expect(expectedHero.statusLines).toEqual([`Spread ${LUKE_SPREAD_DRAFT.length} of ${world.state.games.length} picked`, `Total 0 of ${world.state.games.length} picked`]);
     await expect(hero(page)).toHaveAttribute('data-state', 'due');
-    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(`Lock in Week ${world.state.league.week}`);
+    // The design lane's hierarchy pass: the headline names the games left and the deadline, the week sits above it.
+    const expectedHeadline = heroHeadline({ hero: expectedHero, community: reply });
+    expect(expectedHeadline.title).toBe(`Lock in ${world.state.games.length} games`);
+    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(expectedHeadline.title);
+    await expect(hero(page).locator('[data-home="when"]')).toHaveText(expectedHeadline.sub);
+    expect(expectedHeadline.sub).toMatch(/^before (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) PT$/);
     await expect(hero(page).locator('[data-home="status"] li')).toHaveText(expectedHero.statusLines);
 
     // The countdown: a timer named with its words and the time left, digits in tiles, not read every tick.
@@ -164,12 +170,12 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     await expect(page.getByRole('button', { name: HOME_COPY.seeLines })).toHaveCount(0);
 
     // D-55 round 3 (approved October 21): three stat tiles, who's in for the league with Standings and Invite, and
-    // a progress bar under each market's status words.
+    // the week meter (one segment per game) under each market's status words.
     for (const market of ['spread', 'total', 'tickets']) await expect(rankTile(page, market)).toBeVisible();
     await expect(whosIn(page)).toHaveCount(1);
     await expect(whosIn(page).getByRole('button', { name: 'Standings', exact: true })).toBeVisible();
     await expect(whosIn(page).getByRole('button', { name: 'Invite', exact: true })).toBeVisible();
-    await expect(hero(page).locator('[data-home="status"] .gx-h-bar')).toHaveCount(expectedHero.statusLines.length);
+    await expect(hero(page).locator('[data-home="status"] .gx-meter3')).toHaveCount(expectedHero.statusLines.length);
 
     await phoneChecks(page);
     await noLeak(page, world, lines, 'Home');
