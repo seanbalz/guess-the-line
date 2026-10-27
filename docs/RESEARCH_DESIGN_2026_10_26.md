@@ -342,3 +342,11 @@ screenshots were inspected, including the corrected Light/Dark percentage tables
 Source is in [PR #258](https://github.com/seanbalz/guess-the-lines-repo/pull/258)
 on `codex/research-chart-values`; CI/merge remain open. Hosted release and
 physical-device acceptance remain separate; no deployment or migration apply.
+
+
+PR #258 CI follow-up: the brand-mark guard treated the negative selector
+`:not(.gx-av-sys)` as styling the logo. Initials avatars now have an explicit
+`gx-av-initials` class, and the forced-color rule targets only that class. This
+keeps the logo separate without relaxing the brand check. All five brand-mark
+tests, 66 UI/Trends component tests and the focused comparison-chart browser case
+passed, including ordinary and forced colors. CI is being rerun on the repair.
