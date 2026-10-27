@@ -229,7 +229,9 @@ const releaseYaml = fs.readFileSync(new URL('../.github/workflows/release.yml', 
 const API_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-api --project-ref "$SUPABASE_PROJECT_REF" --use-api';
 const WORKER_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-push-reminders --project-ref "$SUPABASE_PROJECT_REF" --use-api';
 const POINTS_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-points-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api';
-const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY };
+// October 27, 2026 (Sean: "Add a league-features target to the release workflow"): the badges, awards and streaks worker.
+const FEATURES_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-league-features --project-ref "$SUPABASE_PROJECT_REF" --use-api';
+const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY };
 const PAGES_DEPLOY = './node_modules/.bin/wrangler pages deploy .local/cloud-dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$RELEASE_SHA" --commit-dirty=false';
 
 /** The production job's steps as release.yml declares them: name, condition, directory, step env and one-line command. */
@@ -255,7 +257,7 @@ const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step
 test('release.yml offers exactly the preflight targets, both worker targets included', () => {
   const options = releaseYaml.match(/^ {6}target:\n(?: {8}.+\n)*? {8}options: \[([^\]]+)\]/m)?.[1].split(',').map(item => item.trim());
   assert.deepEqual(options, TARGETS);
-  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs']);
+  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features']);
 });
 
 test('each target deploys only its own component; the worker targets never deploy gtl-api, Pages or each other', () => {
@@ -264,12 +266,14 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.deepEqual(deployCommands('deploy', 'api-and-frontend'), [API_DEPLOY, PAGES_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'push-reminders'), [WORKER_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'points-jobs'), [POINTS_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'league-features'), [FEATURES_DEPLOY]);
   for (const target of TARGETS) for (const mode of ['check-only', 'readiness']) assert.deepEqual(deployCommands(mode, target), [], `${mode} ${target} deploys nothing`);
   // Every deploy condition names the targets it serves; none selects by exclusion, so a new target reaches no deploy by default.
   const deploySteps = productionSteps().filter(step => / deploy /.test(step.run || ''));
-  assert.equal(deploySteps.length, 4);
+  assert.equal(deploySteps.length, 5);
   for (const step of deploySteps) assert.doesNotMatch(step.if, /!=/, step.name);
   assert.equal(deploySteps.find(step => step.run === POINTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'points-jobs'");
+  assert.equal(deploySteps.find(step => step.run === FEATURES_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'league-features'");
   assert.equal(deploySteps.find(step => step.run === WORKER_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'push-reminders'");
 });
 
@@ -320,6 +324,7 @@ test('the worker targets are accepted with the same dispatch and deploy requirem
   }
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-push-reminders' })));
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-points-jobs' })));
+  assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-league-features' })));
 });
 
 test('configuration: the worker targets need no Cloudflare values; the other targets need exactly what they did', () => {
@@ -327,6 +332,7 @@ test('configuration: the worker targets need no Cloudflare values; the other tar
   const cloudflareNames = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_PAGES_PROJECT', 'CLOUDFLARE_API_TOKEN'];
   assert.deepEqual(configuration({}, 'push-reminders').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'points-jobs').missing, supabaseNames);
+  assert.deepEqual(configuration({}, 'league-features').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'api').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'frontend').missing, [...supabaseNames, ...cloudflareNames]);
   assert.deepEqual(configuration({}, 'api-and-frontend').missing, [...supabaseNames, ...cloudflareNames]);
@@ -392,6 +398,20 @@ test('a worker target\'s source must hold its entry file and keep it on its one-
     await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'points-jobs' }), fake), /gtl-points-jobs/, label);
   }
   assert.equal(calls, 18);
+
+  // league-features: the same two requirements, for gtl-league-features.
+  const features = { ...points, 'gtl-league-features': 'false' }, featureEntries = ['gtl-push-reminders', 'gtl-points-jobs', 'gtl-league-features'];
+  const featuresReady = commitWith({ workers: features, entries: featureEntries });
+  assert.equal((await checkSource(cwd, request({ RELEASE_SHA: featuresReady, RELEASE_TARGET: 'league-features' }), fake)).target, 'league-features');
+  assert.equal(calls, 24);
+  for (const [label, source] of [
+    ['no config entry (a source from before the worker landed)', { workers: points, entries: featureEntries }],
+    ['gateway JWT verification on', { workers: { ...features, 'gtl-league-features': 'true' }, entries: featureEntries }],
+    ['no entry file', { workers: features, entries: ['gtl-push-reminders', 'gtl-points-jobs'] }],
+  ]) {
+    await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'league-features' }), fake), /gtl-league-features/, label);
+  }
+  assert.equal(calls, 24);
 });
 
 /** A verify/preflight fixture: a boundary checker that passes unless a test sets globalThis.gtlBoundaryFailure. */
@@ -573,6 +593,41 @@ test('points-jobs verification, first deploy: created ACTIVE at version 1 with J
   // A pre-deploy report that does not record the worker's absence (for example another target's preflight) is refused.
   await assert.rejects(verifyRelease(cwd, env, base, fake), /pre-deploy report/);
   assert.equal((await verifyRelease(cwd, env, before, fake)).pointsJobsCreated, true);
+});
+
+const LEAGUE_FEATURES_FN = Object.freeze({ slug: 'gtl-league-features', version: 1, status: 'ACTIVE', verify_jwt: false, bundleSha256: 'b'.repeat(64) });
+
+test('league-features: the preflight records whether the worker exists, and verification takes the create or the update rule', async t => {
+  const { cwd, state, fake, before: base, migrations } = hostedFixture(t);
+  t.mock.method(Date, 'now', () => Date.parse('2026-10-26T20:00:00Z'));
+  const env = request({ RELEASE_TARGET: 'league-features', RELEASE_MODE: 'deploy', RELEASE_HISTORY_SHA256: migrationDigest(migrations), SUPABASE_PROJECT_REF: PROJECT, VITE_SUPABASE_URL: `https://${PROJECT}.supabase.co`, VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', SUPABASE_ACCESS_TOKEN: 'private-value' });
+  const absent = await livePreflight(cwd, env, fake);
+  assert.deepEqual(absent.leagueFeaturesBefore, { present: false, version: null });
+  assert.equal(absent.previousPages, null);
+  assert.ok(!('pointsJobsBefore' in absent), 'only its own worker is recorded');
+  // First deploy: created ACTIVE at version 1 with JWT off and a digest; every other function unchanged.
+  const before = { ...base, leagueFeaturesBefore: { present: false, version: null } };
+  const created = (values = {}) => bySlug([...base.functions, { ...LEAGUE_FEATURES_FN, ...values }]);
+  state.functions = created();
+  const report = await verifyRelease(cwd, env, before, fake);
+  assert.deepEqual(report.leagueFeatures, LEAGUE_FEATURES_FN);
+  assert.equal(report.leagueFeaturesCreated, true);
+  assert.equal(report.leagueFeaturesSourceVerified, false);
+  assert.equal(report.pages, null);
+  for (const [values, error] of [[{ verify_jwt: true }, /JWT verification off/], [{ version: 2 }, /create version 1/], [{ status: 'BOOTING' }, /league features worker must be ACTIVE/]]) {
+    state.functions = created(values);
+    await assert.rejects(verifyRelease(cwd, env, before, fake), error, JSON.stringify(values));
+  }
+  state.functions = created().map(item => item.slug === 'gtl-push-reminders' ? { ...item, version: 5 } : item);
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /Another Edge function changed/);
+  state.functions = created();
+  await assert.rejects(verifyRelease(cwd, env, base, fake), /pre-deploy report/, 'a report without the leagueFeaturesBefore record');
+  // Update: an existing worker needs exactly one version up.
+  const existing = { ...base, functions: created(), leagueFeaturesBefore: { present: true, version: 1 } };
+  state.functions = created({ version: 2, bundleSha256: 'c'.repeat(64) });
+  assert.equal((await verifyRelease(cwd, env, existing, fake)).leagueFeaturesCreated, false);
+  state.functions = created({ version: 3 });
+  await assert.rejects(verifyRelease(cwd, env, existing, fake), /exactly one league features worker version/);
 });
 
 test('points-jobs verification, update: an existing worker needs exactly one version up and the same checks', async t => {

@@ -52,11 +52,6 @@ export const workerChecks = Object.freeze([
 ]);
 
 // M-10 and both NBA migrations are hosted and /bets/read and /nba/* are deployed since October 22, 2026 (RELEASE_2026_10_22_MIGRATIONS.md).
-// M-12 (stage 42) is written, not applied, and its routes wait for the next gtl-api deploy.
-export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_bets_week_rows': 'migration 20261026233000_gtl_bets_boards.sql',
-  'rpc/gtl_read_bets_board': 'migration 20261026233000_gtl_bets_boards.sql',
-  'rpc/gtl_read_bets_season': 'migration 20261026233000_gtl_bets_boards.sql',
-  'gtl-api/bets/board': 'the gtl-api deploy with /bets/board',
-  'gtl-api/bets/season': 'the gtl-api deploy with /bets/season',
-});
+// M-12 (stage 42) is hosted as 20261027164010 since October 27, 2026 and /bets/board and /bets/season ship in gtl-api v38
+// (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
+export const awaitingDeploy = Object.freeze({});

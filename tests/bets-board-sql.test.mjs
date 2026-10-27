@@ -9,7 +9,7 @@
 // - before the apply, the hosted schema keeps /bets/read working and the new routes answer the generic 503.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ALL, HOSTED, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql } from './helpers/guess-week.mjs';
 import { weekFromPicks } from '../shared/bets-qual.mjs';
@@ -19,9 +19,9 @@ const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not ins
 const USER = who => ACCOUNTS[who].id;
 const FUNCTIONS = ['gtl_bets_week_rows(integer,integer,uuid[])', 'gtl_read_bets_board(uuid,integer,integer,text)', 'gtl_read_bets_season(uuid,integer,text,uuid)'];
 
-test('M-12 is written and not applied yet', () => {
+test('M-12 is applied: hosted as 20261027164010 on October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md)', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed in NOT_HOSTED until Sean says "apply M-12"');
+  assert.ok(APPLIED.includes(version(MIGRATION)));
 });
 
 /** Seeds two published weeks of Virtual Units picks: the open week and the one before it, on the same games. */
@@ -112,10 +112,11 @@ test('board and season: parity, order, roster filter, who, refusals, no terms, s
     assert.equal((await world.api('luke', route, body)).status, 400, `${route} ${JSON.stringify(body)}`);
 });
 
-test('before the apply: /bets/read keeps working and the new routes answer the generic 503', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED, games: 2, troyBallots: false });
+test('without M-12 (the hosted schema before its October 27 apply): /bets/read keeps working and the new routes answer the generic 503', { skip }, async t => {
+  const before = HOSTED.filter(file => file !== MIGRATION);
+  const world = await createCommunityWorld({ migrations: before, games: 2, troyBallots: false });
   t.after(() => world.db.close());
-  assert.ok(!HOSTED.includes(MIGRATION));
+  assert.ok(!before.includes(MIGRATION));
   assert.equal((await world.api('luke', 'bets/read', {})).status, 200);
   for (const route of ['bets/board', 'bets/season']) {
     const reply = await world.api('luke', route, {});

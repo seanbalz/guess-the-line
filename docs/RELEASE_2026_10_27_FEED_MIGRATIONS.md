@@ -1,4 +1,4 @@
-# League feed, badges, History and Export migrations applied — October 27, 2026
+# League feed, badges, History, Export and Bets boards migrations applied — October 27, 2026
 
 Sean's instruction (October 27, 2026): "apply M-13, then M-21, M-22 and M-23, in order, with the Gate M checks, through the
 SQL editor in my signed-in Chrome." Applied 14:56–14:58 UTC, one at a time, after `gtl-api` v38 and Pages `4a03e6cd`
@@ -122,6 +122,31 @@ Migration history: 60 rows before, **62** after.
   routes ship in `gtl-api` v38); `/me/changes`, `/me/records` and `/me/export` leave `READER_MIGRATIONS`; the "while
   M-27/M-28 is missing" tests build HOSTED minus each file.
 - **Signed-in use:** none of `/me/changes`, `/me/records` or `/me/export` had a signed-in request by 16:08 UTC.
+
+# Bets boards migration applied — October 27, 2026
+
+Sean's instruction: "apply M-12 (Bets boards) with the Gate M checks, through the SQL editor in my signed-in Chrome."
+Applied 16:40 UTC by the same route, the file fetched at `519c46a9839b2ca11f1c189974a350c789158ec5`. Read only: three new
+service-only functions over M-10's `gtl_bets_context`; no table, writer, row or replaced body, so no rollback file.
+
+| Migration | File SHA-256 | Hosted version | History statement md5 = file md5 |
+| --- | --- | --- | --- |
+| M-12 `20261026233000_gtl_bets_boards.sql` | `f54ee6a1…2eb9` | **`20261027164010`** | `604e3061a27db61e1280b355acec205a` |
+
+Migration history: 62 rows before, **63** after.
+
+- **Step 4:** `gtl_bets_week_rows`, `gtl_read_bets_board` and `gtl_read_bets_season` did not exist; `gtl_bets_context`
+  (M-10) was present.
+- **Step 5:** score hash 25 ballots `41fa6ae2003cd33f7e7e14bbb3f136f2` and the 110 posts made by 15:20 UTC unchanged;
+  Virtual Units `gtl_virtual_units_picks` 7 rows `f3018a3f…` and `gtl_virtual_units_settlements` 43 rows `8a736744…`,
+  identical before and after.
+- **Step 7:** `gtl_bets_week_rows` `b8b9419b…`, `gtl_read_bets_board` `7eac16f1…`, `gtl_read_bets_season` `5439c246…`:
+  each equals `migration-functions --latest`, security invoker, `service_role` only, one `pg_proc` row.
+- **Boundary:** 374 signed-out probes, **374 denied, none awaiting**: every piece the probes know is hosted and deployed.
+- **Step 8 (this record's PR):** the version moves to `APPLIED`; `scripts/boundary/bets.mjs` empties `awaitingDeploy` (the
+  board routes ship in `gtl-api` v38), so every area's list is now empty; `/bets/board` and `/bets/season` leave
+  `READER_MIGRATIONS`; the "before the apply" test builds HOSTED without M-12.
+- **Not verified:** no screen reads the boards yet, so they have no signed-in use.
 
 ## Signed-in readback (hosted logs, 14:43–15:50 UTC)
 
