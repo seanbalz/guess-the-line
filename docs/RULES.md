@@ -279,7 +279,7 @@ definition for the API and the screens.
 - **No terms:** both routes return totals only, never a line, price or book.
   Real slips never count.
 
-## Me › History (M-27, redesign stages 72–73)
+## Me › History (M-27, redesign stages 72–74)
 
 Me › History (`page.history`, opened from the Menu or `#history`) reads what the
 existing readers and the M-27 readers (`20261026230000_gtl_me_history.sql`,
@@ -304,7 +304,7 @@ writes nothing and changes no rule, score or visibility gate.
   `/bets/read` (M-10's gate: a friend's line, price and result only where that
   market is open to you). The season reader (`/bets/season`, stage 42) is not
   built yet; until it is, History reads one published week at a time.
-- **Older records** (`/me/records`, the History screens follow in stage 74): the
+- **Older records** (`/me/records`; History › Older, `#history/older`, stage 74): the
   retired Betting Challenge with every player's selections after their game's
   kickoff (D-21; before kickoff a count), graded by the old engine from each
   week's newest final; your saved games and notes, forecasts, journal (Q8,
@@ -313,6 +313,32 @@ writes nothing and changes no rule, score or visibility gate.
   you; your groups' archived scoring views, whose original picks, points and
   score movement go only to the commissioner seat, as the old History page
   showed them; and the Week 5 benchmark freeze record for its group's members.
+  History › Older also lists the real slips record by week (`/social/read`, M-04's
+  line lock unchanged). Every older record is read-only: there is no form to add,
+  correct, archive or save anything, and the journal summary counts active placed
+  bets only, as the old Journal performance did.
 - **Until M-27 is applied** both routes answer "History is not available yet";
   Guess weeks, the week detail and Bets weeks still work, without your change
   list and forfeit reasons. Every existing route answers as before.
+
+## Export my data (M-28, redesign stage 75)
+
+Me › Menu › Export my data downloads one JSON file of the signed-in account's own
+rows (`POST /me/export`, `gtl_export_me` in `20261026231000_gtl_me_export.sql`,
+written and not applied; apply after M-27). It replaces the old app's group-week
+download, which stays for the old app until stage 81.
+- **Your own rows, whole.** Every Guess ballot with every revision, its saved
+  lines and the Late marker (D-30); sit-outs, forfeits and the eligibility
+  rulings on your ballots; Betting Challenge selections, Virtual Units bets, NBA
+  tickets and the real slips you posted with their changes; saved games and
+  notes, forecasts, the journal (archived records included) and their change
+  history; Guess the Points guesses; your posts, comments and likes; your
+  profile, settings, memberships and access log. Nothing of yours is redacted
+  (D-23), and nothing of another player's is included: no request can name
+  another account.
+- **Left out.** Push reminder devices (D-28: their endpoints and keys are device
+  secrets) and internal version counters; the file says so.
+- **Nothing changes.** The export reads only; the file is made in the browser
+  and sent nowhere else. Until M-28 is applied the button answers "Export is not
+  available yet", and every existing route, the old `/export` included, answers
+  as before.

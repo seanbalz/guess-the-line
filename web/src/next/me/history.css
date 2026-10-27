@@ -21,3 +21,10 @@
 .gx .gx-history-changes li { gap: var(--gx-space-1); padding-left: var(--gx-space-3); border-left: 2px solid var(--gx-border-strong); }
 .gx .gx-history-changes .gx-pill { align-self: flex-start; }
 .gx .gx-history-bets-end { align-items: flex-end; gap: var(--gx-space-1); flex: none; text-align: right; }
+/* Stage 74: older records, read-only. */
+.gx .gx-history-plain { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
+.gx .gx-history-note { white-space: pre-wrap; padding: var(--gx-space-3); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }
+.gx .gx-history-more > summary { min-height: 44px; display: flex; align-items: center; color: var(--gx-data); cursor: pointer; }
+.gx .gx-history-more[open] > summary { margin-bottom: var(--gx-space-2); }
+.gx .gx-history-snapshot .gx-history-more > summary { flex-direction: column; align-items: flex-start; justify-content: center; color: var(--gx-text-1); padding-block: var(--gx-space-1); }
+.gx .gx-history-snapshot + .gx-history-snapshot { border-top: 1px solid var(--gx-border); padding-top: var(--gx-space-3); }

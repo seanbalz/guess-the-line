@@ -26,6 +26,8 @@ export const rpcChecks = Object.freeze([
   ['gtl_me_results', { p_season: 2026, p_week: 5 }],
   ['gtl_read_ballot_changes', { p_user: missingId, p_season: null, p_week: null, p_now: null }],
   ['gtl_read_me_records', { p_user: missingId, p_now: null }],
+  // M-28 Export my data (20261026231000_gtl_me_export.sql, redesign stage 75): one service-only reader, awaiting deploy (below).
+  ['gtl_export_me', { p_user: missingId, p_now: null }],
   // D-28 web push reminders (20261013030000): device subscriptions and the reminder scheduler are service-only.
   ['gtl_push_subscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check', p_p256dh: `B${'A'.repeat(86)}`, p_auth: 'A'.repeat(22) }],
   ['gtl_push_unsubscribe', { p_user: missingId, p_endpoint: 'https://fcm.googleapis.com/fcm/send/boundary-check' }],
@@ -43,6 +45,7 @@ export const apiChecks = Object.freeze([
   // M-27 History routes: signed-out probes prove only authentication protection.
   ['me/changes', {}],
   ['me/records', {}],
+  ['me/export', {}],
   ['personal', undefined],
   ['personal/read', {}],
   ['personal/ballot', {}],
@@ -69,7 +72,9 @@ export const workerChecks = Object.freeze([
 // M-27 (stage 72): its four functions await "apply M-27" and the History routes await the gtl-api deploy that carries them. The
 // apply record removes these entries (Gate M step 8).
 const M27 = 'migration 20261026230000_gtl_me_history.sql';
+// M-28 (stage 75): its function awaits "apply M-28" and /me/export the gtl-api deploy that carries it.
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_me_slate': M27, 'rpc/gtl_me_results': M27, 'rpc/gtl_read_ballot_changes': M27, 'rpc/gtl_read_me_records': M27,
   'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records',
+  'rpc/gtl_export_me': 'migration 20261026231000_gtl_me_export.sql', 'gtl-api/me/export': 'the gtl-api deploy with /me/export',
 });

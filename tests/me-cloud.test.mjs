@@ -108,3 +108,29 @@ test('records: the Betting Challenge is graded by the old engine; private sectio
     'another member never receives the commissioner seat\'s totals, picks or points, even if the SQL sent them');
   assert.equal(reply.journalHidden, 2);
 });
+
+// Stage 75 (M-28): POST /me/export. Contracts: the owner only, no fields; a missing M-28 reads "Export is not available yet";
+// the reply passes whole only with every section in shape and the owner's id; a push device anywhere in it refuses the reply.
+test('/me/export asks for the signed-in owner only and passes the owner\'s rows on whole', async () => {
+  const { EXPORT_SECTIONS } = await import('../cloud/me-history.mjs');
+  const reply = Object.fromEntries(EXPORT_SECTIONS.map(key => [key, ['profile', 'communityRemoval'].includes(key) ? null : []]));
+  Object.assign(reply, { format: 'gtl-account-export-v1', ownerId: USER.id, exportedAt: '2026-10-26T20:00:00Z', profile: { displayName: 'You' },
+    ballots: [{ season: 2026, week: 5, mode: 'guess_total', late: { minutes: 12 }, ballot: { picks: { 'TB-DAL': 44.5 } }, audit: [{ type: 'ballot_saved' }] }], unknownSection: [1] });
+  const calls = [];
+  const out = await handleMe({ route: '/me/export', body: {}, user: USER, service: service(reply, calls), clock: () => NOW });
+  assert.deepEqual(calls, [['gtl_export_me', { p_user: USER.id, p_now: new Date(NOW).toISOString() }]]);
+  assert.deepEqual(Object.keys(out), [...EXPORT_SECTIONS]);
+  assert.deepEqual(out.ballots, reply.ballots, 'your own rows are never redacted (D-23)');
+  for (const body of [{ userId: OTHER }, { season: 2026 }]) {
+    await assert.rejects(handleMe({ route: '/me/export', body, user: USER, service: service(reply) }), error => error.status === 400, JSON.stringify(body));
+  }
+  await assert.rejects(handleMe({ route: '/me/export', body: {}, user: USER, service: service({ ...reply, ownerId: OTHER }) }), /Invalid history reply/);
+  await assert.rejects(handleMe({ route: '/me/export', body: {}, user: USER, service: service({ ...reply, ballots: { not: 'a list' } }) }), /Invalid history reply/);
+  await assert.rejects(handleMe({ route: '/me/export', body: {}, user: USER, service: service({ ...reply, posts: [{ payload: { endpoint: 'https://push.example/secret' } }] }) }),
+    /Invalid history reply/, 'a push device never leaves the server, wherever it would sit');
+  await assert.rejects(handleMe({ route: '/me/export', body: {}, user: USER, service: { rpc: async () => { throw providerMeError('GTL_FEATURE_OFF'); } } }),
+    error => error instanceof MeError && error.status === 503 && error.message === 'Export is not available yet. Every record is kept.');
+  await assert.rejects(handleMe({ route: '/me/export', body: {}, user: USER, service: { rpc: async () => { throw new Error('detail'); } } }),
+    error => !(error instanceof MeError) && error.message === 'Export is unavailable.');
+  assert.deepEqual(ME_METHODS['/me/export'], ['POST']);
+});

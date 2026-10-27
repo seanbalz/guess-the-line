@@ -68,6 +68,8 @@ export const READERS = Object.freeze([
   ['/me/records', 'POST', {}],
   // Stage 69 (M-25): badges, awards and streaks. A badge names a line, so it shows only from that game's kickoff.
   ['/league/features', 'POST', {}],
+  // Stage 75 (M-28): Export my data, the owner's own rows only.
+  ['/me/export', 'POST', {}],
 ]);
 
 /**
@@ -79,6 +81,7 @@ export const READER_MIGRATIONS = Object.freeze({
   '/league/feed': '20261026132000_gtl_league_feed.sql',
   '/me/changes': '20261026230000_gtl_me_history.sql',
   '/me/records': '20261026230000_gtl_me_history.sql',
+  '/me/export': '20261026231000_gtl_me_export.sql',
   '/bets/board': '20261026233000_gtl_bets_boards.sql',
   '/bets/season': '20261026233000_gtl_bets_boards.sql',
   '/league/features': '20261026234000_gtl_league_features.sql',

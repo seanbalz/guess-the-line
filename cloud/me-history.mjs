@@ -126,3 +126,28 @@ export function projectRecords(raw, ownerId) {
     slates,
   };
 }
+
+// Export my data (stage 75, M-28): gtl_export_me's sections, in this order. The reply is the signed-in owner's own rows;
+// it is passed on whole (D-23: nothing of your own is redacted) once its shape and owner check out, and refused if any
+// part of it looks like a push device (D-28: endpoints and keys never leave the server).
+export const EXPORT_SECTIONS = Object.freeze(['format', 'ownerId', 'exportedAt', 'excluded', 'profile', 'communityRemoval', 'preferences', 'leagueInterest', 'memberships',
+  'ballots', 'sitOuts', 'forfeits', 'eligibilityRulings', 'challengeSelections', 'virtualUnits', 'nbaTickets', 'realSlips', 'realSlipChanges', 'following', 'savedGames',
+  'forecasts', 'journal', 'personalChanges', 'personalRequests', 'pointsGuesses', 'pointsChanges', 'posts', 'comments', 'likes', 'accessLog']);
+const DEVICE_KEYS = new Set(['endpoint', 'p256dh']);
+function deviceFree(value, depth = 0) {
+  if (depth > 40) invalid();
+  if (Array.isArray(value)) { for (const item of value) deviceFree(item, depth + 1); return; }
+  if (!record(value)) return;
+  for (const [key, item] of Object.entries(value)) { if (DEVICE_KEYS.has(key)) invalid(); deviceFree(item, depth + 1); }
+}
+export function projectExport(raw, ownerId) {
+  if (!record(raw) || raw.ownerId !== ownerId || raw.format !== 'gtl-account-export-v1' || !time(raw.exportedAt)) invalid();
+  const out = {};
+  for (const key of EXPORT_SECTIONS) {
+    const value = raw[key];
+    if (['profile', 'communityRemoval'].includes(key) ? !(value === null || record(value)) : !['format', 'ownerId', 'exportedAt'].includes(key) && !Array.isArray(value)) invalid();
+    out[key] = value;
+  }
+  deviceFree(out);
+  return out;
+}

@@ -70,8 +70,8 @@ export const GROUP_ACTIONS = Object.freeze({
   // 'feed', 'comments' and 'reactors' read a league's feed, a post's comments and who reacted, and 'share-result' posts
   // your own scored guess (M-22). Comments are still written through communityApi('comment').
   league: Object.freeze({ reads: Object.freeze(['comparison', 'feed', 'comments', 'reactors']), writes: Object.freeze(['react', 'share-result']) }),
-  // Stage 72 (M-27): Me › History, your own changes and the older records.
-  me: Object.freeze({ reads: Object.freeze(['preferences', 'changes', 'records']), writes: Object.freeze(['preferences/save']) }),
+  // Stage 72 (M-27): Me › History, your own changes and the older records; stage 75 (M-28): Export my data.
+  me: Object.freeze({ reads: Object.freeze(['preferences', 'changes', 'records', 'export']), writes: Object.freeze(['preferences/save']) }),
   // Guess the Points (D-56, cloud/points.mjs): the gated week read, and draft saves, lock-ins and the commissioner's slate.
   // Until P-01 is applied every route answers 404 (code GTL_POINTS_OFF, or gtl-api's own "Not found."): "coming soon".
   points: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze(['draft', 'lock', 'slate']) }),
