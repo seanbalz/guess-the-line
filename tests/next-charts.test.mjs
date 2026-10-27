@@ -45,12 +45,13 @@ test('the pointer always lands on a real point, clamped at both ends', () => {
   assert.equal(nearestIndex(0.5, 0), 0);
 });
 
-test('stems grow from zero toward their sign, in proportion, and a zero season still shows', () => {
+test('stems grow from zero toward their sign, in proportion, without a fabricated gain for zero', () => {
   const { zeroY, stems } = stemLayout([2.74, -2.22, 10.95, 0]);
   assert.ok(stems[0].up && Math.abs(stems[0].top + stems[0].height - zeroY) < 1e-9, 'a gain ends at zero from above');
   assert.ok(!stems[1].up && Math.abs(stems[1].top - zeroY) < 1e-9, 'a loss starts at zero going down');
   assert.ok(Math.abs(stems[2].height / stems[0].height - 10.95 / 2.74) < 1e-9, 'heights are proportional');
-  assert.equal(stems[3].height, 0.02);
+  assert.equal(stems[3].height, 0);
+  assert.equal(stems[3].top, zeroY);
   for (const stem of stems) assert.ok(stem.top >= 0 && stem.top + stem.height <= 1, 'inside the box');
 });
 
@@ -84,4 +85,15 @@ test('smoothed segments never invent peaks, troughs or reversals between reporte
       previous = [x3, y3];
     }
   }
+});
+
+
+test('small season values keep their true proportions in mixed and one-sided plots', () => {
+  for (const values of [[100, 0.1, -0.1, 0], [100, 0.1, 0], [-100, -0.1, 0]]) {
+    const { stems, zeroY } = stemLayout(values);
+    assert.ok(Math.abs(stems[1].height / stems[0].height - 0.001) < 1e-9);
+    assert.equal(stems.at(-1).height, 0);
+    assert.equal(stems.at(-1).top, zeroY);
+  }
+  assert.ok(stemLayout([0, 0]).stems.every(s => s.height === 0));
 });

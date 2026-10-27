@@ -102,7 +102,13 @@ const winRateTile = (w, l) => {
 export function trendDetailProps(card) {
   const c = card.chart, { W, L, P } = c.record, games = W + L + P, n = c.spark.length;
   const [first = 2002, last = first] = card.years ?? [];
-  const lastTen = c.last10 ? { label: 'Last 10', value: recordText(c.last10.W, c.last10.L, c.last10.P), blocks: { on: c.last10.W, of: c.last10.W + c.last10.L + c.last10.P } } : null;
+  const recentCount = c.last10 ? c.last10.W + c.last10.L + c.last10.P : 0;
+  const lastTen = c.last10 ? {
+    label: recentCount ? `Last ${recentCount}` : 'Recent games',
+    value: recentCount ? `${c.last10.W}–${c.last10.L}–${c.last10.P}` : '—',
+    sub: recentCount ? 'W · L · P; grouped counts' : 'No recent games',
+    blocks: recentCount ? { on: c.last10.W, of: recentCount, pushes: c.last10.P } : null,
+  } : null;
   const line = {
     values: c.spark,
     start: String(first),
