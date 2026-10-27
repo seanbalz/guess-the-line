@@ -147,3 +147,28 @@ describe('retained line selection', () => {
     }
   });
 });
+
+
+describe('recent outcome counts', () => {
+  const props = last10 => trendDetailProps({ years: [2024, 2025], chart: { record: { W: 8, L: 4, P: 2 }, spark: [0, 3], units: 3, seasons, last10 } });
+  it('distinguishes wins, losses and pushes without claiming chronological order', () => {
+    for (const view of [props({ W: 7, L: 2, P: 1 }).line, props({ W: 7, L: 2, P: 1 }).seasons]) {
+      const html = render(<StatTiles tiles={view.tiles}/>), nodes = all(html);
+      expect(nodes.filter(n => n.attrs.class === 'gx-tc-block gx-tc-block--on')).toHaveLength(7);
+      expect(nodes.filter(n => n.attrs.class === 'gx-tc-block')).toHaveLength(2);
+      expect(nodes.filter(n => n.attrs.class === 'gx-tc-block gx-tc-block--push')).toHaveLength(1);
+      expect(html).toContain('W · L · P; grouped counts');
+      expect(markupProblems(html)).toEqual([]);
+    }
+  });
+  it('names the actual recent sample and keeps an empty record distinct from losses or pushes', () => {
+    for (const [last10, label, count] of [[{ W: 1, L: 1, P: 1 }, 'Last 3', 3], [{ W: 0, L: 0, P: 2 }, 'Last 2', 2], [{ W: 0, L: 0, P: 0 }, 'Recent games', 0]]) {
+      const tile = props(last10).line.tiles[1], html = render(<StatTiles tiles={[tile]}/>);
+      expect(tile.label).toBe(label);
+      expect(all(html).filter(n => (n.attrs.class || '').split(' ').includes('gx-tc-block'))).toHaveLength(count);
+      if (!count) { expect(tile.value).toBe('—'); expect(html).toContain('No recent games'); }
+    }
+    expect(props({ W: 7, L: 3, P: 0 }).line.tiles[1].value).toBe('7–3–0');
+    expect(props(null).line.tiles.map(t => t.label)).toEqual(['Win rate', 'Games']);
+  });
+});

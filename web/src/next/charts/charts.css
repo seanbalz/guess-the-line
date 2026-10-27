@@ -173,6 +173,7 @@
 .gx-tc-blocks { display: flex; gap: 2px; margin-top: 4px; }
 .gx-tc-block { flex: 1 1 0; height: 6px; border-radius: 2px; background: var(--gx-track); }
 .gx-tc-block--on { background: var(--gx-bar-1); }
+.gx-tc-block--push { background: transparent; border: 1px dashed var(--gx-hero-text-2); }
 
 /* ----- season table ----- */
 .gx-tc-table-wrap { overflow: hidden; border-radius: var(--gx-radius-md); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
@@ -231,6 +232,7 @@
   .gx-tc-bar-tick { forced-color-adjust: none; background: Highlight; }
   .gx-tc-block { forced-color-adjust: none; background: Canvas; border: 1px solid CanvasText; }
   .gx-tc-block--on { background: CanvasText; }
+  .gx-tc-block--push { border-style: dashed; }
   .gx-tc-table-wrap { border: 1px solid CanvasText; }
   .gx-tc-season-pick[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border: 1px solid Highlight; }
 }

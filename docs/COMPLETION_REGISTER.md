@@ -185,7 +185,7 @@ Hosted release/readback and device acceptance remain open.
 The updated main also includes PR #247’s [October 27 release record](RELEASE_2026_10_27_API_FRONTEND.md):
 API v38 and Pages `4a03e6cd` from `1db1c44`, covering Research source through PR
 #245. This is release-lane evidence, not a hosted audit repeated by this task;
-the card explicitly leaves signed-in use unverified. PRs #246, #248, #249, #250, #252 and #253 plus the comparison-chart follow-up require a later release.
+the card explicitly leaves signed-in use unverified. PRs #246, #248, #249, #250, #252 and #253 and #258 plus the recent-result follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -221,7 +221,7 @@ PR #253 merged October 27 as
 `a887fd162560e3aa6e6eb29fe3cdd3686fcfb137` after all nine checks passed on
 `d58d94addcf63f20aef980fc772b371bcb843903`, with no CI fixes or review findings. Hosted release/readback and device acceptance remain open.
 
-The next [player comparison chart batch](RESEARCH_DESIGN_2026_10_26.md#labelled-player-comparison-charts--october-27)
+The [player comparison chart batch](RESEARCH_DESIGN_2026_10_26.md#labelled-player-comparison-charts--october-27)
 labels each observation and value directly, preserves shared scales and the
 evidence table, and distinguishes real zero from a missing sample. A forced-color
 avatar fallback accompanies it. Source is in [PR #258](https://github.com/seanbalz/guess-the-lines-repo/pull/258)
@@ -229,7 +229,18 @@ on `codex/research-chart-values`;
 54 integrated browser cases and five final Trends cases passed, along with 52
 component and 24 model/token tests, typecheck, Brand QA and build/privacy checks.
 Six 320px screenshots were inspected; narrow evidence tables keep whole headings
-inside their scroll container. CI/merge, hosted release and device acceptance remain open.
+inside their scroll container. PR #258 merged October 27 as `e4c0c07ecf3d75bb68f87789cd7c1ea4e8bb1484` after all nine checks passed on repaired head `b0874306f81477f79dae38240d8238d929fe2406`. The CI brand-mark failure was fixed with an explicit initials-avatar class; no review findings remained.
+Hosted release and device acceptance remain open.
+
+The next [recent-result tile batch](RESEARCH_RECENT_RECORDS_2026_10_27.md)
+shows actual sample sizes and all three W–L–P counts, with pushes distinct from
+losses and an explicit grouped-count label. Source is in [PR #259](https://github.com/seanbalz/guess-the-lines-repo/pull/259)
+on `codex/research-recent-records`; 55 integrated browser cases on current main plus
+repaired #258, two focused combined-chart
+cases, 48 component and 20 model/token tests passed. Four 320px Light/Dark and
+forced-color screenshots were inspected. Typecheck, Brand QA and build/privacy
+checks passed. CI/merge, hosted
+release and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
