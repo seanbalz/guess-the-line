@@ -39,6 +39,7 @@ export const NOT_HOSTED = [
   20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
   20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
   20261026132000, // M-22 gtl_league_feed (redesign stage 62): written, awaiting Sean's "apply M-22" (after M-13 and M-21)
+  20261026133000, // M-23 gtl_kickoff_posts (redesign stage 63): written, awaiting Sean's "apply M-23" (after M-13, M-21, M-22)
   20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
 ];
 /**
@@ -48,6 +49,7 @@ export const NOT_HOSTED = [
 export const FIX_FORWARD = [
   20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
   20261026131000, // M-21 gtl_feed_reactions: append-only reactions; the old like keeps reading from its own table
+  20261026133000, // M-23 gtl_kickoff_posts: writes rows (kickoff posts and a backfill), kept by D-23; a trigger, no replaced body
 ];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan
