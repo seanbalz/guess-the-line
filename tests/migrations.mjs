@@ -35,10 +35,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
-  20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
-  20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
-  20261026132000, // M-22 gtl_league_feed (redesign stage 62): written, awaiting Sean's "apply M-22" (after M-13 and M-21)
-  20261026133000, // M-23 gtl_kickoff_posts (redesign stage 63): written, awaiting Sean's "apply M-23" (after M-13, M-21, M-22)
   20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
   20261026231000, // M-28 gtl_me_export (redesign stage 75): Export my data, awaiting Sean's "apply M-28" (after M-27).
   20261026233000, // M-12 bets_boards (stage 42): weekly and season boards; read only; apply after M-10 on Sean's "apply M-12".
@@ -61,12 +57,9 @@ export const FIX_FORWARD = [
  * hosted project will have when it is applied. An entry goes with the apply record that takes the required file out of
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
-export const REQUIRES = Object.freeze({
-  // M-21 reads M-13's league_id (gtl_feed_post_visible's group check), so it cannot apply without M-13.
-  20261026131000: [20261026130000],
-  // M-22 reads M-13's league_id (its index) and calls M-21's gtl_feed_reactions and gtl_feed_post_visible.
-  20261026132000: [20261026130000, 20261026131000],
-});
+// M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
+// (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
+export const REQUIRES = Object.freeze({});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -170,4 +163,8 @@ export const APPLIED = [
   20261023180000, // P-01 gtl_points_core (D-56): hosted as 20261024000059 on October 23, 2026 (Pacific); see RELEASE_2026_10_23_POINTS.md.
   20261023190000, // P-02 gtl_points_feed_push (D-56): hosted as 20261024000315 on October 23, 2026 (Pacific); see RELEASE_2026_10_23_POINTS.md.
   20261026120000, // P-03 gtl_points_jobs (D-56): hosted as 20261026213106 on October 26, 2026; see RELEASE_2026_10_26_POINTS_JOBS.md.
+  20261026130000, // M-13 gtl_feed_kinds: hosted as 20261027145602 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
+  20261026131000, // M-21 gtl_feed_reactions: hosted as 20261027145634 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
+  20261026132000, // M-22 gtl_league_feed: hosted as 20261027145711 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
+  20261026133000, // M-23 gtl_kickoff_posts: hosted as 20261027145740 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
 ];

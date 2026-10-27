@@ -78,7 +78,6 @@ export const READERS = Object.freeze([
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
 export const READER_MIGRATIONS = Object.freeze({
-  '/league/feed': '20261026132000_gtl_league_feed.sql',
   '/me/changes': '20261026230000_gtl_me_history.sql',
   '/me/records': '20261026230000_gtl_me_history.sql',
   '/me/export': '20261026231000_gtl_me_export.sql',

@@ -73,8 +73,9 @@ test('the old-app specs, the shared community world and the persona harness take
 
 test('without() leaves out a migration and every later file built on its bodies, and nothing else', () => {
   const M07 = '20261015190710_gtl_guess_write_window.sql';
-  // M-21's gtl_read_community is M-07's body (it calls M-07's helpers), and M-22 (when present) REQUIRES M-21.
-  const dependents = ALL.filter(f => f.startsWith('20261026131000_') || f.startsWith('20261026132000_'));
+  // M-21's gtl_read_community is M-07's body (it calls M-07's helpers). M-22's REQUIRES entry left with its apply record
+  // (October 27, 2026), so without() keeps it: the list names only files rebuilt on a dropped body.
+  const dependents = ALL.filter(f => f.startsWith('20261026131000_'));
   const kept = without(ALL, M07);
   assert.deepEqual(ALL.filter(f => !kept.includes(f)), [M07, ...dependents]);
   assert.deepEqual(without(ALL, ALL.at(-1)), ALL.slice(0, -1), 'the newest file has nothing after it');

@@ -4,6 +4,8 @@ import { actor, fixtureEmail, missingId, missingLeague } from './fixtures.mjs';
 
 export const tables = Object.freeze([
   'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals',
+  // M-21 (hosted since October 27, 2026, RELEASE_2026_10_27_FEED_MIGRATIONS.md): the append-only reaction events.
+  'feed_reaction_events',
 ]);
 
 export const rpcChecks = Object.freeze([
@@ -15,15 +17,15 @@ export const rpcChecks = Object.freeze([
   ['gtl_list_invites', { ...actor, p_league_id: missingLeague }],
   ['gtl_accept_invite', { ...actor, p_email: fixtureEmail, p_token_hash: null, p_invite_id: missingId }],
   ['gtl_revoke_invite', { ...actor, p_league_id: missingLeague, p_invite_id: missingId }],
-  // M-21 (20261026131000_gtl_feed_reactions.sql, redesign stage 61): every callable function it adds. Awaiting deploy (below)
-  // until Sean's "apply M-21". The probes name no real member or post; the writer's reaction key is not one of the six, so it
-  // would refuse before writing. Its table, gtl_feed_reaction_events, joins the table probes with the apply record.
+  // M-21 (20261026131000_gtl_feed_reactions.sql, redesign stage 61): every callable function it adds, hosted as
+  // 20261027145634 since October 27, 2026. The probes name no real member or post; the writer's reaction key is not one of the
+  // six, so it would refuse before writing. Its table, gtl_feed_reaction_events, is in the table probes.
   ['gtl_feed_reactions', { p_post: missingId }],
   ['gtl_feed_post_visible', { p_user: missingId, p_post: missingId, p_now: null }],
   ['gtl_feed_reaction_summary', { p_user: missingId, p_post: missingId }],
   ['gtl_react_feed', { p_user: missingId, p_post: missingId, p_reaction: 'boundary-check', p_now: null }],
-  // M-22 (20261026132000_gtl_league_feed.sql, redesign stage 62): every callable function it adds. Awaiting deploy (below)
-  // until Sean's "apply M-22". The probes name no real member, league or post; the writer's game id is not a game id, so it
+  // M-22 (20261026132000_gtl_league_feed.sql, redesign stage 62): every callable function it adds, hosted as 20261027145711
+  // since October 27, 2026. The probes name no real member, league or post; the writer's game id is not a game id, so it
   // would refuse before writing.
   ['gtl_feed_league_access', { p_user: missingId, p_league: missingLeague }],
   ['gtl_feed_in_league', { p_kind: 'joined', p_actor: missingId, p_post_league: null, p_league: missingLeague }],
@@ -45,8 +47,9 @@ export const rpcChecks = Object.freeze([
   ['gtl_dispatch_league_features', {}],
   ['gtl_claim_league_features', { p_token: '0'.repeat(64), p_run: missingId }],
   ['gtl_complete_league_features', { p_run: missingId, p_claim: missingId, p_reason: null }],
-  // M-23 (20261026133000_gtl_kickoff_posts.sql, redesign stage 63): its two callable functions (the trigger function is granted
-  // to no role). Awaiting deploy (below) until Sean's "apply M-23". The writer's season is out of range, so it writes nothing.
+  // M-23 (20261026133000_gtl_kickoff_posts.sql, redesign stage 63): its two callable functions, hosted as 20261027145740 since
+  // October 27, 2026 (the trigger function returns a trigger, so it is never an RPC). The writer's season is out of range, so
+  // it writes nothing.
   ['gtl_kickoff_slots', { p_season: 1999, p_week: 1 }],
   ['gtl_write_kickoff_posts', { p_season: 1999, p_week: 1, p_actor: missingId }],
 ]);
@@ -74,24 +77,12 @@ export const apiChecks = Object.freeze([
 
 export const workerChecks = Object.freeze([]);
 
-// /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026.
-// Awaiting: the league feed pieces (redesign stages 61 to 63), each until its own apply or deploy.
-const M21 = 'M-21 (20261026131000_gtl_feed_reactions.sql) applied after Sean\'s "apply M-21"';
-const M22 = 'M-22 (20261026132000_gtl_league_feed.sql) applied after Sean\'s "apply M-22"';
-const M23 = 'M-23 (20261026133000_gtl_kickoff_posts.sql) applied after Sean’s "apply M-23"';
-const FEED_ROUTES = 'gtl-api with cloud/feed.mjs deployed (league feed routes)';
-// The league feed's awaiting pieces (tests/cloud-boundary.test.mjs names each one).
-const FEED_AWAITING = Object.freeze({
-  ...Object.fromEntries(['gtl_feed_reactions', 'gtl_feed_post_visible', 'gtl_feed_reaction_summary', 'gtl_react_feed'].map(rpc => [`rpc/${rpc}`, M21])),
-  ...Object.fromEntries(['gtl_feed_league_access', 'gtl_feed_in_league', 'gtl_feed_embed', 'gtl_read_league_feed', 'gtl_read_post_comments',
-    'gtl_read_post_reactors', 'gtl_share_result'].map(rpc => [`rpc/${rpc}`, M22])),
-  ...Object.fromEntries(['react', 'feed', 'comments', 'reactors', 'share-result'].map(action => [`gtl-api/league/${action}`, FEED_ROUTES])),
-  ...Object.fromEntries(['gtl_kickoff_slots', 'gtl_write_kickoff_posts'].map(rpc => [`rpc/${rpc}`, M23])),
-});
-// M-25 (redesign stage 69) is written and not applied, and no gtl-api deploy carries /league/features yet.
+// /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026. The league feed
+// (redesign stages 61 to 63) is hosted and deployed since October 27, 2026: M-21, M-22 and M-23 applied, and the five
+// /league/* feed routes in gtl-api v38 (RELEASE_2026_10_27_FEED_MIGRATIONS.md), so none of its pieces awaits deploy.
+// M-25 (redesign stage 69) is written and not applied.
 const M25 = 'migration 20261026234000_gtl_league_features.sql';
 export const awaitingDeploy = Object.freeze({
-  ...FEED_AWAITING,
   'rpc/gtl_feature_results': M25,
   'rpc/gtl_read_feature_inputs': M25,
   'rpc/gtl_feature_post': M25,
