@@ -340,7 +340,8 @@ All 52 component and 24 chart/token/market model tests, typecheck, Brand QA,
 fixture build and bundle privacy checks passed. Six 320px ordinary/forced-color
 screenshots were inspected, including the corrected Light/Dark percentage tables.
 Source is in [PR #258](https://github.com/seanbalz/guess-the-lines-repo/pull/258)
-on `codex/research-chart-values`; CI/merge remain open. Hosted release and
+on `codex/research-chart-values`. PR #258 merged October 27 as `e4c0c07ecf3d75bb68f87789cd7c1ea4e8bb1484` after all nine checks passed on repaired head `b0874306f81477f79dae38240d8238d929fe2406`. The CI brand-mark failure was fixed with an explicit initials-avatar class; no review findings remained.
+Hosted release and
 physical-device acceptance remain separate; no deployment or migration apply.
 
 
@@ -349,4 +350,5 @@ PR #258 CI follow-up: the brand-mark guard treated the negative selector
 `gx-av-initials` class, and the forced-color rule targets only that class. This
 keeps the logo separate without relaxing the brand check. All five brand-mark
 tests, 66 UI/Trends component tests and the focused comparison-chart browser case
-passed, including ordinary and forced colors. CI is being rerun on the repair.
+passed, including ordinary and forced colors. All nine CI checks subsequently
+passed on the repair, and PR #258 merged as recorded above.
