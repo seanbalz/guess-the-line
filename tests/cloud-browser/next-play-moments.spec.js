@@ -80,6 +80,8 @@ async function fixture(page, baseURL, { open = true, beforeOpen } = {}) {
   await signIn(page, 'luke');
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
   await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
+  // That primary button gave its own 10ms press tick (the kit's haptic); the lock-in buzz is counted from here.
+  await page.evaluate(() => { window.__vibrations = []; });
   return { ...world, personal, writes, reads, control, kicked };
 }
 
