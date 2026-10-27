@@ -47,7 +47,7 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
             <filter id={`${id}b`} x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
           </defs>
           <path className="gx-tc-glow" d={geo.area} fill={`url(#${id}g)`} filter={`url(#${id}b)`}/>
-          <path d={geo.area} fill={`url(#${id}g)`}/>
+          <path className="gx-tc-area" d={geo.area} fill={`url(#${id}g)`}/>
           <line className="gx-tc-zero" x1="0" x2={W} y1={geo.zeroY} y2={geo.zeroY} data-zero-baseline="true"/>
           <path className="gx-tc-path" d={geo.line}/>
         </svg>
