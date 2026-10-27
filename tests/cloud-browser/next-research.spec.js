@@ -76,6 +76,15 @@ test('Research source times are readable in Pacific time without changing histor
   try {
     await openResearch(page);
     const dialog = sheet(page), reference = dialog.locator('.gx-r-references').first();
+    await dialog.getByRole('button', { name: 'About research data', exact: true }).click();
+    const provenance = page.getByRole('dialog', { name: 'About research data', exact: true });
+    await expect(provenance).toContainText('Period anchored to Tue Oct 20, 2026 · 5:00 PM PT');
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.screenshot({ path: testInfo.outputPath(`research-provenance-times-${theme}.png`) });
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+    }
+    await page.keyboard.press('Escape');
     await expect(reference).toContainText('Saved scoring reference');
     await expect(reference).toContainText('Current market reference');
     await expect(reference.locator('time')).toHaveCount(2);
