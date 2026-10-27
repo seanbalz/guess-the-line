@@ -5,6 +5,7 @@ import { TrendLine } from '../charts/TrendLine.jsx';
 import { TrendRow } from '../charts/TrendRow.jsx';
 import { hitPct, recordText, signed } from '../charts/geometry.js';
 import { INFO } from '../info.js';
+import { fmtDate, fmtTime, pacificParts } from '../format.js';
 import { useResearch } from './useResearch.js';
 import './research.css';
 
@@ -12,6 +13,18 @@ const ResearchChart = lazy(() => import('./ResearchChart.jsx'));
 export const PERIODS = { recent30: 'Last 30 games', recent25: 'Last 25 games', season: 'This season', previousSeason: 'Previous season', rolling12: 'Past 12 months', all: 'Full available history' };
 export const researchDate = date => date ? date.slice(0, 10) : 'Unknown';
 const readable = value => String(value ?? '').replaceAll('_', ' ');
+/** Source instants keep their exact timestamp; date-only evidence never acquires a clock time. */
+function ResearchTime({ value }) {
+  if (typeof value !== 'string') return 'Time unavailable';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const parsed = new Date(`${value}T00:00:00Z`);
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+      ? <><time dateTime={value}>{value}</time> · time unavailable</> : 'Time unavailable';
+  }
+  // An offset is required: do not silently interpret a source time in the device's zone.
+  const parts = /^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value) ? pacificParts(value) : null;
+  return parts ? <time dateTime={value}>{fmtDate(value)}, {parts.year} · {fmtTime(value)} PT</time> : 'Time unavailable';
+}
 const REASONS = {
   not_pregame: 'The game has started.', history_not_fresh: 'Historical evidence needs a fresh source check.', reference_unavailable: 'Current market reference unavailable.',
   reference_time_missing: 'Current reference observation time is unknown.', reference_future: 'Current reference has a future observation time.', reference_stale: 'Current reference is older than twelve hours.',
@@ -138,7 +151,7 @@ function lineValue(game, market, value) {
   return market === 'spread' ? `${game.id.split('-')[1]} ${value < 0 ? '−' : value > 0 ? '+' : ''}${Math.abs(value)}` : String(value);
 }
 function Reference({ game, market, reference, label }) {
-  return <div><dt className="gx-t-label">{label}</dt><dd className="gx-t-body">{lineValue(game, market, reference?.value)}</dd><dd className="gx-t-meta">{typeof reference?.source === 'string' ? reference.source : 'Source unknown'} · observed {reference?.observedAt ?? 'Unknown'}{reference?.status ? ` · ${readable(reference.status)}` : ''}</dd></div>;
+  return <div><dt className="gx-t-label">{label}</dt><dd className="gx-t-body">{lineValue(game, market, reference?.value)}</dd><dd className="gx-t-meta">{typeof reference?.source === 'string' ? reference.source : 'Source unknown'} · observed <ResearchTime value={reference?.observedAt}/>{reference?.status ? ` · ${readable(reference.status)}` : ''}</dd></div>;
 }
 export function ResearchLeans({ data, gameId, request }) {
   return <div className="gx-vstack gx-gap-16">{(data?.games ?? []).filter(g => !gameId || g.id === gameId).map(game => <section key={game.id} className="gx-vstack gx-gap-12" aria-label={`${game.id} research`}>
@@ -175,12 +188,12 @@ export function ResearchSources({ sources = [], trent }) {
   return <div className="gx-vstack gx-gap-12">{trent ? <p className="gx-t-body">Original plays. Trent’s selections are separate from GTL evidence and do not vote on research leans.</p> : <p className="gx-t-meta">External posts are source-reported research references, not computed proof or independent votes.</p>}{entries.map((s, i) => <Card key={s.id ?? i} className="gx-vstack gx-gap-8">
     <h3 className="gx-t-strong">{s.name ?? 'Book It With Trent'}</h3>
     <p className="gx-t-body">{s.status === 'reviewed' ? 'Reviewed original source entries' : s.status === 'no-verified-plays' ? 'No plays verified for this period' : 'Source unavailable'}</p>
-    <p className="gx-t-meta">Source checked: {s.checkedAt ?? 'Unknown'}</p>
+    <p className="gx-t-meta">Source checked: <ResearchTime value={s.checkedAt}/></p>
     {(s.plays ?? []).map(p => <article className="gx-vstack gx-gap-8" key={p.id}>
       <h4 className="gx-t-strong">{p.event}: {p.selection}</h4><p className="gx-t-meta">Source-reported · not verified · {readable(p.status)}</p>
       <p className="gx-t-body">Original terms: {p.originalTerms}</p>
       <p className="gx-t-meta">Market: {p.market} · Posted line: {p.postedLine ?? 'Unknown'} · Odds: {p.price ?? 'Unknown'}</p>
-      <p className="gx-t-meta">Posted: {p.postedAt ?? 'Unknown'} · Captured: {p.capturedAt ?? 'Unknown'}</p>
+      <p className="gx-t-meta">Posted: <ResearchTime value={p.postedAt}/> · Captured: <ResearchTime value={p.capturedAt}/></p>
       <p className="gx-t-meta">Revision: {p.id} · Previous revision: {p.previousRevision ?? 'None'}</p>
       <a className="gx-r-link gx-t-body" href={p.sourceUrl} target="_blank" rel="noopener noreferrer">Original source post</a>
     </article>)}
