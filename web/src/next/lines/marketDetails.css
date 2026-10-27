@@ -6,6 +6,8 @@
 .gx-md-books > li + li { border-top: 1px solid var(--gx-border); padding-top: var(--gx-space-3); }
 .gx-md-best { display: inline-block; margin-inline-start: var(--gx-space-2); color: var(--gx-data); }
 .gx-md-date { display: block; color: var(--gx-text-2); }
+.gx-md-scale { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-1) var(--gx-space-2); margin: 0; color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
+.gx-md-scale-values { min-width: 0; overflow-wrap: anywhere; font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 .gx-md-plot { touch-action: pan-y; cursor: crosshair; }
 .gx-md-plot svg { display: block; width: 100%; height: auto; }
 .gx-md-path { fill: none; stroke: var(--gx-data); stroke-width: 2; vector-effect: non-scaling-stroke; }

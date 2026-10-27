@@ -1679,6 +1679,9 @@ test('recorded movement timestamps select chart observations while missing rows 
     await disclosure.click();
     const slider = total.getByRole('slider', { name: 'Move along total movement' });
     const table = total.getByRole('table'), buttons = table.getByRole('button');
+    const scale = total.locator('.gx-md-scale');
+    await expect(scale).toHaveText('Recorded range: 41.5 to 43.5 points');
+    await expect(total.getByRole('img')).toHaveAttribute('aria-describedby', await scale.getAttribute('id'));
     await expect(buttons).toHaveCount(3);
     await expect(table.locator('tbody tr')).toHaveCount(5);
     const first = buttons.nth(0), middle = buttons.nth(1), last = buttons.nth(2);
@@ -1703,6 +1706,7 @@ test('recorded movement timestamps select chart observations while missing rows 
         await expect(last).toHaveAttribute('aria-pressed', 'true');
         await page.keyboard.press('Home');
         await expect(first).toHaveAttribute('aria-pressed', 'true');
+        await expect(scale).toHaveText('Recorded range: 41.5 to 43.5 points');
         await total.locator('.gx-md-movement').scrollIntoViewIfNeeded();
         await phoneChecks(page); expect(await axe(page)).toEqual([]);
         await page.screenshot({ path: testInfo.outputPath(`movement-selection-${theme}-${forcedColors}.png`) });
@@ -1721,6 +1725,7 @@ test('recorded movement timestamps select chart observations while missing rows 
     await game.getByRole('button', { name: 'Refresh market lines' }).click();
     await disclosure.click();
     await expect(slider).toHaveAttribute('aria-valuetext', /44.5,.*PT/);
+    await expect(scale).toHaveText('Recorded range: 41.5 to 44.5 points');
     await expect(last).toHaveAttribute('aria-pressed', 'true');
     await noLeak(page, world, 'linked movement table');
     expect(world.errors).toEqual([]);

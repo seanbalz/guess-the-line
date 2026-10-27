@@ -186,7 +186,7 @@ records Pages `84cba88f-4d58-4fdf-9c38-4faf9380867f` from
 PR #253. It supersedes the earlier Pages `4a03e6cd` checkpoint; API v38 was
 unchanged. This is release-lane evidence, not a hosted audit repeated by this
 task. Signed-in readback and real-phone acceptance remain unverified. PRs #258,
-#259, #261, #262, #263, #265 and the unit-scale follow-up require a later release.
+#259, #261, #262, #263, #265, #267 and the market-range follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -285,14 +285,26 @@ Source is in [PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265
 on `codex/market-movement-selection`. PR #265 merged October 27 as `63dbdaa3b5ebc39b89841f153f1f82682fc11689` after all nine checks passed on `0c0f2cd5fc3e7d36c1fe02a7767421c14693ece3`, with no CI code fixes or review findings.
 Release/readback and physical-device acceptance remain open.
 
-The next [visible unit-scale batch](RESEARCH_CHART_SCALES_2026_10_27.md)
+The [visible unit-scale batch](RESEARCH_CHART_SCALES_2026_10_27.md)
 adds the plotted unit bounds to line and season charts. Zero and missing evidence
 stay distinct; each image references its own accessible scale. All 59 component,
 31 geometry/token/brand tests and typecheck passed. Browser coverage includes
 59 passing integrated cases and all 12 Research cases after correcting a scale
 expectation to match the plotted fixture value. Eight 320px Light/Dark and
 forced-color screenshots were inspected; Brand QA and fixture build/privacy
-checks passed. CI/merge, release/readback and phone acceptance remain open.
+checks passed. PR #267 merged October 27 as `21f9799064cf5f853279de7378449ff98307b475` after all nine checks passed on `03462dedaac1d8d4850a4cfb3a763eb8a98ae4b8`, with no CI fixes or review findings.
+Source is in [PR #267](https://github.com/seanbalz/guess-the-lines-repo/pull/267).
+Release/readback and phone acceptance remain open.
+
+The [recorded market-range batch](RESEARCH_MOVEMENT_SCALE_2026_10_27.md),
+`codex/market-movement-scale`, makes movement-chart bounds visible as well as
+accessible. Spread signs and total points stay distinct from cumulative units;
+single observations, flat series and missing evidence retain explicit states.
+After integrating main with #266 and #267, all 65 browser cases passed, including
+gesture coverage. The combined branch passed 112 component and 41
+geometry/gesture/token/brand tests, typecheck, Brand QA and fixture build/privacy checks. Four 320px ordinary
+and forced-color screenshots were inspected. CI/merge, hosted release/readback
+and physical-iPhone acceptance remain separate checkpoints.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

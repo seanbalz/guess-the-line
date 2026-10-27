@@ -23,7 +23,8 @@ then passed with the corrected assertion, covering all 60 integrated cases.
 Eight final 320px Light/Dark and forced-color screenshots (lines and seasons)
 were inspected. Fixture build and bundle/privacy checks also passed.
 
-Source is on `codex/chart-unit-scales`. CI/merge, hosted release/readback and
-physical-iPhone acceptance are separate open checkpoints. This work does not
+Source is in [PR #267](https://github.com/seanbalz/guess-the-lines-repo/pull/267)
+on `codex/chart-unit-scales`. PR #267 merged October 27 as `21f9799064cf5f853279de7378449ff98307b475` after all nine checks passed on `03462dedaac1d8d4850a4cfb3a763eb8a98ae4b8`, with no CI fixes or review findings.
+Hosted release/readback and physical-iPhone acceptance remain open. This work does not
 complete stage 33's verified live status or stage 34's dependent Bet/Challenge
 actions. No deployment, migration apply or frozen v62 tracker change is included.
