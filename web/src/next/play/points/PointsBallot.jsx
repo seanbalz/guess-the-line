@@ -16,7 +16,8 @@ import { useShell } from '../../shell/context.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
 import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Sheet } from '../../ui/index.js';
 import { INFO } from '../../info.js';
-import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupText, numberLine, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
+import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
+import { PointsPublish } from './PointsPublish.jsx';
 import './points.css';
 
 /**
@@ -71,10 +72,15 @@ export function PointsBallotView({ app, shell, read, initialSlot = null }) {
   if (read.loading) return <div className="gx-screen gx-vstack gx-gap-16">{heading}<PlayLoading>Loading Points…</PlayLoading></div>;
   if (read.error) return <div className="gx-screen gx-vstack gx-gap-16">{heading}{comingSoon(read.error) ? <PointsComingSoon/> : <PlayFailure what="Points" error={read.error} onRetry={read.retry}/>}</div>;
   const data = read.data;
-  if (data.status !== 'open') return <div className="gx-screen gx-vstack gx-gap-16">{heading}<PlayEmpty>No Points week is open. A new week opens Tuesdays at 12:00 AM PT.</PlayEmpty></div>;
+  // The commissioner alone sees a drafted week's preview and Publish now; gtl-api checks the grant again.
+  const target = shell.communityAdmin === true ? publishTarget(data, app.community?.data?.week) : null;
+  const published = week => { shell.toast?.(`Week ${week} is open for everyone.`); read.retry(); };
+  const publish = target && <PointsPublish key={`${target.season}:${target.week}`} target={target} quiet={data.status === 'open'} onPublished={published}/>;
+  if (data.status !== 'open') return <div className="gx-screen gx-vstack gx-gap-16">{heading}<PlayEmpty>No Points week is open. A new week opens Tuesdays at 12:00 AM PT.</PlayEmpty>{publish}</div>;
   const selected = data.slots.find(slot => slot.slot === open);
   return <div className="gx-screen gx-vstack gx-gap-16 gx-pt" data-screen="points">
     {heading}
+    {publish}
     <p className="gx-t-strong gx-n-s" data-points-summary>{summaryLine(data)}</p>
     <ol className="gx-pt-slots" aria-label={`Week ${data.week} Points players`}>
       {data.slots.map(slot => <li key={slot.slot}><SlotCard slot={slot} viewer={app.accountId} weekStatus={data.result?.status} onOpen={() => setOpen(slot.slot)}/></li>)}

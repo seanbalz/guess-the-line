@@ -137,3 +137,35 @@ export function boardRows(read, viewer) {
   });
   return { members, house: { week: read?.result?.house?.complete ? read.result.house.points ?? null : null } };
 }
+
+const weekOf = value => Number.isInteger(value?.season) && Number.isInteger(value?.week) ? { season: value.season, week: value.week } : null;
+/**
+ * The week the commissioner's "Publish now" checks (POST /points/slate, cloud/points.mjs), or null. An unopened read names
+ * its week, or none when no week was ever published: then the Community's current week (`/community/read` `week`). An open
+ * read is the newest published week, so a later current week may hold a draft waiting for its Tuesday open: that one.
+ */
+export function publishTarget(read, current) {
+  const now = weekOf(current);
+  if (read?.status === 'unopened') return weekOf(read) ?? now;
+  const shown = read?.status === 'open' ? weekOf(read) : null;
+  return shown && now && (now.season > shown.season || now.season === shown.season && now.week > shown.week) ? now : null;
+}
+
+/**
+ * The sentence for a refused preview or publish. gtl-api sends these refusals' sentences without their codes, so the status
+ * decides: 403 GTL_POINTS_FORBIDDEN, 404 GTL_POINTS_NO_SLATE, 409 GTL_POINTS_TOO_LATE; anything else keeps the server's own.
+ * Publishing is idempotent (a published slate replays), so an unconfirmed publish is safe to send again.
+ */
+export function publishProblem(error, { week, action = 'publish' } = {}) {
+  if (error?.uncertain) return action === 'publish' ? 'We could not confirm the publish. Check again; publishing twice is safe.' : 'The slate could not be checked. Try again.';
+  if (!error?.status) return 'No connection. Reconnect and try again.';
+  if (error.code === 'GTL_POINTS_OFF') return 'Points is coming soon.';
+  if (error.status === 403) return 'Only the commissioner can publish the Points slate.';
+  if (error.status === 404) return 'This week’s slate hasn’t been drafted yet — projections are still loading.';
+  if (error.status === 409) return `Week ${week}’s first game has kicked off, so this slate can no longer be published.`;
+  return typeof error.message === 'string' && error.message.trim() ? error.message : 'The Points slate is unavailable. Try again.';
+}
+
+/** The drafted slate's rows for the commissioner's preview: slot, player, matchup and kickoff. Never the House estimate. */
+export const previewRows = slate => (Array.isArray(slate?.slots) ? slate.slots : []).filter(row => typeof row?.slot === 'string')
+  .map(row => ({ slot: row.slot, name: typeof row.name === 'string' && row.name ? row.name : '—', matchup: matchupText(row), kickoff: kickoffText(row.kickoff) }));
