@@ -22,3 +22,10 @@
 .gx-md-select:focus-visible, .gx-md-disclosure > summary:focus-visible, .gx-md-scrub:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 
 .gx-md-disclosure[open] > summary .gx-ic { rotate: 180deg; }
+
+@media (forced-colors: active) {
+  .gx-md-plot { forced-color-adjust: none; }
+  .gx-md-path { stroke: CanvasText; }
+  .gx-md-point { fill: CanvasText; stroke: Canvas; stroke-width: 1; }
+  .gx-md-cross { stroke: CanvasText; stroke-dasharray: 4 3; }
+}

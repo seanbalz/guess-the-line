@@ -208,4 +208,32 @@ and bundle privacy validation passed. All 50 integrated Research/Lines/Trends/
 League-bets browser tests and both final interaction checks passed. The final
 refinement memoizes evidence identity during dragging and avoids state updates
 when the selected index is unchanged. [PR #249](https://github.com/seanbalz/guess-the-lines-repo/pull/249) carries this batch.
-CI/merge, hosted and physical-device acceptance remain open.
+PR #249 merged October 27 as `b1bc64b493e6a6723ba7ee58582fdbd2569d448c` after all nine
+checks passed on `0c1918d992eaba0b595ab029877e87857a068daf`, with no CI fixes or review
+findings. Hosted and physical-device acceptance remain open.
+
+## High-contrast chart fallback — October 27
+
+The D-55 charts now preserve their information under forced colors. A browser
+regression and inspected before screenshots showed that the season stems, win-rate
+bars and Last 10 blocks disappeared in both light and dark system themes because
+their gradients, fills and shadows were suppressed.
+
+System-color marks now retain the line, zero baseline, season stems, bar tracks,
+filled/unfilled blocks and selected-season boundary. Decorative glow/area fills
+hide in this mode. The table selection keeps its check plus a visible border,
+and the selected stem gets an outline. Market movement lines, points and
+crosshairs use the same system foreground. Ordinary Light/Dark tokens, source
+values, selection behavior and market gates remain unchanged.
+
+The focused browser case checks system-color contrast between marks/tracks,
+keyboard selection, selected-season boundaries, signed loss context, movement
+values/timestamps, 44px targets, 320px fit and axe in both system themes. The
+regression failed before the repair and passed after it. Before/after season
+screenshots and final line/movement screenshots were inspected. All 30 chart,
+Research and market-detail component tests and 23 chart/token/market model tests
+passed, as did typecheck, Brand QA, fixture build and bundle privacy checks.
+All 51 integrated Research/Lines/Trends/League-bets browser tests passed, covering
+ordinary Light/Dark and the forced-color fallback. [PR #250](https://github.com/seanbalz/guess-the-lines-repo/pull/250) carries this batch.
+CI/merge, hosted release and device acceptance remain separate. Chromium forced-color emulation does not
+establish physical Windows, iPhone Safari or Home Screen acceptance.

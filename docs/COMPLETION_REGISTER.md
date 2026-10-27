@@ -170,15 +170,32 @@ after all nine checks passed on `459e24f3680a3ee0fb0792ba5905dfe7d7d397ee`;
 no CI fixes or review findings. Hosted release/readback and phone acceptance
 remain open.
 
-The next [chart interaction correction](RESEARCH_DESIGN_2026_10_26.md#retained-line-selection--october-27)
+The [chart interaction correction](RESEARCH_DESIGN_2026_10_26.md#retained-line-selection--october-27)
 retains the cumulative-line point while comparing the season view. Line and
 season selections remain independent; changed evidence and reopened details
 start at the latest line point. Source is in [PR #249](https://github.com/seanbalz/guess-the-lines-repo/pull/249)
 on `codex/chart-selection`: all 50
 integrated browser tests plus two final focused checks, 27 component and 20
 chart/token tests passed, along with typecheck, Brand QA and build/privacy checks.
-Light/Dark 320px screenshots were inspected. CI/merge, release and device
-acceptance remain open.
+Light/Dark 320px screenshots were inspected. PR #249 merged October 27 as
+`b1bc64b493e6a6723ba7ee58582fdbd2569d448c` after all nine checks passed on
+`0c1918d992eaba0b595ab029877e87857a068daf`, with no CI fixes or review findings.
+Hosted release/readback and device acceptance remain open.
+
+The updated main also includes PR #247’s [October 27 release record](RELEASE_2026_10_27_API_FRONTEND.md):
+API v38 and Pages `4a03e6cd` from `1db1c44`, covering Research source through PR
+#245. This is release-lane evidence, not a hosted audit repeated by this task;
+the card explicitly leaves signed-in use unverified. PRs #246, #248 and #249
+and the high-contrast follow-up require a later release.
+
+The next [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
+restores marks that disappeared under forced colors: season stems, win-rate bars
+and Last 10 blocks. It also preserves selected-season boundaries and uses system
+foregrounds for line and movement plots. Source is in [PR #250](https://github.com/seanbalz/guess-the-lines-repo/pull/250)
+on `codex/chart-high-contrast`;
+all 51 integrated browser tests, 30 component and 23 model/token tests passed,
+along with typecheck, Brand QA and build/privacy checks. Before/after screenshots
+were inspected. CI/merge, release and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

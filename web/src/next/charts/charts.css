@@ -215,4 +215,22 @@
   .gx-tc-seg,
   .gx-tc-rowcard { border: 1px solid CanvasText; }
   .gx-tc-seg > button[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  /* Keep evidence visible when gradients and shadows are suppressed. Marks and
+     selected controls that opt out of adjustment use only system colors. */
+  .gx-tc-glow, .gx-tc-area, .gx-tc-mini-area { display: none; }
+  .gx-tc-svg, .gx-tc-mini { forced-color-adjust: none; }
+  .gx-tc-path, .gx-tc-mini-line { stroke: CanvasText; }
+  .gx-tc-zero { stroke: CanvasText; stroke-opacity: 1; stroke-dasharray: 4 3; }
+  .gx-tc-cross, .gx-tc-stems-zero { forced-color-adjust: none; background: CanvasText; opacity: 1; }
+  .gx-tc-dot { forced-color-adjust: none; background: CanvasText; border: 2px solid Canvas; box-shadow: none; }
+  .gx-tc-stem { forced-color-adjust: none; background: CanvasText; }
+  .gx-tc-stem--on { outline: 2px solid Highlight; outline-offset: 2px; box-shadow: none; }
+  .gx-tc-col--on { outline: 1px dashed CanvasText; outline-offset: -1px; }
+  .gx-tc-bar { forced-color-adjust: none; background: Canvas; border: 1px solid CanvasText; }
+  .gx-tc-bar-fill { forced-color-adjust: none; background: CanvasText; }
+  .gx-tc-bar-tick { forced-color-adjust: none; background: Highlight; }
+  .gx-tc-block { forced-color-adjust: none; background: Canvas; border: 1px solid CanvasText; }
+  .gx-tc-block--on { background: CanvasText; }
+  .gx-tc-table-wrap { border: 1px solid CanvasText; }
+  .gx-tc-season-pick[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border: 1px solid Highlight; }
 }

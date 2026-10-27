@@ -1402,3 +1402,74 @@ test('Research reveal restores an uncertain attempt on reopen and checks before 
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+// Gradients and box shadows disappear under forced colors. Chart meaning must
+// survive through system-color lines, fills and visible selection boundaries.
+test('high-contrast charts retain visible bars, stems and selected seasons', async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(60000);
+  const { world } = await lukesWeek(page, baseURL);
+  const observed = [];
+  try {
+    await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'HOU-JAX': 44.5 } }, { capturedAt: Date.now() - 1000 });
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const game = sheet(page, 'HOU @ JAX'), trend = game.locator('[data-trend-detail]').first();
+    const total = game.locator('[data-market-details="total"]');
+    await total.locator('summary', { hasText: 'Line movement' }).click();
+    for (const theme of ['light', 'dark']) {
+      await page.emulateMedia({ forcedColors: 'active', colorScheme: theme });
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      const foreground = await trend.evaluate(el => getComputedStyle(el).color);
+      await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+      const lineSlider = trend.getByRole('slider', { name: 'Move along the line' });
+      await lineSlider.focus(); await page.keyboard.press('Home');
+      await expect(lineSlider).toHaveValue('0');
+      await page.keyboard.press('End');
+      await expect(lineSlider).toHaveValue(await lineSlider.getAttribute('max'));
+      expect(await trend.locator('.gx-tc-path').evaluate(el => getComputedStyle(el).stroke)).toBe(foreground);
+      expect(await trend.locator('.gx-tc-zero').evaluate(el => getComputedStyle(el).stroke)).toBe(foreground);
+      await expect(trend.locator('.gx-tc-area')).toBeHidden();
+      await trend.locator('.gx-tc-line').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`forced-line-${theme}.png`) });
+      await trend.getByRole('button', { name: 'By season', exact: true }).click();
+      const selected = trend.getByRole('button', { name: 'Show 2024 season on chart', exact: true });
+      await selected.click();
+      await expect(selected).toBeFocused();
+      await expect(selected).toHaveAttribute('aria-pressed', 'true');
+      expect(await selected.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
+      expect(await trend.locator('.gx-tc-col--on').evaluate(el => parseFloat(getComputedStyle(el).outlineWidth))).toBeGreaterThanOrEqual(1);
+      await expect(trend.getByRole('slider')).toHaveAttribute('aria-valuetext', /2024:.*below break-even/);
+      await trend.locator('.gx-tc-stems').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`forced-seasons-${theme}.png`) });
+      observed.push(await trend.evaluate(el => {
+        const style = selector => getComputedStyle(el.querySelector(selector));
+        const up = style('.gx-tc-stem--up'), down = style('.gx-tc-stem--down');
+        const fill = style('.gx-tc-bar-fill'), track = style('.gx-tc-bar');
+        return { up: up.backgroundColor, down: down.backgroundColor, canvas: getComputedStyle(el).backgroundColor,
+          fill: fill.backgroundColor, track: track.backgroundColor, trackBorder: track.borderTopWidth,
+          blockOn: style('.gx-tc-block--on').backgroundColor, blockOff: style('.gx-tc-block:not(.gx-tc-block--on)').backgroundColor };
+      }));
+      await selected.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`forced-table-${theme}.png`) });
+      const movementSlider = total.getByRole('slider', { name: 'Move along total movement' });
+      await movementSlider.focus(); await page.keyboard.press('Home');
+      await expect(movementSlider).toHaveAttribute('aria-valuetext', /41.5,.*PT/);
+      await page.keyboard.press('End');
+      await expect(movementSlider).toHaveAttribute('aria-valuetext', /44.5,.*PT/);
+      expect(await total.locator('.gx-md-path').evaluate(el => getComputedStyle(el).stroke)).toBe(foreground);
+      expect(await total.locator('.gx-md-point').first().evaluate(el => getComputedStyle(el).fill)).toBe(foreground);
+      await total.locator('.gx-md-movement').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`forced-movement-${theme}.png`) });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+    }
+    await testInfo.attach('forced-color-styles', { body: JSON.stringify(observed), contentType: 'application/json' });
+    for (const colors of observed) {
+      expect(colors.up).not.toBe(colors.canvas);
+      expect(colors.down).not.toBe(colors.canvas);
+      expect(colors.fill).not.toBe(colors.track);
+      expect(colors.blockOn).not.toBe(colors.blockOff);
+      expect(parseFloat(colors.trackBorder)).toBeGreaterThanOrEqual(1);
+    }
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
