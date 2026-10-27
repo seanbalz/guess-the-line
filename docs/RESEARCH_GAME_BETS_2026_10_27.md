@@ -56,3 +56,7 @@ keep those checkpoints separate from source implementation.
 
 No API/schema, scoring, data-collection, production deployment, migration apply
 or real-player write is part of this batch. The frozen v62 tracker is unchanged.
+
+Prerequisite PR #243 merged October 27 as `f5a9551bd2c7d5e9a1d617dee54445c3da499f11` after
+all nine checks passed on `4dfb665a259ba98220d2ad6be48a708b468507b2`, with no CI fixes or
+review findings. This follow-up has its own CI/merge and release checkpoints.

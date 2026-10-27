@@ -47,14 +47,17 @@ acceptance.
 This supplies stage 31's dedicated Your pick destination. Direct See picks now
 and sit-out confirmation from Research remain open; the existing confirmed Play
 flow remains available. Stage 33's direct confirmation/live-status work and
-stage 34's Bet/Challenge slots and League bets also remain open.
+stage 34's Bet/Challenge slots also remain open. League bets is implemented in
+the separate [follow-up batch](RESEARCH_GAME_BETS_2026_10_27.md), with its own
+CI/merge and release checkpoints.
 
-CI/merge, hosted release/readback and physical iPhone Safari/Home Screen
+PR #243 merged October 27 as `f5a9551bd2c7d5e9a1d617dee54445c3da499f11` after all nine
+checks passed on `4dfb665a259ba98220d2ad6be48a708b468507b2`. No CI fix or review
+response was needed. Hosted release/readback and physical iPhone Safari/Home Screen
 acceptance remain separate checkpoints. No API/schema/scoring/collection change,
 deployment, migration apply or real player write occurred in this batch.
 The frozen v62 tracker and Sean's corrected no-scroll-bug report are preserved.
 
 PR #242's action-bar prerequisite merged October 27 as
 `ec5c0358c70aee273edcfea70c6b39799a14f443` after all nine exact-head CI checks succeeded.
-No CI repair or review response was needed. This follow-up retains a separate
-CI/merge checkpoint for its own source.
+No CI repair or review response was needed. PR #243’s own merge evidence is recorded above.

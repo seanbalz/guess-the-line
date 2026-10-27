@@ -131,10 +131,12 @@ October 27 as `ec5c0358c70aee273edcfea70c6b39799a14f443` after all nine checks p
 `b163ceaaf1ebe41802b36f79e6f3301d3d22f852`. No CI fixes or review findings. Hosted release
 and physical-device acceptance remain separate.
 
-The next Research batch supplies stage 31's [Your pick sheet](RESEARCH_YOUR_PICK_2026_10_27.md):
+PR #243 supplies stage 31's [Your pick sheet](RESEARCH_YOUR_PICK_2026_10_27.md):
 per-market saved references, explicit pending/first-after/commissioner labels,
 recorded Late, account/week guards and fixed-market Community guesses. Its
-validation and publication checkpoints are recorded separately.
+validation and publication checkpoints are recorded separately. It merged October 27
+as `f5a9551bd2c7d5e9a1d617dee54445c3da499f11` after all nine checks passed on
+`4dfb665a259ba98220d2ad6be48a708b468507b2`. No CI fixes or review findings.
 
 The next batch adds [per-game League bets](RESEARCH_GAME_BETS_2026_10_27.md) from
 the Bets action slot, using the existing M-10 reader and shared Everyone rows.
