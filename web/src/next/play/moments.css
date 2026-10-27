@@ -1,0 +1,160 @@
+/* Play's game feel (design upgrade): the guess control, the week progress strip, the lock-in stamp and the reveal.
+   Motion animates only transform and opacity, with the dur and ease tokens; every animation here has a reduced-motion
+   block at the end (base.css also stops all motion inside .gx). Nothing here sits on an ancestor of the tab bar. */
+
+/* ===== the guess control (GuessPicker) ===== */
+.gx .gx-guess { display: grid; gap: var(--gx-space-4); min-width: 0; }
+.gx .gx-guess .gx-chip { position: relative; min-width: 0; }
+/* The selected check sits in the chip's corner, out of the label's flow, so choosing never resizes a row. */
+.gx .gx-guess .gx-chip > .gx-ic { position: absolute; top: 3px; right: 3px; width: 12px; height: 12px; }
+.gx .gx-guess .gx-chip:disabled { background: var(--gx-surface-3); color: var(--gx-text-2); box-shadow: none; }
+.gx .gx-guess .gx-chip--on:disabled { background: var(--gx-accent-tint); color: var(--gx-accent-ink); box-shadow: inset 0 0 0 1px var(--gx-accent-ink); }
+.gx .gx-guess-teams {
+  display: grid;
+  grid-template-columns: minmax(var(--gx-size-touch), 1fr) max-content minmax(var(--gx-size-touch), 1fr);
+  gap: var(--gx-space-2);
+}
+/* Codes on the favorite chips (full names stay in the matchup and each chip's accessible name). */
+.gx .gx-guess-team {
+  padding: 0 var(--gx-space-2);
+  font: 700 20px/24px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.gx .gx-guess-pickem { padding: 0 var(--gx-space-3); font: 600 16px/20px var(--gx-font-body); }
+.gx .gx-guess-nums { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-guess-head,
+.gx .gx-guess-typed { grid-column: 1 / -1; }
+.gx .gx-guess-head { position: relative; min-width: 0; }
+.gx .gx-guess-label { color: var(--gx-text-2); font: 600 13px/18px var(--gx-font-body); }
+/* The one-line key help shows only while a chip in the row has keyboard focus, out of flow, so it never moves a chip. */
+.gx .gx-guess-keys {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-width: calc(100% - 144px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--gx-text-3);
+  font: 500 13px/18px var(--gx-font-body);
+  visibility: hidden;
+}
+.gx .gx-guess-nums:has(:focus-visible) .gx-guess-keys { visibility: visible; }
+.gx .gx-guess-num { padding: 0 var(--gx-space-1); }
+.gx .gx-guess-more { padding: 0 var(--gx-space-1); box-shadow: none; border: 1px dashed var(--gx-border-strong); color: var(--gx-text-2); }
+.gx .gx-guess-typed { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-guess-input { width: 96px; min-height: var(--gx-size-touch); font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-guess-input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--gx-loss); }
+.gx .gx-guess-call { color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
+.gx .gx-guess-call strong { color: var(--gx-text-1); }
+.gx .gx-guess-fine {
+  display: grid;
+  grid-template-columns: var(--gx-size-touch) minmax(0, 1fr) var(--gx-size-touch);
+  align-items: center;
+  gap: var(--gx-space-2);
+  padding-top: var(--gx-space-3);
+  border-top: 1px solid var(--gx-border);
+}
+.gx .gx-guess-step { box-shadow: inset 0 0 0 1px var(--gx-border-strong); color: var(--gx-text-1); }
+.gx .gx-guess-step:disabled { box-shadow: inset 0 0 0 1px var(--gx-border); color: var(--gx-text-3); }
+.gx .gx-guess-summary {
+  color: var(--gx-text-1);
+  font: 600 24px/28px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 360px) {
+  .gx .gx-guess-nums { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ===== week progress ===== */
+.gx .gx-play-progress { display: grid; gap: var(--gx-space-3); }
+.gx .gx-play-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); flex-wrap: wrap; }
+.gx .gx-play-progress-count .gx-t-body { color: var(--gx-text-2); }
+.gx .gx-play-states { display: flex; gap: 3px; margin: 0; padding: 0; list-style: none; }
+.gx .gx-play-state {
+  display: grid;
+  place-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 40px;
+  height: 24px;
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  color: var(--gx-text-2);
+}
+.gx .gx-play-state--locked { background: var(--gx-accent-tint); box-shadow: inset 0 0 0 1px var(--gx-accent-ink); color: var(--gx-accent-ink); }
+.gx .gx-play-state--draft { background: var(--gx-pending-tint); box-shadow: inset 0 0 0 1px var(--gx-pending); color: var(--gx-pending); }
+.gx .gx-play-state--kicked { background: var(--gx-surface-3); box-shadow: none; color: var(--gx-text-3); }
+.gx .gx-play-state--skipped,
+.gx .gx-play-state--notopen { background: transparent; box-shadow: none; border: 1px dashed var(--gx-border-strong); color: var(--gx-text-3); }
+.gx .gx-play-legend { display: flex; flex-wrap: wrap; gap: var(--gx-space-2) var(--gx-space-4); margin: 0; padding: 0; list-style: none; }
+.gx .gx-play-legend-item { display: inline-flex; align-items: center; gap: var(--gx-space-1); color: var(--gx-text-2); }
+.gx .gx-play-legend-item .gx-n-xs { color: var(--gx-text-1); }
+.gx .gx-play-legend-item--locked .gx-ic { color: var(--gx-accent-ink); }
+.gx .gx-play-legend-item--draft .gx-ic { color: var(--gx-pending); }
+.gx .gx-play-legend-item--kicked .gx-ic,
+.gx .gx-play-legend-item--skipped .gx-ic,
+.gx .gx-play-legend-item--notopen .gx-ic { color: var(--gx-text-3); }
+.gx .gx-play-next { justify-self: start; }
+
+/* ===== the card head: kickoff and the state pill ===== */
+.gx .gx-play-card-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--gx-space-2); }
+
+/* ===== the lock-in moment: the card settles, its edge flashes lime once, the pill stamps in ===== */
+.gx .gx-live-play .gx-play-game,
+.gx .gx-per-game .gx-play-game { position: relative; }
+.gx .gx-play-stamp { animation: gx-play-settle var(--gx-dur-base) var(--gx-ease-pop); }
+.gx .gx-play-stamp::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--gx-glow-accent);
+  opacity: 0;
+  pointer-events: none;
+  animation: gx-play-flash var(--gx-dur-big) var(--gx-ease-standard);
+}
+.gx .gx-play-stamp-pill { animation: gx-play-stamp var(--gx-dur-base) var(--gx-ease-pop) both; }
+@keyframes gx-play-settle {
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
+}
+@keyframes gx-play-flash {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes gx-play-stamp {
+  from { opacity: 0; transform: scale(1.8) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ===== the reveal: other players' guesses rise in, one stagger step apart (capped, so it ends inside "big") ===== */
+.gx .gx-play-reveal { --gx-play-i: 0; padding-top: var(--gx-space-4); border-top: 1px solid var(--gx-border); }
+.gx .gx-play-reveal-head { display: flex; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-play-reveal-end { display: flex; flex-direction: column; align-items: flex-end; gap: var(--gx-space-1); }
+.gx .gx-play-reveal-in {
+  animation: gx-rise-in var(--gx-dur-base) var(--gx-ease-enter) both;
+  animation-delay: calc(var(--gx-play-i) * var(--gx-dur-tap) / 2);
+}
+
+/* ===== quiet states (PlayStates.jsx) ===== */
+.gx .gx-play-state-card { display: grid; gap: var(--gx-space-3); justify-items: start; }
+.gx .gx-play-state-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
+
+/* ===== reduced motion: no movement; the words and states stay ===== */
+@media (prefers-reduced-motion: reduce) {
+  .gx .gx-play-stamp,
+  .gx .gx-play-stamp::after,
+  .gx .gx-play-stamp-pill,
+  .gx .gx-play-reveal-in { animation: none; }
+}
+.gx[data-motion="reduce"] .gx-play-stamp,
+.gx[data-motion="reduce"] .gx-play-stamp::after,
+.gx[data-motion="reduce"] .gx-play-stamp-pill,
+.gx[data-motion="reduce"] .gx-play-reveal-in { animation: none; }

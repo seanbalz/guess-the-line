@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import { pointsApi } from '../../../api.js';
 import { useAppData } from '../../data/AppData.jsx';
 import { useShell } from '../../shell/context.js';
-import { LeagueFailure } from '../../league/useLeagueRead.jsx';
+import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
 import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Sheet } from '../../ui/index.js';
 import { INFO } from '../../info.js';
 import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupText, numberLine, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
@@ -68,10 +68,10 @@ export function PointsBallot() {
 export function PointsBallotView({ app, shell, read, initialSlot = null }) {
   const [open, setOpen] = useState(initialSlot);
   const heading = <div className="gx-play-titlebar"><h1 className="gx-t-title gx-grow">{read.data?.status === 'open' ? `WEEK ${read.data.week} POINTS` : 'Guess the Points'}</h1><InfoButton title={INFO.points.title} body={INFO.points.body} links={INFO.points.links}/></div>;
-  if (read.loading) return <div className="gx-screen gx-vstack gx-gap-16">{heading}<p className="gx-t-body" role="status">Loading Points…</p></div>;
-  if (read.error) return <div className="gx-screen gx-vstack gx-gap-16">{heading}{comingSoon(read.error) ? <PointsComingSoon/> : <LeagueFailure error={read.error} onRetry={read.retry}/>}</div>;
+  if (read.loading) return <div className="gx-screen gx-vstack gx-gap-16">{heading}<PlayLoading>Loading Points…</PlayLoading></div>;
+  if (read.error) return <div className="gx-screen gx-vstack gx-gap-16">{heading}{comingSoon(read.error) ? <PointsComingSoon/> : <PlayFailure what="Points" error={read.error} onRetry={read.retry}/>}</div>;
   const data = read.data;
-  if (data.status !== 'open') return <div className="gx-screen gx-vstack gx-gap-16">{heading}<Card className="gx-vstack gx-gap-12" role="status"><h2 className="gx-t-section">No Points week is open</h2><p className="gx-t-body gx-c-2">A new week opens Tuesdays at 12:00 AM PT.</p></Card></div>;
+  if (data.status !== 'open') return <div className="gx-screen gx-vstack gx-gap-16">{heading}<PlayEmpty>No Points week is open. A new week opens Tuesdays at 12:00 AM PT.</PlayEmpty></div>;
   const selected = data.slots.find(slot => slot.slot === open);
   return <div className="gx-screen gx-vstack gx-gap-16 gx-pt" data-screen="points">
     {heading}

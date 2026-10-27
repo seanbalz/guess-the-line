@@ -3,7 +3,8 @@ import { pickText, show } from '../../communityFormat.js';
 import { buildComparison, comparisonRows } from '../../../../shared/score-comparison.mjs';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
+import { useLeagueRead } from '../league/useLeagueRead.jsx';
+import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
 import { Button, Card, Segmented } from '../ui/index.js';
 import { fmtFull } from '../format.js';
 import { modeOf, SCORE_MARKETS } from './scoring.js';
@@ -16,8 +17,8 @@ export function ScoreComparison() {
   const leagueId = app.league?.community === false ? app.league.id : null;
   const key = `${app.accountId}:comparison:${leagueId ?? 'community'}:${season ?? 'latest'}`;
   const read = useLeagueRead(key, signal => leagueApi('comparison', { ...(season ? { season } : {}), ...(leagueId ? { leagueId } : {}) }, signal), error => { if (error.status === 401) app.requestSignIn(); });
-  if (read.loading) return <p className="gx-t-body" role="status">Loading comparisons…</p>;
-  if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
+  if (read.loading) return <PlayLoading>Loading comparisons…</PlayLoading>;
+  if (read.error) return <PlayFailure what="Comparisons" error={read.error} onRetry={read.retry}/>;
   return <ComparisonContent key={key} data={read.data} currentWeek={season === app.community.data?.week?.season ? app.community.data.week.week : null} scopeName={app.league?.name || 'Community'} view={view}
     onChange={patch => shell.setView('play', patch)} onRefresh={read.retry}/>;
 }
@@ -57,7 +58,7 @@ export function ComparisonContent({ data, currentWeek, scopeName, view, onChange
       <p className="gx-t-meta gx-c-2">Each game has equal weight in the benchmark. Games keep their original competition week, including Monday games. These filters never create an official rank. Tables scroll sideways when needed.</p>
     </Card>
     {from !== null && to !== null && from > to && <p className="gx-t-body" role="alert">Choose a through week at or after the from week.</p>}
-    {!all && !ids.length ? <p className="gx-t-body" role="status">Select at least one other player.</p> : !result.games.length ? <p className="gx-t-body" role="status">No common scored games yet. Try another week or player.</p> : <>
+    {!all && !ids.length ? <PlayEmpty>Select at least one other player.</PlayEmpty> : !result.games.length ? <PlayEmpty>No common scored games yet. Try another week or player.</PlayEmpty> : <>
       <div className="gx-compare-table" role="region" aria-label="Comparison summaries" tabIndex={0}><table><caption className="gx-t-strong">Selected sample · player totals</caption><thead><tr><th scope="col">Player</th><th scope="col">Points</th><th scope="col">Games</th><th scope="col">Points/game</th></tr></thead><tbody>{result.players.map(p => <tr key={p.userId}><th scope="row">{name(p.userId)}</th><td>{show(p.points)}</td><td>{p.games}</td><td>{show(p.average)}</td></tr>)}</tbody></table></div>
       {all && <p className="gx-t-meta gx-c-2">Player sample sizes may differ. Use Choose players for the same games across everyone selected.</p>}
       <Card className="gx-vstack gx-gap-12"><h2 className="gx-t-section">Points per game by week</h2>{result.trend.map(row => <div key={row.week} className="gx-vstack gx-gap-4"><p className="gx-t-body">Week {row.week} · {row.games} common games</p><label className="gx-t-body">You · {show(row.mine)}<meter min="0" max="10" value={row.mine} aria-label={`Week ${row.week}, your average`}/></label><label className="gx-t-body">Benchmark · {show(row.benchmark)}<meter min="0" max="10" value={row.benchmark} aria-label={`Week ${row.week}, benchmark average`}/></label></div>)}</Card>

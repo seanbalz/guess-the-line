@@ -3,7 +3,7 @@
 // board is the same read filtered to that group's roster on the server. Points never adds to Spread or Total.
 import { useId, useState } from 'react';
 import { Avatar, Card, List, Rank, Row } from '../../ui/index.js';
-import { LeagueFailure } from '../../league/useLeagueRead.jsx';
+import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
 import { PointsComingSoon, usePointsRead } from './PointsBallot.jsx';
 import { boardRows, comingSoon, pts } from './pointsModel.js';
 import './points.css';
@@ -14,10 +14,10 @@ export function PointsBoard({ app, groupId = null }) {
 
 export function PointsBoardView({ app, read, initialBeat = false }) {
   const [beat, setBeat] = useState(initialBeat), beatId = useId();
-  if (read.loading) return <p className="gx-t-body gx-c-2" role="status">Loading the Points board…</p>;
-  if (read.error) return comingSoon(read.error) ? <PointsComingSoon/> : <LeagueFailure error={read.error} onRetry={read.retry}/>;
+  if (read.loading) return <PlayLoading>Loading the Points board…</PlayLoading>;
+  if (read.error) return comingSoon(read.error) ? <PointsComingSoon/> : <PlayFailure what="The Points board" error={read.error} onRetry={read.retry}/>;
   const data = read.data;
-  if (data.status !== 'open') return <Card role="status"><p className="gx-t-body">No Points week has opened yet. The board starts with the first lock-in.</p></Card>;
+  if (data.status !== 'open') return <PlayEmpty>No Points week has opened yet. The board starts with the first lock-in.</PlayEmpty>;
   const { members, house } = boardRows(data, app.accountId);
   const status = data.result?.status;
   return <section className="gx-vstack gx-gap-12" aria-label="Points leaderboard">
