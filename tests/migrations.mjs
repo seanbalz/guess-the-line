@@ -59,6 +59,8 @@ export const FIX_FORWARD = [
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
 export const REQUIRES = Object.freeze({
+  // M-21 reads M-13's league_id (gtl_feed_post_visible's group check), so it cannot apply without M-13.
+  20261026131000: [20261026130000],
   // M-22 reads M-13's league_id (its index) and calls M-21's gtl_feed_reactions and gtl_feed_post_visible.
   20261026132000: [20261026130000, 20261026131000],
 });
