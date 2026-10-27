@@ -120,7 +120,17 @@ export const INFO = Object.freeze({
       { text: 'License: CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
     ],
   },
+  history: {
+    title: 'About History',
+    body: [
+      'History keeps every Guess the Line ballot: each guess, the line saved with it, its points and the final score. Nothing a player entered is deleted, moved or hidden.',
+      'Another member’s guesses show game by game once you lock in that game, or at its kickoff. A sat-out week is recorded as sat out, never as zero.',
+      'Your drafts and your changes are yours alone. A change to a draft shows here once that game is locked in or kicks off.',
+      'A ballot whose original submission time was not recorded is compared at the time it stores, and says so.',
+      'Bets weeks list everyone’s Virtual Units picks. A friend’s line and price show once that game’s market is open to you.',
+    ],
+  },
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history']);

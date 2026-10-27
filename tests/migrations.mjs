@@ -40,6 +40,7 @@ export const NOT_HOSTED = [
   20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
   20261026132000, // M-22 gtl_league_feed (redesign stage 62): written, awaiting Sean's "apply M-22" (after M-13 and M-21)
   20261026133000, // M-23 gtl_kickoff_posts (redesign stage 63): written, awaiting Sean's "apply M-23" (after M-13, M-21, M-22)
+  20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
