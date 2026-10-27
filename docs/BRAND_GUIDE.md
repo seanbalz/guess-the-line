@@ -262,6 +262,11 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   button that shows its record and units, and a table with hit-rate bars follows.
   Stem lengths stay proportional; exact zero uses a hollow baseline marker.
   A visible 0 U key names break-even, and missing units have no mark.
+- **Unit scales:** line and season views show the plotted range beside the
+  chart, including zero. Read the range when comparing independently scaled
+  charts. Small nonzero bounds retain their sign; all-zero evidence says
+  break-even, while absent unit evidence says unavailable. The scale also
+  describes the chart to assistive technology.
 - **Research evidence:** date buttons in the historical table select matching
   cumulative endpoints; scrubbing selects the matching period row. The initial
   zero baseline has no period row. Keep period records distinct from cumulative

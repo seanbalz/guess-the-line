@@ -186,7 +186,7 @@ records Pages `84cba88f-4d58-4fdf-9c38-4faf9380867f` from
 PR #253. It supersedes the earlier Pages `4a03e6cd` checkpoint; API v38 was
 unchanged. This is release-lane evidence, not a hosted audit repeated by this
 task. Signed-in readback and real-phone acceptance remain unverified. PRs #258,
-#259, #261, #262, #263 and the movement-selection follow-up require a later release.
+#259, #261, #262, #263, #265 and the unit-scale follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -272,7 +272,7 @@ inspected. Source is in [PR #263](https://github.com/seanbalz/guess-the-lines-re
 on `codex/research-evidence-selection`. PR #263 merged October 27 as `6f427fb8ba00e1dc7b751a9aacb730ea4bc0f0e2` after all nine checks passed on `25b0dc5824a4050d6bea142262aabc2b2f70ebaf`, with no CI fixes or review findings.
 Release/readback and device acceptance remain open.
 
-The next [recorded-movement selection batch](RESEARCH_MOVEMENT_SELECTION_2026_10_27.md)
+The [recorded-movement selection batch](RESEARCH_MOVEMENT_SELECTION_2026_10_27.md)
 links game-sheet timestamps to their chart observations, preserving missing
 rows, duplicate times, keyboard focus and the locked-market boundary. The
 focused browser regression, 57 component checks, 30 geometry/token/brand checks,
@@ -282,7 +282,17 @@ before and passed after the shell was repaired to preserve the requested game’
 focus. All 85 final integrated browser cases passed, including shell/navigation
 and per-game scoring. Four 320px ordinary/forced-color screenshots were inspected.
 Source is in [PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265)
-on `codex/market-movement-selection`. CI/merge, release/readback and physical-device acceptance remain open.
+on `codex/market-movement-selection`. PR #265 merged October 27 as `63dbdaa3b5ebc39b89841f153f1f82682fc11689` after all nine checks passed on `0c0f2cd5fc3e7d36c1fe02a7767421c14693ece3`, with no CI code fixes or review findings.
+Release/readback and physical-device acceptance remain open.
+
+The next [visible unit-scale batch](RESEARCH_CHART_SCALES_2026_10_27.md)
+adds the plotted unit bounds to line and season charts. Zero and missing evidence
+stay distinct; each image references its own accessible scale. All 59 component,
+31 geometry/token/brand tests and typecheck passed. Browser coverage includes
+59 passing integrated cases and all 12 Research cases after correcting a scale
+expectation to match the plotted fixture value. Eight 320px Light/Dark and
+forced-color screenshots were inspected; Brand QA and fixture build/privacy
+checks passed. CI/merge, release/readback and phone acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

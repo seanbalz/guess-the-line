@@ -35,6 +35,6 @@ Four 320px Light/Dark and forced-color movement screenshots were inspected.
 All 85 final integrated browser cases passed across Research, Lines, Trends,
 League bets, shell/navigation and per-game scoring. Source is in
 [PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265) on
-`codex/market-movement-selection`; CI/merge, hosted release/readback and physical
-phone acceptance are separate open checkpoints. No deployment, migration apply
+`codex/market-movement-selection`. PR #265 merged October 27 as `63dbdaa3b5ebc39b89841f153f1f82682fc11689` after all nine checks passed on `0c0f2cd5fc3e7d36c1fe02a7767421c14693ece3`, with no CI code fixes or review findings.
+Hosted release/readback and physical-phone acceptance remain open. No deployment, migration apply
 or frozen v62 tracker changes are included.

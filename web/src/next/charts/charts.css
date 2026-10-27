@@ -105,6 +105,8 @@
 .gx-tc-tip-sizing { display: grid; visibility: hidden; }
 .gx-tc-tip-value, .gx-tc-tip-measure-value { font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 .gx-tc-tip-label, .gx-tc-tip-measure-label { font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-hero-text-2); }
+.gx-tc-scale { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-1) var(--gx-space-2); margin: 0; color: var(--gx-hero-text-2); font: 500 13px/18px var(--gx-font-body); }
+.gx-tc-scale-values { font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; min-width: 0; }
 
 /* ----- line ----- */
 .gx-tc-plot { position: relative; touch-action: pan-y; cursor: crosshair; }
