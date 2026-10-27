@@ -9,6 +9,7 @@ import { YourPickSheet } from '../lines/YourPickSheet.jsx';
 import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
 import { ResearchSheet } from '../research/ResearchSheet.jsx';
 import { Play } from '../play/Play.jsx';
+import { ForfeitDialog } from '../play/ForfeitDialog.jsx';
 import { Bets } from '../bets/Bets.jsx';
 import { GameBetsSheet } from '../bets/GameBetsSheet.jsx';
 import { Research } from '../research/Research.jsx';
@@ -30,6 +31,7 @@ export const SCREENS = Object.freeze({
 
 /** Each layer id's component, with its owner (CONTRACT section 9). */
 export const LAYERS = Object.freeze({
+  'dlg.forfeit': ForfeitDialog, // stages 31/33: one confirmed whole-week reveal through M-03
   'sh.menu': MenuSheet, // me
   'sh.switcher': SwitcherSheet, // league (stage 11)
   'sh.yourPick': YourPickSheet, // stage 31: persisted owner reference and gated game guesses

@@ -52,9 +52,9 @@ establish hosted or real-phone acceptance. CI/merge and release remain separate.
 
 This supplies stage 34's League bets destination through the existing M-10
 reader. Bet placement and Challenge slots still depend on their own approved
-stages (44 and 54). Stage 31's direct reveal/sit-out confirmation, stage 33's
-direct confirmation and remaining live-status evidence, hosted readback and
-physical-iPhone acceptance remain open. The task register and platform queue
+stages (44 and 54). The later [Research reveal batch](RESEARCH_REVEAL_2026_10_27.md)
+supplies direct confirmation with its own checkpoints. Remaining live-status
+evidence, hosted readback and physical-iPhone acceptance stay open. The task register and platform queue
 keep those checkpoints separate from source implementation.
 
 No API/schema, scoring, data-collection, production deployment, migration apply

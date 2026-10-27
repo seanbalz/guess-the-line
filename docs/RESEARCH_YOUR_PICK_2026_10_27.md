@@ -44,10 +44,11 @@ acceptance.
 
 ## Remaining work
 
-This supplies stage 31's dedicated Your pick destination. Direct See picks now
-and sit-out confirmation from Research remain open; the existing confirmed Play
-flow remains available. Stage 33's direct confirmation/live-status work and
-stage 34's Bet/Challenge slots also remain open. League bets is implemented in
+This supplies stage 31's dedicated Your pick destination. The later
+[Research reveal batch](RESEARCH_REVEAL_2026_10_27.md) supplies direct See picks now
+confirmation, with its own CI/merge and release checkpoints. The existing Play
+flow remains available. Verified live-game status and stage 34's Bet/Challenge
+slots remain open. League bets is implemented in
 the separate [follow-up batch](RESEARCH_GAME_BETS_2026_10_27.md), with its own
 CI/merge and release checkpoints.
 

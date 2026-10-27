@@ -7,6 +7,7 @@ import { Button, CardButton, GateBanner, Icon, InfoButton, Pill, Tag, TeamMark }
 import { useLinesData } from './linesData.js';
 import { useWind } from './trendsHooks.js';
 import { INFO } from '../info.js';
+import { forfeitView } from '../play/forfeit.js';
 import './lines.css';
 import { useBoardLines } from './useGameLines.js';
 import { boardGate, marketBoard } from './boardMarkets.js';
@@ -87,7 +88,8 @@ export function LinesBoard({ trendsOnly = false }) {
   const savedBoard = useMemo(() => (personal.data ? linesBoard({ personal: markets.status === 'ready' ? { ...personal.data, now: new Date(markets.now).toISOString() } : personal.data, community, trends: trendsWeek, wind: wind.wind, windNow: wind.now }) : null),
     [personal.data, community, trendsWeek, wind.wind, wind.now, markets.status, markets.now]);
   const board = savedBoard && !trendsOnly ? marketBoard(savedBoard, markets) : savedBoard;
-  const gate = boardGate(markets);
+  const revealScope = { accountId: app.accountId, season: shown?.season, week: shown?.week };
+  const gate = boardGate(markets, forfeitView(community, revealScope)?.canConfirm === true);
   const enter = () => shell.go('play', { section: 'picks', market: gate.market, season: shown.season, week: shown.week });
   const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', { game: gameId });
   const head = (
@@ -125,7 +127,7 @@ export function LinesBoard({ trendsOnly = false }) {
       {!trendsOnly && <>
         {markets.status === 'loading' ? <p className="gx-t-body" role="status">Loading market lines…</p>
           : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines are unavailable. Your saved guesses are kept.</p> : null}
-        <GateBanner gate={gate} onCta={enter} onSkip={enter} note="Sitting out requires confirmation in Play. Locked guesses count; drafts are kept."/>
+        <GateBanner gate={gate} onCta={enter} onSkip={() => shell.openDialog('dlg.forfeit', revealScope)} note="See picks now requires a final sit-out confirmation. Locked guesses count; drafts are kept."/>
         <Button variant="ghost" onClick={markets.reload}>{markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}</Button>
       </>}
       {trendsOnly ? <><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>

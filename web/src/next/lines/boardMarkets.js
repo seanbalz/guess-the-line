@@ -33,13 +33,13 @@ export function marketBoard(board, read) {
     started: board.started ? { ...board.started, cards: board.started.cards.map(decorate) } : null };
 }
 
-/** One gate per board; the existing Play flow owns lock-in and sit-out confirmations. */
-export function boardGate(read) {
+/** One gate per board; the M-03 reader controls whether a reveal confirmation is offered. */
+export function boardGate(read, canReveal = false) {
   if (read.status !== 'ready') return null;
   const closed = ['spread', 'total'].filter(market => read.data.games.some(game => game[market]?.visible !== true));
   if (!closed.length) return null;
   const names = closed.map(market => market === 'spread' ? 'Spread' : 'Total');
   return { market: closed[0], locked: true,
     sentence: `Some ${names.join(' and ')} lines are locked. Lock in a guess or wait for kickoff.`,
-    ctaLabel: `Finish ${names[0]} picks`, canSkip: true, skipLabel: 'Review sit-out in Play' };
+    ctaLabel: `Finish ${names[0]} picks`, canSkip: canReveal, skipLabel: 'See picks now' };
 }

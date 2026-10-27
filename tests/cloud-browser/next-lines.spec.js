@@ -797,7 +797,8 @@ test('the market board shows latest quotes separately from saved receipts and se
     await expect(sheet(page, 'SEA @ DEN')).toContainText('Line at your guess 43.5');
     await page.keyboard.press('Escape');
     const calls = apiCalls(page);
-    await page.getByRole('button', { name: 'Review sit-out in Play', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'See picks now', exact: true })).toHaveCount(0); // M-03 is absent in this fixture.
+    await page.getByRole('button', { name: 'Finish Spread picks', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Your guesses', exact: true })).toBeVisible();
     expect(calls.some(call => /opt-out|forfeit|ballot/.test(call))).toBe(false);
     expect(world.errors).toEqual([]);
@@ -1245,4 +1246,134 @@ test('League bets discards another account’s delayed own-pick terms', async ({
     await expect(bets.locator(`[data-pick="${ACCOUNTS.troy.id}:spread"]`)).toHaveAttribute('data-open', 'false');
     expect(world.errors).toEqual([]);
   } finally { release(); await world.db.close(); }
+});
+
+const revealDialog = page => page.getByRole('alertdialog', { name: 'See picks now for Week 6?', exact: true });
+const forfeitRoute = url => url.origin === SUPABASE && url.pathname.endsWith('/community/forfeit');
+
+test('Research reveal warns before writing, keeps locked scores and drafts, then opens remaining guesses', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  const calls = apiCalls(page);
+  try {
+    const initial = (await world.api('luke', 'personal')).body;
+    expect((await world.api('luke', 'personal/ballot', { season: 2026, week: 6, mode: 'guess_spread', picks: LUKE_SPREAD_DRAFT, lockIn: ['SEA-DEN'], submit: false,
+      revision: initial.revision, weeklyRevision: initial.weeklyRevision, requestId: randomUUID() })).status).toBe(200);
+    const before = (await world.api('luke', 'personal')).body;
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const game = sheet(page, 'HOU @ JAX'); await game.getByRole('button', { name: /Everyone’s guesses/ }).click();
+    await game.getByRole('button', { name: 'See picks now', exact: true }).click();
+    const dialog = revealDialog(page);
+    await expect(dialog).toContainText('not just this game'); await expect(dialog).toContainText('Spread: remaining guesses will be sat out · 1 of 4 locked in');
+    await expect(dialog).toContainText('Total: fully locked in; keeps counting');
+    expect(calls.filter(call => call === 'POST /community/forfeit')).toHaveLength(0);
+    await dialog.getByRole('button', { name: 'Keep playing', exact: true }).click();
+    await expect(game.getByRole('button', { name: 'See picks now', exact: true })).toBeFocused();
+    await game.getByRole('button', { name: 'See picks now', exact: true }).click();
+    await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toBeVisible();
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme); await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]); await page.screenshot({ path: testInfo.outputPath(`reveal-${theme}.png`) });
+    }
+    await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
+    const done = page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed', exact: true }); await expect(done).toBeVisible();
+    await done.getByRole('button', { name: 'Back to Research', exact: true }).click();
+    await expect(game.getByRole('button', { name: 'See picks now', exact: true })).toHaveCount(0);
+    await expect(game.getByRole('list', { name: 'Community Spread guesses' })).not.toContainText('Guess hidden');
+    const after = (await world.api('luke', 'personal')).body;
+    expect(after.ballots.guess_spread.picks).toEqual(before.ballots.guess_spread.picks);
+    expect(after.scoring.guess_spread.games.find(row => row.gameId === 'SEA-DEN')).toEqual(before.scoring.guess_spread.games.find(row => row.gameId === 'SEA-DEN'));
+    expect(after.scoring.guess_total).toEqual(before.scoring.guess_total);
+    expect(calls.filter(call => call === 'POST /community/forfeit')).toHaveLength(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('Research reveal checks a lost write reply without automatically repeating it', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  let writes = 0;
+  await page.route(forfeitRoute, async route => {
+    writes += 1; const request = route.request();
+    const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+    expect(response.status).toBe(200);
+    await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture lost reply' }) });
+  });
+  try {
+    await openLines(page); await page.getByRole('button', { name: 'See picks now', exact: true }).click();
+    const dialog = revealDialog(page); await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
+    await expect(dialog).toContainText('Your sit-out is unconfirmed'); expect(writes).toBe(1);
+    await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toHaveCount(0);
+    await dialog.getByRole('button', { name: 'Check sit-out status', exact: true }).click();
+    await expect(page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed', exact: true })).toBeVisible(); expect(writes).toBe(1);
+    expect((await world.db.query('select count(*)::int n from public.gtl_week_forfeits where user_id=$1', [ACCOUNTS.luke.id])).rows[0].n).toBe(1);
+    expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.next.forfeit.')))).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('Research reveal refuses mismatched fresh status and allows an explicit retry only after checking', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  let wrong = false, writes = 0, failWrite = true;
+  await page.route(forfeitRoute, async route => { writes += 1; if (failWrite) return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }); await route.fallback(); });
+  try {
+    await openLines(page);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/read'), async route => {
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const data = await response.json(); if (wrong) data.forfeit.week += 1;
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(data) });
+    });
+    wrong = true; await page.getByRole('button', { name: 'See picks now', exact: true }).click();
+    const dialog = revealDialog(page); await expect(dialog).toContainText('reveal status is unavailable');
+    await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toHaveCount(0); expect(writes).toBe(0);
+    wrong = false; await dialog.getByRole('button', { name: 'Check sit-out status', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
+    await expect(dialog).toContainText('Your sit-out is unconfirmed'); expect(writes).toBe(1);
+    await dialog.getByRole('button', { name: 'Check sit-out status', exact: true }).click();
+    await expect(dialog).toContainText('No saved forfeit was found'); expect(writes).toBe(1);
+    failWrite = false; await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
+    await expect(page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed', exact: true })).toBeVisible(); expect(writes).toBe(2);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('Research reveal removes confirmation at the server deadline and stops reading after cancel', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  let reads = 0;
+  try {
+    await openLines(page); await page.clock.install();
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/read'), async route => {
+      reads += 1; const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const data = await response.json(); data.forfeit.closesAt = new Date(Date.parse(data.picksDue.now) + 5000).toISOString();
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(data) });
+    });
+    const calls = apiCalls(page); await page.getByRole('button', { name: 'See picks now', exact: true }).click();
+    const dialog = revealDialog(page); await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toBeVisible();
+    await page.clock.runFor(6000); await expect(dialog).toContainText('The last kickoff passed');
+    await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toHaveCount(0);
+    expect(calls.filter(call => call === 'POST /community/forfeit')).toEqual([]);
+    await dialog.getByRole('button', { name: 'Keep playing', exact: true }).click();
+    await expect(dialog).not.toBeVisible(); const before = reads;
+    await page.evaluate(() => window.dispatchEvent(new Event('focus'))); await page.clock.runFor(100);
+    // Shared app data may refresh independently; a closed dialog must not add a second community read.
+    expect(reads - before).toBeLessThanOrEqual(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('Research reveal restores an uncertain attempt on reopen and checks before any retry', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  let writes = 0;
+  await page.route(forfeitRoute, route => { writes += 1; return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }); });
+  try {
+    await openLines(page); await page.getByRole('button', { name: 'See picks now', exact: true }).click();
+    const dialog = revealDialog(page); await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
+    await expect(dialog).toContainText('Your sit-out is unconfirmed');
+    page.once('dialog', prompt => prompt.accept()); await dialog.getByRole('button', { name: 'Keep playing', exact: true }).click();
+    await expect(dialog).not.toBeVisible();
+    await page.getByRole('button', { name: 'See picks now', exact: true }).click();
+    await expect(dialog).toContainText('No saved forfeit was found in the latest check'); expect(writes).toBe(1);
+    expect((await world.db.query('select count(*)::int n from public.gtl_week_forfeits where user_id=$1', [ACCOUNTS.luke.id])).rows[0].n).toBe(0);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
 });
