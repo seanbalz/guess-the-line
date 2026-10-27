@@ -1566,3 +1566,65 @@ test('recent trend tiles distinguish grouped wins losses and pushes in both char
     expect(replaced).toBeGreaterThan(0); expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+test('season stems mark break-even without inflating small gains or losses', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let replaced = 0;
+  try {
+    // Synthetic chart geometry only; these sample unit values are not historical results.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/trends/week'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      const replace = value => {
+        if (!value || typeof value !== 'object') return;
+        if (Array.isArray(value.perSeason)) {
+          value.perSeason = [[2018,21,11,10,0,0],[2019,3,2,1,0,0.1],[2020,3,1,2,0,-0.1],[2021,100,80,20,0,100]];
+          value.seasonsPos = 2; value.seasonsBet = 4; replaced++;
+        }
+        Object.values(value).forEach(replace);
+      };
+      replace(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width: 320, height: 844 });
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme });
+        await trend.getByRole('button', { name: 'By season', exact: true }).click();
+        await expect(trend.getByText('0 U · break-even', { exact: true })).toBeVisible();
+        await expect(trend.locator('.gx-tc-stem--zero')).toHaveCount(1);
+        await expect(trend.locator('.gx-tc-stem--up')).toHaveCount(2);
+        await expect(trend.locator('.gx-tc-stem--down')).toHaveCount(1);
+        await trend.getByRole('button', { name: 'Show 2018 season on chart', exact: true }).click();
+        const slider = trend.getByRole('slider'), marker = trend.locator('.gx-tc-stem--zero');
+        await expect(slider).toHaveAttribute('aria-valuetext', '2018: 11–10, 0.0 units, at break-even');
+        const geo = await trend.evaluate(el => {
+          const marker = el.querySelector('.gx-tc-stem--zero'), box = marker.getBoundingClientRect();
+          const baseline = el.querySelector('.gx-tc-stems-zero').getBoundingClientRect();
+          const bars = [...el.querySelectorAll('.gx-tc-stem:not(.gx-tc-stem--zero)')];
+          return { center: box.y + box.height / 2, baseline: baseline.y, heights: bars.map(b => parseFloat(b.style.height)), fill: getComputedStyle(marker).backgroundColor, border: getComputedStyle(marker).borderTopColor };
+        });
+        expect(Math.abs(geo.center - geo.baseline)).toBeLessThan(1);
+        expect(geo.heights[0] / geo.heights[2]).toBeCloseTo(0.001, 8);
+        expect(geo.heights[1] / geo.heights[2]).toBeCloseTo(0.001, 8);
+        expect(geo.fill).not.toBe(geo.border);
+        await slider.focus(); await page.keyboard.press('ArrowRight');
+        await expect(slider).toHaveAttribute('aria-valuetext', /2019:.*\+0.1 units, above break-even/);
+        await page.keyboard.press('Home');
+        await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+        await trend.getByRole('button', { name: 'By season', exact: true }).click();
+        await expect(slider).toHaveValue('0');
+        await expect(marker).toHaveClass(/gx-tc-stem--on/);
+        await trend.locator('.gx-tc-seasons').evaluate(el => el.scrollIntoView({ block: 'center' }));
+        await page.screenshot({ path: testInfo.outputPath(`season-zero-${theme}-${forcedColors}.png`) });
+        await phoneChecks(page); expect(await axe(page)).toEqual([]);
+        await noLeak(page, world, 'season baseline markers');
+      }
+    }
+    expect(replaced).toBeGreaterThan(0); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});

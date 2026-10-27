@@ -30,5 +30,6 @@ cases passed after combining current main and the repaired PR #258. Two focused
 combined-chart cases also passed. Source is in [PR #259](https://github.com/seanbalz/guess-the-lines-repo/pull/259)
 on `codex/research-recent-records`.
 
-CI/merge, hosted release/readback and physical-iPhone acceptance remain separate.
+PR #259 merged October 27 as `ba9c043e156229e10b97b4edf0851a7fa5833408` after all nine checks passed on `80aa7f1eb4835aee593548fdfa5223e21ad62952`, with no CI fixes or review findings.
+Hosted release/readback and physical-iPhone acceptance remain open.
 This task does not deploy or apply migrations; the frozen v62 tracker is intact.

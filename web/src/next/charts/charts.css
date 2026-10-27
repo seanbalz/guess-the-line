@@ -139,6 +139,8 @@
 .gx-tc-scrub:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 
 /* ----- season stems ----- */
+.gx-tc-baseline-key { display: flex; align-items: center; gap: var(--gx-space-2); color: var(--gx-hero-text-2); font: 500 13px/18px var(--gx-font-body); }
+.gx-tc-baseline-key > span { width: 16px; border-top: 1px solid var(--gx-chart-line); }
 .gx-tc-stems { position: relative; display: flex; gap: 2px; height: 132px; touch-action: pan-y; cursor: crosshair; }
 .gx-tc-stems-zero { position: absolute; left: 0; right: 0; height: 1px; background: var(--gx-chart-line); opacity: 0.55; pointer-events: none; }
 .gx-tc-col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; border-radius: var(--gx-radius-sm); pointer-events: none; }
@@ -147,6 +149,8 @@
 .gx-tc-stem--up { background-image: linear-gradient(180deg, var(--gx-bar-1), var(--gx-bar-2)); }
 .gx-tc-stem--down { background-color: var(--gx-loss); }
 .gx-tc-stem--on { width: 14px; box-shadow: 0 0 0 2px var(--gx-chart-line); }
+.gx-tc-stem--zero { width: 10px; height: 10px; border: 2px solid var(--gx-chart-line); background: var(--gx-hero-base); translate: -50% -50%; }
+.gx-tc-stem--zero.gx-tc-stem--on { width: 12px; height: 12px; }
 .gx-tc-years { display: flex; gap: 2px; margin-top: 6px; }
 .gx-tc-years > span { flex: 1 1 0; text-align: center; font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-hero-text-2); }
 
@@ -229,6 +233,8 @@
   .gx-tc-col--on { outline: 1px dashed CanvasText; outline-offset: -1px; }
   .gx-tc-bar { forced-color-adjust: none; background: Canvas; border: 1px solid CanvasText; }
   .gx-tc-bar-fill { forced-color-adjust: none; background: CanvasText; }
+  .gx-tc-stem--zero { background: Canvas; border-color: CanvasText; }
+  .gx-tc-baseline-key > span { border-color: CanvasText; }
   .gx-tc-bar-tick { forced-color-adjust: none; background: Highlight; }
   .gx-tc-block { forced-color-adjust: none; background: Canvas; border: 1px solid CanvasText; }
   .gx-tc-block--on { background: CanvasText; }

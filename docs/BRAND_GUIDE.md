@@ -258,6 +258,8 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   claims more than the data: binned points say "after about N games".
 - **Seasons:** one stem per season from the break-even line. Each stem is a
   button that shows its record and units, and a table with hit-rate bars follows.
+  Stem lengths stay proportional; exact zero uses a hollow baseline marker.
+  A visible 0 U key names break-even, and missing units have no mark.
 - **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
   10 as blocks, and games or units. Every bar carries its number in words.
 

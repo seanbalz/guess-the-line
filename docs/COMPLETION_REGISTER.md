@@ -232,15 +232,23 @@ Six 320px screenshots were inspected; narrow evidence tables keep whole headings
 inside their scroll container. PR #258 merged October 27 as `e4c0c07ecf3d75bb68f87789cd7c1ea4e8bb1484` after all nine checks passed on repaired head `b0874306f81477f79dae38240d8238d929fe2406`. The CI brand-mark failure was fixed with an explicit initials-avatar class; no review findings remained.
 Hosted release and device acceptance remain open.
 
-The next [recent-result tile batch](RESEARCH_RECENT_RECORDS_2026_10_27.md)
+The [recent-result tile batch](RESEARCH_RECENT_RECORDS_2026_10_27.md)
 shows actual sample sizes and all three W–L–P counts, with pushes distinct from
 losses and an explicit grouped-count label. Source is in [PR #259](https://github.com/seanbalz/guess-the-lines-repo/pull/259)
 on `codex/research-recent-records`; 55 integrated browser cases on current main plus
 repaired #258, two focused combined-chart
 cases, 48 component and 20 model/token tests passed. Four 320px Light/Dark and
 forced-color screenshots were inspected. Typecheck, Brand QA and build/privacy
-checks passed. CI/merge, hosted
-release and device acceptance remain open.
+checks passed. PR #259 merged October 27 as `ba9c043e156229e10b97b4edf0851a7fa5833408` after all nine checks passed on `80aa7f1eb4835aee593548fdfa5223e21ad62952`, with no CI fixes or review findings.
+Hosted release and device acceptance remain open.
+
+The next [season-baseline batch](RESEARCH_SEASON_BASELINE_2026_10_27.md)
+removes the minimum positive stub for zero and small values, uses a hollow
+break-even marker and keeps missing units unplotted. Source is in [PR #261](https://github.com/seanbalz/guess-the-lines-repo/pull/261)
+on `codex/season-zero-markers`; all 56 integrated browser cases, focused browser,
+49 component and 26 geometry/token/brand-mark tests passed, along with typecheck,
+Brand QA and build/privacy checks. Four 320px ordinary/forced-color screenshots
+were inspected. CI/merge, release and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
