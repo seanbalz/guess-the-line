@@ -242,6 +242,14 @@ forced-color screenshots were inspected. Typecheck, Brand QA and build/privacy
 checks passed. CI/merge, hosted
 release and device acceptance remain open.
 
+The next [season-baseline batch](RESEARCH_SEASON_BASELINE_2026_10_27.md)
+removes the minimum positive stub for zero and small values, uses a hollow
+break-even marker and keeps missing units unplotted. Source is on
+`codex/season-zero-markers`; all 56 integrated browser cases, focused browser,
+49 component and 26 geometry/token/brand-mark tests passed, along with typecheck,
+Brand QA and build/privacy checks. Four 320px ordinary/forced-color screenshots
+were inspected. CI/merge, release and device acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.
