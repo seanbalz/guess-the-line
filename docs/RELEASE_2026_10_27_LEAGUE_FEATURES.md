@@ -28,10 +28,33 @@ gate. Then ask me before the schedule setup."
   and with an invalid one. This record's PR adds it to `workerChecks` (`scripts/boundary/league.mjs`): 376 probes, all
   denied, from this PC at 18:04 UTC.
 
-## Not done
+## Schedule setup (18:08–18:12 UTC)
 
-- The schedule setup (`supabase/admin/league_features_cron.sql`: the disabled schedule row, the disabled-dispatch check,
-  then on Sean's word the enable, one verified run and the 15-minute cron). No features run has been recorded yet.
+Sean's instruction: "In the SQL editor in my signed-in Chrome: add the schedule row disabled and check the disabled
+dispatch, then enable it and run one dispatch and verify it (runs row, feature run, badges, awards, the recap post,
+function logs), then register the 15-minute cron." Each step ran in the SQL editor (role `postgres`) and was read back
+through the read-only connection.
+
+1. **Disabled row:** `supabase/admin/league_features_cron.sql`'s insert added `league-features`, `enabled` false, endpoint
+   `https://onmrgvcehkflfaizvedl.supabase.co/functions/v1/gtl-league-features`, the week-open schedule's authorizing
+   commissioner, season 2026. `gtl_dispatch_league_features()` answered `{"status":"disabled"}`; no run row, no HTTP call.
+2. **One verified run:** enabled, then one dispatch: `{"runId":"4575e098-2361-481b-93e7-a4e59edd3b78","status":"queued"}`
+   at 18:10:37.
+   - `gtl_features_schedule_runs`: `succeeded` (slot 18:00), claimed 18:10:38, finished 18:10:39.
+   - `gtl_feature_runs`: trigger `schedule`, season 2026; summary 58 earned, 18 awards, 10 streaks, 1 post, 0 skipped,
+     0 removed, no replay.
+   - Rows: 58 `gtl_badge_events`, 18 `gtl_weekly_awards`, 10 `gtl_player_streaks`.
+   - Feed: one `weekly_recap` post for Week 7, Community scope (no league). No `badge_earned` post (a first run's
+     backfill is never posted).
+   - Logs: `POST /functions/v1/gtl-league-features` 200 in 1,946 ms; booted in 26 ms; no error line.
+   - Score hash (25 ballots, `41fa6ae2003cd33f7e7e14bbb3f136f2`) and the 110 posts made by 15:20 UTC unchanged.
+3. **Cron:** `gtl-league-features-every-15-minutes` (job 16), `*/15 * * * *`, was registered at 18:12 and removed at 18:13
+   (`cron.unschedule` returned true) on Sean's "i dont need that job running every 15 minutes", before its first run.
+   No features cron exists; the schedule row stays enabled, so a cron at another cadence (or a manual dispatch) is all a
+   run needs. The only run so far is the verified one above.
+
+Rollback: `update public.gtl_features_schedule set enabled=false where id='league-features'` (every run, badge and award
+stays, D-23); `select cron.unschedule('gtl-league-features-every-15-minutes')` stops the dispatches.
 
 ## Probe timeouts
 
@@ -42,5 +65,4 @@ does not reach the API; single `curl` calls never stall. Not resolved here.
 
 ## Rollback
 
-The worker does nothing until its schedule row is enabled. To remove it from service, leave the schedule disabled; a
-redeploy of an earlier source is not needed.
+Disable the schedule row (above) to take the worker out of service; a redeploy of an earlier source is not needed.
