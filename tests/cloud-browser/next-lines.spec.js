@@ -596,6 +596,9 @@ test('season table selection stays in sync with the chart and survives view swit
   try {
     await openLines(page); await card(page, 'HOU-JAX').click();
     const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const lineScrub = trend.getByRole('slider', { name: 'Move along the line' });
+    await lineScrub.focus(); await page.keyboard.press('Home'); await page.keyboard.press('ArrowRight');
+    const lineTip = await lineScrub.getAttribute('aria-valuetext');
     await trend.getByRole('button', { name: 'By season', exact: true }).click();
     const season = year => trend.getByRole('button', { name: `Show ${year} season on chart`, exact: true });
     const scrub = trend.getByRole('slider', { name: 'Move across the seasons' });
@@ -611,6 +614,9 @@ test('season table selection stays in sync with the chart and survives view swit
     const chartId = await season(2024).getAttribute('aria-controls');
     expect(await trend.locator('.gx-tc-seasons').getAttribute('id')).toBe(chartId);
     await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+    await expect(lineScrub).toHaveValue('1');
+    await expect(lineScrub).toHaveAttribute('aria-valuetext', lineTip);
+    await expect(trend.getByRole('button', { name: 'Since 2002', exact: true })).toBeFocused();
     await trend.getByRole('button', { name: 'By season', exact: true }).click();
     await expect(season(2024)).toHaveAttribute('aria-pressed', 'true');
     await expect(scrub).toHaveValue('6');
@@ -631,6 +637,22 @@ test('season table selection stays in sync with the chart and survives view swit
       await table.scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`selected-season-${theme}.png`) });
     }
+    await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+    await expect(lineScrub).toHaveValue('1');
+    const plot = trend.locator('.gx-tc-plot');
+    await plot.scrollIntoViewIfNeeded();
+    const box = await plot.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down(); await page.mouse.move(box.x, box.y + box.height / 2); await page.mouse.up();
+    await expect(lineScrub).toHaveValue('0');
+    await trend.getByRole('button', { name: 'By season', exact: true }).click();
+    await expect(season(2024)).toHaveAttribute('aria-pressed', 'true');
+    await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+    await expect(lineScrub).toHaveValue('0');
+    await expect(trend.getByRole('slider')).toHaveCount(1); // The hidden view adds no extra controls.
+    await sheet(page, 'HOU @ JAX').getByRole('button', { name: 'Close', exact: true }).click();
+    await card(page, 'HOU-JAX').click();
+    await expect(lineScrub).toHaveValue(await lineScrub.getAttribute('max')); // A newly opened detail starts fresh.
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

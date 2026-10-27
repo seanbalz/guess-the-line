@@ -178,4 +178,34 @@ and Light/Dark accessibility. Both themes' chart and table screenshots were
 inspected. Typecheck, Brand QA, the fixture build and bundle privacy scan passed.
 All 50 integrated Research, Lines, Trends and League-bets browser tests also
 passed. [PR #248](https://github.com/seanbalz/guess-the-lines-repo/pull/248) carries this source batch.
-CI/merge, hosted release and physical-iPhone acceptance remain separate.
+PR #248 merged October 27 as `bc5a06cb74252c8da7af6c87a4531878b7ea67fe` after all nine
+checks passed on `459e24f3680a3ee0fb0792ba5905dfe7d7d397ee`, with no CI fixes or review
+findings. Hosted release/readback and physical-iPhone acceptance remain open.
+
+## Retained line selection — October 27
+
+The approved D-55 line/season comparison now retains both selections while the
+same detail stays open. Previously, selecting line point 1, opening “By season”
+and returning to “Since 2002” moved the crosshair to the final point (47 in the
+regression fixture). The selected point, tooltip and keyboard announcement now
+return together. The season table and stem selection remain independent.
+
+Selection belongs to the current evidence: changed values, dates, labels or trend
+identity reset the line to its latest point. Equivalent rerenders preserve it.
+Closing and reopening the detail starts fresh. Selection stays in component state;
+there is no saved account preference or additional request. Only the visible view
+mounts a slider. The existing line geometry, evidence, tokens and market gates
+remain unchanged.
+
+The browser regression failed before the correction and passed after it. Focused
+checks cover keyboard and pointer selection, zero-index selection, repeated view
+switches, season-table parity, focus retention, a single visible slider, reopening,
+320px Light/Dark layout and accessibility. The 27 Research/chart component tests
+cover controlled selection bounds and evidence identity, including equal values
+with different labels; 20 chart/token tests passed with zero skips. Both themes'
+season-selection screenshots were inspected. Typecheck, Brand QA, fixture build
+and bundle privacy validation passed. All 50 integrated Research/Lines/Trends/
+League-bets browser tests and both final interaction checks passed. The final
+refinement memoizes evidence identity during dragging and avoids state updates
+when the selected index is unchanged. [PR #249](https://github.com/seanbalz/guess-the-lines-repo/pull/249) carries this batch.
+CI/merge, hosted and physical-device acceptance remain open.

@@ -6,7 +6,8 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
-const { TrendDetail } = await import('../web/src/next/charts/TrendDetail.jsx');
+const { TrendDetail, lineSelectionKey } = await import('../web/src/next/charts/TrendDetail.jsx');
+const { TrendLine } = await import('../web/src/next/charts/TrendLine.jsx');
 const { TrendRow } = await import('../web/src/next/charts/TrendRow.jsx');
 const { StatTiles } = await import('../web/src/next/charts/StatTiles.jsx');
 const { SeasonStems } = await import('../web/src/next/charts/SeasonStems.jsx');
@@ -118,5 +119,31 @@ describe('season selection', () => {
     expect(slider.attrs.value).toBe('0');
     expect(slider.attrs['aria-valuetext']).toBe('2024: 0–0–1, 0.0 units, at break-even');
     expect(html).toContain('id="season-plot"');
+  });
+});
+
+describe('retained line selection', () => {
+  const line = { values: [0, 2, 1], start: '2024', end: '2025', label: 'Sample', tip: i => ({ value: `${i} U`, label: `Game ${i}` }) };
+  it('keeps identity across equivalent rerenders but changes with the evidence, even for equal values', () => {
+    const key = lineSelectionKey('Trend', line);
+    expect(lineSelectionKey('Trend', { ...line, values: [...line.values], tip: i => ({ ...line.tip(i) }) })).toBe(key);
+    for (const changed of [
+      { ...line, values: [0, 2, 1, 1] },
+      { ...line, values: [0, 3, 1] },
+      { ...line, start: '2023' },
+      { ...line, end: '2026' },
+      { ...line, label: 'Different sample' },
+      { ...line, tip: i => ({ ...line.tip(i), label: `Different date ${i}` }) },
+    ]) expect(lineSelectionKey('Trend', changed)).not.toBe(key);
+    expect(lineSelectionKey('Different trend', line)).not.toBe(key);
+  });
+  it('draws the supplied selection, including zero, and bounds it to the current series', () => {
+    for (const [selectedIndex, expected] of [[0, 0], [1, 1], [-2, 0], [99, 2]]) {
+      const html = render(<TrendLine {...line} selectedIndex={selectedIndex} onSelect={() => {}}/>);
+      const slider = all(html).find(n => n.tag === 'input');
+      expect(slider.attrs.value).toBe(String(expected));
+      expect(slider.attrs['aria-valuetext']).toBe(`${expected} U, Game ${expected}`);
+      expect(markupProblems(html)).toEqual([]);
+    }
   });
 });

@@ -9,16 +9,18 @@ const W = 320;
 /**
  * `values` are the cumulative points (the first is the start). `tip(i)` returns `{ value, label }` for point `i`.
  * `start` and `end` label the two ends of the time axis; `label` names the whole chart for a screen reader.
+ * Pass `selectedIndex` and `onSelect` together to retain selection outside a swapped view.
  */
-export function TrendLine({ values, tip, start, end, label, height = 160 }) {
+export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect }) {
   const count = values.length;
   const [index, setIndex] = useState(count - 1);
-  const at = Math.min(index, count - 1);
+  const at = Math.max(0, Math.min(selectedIndex ?? index, count - 1));
+  const select = onSelect ?? setIndex;
   const geo = useMemo(() => linePath(values, { width: W, height }), [values, height]);
   const id = useId().replace(/[^\w-]/g, '');
   const follow = event => {
     const box = event.currentTarget.getBoundingClientRect();
-    if (box.width > 0) setIndex(nearestIndex((event.clientX - box.left) / box.width, count));
+    if (box.width > 0) select(nearestIndex((event.clientX - box.left) / box.width, count));
   };
   const x = count > 1 ? (at / (count - 1)) * 100 : 0;
   const y = (geo.y(values[at]) / height) * 100;
@@ -63,7 +65,7 @@ export function TrendLine({ values, tip, start, end, label, height = 160 }) {
         value={at}
         aria-label="Move along the line"
         aria-valuetext={`${now.value}, ${now.label}`}
-        onChange={event => setIndex(Number(event.target.value))}
+        onChange={event => select(Number(event.target.value))}
       />
     </div>
   );
