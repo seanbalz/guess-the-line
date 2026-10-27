@@ -257,7 +257,8 @@ The browser regression reproduced an 18px shift and passed after the fix;
 49 component and 26 geometry/token/brand-mark tests passed. All 57 browser cases
 are covered by the integrated run and corrected season-fixture rerun. Eight
 320px ordinary/forced-color screenshots inspected; typecheck, Brand QA and
-fixture build/privacy checks passed. Source on `codex/chart-stable-tooltip`;
+fixture build/privacy checks passed. Source is in [PR #262](https://github.com/seanbalz/guess-the-lines-repo/pull/262)
+on `codex/chart-stable-tooltip`;
 CI/merge, release/readback and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining

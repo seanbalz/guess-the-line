@@ -27,7 +27,8 @@ Season selection also checks stable plot placement. Eight 320px Light/Dark and
 forced-color screenshots were inspected using synthetic fixture data.
 The separate #260 badges-release record and boundary update were preserved from
 current main; its 67 local boundary assertions passed after integration.
-Source publication is pending on `codex/chart-stable-tooltip`.
+Source is in [PR #262](https://github.com/seanbalz/guess-the-lines-repo/pull/262)
+on `codex/chart-stable-tooltip`.
 
 CI/merge, hosted release/readback and physical-iPhone acceptance remain open.
 This task does not deploy, apply migrations or change the frozen v62 tracker.
