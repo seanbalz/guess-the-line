@@ -1,5 +1,10 @@
 # Release card: new-app design, frontend only — October 27, 2026
 
+> **Superseded October 27, 2026** by [the 8ada72b card](RELEASE_2026_10_27_API_FRONTEND.md) (API then frontend). P-03
+> was applied on October 26 before this card was written ([record](RELEASE_2026_10_26_POINTS_JOBS.md)), so hosted
+> history is 54 rows, digest `bd53dcf4…f11a`, not the 53-row digest below, and the live frontend is Pages `b216c36b`
+> (`9da3ce6`), not `b8a31940`. Its run 40428568548 refuses at the pre-deploy history check; nothing below was deployed.
+
 Sean's instruction (October 26–27, 2026): "I need changes on the design added asap", then "Deploy".
 
 - **Source:** `main` at `de4295308c56d6e9b95d1e810ada9b5fbf45df04` (#240 merged). Main CI on this exact SHA

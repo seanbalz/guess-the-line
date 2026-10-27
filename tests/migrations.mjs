@@ -34,7 +34,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
-  20261026120000, // gtl_points_jobs (D-56 P-03: Points job schedule, run queue, jobs state; waits for "apply P-03")
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
   20261026130000, // M-13 gtl_feed_kinds (redesign stage 48): written, awaiting Sean's "apply M-13"
   20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
@@ -170,4 +169,5 @@ export const APPLIED = [
   20261021223100, // NBA gtl_nba_game_cache: hosted as 20261022194209 on October 22, 2026; see RELEASE_2026_10_22_MIGRATIONS.md.
   20261023180000, // P-01 gtl_points_core (D-56): hosted as 20261024000059 on October 23, 2026 (Pacific); see RELEASE_2026_10_23_POINTS.md.
   20261023190000, // P-02 gtl_points_feed_push (D-56): hosted as 20261024000315 on October 23, 2026 (Pacific); see RELEASE_2026_10_23_POINTS.md.
+  20261026120000, // P-03 gtl_points_jobs (D-56): hosted as 20261026213106 on October 26, 2026; see RELEASE_2026_10_26_POINTS_JOBS.md.
 ];

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { ALL, NOT_HOSTED } from './migrations.mjs';
+import { ALL, APPLIED } from './migrations.mjs';
 import { createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 
 // P-03 Task A (20261026120000_gtl_points_jobs.sql, D-56): the Points job schedule, its run queue with a one-run capability,
@@ -32,8 +32,8 @@ async function fixture(t, { enabled = true } = {}) {
   return { db, as, rpc, dispatch, token, claimed };
 }
 
-test('migration is registered as unapplied and creates the four functions and the documented table columns', { skip }, async t => {
-  assert(NOT_HOSTED.includes(20261026120000), 'written, not applied: waits for the apply word');
+test('migration is registered as applied and creates the four functions and the documented table columns', { skip }, async t => {
+  assert(APPLIED.includes(20261026120000), 'hosted as 20261026213106 on October 26, 2026 (RELEASE_2026_10_26_POINTS_JOBS.md)');
   const f = await fixture(t);
   const functions = (await f.db.query("select proname,prosecdef,proconfig from pg_proc where proname in ('gtl_dispatch_points_jobs','gtl_claim_points_jobs','gtl_complete_points_jobs','gtl_points_jobs_state')")).rows;
   assert.equal(functions.length, 4);
