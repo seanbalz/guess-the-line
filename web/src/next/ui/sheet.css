@@ -1,0 +1,78 @@
+/* Sheet gestures (design upgrade, "game feel"; ui/useSheetGestures.js). Drag the grab handle or the head down to close a
+   sheet; drag a paging sheet's body sideways to turn its page. While a finger drags, the sheet or its body follows it
+   with an inline transform on that element itself (never on an ancestor of the fixed tab bar); these classes time what
+   happens after it lets go, on the motion tokens: the snap back (quick), the slide away (exit) and the next page coming
+   in (base). Transform and opacity only, and none of it transitions under reduced motion. */
+
+/* The handle and the head take the drag instead of scrolling the page; pinch zoom still works. */
+.gx-sheet-grab,
+.gx-sheet-head {
+  touch-action: pinch-zoom;
+}
+.gx-sheet-grab { cursor: grab; }
+/* A paging body still scrolls up and down natively; sideways is the page swipe. */
+.gx-sheet-body--pager {
+  touch-action: pan-y pinch-zoom;
+}
+/* No text selection while something is being dragged. */
+.gx-sheet--drag,
+.gx-sheet-body--drag {
+  -webkit-user-select: none;
+  user-select: none;
+}
+.gx-sheet--drag { cursor: grabbing; }
+
+.gx-sheet--settle,
+.gx-sheet-body--settle {
+  transition: transform var(--gx-dur-quick) var(--gx-ease-standard), opacity var(--gx-dur-quick) var(--gx-ease-standard);
+}
+.gx-sheet--leave {
+  transition: transform var(--gx-dur-exit) var(--gx-ease-exit);
+}
+.gx-scrim--settle {
+  transition: opacity var(--gx-dur-quick) var(--gx-ease-standard);
+}
+.gx-scrim--leave {
+  transition: opacity var(--gx-dur-exit) var(--gx-ease-exit);
+}
+.gx-sheet-body--leave {
+  transition: transform var(--gx-dur-quick) var(--gx-ease-exit), opacity var(--gx-dur-quick) var(--gx-ease-exit);
+}
+.gx-sheet-body--enter {
+  transition: transform var(--gx-dur-base) var(--gx-ease-enter), opacity var(--gx-dur-base) var(--gx-ease-enter);
+}
+
+/* A paging sheet's head: its title over the place ("2 of 14"), then previous, next and close. */
+.gx-sheet-titles {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.gx-sheet-titles .gx-sheet-title { flex: none; }
+/* At the first or last page the button stays in place, reachable and named, but drawn as unavailable. */
+.gx-sheet-page[aria-disabled="true"] {
+  color: var(--gx-border-strong);
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gx-sheet--settle,
+  .gx-sheet--leave,
+  .gx-scrim--settle,
+  .gx-scrim--leave,
+  .gx-sheet-body--settle,
+  .gx-sheet-body--leave,
+  .gx-sheet-body--enter {
+    transition: none;
+  }
+}
+.gx[data-motion="reduce"] .gx-sheet--settle,
+.gx[data-motion="reduce"] .gx-sheet--leave,
+.gx[data-motion="reduce"] .gx-scrim--settle,
+.gx[data-motion="reduce"] .gx-scrim--leave,
+.gx[data-motion="reduce"] .gx-sheet-body--settle,
+.gx[data-motion="reduce"] .gx-sheet-body--leave,
+.gx[data-motion="reduce"] .gx-sheet-body--enter {
+  transition: none;
+}

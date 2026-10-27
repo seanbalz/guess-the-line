@@ -45,12 +45,26 @@ export function layoutProblems() {
     if (!scroller && r.right > vw + 1 && !/(auto|scroll)/.test(cs.overflowX)) out.push(`${name(el)}: wider than the screen`);
   }
   const layers = [...document.querySelectorAll('dialog[open], [role=dialog], .gx-sheet')].filter(el => !hidden(el));
+  // The part of a control a player can see: its box cut by every ancestor that clips its overflow (a scrolling sheet body
+  // hides what has scrolled under the sheet's foot), or null when none of it shows.
+  const seen = el => {
+    const r = el.getBoundingClientRect();
+    let box = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+      const s = getComputedStyle(n);
+      if (s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+      const c = n.getBoundingClientRect();
+      box = { left: Math.max(box.left, c.left), top: Math.max(box.top, c.top), right: Math.min(box.right, c.right), bottom: Math.min(box.bottom, c.bottom) };
+    }
+    return box.right - box.left > 2 && box.bottom - box.top > 2 ? box : null;
+  };
   const controls = [...(layers.at(-1) || root).querySelectorAll('button, a[href], select, input:not([type=hidden]), textarea, summary')]
     .filter(el => !hidden(el) && !tiny(el) && !el.matches('.gx-scrim'));
   for (let i = 0; i < controls.length; i++) for (let j = i + 1; j < controls.length; j++) {
     const a = controls[i], b = controls[j];
     if (a.contains(b) || b.contains(a) || /gx-tab|gx-dock|gx-topbar/.test(`${a.className} ${b.className}`)) continue;
-    const p = a.getBoundingClientRect(), q = b.getBoundingClientRect();
+    const p = seen(a), q = seen(b);
+    if (!p || !q) continue;
     if (Math.min(p.right, q.right) - Math.max(p.left, q.left) > 2 && Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top) > 2) out.push(`${name(a)} overlaps ${name(b)}`);
   }
   return [...new Set(out)];

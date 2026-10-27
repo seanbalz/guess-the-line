@@ -1,10 +1,12 @@
 // A list row (CONTRACT section 11): 56 tall by default (44, 64 or 72), a leading face or mark, a title with at most
 // one meta line, an end slot and an optional chevron. `you` tints your own row with the lime bar; `wait` gives it the
 // data-colored edge. With `onClick` the whole row is one button; with `href` it is one link. Everything inside is
-// phrasing content, so the row stays valid inside a button.
+// phrasing content, so the row stays valid inside a button. A tappable row (and LinkRow) dips and dims while pressed
+// (press.css).
 import { ChevronRight } from 'lucide-react';
 import { Icon } from './Icon.jsx';
 import { cx, oneOf } from './cx.js';
+import './press.css';
 
 const ROW_SIZES = [44, 56, 64, 72];
 

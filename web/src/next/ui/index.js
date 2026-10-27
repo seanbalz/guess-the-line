@@ -31,3 +31,6 @@ export { Overlay } from './Overlay.jsx';
 export { TeamMark, teamCode, TEAM_MARK_SIZES } from './TeamMark.jsx';
 export { FieldMark, FIELD_MARK_SIZES, YARDLINE_G_PATHS, YARDLINE_G_VIEWBOX } from './FieldMark.jsx';
 export { useModal, tabbables } from './useModal.js';
+export { Skeleton, SKELETON_SHAPES } from './Skeleton.jsx';
+export { lightHaptic, HAPTIC_MS } from './haptics.js';
+export { GESTURE, pagerPlace } from './gesture.js';

@@ -45,6 +45,9 @@
   text-align: right;
 }
 .gx-l-lock { display: flex; align-items: center; justify-content: flex-end; min-width: 44px; min-height: 44px; color: var(--gx-text-3); }
+/* A market still loading: a skeleton bar (skeleton.css) where its line will be, never "—", which means missing. */
+.gx-l-wait { justify-content: center; min-width: 44px; min-height: 44px; }
+.gx-l-wait .gx-l-wait-bar { width: 44px; height: 16px; }
 .gx-l-cfoot {
   display: flex;
   align-items: center;

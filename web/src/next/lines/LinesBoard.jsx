@@ -1,9 +1,11 @@
-// Research Lines board: saved guesses stay as tags; current quotes come from the gated week reader.
+// Research Lines board: saved guesses stay as tags; current quotes come from the gated week reader. While the week
+// loads, skeleton game cards stand in for the board; while the quotes load, a skeleton bar stands in each open market
+// (the "Loading…" words stay for screen readers).
 import { useId, useMemo } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { LINES_COPY, linesBoard } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
-import { Button, CardButton, GateBanner, Icon, InfoButton, Pill, Tag, TeamMark } from '../ui/index.js';
+import { Button, CardButton, GateBanner, Icon, InfoButton, Pill, Skeleton, Tag, TeamMark } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
 import { useWind } from './trendsHooks.js';
 import { INFO } from '../info.js';
@@ -16,6 +18,8 @@ import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 /** A lock while closed, current/latest quote when permitted, and an explicit missing/loading state. */
 function MarketValue({ cell, className }) {
   if (!cell.open) return <span className={`gx-l-lock ${className ?? ''}`} data-cell="locked"><Icon icon="lock" size={16}/></span>;
+  // Still loading: a skeleton bar where the line will be, never "—" (which means missing); the card's name says Loading.
+  if (cell.loading) return <span className={`gx-vstack gx-l-wait ${className ?? ''}`} data-cell="loading" aria-hidden="true"><span className="gx-skel-bar gx-l-wait-bar"></span></span>;
   if (!cell.line) return <span className={`gx-vstack ${className ?? ''}`} data-cell="none"><span className="gx-n-m gx-c-3">—</span><span className="gx-t-meta">{cell.label}</span></span>;
   return (
     <span className={`gx-vstack ${className ?? ''}`} data-cell="line">
@@ -114,9 +118,7 @@ export function LinesBoard({ trendsOnly = false }) {
             <Button variant="secondary" block onClick={() => app.refresh({ only: ['personal'] })}>{LINES_COPY.tryAgain}</Button>
             <Button variant="ghost" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</Button>
           </section>
-        ) : (
-          <p className="gx-t-body gx-c-2" role="status">{unpublished ? LINES_COPY.unpublished : LINES_COPY.loading}</p>
-        )}
+        ) : unpublished ? <p className="gx-t-body gx-c-2" role="status">{LINES_COPY.unpublished}</p> : <Skeleton label={LINES_COPY.loading} shape="cards" count={3}/>}
       </div>
     );
   }
@@ -125,7 +127,7 @@ export function LinesBoard({ trendsOnly = false }) {
       {head}
       <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
       {!trendsOnly && <>
-        {markets.status === 'loading' ? <p className="gx-t-body" role="status">Loading market lines…</p>
+        {markets.status === 'loading' ? <p className="gx-sr-only" role="status">Loading market lines…</p>
           : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines are unavailable. Your saved guesses are kept.</p> : null}
         <GateBanner gate={gate} onCta={enter} onSkip={() => shell.openDialog('dlg.forfeit', revealScope)} note="See picks now requires a final sit-out confirmation. Locked guesses count; drafts are kept."/>
         <Button variant="ghost" onClick={markets.reload}>{markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}</Button>
