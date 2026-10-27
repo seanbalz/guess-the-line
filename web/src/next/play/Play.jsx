@@ -16,8 +16,9 @@ import { LeagueScreen } from '../league/LeagueScreen.jsx';
 import { playPresentation } from './PlayPresentation.jsx';
 import './play.css';
 import { cloudApi } from '../../api.js';
-import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
+import { useLeagueRead } from '../league/useLeagueRead.jsx';
 import { PerGameEditor } from './PerGamePlay.jsx';
+import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
 import { ScoreComparison } from './ScoreComparison.jsx';
 import { WeeklyScore } from './WeeklyScore.jsx';
 import { perGameReady } from './scoring.js';
@@ -63,9 +64,9 @@ function PlayLanding() {
   };
   return <div className="gx-screen" data-landing="play">
     <div className="gx-focus-heading"><h1 className="gx-t-title">Play</h1>{hero?.week != null && <p className="gx-t-meta">Week {hero.week}</p>}</div>
-    {!hero ? <section className="gx-empty" role={app.community.status === 'error' ? 'alert' : 'status'}><p className="gx-t-body">{app.community.status === 'error' ? 'Your picks could not be loaded.' : 'Loading your picks…'}</p>{app.community.status === 'error' && <Button onClick={() => app.refresh({ only: ['community'] })}>Try again</Button>}</section>
+    {!hero ? app.community.status === 'error' ? <PlayFailure what="Your picks" error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <PlayLoading>Loading your picks…</PlayLoading>
       : <><FocusAction title={hero.action.primary ? name(market) : 'Your week, at a glance.'} eyebrow={hero.action.primary ? 'Your next move' : 'Your results'} description={hero.action.primary ? status(market) : hero.state === 'none' ? 'No week is open yet. Your past results are still here.' : 'Review your guesses and their saved scoring lines.'} action={hero.action.primary ? 'Continue guessing' : 'View your results'} onAction={() => hero.action.primary ? open(market) : shell.go('play', { section: 'score' })}/>
-      {app.community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p>}
+      {app.community.status === 'error' && <p className="gx-play-state-line gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p>}
       <FocusRows label="Spread and Total">
         {(!hero.action.primary ? [market, other] : [other]).map(value => <FocusRow key={value} icon="target" title={name(value)} sub={status(value)} onClick={() => open(value)}/>)}
       </FocusRows>
@@ -104,17 +105,19 @@ function PlayDetail() {
 
   if (shell.state.views.play.section === 'compare') return <div className="gx-screen gx-vstack gx-gap-16"><h1 className="gx-t-title">Compare players</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button><ScoreComparison/></div>;
   if (score) return <div className="gx-screen gx-vstack gx-gap-16"><div className="gx-play-titlebar"><h1 className="gx-t-title gx-grow">Your weekly score</h1><InfoButton title={INFO.scores.title} body={INFO.scores.body}/></div><WeeklyScore/></div>;
-  if (perGameReady(personal.data?.rules)) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16"><h1 className="gx-t-title">Your guesses</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button><SelectedPlay app={app} shell={shell} current={personal.data} mode={market || 'guess_spread'} onMode={marketNavigation.write}/></div>;
+  const head = <><h1 className="gx-t-title">Your guesses</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button></>;
+  if (perGameReady(personal.data?.rules)) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16">{head}<SelectedPlay app={app} shell={shell} current={personal.data} mode={market || 'guess_spread'} onMode={marketNavigation.write}/></div>;
+  // Until the first /personal answer arrives nothing can tell which editor the server's rules call for, so neither
+  // mounts early (the whole-market editor used to start, then give way to the per-game one).
+  if (!personal.data) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16">{head}{personal.status !== 'error' ? <PlayLoading>Loading your picks…</PlayLoading>
+    : personal.error?.status === 404 ? <PlayEmpty>No week is open yet. Weeks open Monday 12:00 AM PT once the schedule is published.</PlayEmpty>
+    : <PlayFailure what="Your picks" error={personal.error} onRetry={refreshBallot}/>}</div>;
   return (
     <div className="gx-screen gx-live-workflow gx-live-play">
-      <h1 className="gx-t-title">Your guesses</h1>
-      <Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button>
+      {head}
       <p className="gx-t-body gx-c-2">Guess the line. Submit a complete Spread or Total ballot when you’re ready.</p>
       {!feed ? (
-        <section className="gx-empty" role={app.community.status === 'error' ? 'alert' : 'status'}>
-          <p className="gx-t-body">{app.community.status === 'error' ? 'Your picks could not be loaded.' : 'Loading your picks…'}</p>
-          {app.community.status === 'error' ? <Button onClick={() => refresh({ only: ['community'] })}>Try again</Button> : null}
-        </section>
+        app.community.status === 'error' ? <PlayFailure what="Your picks" error={app.community.error} onRetry={() => refresh({ only: ['community'] })}/> : <PlayLoading>Loading your picks…</PlayLoading>
       ) : (
         <WeekPicks
           key={accountId}
@@ -140,10 +143,12 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   const season = Number.isInteger(view.season) ? view.season : current.season;
   const week = Number.isInteger(view.week) ? view.week : current.week;
   const read = useLeagueRead(`${app.accountId}:play:${season}:${week}:${mode}`, signal => cloudApi('personal/read', { season, week }, { signal }), error => { if (error.status === 401) app.requestSignIn(); });
-  if (read.loading) return <p className="gx-t-body" role="status">Loading your picks…</p>;
-  if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
-  if (!perGameReady(read.data?.rules)) return <p className="gx-t-body" role="alert">Scoring rules changed. Refresh the app before making a pick.</p>;
-  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} focusGame={view.pickGame} optOuts={app.community.data?.optOuts || []}
+  if (read.loading) return <PlayLoading>Loading your picks…</PlayLoading>;
+  if (read.error) return <PlayFailure what="Your picks" error={read.error} onRetry={read.retry}/>;
+  if (!perGameReady(read.data?.rules)) return <PlayEmpty role="alert" action="Check again" onAction={read.retry}>Scoring rules changed. Refresh the app before making a pick.</PlayEmpty>;
+  // The reveal names other players from the shared Community read, and only when it is this account's read.
+  const community = app.community.data, members = community?.viewer?.toLowerCase() === app.accountId.toLowerCase() ? community.members ?? [] : [];
+  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} focusGame={view.pickGame} optOuts={app.community.data?.optOuts || []} reveal={{ members }}
     onMode={onMode} setDirty={shell.setDirty} onSignInAgain={app.requestSignIn} onSaved={() => app.refresh({ only: ['community', 'personal'] })}
     onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/>;
 }

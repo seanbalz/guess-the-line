@@ -3,7 +3,8 @@ import { pickText, show } from '../../communityFormat.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Button, Card, Segmented, TeamMark } from '../ui/index.js';
-import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
+import { useLeagueRead } from '../league/useLeagueRead.jsx';
+import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
 import { fmtFull } from '../format.js';
 import { SCORE_MARKETS, lateLabel, modeOf, number, ownEntry, scoreRows, scoreSummary } from './scoring.js';
 import './scores.css';
@@ -12,8 +13,8 @@ export function WeeklyScore() {
   const app = useAppData(), shell = useShell(), view = shell.state.views.play;
   const season = Number.isInteger(view.season) ? view.season : null;
   const read = useLeagueRead(`${app.accountId}:score:${season ?? 'latest'}`, signal => communityApi('history', season ? { season } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); });
-  if (read.loading) return <p className="gx-t-body" role="status">Loading your weekly score…</p>;
-  if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
+  if (read.loading) return <PlayLoading>Loading your weekly score…</PlayLoading>;
+  if (read.error) return <PlayFailure what="Your weekly score" error={read.error} onRetry={read.retry}/>;
   return <WeeklyScoreContent data={read.data} view={view} onChange={patch => shell.setView('play', patch)} onRefresh={read.retry} onPicks={patch => shell.setView('play', { ...patch, section: 'picks' })}/>;
 }
 
@@ -50,7 +51,7 @@ export function WeeklyScoreContent({ data, view, onChange, onRefresh, onPicks })
       <label className="gx-t-body">Matchup<select className="gx-input" value={filters.matchup} onChange={event => onChange({ matchup: event.target.value })}><option value="">All matchups</option>{(week?.games || []).map(game => <option key={game.id} value={game.id}>{game.awayCode} at {game.homeCode}</option>)}</select></label>
       <Button disabled={!filtered} onClick={() => onChange({ team: '', matchup: '' })}>Clear filters</Button>
     </div></details>
-    {!week ? <p className="gx-t-body" role="status">No scoring record for this week. Choose another week.</p> : !rows.length ? <p className="gx-t-body" role="status">No games match both filters. Clear filters to see this week.</p> : rows.map(row => <details className="gx-score-detail" key={`${week.season}:${week.week}:${mode}:${row.game.id}`} open={view.scoreGame === row.game.id} onToggle={event => { if (event.newState === 'open' && view.scoreGame !== row.game.id) onChange({ scoreGame: row.game.id }); }}>
+    {!week ? <PlayEmpty>No scoring record for this week. Choose another week.</PlayEmpty> : !rows.length ? <PlayEmpty>No games match both filters. Clear filters to see this week.</PlayEmpty> : rows.map(row => <details className="gx-score-detail" key={`${week.season}:${week.week}:${mode}:${row.game.id}`} open={view.scoreGame === row.game.id} onToggle={event => { if (event.newState === 'open' && view.scoreGame !== row.game.id) onChange({ scoreGame: row.game.id }); }}>
       <summary><span className="gx-score-matchup"><TeamMark code={row.game.awayCode} size={24} decorative/><span className="gx-t-strong">{row.game.awayCode} at {row.game.homeCode}</span><TeamMark code={row.game.homeCode} size={24} decorative/></span><span className="gx-t-body">{row.points === null ? row.status : `${show(row.points)} / 10 points`}</span></summary>
       <div className="gx-vstack gx-gap-8"><p className="gx-t-meta gx-c-2">Kickoff {fmtFull(row.game.kickoff)}</p><p className="gx-t-body">Your guess · {row.hidden ? 'Hidden' : pickText(mode, row.game.awayCode, row.game.homeCode, row.guess)}</p>
         {row.locked && <p className="gx-t-meta gx-c-2">Locked in {fmtFull(row.pick?.lockedAt || entry?.submittedAt)}{row.pick?.late ? ` · ${lateLabel(row.pick.late)}` : ''}</p>}
