@@ -1,3 +1,6 @@
+-- replaces public.gtl_dispatch_odds_refresh md5 841665c0fd82575f03853758f8cd599c
+-- replaces public.gtl_claim_odds_refresh md5 5f20a10dd67b6b8185c65b4c8fa5c26d
+-- replaces public.gtl_read_odds_schedule md5 ef5edae14e1dcb0c1d36bcd0ee895aa7
 -- D-61: market data refreshes before the Tuesday 12:00 AM PT Points open. The twelve-hour odds slots move from 08:15/20:15
 -- UTC to 06:15/18:15 UTC (11:15 PM / 11:15 AM PDT, 10:15 PM / 10:15 AM PST), so a run lands 45 minutes before the open in
 -- daylight time and 1 hour 45 minutes before it in standard time. The same two runs a day, the same credits.
