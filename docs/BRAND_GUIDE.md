@@ -252,6 +252,10 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   historical table. Keep the status in words for assistive technology; never
   draw sample charts or records while waiting. A failed read replaces the
   placeholder with its explanation and retry action. No shimmer or new loop.
+  A failed historical-table download stays inside its evidence section. Keep
+  the chart, selection and summary usable; retry only the table on request and
+  keep keyboard focus in that section. Do not dismiss Research or reload the
+  app automatically for a table failure.
 - **Compact row:** title, side and percent, a 80 × 30 mini area, and units.
   Tapping opens the detail in place.
 - **Opened trend:** title, a one-word state pill ("Not proven"), an ⓘ button, and

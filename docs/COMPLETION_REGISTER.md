@@ -186,7 +186,7 @@ records Pages `84cba88f-4d58-4fdf-9c38-4faf9380867f` from
 PR #253. It supersedes the earlier Pages `4a03e6cd` checkpoint; API v38 was
 unchanged. This is release-lane evidence, not a hosted audit repeated by this
 task. Signed-in readback and real-phone acceptance remain unverified. PRs #258,
-#259, #261, #262, #263, #265, #267, #270 and the Research-loading follow-up require a later release.
+#259, #261, #262, #263, #265, #267, #270, #272 and the table-recovery follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -315,6 +315,17 @@ retry. All 66 integrated browser cases, two focused cases, 86 component tests,
 19 token/brand tests and typecheck passed. Brand QA and fixture build/privacy
 checks passed; six 320px ordinary/forced-color screenshots were inspected.
 CI/merge, hosted release/readback and phone acceptance remain open.
+
+The [historical-table recovery batch](RESEARCH_TABLE_RECOVERY_2026_10_27.md),
+`codex/research-table-recovery`, contains failed table downloads inside the
+evidence section. The chart, selection, summary and sheet remain usable; retry
+loads only the table and retains keyboard focus. Its browser regression failed
+before the fix and passed afterward. All 14 Research browser cases, 86 component
+and 19 token/brand tests and typecheck passed; four 320px ordinary/forced-color
+screenshots were inspected. All 53 integrated Lines/Trends/Bets Everyone/gesture
+cases also passed (67 browser cases total), along with Brand QA and fixture
+build/privacy checks. CI/merge,
+hosted release/readback and physical-iPhone acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
