@@ -48,6 +48,27 @@ describe('shared research presentation', () => {
     const html = render(<ResearchSources trent={{ status: 'unavailable', plays: [] }}/>);
     expect(html).toContain('Source unavailable'); expect(html).toContain('Original plays'); expect(html).not.toContain('Synthetic');
   });
+  it('pairs cumulative units with cumulative records across winning, losing and push bins', () => {
+    const points = [
+      { from: '2025-09-01', to: '2025-09-30', wins: 2, losses: 1, pushes: 1, sample: 4, illustrativeUnits: 0.82 },
+      { from: '2025-10-01', to: '2025-10-31', wins: 0, losses: 2, pushes: 0, sample: 2, illustrativeUnits: -1.18 },
+      { from: '2025-11-01', to: '2025-11-01', wins: 1, losses: 0, pushes: 0, sample: 1, illustrativeUnits: -0.27 },
+    ];
+    const candidate = { ...candidates[0], series: { points, binned: true, selectedSample: 7 } };
+    const line = researchLine(candidate);
+    expect(line.values).toEqual([0, 0.82, -1.18, -0.27]);
+    expect(line.tip(0)).toEqual({ value: '0.0 U', label: 'Start, 2025-09-01' });
+    expect(line.tip(2).label).toContain('2–3–1');
+    expect(line.tip(1).label).toBe('2–1–1 total · through 2025-09-30');
+    expect(line.tip(2)).toEqual({ value: '−1.2 U', label: '2–3–1 total · through 2025-10-31' });
+    expect(line.tip(3)).toEqual({ value: '−0.3 U', label: '3–3–1 total · through 2025-11-01' });
+    const html = render(<ResearchChart candidate={candidate}/>);
+    expect(html).toContain('Period W-L-P');
+    expect(html).toContain('Total units');
+    expect(html).toContain('0-2-0'); // The period table retains its own record, not the accumulated record.
+    expect(html).toContain('-1.18'); // No recalculation or rounding of the supplied units.
+    expect(markupProblems(html)).toEqual([]);
+  });
   it('shows source-reported original terms, unknown prices and correction ancestry without granting consistency', () => {
     const html = render(<ResearchSources trent={{ status: 'reviewed', plays: [{ id: 'synthetic-revision', previousRevision: 'synthetic-original', event: 'Synthetic event', selection: 'Synthetic original selection', originalTerms: 'Synthetic unchanged terms', postedLine: null, price: null, sourceUrl: 'https://x.com/bookitwithtrent/status/1', status: 'corrected' }] }}/>);
     expect(html).toContain('Source-reported · not verified'); expect(html).toContain('Odds: Unknown');

@@ -68,12 +68,19 @@ export function researchLine(candidate) {
   const points = candidate?.series?.points ?? [];
   if (!points.length || !points.every(p => Number.isFinite(p.illustrativeUnits))) return null;
   const values = [0, ...points.map(p => p.illustrativeUnits)];
+  // The reader supplies a per-bin record but endpoint cumulative units. Keep the
+  // tooltip's record on that same cumulative basis; the table retains each bin.
+  let wins = 0, losses = 0, pushes = 0;
+  const records = points.map(point => {
+    wins += point.wins; losses += point.losses; pushes += point.pushes;
+    return recordText(wins, losses, pushes);
+  });
   const start = researchDate(points[0].from).slice(0, 4), end = researchDate(points.at(-1).to).slice(0, 4);
   return {
     values, start, end,
     label: `Illustrative units at −110 for the selected sample, ending at ${signed(values.at(-1))}`,
     tip: i => (i === 0 ? { value: '0.0 U', label: `Start, ${researchDate(points[0].from)}` }
-      : { value: `${signed(values[i])} U`, label: `${recordText(points[i - 1].wins, points[i - 1].losses, points[i - 1].pushes)} · to ${researchDate(points[i - 1].to)}` }),
+      : { value: `${signed(values[i])} U`, label: `${records[i - 1]} total · through ${researchDate(points[i - 1].to)}` }),
   };
 }
 const consistencyText = candidate => (candidate.sourceState === 'source-reported' ? 'Source-reported · not verified'

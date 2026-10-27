@@ -155,6 +155,14 @@ browser cases plus five final focused cases, 24 component, 47 model/contract/she
 passed, along with typecheck, Brand QA, build/privacy scan and inspected 320px
 Light/Dark screenshots. CI/merge, release and acceptance remain separate.
 
+The next [Research chart correction](RESEARCH_DESIGN_2026_10_26.md#cumulative-chart-records--october-27)
+pairs cumulative units with a cumulative record in tooltips and keyboard
+announcements. The evidence table keeps each period’s own record with explicit
+column labels. Source is on `codex/research-chart-records`; all 50 integrated
+browser tests, 25 component and 72 model/handler tests passed, as did typecheck,
+Brand QA and build/privacy validation. Light/Dark 320px screenshots were inspected.
+CI/merge, hosted release and phone acceptance remain separate.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.
