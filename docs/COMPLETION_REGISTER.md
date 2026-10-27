@@ -186,7 +186,7 @@ records Pages `84cba88f-4d58-4fdf-9c38-4faf9380867f` from
 PR #253. It supersedes the earlier Pages `4a03e6cd` checkpoint; API v38 was
 unchanged. This is release-lane evidence, not a hosted audit repeated by this
 task. Signed-in readback and real-phone acceptance remain unverified. PRs #258,
-#259, #261, #262 and the evidence-selection follow-up require a later release.
+#259, #261, #262, #263 and the movement-selection follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -262,15 +262,27 @@ fixture build/privacy checks passed. Source is in [PR #262](https://github.com/s
 on `codex/chart-stable-tooltip`. PR #262 merged October 27 as `6799e78e90a73805f9a337953a92d90f9fb0991e` after all nine checks passed on `d77e0ecca6300dd8d5ba48a5c089677e664160e0`, with no CI fixes or review findings.
 Release/readback and device acceptance remain open.
 
-The next [Research evidence-selection batch](RESEARCH_EVIDENCE_SELECTION_2026_10_27.md)
+The [Research evidence-selection batch](RESEARCH_EVIDENCE_SELECTION_2026_10_27.md)
 links historical date rows and cumulative chart points, retaining period records,
 focus and market gates while refusing controls for mismatched snapshots.
 All 59 integrated browser cases and 12 final Research cases, 51 component and
 26 geometry/token/brand-mark tests passed, along with typecheck, Brand QA and
 fixture build/privacy checks. Four final 320px ordinary/forced-color screenshots
 inspected. Source is in [PR #263](https://github.com/seanbalz/guess-the-lines-repo/pull/263)
-on `codex/research-evidence-selection`; CI/merge,
-release/readback and device acceptance remain open.
+on `codex/research-evidence-selection`. PR #263 merged October 27 as `6f427fb8ba00e1dc7b751a9aacb730ea4bc0f0e2` after all nine checks passed on `25b0dc5824a4050d6bea142262aabc2b2f70ebaf`, with no CI fixes or review findings.
+Release/readback and device acceptance remain open.
+
+The next [recorded-movement selection batch](RESEARCH_MOVEMENT_SELECTION_2026_10_27.md)
+links game-sheet timestamps to their chart observations, preserving missing
+rows, duplicate times, keyboard focus and the locked-market boundary. The
+focused browser regression, 57 component checks, 30 geometry/token/brand checks,
+typecheck and fixture build/privacy checks passed locally. The first integrated
+run exposed a Research-to-Play focus race; a deterministic regression failed
+before and passed after the shell was repaired to preserve the requested game’s
+focus. All 85 final integrated browser cases passed, including shell/navigation
+and per-game scoring. Four 320px ordinary/forced-color screenshots were inspected.
+Source is in [PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265)
+on `codex/market-movement-selection`. CI/merge, release/readback and physical-device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

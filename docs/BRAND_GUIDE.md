@@ -268,6 +268,11 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   chart records, preserve keyboard focus and use a check plus a tint/outline.
   Link separate reads only when their charted evidence matches. Keep the sample
   description outside the horizontal scroll region, with a native table caption.
+- **Recorded market movement:** collected-time buttons select their charted
+  observations, with the same check and selected-row treatment as Research.
+  Keep missing observations as plain readable rows and preserve gaps in the
+  chart. Duplicate timestamps have distinct observation names. One observation
+  stays a static readout; selection adds no collection or network requests.
 - **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
   10 as blocks, and games or units. Every bar carries its number in words.
 
