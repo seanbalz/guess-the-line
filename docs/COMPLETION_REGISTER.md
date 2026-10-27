@@ -314,7 +314,12 @@ hides before replacement reads; failures restore the existing explanation and
 retry. All 66 integrated browser cases, two focused cases, 86 component tests,
 19 token/brand tests and typecheck passed. Brand QA and fixture build/privacy
 checks passed; six 320px ordinary/forced-color screenshots were inspected.
-CI/merge, hosted release/readback and phone acceptance remain open.
+PR #272 merged as `e85e7859ae3714e3ec4e699d2bc4a33c7380a462` after all nine
+checks passed on `41b8cf9132b8e9ac6520664c8953c1be6f611b65`. Initial browser CI
+failed two Play haptic checks; integrating main’s PR #271 fix resolved them
+without relaxing the lock-in assertions. All 21 local Play/Research cases and
+all 110 cases in the repaired CI shard passed. No review findings remained.
+Hosted release/readback and phone acceptance remain open.
 
 The [historical-table recovery batch](RESEARCH_TABLE_RECOVERY_2026_10_27.md),
 `codex/research-table-recovery`, contains failed table downloads inside the
