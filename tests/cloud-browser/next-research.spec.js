@@ -182,15 +182,25 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
   } finally { await world.db.close(); }
 });
 
-test('filter changes synchronously hide old scope and ignore delayed older replies; focus clears evidence before refetch', async ({ page, baseURL }) => {
+test('filter changes synchronously hide old scope and ignore delayed older replies; focus clears evidence before refetch', async ({ page, baseURL }, testInfo) => {
   const { world, synthetic } = await setup(page, baseURL, { delay: true });
   try {
     await openResearch(page);
     await sheet(page).getByLabel('Evidence period').selectOption('recent25');
     await expect.poll(() => synthetic.held).toBe(true);
     await expect(sheet(page).locator('[data-research-card]')).toHaveCount(0);
+    const loading = sheet(page).locator('[data-skeleton="panels"]');
+    await expect(loading).toContainText('Loading research…');
+    await expect(loading).toHaveAttribute('role', 'status');
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.emulateMedia({ forcedColors, reducedMotion: 'reduce', colorScheme: theme });
+      await phoneAndAxe(page, theme, testInfo);
+      expect(await loading.evaluate(n => getComputedStyle(n.querySelector('.gx-skel-bar')).animationName)).toBe('none');
+      await page.screenshot({ path: testInfo.outputPath(`research-loading-${theme}-${forcedColors}.png`) });
+    }
     await sheet(page).getByLabel('Evidence period').selectOption('season');
     await expect(sheet(page).locator('[data-research-card]')).toHaveCount(3);
+    await expect(loading).toHaveCount(0);
     synthetic.release();
     await expect(sheet(page).getByLabel('Evidence period')).toHaveValue('season');
     await expect(sheet(page).getByText(/15–9–1/)).toHaveCount(0);
@@ -199,6 +209,51 @@ test('filter changes synchronously hide old scope and ignore delayed older repli
     await expect.poll(() => synthetic.calls.length).toBeGreaterThan(before);
     expect(world.errors).toEqual([]);
   } finally { synthetic.release(); await world.db.close(); }
+});
+
+test('on-demand evidence replaces its loading states on failure, retry and delayed table download', async ({ page, baseURL }, testInfo) => {
+  const { world } = await setup(page, baseURL);
+  let releaseRead, releaseTable, reads = 0;
+  const readGate = new Promise(resolve => { releaseRead = resolve; });
+  const tableGate = new Promise(resolve => { releaseTable = resolve; });
+  try {
+    await page.route('**/lines/research', async route => {
+      if (!route.request().postDataJSON()?.candidateId) return route.fallback();
+      reads++;
+      if (reads === 1) {
+        await readGate;
+        return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture unavailable' }) });
+      }
+      return route.fallback();
+    });
+    await page.route('**/assets/ResearchChart-*.js', async route => { await tableGate; await route.continue(); });
+    await openResearch(page);
+    const first = sheet(page).locator('[data-research-card]').first();
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    const detail = first.locator('.gx-r-detail');
+    await expect(detail.locator('[data-skeleton="lines"]')).toContainText('Loading research…');
+    await expect(detail.getByRole('table')).toHaveCount(0);
+    await expect(detail.getByRole('button', { name: 'Try research again' })).toHaveCount(0);
+    releaseRead();
+    await expect(detail.getByRole('alert')).toContainText('Research is temporarily unavailable.');
+    await expect(detail.locator('[data-skeleton]')).toHaveCount(0);
+    expect(reads).toBe(1);
+    await detail.getByRole('button', { name: 'Try research again' }).click();
+    const tableLoading = detail.locator('[data-skeleton="lines"]');
+    await expect(tableLoading).toContainText('Loading historical table…');
+    await expect(tableLoading).toHaveAttribute('role', 'status');
+    await expect(detail.getByRole('table')).toHaveCount(0);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await tableLoading.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`research-table-loading-${theme}.png`) });
+    }
+    releaseTable();
+    await expect(detail.getByRole('table')).toBeVisible();
+    await expect(detail.locator('[data-skeleton]')).toHaveCount(0);
+    await expect(detail.getByRole('alert')).toHaveCount(0);
+    expect(reads).toBe(2); expect(world.errors).toEqual([]);
+  } finally { releaseRead(); releaseTable(); await world.db.close(); }
 });
 
 test('an open sheet removes its research lean at kickoff using a monotonic timer', async ({ page, baseURL }) => {

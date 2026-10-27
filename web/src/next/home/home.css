@@ -56,6 +56,26 @@
 .gx-h-stat:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 .gx-h-stat-value { font: 700 28px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 
+/* ----- design lane: hierarchy pass ----- */
+/* The hero's first line: the week, "Due soon" while urgent, and the Pick streak. Nothing to show, no line. */
+.gx .gx-h-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.gx .gx-h-top:empty { display: none; }
+/* The next action in words: "Lock in 9 games" over "before Thu 5:15 PM PT". */
+.gx .gx-h-head { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+/* The week meter on the glow card: empty segments on the track, filled ones in the progress bar's end color. Words
+   beside each meter carry the count, so it is a picture only. */
+.gx .gx-h-hero .gx-meter3 { gap: 3px; }
+.gx .gx-h-hero .gx-meter3-seg { height: 8px; border-radius: var(--gx-radius-pill); background: var(--gx-track); box-shadow: none; }
+.gx .gx-h-hero .gx-meter3-seg--on { background: var(--gx-bar-2); }
+/* A rank tile's number with its last move beside it, and the season points under it. */
+.gx .gx-h-stat-value { display: inline-flex; align-items: baseline; gap: 4px; }
+.gx .gx-h-move { width: auto; }
+.gx .gx-h-pts { color: var(--gx-text-1); }
+@media (forced-colors: active) {
+  .gx .gx-h-hero .gx-meter3-seg { border: 1px solid CanvasText; }
+  .gx .gx-h-hero .gx-meter3-seg--on { forced-color-adjust: none; background: CanvasText; }
+}
+
 /* Who's in: faces first, one status word each, then Standings and Invite. */
 .gx-h-who { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; }
 .gx-h-who-head { display: flex; align-items: center; gap: 8px; min-width: 0; }

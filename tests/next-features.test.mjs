@@ -93,3 +93,17 @@ test('every badge and award has an original one-path icon; no emoji, logos or sa
     assert.doesNotMatch(text, /Sunday Crew|Office Pool|Marcus|Priya|Jules|Kenny|\bDre\b/, `${file}: no prototype sample names`);
   }
 });
+
+// Design lane, League pass: board rows show the badges of the newest week anyone earned one, labelled with that week.
+test('the newest badge week and each member\'s badges in it, grouped and rarest first; none before any badge', () => {
+  const model = M.featuresModel(REPLY, { viewer: YOU, nameOf });
+  assert.equal(model.badgeWeek, 7);
+  assert.deepEqual(model.weekBadgesOf(YOU).map(b => [b.id, b.count]), [['double_bullseye', 1], ['bullseye', 1]], 'the Week 6 Bullseye is not this week\'s');
+  assert.deepEqual(model.weekBadgesOf(ANA).map(b => b.id), ['sharp']);
+  assert.deepEqual(model.weekBadgesOf(BO), []);
+  const empty = M.featuresModel({ ...REPLY, badges: [] }, { viewer: YOU, nameOf });
+  assert.equal(empty.badgeWeek, null);
+  assert.deepEqual(empty.weekBadgesOf(YOU), []);
+  assert.equal(M.featuresModel(null, { viewer: YOU }).badgeWeek, null);
+  assert.deepEqual(M.featuresModel(null, { viewer: YOU }).weekBadgesOf(YOU), []);
+});

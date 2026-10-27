@@ -74,25 +74,30 @@ export function awardRow(award, { nameOf, viewer }) {
  * - streaks: the viewer's Pick streak and Bets streak `{ id, name, unit, current, best }`.
  */
 export function featuresModel(reply, { viewer, nameOf = () => 'Player' } = {}) {
-  if (!record(reply)) return { ok: false, ran: false, recap: null, history: [], season: null, shelf: { earned: [], toEarn: [], of: LIVE.length }, streaks: [], badgesOf: () => [] };
+  if (!record(reply)) return { ok: false, ran: false, recap: null, history: [], season: null, shelf: { earned: [], toEarn: [], of: LIVE.length }, streaks: [], badgesOf: () => [], badgeWeek: null, weekBadgesOf: () => [] };
   const weeks = (reply.awards ?? []).filter(w => w.awards?.length).sort((a, b) => b.week - a.week);
   const toRows = w => ({ week: w.week, rows: w.awards.map(a => awardRow(a, { nameOf, viewer })) });
   const recap = weeks.length ? toRows(weeks[0]) : null;
   if (recap) recap.mine = recap.rows.find(r => r.you) ?? null;
-  const badgesOf = userId => {
-    const own = (reply.badges ?? []).filter(b => b.userId === userId && BADGE_BY_ID[b.badge]);
+  const known = (reply.badges ?? []).filter(b => record(b) && BADGE_BY_ID[b.badge]);
+  const grouped = list => {
     const groups = new Map();
-    for (const b of own) groups.set(b.badge, [...(groups.get(b.badge) ?? []), b]);
-    return [...groups].map(([id, list]) => ({ ...badgeMeta(id), count: list.length, lines: list.sort((a, b) => Date.parse(b.visibleAt) - Date.parse(a.visibleAt)).map(badgeLine), earned: true }))
+    for (const b of list) groups.set(b.badge, [...(groups.get(b.badge) ?? []), b]);
+    return [...groups].map(([id, items]) => ({ ...badgeMeta(id), count: items.length, lines: items.sort((a, b) => Date.parse(b.visibleAt) - Date.parse(a.visibleAt)).map(badgeLine), earned: true }))
       .sort((a, b) => RANK[a.rarity] - RANK[b.rarity] || b.count - a.count || a.name.localeCompare(b.name));
   };
+  const badgesOf = userId => grouped(known.filter(b => b.userId === userId));
+  // The newest week anyone in the league earned a badge (the board rows show that week's badges, labelled with it).
+  const weeksWithBadges = known.map(b => b.week).filter(w => Number.isInteger(w));
+  const badgeWeek = weeksWithBadges.length ? Math.max(...weeksWithBadges) : null;
   const earned = badgesOf(viewer);
   const toEarn = LIVE.filter(b => !earned.some(e => e.id === b.id)).map(b => ({ ...badgeMeta(b.id), count: 0, lines: [], earned: false }));
   const own = (reply.streaks ?? []).find(s => s.userId === viewer);
   const streaks = ['pick', 'bets'].map(id => ({ id, name: STREAK_BY_ID[id].name, unit: STREAK_BY_ID[id].unit, current: own?.[id]?.current ?? 0, best: own?.[id]?.best ?? 0 }));
   const season = reply.seasonWinners?.winners?.length ? reply.seasonWinners.winners.map(a => awardRow(a, { nameOf, viewer })) : null;
   return { ok: true, ran: reply.ran === true, recap, history: weeks.slice(1).map(toRows), season, shelf: { earned, toEarn, of: LIVE.length }, streaks, badgesOf,
-    streakOf: userId => (reply.streaks ?? []).find(s => s.userId === userId) ?? null };
+    streakOf: userId => (reply.streaks ?? []).find(s => s.userId === userId) ?? null,
+    badgeWeek, weekBadgesOf: userId => (badgeWeek === null ? [] : grouped(known.filter(b => b.userId === userId && b.week === badgeWeek))) };
 }
 
 /** A badge's catalog entry for the tile: `{ id, name, rarity, rarityLabel, rule, icon }`. */

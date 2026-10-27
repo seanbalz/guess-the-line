@@ -1,18 +1,25 @@
-// Home, round 3 (D-55): the glow hero with this week's one action, a progress bar per market, three stat tiles (the
-// Spread and Total ranks and your active tickets), who's in for the league, and this week's trends. Shared server rules
-// govern every score and reveal; this screen only reads data, and every number on it comes from those reads.
+// Home, round 3 (D-55) with the design lane's hierarchy pass: one primary card that names the next action in words ("Lock
+// in 9 games" over "before Thu 5:15 PM PT"), the week meter (one segment per game, per market) and the Pick streak; the
+// three stat tiles (the Spread and Total ranks, each with its season points counting up from what this device last saw
+// and the rank's last move, and your active tickets); who's in for the league; the newest week's awards as chips; and
+// this week's trends. Shared server rules govern every score and reveal; this screen only reads data, and every number
+// on it comes from those reads.
 import { useEffect, useId, useMemo, useState } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { HOME_COPY, heroProgress, homeHero, homeTiles } from '../../../../shared/home-view.mjs';
 import { HOME_LOADING } from '../copy.js';
 import { useShell } from '../shell/context.js';
 import { SHELL_COPY } from '../shell/tabs.js';
-import { Avatar, Button, Card, Countdown, Pill } from '../ui/index.js';
+import { Avatar, Button, Card, Countdown, Meter, Move, Pill } from '../ui/index.js';
 import { useHomeData } from './homeData.js';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { nextGuess } from '../play/nextGuess.js';
-import { HomeRecapRow } from '../features/FeatureRows.jsx';
+import { HomeAwards } from '../features/HomeAwards.jsx';
+import { HomeStreak } from '../features/HomeStreak.jsx';
+import { peekMove, rankKey, readRank } from '../league/rankMoment.js';
+import { CountUp } from './CountUp.jsx';
+import { HERO_COPY, heroHeadline } from './homeModel.js';
 import './home.css';
 
 const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sat out', tone: 'neutral' }, out: { word: 'Not yet', tone: 'pending' } });
@@ -29,23 +36,33 @@ function useServerNow(serverNow) {
   return now;
 }
 
-/** The hero card: the week, the countdown (or the one line a closed or finished week shows), the status lines, one action. */
-function Hero({ hero, progress, onPicks, onLines }) {
+/**
+ * The hero card, Home's one primary card: the week (with "Due soon" and the Pick streak beside it), the next action in
+ * words, the countdown, the week meter (each market's words with one segment per game) and the one lime action.
+ */
+function Hero({ app, hero, progress, headline, onPicks, onLines }) {
   const id = useId();
   const now = useServerNow(hero.now);
   // Before the week opens the countdown runs to the open, under its own words; "done" never says "locked" there.
   const countdownLabel = hero.state === 'not_open' ? HOME_COPY.notOpen : hero.perGame ? 'Next game kickoff' : HOME_COPY.picksDueIn;
-  const line = hero.state === 'closed' ? HOME_COPY.closed : hero.state === 'done' ? HOME_COPY.done : null;
   return (
     <Card as="section" variant="hero" className="gx-h-hero gx-focus-action" aria-labelledby={id} data-home="hero" data-state={hero.state}>
-      <p className="gx-t-label gx-c-2">{hero.week === null ? HOME_COPY.noWeek : HOME_COPY.weekTitle(hero.week)}</p><h2 className="gx-t-display" id={id}>{hero.action.primary && hero.week !== null ? `Lock in ${HOME_COPY.weekTitle(hero.week)}` : hero.state === "done" ? "You’re all caught up." : "Explore the week."}</h2>
+      <div className="gx-h-top">
+        {hero.week !== null ? <p className="gx-t-label gx-c-2">{HOME_COPY.weekTitle(hero.week)}</p> : null}
+        {hero.state === 'urgent' ? <Pill tone="pending">{HERO_COPY.dueSoon}</Pill> : null}
+        <HomeStreak app={app}/>
+      </div>
+      <div className="gx-h-head">
+        <h2 className="gx-t-display" id={id}>{headline.title}</h2>
+        {headline.sub ? <p className="gx-t-strong" data-home="when">{headline.sub}</p> : null}
+      </div>
       {hero.countdownTarget ? (
         <div className="gx-h-cd">
           {/* The timer carries these words in its name, so the visible line is not read twice. */}
           <p className="gx-t-label gx-c-2" aria-hidden="true">{countdownLabel}</p>
           <Countdown target={hero.countdownTarget} now={now ?? undefined} label={countdownLabel} doneLabel={countdownLabel}/>
         </div>
-      ) : line ? <p className="gx-t-strong" data-home="line">{line}</p> : null}
+      ) : null}
       {hero.statusLines.length ? (
         <ul className="gx-h-status" data-home="status">
           {hero.statusLines.map((text, i) => {
@@ -53,7 +70,8 @@ function Hero({ hero, progress, onPicks, onLines }) {
             return (
               <li key={text} className="gx-h-progress">
                 <span className="gx-t-label">{text}</span>
-                {bar && bar.of > 0 ? <span className="gx-h-bar" aria-hidden="true"><span className="gx-h-bar-fill" style={{ width: `${(100 * bar.done) / bar.of}%` }}></span></span> : null}
+                {/* The week meter: one segment per game, filled as far as the words say (they carry the count). */}
+                {bar && bar.of > 0 ? <Meter value={bar.done} max={bar.of} className="gx-h-meter" data-market={bar.mode}/> : null}
               </li>
             );
           })}
@@ -61,27 +79,43 @@ function Hero({ hero, progress, onPicks, onLines }) {
       ) : null}
       {hero.action.primary
         ? <Button variant="primary" block onClick={onPicks}>{hero.action.label}</Button>
-        : <Button variant="primary" block iconEnd="chevronRight" onClick={onLines}>{hero.action.primary ? hero.action.label : "Explore games"}</Button>}
+        : <Button variant="primary" block iconEnd="chevronRight" onClick={onLines}>Explore games</Button>}
     </Card>
   );
 }
 
+/** The arrow a rank tile shows: the last move this device saw on the League board, read only (the board toasts it). */
+function useTileMove(viewer, mode, rank) {
+  return useMemo(() => peekMove(readRank(rankKey(viewer, 'community', mode)), { rank }), [viewer, mode, rank]);
+}
+
+function RankTile({ market, mode, label, tile, chase, viewer, onClick }) {
+  const move = useTileMove(viewer, mode, tile.rank);
+  const sub = tile.rank ? chase ?? `of ${tile.of}` : HOME_COPY.notScored;
+  return (
+    <button type="button" className="gx-h-stat" data-tile={market} onClick={onClick}>
+      <span className="gx-t-meta gx-c-2">{label}</span>
+      <span className="gx-h-stat-value">
+        <span>{tile.rank ? `#${tile.label}` : tile.label}</span>
+        {move ? <Move by={move} className="gx-h-move"/> : null}
+      </span>
+      {/* Season points count up from the last value this device saw; never shown for an unranked "—". */}
+      {tile.rank && tile.points !== null ? <span className="gx-t-meta gx-h-pts" data-home="points"><CountUp value={tile.points} account={viewer} figure={`community.${mode}.season.${viewer}`}/> pts</span> : null}
+      <span className="gx-t-meta gx-c-2">{sub}</span>
+    </button>
+  );
+}
+
 /**
- * Three tiles: the Spread and Total ranks (ranked apart, never summed) with their chase lines, and active tickets.
- * The ticket read starts here, so Home reads tickets only once it has a week to show (as the old summary row did).
+ * Three tiles: the Spread and Total ranks (ranked apart, never summed) with their points and chase lines, and active
+ * tickets. The ticket read starts here, so Home reads tickets only once it has a week to show.
  */
-function StatTiles({ app, tiles, onScore, onBets }) {
+function StatTiles({ app, tiles, viewer, onScore, onBets }) {
   const tickets = useTicketSummary(app);
-  const rank = tile => (tile.rank ? `#${tile.label}` : tile.label);
-  const sub = (tile, chase) => (tile.rank ? chase ?? `of ${tile.of}` : HOME_COPY.notScored);
   return (
     <div className="gx-h-stats" data-home="tiles">
-      <button type="button" className="gx-h-stat" data-tile="spread" onClick={() => onScore('spread')}>
-        <span className="gx-t-meta gx-c-2">{HOME_COPY.spreadRank}</span><span className="gx-h-stat-value">{rank(tiles.spread)}</span><span className="gx-t-meta gx-c-2">{sub(tiles.spread, tiles.chase)}</span>
-      </button>
-      <button type="button" className="gx-h-stat" data-tile="total" onClick={() => onScore('total')}>
-        <span className="gx-t-meta gx-c-2">{HOME_COPY.totalRank}</span><span className="gx-h-stat-value">{rank(tiles.total)}</span><span className="gx-t-meta gx-c-2">{sub(tiles.total, null)}</span>
-      </button>
+      <RankTile market="spread" mode="guess_spread" label={HOME_COPY.spreadRank} tile={tiles.spread} chase={tiles.chase} viewer={viewer} onClick={() => onScore('spread')}/>
+      <RankTile market="total" mode="guess_total" label={HOME_COPY.totalRank} tile={tiles.total} chase={null} viewer={viewer} onClick={() => onScore('total')}/>
       <button type="button" className="gx-h-stat" data-tile="tickets" onClick={onBets}>
         <span className="gx-t-meta gx-c-2">My bets</span><span className="gx-h-stat-value">{tickets.loading || tickets.error ? '—' : tickets.active}</span><span className="gx-t-meta gx-c-2">{tickets.error ? 'Open to retry' : 'active tickets'}</span>
       </button>
@@ -120,9 +154,11 @@ export function Home() {
   const shell = useShell();
   const { app, community } = useHomeData();
   const data = community.data ?? null;
+  const viewer = app.accountId || null;
   const hero = useMemo(() => (data ? homeHero({ community: data }) : null), [data]);
   const progress = useMemo(() => (data ? heroProgress({ community: data }) : []), [data]);
-  const tiles = useMemo(() => (data ? homeTiles({ community: data, viewer: app.accountId || null }) : null), [data, app.accountId]);
+  const headline = useMemo(() => (hero ? heroHeadline({ hero, community: data }) : null), [hero, data]);
+  const tiles = useMemo(() => (data ? homeTiles({ community: data, viewer }) : null), [data, viewer]);
   // The tab bar names this screen; the title stays for screen readers and the page outline.
   const head = <h1 className="gx-t-title gx-sr-only">{HOME_COPY.title}</h1>;
   if (!hero) {
@@ -150,18 +186,18 @@ export function Home() {
   return (
     <div className="gx-screen" data-landing="home">
       {head}
-      <Hero hero={hero} progress={progress} onPicks={toPicks} onLines={toLines}/>
+      <Hero app={app} hero={hero} progress={progress} headline={headline} onPicks={toPicks} onLines={toLines}/>
       {community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update.</p>}
-      <StatTiles app={app} tiles={tiles}
+      <StatTiles app={app} tiles={tiles} viewer={viewer}
         onScore={market => shell.go('play', { section: 'score', ...week, market, team: '', matchup: '', scoreGame: null })}
         onBets={() => shell.go('bets', { view: 'active', season: null, week: null, period: null })}/>
       {hero.week !== null && tiles.whosIn.of ? (
         <WhosIn who={tiles.whosIn} league={shell.league?.name ?? app.league?.name ?? 'Community'}
           onBoard={() => shell.go('league', { view: 'board' })} onInvite={() => shell.openSheet('sh.switcher')}/>
       ) : null}
+      <HomeAwards app={app}/>
       <FocusRows label="This week">
         <FocusRow icon="chart" title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
-        <HomeRecapRow app={app}/>
       </FocusRows>
     </div>
   );

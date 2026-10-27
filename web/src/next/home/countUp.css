@@ -1,0 +1,3 @@
+/* CountUp (design lane): the counting number keeps its width per digit, so the row around it never jitters. Only its
+   text changes; nothing here animates, and reduced motion shows the final value at once (CountUp.jsx). */
+.gx .gx-countup { font-variant-numeric: tabular-nums; white-space: nowrap; }

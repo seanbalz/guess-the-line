@@ -2,20 +2,21 @@
 // roster and standings always come from that group's authenticated /state reply.
 import { useEffect, useRef, useState } from 'react';
 import { cloudApi, communityApi, date } from '../../api.js';
-import { MODE, lateText, pickText, pointsPostText, show } from '../../communityFormat.js';
+import { MODE, lateText, pickText, pointsPostText } from '../../communityFormat.js';
 import { postPicksView } from '../../communityBoard.js';
 import { nextDraftKey } from '../../nextDrafts.js';
-import { boardFor } from '../../../../shared/guess-board.mjs';
 import { useAppData } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, Card, List, Rank, Row, Segmented } from '../ui/index.js';
+import { Avatar, Button, Card, Segmented } from '../ui/index.js';
 import { LeagueHistory } from './LeagueHistory.jsx';
 import { PointsBoard } from '../play/points/PointsBoard.jsx';
-import { LeagueFailure, useLeagueRead } from './useLeagueRead.jsx';
-// Stage 71: one fact on a board row when true ("Won Week 7", the prototype's line 2), from the features read.
-import { boardFact } from '../features/model.js';
+import { LeagueEmpty, LeagueFailure, LeagueLoading, useLeagueRead } from './useLeagueRead.jsx';
+// Stage 71 and the design lane: the features read gives the board its "Won Week 7" facts and week badges, and the feed
+// its recap post.
 import { useFeatures } from '../features/useFeatures.js';
+import { RecapPost } from '../features/RecapPost.jsx';
+import { BoardCard, CommunityBoard } from './LeagueBoard.jsx';
 // The new feed (stages 64 and 65) draws CommunityFeed below, unchanged, while the server has no feed reader (M-22).
 import { Feed, useNewPostsDot } from '../feed/Feed.jsx';
 import './league.css';
@@ -23,25 +24,6 @@ import './league.css';
 // D-56: the board switcher is Spread / Total / Points. Points is its own board and never adds to Spread or Total.
 const MARKETS = [...Object.entries(MODE).map(([value, label]) => ({ value, label })), { value: 'guess_points', label: 'Points' }];
 const message = error => error?.status ? error.message : 'No connection. Reconnect and try again.';
-
-function CommunityBoard({ feed, mode, features = null }) {
-  const ranked = boardFor({ ...feed, mode }), seen = new Set(ranked.map(row => row.id));
-  const rows = [...ranked, ...(feed.members || []).filter(member => !seen.has(member.id)).map(member => ({ id: member.id, name: member.displayName, rank: null, points: null, you: member.id === feed.viewer }))];
-  const standings = feed.standings || [];
-  return <section className="gx-vstack gx-gap-12" aria-label={`${MODE[mode]} leaderboard`}>
-    <h2 className="gx-t-section">{MODE[mode]} standings</h2>
-    <p className="gx-t-meta gx-c-2">Season ranking · {feed.week ? `Week ${feed.week.week} alongside` : 'No week published'}. Spread and Total score separately.</p>
-    <Card variant="flush"><List label={`${MODE[mode]} season standings`}>{rows.map(row => {
-      const standing = standings.find(item => item.userId === row.id && item.mode === mode);
-      const removed = feed.members?.find(member => member.id === row.id)?.removed;
-      return <Row key={row.id} you={row.you} start={<Avatar id={row.id} name={row.name}/>} title={<>{row.name}{row.you ? ' · You' : ''}</>}
-        sub={`${removed ? 'Removed · ' : ''}Week: ${standing?.satOut ? 'Sat out' : standing?.weekScored > 0 ? show(standing.weekPoints) : '—'} · Season: ${standing?.seasonScored > 0 ? show(standing.seasonPoints) : '—'}${boardFact(features, row.id, mode) ? ` · ${boardFact(features, row.id, mode)}` : ''}`}
-        end={<Rank rank={row.rank} tied={row.tied}/>}/>;
-    })}</List></Card>
-    {!rows.length && <p className="gx-t-body gx-c-2">No members yet.</p>}
-    <p className="gx-t-meta gx-c-2">— means no scored result. Tied scores share their rank. Removed members keep their records.</p>
-  </section>;
-}
 
 const draftKey = (account, post) => nextDraftKey(account, `c-${post}`);
 function readDraft(key) {
@@ -141,31 +123,37 @@ function CommunityFeed({ feed, app }) {
   return <section className="gx-vstack gx-gap-16" aria-label="Community activity feed">
     <p className="gx-t-body gx-c-2">Shared with every Community member.</p>
     {posts.map(post => <FeedPost key={`${app.accountId}:${post.id}`} post={post} feed={feed} app={app} onSaved={saveOlder}/>)}
-    {!posts.length && <Card><p className="gx-t-body">No activity yet.</p></Card>}
+    {!posts.length && <LeagueEmpty text="No activity yet." actionLabel="Refresh" onAction={() => app.refresh({ only: ['community'] })}/>}
     {error && <p className="gx-t-body gx-c-loss" role="alert">{message(error)}</p>}
     {!ended && (feed.posts || []).length >= 30 && <Button aria-disabled={busy || undefined} onClick={more}>{busy ? 'Loading…' : 'Older activity'}</Button>}
   </section>;
 }
 
-function PrivateLeague({ app, mode }) {
+function PrivateLeague({ app, shell, mode, features }) {
   const id = app.league.id;
   const read = useLeagueRead(`${app.accountId}:${id}:${mode}`, signal => cloudApi('state', undefined, { league: id, mode, signal }), error => {
     if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['lobby'] });
   });
-  if (read.loading) return <p className="gx-t-body gx-c-2" role="status">Loading this league…</p>;
+  if (read.loading) return <LeagueLoading label="Loading this league…"/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   const data = read.data;
   if (data?.league?.id !== id) return <LeagueFailure error={{ status: 403, message: 'This league is not available to this account.' }} onRetry={read.retry}/>;
   const hasScore = row => Number.isFinite(row.points) && Number(row.scoredGames) > 0;
-  const rows = data.standings || [], ranked = rows.filter(hasScore);
+  const standings = data.standings || [], scored = standings.filter(hasScore);
+  // The group's own ranking from its /state reply (competition ranks, ties shared): ranked rows first, then the rest.
+  const rows = standings.map(row => ({ id: row.id, name: row.name, you: row.id === data.playerId, source: row,
+    points: hasScore(row) ? row.points : null,
+    rank: hasScore(row) ? 1 + scored.filter(other => other.points > row.points).length : null,
+    tied: hasScore(row) && scored.filter(other => other.points === row.points).length > 1 }))
+    .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
   return <section className="gx-vstack gx-gap-12" aria-label="Private league standings">
     <h2 className="gx-t-section">{MODE[mode]} standings</h2>
     <p className="gx-t-body gx-c-2">Week {data.league.week} · {data.league.name}. Only this group's members appear here.</p>
-    <Card variant="flush"><List label="Private group members">{rows.map(row => <Row key={row.id} you={row.id === data.playerId} start={<Avatar id={row.id} name={row.name}/>} title={row.name}
-      sub={`${row.satOut ? 'Sat out' : row.submitted ? 'Submitted' : 'Not submitted'} · ${hasScore(row) ? `${show(row.points)} pts` : 'Not scored yet'}`}
-      end={<Rank rank={hasScore(row) ? 1 + ranked.filter(other => other.points > row.points).length : null} tied={hasScore(row) && ranked.filter(other => other.points === row.points).length > 1}/>}/>)}</List></Card>
+    <BoardCard app={app} shell={shell} league={id} mode={mode} rows={rows} label="Private group members" features={features}
+      rowProps={row => ({ figure: `${id}.${mode}.points.${row.id}`, before: `${row.source.satOut ? 'Sat out' : row.source.submitted ? 'Submitted' : 'Not submitted'} · `, after: row.points === null ? '' : ' pts', missing: 'Not scored yet' })}/>
     <p className="gx-t-meta gx-c-2">{data.league.practice ? 'Practice results · unofficial. ' : ''}— means no scored result. Weekly guesses are reused across groups; each group keeps its own roster.</p>
     <Button onClick={read.retry}>Refresh group</Button>
+    <RecapPost model={features}/>
     <Feed key={`${app.accountId}:${id}`} app={app} leagueId={id} leagueName={data.league.name} legacy={null}/>
     <Button variant="ghost" onClick={() => app.chooseLeague(COMMUNITY)}>Open Community feed and history</Button>
   </section>;
@@ -185,12 +173,15 @@ export function LeagueScreen() {
     <Button onClick={() => shell.go('play', { section: 'compare', season: feed?.week?.season ?? null, week: feed?.week?.week ?? null, period: 'week', comparisonKind: 'all', players: [], team: '', matchup: '' })}>Compare players in {app.league.name}</Button>
     {community && <Segmented label="League sections" options={[{ value: 'feed', label: feedLabel }, { value: 'board', label: 'Boards' }, { value: 'history', label: 'History' }]} value={section} onChange={value => shell.setView('league', { view: value })}/>}
     {(!community || section === 'board') && <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => shell.setView('league', { market: value })}/>}
-    {!community ? mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={app.league.id}/> : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} mode={mode}/>
-      : !feed ? app.community.error ? <LeagueFailure error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <p className="gx-t-body gx-c-2" role="status">Loading the Community…</p>
-      : section === 'board' ? mode === 'guess_points' ? <PointsBoard key={app.accountId} app={app}/> : <CommunityBoard feed={feed} mode={mode} features={features.model}/>
+    {!community ? mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={app.league.id}/> : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} shell={shell} mode={mode} features={features.model}/>
+      : !feed ? app.community.error ? <LeagueFailure error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <LeagueLoading label="Loading the Community…"/>
+      : section === 'board' ? mode === 'guess_points' ? <PointsBoard key={app.accountId} app={app}/> : <CommunityBoard feed={feed} mode={mode} features={features.model} app={app} shell={shell}/>
       : section === 'history' ? <LeagueHistory key={app.accountId} app={app}/>
-      : <Feed key={app.accountId} app={app} leagueName={app.league.name} legacy={<CommunityFeed key={app.accountId} feed={feed} app={app}/>}
-        onRefused={error => { if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['community'] }); }}/>}
+      : <>
+        <RecapPost model={features.model}/>
+        <Feed key={app.accountId} app={app} leagueName={app.league.name} legacy={<CommunityFeed key={app.accountId} feed={feed} app={app}/>}
+          onRefused={error => { if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['community'] }); }}/>
+      </>}
     {community && <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh Community</Button>}
   </div>;
 }

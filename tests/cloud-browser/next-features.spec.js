@@ -24,6 +24,9 @@ async function openNewApp(page, address = '#play') {
   await expect(page.locator('.gx')).toBeVisible();
 }
 async function axe(page) {
+  // Contrast is measured on what stays on screen: an overlay still fading in (opacity under 1) reads as low contrast,
+  // so finite animations finish first (the LIVE dot's loop is left running).
+  await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))));
   return (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id);
 }
 async function phoneChecks(page, info, name) {
@@ -136,17 +139,19 @@ test('reduced motion: the celebration still says what happened, with no animatio
   expect(world.errors).toEqual([]);
 });
 
-test('Home\'s recap row and the League board\'s "Won Week 4" show once the job has run, and open the screen', async ({ page, baseURL }) => {
+test('Home\'s recap card and the League board\'s "Won Week 4" show once the job has run, and open the screen', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedFinishedWeek(world);
   expect((await world.api('sean', 'league/features/run', {})).status).toBe(200);
   await openNewApp(page, '#home');
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
-  const recapRow = page.getByRole('button', { name: 'Week 4 awards' });
-  await expect(recapRow).toHaveAccessibleDescription('You won Spread winner');
+  // The design lane's hierarchy pass turned the one-line recap row into the awards card (the chips, one award open).
+  const recap = page.locator('[data-home="awards"]');
+  await expect(recap.getByRole('heading', { name: 'Week 4 awards' })).toBeVisible();
+  await expect(recap).toContainText('You won Spread winner');
   // The first read this session sets what Luke has seen: no celebration on page load.
   await expect(page.getByRole('dialog', { name: 'New results' })).toHaveCount(0);
-  await recapRow.click();
+  await recap.getByRole('button', { name: 'All badges and awards' }).click();
   await expect(page).toHaveURL(/#play\/features/);
   await page.goto('/#play/league?view=board');
   const board = page.getByRole('list', { name: 'Spread season standings' });
