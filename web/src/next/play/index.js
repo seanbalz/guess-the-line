@@ -8,6 +8,7 @@
 //   added to the tab's name ("Play, 1 ballot due"); null (or a count of 0) shows nothing.
 // - sheetActions: `[{ id, order, label, show(game, data), run(game, shell) }]`, buttons on the game sheet's action bar.
 import { lazy } from 'react';
+import { perGameReady } from './scoring.js';
 const ScoreHomeTile = lazy(() => import('./ScoreHomeTile.jsx').then(module => ({ default: module.ScoreHomeTile })));
 export const homeTiles = Object.freeze([{ id: 'play.weekly-score', order: 10, Tile: ScoreHomeTile }]);
 
@@ -25,4 +26,11 @@ export function counter(data) {
   return { count, label: count === 1 ? '1 ballot due' : `${count} ballots due` };
 }
 
-export const sheetActions = Object.freeze([]);
+// Navigation only: the destination retains its existing lock-in and draft protections.
+export const sheetActions = Object.freeze(['spread', 'total'].map((market, order) => Object.freeze({
+  id: `play.${market}`, order: 10 + order, label: market === 'spread' ? 'Spread' : 'Total',
+  show: (game, data) => Boolean(data?.accountId && perGameReady(data?.personal?.rules)
+    && data.personal.games?.some(row => row.id === game?.id)
+    && Number.isInteger(game?.season) && Number.isInteger(game?.week)),
+  run: (game, shell) => shell.go('play', { section: 'picks', market, season: game.season, week: game.week, pickGame: game.id }),
+})));

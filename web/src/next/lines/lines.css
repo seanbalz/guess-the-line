@@ -104,3 +104,7 @@
 .gx-l-guess-row .gx-row-title { overflow-wrap: anywhere; }
 .gx-l-guess-value { display: block; margin-top: 4px; }
 .gx-l-guess-place { display: block; margin-top: 4px; }
+
+/* The shared sheet foot stays above its safe area while the details scroll. */
+.gx .gx-l-actions { display: flex; gap: var(--gx-space-2); }
+.gx .gx-l-actions > button { flex: 1; }

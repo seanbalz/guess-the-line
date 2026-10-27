@@ -113,7 +113,7 @@ function apiCalls(page) {
   });
   return calls;
 }
-const READS = ['POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research',
+const READS = ['POST /personal/read', 'POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research',
   // D-60: sign-in lands on Home first, which reads the account's preferences and its tracked-ticket summary, and (stage 71)
   // its recap row's badges and awards.
   'POST /me/preferences', 'POST /social/read', 'POST /league/features'];
@@ -142,9 +142,9 @@ function syntheticResearch(withResearch) {
 }
 
 /** The world: Week 6 fixtures, Luke's sent Totals and Spread drafts, Troy's sent ballots, a stored collection and a wind stand-in. */
-async function lukesWeek(page, baseURL, { forge = true, research, clock } = {}) {
+async function lukesWeek(page, baseURL, { forge = true, research, clock, optionalRpc = false } = {}) {
   const fake = forecastFetch(point => ({ values: () => VALUES[point.latitude.toFixed(3)] ?? {} }));
-  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, clock, trendsReadSeason: async () => WEEK6_SOURCE, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }), research });
+  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, clock, optionalRpc, trendsReadSeason: async () => WEEK6_SOURCE, wind: createOpenMeteoProvider({ fetchImpl: fake.fetchImpl }), research });
   await storeBookLines(world, LINES);
   await sendBallot(world, 'luke', 'guess_total', LUKE_TOTALS);
   const workspace = await world.api('luke', 'personal');
@@ -1001,6 +1001,56 @@ test('after the deadline only the kicked-off game opens guesses and ranks; later
     await expect(section).toContainText('DEN −3'); await expect(section).not.toContainText('Guess hidden');
     await expect(section).toContainText('Closest');
     await expect(section).toContainText('Your draft'); // Kickoff never locks in or scores the owner's unsent guess.
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+
+test('game action bar opens the selected matchup and market without writing or dropping other drafts', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  const calls = apiCalls(page);
+  try {
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const actions = sheet(page, 'HOU @ JAX').getByRole('navigation', { name: 'Actions for this game' });
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await expect(actions.getByRole('button', { name: 'Open Spread for HOU at JAX' })).toBeInViewport();
+      await sheet(page, 'HOU @ JAX').getByText('Only you see this.', { exact: false }).scrollIntoViewIfNeeded();
+      await expect(actions).toBeInViewport();
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`game-actions-${theme}.png`) });
+    }
+    const note = sheet(page, 'HOU @ JAX').getByRole('textbox', { name: 'Your note' });
+    await note.fill('A private unsaved note');
+    page.once('dialog', dialog => dialog.dismiss());
+    await actions.getByRole('button', { name: 'Open Spread for HOU at JAX' }).click();
+    await expect(note).toHaveValue('A private unsaved note');
+    await note.fill('');
+    await actions.getByRole('button', { name: 'Open Spread for HOU at JAX' }).click();
+    const spread = page.getByRole('article', { name: 'HOU at JAX Spread', exact: true });
+    await expect(spread).toBeFocused();
+    await expect(spread).toContainText('Draft');
+    await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toContainText('Draft');
+    await expect(page.getByRole('article')).toHaveCount(4);
+    expect(new URL(page.url()).hash).toContain('pickGame=HOU-JAX');
+    await page.reload(); await expect(spread).toBeFocused();
+    await page.goto('/#research/games'); await card(page, 'HOU-JAX').click();
+    await sheet(page, 'HOU @ JAX').getByRole('button', { name: 'Open Total for HOU at JAX' }).click();
+    const total = page.getByRole('article', { name: 'HOU at JAX Total', exact: true });
+    await expect(total).toBeFocused(); await expect(total).toContainText('Locked in');
+    await expect(total.getByRole('button', { name: 'Lock in Total', exact: true })).toHaveCount(0);
+    expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('an unknown game focus keeps the complete ballot usable', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  try {
+    await openLines(page);
+    await page.goto('/#play/picks?market=spread&season=2026&week=6&pickGame=UNKNOWN');
+    await expect(page.getByRole('article')).toHaveCount(4);
+    await expect(page.getByRole('article', { name: 'HOU at JAX Spread', exact: true })).toContainText('Draft');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

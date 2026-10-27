@@ -21,6 +21,7 @@ import { GameNote } from './GameNote.jsx';
 import { MatchupResearch } from '../research/ResearchSheet.jsx';
 import { EveryoneGuesses } from './EveryoneGuesses.jsx';
 import { MarketDetails } from './MarketDetails.jsx';
+import { actionsForGame, GameActions } from './GameActions.jsx';
 import './lines.css';
 
 function YouRows({ rows }) {
@@ -76,8 +77,11 @@ export function GameSheet({ args }) {
     .map(row => shortCard(trendsWeek, { id: row.id }, { game: view.trendsGame, access: view.access }))
     .filter(Boolean).map(card => (card.locked ? card : { ...card, title: card.title.replace(/^Referee [^,]+, /, '').replace(/^./, c => c.toUpperCase()) })) : [];
   const t = view.trends;
+  const actionGame = { ...view, season: shown?.season, week: shown?.week };
+  const actions = actionsForGame(actionGame, { accountId: app.accountId, personal: personal.data });
   return (
-    <Sheet title={view.title} onClose={close} tall className="gx-l-sheet">
+    <Sheet title={view.title} onClose={close} tall className="gx-l-sheet"
+      footer={actions.length > 0 && <GameActions game={actionGame} actions={actions} shell={shell}/>}>
       <div className="gx-vstack gx-gap-2">
         <p className="gx-t-meta">{view.when}</p>
         {view.records ? <p className="gx-t-meta">{view.records.text}{view.records.asOf ? ` · ${view.records.asOf}` : ''}</p> : null}

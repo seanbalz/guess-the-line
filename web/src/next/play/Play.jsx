@@ -143,7 +143,7 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   if (read.loading) return <p className="gx-t-body" role="status">Loading your picks…</p>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   if (!perGameReady(read.data?.rules)) return <p className="gx-t-body" role="alert">Scoring rules changed. Refresh the app before making a pick.</p>;
-  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} optOuts={app.community.data?.optOuts || []}
+  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} focusGame={view.pickGame} optOuts={app.community.data?.optOuts || []}
     onMode={onMode} setDirty={shell.setDirty} onSignInAgain={app.requestSignIn} onSaved={() => app.refresh({ only: ['community', 'personal'] })}
     onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/>;
 }

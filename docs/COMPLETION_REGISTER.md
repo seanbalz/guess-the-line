@@ -111,16 +111,25 @@ Hosted release and physical-device acceptance remain open.
 
 Residual stage 33 work stays explicit: direct in-board forfeit confirmation
 (the banner uses the existing Play flow) and verified live-game status beyond
-kickoff/final evidence. The next source batch adds [Community guesses in the game
+kickoff/final evidence. PR #230 adds [Community guesses in the game
 sheet](RESEARCH_GAME_GUESSES_2026_10_26.md), implementing stage 34’s per-game list:
 independent markets, private drafts, reader-provided scores/ranks, on-demand
 reads and scoped retry handling. All 33 integrated browser cases, five focused
 reruns, 28 component and 38 model/API-contract/SQL/token tests passed, along with
 typecheck, Brand QA, build/privacy scan and inspected 320px Light/Dark screenshots.
-Its CI/merge, hosted release and physical-device acceptance remain open.
+[PR #230](https://github.com/seanbalz/guess-the-lines-repo/pull/230) merged as
+`f8997f66b3f70512cf988ea905664bb7e828f62e` on October 26; verified October 27:
+all nine checks passed on `60d66647f5a4c4cccc749106c63cea204687a710`, with no
+review findings or CI fixes. The October 27 frontend release card includes it;
+this session has not independently verified hosted deployment or device acceptance.
+
+The next source batch adds the [game action bar](RESEARCH_GAME_ACTIONS_2026_10_27.md):
+Spread and Total slots open the explicit week and focus the selected matchup in
+Play. Existing drafts, receipts and lock-in confirmations remain in the full
+ballot. Validation and publication status are recorded in that implementation record.
 
 Stage 31’s dedicated Your pick sheet and direct reveal/forfeit confirmation,
-stage 34’s slot-based action bar and League bets, and device acceptance remain
+stage 34’s Bet/Challenge action slots and League bets, and device acceptance remain
 open. These batches do not complete the whole stages.
 
 Q17-C remains open. Community Members merged in

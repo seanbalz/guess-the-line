@@ -64,3 +64,13 @@ open under their dependencies; verified live-game status remains separate from
 kickoff/final evidence. Hosted release, signed-in readback and physical iPhone
 Safari/Home Screen acceptance remain open. The frozen v62 tracker and Sean's
 corrected no-scroll-bug report are preserved.
+
+## Merge verified October 27, 2026
+
+[PR #230](https://github.com/seanbalz/guess-the-lines-repo/pull/230) was already
+merged when this follow-up began: merge `f8997f66b3f70512cf988ea905664bb7e828f62e`,
+October 26 at 22:48 UTC. All nine checks succeeded on
+`60d66647f5a4c4cccc749106c63cea204687a710`; reviews and review threads were empty.
+No CI repair was required. The October 27 frontend release card includes this
+source, but this check did not independently verify hosted deployment or phone
+acceptance. The next source batch supplies the [game action bar](RESEARCH_GAME_ACTIONS_2026_10_27.md).

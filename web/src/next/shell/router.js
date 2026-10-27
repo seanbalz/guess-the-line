@@ -12,6 +12,8 @@ export function safeView(tab, view = {}) {
     const value = view[key];
     if ((typeof value === 'string' && value.length <= 100 && /^[\w .:@/+\-]*$/.test(value)) || (typeof value === 'number' && Number.isFinite(value)) || value === null) result[key] = value;
   }
+  // A game focus is navigation metadata only and belongs to the picks destination.
+  if (tab === 'play' && result.section === 'picks' && typeof view.pickGame === 'string' && /^[\w-]{1,100}$/.test(view.pickGame)) result.pickGame = view.pickGame;
   // League's existing feed/board/history control remains an adapter preference.
   if (tab === 'play' && result.section === 'league' && ['feed','board','history'].includes(view.view)) result.view = view.view;
   return result;
