@@ -40,6 +40,9 @@ export function placeFromFragment(fragment) {
   if (LEGACY_TABS.includes(name)) { const target = destination(name); return routePlace(target.tab, target.view); }
   if (name === 'feed') return routePlace('play', { section: 'league', view: 'feed' });
   if (name === 'groups') return { tab: 'home', layer: { id: 'sh.switcher' } };
+  // Me › History (stages 73 and 74) opens over Home, like #groups opens the switcher; its views are the page's own args.
+  const history = name.match(/^history(?:\/(bets))?$/);
+  if (history) return { tab: 'home', layer: { id: 'page.history', ...(history[1] ? { view: history[1] } : {}) } };
   if (name.startsWith('picks') && !name.includes('=')) {
     const market = name.match(/^picks-(spread|total)$/)?.[1];
     return { tab: 'play', view: { section: 'picks', ...(market ? { market } : {}) } };
@@ -57,7 +60,7 @@ export function placeFromFragment(fragment) {
 }
 export const isLegacyFragment = fragment => {
   const name = String(fragment ?? '').replace(/^#/, '');
-  return LEGACY_TABS.includes(name) || name === 'feed' || name === 'groups' || (name.startsWith('picks') && !!placeFromFragment(fragment));
+  return LEGACY_TABS.includes(name) || name === 'feed' || name === 'groups' || (/^history(?:\/|$)/.test(name) && !!placeFromFragment(fragment)) || (name.startsWith('picks') && !!placeFromFragment(fragment));
 };
 const urlWith = (location, fragment) => `${location.pathname}${location.search}${fragment}`;
 const fromState = state => routePlace(state.tab, state.views[state.tab], state.views);

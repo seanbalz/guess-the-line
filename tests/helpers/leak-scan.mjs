@@ -22,8 +22,9 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
  * The reader routes the scan covers, called as the viewer through the cloud handler: [route, method, body].
  * Keep the order stable; append a route in the stage that gates it. Stage 20 added /virtual-units (its line lock; the
  * world needs `virtualUnits: true`); stage 23 added /lines/*; stage 21 added /social/read (real slips, gated from M-04;
- * tests/social-line-lock.test.mjs scans it with slips posted at the stored lines). Not yet here:
- * /league/* and /me/* (later).
+ * tests/social-line-lock.test.mjs scans it with slips posted at the stored lines); stage 72 added /me/changes and /me/records
+ * (M-27: the owner's own changes, and the older records with every player's Betting Challenge selections after kickoff;
+ * tests/me-history-sql.test.mjs scans both on ALL until M-27 is hosted). Not yet here: /league/* (later).
  * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
  * /lines/game names the fixture world's first game (server/store.mjs seeds TB-DAL first; tests/lines-sql.test.mjs scans
@@ -55,10 +56,16 @@ export const READERS = Object.freeze([
   // D-48: own current-week guesses/card and M-01-gated lines; no new read migration.
   ['/bets/recommendations', 'POST', {}],
   ['/bets/read', 'POST', {}],
+  // M-12 boards: totals only (side and units are public under D-36; a settled game has kicked off).
+  ['/bets/board', 'POST', {}],
+  ['/bets/season', 'POST', {}],
   ['/community/picks', 'POST', { mode: 'guess_spread' }],
   // Stage 62 (M-22): the league feed reader, every embed gated per viewer. Scanned on ALL in tests/league-feed-sql.test.mjs
   // (with /league/comments and /league/reactors, which need a post id) until M-22 is hosted.
   ['/league/feed', 'POST', {}],
+  // Stage 72 (M-27): Me › History, the owner's own changes and the older records.
+  ['/me/changes', 'POST', {}],
+  ['/me/records', 'POST', {}],
   // Stage 69 (M-25): badges, awards and streaks. A badge names a line, so it shows only from that game's kickoff.
   ['/league/features', 'POST', {}],
 ]);
@@ -70,6 +77,10 @@ export const READERS = Object.freeze([
  */
 export const READER_MIGRATIONS = Object.freeze({
   '/league/feed': '20261026132000_gtl_league_feed.sql',
+  '/me/changes': '20261026230000_gtl_me_history.sql',
+  '/me/records': '20261026230000_gtl_me_history.sql',
+  '/bets/board': '20261026233000_gtl_bets_boards.sql',
+  '/bets/season': '20261026233000_gtl_bets_boards.sql',
   '/league/features': '20261026234000_gtl_league_features.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, HOSTED, NOT_HOSTED, version, without } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql, storeLines } from './helpers/guess-week.mjs';
 import { M13, seedFinishedWeek } from './helpers/features-week.mjs';
@@ -19,8 +19,9 @@ const HOUR = 3_600_000, GROUP = `g_${'a'.repeat(32)}`;
 const iso = ms => new Date(ms).toISOString();
 
 async function fixture(t, { m13 = true } = {}) {
-  // M-25 applies after M-13 (feed kinds). `m13: false` builds the order mistake: every migration except M-13.
-  const world = await createCommunityWorld({ migrations: m13 ? ALL : ALL.filter(file => file !== M13), games: 2, troyBallots: false });
+  // M-25 applies after M-13 (feed kinds). `m13: false` builds the order mistake: every migration except M-13 and the feed
+  // files that need it (M-22 and M-23 read its league_id column), which `without` leaves out with it.
+  const world = await createCommunityWorld({ migrations: m13 ? ALL : without(ALL, M13), games: 2, troyBallots: false });
   t.after(() => world.db.close());
   const { db } = world, call = serviceSql(db);
   const { now, k1, k2, settle } = await seedFinishedWeek(world);

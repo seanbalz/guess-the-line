@@ -17,7 +17,7 @@ import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 const ADDRESSES = ['#home', '#play', '#play/picks', '#play/features', '#play/league?view=feed', '#play/league?view=history', '#bets', '#bets/recommended', '#bets/active',
-  '#bets/virtual', '#bets/everyone', '#research', '#research/games', '#research/trends'];
+  '#bets/virtual', '#bets/everyone', '#research', '#research/games', '#research/trends', '#history', '#history/bets'];
 const PASSES = [{ theme: 'dark', width: 390, height: 844 }, { theme: 'light', width: 320, height: 568 }];
 // Tab presses per page; enough to walk past the first screenful on every page above.
 const TAB_PRESSES = 40;

@@ -131,6 +131,19 @@ test('groups opens switcher once, and Forward/reload never reopens stale layers'
   shell.open('sh.menu'); shell.connection.disconnect(); shell=app(win); assert.equal(shell.state.sheets.length,0);
   shell.connection.disconnect(); assert.equal(win.listeners.size,0);
 });
+test('#history opens Me › History over Home once (stages 73 and 74); #history/bets opens its Bets view; reload never reopens it', async () => {
+  assert.deepEqual(placeFromFragment('#history'), { tab: 'home', layer: { id: 'page.history' } });
+  assert.deepEqual(placeFromFragment('#history/bets'), { tab: 'home', layer: { id: 'page.history', view: 'bets' } });
+  for (const fragment of ['#history/', '#history/other', '#history?week=5', '#historyx']) assert.equal(placeFromFragment(fragment), null, fragment);
+  assert.ok(isLegacyFragment('#history') && isLegacyFragment('#history/bets') && !isLegacyFragment('#history/other'));
+  const win=fakeWindow('https://gtl.test/#history/bets'); let shell=app(win);
+  assert.deepEqual([shell.state.tab, shell.state.page?.id, shell.state.page?.view], ['home', 'page.history', 'bets']);
+  assert.equal(win.location.hash, '#home', 'the address becomes the tab underneath; the page has its own Back entry');
+  win.history.back(); await settle(); assert.equal(shell.state.page, null);
+  win.history.forward(); await settle(); assert.equal(shell.state.page, null, 'Forward never reopens a closed page');
+  shell.connection.disconnect(); shell=app(win); assert.equal(shell.state.page, null);
+  shell.connection.disconnect();
+});
 test('blocked history writes leave navigation working in memory', () => {
   const win=fakeWindow('https://gtl.test/#feed');
   win.history.pushState=win.history.replaceState=()=>{throw new Error('blocked');};
