@@ -137,7 +137,11 @@
 /* ===== the reveal: other players' guesses rise in, one stagger step apart (capped, so it ends inside "big") ===== */
 .gx .gx-play-reveal { --gx-play-i: 0; padding-top: var(--gx-space-4); border-top: 1px solid var(--gx-border); }
 .gx .gx-play-reveal-head { display: flex; align-items: center; gap: var(--gx-space-2); }
-.gx .gx-play-reveal-end { display: flex; flex-direction: column; align-items: flex-end; gap: var(--gx-space-1); }
+/* A row must fit 320 wide even before the webfonts load (wider fallback faces): the name may break anywhere and the
+   guess may wrap between team and number, so neither sets the row's minimum width and nothing overlaps. */
+.gx .gx-play-reveal .gx-row-title { overflow-wrap: anywhere; }
+.gx .gx-play-reveal .gx-row-end { flex: 0 1 auto; }
+.gx .gx-play-reveal-end { display: flex; flex-direction: column; align-items: flex-end; gap: var(--gx-space-1); text-align: right; }
 .gx .gx-play-reveal-in {
   animation: gx-rise-in var(--gx-dur-base) var(--gx-ease-enter) both;
   animation-delay: calc(var(--gx-play-i) * var(--gx-dur-tap) / 2);

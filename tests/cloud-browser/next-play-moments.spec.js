@@ -93,7 +93,8 @@ async function choose(page, gameId, value = 3) {
 /** Waits for every finite animation on the page to end (never a sleep); the LIVE dot's loop is left running. */
 const settled = page => page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished.catch(() => null))));
 
-/** The phone contract: no sideways scroll, 44px targets, no text under 12px, and axe clean. */
+/** The phone contract: no sideways scroll, 44px targets, no text under 12px, no reveal row whose name or guess spills
+ * out of its box (the overlap CI’s wider fallback fonts showed at 320), and axe clean. */
 async function phoneChecks(page, label) {
   await settled(page);
   const layout = await page.evaluate(() => {
@@ -110,9 +111,10 @@ async function phoneChecks(page, label) {
     // Name what sticks out past the viewport, so a sideways scroll says where it comes from.
     const wide = document.documentElement.scrollWidth > innerWidth ? [...document.querySelectorAll('.gx *')].filter(el => el.getBoundingClientRect().right > innerWidth + 0.5 && !el.closest('.gx-chip-rail, [role="region"][tabindex]'))
       .map(el => `${el.tagName.toLowerCase()}.${String(el.className?.baseVal ?? el.className).split(' ')[0]} ${Math.round(el.getBoundingClientRect().right)}`).slice(0, 6) : [];
-    return { sideways: wide, small, tiny };
+    const spills = [...document.querySelectorAll('.gx-play-reveal .gx-row-title, .gx-play-reveal .gx-row-end')].filter(visible).filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.textContent.trim());
+    return { sideways: wide, small, tiny, spills };
   });
-  expect(layout, label).toEqual({ sideways: [], small: [], tiny: [] });
+  expect(layout, label).toEqual({ sideways: [], small: [], tiny: [], spills: [] });
   const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
   expect(axe.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(' ')).join(', ')}`), label).toEqual([]);
 }
