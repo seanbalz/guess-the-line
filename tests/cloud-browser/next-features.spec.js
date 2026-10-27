@@ -6,10 +6,13 @@ import { seedFinishedWeek } from '../helpers/features-week.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // Redesign build plan stage 71: badges, streaks and awards in the new app, on local PGlite through the real gtl-api handler.
-// HOSTED (no M-25) shows nothing new; ALL (M-25) with a finished fixture Week 4 (tests/helpers/features-week.mjs) shows the
+// The schema before M-25 (hosted until its October 27, 2026 apply) shows nothing new; ALL (M-25) with a finished fixture Week 4
+// (tests/helpers/features-week.mjs) shows the
 // recap, streaks, the shelf, a badge's detail and one celebration. Fixture accounts, games and numbers only.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(180000);
+// HOSTED before the M-25 and M-26 apply (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
+const BEFORE_M25 = HOSTED.filter(file => file < '20261026234000_gtl_league_features.sql');
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
 
 const tabs = page => page.getByRole('navigation', { name: 'Main' });
@@ -45,7 +48,7 @@ async function targets44(scope) {
 }
 
 test('without M-25: no new row on Play or Home, and the screen says "coming soon"', async ({ page, baseURL }) => {
-  const world = await communityWorld(page, baseURL, { migrations: HOSTED });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_M25 });
   expect((await world.api('luke', 'league/features', {})).status).toBe(404);
   await openNewApp(page);
   await expect(page.locator('[data-landing="play"]')).toBeVisible();

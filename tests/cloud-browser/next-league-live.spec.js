@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
+import { HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
-// The deployable League uses HOSTED migrations and real authenticated handlers on local PGlite.
+// The League's Community feed path on HOSTED as it was before the October 27, 2026 feed applies (M-21 onward), the path the
+// new app still takes when the league feed reader is off; real authenticated handlers on local PGlite. The league feed
+// reader itself is covered by next-feed.spec.js.
+const BEFORE_FEED = HOSTED.filter(file => file < '20261026131000_gtl_feed_reactions.sql');
 // The fixtures never contact hosted data. These checks cover privacy, actual writes and mobile access.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(60_000);
@@ -37,7 +41,7 @@ async function phone(page) {
 
 test('Community feed hides unrevealed guesses, saves likes and comments, and boards work at phone widths in both themes', async ({ page, baseURL }, testInfo) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
-  const world = await communityWorld(page, baseURL, { groupScreens: true, optionalRpc: true });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, groupScreens: true, optionalRpc: true });
   try {
     await open(page);
     await expect(spreadPost(page)).toContainText('2 games hidden');
@@ -80,7 +84,7 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
 
 test('an uncertain comment keeps its text and request id across a reload; retry records only one comment', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
-  const world = await communityWorld(page, baseURL, { optionalRpc: true });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
   try {
     await open(page);
     const ids = [];
@@ -118,7 +122,7 @@ test('an uncertain comment keeps its text and request id across a reload; retry 
 
 test('history obeys each market reveal and refreshes when the browser comes back online', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
-  const world = await communityWorld(page, baseURL, { optionalRpc: true });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
   try {
     await open(page);
     await section(page, 'History').click();
@@ -157,7 +161,7 @@ test('history obeys each market reveal and refreshes when the browser comes back
 
 test('private standings stay membership-scoped on rapid switching and discard data after a 403', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
-  const world = await communityWorld(page, baseURL, { groupScreens: true, optionalRpc: true });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, groupScreens: true, optionalRpc: true });
   let release;
   try {
     const alpha = await group(world, 'Fixture Alpha'), beta = await group(world, 'Fixture Beta');
@@ -189,7 +193,7 @@ test('private standings stay membership-scoped on rapid switching and discard da
 
 test('an older-feed refusal immediately removes loaded activity while the main refresh is pending', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
-  const world = await communityWorld(page, baseURL, { optionalRpc: true });
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
   let release;
   try {
     for (let n = 0; n < 65; n++) await world.db.query("insert into public.gtl_feed_posts(actor_id,kind,dedupe_key,created_at) values($1,'joined',$2,$3)", [ACCOUNTS.troy.id, `older-fixture-${n}`, new Date(Date.now() - n * 60_000).toISOString()]);
