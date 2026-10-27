@@ -10,6 +10,7 @@ import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
 import { ResearchSheet } from '../research/ResearchSheet.jsx';
 import { Play } from '../play/Play.jsx';
 import { Bets } from '../bets/Bets.jsx';
+import { GameBetsSheet } from '../bets/GameBetsSheet.jsx';
 import { Research } from '../research/Research.jsx';
 import { BadgeSheet } from '../features/BadgeSheet.jsx';
 import { FlashOverlay } from '../features/FlashOverlay.jsx';
@@ -32,6 +33,7 @@ export const LAYERS = Object.freeze({
   'sh.menu': MenuSheet, // me
   'sh.switcher': SwitcherSheet, // league (stage 11)
   'sh.yourPick': YourPickSheet, // stage 31: persisted owner reference and gated game guesses
+  'sh.gameBets': GameBetsSheet, // stage 34: selected league's gated Virtual Units picks for one game
   'sh.game': GameSheet, // lines (stage 13): one game, read-only
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
   'sh.research': ResearchSheet,

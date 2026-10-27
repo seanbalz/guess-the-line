@@ -45,28 +45,33 @@ export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onPlace, onRe
           </li>)}
         </ul>
       </section>
-      {board.games.map(game => <Card key={game.id} as="section" className="gx-ev-game gx-vstack gx-gap-12" aria-labelledby={`gx-ev-${game.id}`} data-game={game.id}>
-        <header className="gx-ev-game-head">
-          <span className="gx-hstack gx-gap-8" aria-hidden="true"><TeamMark code={game.awayCode} size={24} decorative/><TeamMark code={game.homeCode} size={24} decorative/></span>
-          <span className="gx-grow gx-vstack">
-            <h3 id={`gx-ev-${game.id}`} className="gx-t-strong">{fmtMatchup(game.awayCode, game.homeCode)}</h3>
-            {game.kickoff ? <span className="gx-t-meta gx-c-2">{fmtWhen(game.kickoff)}</span> : null}
-          </span>
-          <AvatarStack people={game.faces.map(face => ({ id: face.id, name: face.display, you: face.you }))} label={`${game.faces.map(face => face.name).join(', ')} picked this game`}/>
-        </header>
-        <ul className="gx-ev-picks">
-          {game.picks.map(pick => <li key={pick.key} className={cx('gx-ev-pick', pick.you && 'gx-ev-you')} data-pick={pick.key} data-open={pick.open ? 'true' : 'false'}>
-            <Avatar id={pick.userId} name={pick.display} you={pick.you}/>
-            <span className="gx-grow gx-vstack gx-gap-2">
-              <span className="gx-ev-pick-head"><span className="gx-t-strong">{pick.name}</span><span className="gx-t-meta gx-c-2">{pick.marketName}</span></span>
-              <span className="gx-ev-pick-value"><span className="gx-n-xs">{pick.open ? pick.terms.pick : pick.side}</span><span className="gx-n-xs gx-c-2">{pick.units}</span></span>
-              {pick.open ? <span className="gx-t-meta gx-c-2">{pick.terms.odds} · {pick.terms.book}</span> : <LockLine as="span" className="gx-t-meta">{pick.locked}</LockLine>}
-            </span>
-            {pick.result ? <Pill tone={pick.result.tone}>{pick.result.net ? `${pick.result.label} ${pick.result.net}` : pick.result.label}</Pill> : null}
-          </li>)}
-        </ul>
-      </Card>)}
+      {board.games.map(game => <EveryoneGame key={game.id} game={game}/>)}
     </>}
     {onRefresh ? <Button variant="ghost" onClick={onRefresh}>Refresh</Button> : null}
   </div>;
+}
+
+/** Shared game rows keep Research and Bets on the same visibility projection. */
+export function EveryoneGame({ game }) {
+  return <Card as="section" className="gx-ev-game gx-vstack gx-gap-12" aria-labelledby={`gx-ev-${game.id}`} data-game={game.id}>
+    <header className="gx-ev-game-head">
+      <span className="gx-hstack gx-gap-8" aria-hidden="true"><TeamMark code={game.awayCode} size={24} decorative/><TeamMark code={game.homeCode} size={24} decorative/></span>
+      <span className="gx-grow gx-vstack">
+        <h3 id={`gx-ev-${game.id}`} className="gx-t-strong">{fmtMatchup(game.awayCode, game.homeCode)}</h3>
+        {game.kickoff ? <span className="gx-t-meta gx-c-2">{fmtWhen(game.kickoff)}</span> : null}
+      </span>
+      <AvatarStack people={game.faces.map(face => ({ id: face.id, name: face.display, you: face.you }))} label={`${game.faces.map(face => face.name).join(', ')} picked this game`}/>
+    </header>
+    <ul className="gx-ev-picks">
+      {game.picks.map(pick => <li key={pick.key} className={cx('gx-ev-pick', pick.you && 'gx-ev-you')} data-pick={pick.key} data-open={pick.open ? 'true' : 'false'}>
+        <Avatar id={pick.userId} name={pick.display} you={pick.you}/>
+        <span className="gx-grow gx-vstack gx-gap-2">
+          <span className="gx-ev-pick-head"><span className="gx-t-strong">{pick.name}</span><span className="gx-t-meta gx-c-2">{pick.marketName}</span></span>
+          <span className="gx-ev-pick-value"><span className="gx-n-xs">{pick.open ? pick.terms.pick : pick.side}</span><span className="gx-n-xs gx-c-2">{pick.units}</span></span>
+          {pick.open ? <span className="gx-t-meta gx-c-2">{pick.terms.odds} · {pick.terms.book}</span> : <LockLine as="span" className="gx-t-meta">{pick.locked}</LockLine>}
+        </span>
+        {pick.result ? <Pill tone={pick.result.tone}>{pick.result.net ? `${pick.result.label} ${pick.result.net}` : pick.result.label}</Pill> : null}
+      </li>)}
+    </ul>
+  </Card>;
 }

@@ -1,6 +1,6 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Reconciled October 26, 2026
+Owner: Sean Balsiger · Reconciled October 27, 2026
 
 The current task list is [the sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md).
 Sean approved finishing the existing redesign and optimizations before expanding
@@ -136,8 +136,15 @@ per-market saved references, explicit pending/first-after/commissioner labels,
 recorded Late, account/week guards and fixed-market Community guesses. Its
 validation and publication checkpoints are recorded separately.
 
+The next batch adds [per-game League bets](RESEARCH_GAME_BETS_2026_10_27.md) from
+the Bets action slot, using the existing M-10 reader and shared Everyone rows.
+43 integrated browser cases plus four final focused cases, 24 component and
+42 model/shell/token tests passed,
+along with typecheck, Brand QA, build/privacy scan and inspected 320px screenshots.
+Publication, release and acceptance are separate.
+
 Stage 31’s direct reveal/forfeit confirmation,
-stage 34’s Bet/Challenge action slots and League bets, and device acceptance remain
+stage 34’s Bet/Challenge action slots, and device acceptance remain
 open. These batches do not complete the whole stages.
 
 Q17-C remains open. Community Members merged in
