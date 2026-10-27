@@ -22,8 +22,8 @@ fixture reader. It checks zero, small gains/losses, baseline alignment, table an
 keyboard selection, view switching, market privacy and accessibility in 320px
 Light/Dark and both forced-color themes. All 56 integrated Research/Lines/Trends/
 League-bets browser cases passed. Four final screenshots were inspected; fixture
-build and bundle privacy checks passed. Source publication is pending on
-`codex/season-zero-markers`.
+build and bundle privacy checks passed. Source is in [PR #261](https://github.com/seanbalz/guess-the-lines-repo/pull/261)
+on `codex/season-zero-markers`.
 
 CI/merge, hosted release/readback and physical-iPhone acceptance remain open.
 This task does not deploy, apply migrations or change the frozen v62 tracker.
