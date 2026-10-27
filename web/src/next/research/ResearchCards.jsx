@@ -1,5 +1,5 @@
 import { lazy, Suspense, useId, useState } from 'react';
-import { Button, Card, InfoButton } from '../ui/index.js';
+import { Button, Card, InfoButton, Skeleton } from '../ui/index.js';
 import { TrendDetail, lineSelectionKey } from '../charts/TrendDetail.jsx';
 import { TrendLine } from '../charts/TrendLine.jsx';
 import { useChartSelection } from '../charts/useChartSelection.js';
@@ -42,12 +42,13 @@ function EvidenceDisclosure({ label, children }) {
   const [open, setOpen] = useState(false);
   return <div className="gx-vstack gx-gap-8"><Button variant="ghost" aria-expanded={open} onClick={() => setOpen(v => !v)}>{open ? 'Hide this evidence' : label}</Button>{open ? children : null}</div>;
 }
-export function ResearchStatus({ read }) {
+export function ResearchStatus({ read, compact = false }) {
   if (read.status === 'ready') return null;
+  if (read.status !== 'error') return <Skeleton label="Loading research…" shape={compact ? 'lines' : 'panels'} count={compact ? 3 : 2}/>;
   const code = read.error?.status;
-  return <div className="gx-vstack gx-gap-8" role={read.status === 'error' ? 'alert' : 'status'}>
-    <p className="gx-t-body gx-c-2">{read.status !== 'error' ? 'Loading research…' : code === 401 ? 'Sign in again to read research.' : code === 404 ? 'Research is not published for this week.' : code === 503 ? 'Research is temporarily unavailable.' : 'Research could not be loaded.'}</p>
-    {read.status === 'error' ? <Button variant="secondary" onClick={read.reload}>Try research again</Button> : null}
+  return <div className="gx-vstack gx-gap-8" role="alert">
+    <p className="gx-t-body gx-c-2">{code === 401 ? 'Sign in again to read research.' : code === 404 ? 'Research is not published for this week.' : code === 503 ? 'Research is temporarily unavailable.' : 'Research could not be loaded.'}</p>
+    <Button variant="secondary" onClick={read.reload}>Try research again</Button>
   </div>;
 }
 function RecordSummary({ record, label }) {
@@ -63,10 +64,10 @@ function ResearchDetail({ candidateId, request, withChart, selection }) {
   // The detail is a separate read. Link only equivalent chart evidence, never a stale summary.
   const linked = !line ? null : withChart ? { ...localSelection, chartId } : selection?.key === key ? selection : null;
   return <div className="gx-r-detail gx-vstack gx-gap-12">
-    <ResearchStatus read={read}/>
+    <ResearchStatus read={read} compact/>
     {candidate ? <>
       {withChart && line ? <TrendLine id={chartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} selectedIndex={localSelection.index} onSelect={localSelection.onSelect}/> : null}
-      <Suspense fallback={<p className="gx-t-meta" role="status">Loading historical table…</p>}><ResearchChart candidate={candidate} selection={linked}/></Suspense>
+      <Suspense fallback={<Skeleton label="Loading historical table…" shape="lines" count={4}/>}><ResearchChart candidate={candidate} selection={linked}/></Suspense>
       <p className="gx-t-meta">Qualification uses the canonical recent sample, regardless of this display period. {candidate.qualification.label}. {(candidate.qualification.reasons ?? []).map(reason).join(' ')}</p>
       <p className="gx-t-meta">Conditions: {candidate.conditionDescriptions?.join('; ') || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted NFL history'}.</p>
       <RecordSummary record={candidate.recent} label="Canonical recent sample"/>

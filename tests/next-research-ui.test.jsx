@@ -108,9 +108,21 @@ describe('shared research presentation', () => {
     expect(html).toContain('15 of 30 games in the smaller sample');
     expect(html).toContain('same situation family'); expect(html).not.toContain('&quot;count&quot;');
   });
+  it('uses decorative loading shapes without displaying data or recovery controls before the read finishes', () => {
+    for (const compact of [false, true]) {
+      const html = render(<ResearchStatus read={{ status: 'loading' }} compact={compact}/>);
+      expect(html).toContain(`data-skeleton="${compact ? 'lines' : 'panels'}"`);
+      expect(html).toContain('role="status"'); expect(html).toContain('Loading research…');
+      expect(html).toContain('aria-hidden="true"'); expect(html).not.toContain('<button');
+      expect(html).not.toContain('<svg'); expect(markupProblems(html)).toEqual([]);
+    }
+    expect(render(<ResearchStatus read={{ status: 'ready' }}/>)).not.toContain('data-skeleton');
+  });
   it.each([[401, 'Sign in again'], [404, 'not published'], [503, 'temporarily unavailable'], [500, 'could not be loaded']])('explains read status %i', (status, copy) => {
     const html = render(<ResearchStatus read={{ status: 'error', error: { status } }}/>);
     expect(html).toContain(copy); expect(markupProblems(html)).toEqual([]);
+    expect(html).toContain('role="alert"'); expect(html).toContain('Try research again');
+    expect(html).not.toContain('data-skeleton');
   });
   it('expires from authoritative server time using the request-start monotonic baseline', () => {
     expect(researchExpiry(data)).toBe(Date.parse(now) + 12 * 3600000);

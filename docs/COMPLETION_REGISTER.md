@@ -186,7 +186,7 @@ records Pages `84cba88f-4d58-4fdf-9c38-4faf9380867f` from
 PR #253. It supersedes the earlier Pages `4a03e6cd` checkpoint; API v38 was
 unchanged. This is release-lane evidence, not a hosted audit repeated by this
 task. Signed-in readback and real-phone acceptance remain unverified. PRs #258,
-#259, #261, #262, #263, #265, #267 and the market-range follow-up require a later release.
+#259, #261, #262, #263, #265, #267, #270 and the Research-loading follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -303,8 +303,18 @@ single observations, flat series and missing evidence retain explicit states.
 After integrating main with #266 and #267, all 65 browser cases passed, including
 gesture coverage. The combined branch passed 112 component and 41
 geometry/gesture/token/brand tests, typecheck, Brand QA and fixture build/privacy checks. Four 320px ordinary
-and forced-color screenshots were inspected. CI/merge, hosted release/readback
-and physical-iPhone acceptance remain separate checkpoints.
+and forced-color screenshots were inspected. PR #270 merged October 27 as `d98fb81ff0e84f392cf00ae235d7f09bd12b0e8b` after all nine checks passed on `edaab840546c379a781778e999fa3399b0314158`, with no CI fixes or review findings.
+Source is in [PR #270](https://github.com/seanbalz/guess-the-lines-repo/pull/270).
+Hosted release/readback and physical-iPhone acceptance remain open.
+
+The [Research-loading batch](RESEARCH_LOADING_2026_10_27.md),
+`codex/research-loading-states`, extends the approved static skeletons to the
+Research sheet, on-demand evidence and lazy historical table. Stale data still
+hides before replacement reads; failures restore the existing explanation and
+retry. All 66 integrated browser cases, two focused cases, 86 component tests,
+19 token/brand tests and typecheck passed. Brand QA and fixture build/privacy
+checks passed; six 320px ordinary/forced-color screenshots were inspected.
+CI/merge, hosted release/readback and phone acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

@@ -28,7 +28,8 @@ and forced-color screenshots were inspected. All 65 final integrated Research, L
 Trends, Bets Everyone and gesture browser cases passed on that combined source. Brand QA and the fixture build's
 bundle/privacy check also passed.
 
-Source branch: `codex/market-movement-scale`. CI/merge, hosted release/readback
-and physical-iPhone acceptance remain separate checkpoints. Stage 33's verified
+Source is in [PR #270](https://github.com/seanbalz/guess-the-lines-repo/pull/270),
+`codex/market-movement-scale`. PR #270 merged October 27 as `d98fb81ff0e84f392cf00ae235d7f09bd12b0e8b` after all nine checks passed on `edaab840546c379a781778e999fa3399b0314158`, with no CI fixes or review findings.
+Hosted release/readback and physical-iPhone acceptance remain open. Stage 33's verified
 live-game status and stage 34's dependent Bet/Challenge actions remain open.
 The frozen v62 tracker is unchanged.
