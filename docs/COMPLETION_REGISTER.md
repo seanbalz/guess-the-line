@@ -158,14 +158,27 @@ Light/Dark screenshots. PR #246 merged October 27 as
 `c191ec8a8e56a71f4023002a1e2df18296331096`; no CI fixes or review findings.
 Hosted release/readback and device acceptance stay open.
 
-The next [Research chart correction](RESEARCH_DESIGN_2026_10_26.md#cumulative-chart-records--october-27)
+The [Research chart correction](RESEARCH_DESIGN_2026_10_26.md#cumulative-chart-records--october-27)
 pairs cumulative units with a cumulative record in tooltips and keyboard
 announcements. The evidence table keeps each period’s own record with explicit
 column labels. Source is in [PR #248](https://github.com/seanbalz/guess-the-lines-repo/pull/248)
 on `codex/research-chart-records`; all 50 integrated
 browser tests, 25 component and 72 model/handler tests passed, as did typecheck,
 Brand QA and build/privacy validation. Light/Dark 320px screenshots were inspected.
-CI/merge, hosted release and phone acceptance remain separate.
+PR #248 merged October 27 as `bc5a06cb74252c8da7af6c87a4531878b7ea67fe`
+after all nine checks passed on `459e24f3680a3ee0fb0792ba5905dfe7d7d397ee`;
+no CI fixes or review findings. Hosted release/readback and phone acceptance
+remain open.
+
+The next [chart interaction correction](RESEARCH_DESIGN_2026_10_26.md#retained-line-selection--october-27)
+retains the cumulative-line point while comparing the season view. Line and
+season selections remain independent; changed evidence and reopened details
+start at the latest line point. Source is in [PR #249](https://github.com/seanbalz/guess-the-lines-repo/pull/249)
+on `codex/chart-selection`: all 50
+integrated browser tests plus two final focused checks, 27 component and 20
+chart/token tests passed, along with typecheck, Brand QA and build/privacy checks.
+Light/Dark 320px screenshots were inspected. CI/merge, release and device
+acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
