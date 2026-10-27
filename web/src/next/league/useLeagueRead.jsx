@@ -33,6 +33,21 @@ export function useLeagueRead(key, read, onRefused, { shared = false } = {}) {
   return { ...(snapshot?.key === key ? snapshot : { loading: true, data: null, error: null }), retry: () => setRevision(n => n + 1) };
 }
 
+// League's three read states share one card (design lane, League pass): the same place, padding and words on every
+// board, the feed and history, so a slow or failed read never moves the screen around. Loading is a status line,
+// empty is one sentence and one action (rule of restraint 5), and a failure says why with "Try again".
+
+/** A read that failed: the server's words (or the offline line) and "Try again". */
 export function LeagueFailure({ error, onRetry }) {
-  return <Card className="gx-vstack gx-gap-12" role="alert"><p className="gx-t-body">{error?.status ? error.message : 'No connection. Reconnect and try again.'}</p><Button onClick={onRetry}>Try again</Button></Card>;
+  return <Card className="gx-vstack gx-gap-12 gx-l-state" role="alert" data-league-state="error"><p className="gx-t-body">{error?.status ? error.message : 'No connection. Reconnect and try again.'}</p><Button onClick={onRetry}>Try again</Button></Card>;
+}
+
+/** A read on its way: "Loading this league…" in a status region, in the card a result will fill. */
+export function LeagueLoading({ label }) {
+  return <Card className="gx-vstack gx-gap-12 gx-l-state" data-league-state="loading"><p className="gx-t-body gx-c-2" role="status">{label}</p></Card>;
+}
+
+/** Nothing to show yet: one sentence and, when there is one, one action ("Invite friends", "Refresh"). */
+export function LeagueEmpty({ text, actionLabel, onAction }) {
+  return <Card className="gx-vstack gx-gap-12 gx-l-state" data-league-state="empty"><p className="gx-t-body">{text}</p>{actionLabel && onAction ? <Button onClick={onAction}>{actionLabel}</Button> : null}</Card>;
 }

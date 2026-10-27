@@ -5,7 +5,7 @@ import { HistoryLine } from '../../CommunityHistory.jsx';
 import { MODE, lateText, pickText, show } from '../../communityFormat.js';
 import { Button, Card, Segmented } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
-import { LeagueFailure, useLeagueRead } from './useLeagueRead.jsx';
+import { LeagueEmpty, LeagueFailure, LeagueLoading, useLeagueRead } from './useLeagueRead.jsx';
 
 export function LeagueHistory({ app }) {
   const shell = useShell();
@@ -13,7 +13,7 @@ export function LeagueHistory({ app }) {
   const read = useLeagueRead(`${app.accountId}:history:${season || 'latest'}`, signal => communityApi('history', season ? { season } : {}, signal), error => {
     if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['community'] });
   });
-  if (read.loading) return <p className="gx-t-body gx-c-2" role="status">Loading history…</p>;
+  if (read.loading) return <LeagueLoading label="Loading history…"/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   const data = read.data, members = data.members || [], selected = members.find(member => member.id === player) || members.find(member => member.id === data.viewer) || members[0];
   return <section className="gx-vstack gx-gap-16" aria-label="Community history">
@@ -48,6 +48,6 @@ export function LeagueHistory({ app }) {
         {entry?.updatedAt && <p className="gx-t-meta gx-c-2">Last saved {date(entry.updatedAt)} PT{entry.revisions ? ` · ${entry.revisions} revisions` : ''}</p>}
       </Card>;
     })}
-    {!(data.weeks || []).length && <p className="gx-t-body gx-c-2">No history yet.</p>}
+    {!(data.weeks || []).length && <LeagueEmpty text="No history yet." actionLabel="Refresh" onAction={read.retry}/>}
   </section>;
 }

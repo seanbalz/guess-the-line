@@ -14,6 +14,35 @@
 .gx .gx-fx-detail { display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-2); padding: var(--gx-space-3) 0; text-align: center; }
 .gx .gx-fx-lines { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0 0 0 var(--gx-space-5); }
 .gx .gx-fx-flash > :not(.gx-fx-burst) { position: relative; }
+
+/* ----- design lane: Home's recap, the hero's Pick streak and the League's recap post ----- */
+.gx .gx-fx-home { display: flex; flex-direction: column; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-fx-home-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-fx-home > .gx-btn { align-self: flex-start; }
+/* The open award: its icon, then its name and the winners with the value. */
+.gx .gx-fx-award { display: flex; align-items: center; gap: var(--gx-space-3); min-width: 0; padding: var(--gx-space-3); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }
+.gx .gx-fx-award-text { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; }
+/* The Pick streak: a glass pill on the hero glow card (D-55: glass only on a glow card), with the flame. */
+.gx .gx-fx-flame {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gx-space-1);
+  min-height: 28px;
+  padding: 2px 10px 2px 8px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  color: var(--gx-text-1);
+}
+.gx .gx-fx-flame-text { font: 600 14px/20px var(--gx-font-body); letter-spacing: 0.01em; }
+/* The League's recap post: a card with the trophy, the week's awards as rows, and the way to the badges screen. */
+.gx .gx-fx-post-head { display: flex; align-items: center; gap: var(--gx-space-3); padding: var(--gx-space-4) var(--gx-space-4) var(--gx-space-3); }
+.gx .gx-fx-post-head > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gx .gx-fx-post-foot { display: flex; padding: var(--gx-space-2) var(--gx-space-4) var(--gx-space-3); border-top: 1px solid var(--gx-border); }
+@media (forced-colors: active) {
+  .gx .gx-fx-flame,
+  .gx .gx-fx-award { border: 1px solid CanvasText; }
+}
 /* The stadium flash: one ring that swells and fades behind the tile, once (big, 600 ms). */
 .gx .gx-fx-burst {
   position: absolute;

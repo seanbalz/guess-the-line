@@ -29,3 +29,46 @@
 .gx .gx-league .gx-input { width: 100%; min-width: 0; }
 .gx .gx-league-reference strong { font-family: var(--gx-font-num); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--gx-text-1); }
 .gx .gx-league-reference small { font-family: var(--gx-font-body); font-size: 13px; line-height: 1.4; color: var(--gx-text-2); }
+
+/* ----- design lane: League pass ----- */
+/* One card for every read state (loading, empty, failed): the same place and padding, words first, one action. */
+.gx .gx-l-state { align-items: flex-start; min-height: 88px; justify-content: center; }
+/* The season race: every ranked face along the points axis, above the rows it pictures. */
+.gx .gx-l-race { display: flex; flex-direction: column; gap: var(--gx-space-2); padding: var(--gx-space-4) var(--gx-space-4) var(--gx-space-2); background: var(--gx-surface-1); }
+/* The leader: a Leader pill and the lead in words, and a win-colored edge (your own row keeps its lime edge). */
+.gx .gx-l-row .gx-row-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-l-row--lead:not(.gx-row--you) { background: var(--gx-surface-2); box-shadow: inset 3px 0 0 var(--gx-win); }
+/* The newest badge week's badges on a row: the week, then one 44px button per badge (its tile, "×3" beside it). */
+.gx .gx-l-badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-1); margin-top: var(--gx-space-1); }
+.gx .gx-l-badges > .gx-t-meta:first-child { margin-right: var(--gx-space-1); }
+.gx .gx-l-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--gx-size-touch);
+  height: var(--gx-size-touch);
+  padding: 0 6px;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: transparent;
+  color: var(--gx-text-1);
+  cursor: pointer;
+}
+.gx .gx-l-badge:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx .gx-l-badge-count { font: 600 13px/18px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-2); }
+/* Your rank's last move beside it; it pops once when the change is seen now (with the toast), and is still after. */
+.gx .gx-l-move { width: auto; }
+.gx .gx-l-move--fresh { animation: gx-l-move-pop var(--gx-dur-big) var(--gx-ease-pop) 1 both; }
+@keyframes gx-l-move-pop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx .gx-l-move--fresh { animation: none !important; }
+}
+.gx[data-motion="reduce"] .gx-l-move--fresh { animation: none !important; }
+@media (forced-colors: active) {
+  .gx .gx-l-row--lead:not(.gx-row--you) { border-left: 3px solid CanvasText; }
+  .gx .gx-l-badge { border: 1px solid CanvasText; }
+}
