@@ -305,5 +305,39 @@ PR #252. After combining the branches, the kickoff and source-time browser check
 copy also passed a focused browser rerun. Typecheck, Brand QA, fixture
 build and bundle privacy checks passed. Source is in [PR #253](https://github.com/seanbalz/guess-the-lines-repo/pull/253)
 on `codex/research-source-times`;
-CI/merge, hosted release/readback and actual-device acceptance remain open. This
+PR #253 merged October 27 as
+`a887fd162560e3aa6e6eb29fe3cdd3686fcfb137` after all nine checks passed on
+`d58d94addcf63f20aef980fc772b371bcb843903`, with no CI fixes or review findings. Hosted release/readback and actual-device acceptance remain open. This
 task did not deploy or apply migrations.
+
+
+## Labelled player comparison charts — October 27
+
+The approved Research chart readability and honest-data rules now extend to the
+Players comparison bars. Previously the bars carried no observation labels or
+numbers of their own, and a genuine zero was drawn as a one-pixel positive bar.
+Each plotted week or player now has a visible label and the same signed value as
+its evidence-table row. Percentage labels include percent signs and retain the
+fixed 0–100 scale; point comparisons retain their shared magnitude scale.
+
+Real zero uses a hollow marker on the zero baseline. Missing or nonfinite values
+show No sample and no mark; finite nonzero bars use their actual proportional
+width. The chart is a named observation list with decorative SVG geometry, so
+its labels and values are accessible without reading a separate image. Labels
+wrap at narrow widths. The keyboard-accessible evidence table scrolls within its container at narrow
+widths so column headings remain whole. Samples,
+decisions, pushes, eligibility and market/privacy filters remain intact.
+
+Two rendered regressions failed against the previous chart and passed after the
+change. The authenticated-fixture browser case compares plotted labels/values
+with the table, covers positive/negative/zero bias and missing outcome samples,
+and checks 320px layouts, privacy and axe in Light/Dark and both forced-color
+themes. The first forced-color check flagged avatar ink against the system
+canvas; initials avatars now explicitly pair system foreground/background colors
+and a real border. All 54 integrated Research/Lines/Trends/League-bets browser cases passed.
+After the narrow-table correction, all five Trends browser cases passed again.
+All 52 component and 24 chart/token/market model tests, typecheck, Brand QA,
+fixture build and bundle privacy checks passed. Six 320px ordinary/forced-color
+screenshots were inspected, including the corrected Light/Dark percentage tables.
+Publication is pending on `codex/research-chart-values`. Hosted release and
+physical-device acceptance remain separate; no deployment or migration apply.

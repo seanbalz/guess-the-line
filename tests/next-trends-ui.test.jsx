@@ -3,7 +3,7 @@ import { marketSituationCards } from '../web/src/next/trends/situations.js';
 vi.mock('../web/src/auth', () => ({ cloudEnabled: false, supabase: null }));
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { TABS } from '../web/src/next/shell/state.js';
 import { PlayerEvidence } from '../web/src/next/trends/PlayerEvidence.jsx';
 import { TrendAvailability } from '../web/src/next/lines/parts.jsx';
@@ -39,6 +39,28 @@ describe('Trends UI evidence', () => {
   expect(markupProblems('<div class="gx">'+html+'</div>')).toEqual([]);
   expect(html).toContain('Zero baseline'); expect(html).toContain('<table'); expect(html).toContain('No sample');
  });
+ it('labels each observation and value beside its bar, preserving zero and missing samples', () => {
+  const rows = [{ label: 'Positive week', value: 3.5 }, { label: 'Negative week', value: -3.5 }, { label: 'Zero week', value: 0 }, { label: 'Missing week', value: null }, { label: 'Invalid week', value: NaN }];
+  const html = renderToStaticMarkup(<BiasChart rows={rows} title="Signed bias"/>);
+  const nodes = [...walk(parseMarkup(html))].filter(n => n.tag);
+  expect(nodes.filter(n => n.attrs.class === 'gx-tr-observation')).toHaveLength(5);
+  expect(nodes.filter(n => n.tag === 'rect')).toHaveLength(2);
+  expect(nodes.filter(n => n.tag === 'rect').map(n => n.attrs.width)).toEqual(['128', '128']);
+  expect(nodes.filter(n => n.tag === 'rect').map(n => n.attrs.x)).toEqual(['150', '22']);
+  expect(nodes.filter(n => n.attrs.class === 'gx-tr-zero-point')).toHaveLength(1);
+  const chart = html.slice(0, html.indexOf('<table'));
+  for (const text of ['Positive week', 'Negative week', '+3.5', '−3.5', 'Zero week', 'Missing week', 'No sample']) expect(chart).toContain(text);
+  expect(html).not.toContain('NaN');
+  expect(markupProblems('<div class="gx">'+html+'</div>')).toEqual([]);
+ });
+ it('keeps percentage bars on a shared 0–100 scale without a fabricated zero-width bar', () => {
+  const html = renderToStaticMarkup(<BiasChart rows={[{ label: 'Zero', value: 0 }, { label: 'Half', value: 50 }, { label: 'Full', value: 100 }]} title="Cover rate" unit="percent" signedValues={false}/>);
+  const nodes = [...walk(parseMarkup(html))].filter(n => n.tag);
+  expect(nodes.filter(n => n.tag === 'rect').map(n => n.attrs.width)).toEqual(['134', '268']);
+  expect(nodes.filter(n => n.tag === 'rect').every(n => n.attrs.x === '16')).toBe(true);
+  expect(nodes.filter(n => n.attrs.class === 'gx-tr-zero-point')).toHaveLength(1);
+  expect(html).toContain('50%'); expect(html).toContain('100%');
+ });
  it('all-season reader fails the view on any missing requested season', async () => {
   const api = vi.fn(async (action, body) => { if (body.season === 2025) throw new Error('Unavailable'); return { ...history, seasons: [2026, 2025] }; });
   await expect(readTrendsHistory({ api, season: 2026, window: 'all', signal: new AbortController().signal })).rejects.toThrow('Unavailable');
@@ -66,7 +88,6 @@ const publishedSlate = vi.hoisted(() => ({ value: null }));
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => publishedSlate.value }));
 const { TrendsScreen } = await import('../web/src/next/trends/TrendsScreen.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
-const { parseMarkup, walk } = await import('./helpers/ui-markup.mjs');
 function renderPublishedSlate(week, games, view) {
  publishedSlate.value = {
   app: { accountId: 'me', league: { id: 'community', name: 'Community', community: true } },

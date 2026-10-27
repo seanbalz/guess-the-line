@@ -11,16 +11,21 @@
 .gx .gx-tr-details > summary { min-height: var(--gx-size-touch); padding-block: var(--gx-space-3); cursor: pointer; overflow-wrap: anywhere; }
 .gx .gx-tr-game { border-left: 2px solid var(--gx-border-strong); padding-left: var(--gx-space-3); }
 .gx .gx-tr-chart { margin: 0; padding: var(--gx-space-4); background: var(--gx-surface-1); border-radius: var(--gx-radius-md); display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
-.gx .gx-tr-chart svg { width: 100%; height: auto; max-height: 360px; }
+.gx .gx-tr-observations { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
+.gx .gx-tr-observation-label { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--gx-space-2); }
+.gx .gx-tr-observation-label > span { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.gx .gx-tr-chart svg { display: block; width: 100%; height: auto; }
 .gx .gx-tr-zero { stroke: var(--gx-text-2); stroke-width: 1; }
+.gx .gx-tr-zero-point { stroke: var(--gx-text-2); stroke-width: 2; fill: var(--gx-surface-1); }
 .gx .gx-tr-positive { fill: var(--gx-data); }
 .gx .gx-tr-negative { fill: var(--gx-pending); }
 .gx .gx-tr-table { max-width: 100%; min-width: 0; overflow-x: auto; }
 .gx .gx-tr-table table { width: 100%; border-collapse: collapse; font: 500 13px/18px var(--gx-font-body); }
 .gx .gx-tr-table th, .gx .gx-tr-table td { text-align: left; vertical-align: top; padding: var(--gx-space-2); border-bottom: 1px solid var(--gx-border); overflow-wrap: anywhere; }
+.gx .gx-tr-chart th, .gx .gx-tr-chart td { overflow-wrap: normal; }
 .gx .gx-tr-table caption { text-align: left; padding-block: var(--gx-space-2); color: var(--gx-text-2); }
 .gx .gx-trends p { overflow-wrap: anywhere; }
 @media (max-width: 359px) { .gx .gx-tr-filters { grid-template-columns: minmax(0, 1fr); } }
-@media (forced-colors: active) { .gx .gx-tr-positive, .gx .gx-tr-negative { fill: CanvasText; } .gx .gx-tr-zero { stroke: CanvasText; } }
+@media (forced-colors: active) { .gx .gx-tr-positive, .gx .gx-tr-negative { fill: CanvasText; } .gx .gx-tr-zero { stroke: CanvasText; } .gx .gx-tr-zero-point { stroke: CanvasText; fill: Canvas; } }
 
 .gx .gx-tr-week-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
