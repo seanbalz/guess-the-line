@@ -7,7 +7,7 @@ import { providerNbaError } from '../../cloud/nba.mjs';
 import { normalizeNbaTicket } from '../../shared/nba-bets.mjs';
 import { prepareNbaImport } from '../../scripts/nba-private-import.mjs';
 import { ALL } from '../migrations.mjs';
-import { createCommunityWorld, pgliteAvailable, SUPABASE, signIn, ACCOUNTS } from './community-world.mjs';
+import { createCommunityWorld, pgliteAvailable, SUPABASE, signIn, ACCOUNTS, useOldApp } from './community-world.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 test.use({ actionTimeout: 10000 });
 
@@ -48,7 +48,8 @@ async function fixture(page, baseURL) {
   return { ...world, controls, calls, directSave };
 }
 async function enter(page, hash = '#nba/games?date=2026-10-21', view = 'classic') {
-  await page.addInitScript(value => localStorage.setItem('gtl.app', value), view);
+  // D-60: the new app is the default; the old app opens at ?app=classic, as Menu › Older records and tools does.
+  if (view === 'classic') await useOldApp(page);
   await page.goto(`/${hash}`); await signIn(page, 'luke', { navigate: false });
   await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
 }

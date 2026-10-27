@@ -5,6 +5,7 @@ import { applyProvisionalAnalysisView } from '../../cloud/total-analysis-view.mj
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { picker, pickSpread, pickTotal, expectPick, expectPickEnabled, spreadText, totalText } from '../chip-entry.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { useOldApp } from './old-app.mjs';
 const MATCHUPS = [['TB', 'DAL'], ['PHI', 'JAX'], ['CIN', 'MIA']];
 
 const accountId = '11111111-1111-4111-8111-111111111111';
@@ -1462,3 +1463,6 @@ test('personal decision analysis displays sourced fields only in the submitted m
  submittedBenchmarkGame(hub);hub.decisionAnalysis={'TB-DAL':{market:'spread',savedGuess:0,reference:{value:-3,source:'Recorded fixture book median',observedAt:'2026-10-08T15:59:00Z',collectedAt:'2026-10-08T16:00:00Z',status:'stale'},guessDiscrepancy:3,personalForecast:{kind:'personal_outcome_forecast',value:-7.5,savedAt:'2026-10-08T15:30:00Z',revision:2},model:null,explanation:'No eligible current independent forecast; a sportsbook-number guess is not an outcome forecast.'}};
  await page.goto('/');await signIn(page);await page.getByRole('button',{name:'Open game',exact:true}).click();await page.locator('.data-connections > summary').click();const panel=page.getByRole('region',{name:'Your forecast and the recorded market'});await expect(panel).toContainText('Stale saved market reference');await expect(panel).toContainText('Recorded fixture book median');await expect(panel).toContainText('−7.5');await expect(panel).toContainText('Revision 2');await expect(panel).toContainText('Independent outcome forecastUnavailable');await expect(panel).toContainText('No automated selection is made');await page.locator('.dashboard-market-tabs').getByRole('button',{name:'Total',exact:true}).click();await page.locator('.data-connections > summary').click();await expect(page.getByRole('region',{name:'Your forecast and the recorded market'})).toHaveCount(0);await expect(page.locator('.external-research')).toHaveCount(0);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

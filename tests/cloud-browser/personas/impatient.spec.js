@@ -1,6 +1,7 @@
 // Persona (f): impatient user. What happens on network failure, on a 409 conflict and on an
 // expired session? Are the errors actionable, or does the screen just go quiet?
 import { test, expect, pgliteAvailable } from './harness.mjs';
+import { useOldApp } from '../old-app.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -174,3 +175,6 @@ test('impatient: 503 and offline feed, offline save, real 409 conflict, injected
   await expect(alert).toHaveCount(0);
   expect(await persona.noOverflow()).toBe(true);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // All Supabase traffic is intercepted locally. These tests never use real accounts,
 // send confirmation emails, or exercise a deployed Supabase project.
@@ -185,3 +186,6 @@ test('another device submission preserves a local edit and requires resolving th
   await expect(page.getByRole('button', { name: 'Save draft', exact: true })).toHaveCount(0);
   expect(league.requests.filter(request => request.route === 'ballot')).toHaveLength(1);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

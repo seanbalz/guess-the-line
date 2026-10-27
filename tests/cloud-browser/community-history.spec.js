@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { HOSTED } from '../migrations.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // The Community History tab (Sean's October 12, 2026 rulings) on the real handler, the hosted migrations and PGlite. Luke views; Troy
 // has pre-D-17 Week 5 Spread and Total ballots with no saved line. Luke sees Troy's ballots as hidden until he sits out a
@@ -194,3 +195,6 @@ for (const width of [390, 1280]) test(`community history: the line at each guess
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

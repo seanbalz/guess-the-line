@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // "Continue with Google" with Supabase Auth mocked locally. No request reaches Google or a real Supabase project: the
 // authorize navigation is answered with the redirect Supabase would send after a successful Google consent.
@@ -143,7 +144,8 @@ test('an error returned from the Google redirect is shown in plain words and rem
   expect(new URL(page.url()).hash).toBe('');
   await page.goto('/?error=server_error&error_description=Unsupported+provider%3A+provider+is+not+enabled');
   await expect(page.getByRole('alert')).toHaveText('Google sign-in isn’t switched on yet. Use email for now.');
-  expect(new URL(page.url()).search).toBe('');
+  // Only the error parameters go; the ?app=classic this spec opens with (D-60) stays.
+  expect([...new URL(page.url()).searchParams.keys()]).toEqual(['app']);
 });
 
 test('email sign-in is unchanged and never contacts the Google path', async ({ page, auth }) => {
@@ -156,3 +158,6 @@ test('email sign-in is unchanged and never contacts the Google path', async ({ p
   expect(auth.settings).toBe(0);
   expect(auth.authorize).toHaveLength(0);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

@@ -2,6 +2,7 @@ import { test as base, expect } from '@playwright/test';
 import { seed } from '../../server/store.mjs';
 import { soloDraftScope } from '../../web/src/soloDraft.js';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // UI recovery coverage uses explicit synthetic authenticated responses. It does
 // not submit real picks, consume provider credits or replace SQL integration tests.
@@ -210,3 +211,6 @@ test('new edits survive reload while another recovered matchup still needs a con
   await expect(page.getByLabel('TB-DAL Spread guess')).toHaveValue('-5');
   expect(solo.attempts).toHaveLength(0);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

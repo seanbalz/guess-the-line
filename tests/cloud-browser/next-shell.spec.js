@@ -20,7 +20,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const OLD = 'Use the old app';
+const OLD = 'Use the old app', OLDER = 'Older records and tools';
 const TABS = ['Home', 'Play', 'Bets', 'Research'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 // A tab by its label; its name may add the counter's words ("Play, 2 ballots due", stage 11).
@@ -255,11 +255,12 @@ test.describe('the real app', () => {
 
       expect(writes(calls), 'the menu writes nothing').toEqual([]);
 
-      // Use the old app from the menu.
+      // D-60: the menu's one way into the old app opens it at ?app=classic, saving nothing.
       await avatar.click();
-      await menu.getByRole('button', { name: OLD }).click();
+      await menu.getByRole('button', { name: OLDER }).click();
       await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-      expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('classic');
+      expect(new URL(page.url()).searchParams.get('app')).toBe('classic');
+      expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBeNull();
       // Only the NBA section's NFL/NBA selector (PR #167) uses new-app styles in the old app; the new-app frame is gone.
       await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
 
@@ -637,7 +638,8 @@ test.describe('the shell harness', () => {
     await expect(page.getByRole('button', { name: 'Break this tab' }), 'a fresh start on the way back').toBeVisible();
     await page.getByRole('button', { name: 'Break this tab' }).click();
     await page.getByRole('alert').getByRole('button', { name: OLD }).click();
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('classic');
+    // D-60: the old app opens at ?app=classic; nothing is saved.
+    await expect.poll(() => new URL(page.url()).searchParams.get('app')).toBe('classic');
     expect(errors.filter(e => !/failed on purpose/.test(e))).toEqual([]);
   });
 

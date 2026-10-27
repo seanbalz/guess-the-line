@@ -1,21 +1,26 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
-import { SUPABASE, communityWorld, pgliteAvailable, signIn, switchAccount } from './community-world.mjs';
+import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
-// Redesign build plan, stage 9: the switch (section 3.2; D-38, D-39), on the real Community home with the real
-// handler and every migration (ALL) on local PGlite, at 390 x 844. "Try the new app" is in the Community footer
-// for every signed-in member; the choice is kept on this device and the page reloads into the lazy NextApp (the
-// stage 10 shell, reading through the stage 11 data layer); "Use the old app" comes back; a blocked chunk falls
-// back to the old app; ?app=classic always forces the old app; storage that refuses the choice keeps the old app and
-// says so. Never contacts hosted data.
+// D-60, step 1 of retiring the old app: everyone uses the new app. On the real app with the real handler and every
+// migration (ALL) on local PGlite, at 390 x 844. Contracts:
+// - every signed-in member (commissioner and players) lands in the new app; the old app's chunks never load;
+// - Menu › "Older records and tools" opens the old app for that address only (`?app=classic`, never saved); a reload
+//   stays there; its footer's "Back to the new app" drops the parameter; the next plain visit is the new app;
+// - a device's old saved "classic" choice no longer counts and is forgotten, other preferences kept; storage that
+//   throws still opens the new app;
+// - a new app that cannot load (blocked chunk) or throws while rendering falls back to the old app on that page and
+//   says so through a status note that arrives empty; the next visit tries the new app again;
+// - phone checks and axe in Dark and Light at 390 and 320 on the new app and the old footer.
+// Never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
-const TRY = 'Try the new app', OLD = 'Use the old app';
-const NOTE = { blocked: 'This browser isn’t saving settings, so the new app can’t open here.', fellBack: 'The new app couldn’t open, so you’re back in the current app.' };
+const OLDER = 'Older records and tools', BACK = 'Back to the new app';
+const NOTE = { fellBack: 'The new app couldn’t open, so the old app opened instead.' };
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const communityHome = page => page.getByRole('heading', { name: 'Community', exact: true });
-// The new app's frame (stage 10): its tab bar, on Home.
+// The new app's frame (stage 10): its tab bar.
 const newApp = page => page.getByRole('navigation', { name: 'Main' });
 /** Who the new app's menu says is signed in, read from the avatar menu (then closed again). */
 async function signedInAs(page, displayName) {
@@ -28,13 +33,14 @@ async function signedInAs(page, displayName) {
   await page.keyboard.press('Escape');
   return text;
 }
-const tryButton = page => page.locator('.hub-bottom').getByRole('button', { name: TRY, exact: true });
-/** The new app's "Use the old app": in the avatar menu (section 3.2), since stage 12 replaced Home's "coming next" card. */
-async function oldAppButton(page) {
+const backButton = page => page.locator('.hub-bottom').getByRole('button', { name: BACK, exact: true });
+/** The Menu's one everyday way into the old app. */
+async function olderRecords(page) {
   await page.getByRole('button', { name: 'Your menu' }).click();
-  return page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: OLD, exact: true });
+  return page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: OLDER, exact: true });
 }
 const saved = page => page.evaluate(() => localStorage.getItem('gtl.app'));
+const appParam = page => new URL(page.url()).searchParams.get('app');
 /** Script and style files this document loaded (resource timing, so a reload starts a fresh list). */
 const assets = page => page.evaluate(() => performance.getEntriesByType('resource').map(entry => new URL(entry.name).pathname).filter(p => /\/assets\/[^/]+\.(js|css)$/.test(p)));
 const named = (list, name) => list.filter(p => new RegExp(`/assets/${name}-[^/]+\\.(js|css)$`).test(p));
@@ -71,165 +77,133 @@ async function axe(page, include) {
   return result.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`);
 }
 
-test('a signed-in member sees "Try the new app", switches to the new app, and comes back', async ({ page, baseURL }) => {
+test('a signed-in member lands in the new app; Older records and tools opens the old app for that visit only', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  try {
+    const calls = apiCalls(page);
+    await signIn(page, 'luke');
+    await expect(newApp(page)).toBeVisible();
+    expect(await saved(page), 'nothing is saved').toBeNull();
+    const loaded = await assets(page);
+    expect(named(loaded, 'NextApp').length, 'the new app is its own chunk and stylesheet').toBe(2);
+    expect(named(loaded, 'GameHub'), 'the new app never downloads the old one').toEqual([]);
+    await expect(page.locator('.hub-shell')).toHaveCount(0);
+    await phoneChecks(page, '.gx');
+    // Shared account and Community reads happen once per page load.
+    await expect.poll(() => calls.filter(call => call === 'GET /functions/v1/gtl-api/lobby').length).toBe(1);
+
+    // The Menu's one way into the old app: a new page at ?app=classic, nothing saved.
+    await (await olderRecords(page)).click();
+    await expect(communityHome(page)).toBeVisible();
+    expect(appParam(page)).toBe('classic');
+    expect(await saved(page)).toBeNull();
+    // The only new-app styled element in the old app is the NBA section's NFL/NBA selector (PR #167); no new-app frame mounts.
+    await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
+    expect(named(await assets(page), 'NextApp'), 'the old page never downloads the new app').toEqual([]);
+    await expect(backButton(page)).toBeVisible();
+    await expect(page.locator('.try-new-app-note')).toHaveText('');
+    await phoneChecks(page, '.hub-bottom');
+
+    // A reload keeps the address, so it stays in the old app.
+    await page.reload();
+    await expect(communityHome(page)).toBeVisible();
+
+    // Back to the new app drops the parameter.
+    await backButton(page).click();
+    await expect(newApp(page)).toBeVisible();
+    expect(appParam(page)).toBeNull();
+
+    // And any plain visit is the new app.
+    await page.goto('/');
+    await expect(newApp(page)).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('an old saved "classic" choice on a device no longer counts and is forgotten; other preferences stay', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   try {
     await signIn(page, 'luke');
-    await expect(communityHome(page)).toBeVisible();
-    await expect(tryButton(page)).toBeVisible();
-    expect(await saved(page), 'nothing is chosen until the member taps').toBeNull();
-    expect(named(await assets(page), 'NextApp'), 'the old app never downloads the new one').toEqual([]);
-    await phoneChecks(page, '.hub-bottom');
-
-    const calls = apiCalls(page);
-    await tryButton(page).click();
     await expect(newApp(page)).toBeVisible();
-    expect(await saved(page)).toBe('next');
-    await expect(page.locator('.hub-shell')).toHaveCount(0);
-    const loaded = await assets(page);
-    expect(named(loaded, 'NextApp').length, 'the new app is its own chunk and stylesheet').toBe(2);
-    expect(named(loaded, 'GameHub'), 'the new app never downloads the old one').toEqual([]);
-    await expect(page.locator('.gx')).toHaveCount(1);
-    await expect(await oldAppButton(page)).toBeVisible();
-    await page.keyboard.press('Escape');
-    await phoneChecks(page, '.gx');
-
-    // A reload keeps the device's choice.
+    await page.evaluate(() => { localStorage.setItem('gtl.app', 'classic'); localStorage.setItem('gtl.theme', 'light'); });
     await page.reload();
     await expect(newApp(page)).toBeVisible();
-    // Shared account/Community reads occur once per page load. Home also reads preferences, scored history and its ticket summary.
-    await expect.poll(() => calls.filter(call => call === 'POST /functions/v1/gtl-api/social/read').length).toBe(2);
-    expect(calls.filter(call => !['POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/league/features'].includes(call))).toEqual(['GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read']);
-
-    await (await oldAppButton(page)).click();
-    await expect(communityHome(page)).toBeVisible();
-    expect(await saved(page)).toBe('classic');
-    // The only new-app styled element in the old app is the NBA section's NFL/NBA selector (PR #167); no new-app frame mounts.
-    await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
-    await expect(page.locator('.gx-nba-sport-entry').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
-    expect(named(await assets(page), 'NextApp')).toEqual([]);
-    await expect(tryButton(page)).toBeVisible();
-    await expect(page.locator('.try-new-app-note')).toHaveText('');
+    expect(await saved(page), 'the old choice is forgotten').toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('gtl.theme')), 'other preferences are kept').toBe('light');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
 
-test('every signed-in member sees the button, the commissioner and players alike (D-39), and can sign out of the new app', async ({ page, baseURL }) => {
+test('storage that throws still opens the new app', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  await page.addInitScript(() => {
+    const original = { getItem: Storage.prototype.getItem, setItem: Storage.prototype.setItem, removeItem: Storage.prototype.removeItem };
+    for (const name of Object.keys(original)) {
+      Storage.prototype[name] = function (key, ...rest) {
+        if (key === 'gtl.app') throw new DOMException('Blocked for this test.', 'SecurityError');
+        return original[name].call(this, key, ...rest);
+      };
+    }
+  });
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  try {
+    await signIn(page, 'luke');
+    await expect(newApp(page)).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('the commissioner and players alike land in the new app, and the next member on the device does too', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   try {
     await signIn(page, 'sean');
-    await expect(communityHome(page)).toBeVisible();
-    await expect(tryButton(page)).toBeVisible();
-    await switchAccount(page, 'troy');
-    await expect(communityHome(page)).toBeVisible();
-    await expect(tryButton(page)).toBeVisible();
-    await tryButton(page).click();
     await expect(newApp(page)).toBeVisible();
-    expect(await signedInAs(page, 'Troy Fixture')).toBe('Signed in as troy@example.test');
+    expect(await signedInAs(page, 'Sean Fixture')).toBe('Signed in as sean@example.test');
     await page.getByRole('button', { name: 'Your menu' }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Your games. Any device.' })).toBeVisible();
-    // The choice belongs to the device, not the account: the next member on this device lands in the new app too.
-    await signIn(page, 'luke', { navigate: false });
+    await signIn(page, 'troy', { navigate: false });
     await expect(newApp(page)).toBeVisible();
-    expect(await signedInAs(page, 'Luke Fixture')).toBe('Signed in as luke@example.test');
+    expect(await signedInAs(page, 'Troy Fixture')).toBe('Signed in as troy@example.test');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
 
-test('a blocked new-app chunk falls back to the old app, forgets the choice and says so', async ({ page, baseURL }) => {
+test('a blocked new-app chunk falls back to the old app on that page and says so; the next visit tries again', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   const blocked = '**/assets/NextApp-*.js';
   await page.route(blocked, route => route.abort('failed'));
   try {
     await signIn(page, 'luke');
-    await expect(communityHome(page)).toBeVisible();
-    await tryButton(page).click();
     await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.fellBack}`));
     await expect(communityHome(page)).toBeVisible();
     // The fallback is the old app, which keeps the NBA section's NFL/NBA selector (PR #167) and no new-app frame.
     await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
-    await expect(page.locator('.gx-nba-sport-entry').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
-    expect(await saved(page), 'the fallback clears gtl.app').toBeNull();
+    await expect(backButton(page)).toBeVisible();
     await phoneChecks(page, '.hub-bottom');
-    // With the chunk back, the same button opens the new app.
+    // With the chunk back, the next visit is the new app.
     await page.unroute(blocked);
-    await tryButton(page).click();
+    await page.reload();
     await expect(newApp(page)).toBeVisible();
-    expect(await saved(page)).toBe('next');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
 
-test('?app=classic always forces the old app; "Try the new app" from there drops the parameter', async ({ page, baseURL }) => {
+test('axe in dark and light at 390 and 320: the new app and the old footer', async ({ page, baseURL }, testInfo) => {
   test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   try {
     await signIn(page, 'luke');
-    await tryButton(page).click();
     await expect(newApp(page)).toBeVisible();
-    await page.goto('/?app=classic');
-    await expect(communityHome(page)).toBeVisible();
-    await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
-    expect(await saved(page), 'the escape hatch is kept as this device\'s choice').toBe('classic');
-    await page.goto('/');
-    await expect(communityHome(page)).toBeVisible();
-    await page.goto('/?app=classic');
-    await expect(communityHome(page)).toBeVisible();
-    await tryButton(page).click();
-    await expect(newApp(page)).toBeVisible();
-    expect(new URL(page.url()).searchParams.has('app')).toBe(false);
-    expect(await saved(page)).toBe('next');
-    expect(world.errors).toEqual([]);
-  } finally { await world.db.close(); }
-});
-
-test('storage that refuses the choice keeps the old app open and says why', async ({ page, baseURL }) => {
-  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  await page.addInitScript(() => {
-    const setItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key === 'gtl.app') throw new DOMException('Blocked for this test.', 'QuotaExceededError');
-      return setItem.call(this, key, value);
-    };
-  });
-  const world = await communityWorld(page, baseURL, { migrations: ALL });
-  try {
-    await signIn(page, 'luke');
-    await expect(communityHome(page)).toBeVisible();
-    await page.evaluate(() => { window.__sameDocument = true; });
-    await tryButton(page).click();
-    await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.blocked}`));
-    expect(await page.evaluate(() => window.__sameDocument), 'no reload into an app the next load would not open').toBe(true);
-    await expect(communityHome(page)).toBeVisible();
-    expect(await saved(page)).toBeNull();
-    await phoneChecks(page, '.hub-bottom');
-    expect(world.errors).toEqual([]);
-  } finally { await world.db.close(); }
-});
-
-test('axe in dark and light at 390 and 320: the new-app frame and the old footer', async ({ page, baseURL }, testInfo) => {
-  test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
-  const world = await communityWorld(page, baseURL, { migrations: ALL });
-  try {
-    await signIn(page, 'luke');
-    await expect(communityHome(page)).toBeVisible();
     const found = {};
     for (const theme of ['dark', 'light']) {
       await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
-      await page.evaluate(() => localStorage.setItem('gtl.app', 'classic'));
-      await page.reload();
-      await expect(communityHome(page)).toBeVisible();
-      for (const width of [390, 320]) {
-        await page.setViewportSize({ width, height: 844 });
-        await phoneChecks(page, '.hub-bottom');
-        found[`old footer ${theme} ${width}`] = await axe(page, '.hub-bottom');
-      }
-      await page.setViewportSize({ width: 390, height: 844 });
-      await tryButton(page).click();
+      await page.goto('/');
       await expect(newApp(page)).toBeVisible();
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       for (const width of [390, 320]) {
@@ -239,8 +213,14 @@ test('axe in dark and light at 390 and 320: the new-app frame and the old footer
         await testInfo.attach(`new-app-${theme}-${width}`, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
       }
       await page.setViewportSize({ width: 390, height: 844 });
-      await (await oldAppButton(page)).click();
+      await (await olderRecords(page)).click();
       await expect(communityHome(page)).toBeVisible();
+      for (const width of [390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        await phoneChecks(page, '.hub-bottom');
+        found[`old footer ${theme} ${width}`] = await axe(page, '.hub-bottom');
+      }
+      await page.setViewportSize({ width: 390, height: 844 });
     }
     expect(found).toEqual(Object.fromEntries(Object.keys(found).map(key => [key, []])));
     expect(world.errors).toEqual([]);
@@ -266,14 +246,12 @@ test('after a fallback the note is on the page before its words arrive, so a scr
   await page.route('**/assets/NextApp-*.js', route => route.abort('failed'));
   try {
     await signIn(page, 'luke');
-    await expect(communityHome(page)).toBeVisible();
-    await tryButton(page).click();
     const note = page.locator('.try-new-app-note');
     await expect(note).toHaveText(new RegExp(`^${NOTE.fellBack}`));
     await expect(note).toHaveAttribute('role', 'status');
     // A status region that appears with its words already in it is not announced reliably: it must arrive empty, then change.
     const inserted = await page.evaluate(() => window.__notesInserted);
-    expect(inserted.length, 'the note was put on the page after the reload').toBeGreaterThan(0);
+    expect(inserted.length, 'the note was put on the page').toBeGreaterThan(0);
     expect(inserted.filter(text => text !== ''), 'every insertion was empty').toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -293,19 +271,16 @@ test('a new app that throws while rendering, after its chunk has loaded, falls b
   });
   try {
     await signIn(page, 'luke');
-    await expect(communityHome(page)).toBeVisible();
-    await tryButton(page).click();
     await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.fellBack}`));
     await expect(communityHome(page)).toBeVisible();
     await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
     expect(served, 'the new app\'s chunk was served').toBeGreaterThan(0);
-    expect(await saved(page), 'the fallback clears gtl.app').toBeNull();
-    // A reload stays in the old app: the choice is gone, so the failing chunk is never asked for again.
+    expect(await saved(page)).toBeNull();
+    // Nothing is remembered: the next visit asks for the new app again.
     served = 0;
     await page.reload();
-    await expect(communityHome(page)).toBeVisible();
-    await expect(page.locator('.try-new-app-note')).toHaveText('');
-    expect(served).toBe(0);
+    await expect(page.locator('.try-new-app-note')).toHaveText(new RegExp(`^${NOTE.fellBack}`));
+    expect(served).toBeGreaterThan(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

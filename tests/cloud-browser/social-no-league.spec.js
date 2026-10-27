@@ -7,6 +7,7 @@ import { providerPersonalError } from '../../cloud/personal.mjs';
 import { providerLobbyError } from '../../cloud/lobby.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { ALL, HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
+import { useOldApp } from './old-app.mjs';
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -215,3 +216,6 @@ test('real slips: a locked leg shows no line and Tail waits until the player sit
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

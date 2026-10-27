@@ -82,6 +82,43 @@ bridge and remaining destinations. Per-game lock-in/scoring and pending redesign
 migrations retain their own implementation and apply gates; this retirement
 request does not silently change Guess rules or establish those features as live.
 
+## D-60 two-step retirement (October 26, 2026)
+
+Sean chose two steps ([D-60](../docs/DECISIONS.md)).
+
+**Step 1 (built):** everyone lands in the new app.
+- A device's saved choice no longer counts, and "Try the new app" is gone.
+- The old app opens only at `?app=classic`, from four places:
+  - Menu › **Older records and tools**;
+  - the failure screens' "Use the old app";
+  - the automatic fallback when the new app cannot load;
+  - the address typed by hand.
+- Nothing is saved, and the old footer offers **Back to the new app**.
+- The contracts are `tests/next-app-view.test.mjs` and `tests/cloud-browser/next-switch.spec.js`.
+- The old-app browser specs open their pages at `?app=classic` (`tests/cloud-browser/old-app.mjs`).
+
+**Step 2 (remaining):** delete the old app once each item below has a native home and is released.
+
+| Still only in the old app | New home | Lane |
+| --- | --- | --- |
+| Full change history, closed drafts, older records | History (stages 72–74, M-27) | History and export lane |
+| Retired Betting Challenge, group archives, Week 5 freeze | History: older records (stage 74) | History and export lane |
+| Saved games and forecasts; the journal (read-only) | History: older records (stage 74) | History and export lane |
+| Real slips by week | History (stage 74) | History and export lane |
+| Export my data | `/me/export` (stage 75, M-28) | History and export lane |
+| Settlement and schedule status | Settlement console (PR #214) | Codex lane |
+| Week opening, referee assignments, final scores, odds connection | Commissioner tools (stages 77–78) | Codex lane |
+| Group-draft reconciliation and device recovery | RETIRE-01 | Integration |
+
+When the table is clear:
+1. Remove the Menu row, the failure screens' "Use the old app", `?app=classic` and the
+   classic fallback, which a retry and reload screen replaces (RETIRE-02).
+2. Close the old hosted entry points (RETIRE-03).
+3. Remove the old UI source (RETIRE-04).
+
+The same pass moves `web/index.html` fonts, the meta description and the manifest
+colors to the new app.
+
 ## Task register
 
 Reviewed October 15, 2026. P0 means a cutover prerequisite. Suggested lanes are
@@ -90,7 +127,7 @@ routing from the redesign plan, not assigned workers.
 | ID | Priority | Task | State | Suggested lane / owner | Dependencies | Target |
 |---|---|---|---|---|---|---|
 | RETIRE-01 | P0 | Reconcile the active build and prove record/workflow preservation | Open — source matching done; destinations, draft recovery and preservation verification remain | A + B + C + E / TBD | Matched deployed source; full inventory; stages 28–31, 47, 72–78 | Not committed |
-| RETIRE-02 | P0 | Make the new app the only runtime and remove every classic escape path | Open — implementation pending | A / TBD | RETIRE-01; stages 9–11, 37, 76–80; shared-shell acceptance | Not committed |
+| RETIRE-02 | P0 | Make the new app the only runtime and remove every classic escape path | Open — D-60 step 1 built (everyone on the new app; the old app only at `?app=classic` from Menu › Older records and tools and failure screens); removal is step 2 | A / TBD | RETIRE-01; stages 9–11, 37, 76–80; shared-shell acceptance | Not committed |
 | RETIRE-03 | P0 | Close old hosted entry points and verify cutover on existing devices | Open — current source/selected assets checked; one old URL responds; full inventory and cutover pending | Integration / TBD | RETIRE-01/02; release checks; actual hosting access | Not committed |
 | RETIRE-04 | P1 | Remove unused old UI code while preserving recovery evidence | Open — follows verified cutover | A / TBD | RETIRE-03; stage 81; dependency audit | Not committed |
 
