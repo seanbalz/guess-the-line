@@ -324,7 +324,8 @@ before the fix and passed afterward. All 14 Research browser cases, 86 component
 and 19 token/brand tests and typecheck passed; four 320px ordinary/forced-color
 screenshots were inspected. All 53 integrated Lines/Trends/Bets Everyone/gesture
 cases also passed (67 browser cases total), along with Brand QA and fixture
-build/privacy checks. CI/merge,
+build/privacy checks. After integrating the PR #272 CI repair from main’s
+PR #271, all 22 combined Play-moment and Research browser cases passed again. CI/merge,
 hosted release/readback and physical-iPhone acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining

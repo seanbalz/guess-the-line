@@ -22,7 +22,8 @@ selection and narrow Light/Dark and forced-color error views. All 14 Research
 browser cases and 53 integrated Lines/Trends/Bets Everyone/gesture cases passed
 (67 total), as did 86 component tests, 19 token/brand tests and typecheck. Four
 320px screenshots were inspected. Brand QA and fixture build/privacy checks
-passed.
+passed. After integrating the PR #272 CI repair from main’s PR #271, all
+22 combined Play-moment and Research browser cases passed again.
 
 Source branch: `codex/research-table-recovery`. CI/merge, hosted release/readback
 and physical-iPhone acceptance remain separate checkpoints. Verified live-game
