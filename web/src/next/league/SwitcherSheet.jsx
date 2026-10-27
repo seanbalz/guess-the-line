@@ -7,7 +7,6 @@
 // Join is a write: it is sent once and never retried by itself. A lost answer says to check, and the leagues below are
 // read again, so a league that was joined shows up there.
 import { lazy, Suspense, useId, useState } from 'react';
-import { APP_SWITCH_COPY } from '../../appView.js';
 import { useAppData } from '../data/AppData.jsx';
 import { fmtFull, plural } from '../format.js';
 import { useShell } from '../shell/context.js';
@@ -164,11 +163,6 @@ export function SwitcherSheet({ args = {} }) {
         {hosted.map(row => <LinkRow key={row.id} icon="plus" onClick={() => shell.setSheetArgs({ inviteLeagueId: row.id })}>Invite to {row.name}</LinkRow>)}
       </List></Card>}
       <Button variant={hasInvites ? 'secondary' : 'primary'} block onClick={() => shell.setSheetArgs({ createLeague: true, inviteLeagueId: null })}>Create a league</Button>
-      <Card variant="flush">
-        <List>
-          <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
-        </List>
-      </Card>
     </Sheet>
   );
 }

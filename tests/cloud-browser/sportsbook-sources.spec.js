@@ -7,6 +7,7 @@ import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { pickSpread, expectPick, spreadText } from '../chip-entry.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // Authenticated frontend integration with synthetic, in-memory source evidence.
 // No hosted account, real provider request, or production write is used here.
@@ -203,3 +204,6 @@ test('Solo quote failure preserves typed guesses and review in the mounted form;
   expect(sources.state.ballots[accountId].guess_total).toBeUndefined();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

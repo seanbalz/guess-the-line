@@ -1,6 +1,7 @@
 // Persona (c): power user at 1280px who wants speed. Keyboard only: tab order through chips,
 // Enter/Space, focus visibility, and how many taps or key presses it takes to finish 14 games.
 import { test, expect, pgliteAvailable, MIGRATIONS } from './harness.mjs';
+import { useOldApp } from '../old-app.mjs';
 
 test.use({ viewport: { width: 1280, height: 900 } });
 
@@ -297,3 +298,6 @@ test('power user: once sent picks are final, the submitted market offers no edit
   await expect(page.locator('.save-final')).toHaveCount(0);
   await expect(cards.first().locator('.team-chip').first()).toBeEnabled();
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));
