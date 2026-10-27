@@ -1054,3 +1054,61 @@ test('an unknown game focus keeps the complete ballot usable', async ({ page, ba
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+
+test('your pick sheet separates draft and locked references and returns focus to the game row', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL, { optionalRpc: true });
+  const calls = apiCalls(page);
+  try {
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    const spreadRow = sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Open your Spread pick\./ });
+    await spreadRow.click();
+    const spread = sheet(page, 'Your Spread pick');
+    await expect(spread).toContainText('Draft SEA −4'); await expect(spread).toContainText('No locked-in scoring line');
+    await expect(spread.getByRole('list', { name: 'Community Spread guesses' })).toBeVisible();
+    await noLeak(page, world, 'draft pick sheet');
+    await page.keyboard.press('Escape'); await expect(spreadRow).toBeFocused();
+    await sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Open your Total pick\./ }).click();
+    const total = sheet(page, 'Your Total pick');
+    await expect(total).toContainText('Line at your guess'); await expect(total).toContainText('43.5');
+    await expect(total.getByRole('list', { name: 'Community Total guesses' })).toBeVisible();
+    await expect(total.getByRole('group', { name: 'Guess market' })).toHaveCount(0);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`your-pick-${theme}.png`) });
+    }
+    await total.getByRole('button', { name: 'About your saved pick' }).click();
+    await expect(sheet(page, 'About your saved pick')).toContainText('Later market movement never replaces a saved reference');
+    await page.keyboard.press('Escape'); await expect(total).toBeVisible();
+    await total.getByRole('button', { name: 'Open Total in Play', exact: true }).click();
+    await expect(page.getByRole('article', { name: 'SEA at DEN Total', exact: true })).toBeFocused();
+    expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('your saved pick keeps pending and first-after labels and survives independent read failures', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  const saved = (await world.api('luke', 'personal')).body;
+  const ballot = saved.ballots.guess_total;
+  ballot.guessRule = 'per-game-v1'; ballot.lockedLate = { 'SEA-DEN': { minutes: 12 } };
+  ballot.scoringReferences['SEA-DEN'] = { status: 'pending', basis: 'first_line_after_submission', value: 99.5 };
+  let fail = false;
+  await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/personal'), route => route.fulfill({ status: fail ? 503 : 200,
+    contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(fail ? { error: 'Fixture unavailable' } : saved) }));
+  try {
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    await sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Open your Total pick\./ }).click();
+    const pick = sheet(page, 'Your Total pick');
+    await expect(pick).toContainText('Line pending'); await expect(pick).not.toContainText('99.5'); await expect(pick).toContainText('Late · 12');
+    ballot.scoringReferences['SEA-DEN'] = { status: 'available', basis: 'first_line_after_submission', value: 44.5, source: 'Saved first-after fixture', observedAt: saved.now };
+    await pick.getByRole('button', { name: 'Refresh saved pick' }).click();
+    await expect(pick).toContainText('First line after submission'); await expect(pick).toContainText('Saved first-after fixture');
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/picks'), route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture unavailable' }) }));
+    await pick.getByRole('button', { name: 'Refresh guesses' }).click();
+    await expect(pick).toContainText('Community guesses are unavailable'); await expect(pick).toContainText('Saved first-after fixture');
+    fail = true; await pick.getByRole('button', { name: 'Refresh saved pick' }).click();
+    await expect(pick).toContainText('Showing the last loaded saved record'); await expect(pick).toContainText('Saved first-after fixture');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});

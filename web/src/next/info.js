@@ -26,6 +26,15 @@ export const INFO = Object.freeze({
     ],
     links: TRENDS_LINKS,
   },
+  yourPick: {
+    title: 'About your saved pick',
+    body: [
+      'This is the saved record for one game and market. Unsaved numbers in Play are kept in that editor and do not replace this record.',
+      'Line at your guess is the scoring reference saved at lock-in. First line after submission identifies a pending reference resolved by its first qualifying line. A commissioner-ruled reference keeps that label.',
+      'Line pending and unavailable values are not zero. A draft has no scoring reference, even after kickoff. Later market movement never replaces a saved reference.',
+      'Spread and Total stay separate. Opening this sheet does not lock in a guess or sit you out. Late keeps its recorded label.',
+    ],
+  },
   guessPicks: {
     title: 'About community guesses',
     body: [
@@ -152,4 +161,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'research', 'researchData', 'marketLines', 'yourPick', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);

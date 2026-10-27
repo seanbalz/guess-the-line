@@ -5,6 +5,7 @@ import { MenuSheet } from '../me/MenuSheet.jsx';
 import { SwitcherSheet } from '../league/SwitcherSheet.jsx';
 import { Home } from '../home/Home.jsx';
 import { GameSheet } from '../lines/GameSheet.jsx';
+import { YourPickSheet } from '../lines/YourPickSheet.jsx';
 import { AllTrendsSheet } from '../lines/AllTrendsSheet.jsx';
 import { ResearchSheet } from '../research/ResearchSheet.jsx';
 import { Play } from '../play/Play.jsx';
@@ -30,6 +31,7 @@ export const SCREENS = Object.freeze({
 export const LAYERS = Object.freeze({
   'sh.menu': MenuSheet, // me
   'sh.switcher': SwitcherSheet, // league (stage 11)
+  'sh.yourPick': YourPickSheet, // stage 31: persisted owner reference and gated game guesses
   'sh.game': GameSheet, // lines (stage 13): one game, read-only
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
   'sh.research': ResearchSheet,

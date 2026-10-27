@@ -24,13 +24,16 @@ import { MarketDetails } from './MarketDetails.jsx';
 import { actionsForGame, GameActions } from './GameActions.jsx';
 import './lines.css';
 
-function YouRows({ rows }) {
+function YouRows({ rows, onOpen }) {
   return (
     <Card variant="flush">
       <List label={LINES_COPY.youOnGame}>
         {rows.map(row => (
           <Row
             key={row.market}
+            onClick={onOpen ? () => onOpen(row.market) : undefined}
+            chevron={Boolean(onOpen)}
+            aria-label={onOpen ? `Open your ${row.label} pick. ${row.main}. ${row.sub}${row.late ? `. ${row.late}` : ''}` : undefined}
             title={row.main}
             start={<span className="gx-t-micro gx-c-2 gx-l-ylab">{row.label}</span>}
             end={row.late ? <Pill tone="pending">{row.late}</Pill> : null}
@@ -89,7 +92,7 @@ export function GameSheet({ args }) {
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={youId}>
         <h3 className="gx-t-section" id={youId}>{LINES_COPY.youOnGame}</h3>
-        <YouRows rows={view.you}/>
+        <YouRows rows={view.you} onOpen={app.accountId && shown ? market => shell.openSheet('sh.yourPick', { game: view.id, market, accountId: app.accountId, season: shown.season, week: shown.week }) : null}/>
       </section>
 
       <MarketDetails lines={lines} gameId={view.id}/>
