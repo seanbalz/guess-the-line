@@ -10,6 +10,7 @@ export const PROJECT = 'onmrgvcehkflfaizvedl';
 export const ACCOUNT = '83bd659d712e968e7a61efa14107465a';
 export const PUSH_REMINDERS = 'gtl-push-reminders';
 export const POINTS_JOBS = 'gtl-points-jobs';
+export const LEAGUE_FEATURES = 'gtl-league-features';
 /**
  * What each target deploys: at most one Edge Function (with its supabase/config.toml settings) and whether Pages is
  * uploaded. createsOnFirstDeploy lets a target's first deploy create its function; every other target updates one.
@@ -22,6 +23,9 @@ export const TARGET_DEPLOYS = Object.freeze({
   'push-reminders': Object.freeze({ edgeFunction: PUSH_REMINDERS, pages: false }),
   // Sean, October 26, 2026: the Guess the Points jobs worker (D-56 P-03), not hosted yet, so its first deploy creates it.
   'points-jobs': Object.freeze({ edgeFunction: POINTS_JOBS, pages: false, createsOnFirstDeploy: true }),
+  // Sean, October 27, 2026: "Add a league-features target to the release workflow". The redesign stage 70 (M-26) badges,
+  // awards and streaks worker, not hosted yet, so its first deploy creates it.
+  'league-features': Object.freeze({ edgeFunction: LEAGUE_FEATURES, pages: false, createsOnFirstDeploy: true }),
 });
 export const TARGETS = Object.keys(TARGET_DEPLOYS);
 const deploys = target => { assert.ok(Object.hasOwn(TARGET_DEPLOYS, target), 'Unknown release target.'); return TARGET_DEPLOYS[target]; };
@@ -29,6 +33,7 @@ const deploys = target => { assert.ok(Object.hasOwn(TARGET_DEPLOYS, target), 'Un
 const WORKERS = Object.freeze({
   [PUSH_REMINDERS]: Object.freeze({ key: 'pushReminders', name: 'push reminder worker' }),
   [POINTS_JOBS]: Object.freeze({ key: 'pointsJobs', name: 'points jobs worker' }),
+  [LEAGUE_FEATURES]: Object.freeze({ key: 'leagueFeatures', name: 'league features worker' }),
 });
 /** The worker a target deploys, or null for gtl-api and frontend targets. */
 const workerFor = scope => {
@@ -56,7 +61,7 @@ const fail = message => { throw new Error(message); };
 
 export function validateRequest(env) {
   assert.match(env.RELEASE_SHA || '', /^[a-f0-9]{40}$/, 'Use a full lowercase 40-character source SHA.');
-  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, or points-jobs.');
+  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, or league-features.');
   assert.ok(['check-only', 'readiness', 'deploy'].includes(env.RELEASE_MODE), 'Unknown release mode.');
   if (env.GITHUB_ACTIONS === 'true') {
     assert.equal(env.GITHUB_EVENT_NAME, 'workflow_dispatch', 'Releases are manual only.');
@@ -291,7 +296,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
 export async function main(args, env = process.env) {
   const [command, ...rest] = args;
   if (!command || command === '--help') {
-    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
+    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
     return;
   }
   assert.ok(['source', 'configuration', 'live', 'verify'].includes(command), 'Unknown preflight command.');

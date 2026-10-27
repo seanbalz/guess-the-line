@@ -181,7 +181,9 @@ test('real slips: a locked leg shows no line and Tail waits until the player sit
     await expect(troy).toContainText('Tail opens with the line.');
     await expect(own).toContainText('LV -7.5');
     await expect(page.locator('.social-feed')).not.toContainText('6.5');
-    for (const item of responses.filter(r => r.path.endsWith('/social/read'))) expect(item.text.includes('6.5')).toBe(false);
+    // Times are dropped first: a stored time such as ...:06.512Z contains the characters 6.5 without being a line.
+    const withoutTimes = text => text.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})/g, '<time>');
+    for (const item of responses.filter(r => r.path.endsWith('/social/read'))) expect(withoutTimes(item.text).includes('6.5'), item.text).toBe(false);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: '.local/previews/social-line-lock-390.png', fullPage: true });
     // The locked card in both palettes at 390 and 320: phone checks and axe (build plan section 4.1, UI stages).

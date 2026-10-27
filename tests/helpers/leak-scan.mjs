@@ -78,8 +78,6 @@ export const READERS = Object.freeze([
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
 export const READER_MIGRATIONS = Object.freeze({
-  '/bets/board': '20261026233000_gtl_bets_boards.sql',
-  '/bets/season': '20261026233000_gtl_bets_boards.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
