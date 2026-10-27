@@ -34,6 +34,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261027160000, // D-61 gtl_odds_slots_before_points_open: odds slots 06:15/18:15 UTC, awaiting Sean's "apply D-61 odds".
   20261026220000, // gtl_fantasy_feed_bucket (D-59)
   20261026233000, // M-12 bets_boards (stage 42): weekly and season boards; read only; apply after M-10 on Sean's "apply M-12".
 ];

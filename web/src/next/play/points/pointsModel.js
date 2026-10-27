@@ -89,7 +89,7 @@ export function landingCard(read, error) {
   if (comingSoon(error)) return plain('Points is coming soon');
   if (error) return plain('Points could not be loaded');
   if (!read) return plain('Loading Points…');
-  if (read.status !== 'open') return plain('Opens Tuesdays at 12:00 PM PT');
+  if (read.status !== 'open') return plain('Opens Tuesdays at 12:00 AM PT');
   const slots = read.slots || [];
   const locked = slots.filter(slot => slot.own?.locked).length;
   const next = slots.filter(slot => editable(read, slot)).map(slot => slot.kickoff).sort()[0];

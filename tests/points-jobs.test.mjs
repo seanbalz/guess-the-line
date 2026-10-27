@@ -44,10 +44,10 @@ test('contract: the rules version is pinned to Full PPR with 4-point passing tou
   assert.equal(NFLVERSE.games(), 'https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv');
 });
 
-test('contract: a week opens Tuesday 12:00 PM Pacific, in daylight and standard time', () => {
-  assert.equal(pointsOpensAt('2026-10-30T00:15:00Z'), '2026-10-27T19:00:00.000Z'); // TNF Oct 29 (PDT)
-  assert.equal(pointsOpensAt('2026-11-06T01:15:00Z'), '2026-11-03T20:00:00.000Z'); // TNF Nov 5 (PST)
-  assert.equal(pointsOpensAt('2026-10-16T00:15:00Z'), '2026-10-13T19:00:00.000Z'); // Week 6
+test('contract: a week opens Tuesday 12:00 AM Pacific (D-61), in daylight and standard time', () => {
+  assert.equal(pointsOpensAt('2026-10-30T00:15:00Z'), '2026-10-27T07:00:00.000Z'); // TNF Oct 29 (PDT)
+  assert.equal(pointsOpensAt('2026-11-06T01:15:00Z'), '2026-11-03T08:00:00.000Z'); // TNF Nov 5 (PST)
+  assert.equal(pointsOpensAt('2026-10-16T00:15:00Z'), '2026-10-13T07:00:00.000Z'); // Week 6
 });
 
 test('contract: scheduleGames keeps this season REG games only, maps LA to LAR and converts Eastern to UTC', () => {
@@ -92,7 +92,7 @@ test('contract: draftSlate on the committed Week 6 snapshot is deterministic and
     assert.equal(s.team, source.team);
     assert.equal(s.kickoff, source.weekly.kickoff);
   }
-  assert.equal(slate.opensAt, '2026-10-13T19:00:00.000Z');
+  assert.equal(slate.opensAt, '2026-10-13T07:00:00.000Z');
   assert.deepEqual(slate.scoringRules, POINTS_RULES);
   assert.deepEqual(Object.keys(slate.house), ['QB', 'RB', 'WR', 'TE', 'FLEX']);
   for (const s of slate.slots) {

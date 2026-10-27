@@ -47,11 +47,11 @@ export function scheduleGames(gamesCsv, { season }) {
     .map(row => ({ gameId: row.game_id, week: Number(row.week), away: appCode(row.away_team), home: appCode(row.home_team), kickoff: easternToUtc(row.gameday, row.gametime) }));
 }
 
-/** D-24 context: a competition week opens Tuesday 12:00 PM Pacific, the day after the Monday that starts its game week. */
+/** D-61: a competition week opens Tuesday 12:00 AM Pacific (midnight Monday night), the day after the Monday that starts its game week. */
 export function pointsOpensAt(firstKickoff) {
   const monday = pacificDate(Date.parse(weekOpenAt(firstKickoff))).date;
   const tuesday = new Date(Date.parse(`${monday}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
-  return pacificToUtc(tuesday, '12:00');
+  return pacificToUtc(tuesday, '00:00');
 }
 
 const estimateOf = player => {
