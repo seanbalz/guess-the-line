@@ -178,7 +178,9 @@ and Light/Dark accessibility. Both themes' chart and table screenshots were
 inspected. Typecheck, Brand QA, the fixture build and bundle privacy scan passed.
 All 50 integrated Research, Lines, Trends and League-bets browser tests also
 passed. [PR #248](https://github.com/seanbalz/guess-the-lines-repo/pull/248) carries this source batch.
-CI/merge, hosted release and physical-iPhone acceptance remain separate.
+PR #248 merged October 27 as `bc5a06cb74252c8da7af6c87a4531878b7ea67fe` after all nine
+checks passed on `459e24f3680a3ee0fb0792ba5905dfe7d7d397ee`, with no CI fixes or review
+findings. Hosted release/readback and physical-iPhone acceptance remain open.
 
 ## Retained line selection — October 27
 
