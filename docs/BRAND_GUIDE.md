@@ -278,6 +278,10 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   Keep missing observations as plain readable rows and preserve gaps in the
   chart. Duplicate timestamps have distinct observation names. One observation
   stays a static readout; selection adds no collection or network requests.
+  Show the recorded range above the plot, with the home-team sign for spreads
+  and points for totals. Use only plotted evidence for its bounds; identify a
+  single observation and a flat series without inventing movement or a zero
+  baseline. The same visible range describes the chart to assistive technology.
 - **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
   10 as blocks, and games or units. Every bar carries its number in words.
 

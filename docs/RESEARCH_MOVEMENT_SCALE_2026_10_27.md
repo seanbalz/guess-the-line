@@ -18,12 +18,14 @@ The range stays fixed during selection and updates with refreshed evidence.
 The component uses the existing reader, geometry and brand tokens. No provider
 calls, migrations, storage, collection frequency or reveal rules change.
 
-Local validation: 38 component and 23 market-geometry/token/brand-mark tests,
-typecheck and the focused browser case passed. The browser case verifies
-accessible descriptions, unchanged ranges during keyboard/table selection,
+Local validation: the combined branch with #267 passed two focused browser
+cases. After integrating main with #266 and #267, 112 component and 41
+geometry/gesture/token/brand-mark tests and typecheck passed.
+The movement case verifies accessible descriptions, unchanged ranges during
+keyboard/table selection,
 updated bounds after refresh and locked-market protection. Four 320px Light/Dark
-and forced-color screenshots were inspected. All 60 integrated Research, Lines,
-Trends and Bets Everyone browser cases passed. Brand QA and the fixture build's
+and forced-color screenshots were inspected. All 65 final integrated Research, Lines,
+Trends, Bets Everyone and gesture browser cases passed on that combined source. Brand QA and the fixture build's
 bundle/privacy check also passed.
 
 Source branch: `codex/market-movement-scale`. CI/merge, hosted release/readback
