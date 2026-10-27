@@ -14,6 +14,7 @@ import { CommentsSheet } from '../feed/CommentsSheet.jsx';
 import { ReactorsSheet } from '../feed/ReactorsSheet.jsx';
 import { ReactionsPopover } from '../feed/ReactionsPopover.jsx';
 import { PicksSheet } from '../feed/PicksSheet.jsx';
+import { HistoryPage } from '../me/HistoryPage.jsx';
 
 /** The original tabs use live routes; Fantasy reads public player snapshots. The transitional editors retain the hosted rules until their migrations ship. */
 export const SCREENS = Object.freeze({
@@ -30,6 +31,7 @@ export const LAYERS = Object.freeze({
   'sh.game': GameSheet, // lines (stage 13): one game, read-only
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
   'sh.research': ResearchSheet,
+  'page.history': HistoryPage, // me (stages 73 and 74): Me › History, its code loaded when it opens
   'sh.comments': CommentsSheet, // league feed (stage 64): a post's comments or a kickoff post's game thread
   'sh.picks': PicksSheet, // league feed (stage 64): one player's picks for a week and market
   'sh.reactors': ReactorsSheet, // league feed (stage 65): who reacted
