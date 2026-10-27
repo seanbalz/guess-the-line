@@ -29,3 +29,11 @@ Source branch: `codex/research-loading-states`. CI/merge, hosted release/readbac
 and physical-iPhone acceptance remain separate checkpoints. The live-game
 status, dependent Bet/Challenge actions and broader acceptance work remain open.
 No deployment, migration apply or frozen v62 tracker edit is included.
+
+CI follow-up: the initial browser shard 2 failed two Play haptic assertions.
+PR #271 landed on main with the same fix while CI ran: Confirm lock-in skips
+the generic button tick and buzzes only after the server confirms; the test
+starts counting after navigation. This branch integrates that existing fix
+without relaxing the lock-in assertions. All 21 Play-moment and Research
+browser cases passed on the integrated branch, including both previously
+failing cases; Brand QA passed. Fresh CI remains required before merge.
