@@ -208,7 +208,9 @@ and bundle privacy validation passed. All 50 integrated Research/Lines/Trends/
 League-bets browser tests and both final interaction checks passed. The final
 refinement memoizes evidence identity during dragging and avoids state updates
 when the selected index is unchanged. [PR #249](https://github.com/seanbalz/guess-the-lines-repo/pull/249) carries this batch.
-CI/merge, hosted and physical-device acceptance remain open.
+PR #249 merged October 27 as `b1bc64b493e6a6723ba7ee58582fdbd2569d448c` after all nine
+checks passed on `0c1918d992eaba0b595ab029877e87857a068daf`, with no CI fixes or review
+findings. Hosted and physical-device acceptance remain open.
 
 ## High-contrast chart fallback — October 27
 
