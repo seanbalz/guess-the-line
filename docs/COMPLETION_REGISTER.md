@@ -173,7 +173,8 @@ remain open.
 The next [chart interaction correction](RESEARCH_DESIGN_2026_10_26.md#retained-line-selection--october-27)
 retains the cumulative-line point while comparing the season view. Line and
 season selections remain independent; changed evidence and reopened details
-start at the latest line point. Source is on `codex/chart-selection`: all 50
+start at the latest line point. Source is in [PR #249](https://github.com/seanbalz/guess-the-lines-repo/pull/249)
+on `codex/chart-selection`: all 50
 integrated browser tests plus two final focused checks, 27 component and 20
 chart/token tests passed, along with typecheck, Brand QA and build/privacy checks.
 Light/Dark 320px screenshots were inspected. CI/merge, release and device

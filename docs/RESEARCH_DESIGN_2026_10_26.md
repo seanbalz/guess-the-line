@@ -207,5 +207,5 @@ season-selection screenshots were inspected. Typecheck, Brand QA, fixture build
 and bundle privacy validation passed. All 50 integrated Research/Lines/Trends/
 League-bets browser tests and both final interaction checks passed. The final
 refinement memoizes evidence identity during dragging and avoids state updates
-when the selected index is unchanged. CI/merge, hosted and physical-device
-acceptance remain open.
+when the selected index is unchanged. [PR #249](https://github.com/seanbalz/guess-the-lines-repo/pull/249) carries this batch.
+CI/merge, hosted and physical-device acceptance remain open.
