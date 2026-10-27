@@ -245,7 +245,7 @@ the checks in [the redesign build plan](REDESIGN_BUILD_PLAN.md). The record is
 route `POST /bets/read` answers signed-in members.
 
 The new app's Bets › Virtual › Everyone (`#bets/everyone`) reads this route for
-the league showing. It is built on October 23 and not deployed yet.
+the league showing. It was deployed on October 24 UTC (API v36, Pages `3d274d87`).
 - Each game lists its picks, faces first, with your own picks leading and in
   full.
 - A friend's line, price, book and result show only where the reply opens that
@@ -255,6 +255,29 @@ the league showing. It is built on October 23 and not deployed yet.
 
 Placing from this screen (M-11) and the settlement scheduler remain later
 stages.
+
+## Virtual Units boards (M-12, written)
+
+M-12 (`20261026233000_gtl_bets_boards.sql`, build plan stage 42) adds two
+read-only routes for the league showing: the Community roster, or a private
+league's. It is written and not yet applied; it needs Sean's "apply M-12".
+- **`POST /bets/board`** gives one week's board.
+- **`POST /bets/season`** gives the season, week by week, and the season board.
+  `who` keeps one roster player's weeks.
+
+The rules come from D-18, D-35 and D-36. `shared/bets-qual.mjs` is their one
+definition for the API and the screens.
+- **Qualification:** a week qualifies at 3 picks or 3U. Every current row
+  counts, including a voided row, which keeps its credit.
+- **Record, net units and ROI** come from settled rows only. A loss without a
+  saved net costs its units. ROI is "—" until something settles.
+- **The weekly board** lists qualified players by ROI, then net units, then
+  wins. A "—" ROI ranks after every number, and equal players share a rank
+  ("T-2").
+- **The season board** lists anyone who qualified in at least one week. They
+  are ranked over every week of the season, unqualified weeks included.
+- **No terms:** both routes return totals only, never a line, price or book.
+  Real slips never count.
 
 ## Me › History (M-27, redesign stages 72–74)
 

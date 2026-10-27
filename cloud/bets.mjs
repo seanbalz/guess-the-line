@@ -7,12 +7,16 @@ import { decorateVirtualUnits } from './virtual-units.mjs';
 import { parseMarketsVisible } from './line-lock.mjs';
 import { readLiveRules } from './live-rules.mjs';
 import { bestOffer, newestPerBook } from '../shared/best-offer.mjs';
+import { normalizeWeek, rankBoard, rankLabel, seasonBoard } from '../shared/bets-qual.mjs';
 
 export class BetsError extends Error {
   constructor(status, message) { super(message); this.name = 'BetsError'; this.status = status; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
-export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'], '/bets/read': ['POST'] });
+export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'], '/bets/read': ['POST'],
+  '/bets/board': ['POST'], '/bets/season': ['POST'] });
+// The account-level Bets readers (M-10, M-12): one off switch, GTL_FEATURE_OFF=bets.
+const BETS_READERS = new Set(['/bets/read', '/bets/board', '/bets/season']);
 /** Database refusal code → [status, sentence]. A code is mapped here, and deployed, before the SQL can raise it. */
 const ERRORS = Object.freeze({
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -42,6 +46,37 @@ const BOOKS = Object.freeze({ draftkings: 'DraftKings', fanduel: 'FanDuel', betm
   betonlineag: 'BetOnline.ag', betus: 'BetUS', bovada: 'Bovada', lowvig: 'LowVig.ag', mybookieag: 'MyBookie.ag' });
 const UUID = UUID_PATTERN;
 const integer = value => Number.isSafeInteger(value) && value >= 0;
+
+const leagueOk = value => value === undefined || (typeof value === 'string' && value.length >= 1 && value.length <= 100);
+function rosterOf(raw) {
+  return (Array.isArray(raw?.roster) ? raw.roster : []).filter(row => UUID.test(row?.userId || ''))
+    .map(row => ({ userId: row.userId, displayName: text(row.displayName)?.slice(0, 60) ?? null }));
+}
+const totalsOf = (rows, members) => (Array.isArray(rows) ? rows : []).filter(row => members.has(row?.userId)).map(row => ({ userId: row.userId, ...normalizeWeek(row) }));
+const boardRow = (row, viewer) => ({ userId: row.userId, you: row.userId === viewer, rank: row.rank, rankLabel: rankLabel(row), tied: row.tied,
+  wins: row.wins, losses: row.losses, pushes: row.pushes, pending: row.pending, voids: row.voids, picks: row.picks, units: row.units,
+  riskUnits: row.riskUnits, netUnits: row.netUnits, roi: row.roi, qualified: row.qualified, ...(Number.isInteger(row.qualifiedWeeks) ? { qualifiedWeeks: row.qualifiedWeeks } : {}) });
+
+/** M-12: one week's board. Rows come from the league roster only; the order is shared/bets-qual.mjs. */
+export function projectBoard(raw, viewer) {
+  if (!record(raw) || !Array.isArray(raw.roster) || !Array.isArray(raw.rows)) throw new Error('Invalid Bets board reply.');
+  const roster = rosterOf(raw), members = new Set(roster.map(row => row.userId));
+  const { board, unranked } = rankBoard(totalsOf(raw.rows, members));
+  return { season: integer(raw.season) ? raw.season : null, week: integer(raw.week) ? raw.week : null, published: raw.published === true,
+    leagueId: text(raw.leagueId), roster, board: board.map(row => boardRow(row, viewer)), unranked: unranked.map(row => boardRow(row, viewer)) };
+}
+
+/** M-12: a season, week by week, and the season board (anyone qualified in at least one week). */
+export function projectSeason(raw, viewer) {
+  if (!record(raw) || !Array.isArray(raw.roster) || !Array.isArray(raw.weeks)) throw new Error('Invalid Bets season reply.');
+  const roster = rosterOf(raw), members = new Set(roster.map(row => row.userId));
+  const weeks = raw.weeks.filter(week => integer(week?.week) && week.week >= 1 && week.week <= 25)
+    .map(week => ({ week: week.week, rows: totalsOf(week.rows, members) }));
+  const { board, unranked } = seasonBoard(weeks);
+  return { season: integer(raw.season) ? raw.season : null, leagueId: text(raw.leagueId), who: UUID.test(raw.who || '') ? raw.who : null, roster,
+    weeks: weeks.map(week => ({ week: week.week, rows: week.rows.map(row => ({ ...row, you: row.userId === viewer })) })),
+    board: board.map(row => boardRow(row, viewer)), unranked: unranked.map(row => boardRow(row, viewer)) };
+}
 
 /** Rebuild the SQL reply. A forged line under a closed cell never reaches the browser. */
 export function projectBets(raw, viewer) {
@@ -191,8 +226,8 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new BetsError(401, 'Sign in to continue.');
   if (!Object.hasOwn(BETS_METHODS, route)) throw new BetsError(404, 'Not found.');
   if (!service?.rpc) throw new Error('Bets are not configured.');
-  if ((route === '/bets/read' && featureOff.has('bets'))
-    || (route !== '/bets/read' && featureOff.has('recommendations'))) fail('GTL_FEATURE_OFF');
+  if ((BETS_READERS.has(route) && featureOff.has('bets'))
+    || (!BETS_READERS.has(route) && featureOff.has('recommendations'))) fail('GTL_FEATURE_OFF');
   if (!record(body)) fail('GTL_VIRTUAL_INVALID');
   if (route === '/bets/read') {
     if (Object.keys(body).some(key => !['season','week','leagueId'].includes(key))
@@ -202,6 +237,20 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
       fail('GTL_BETS_INVALID');
     return projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season ?? null,
       p_week: body.week ?? null, p_league: body.leagueId ?? null, p_now: new Date(clock()).toISOString() }), user.id);
+  }
+  if (route === '/bets/board') {
+    if (Object.keys(body).some(key => !['season','week','leagueId'].includes(key))
+      || (body.season === undefined) !== (body.week === undefined)
+      || (body.season !== undefined && !scope(body)) || !leagueOk(body.leagueId)) fail('GTL_BETS_INVALID');
+    return projectBoard(await service.rpc('gtl_read_bets_board', { p_user: user.id, p_season: body.season ?? null,
+      p_week: body.week ?? null, p_league: body.leagueId ?? null }), user.id);
+  }
+  if (route === '/bets/season') {
+    if (Object.keys(body).some(key => !['season','leagueId','who'].includes(key))
+      || (body.season !== undefined && !(Number.isInteger(body.season) && body.season >= 2000 && body.season <= 2200))
+      || !leagueOk(body.leagueId) || (body.who !== undefined && !UUID.test(body.who || ''))) fail('GTL_BETS_INVALID');
+    return projectSeason(await service.rpc('gtl_read_bets_season', { p_user: user.id, p_season: body.season ?? null,
+      p_league: body.leagueId ?? null, p_who: body.who ?? null }), user.id);
   }
   if (typeof service.recommendationState !== 'function') throw new Error('Bets are not configured.');
   if (route === '/bets/recommendations') {
