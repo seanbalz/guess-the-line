@@ -25,6 +25,8 @@ rerun, covering all 57 cases. The Research regression retains short and wrapped
 labels, keyboard/pointer selection, period changes, closed-market checks and axe.
 Season selection also checks stable plot placement. Eight 320px Light/Dark and
 forced-color screenshots were inspected using synthetic fixture data.
+The separate #260 badges-release record and boundary update were preserved from
+current main; its 67 local boundary assertions passed after integration.
 Source publication is pending on `codex/chart-stable-tooltip`.
 
 CI/merge, hosted release/readback and physical-iPhone acceptance remain open.

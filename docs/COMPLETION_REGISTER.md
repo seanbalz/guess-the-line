@@ -242,13 +242,14 @@ forced-color screenshots were inspected. Typecheck, Brand QA and build/privacy
 checks passed. PR #259 merged October 27 as `ba9c043e156229e10b97b4edf0851a7fa5833408` after all nine checks passed on `80aa7f1eb4835aee593548fdfa5223e21ad62952`, with no CI fixes or review findings.
 Hosted release and device acceptance remain open.
 
-The next [season-baseline batch](RESEARCH_SEASON_BASELINE_2026_10_27.md)
+The [season-baseline batch](RESEARCH_SEASON_BASELINE_2026_10_27.md)
 removes the minimum positive stub for zero and small values, uses a hollow
 break-even marker and keeps missing units unplotted. Source is in [PR #261](https://github.com/seanbalz/guess-the-lines-repo/pull/261)
 on `codex/season-zero-markers`; all 56 integrated browser cases, focused browser,
 49 component and 26 geometry/token/brand-mark tests passed, along with typecheck,
 Brand QA and build/privacy checks. Four 320px ordinary/forced-color screenshots
-were inspected. CI/merge, release and device acceptance remain open.
+were inspected. PR #261 merged October 27 as `95eaa18b027c5ccdafffa571ee1083540f0591e6` after all nine checks passed on `1a9add3b3024b274ef12b515a0d528868d0eb32f`, with no CI fixes or review findings.
+Release/readback and device acceptance remain open.
 
 The next [steady-tooltip batch](RESEARCH_STABLE_TOOLTIP_2026_10_27.md)
 keeps line and season plots in place when tooltip labels wrap during scrubbing.

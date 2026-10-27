@@ -25,5 +25,6 @@ League-bets browser cases passed. Four final screenshots were inspected; fixture
 build and bundle privacy checks passed. Source is in [PR #261](https://github.com/seanbalz/guess-the-lines-repo/pull/261)
 on `codex/season-zero-markers`.
 
-CI/merge, hosted release/readback and physical-iPhone acceptance remain open.
+PR #261 merged October 27 as `95eaa18b027c5ccdafffa571ee1083540f0591e6` after all nine checks passed on `1a9add3b3024b274ef12b515a0d528868d0eb32f`, with no CI fixes or review findings.
+Hosted release/readback and physical-iPhone acceptance remain open.
 This task does not deploy, apply migrations or change the frozen v62 tracker.
