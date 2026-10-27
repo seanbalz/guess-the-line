@@ -7,10 +7,11 @@ import { useGameLines } from './useGameLines.js';
 import './marketDetails.css';
 
 export function MarketMovement({ rows, game, market }) {
-  const geo = useMemo(() => movementGeometry(rows), [rows]);
+  const geo = useMemo(() => movementGeometry(rows, game.kickoff), [rows, game.kickoff]);
   const [selected, setSelected] = useState(null);
   const at = Math.min(selected ?? geo.points.length - 1, geo.points.length - 1), point = geo.points[at];
   const label = `${market === 'spread' ? `${game.homeCode} spread` : 'Total'} movement`;
+  const kickoffLabel = geo.kickoffX !== null ? `Kickoff · ${marketTime(game.kickoff)}` : null;
   const follow = event => {
     const box = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - box.left) / box.width * 320;
@@ -21,13 +22,15 @@ export function MarketMovement({ rows, game, market }) {
       <p className="gx-t-strong" aria-hidden="true">{marketValue(game, market, point.value)}<span className="gx-md-date gx-t-meta">{marketTime(point.capturedAt)}</span></p>
       <div className="gx-md-plot" onPointerDown={event => { if (event.isPrimary && event.button === 0) { event.currentTarget.setPointerCapture(event.pointerId); follow(event); } }} onPointerMove={follow}
         onPointerUp={event => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}>
-        <svg viewBox="0 0 320 140" role="img" aria-label={`${label}: ${geo.points.length} recorded observations; ${marketValue(game, market, geo.low)} to ${marketValue(game, market, geo.high)}.`}>
+        <svg viewBox="0 0 320 140" role="img" aria-label={`${label}: ${geo.points.length} recorded observations; ${marketValue(game, market, geo.low)} to ${marketValue(game, market, geo.high)}.${kickoffLabel ? ` Dashed marker: ${kickoffLabel}.` : ''}`}>
+          {kickoffLabel && <line x1={geo.kickoffX} x2={geo.kickoffX} y1="0" y2="140" className="gx-md-kickoff" data-kickoff-marker="true"/>}
           <path d={geo.path} className="gx-md-path"/>
           {geo.points.map(p => <circle key={p.index} cx={p.x} cy={p.y} r={3} className="gx-md-point"/>)}
-          <line x1={point.x} x2={point.x} y1="0" y2="140" className="gx-md-cross"/>
+          {point.x !== geo.kickoffX && <line x1={point.x} x2={point.x} y1="0" y2="140" className="gx-md-cross"/>}
           <circle cx={point.x} cy={point.y} r={6} className="gx-md-point"/>
         </svg>
       </div>
+      {kickoffLabel && <p className="gx-md-kickoff-key gx-t-meta"><span aria-hidden="true"/>{kickoffLabel}</p>}
       <div className="gx-md-axis gx-t-meta"><span>{marketTime(geo.points[0].capturedAt)}</span><span>{marketTime(geo.points.at(-1).capturedAt)}</span></div>
       {geo.points.length > 1 ? <input className="gx-md-scrub" type="range" min="0" max={geo.points.length - 1} step="1" value={at} aria-label={`Move along ${label.toLowerCase()}`} aria-valuetext={`${marketValue(game, market, point.value)}, ${marketTime(point.capturedAt)}`} onChange={event => setSelected(Number(event.target.value))}/> : <p className="gx-t-meta">One recorded observation; movement is not yet available.</p>}
       {geo.points.length !== rows.length ? <p className="gx-t-meta">Some observations have a missing line or time; gaps are not connected.</p> : null}

@@ -235,5 +235,39 @@ Research and market-detail component tests and 23 chart/token/market model tests
 passed, as did typecheck, Brand QA, fixture build and bundle privacy checks.
 All 51 integrated Research/Lines/Trends/League-bets browser tests passed, covering
 ordinary Light/Dark and the forced-color fallback. [PR #250](https://github.com/seanbalz/guess-the-lines-repo/pull/250) carries this batch.
-CI/merge, hosted release and device acceptance remain separate. Chromium forced-color emulation does not
+PR #250 merged October 27 as
+`fddcaf3d1ae6211324a80a9d3fef3f65d87ca003` after all nine checks passed on
+`a8b0571f32577ee05517db59dacadc1faa2935bf`, with no CI fixes or review findings. Hosted release and device acceptance remain open. Chromium forced-color
+emulation does not
 establish physical Windows, iPhone Safari or Home Screen acceptance.
+
+
+## Kickoff marker in market movement — October 27
+
+The approved chart system calls for a kickoff landmark when the time is known
+([design handoff](DASHBOARD_UI_DESIGN_HANDOFF.md)). The per-game
+movement chart now plots a neutral dashed line using the existing reader's game
+kickoff, with a visible Pacific-time key and an accessible description. It is
+labelled “Kickoff”: it is not a claim that a guess locked then or that scoring
+uses an interpolated kickoff quote. The separate recorded kickoff line remains
+unchanged and unavailable when no qualifying reference exists.
+
+The marker appears only within the actual observation time range, including its
+endpoints, and requires at least two distinct valid observation times. Missing,
+invalid or out-of-range kickoff times and empty/single-time histories do not
+produce a marker. The chart never expands its domain, invents a quote, connects
+a missing-data gap or adds a slider stop for kickoff. A selected point at kickoff
+keeps its dot without drawing a solid crosshair over the dashed landmark.
+Independent market gates continue to prevent hidden data from rendering.
+
+A geometry regression failed before implementation and passed after it. All 24
+chart/token/market model tests and 31 chart/Research/market component tests passed.
+The focused authenticated-fixture browser test covers marker placement, exact
+quote selection, closed-market protection, 320px layout and accessibility in
+Light/Dark and both emulated forced-color themes. All four screenshots were
+inspected. Typecheck, Brand QA, fixture build and bundle privacy checks passed.
+All 52 integrated Research/Lines/Trends/League-bets browser tests passed. Source
+is in [PR #252](https://github.com/seanbalz/guess-the-lines-repo/pull/252) on
+`codex/movement-kickoff`; CI/merge, hosted release/readback and physical-device
+acceptance remain open. This source-only batch changes no API, collection,
+scoring rules or migrations.

@@ -1473,3 +1473,49 @@ test('high-contrast charts retain visible bars, stems and selected seasons', asy
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+test('movement marks kickoff without adding a quote or opening a closed market', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    // Synthetic timeline on the authenticated fixture reply only; never hosted odds.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/game'), async route => {
+      const req = route.request();
+      const res = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await res.json(), start = Date.parse(body.now) - 3600000;
+      body.game.kickoff = new Date(start + 5 * 60000).toISOString(); body.game.started = true;
+      body.total.movement = [0, 5, 10].map((minute, i) => ({ value: 41.5 + i, capturedAt: new Date(start + minute * 60000).toISOString() }));
+      body.spread = { visible: false, movement: body.total.movement };
+      await route.fulfill({ status: res.status, headers: Object.fromEntries(res.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const game = sheet(page, 'HOU @ JAX'), total = game.locator('[data-market-details="total"]');
+    await total.locator('summary', { hasText: 'Line movement' }).click();
+    const marker = total.locator('[data-kickoff-marker]'), slider = total.getByRole('slider', { name: 'Move along total movement' });
+    await expect(marker).toHaveAttribute('x1', '160');
+    await expect(total.locator('.gx-md-kickoff-key')).toHaveText(/Kickoff · .*PT/);
+    await expect(total.getByRole('img')).toHaveAttribute('aria-label', /3 recorded observations.*Dashed marker: Kickoff/);
+    await expect(slider).toHaveAttribute('max', '2');
+    await slider.focus(); await page.keyboard.press('Home'); await page.keyboard.press('ArrowRight');
+    await expect(slider).toHaveAttribute('aria-valuetext', /42.5,.*PT/);
+    await expect(total.locator('.gx-md-cross')).toHaveCount(0);
+    await expect(total.locator('circle[r="6"]')).toHaveAttribute('cx', '160');
+    await expect(game.locator('[data-market-details="spread"]')).toHaveCount(0);
+    await expect(game).toContainText('Spread lines are locked');
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme });
+        expect(await marker.evaluate(el => getComputedStyle(el).strokeDasharray)).not.toBe('none');
+        if (forcedColors === 'active') expect(await marker.evaluate(el => getComputedStyle(el).stroke)).toBe(await total.evaluate(el => getComputedStyle(el).color));
+        await total.locator('.gx-md-movement').scrollIntoViewIfNeeded();
+        await page.screenshot({ path: testInfo.outputPath(`kickoff-${theme}-${forcedColors}.png`) });
+        await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      }
+    }
+    await page.keyboard.press('End');
+    await expect(slider).toHaveAttribute('aria-valuetext', /43.5,.*PT/);
+    await expect(marker).toHaveAttribute('x1', '160');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
