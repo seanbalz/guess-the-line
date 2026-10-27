@@ -50,8 +50,11 @@ through the read-only connection.
    - Score hash (25 ballots, `41fa6ae2003cd33f7e7e14bbb3f136f2`) and the 110 posts made by 15:20 UTC unchanged.
 3. **Cron:** `gtl-league-features-every-15-minutes` (job 16), `*/15 * * * *`, was registered at 18:12 and removed at 18:13
    (`cron.unschedule` returned true) on Sean's "i dont need that job running every 15 minutes", before its first run.
-   No features cron exists; the schedule row stays enabled, so a cron at another cadence (or a manual dispatch) is all a
-   run needs. The only run so far is the verified one above.
+   No run happened in the 18:15 slot.
+4. **Weekly cron:** on Sean's "once a week", `gtl-league-features-weekly-tuesday` (job 17), `0 12 * * 2` (Tuesday 12:00
+   UTC, 5 AM PT), active, `select public.gtl_dispatch_league_features()`. Monday night's game ends about 04:30 UTC
+   Tuesday and `gtl-results-every-30-minutes` loads its final by about 05:05, so each Tuesday run sees the finished week.
+   First run: Tuesday, November 3, 2026 (Week 8). It is the only features cron.
 
 Rollback: `update public.gtl_features_schedule set enabled=false where id='league-features'` (every run, badge and award
 stays, D-23); `select cron.unschedule('gtl-league-features-every-15-minutes')` stops the dispatches.
