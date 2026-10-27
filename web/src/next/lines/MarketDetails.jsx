@@ -25,9 +25,14 @@ export function MarketMovement({ rows, game, market }) {
   return <div className="gx-md-movement gx-vstack gx-gap-8">
     {!point ? <p className="gx-t-body">No recorded movement available.</p> : <>
       <p className="gx-t-strong" aria-hidden="true">{marketValue(game, market, point.value)}<span className="gx-md-date gx-t-meta">{marketTime(point.capturedAt)}</span></p>
+      <p className="gx-md-scale" id={`${chartId}-scale`}>
+        <span>{geo.points.length === 1 ? 'Recorded line' : 'Recorded range'}: </span>
+        <span className="gx-md-scale-values">{marketValue(game, market, geo.low)}{geo.low !== geo.high ? ` to ${marketValue(game, market, geo.high)}` : ''}{market === 'total' ? ' points' : ''}</span>
+        {geo.points.length > 1 && geo.low === geo.high ? <span>· no recorded change</span> : null}
+      </p>
       <div className="gx-md-plot" id={chartId} onPointerDown={event => { if (event.isPrimary && event.button === 0) { event.currentTarget.setPointerCapture(event.pointerId); follow(event); } }} onPointerMove={follow}
         onPointerUp={event => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}>
-        <svg viewBox="0 0 320 140" role="img" aria-label={`${label}: ${geo.points.length} recorded observations; ${marketValue(game, market, geo.low)} to ${marketValue(game, market, geo.high)}.${kickoffLabel ? ` Dashed marker: ${kickoffLabel}.` : ''}`}>
+        <svg viewBox="0 0 320 140" role="img" aria-describedby={`${chartId}-scale`} aria-label={`${label}: ${geo.points.length} recorded observations.${kickoffLabel ? ` Dashed marker: ${kickoffLabel}.` : ''}`}>
           {kickoffLabel && <line x1={geo.kickoffX} x2={geo.kickoffX} y1="0" y2="140" className="gx-md-kickoff" data-kickoff-marker="true"/>}
           <path d={geo.path} className="gx-md-path"/>
           {geo.points.map(p => <circle key={p.index} cx={p.x} cy={p.y} r={3} className="gx-md-point"/>)}

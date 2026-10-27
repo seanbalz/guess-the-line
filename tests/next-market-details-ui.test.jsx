@@ -6,6 +6,31 @@ vi.mock('../web/src/api.js', () => ({ linesApi: vi.fn() }));
 const game = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', started: false };
 const now = Date.parse('2026-10-26T12:00:00Z');
 const render = node => renderToStaticMarkup(<div className="gx">{node}</div>);
+it('shows only the plotted market range, retaining home-team signs and distinguishing flat and single evidence', () => {
+  for (const [market, values, expected] of [
+    ['spread', [-3.5, 1], 'DEN −3.5 to DEN +1'],
+    ['spread', [0, 0], "DEN Pick&#x27;em"],
+    ['total', [41.5, 42], '41.5 to 42 points'],
+    ['total', [0, 0], '0 points'],
+    ['total', [41.5], '41.5 points'],
+  ]) {
+    const rows = values.map((value, i) => ({ value, capturedAt: new Date(now + i * 60000).toISOString() }));
+    rows.push({ value: 999, capturedAt: null }, { value: null, capturedAt: new Date(now).toISOString() });
+    const html = render(<MarketMovement game={game} market={market} rows={rows}/>);
+    const nodes = [...walk(parseMarkup(html))].filter(n => n.tag);
+    const scale = nodes.find(n => n.attrs.class === 'gx-md-scale');
+    expect(nodes.find(n => n.tag === 'svg').attrs['aria-describedby']).toBe(scale.attrs.id);
+    const scaleHtml = html.match(/<p class="gx-md-scale"[\s\S]*?<\/p>/)[0];
+    expect(scaleHtml).toContain(expected);
+    expect(scaleHtml).not.toContain('999');
+    expect(scaleHtml.includes('no recorded change')).toBe(values.length > 1 && values[0] === values[1]);
+    expect(scaleHtml.includes('Recorded line:')).toBe(values.length === 1);
+    expect(markupProblems(html)).toEqual([]);
+  }
+  const absent = render(<MarketMovement game={game} market="total" rows={[{ value: null, capturedAt: new Date(now).toISOString() }]}/>);
+  expect(absent).toContain('No recorded movement available');
+  expect(absent).not.toContain('gx-md-scale');
+});
 it('a closed market cannot render forged line, book, history or kickoff data', () => {
   const html = render(<MarketPanel game={game} market="spread" now={now} cell={{ visible: false, line: { value: 98.5 }, books: [{ book: 'secret', source: 'SecretBook' }], movement: [{ value: 99.5 }], kickoffLine: { value: 97.5 } }}/>);
   expect(html).toContain('Spread lines are locked');
