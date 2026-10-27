@@ -9,6 +9,8 @@ P-03 record fix". **Nothing here is deployed.** The deploy needs Sean's own word
   the `push` runs: [Tests 40438316854](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40438316854),
   [Dashboard checks 40438316715](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40438316715) (dashboard,
   Persona suite, four cloud browser shards), [Brand QA 40438316729](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40438316729).
+  `main` has since moved (`ec5c035`, #242 Research game actions, frontend only); releasing a later SHA needs its own
+  preflight and an update to this card.
 - **Target:** `api-and-frontend`, one run: `gtl-api` first, then Pages. No worker deploy, no migration.
 - **Expected hosted state:** 54 migrations, digest
   **`bd53dcf4993d89a1378147bb5a14d34827a1687a312e4cc3a66964adb2f1f11a`** (P-03 included,
