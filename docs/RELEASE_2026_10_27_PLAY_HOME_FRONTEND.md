@@ -43,4 +43,14 @@ previous Pages `59fde381` from `21f9799`; 376 signed-out probes, 376 denied, non
 
 ## Results
 
-Pending the deploy run.
+- **frontend** [run 40592205837](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40592205837), gate
+  approved through the GitHub API as Sean's account after the title and card matched; verified **22:09:00 UTC**: Pages
+  **`5d400209-ecfb-4493-a0b4-0f84ea1b7ef3`** (was `59fde381`), 108 assets per URL, frontend SHA-256
+  `ad8562e1bb5a0188f5c22f594208112653a3a206a26dd30758ff85a964936419`. Hosted history before and after: 63 rows,
+  `8a02c480…`; no migration applied. `gtl-api` v38 (`1647f94a…`) unchanged. 376 signed-out probes, 376 denied.
+- **Live readback (this PC, after the run):** `https://guess-the-line.pages.dev/` loads `assets/index-Dsuthpjj.js`;
+  its lazy `PerGamePlay-CoYVHGXB.css` carries #264's `gx-play-stamp` and `gx-play-reveal` rules and
+  `NextApp-CGQMn7vn.css` carries #268's `gx-countup`. The entry stylesheet `index-D8j3nCbG.css` is unchanged from
+  release 1 (the design CSS loads with those chunks).
+- Signed-in and real-phone acceptance are not verified by this run: the lock-in moment, reveal, count-up and rank toast
+  were exercised only on fixture accounts in Chromium (the PRs' browser specs).
