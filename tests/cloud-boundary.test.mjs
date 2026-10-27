@@ -431,27 +431,21 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   const m12 = ['gtl_bets_week_rows', 'gtl_read_bets_board', 'gtl_read_bets_season'];
   const m12Awaiting = { ...Object.fromEntries(m12.map(rpc => [`rpc/${rpc}`, 'migration 20261026233000_gtl_bets_boards.sql'])),
     'gtl-api/bets/board': 'the gtl-api deploy with /bets/board', 'gtl-api/bets/season': 'the gtl-api deploy with /bets/season' };
-  // M-27 (Me › History, redesign stage 72) and M-28 are merged and not applied: their functions and routes await deploy with
-  // M-12's. Each apply record removes its own entries (Gate M step 8).
+  // M-27 (Me › History, redesign stage 72) and M-28 (Export) are hosted since October 27, 2026 with their routes in gtl-api v38.
+  // Only M-12's pieces await. Each apply record removes its own entries (Gate M step 8).
   // M-25 and M-26 (redesign stages 69 and 70) are hosted since October 27, 2026 with their routes in gtl-api v38: none awaits.
   const features = Object.fromEntries(Object.entries(awaitingDeploy).filter(([key, until]) => /20261026234000_gtl_league_features|20261026235000_gtl_features_schedule|\/league\/features/.test(until) || key.startsWith('gtl-api/league/features')));
   assert.deepEqual(Object.keys(features).length, 0);
-  const M27 = 'migration 20261026230000_gtl_me_history.sql';
-  assert.deepEqual(Object.fromEntries(Object.entries(awaitingDeploy).filter(([key]) => !FEED_PIECES.includes(key) && !Object.hasOwn(features, key))), {
-    'rpc/gtl_me_slate': M27, 'rpc/gtl_me_results': M27, 'rpc/gtl_read_ballot_changes': M27, 'rpc/gtl_read_me_records': M27,
-    'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records', ...m12Awaiting,
-    'rpc/gtl_export_me': 'migration 20261026231000_gtl_me_export.sql', 'gtl-api/me/export': 'the gtl-api deploy with /me/export',
-  }, 'only M-27, M-28 and M-12 are awaiting deploy');
+  assert.deepEqual(Object.fromEntries(Object.entries(awaitingDeploy).filter(([key]) => !FEED_PIECES.includes(key) && !Object.hasOwn(features, key))),
+    m12Awaiting, 'only M-12 is awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
-  // Before the applies and the deploy: each M-27 and M-28 function answers PGRST202 and each /me route "Not found."; all pass as
-  // awaiting by default (each route signed out and with an invalid session) and fail under --strict.
-  const m27 = async (url, request) => (/\/rest\/v1\/rpc\/gtl_(?:me_slate|me_results|read_ballot_changes|read_me_records|export_me)$/.test(url)
-    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : /\/gtl-api\/me\/(?:changes|records|export)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request));
-  const before = await checkCloudBoundary({ ...options, fetchImpl: m27 });
-  assert.equal(before.awaiting.length, 11, 'five RPCs and three routes, each route signed out and with an invalid session');
-  await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: m27 }), /unexpected 404/);
+  // M-27 and M-28 are hosted and deployed: a missing History or Export function or route is now an unexpected 404.
+  for (const rpc of ['gtl_me_slate', 'gtl_me_results', 'gtl_read_ballot_changes', 'gtl_read_me_records', 'gtl_export_me']) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/rest/v1/rpc/gtl_read_ballot_changes')
+    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 }) : denied(url, request)) }), /gtl_read_ballot_changes RPC: unexpected 404/);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (/\/gtl-api\/me\/export$/.test(url)
+    ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /me\/export without session: unexpected 404/);
   // The not-found answer may never carry a record: a History route's 404 with picks fails.
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (/\/gtl-api\/me\/changes$/.test(url)
     ? new Response(JSON.stringify({ error: 'Not found.', picks: { 'AAA-BBB': -3.5 } }), { status: 404 }) : denied(url, request)) }), /me\/changes without session: unexpected 404/);

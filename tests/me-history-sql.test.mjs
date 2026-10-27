@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets, readerReply, READER_MIGRATIONS } from './helpers/leak-scan.mjs';
 import { storeLines } from './helpers/guess-week.mjs';
@@ -33,13 +33,15 @@ async function save(world, account, mode, picks, { submit = false, lockIn } = {}
   return reply.body;
 }
 
-test('M-27 is an unapplied, additive repo migration: new service-only functions, nothing replaced, its readers in the leak scan', () => {
-  assert.ok(ALL.includes(MIGRATION) && NOT_HOSTED.includes(version(MIGRATION)) && !HOSTED.includes(MIGRATION));
+test('M-27 is an applied, additive repo migration: new service-only functions, nothing replaced, its readers in every hosted leak scan', () => {
+  // Hosted as 20261027160702 on October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
+  assert.ok(ALL.includes(MIGRATION) && APPLIED.includes(version(MIGRATION)) && HOSTED.includes(MIGRATION));
   const cat = catalog(readMigrations(ALL)), own = cat.files.find(f => f.file === MIGRATION);
   assert.deepEqual(own.functions.map(fn => [fn.name, fn.replace, !!fn.previous]).sort(),
     [['gtl_me_results', false, false], ['gtl_me_slate', false, false], ['gtl_read_ballot_changes', false, false], ['gtl_read_me_records', false, false]],
     'four new functions; no existing body is replaced, so no rollback file is needed');
-  assert.deepEqual({ '/me/changes': READER_MIGRATIONS['/me/changes'], '/me/records': READER_MIGRATIONS['/me/records'] }, { '/me/changes': MIGRATION, '/me/records': MIGRATION });
+  // Hosted, so no READER_MIGRATIONS entry gates them: they run in every HOSTED leak scan.
+  assert.deepEqual({ '/me/changes': READER_MIGRATIONS['/me/changes'], '/me/records': READER_MIGRATIONS['/me/records'] }, { '/me/changes': undefined, '/me/records': undefined });
 });
 
 test('/me/changes: the owner\'s own changes only, drafts held until locked in, kickoff or a sit-out, no line before lock-in', { skip }, async t => {
@@ -180,8 +182,8 @@ test('/me/changes: the owner\'s own changes only, drafts held until locked in, k
   });
 });
 
-test('while M-27 is missing (HOSTED), existing routes answer as today and History answers unavailable', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED });
+test('while M-27 is missing (the hosted schema before its October 27 apply), existing routes answer as today and History answers unavailable', { skip }, async t => {
+  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file < MIGRATION) });
   t.after(() => world.db.close());
   for (const [route, body] of [['community/history', {}], ['community/read', {}], ['me/preferences', {}], ['personal', undefined]]) {
     const reply = await world.api('luke', route, body);

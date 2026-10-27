@@ -1,4 +1,4 @@
-# League feed and badges migrations applied — October 27, 2026
+# League feed, badges, History and Export migrations applied — October 27, 2026
 
 Sean's instruction (October 27, 2026): "apply M-13, then M-21, M-22 and M-23, in order, with the Gate M checks, through the
 SQL editor in my signed-in Chrome." Applied 14:56–14:58 UTC, one at a time, after `gtl-api` v38 and Pages `4a03e6cd`
@@ -96,6 +96,32 @@ Migration history: 58 rows before, **60** after.
 - **Step 8 (this PR):** both versions move to `APPLIED`; `scripts/boundary/league.mjs` empties `awaitingDeploy` (the two
   features routes ship in `gtl-api` v38) and adds the six tables; `/league/features` leaves `READER_MIGRATIONS`; the
   tests that described the schema before M-25 build it as HOSTED minus M-25 and M-26.
+
+# History and Export migrations applied — October 27, 2026
+
+Sean's instruction: "apply M-27, then M-28, in order, with the Gate M checks, through the SQL editor in my signed-in
+Chrome." Applied 16:07 UTC by the same route, each file fetched at `fddcaf3d1ae6211324a80a9d3fef3f65d87ca003`. Both are
+additive (`create function`, no replaced body, no table, no row), so neither has a rollback file.
+
+| Migration | File SHA-256 | Hosted version | History statement md5 = file md5 |
+| --- | --- | --- | --- |
+| M-27 `20261026230000_gtl_me_history.sql` | `c6de522f…a965` | **`20261027160702`** | `ae409d18e6b7882137cbf96825b0c0f1` |
+| M-28 `20261026231000_gtl_me_export.sql` | `ca029ff0…7295` | **`20261027160732`** | `058e6074a6e545dd30232d1d42a673b0` |
+
+Migration history: 60 rows before, **62** after.
+
+- **Step 4:** none of the five functions existed; every function they call was present (`gtl_ballot_locked_in`,
+  `gtl_community_member`, `gtl_guess_revealed`, `gtl_ballot_late`, `gtl_nba_read_bets`, `gtl_read_reviewed_results`).
+- **Step 5:** score hash 25 ballots `41fa6ae2003cd33f7e7e14bbb3f136f2` (same Week 5 anchors) and the 110 posts made by
+  15:20 UTC (`ee2d47f9…`) identical before M-27 and after M-28.
+- **Step 7:** `gtl_me_slate` `9ef62bd5…`, `gtl_me_results` `19502c7a…`, `gtl_read_ballot_changes` `7d2aeaa1…`,
+  `gtl_read_me_records` `3673b4da…` (M-27) and `gtl_export_me` `b95eeae8…` (M-28): each equals
+  `migration-functions --latest`, security invoker, `service_role` only, one `pg_proc` row.
+- **Boundary:** 374 signed-out probes, 371 denied, 3 awaiting: M-12's three functions only.
+- **Step 8 (this PR):** both versions move to `APPLIED`; `scripts/boundary/me.mjs` empties `awaitingDeploy` (the three
+  routes ship in `gtl-api` v38); `/me/changes`, `/me/records` and `/me/export` leave `READER_MIGRATIONS`; the "while
+  M-27/M-28 is missing" tests build HOSTED minus each file.
+- **Signed-in use:** none of `/me/changes`, `/me/records` or `/me/export` had a signed-in request by 16:08 UTC.
 
 ## Signed-in readback (hosted logs, 14:43–15:50 UTC)
 

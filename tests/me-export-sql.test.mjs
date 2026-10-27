@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { addOlderRecords, createHistoryWorld, STEVEN, STEVEN_PICKS } from './cloud-browser/history-world.mjs';
 import { createCommunityWorld } from './cloud-browser/community-world.mjs';
@@ -21,12 +21,13 @@ const SECTIONS = ['format', 'ownerId', 'exportedAt', 'excluded', 'profile', 'com
   'forfeits', 'eligibilityRulings', 'challengeSelections', 'virtualUnits', 'nbaTickets', 'realSlips', 'realSlipChanges', 'following', 'savedGames', 'forecasts', 'journal',
   'personalChanges', 'personalRequests', 'pointsGuesses', 'pointsChanges', 'posts', 'comments', 'likes', 'accessLog'];
 
-test('M-28 is an unapplied, additive repo migration after M-27: one new service-only function, nothing replaced', () => {
-  assert.ok(ALL.includes(MIGRATION) && NOT_HOSTED.includes(version(MIGRATION)) && !HOSTED.includes(MIGRATION));
+test('M-28 is an applied, additive repo migration after M-27: one new service-only function, nothing replaced', () => {
+  // Hosted as 20261027160732 on October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
+  assert.ok(ALL.includes(MIGRATION) && APPLIED.includes(version(MIGRATION)) && HOSTED.includes(MIGRATION));
   assert.ok(ALL.indexOf('20261026230000_gtl_me_history.sql') < ALL.indexOf(MIGRATION), 'M-28 applies after M-27');
   const own = catalog(readMigrations(ALL)).files.find(f => f.file === MIGRATION);
   assert.deepEqual(own.functions.map(fn => [fn.name, fn.replace, !!fn.previous]), [['gtl_export_me', false, false]]);
-  assert.equal(READER_MIGRATIONS['/me/export'], MIGRATION);
+  assert.equal(READER_MIGRATIONS['/me/export'], undefined, 'hosted: its reader runs in every HOSTED leak scan');
 });
 
 test('/me/export: your own rows only, every revision and the Late marker kept, no push device, nothing written', { skip }, async t => {
@@ -102,8 +103,8 @@ test('/me/export: your own rows only, every revision and the Late marker kept, n
   });
 });
 
-test('while M-28 is missing (HOSTED), the old group-week /export and every other route answer as today; /me/export is unavailable', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED, groupScreens: true });
+test('while M-28 is missing (the hosted schema before its October 27 apply), the old group-week /export and every other route answer as today; /me/export is unavailable', { skip }, async t => {
+  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file < MIGRATION), groupScreens: true });
   t.after(() => world.db.close());
   assert.equal((await world.api('luke', 'export')).status, 200);
   assert.equal((await world.api('luke', 'me/preferences', {})).status, 200);

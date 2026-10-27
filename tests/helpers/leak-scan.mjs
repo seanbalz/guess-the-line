@@ -24,7 +24,7 @@ export const OWNER_KEYS = Object.freeze(['userId', 'actorId', 'ownerId', 'author
  * world needs `virtualUnits: true`); stage 23 added /lines/*; stage 21 added /social/read (real slips, gated from M-04;
  * tests/social-line-lock.test.mjs scans it with slips posted at the stored lines); stage 72 added /me/changes and /me/records
  * (M-27: the owner's own changes, and the older records with every player's Betting Challenge selections after kickoff;
- * tests/me-history-sql.test.mjs scans both on ALL until M-27 is hosted). Not yet here: /league/* (later).
+ * tests/me-history-sql.test.mjs scans both; M-27 is hosted since October 27, 2026).
  * /personal/notes (stage 27, M-09) is scanned on ALL in tests/game-notes-sql.test.mjs until M-09 is hosted: it returns
  * only the owner's notes (`ownerId`), and every reader here is checked there to carry no other account's note.
  * /lines/game names the fixture world's first game (server/store.mjs seeds TB-DAL first; tests/lines-sql.test.mjs scans
@@ -78,9 +78,6 @@ export const READERS = Object.freeze([
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
 export const READER_MIGRATIONS = Object.freeze({
-  '/me/changes': '20261026230000_gtl_me_history.sql',
-  '/me/records': '20261026230000_gtl_me_history.sql',
-  '/me/export': '20261026231000_gtl_me_export.sql',
   '/bets/board': '20261026233000_gtl_bets_boards.sql',
   '/bets/season': '20261026233000_gtl_bets_boards.sql',
 });
