@@ -12,7 +12,7 @@ const W = 320;
  * `start` and `end` label the two ends of the time axis; `label` names the whole chart for a screen reader.
  * Pass `selectedIndex` and `onSelect` together to retain selection outside a swapped view.
  */
-export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect }) {
+export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect, id: chartId }) {
   const count = values.length;
   const [index, setIndex] = useState(count - 1);
   const at = Math.max(0, Math.min(selectedIndex ?? index, count - 1));
@@ -28,7 +28,7 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
   const readouts = useMemo(() => values.map((_, i) => tip(i)), [values, tip]);
   const now = readouts[at];
   return (
-    <div className="gx-tc-line">
+    <div className="gx-tc-line" id={chartId}>
       <ChartTooltip readouts={readouts} index={at} x={x}/>
       <div className="gx-tc-plot" onPointerDown={event => {
         if (!event.isPrimary || event.button !== 0) return;

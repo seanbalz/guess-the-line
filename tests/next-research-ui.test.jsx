@@ -131,3 +131,29 @@ describe('shared research presentation', () => {
     expect(researchExpiry(closed)).toBe(Infinity);
   });
 });
+
+
+it('links evidence dates to cumulative endpoints and leaves the starting baseline without a period selection', () => {
+  for (const index of [0, 1]) {
+    const html = render(<><div id="fixture-chart"/><ResearchChart candidate={candidates[0]} selection={{ index, chartId: 'fixture-chart', onSelect() {} }}/></>);
+    expect(html).toContain('Show period 1 ending 2026-10-20 on chart');
+    expect(html).toContain('aria-controls="fixture-chart"');
+    expect(html).toContain(`aria-pressed="${index === 1}"`);
+    expect(html).toContain(`data-selected="${index === 1}"`);
+    expect(html).toContain('Period W-L-P'); expect(html).toContain('20-9-1');
+    expect(markupProblems(html)).toEqual([]);
+  }
+  const unlinked = render(<ResearchChart candidate={candidates[0]}/>);
+  expect(unlinked).not.toContain('aria-pressed');
+  expect(unlinked).not.toContain('data-selected');
+});
+
+
+it('gives same-day periods distinct chart-control names', () => {
+  const candidate = { ...candidates[0], series: { ...candidates[0].series, points: [candidates[0].series.points[0], candidates[0].series.points[0]] } };
+  const html = render(<><div id="same-day-chart"/><ResearchChart candidate={candidate} selection={{ index: 2, chartId: 'same-day-chart', onSelect() {} }}/></>);
+  expect(html).toContain('Show period 1 ending 2026-10-20 on chart');
+  expect(html).toContain('Show period 2 ending 2026-10-20 on chart');
+  expect((html.match(/aria-pressed="true"/g) || [])).toHaveLength(1);
+  expect(markupProblems(html)).toEqual([]);
+});

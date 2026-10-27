@@ -25,3 +25,14 @@
 .gx .gx-r-filter :where(select:focus-visible), .gx .gx-r-evidence :where(summary:focus-visible), .gx .gx-r-table-wrap:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 
 .gx .gx-r-context { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+
+/* Dates select the matching cumulative endpoint; row records remain per period. */
+.gx .gx-r-period-pick { display: flex; align-items: center; gap: var(--gx-space-1); min-width: var(--gx-size-touch); min-height: var(--gx-size-touch); padding: var(--gx-space-1); border: 1px solid transparent; border-radius: var(--gx-radius-xs); background: none; color: var(--gx-data); font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; text-align: start; cursor: pointer; }
+.gx .gx-r-period-check { visibility: hidden; flex: 0 0 auto; }
+.gx .gx-r-period-pick[aria-pressed="true"] .gx-r-period-check { visibility: visible; }
+.gx .gx-r-table tr[data-selected="true"] { background: var(--gx-data-tint); }
+.gx .gx-r-period-pick:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: -2px; }
+@media (forced-colors: active) {
+  .gx .gx-r-table tr[data-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+  .gx .gx-r-period-pick { border-color: ButtonText; }
+}

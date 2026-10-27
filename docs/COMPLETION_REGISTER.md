@@ -261,6 +261,15 @@ fixture build/privacy checks passed. Source is in [PR #262](https://github.com/s
 on `codex/chart-stable-tooltip`;
 CI/merge, release/readback and device acceptance remain open.
 
+The next [Research evidence-selection batch](RESEARCH_EVIDENCE_SELECTION_2026_10_27.md)
+links historical date rows and cumulative chart points, retaining period records,
+focus and market gates while refusing controls for mismatched snapshots.
+All 59 integrated browser cases and 12 final Research cases, 51 component and
+26 geometry/token/brand-mark tests passed, along with typecheck, Brand QA and
+fixture build/privacy checks. Four final 320px ordinary/forced-color screenshots
+inspected. Source on `codex/research-evidence-selection`; CI/merge,
+release/readback and device acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.
