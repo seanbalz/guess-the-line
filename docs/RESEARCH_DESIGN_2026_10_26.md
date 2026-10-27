@@ -234,6 +234,6 @@ screenshots and final line/movement screenshots were inspected. All 30 chart,
 Research and market-detail component tests and 23 chart/token/market model tests
 passed, as did typecheck, Brand QA, fixture build and bundle privacy checks.
 All 51 integrated Research/Lines/Trends/League-bets browser tests passed, covering
-ordinary Light/Dark and the forced-color fallback. CI/merge, hosted release and
-device acceptance remain separate. Chromium forced-color emulation does not
+ordinary Light/Dark and the forced-color fallback. [PR #250](https://github.com/seanbalz/guess-the-lines-repo/pull/250) carries this batch.
+CI/merge, hosted release and device acceptance remain separate. Chromium forced-color emulation does not
 establish physical Windows, iPhone Safari or Home Screen acceptance.

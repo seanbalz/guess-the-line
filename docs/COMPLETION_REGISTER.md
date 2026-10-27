@@ -191,7 +191,8 @@ and the high-contrast follow-up require a later release.
 The next [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
 and Last 10 blocks. It also preserves selected-season boundaries and uses system
-foregrounds for line and movement plots. Source is on `codex/chart-high-contrast`;
+foregrounds for line and movement plots. Source is in [PR #250](https://github.com/seanbalz/guess-the-lines-repo/pull/250)
+on `codex/chart-high-contrast`;
 all 51 integrated browser tests, 30 component and 23 model/token tests passed,
 along with typecheck, Brand QA and build/privacy checks. Before/after screenshots
 were inspected. CI/merge, release and device acceptance remain open.
