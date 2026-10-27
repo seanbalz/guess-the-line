@@ -28,14 +28,19 @@ export function bestRecordedBook(books, market, side, now) {
 }
 
 /** Real collection times on x, no invented zero baseline, and gaps at missing observations. */
-export function movementGeometry(rows) {
+export function movementGeometry(rows, kickoff) {
   const valid = rows.map((row, index) => ({ ...row, index, at: Date.parse(row.capturedAt) }))
     .filter(row => Number.isFinite(row.value) && Number.isFinite(row.at));
-  if (!valid.length) return { points: [], path: '' };
+  if (!valid.length) return { points: [], path: '', kickoffX: null };
   const first = Math.min(...valid.map(p => p.at)), last = Math.max(...valid.map(p => p.at));
   const low = Math.min(...valid.map(p => p.value)), high = Math.max(...valid.map(p => p.value));
   const points = valid.map(p => ({ ...p, x: last === first ? 160 : 12 + (p.at - first) / (last - first) * 296,
     y: high === low ? 70 : 12 + (high - p.value) / (high - low) * 116 }));
   const path = points.map((p, i) => `${i && p.index === points[i - 1].index + 1 ? 'L' : 'M'}${p.x} ${p.y}`).join(' ');
-  return { points, path, low, high };
+  const kickoffAt = typeof kickoff === 'string' ? Date.parse(kickoff) : NaN;
+  // A time marker is not a quote. Keep the original domain, points and gaps;
+  // a single time or a kickoff outside the observations cannot locate a marker.
+  const kickoffX = first < last && kickoffAt >= first && kickoffAt <= last
+    ? 12 + (kickoffAt - first) / (last - first) * 296 : null;
+  return { points, path, low, high, kickoffX };
 }
