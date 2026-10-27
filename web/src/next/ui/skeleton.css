@@ -1,0 +1,89 @@
+/* Loading skeletons (design upgrade, "game feel"; ui/Skeleton.jsx): blocks tinted surface-3, in the shape of what is
+   coming, on whatever surface the screen has (game cards and panels sit on surface-1, like the cards they stand for).
+   A static tint: no shimmer, since the LIVE dot is the app's one loop, so there is nothing to stop under reduced motion. */
+.gx-skel,
+.gx-skel-art {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gx-skel-bar {
+  display: block;
+  flex: none;
+  height: 12px;
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-surface-3);
+}
+.gx-skel-bar--w1 { width: 100%; }
+.gx-skel-bar--w2 { width: 72%; }
+.gx-skel-bar--w3 { width: 44%; }
+.gx-skel-bar--title { width: 48%; height: 20px; }
+.gx-skel-dot {
+  display: block;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-surface-3);
+}
+.gx-skel-block {
+  display: block;
+  height: 96px;
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-surface-3);
+}
+/* A game card or a panel: the card's own surface and shape. */
+.gx-skel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+  box-shadow: var(--gx-e1);
+}
+.gx-skel-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.gx-skel-line > .gx-skel-bar { flex: 0 1 auto; }
+.gx-skel-foot {
+  display: flex;
+  padding-top: 12px;
+  border-top: 1px solid var(--gx-border);
+}
+.gx-skel-foot > .gx-skel-bar { flex: 0 1 auto; }
+/* A flush list of rows, with hairlines between them like the kit's List. */
+.gx-skel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-border);
+}
+.gx-skel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px;
+  background: var(--gx-surface-1);
+}
+.gx-skel-stack {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Forced colors: backgrounds give way to the system's, so each block draws its outline instead. */
+@media (forced-colors: active) {
+  .gx-skel-bar,
+  .gx-skel-dot,
+  .gx-skel-block,
+  .gx-skel-card { border: 1px solid CanvasText; }
+}

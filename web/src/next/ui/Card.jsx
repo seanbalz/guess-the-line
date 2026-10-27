@@ -1,7 +1,9 @@
 // Cards (CONTRACT section 11): `card` (16 radius, 16 padding, e1) plus variants: hero (the Home hero, yard lines in
 // dark), flush (no padding, for lists), tint (accent tint), wait (a data-colored left edge: something waits for you),
-// dashed (not available), s2 (surface-2, no shadow). A card that opens something is one button (CardButton).
+// dashed (not available), s2 (surface-2, no shadow). A card that opens something is one button (CardButton), which
+// dips and dims while pressed (press.css).
 import { cx } from './cx.js';
+import './press.css';
 
 export const CARD_VARIANTS = Object.freeze(['hero', 'flush', 'tint', 'wait', 'dashed', 's2']);
 

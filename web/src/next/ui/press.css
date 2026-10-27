@@ -1,0 +1,60 @@
+/* Press feedback (design upgrade, "game feel"): every tappable kit control dips to 0.97 and dims a little while it is
+   pressed, then springs back, on the tap duration and the standard easing. components.css already scales buttons,
+   chips, segments, tappable cards and rows; this adds the icon button, the menu row and the sheet's back button to that
+   scale, and the dim to all of them. Transform and opacity only, on the control itself. Reduced motion (the device
+   setting, or data-motion="reduce" on the .gx root) keeps only the dim; base.css already stops the transition, so the
+   dim lands at once. The ".gx " prefix lifts each rule over the old-app reset in base.css and over components.css. */
+.gx .gx-btn,
+.gx .gx-icon-btn,
+.gx .gx-chip,
+.gx .gx-seg-btn,
+.gx .gx-card-btn,
+.gx .gx-row-btn,
+.gx .gx-link-row,
+.gx .gx-sheet-back {
+  transition: transform var(--gx-dur-tap) var(--gx-ease-standard), opacity var(--gx-dur-tap) var(--gx-ease-standard);
+}
+.gx .gx-btn:active:not(:disabled),
+.gx .gx-icon-btn:active:not(:disabled),
+.gx .gx-chip:active:not(:disabled),
+.gx .gx-seg-btn:active:not(:disabled),
+.gx .gx-card-btn:active:not(:disabled),
+.gx .gx-row-btn:active:not(:disabled),
+.gx .gx-link-row:active:not(:disabled),
+.gx .gx-sheet-back:active:not(:disabled) {
+  opacity: 0.85;
+}
+.gx .gx-icon-btn:active:not(:disabled),
+.gx .gx-link-row:active:not(:disabled),
+.gx .gx-sheet-back:active:not(:disabled) {
+  transform: scale(0.97);
+}
+/* A control drawn as unavailable (aria-disabled, which keeps it focusable) does not answer a press. */
+.gx .gx-icon-btn[aria-disabled="true"]:active,
+.gx .gx-btn[aria-disabled="true"]:active {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gx .gx-btn:active:not(:disabled),
+  .gx .gx-icon-btn:active:not(:disabled),
+  .gx .gx-chip:active:not(:disabled),
+  .gx .gx-seg-btn:active:not(:disabled),
+  .gx .gx-card-btn:active:not(:disabled),
+  .gx .gx-row-btn:active:not(:disabled),
+  .gx .gx-link-row:active:not(:disabled),
+  .gx .gx-sheet-back:active:not(:disabled) {
+    transform: none;
+  }
+}
+.gx[data-motion="reduce"] .gx-btn:active:not(:disabled),
+.gx[data-motion="reduce"] .gx-icon-btn:active:not(:disabled),
+.gx[data-motion="reduce"] .gx-chip:active:not(:disabled),
+.gx[data-motion="reduce"] .gx-seg-btn:active:not(:disabled),
+.gx[data-motion="reduce"] .gx-card-btn:active:not(:disabled),
+.gx[data-motion="reduce"] .gx-row-btn:active:not(:disabled),
+.gx[data-motion="reduce"] .gx-link-row:active:not(:disabled),
+.gx[data-motion="reduce"] .gx-sheet-back:active:not(:disabled) {
+  transform: none;
+}

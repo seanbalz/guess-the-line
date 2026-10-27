@@ -4,6 +4,7 @@
 import { useId, useMemo, useState } from 'react';
 import { linePath, nearestIndex } from './geometry.js';
 import { ChartTooltip } from './ChartTooltip.jsx';
+import { ChartScale } from './ChartScale.jsx';
 
 const W = 320;
 
@@ -12,7 +13,7 @@ const W = 320;
  * `start` and `end` label the two ends of the time axis; `label` names the whole chart for a screen reader.
  * Pass `selectedIndex` and `onSelect` together to retain selection outside a swapped view.
  */
-export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect }) {
+export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect, id: chartId }) {
   const count = values.length;
   const [index, setIndex] = useState(count - 1);
   const at = Math.max(0, Math.min(selectedIndex ?? index, count - 1));
@@ -28,15 +29,16 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
   const readouts = useMemo(() => values.map((_, i) => tip(i)), [values, tip]);
   const now = readouts[at];
   return (
-    <div className="gx-tc-line">
+    <div className="gx-tc-line" id={chartId}>
       <ChartTooltip readouts={readouts} index={at} x={x}/>
+      <ChartScale extent={geo.extent} id={`${id}scale`}/>
       <div className="gx-tc-plot" onPointerDown={event => {
         if (!event.isPrimary || event.button !== 0) return;
         event.currentTarget.setPointerCapture(event.pointerId); follow(event);
       }} onPointerMove={follow} onPointerUp={event => {
         if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
       }} style={{ height }}>
-        <svg className="gx-tc-svg" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img" aria-label={label}>
+        <svg className="gx-tc-svg" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img" aria-label={label} aria-describedby={`${id}scale`}>
           <defs>
             <linearGradient id={`${id}g`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" className="gx-tc-s1"/>

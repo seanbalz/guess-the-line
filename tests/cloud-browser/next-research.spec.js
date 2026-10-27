@@ -334,6 +334,8 @@ test('chart scrubbing keeps the plot steady across short and wrapped tooltip lab
     await openResearch(page);
     const first = sheet(page).locator('[data-research-card]').first();
     const chart = first.locator('.gx-tc-line'), slider = chart.getByRole('slider');
+    await expect(chart.locator('.gx-tc-scale')).toHaveText('Scale: 0 to +9.18 U');
+    await expect(chart.getByRole('img')).toHaveAttribute('aria-describedby', await chart.locator('.gx-tc-scale').getAttribute('id'));
     for (const theme of ['light', 'dark']) {
       await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
       for (const forcedColors of ['none', 'active']) {
@@ -370,6 +372,93 @@ test('chart scrubbing keeps the plot steady across short and wrapped tooltip lab
     await expect(slider).toHaveAttribute('aria-valuetext', '+4.6 U, 15–9–1 total · through 2026-10-20');
     await expect(first.locator('.gx-tc-tip-label')).toHaveText('15–9–1 total · through 2026-10-20');
     await expect(first.locator('.gx-tc-tip-sizing')).not.toContainText('20–9–1 total');
+    await expect(chart.locator('.gx-tc-scale')).toHaveText('Scale: 0 to +4.64 U');
+    await expect(sheet(page).getByText('Spread research is locked.', { exact: false }).first()).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('Research evidence dates and chart points share selection without changing period records', async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(60000);
+  const { world, synthetic } = await setup(page, baseURL, { multipleBins: true });
+  try {
+    await openResearch(page);
+    const first = sheet(page).locator('[data-research-card]').first();
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    const table = first.getByRole('table'), slider = first.getByRole('slider');
+    const early = table.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart', exact: true });
+    const last = table.getByRole('button', { name: 'Show period 2 ending 2026-10-20 on chart', exact: true });
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    const detailReads = synthetic.calls.filter(c => c.candidateId === 'synthetic-a').length;
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+        await early.click();
+        await expect(early).toBeFocused(); await expect(early).toHaveAttribute('aria-pressed', 'true');
+        await expect(slider).toHaveValue('1');
+        await expect(slider).toHaveAttribute('aria-valuetext', '+0.8 U, 2–1–1 total · through 2025-10-20');
+        await expect(table.locator('tr[data-selected="true"]')).toContainText('2-1-1');
+        const controlled = await early.getAttribute('aria-controls');
+        expect(await first.locator('.gx-tc-line').getAttribute('id')).toBe(controlled);
+        await last.focus(); await page.keyboard.press('Enter');
+        await expect(slider).toHaveValue('2'); await expect(last).toBeFocused();
+        await expect(table.locator('tr[data-selected="true"]')).toContainText('18-8-0');
+        await slider.focus(); await page.keyboard.press('Home');
+        await expect(table.locator('tr[data-selected="true"]')).toHaveCount(0);
+        await page.keyboard.press('ArrowRight'); await expect(early).toHaveAttribute('aria-pressed', 'true');
+        const summary = first.locator('.gx-r-table-summary');
+        expect(await summary.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        await table.evaluate(el => el.scrollIntoView({ block: 'center' }));
+        await page.screenshot({ path: testInfo.outputPath(`evidence-selection-${theme}-${forcedColors}.png`) });
+        expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        for (const button of [early, last]) {
+          const box = await button.boundingBox(); expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
+        }
+      }
+    }
+    const plot = first.locator('.gx-tc-plot');
+    await plot.scrollIntoViewIfNeeded();
+    const box = await plot.boundingBox();
+    await page.mouse.click(box.x + box.width - 1, box.y + box.height / 2);
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    await early.click();
+    expect(synthetic.calls.filter(c => c.candidateId === 'synthetic-a')).toHaveLength(detailReads);
+    await first.getByRole('button', { name: 'Hide evidence', exact: true }).click();
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    await expect(early).toHaveAttribute('aria-pressed', 'true');
+    await sheet(page).getByLabel('Evidence period', { exact: true }).selectOption('recent25');
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    await expect(slider).toHaveAttribute('aria-valuetext', '+4.6 U, 15–9–1 total · through 2026-10-20');
+    await sheet(page).getByRole('button', { name: 'Explore', exact: true }).click();
+    const fallback = sheet(page).locator('[data-research-card="synthetic-opposition"]');
+    await fallback.locator('.gx-tc-row').click();
+    await fallback.getByRole('button', { name: 'View evidence', exact: true }).click();
+    await fallback.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart', exact: true }).click();
+    await expect(fallback.getByRole('slider')).toHaveValue('1');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('a separately refreshed evidence table does not control a chart from different evidence', async ({ page, baseURL }) => {
+  const { world, synthetic } = await setup(page, baseURL, { multipleBins: true });
+  const read = synthetic.provider.read;
+  synthetic.provider.read = async request => {
+    const result = await read(request);
+    if (request.candidateId) for (const c of result.candidates) if (c.series) c.series.points[0].to = '2025-10-19T00:00:00Z';
+    return result;
+  };
+  try {
+    await openResearch(page);
+    const first = sheet(page).locator('[data-research-card]').first();
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    await expect(first.getByRole('table')).toContainText('2025-10-19');
+    await expect(first.getByRole('table').getByRole('button')).toHaveCount(0);
+    await first.getByRole('slider').focus(); await page.keyboard.press('Home'); await page.keyboard.press('ArrowRight');
+    await expect(first.getByRole('slider')).toHaveAttribute('aria-valuetext', /through 2025-10-20/);
+    await expect(first.getByRole('table').locator('tr[data-selected="true"]')).toHaveCount(0);
     await expect(sheet(page).getByText('Spread research is locked.', { exact: false }).first()).toBeVisible();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

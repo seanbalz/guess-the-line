@@ -30,5 +30,6 @@ current main; its 67 local boundary assertions passed after integration.
 Source is in [PR #262](https://github.com/seanbalz/guess-the-lines-repo/pull/262)
 on `codex/chart-stable-tooltip`.
 
-CI/merge, hosted release/readback and physical-iPhone acceptance remain open.
+PR #262 merged October 27 as `6799e78e90a73805f9a337953a92d90f9fb0991e` after all nine checks passed on `d77e0ecca6300dd8d5ba48a5c089677e664160e0`, with no CI fixes or review findings.
+Hosted release/readback and physical-iPhone acceptance remain open.
 This task does not deploy, apply migrations or change the frozen v62 tracker.

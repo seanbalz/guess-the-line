@@ -1,11 +1,36 @@
 import { it, expect, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MarketMovement, MarketPanel } from '../web/src/next/lines/MarketDetails.jsx';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 vi.mock('../web/src/api.js', () => ({ linesApi: vi.fn() }));
 const game = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', started: false };
 const now = Date.parse('2026-10-26T12:00:00Z');
 const render = node => renderToStaticMarkup(<div className="gx">{node}</div>);
+it('shows only the plotted market range, retaining home-team signs and distinguishing flat and single evidence', () => {
+  for (const [market, values, expected] of [
+    ['spread', [-3.5, 1], 'DEN −3.5 to DEN +1'],
+    ['spread', [0, 0], "DEN Pick&#x27;em"],
+    ['total', [41.5, 42], '41.5 to 42 points'],
+    ['total', [0, 0], '0 points'],
+    ['total', [41.5], '41.5 points'],
+  ]) {
+    const rows = values.map((value, i) => ({ value, capturedAt: new Date(now + i * 60000).toISOString() }));
+    rows.push({ value: 999, capturedAt: null }, { value: null, capturedAt: new Date(now).toISOString() });
+    const html = render(<MarketMovement game={game} market={market} rows={rows}/>);
+    const nodes = [...walk(parseMarkup(html))].filter(n => n.tag);
+    const scale = nodes.find(n => n.attrs.class === 'gx-md-scale');
+    expect(nodes.find(n => n.tag === 'svg').attrs['aria-describedby']).toBe(scale.attrs.id);
+    const scaleHtml = html.match(/<p class="gx-md-scale"[\s\S]*?<\/p>/)[0];
+    expect(scaleHtml).toContain(expected);
+    expect(scaleHtml).not.toContain('999');
+    expect(scaleHtml.includes('no recorded change')).toBe(values.length > 1 && values[0] === values[1]);
+    expect(scaleHtml.includes('Recorded line:')).toBe(values.length === 1);
+    expect(markupProblems(html)).toEqual([]);
+  }
+  const absent = render(<MarketMovement game={game} market="total" rows={[{ value: null, capturedAt: new Date(now).toISOString() }]}/>);
+  expect(absent).toContain('No recorded movement available');
+  expect(absent).not.toContain('gx-md-scale');
+});
 it('a closed market cannot render forged line, book, history or kickoff data', () => {
   const html = render(<MarketPanel game={game} market="spread" now={now} cell={{ visible: false, line: { value: 98.5 }, books: [{ book: 'secret', source: 'SecretBook' }], movement: [{ value: 99.5 }], kickoffLine: { value: 97.5 } }}/>);
   expect(html).toContain('Spread lines are locked');
@@ -42,4 +67,33 @@ it('kickoff is an accessible timeline marker and never an extra observation', ()
   }
   expect(render(<MarketMovement game={{ ...game, kickoff: rows[0].capturedAt }} market="total" rows={[rows[0]]}/>)).not.toContain('data-kickoff-marker');
   expect(render(<MarketPanel game={{ ...game, kickoff: rows[0].capturedAt }} market="total" now={now} cell={{ visible: false, movement: rows }}/>)).not.toContain('data-kickoff-marker');
+});
+
+it('links only plotted observations, preserving missing rows and distinguishing duplicate timestamps', () => {
+  const time = new Date(now).toISOString();
+  const html = render(<MarketMovement game={game} market="spread" rows={[
+    { value: 0, capturedAt: time }, { value: null, capturedAt: time },
+    { value: 2, capturedAt: time }, { value: 3, capturedAt: null },
+  ]}/>);
+  const nodes = [...walk(parseMarkup(html))].filter(n => n.tag);
+  const buttons = nodes.filter(n => n.tag === 'button');
+  expect(buttons).toHaveLength(2);
+  expect(buttons.map(n => n.attrs['aria-label'])).toEqual([
+    expect.stringMatching(/^Show observation 1:/), expect.stringMatching(/^Show observation 3:/),
+  ]);
+  expect(buttons.map(n => n.attrs['aria-pressed'])).toEqual(['false', 'true']);
+  const plot = nodes.find(n => n.attrs.class === 'gx-md-plot');
+  expect(buttons.every(n => n.attrs['aria-controls'] === plot.attrs.id)).toBe(true);
+  expect(nodes.filter(n => n.tag === 'tr')).toHaveLength(5);
+  expect(html).toContain('DEN Pick&#x27;em');
+  expect(html).toContain('gaps are not connected');
+  expect(markupProblems(html)).toEqual([]);
+});
+it('empty and single-point movement retain readable evidence without inactive selection buttons', () => {
+  for (const rows of [[], [{ value: null, capturedAt: null }], [{ value: 0, capturedAt: new Date(now).toISOString() }]]) {
+    const html = render(<MarketMovement game={game} market="total" rows={rows}/>);
+    expect(html).not.toContain('aria-pressed');
+    expect(html).not.toContain('type="range"');
+    expect(markupProblems(html)).toEqual([]);
+  }
 });

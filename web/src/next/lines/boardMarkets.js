@@ -4,7 +4,7 @@ import { lineState, marketTime, marketValue } from './marketDetails.js';
 /** Current board values come only from the gated reader, never the saved scoring reference. */
 export function boardMarket(card, row, market, read) {
   if (read.status !== 'ready') return card[market].open
-    ? { open: true, line: null, label: read.status === 'error' ? 'Unavailable' : 'Loading' }
+    ? { open: true, line: null, label: read.status === 'error' ? 'Unavailable' : 'Loading', ...(read.status === 'error' ? {} : { loading: true }) }
     : { open: false };
   if (!row) return { open: true, line: null, label: 'Unavailable' };
   const cell = row[market];

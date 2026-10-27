@@ -44,7 +44,7 @@ async function fixture(page, baseURL) {
 async function choose(page, id, value = 3) {
   const card = page.locator(`.gx-per-game [data-game="${id}"]`);
   await card.locator('[data-side="home"]').click();
-  await card.locator(`.number-chip[data-value="${value}"]`).click();
+  await card.locator(`.gx-guess-num[data-value="${value}"]`).click();
   return card;
 }
 
@@ -71,11 +71,11 @@ test('one guess locks after confirmation, keeps the other market open, and links
     await expect(dialog.getByRole('button', { name: 'Keep editing' })).toBeFocused();
     await dialog.getByRole('button', { name: 'Confirm lock-in' }).click();
     await expect(card.getByRole('region', { name: /Spread receipt/ })).toContainText('8 / 10');
-    await expect(card.locator('.chip')).toHaveCount(0);
+    await expect(card.locator('.gx-guess')).toHaveCount(0);
     expect(world.writes).toHaveLength(1); expect(world.writes[0].lockIn).toEqual([game.id]); expect(world.writes[0].submit).toBe(false);
     await page.getByRole('group', { name: 'Market', exact: true }).getByRole('button', { name: 'Total', exact: true }).click();
     await expect(page.locator(`.gx-per-game [data-game="${game.id}"]`).getByRole('button', { name: 'Lock in Total' })).toBeDisabled();
-    await expect(page.locator(`.gx-per-game [data-game="${game.id}"] .number-chip[data-value="44"]`)).toBeEnabled();
+    await expect(page.locator(`.gx-per-game [data-game="${game.id}"] .gx-guess-num[data-value="44"]`)).toBeEnabled();
     await page.getByRole('group', { name: 'Market', exact: true }).getByRole('button', { name: 'Spread', exact: true }).click();
     await page.getByRole('button', { name: 'View weekly score', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText('8 points');
@@ -192,14 +192,14 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
     await page.getByRole('button', { name: 'Check saved picks', exact: true }).click();
     await expect(page.getByText('Sat out · your locked guesses keep counting. Remaining games cannot be locked.')).toBeVisible();
     await expect(card.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
-    await expect(page.locator(`[data-game="${second.id}"] .number-chip[data-value="4"]`)).toHaveAttribute('aria-checked', 'true');
-    await expect(page.locator(`[data-game="${second.id}"] .number-chip[data-value="4"]`)).toBeDisabled();
+    await expect(page.locator(`[data-game="${second.id}"] .gx-guess-num[data-value="4"]`)).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator(`[data-game="${second.id}"] .gx-guess-num[data-value="4"]`)).toBeDisabled();
     const personal = (await world.api('luke', 'personal')).body;
     expect(personal.scoring.guess_spread.satOut).toBe(true); expect(personal.scoring.guess_spread.games).toHaveLength(1);
     expect(personal.ballots.guess_spread.picks[first.id]).toBe(-3); expect(personal.scoring.guess_total.satOut).toBe(false);
     expect(sitOutWrites).toBe(1);
     await page.getByRole('group', { name: 'Market', exact: true }).getByRole('button', { name: 'Total', exact: true }).click();
-    await expect(page.locator(`[data-game="${first.id}"] .number-chip[data-value="44"]`)).toBeEnabled();
+    await expect(page.locator(`[data-game="${first.id}"] .gx-guess-num[data-value="44"]`)).toBeEnabled();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

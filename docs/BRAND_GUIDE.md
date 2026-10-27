@@ -262,6 +262,26 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
   button that shows its record and units, and a table with hit-rate bars follows.
   Stem lengths stay proportional; exact zero uses a hollow baseline marker.
   A visible 0 U key names break-even, and missing units have no mark.
+- **Unit scales:** line and season views show the plotted range beside the
+  chart, including zero. Read the range when comparing independently scaled
+  charts. Small nonzero bounds retain their sign; all-zero evidence says
+  break-even, while absent unit evidence says unavailable. The scale also
+  describes the chart to assistive technology.
+- **Research evidence:** date buttons in the historical table select matching
+  cumulative endpoints; scrubbing selects the matching period row. The initial
+  zero baseline has no period row. Keep period records distinct from cumulative
+  chart records, preserve keyboard focus and use a check plus a tint/outline.
+  Link separate reads only when their charted evidence matches. Keep the sample
+  description outside the horizontal scroll region, with a native table caption.
+- **Recorded market movement:** collected-time buttons select their charted
+  observations, with the same check and selected-row treatment as Research.
+  Keep missing observations as plain readable rows and preserve gaps in the
+  chart. Duplicate timestamps have distinct observation names. One observation
+  stays a static readout; selection adds no collection or network requests.
+  Show the recorded range above the plot, with the home-team sign for spreads
+  and points for totals. Use only plotted evidence for its bounds; identify a
+  single observation and a flat series without inventing movement or a zero
+  baseline. The same visible range describes the chart to assistive technology.
 - **Tiles (from D):** win rate with a bar and a break-even tick at 52.4%, last
   10 as blocks, and games or units. Every bar carries its number in words.
 

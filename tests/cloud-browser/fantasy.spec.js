@@ -222,4 +222,55 @@ test.describe('fantasy rankings', () => {
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
   });
+
+  test('new app: player profile and comparison tools at 320 and 390 px in both themes, keyboard and axe', async ({ page, baseURL }, testInfo) => {
+    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+    const { world } = await open(page, baseURL, 'next');
+    const [first, second] = expected({});
+    try {
+      for (const theme of ['dark', 'light']) {
+        await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
+        await page.reload();
+        const screen = root(page, 'next');
+        await expect(list(screen)).toBeVisible();
+        for (const width of [320, 390]) {
+          await page.setViewportSize({ width, height: 844 });
+          await list(screen).locator('summary').first().click();
+          await screen.getByRole('button', { name: `Usage & production: ${first.name}`, exact: true }).click();
+          const sheet = page.getByRole('dialog', { name: first.name, exact: true });
+          await expect(sheet).toBeVisible();
+          await expect(sheet.getByRole('heading', { name: 'Observed production', exact: true })).toBeVisible();
+          await expect(sheet.getByRole('img', { name: /^Actual fantasy points by week\. Week 1: / })).toBeVisible();
+          await expect(sheet.getByRole('table', { name: 'Usage and actual fantasy points by week' }).locator('tbody tr')).toHaveCount(snapshot.statsThroughWeek);
+          await expect(sheet.getByRole('heading', { name: 'GTL pace estimate', exact: true })).toBeVisible();
+          await expect(sheet.getByText('Opponent history is not included in this snapshot.', { exact: true })).toBeVisible();
+          expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal page overflow').toBe(true);
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-profile-${width}-${theme}.png`) });
+          const axe = await new AxeBuilder({ page }).include('.gx-fantasy-profile').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+          expect(axe.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
+          await page.keyboard.press('Escape');
+          await expect(sheet).toHaveCount(0);
+
+          await screen.getByRole('button', { name: `Add to compare: ${first.name}`, exact: true }).click();
+          const compare = screen.getByRole('region', { name: 'Compare players', exact: true });
+          await compare.getByLabel('Add a player', { exact: true }).fill(second.name);
+          await compare.getByRole('button', { name: new RegExp(`^Add to compare: ${second.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · `) }).click();
+          await expect(compare.getByRole('table')).toBeVisible();
+          await expect(compare.getByRole('columnheader', { name: new RegExp(second.name) })).toBeVisible();
+          await compare.getByRole('group', { name: 'Comparison scoring' }).getByRole('button', { name: 'Standard', exact: true }).click();
+          await compare.getByRole('group', { name: 'Comparison period' }).getByRole('button', { name: 'This week', exact: true }).click();
+          await expect(compare.getByText(/Week 6 GTL pace estimate, not a result/)).toBeVisible();
+          await compare.scrollIntoViewIfNeeded();
+          await layout(page, screen);
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-compare-${width}-${theme}.png`) });
+          const compareAxe = await new AxeBuilder({ page }).include('.gx-fantasy-compare').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+          expect(compareAxe.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
+          for (const player of [first, second]) await compare.getByRole('button', { name: `Remove ${player.name} from comparison`, exact: true }).click();
+          await expect(compare.getByRole('table')).toHaveCount(0);
+          await list(screen).locator('summary').first().click();
+        }
+      }
+      expect(world.errors).toEqual([]);
+    } finally { await world.db.close(); }
+  });
 });

@@ -7,6 +7,12 @@ const MINUS = '−';
 const round1 = n => Math.round(n * 10) / 10;
 const finite = n => typeof n === 'number' && Number.isFinite(n);
 
+/** The plotted unit domain includes break-even; absent evidence has no domain. */
+export function unitExtent(values) {
+  const present = values.filter(finite);
+  return present.length ? { low: Math.min(0, ...present), high: Math.max(0, ...present) } : null;
+}
+
 /** "+45.2", "−2.2", "0.0" with the real minus sign; `digits` decimals. */
 export function signed(n, digits = 1) {
   if (!finite(n)) return '—';
@@ -20,11 +26,11 @@ export const recordText = (w, l, p = 0) => `${w}–${l}${p ? `–${p}` : ''}`;
 /**
  * The line through `values` in a `width` × `height` box, smoothed with a shape-preserving cubic through every
  * point. Each segment stays between its endpoints; the zero line is always in range.
- * Returns `{ line, area, zeroY, x, y }`; `area` closes along the zero line.
+ * Returns `{ line, area, zeroY, x, y, extent }`; `area` closes along the zero line.
  */
 export function linePath(values, { width = 320, height = 160, top = 12, bottom = 12 } = {}) {
   const v = values.filter(finite);
-  const lo = Math.min(0, ...v), hi = Math.max(0, ...v), span = hi - lo || 1;
+  const extent = unitExtent(v), lo = extent?.low ?? 0, hi = extent?.high ?? 0, span = hi - lo || 1;
   const x = i => (v.length > 1 ? (i * width) / (v.length - 1) : 0);
   const y = value => top + ((hi - value) * (height - top - bottom)) / span;
   const pts = v.map((value, i) => [x(i), y(value)]);
@@ -45,7 +51,7 @@ export function linePath(values, { width = 320, height = 160, top = 12, bottom =
   }
   const zeroY = round1(y(0));
   const area = pts.length ? `${line} L${round1(x(v.length - 1))} ${zeroY} L0 ${zeroY} Z` : '';
-  return { line, area, zeroY, x, y };
+  return { line, area, zeroY, x, y, extent };
 }
 
 /** The point nearest a pointer `fraction` (0 at the left edge, 1 at the right) of `count` points. */
@@ -62,10 +68,11 @@ export function nearestIndex(fraction, count) {
  */
 export function stemLayout(units, { pad = 0.06 } = {}) {
   const v = units.map(n => (finite(n) ? n : 0));
-  const lo = Math.min(0, ...v), hi = Math.max(0, ...v), span = hi - lo || 1;
+  const extent = unitExtent(units), lo = extent?.low ?? 0, hi = extent?.high ?? 0, span = hi - lo || 1;
   const y = value => pad + ((hi - value) * (1 - 2 * pad)) / span;
   const zeroY = y(0);
   return {
+    extent,
     zeroY,
     stems: v.map(value => {
       const end = y(value), height = Math.abs(end - zeroY);

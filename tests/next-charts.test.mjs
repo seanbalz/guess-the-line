@@ -97,3 +97,19 @@ test('small season values keep their true proportions in mixed and one-sided plo
   }
   assert.ok(stemLayout([0, 0]).stems.every(s => s.height === 0));
 });
+
+test('unit scale bounds match the geometry, include break-even and never fabricate missing evidence', () => {
+  for (const [values, expected] of [
+    [[3, 5], { low: 0, high: 5 }], [[-5, -3], { low: -5, high: 0 }],
+    [[-2, 4, null], { low: -2, high: 4 }], [[0, 0], { low: 0, high: 0 }],
+    [[null, NaN, Infinity], null], [[], null],
+  ]) {
+    assert.deepEqual(linePath(values).extent, expected);
+    assert.deepEqual(stemLayout(values).extent, expected);
+    if (expected && expected.low !== expected.high) {
+      const geo = linePath(values, { height: 100, top: 10, bottom: 10 });
+      assert.equal(geo.y(expected.high), 10);
+      assert.equal(geo.y(expected.low), 90);
+    }
+  }
+});

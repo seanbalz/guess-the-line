@@ -3,11 +3,13 @@
 // plot picks the nearest season and a range input does the same from the keyboard (eight 40px-wide columns would be
 // under the 44px target), and the glass tooltip shows that season's record and units. The table below is the record.
 import { recordText, signed, stemLayout } from './geometry.js';
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import { ChartTooltip } from './ChartTooltip.jsx';
+import { ChartScale } from './ChartScale.jsx';
 
 /** `seasons` are `{ season, w, l, p, units }`; selection is shared with the season table. */
 export function SeasonStems({ seasons, selectedIndex, onSelect, id }) {
+  const scaleId = useId();
   const count = seasons.length;
   const at = Math.max(0, Math.min(selectedIndex, count - 1));
   const layout = stemLayout(seasons.map(s => s.units));
@@ -22,13 +24,14 @@ export function SeasonStems({ seasons, selectedIndex, onSelect, id }) {
   return (
     <div className="gx-tc-seasons" id={id}>
       <ChartTooltip readouts={readouts} index={at} x={x}/>
+      <ChartScale extent={layout.extent} id={scaleId}/>
       <span className="gx-tc-baseline-key"><span aria-hidden="true"/>0 U · break-even</span>
       <div className="gx-tc-stems" onPointerDown={event => {
         if (!event.isPrimary || event.button !== 0) return;
         event.currentTarget.setPointerCapture(event.pointerId); follow(event);
       }} onPointerMove={follow} onPointerUp={event => {
         if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-      }} role="img" aria-label={`Units by season: ${seasons.map(text).join('; ')}`}>
+      }} role="img" aria-label={`Units by season: ${seasons.map(text).join('; ')}`} aria-describedby={scaleId}>
         <span className="gx-tc-stems-zero" style={{ top: `${layout.zeroY * 100}%` }}></span>
         {seasons.map((s, i) => {
           const stem = layout.stems[i], zero = s.units === 0;
