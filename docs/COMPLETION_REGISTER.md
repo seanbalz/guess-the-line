@@ -161,7 +161,8 @@ Hosted release/readback and device acceptance stay open.
 The next [Research chart correction](RESEARCH_DESIGN_2026_10_26.md#cumulative-chart-records--october-27)
 pairs cumulative units with a cumulative record in tooltips and keyboard
 announcements. The evidence table keeps each period’s own record with explicit
-column labels. Source is on `codex/research-chart-records`; all 50 integrated
+column labels. Source is in [PR #248](https://github.com/seanbalz/guess-the-lines-repo/pull/248)
+on `codex/research-chart-records`; all 50 integrated
 browser tests, 25 component and 72 model/handler tests passed, as did typecheck,
 Brand QA and build/privacy validation. Light/Dark 320px screenshots were inspected.
 CI/merge, hosted release and phone acceptance remain separate.

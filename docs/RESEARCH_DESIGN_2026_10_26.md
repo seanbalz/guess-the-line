@@ -177,4 +177,5 @@ keyboard selection, a changed display period, retained market locks, 320px layou
 and Light/Dark accessibility. Both themes' chart and table screenshots were
 inspected. Typecheck, Brand QA, the fixture build and bundle privacy scan passed.
 All 50 integrated Research, Lines, Trends and League-bets browser tests also
-passed. CI/merge, hosted release and physical-iPhone acceptance remain separate.
+passed. [PR #248](https://github.com/seanbalz/guess-the-lines-repo/pull/248) carries this source batch.
+CI/merge, hosted release and physical-iPhone acceptance remain separate.
