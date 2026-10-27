@@ -149,7 +149,7 @@ The next source batch supplies [direct Research reveal confirmation](RESEARCH_RE
 from the board and closed game guesses. It uses the existing whole-week M-03
 forfeit contract, with fresh eligibility, an explicit warning, preserved locked
 scores/drafts and recovery by checking an uncertain write. All 49 integrated
-browser cases, 24 component, 47 model/contract/shell/token and 23 database tests
+browser cases plus five final focused cases, 24 component, 47 model/contract/shell/token and 23 database tests
 passed, along with typecheck, Brand QA, build/privacy scan and inspected 320px
 Light/Dark screenshots. CI/merge, release and acceptance remain separate.
 

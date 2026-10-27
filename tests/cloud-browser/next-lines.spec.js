@@ -1260,7 +1260,9 @@ test('Research reveal warns before writing, keeps locked scores and drafts, then
       revision: initial.revision, weeklyRevision: initial.weeklyRevision, requestId: randomUUID() })).status).toBe(200);
     const before = (await world.api('luke', 'personal')).body;
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const game = sheet(page, 'HOU @ JAX'); await game.getByRole('button', { name: /Everyone’s guesses/ }).click();
+    const game = sheet(page, 'HOU @ JAX');
+    const note = game.getByRole('textbox', { name: 'Your note' }); await note.fill('Private unsaved fixture note');
+    await game.getByRole('button', { name: /Everyone’s guesses/ }).click();
     await game.getByRole('button', { name: 'See picks now', exact: true }).click();
     const dialog = revealDialog(page);
     await expect(dialog).toContainText('not just this game'); await expect(dialog).toContainText('Spread: remaining guesses will be sat out · 1 of 4 locked in');
@@ -1278,6 +1280,7 @@ test('Research reveal warns before writing, keeps locked scores and drafts, then
     const done = page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed', exact: true }); await expect(done).toBeVisible();
     await done.getByRole('button', { name: 'Back to Research', exact: true }).click();
     await expect(game.getByRole('button', { name: 'See picks now', exact: true })).toHaveCount(0);
+    await expect(note).toHaveValue('Private unsaved fixture note');
     await expect(game.getByRole('list', { name: 'Community Spread guesses' })).not.toContainText('Guess hidden');
     const after = (await world.api('luke', 'personal')).body;
     expect(after.ballots.guess_spread.picks).toEqual(before.ballots.guess_spread.picks);

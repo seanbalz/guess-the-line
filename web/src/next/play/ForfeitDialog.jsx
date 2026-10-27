@@ -76,7 +76,12 @@ export function ForfeitDialog({ args, open }) {
       }
     } finally { running.current = false; if (active()) setBusy(false); }
   }
-  const close = () => { if (!running.current && shell.confirmLeave()) shell.closeDialog(); };
+  const close = () => {
+    if (running.current) return;
+    // Closing this dialog keeps the underlying game and its unsaved note mounted.
+    if (uncertain && !window.confirm('Close while your sit-out is unconfirmed? It may have saved. Reopen See picks now to check before trying again.')) return;
+    shell.closeDialog();
+  };
   const done = Boolean(view?.stored);
   return <Dialog open={open} title={done ? `Week ${args.week} reveal confirmed` : `See picks now for Week ${args.week}?`}
     text={done ? 'Your locked guesses keep counting. Remaining guesses in the recorded markets are sat out; your drafts are kept.'

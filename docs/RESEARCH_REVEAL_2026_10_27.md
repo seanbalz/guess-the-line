@@ -40,13 +40,15 @@ sit-out breaks the Pick streak. Keep playing is the first focused action.
 
 ## Validation
 
-- All 49 integrated Research/Lines/Trends/Bets browser cases passed.
+- All 49 integrated Research/Lines/Trends/Bets browser cases passed, plus five
+  final focused cases after the cancel behavior refinement.
 - 24 component tests, 47 model/contract/shell/token tests and 23 database
   preservation/gate tests passed, with zero skipped database cases.
 - Typecheck, Brand QA, fixture production build, bundle privacy scan and
   `git diff --check` passed.
 - Inspected Light/Dark 320px screenshots. Browser coverage includes explicit
-  confirmation, cancel/focus return, unchanged saved drafts/locked scores,
+  confirmation, cancel/focus return, preserved unsaved game notes, unchanged saved
+  drafts/locked scores,
   hidden guesses before confirmation, lost-response readback without replay,
   rejected/mismatched reads, explicit retry, last-kickoff expiry, closed-dialog
   behavior and recovery after reopening an uncertain attempt.
@@ -58,7 +60,8 @@ and physical-device acceptance remain separate checkpoints.
 The focused tests found and fixed two integration details: `picksDue.now` is
 absent after a week is done, so a stored forfeit receipt needs no clock; and the
 shell keeps its last dialog mounted, so the component must honor its `open`
-prop and stop work when closed.
+prop and stop work when closed. Cancel closes only the reveal dialog, preserving
+the underlying unsaved game note; an uncertain attempt gets a specific warning.
 
 ## Remaining work
 
