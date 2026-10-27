@@ -39,7 +39,7 @@ test('M-27 is an unapplied, additive repo migration: new service-only functions,
   assert.deepEqual(own.functions.map(fn => [fn.name, fn.replace, !!fn.previous]).sort(),
     [['gtl_me_results', false, false], ['gtl_me_slate', false, false], ['gtl_read_ballot_changes', false, false], ['gtl_read_me_records', false, false]],
     'four new functions; no existing body is replaced, so no rollback file is needed');
-  assert.deepEqual([READER_MIGRATIONS['/me/changes'], READER_MIGRATIONS['/me/records']], [MIGRATION, MIGRATION]);
+  assert.deepEqual({ '/me/changes': READER_MIGRATIONS['/me/changes'], '/me/records': READER_MIGRATIONS['/me/records'] }, { '/me/changes': MIGRATION, '/me/records': MIGRATION });
 });
 
 test('/me/changes: the owner\'s own changes only, drafts held until locked in, kickoff or a sit-out, no line before lock-in', { skip }, async t => {

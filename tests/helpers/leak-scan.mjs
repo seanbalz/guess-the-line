@@ -56,7 +56,13 @@ export const READERS = Object.freeze([
   // D-48: own current-week guesses/card and M-01-gated lines; no new read migration.
   ['/bets/recommendations', 'POST', {}],
   ['/bets/read', 'POST', {}],
+  // M-12 boards: totals only (side and units are public under D-36; a settled game has kicked off).
+  ['/bets/board', 'POST', {}],
+  ['/bets/season', 'POST', {}],
   ['/community/picks', 'POST', { mode: 'guess_spread' }],
+  // Stage 62 (M-22): the league feed reader, every embed gated per viewer. Scanned on ALL in tests/league-feed-sql.test.mjs
+  // (with /league/comments and /league/reactors, which need a post id) until M-22 is hosted.
+  ['/league/feed', 'POST', {}],
   // Stage 72 (M-27): Me › History, the owner's own changes and the older records.
   ['/me/changes', 'POST', {}],
   ['/me/records', 'POST', {}],
@@ -70,9 +76,12 @@ export const READERS = Object.freeze([
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
 export const READER_MIGRATIONS = Object.freeze({
+  '/league/feed': '20261026132000_gtl_league_feed.sql',
   '/me/changes': '20261026230000_gtl_me_history.sql',
   '/me/records': '20261026230000_gtl_me_history.sql',
   '/me/export': '20261026231000_gtl_me_export.sql',
+  '/bets/board': '20261026233000_gtl_bets_boards.sql',
+  '/bets/season': '20261026233000_gtl_bets_boards.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { ALL, APPLIED, EXTENSION_ONLY, FILES, FIX_FORWARD, HOSTED, NOT_HOSTED, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL, APPLIED, EXTENSION_ONLY, FILES, FIX_FORWARD, HOSTED, NOT_HOSTED, ROLLBACK_DIR, migrationSql, version, without } from './migrations.mjs';
 import { parseFunctions } from '../scripts/migration-functions.mjs';
 
 // Stage 3 of docs/REDESIGN_BUILD_PLAN.md: one place holds the migration lists every PGlite test and spec applies.
@@ -69,4 +69,14 @@ test('the old-app specs, the shared community world and the persona harness take
     assert.doesNotMatch(source, /'\d{14}_gtl_[a-z0-9_]+\.sql'\s*,\s*'\d{14}_gtl_/, `${file} still holds a hand-written migration list`);
     assert.doesNotMatch(source, /readdirSync\(['"`]supabase\/migrations/, `${file} reads the folder itself`);
   }
+});
+
+test('without() leaves out a migration and every later file built on its bodies, and nothing else', () => {
+  const M07 = '20261015190710_gtl_guess_write_window.sql';
+  // M-21's gtl_read_community is M-07's body (it calls M-07's helpers), and M-22 (when present) REQUIRES M-21.
+  const dependents = ALL.filter(f => f.startsWith('20261026131000_') || f.startsWith('20261026132000_'));
+  const kept = without(ALL, M07);
+  assert.deepEqual(ALL.filter(f => !kept.includes(f)), [M07, ...dependents]);
+  assert.deepEqual(without(ALL, ALL.at(-1)), ALL.slice(0, -1), 'the newest file has nothing after it');
+  assert.deepEqual(kept, ALL.filter(f => kept.includes(f)), 'the order is kept');
 });

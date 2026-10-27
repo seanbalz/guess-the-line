@@ -253,9 +253,9 @@ M-numbers are names. The apply order is the calendar in section 8. Real files ar
 | M-18 | 55 | `settle_challenges` | Settlement grades challenges | High, alone | Tue–Wed after Monday is settled | M-15 |
 | M-19 | 56 | `settlement_schedule` | Scheduled settlement, off | Medium | any | M-18 |
 | M-20 | 57 | `league_boards` | Boards, my leagues, members | Low | any | M-01 |
-| M-21 | 61 | `feed_reactions` | Append-only reactions | Medium, fix forward | any quiet day | M-01, M-14 |
+| M-21 | 61 | `feed_reactions` | Append-only reactions | Medium, fix forward | any quiet day | M-01, M-13 (its `league_id`; D-39 dropped M-14) |
 | M-22 | 62 | `league_feed` | Feed reader, comments, share result | Medium | any quiet day | M-13, M-21, M-04, M-08 |
-| M-23 | 63 | `kickoff_posts` | Kickoff posts and backfill | High (writes rows), alone, fix forward | Tue–Wed | M-13, M-01 |
+| M-23 | 63 | `kickoff_posts` | Kickoff posts and backfill | High (writes rows), alone, fix forward | Tue–Wed | M-13, M-01; M-21 (old reader keeps full pages), M-22 (comments from kickoff) |
 | M-24 | 67 | `player_card` | Player card, head-to-head | Low | any | M-20, M-15 |
 | M-25 | 69 | `league_features` | Badges, awards, winners | Medium | any | M-13, M-06 |
 | M-26 | 70 | `features_schedule` | Features job, off | Medium | any | M-25 |
@@ -917,6 +917,13 @@ Superseded by D-39 ("asap"): kept only as a record of the safe windows. Targets 
 - [ ] **Sean says go.**
 
 ### The flip (stage 80)
+
+> **D-60 (October 26, 2026).** Sean asked to remove the old app entirely and chose two
+> steps. Step 1 is the flip: every member gets the new app, saved `classic` choices
+> no longer count, and the old app opens only at `?app=classic` from Menu › Older
+> records and tools and the failure screens. Step 2 deletes it once every item in
+> [the D-60 checklist](../planning/new-app-retirement.md#d-60-two-step-retirement-october-26-2026)
+> has a native home.
 
 > **D-52 amendment (October 15, carried to main October 21).** Sean asked to sunset
 > the previous app so no one can access it, without losing anything. Stage 80 is

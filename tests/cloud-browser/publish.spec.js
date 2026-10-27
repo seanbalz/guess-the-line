@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { NFLVERSE_SCHEDULE_URL } from '../../shared/nfl-schedule.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, switchAccount } from './community-world.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // D-21/D-24 commissioner publish path: Community → Preview / publish early (fallback) →
 // Review schedule → Publish Week 6, on the real handler, migrations and PGlite. The public
@@ -139,3 +140,6 @@ for (const width of [390, 1280]) test(`commissioner publishes Week 6 from the pu
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

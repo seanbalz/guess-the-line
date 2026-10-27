@@ -314,6 +314,33 @@ test('M-03 skip and "See picks now" probes are hosted and fail closed on missing
   });
 });
 
+// The league feed (redesign stages 61 to 63, scripts/boundary/league.mjs): written, not applied or deployed.
+const FEED_RPCS = ['gtl_feed_reactions', 'gtl_feed_post_visible', 'gtl_feed_reaction_summary', 'gtl_react_feed',
+  'gtl_feed_league_access', 'gtl_feed_in_league', 'gtl_feed_embed', 'gtl_read_league_feed', 'gtl_read_post_comments', 'gtl_read_post_reactors', 'gtl_share_result',
+  'gtl_kickoff_slots', 'gtl_write_kickoff_posts'];
+const FEED_ROUTES = ['league/react', 'league/feed', 'league/comments', 'league/reactors', 'league/share-result'];
+const FEED_PIECES = [...FEED_RPCS.map(rpc => `rpc/${rpc}`), ...FEED_ROUTES.map(route => `gtl-api/${route}`)];
+
+test('the league feed pieces are awaiting deploy: a missing function or route answers awaiting, never denied, and --strict fails it', async () => {
+  assert.deepEqual(Object.keys(awaitingDeploy).filter(key => FEED_PIECES.includes(key)).sort(), [...FEED_PIECES].sort());
+  const captured = [];
+  const missing = async (url, request) => {
+    captured.push({ url, request });
+    if (FEED_RPCS.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))) return new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 });
+    if (FEED_ROUTES.some(route => url.endsWith(`/functions/v1/gtl-api/${route}`))) return new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 });
+    return denied(url, request);
+  };
+  const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
+  assert.equal(result.awaiting.length, FEED_RPCS.length + FEED_ROUTES.length * 2, 'each RPC once, each route signed out and with an invalid session');
+  for (const { url, request } of captured.filter(({ url }) => FEED_RPCS.some(rpc => url.endsWith(`/rpc/${rpc}`)) || FEED_ROUTES.some(route => url.endsWith(`/gtl-api/${route}`)))) {
+    if (url.includes('/rest/v1/rpc/')) assert.equal(request.headers.Authorization, undefined, url);
+    assert.doesNotMatch(request.body, /0000-4000-8000/, 'no fixture or real member id is sent');
+  }
+  await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: missing, strict: true }), /unexpected 404/);
+  const after = await checkCloudBoundary({ ...options, fetchImpl: denied });
+  assert.deepEqual([after.awaiting.length, after.denied], [0, after.checked], 'once applied and deployed they deny like every other probe');
+});
+
 const P03_RPCS = ['gtl_dispatch_points_jobs', 'gtl_claim_points_jobs', 'gtl_complete_points_jobs', 'gtl_points_jobs_state'];
 test('P-03 Points jobs probes: anonymous and inert, awaiting only on the exact not-found answer until the apply, then denied', async t => {
   const captured = [];
@@ -354,8 +381,8 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // 2026, with /bets/read, /league/comparison, /me/preferences and the /nba routes deployed (RELEASE_2026_10_22_MIGRATIONS.md).
   // /fantasy/week (D-57) is deployed since gtl-api v35 (October 23, RELEASE_2026_10_23_FANTASY_TRACK1.md). Guess the Points
   // (D-56): P-01 and P-02 are hosted since October 23, 2026 and the /points/* routes ship in every gtl-api since v36
-  // (RELEASE_2026_10_23_POINTS.md). Only P-03's four functions (20261026120000_gtl_points_jobs.sql, written and not applied)
-  // are awaiting deploy.
+  // (RELEASE_2026_10_23_POINTS.md). Awaiting deploy: P-03's four functions (20261026120000_gtl_points_jobs.sql, written and not
+  // applied) and M-12 (stage 42, written October 26): its three RPCs and two routes.
   const points = ['slot_points', 'kickoff_window', 'finalize_at', 'slate_problem', 'slot_outcomes', 'week_scores', 'revealed', 'write', 'save_draft',
     'lock_in', 'read', 'load_actuals', 'finalize', 'publish_slate'].map(name => `gtl_points_${name}`);
   const hosted = ['gtl_bets_context', 'gtl_read_bets', 'gtl_read_bets_market', 'gtl_read_score_comparison', 'gtl_read_account_preferences',
@@ -363,15 +390,18 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const rpc of hosted) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
   for (const route of ['bets/read', 'league/comparison', 'me/preferences', 'me/preferences/save', 'nba/read', 'nba/save', 'nba/games', 'fantasy/week',
     'points/read', 'points/draft', 'points/lock', 'points/slate']) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
+  const m12 = ['gtl_bets_week_rows', 'gtl_read_bets_board', 'gtl_read_bets_season'];
+  const m12Awaiting = { ...Object.fromEntries(m12.map(rpc => [`rpc/${rpc}`, 'migration 20261026233000_gtl_bets_boards.sql'])),
+    'gtl-api/bets/board': 'the gtl-api deploy with /bets/board', 'gtl-api/bets/season': 'the gtl-api deploy with /bets/season' };
   // P-03 (Points jobs) and M-27 (Me › History, redesign stage 72) are merged or ready and not applied: their functions and
   // M-27's two routes are the only pieces awaiting deploy. Each apply record removes its own entries (Gate M step 8).
   const M27 = 'migration 20261026230000_gtl_me_history.sql';
-  assert.deepEqual({ ...awaitingDeploy }, {
+  assert.deepEqual(Object.fromEntries(Object.entries(awaitingDeploy).filter(([key]) => !FEED_PIECES.includes(key))), {
     ...Object.fromEntries(P03_RPCS.map(rpc => [`rpc/${rpc}`, 'migration 20261026120000_gtl_points_jobs.sql'])),
     'rpc/gtl_me_slate': M27, 'rpc/gtl_me_results': M27, 'rpc/gtl_read_ballot_changes': M27, 'rpc/gtl_read_me_records': M27,
-    'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records',
+    'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records', ...m12Awaiting,
     'rpc/gtl_export_me': 'migration 20261026231000_gtl_me_export.sql', 'gtl-api/me/export': 'the gtl-api deploy with /me/export',
-  }, 'only P-03, M-27 and M-28 are awaiting deploy');
+  }, 'only P-03, M-27, M-28, M-12 and the league feed pieces are awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
   // Before the applies and the deploy: each M-27 and M-28 function answers PGRST202 and each /me route "Not found."; all pass as
@@ -385,6 +415,12 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // The not-found answer may never carry a record: a History route's 404 with picks fails.
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (/\/gtl-api\/me\/changes$/.test(url)
     ? new Response(JSON.stringify({ error: 'Not found.', picks: { 'AAA-BBB': -3.5 } }), { status: 404 }) : denied(url, request)) }), /me\/changes without session: unexpected 404/);
+  // Before the apply and deploy: each M-12 RPC once, each route signed out and with an invalid session.
+  const beforeM12 = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (m12.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+    ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
+    : /\/gtl-api\/bets\/(board|season)$/.test(url) ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) });
+  assert.equal(beforeM12.awaiting.length, m12.length + 2 * 2);
+  assert.deepEqual(new Set(beforeM12.awaiting.map(a => a.until)), new Set(Object.values(m12Awaiting)), 'no M-12 awaitingDeploy entry is dead');
   // A missing Points function or route is now an unexpected 404, never awaiting.
   await assert.rejects(() => checkCloudBoundary({ ...options, log: () => {}, fetchImpl: async (url, request) => (/\/rest\/v1\/rpc\/gtl_points_read$/.test(url)
     ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 }) : denied(url, request)) }), /gtl_points_read RPC: unexpected 404/);

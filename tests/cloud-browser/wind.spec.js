@@ -8,6 +8,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { communityWorld, pgliteAvailable, signIn, switchAccount } from './community-world.mjs';
 import { createOpenMeteoProvider } from '../../cloud/open-meteo.mjs';
 import { forecastFetch } from '../fixtures/open-meteo/build.mjs';
+import { useOldApp } from './old-app.mjs';
 
 const TEAMS = { SEA: 'Seattle Seahawks', DEN: 'Denver Broncos', HOU: 'Houston Texans', JAX: 'Jacksonville Jaguars', BUF: 'Buffalo Bills', LV: 'Las Vegas Raiders', CHI: 'Chicago Bears', ATL: 'Atlanta Falcons',
   ARI: 'Arizona Cardinals', LAR: 'Los Angeles Rams' };
@@ -175,3 +176,6 @@ test('weather on every game: Indoors for a dome and for SoFi, and "Roof may clos
   expect((await world.db.query('select game_id from public.gtl_wind_forecasts order by game_id')).rows.map(r => r.game_id)).toEqual(['CHI-ATL']);
   expect(world.errors).toEqual([]);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

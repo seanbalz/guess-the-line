@@ -109,7 +109,8 @@ export function MenuSheet({ args }) {
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
           <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
-          <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</LinkRow>
+          {/* D-60: the one everyday way into the old app, until older records and tools have new homes. */}
+          <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.olderRecords}</LinkRow>
         </List>
       </Card>
       <Button variant="ghost-2" icon="logOut" className="gx-menu-signout" onClick={signOut} aria-disabled={busy || undefined}>

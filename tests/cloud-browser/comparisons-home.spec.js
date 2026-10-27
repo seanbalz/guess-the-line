@@ -11,7 +11,6 @@ async function ready(page, baseURL) {
   await sendBallot(world,'luke','guess_spread',Object.fromEntries(world.state.games.map((g,i) => [g.id,[-3,2][i]])));
   await sendBallot(world,'troy','guess_spread',Object.fromEntries(world.state.games.map((g,i) => [g.id,[-4,2.5][i]])));
   await signIn(page,'luke');
-  await page.getByRole('button',{ name: 'Try the new app',exact: true }).click();
   await expect(page.getByRole('heading',{ name: 'Home',exact: true })).toBeVisible();
   return world;
 }
