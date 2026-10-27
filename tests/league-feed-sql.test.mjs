@@ -208,7 +208,7 @@ test('a kickoff post lists who is in per game (no number) and how many bets; a g
   assert.deepEqual(group.embed.games, [{ gameId: f.ids[0], in: [], bets: 0 }], 'Troy is not in Luke\'s crew');
 });
 
-test('every M-22 function is service-only; on the hosted schema the new routes answer 503 and the old feed routes answer as before', { skip }, async t => {
+test('every M-22 function is service-only; without M-22 (the hosted schema before its October 27 apply) the new routes answer 503 and the old feed routes answer as before', { skip }, async t => {
   const f = await fixture(t);
   const fns = ['gtl_feed_league_access(uuid,text)', 'gtl_feed_in_league(text,uuid,text,text)', 'gtl_feed_embed(uuid,uuid,text,timestamptz)',
     'gtl_read_league_feed(uuid,text,timestamptz,uuid,integer,timestamptz)', 'gtl_read_post_comments(uuid,uuid,timestamptz,uuid,integer,timestamptz)',
@@ -217,7 +217,7 @@ test('every M-22 function is service-only; on the hosted schema the new routes a
     const row = (await f.db.query(`select has_function_privilege('anon','public.${fn}','execute') anon, has_function_privilege('authenticated','public.${fn}','execute') auth, has_function_privilege('service_role','public.${fn}','execute') service`)).rows[0];
     assert.deepEqual(row, { anon: false, auth: false, service: true }, fn);
   }
-  const hosted = await createCommunityWorld({ migrations: HOSTED });
+  const hosted = await createCommunityWorld({ migrations: HOSTED.filter(file => !file.startsWith('20261026132000_') && !file.startsWith('20261026133000_')) });
   t.after(() => hosted.db.close());
   const post = (await hosted.db.query("select id from public.gtl_feed_posts where kind='ballot_submitted' limit 1")).rows[0].id;
   for (const [route, body] of [['league/feed', {}], ['league/comments', { postId: post }], ['league/reactors', { postId: post }],

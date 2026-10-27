@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { ALL, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, APPLIED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql } from './helpers/guess-week.mjs';
 import { createFeaturesHandler } from '../cloud/features-run.mjs';
@@ -29,7 +29,7 @@ async function fixture(t) {
 
 test('M-26 is written and not applied, and its admin script registers the schedule disabled with the cron commented out', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
+  assert.ok(APPLIED.includes(version(MIGRATION)), 'hosted as 20261027153637 on October 27, 2026');
   const sql = fs.readFileSync(new URL('../supabase/admin/league_features_cron.sql', import.meta.url), 'utf8');
   assert.match(sql, /insert into public\.gtl_features_schedule\(id,enabled,endpoint,authorized_by,season\)\s*select 'league-features',false,/);
   const live = sql.split('\n').filter(line => !line.trimStart().startsWith('--')).join('\n');

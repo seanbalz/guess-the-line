@@ -132,8 +132,8 @@ test('the old reader lists only the kinds the old app draws, so a page of 30 sta
   assert.deepEqual(listed.sort(), kinds.sort());
 });
 
-test('on the hosted schema (no M-21) /league/react answers 503 and /community/like works exactly as before', { skip }, async t => {
-  const w = await createCommunityWorld({ migrations: HOSTED });
+test('without M-21 (the hosted schema before its October 27 apply) /league/react answers 503 and /community/like works exactly as before', { skip }, async t => {
+  const w = await createCommunityWorld({ migrations: HOSTED.filter(file => file < M21) });
   t.after(() => w.db.close());
   const post = (await w.db.query("select id from public.gtl_feed_posts where kind='ballot_submitted' limit 1")).rows[0].id;
   const refused = await w.api('luke', 'league/react', { postId: post, reaction: 'fire' });

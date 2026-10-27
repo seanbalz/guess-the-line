@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, NOT_HOSTED, version, without } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql, storeLines } from './helpers/guess-week.mjs';
-import { M13, seedFinishedWeek } from './helpers/features-week.mjs';
+import { seedFinishedWeek } from './helpers/features-week.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 import { computeFeatures } from '../cloud/features.mjs';
 
@@ -13,6 +13,8 @@ import { computeFeatures } from '../cloud/features.mjs';
 // The finished fixture Week 4 (SEA @ DEN 26 hours ago, KC @ LV 2 hours ago) is tests/helpers/features-week.mjs. Week 5 is the
 // world's own open week, kicking off tonight.
 const MIGRATION = '20261026234000_gtl_league_features.sql';
+// M-13 and the three feed files built on it (hosted together on October 27, 2026).
+const NEEDS_M13 = ALL.filter(file => ['20261026130000_', '20261026131000_', '20261026132000_', '20261026133000_'].some(prefix => file.startsWith(prefix)));
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const LUKE = ACCOUNTS.luke.id, TROY = ACCOUNTS.troy.id, SEAN = ACCOUNTS.sean.id;
 const HOUR = 3_600_000, GROUP = `g_${'a'.repeat(32)}`;
@@ -20,8 +22,9 @@ const iso = ms => new Date(ms).toISOString();
 
 async function fixture(t, { m13 = true } = {}) {
   // M-25 applies after M-13 (feed kinds). `m13: false` builds the order mistake: every migration except M-13 and the feed
-  // files that need it (M-22 and M-23 read its league_id column), which `without` leaves out with it.
-  const world = await createCommunityWorld({ migrations: m13 ? ALL : without(ALL, M13), games: 2, troyBallots: false });
+  // files that need it (M-21 and M-22 read its league_id column, M-23 writes its `kickoff` kind). All four are hosted since
+  // October 27, 2026, so the list is named here rather than derived from REQUIRES.
+  const world = await createCommunityWorld({ migrations: m13 ? ALL : ALL.filter(file => !NEEDS_M13.includes(file)), games: 2, troyBallots: false });
   t.after(() => world.db.close());
   const { db } = world, call = serviceSql(db);
   const { now, k1, k2, settle } = await seedFinishedWeek(world);
@@ -32,10 +35,10 @@ async function fixture(t, { m13 = true } = {}) {
   return { world, db, call, now, k1, k2, settle, run, read, events, posts };
 }
 
-test('M-25 is written and not applied: NOT_HOSTED until Sean\'s "apply M-25"', () => {
+test('M-25 is applied: hosted as 20261027153602 on October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md)', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
-  assert.ok(!HOSTED.includes(MIGRATION));
+  assert.ok(APPLIED.includes(version(MIGRATION)));
+  assert.ok(HOSTED.includes(MIGRATION));
 });
 
 test('every M-25 function and table is service-role only, and the events and awards are append-only', { skip }, async t => {
@@ -198,8 +201,8 @@ test('before M-13 the new post kinds are refused by the old check: the run recor
   assert.equal((await f.posts('badge_earned')).length + (await f.posts('weekly_recap')).length, 0);
 });
 
-test('existing routes are unchanged without M-25: /league/features answers "coming soon" and /community/read works', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED, games: 2, troyBallots: false });
+test('existing routes are unchanged without M-25 (the hosted schema before its October 27 apply): /league/features answers "coming soon" and /community/read works', { skip }, async t => {
+  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file < MIGRATION), games: 2, troyBallots: false });
   t.after(() => world.db.close());
   const read = await world.api('luke', 'league/features', {});
   assert.deepEqual([read.status, read.body.error], [404, 'Badges and awards are coming soon.']);
