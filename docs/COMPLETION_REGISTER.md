@@ -281,7 +281,8 @@ run exposed a Research-to-Play focus race; a deterministic regression failed
 before and passed after the shell was repaired to preserve the requested game’s
 focus. All 85 final integrated browser cases passed, including shell/navigation
 and per-game scoring. Four 320px ordinary/forced-color screenshots were inspected.
-CI/merge, release/readback and physical-device acceptance remain open.
+Source is in [PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265)
+on `codex/market-movement-selection`. CI/merge, release/readback and physical-device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

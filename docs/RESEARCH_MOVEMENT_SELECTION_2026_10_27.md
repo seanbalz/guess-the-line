@@ -33,7 +33,8 @@ that the app does not have the scrolling bug.
 
 Four 320px Light/Dark and forced-color movement screenshots were inspected.
 All 85 final integrated browser cases passed across Research, Lines, Trends,
-League bets, shell/navigation and per-game scoring. Source is on
+League bets, shell/navigation and per-game scoring. Source is in
+[PR #265](https://github.com/seanbalz/guess-the-lines-repo/pull/265) on
 `codex/market-movement-selection`; CI/merge, hosted release/readback and physical
 phone acceptance are separate open checkpoints. No deployment, migration apply
 or frozen v62 tracker changes are included.
