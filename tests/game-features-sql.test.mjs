@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, NOT_HOSTED, version } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql, storeLines } from './helpers/guess-week.mjs';
 import { seedFinishedWeek } from './helpers/features-week.mjs';
@@ -35,10 +35,10 @@ async function fixture(t, { m13 = true } = {}) {
   return { world, db, call, now, k1, k2, settle, run, read, events, posts };
 }
 
-test('M-25 is written and not applied: NOT_HOSTED until Sean\'s "apply M-25"', () => {
+test('M-25 is applied: hosted as 20261027153602 on October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md)', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
-  assert.ok(!HOSTED.includes(MIGRATION));
+  assert.ok(APPLIED.includes(version(MIGRATION)));
+  assert.ok(HOSTED.includes(MIGRATION));
 });
 
 test('every M-25 function and table is service-role only, and the events and awards are append-only', { skip }, async t => {
@@ -201,8 +201,8 @@ test('before M-13 the new post kinds are refused by the old check: the run recor
   assert.equal((await f.posts('badge_earned')).length + (await f.posts('weekly_recap')).length, 0);
 });
 
-test('existing routes are unchanged without M-25: /league/features answers "coming soon" and /community/read works', { skip }, async t => {
-  const world = await createCommunityWorld({ migrations: HOSTED, games: 2, troyBallots: false });
+test('existing routes are unchanged without M-25 (the hosted schema before its October 27 apply): /league/features answers "coming soon" and /community/read works', { skip }, async t => {
+  const world = await createCommunityWorld({ migrations: HOSTED.filter(file => file < MIGRATION), games: 2, troyBallots: false });
   t.after(() => world.db.close());
   const read = await world.api('luke', 'league/features', {});
   assert.deepEqual([read.status, read.body.error], [404, 'Badges and awards are coming soon.']);

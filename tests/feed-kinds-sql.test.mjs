@@ -9,8 +9,8 @@ import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser
 // nothing. Local PGlite only, fixture accounts only.
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const M13 = ALL.find(file => file.startsWith('20261026130000_'));
-// M-21, M-22 and M-23 were applied after M-13 on October 27, 2026; BEFORE_M13 is the hosted schema M-13 was applied to.
-const AFTER_M13 = ['20261026131000_', '20261026132000_', '20261026133000_'];
+// M-21, M-22, M-23, M-25 and M-26 were applied after M-13 on October 27, 2026; BEFORE_M13 is the hosted schema M-13 was applied to.
+const AFTER_M13 = ['20261026131000_', '20261026132000_', '20261026133000_', '20261026234000_', '20261026235000_'];
 const BEFORE_M13 = HOSTED.filter(file => file < M13);
 const OLD_KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published', 'points_played', 'points_final'];
 const NEW_KINDS = ['bet_shared', 'challenge_offered', 'challenge_matched', 'challenge_settled', 'kickoff', 'bets_week_settled',
@@ -24,7 +24,7 @@ const check = async db => (await db.query("select pg_get_constraintdef(oid) def,
 
 test('M-13 is the file the ledger names, after every file on main, and carries no function, trigger, grant or row change', () => {
   assert.ok(M13, 'the M-13 file is in the repo');
-  // Hosted since October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md); only M-21 to M-23, applied after it, sort later.
+  // Hosted since October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md); only the files applied after it sort later.
   assert.ok(HOSTED.every(file => file <= M13 || AFTER_M13.some(prefix => file.startsWith(prefix))), 'stamped after every file hosted before it');
   const sql = migrationSql(M13).replace(/--[^\n]*/g, '');
   assert.doesNotMatch(sql, /\b(?:create|drop)\s+(?:or\s+replace\s+)?(?:function|trigger|table|index)\b/i);

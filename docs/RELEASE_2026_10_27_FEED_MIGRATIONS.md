@@ -1,4 +1,4 @@
-# League feed migrations applied — October 27, 2026
+# League feed and badges migrations applied — October 27, 2026
 
 Sean's instruction (October 27, 2026): "apply M-13, then M-21, M-22 and M-23, in order, with the Gate M checks, through the
 SQL editor in my signed-in Chrome." Applied 14:56–14:58 UTC, one at a time, after `gtl-api` v38 and Pages `4a03e6cd`
@@ -65,16 +65,67 @@ Migration history: 54 rows (`bd53dcf4…f11a`) before, **58** after.
   table probes. `tests/helpers/leak-scan.mjs` drops `/league/feed` from `READER_MIGRATIONS`.
 - The tests that described the schema before these applies now build it as HOSTED minus the files applied here.
 
+# Badges and awards migrations applied — October 27, 2026
+
+Sean's instruction: "apply M-25, then M-26, in order, with the Gate M checks, through the SQL editor in my signed-in
+Chrome." Applied 15:36 UTC by the same route, each file fetched at `b1bc64b493e6a6723ba7ee58582fdbd2569d448c` (unchanged
+since `1db1c44`). Both only add objects: no body is replaced and applying them writes no row.
+
+| Migration | File SHA-256 | Hosted version | History statement md5 = file md5 |
+| --- | --- | --- | --- |
+| M-25 `20261026234000_gtl_league_features.sql` | `416ee892…f3e4` | **`20261027153602`** | `96269f9ff9fffe54c0815facdc43bf24` |
+| M-26 `20261026235000_gtl_features_schedule.sql` | `24988c67…108d` | **`20261027153637`** | `0c484b0600a27225734ece6db98473e2` |
+
+Migration history: 58 rows before, **60** after.
+
+- **Step 4:** none of the six tables or eight functions existed; `gtl_kickoff_line` (M-06) and `gtl_ballot_pick_scores`
+  were present; the kind check already held M-13's `badge_earned`, `weekly_recap` and `season_champion`.
+- **Step 5:** score hash 25 ballots `41fa6ae2003cd33f7e7e14bbb3f136f2` (same Week 5 anchors) before M-25 and after M-26.
+  Feed posts created by 15:20 UTC: 110, `ee2d47f9a8c42f299fc7a9b672f22140` before and after (players added posts during
+  the day, so the fingerprint is cut at a fixed time).
+- **Step 7, M-25:** `gtl_feature_results` `dda6f6e4…`, `gtl_read_feature_inputs` `3cad80a8…`, `gtl_feature_post`
+  `55fd7293…`, `gtl_record_feature_results` `12f08ac0…`, `gtl_read_features` `33f10f4c…`, each security invoker,
+  `service_role` only, one `pg_proc` row. `gtl_feature_runs`, `gtl_badge_events`, `gtl_weekly_awards` and
+  `gtl_player_streaks` have row security on, `service_role` select and insert, and no rows.
+- **Step 7, M-26:** `gtl_claim_league_features` `c572b414…` and `gtl_complete_league_features` `6aa1510c…` (`service_role`
+  only), `gtl_dispatch_league_features` `a8727557…` (owner only, no API role). `gtl_features_schedule` and
+  `gtl_features_schedule_runs` have row security on, `service_role` read, and no rows: the schedule row and its cron are
+  `supabase/admin/league_features_cron.sql`, still to run (Sean, after a live dry run). `gtl-league-features` is not
+  deployed (no release target).
+- **Boundary:** 368 signed-out probes with the six new table probes: 360 denied, 8 awaiting (M-12, M-27, M-28 only).
+- **Step 8 (this PR):** both versions move to `APPLIED`; `scripts/boundary/league.mjs` empties `awaitingDeploy` (the two
+  features routes ship in `gtl-api` v38) and adds the six tables; `/league/features` leaves `READER_MIGRATIONS`; the
+  tests that described the schema before M-25 build it as HOSTED minus M-25 and M-26.
+
+## Signed-in readback (hosted logs, 14:43–15:50 UTC)
+
+- `POST /league/features`: 22 answers 404 "coming soon" from 15:02 to 15:34 (before M-25), then 7 answers 200 from
+  15:38 (after it).
+- `POST /league/feed`: 200 at 15:48 (after M-22). `POST /personal/ballot`: 28 answers 200; `/points/read`, `/me/preferences`,
+  `/community/read`, `/lobby` and `/bets/read` 200.
+- No 5xx on `gtl-api` and no CPU, memory or uncaught-error line in `function_logs`; the slowest `gtl-api` answer took
+  3.9 s.
+
+## Probe timeouts
+
+Five signed-out probe runs from this PC aborted on the checker's 15-second request limit (`invite/revoke` and
+`league/comparison` signed out, plus three unnamed); none of those requests appears in the edge logs, where every probe of
+those routes answered 401 within a second. They look like this PC's connection, not the API; other runs passed with no
+request over 5 seconds. Not resolved.
+
 ## Not verified
 
-- Hosted logs 14:55–15:00 UTC show only the probes' 401s: no signed-in feed read, reaction, comment or share has run on
-  production yet, and no phone check.
+- A signed-in reaction, comment or result share, and phone checks.
 - The trigger's first live run: the next `week_published` post (Week 9's open, Monday November 2) should write its
   kickoff posts in the same transaction.
+- A features run: none has been recorded yet (`gtl_feature_runs` is empty); the commissioner's
+  `POST /league/features/run` or the M-26 schedule writes the first.
 
 ## Rollback and off switch
 
 M-13, M-21 and M-23 are fix-forward (no rollback file). M-22 has `supabase/rollback/20261026132000_gtl_league_feed.sql`.
+M-25 and M-26 replace nothing; `GTL_FEATURE_OFF` with `features` pauses the commissioner's run (`/league/features` keeps
+reading), and the schedule stays off until its row is enabled. Rows stay (D-23).
 Off switches: `GTL_FEATURE_OFF` with `reactions` pauses `/league/react`, and with `feed` pauses `/league/feed`,
 `/comments`, `/reactors` and `/share-result` (the new app then shows `/community/read`); `alter table public.gtl_feed_posts
 disable trigger gtl_feed_on_slate` stops new kickoff posts (Sean's approval). Rows stay (D-23).

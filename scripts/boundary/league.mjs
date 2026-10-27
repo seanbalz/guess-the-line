@@ -6,6 +6,8 @@ export const tables = Object.freeze([
   'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals',
   // M-21 (hosted since October 27, 2026, RELEASE_2026_10_27_FEED_MIGRATIONS.md): the append-only reaction events.
   'feed_reaction_events',
+  // M-25 and M-26 (hosted since October 27, 2026): the features job's records and its schedule.
+  'feature_runs', 'badge_events', 'weekly_awards', 'player_streaks', 'features_schedule', 'features_schedule_runs',
 ]);
 
 export const rpcChecks = Object.freeze([
@@ -35,15 +37,16 @@ export const rpcChecks = Object.freeze([
   ['gtl_read_post_reactors', { p_user: missingId, p_post: missingId, p_now: null }],
   ['gtl_share_result', { p_user: missingId, p_request_id: missingId, p_league: null, p_season: 2026, p_week: 5, p_mode: 'guess_spread', p_game: 'boundary-check', p_now: null }],
   // M-25 league_features (redesign stage 69): the features job's inputs, its writer, the feed post helper and the reader, all
-  // service-only. Awaiting deploy (below) until M-25 is applied. Its four tables (feature_runs, badge_events, weekly_awards,
-  // player_streaks) join the table probes with the apply record, as a missing table cannot pass as a denial.
+  // service-only. Hosted as 20261027153602 since October 27, 2026; its four tables (feature_runs, badge_events, weekly_awards,
+  // player_streaks) are in the table probes.
   ['gtl_feature_results', { p_season: 2026, p_week: 5 }],
   ['gtl_read_feature_inputs', { p_season: 2026, p_now: null }],
   ['gtl_feature_post', { p_actor: missingId, p_kind: 'badge_earned', p_season: 2026, p_week: 5, p_payload: {}, p_dedupe: 'boundary-check', p_at: null }],
   ['gtl_record_feature_results', { p_run: missingId, p_trigger: 'manual', p_actor: missingId, p_results: {} }],
   ['gtl_read_features', { p_user: missingId, p_league: null, p_season: null, p_now: null }],
-  // M-26 features_schedule (redesign stage 70): the cron-only dispatcher and the worker's claim and completion. Awaiting deploy
-  // until M-26 is applied; its two tables join the table probes and gtl-league-features the worker probes with the apply record.
+  // M-26 features_schedule (redesign stage 70): the cron-only dispatcher and the worker's claim and completion. Hosted as
+  // 20261027153637 since October 27, 2026; its two tables are in the table probes. gtl-league-features is not deployed, so it
+  // joins the worker probes with its first deploy.
   ['gtl_dispatch_league_features', {}],
   ['gtl_claim_league_features', { p_token: '0'.repeat(64), p_run: missingId }],
   ['gtl_complete_league_features', { p_run: missingId, p_claim: missingId, p_reason: null }],
@@ -79,19 +82,6 @@ export const workerChecks = Object.freeze([]);
 
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026. The league feed
 // (redesign stages 61 to 63) is hosted and deployed since October 27, 2026: M-21, M-22 and M-23 applied, and the five
-// /league/* feed routes in gtl-api v38 (RELEASE_2026_10_27_FEED_MIGRATIONS.md), so none of its pieces awaits deploy.
-// M-25 (redesign stage 69) is written and not applied.
-const M25 = 'migration 20261026234000_gtl_league_features.sql';
-export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_feature_results': M25,
-  'rpc/gtl_read_feature_inputs': M25,
-  'rpc/gtl_feature_post': M25,
-  'rpc/gtl_record_feature_results': M25,
-  'rpc/gtl_read_features': M25,
-  'gtl-api/league/features': 'the gtl-api deploy with /league/features',
-  'gtl-api/league/features/run': 'the gtl-api deploy with /league/features/run',
-  // M-26 (redesign stage 70) is written and not applied either.
-  'rpc/gtl_dispatch_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
-  'rpc/gtl_claim_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
-  'rpc/gtl_complete_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
-});
+// /league/* feed routes in gtl-api v38 (RELEASE_2026_10_27_FEED_MIGRATIONS.md), so none of its pieces awaits deploy. So are
+// M-25 and M-26 (redesign stages 69 and 70) with /league/features and /league/features/run (the same record).
+export const awaitingDeploy = Object.freeze({});

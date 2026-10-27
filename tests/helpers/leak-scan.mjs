@@ -83,7 +83,6 @@ export const READER_MIGRATIONS = Object.freeze({
   '/me/export': '20261026231000_gtl_me_export.sql',
   '/bets/board': '20261026233000_gtl_bets_boards.sql',
   '/bets/season': '20261026233000_gtl_bets_boards.sql',
-  '/league/features': '20261026234000_gtl_league_features.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));

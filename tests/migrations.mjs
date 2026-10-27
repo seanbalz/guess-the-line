@@ -38,8 +38,6 @@ export const NOT_HOSTED = [
   20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
   20261026231000, // M-28 gtl_me_export (redesign stage 75): Export my data, awaiting Sean's "apply M-28" (after M-27).
   20261026233000, // M-12 bets_boards (stage 42): weekly and season boards; read only; apply after M-10 on Sean's "apply M-12".
-  20261026234000, // M-25 league_features (redesign stage 69): badges, awards, streaks; apply after M-13 (feed kinds) on Sean's "apply M-25".
-  20261026235000, // M-26 features_schedule (redesign stage 70): the features job's schedule, disabled; apply after M-25 on "apply M-26".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -167,4 +165,6 @@ export const APPLIED = [
   20261026131000, // M-21 gtl_feed_reactions: hosted as 20261027145634 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
   20261026132000, // M-22 gtl_league_feed: hosted as 20261027145711 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
   20261026133000, // M-23 gtl_kickoff_posts: hosted as 20261027145740 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
+  20261026234000, // M-25 gtl_league_features: hosted as 20261027153602 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
+  20261026235000, // M-26 gtl_features_schedule: hosted as 20261027153637 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
 ];

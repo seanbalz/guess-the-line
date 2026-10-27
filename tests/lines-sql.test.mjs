@@ -24,10 +24,9 @@ const MIGRATION = '20261015010000_gtl_lines_read.sql';
 // M-10 is hosted since October 22, 2026, but the worlds here stop before M-07 or M-06 and so before its file: its
 // reader runs only where the world installs it.
 const BETS_READ = '20261015190820_gtl_bets_read.sql';
-// M-22 (the league feed reader) is hosted since October 27, 2026, and these worlds stop before its file too.
-const LEAGUE_FEED = '20261026132000_gtl_league_feed.sql';
-const readersIn = migrations => readersOn(migrations).filter(([route]) => (route !== '/bets/read' || migrations.includes(BETS_READ))
-  && (route !== '/league/feed' || migrations.includes(LEAGUE_FEED)));
+// So are M-22 (the league feed reader) and M-25 (/league/features), hosted since October 27, 2026.
+const INSTALLED_BY = { '/bets/read': BETS_READ, '/league/feed': '20261026132000_gtl_league_feed.sql', '/league/features': '20261026234000_gtl_league_features.sql' };
+const readersIn = migrations => readersOn(migrations).filter(([route]) => !Object.hasOwn(INSTALLED_BY, route) || migrations.includes(INSTALLED_BY[route]));
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const HOUR = 3_600_000, MINUTE = 60_000;
 const BOOKS = ['draftkings', 'fanduel', 'betmgm'];

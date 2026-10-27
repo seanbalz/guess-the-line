@@ -125,20 +125,17 @@ test('awaiting-deploy probes pass only on the exact not-found answer, are report
   });
 });
 
-test('M-25 game features: its five RPCs and two routes are probed with inert fixtures and stay awaiting deploy until "apply M-25"', async () => {
-  // 20261026234000_gtl_league_features.sql (redesign stage 69) is written and not applied, and no gtl-api deploy has its routes.
+test('M-25 game features: its five RPCs, four tables and two routes are probed with inert fixtures; hosted and deployed, none awaits', async () => {
+  // 20261026234000_gtl_league_features.sql (redesign stage 69) is hosted as 20261027153602 and its routes ship in gtl-api v38.
   const rpcs = ['gtl_feature_results', 'gtl_read_feature_inputs', 'gtl_feature_post', 'gtl_record_feature_results', 'gtl_read_features'];
   const routes = ['league/features', 'league/features/run'];
-  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026234000_gtl_league_features\.sql/, rpc);
-  for (const route of routes) assert.match(awaitingDeploy[`gtl-api/${route}`] ?? '', /gtl-api deploy/, route);
+  for (const rpc of rpcs) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
+  for (const route of routes) assert.ok(!Object.hasOwn(awaitingDeploy, `gtl-api/${route}`), route);
   const captured = [];
-  const result = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => {
-    captured.push({ url, request });
-    if (rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))) return new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 });
-    if (routes.some(route => url.endsWith(`/functions/v1/gtl-api/${route}`))) return new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 });
-    return denied(url, request);
-  } });
-  assert.equal(result.awaiting.length, rpcs.length + routes.length * 2, 'every RPC, and each route signed out and with an invalid session');
+  const result = await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+  assert.deepEqual([result.awaiting, result.denied], [[], result.checked]);
+  for (const table of ['feature_runs', 'badge_events', 'weekly_awards', 'player_streaks']) assert.ok(captured.some(({ url }) => url.includes(`/rest/v1/gtl_${table}?`)), table);
+  for (const route of routes) assert.equal(captured.filter(({ url }) => url.endsWith(`/functions/v1/gtl-api/${route}`)).length, 2, route);
   const missingId = '00000000-0000-0000-0000-000000000000';
   for (const rpc of rpcs) {
     const probe = captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`));
@@ -147,20 +144,19 @@ test('M-25 game features: its five RPCs and two routes are probed with inert fix
     for (const key of ['p_user', 'p_actor', 'p_run']) if (Object.hasOwn(body, key)) assert.equal(body[key], missingId, `${rpc} ${key} names no real account`);
   }
   assert.deepEqual(JSON.parse(captured.find(({ url }) => url.endsWith('/rest/v1/rpc/gtl_record_feature_results')).request.body).p_results, {}, 'the writer probe carries no results');
-  await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => (rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
-    ? new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 }) : denied(url, request)) }), /gtl_feature_results RPC: unexpected 404/, '--strict fails until they deny');
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))
+    ? new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 }) : denied(url, request)) }), /gtl_feature_results RPC: unexpected 404/, 'a missing function fails the default check');
 });
 
-test('M-26 features schedule: the dispatcher, claim and completion are probed with inert fixtures and stay awaiting deploy until "apply M-26"', async () => {
-  // 20261026235000_gtl_features_schedule.sql (redesign stage 70) is written and not applied; its worker is not deployed.
+test('M-26 features schedule: the dispatcher, claim and completion and its two tables are probed with inert fixtures; hosted, none awaits', async () => {
+  // 20261026235000_gtl_features_schedule.sql (redesign stage 70) is hosted as 20261027153637; its worker is not deployed.
   const rpcs = ['gtl_dispatch_league_features', 'gtl_claim_league_features', 'gtl_complete_league_features'];
-  for (const rpc of rpcs) assert.match(awaitingDeploy[`rpc/${rpc}`] ?? '', /20261026235000_gtl_features_schedule\.sql/, rpc);
+  for (const rpc of rpcs) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
   const captured = [];
-  const result = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => {
-    captured.push({ url, request });
-    return rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`)) ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 }) : denied(url, request);
-  } });
-  assert.equal(result.awaiting.filter(({ name }) => rpcs.some(rpc => name.includes(rpc))).length, rpcs.length);
+  await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+  for (const table of ['features_schedule', 'features_schedule_runs']) assert.ok(captured.some(({ url }) => url.includes(`/rest/v1/gtl_${table}?`)), table);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/rest/v1/rpc/gtl_claim_league_features')
+    ? new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 }) : denied(url, request)) }), /gtl_claim_league_features RPC: unexpected 404/);
   const body = rpc => JSON.parse(captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`)).request.body);
   assert.deepEqual(body('gtl_dispatch_league_features'), {});
   assert.deepEqual(body('gtl_claim_league_features'), { p_token: '0'.repeat(64), p_run: '00000000-0000-0000-0000-000000000000' }, 'never a real capability');
@@ -437,15 +433,15 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
     'gtl-api/bets/board': 'the gtl-api deploy with /bets/board', 'gtl-api/bets/season': 'the gtl-api deploy with /bets/season' };
   // M-27 (Me › History, redesign stage 72) and M-28 are merged and not applied: their functions and routes await deploy with
   // M-12's. Each apply record removes its own entries (Gate M step 8).
-  // M-25 and M-26 (redesign stages 69 and 70) are written and not applied too; their own tests above check their entries.
+  // M-25 and M-26 (redesign stages 69 and 70) are hosted since October 27, 2026 with their routes in gtl-api v38: none awaits.
   const features = Object.fromEntries(Object.entries(awaitingDeploy).filter(([key, until]) => /20261026234000_gtl_league_features|20261026235000_gtl_features_schedule|\/league\/features/.test(until) || key.startsWith('gtl-api/league/features')));
-  assert.deepEqual(Object.keys(features).length, 10);
+  assert.deepEqual(Object.keys(features).length, 0);
   const M27 = 'migration 20261026230000_gtl_me_history.sql';
   assert.deepEqual(Object.fromEntries(Object.entries(awaitingDeploy).filter(([key]) => !FEED_PIECES.includes(key) && !Object.hasOwn(features, key))), {
     'rpc/gtl_me_slate': M27, 'rpc/gtl_me_results': M27, 'rpc/gtl_read_ballot_changes': M27, 'rpc/gtl_read_me_records': M27,
     'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records', ...m12Awaiting,
     'rpc/gtl_export_me': 'migration 20261026231000_gtl_me_export.sql', 'gtl-api/me/export': 'the gtl-api deploy with /me/export',
-  }, 'only M-27, M-28, M-12, M-25 and M-26 are awaiting deploy');
+  }, 'only M-27, M-28 and M-12 are awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
   // Before the applies and the deploy: each M-27 and M-28 function answers PGRST202 and each /me route "Not found."; all pass as
