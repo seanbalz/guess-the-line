@@ -1,0 +1,23 @@
+/* Me › History (redesign build plan stages 73 and 74). Shared gx- classes do the drawing; these only lay out the page. */
+.gx .gx-history { overflow-wrap: anywhere; }
+.gx .gx-history .gx-row { height: auto; min-height: 64px; }
+.gx .gx-history .gx-row-title,
+.gx .gx-history .gx-row-sub { white-space: normal; overflow-wrap: anywhere; }
+.gx .gx-history .gx-input { width: 100%; min-width: 0; }
+.gx .gx-history-points { color: var(--gx-text-1); font-family: var(--gx-font-num); font-size: 18px; font-weight: 600; line-height: 22px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gx .gx-history-up { align-self: flex-start; }
+.gx .gx-history-lock { display: flex; align-items: flex-start; gap: var(--gx-space-2); }
+.gx .gx-history-lock .gx-ic { margin-top: 2px; color: var(--gx-text-3); }
+.gx .gx-history-game-list,
+.gx .gx-history-changes { margin: 0; padding: 0; list-style: none; }
+.gx .gx-history-game + .gx-history-game { border-top: 1px solid var(--gx-border); }
+.gx .gx-history-game-head { display: flex; align-items: center; gap: var(--gx-space-3); min-height: 56px; padding: var(--gx-space-3) var(--gx-space-4); cursor: pointer; list-style: none; }
+.gx .gx-history-game-head::-webkit-details-marker { display: none; }
+.gx .gx-history-game-end { align-items: flex-end; text-align: right; flex: none; }
+.gx .gx-history-chev { color: var(--gx-text-3); flex: none; }
+.gx .gx-history-game details[open] .gx-history-chev { rotate: 180deg; }
+.gx .gx-history-game-body { padding: 0 var(--gx-space-4) var(--gx-space-4); }
+.gx .gx-history-changes { display: flex; flex-direction: column; gap: var(--gx-space-3); }
+.gx .gx-history-changes li { gap: var(--gx-space-1); padding-left: var(--gx-space-3); border-left: 2px solid var(--gx-border-strong); }
+.gx .gx-history-changes .gx-pill { align-self: flex-start; }
+.gx .gx-history-bets-end { align-items: flex-end; gap: var(--gx-space-1); flex: none; text-align: right; }

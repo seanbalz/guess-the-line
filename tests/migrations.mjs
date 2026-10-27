@@ -40,6 +40,8 @@ export const NOT_HOSTED = [
   20261026131000, // M-21 gtl_feed_reactions (redesign stage 61): written, awaiting Sean's "apply M-21" (after M-13)
   20261026132000, // M-22 gtl_league_feed (redesign stage 62): written, awaiting Sean's "apply M-22" (after M-13 and M-21)
   20261026133000, // M-23 gtl_kickoff_posts (redesign stage 63): written, awaiting Sean's "apply M-23" (after M-13, M-21, M-22)
+  20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
+  20261026233000, // M-12 bets_boards (stage 42): weekly and season boards; read only; apply after M-10 on Sean's "apply M-12".
   20261026234000, // M-25 league_features (redesign stage 69): badges, awards, streaks; apply after M-13 (feed kinds) on Sean's "apply M-25".
   20261026235000, // M-26 features_schedule (redesign stage 70): the features job's schedule, disabled; apply after M-25 on "apply M-26".
 ];
@@ -60,6 +62,8 @@ export const FIX_FORWARD = [
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
 export const REQUIRES = Object.freeze({
+  // M-21 reads M-13's league_id (gtl_feed_post_visible's group check), so it cannot apply without M-13.
+  20261026131000: [20261026130000],
   // M-22 reads M-13's league_id (its index) and calls M-21's gtl_feed_reactions and gtl_feed_post_visible.
   20261026132000: [20261026130000, 20261026131000],
 });
