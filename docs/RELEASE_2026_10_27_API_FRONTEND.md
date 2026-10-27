@@ -6,16 +6,38 @@ P-03 record fix" (#244). **Approved for release:** "Yes. Run a fresh preflight o
 card for it. Then reject run 40428568548, cancel 40425215206, and release it API then frontend once readiness passes."
 This card replaces [the de42953 frontend card](RELEASE_2026_10_27_DESIGN_FRONTEND.md); see [Stale runs](#stale-runs).
 
+> **Split into two runs (Sean: "just do things now. i no longer want to wait").** `1db1c44`'s CI was still running, so
+> the API and frontend went out from `8ada72b` first ([Release 1](#release-1-8ada72b-api-then-frontend)), and
+> `1db1c44` follows as a **frontend-only** run. No server file changed between the two, so `gtl-api` v38 from `8ada72b`
+> is the server `1db1c44`'s frontend expects.
+
+## Release 1: 8ada72b, API then frontend
+
+[Run 40523412584](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40523412584), card #244, approved at
+the production gate through the GitHub API as Sean's account after the title matched the SHA and target. Source and
+exact-SHA CI re-verified; hosted preflight 54 rows `bd53dcf4…`; verify passed 14:43:28 UTC.
+
+- **API:** `gtl-api` v37 to **v38**, ACTIVE, JWT verification on, bundle
+  `1647f94afc91220cdfd6ebb31ae502a93d9add3252840d3f01cf9a71bc17af9e` (`apiSourceVerified: false`).
+- **Frontend:** Pages **`63edcb40-37fa-446e-b9b2-1ca32793bf77`** (was `b216c36b`), 107 assets per URL, frontend
+  SHA-256 `0ff7f1db…7d25`, equal to the local `8ada72b` preflight build.
+- **Unchanged:** migration history (54 rows, `bd53dcf4…`), `gtl-points-jobs` v1, `gtl-push-reminders` v5 and the
+  other workers.
+- **Boundary:** 363 signed-out probes, 334 denied, 29 awaiting: the new `gtl-api` routes now deny signed out; every
+  awaiting probe is a function of an unapplied migration.
+- **Hosted logs, 14:43–14:46 UTC:** 107 `gtl-api` requests, all 401 (the verify probes); no 5xx and no CPU, memory or
+  error lines in `function_logs`. No signed-in request yet.
+
 - **Source:** `main` at **`1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6`** (#245 merged). Main CI on this exact SHA, `push`
   runs: [Tests 40519560211](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40519560211),
   [Dashboard checks 40519560153](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40519560153) (dashboard,
   Persona suite, four cloud browser shards), [Brand QA 40519560178](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40519560178).
   The workflow's source step re-checks all three before anything deploys.
-- **Target:** `api-and-frontend`, one run: `gtl-api` first, then Pages. No worker deploy, no migration.
+- **Target (Release 2):** `frontend` only, after Release 1's `gtl-api` v38. No worker deploy, no migration.
 - **Expected hosted state:** 54 migrations, digest
   **`bd53dcf4993d89a1378147bb5a14d34827a1687a312e4cc3a66964adb2f1f11a`** (P-03 included,
-  [RELEASE_2026_10_26_POINTS_JOBS.md](RELEASE_2026_10_26_POINTS_JOBS.md)). `gtl-api` v37 (`17afa76`), Pages
-  `b216c36b-7100-4fdb-a6a8-340df2494def` (`9da3ce6`).
+  [RELEASE_2026_10_26_POINTS_JOBS.md](RELEASE_2026_10_26_POINTS_JOBS.md)). Before Release 2: `gtl-api` v38
+  (`8ada72b`), Pages `63edcb40-37fa-446e-b9b2-1ca32793bf77` (`8ada72b`).
 
 ## What ships
 
@@ -70,18 +92,19 @@ Read from the code and CI; not exercised signed in against production.
 
 ## Release steps
 
-1. Reject 40428568548 and cancel 40425215206.
-2. Dispatch `readiness` for `1db1c44`, `api-and-frontend`; approve; confirm 54 rows and `bd53dcf4…`.
-3. Dispatch `deploy` with this card's PR as `release_card`, digest
-   `bd53dcf4993d89a1378147bb5a14d34827a1687a312e4cc3a66964adb2f1f11a` and `compatibility_reviewed`; approve.
-4. Record the evidence in a dated release record. Read hosted logs for signed-in answers on the new routes (404 or 503
-   while their migrations are unapplied, never 5xx from a crash) and for `function_logs` CPU-limit errors; signed-out
-   probes alone do not show either.
+1. Reject 40428568548 and cancel 40425215206 (done 14:23 UTC).
+2. Release 1: `deploy`, `8ada72b`, `api-and-frontend`, card #244 (done, run 40523412584).
+3. Release 2: once `1db1c44`'s push CI passes, `deploy`, `1db1c44`, `frontend`, this card's PR as `release_card`, digest
+   `bd53dcf4993d89a1378147bb5a14d34827a1687a312e4cc3a66964adb2f1f11a`, `compatibility_reviewed`; the deploy run repeats
+   the readiness checks before it uploads.
+4. Read hosted logs for signed-in answers on the new routes (404 or 503 while their migrations are unapplied, never
+   5xx from a crash) and for `function_logs` CPU-limit errors; signed-out probes alone do not show either.
 
 ## Rollback
 
-API: redeploy `gtl-api` from `17afa76147f3110bbaa97ed51dbda9717ffbdcf4` (v37) with the `api` target. Frontend: restore
-Pages `b216c36b-7100-4fdb-a6a8-340df2494def` (`9da3ce6`). No data changes; no migration is part of this release.
+Frontend (Release 2): restore Pages `63edcb40-37fa-446e-b9b2-1ca32793bf77` (`8ada72b`). Both releases: redeploy
+`gtl-api` from `17afa76147f3110bbaa97ed51dbda9717ffbdcf4` (v37) with the `api` target and restore Pages
+`b216c36b-7100-4fdb-a6a8-340df2494def` (`9da3ce6`). No data changes; no migration is part of either release.
 
 ## Not verified
 
