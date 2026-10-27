@@ -41,6 +41,7 @@ export const NOT_HOSTED = [
   20261026132000, // M-22 gtl_league_feed (redesign stage 62): written, awaiting Sean's "apply M-22" (after M-13 and M-21)
   20261026133000, // M-23 gtl_kickoff_posts (redesign stage 63): written, awaiting Sean's "apply M-23" (after M-13, M-21, M-22)
   20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
+  20261026231000, // M-28 gtl_me_export (redesign stage 75): Export my data, awaiting Sean's "apply M-28" (after M-27).
   20261026233000, // M-12 bets_boards (stage 42): weekly and season boards; read only; apply after M-10 on Sean's "apply M-12".
 ];
 /**

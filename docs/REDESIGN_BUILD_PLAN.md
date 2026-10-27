@@ -775,6 +775,10 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 **75. Export my data (M-28)**
 - Scope: `gtl_export_me` and `POST /me/export`: your own rows only, no push endpoints, Late marker included (D-30); a Settings row. It replaces the old group-week download.
 - Tests: SQL own rows only; handler; the leak scan.
+- Built October 26 (branch `claude/redesign-export`, on stage 74's; not applied, not deployed): `20261026231000_gtl_me_export.sql`
+  adds `gtl_export_me`, service-only; nothing is replaced, so there is no rollback file. The row is in the Menu, after History,
+  not inside Settings (`AccountPreferences.jsx` is outside this lane). NBA tickets are included through their own definer
+  reader. Playwright `next-export.spec.js` downloads the file.
 
 **76. Sign-in skin**
 - Scope: AuthGate's logic moves into `useAuthSession()` and `useSignInForm()` with no change in behavior; `NextSignIn` (email, Google, recovery, resend, confirmation) on devices with `gtl.app = next`; the restyled name step (the logic stays in stage 11); legal links.

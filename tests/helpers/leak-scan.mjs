@@ -66,6 +66,8 @@ export const READERS = Object.freeze([
   // Stage 72 (M-27): Me › History, the owner's own changes and the older records.
   ['/me/changes', 'POST', {}],
   ['/me/records', 'POST', {}],
+  // Stage 75 (M-28): Export my data, the owner's own rows only.
+  ['/me/export', 'POST', {}],
 ]);
 
 /**
@@ -77,6 +79,7 @@ export const READER_MIGRATIONS = Object.freeze({
   '/league/feed': '20261026132000_gtl_league_feed.sql',
   '/me/changes': '20261026230000_gtl_me_history.sql',
   '/me/records': '20261026230000_gtl_me_history.sql',
+  '/me/export': '20261026231000_gtl_me_export.sql',
   '/bets/board': '20261026233000_gtl_bets_boards.sql',
   '/bets/season': '20261026233000_gtl_bets_boards.sql',
 });
