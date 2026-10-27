@@ -268,6 +268,41 @@ Light/Dark and both emulated forced-color themes. All four screenshots were
 inspected. Typecheck, Brand QA, fixture build and bundle privacy checks passed.
 All 52 integrated Research/Lines/Trends/League-bets browser tests passed. Source
 is in [PR #252](https://github.com/seanbalz/guess-the-lines-repo/pull/252) on
-`codex/movement-kickoff`; CI/merge, hosted release/readback and physical-device
+`codex/movement-kickoff`. PR #252 merged October 27 as
+`c54cc42045af534da0b1b474e45282858768f0ed` after all nine checks passed on
+`0d143f95e68215ce9b153dbbdcb3757908923868`, with no CI fixes or review findings. Hosted release/readback and physical-device
 acceptance remain open. This source-only batch changes no API, collection,
 scoring rules or migrations.
+
+
+## Pacific source times in Research — October 27
+
+The approved new-app formatting contract uses Pacific clock times (DP-7). Research
+previously printed raw UTC strings beside saved/current quotes and external source
+posts, unlike the game sheet's market details. These instants now show a readable
+date, year and Pacific time with an explicit PT label. The exact source string
+remains in the semantic `time` element's `datetime` attribute.
+
+Saved and current references, posted and captured times, and source-check times
+remain distinct. Snapshot and period-anchor instants use the same presentation in
+About research data, with their existing source/license links and stale warnings.
+The shared Guidance copy explains Pacific times and unchanged calendar dates.
+Historical chart/table coverage dates keep their original calendar dates. Date-only
+source evidence never acquires a clock time, and missing, invalid or unzoned times
+say Time unavailable. The change uses the existing shared IANA Pacific formatter,
+including daylight-saving transitions; it changes no eligibility, expiry, source
+claims, terms or market visibility.
+
+Two rendered regressions failed before the change and passed after it. The focused
+browser case runs with a Tokyo device zone, checks Pacific source times, preserves
+exact timestamp attributes and original links, and retains closed-market gates and
+historical dates. Light/Dark 320px reference, source-post and provenance views are
+checked for layout/accessibility, and all six screenshots were inspected. The
+Research suite's nine cases and 52 integrated
+Research/Lines/Trends/League-bets browser cases passed before bringing in merged
+PR #252. After combining the branches, the kickoff and source-time browser checks,
+33 component tests and 27 format/token tests passed. The final Guidance/provenance
+copy also passed a focused browser rerun. Typecheck, Brand QA, fixture
+build and bundle privacy checks passed. Source is on `codex/research-source-times`;
+CI/merge, hosted release/readback and actual-device acceptance remain open. This
+task did not deploy or apply migrations.

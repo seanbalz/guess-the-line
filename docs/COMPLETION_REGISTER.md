@@ -185,8 +185,7 @@ Hosted release/readback and device acceptance remain open.
 The updated main also includes PR #247’s [October 27 release record](RELEASE_2026_10_27_API_FRONTEND.md):
 API v38 and Pages `4a03e6cd` from `1db1c44`, covering Research source through PR
 #245. This is release-lane evidence, not a hosted audit repeated by this task;
-the card explicitly leaves signed-in use unverified. PRs #246, #248 and #249
-and #250 plus the kickoff-marker follow-up require a later release.
+the card explicitly leaves signed-in use unverified. PRs #246, #248, #249, #250 and #252 plus the source-time follow-up require a later release.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -199,14 +198,25 @@ were inspected. PR #250 merged October 27 as
 `fddcaf3d1ae6211324a80a9d3fef3f65d87ca003` after all nine checks passed on
 `a8b0571f32577ee05517db59dacadc1faa2935bf`, with no CI fixes or review findings. Hosted release/readback and device acceptance remain open.
 
-The next [kickoff-marker batch](RESEARCH_DESIGN_2026_10_26.md#kickoff-marker-in-market-movement--october-27)
+The [kickoff-marker batch](RESEARCH_DESIGN_2026_10_26.md#kickoff-marker-in-market-movement--october-27)
 adds a dashed, timestamped landmark within recorded movement history, preserving
 quote selection, gaps and market gates. Source is in [PR #252](https://github.com/seanbalz/guess-the-lines-repo/pull/252)
 on `codex/movement-kickoff`;
 all 52 integrated browser tests, the focused browser test, 24 model/token tests
 and 31 component tests passed, along with typecheck, Brand QA and build/privacy
-checks. Four 320px ordinary/forced-color screenshots were inspected. CI/merge,
-release and device acceptance remain open.
+checks. Four 320px ordinary/forced-color screenshots were inspected. PR #252 merged October 27 as
+`c54cc42045af534da0b1b474e45282858768f0ed` after all nine checks passed on
+`0d143f95e68215ce9b153dbbdcb3757908923868`, with no CI fixes or review findings.
+Hosted release/readback and device acceptance remain open.
+
+The next [Research source-time batch](RESEARCH_DESIGN_2026_10_26.md#pacific-source-times-in-research--october-27)
+uses readable Pacific times for quotes, source posts and provenance, retaining
+exact source timestamps and historical calendar dates. Missing or unzoned times
+stay unavailable. Source is on `codex/research-source-times`: nine Research and
+52 integrated browser cases passed, followed by kickoff/source-time checks on
+the combined branch, 33 component and 27 format/token tests. Typecheck, Brand QA
+and build/privacy checks passed; six 320px Light/Dark screenshots inspected.
+CI/merge, release and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

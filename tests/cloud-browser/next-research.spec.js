@@ -81,6 +81,7 @@ test('Research source times are readable in Pacific time without changing histor
     await expect(provenance).toContainText('Period anchored to Tue Oct 20, 2026 · 5:00 PM PT');
     for (const theme of ['light', 'dark']) {
       await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await provenance.locator('time').last().scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`research-provenance-times-${theme}.png`) });
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
     }
