@@ -1,7 +1,9 @@
 // The segmented control (design system 7.4): 44 tall, pill shaped, one selected segment ("Spread | Total",
 // "Week | Season", "Kickoff | Biggest gap"). A named group of toggle buttons; the selected one is aria-pressed and
-// drawn with weight and an inset ring as well as its fill. `fit` sizes segments to their words.
+// drawn with weight and an inset ring as well as its fill. `fit` sizes segments to their words. A pressed segment dips
+// and dims (press.css).
 import { cx, needLabel } from './cx.js';
+import './press.css';
 
 /** `options` is `[{ value, label }]`; `onChange(value)` runs when another segment is chosen. */
 export function Segmented({ label, options = [], value, onChange, fit = false, className, ...rest }) {

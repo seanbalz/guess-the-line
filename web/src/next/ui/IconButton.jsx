@@ -1,7 +1,8 @@
 // An icon-only button: a 44px round hit area whose name is its `label` (required; the icon itself is hidden).
-// `pressed` makes it a toggle (aria-pressed).
+// `pressed` makes it a toggle (aria-pressed). Pressed, it dips and dims (press.css).
 import { Icon } from './Icon.jsx';
 import { cx, needLabel } from './cx.js';
+import './press.css';
 
 export function IconButton({ ref, icon, label, size = 24, pressed, className, ...rest }) {
   return (

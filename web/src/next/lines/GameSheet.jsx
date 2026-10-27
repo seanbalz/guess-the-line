@@ -8,12 +8,15 @@
 // The kickoff wind forecast (`/wind/read`, D-34) comes through the old app's loaders and their 5-minute cache, so the
 // sheet reuses the board's read; while open it re-reads at the D-47 due points, as the board and the old trends panel
 // do. The referee assignments (`/officials/read`) are read once this sheet opens. Stage 35 adds the owner's private game note.
+// Design upgrade: the sheet pages through the week in the board's order (gameOrder.js): a sideways swipe or the 44px
+// previous and next buttons show the neighbouring game in place, with its place ("2 of 14") under the title. Unsaved
+// changes (a game note) ask first, as leaving does. While the week loads, skeleton blocks stand in for the sheet.
 import { useId, useMemo } from 'react';
 import { LINES_COPY, gameSheet, refereeRow, sheetWeatherRow } from '../../../../shared/lines-view.mjs';
 import { WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-view.mjs';
 import { useOfficials, useWind } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
-import { Card, Icon, InfoButton, List, Pill, Row, Sheet } from '../ui/index.js';
+import { Card, Icon, InfoButton, List, Pill, Row, Sheet, Skeleton } from '../ui/index.js';
 import { useLinesData } from './linesData.js';
 import { Expander, TrendList, TrendAvailability, WeatherDetail } from './parts.jsx';
 import { INFO } from '../info.js';
@@ -22,6 +25,7 @@ import { MatchupResearch } from '../research/ResearchSheet.jsx';
 import { EveryoneGuesses } from './EveryoneGuesses.jsx';
 import { MarketDetails } from './MarketDetails.jsx';
 import { actionsForGame, GameActions } from './GameActions.jsx';
+import { boardOrder, gamePager } from './gameOrder.js';
 import './lines.css';
 
 function YouRows({ rows, onOpen }) {
@@ -51,8 +55,9 @@ function YouRows({ rows, onOpen }) {
   );
 }
 
-function Missing({ text }) {
-  return <p className="gx-t-body gx-c-2" role="status">{text}</p>;
+/** A status in words; while something is still loading, skeleton blocks in its place (the words stay for screen readers). */
+function Missing({ text, loading = false, shape = 'rows', count = 3 }) {
+  return loading ? <Skeleton label={text} shape={shape} count={count}/> : <p className="gx-t-body gx-c-2" role="status">{text}</p>;
 }
 
 export function GameSheet({ args }) {
@@ -65,13 +70,20 @@ export function GameSheet({ args }) {
     [personal.data, community, trendsWeek, trends.status, records, args.game]);
   const officials = useOfficials(shown?.season, shown?.week, Boolean(view));
   const wind = useWind(shown?.season, shown?.week, Boolean(view));
+  const order = useMemo(() => boardOrder(personal.data), [personal.data]);
   if (!view) {
     return (
       <Sheet title={LINES_COPY.title} onClose={close} className="gx-l-sheet">
-        <Missing text={personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading}/>
+        <Missing text={personal.data ? LINES_COPY.notOnBoard : LINES_COPY.loading} loading={!personal.data} shape="panels"/>
       </Sheet>
     );
   }
+  const place = gamePager(order, view.id);
+  // The neighbouring game, in place; a game note with unsaved changes asks first (and the page stays if it is kept).
+  const pager = place ? { ...place, onMove: step => {
+    const target = step < 0 ? place.prev : place.next;
+    if (target && shell.confirmLeave()) shell.setSheetArgs({ game: target });
+  } } : null;
   const sameWeek = wind.wind?.season === shown?.season && wind.wind?.week === shown?.week;
   const weather = sheetWeatherRow({ game: view, trendsGame: view.trendsGame, entry: sameWeek ? wind.wind?.games?.[view.id] ?? null : null, now: wind.now, loading: wind.loading,
     season: shown?.season, week: shown?.week, windCard: trendsWeek?.cards?.[WIND_CARD] ?? null });
@@ -83,7 +95,7 @@ export function GameSheet({ args }) {
   const actionGame = { ...view, season: shown?.season, week: shown?.week };
   const actions = actionsForGame(actionGame, { accountId: app.accountId, personal: personal.data });
   return (
-    <Sheet title={view.title} onClose={close} tall className="gx-l-sheet"
+    <Sheet title={view.title} onClose={close} tall className="gx-l-sheet" pager={pager}
       footer={actions.length > 0 && <GameActions game={actionGame} actions={actions} shell={shell}/>}>
       <div className="gx-vstack gx-gap-2">
         <p className="gx-t-meta">{view.when}</p>
@@ -114,7 +126,7 @@ export function GameSheet({ args }) {
           <h3 className="gx-t-section gx-grow" id={trendsId}>{LINES_COPY.trends}</h3>
           <InfoButton title={INFO.trends.title} body={INFO.trends.body} links={INFO.trends.links}/>
         </div>
-        <MatchupResearch lines={lines} gameId={view.id} trends={<><TrendAvailability week={trendsWeek}/>{t.notice ? <Missing text={t.notice}/>
+        <MatchupResearch lines={lines} gameId={view.id} trends={<><TrendAvailability week={trendsWeek}/>{t.notice ? <Missing text={t.notice} loading={t.notice === LINES_COPY.trendsLoading}/>
           : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game" openFirst/>
             : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}</>}/>
       </section>

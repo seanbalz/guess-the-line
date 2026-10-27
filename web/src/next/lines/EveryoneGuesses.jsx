@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useShell } from '../shell/context.js';
 import { forfeitView } from '../play/forfeit.js';
-import { Avatar, Button, Card, InfoButton, List, LockLine, Pill, Row, Segmented } from '../ui/index.js';
+import { Avatar, Button, Card, InfoButton, List, LockLine, Pill, Row, Segmented, Skeleton } from '../ui/index.js';
 import { INFO } from '../info.js';
 import { gameGuesses } from './gameGuesses.js';
 import { useGameGuesses } from './useGameGuesses.js';
@@ -30,7 +30,7 @@ export function EveryoneGuesses({ lines, game, onGuess, market: fixedMarket }) {
   return <section className="gx-vstack gx-gap-12" aria-label="Everyone’s guesses">
     <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">Community · Week {lines.shown.week}</p><InfoButton {...INFO.guessPicks}/></div>
     {fixedMarket ? <h3 className="gx-t-section">{market === 'spread' ? 'Spread' : 'Total'} community guesses</h3> : <Segmented label="Guess market" options={[{ value: 'spread', label: 'Spread' }, { value: 'total', label: 'Total' }]} value={market} onChange={setMarket}/>}
-    {read.status === 'loading' ? <p className="gx-t-body" role="status">Loading community guesses…</p> : !view ? <>
+    {read.status === 'loading' ? <Skeleton label="Loading community guesses…" shape="rows" count={3}/> : !view ? <>
       <p className="gx-t-body" role="status">Community guesses are unavailable.</p><Button onClick={read.reload}>Retry guesses</Button>
     </> : <>
       <p className="gx-t-meta">{view.summary}</p>

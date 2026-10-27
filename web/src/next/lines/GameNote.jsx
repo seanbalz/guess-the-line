@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { cloudApi } from '../../api.js';
 import { useShell } from '../shell/context.js';
-import { Button, Icon } from '../ui/index.js';
+import { Button, Icon, Skeleton } from '../ui/index.js';
 import { gameNoteDraftKey, gameNoteFromRead, NOTE_WRITE_MAX, noteFitsWriteLimit, readGameNoteDraft, validNoteReply, writeGameNoteDraft } from './gameNoteDraft.js';
 import './gameNote.css';
 
@@ -96,7 +96,8 @@ export function GameNote({ accountId, season, week, gameId, requestSignIn, onSav
   const canReview = saved && checked && !pending && (conflict || reviewRequired);
   return <section className="gx-game-note" aria-labelledby={label} aria-busy={loading || busy}>
     <header className="gx-game-note-head"><Icon icon="lock" size={20}/><div><h3 id={label} className="gx-t-section">Private game note</h3><p id={help} className="gx-t-meta gx-c-2">Only you see this. Your note stays with this game and week.</p></div></header>
-    {loading && <p className="gx-t-meta gx-c-2" role="status">Loading your saved note…</p>}
+    {/* While the saved note loads: a skeleton field in place of the note (a kept draft shows its own field). */}
+    {loading && (draft ? <p className="gx-sr-only" role="status">Loading your saved note…</p> : <Skeleton label="Loading your saved note…" shape="block"/>)}
     {error && <p className="gx-game-note-error gx-t-body" role="alert">{error}</p>}
     {draft && <><label className="gx-game-note-label" htmlFor={`${label}-text`}>Your note</label><textarea id={`${label}-text`} aria-describedby={tooLong ? `${help} ${label}-limit` : help} maxLength={NOTE_WRITE_MAX} rows={5} value={draft.text} disabled={busy || loading || Boolean(pending) || !saved} onChange={event => { keep({ ...draft, text: event.target.value }); setNotice(''); }}/><p className="gx-game-note-count gx-t-meta gx-c-2">{draft.text.length.toLocaleString()} / 2,000 characters</p></>}
     {tooLong && <p id={`${label}-limit`} className="gx-t-body gx-c-2">This note is longer than the current save limit. Its full text is kept. Shorten it or clear it before saving.</p>}
