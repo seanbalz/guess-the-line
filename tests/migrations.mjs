@@ -44,6 +44,7 @@ export const NOT_HOSTED = [
   20261026231000, // M-28 gtl_me_export (redesign stage 75): Export my data, awaiting Sean's "apply M-28" (after M-27).
   20261026233000, // M-12 bets_boards (stage 42): weekly and season boards; read only; apply after M-10 on Sean's "apply M-12".
   20261026234000, // M-25 league_features (redesign stage 69): badges, awards, streaks; apply after M-13 (feed kinds) on Sean's "apply M-25".
+  20261026235000, // M-26 features_schedule (redesign stage 70): the features job's schedule, disabled; apply after M-25 on "apply M-26".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

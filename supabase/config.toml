@@ -26,3 +26,7 @@ verify_jwt = false
 [functions.gtl-fantasy-ingest]
 # D-59 fantasy feed uploads from Sean's exporter; its own upload secret replaces the JWT check.
 verify_jwt = false
+
+[functions.gtl-league-features]
+# Redesign stage 70 (M-26) badges, awards and streaks job; same one-run capability pattern as gtl-week-open.
+verify_jwt = false

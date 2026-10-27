@@ -40,6 +40,11 @@ export const rpcChecks = Object.freeze([
   ['gtl_feature_post', { p_actor: missingId, p_kind: 'badge_earned', p_season: 2026, p_week: 5, p_payload: {}, p_dedupe: 'boundary-check', p_at: null }],
   ['gtl_record_feature_results', { p_run: missingId, p_trigger: 'manual', p_actor: missingId, p_results: {} }],
   ['gtl_read_features', { p_user: missingId, p_league: null, p_season: null, p_now: null }],
+  // M-26 features_schedule (redesign stage 70): the cron-only dispatcher and the worker's claim and completion. Awaiting deploy
+  // until M-26 is applied; its two tables join the table probes and gtl-league-features the worker probes with the apply record.
+  ['gtl_dispatch_league_features', {}],
+  ['gtl_claim_league_features', { p_token: '0'.repeat(64), p_run: missingId }],
+  ['gtl_complete_league_features', { p_run: missingId, p_claim: missingId, p_reason: null }],
   // M-23 (20261026133000_gtl_kickoff_posts.sql, redesign stage 63): its two callable functions (the trigger function is granted
   // to no role). Awaiting deploy (below) until Sean's "apply M-23". The writer's season is out of range, so it writes nothing.
   ['gtl_kickoff_slots', { p_season: 1999, p_week: 1 }],
@@ -94,4 +99,8 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_read_features': M25,
   'gtl-api/league/features': 'the gtl-api deploy with /league/features',
   'gtl-api/league/features/run': 'the gtl-api deploy with /league/features/run',
+  // M-26 (redesign stage 70) is written and not applied either.
+  'rpc/gtl_dispatch_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
+  'rpc/gtl_claim_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
+  'rpc/gtl_complete_league_features': 'migration 20261026235000_gtl_features_schedule.sql',
 });
