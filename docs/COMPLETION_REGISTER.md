@@ -153,7 +153,10 @@ forfeit contract, with fresh eligibility, an explicit warning, preserved locked
 scores/drafts and recovery by checking an uncertain write. All 49 integrated
 browser cases plus five final focused cases, 24 component, 47 model/contract/shell/token and 23 database tests
 passed, along with typecheck, Brand QA, build/privacy scan and inspected 320px
-Light/Dark screenshots. CI/merge, release and acceptance remain separate.
+Light/Dark screenshots. PR #246 merged October 27 as
+`6494a629e567d54aa05520ac339472322ee062bb` after all nine checks passed on
+`c191ec8a8e56a71f4023002a1e2df18296331096`; no CI fixes or review findings.
+Hosted release/readback and device acceptance stay open.
 
 The next [Research chart correction](RESEARCH_DESIGN_2026_10_26.md#cumulative-chart-records--october-27)
 pairs cumulative units with a cumulative record in tooltips and keyboard
