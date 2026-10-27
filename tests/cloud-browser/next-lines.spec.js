@@ -1616,6 +1616,7 @@ test('season stems mark break-even without inflating small gains or losses', asy
         await page.emulateMedia({ forcedColors, colorScheme: theme });
         await trend.getByRole('button', { name: 'By season', exact: true }).click();
         await expect(trend.getByText('0 U · break-even', { exact: true })).toBeVisible();
+        await expect(trend.locator('.gx-tc-scale')).toHaveText('Scale: −0.1 to +100 U');
         await expect(trend.locator('.gx-tc-stem--zero')).toHaveCount(1);
         await expect(trend.locator('.gx-tc-stem--up')).toHaveCount(2);
         await expect(trend.locator('.gx-tc-stem--down')).toHaveCount(1);

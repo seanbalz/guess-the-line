@@ -334,6 +334,8 @@ test('chart scrubbing keeps the plot steady across short and wrapped tooltip lab
     await openResearch(page);
     const first = sheet(page).locator('[data-research-card]').first();
     const chart = first.locator('.gx-tc-line'), slider = chart.getByRole('slider');
+    await expect(chart.locator('.gx-tc-scale')).toHaveText('Scale: 0 to +9.18 U');
+    await expect(chart.getByRole('img')).toHaveAttribute('aria-describedby', await chart.locator('.gx-tc-scale').getAttribute('id'));
     for (const theme of ['light', 'dark']) {
       await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
       for (const forcedColors of ['none', 'active']) {
@@ -370,6 +372,7 @@ test('chart scrubbing keeps the plot steady across short and wrapped tooltip lab
     await expect(slider).toHaveAttribute('aria-valuetext', '+4.6 U, 15–9–1 total · through 2026-10-20');
     await expect(first.locator('.gx-tc-tip-label')).toHaveText('15–9–1 total · through 2026-10-20');
     await expect(first.locator('.gx-tc-tip-sizing')).not.toContainText('20–9–1 total');
+    await expect(chart.locator('.gx-tc-scale')).toHaveText('Scale: 0 to +4.64 U');
     await expect(sheet(page).getByText('Spread research is locked.', { exact: false }).first()).toBeVisible();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
