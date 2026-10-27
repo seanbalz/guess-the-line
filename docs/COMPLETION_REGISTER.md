@@ -143,7 +143,9 @@ the Bets action slot, using the existing M-10 reader and shared Everyone rows.
 43 integrated browser cases plus four final focused cases, 24 component and
 42 model/shell/token tests passed,
 along with typecheck, Brand QA, build/privacy scan and inspected 320px screenshots.
-Publication, release and acceptance are separate.
+It merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6` after all nine checks
+passed on `58f4d14240308e999cbede1aec1de13dd65d4362`, with no CI fixes or review findings.
+Hosted release/readback and device acceptance remain separate.
 
 The next source batch supplies [direct Research reveal confirmation](RESEARCH_REVEAL_2026_10_27.md)
 from the board and closed game guesses. It uses the existing whole-week M-03

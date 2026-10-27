@@ -71,3 +71,8 @@ status, stage-34 Bet/Challenge placement actions, production release/readback or
 physical-iPhone acceptance. The frozen v62 tracker and Sean's corrected report
 that the app has no scroll bug are preserved. No deployment or migration apply
 was performed.
+
+Prerequisite PR #245 merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6` after
+all nine checks passed on `58f4d14240308e999cbede1aec1de13dd65d4362`, with no CI fixes or
+review findings. The updated main also contains separate release-lane evidence;
+this task has not independently repeated that hosted verification.

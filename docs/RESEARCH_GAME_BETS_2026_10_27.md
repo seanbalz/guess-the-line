@@ -3,7 +3,10 @@
 Owner: Codex · Source batch for approved redesign stage 34.
 
 [PR #245](https://github.com/seanbalz/guess-the-lines-repo/pull/245), branch
-`codex/research-game-bets`: published for CI/review; merge and release pending.
+`codex/research-game-bets`: merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6`
+after all nine checks passed on `58f4d14240308e999cbede1aec1de13dd65d4362`. No CI repairs
+or review responses were needed. Hosted release/readback and device acceptance
+remain separate checkpoints.
 
 The game action bar now includes **League bets**, supplied by the Bets slot.
 It opens the selected matchup's Virtual Units picks for the Community or the
@@ -46,7 +49,8 @@ The sheet uses existing GTL tokens, sheet navigation and focus return.
   name; the test now targets the existing game-specific accessible name.
 
 All fixtures use local PGlite and fictional accounts. These checks do not
-establish hosted or real-phone acceptance. CI/merge and release remain separate.
+establish hosted or real-phone acceptance. Merge is verified above; release and
+acceptance remain separate.
 
 ## Remaining work
 
