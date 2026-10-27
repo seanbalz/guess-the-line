@@ -12,6 +12,7 @@ import { useHomeData } from './homeData.js';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { nextGuess } from '../play/nextGuess.js';
+import { HomeRecapRow } from '../features/FeatureRows.jsx';
 import './home.css';
 
 const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sat out', tone: 'neutral' }, out: { word: 'Not yet', tone: 'pending' } });
@@ -160,6 +161,7 @@ export function Home() {
       ) : null}
       <FocusRows label="This week">
         <FocusRow icon="chart" title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
+        <HomeRecapRow app={app}/>
       </FocusRows>
     </div>
   );

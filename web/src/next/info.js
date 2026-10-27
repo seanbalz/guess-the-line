@@ -104,6 +104,16 @@ export const INFO = Object.freeze({
     body: ['Forecasts come from Open-Meteo and are reference only. The credit also sits beside every forecast value.'],
     links: WEATHER_LINKS,
   },
+  // Badges, streaks and awards (D-35, D-36; redesign stage 71): the rules the shelf, the badge detail and the recap leave out.
+  features: {
+    title: 'About badges and awards',
+    body: [
+      'Pick streak: weeks in a row you sent both ballots. Sitting out, skipping or seeing picks early breaks it. Bets streak: Virtual Units bets won in a row; pushes don’t count.',
+      'A badge shows from its game’s kickoff, and a week’s badge from the week’s last kickoff. Sharp and Called the Move compare with the line at kickoff; a game without one is skipped.',
+      'Weekly awards are made once every game of the week is final. Spread and Total have their own winners and are never added together. A tie shares an award.',
+      'Badges, streaks and awards never change a score or a rank. Real slips never count.',
+    ],
+  },
   // Guess the Points (D-56 spec section 5, "ⓘ About Guess the Points"): rules, weights, void, timing, the House note and the credit.
   points: {
     title: 'About Guess the Points',
@@ -142,4 +152,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'research', 'researchData', 'marketLines', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);

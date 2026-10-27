@@ -114,8 +114,9 @@ function apiCalls(page) {
   return calls;
 }
 const READS = ['POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research',
-  // D-60: sign-in lands on Home first, which reads the account's preferences and its tracked-ticket summary.
-  'POST /me/preferences', 'POST /social/read'];
+  // D-60: sign-in lands on Home first, which reads the account's preferences and its tracked-ticket summary, and (stage 71)
+  // its recap row's badges and awards.
+  'POST /me/preferences', 'POST /social/read', 'POST /league/features'];
 
 /**
  * A synthetic /lines/research reader for the games in `withResearch`: two consistent Total candidates for each open

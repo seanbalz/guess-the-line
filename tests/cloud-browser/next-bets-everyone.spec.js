@@ -44,7 +44,7 @@ async function seedPicks(world) {
 const row = (page, who, market) => page.locator(`[data-pick="${ACCOUNTS[who].id}:${market}"]`);
 // The reads this screen and the frame make; any other request would be a write.
 const READS = ['GET /functions/v1/gtl-api/lobby', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences',
-  'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/trends/week', 'POST /functions/v1/gtl-api/bets/read'];
+  'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/trends/week', 'POST /functions/v1/gtl-api/bets/read', 'POST /functions/v1/gtl-api/league/features'];
 const writes = calls => calls.filter(call => !READS.includes(`${call.method} ${call.path}`));
 
 async function openEveryone(page) {
