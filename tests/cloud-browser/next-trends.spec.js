@@ -10,7 +10,7 @@ const prepare = state => {
  state.league.season = 2026; state.league.week = 6;
  state.games = ['SEA-DEN','CAR-PHI','NO-NYG','WAS-SF'].map((id,i) => { const [awayCode,homeCode] = id.split('-'); return { ...state.games[i], id, away: awayCode, home: homeCode, awayCode, homeCode, matchup: awayCode+' @ '+homeCode }; });
 };
-async function ready(page,baseURL,{ stale = false }={}) {
+async function ready(page,baseURL,{ stale = false, chartValues = false }={}) {
  const world = await communityWorld(page,baseURL,{ migrations: ALL, games: 4, prepare, optionalRpc: true, troyBallots: false, groupScreens: true, ...(stale ? { trendsReadSeason: async () => { throw new Error('Fixture source outage'); } } : {}) });
  const lines = { spread: Object.fromEntries(world.state.games.map(g => [g.id,3.5])), total: Object.fromEntries(world.state.games.map(g => [g.id,43.5])) };
  await storeBookLines(world,lines);
@@ -25,10 +25,12 @@ async function ready(page,baseURL,{ stale = false }={}) {
    await tx.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3)',[ACCOUNTS.luke.id,season,week]);
    for (const mode of ['guess_spread','guess_total']) {
     const reference = { status:'available',value: mode === 'guess_spread' ? 3.5 : 43.5,source:'Fixture saved books',observedAt:new Date(at-7200000).toISOString() };
-    const ballot = { picks:{'CAR-ATL':mode === 'guess_spread' ? 7 : 47},submittedAt:new Date(at-3600000).toISOString(),scoringReferences:{'CAR-ATL':reference} };
+    const chartSpread = chartValues && season === 2026 && mode === 'guess_spread';
+    const guess = chartSpread && week === 2 ? 0 : chartSpread && week === 3 ? 3.5 : mode === 'guess_spread' ? 7 : 47;
+    const ballot = { picks:{'CAR-ATL':guess},submittedAt:new Date(at-3600000).toISOString(),scoringReferences:{'CAR-ATL':reference} };
     await tx.query('insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,$2,$3,$4,$5)',[ACCOUNTS.luke.id,season,week,mode,ballot]);
    }
-   await tx.query("insert into public.gtl_virtual_units_settlements(season,week,game_id,version,status,home,away,source,observed_at) values($1,$2,'CAR-ATL',1,'final',20,25,'Fixture final',$3)",[season,week,new Date(at+14400000).toISOString()]);
+   if (!(chartValues && season === 2026 && week === 4)) await tx.query("insert into public.gtl_virtual_units_settlements(season,week,game_id,version,status,home,away,source,observed_at) values($1,$2,'CAR-ATL',1,'final',20,25,'Fixture final',$3)",[season,week,new Date(at+14400000).toISOString()]);
   }
   const current = { picks:{'CAR-PHI':99.125},lockedAt:{'CAR-PHI':new Date().toISOString()},scoringReferences:{'CAR-PHI':{status:'available',value:97.625,source:'HIDDEN SENTINEL'}} };
   await tx.query("insert into public.gtl_weekly_versions(user_id,season,week) values($1,2026,6) on conflict do nothing",[ACCOUNTS.troy.id]);
@@ -59,6 +61,55 @@ async function noSentinel(page) {
  const content=await page.locator('body').evaluate(e => e.innerText+' '+[...e.querySelectorAll('*')].flatMap(n=>[...n.attributes].filter(a=>!['class','style','d','points','viewBox'].includes(a.name)).map(a=>a.value)).join(' '));
  expect(content).not.toContain('99.125'); expect(content).not.toContain('97.625'); expect(content).not.toContain('HIDDEN SENTINEL');
 }
+test('player comparison bars label exact observations and distinguish zero from missing samples', async ({page,baseURL}, testInfo) => {
+ const world = await ready(page,baseURL,{chartValues:true});
+ try {
+  await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
+  await page.getByRole('combobox',{name:'Player team',exact:true}).selectOption('CAR');
+  await page.getByRole('combobox',{name:'Player matchup',exact:true}).selectOption('CAR-ATL');
+  const chart = page.locator('.gx-tr-chart').first(), rows = chart.locator('.gx-tr-observation');
+  await expect(rows).toHaveCount(5);
+  const expected = ['+3.5','−3.5','0','+3.5','+3.5'];
+  for (let i=0; i<5; i++) {
+   await expect(rows.nth(i)).toContainText(`2026 Week ${i+1}`);
+   await expect(rows.nth(i).locator('.gx-tr-observation-label > span').last()).toHaveText(expected[i]);
+   await expect(chart.getByRole('row').nth(i+1).getByRole('cell').first()).toHaveText(expected[i]);
+  }
+  await expect(rows.nth(2).locator('rect')).toHaveCount(0);
+  await expect(rows.nth(2).locator('.gx-tr-zero-point')).toHaveCount(1);
+  const cover = page.locator('.gx-tr-chart').nth(2), missing = cover.locator('.gx-tr-observation').filter({hasText:'2026 Week 4'});
+  await expect(missing).toContainText('No sample');
+  await expect(missing.locator('rect,circle')).toHaveCount(0);
+  await expect(cover.getByRole('row').filter({hasText:'2026 Week 4'}).getByRole('cell').first()).toHaveText('No sample');
+  await expect(rows.nth(0).locator('rect')).toHaveAttribute('x','150');
+  await expect(rows.nth(1).locator('rect')).toHaveAttribute('x','22');
+  expect(await chart.locator('svg').evaluateAll(nodes=>nodes.every(el=>el.getAttribute('aria-hidden')==='true'))).toBe(true);
+  for (const theme of ['light','dark']) {
+   await page.setViewportSize({width:320,height:844});
+   await page.evaluate(theme => document.documentElement.dataset.theme=theme,theme);
+   for (const forcedColors of ['none','active']) {
+    await page.emulateMedia({forcedColors,colorScheme:theme});
+    await chart.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
+    await page.screenshot({path:testInfo.outputPath(`player-bars-${theme}-${forcedColors}.png`)});
+    await phone(page); await noSentinel(page);
+    const evidence = cover.getByRole('region');
+    expect(await evidence.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
+    expect(await cover.getByRole('columnheader', {name:'Decisions',exact:true}).evaluate(el => getComputedStyle(el).overflowWrap)).toBe('normal');
+    await evidence.focus();
+    await page.keyboard.press('End');
+    await chart.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
+    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))).toEqual([]);
+    const colors = await rows.nth(2).locator('circle').evaluate(el=>({stroke:getComputedStyle(el).stroke,fill:getComputedStyle(el).fill}));
+    expect(colors.stroke).not.toBe(colors.fill);
+    if (forcedColors === 'none') {
+     await cover.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
+     await page.screenshot({path:testInfo.outputPath(`player-percent-${theme}.png`)});
+    }
+   }
+  }
+  expect(world.errors).toEqual([]);
+ } finally { await world.db.close(); }
+});
 test('published week, market gates, team filters, game sheets/back, player windows and exact evidence',async({page,baseURL})=>{
  const world=await ready(page,baseURL);
  try {

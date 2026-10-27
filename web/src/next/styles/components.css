@@ -991,6 +991,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 
 /* ===== forced colors (Windows high contrast): glows and inset outlines drop, so draw real borders ===== */
 @media (forced-colors: active) {
+  .gx-av-initials { color: CanvasText; background: Canvas; border: 1px solid CanvasText; }
   .gx-btn--primary,
   .gx-btn--secondary,
   .gx-btn--danger,
