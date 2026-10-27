@@ -1,4 +1,4 @@
-import { lazy, Suspense, useId, useState } from 'react';
+import { lazy, Suspense, useId, useRef, useState } from 'react';
 import { Button, Card, InfoButton, Skeleton } from '../ui/index.js';
 import { TrendDetail, lineSelectionKey } from '../charts/TrendDetail.jsx';
 import { TrendLine } from '../charts/TrendLine.jsx';
@@ -8,9 +8,28 @@ import { hitPct, recordText, signed } from '../charts/geometry.js';
 import { INFO } from '../info.js';
 import { fmtDate, fmtTime, pacificParts } from '../format.js';
 import { useResearch } from './useResearch.js';
+import { Boundary } from '../shell/Boundary.jsx';
 import './research.css';
 
-const ResearchChart = lazy(() => import('./ResearchChart.jsx'));
+const loadResearchTable = () => lazy(() => import('./ResearchChart.jsx'));
+// A table download failure must not dismiss the sheet or discard chart selection.
+function HistoricalTable({ candidate, selection }) {
+  const [Table, setTable] = useState(loadResearchTable), [attempt, setAttempt] = useState(0);
+  const region = useRef(null);
+  const retry = () => {
+    // Keep keyboard focus inside the evidence while the retry button is replaced.
+    region.current?.focus();
+    setTable(loadResearchTable); setAttempt(n => n + 1);
+  };
+  return <div ref={region} role="group" aria-label="Historical table" tabIndex={-1}>
+    <Boundary key={attempt} fallback={() => <div className="gx-vstack gx-gap-8" role="alert">
+      <p className="gx-t-body">Historical table couldn’t load. Check your connection and try again. If it keeps failing, reload the app.</p>
+      <Button variant="secondary" onClick={retry}>Try table again</Button>
+    </div>}>
+      <Suspense fallback={<Skeleton label="Loading historical table…" shape="lines" count={4}/>}><Table candidate={candidate} selection={selection}/></Suspense>
+    </Boundary>
+  </div>;
+}
 export const PERIODS = { recent30: 'Last 30 games', recent25: 'Last 25 games', season: 'This season', previousSeason: 'Previous season', rolling12: 'Past 12 months', all: 'Full available history' };
 export const researchDate = date => date ? date.slice(0, 10) : 'Unknown';
 const readable = value => String(value ?? '').replaceAll('_', ' ');
@@ -67,7 +86,7 @@ function ResearchDetail({ candidateId, request, withChart, selection }) {
     <ResearchStatus read={read} compact/>
     {candidate ? <>
       {withChart && line ? <TrendLine id={chartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} selectedIndex={localSelection.index} onSelect={localSelection.onSelect}/> : null}
-      <Suspense fallback={<Skeleton label="Loading historical table…" shape="lines" count={4}/>}><ResearchChart candidate={candidate} selection={linked}/></Suspense>
+      <HistoricalTable candidate={candidate} selection={linked}/>
       <p className="gx-t-meta">Qualification uses the canonical recent sample, regardless of this display period. {candidate.qualification.label}. {(candidate.qualification.reasons ?? []).map(reason).join(' ')}</p>
       <p className="gx-t-meta">Conditions: {candidate.conditionDescriptions?.join('; ') || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted NFL history'}.</p>
       <RecordSummary record={candidate.recent} label="Canonical recent sample"/>

@@ -25,7 +25,7 @@ Light/Dark main and table loading, plus forced-color main loading. All 66
 integrated Research, Lines, Trends, Bets Everyone and gesture browser cases
 passed. Brand QA and fixture build/privacy checks passed.
 
-Source branch: `codex/research-loading-states`. CI/merge, hosted release/readback
+Source branch: `codex/research-loading-states`. Hosted release/readback
 and physical-iPhone acceptance remain separate checkpoints. The live-game
 status, dependent Bet/Challenge actions and broader acceptance work remain open.
 No deployment, migration apply or frozen v62 tracker edit is included.
@@ -36,4 +36,13 @@ the generic button tick and buzzes only after the server confirms; the test
 starts counting after navigation. This branch integrates that existing fix
 without relaxing the lock-in assertions. All 21 Play-moment and Research
 browser cases passed on the integrated branch, including both previously
-failing cases; Brand QA passed. Fresh CI remains required before merge.
+failing cases; Brand QA passed. The repaired CI browser shard passed all 110
+cases, including both failures.
+
+## Merge verified October 27, 2026
+
+[PR #272](https://github.com/seanbalz/guess-the-lines-repo/pull/272) merged as
+`e85e7859ae3714e3ec4e699d2bc4a33c7380a462` after all nine checks passed on
+`41b8cf9132b8e9ac6520664c8953c1be6f611b65`. Reviews and review threads were empty.
+The next source batch provides [historical-table recovery](RESEARCH_TABLE_RECOVERY_2026_10_27.md).
+Hosted release/readback and physical-iPhone acceptance remain open.

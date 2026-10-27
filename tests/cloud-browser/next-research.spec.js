@@ -256,6 +256,53 @@ test('on-demand evidence replaces its loading states on failure, retry and delay
   } finally { releaseRead(); releaseTable(); await world.db.close(); }
 });
 
+test('a failed historical table stays inside the evidence and retries without refetching research or resetting its chart', async ({ page, baseURL }, testInfo) => {
+  const { world, synthetic } = await setup(page, baseURL, { multipleBins: true });
+  let downloads = 0, allow = false;
+  try {
+    await page.route('**/assets/ResearchChart-*.js', async route => {
+      downloads++;
+      if (!allow) return route.abort('failed');
+      return route.continue();
+    });
+    await openResearch(page);
+    const first = sheet(page).locator('[data-research-card]').first();
+    const slider = first.getByRole('slider', { name: 'Move along the line' });
+    await slider.focus(); await page.keyboard.press('Home'); await page.keyboard.press('ArrowRight');
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    const detail = first.locator('.gx-r-detail');
+    await expect(detail.getByRole('alert')).toContainText('Historical table couldn’t load.');
+    await expect(sheet(page)).toBeVisible();
+    await expect(slider).toHaveValue('1');
+    await expect(detail).toContainText('Canonical recent sample');
+    await expect(detail.getByRole('table')).toHaveCount(0);
+    const reads = synthetic.calls.length;
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme });
+      await detail.getByRole('alert').scrollIntoViewIfNeeded();
+      await phoneAndAxe(page, theme, testInfo);
+      await page.screenshot({ path: testInfo.outputPath(`research-table-error-${theme}-${forcedColors}.png`) });
+    }
+    const recovery = detail.getByRole('group', { name: 'Historical table', exact: true });
+    await detail.getByRole('button', { name: 'Try table again' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(detail.getByRole('alert')).toContainText('Historical table couldn’t load.');
+    await expect(recovery).toBeFocused(); await expect(slider).toHaveValue('1');
+    allow = true;
+    await detail.getByRole('button', { name: 'Try table again' }).click();
+    await expect(detail.getByRole('table')).toBeVisible();
+    await expect(detail.getByRole('alert')).toHaveCount(0);
+    await expect(slider).toHaveValue('1');
+    await expect(detail.getByRole('button', { name: /^Show period 1/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(recovery).toBeFocused();
+    expect(downloads).toBe(3); expect(synthetic.calls).toHaveLength(reads);
+    await detail.getByRole('button', { name: /^Show period 2/ }).click();
+    await expect(slider).toHaveValue('2');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('an open sheet removes its research lean at kickoff using a monotonic timer', async ({ page, baseURL }) => {
   const { world, synthetic } = await setup(page, baseURL, { expiry: true });
   try {
