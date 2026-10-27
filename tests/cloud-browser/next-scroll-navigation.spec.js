@@ -187,11 +187,12 @@ test('each check reports the failure it guards against', async ({ page, baseURL 
     await scrollTo(page, 'end');
     expect((await page.evaluate(endProblems)).join(' | ')).toMatch(/under the tab bar/);
 
-    // Without scroll padding, Tab brings a control into view under the tab bar.
-    await withFault('#home', ':root { scroll-padding: 0 !important; }');
+    // Without scroll padding, Tab brings a control into view under the tab bar. A long screen, so some control past the
+    // fold must be scrolled to (a short Home can end with every control resting above the bar, which proves nothing).
+    await withFault('#research/trends', ':root { scroll-padding: 0 !important; }');
     await page.locator('.gx-main').evaluate(main => { main.setAttribute('tabindex', '-1'); main.focus({ preventScroll: true }); main.removeAttribute('tabindex'); });
     const hidden = [];
-    for (let i = 0; i < 8; i++) { await page.keyboard.press('Tab'); const problem = await page.evaluate(focusProblem); if (problem) hidden.push(problem); }
+    for (let i = 0; i < TAB_PRESSES && !hidden.length; i++) { await page.keyboard.press('Tab'); const problem = await page.evaluate(focusProblem); if (problem) hidden.push(problem); }
     expect(hidden.join(' | ')).toMatch(/visible between/);
   } finally {
     await world.db.close();
