@@ -128,7 +128,12 @@ Spread and Total slots open the explicit week and focus the selected matchup in
 Play. Existing drafts, receipts and lock-in confirmations remain in the full
 ballot. Validation and publication status are recorded in that implementation record.
 
-Stage 31’s dedicated Your pick sheet and direct reveal/forfeit confirmation,
+The next Research batch supplies stage 31's [Your pick sheet](RESEARCH_YOUR_PICK_2026_10_27.md):
+per-market saved references, explicit pending/first-after/commissioner labels,
+recorded Late, account/week guards and fixed-market Community guesses. Its
+validation and publication checkpoints are recorded separately.
+
+Stage 31’s direct reveal/forfeit confirmation,
 stage 34’s Bet/Challenge action slots and League bets, and device acceptance remain
 open. These batches do not complete the whole stages.
 

@@ -48,6 +48,7 @@ vi.mock('../web/src/next/lines/parts.jsx', async importOriginal => {
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { LinesBoard } = await import('../web/src/next/lines/LinesBoard.jsx');
 const { GameSheet } = await import('../web/src/next/lines/GameSheet.jsx');
+const { YourPickSheet } = await import('../web/src/next/lines/YourPickSheet.jsx');
 const { AllTrendsSheet, GroupBody } = await import('../web/src/next/lines/AllTrendsSheet.jsx');
 const { ShortTrend, trendInfoBody, trendRowSub } = await import('../web/src/next/lines/parts.jsx');
 const { INFO } = await import('../web/src/next/info.js');
@@ -420,4 +421,30 @@ it('stale availability remains alongside usable game and All trends records', ()
     expect(text(html)).toContain('Stale evidence');
     expect(nodes(html, n => n.attrs['data-trend']).length).toBeGreaterThan(0);
   }
+});
+
+
+describe('your pick sheet', () => {
+  const args = { game: 'SEA-DEN', market: 'total', accountId: 'fixture-account', season: 2026, week: 6 };
+  it('renders the saved reference and a fixed Community market with valid markup', () => {
+    state.lines = data();
+    const html = render(<YourPickSheet args={args}/>);
+    expect(markupProblems(html)).toEqual([]);
+    expect(text(html)).toContain('Line at your guess'); expect(text(html)).toContain('43.5');
+    expect(text(html)).toContain('Total community guesses'); expect(text(html)).toContain('Open Total in Play');
+  });
+  it('hides an old account or week, and keeps a forged draft reference out', () => {
+    state.lines = data();
+    for (const patch of [{ accountId: 'someone-else' }, { week: 7 }, { game: 'UNKNOWN' }]) {
+      const html = render(<YourPickSheet args={{ ...args, ...patch }}/>);
+      expect(text(html)).toContain('not in the current account and week'); expect(text(html)).not.toContain('43.5');
+    }
+    const draft = render(<YourPickSheet args={{ ...args, market: 'spread' }}/>);
+    expect(text(draft)).toContain('No locked-in scoring line'); expect(text(draft)).not.toContain('11.5');
+  });
+  it('a failed personal refresh retains and labels the last saved reference', () => {
+    state.lines = data(); state.lines.personal.error = new Error('Refresh failed');
+    const html = render(<YourPickSheet args={args}/>);
+    expect(text(html)).toContain('Showing the last loaded saved record'); expect(text(html)).toContain('43.5');
+  });
 });

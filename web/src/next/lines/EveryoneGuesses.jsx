@@ -16,14 +16,15 @@ export function GuessRows({ view, market }) {
   </List></Card>;
 }
 
-export function EveryoneGuesses({ lines, game, onGuess }) {
-  const [market, setMarket] = useState('spread');
+export function EveryoneGuesses({ lines, game, onGuess, market: fixedMarket }) {
+  const [selection, setMarket] = useState('spread');
+  const market = fixedMarket ?? selection;
   const read = useGameGuesses(lines, game.id, market);
   const members = lines.community?.viewer?.toLowerCase() === lines.app.accountId.toLowerCase() ? lines.community.members ?? [] : [];
   const view = read.status === 'ready' ? gameGuesses(read.data, lines.app.accountId, members, game, market) : null;
   return <section className="gx-vstack gx-gap-12" aria-label="Everyone’s guesses">
     <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">Community · Week {lines.shown.week}</p><InfoButton {...INFO.guessPicks}/></div>
-    <Segmented label="Guess market" options={[{ value: 'spread', label: 'Spread' }, { value: 'total', label: 'Total' }]} value={market} onChange={setMarket}/>
+    {fixedMarket ? <h3 className="gx-t-section">{market === 'spread' ? 'Spread' : 'Total'} community guesses</h3> : <Segmented label="Guess market" options={[{ value: 'spread', label: 'Spread' }, { value: 'total', label: 'Total' }]} value={market} onChange={setMarket}/>}
     {read.status === 'loading' ? <p className="gx-t-body" role="status">Loading community guesses…</p> : !view ? <>
       <p className="gx-t-body" role="status">Community guesses are unavailable.</p><Button onClick={read.reload}>Retry guesses</Button>
     </> : <>
