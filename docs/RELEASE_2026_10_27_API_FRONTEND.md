@@ -25,8 +25,22 @@ exact-SHA CI re-verified; hosted preflight 54 rows `bd53dcf4…`; verify passed 
   other workers.
 - **Boundary:** 363 signed-out probes, 334 denied, 29 awaiting: the new `gtl-api` routes now deny signed out; every
   awaiting probe is a function of an unapplied migration.
-- **Hosted logs, 14:43–14:46 UTC:** 107 `gtl-api` requests, all 401 (the verify probes); no 5xx and no CPU, memory or
+- **Hosted logs, 14:43–14:44 UTC:** 107 `gtl-api` requests, all 401 (the verify probes); no 5xx and no CPU, memory or
   error lines in `function_logs`. No signed-in request yet.
+
+## Release 2: 1db1c44, frontend only
+
+[Run 40524126740](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40524126740), this card's PR #247, gate
+approved the same way. `1db1c44`'s push CI passed ([Tests 40519560211](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40519560211),
+[Dashboard checks 40519560153](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40519560153),
+[Brand QA 40519560178](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40519560178)); verify passed 14:47:51 UTC.
+
+- **Frontend:** Pages **`4a03e6cd-71cd-43d0-9c5c-73fd7c16c333`** (was `63edcb40`), 107 assets per URL, frontend
+  SHA-256 `d0b9fd92…96b8`, equal to the local `1db1c44` preflight build. Production `/` answers 200.
+- **Unchanged:** `gtl-api` v38 (`1647f94a…`), migration history (54 rows, `bd53dcf4…`) and every worker.
+- **Boundary:** 367 signed-out probes, 338 denied, 29 awaiting (the same unapplied-migration functions).
+- **Hosted logs, 14:43–14:48 UTC:** 395 `gtl-api` requests, all 401 (both runs' verify probes); no CPU, memory or
+  uncaught-error lines in `function_logs`. No signed-in request yet, so signed-in use is not verified.
 
 - **Source:** `main` at **`1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6`** (#245 merged). Main CI on this exact SHA, `push`
   runs: [Tests 40519560211](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40519560211),
