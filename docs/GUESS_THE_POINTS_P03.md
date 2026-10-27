@@ -1,8 +1,13 @@
 # Guess the Points P-03 release card (D-56): the scheduled jobs
 
 Prepared October 26, 2026 on Sean's instruction: "Build P-03 here: the Points open, actuals and finalize jobs on
-main's P-01, as a PR. No deploy or migration apply without my word." **Nothing here is applied or deployed.** Each
-step below needs Sean's own words. Design: `docs/superpowers/specs/2026-10-22-guess-the-points-design.md` (3.1, 3.5,
+main's P-01, as a PR. No deploy or migration apply without my word." Each step below needs Sean's own words.
+
+> **Status, October 27, 2026** ([release record](RELEASE_2026_10_26_POINTS_JOBS.md)): steps 1–4 and 7 are done.
+> P-03 is hosted as `20261026213106`; `gtl-points-jobs` v1 and `gtl-push-reminders` v5 were deployed through the release
+> workflow's worker targets (not the Mac mini) on October 26; the cron jobs are registered and the schedule row is
+> **disabled**. Steps 5 (enable and one verified run) and 6 (first actuals readback) are open, so no slate is drafted or
+> published automatically yet. Design: `docs/superpowers/specs/2026-10-22-guess-the-points-design.md` (3.1, 3.5,
 3.6, 4.2, 4.4, 7); P-01 and P-02 are hosted (`20261024000059`, `20261024000315`).
 
 ## What P-03 adds
