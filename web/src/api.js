@@ -65,7 +65,7 @@ export async function windApi(action, body = {}, signal) {
 export const GROUP_ACTIONS = Object.freeze({
   // Stage 23 (M-06): the gated lines readers, POST /lines/read (a week's board) and /lines/game (one game in full).
   lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research']), writes: Object.freeze([]) }),
-  bets: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze([]) }),
+  bets: Object.freeze({ reads: Object.freeze(['read', 'board', 'season']), writes: Object.freeze([]) }),
   // The league feed (cloud/feed.mjs, redesign stages 61 to 65): 'react' sets or takes back an emoji reaction (M-21);
   // 'feed', 'comments' and 'reactors' read a league's feed, a post's comments and who reacted, and 'share-result' posts
   // your own scored guess (M-22). Comments are still written through communityApi('comment').
