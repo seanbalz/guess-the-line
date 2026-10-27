@@ -3,7 +3,10 @@
 Owner: Codex · Source batch for approved redesign stage 34.
 
 [PR #245](https://github.com/seanbalz/guess-the-lines-repo/pull/245), branch
-`codex/research-game-bets`: published for CI/review; merge and release pending.
+`codex/research-game-bets`: merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6`
+after all nine checks passed on `58f4d14240308e999cbede1aec1de13dd65d4362`. No CI repairs
+or review responses were needed. Hosted release/readback and device acceptance
+remain separate checkpoints.
 
 The game action bar now includes **League bets**, supplied by the Bets slot.
 It opens the selected matchup's Virtual Units picks for the Community or the
@@ -46,15 +49,16 @@ The sheet uses existing GTL tokens, sheet navigation and focus return.
   name; the test now targets the existing game-specific accessible name.
 
 All fixtures use local PGlite and fictional accounts. These checks do not
-establish hosted or real-phone acceptance. CI/merge and release remain separate.
+establish hosted or real-phone acceptance. Merge is verified above; release and
+acceptance remain separate.
 
 ## Remaining work
 
 This supplies stage 34's League bets destination through the existing M-10
 reader. Bet placement and Challenge slots still depend on their own approved
-stages (44 and 54). Stage 31's direct reveal/sit-out confirmation, stage 33's
-direct confirmation and remaining live-status evidence, hosted readback and
-physical-iPhone acceptance remain open. The task register and platform queue
+stages (44 and 54). The later [Research reveal batch](RESEARCH_REVEAL_2026_10_27.md)
+supplies direct confirmation with its own checkpoints. Remaining live-status
+evidence, hosted readback and physical-iPhone acceptance stay open. The task register and platform queue
 keep those checkpoints separate from source implementation.
 
 No API/schema, scoring, data-collection, production deployment, migration apply

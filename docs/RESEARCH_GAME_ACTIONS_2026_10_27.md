@@ -38,11 +38,11 @@ PR #230 was already merged at the start of this batch. Its exact head passed all
 nine checks, and its review lists were empty. This batch starts from freshly
 fetched main `8ada72b` and preserves the other lanes' changes.
 
-The action-bar container and Guess slots are implemented. Bet (stage 44),
-Challenge (stage 54), League bets, stage 31's dedicated Your pick sheet and direct
-reveal/sit-out confirmation, and stage 33's remaining direct confirmation/live
-status work stay open. Existing Play remains the destination for the approved
-confirmation flows. This does not close all of stages 31, 33 or 34.
+The action-bar container and Guess slots are implemented. Later batches supply
+[Your pick](RESEARCH_YOUR_PICK_2026_10_27.md), [League bets](RESEARCH_GAME_BETS_2026_10_27.md)
+and [Research reveal confirmation](RESEARCH_REVEAL_2026_10_27.md), each with its own
+validation and publication evidence. Bet (stage 44), Challenge (stage 54) and
+verified live-game status stay open. This does not close all of stages 31, 33 or 34.
 
 Hosted release/readback and physical iPhone Safari/Home Screen
 acceptance are separate pending checkpoints for this batch. No deployment or

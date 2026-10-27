@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useShell } from '../shell/context.js';
+import { forfeitView } from '../play/forfeit.js';
 import { Avatar, Button, Card, InfoButton, List, LockLine, Pill, Row, Segmented } from '../ui/index.js';
 import { INFO } from '../info.js';
 import { gameGuesses } from './gameGuesses.js';
@@ -17,7 +19,10 @@ export function GuessRows({ view, market }) {
 }
 
 export function EveryoneGuesses({ lines, game, onGuess, market: fixedMarket }) {
+  const shell = useShell();
   const [selection, setMarket] = useState('spread');
+  const revealScope = { accountId: lines.app.accountId, season: lines.shown?.season, week: lines.shown?.week };
+  const canReveal = forfeitView(lines.community, revealScope)?.canConfirm === true;
   const market = fixedMarket ?? selection;
   const read = useGameGuesses(lines, game.id, market);
   const members = lines.community?.viewer?.toLowerCase() === lines.app.accountId.toLowerCase() ? lines.community.members ?? [] : [];
@@ -29,7 +34,7 @@ export function EveryoneGuesses({ lines, game, onGuess, market: fixedMarket }) {
       <p className="gx-t-body" role="status">Community guesses are unavailable.</p><Button onClick={read.reload}>Retry guesses</Button>
     </> : <>
       <p className="gx-t-meta">{view.summary}</p>
-      {!view.open ? <><LockLine>Other players’ {market === 'spread' ? 'Spread' : 'Total'} guesses stay hidden until your lock-in, sit-out or kickoff.</LockLine><Button variant="ghost" onClick={() => onGuess(market)}>Open {market === 'spread' ? 'Spread' : 'Total'} guesses in Play</Button></> : null}
+      {!view.open ? <><LockLine>Other players’ {market === 'spread' ? 'Spread' : 'Total'} guesses stay hidden until your lock-in, sit-out or kickoff.</LockLine><Button variant="ghost" onClick={() => onGuess(market)}>Open {market === 'spread' ? 'Spread' : 'Total'} guesses in Play</Button>{canReveal ? <Button variant="ghost" onClick={() => shell.openDialog('dlg.forfeit', revealScope)}>See picks now</Button> : null}</> : null}
       <GuessRows view={view} market={market}/>
       <Button variant="ghost" onClick={read.reload}>Refresh guesses</Button>
     </>}

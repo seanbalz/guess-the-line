@@ -109,9 +109,9 @@ merged as `733e95d586e005427350ba156d7ad1a05c139094` after all nine checks passe
 `cf9ebe16c88975fefcc0d0a2168cc069741152c3`; no CI fixes or review responses were needed.
 Hosted release and physical-device acceptance remain open.
 
-Residual stage 33 work stays explicit: direct in-board forfeit confirmation
-(the banner uses the existing Play flow) and verified live-game status beyond
-kickoff/final evidence. PR #230 adds [Community guesses in the game
+Stage 33’s direct in-board confirmation is supplied by the Research reveal
+batch recorded below. Verified live-game status beyond kickoff/final evidence
+remains open. PR #230 adds [Community guesses in the game
 sheet](RESEARCH_GAME_GUESSES_2026_10_26.md), implementing stage 34’s per-game list:
 independent markets, private drafts, reader-provided scores/ranks, on-demand
 reads and scoped retry handling. All 33 integrated browser cases, five focused
@@ -143,11 +143,21 @@ the Bets action slot, using the existing M-10 reader and shared Everyone rows.
 43 integrated browser cases plus four final focused cases, 24 component and
 42 model/shell/token tests passed,
 along with typecheck, Brand QA, build/privacy scan and inspected 320px screenshots.
-Publication, release and acceptance are separate.
+It merged October 27 as `1db1c44062e2b63b7b945c6b0478a1ca6d72c8b6` after all nine checks
+passed on `58f4d14240308e999cbede1aec1de13dd65d4362`, with no CI fixes or review findings.
+Hosted release/readback and device acceptance remain separate.
 
-Stage 31’s direct reveal/forfeit confirmation,
-stage 34’s Bet/Challenge action slots, and device acceptance remain
-open. These batches do not complete the whole stages.
+[PR #246](https://github.com/seanbalz/guess-the-lines-repo/pull/246) supplies [direct Research reveal confirmation](RESEARCH_REVEAL_2026_10_27.md)
+from the board and closed game guesses. It uses the existing whole-week M-03
+forfeit contract, with fresh eligibility, an explicit warning, preserved locked
+scores/drafts and recovery by checking an uncertain write. All 49 integrated
+browser cases plus five final focused cases, 24 component, 47 model/contract/shell/token and 23 database tests
+passed, along with typecheck, Brand QA, build/privacy scan and inspected 320px
+Light/Dark screenshots. CI/merge, release and acceptance remain separate.
+
+Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
+Play skip flow and device acceptance stay open. These batches do not complete
+the whole stages.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
