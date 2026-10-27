@@ -1519,3 +1519,50 @@ test('movement marks kickoff without adding a quote or opening a closed market',
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+test('recent trend tiles distinguish grouped wins losses and pushes in both chart views', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let replaced = 0;
+  try {
+    // Fictional recent counts; the source supplies aggregates, never a game sequence.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/trends/week'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      const replace = value => {
+        if (!value || typeof value !== 'object') return;
+        if (value.last10 && 'W' in value.last10) { value.last10 = { W: 7, L: 2, P: 1 }; replaced++; }
+        Object.values(value).forEach(replace);
+      };
+      replace(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const recent = trend.locator('.gx-tc-tile').filter({ has: page.locator('.gx-tc-tile-label', { hasText: 'Last 10' }) });
+    for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width: 320, height: 844 });
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      for (const forcedColors of ['none', 'active']) {
+        await page.emulateMedia({ forcedColors, colorScheme: theme });
+        for (const view of ['Since 2002', 'By season']) {
+          await trend.getByRole('button', { name: view, exact: true }).click();
+          await expect(recent.locator('.gx-tc-tile-value')).toHaveText('7–2–1');
+          await expect(recent).toContainText('W · L · P; grouped counts');
+          await expect(recent.locator('.gx-tc-block--on')).toHaveCount(7);
+          await expect(recent.locator('.gx-tc-block--push')).toHaveCount(1);
+          await expect(recent.locator('.gx-tc-block:not(.gx-tc-block--on):not(.gx-tc-block--push)')).toHaveCount(2);
+          expect(await recent.locator('.gx-tc-block--push').evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('dashed');
+        }
+        await recent.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: testInfo.outputPath(`recent-${theme}-${forcedColors}.png`) });
+        await phoneChecks(page); expect(await axe(page)).toEqual([]);
+        // The public 2024 season has −11.5 units, which collides with the forged-pick sentinel.
+        // Scan the cumulative view; season data is independently asserted above.
+        await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
+        await noLeak(page, world, 'recent grouped counts');
+      }
+    }
+    expect(replaced).toBeGreaterThan(0); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
