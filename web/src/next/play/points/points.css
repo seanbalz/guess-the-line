@@ -131,6 +131,10 @@
   font: 700 13px/1 var(--gx-font-body);
 }
 .gx .gx-pt-board-house { color: var(--gx-text-2); }
+/* The commissioner's drafted-week preview (PointsPublish.jsx): one row per slot, the pill over its matchup and kickoff. */
+.gx .gx-pt-preview { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-pt-preview-row { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.gx .gx-pt-preview-row .gx-pt-pill { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 @media (forced-colors: active) {
   .gx .gx-pt-pill,
   .gx .gx-pt-tile,
