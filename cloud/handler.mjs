@@ -43,6 +43,8 @@ import { handleNba, NBA_METHODS, NbaError, providerNbaError } from './nba.mjs';
 import { createNbaGamesCache } from './nba-games.mjs';
 // Guess the Points (D-56): its own route group over the P-01 service-only functions; 404 "coming soon" until P-01 is applied.
 import { handlePoints, POINTS_METHODS, POINTS_PUBLIC_CODES, POINTS_RPCS, PointsError, providerPointsError } from './points.mjs';
+// Streaks, badges and weekly awards (redesign stage 69, M-25): their own route group; 404 "coming soon" until M-25 is applied.
+import { handleFeatures, FEATURES_METHODS, FEATURES_RPCS, FeaturesError, providerFeaturesError } from './features.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const CORS = {
@@ -86,6 +88,7 @@ const ROUTE_GROUPS = Object.freeze([
   Object.freeze({ service: 'feed', methods: FEED_METHODS, handle: handleFeed, Error: FeedError }),
   Object.freeze({ service: 'me', methods: ME_METHODS, handle: handleMe, Error: MeError }),
   Object.freeze({ service: 'points', methods: POINTS_METHODS, handle: handlePoints, Error: PointsError }),
+  Object.freeze({ service: 'features', methods: FEATURES_METHODS, handle: handleFeatures, Error: FeaturesError }),
 ]);
 const GAME_METHODS = Object.freeze({ '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'] });
 /** Every module's methods map; a route belongs to exactly one (tests/route-modules.test.mjs). */
@@ -151,13 +154,13 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, feed, me, trends, fantasy, points, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, feed, me, trends, fantasy, points, features, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
   // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
   const featuresOff = parseFeatureOff(featureOff);
-  const groupServices = { lines, bets, league, feed, me, trends, fantasy, points };
+  const groupServices = { lines, bets, league, feed, me, trends, fantasy, points, features };
   // The live Guess rules ride along with the views both apps render (build plan, section 3.4).
   // The read fails closed on an outage; only an explicitly missing RPC carries legacy rules.
   async function withRules(view, rules = readLiveRules(optionalRpc)) {
@@ -467,6 +470,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     feed: groupRpc(providerFeedError),
     points: groupRpc(providerPointsError, POINTS_RPCS),
+    features: groupRpc(providerFeaturesError, FEATURES_RPCS),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {

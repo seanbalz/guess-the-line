@@ -43,6 +43,7 @@ export const NOT_HOSTED = [
   20261026230000, // M-27 gtl_me_history (redesign stage 72): Me › History readers, awaiting Sean's "apply M-27".
   20261026231000, // M-28 gtl_me_export (redesign stage 75): Export my data, awaiting Sean's "apply M-28" (after M-27).
   20261026233000, // M-12 bets_boards (stage 42): weekly and season boards; read only; apply after M-10 on Sean's "apply M-12".
+  20261026234000, // M-25 league_features (redesign stage 69): badges, awards, streaks; apply after M-13 (feed kinds) on Sean's "apply M-25".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -61,6 +62,8 @@ export const FIX_FORWARD = [
  * NOT_HOSTED (tests/rollback.test.mjs fails while an entry names a hosted file).
  */
 export const REQUIRES = Object.freeze({
+  // M-21 reads M-13's league_id (gtl_feed_post_visible's group check), so it cannot apply without M-13.
+  20261026131000: [20261026130000],
   // M-22 reads M-13's league_id (its index) and calls M-21's gtl_feed_reactions and gtl_feed_post_visible.
   20261026132000: [20261026130000, 20261026131000],
 });

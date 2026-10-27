@@ -66,6 +66,8 @@ export const READERS = Object.freeze([
   // Stage 72 (M-27): Me › History, the owner's own changes and the older records.
   ['/me/changes', 'POST', {}],
   ['/me/records', 'POST', {}],
+  // Stage 69 (M-25): badges, awards and streaks. A badge names a line, so it shows only from that game's kickoff.
+  ['/league/features', 'POST', {}],
   // Stage 75 (M-28): Export my data, the owner's own rows only.
   ['/me/export', 'POST', {}],
 ]);
@@ -82,6 +84,7 @@ export const READER_MIGRATIONS = Object.freeze({
   '/me/export': '20261026231000_gtl_me_export.sql',
   '/bets/board': '20261026233000_gtl_bets_boards.sql',
   '/bets/season': '20261026233000_gtl_bets_boards.sql',
+  '/league/features': '20261026234000_gtl_league_features.sql',
 });
 /** The READERS a world built from `migrations` (a list from tests/migrations.mjs) serves. */
 export const readersOn = migrations => READERS.filter(([route]) => !Object.hasOwn(READER_MIGRATIONS, route) || migrations.includes(READER_MIGRATIONS[route]));
