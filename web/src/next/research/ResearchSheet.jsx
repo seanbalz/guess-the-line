@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import { useLinesData } from '../lines/linesData.js';
 import { useShell } from '../shell/context.js';
 import { Button, InfoButton, Segmented, Sheet } from '../ui/index.js';
-import { PERIODS, ResearchCards, ResearchLeans, ResearchSources, ResearchStatus, researchSelection } from './ResearchCards.jsx';
+import { PERIODS, ResearchCards, ResearchLeans, ResearchSources, ResearchStatus, ResearchTime, researchSelection } from './ResearchCards.jsx';
 import { useResearch } from './useResearch.js';
 import { INFO } from '../info.js';
 import './research.css';
@@ -45,14 +45,15 @@ export function ResearchSheet({ args = {} }) {
         <div className="gx-r-context">
           <p className="gx-t-meta gx-grow" role="status">History: {data.history.status}</p>
           <InfoButton {...INFO.researchData} body={[
-            `Snapshot: ${data.history.snapshotAsOf ?? 'Unknown'}.`,
-            `Period anchored to ${data.history.periodAnchor ?? 'Unknown'}.`,
             ...INFO.researchData.body,
             data.history.source?.modified, data.history.source?.caveat,
           ]} links={data.history.source ? [
             { text: data.history.source.credit, url: data.history.source.url },
             { text: data.history.source.license, url: data.history.source.licenseUrl },
-          ] : INFO.researchData.links}/>
+          ] : INFO.researchData.links}>
+            <p className="gx-t-body gx-c-2">Snapshot: <ResearchTime value={data.history.snapshotAsOf}/></p>
+            <p className="gx-t-body gx-c-2">Period anchored to <ResearchTime value={data.history.periodAnchor}/></p>
+          </InfoButton>
         </div>
         {data.history.status !== 'fresh' ? <p className="gx-t-meta">Current leans may be unavailable; dated historical evidence remains descriptive.</p> : null}
       </> : null}

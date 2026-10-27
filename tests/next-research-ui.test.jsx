@@ -29,8 +29,9 @@ describe('shared research presentation', () => {
     expect(html).toContain('Total research is locked');
   });
   it('renders closed markets without their forged evidence', () => {
-    const html = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: { visible: false, lean: game.spread.lean } }] }}/>);
+    const html = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: { ...game.spread, visible: false } }] }}/>);
     expect(html).not.toContain('Synthetic fourth'); expect(html).not.toContain('DEN −2');
+    expect(html).not.toContain('<time'); expect(html).not.toContain(now);
   });
   // D-55: the evidence table keeps the selected sample's bins; the chart drawn from the same series is the card's line.
   it('the accessible binned table and the card’s line reconcile with the same selected sample and zero baseline', () => {
@@ -47,6 +48,28 @@ describe('shared research presentation', () => {
   it('Trent remains a separate unavailable original-play feed', () => {
     const html = render(<ResearchSources trent={{ status: 'unavailable', plays: [] }}/>);
     expect(html).toContain('Source unavailable'); expect(html).toContain('Original plays'); expect(html).not.toContain('Synthetic');
+  });
+  it('shows reference instants in Pacific time while retaining their exact source timestamps', () => {
+    const html = render(<ResearchLeans data={data}/>);
+    expect(html).toContain('Wed Oct 21, 2026 · 5:00 AM PT');
+    expect(html).toContain('dateTime="2026-10-21T12:00:00Z"');
+    const winter = { ...game.spread, currentReference: { ...game.spread.currentReference, observedAt: '2026-11-02T01:30:00Z' } };
+    const winterHtml = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: winter }] }}/>);
+    expect(winterHtml).toContain('Sun Nov 1, 2026 · 5:30 PM PT');
+    expect(markupProblems(html)).toEqual([]);
+  });
+  it('keeps posted, captured and checked times separate and does not invent a date-only clock time', () => {
+    const source = { name: 'Fixture source', status: 'reviewed', checkedAt: '2026-10-21T12:00:00Z', plays: [{ id: 'fixture', event: 'Fixture game', selection: 'Fixture selection', originalTerms: 'Original fixture terms', postedAt: '2026-10-21T11:00:00Z', capturedAt: '2026-10-21T11:30:00Z', sourceUrl: 'https://example.test/source' }] };
+    const html = render(<ResearchSources sources={[source]}/>);
+    for (const time of ['4:00 AM PT', '4:30 AM PT', '5:00 AM PT']) expect(html).toContain(time);
+    expect(html).toContain('Original fixture terms');
+    expect(markupProblems(html)).toEqual([]);
+    for (const checkedAt of [null, '', 'invalid', '2026-10-21T12:00:00', '2026-02-30']) {
+      const unknown = render(<ResearchSources sources={[{ ...source, checkedAt, plays: [] }]}/>);
+      expect(unknown).toContain('Time unavailable'); expect(unknown).not.toContain(' PT');
+    }
+    const dateOnly = render(<ResearchSources sources={[{ ...source, checkedAt: '2026-10-21', plays: [] }]}/>);
+    expect(dateOnly).toContain('2026-10-21'); expect(dateOnly).toContain('time unavailable'); expect(dateOnly).not.toContain(' PT');
   });
   it('pairs cumulative units with cumulative records across winning, losing and push bins', () => {
     const points = [

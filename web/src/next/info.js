@@ -78,7 +78,7 @@ export const INFO = Object.freeze({
     body: [
       'Consistent, not proven. Display periods do not change qualification or lean evidence.',
       'Emerging research does not vote on a lean. Filters change this list and selected records, not the full evidence used for leans.',
-      'The research screen’s data information shows its snapshot time, period anchor and source. Missing dates stay Unknown.',
+      'The research screen’s data information shows its snapshot time, period anchor and source. Times use Pacific (PT); missing times stay unavailable. Historical sample dates keep their source calendar dates.',
     ],
     links: TRENDS_LINKS,
   },

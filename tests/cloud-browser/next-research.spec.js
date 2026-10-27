@@ -60,6 +60,60 @@ async function phoneAndAxe(page, theme, testInfo) {
   await page.screenshot({ path: testInfo.outputPath(`synthetic-research-${theme}.png`) });
 }
 
+test.describe('source time presentation', () => {
+test.use({ timezoneId: 'Asia/Tokyo' });
+test('Research source times are readable in Pacific time without changing historical dates or market gates', async ({ page, baseURL }, testInfo) => {
+  const { world, synthetic } = await setup(page, baseURL);
+  const read = synthetic.provider.read;
+  synthetic.provider.read = async request => {
+    const result = await read(request);
+    result.trent = { id: 'bookitwithtrent', name: 'Book It With Trent', status: 'reviewed', checkedAt: '2026-11-02T01:30:00Z', plays: [{
+      id: 'synthetic-source-time', event: 'Synthetic matchup', selection: 'Synthetic selection', market: 'total', status: 'source-reported',
+      originalTerms: 'Synthetic original terms', postedAt: '2026-10-21T11:00:00Z', capturedAt: '2026-10-21T11:30:00Z', sourceUrl: 'https://example.test/source',
+    }] };
+    return result;
+  };
+  try {
+    await openResearch(page);
+    const dialog = sheet(page), reference = dialog.locator('.gx-r-references').first();
+    await dialog.getByRole('button', { name: 'About research data', exact: true }).click();
+    const provenance = page.getByRole('dialog', { name: 'About research data', exact: true });
+    await expect(provenance).toContainText('Period anchored to Tue Oct 20, 2026 · 5:00 PM PT');
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await provenance.locator('time').last().scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`research-provenance-times-${theme}.png`) });
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+    }
+    await page.keyboard.press('Escape');
+    await expect(reference).toContainText('Saved scoring reference');
+    await expect(reference).toContainText('Current market reference');
+    await expect(reference.locator('time')).toHaveCount(2);
+    for (const timestamp of await reference.locator('time').allTextContents()) expect(timestamp).toMatch(/2026 · .* [AP]M PT$/);
+    await expect(dialog.locator('[data-research-market="spread"]')).toHaveCount(0);
+    await expect(dialog).toContainText('Spread research is locked');
+    const first = dialog.locator('[data-research-card]').first();
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    await expect(first.getByRole('table')).toContainText('2025-09-01');
+    await expect(first.getByRole('table')).toContainText('2026-10-20');
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await reference.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`research-reference-times-${theme}.png`) });
+    }
+    await dialog.getByRole('button', { name: 'Book It With Trent', exact: true }).click();
+    await expect(dialog).toContainText('Source checked: Sun Nov 1, 2026 · 5:30 PM PT');
+    await expect(dialog).toContainText('Posted: Wed Oct 21, 2026 · 4:00 AM PT');
+    await expect(dialog).toContainText('Captured: Wed Oct 21, 2026 · 4:30 AM PT');
+    await expect(dialog.locator('time').first()).toHaveAttribute('datetime', '2026-11-02T01:30:00Z');
+    await expect(dialog).toContainText('Source-reported · not verified');
+    await expect(dialog.getByRole('link', { name: 'Original source post' })).toHaveAttribute('href', 'https://example.test/source');
+    for (const theme of ['light', 'dark']) await phoneAndAxe(page, theme, testInfo);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+});
+
 test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Trent and 320px themes', async ({ page, baseURL }, testInfo) => {
   test.setTimeout(60000); // Two complete axe scans plus the real database/auth fixture.
   const { world, ids } = await setup(page, baseURL);
@@ -75,7 +129,8 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
     const dataInfo = dialog.getByRole('button', { name: 'About research data', exact: true });
     await dataInfo.click();
     const provenance = page.getByRole('dialog', { name: 'About research data', exact: true });
-    await expect(provenance).toContainText('Snapshot: 2026-10-21T00:00:00Z');
+    await expect(provenance).toContainText('Snapshot: Tue Oct 20, 2026 · 5:00 PM PT');
+    await expect(provenance.locator('time').first()).toHaveAttribute('datetime', '2026-10-21T00:00:00Z');
     await expect(provenance).toContainText('Period anchored to');
     await expect(provenance).toContainText('Filters change this list');
     await expect(provenance).toContainText('Fixture derived historical records.');
@@ -229,7 +284,7 @@ test('compact research keeps stale-history warnings visible before opening its i
     await expect(sheet(page).getByText('Current leans may be unavailable; dated historical evidence remains descriptive.', { exact: true })).toBeVisible();
     await expect(sheet(page).getByText(/Snapshot:/)).toHaveCount(0);
     await sheet(page).getByRole('button', { name: 'About research data', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'About research data', exact: true })).toContainText('Snapshot: 2026-10-21T00:00:00Z');
+    await expect(page.getByRole('dialog', { name: 'About research data', exact: true })).toContainText('Snapshot: Tue Oct 20, 2026 · 5:00 PM PT');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
