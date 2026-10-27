@@ -40,6 +40,10 @@ export const rpcChecks = Object.freeze([
   ['gtl_feature_post', { p_actor: missingId, p_kind: 'badge_earned', p_season: 2026, p_week: 5, p_payload: {}, p_dedupe: 'boundary-check', p_at: null }],
   ['gtl_record_feature_results', { p_run: missingId, p_trigger: 'manual', p_actor: missingId, p_results: {} }],
   ['gtl_read_features', { p_user: missingId, p_league: null, p_season: null, p_now: null }],
+  // M-23 (20261026133000_gtl_kickoff_posts.sql, redesign stage 63): its two callable functions (the trigger function is granted
+  // to no role). Awaiting deploy (below) until Sean's "apply M-23". The writer's season is out of range, so it writes nothing.
+  ['gtl_kickoff_slots', { p_season: 1999, p_week: 1 }],
+  ['gtl_write_kickoff_posts', { p_season: 1999, p_week: 1, p_actor: missingId }],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -69,6 +73,7 @@ export const workerChecks = Object.freeze([]);
 // Awaiting: the league feed pieces (redesign stages 61 to 63), each until its own apply or deploy.
 const M21 = 'M-21 (20261026131000_gtl_feed_reactions.sql) applied after Sean\'s "apply M-21"';
 const M22 = 'M-22 (20261026132000_gtl_league_feed.sql) applied after Sean\'s "apply M-22"';
+const M23 = 'M-23 (20261026133000_gtl_kickoff_posts.sql) applied after Sean’s "apply M-23"';
 const FEED_ROUTES = 'gtl-api with cloud/feed.mjs deployed (league feed routes)';
 // The league feed's awaiting pieces (tests/cloud-boundary.test.mjs names each one).
 const FEED_AWAITING = Object.freeze({
@@ -76,6 +81,7 @@ const FEED_AWAITING = Object.freeze({
   ...Object.fromEntries(['gtl_feed_league_access', 'gtl_feed_in_league', 'gtl_feed_embed', 'gtl_read_league_feed', 'gtl_read_post_comments',
     'gtl_read_post_reactors', 'gtl_share_result'].map(rpc => [`rpc/${rpc}`, M22])),
   ...Object.fromEntries(['react', 'feed', 'comments', 'reactors', 'share-result'].map(action => [`gtl-api/league/${action}`, FEED_ROUTES])),
+  ...Object.fromEntries(['gtl_kickoff_slots', 'gtl_write_kickoff_posts'].map(rpc => [`rpc/${rpc}`, M23])),
 });
 // M-25 (redesign stage 69) is written and not applied, and no gtl-api deploy carries /league/features yet.
 const M25 = 'migration 20261026234000_gtl_league_features.sql';
