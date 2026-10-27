@@ -303,6 +303,7 @@ Research/Lines/Trends/League-bets browser cases passed before bringing in merged
 PR #252. After combining the branches, the kickoff and source-time browser checks,
 33 component tests and 27 format/token tests passed. The final Guidance/provenance
 copy also passed a focused browser rerun. Typecheck, Brand QA, fixture
-build and bundle privacy checks passed. Source is on `codex/research-source-times`;
+build and bundle privacy checks passed. Source is in [PR #253](https://github.com/seanbalz/guess-the-lines-repo/pull/253)
+on `codex/research-source-times`;
 CI/merge, hosted release/readback and actual-device acceptance remain open. This
 task did not deploy or apply migrations.

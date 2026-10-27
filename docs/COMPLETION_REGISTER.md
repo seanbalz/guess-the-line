@@ -212,7 +212,8 @@ Hosted release/readback and device acceptance remain open.
 The next [Research source-time batch](RESEARCH_DESIGN_2026_10_26.md#pacific-source-times-in-research--october-27)
 uses readable Pacific times for quotes, source posts and provenance, retaining
 exact source timestamps and historical calendar dates. Missing or unzoned times
-stay unavailable. Source is on `codex/research-source-times`: nine Research and
+stay unavailable. Source is in [PR #253](https://github.com/seanbalz/guess-the-lines-repo/pull/253)
+on `codex/research-source-times`: nine Research and
 52 integrated browser cases passed, followed by kickoff/source-time checks on
 the combined branch, 33 component and 27 format/token tests. Typecheck, Brand QA
 and build/privacy checks passed; six 320px Light/Dark screenshots inspected.
