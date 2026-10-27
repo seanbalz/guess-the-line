@@ -314,6 +314,33 @@ test('M-03 skip and "See picks now" probes are hosted and fail closed on missing
   });
 });
 
+// The league feed (redesign stages 61 to 63, scripts/boundary/league.mjs): written, not applied or deployed.
+const FEED_RPCS = ['gtl_feed_reactions', 'gtl_feed_post_visible', 'gtl_feed_reaction_summary', 'gtl_react_feed',
+  'gtl_feed_league_access', 'gtl_feed_in_league', 'gtl_feed_embed', 'gtl_read_league_feed', 'gtl_read_post_comments', 'gtl_read_post_reactors', 'gtl_share_result',
+  'gtl_kickoff_slots', 'gtl_write_kickoff_posts'];
+const FEED_ROUTES = ['league/react', 'league/feed', 'league/comments', 'league/reactors', 'league/share-result'];
+const FEED_PIECES = [...FEED_RPCS.map(rpc => `rpc/${rpc}`), ...FEED_ROUTES.map(route => `gtl-api/${route}`)];
+
+test('the league feed pieces are awaiting deploy: a missing function or route answers awaiting, never denied, and --strict fails it', async () => {
+  assert.deepEqual(Object.keys(awaitingDeploy).filter(key => FEED_PIECES.includes(key)).sort(), [...FEED_PIECES].sort());
+  const captured = [];
+  const missing = async (url, request) => {
+    captured.push({ url, request });
+    if (FEED_RPCS.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`))) return new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 });
+    if (FEED_ROUTES.some(route => url.endsWith(`/functions/v1/gtl-api/${route}`))) return new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 });
+    return denied(url, request);
+  };
+  const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
+  assert.equal(result.awaiting.length, FEED_RPCS.length + FEED_ROUTES.length * 2, 'each RPC once, each route signed out and with an invalid session');
+  for (const { url, request } of captured.filter(({ url }) => FEED_RPCS.some(rpc => url.endsWith(`/rpc/${rpc}`)) || FEED_ROUTES.some(route => url.endsWith(`/gtl-api/${route}`)))) {
+    if (url.includes('/rest/v1/rpc/')) assert.equal(request.headers.Authorization, undefined, url);
+    assert.doesNotMatch(request.body, /0000-4000-8000/, 'no fixture or real member id is sent');
+  }
+  await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: missing, strict: true }), /unexpected 404/);
+  const after = await checkCloudBoundary({ ...options, fetchImpl: denied });
+  assert.deepEqual([after.awaiting.length, after.denied], [0, after.checked], 'once applied and deployed they deny like every other probe');
+});
+
 const P03_RPCS = ['gtl_dispatch_points_jobs', 'gtl_claim_points_jobs', 'gtl_complete_points_jobs', 'gtl_points_jobs_state'];
 test('P-03 Points jobs probes: anonymous and inert, awaiting only on the exact not-found answer until the apply, then denied', async t => {
   const captured = [];
@@ -366,11 +393,11 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // P-03 (Points jobs) and M-27 (Me › History, redesign stage 72) are merged or ready and not applied: their functions and
   // M-27's two routes are the only pieces awaiting deploy. Each apply record removes its own entries (Gate M step 8).
   const M27 = 'migration 20261026230000_gtl_me_history.sql';
-  assert.deepEqual({ ...awaitingDeploy }, {
+  assert.deepEqual(Object.fromEntries(Object.entries(awaitingDeploy).filter(([key]) => !FEED_PIECES.includes(key))), {
     ...Object.fromEntries(P03_RPCS.map(rpc => [`rpc/${rpc}`, 'migration 20261026120000_gtl_points_jobs.sql'])),
     'rpc/gtl_me_slate': M27, 'rpc/gtl_me_results': M27, 'rpc/gtl_read_ballot_changes': M27, 'rpc/gtl_read_me_records': M27,
     'gtl-api/me/changes': 'the gtl-api deploy with /me/changes', 'gtl-api/me/records': 'the gtl-api deploy with /me/records',
-  }, 'only P-03 and M-27 are awaiting deploy');
+  }, 'only P-03, M-27 and the league feed pieces are awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
   // Before the apply and the deploy: each M-27 function answers PGRST202 and each History route "Not found."; all six pass as

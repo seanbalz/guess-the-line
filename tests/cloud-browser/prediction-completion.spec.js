@@ -5,6 +5,7 @@ import { SubmissionOddsError } from '../../cloud/submission-odds.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { picker, pickSpread, pickTotal, expectPick, expectNoPick, MINUS } from '../chip-entry.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // Synthetic authenticated group fixtures only; no hosted data or odds requests.
 const accountId = '11111111-1111-4111-8111-111111111111';
@@ -170,3 +171,6 @@ test('quote failure keeps the full review and offers an in-place retry without c
   expect(entry.committed).toBe(1); expect(entry.attempts).toHaveLength(2); expect(entry.attempts[0]).toEqual(entry.attempts[1]);
   expect(entry.view('guess_total').revealed).toBe(false);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

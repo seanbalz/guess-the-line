@@ -1,6 +1,7 @@
 // Persona (e): motor-impaired keyboard-only user. No mouse at all: every screen is reached by
 // Tab/Enter/Space/Escape, 44px targets are measured, and keyboard traps are checked.
 import { test, expect, pgliteAvailable } from './harness.mjs';
+import { useOldApp } from '../old-app.mjs';
 
 test.use({ viewport: { width: 1024, height: 768 } });
 
@@ -218,3 +219,6 @@ test('motor: keyboard-only journey, 44px targets and no keyboard traps', async (
   await persona.shot('game-picks');
   expect(await persona.noOverflow()).toBe(true);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

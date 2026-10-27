@@ -1,14 +1,14 @@
-// Redesign build plan, stage 9 (section 3.2; D-38, D-39): which app a signed-in member sees on this device.
-// The choice is `gtl.app` in localStorage; DEFAULT_APP is 'classic' until stage 80; anything unreadable or unknown
-// is the default; `?app=classic` always forces the old app; every switch reloads; the new app is one lazy chunk
-// that never pulls in the old app's screens, and the old app never pulls in the new one.
+// D-60, step 1 of retiring the old app (redesign build plan stage 80): every signed-in member gets the new app. The old
+// app opens only at `?app=classic` (Menu › "Older records and tools", the failure screens, main.jsx's fallback), for that
+// address only; nothing is saved, a device's old saved choice (`gtl.app`) is forgotten, and storage that throws changes
+// nothing. The new app is one lazy chunk that never pulls in the old app's screens, and the old app never pulls in the new one.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  APP_PARAM, APP_STORAGE_KEY, APP_SWITCH_COPY, APP_VIEWS, DEFAULT_APP, appFellBack, browserStorage, classicUrl, clearAppView,
-  forcesClassic, noteAppFallback, readAppView, saveAppView, startAppView, switchApp, withoutAppParam,
+  APP_PARAM, APP_STORAGE_KEY, APP_SWITCH_COPY, APP_VIEWS, DEFAULT_APP, appFellBack, backToNewApp, browserStorage, classicUrl, clearAppView,
+  forcesClassic, noteAppFallback, openOldApp, readAppView, startAppView, withoutAppParam,
 } from '../web/src/appView.js';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -30,115 +30,82 @@ const throwingStorage = () => ({
   setItem() { throw new DOMException('quota', 'QuotaExceededError'); },
   removeItem() { throw new DOMException('blocked', 'SecurityError'); },
 });
-/** Storage that accepts writes and drops them (reads back null). */
-const forgetfulStorage = () => ({ getItem: () => null, setItem() {}, removeItem() {} });
-/** A location that records reloads and replacements instead of navigating. */
+/** A location that records navigations instead of making them. */
 function fakeLocation(href) {
   const calls = [];
-  return { href, calls, reload: () => calls.push(['reload']), replace: next => calls.push(['replace', next]) };
+  return { href, calls, reload: () => calls.push(['reload']), assign: next => calls.push(['assign', next]), replace: next => calls.push(['replace', next]) };
 }
 
-test('the default is the old app until the flip (stage 80), and the key and views are fixed', () => {
-  assert.equal(DEFAULT_APP, 'classic');
+test('the new app is the default for every plain visit; the key, views and words are fixed', () => {
+  assert.equal(DEFAULT_APP, 'next');
   assert.equal(APP_STORAGE_KEY, 'gtl.app');
   assert.equal(APP_PARAM, 'app');
   assert.deepEqual([...APP_VIEWS], ['classic', 'next']);
-  assert.equal(readAppView({ search: '', storage: memoryStorage() }), 'classic');
-  assert.equal(readAppView({ search: '', storage: null }), 'classic');
-  assert.equal(APP_SWITCH_COPY.tryNew, 'Try the new app');
+  assert.equal(readAppView({ search: '' }), 'next');
+  assert.equal(startAppView({ search: '', storage: memoryStorage() }), 'next');
+  assert.equal(startAppView({ search: '', storage: null }), 'next');
+  assert.equal(APP_SWITCH_COPY.olderRecords, 'Older records and tools');
   assert.equal(APP_SWITCH_COPY.useOld, 'Use the old app');
+  assert.equal(APP_SWITCH_COPY.backToNew, 'Back to the new app');
+  assert.equal(Object.hasOwn(APP_SWITCH_COPY, 'tryNew'), false, '"Try the new app" is gone: there is nothing to opt into');
 });
 
-test('round trip: a saved choice reads back, and each switch can be undone', () => {
-  const storage = memoryStorage();
-  assert.equal(saveAppView('next', storage), true);
-  assert.equal(storage.map.get('gtl.app'), 'next');
-  assert.equal(readAppView({ search: '', storage }), 'next');
-  assert.equal(saveAppView('classic', storage), true);
-  assert.equal(readAppView({ search: '', storage }), 'classic');
-  assert.equal(saveAppView('next', storage), true);
-  assert.equal(clearAppView(storage), true);
-  assert.equal(storage.map.has('gtl.app'), false, 'clearing forgets the choice rather than writing one');
-  assert.equal(readAppView({ search: '', storage }), DEFAULT_APP);
+test('an old saved choice never decides the app; startAppView forgets it and leaves other keys alone', () => {
+  for (const value of ['classic', 'next', '', 'beta', 'NEXT']) {
+    const storage = memoryStorage({ 'gtl.app': value, 'gtl.theme': 'light', 'gtl.next.draft.x': '{}' });
+    assert.equal(startAppView({ search: '', storage }), 'next', JSON.stringify(value));
+    assert.equal(storage.map.has('gtl.app'), false, `${JSON.stringify(value)} is forgotten`);
+    assert.equal(storage.map.get('gtl.theme'), 'light');
+    assert.equal(storage.map.get('gtl.next.draft.x'), '{}');
+  }
 });
 
-test('storage that throws never breaks the page: reads give the default, writes report failure', () => {
-  const storage = throwingStorage();
-  assert.equal(readAppView({ search: '', storage }), DEFAULT_APP);
-  assert.equal(saveAppView('next', storage), false);
-  assert.equal(clearAppView(storage), false);
-  assert.equal(startAppView({ search: '?app=classic', storage }), 'classic');
-  assert.equal(saveAppView('next', forgetfulStorage()), false, 'a write that does not read back is not saved');
+test('storage that throws never breaks the page: the new app still opens, ?app=classic still works', () => {
+  assert.equal(startAppView({ search: '', storage: throwingStorage() }), 'next');
+  assert.equal(startAppView({ search: '?app=classic', storage: throwingStorage() }), 'classic');
+  assert.equal(clearAppView(throwingStorage()), false);
   // Reading window.localStorage itself can throw (blocked site data); that is no storage, not an error.
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { throw new DOMException('blocked', 'SecurityError'); } });
   try {
     assert.equal(browserStorage(), null);
-    assert.equal(readAppView({ search: '' }), DEFAULT_APP);
-    assert.equal(saveAppView('next'), false);
+    assert.equal(startAppView({ search: '' }), 'next');
   } finally {
     if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor); else delete globalThis.localStorage;
   }
 });
 
-test('an unknown saved value is the default, and nothing but a known view is ever saved', () => {
-  for (const value of ['', 'NEXT', 'Classic', 'beta', 'next ', 'true', '1', 'undefined', 'null', '{"app":"next"}']) {
-    assert.equal(readAppView({ search: '', storage: memoryStorage({ 'gtl.app': value }) }), DEFAULT_APP, JSON.stringify(value));
-  }
+test('?app=classic opens the old app for that address only and saves nothing; no other value does anything', () => {
   const storage = memoryStorage();
-  for (const value of ['beta', '', null, undefined, 'NEXT', 1]) assert.equal(saveAppView(value, storage), false, String(value));
-  assert.equal(storage.map.size, 0);
-  const location = fakeLocation('https://example.test/');
-  assert.equal(switchApp('beta', { storage, location }), false);
-  assert.deepEqual(location.calls, []);
-});
-
-test('?app=classic always forces the old app and saves that choice; no other value does anything', () => {
-  const storage = memoryStorage({ 'gtl.app': 'next' });
   assert.equal(forcesClassic('?app=classic'), true);
   assert.equal(forcesClassic('?league=x&app=classic'), true);
-  assert.equal(readAppView({ search: '?app=classic', storage }), 'classic');
-  assert.equal(storage.map.get('gtl.app'), 'next', 'reading alone writes nothing');
   assert.equal(startAppView({ search: '?app=classic', storage }), 'classic');
-  assert.equal(storage.map.get('gtl.app'), 'classic', 'the escape hatch holds on the next plain visit');
-  assert.equal(startAppView({ search: '', storage }), 'classic');
+  assert.equal(storage.map.has('gtl.app'), false, 'nothing is saved');
+  assert.equal(startAppView({ search: '', storage }), 'next', 'the next plain visit is the new app');
   for (const search of ['?app=next', '?app=CLASSIC', '?app=', '?apps=classic', '?app=classic2', '#app=classic']) {
     assert.equal(forcesClassic(search), false, search);
-    const kept = memoryStorage({ 'gtl.app': 'next' });
-    assert.equal(startAppView({ search, storage: kept }), 'next', search);
-    assert.equal(kept.map.get('gtl.app'), 'next', search);
+    assert.equal(startAppView({ search, storage: memoryStorage() }), 'next', search);
   }
 });
 
-test('every switch reloads; leaving a ?app=classic address drops the parameter and keeps the rest', () => {
-  const storage = memoryStorage();
-  const plain = fakeLocation('https://gtl.example/#picks');
-  assert.equal(switchApp('next', { storage, location: plain }), true);
-  assert.deepEqual(plain.calls, [['reload']]);
-  assert.equal(storage.map.get('gtl.app'), 'next');
+test('Older records and tools opens a new page at ?app=classic; Back to the new app drops the parameter and keeps the rest', () => {
+  const into = fakeLocation('https://gtl.example/?invite=abc#feed');
+  openOldApp({ location: into });
+  assert.deepEqual(into.calls, [['assign', 'https://gtl.example/?invite=abc&app=classic#feed']]);
+  assert.equal(readAppView({ search: new URL(into.calls[0][1]).search }), 'classic');
 
-  const forced = fakeLocation('https://gtl.example/?invite=abc&app=classic#feed');
-  assert.equal(switchApp('next', { storage, location: forced }), true);
-  assert.deepEqual(forced.calls, [['replace', 'https://gtl.example/?invite=abc#feed']]);
-  assert.equal(readAppView({ search: new URL(forced.calls[0][1]).search, storage }), 'next', 'the new address opens the new app');
+  const back = fakeLocation('https://gtl.example/?invite=abc&app=classic#feed');
+  backToNewApp({ location: back });
+  assert.deepEqual(back.calls, [['assign', 'https://gtl.example/?invite=abc#feed']]);
+  assert.equal(readAppView({ search: new URL(back.calls[0][1]).search }), 'next');
 
-  const back = fakeLocation('https://gtl.example/');
-  assert.equal(switchApp('classic', { storage, location: back }), true);
-  assert.deepEqual(back.calls, [['reload']]);
-  assert.equal(storage.map.get('gtl.app'), 'classic');
+  // A fallback page has no parameter: going back reloads, and the next load tries the new app again.
+  const fallback = fakeLocation('https://gtl.example/#picks');
+  backToNewApp({ location: fallback });
+  assert.deepEqual(fallback.calls, [['reload']]);
 
   assert.equal(withoutAppParam('https://gtl.example/?app=classic'), 'https://gtl.example/');
   assert.equal(classicUrl('https://gtl.example/?a=1#x'), 'https://gtl.example/?a=1&app=classic#x');
-});
-
-test('when storage refuses: trying the new app stays put and says so; going back still works through ?app=classic', () => {
-  const location = fakeLocation('https://gtl.example/#feed');
-  assert.equal(switchApp('next', { storage: throwingStorage(), location }), false);
-  assert.deepEqual(location.calls, [], 'no reload into an app the next load would not open');
-  const back = fakeLocation('https://gtl.example/#feed');
-  assert.equal(switchApp('classic', { storage: throwingStorage(), location: back }), true);
-  assert.deepEqual(back.calls, [['replace', 'https://gtl.example/?app=classic#feed']]);
-  assert.equal(readAppView({ search: '?app=classic', storage: throwingStorage() }), 'classic');
 });
 
 test('the fallback note starts clear and is set once the new app fails on this page', () => {
@@ -270,24 +237,27 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   assert.doesNotMatch(read('web/src/next/play/PerGameLegacy.jsx'), /from ['"][^'"]*(NextApp|shell\/context|AppData)/, 'the compatibility wrapper never mounts or depends on the new shell');
 });
 
-test('"Try the new app" is in the Community footer for every signed-in member, not behind a role or a list (D-39)', () => {
+test('the old app\'s footer offers "Back to the new app" to every signed-in member, not behind a role (D-60)', () => {
   const home = read('web/src/CommunityHome.jsx');
   const footer = home.slice(home.indexOf('<div className="hub-bottom">'));
   assert.match(footer, /<TryNewApp disabled=\{busy\}\/>/);
   assert.ok(footer.indexOf('<TryNewApp') < footer.indexOf('onClick={onSignOut}'), 'before Sign out');
   const button = read('web/src/TryNewApp.jsx');
-  assert.match(button, /switchApp\('next'\)/);
-  assert.doesNotMatch(button, /admin|commissioner|tester|\.role\b/i, 'no gate: D-39 opens it to the whole league');
+  assert.match(button, /backToNewApp\(\)/);
+  assert.match(button, /APP_SWITCH_COPY\.backToNew/);
+  assert.doesNotMatch(button, /admin|commissioner|tester|\.role\b|VITE_GTL_OFFER_NEW_APP/i, 'no gate and no build switch');
 });
 
-test('since the first look, "Try the new app" is in every build unless VITE_GTL_OFFER_NEW_APP=0 withdraws it; every browser test build shows it', () => {
-  const button = read('web/src/TryNewApp.jsx');
-  assert.match(button, /export const NEW_APP_OFFERED = import\.meta\.env\?\.VITE_GTL_OFFER_NEW_APP !== '0';/);
-  assert.match(button, /if \(!NEW_APP_OFFERED\) return null;/);
-  for (const config of ['playwright.cloud.config.js', 'playwright.performance.config.js', 'playwright.accessibility.config.js']) {
-    assert.match(read(config), /VITE_GTL_OFFER_NEW_APP: '1'/, `${config} builds with the button`);
-  }
-  for (const file of fs.readdirSync(root).filter(name => /^\.env/.test(name))) {
-    assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8'), /VITE_GTL_OFFER_NEW_APP\s*=\s*0/, `${file} must not withdraw the button`);
+test('the new app has one everyday way into the old app: the Menu row "Older records and tools" (D-60)', () => {
+  const menu = read('web/src/next/me/MenuSheet.jsx');
+  assert.match(menu, /onClick=\{shell\.toOldApp\}>\{APP_SWITCH_COPY\.olderRecords\}/);
+  assert.doesNotMatch(read('web/src/next/league/SwitcherSheet.jsx'), /toOldApp|APP_SWITCH_COPY/, 'the league switcher no longer offers the old app');
+  // The shell (web/src/next/shell/) owns the wiring and its own failure screens; every other caller is a screen.
+  const everyday = filesUnder('web/src/next').filter(file => /toOldApp/.test(read(file)) && !file.includes('/shell/'));
+  // Failure screens (Home, Lines, a failed tab or layer, the load-failed screen) keep "Use the old app" as a way out.
+  for (const file of everyday) {
+    const text = read(file);
+    if (file.endsWith('me/MenuSheet.jsx')) continue;
+    assert.match(text, /role="alert"/, `${file} offers the old app outside a failure screen`);
   }
 });

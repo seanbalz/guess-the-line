@@ -12,6 +12,48 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-60 — everyone uses the new app; the old app retires in two steps (October 26, 2026)
+
+Sean asked to "remove the old app entirely, just use the new app". Some records and
+tools still exist only in the old app, and D-23 forbids hiding a player's data, so
+two options were put to him:
+- switch everyone now and delete the old app once its features have new homes;
+- remove it entirely now, leaving those items unreachable until their new pages ship.
+
+He chose **"two steps"**.
+
+### Step 1: everyone uses the new app now
+
+This step amends stage 80 and part of RETIRE-02.
+- **One app for everyone.** Every signed-in member opens the new app
+  (`DEFAULT_APP = 'next'`). "Try the new app" is gone. A device's old saved choice
+  (`gtl.app`) no longer counts and is forgotten. Other preferences and drafts stay.
+- **One everyday way into the old app.** Menu › **Older records and tools** opens it
+  at `?app=classic`. That address works only for that visit: nothing is saved, and
+  the old app's footer offers **Back to the new app**.
+- **Escape routes that stay:** the switcher's old-app row is removed. The failure
+  screens keep "Use the old app" as a way out. `main.jsx` still falls back to the old
+  app when the new app cannot load, and the next visit tries the new app again.
+
+### Step 2: delete the old app once nothing depends on it
+
+The old app is deleted (RETIRE-02 to RETIRE-04) once every item below has a native
+home. The checklist is in
+[the retirement plan](../planning/new-app-retirement.md#d-60-two-step-retirement-october-26-2026).
+- **Player records (stages 72–75):** full change history and closed drafts; the
+  retired Betting Challenge and old group archives, including the Week 5 freeze;
+  saved games and forecasts; the journal, read-only; real slips by week; and the
+  export.
+- **Commissioner tools (stages 77–78):** settlement and schedule status (PR #214),
+  week opening, referee assignments, final scores, and the odds connection.
+- **Draft recovery:** group-draft reconciliation and recovery on real devices
+  (RETIRE-01).
+
+### What does not change
+
+No record is deleted, moved or hidden (D-23). Rollback is to restore the previous Pages
+deployment. Step 1 changes no server, data or migration.
+
 ## D-59 — Fantasy feed bucket and machine upload (October 26, 2026)
 
 Sean wants his private fantasy toolkit (`seanbalz/fantasy-football`) usable inside GTL. On

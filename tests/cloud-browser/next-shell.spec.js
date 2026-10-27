@@ -20,7 +20,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const OLD = 'Use the old app';
+const OLD = 'Use the old app', OLDER = 'Older records and tools';
 const TABS = ['Home', 'Play', 'Bets', 'Research'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 // A tab by its label; its name may add the counter's words ("Play, 2 ballots due", stage 11).
@@ -80,7 +80,9 @@ function apiCalls(page) {
  * for its D-45 weather chips on Lines; D-57's `/fantasy/week` for the Fantasy tile and screen, and the viewer's own gated
  * `/lines/read` for Fantasy's game context): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/points/read'].includes(call));
+const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/points/read',
+  // The league feed reader (redesign stage 64): a read; until M-22 is applied it answers 503 and the old feed shows.
+  'POST /functions/v1/gtl-api/league/feed'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -255,11 +257,12 @@ test.describe('the real app', () => {
 
       expect(writes(calls), 'the menu writes nothing').toEqual([]);
 
-      // Use the old app from the menu.
+      // D-60: the menu's one way into the old app opens it at ?app=classic, saving nothing.
       await avatar.click();
-      await menu.getByRole('button', { name: OLD }).click();
+      await menu.getByRole('button', { name: OLDER }).click();
       await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-      expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('classic');
+      expect(new URL(page.url()).searchParams.get('app')).toBe('classic');
+      expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBeNull();
       // Only the NBA section's NFL/NBA selector (PR #167) uses new-app styles in the old app; the new-app frame is gone.
       await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
 
@@ -637,7 +640,8 @@ test.describe('the shell harness', () => {
     await expect(page.getByRole('button', { name: 'Break this tab' }), 'a fresh start on the way back').toBeVisible();
     await page.getByRole('button', { name: 'Break this tab' }).click();
     await page.getByRole('alert').getByRole('button', { name: OLD }).click();
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('gtl.app'))).toBe('classic');
+    // D-60: the old app opens at ?app=classic; nothing is saved.
+    await expect.poll(() => new URL(page.url()).searchParams.get('app')).toBe('classic');
     expect(errors.filter(e => !/failed on purpose/.test(e))).toEqual([]);
   });
 

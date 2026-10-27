@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { ALL } from '../migrations.mjs';
+import { ALL, without } from '../migrations.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { useOldApp } from './old-app.mjs';
 
 // Redesign build plan stage 17 (D-39 per-game lock-in, D-31 kickoff, D-23, D-36, DP-1, DP-2): the old app on the per-game gate,
 // with the real handler and the pre-M-07 migrations (including M-01) on local PGlite, and live rules read from the database
@@ -17,7 +18,8 @@ test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; neve
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 // Stage 17 verifies M-01 reveal and the original classic trends editor. M-07's replacement entry/scoring
 // surface is exercised separately in next-per-game-scoring.spec.js; keep this historical regression intact.
-const BEFORE_M07 = ALL.filter(file => file !== '20261015190710_gtl_guess_write_window.sql');
+// Without M-07, and without the later files that rebuild on its bodies (M-21's gtl_read_community): tests/migrations.mjs without().
+const BEFORE_M07 = without(ALL, '20261015190710_gtl_guess_write_window.sql');
 const WEEK6 = state => {
   state.league.season = 2026; state.league.week = 6;
   const [a, b] = state.games;
@@ -146,3 +148,6 @@ test('stage 17: the old app opens picks game by game at kickoff, shows "—" for
     expect(errors).toEqual([]);
   } finally { await db.close(); }
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

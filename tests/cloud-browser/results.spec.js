@@ -5,6 +5,7 @@ import { providerResultError } from '../../cloud/results.mjs';
 import { emptySocialRead } from './social-read-fixture.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { HOSTED, PRELUDE, migrationSql } from '../migrations.mjs';
+import { useOldApp } from './old-app.mjs';
 
 let PGlite;
 try { ({ PGlite } = await import('../../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip. */ }
@@ -163,3 +164,6 @@ test('unavailable results disable entry until a current read succeeds', async ({
 test('ordinary members never receive commissioner result controls', async ({ page, results }) => {
   results.actor = id(2); await openSettings(page); await expect(page.getByRole('heading', { name: 'League rules' })).toBeVisible(); await expect(panel(page)).toHaveCount(0); expect(writes(results)).toHaveLength(0);
 });
+
+// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
+test.beforeEach(({ page }) => useOldApp(page));

@@ -40,6 +40,156 @@ PGlite; **nothing below is applied or deployed**. Each migration waits for Sean'
   and an unknown one is refused; a missing league is refused; grants unchanged; the old reader and handler ignore the new
   kinds; a rerun is a no-op; every migration applies in order).
 
+### Reactions, append-only (M-21, stage 61)
+
+`20261026131000_gtl_feed_reactions.sql`. Medium risk, fix forward (`FIX_FORWARD`). Apply after M-13: its
+`gtl_read_community` reads `league_id`. D-39 dropped the ledger's other dependency (M-14, the tester list).
+
+- **`gtl_feed_reaction_events`**: append-only, select and insert for the service role only. Each row is one change to
+  one person's reaction on one post: a key (`thumbs_up`, `fire`, `laughing`, `grimace`, `bullseye`, `clap`) or null for
+  none. The latest event (by `seq`) is that person's one current reaction.
+- **`gtl_feed_reactions(post)`**: every current reaction. A row in the old `gtl_feed_likes` reads as a thumbs up until
+  that person's first event on the post. The like rows all stay, and their delete grant is revoked.
+- **`gtl_react_feed`** sets or takes back the caller's reaction on a post they can see now
+  (`gtl_feed_post_visible`: a Community post, a post of a league they belong to, a kickoff post from its kickoff). It
+  adds an event only when the reaction changes, and answers `{ postId, counts, total, mine, changed }`.
+- **`gtl_like_feed`** keeps its arguments and its reply `{ likes, likedByMe }`. A like adds a thumbs-up event when the
+  caller has no reaction. An unlike adds a null event; it no longer deletes.
+- **`gtl_read_community`** is M-07's body with `likes` counting current reactions and `likedByMe` true for any reaction,
+  so a fire from the new app is a heart in the old one. It also lists Community posts only (`league_id` is null), so a
+  post scoped to a private group never reaches the whole Community. It lists only the kinds the old app draws, so a page
+  of 30 stays full once later migrations write new kinds, and "Older activity" still reaches every post. Apply M-21
+  before M-22, M-23 or M-25.
+- **Route:** `POST /league/react` `{ postId, reaction: key | null }` answers `{ postId, counts, total, mine, changed }`
+  (`cloud/feed.mjs`, a new route group wired once into `cloud/handler.mjs`). It answers 400 for a bad key or a hidden
+  post, 403 for a removed or profile-less account, and 503 until M-21 is applied or while `GTL_FEATURE_OFF` names
+  `reactions`. The old `/community/like` keeps working throughout.
+- **Open question for Sean (before "apply M-21"):** with the tester list dropped, should the five non-thumbs reactions
+  open to every member once M-21 is applied (the old app shows each as a heart), or wait behind one switch until the
+  flip? As built, they open with the apply. The old heart is unchanged either way.
+- **Tests:**
+  - `tests/feed-reactions-sql.test.mjs`:
+    - one reaction per person; a replay adds nothing; a bad key is refused;
+    - an old like reads as a thumbs up and is never deleted; the old heart counts any reaction;
+    - group, future and removed-member cases;
+    - on `HOSTED`, `/league/react` answers 503 and the like is unchanged.
+  - `tests/feed-cloud.test.mjs`: body checks, the off switch, and the reply rebuilt from known keys.
+  - `tests/cloud-boundary.test.mjs`: the M-21 pieces and the route are awaiting deploy.
+
+### League feed reader and comments (M-22, stage 62)
+
+`20261026132000_gtl_league_feed.sql`. Medium risk. Apply after M-13 and M-21 (`REQUIRES` in `tests/migrations.mjs`).
+Rollback: `supabase/rollback/20261026132000_gtl_league_feed.sql` restores `gtl_comment_feed`; the added functions stay.
+Every function is service-only.
+
+- **Which posts a league's feed lists** (`gtl_feed_in_league`). The Community feed lists every Community post
+  (`league_id` null). A group's feed lists its own posts, the system posts (`week_published`, `kickoff`) and the
+  Community posts of anyone ever on its roster (D-23: a member who left keeps their posts). Reading a group needs active
+  membership (`GTL_LEAGUE_MEMBER`, 403).
+- **Per-viewer embeds** (`gtl_feed_embed`, the one place a post's details are built). No payload ever passes through raw.
+  - A ballot post's picks pass one game at a time: the actor's own, or the actor's locked-in guess on a game the viewer
+    may see (M-01's `gtl_guess_revealed`). Withheld games are named in `hiddenGames`.
+  - A shared result passes its guess and points on the same terms (D-50: other players' per-game scores follow the reveal
+    gate). A hidden one carries only its game.
+  - A kickoff post lists, per game, who is in (a locked-in guess, never its number) and how many Virtual Units bets it has
+    (D-36: bets are visible any time). A group's feed counts its roster only.
+  - A Bet Tracker post carries its entry id only; a real slip's legs stay behind M-04's gate on `/social/read`.
+  - Kinds whose writers come later (M-15, M-17, M-25) get an empty embed until those migrations replace this function.
+- **`gtl_read_league_feed`** returns one page, newest first. It pages by keyset on `(created_at, id)`, so posts at the
+  same time page correctly, and a post dated later (a kickoff post) lists from its time. Each post carries its reaction
+  summary, its newest two comments and its comment count, alongside every profile's name and, for a group, its roster.
+- **`gtl_read_post_comments`** returns a visible post's comments a page at a time (the newest page first, each page read
+  oldest first). **`gtl_read_post_reactors`** returns who reacted to a visible post, and with what.
+- **`gtl_comment_feed`** keeps its arguments and its reply. It accepts a comment only on a post visible to the member now;
+  a replay of a saved comment still answers with its id.
+- **`gtl_share_result`** posts the caller's own locked-in, eligible, scored guess for one game as a `result_shared` post,
+  to the Community or to one of their groups. There is one post per result and league, and a repeat answers the stored
+  post. A guess that is not scored yet is refused with `GTL_RESULT_UNAVAILABLE` (409).
+- **Routes** (`cloud/feed.mjs`), each rebuilt from known keys with a second gate (a number under a withheld game, or a
+  hidden result's guess or points, never passes):
+  - `POST /league/feed` `{ leagueId?, before?: { at, id }, limit? }` answers
+    `{ viewer, leagueId, now, members, roster, posts[], next }`.
+  - `/league/comments` `{ postId, before?, limit? }` answers `{ postId, total, comments, next }`.
+  - `/league/reactors` `{ postId }` answers `{ postId, reactors }`.
+  - `/league/share-result` `{ requestId, leagueId?, season, week, mode, gameId }` answers `{ postId, replayed }`.
+  - Comments are still written through `/community/comment`.
+  - Each route answers 503 until M-22 is applied, and while `GTL_FEATURE_OFF` names `feed`; the new app then shows the
+    Community feed from `/community/read`.
+- **Tests:**
+  - `tests/league-feed-sql.test.mjs`:
+    - the leak scan over every embed, comment list and reactor list, before and after the viewer locks in;
+    - group scope;
+    - paging at a shared timestamp;
+    - comments and reactors;
+    - result sharing;
+    - kickoff embeds;
+    - service-only grants;
+    - on `HOSTED`, 503 from the new routes and the old routes unchanged.
+  - `tests/feed-cloud.test.mjs` for the handler.
+  - `/league/feed` joins the leak scan's `READERS` (with `READER_MIGRATIONS` until M-22 is applied).
+
+### Kickoff posts (M-23, stage 63)
+
+`20261026133000_gtl_kickoff_posts.sql`. High risk (it writes rows), alone, fix forward (`FIX_FORWARD`). Apply after M-13,
+M-21 (the old reader keeps its pages full of kinds it draws) and M-22 (the reader draws kickoff posts and accepts comments
+from their kickoff).
+
+- **How posts are written.** An AFTER INSERT trigger on `gtl_feed_posts` for a `week_published` post (`gtl_feed_on_slate`)
+  calls `gtl_write_kickoff_posts`. It writes one `kickoff` post per distinct kickoff instant (`gtl_kickoff_slots`), dated
+  at that kickoff and by the week's publisher. The payload is `{ kickoff, games }` only. The dedupe key is
+  `kickoff:<season>:<week>:<epoch>`, so a rerun writes nothing.
+- **Publishing never fails because of it.** The trigger catches any error and writes one `gtl_access_audit` row
+  (`kickoff_posts_failed:<season>:<week>:<sqlstate>`), and the week still opens. The D-24 `gtl-week-open` job publishes
+  through the same `gtl_publish_week`, so it writes them too.
+- **One-time backfill.** The migration writes the newest published week's posts once, as its publisher (or the founding
+  league's commissioner when that week has no `week_published` post).
+- **Dry run (read only), before the apply:** `supabase/admin/kickoff_posts_dry_run.sql` lists the exact posts and whether
+  each exists. Check the post counts before and after the apply, and the next Monday `gtl_week_open_runs` row.
+- **Off switch.** None in code; the posts are rows and stay (D-23). To stop new ones, Sean may approve
+  `alter table public.gtl_feed_posts disable trigger gtl_feed_on_slate`.
+- **Tests:** `tests/kickoff-posts-sql.test.mjs` covers:
+  - one post per slot across the Nov 1 change, and a rerun that writes nothing;
+  - nothing listed or commentable before kickoff;
+  - a failing writer that leaves the publish and one audit row;
+  - the backfill matching the dry run, run once;
+  - the real `cloud/week-open.mjs` flow on PGlite.
+
+### Feed screens: posts, digest, comments and reactions (stages 64 and 65)
+
+The new app's League feed (`web/src/next/feed/`), inside Play › League. It reads `/league/feed`; until that answers (M-22
+not applied, `GTL_FEATURE_OFF=feed`, or an older `gtl-api`) the League screen shows the Community feed from
+`/community/read`, unchanged. A private group shows its own feed under its standings once the reader exists.
+
+- **Posts** (`PostCard.jsx`) lead with a face, or with the Guess The Line mark for a week-opened or kickoff post.
+  - Every old kind renders, with the Late marker on ballot posts and "Real slip" on Bet Tracker posts.
+  - A friend's ballot post opens their picks in `sh.picks` (`/community/picks`); a market still hidden is a lock row
+    with a sentence, never a number.
+  - A shared result shows its guess and points only as the server allows.
+  - A kickoff post lists each game with who is in and opens the game sheet. Its comments are the game thread.
+- **Digest** (`DigestCard.jsx`): friends' ballot posts of one Pacific day fold into one card. A post with reactions or
+  comments never folds, and "Show each post" opens every folded post in place.
+- **Comments** (`sh.comments`): oldest first, paged from `/league/comments`. Each comment is 1 to 500 characters
+  (typing stops at 500, with a counter from 450) and can't be edited or deleted. The typed text and its request id are
+  kept for the account in this tab, so a lost answer keeps the text and a retry records one comment.
+- **Reactions** (`pop.reactions`, `sh.reactors`):
+  - The row shows at most three chips, most first, with yours always in view. Tapping yours takes it back.
+  - The picker offers the six reactions; "See who reacted" lists one reaction per person.
+  - A change shows at once. A refusal puts the old reaction back with a toast, and a lost answer reads the feed again.
+- **Result sharing:** in your own picks sheet, each scored game has "Share". It posts the result to the league showing
+  (`/league/share-result`), once per game, market and league.
+- **New-posts dot** (per device): the Feed segment shows a dot when someone else posted after the newest post this
+  device showed.
+- **Tests:**
+  - `tests/next-feed.test.jsx`: folding, reaction chips, card markup and gates, Pacific kickoff slots across Nov 1, the
+    comment limit and the dot.
+  - `tests/cloud-browser/next-feed.spec.js`: every old kind; the lock row, then the picks; the kickoff thread; 500
+    characters; the digest; the fallback.
+  - `tests/cloud-browser/next-reactions.spec.js`: a reaction changes, survives a reload and counts as the old heart;
+    who reacted; sharing a result.
+  - Both specs run at 390 × 844 with the phone-layout checks and axe in Dark and Light at 390 and 320.
+  - `next-phone-layout` and `next-scroll-navigation` add `#play/league?view=feed`, with the comments sheet and the
+    reactions picker.
+
 ## Historical implementation and release notes
 
 The dated sections below preserve their original implementation state and API

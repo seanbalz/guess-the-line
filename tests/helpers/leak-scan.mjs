@@ -57,6 +57,9 @@ export const READERS = Object.freeze([
   ['/bets/recommendations', 'POST', {}],
   ['/bets/read', 'POST', {}],
   ['/community/picks', 'POST', { mode: 'guess_spread' }],
+  // Stage 62 (M-22): the league feed reader, every embed gated per viewer. Scanned on ALL in tests/league-feed-sql.test.mjs
+  // (with /league/comments and /league/reactors, which need a post id) until M-22 is hosted.
+  ['/league/feed', 'POST', {}],
   // Stage 72 (M-27): Me › History, the owner's own changes and the older records.
   ['/me/changes', 'POST', {}],
   ['/me/records', 'POST', {}],
@@ -68,6 +71,7 @@ export const READERS = Object.freeze([
  * NOT_HOSTED line (tests/lines-sql.test.mjs fails while an entry names a hosted file).
  */
 export const READER_MIGRATIONS = Object.freeze({
+  '/league/feed': '20261026132000_gtl_league_feed.sql',
   '/me/changes': '20261026230000_gtl_me_history.sql',
   '/me/records': '20261026230000_gtl_me_history.sql',
 });

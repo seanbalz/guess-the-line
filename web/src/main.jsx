@@ -15,16 +15,17 @@ import './styles.css';
 document.querySelector('link[data-gtl-fonts]')?.setAttribute('media', 'all');
 const App = lazy(() => import('./App.jsx'));
 const GameHub = lazy(() => import('./GameHub.jsx'));
-// D-38: the new app is one lazy chunk (with its own CSS). A device that never chose it never downloads it.
+// D-38: the new app is one lazy chunk (with its own CSS). D-60: it is what every signed-in member opens; the old app's
+// chunks load only on `?app=classic` ("Older records and tools") or as the fallback below.
 const NextApp = lazy(() => import('./next/NextApp.jsx'));
 
-// Redesign stage 9 (build plan section 3.2): the device's choice, read once; every switch reloads the page.
+// Read once per page load (appView.js): the new app, or the old one on `?app=classic`; moving between them loads a new page.
 const appView = cloudRequested ? startAppView() : 'classic';
 
 const Classic = props => <DeferredScreen label="your games"><GameHub {...props}/></DeferredScreen>;
 
-// The outer fallback: when the new app's chunk cannot load (or the new app fails outside its own boundaries), this
-// device forgets the choice and the old app renders in its place, unmounting the new one; the old footer says so.
+// The outer fallback: when the new app's chunk cannot load (or the new app fails outside its own boundaries), the old
+// app renders in its place on this page, unmounting the new one; the old footer says so. The next visit tries again.
 class NextAppFallback extends Component {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
@@ -35,7 +36,7 @@ class NextAppFallback extends Component {
 function NflSignedIn({ view, ...props }) {
   if (view !== 'next') return <Classic {...props}/>;
   return <NextAppFallback app={props}>
-    <Suspense fallback={<div className="loading" role="status"><LoaderCircle className="spin" aria-hidden="true"/>Loading the new app…</div>}><NextApp {...props}/></Suspense>
+    <Suspense fallback={<div className="loading" role="status"><LoaderCircle className="spin" aria-hidden="true"/>Loading your games…</div>}><NextApp {...props}/></Suspense>
   </NextAppFallback>;
 }
 
