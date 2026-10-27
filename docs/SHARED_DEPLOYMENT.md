@@ -1,6 +1,6 @@
 # Guess The Line shared production releases
 
-Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets)
+Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets) and October 27, 2026 (`league-features`)
 
 The manual **Shared production release** workflow gives a local or online agent
 the same release path: an exact GitHub commit, successful CI, Sean's production
@@ -29,7 +29,7 @@ not a claim that administrators cannot override repository settings.
 | `readiness` | Protected environment secrets, after approval | Builds and scans the frontend, reads hosted schedule and migration history, validates fresh published schedule evidence and probes signed-out boundaries. Produces the migration-history digest for review; does not deploy. |
 | `deploy` | Protected environment secrets, after approval | Repeats readiness, compares the reviewed migration digest, deploys the selected component(s), then verifies metadata, boundaries and, for targets that upload Pages, served frontend bytes. |
 
-Targets are `frontend`, `api`, `api-and-frontend`, `push-reminders`, or `points-jobs`. The combined target deploys
+Targets are `frontend`, `api`, `api-and-frontend`, `push-reminders`, `points-jobs`, or `league-features`. The combined target deploys
 only `gtl-api`, then only `.local/cloud-dist` to the existing Pages production
 project. Choose it only when that order is compatible. A reply-shape change that
 needs tolerant Pages first uses two separately approved runs, frontend then API.
@@ -42,6 +42,7 @@ There is no automatic deploy on push, pull request, merge, or schedule.
 | `api-and-frontend` | `gtl-api`, then Pages | Yes |
 | `push-reminders` | Only the `gtl-push-reminders` Edge Function (the D-28 reminder worker) | No |
 | `points-jobs` | Only the `gtl-points-jobs` Edge Function (the D-56 P-03 Guess the Points jobs worker); its first deploy creates it | No |
+| `league-features` | Only the `gtl-league-features` Edge Function (the redesign stage 70 badges, awards and streaks worker); its first deploy creates it | No |
 
 Every deploy step's condition names the targets it serves; none selects by
 exclusion, so a target reaches only its own deploy step.
@@ -80,14 +81,24 @@ release notes). Until that probe is added, the boundary checks do not call
 `gtl-points-jobs`. No `points-jobs` run had been dispatched when this target was
 added.
 
+`league-features` was added October 27, 2026 on Sean's instruction ("Add a
+league-features target to the release workflow") for the badges, awards and streaks
+worker of redesign stage 70 (`supabase/functions/gtl-league-features/index.ts`,
+`cloud/features-run.mjs`). It follows `points-jobs` exactly: the source check
+requires `[functions.gtl-league-features] verify_jwt = false` and the entry file, its
+first deploy may create the function (the preflight records
+`leagueFeaturesBefore`), and verification applies the create or the update rule.
+Running `supabase/admin/league_features_cron.sql` (the schedule row and its cron) and
+adding the worker's boundary probe stay separate steps.
+
 The workflow does not apply SQL, run `db push`, deploy collector functions,
 change cron schedules or data budgets, or flip the default app. Existing
 [Gate M](REDESIGN_BUILD_PLAN.md#42-gate-m-applying-a-migration) and
 [Gate D](REDESIGN_BUILD_PLAN.md#43-gate-d-deploys) remain binding. This shared path
 replaces the requirement to hold CLI logins on the Mac mini for the API, frontend
 and worker targets: protected API and frontend runs are verified; the
-`push-reminders` and `points-jobs` targets are covered by local tests only until
-their first runs. Existing dated release records remain historical evidence of the
+`push-reminders` and `points-jobs` targets have run (October 26); `league-features` is covered by local tests
+only until its first run. Existing dated release records remain historical evidence of the
 Mac mini releases.
 
 ## One-time configuration
@@ -195,14 +206,15 @@ observing metadata. Frontend asset equivalence is independently checked.
 
 For `frontend`, `api` and `api-and-frontend`, any Edge Function other than
 `gtl-api` that changes, appears or disappears during the run (either worker
-included) fails verification, as before. For `push-reminders` and `points-jobs`,
+included) fails verification, as before. For `push-reminders`, `points-jobs` and `league-features`,
 verification requires:
 
 - the target's worker is ACTIVE, `verify_jwt` is false, and its `ezbr_sha256`
   bundle digest is present;
-- for `push-reminders`, its version went up by exactly one; for `points-jobs`,
-  version 1 if the preflight recorded it absent (created), otherwise exactly one
-  up. A pre-deploy report without a matching `pointsJobsBefore` record is refused;
+- for `push-reminders`, its version went up by exactly one; for `points-jobs` and
+  `league-features`, version 1 if the preflight recorded it absent (created), otherwise
+  exactly one up. A pre-deploy report without the matching `pointsJobsBefore` or
+  `leagueFeaturesBefore` record is refused;
 - `gtl-api` is unchanged (version, status, JWT setting and bundle digest) and
   still ACTIVE with JWT verification, the other worker and every other function
   are unchanged, and no function was added or removed;
@@ -212,7 +224,7 @@ verification requires:
 - Pages is neither deployed nor read: the report has `pages: null`.
 
 The report adds `pushReminders` with `pushRemindersSourceVerified: false`, or
-`pointsJobs` with `pointsJobsCreated` and `pointsJobsSourceVerified: false`: as with
+`pointsJobs` or `leagueFeatures` with their `…Created` and `…SourceVerified: false`: as with
 the API, the worker's hosted bytes are not independently matched to the checkout.
 
 Artifact retention is 30
