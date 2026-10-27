@@ -184,6 +184,25 @@ predictive claim.
 Week 7 snapshot and a PROVISIONAL Week 6 review from the committed file. Nothing
 was published.
 
+## Player tools in the new app (queue Q12–Q14)
+
+Built on branch `claude/fantasy-tools` (not merged or released). Frontend only: every
+value is derived in the browser from the loaded public snapshot by
+`shared/fantasy-tools.mjs`; no API, function, migration or snapshot change.
+
+- **Profile (Q12):** an opened player card offers *Usage & production*, a sheet with
+  a per-week chart of actual fantasy points and a table of targets, carries, passing
+  attempts and receptions for each completed week; byes (schema 2 only) and weeks
+  without stats are labelled, missing metrics show "—". Season and last-3-week
+  averages show their game counts. GTL's pace estimate sits in its own section.
+- **Comparison (Q13):** 2–3 players of any position, chosen from player cards or a
+  search, side by side in one scoring format (Standard, Half PPR, PPR) and one period
+  (season, last 3 weeks, this week's estimate), with game counts.
+- **Opponent context (Q14):** in the profile, what the upcoming opponent allowed to
+  the player's position per completed game, season and last-3-game averages with
+  samples, and the all-defense average, from the snapshot's `matchups` (schema 2).
+  Descriptive only; no advantage or matchup grade. Schema 1 snapshots say so.
+
 ## Usage Tracker requirements (queue Q11–Q14)
 
 Sean asked on October 15 to bring the analysis from his Fantasy Usage Tracker
