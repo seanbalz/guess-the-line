@@ -201,7 +201,8 @@ were inspected. PR #250 merged October 27 as
 
 The next [kickoff-marker batch](RESEARCH_DESIGN_2026_10_26.md#kickoff-marker-in-market-movement--october-27)
 adds a dashed, timestamped landmark within recorded movement history, preserving
-quote selection, gaps and market gates. Source is on `codex/movement-kickoff`;
+quote selection, gaps and market gates. Source is in [PR #252](https://github.com/seanbalz/guess-the-lines-repo/pull/252)
+on `codex/movement-kickoff`;
 all 52 integrated browser tests, the focused browser test, 24 model/token tests
 and 31 component tests passed, along with typecheck, Brand QA and build/privacy
 checks. Four 320px ordinary/forced-color screenshots were inspected. CI/merge,

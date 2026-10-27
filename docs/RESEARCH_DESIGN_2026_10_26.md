@@ -267,6 +267,7 @@ quote selection, closed-market protection, 320px layout and accessibility in
 Light/Dark and both emulated forced-color themes. All four screenshots were
 inspected. Typecheck, Brand QA, fixture build and bundle privacy checks passed.
 All 52 integrated Research/Lines/Trends/League-bets browser tests passed. Source
-is on `codex/movement-kickoff`; CI/merge, hosted release/readback and physical-device
+is in [PR #252](https://github.com/seanbalz/guess-the-lines-repo/pull/252) on
+`codex/movement-kickoff`; CI/merge, hosted release/readback and physical-device
 acceptance remain open. This source-only batch changes no API, collection,
 scoring rules or migrations.
