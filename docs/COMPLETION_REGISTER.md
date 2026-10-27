@@ -252,15 +252,15 @@ Brand QA and build/privacy checks. Four 320px ordinary/forced-color screenshots
 were inspected. PR #261 merged October 27 as `95eaa18b027c5ccdafffa571ee1083540f0591e6` after all nine checks passed on `1a9add3b3024b274ef12b515a0d528868d0eb32f`, with no CI fixes or review findings.
 Release/readback and device acceptance remain open.
 
-The next [steady-tooltip batch](RESEARCH_STABLE_TOOLTIP_2026_10_27.md)
+The [steady-tooltip batch](RESEARCH_STABLE_TOOLTIP_2026_10_27.md)
 keeps line and season plots in place when tooltip labels wrap during scrubbing.
 The browser regression reproduced an 18px shift and passed after the fix;
 49 component and 26 geometry/token/brand-mark tests passed. All 57 browser cases
 are covered by the integrated run and corrected season-fixture rerun. Eight
 320px ordinary/forced-color screenshots inspected; typecheck, Brand QA and
 fixture build/privacy checks passed. Source is in [PR #262](https://github.com/seanbalz/guess-the-lines-repo/pull/262)
-on `codex/chart-stable-tooltip`;
-CI/merge, release/readback and device acceptance remain open.
+on `codex/chart-stable-tooltip`. PR #262 merged October 27 as `6799e78e90a73805f9a337953a92d90f9fb0991e` after all nine checks passed on `d77e0ecca6300dd8d5ba48a5c089677e664160e0`, with no CI fixes or review findings.
+Release/readback and device acceptance remain open.
 
 The next [Research evidence-selection batch](RESEARCH_EVIDENCE_SELECTION_2026_10_27.md)
 links historical date rows and cumulative chart points, retaining period records,
