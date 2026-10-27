@@ -53,3 +53,8 @@ CI/merge, hosted release/readback and physical iPhone Safari/Home Screen
 acceptance remain separate checkpoints. No API/schema/scoring/collection change,
 deployment, migration apply or real player write occurred in this batch.
 The frozen v62 tracker and Sean's corrected no-scroll-bug report are preserved.
+
+PR #242's action-bar prerequisite merged October 27 as
+`ec5c0358c70aee273edcfea70c6b39799a14f443` after all nine exact-head CI checks succeeded.
+No CI repair or review response was needed. This follow-up retains a separate
+CI/merge checkpoint for its own source.

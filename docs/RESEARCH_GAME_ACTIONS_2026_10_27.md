@@ -44,6 +44,14 @@ reveal/sit-out confirmation, and stage 33's remaining direct confirmation/live
 status work stay open. Existing Play remains the destination for the approved
 confirmation flows. This does not close all of stages 31, 33 or 34.
 
-CI/merge, hosted release/readback and physical iPhone Safari/Home Screen
+Hosted release/readback and physical iPhone Safari/Home Screen
 acceptance are separate pending checkpoints for this batch. No deployment or
 migration apply was performed. Sean's corrected no-scroll-bug report is retained.
+
+## Merge verified October 27, 2026
+
+[PR #242](https://github.com/seanbalz/guess-the-lines-repo/pull/242) merged as
+`ec5c0358c70aee273edcfea70c6b39799a14f443` after all nine checks succeeded on
+`b163ceaaf1ebe41802b36f79e6f3301d3d22f852`. The review and review-thread lists were empty;
+no CI fixes were needed. The next source batch supplies the dedicated
+[Your pick sheet](RESEARCH_YOUR_PICK_2026_10_27.md).

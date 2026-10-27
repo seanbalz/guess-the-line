@@ -123,10 +123,13 @@ all nine checks passed on `60d66647f5a4c4cccc749106c63cea204687a710`, with no
 review findings or CI fixes. The October 27 frontend release card includes it;
 this session has not independently verified hosted deployment or device acceptance.
 
-The next source batch adds the [game action bar](RESEARCH_GAME_ACTIONS_2026_10_27.md):
+PR #242 adds the [game action bar](RESEARCH_GAME_ACTIONS_2026_10_27.md):
 Spread and Total slots open the explicit week and focus the selected matchup in
 Play. Existing drafts, receipts and lock-in confirmations remain in the full
-ballot. Validation and publication status are recorded in that implementation record.
+ballot. [PR #242](https://github.com/seanbalz/guess-the-lines-repo/pull/242) merged
+October 27 as `ec5c0358c70aee273edcfea70c6b39799a14f443` after all nine checks passed on
+`b163ceaaf1ebe41802b36f79e6f3301d3d22f852`. No CI fixes or review findings. Hosted release
+and physical-device acceptance remain separate.
 
 The next Research batch supplies stage 31's [Your pick sheet](RESEARCH_YOUR_PICK_2026_10_27.md):
 per-market saved references, explicit pending/first-after/commissioner labels,
