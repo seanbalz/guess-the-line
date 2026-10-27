@@ -14,7 +14,7 @@ export const PERIODS = { recent30: 'Last 30 games', recent25: 'Last 25 games', s
 export const researchDate = date => date ? date.slice(0, 10) : 'Unknown';
 const readable = value => String(value ?? '').replaceAll('_', ' ');
 /** Source instants keep their exact timestamp; date-only evidence never acquires a clock time. */
-function ResearchTime({ value }) {
+export function ResearchTime({ value }) {
   if (typeof value !== 'string') return 'Time unavailable';
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const parsed = new Date(`${value}T00:00:00Z`);

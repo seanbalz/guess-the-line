@@ -119,7 +119,8 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
     const dataInfo = dialog.getByRole('button', { name: 'About research data', exact: true });
     await dataInfo.click();
     const provenance = page.getByRole('dialog', { name: 'About research data', exact: true });
-    await expect(provenance).toContainText('Snapshot: 2026-10-21T00:00:00Z');
+    await expect(provenance).toContainText('Snapshot: Tue Oct 20, 2026 · 5:00 PM PT');
+    await expect(provenance.locator('time').first()).toHaveAttribute('datetime', '2026-10-21T00:00:00Z');
     await expect(provenance).toContainText('Period anchored to');
     await expect(provenance).toContainText('Filters change this list');
     await expect(provenance).toContainText('Fixture derived historical records.');
@@ -273,7 +274,7 @@ test('compact research keeps stale-history warnings visible before opening its i
     await expect(sheet(page).getByText('Current leans may be unavailable; dated historical evidence remains descriptive.', { exact: true })).toBeVisible();
     await expect(sheet(page).getByText(/Snapshot:/)).toHaveCount(0);
     await sheet(page).getByRole('button', { name: 'About research data', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'About research data', exact: true })).toContainText('Snapshot: 2026-10-21T00:00:00Z');
+    await expect(page.getByRole('dialog', { name: 'About research data', exact: true })).toContainText('Snapshot: Tue Oct 20, 2026 · 5:00 PM PT');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
