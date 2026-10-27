@@ -22,6 +22,16 @@
 .gx-md-table { width: 100%; border-collapse: collapse; font: 500 13px/18px var(--gx-font-body); }
 .gx-md-table :where(th, td) { padding: var(--gx-space-2) var(--gx-space-1); border-bottom: 1px solid var(--gx-border); text-align: left; }
 .gx-md-table td { font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gx-md-observation-pick {
+  display: inline-flex; align-items: center; gap: var(--gx-space-1); text-align: left;
+  min-width: 44px; min-height: 44px; padding: var(--gx-space-1); border: 1px solid transparent;
+  border-radius: var(--gx-radius-xs); background: transparent; color: var(--gx-data);
+  font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.gx-md-observation-check { flex: none; visibility: hidden; }
+.gx-md-observation-pick[aria-pressed="true"] .gx-md-observation-check { visibility: visible; }
+.gx-md-table tr[data-selected="true"] { background: var(--gx-data-tint); }
+.gx-md-observation-pick:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 .gx-md-select:focus-visible, .gx-md-disclosure > summary:focus-visible, .gx-md-scrub:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 
 .gx-md-disclosure[open] > summary .gx-ic { rotate: 180deg; }
@@ -33,4 +43,6 @@
   .gx-md-cross { stroke: CanvasText; stroke-dasharray: 4 3; }
   .gx-md-kickoff { stroke: CanvasText; }
   .gx-md-kickoff-key > span { border-color: CanvasText; }
+  .gx-md-observation-pick { border-color: ButtonText; }
+  .gx-md-table tr[data-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
 }

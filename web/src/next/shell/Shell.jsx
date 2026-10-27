@@ -153,6 +153,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     };
     const restore = () => {
       if (stopped) return;
+      // A detail destination can focus itself before this animation frame runs.
+      // Preserve that explicit handoff, including its scroll position.
+      const active = document.activeElement;
+      if (!returning && main?.contains(active) && active.matches('[data-route-focus]')) { stop(); return; }
       const descriptor = returning ? saved?.focus : null;
       const origin = descriptor ? (descriptor.id && document.getElementById(descriptor.id)) || [...(main?.querySelectorAll('button,a,input,select') ?? [])].find(node => node.tagName === descriptor.tag && (descriptor.label ? node.getAttribute('aria-label') === descriptor.label : node.textContent?.trim() === descriptor.text)) : null;
       const target = origin ?? main?.querySelector('h1') ?? main;

@@ -32,5 +32,6 @@ synthetic fixture data.
 Source is in [PR #263](https://github.com/seanbalz/guess-the-lines-repo/pull/263)
 on `codex/research-evidence-selection`.
 
-CI/merge, hosted release/readback and physical-iPhone acceptance remain open.
+PR #263 merged October 27 as `6f427fb8ba00e1dc7b751a9aacb730ea4bc0f0e2` after all nine checks passed on `25b0dc5824a4050d6bea142262aabc2b2f70ebaf`, with no CI fixes or review findings.
+Hosted release/readback and physical-iPhone acceptance remain open.
 No deployment, migration apply or frozen v62 tracker changes are included.
