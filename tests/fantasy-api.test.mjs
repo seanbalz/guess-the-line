@@ -14,7 +14,7 @@ const file = snapshotFileName(2026, 6, sha(snapshotBytes));
 const index = updateFantasyIndex(null, { season: 2026, updatedAt: '2026-10-16T11:00:00Z', review: null,
   snapshot: { week: 6, file, sha256: sha(snapshotBytes), bytes: snapshotBytes.byteLength, generatedAt: '2026-10-15T19:29:56.273Z', statsThroughWeek: 5, publishedAfterFreeze: false, rosterFallbackTeams: 0 } });
 const user = { id: '00000000-0000-4000-8000-00000000000b' };
-const base = 'https://github.com/seanbalz/guess-the-lines-repo/releases/download/fantasy-data-2026/';
+const base = 'https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/';
 const serve = (files, log = []) => async url => {
   log.push(url);
   if (url.startsWith(base)) return new Response(null, { status: 302, headers: { location: `https://release-assets.githubusercontent.com/x/${url.slice(base.length)}` } });
