@@ -59,3 +59,8 @@ needs its own CI/merge, release/readback and physical-iPhone/assistive-technolog
 acceptance. The frozen v62 tracker is preserved. Remaining live-status and
 Bet/Challenge destinations remain open. No deployment, migration apply,
 collection-budget change or product-rule change.
+
+Main was integrated through `bdbd04a` (#319). Incoming changes were release,
+readback and preservation documents only; the tested application/test tree did
+not change. The completion register and queue carry the committed #312 release
+and #319 desktop readback as release-lane evidence, not a new hosted audit here.

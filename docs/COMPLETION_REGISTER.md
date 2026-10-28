@@ -48,7 +48,7 @@ establishes deployment. This task has not deployed the app or applied SQL.
 
 | Area | Implemented and released evidence | Still open |
 | --- | --- | --- |
-| Four-tab design | [PR #162 release](RELEASE_FOUR_TAB_REDESIGN.md): four roots, compact summaries, retained editors and reversible detail routes. [D-55 Round 3 release](RELEASE_2026_10_22_ROUND3.md): charts, disclosures and Home/Bets styling. | Q17 missing destinations; Q19 visual/device acceptance. Since the [October 27 release](RELEASE_2026_10_27_API_FRONTEND.md) (`gtl-api` v38, Pages `4a03e6cd`) every signed-in member opens the new app (D-60 step 1); that release retained classic at `?app=classic`. D-65 source subsequently merged in #305 October 28 removes that entry and uses Reload the app on failures; this task has not verified its hosted cutover. |
+| Four-tab design | [PR #162 release](RELEASE_FOUR_TAB_REDESIGN.md): four roots, compact summaries, retained editors and reversible detail routes. [D-55 Round 3 release](RELEASE_2026_10_22_ROUND3.md): charts, disclosures and Home/Bets styling. | Q17 missing destinations; Q19 visual/device acceptance. Since the [October 27 release](RELEASE_2026_10_27_API_FRONTEND.md) (`gtl-api` v38, Pages `4a03e6cd`) every signed-in member opens the new app (D-60 step 1); that release retained classic at `?app=classic`. D-65 merged in #305 and its [October 28 release](RELEASE_2026_10_28_NEW_APP_ONLY.md), recorded by #312, removes that entry and uses Reload the app on failures. Pages `0a4c0d25` is recorded from `91e3f51`; this task read the release record without repeating hosted verification. |
 | Mobile layout | PR #174 toolbar/spacing fixes; PR #181 focus scroll padding released as Pages `9fb54fe4`. | October 26: Sean corrected his initial reply and reports the app does not have the scroll bug. The movement symptom is user-reported resolved. Broader Q19 device acceptance remains separate. |
 | Bets | [Actual tracking](EASIER_BET_TRACKING_RELEASE.md), [recommendation handoff](RECOMMENDED_TRACKING_RELEASE.md), [Recommended filters](RELEASE_2026_10_22_TRENDS_FILTER.md), M-10 reader and PR #204 Everyone are released. | Q06 account-level placement M-11 and the remaining dedicated Virtual Units screens. Boards M-12 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md) with `/bets/board` and `/bets/season` in `gtl-api` v38; no screen reads them yet. Reader delivery does not close the full Bets plan. |
 | Scoring and comparisons | [Core scoring](CORE_SCORING_PRODUCTION_RELEASE.md): per-game lock, personal points and receipts. [Migrations release](RELEASE_2026_10_22_MIGRATIONS.md): D-53 comparisons/preferences applied and signed-in reads verified. | Q07/Q08 phone privacy, save/reload and account-isolation acceptance; Q18 operating evidence. |
@@ -189,8 +189,10 @@ history are unchanged; 380 signed-out probes denied access. This task read the
 committed release evidence and did not repeat that hosted audit. A signed-in
 desktop readback of #291 and #293 on the later `91e3f51` frontend passed October 28
 (Mac mini Chrome; see the card). Phone acceptance remains open. The on-demand team-detail and Trends
-batches have no release recorded here. D-63's trend-builder product decisions
-remain proposed; its separately recorded deployment does not settle them.
+batches are subsequently included in the [D-65 release](RELEASE_2026_10_28_NEW_APP_ONLY.md),
+which records source `91e3f51` and Pages `0a4c0d25`. D-63 and D-64 were approved
+in PR #307; no feature/label approval remains. This task read these committed
+records without repeating their hosted checks.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
