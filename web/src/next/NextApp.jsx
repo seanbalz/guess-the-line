@@ -1,5 +1,5 @@
-// The new app's root (D-38; redesign build plan section 3.1). main.jsx loads it lazily, only on a device whose
-// member chose "Try the new app" (stage 9, D-39), so the old app never downloads this chunk or its CSS.
+// The new app's root (D-38; redesign build plan section 3.1). main.jsx loads it lazily for every signed-in member;
+// it is the only app (the old app is gone).
 //
 // Stage 10: the shell frame (web/src/next/shell). Stage 11: the data layer (web/src/next/data/AppData.jsx) reads
 // `/lobby` and `/community/read` once and shares them; the app gate (shell/AppGate.jsx) shows the name step, the

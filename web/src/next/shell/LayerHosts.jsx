@@ -11,11 +11,11 @@
 // - Popover: one, over a clear scrim that closes it; Escape closes it too. Each opening is drawn afresh.
 // - Overlay: the first in the queue, never over a dialog.
 // - Page: replaces the tab's screen; Escape closes it.
-// A layer whose component throws, or whose id has none, closes and says so in a toast with "Use the old app". It closes
+// A layer whose component throws, or whose id has none, closes and says so in a toast with "Reload the app". It closes
 // itself, by its key, never whichever layer is on top: every sheet in the stack draws again on each change to the
 // shell's state, so one hidden under another can be the one that fails.
 import { useEffect, useRef } from 'react';
-import { APP_SWITCH_COPY } from '../../appView.js';
+import { APP_RELOAD_COPY } from '../../appView.js';
 import { Boundary, FailCard } from './Boundary.jsx';
 import { useShell } from './context.js';
 import { visibleOverlay } from './state.js';
@@ -31,7 +31,7 @@ function LayerSlot({ layer, layers, ...props }) {
   const Component = layers[layer.id] ?? Missing;
   const failed = () => {
     shell.closeLayer(layer.id, layer.key);
-    shell.toast(SHELL_COPY.layerFailed, { tone: 'error', actionLabel: APP_SWITCH_COPY.useOld, action: shell.toOldApp });
+    shell.toast(SHELL_COPY.layerFailed, { tone: 'error', actionLabel: APP_RELOAD_COPY.reload, action: shell.reload });
   };
   return (
     <Boundary resetKey={layer.id} onError={failed} fallback={() => null}>
@@ -100,7 +100,7 @@ export function PageHost({ page, layers }) {
   };
   return (
     <div ref={box} className="gx-vstack" tabIndex={-1} onKeyDown={onKeyDown}>
-      <Boundary resetKey={page.id} fallback={reset => <FailCard title={SHELL_COPY.pageFailed} onRetry={reset} onOldApp={shell.toOldApp}/>}>
+      <Boundary resetKey={page.id} fallback={reset => <FailCard title={SHELL_COPY.pageFailed} onRetry={reset} onReload={shell.reload}/>}>
         <Component id={page.id} args={page}/>
       </Boundary>
     </div>

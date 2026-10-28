@@ -165,7 +165,7 @@ describe('the Lines board', () => {
     const failed = render(<LinesBoard/>);
     expect(text(failed)).toContain('This week’s games didn’t load.');
     // D-55: the title's ⓘ is the one icon-only button; it is named for its topic.
-    expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Use the old app']);
+    expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Reload the app']);
   });
 
   it('design upgrade: while the week loads, skeleton game cards stand in, with the words kept as the status a screen reader hears', () => {
