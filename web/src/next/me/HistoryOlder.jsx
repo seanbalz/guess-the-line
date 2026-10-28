@@ -12,6 +12,7 @@ import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
 import { DASH, SEP, fmtFull, fmtOdds, fmtPct, fmtRecord, plural } from '../format.js';
 import { useRecordsRead } from './HistoryGuess.jsx';
 import { olderSections, challengeWeeks, forecastWords, journalChanges, journalSummary, journalWords, matchupWords, noteChanges, guessWords, selectionWords, slipWords } from './historyFormat.js';
+import { HistoryMatchup } from './HistoryMatchup.jsx';
 
 export const OLDER_COPY = Object.freeze({
   loading: 'Loading older records…',
@@ -82,7 +83,7 @@ function Challenge({ data }) {
             const game = gameOf(data, s.season, s.week, s.gameId), words = selectionWords(game, s);
             return (
               <li key={`${s.userId}:${s.gameId}`} className="gx-vstack" data-selection={`${s.userId}:${s.gameId}`}>
-                <span className="gx-t-body">{name(s.userId)}{SEP}{matchupWords(game)}{SEP}{words.pick}{SEP}{fmtOdds(s.odds)}</span>
+                <span className="gx-t-body">{name(s.userId)}{SEP}<HistoryMatchup game={game}/>{SEP}{words.pick}{SEP}{fmtOdds(s.odds)}</span>
                 <span className="gx-t-meta gx-c-2">{[words.grade, words.final, s.source, s.practice ? 'Practice' : null].filter(Boolean).join(SEP)}</span>
               </li>
             );
@@ -100,7 +101,7 @@ function Saved({ data }) {
     const game = gameOf(data, f.season, f.week, f.gameId);
     return (
       <Card as="section" key={`${f.season}:${f.week}:${f.gameId}`} className="gx-vstack gx-gap-8" aria-label={`Week ${f.week} ${matchupWords(game)}`} data-saved={f.gameId}>
-        <div className="gx-between gx-gap-8"><span className="gx-t-strong">Week {f.week}{SEP}{matchupWords(game)}</span><Pill tone={f.saved ? 'data' : 'neutral'}>{f.saved ? 'Saved' : 'Not saved'}</Pill></div>
+        <div className="gx-between gx-gap-8"><span className="gx-t-strong">Week {f.week}{SEP}<HistoryMatchup game={game}/></span><Pill tone={f.saved ? 'data' : 'neutral'}>{f.saved ? 'Saved' : 'Not saved'}</Pill></div>
         {f.note ? <p className="gx-t-body gx-history-note">{f.note}</p> : <p className="gx-t-meta gx-c-2">No note</p>}
         <p className="gx-t-meta gx-c-2">Last changed {fmtFull(f.updatedAt)}</p>
         {f.changes.length ? <details className="gx-history-more"><summary className="gx-t-body">{plural(f.changes.length, 'change')}</summary>
@@ -119,7 +120,7 @@ function Forecasts({ data }) {
         {data.forecasts.map(f => {
           const game = gameOf(data, f.season, f.week, f.gameId), words = forecastWords(game, f);
           return <Row key={`${f.season}:${f.week}:${f.gameId}:${f.market}`} size={64} data-forecast={`${f.gameId}:${f.market}`}
-            title={`Week ${f.week}${SEP}${matchupWords(game)}${SEP}${words.market}`} sub={words.history} end={<span className="gx-n-s">{words.value}</span>}/>;
+            title={<>Week {f.week}{SEP}<HistoryMatchup game={game}/>{SEP}{words.market}</>} sub={words.history} end={<span className="gx-n-s">{words.value}</span>}/>;
         })}
       </List>
     </Card>
@@ -138,7 +139,7 @@ function Journal({ data }) {
       const game = gameOf(data, entry.season, entry.week, entry.gameId), words = journalWords(game, entry);
       return (
         <Card as="section" key={entry.id} className="gx-vstack gx-gap-8" aria-label={`Journal record, Week ${entry.week} ${matchupWords(game)}`} data-journal={entry.id}>
-          <div className="gx-between gx-gap-8"><span className="gx-t-strong">Week {entry.week}{SEP}{matchupWords(game)}</span>
+          <div className="gx-between gx-gap-8"><span className="gx-t-strong">Week {entry.week}{SEP}<HistoryMatchup game={game}/></span>
             {entry.archived ? <Pill>Archived</Pill> : <Pill tone={words.tone}>{words.outcome}</Pill>}</div>
           <p className="gx-t-body">{words.kind}{SEP}{words.pick}</p>
           {words.money ? <p className="gx-t-meta gx-c-2">{words.money}</p> : null}
@@ -203,7 +204,7 @@ function Archives({ data }) {
                 {Object.keys(s.games).length ? (
                   <ul className="gx-history-plain">
                     {a.games.filter(g => s.games[g.id]).map(g => (
-                      <li key={g.id} className="gx-t-meta">{matchupWords(g)}{SEP}{guessWords('guess_spread', g, s.games[g.id].value)}
+                      <li key={g.id} className="gx-t-meta"><HistoryMatchup game={g}/>{SEP}{guessWords('guess_spread', g, s.games[g.id].value)}
                         {s.games[g.id].originalPick !== undefined ? `${SEP}your pick ${guessWords('guess_spread', g, s.games[g.id].originalPick)}${SEP}${s.games[g.id].points} pts` : ''}</li>
                     ))}
                   </ul>
@@ -226,7 +227,7 @@ function Benchmarks({ data }) {
       {b.status === 'frozen' ? <>
         <p className="gx-t-meta gx-c-2">Frozen {fmtFull(b.frozenAt)}{SEP}kickoff {fmtFull(b.actualKickoff)}</p>
         <p className="gx-t-meta gx-c-2">Captured {fmtFull(b.capturedAt)}{SEP}quoted {fmtFull(b.quotedAt)}</p>
-        {b.games ? <ul className="gx-history-plain">{slateOf(data, b.season, b.week).games.filter(g => b.games[g.id]).map(g => <li key={g.id} className="gx-t-meta">{matchupWords(g)}{SEP}{guessWords('guess_spread', g, b.games[g.id].value)}</li>)}</ul>
+        {b.games ? <ul className="gx-history-plain">{slateOf(data, b.season, b.week).games.filter(g => b.games[g.id]).map(g => <li key={g.id} className="gx-t-meta"><HistoryMatchup game={g}/>{SEP}{guessWords('guess_spread', g, b.games[g.id].value)}</li>)}</ul>
           : <p className="gx-t-meta gx-c-2">The lines show after kickoff.</p>}
         {b.sourceUrl ? <a className="gx-t-meta gx-info-link" href={b.sourceUrl} target="_blank" rel="noreferrer">Source</a> : null}
       </> : <p className="gx-t-meta gx-c-2">No benchmark was frozen for this week.</p>}

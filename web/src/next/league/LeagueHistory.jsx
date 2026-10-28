@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { communityApi, date } from '../../api.js';
 import { HistoryLine } from '../../CommunityHistory.jsx';
 import { MODE, lateText, pickText, show } from '../../communityFormat.js';
-import { Button, Card, Segmented } from '../ui/index.js';
+import { Button, Card, Matchup, Segmented } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
 import { LeagueEmpty, LeagueFailure, LeagueLoading, useLeagueRead } from './useLeagueRead.jsx';
 
@@ -36,7 +36,7 @@ export function LeagueHistory({ app }) {
           const pick = entry.picks.find(item => item.gameId === game.id), hidden = pick?.hidden === true || (entry.picksHidden && !pick), reference = hidden ? null : pick?.reference;
           const result = week.results?.[game.id];
           return <details key={game.id} className="gx-league-history-game">
-            <summary className="gx-t-body">{game.awayCode} at {game.homeCode} · {hidden ? 'Hidden' : pickText(mode, game.awayCode, game.homeCode, pick?.guess)}</summary>
+            <summary className="gx-t-body"><Matchup away={game.awayCode} home={game.homeCode}/> · {hidden ? 'Hidden' : pickText(mode, game.awayCode, game.homeCode, pick?.guess)}</summary>
             <div className="gx-vstack gx-gap-8"><p className="gx-t-meta gx-c-2">Kickoff {date(game.kickoff)} PT</p>
               <p className="gx-t-body">Guess: {hidden ? 'Hidden' : pickText(mode, game.awayCode, game.homeCode, pick?.guess)}</p>
               <div className="gx-live-workflow gx-league-reference gx-vstack gx-gap-8"><span className="gx-t-body">Line at guess</span>{hidden ? <span className="gx-t-body">Hidden</span> : <HistoryLine reference={reference} mode={mode} game={game}/>}</div>

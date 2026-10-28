@@ -10,6 +10,7 @@ import { Button, Card, LockLine, Pill, Sheet } from '../ui/index.js';
 import { fmtLate, fmtNum } from '../format.js';
 import { MARKET, gameName, guessText } from './feedModel.js';
 import { shareResult } from './feedActions.js';
+import { FeedGame } from './PostCard.jsx';
 
 const MODES = ['guess_spread', 'guess_total'];
 
@@ -52,7 +53,7 @@ export function PicksSheet({ args }) {
       const status = !row || row.status === 'not_yet' ? (own && pick !== null ? 'Draft · not locked in' : 'No pick yet') : row.status === 'sat_out' ? 'Sat out' : '';
       return <li key={game.gameId} className="gx-feed-pick">
         <div className="gx-grow gx-vstack gx-gap-2">
-          <span className="gx-t-team">{gameName(game.gameId)}</span>
+          <FeedGame gameId={game.gameId}/>
           {row?.hidden ? <LockLine>Hidden until you lock in this game or it kicks off.</LockLine>
             : <span className="gx-hstack gx-gap-8 gx-wrap">{pick !== null ? <span className="gx-n-s">{guessText(mode, game.gameId, pick)}</span> : null}{status ? <span className="gx-t-meta gx-c-2">{status}</span> : null}{late ? <Pill tone="pending">{late}</Pill> : null}</span>}
         </div>

@@ -22,10 +22,16 @@ export function kickoffText(iso) {
   return Number.isFinite(time) ? `${KICKOFF.format(new Date(time))} PT` : '—';
 }
 
-/** "PIT @ CLE" from the nflverse game key (2026_07_PIT_CLE), or the player's team alone when the key has another form. */
-export function matchupText(slot) {
+/** `{ away: "PIT", home: "CLE" }` from the nflverse game key (2026_07_PIT_CLE), for the marks (D-62); null for another form. */
+export function matchupCodes(slot) {
   const match = /^\d{4}_\d{2}_([A-Z]{2,3})_([A-Z]{2,3})$/.exec(slot?.gameKey || '');
-  return match ? `${match[1]} @ ${match[2]}` : slot?.team || '—';
+  return match ? { away: match[1], home: match[2] } : null;
+}
+
+/** "PIT @ CLE" (text-only places), or the player's team alone when the key has another form. */
+export function matchupText(slot) {
+  const codes = matchupCodes(slot);
+  return codes ? `${codes.away} @ ${codes.home}` : slot?.team || '—';
 }
 
 /** Whether the viewer can still save or lock this slot: the week is open, the game has not kicked off, it is not locked. */
@@ -166,6 +172,9 @@ export function publishProblem(error, { week, action = 'publish' } = {}) {
   return typeof error.message === 'string' && error.message.trim() ? error.message : 'The Points slate is unavailable. Try again.';
 }
 
-/** The drafted slate's rows for the commissioner's preview: slot, player, matchup and kickoff. Never the House estimate. */
+/**
+ * The drafted slate's rows for the commissioner's preview: slot, player, matchup (text, and `codes` for the marks or
+ * null) and kickoff. Never the House estimate.
+ */
 export const previewRows = slate => (Array.isArray(slate?.slots) ? slate.slots : []).filter(row => typeof row?.slot === 'string')
-  .map(row => ({ slot: row.slot, name: typeof row.name === 'string' && row.name ? row.name : '—', matchup: matchupText(row), kickoff: kickoffText(row.kickoff) }));
+  .map(row => ({ slot: row.slot, name: typeof row.name === 'string' && row.name ? row.name : '—', matchup: matchupText(row), codes: matchupCodes(row), kickoff: kickoffText(row.kickoff) }));

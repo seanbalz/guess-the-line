@@ -2,7 +2,7 @@ import { communityApi } from '../../api.js';
 import { pickText, show } from '../../communityFormat.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, Card, Segmented, TeamMark } from '../ui/index.js';
+import { Button, Card, Matchup, Segmented } from '../ui/index.js';
 import { useLeagueRead } from '../league/useLeagueRead.jsx';
 import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
 import { fmtFull } from '../format.js';
@@ -52,7 +52,7 @@ export function WeeklyScoreContent({ data, view, onChange, onRefresh, onPicks })
       <Button disabled={!filtered} onClick={() => onChange({ team: '', matchup: '' })}>Clear filters</Button>
     </div></details>
     {!week ? <PlayEmpty>No scoring record for this week. Choose another week.</PlayEmpty> : !rows.length ? <PlayEmpty>No games match both filters. Clear filters to see this week.</PlayEmpty> : rows.map(row => <details className="gx-score-detail" key={`${week.season}:${week.week}:${mode}:${row.game.id}`} open={view.scoreGame === row.game.id} onToggle={event => { if (event.newState === 'open' && view.scoreGame !== row.game.id) onChange({ scoreGame: row.game.id }); }}>
-      <summary><span className="gx-score-matchup"><TeamMark code={row.game.awayCode} size={24} decorative/><span className="gx-t-strong">{row.game.awayCode} at {row.game.homeCode}</span><TeamMark code={row.game.homeCode} size={24} decorative/></span><span className="gx-t-body">{row.points === null ? row.status : `${show(row.points)} / 10 points`}</span></summary>
+      <summary><Matchup away={row.game.awayCode} home={row.game.homeCode}/><span className="gx-t-body">{row.points === null ? row.status : `${show(row.points)} / 10 points`}</span></summary>
       <div className="gx-vstack gx-gap-8"><p className="gx-t-meta gx-c-2">Kickoff {fmtFull(row.game.kickoff)}</p><p className="gx-t-body">Your guess · {row.hidden ? 'Hidden' : pickText(mode, row.game.awayCode, row.game.homeCode, row.guess)}</p>
         {row.locked && <p className="gx-t-meta gx-c-2">Locked in {fmtFull(row.pick?.lockedAt || entry?.submittedAt)}{row.pick?.late ? ` · ${lateLabel(row.pick.late)}` : ''}</p>}
         {row.reference && <><p className="gx-t-body">Saved line · {pickText(mode, row.game.awayCode, row.game.homeCode, row.reference.value)}</p><p className="gx-t-meta gx-c-2">{row.reference.source || 'Source unavailable'}{row.reference.observedAt ? ` · ${fmtFull(row.reference.observedAt)}` : ''}</p>{number(row.reference.value) !== null && row.guess !== null && <p className="gx-t-body">Missed by {show(Math.abs(row.guess - row.reference.value))} points</p>}</>}
