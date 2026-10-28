@@ -443,7 +443,9 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   assert.deepEqual(Object.keys(features).length, 0);
   // D-62: /lines/teams is deployed since gtl-api v39 (October 28, 2026, RELEASE_2026_10_27_TEAMS.md): nothing awaits, and
   // a missing route is now an unexpected 404.
-  assert.deepEqual(awaitingDeploy, {}, 'nothing is awaiting deploy');
+  // M-19 (D-64, proposed): its two service-only RPCs await "apply M-19"; its apply record removes them (Gate M step 8).
+  const m19 = { 'rpc/gtl_social_auto_grade': 'migration 20261028120000_gtl_social_auto_settle.sql', 'rpc/gtl_settle_social_pending': 'migration 20261028120000_gtl_social_auto_settle.sql' };
+  assert.deepEqual(awaitingDeploy, m19, 'only M-19 is awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')

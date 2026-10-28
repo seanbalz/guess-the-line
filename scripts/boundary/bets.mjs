@@ -24,6 +24,9 @@ export const rpcChecks = Object.freeze([
   // D-18 save-path helper added by 20261009190000; service-only like the function that calls it.
   ['gtl_numeric_is_finite', { p_value: 1 }],
   ['gtl_settle_virtual_units', { p_season: 2026, p_week: 5, p_results: { source: 'Boundary check', games: [] } }],
+  // M-19 (D-64, proposed): automatic settlement of pending shared tickets, service-only.
+  ['gtl_social_auto_grade', { p_season: 2026, p_week: 5, p_entry: {}, p_now: null }],
+  ['gtl_settle_social_pending', { p_season: 2026, p_week: null, p_now: null, p_dry_run: true }],
   ['gtl_bets_context', { p_user: missingId, p_season: null, p_week: null, p_league: null }],
   ['gtl_read_bets', { p_user: missingId, p_season: null, p_week: null, p_league: null, p_now: null }],
   ['gtl_read_bets_market', { p_user: missingId, p_game: 'AAA-BBB', p_market: 'spread', p_season: null, p_week: null, p_now: null }],
@@ -54,4 +57,7 @@ export const workerChecks = Object.freeze([
 // M-10 and both NBA migrations are hosted and /bets/read and /nba/* are deployed since October 22, 2026 (RELEASE_2026_10_22_MIGRATIONS.md).
 // M-12 (stage 42) is hosted as 20261027164010 since October 27, 2026 and /bets/board and /bets/season ship in gtl-api v38
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_social_auto_grade': 'migration 20261028120000_gtl_social_auto_settle.sql',
+  'rpc/gtl_settle_social_pending': 'migration 20261028120000_gtl_social_auto_settle.sql',
+});
