@@ -34,4 +34,14 @@ the three bodies in the file at `583dbaa`; each carries the `06:15:00+00` anchor
 
 ## Results
 
-Pending.
+- Main CI on `45c5c5a`: Tests 40706055787, Dashboard checks 40706056342, Brand QA 40706055765, all success.
+- **Readiness** [run 40708645129](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40708645129) and
+  **frontend** [run 40708927717](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40708927717), gates approved
+  through the GitHub API as Sean's account after each title matched; verified **14:47:05 UTC on October 28**: Pages
+  **`58bd9959-8f59-4348-94e7-2d102ae568df`** (was `7cca458b`), 109 assets per URL, frontend SHA-256
+  `8adadee9f138c3693c4866ac3b944430f3b0c3223f530a547dd5dc2b5665eeca`. `gtl-api` v39 and the history `f3931211…` (64 rows)
+  unchanged. 378 signed-out probes, 378 denied, none awaiting.
+- **Live readback (this PC):** `/` loads `assets/index-i-xzZuw3.js`; `NextApp-Drn2lxBG.js` carries the Guidance entry
+  ("Tap a team’s logo on Play …", "About team records") and #289's `gx-team-view`.
+- **Not verified:** signed-in use and real phones; the team sheet layout at 320px was checked in #289's browser specs,
+  not on a phone.
