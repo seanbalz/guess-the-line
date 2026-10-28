@@ -56,6 +56,6 @@ collection, settlement or signed-in/physical-device acceptance.
 ## Remaining checkpoints
 
 Source branch: `codex/research-result-sheet`. CI/merge, release/readback and real
-iPhone acceptance remain open. PR #299's repaired paging head needs green CI and
-merge first. Live/postponed/cancelled status and a fresh result path for direct
+iPhone acceptance remain open. PR #299's repaired paging head is merged; see the
+[recorded-final merge evidence](RESEARCH_FINAL_RESULTS_2026_10_28.md). Live/postponed/cancelled status and a fresh result path for direct
 opens remain separate work. No deployment, migration apply or frozen v62 change.
