@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { HOSTED, migrationSql } from './migrations.mjs';
+import { HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
 import { seed } from '../server/store.mjs';
 import { accuracy, round } from '../server/domain.mjs';
 import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
@@ -67,7 +67,7 @@ test('the line at the guess for ballots saved without a line, D-08 eligibility i
   assert.ok(MIGRATIONS.includes(MIGRATION), 'the migration is a repo file');
   for (const earlier of ['20261012223000_gtl_community_history.sql', '20261012230000_gtl_submit_with_line_at_guess.sql']) assert.ok(MIGRATIONS.indexOf(earlier) < MIGRATIONS.indexOf(MIGRATION), `${earlier} applies first`);
   const db = new PGlite(); t.after(() => db.close());
-  await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
+  await db.exec(PRELUDE);
   const state = seed();
   const gameIds = state.games.map(g => g.id);
   const full = value => Object.fromEntries(gameIds.map(g => [g, value]));

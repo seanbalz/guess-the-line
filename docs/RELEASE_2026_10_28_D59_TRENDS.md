@@ -41,6 +41,15 @@ builder frontend ([#285](https://github.com/seanbalz/guess-the-lines-repo/pull/2
   history `8a02c480…` (63 rows) unchanged. 378 signed-out probes, 378 denied, none awaiting.
 - **D-59 pre-checks (read-only, about 13:03 UTC):** storage row level security on for `buckets` and `objects`, 0 storage
   policies, 0 buckets. The file at `0e4289a`, fetched from GitHub in the SQL editor tab: 1404 bytes, SHA-256
-  `276321763a2d2228aab41327a819795a8ef44980146383d1e9fb147d8f48cf27`, equal to the repo copy. **Not applied yet:** loading
-  it into Sean's SQL editor needs Sean's approval of that route by name.
-- **Not verified:** signed-in use and real phones.
+  `276321763a2d2228aab41327a819795a8ef44980146383d1e9fb147d8f48cf27`, equal to the repo copy. The first attempt to load it
+  into the editor was refused by the session's safety check until Sean approved the route by name.
+- **D-59 applied** on Sean's "Approved: apply D-59 (20261026220000_gtl_fantasy_feed_bucket.sql) through the Supabase SQL
+  editor in my signed-in Chrome, then deploy gtl-fantasy-ingest." The file (re-fetched and re-hashed, same SHA-256) and
+  its history insert ran as one query in that editor: "Success. No rows returned." Hosted as **`20261028131021`**,
+  `gtl_fantasy_feed_bucket`, created by `sbalsiger2@gmail.com`, one statement with md5
+  `2794c668 07a2a1f6 63709f55 0b235208` (equal to the file's). Read-only readback: `fantasy-feed` is the only bucket,
+  `public` false, `file_size_limit` 10485760, `allowed_mime_types` `{application/json}`; 0 storage policies. Hosted
+  history **64 rows, `f39312113403e9b1dadc0f0331dda441686ff8a3723d5410ac087ac43eb46ad4`**. `tests/migrations.mjs` moves
+  20261026220000 to `APPLIED`; 20261027160000 stays in `NOT_HOSTED`.
+- **Not verified:** signed-in use and real phones. The bucket is empty; the access probes wait for the first upload
+  (FANTASY_FEED_RELEASE.md step 5).
