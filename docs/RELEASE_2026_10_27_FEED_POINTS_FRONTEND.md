@@ -46,4 +46,16 @@ contains `671e3ec`.
 
 ## Results
 
-Pending.
+- **frontend, first attempt** [run 40611609450](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40611609450):
+  failed in "Read-only hosted preflight and schedule evidence" with "The operation was aborted due to timeout", before
+  any deploy step; nothing was deployed (the known preflight probe timeout).
+- **frontend** [run 40611801602](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40611801602), the same
+  inputs dispatched again, gate approved through the GitHub API as Sean's account after the title and card matched;
+  verified **00:57:00 UTC on October 28**: Pages **`48a36ee4-a4f9-48c8-a64b-b030a7d2d29a`** (was `5d400209`), 108
+  assets per URL, frontend SHA-256 `60fbf5c78730986e31e41450eecec82b4b8c94918f8f703314f58bd7aa48d787`. Hosted history:
+  `8a02c480…`; no migration applied. `gtl-api` v38 (`1647f94a…`) unchanged. 376 signed-out probes, 376 denied.
+- **Live readback (this PC, after the run):** `https://guess-the-line.pages.dev/` loads `assets/index-HFrUz8ur.js`;
+  its lazy `NextApp-BvriEw-o.js` carries #278's "awards are in", "See the awards", "hit a streak milestone" and "See
+  your streaks", and #277's "Publish now".
+- Signed-in and real-phone acceptance are not verified by this run: the feed lines were exercised only on fixture posts
+  (`tests/next-feed.test.jsx`) and Publish now on fixture replies (#277's tests).
