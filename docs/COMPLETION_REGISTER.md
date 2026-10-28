@@ -395,14 +395,12 @@ The stylesheet-retry defect was repaired before merge, with main's #294 test
 reconciliation included. Release/readback, signed-in performance and device
 acceptance remain open.
 
-The [on-demand Trends page](RESEARCH_TRENDS_LOADING_2026_10_28.md) is the next
-source batch on `codex/lazy-research-trends`: the optional screen and chart styles
+The [on-demand Trends page](RESEARCH_TRENDS_LOADING_2026_10_28.md) source batch on `codex/lazy-research-trends`: the optional screen and chart styles
 load on a visit, with scoped loading/retry and navigation retained. Home's saved
 summary remains independent. Local asset measurements reduce the initial static
 graph by 50,418 raw bytes (13,655 estimated gzip), with a 2,708-byte estimated
 gzip overhead after opening Trends. All 71 integrated browser cases, both final
-focused cases, 84
-component and 19 token/brand tests, typecheck, Brand QA and fixture privacy checks
+focused cases, 84 component and 19 token/brand tests, typecheck, Brand QA and fixture privacy checks
 passed; eight 320px loading/error screenshots were inspected. PR #298 merged as
 `34f18a69d48f4fb3544783221352ba7ef7d495ce` after all nine checks passed on
 `33b44f8173bb9f560aebf4c04cbbfde8482376b6`. Reviews and review threads were empty;
@@ -415,11 +413,11 @@ model carries kickoff only, but `marketBoard()` already adds recorded final
 scores from `/lines/read`. The [final-result presentation batch](RESEARCH_FINAL_RESULTS_2026_10_28.md)
 on `codex/research-final-results` separates Final from Kickoff passed, exposes
 result provenance and rejects incomplete/mismatched scores. All 70 integrated
-browser cases and seven final board/Trends/viewport cases passed after integrating
-main through #297, plus 116 component and
-41 model/token/brand tests, the full 466-test Vitest suite, typecheck, Brand QA
-and fixture build/privacy checks;
-four 320px theme/forced-color captures were inspected. CI/merge and release/
+browser cases passed before the Trends integration; seven final board/Trends/
+viewport cases passed after integrating main through #297. The 116 focused
+component and 41 model/token/brand tests, full 466-test Vitest suite, typecheck,
+Brand QA and fixture build/privacy checks passed; four 320px theme/forced-color
+captures were inspected. CI/merge and release/
 readback stay open. Live/postponed/cancelled status still needs a supported data
 path; the queue keeps its source/time, missing/stale and privacy exit criteria.
 These batches do not complete the whole stages.
