@@ -12,6 +12,64 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-65 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
+
+**Status: approved by Sean on October 28, 2026.** It adopts the design in
+[docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md](superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md)
+(mockups v3), including the twelve "calls I made" in its section 10. Plan 1
+([docs/superpowers/plans/2026-10-28-epl-pick-a-team.md](superpowers/plans/2026-10-28-epl-pick-a-team.md)) builds the
+foundation and Pick a Team. Research → Fantasy (EPL) and the EPL moneyline game follow as plans 2 and 3. Nothing here
+is deployed: M-30 (`20261028180000_gtl_epl_pick_a_team.sql`) is written and **not applied** until Sean says "apply M-30".
+
+1. **Who and where.** EPL is a third option on the sport switch (NFL / NBA / EPL). It keeps the four tabs (Home, Play,
+   Bets, Research). Only GTL accounts linked to one of the 8 managers of Sean's Sleeper league **FEPL** (league
+   `1395122699423993856`, `clubsoccer:epl`, season 2026), plus the commissioner, see the EPL option or read its data.
+   Bets shows nothing new for EPL. EPL games are not open to the wider community.
+2. **Linking.** Each Sleeper manager links to exactly one GTL account, and only the commissioner links or unlinks.
+   Manager map: nemoheye = Nemo, steezyc9 = Cullen, aharrison2 = Adam, seanbalz = Sean, NLGooner = Evan, LFCRed = Mark,
+   sthomas111 = Steven, Freudian = Darin. An unlinked manager still appears in standings but cannot draft or guess.
+3. **Sleeper is read only.** Nothing is ever written to Sleeper. Weekly scores are the change in each roster's saved
+   season `fpts` (with decimals) between snapshots, because Sleeper gives no matchups for this league. Opponents are
+   paired by matching a manager's `fpts_against` change to another manager's `fpts` change; an ambiguous pair shows
+   "matchup unavailable". MW1 to MW8 have season totals only. Snapshots Sean captured outside the repo
+   (`/Users/seanbalsiger/gtl-epl-snapshots/`, a SHA-256 per Sleeper response) are imported as captured. A matchweek is
+   final the Monday after its last match and is checked again Tuesday for stat corrections.
+4. **Pick a Team order.** Managers pick in ascending order of last matchweek's score plus that matchweek's Pick a Team
+   bonus. A tie goes to the lower season total. MW9 is seeded by hand: order Nemo, Cullen, Adam, Sean, Evan, Mark,
+   Steven, Darin; chat picks Man City, Aston Villa, Liverpool, Tottenham, Arsenal, Brentford, Newcastle (stored as
+   source `seeded`), Darin to pick. From MW10 the order is automatic.
+5. **Picking.** One club per manager per matchweek, on the manager's own turn. A club can be taken once. Any club with
+   a match that matchweek can be picked. A pick can be changed until the next manager picks, then it is final. The last
+   pick is final at the deadline. The board (who picked what, who is on the clock) is visible to the linked managers as
+   it happens. The next manager is notified through the existing push channel if opted in.
+6. **Deadline, queues and auto-picks.** The deadline is the matchweek's first kickoff; there is no per-turn timer. Any
+   manager may keep a private ranked queue. At the deadline the manager on the clock gets their best available queued
+   club, or no pick and 0 bonus. Each later manager without a pick gets their best available queued club, else the
+   available club with the shortest 2-way price, falling back to the shortest 3-way win price, then the higher league
+   position.
+7. **Matchweek.** Sleeper's week. A club without a match that week cannot be drafted. In a double gameweek only the
+   club's first match counts. A match moved out of the week counts as postponed.
+8. **Bonus.** Only the widest winning margin among drafted clubs scores, at `margin × 5`. Ties go to more goals scored,
+   then fewer conceded; still tied, every tied manager gets the full points. No drafted winner means nobody scores. A
+   postponed or abandoned match scores 0. The bonus counts in GTL only (standings and the next order); the commissioner
+   is shown the amounts to apply in Sleeper by hand if he wants.
+9. **EPL moneyline (plan 3).** The 8 managers guess the favorite and its 2-way "draw no bet" American price for every
+   match. The score is the distance from the real price of the club chosen, where −100 and +100 are the same point
+   (−110 to +120 = 30). The real price is the D-27 median (DraftKings, FanDuel, BetMGM) at lock-in, pending and never
+   refused. Each match locks at its kickoff and a locked guess is final (D-37/D-39). Others' guesses are hidden until you
+   lock that match or it kicks off (D-31). Its own leaderboard ranks lowest average distance per match guessed; a tie
+   goes to more matches guessed. 3-way, spreads and totals are not offered. Building it waits on a live check that
+   `draw_no_bet` returns prices from those three books.
+10. **Sources and design.** Free sources only. EPL odds share The Odds API free plan with NFL and never take remaining
+    credits below the existing reserve of 50. Crests for all 20 clubs are self-hosted at 128 px under the D-46 rule
+    with the notice "Premier League and club names, crests and marks are trademarks of their owners; used here only to
+    identify the clubs. No endorsement." Screens use the D-38/D-55 kit and tokens only.
+11. **Data rules.** The EPL tables are service-role only, with no RLS policy and no browser grant. They are reached
+    through `gtl_epl_*` functions (`security invoker`, empty `search_path`) called by `gtl-api` and the `gtl-epl-jobs`
+    worker. The off switch is the jobs schedule row (`enabled=false`); nothing is dropped. Commissioner tools:
+    `scripts/epl-seed-mw09.mjs` (MW9 seed and account links) and `scripts/epl-import-snapshots.mjs` (snapshot
+    import, read-only on the snapshot folder). Both are dry runs unless given `--apply`.
+
 ## D-64 (proposed — needs Sean) — pending shared bets settle automatically after the game's day (October 28, 2026)
 
 **Status: proposed, not approved.** Sean: "make sure that all pending bets are settled after the day that the game
