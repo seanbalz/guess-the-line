@@ -50,7 +50,7 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
       {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={title} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={title}
         selectedIndex={lineSelection.index} onSelect={lineSelection.onSelect}/>}
       <StatTiles tiles={shown.tiles}/>
-      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
+      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} contextLabel={title} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
       {typeof children === 'function' ? children({ ...lineSelection, chartId: lineChartId }) : children}
     </section>
   );

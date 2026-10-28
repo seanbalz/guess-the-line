@@ -415,3 +415,10 @@ Guidance and sources.
   original 16px gaps and existing Research styles; filters, charts and data gates
   remain the same after loading. Keep shared Research styles eager for reliable
   recovery across views. Inline game research stays a separate view.
+
+- **Season-table readability:** keep records, percentages and units at the normal
+  16px reading size at narrow widths; headers keep the meta style. Keep values
+  together and use a named, keyboard-focusable table scroll region when columns
+  exceed the available width, with the shared focus ring and native caption.
+  Scrolling preserves chart selection; year controls retain their 44px targets,
+  selected check and chart relationship. Keep the page within the viewport.
