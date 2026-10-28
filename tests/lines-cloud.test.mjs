@@ -34,8 +34,9 @@ function forgedBoard() {
   };
 }
 
-test('the routes: three POST readers, each refused before any database call when signed out, unknown or switched off', async () => {
-  assert.deepEqual(LINES_METHODS, { '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'] });
+test('the routes: four POST readers, each refused before any database call when signed out, unknown or switched off', async () => {
+  // D-62 adds /lines/teams (tests/team-season-cloud.test.mjs); `lines` switches it off with the rest of the group.
+  assert.deepEqual(LINES_METHODS, { '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'], '/lines/teams': ['POST'] });
   assert.ok(Object.isFrozen(LINES_METHODS));
   const service = { rpc: async () => assert.fail('no database call') };
   for (const user of [null, {}, { id: 'not-a-uuid' }, { ...USER, is_anonymous: true }]) {
