@@ -97,7 +97,9 @@ Sean chose two steps ([D-60](../docs/DECISIONS.md)).
 - The contracts are `tests/next-app-view.test.mjs` and `tests/cloud-browser/next-switch.spec.js`.
 - The old-app browser specs open their pages at `?app=classic` (`tests/cloud-browser/old-app.mjs`).
 
-**Step 2 (remaining):** delete the old app once each item below has a native home and is released.
+**Step 2, access (done October 28, 2026, [D-65](../docs/DECISIONS.md)):** the old app is no longer reachable: the Menu row, the failure screens' "Use the old app", `?app=classic` and the classic fallback are gone, and a reload screen replaces the fallback. The rows below without a new home are unreachable from the UI until their pages ship.
+
+**Step 2 (remaining):** give each item below a native home, close old hosted entry points (RETIRE-03) and remove leftover old-UI source (RETIRE-04).
 
 | Still only in the old app | New home | Lane |
 | --- | --- | --- |
@@ -127,7 +129,7 @@ routing from the redesign plan, not assigned workers.
 | ID | Priority | Task | State | Suggested lane / owner | Dependencies | Target |
 |---|---|---|---|---|---|---|
 | RETIRE-01 | P0 | Reconcile the active build and prove record/workflow preservation | Open — source matching done; destinations, draft recovery and preservation verification remain | A + B + C + E / TBD | Matched deployed source; full inventory; stages 28–31, 47, 72–78 | Not committed |
-| RETIRE-02 | P0 | Make the new app the only runtime and remove every classic escape path | Open — D-60 step 1 built (everyone on the new app; the old app only at `?app=classic` from Menu › Older records and tools and failure screens); removal is step 2 | A / TBD | RETIRE-01; stages 9–11, 37, 76–80; shared-shell acceptance | Not committed |
+| RETIRE-02 | P0 | Make the new app the only runtime and remove every classic escape path | Built October 28 (D-65): the new app is the only runtime; no escape path, `?app=classic` dropped, failures reload; commissioner tools still need new homes | A / TBD | RETIRE-01; stages 9–11, 37, 76–80; shared-shell acceptance | Not committed |
 | RETIRE-03 | P0 | Close old hosted entry points and verify cutover on existing devices | Open — current source/selected assets checked; one old URL responds; full inventory and cutover pending | Integration / TBD | RETIRE-01/02; release checks; actual hosting access | Not committed |
 | RETIRE-04 | P1 | Remove unused old UI code while preserving recovery evidence | Open — follows verified cutover | A / TBD | RETIRE-03; stage 81; dependency audit | Not committed |
 

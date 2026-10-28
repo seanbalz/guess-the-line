@@ -171,8 +171,7 @@ async function lukesWeek(page, baseURL, { forge = true, research, clock, optiona
 
 async function openLines(page) {
   await signIn(page, 'luke');
-  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-  await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
   await page.goto('about:blank');
   await page.goto('/#lines');
   await expect(title(page, 'Lines')).toBeVisible();

@@ -1,15 +1,11 @@
-// D-60, step 1 of retiring the old app (redesign build plan stage 80): every signed-in member gets the new app. The old
-// app opens only at `?app=classic` (Menu › "Older records and tools", the failure screens, main.jsx's fallback), for that
-// address only; nothing is saved, a device's old saved choice (`gtl.app`) is forgotten, and storage that throws changes
-// nothing. The new app is one lazy chunk that never pulls in the old app's screens, and the old app never pulls in the new one.
+// The new app is the only app (D-60 step 2, RETIRE-02, completed October 28, 2026): every signed-in member gets it, a
+// device's old saved choice (`gtl.app`) is forgotten, an old `?app=classic` bookmark is dropped from the address and opens
+// the new app, and storage that throws changes nothing. The failure screens offer "Reload the app"; nothing mounts the old UI.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  APP_PARAM, APP_STORAGE_KEY, APP_SWITCH_COPY, APP_VIEWS, DEFAULT_APP, appFellBack, backToNewApp, browserStorage, classicUrl, clearAppView,
-  forcesClassic, noteAppFallback, openOldApp, readAppView, startAppView, withoutAppParam,
-} from '../web/src/appView.js';
+import { APP_PARAM, APP_RELOAD_COPY, APP_STORAGE_KEY, browserStorage, clearAppView, reloadApp, startAppView, withoutAppParam } from '../web/src/appView.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -30,88 +26,65 @@ const throwingStorage = () => ({
   setItem() { throw new DOMException('quota', 'QuotaExceededError'); },
   removeItem() { throw new DOMException('blocked', 'SecurityError'); },
 });
-/** A location that records navigations instead of making them. */
-function fakeLocation(href) {
+/** A location and history that record calls instead of navigating. */
+function fakePage(href) {
   const calls = [];
-  return { href, calls, reload: () => calls.push(['reload']), assign: next => calls.push(['assign', next]), replace: next => calls.push(['replace', next]) };
+  return {
+    calls,
+    location: { href, reload: () => calls.push(['reload']), assign: next => calls.push(['assign', next]) },
+    history: { state: { kept: true }, replaceState: (state, title, next) => calls.push(['replaceState', state, next]) },
+  };
 }
 
-test('the new app is the default for every plain visit; the key, views and words are fixed', () => {
-  assert.equal(DEFAULT_APP, 'next');
+test('the key, parameter and words are fixed', () => {
   assert.equal(APP_STORAGE_KEY, 'gtl.app');
   assert.equal(APP_PARAM, 'app');
-  assert.deepEqual([...APP_VIEWS], ['classic', 'next']);
-  assert.equal(readAppView({ search: '' }), 'next');
-  assert.equal(startAppView({ search: '', storage: memoryStorage() }), 'next');
-  assert.equal(startAppView({ search: '', storage: null }), 'next');
-  assert.equal(APP_SWITCH_COPY.olderRecords, 'Older records and tools');
-  assert.equal(APP_SWITCH_COPY.useOld, 'Use the old app');
-  assert.equal(APP_SWITCH_COPY.backToNew, 'Back to the new app');
-  assert.equal(Object.hasOwn(APP_SWITCH_COPY, 'tryNew'), false, '"Try the new app" is gone: there is nothing to opt into');
+  assert.equal(APP_RELOAD_COPY.reload, 'Reload the app');
 });
 
-test('an old saved choice never decides the app; startAppView forgets it and leaves other keys alone', () => {
-  for (const value of ['classic', 'next', '', 'beta', 'NEXT']) {
+test('an old saved choice is forgotten on every load; other keys stay', () => {
+  for (const value of ['classic', 'next', '', 'beta']) {
     const storage = memoryStorage({ 'gtl.app': value, 'gtl.theme': 'light', 'gtl.next.draft.x': '{}' });
-    assert.equal(startAppView({ search: '', storage }), 'next', JSON.stringify(value));
+    const page = fakePage('https://gtl.example/');
+    startAppView({ ...page, storage });
     assert.equal(storage.map.has('gtl.app'), false, `${JSON.stringify(value)} is forgotten`);
     assert.equal(storage.map.get('gtl.theme'), 'light');
     assert.equal(storage.map.get('gtl.next.draft.x'), '{}');
+    assert.deepEqual(page.calls, [], 'a plain address is left alone');
   }
 });
 
-test('storage that throws never breaks the page: the new app still opens, ?app=classic still works', () => {
-  assert.equal(startAppView({ search: '', storage: throwingStorage() }), 'next');
-  assert.equal(startAppView({ search: '?app=classic', storage: throwingStorage() }), 'classic');
+test('storage that throws never breaks the page', () => {
+  assert.doesNotThrow(() => startAppView({ ...fakePage('https://gtl.example/?app=classic'), storage: throwingStorage() }));
   assert.equal(clearAppView(throwingStorage()), false);
-  // Reading window.localStorage itself can throw (blocked site data); that is no storage, not an error.
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { throw new DOMException('blocked', 'SecurityError'); } });
   try {
     assert.equal(browserStorage(), null);
-    assert.equal(startAppView({ search: '' }), 'next');
   } finally {
     if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor); else delete globalThis.localStorage;
   }
 });
 
-test('?app=classic opens the old app for that address only and saves nothing; no other value does anything', () => {
-  const storage = memoryStorage();
-  assert.equal(forcesClassic('?app=classic'), true);
-  assert.equal(forcesClassic('?league=x&app=classic'), true);
-  assert.equal(startAppView({ search: '?app=classic', storage }), 'classic');
-  assert.equal(storage.map.has('gtl.app'), false, 'nothing is saved');
-  assert.equal(startAppView({ search: '', storage }), 'next', 'the next plain visit is the new app');
-  for (const search of ['?app=next', '?app=CLASSIC', '?app=', '?apps=classic', '?app=classic2', '#app=classic']) {
-    assert.equal(forcesClassic(search), false, search);
-    assert.equal(startAppView({ search, storage: memoryStorage() }), 'next', search);
+test('an old ?app=classic bookmark is dropped in place, keeping every other parameter and the hash', () => {
+  const page = fakePage('https://gtl.example/?invite=abc&app=classic#feed');
+  startAppView({ ...page, storage: memoryStorage() });
+  assert.deepEqual(page.calls, [['replaceState', { kept: true }, 'https://gtl.example/?invite=abc#feed']]);
+  for (const href of ['https://gtl.example/?app=next', 'https://gtl.example/?app=']) {
+    const other = fakePage(href);
+    startAppView({ ...other, storage: memoryStorage() });
+    assert.equal(other.calls.length, 1, href);
   }
-});
-
-test('Older records and tools opens a new page at ?app=classic; Back to the new app drops the parameter and keeps the rest', () => {
-  const into = fakeLocation('https://gtl.example/?invite=abc#feed');
-  openOldApp({ location: into });
-  assert.deepEqual(into.calls, [['assign', 'https://gtl.example/?invite=abc&app=classic#feed']]);
-  assert.equal(readAppView({ search: new URL(into.calls[0][1]).search }), 'classic');
-
-  const back = fakeLocation('https://gtl.example/?invite=abc&app=classic#feed');
-  backToNewApp({ location: back });
-  assert.deepEqual(back.calls, [['assign', 'https://gtl.example/?invite=abc#feed']]);
-  assert.equal(readAppView({ search: new URL(back.calls[0][1]).search }), 'next');
-
-  // A fallback page has no parameter: going back reloads, and the next load tries the new app again.
-  const fallback = fakeLocation('https://gtl.example/#picks');
-  backToNewApp({ location: fallback });
-  assert.deepEqual(fallback.calls, [['reload']]);
-
+  const hashOnly = fakePage('https://gtl.example/#app=classic');
+  startAppView({ ...hashOnly, storage: memoryStorage() });
+  assert.deepEqual(hashOnly.calls, [], 'a hash is not a parameter');
   assert.equal(withoutAppParam('https://gtl.example/?app=classic'), 'https://gtl.example/');
-  assert.equal(classicUrl('https://gtl.example/?a=1#x'), 'https://gtl.example/?a=1&app=classic#x');
 });
 
-test('the fallback note starts clear and is set once the new app fails on this page', () => {
-  assert.equal(appFellBack(), false);
-  noteAppFallback();
-  assert.equal(appFellBack(), true);
+test('reloadApp reloads the same page', () => {
+  const page = fakePage('https://gtl.example/#picks');
+  reloadApp({ location: page.location });
+  assert.deepEqual(page.calls, [['reload']]);
 });
 
 // ---------- the wiring: one lazy chunk each way, the fallback boundary, the footer button ----------
@@ -155,14 +128,15 @@ function filesUnder(dir) {
   });
 }
 
-test('main.jsx loads NextApp and GameHub lazily, never both, behind the fallback boundary', () => {
+test('main.jsx loads only the new app, lazily, behind a fallback that reloads and never mounts the old app', () => {
   const main = read('web/src/main.jsx');
   assert.match(main, /const NextApp = lazy\(\(\) => import\('\.\/next\/NextApp\.jsx'\)\)/);
-  assert.match(main, /const GameHub = lazy\(\(\) => import\('\.\/GameHub\.jsx'\)\)/);
-  assert.doesNotMatch(main, /^import\s+\w+\s+from\s+'\.\/(next\/NextApp|GameHub)(\.jsx)?'/m, 'neither app is a static import of the entry');
+  assert.doesNotMatch(main, /GameHub|Classic|app=classic/, 'no old-app shell, view or address');
+  assert.equal(fs.existsSync(path.join(root, 'web/src/GameHub.jsx')), false, 'the old app shell is gone');
+  assert.equal(fs.existsSync(path.join(root, 'web/src/TryNewApp.jsx')), false, 'the switch back is gone');
+  assert.doesNotMatch(main, /^import\s+\w+\s+from\s+'\.\/next\/NextApp(\.jsx)?'/m, 'the new app is not a static import of the entry');
   assert.match(main, /startAppView\(\)/);
-  assert.match(main, /componentDidCatch\(\) \{ clearAppView\(\); noteAppFallback\(\); \}/);
-  assert.match(main, /if \(view !== 'next'\) return <Classic/);
+  assert.match(main, /reloadApp\(\)/);
 });
 
 test('the apps keep separate shells and allow only documented workflow and pick-control adapters', () => {
@@ -237,27 +211,16 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   assert.doesNotMatch(read('web/src/next/play/PerGameLegacy.jsx'), /from ['"][^'"]*(NextApp|shell\/context|AppData)/, 'the compatibility wrapper never mounts or depends on the new shell');
 });
 
-test('the old app\'s footer offers "Back to the new app" to every signed-in member, not behind a role (D-60)', () => {
-  const home = read('web/src/CommunityHome.jsx');
-  const footer = home.slice(home.indexOf('<div className="hub-bottom">'));
-  assert.match(footer, /<TryNewApp disabled=\{busy\}\/>/);
-  assert.ok(footer.indexOf('<TryNewApp') < footer.indexOf('onClick={onSignOut}'), 'before Sign out');
-  const button = read('web/src/TryNewApp.jsx');
-  assert.match(button, /backToNewApp\(\)/);
-  assert.match(button, /APP_SWITCH_COPY\.backToNew/);
-  assert.doesNotMatch(button, /admin|commissioner|tester|\.role\b|VITE_GTL_OFFER_NEW_APP/i, 'no gate and no build switch');
-});
-
-test('the new app has one everyday way into the old app: the Menu row "Older records and tools" (D-60)', () => {
+test('no screen offers the old app: failure screens reload, the Menu has no old-app row', () => {
+  assert.doesNotMatch(read('web/src/CommunityHome.jsx'), /TryNewApp|backToNewApp/);
   const menu = read('web/src/next/me/MenuSheet.jsx');
-  assert.match(menu, /onClick=\{shell\.toOldApp\}>\{APP_SWITCH_COPY\.olderRecords\}/);
-  assert.doesNotMatch(read('web/src/next/league/SwitcherSheet.jsx'), /toOldApp|APP_SWITCH_COPY/, 'the league switcher no longer offers the old app');
-  // The shell (web/src/next/shell/) owns the wiring and its own failure screens; every other caller is a screen.
-  const everyday = filesUnder('web/src/next').filter(file => /toOldApp/.test(read(file)) && !file.includes('/shell/'));
-  // Failure screens (Home, Lines, a failed tab or layer, the load-failed screen) keep "Use the old app" as a way out.
-  for (const file of everyday) {
+  assert.doesNotMatch(menu, /Older records and tools|toOldApp|APP_SWITCH_COPY/);
+  for (const file of [...filesUnder('web/src/next'), ...fs.readdirSync(path.join(root, 'web/src')).filter(name => /\.(m?js|jsx)$/.test(name)).map(name => `web/src/${name}`)]) {
     const text = read(file);
-    if (file.endsWith('me/MenuSheet.jsx')) continue;
-    assert.match(text, /role="alert"/, `${file} offers the old app outside a failure screen`);
+    assert.doesNotMatch(text, /toOldApp|openOldApp|onOldApp|APP_SWITCH_COPY|backToNewApp|forcesClassic|Use the old app/, `${file} still offers the old app`);
+  }
+  // Every "Reload the app" outside the shell's own wiring is on a failure screen.
+  for (const file of filesUnder('web/src/next').filter(file => /shell\.reload\b/.test(read(file)) && !file.includes('/shell/'))) {
+    assert.match(read(file), /role="alert"/, `${file} offers a reload outside a failure screen`);
   }
 });

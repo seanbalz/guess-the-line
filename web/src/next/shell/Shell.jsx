@@ -13,7 +13,7 @@
 // unless the address already opens one. `notice` (`{ key, text }`) shows as a toast once per key. `children` render
 // inside the frame's root, after the layers (the "sign in again" prompt).
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { openOldApp } from '../../appView.js';
+import { reloadApp } from '../../appView.js';
 import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
@@ -235,8 +235,8 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       },
       toast,
       dismissToast: key => dispatch({ type: 'dismissToast', key }),
-      // D-60: the old app holds only what has no new home yet (older records and some commissioner tools).
-      toOldApp: () => { if (confirmLeave()) { dirty.current.clear(); openOldApp(); } },
+      // The failure screens' way out: loads the page again (the old app is gone).
+      reload: () => { if (confirmLeave()) { dirty.current.clear(); reloadApp(); } },
       /** Signs out; true when it worked (AuthGate then shows sign-in), false after saying why in a toast. */
       signOut: async () => {
         if (!confirmLeave()) return false;
@@ -285,9 +285,9 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}
             {cover ? (
-              <Boundary resetKey="cover" fallback={reset => <FailCard title={SHELL_COPY.tabFailed} onRetry={reset} onOldApp={actions.toOldApp}/>}>{cover}</Boundary>
+              <Boundary resetKey="cover" fallback={reset => <FailCard title={SHELL_COPY.tabFailed} onRetry={reset} onReload={actions.reload}/>}>{cover}</Boundary>
             ) : state.page ? <PageHost page={state.page} layers={layers}/> : (
-              <Boundary resetKey={state.tab} fallback={reset => <FailCard title={SHELL_COPY.tabFailed} onRetry={reset} onOldApp={actions.toOldApp}/>}>
+              <Boundary resetKey={state.tab} fallback={reset => <FailCard title={SHELL_COPY.tabFailed} onRetry={reset} onReload={actions.reload}/>}>
                 {Screen ? <Screen tab={state.tab}/> : null}
               </Boundary>
             )}

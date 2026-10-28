@@ -68,7 +68,7 @@ const HOUR = 3_600_000;
 const NOW = Date.parse(week.games[0].kickoff) - 24 * HOUR;
 const TODAY = { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' };
 const ref = value => ({ basis: 'line_at_guess', status: 'available', value, source: 'fixture' });
-const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), toOldApp: vi.fn(), setDirty: vi.fn(), confirmLeave: vi.fn(() => true), state: { sheets: [] } };
+const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), reload: vi.fn(), setDirty: vi.fn(), confirmLeave: vi.fn(() => true), state: { sheets: [] } };
 
 /** The data hook's answer: the viewer's own week (a sent Total, Spread drafts and a forged Spread line), the Community week. */
 function data({ now = NOW, rules = TODAY } = {}) {
@@ -169,7 +169,7 @@ describe('the Lines board', () => {
     const failed = render(<LinesBoard/>);
     expect(text(failed)).toContain('This week’s games didn’t load.');
     // D-55: the title's ⓘ is the one icon-only button; it is named for its topic.
-    expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Use the old app']);
+    expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Reload the app']);
   });
 
   it('design upgrade: while the week loads, skeleton game cards stand in, with the words kept as the status a screen reader hears', () => {
