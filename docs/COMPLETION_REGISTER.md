@@ -440,8 +440,24 @@ caught lost close-focus after a board refresh recreated the card. The scoped
 return-key repair passed the focused correction/reopen case and all 94 expanded
 final shell/Research/Lines/Trends/gesture cases. Brand QA and final fixture
 build/privacy checks passed.
-CI/merge, release/readback and phone acceptance remain open for this batch;
-#299's repaired paging head is merged as recorded above.
+PR [#300](https://github.com/seanbalz/guess-the-lines-repo/pull/300) merged as
+`7dda6d758a3218f1ec9286db4ce5ca901eb33444` after all nine checks passed on
+`a1ea585719d2e2361d32a0b3eff4fceec9d2623d`. Reviews and review threads were empty;
+no CI repairs were needed. Release/readback and phone acceptance remain open.
+
+The [in-sheet result check](RESEARCH_RESULT_CHECK_2026_10_28.md),
+`codex/research-result-check`, adds an explicit check through the existing
+weekly reader. Direct started-game opens from Trends can request a final;
+opening/paging/focus adds no read. Pending clicks deduplicate, changing games
+aborts old reads, per-game observations remain scoped and errors retain their
+labelled prior observation. Both focused browser cases, four 320px checked-result
+theme captures, full Vitest (466), 59 result/navigation/model/modal/token/brand
+tests and typecheck passed. All 95 final expanded shell/Research/Lines/Trends/
+gesture browser cases, Brand QA and final fixture build/privacy checks passed.
+The existing game reader is shared with the market section so current kickoff
+eligibility works despite a stale personal-week clock, with one game request.
+CI/merge, release/readback and phone acceptance remain open; #300 is merged.
+Live/postponed/cancelled status remains separate work.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

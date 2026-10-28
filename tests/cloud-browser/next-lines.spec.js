@@ -1121,6 +1121,18 @@ test('recorded finals have their own section and result provenance while incompl
     finalHome = 14; await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await expect(card(page, 'SEA-DEN')).toContainText('Final · SEA 0–DEN 14');
     await expect(recorded).toContainText('Final · SEA 0–DEN 7');
+    const beforeCheck = resultReads.filter(call => call === 'POST /lines/read').length;
+    await recorded.getByRole('button', { name: 'Check recorded result', exact: true }).click();
+    await expect(recorded).toContainText('Final · SEA 0–DEN 14');
+    await expect(recorded).toContainText('Checked');
+    await expect(recorded.getByRole('button', { name: 'Check recorded result', exact: true })).toBeFocused();
+    expect(resultReads.filter(call => call === 'POST /lines/read')).toHaveLength(beforeCheck + 1);
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await page.emulateMedia({ colorScheme: theme, forcedColors, reducedMotion: 'reduce' });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`checked-result-${theme}-${forcedColors}.png`) });
+    }
     await page.keyboard.press('Escape'); await expect(card(page, 'SEA-DEN')).toBeFocused();
     await card(page, 'SEA-DEN').click();
     await expect(sheet(page, 'SEA @ DEN').getByRole('region', { name: 'Recorded result', exact: true })).toContainText('Final · SEA 0–DEN 14');
@@ -1132,6 +1144,62 @@ test('recorded finals have their own section and result provenance while incompl
     await expect(page.locator('.gx')).not.toContainText('Final · SEA 0–DEN 7');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+test('a direct game open checks results on demand, ignores a late reply after paging and recovers error/missing/wrong-week states', async ({ page, baseURL }) => {
+  let now = Date.now();
+  const { world } = await lukesWeek(page, baseURL, { clock: () => now });
+  let release, mode = 'hold', requests = 0;
+  const waiting = new Promise(resolve => { release = resolve; });
+  try {
+    now = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 3600000;
+    await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    await page.goto('/#trends'); await expect(title(page, 'Trends')).toBeVisible();
+    await expect(page.locator('[data-trend-availability]')).toBeVisible();
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      requests++;
+      const chosen = mode;
+      if (chosen === 'error') return route.fulfill({ status: 503, json: { error: 'Fixture result outage' } });
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      body.games.forEach(game => { game.final = chosen === 'missing' ? null : { status: 'final', away: 0, home: 0, source: chosen === 'wrong-week' ? 'WRONG WEEK RESULT' : chosen === 'hold' ? 'LATE RESULT' : 'Fixture checked final', observedAt: body.now }; });
+      if (chosen === 'wrong-week') body.week += 1;
+      if (chosen === 'hold') await waiting;
+      await route.fulfill({ status: 200, json: body }).catch(() => {});
+    });
+    const directCalls = apiCalls(page);
+    await page.getByRole('button', { name: 'Game details · SEA @ DEN', exact: true }).click();
+    const sea = sheet(page, 'SEA @ DEN'), recorded = dialog => dialog.getByRole('region', { name: 'Recorded result', exact: true });
+    await expect(recorded(sea)).toContainText('No recorded result checked yet.');
+    expect(requests).toBe(0);
+    expect(directCalls.filter(call => call === 'POST /lines/game')).toHaveLength(1);
+    const check = recorded(sea).getByRole('button', { name: 'Check recorded result', exact: true });
+    await check.click(); await expect(check).toBeDisabled(); await expect(recorded(sea).getByRole('status')).toHaveText('Checking recorded result…');
+    await check.evaluate(button => { button.click(); button.click(); }); expect(requests).toBe(1);
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    const hou = sheet(page, 'HOU @ JAX'); await expect(recorded(hou)).toContainText('No recorded result checked yet.');
+    release(); await expect(recorded(hou)).not.toContainText('LATE RESULT');
+    await hou.getByRole('button', { name: 'Previous game, SEA @ DEN', exact: true }).click();
+    await expect(recorded(sea).getByRole('button', { name: 'Check recorded result', exact: true })).toBeEnabled();
+    await expect(recorded(sea).getByRole('status')).toHaveCount(0);
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    mode = 'error'; await recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true }).click();
+    await expect(recorded(hou).getByRole('alert')).toContainText('Couldn’t check the result.');
+    mode = 'missing'; await recorded(hou).getByRole('button', { name: 'Try result again', exact: true }).click();
+    await expect(recorded(hou)).toContainText('No complete recorded final returned for this game.');
+    await expect(recorded(hou)).toContainText('Checked');
+    mode = 'wrong-week'; await recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true }).click();
+    await expect(recorded(hou).getByRole('alert')).toBeVisible(); await expect(recorded(hou)).not.toContainText('WRONG WEEK RESULT');
+    mode = 'ready'; await recorded(hou).getByRole('button', { name: 'Try result again', exact: true }).click();
+    await expect(recorded(hou)).toContainText('Final · HOU 0–JAX 0');
+    await expect(recorded(hou)).toContainText('Fixture checked final');
+    await expect(recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true })).toBeFocused();
+    await hou.getByRole('button', { name: 'Previous game, SEA @ DEN', exact: true }).click();
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    await expect(recorded(hou)).toContainText('Final · HOU 0–JAX 0'); expect(requests).toBe(5);
+    expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('Fixture checked final');
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
 });
 
 test('board refresh failures and wrong-week replies hide market values until retry succeeds', async ({ page, baseURL }) => {

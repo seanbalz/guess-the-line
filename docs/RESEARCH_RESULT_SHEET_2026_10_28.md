@@ -55,7 +55,12 @@ collection, settlement or signed-in/physical-device acceptance.
 
 ## Remaining checkpoints
 
-Source branch: `codex/research-result-sheet`. CI/merge, release/readback and real
-iPhone acceptance remain open. PR #299's repaired paging head is merged; see the
-[recorded-final merge evidence](RESEARCH_FINAL_RESULTS_2026_10_28.md). Live/postponed/cancelled status and a fresh result path for direct
-opens remain separate work. No deployment, migration apply or frozen v62 change.
+PR [#300](https://github.com/seanbalz/guess-the-lines-repo/pull/300) merged as
+`7dda6d758a3218f1ec9286db4ce5ca901eb33444` after all nine checks passed on head
+`a1ea585719d2e2361d32a0b3eff4fceec9d2623d`. Reviews and review threads were
+empty; no CI repair was needed. Source branch: `codex/research-result-sheet`.
+Release/readback and real iPhone acceptance remain open. PR #299’s repaired
+paging head is merged; see the [recorded-final merge evidence](RESEARCH_FINAL_RESULTS_2026_10_28.md).
+The next [explicit in-sheet check](RESEARCH_RESULT_CHECK_2026_10_28.md) covers
+direct opens after kickoff. Live/postponed/cancelled status remains separate
+work. No deployment, migration apply or frozen v62 change.
