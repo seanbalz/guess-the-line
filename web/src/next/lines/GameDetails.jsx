@@ -5,7 +5,7 @@ import { WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-vie
 import { useOfficials, useWind } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
 import { Card, Icon, InfoButton, List, Pill, Row, Skeleton } from '../ui/index.js';
-import { Expander, TrendList, TrendAvailability, WeatherDetail } from './parts.jsx';
+import { Expander, TrendList, TrendAvailability, TrendRefresh, WeatherDetail } from './parts.jsx';
 import { INFO } from '../info.js';
 import { GameNote } from './GameNote.jsx';
 import { MatchupResearch } from '../research/ResearchSheet.jsx';
@@ -52,7 +52,7 @@ function Missing({ text, loading = false, shape = 'rows', count = 3 }) {
 export default function GameDetails({ lines, view, result }) {
   const shell = useShell();
   const youId = useId(), trendsId = useId();
-  const { app, trendsWeek, shown } = lines;
+  const { app, trends, trendsWeek, shown } = lines;
   const markets = useGameLines(lines, view.id);
   const officials = useOfficials(shown?.season, shown?.week, true);
   const wind = useWind(shown?.season, shown?.week, true);
@@ -98,7 +98,7 @@ export default function GameDetails({ lines, view, result }) {
           <h3 className="gx-t-section gx-grow" id={trendsId}>{LINES_COPY.trends}</h3>
           <InfoButton title={INFO.trends.title} body={INFO.trends.body} links={INFO.trends.links}/>
         </div>
-        <MatchupResearch lines={lines} gameId={view.id} trends={<><TrendAvailability week={trendsWeek}/>{t.notice ? <Missing text={t.notice} loading={t.notice === LINES_COPY.trendsLoading}/>
+        <MatchupResearch lines={lines} gameId={view.id} trends={<><TrendAvailability week={trendsWeek}/><TrendRefresh read={trends}/>{t.notice ? <Missing text={t.notice} loading={t.notice === LINES_COPY.trendsLoading}/>
           : t.top.length ? <TrendList cards={t.top} rules={view.rules} label="Top trends for this game" openFirst/>
             : <Card><p className="gx-t-body gx-c-2">{t.empty}</p></Card>}</>}/>
       </section>

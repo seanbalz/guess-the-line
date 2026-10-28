@@ -5,7 +5,7 @@ import { trendAvailabilitySummary, trendAvailabilityText } from '../../trendsAva
 import { useId, useState } from 'react';
 import { lockedTrendText } from '../../../../shared/lines-view.mjs';
 import { BOARD_TIER_WORDS } from '../../../../shared/trends-view.mjs';
-import { Card, Icon, InfoButton, LockLine } from '../ui/index.js';
+import { Button, Card, Icon, InfoButton, LockLine } from '../ui/index.js';
 import { cx } from '../ui/cx.js';
 import { TrendDetail } from '../charts/TrendDetail.jsx';
 import { TrendRow } from '../charts/TrendRow.jsx';
@@ -203,4 +203,14 @@ export { LockLine };
 
 export function TrendAvailability({ week }) {
   return week ? <div className="gx-vstack gx-gap-4"><p className="gx-t-meta gx-c-2" data-trend-availability>{trendAvailabilitySummary(week)}</p><Expander title="Source details"><p className="gx-t-meta gx-c-2">{trendAvailabilityText(week)}</p></Expander></div> : null;
+}
+
+/** Retry only this view's weekly evidence read; keep the control mounted and focusable during loading. */
+export function TrendRefresh({ read }) {
+  if (typeof read?.retry !== 'function') return null;
+  const loading = read.status === 'loading';
+  return <Button variant="secondary" aria-disabled={loading || undefined} aria-busy={loading || undefined}
+    onClick={() => { if (!loading) read.retry(); }}>
+    {read.status === 'error' ? 'Retry weekly trends' : 'Refresh weekly trends'}
+  </Button>;
 }
