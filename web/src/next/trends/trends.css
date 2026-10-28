@@ -29,3 +29,16 @@
 @media (forced-colors: active) { .gx .gx-tr-positive, .gx .gx-tr-negative { fill: CanvasText; } .gx .gx-tr-zero { stroke: CanvasText; } .gx .gx-tr-zero-point { stroke: CanvasText; fill: Canvas; } }
 
 .gx .gx-tr-week-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Trend builder (proposed D-62): chosen conditions read as a list; no ranking styles. */
+.gx .gx-tb-filters { margin: 0; padding: 0; list-style: none; }
+.gx .gx-tb-filter { min-width: 0; border-left: 2px solid var(--gx-border-strong); padding-left: var(--gx-space-3); }
+.gx [data-builder="week"] ul, .gx [data-builder="saved"] { margin: 0; padding: 0; list-style: none; }
+.gx [data-builder="saved"] .gx-hstack { flex-wrap: wrap; }
+.gx .gx-tb-title { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-tb-pill { max-width: 100%; height: auto; min-height: 24px; white-space: normal; }
+.gx .gx-tb-table th, .gx .gx-tb-table td { overflow-wrap: normal; }
+.gx .gx-tb-table td { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gx .gx-tb-context { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-tb-tabs .gx-seg { flex-wrap: wrap; height: auto; min-height: var(--gx-size-touch); border-radius: var(--gx-radius-sm); }
+.gx .gx-tb-tabs .gx-seg-btn { flex: 1 1 auto; white-space: normal; }

@@ -20,6 +20,8 @@ import { HomeStreak } from '../features/HomeStreak.jsx';
 import { peekMove, rankKey, readRank } from '../league/rankMoment.js';
 import { CountUp } from './CountUp.jsx';
 import { HERO_COPY, heroHeadline } from './homeModel.js';
+import { SavedTrendsHomeRow } from '../trends/SavedTrendsSummary.jsx';
+import { useSavedTrends } from '../trends/builderData.js';
 import './home.css';
 
 const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sat out', tone: 'neutral' }, out: { word: 'Not yet', tone: 'pending' } });
@@ -159,6 +161,7 @@ export function Home() {
   const progress = useMemo(() => (data ? heroProgress({ community: data }) : []), [data]);
   const headline = useMemo(() => (hero ? heroHeadline({ hero, community: data }) : null), [hero, data]);
   const tiles = useMemo(() => (data ? homeTiles({ community: data, viewer }) : null), [data, viewer]);
+  const savedTrends = useSavedTrends();
   // The tab bar names this screen; the title stays for screen readers and the page outline.
   const head = <h1 className="gx-t-title gx-sr-only">{HOME_COPY.title}</h1>;
   if (!hero) {
@@ -198,6 +201,7 @@ export function Home() {
       <HomeAwards app={app}/>
       <FocusRows label="This week">
         <FocusRow icon="chart" title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
+        {savedTrends.items.length ? <SavedTrendsHomeRow key="saved-trends" onOpen={() => shell.go('research', { section: 'trends', trendSection: 'build', season: null, week: null })}/> : null}
       </FocusRows>
     </div>
   );

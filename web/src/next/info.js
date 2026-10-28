@@ -158,6 +158,18 @@ export const INFO = Object.freeze({
       'Older records are read-only: the retired Betting Challenge, your saved games and notes, forecasts and journal, real slips by week, the older group scoring views and the Week 5 benchmark freeze. Your saved games, notes, forecasts and journal are yours alone.',
     ],
   },
+  trendBuilder: {
+    title: 'About the trend builder',
+    body: [
+      'Found by search \u2014 not tested. You choose the conditions while looking at the results, so a built trend describes the past; it is not a test, a prediction or a betting recommendation. Situations picked from history usually do worse afterwards.',
+      'Illustrative units at -110 price every game at -110 (win +0.91, loss \u22121, push 0). They are not real prices and not a return on investment.',
+      'Built-on and held-out periods: GTL\u2019s tested presets were found on 2002\u20132017 and checked on 2018 on. You can see both periods while you build, so agreement between them is a check, not an independent test.',
+      'Games where a chosen condition is unknown (no observed weather, a roof decided on game day) are left out, never counted as a miss. Records use the nflverse schedule file\u2019s last recorded line (book not documented), for played games with both lines recorded.',
+      'This week\u2019s matches use the week\u2019s schedule. A line condition, or the favorite and underdog, opens for a game only with your own saved line once that market is open to you; until then the game says how it opens.',
+      'Saved trends stay on this device only. There are no alerts or notifications yet.',
+    ],
+    links: TRENDS_LINKS,
+  },
   export: {
     title: 'About Export my data',
     body: [
@@ -169,4 +181,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'research', 'researchData', 'marketLines', 'gameBets', 'yourPick', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'trendBuilder', 'research', 'researchData', 'marketLines', 'gameBets', 'yourPick', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);

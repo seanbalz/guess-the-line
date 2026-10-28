@@ -13,8 +13,10 @@ import { PlayerEvidence, Select } from './PlayerEvidence.jsx';
 import { useTrendsHistory } from './useTrendsHistory.js';
 import { time } from './charts.jsx';
 import '../lines/lines.css';
+import { TrendBuilder } from './TrendBuilder.jsx';
+import { SavedTrendsSummary } from './SavedTrendsSummary.jsx';
 import './trends.css';
-const sections = [{ value: 'week', label: 'This Week' },{ value: 'teams', label: 'Teams' },{ value: 'players', label: 'Players' }];
+const sections = [{ value: 'week', label: 'This Week' },{ value: 'teams', label: 'Teams' },{ value: 'players', label: 'Players' },{ value: 'build', label: 'Build' }];
 const markets = [{ value: 'spread', label: 'Spread' },{ value: 'total', label: 'Total' }];
 function WindowRecords({ card, week }) {
   // shortCard has already applied the independent game/market gate. Never inspect locked card payloads.
@@ -57,12 +59,13 @@ export function TrendsScreen() {
     <p className="gx-t-body gx-c-2">{shown ? 'Published week: ' + shown.season + ' Week ' + shown.week : 'Waiting for a published week.'} · {app.league?.name || 'Community'}</p>
     <Segmented label="Trends section" value={section} options={sections} onChange={section => onChange({ trendSection: section })}/>
     <Segmented label="Trends market" value={market} options={markets} onChange={market => onChange({ market })}/>
-    {section === 'players' ? <>{history.loading ? <p className="gx-t-body" role="status">Loading scoped player history…</p> : history.error ? <LeagueFailure error={history.error} onRetry={history.retry}/> : history.data && shown ? <PlayerEvidence history={history.data} published={shown} view={view} onChange={onChange} scopeName={app.league?.name || 'Community'}/> : <p className="gx-t-body">No published player history yet.</p>}<Button onClick={history.retry}>Refresh player history</Button></> : <>
+    {section === 'build' ? <TrendBuilder lines={data} market={market} onMarket={market => onChange({ market })}/> : section === 'players' ? <>{history.loading ? <p className="gx-t-body" role="status">Loading scoped player history…</p> : history.error ? <LeagueFailure error={history.error} onRetry={history.retry}/> : history.data && shown ? <PlayerEvidence history={history.data} published={shown} view={view} onChange={onChange} scopeName={app.league?.name || 'Community'}/> : <p className="gx-t-body">No published player history yet.</p>}<Button onClick={history.retry}>Refresh player history</Button></> : <>
       <TrendAvailability week={trendsWeek}/>
       <p className="gx-t-meta">{TRENDS_FOOTNOTE}</p>
       {trends.status === 'error' ? <Card role="alert"><p className="gx-t-body">Trends unavailable. Try again.</p><Button onClick={trends.retry}>Retry trends</Button></Card> : trends.status === 'loading' ? <p className="gx-t-body" role="status">Loading published-week trends…</p> : trends.status === 'missing' ? <p className="gx-t-body" role="status">No evidence available for this published week.</p> : null}
       <div className="gx-tr-filters gx-tr-week-filters"><Select label="Team" value={team} onChange={weekTeam => onChange({ weekTeam, matchup: '' })}><option value="">All teams</option>{teams.map(t => <option key={t}>{t}</option>)}</Select>
         <Select label="Matchup" value={matchup} onChange={matchup => onChange({ matchup })}><option value="">All matchups</option>{teamGames.map(v => <option key={v.id} value={v.id}>{v.title}</option>)}</Select></div>
+      {section === 'week' && <SavedTrendsSummary lines={data} onOpen={() => onChange({ trendSection: 'build' })}/>}
       {section === 'week' && cards.length > 0 && <section className="gx-vstack gx-gap-12" aria-label="Weekly highlights"><h2 className="gx-t-section">Weekly highlights</h2><p className="gx-t-meta">At most three, ordered by existing evidence quality. Shared situations can overlap.</p><ul className="gx-l-alist">{cards.slice(0,3).map(({card,v}) => <ShortTrend key={v.id+card.key} card={card} rules={v.rules}/>)}</ul></section>}
       <section className="gx-vstack gx-gap-16" aria-label={section === 'teams' ? 'Team history comparisons' : 'Published matchups'}>
       <h2 className="gx-t-section">{section === 'teams' ? 'Team history comparisons' : 'Published matchups'}</h2>
