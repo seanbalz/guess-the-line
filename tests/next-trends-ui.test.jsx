@@ -171,4 +171,3 @@ describe('This Week nesting cards in the published slate', () => {
   expect(html).toContain('Game details · SEA @ DEN');
  });
 });
-
