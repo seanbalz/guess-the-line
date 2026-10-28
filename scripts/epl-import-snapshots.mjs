@@ -1,4 +1,4 @@
-// D-66 / plan 2026-10-28-epl-pick-a-team.md Task 9: store the Sleeper season-total snapshots captured outside the app
+// D-67 / plan 2026-10-28-epl-pick-a-team.md Task 9: store the Sleeper season-total snapshots captured outside the app
 // (~/gtl-epl-snapshots/<YYYY-MM-DD>-<label>.json, e.g. 2026-10-28-after-mw08.json) through gtl-api's commissioner route
 // /epl/admin/snapshot, so the jobs worker can derive MW9 weekly scores and the MW10 pick order. Each file is posted as a
 // trimmed payload (trimSnapshot: users, rosters, state, the league's scoring settings, and the stats and projections of

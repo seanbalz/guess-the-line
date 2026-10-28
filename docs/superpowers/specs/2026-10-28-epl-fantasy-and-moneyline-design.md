@@ -1,7 +1,7 @@
 # Premier League in Guess The Line: Sleeper league, Pick a Team, and moneyline guessing
 
 Owner: Sean Balsiger · Drafted October 28, 2026 from the brainstorming session with Sean.
-Status: design for approval. Nothing here is built. Proposed decision number: next free D-number (drafted as D-65; recorded as D-66 because D-65 went to the new-app-only decision).
+Status: design for approval. Nothing here is built. Proposed decision number: next free D-number (drafted as D-65; recorded as D-67 because D-65 and D-66 went to the new-app-only and Research nesting decisions).
 Mockups: [epl-mockups-v3.html](2026-10-28-epl-mockups-v3.html) (approved direction: everything inside the four tabs).
 
 ## 1. Intent

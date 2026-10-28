@@ -72,5 +72,5 @@ Match mockup v3 "Research · Fantasy" and v2 "League" charts: sub-tabs Matchup �
 
 ### Task 4: Docs
 
-**Files:** Modify `docs/DECISIONS.md` (D-66 addendum: win-chance σ 18 estimate, daily snapshot), `docs/COMPLETION_REGISTER.md` (EPL Fantasy row), `planning/PLATFORM_WORK_QUEUE.md`.
+**Files:** Modify `docs/DECISIONS.md` (D-67 addendum: win-chance σ 18 estimate, daily snapshot), `docs/COMPLETION_REGISTER.md` (EPL Fantasy row), `planning/PLATFORM_WORK_QUEUE.md`.
 - [ ] Step 1: write; Step 2: `python3 scripts/check-brand-docs.py` and `npm test` pass; Step 3: commit `docs(epl): fantasy records`.

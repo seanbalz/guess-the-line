@@ -12,7 +12,7 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
-## D-66 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
+## D-67 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
 **Status: approved by Sean on October 28, 2026.** It adopts the design in
 [docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md](superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md)
@@ -71,7 +71,24 @@ is deployed: M-30 (`20261028180000_gtl_epl_pick_a_team.sql`) is written and **no
     `scripts/epl-seed-mw09.mjs` (MW9 seed and account links) and `scripts/epl-import-snapshots.mjs` (snapshot
     import, read-only on the snapshot folder). Both are dry runs unless given `--apply`.
 
-## D-64 (proposed — needs Sean) — pending shared bets settle automatically after the game's day (October 28, 2026)
+## D-66 — Research becomes nesting cards: one smaller layer per tap (October 28, 2026)
+
+Sean, October 28: "theres still way too much text across the app and not enough visuals and easy navigation and
+progression like a chinese doll that you open and get a smaller version each time", then "im referring to the research
+sections mostly". Of five options on the comparison canvas (nesting cards, mosaic zoom, orbit, story deck, unfold
+strips), he chose: "Use option 1, Nesting cards, for Research."
+- **Every Research layer does one job.** A heading, at most one meta line, then tappable units. Each unit has one
+  picture and one big number. No sentence over twelve words sits on a layer's surface.
+- **Parents stay visible as lips**, stacked tabs above the current card, each inset one step further. Tapping a lip
+  returns to that layer; back closes one layer; each layer has its own address.
+- **Honesty stays visible as tags** (sample size, tier words). Sentences, conditions, notes, the trends footnote,
+  freshness and credits move behind the layer's ⓘ and stay in Guidance (D-55 rule 10). Gates (D-31, D-36) are
+  unchanged.
+- **Rollout, one PR each:** Trends › Teams first, then Players, This Week, Explore games, Build and Fantasy. The
+  contract and the first rollout's details are in
+  [the design spec](superpowers/specs/2026-10-28-research-nesting-cards-design.md). This updates the D-38 / "One thing
+  first" layout for Research only; the four tabs and D-58's type, palette, icons and motion stay.
+
 ## D-65 — the new app is the only app; access to the old app is removed (October 28, 2026)
 
 The request on October 28: "Change the app to only show the new version. Remove access to the
