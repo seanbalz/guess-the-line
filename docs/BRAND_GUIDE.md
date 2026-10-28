@@ -385,3 +385,9 @@ Guidance and sources.
   status and prevent duplicate activation. Keep old observations labelled on
   failure; show no-complete-final separately from zero. Distinguish the server
   check time from the result's observation time and preserve scope guards.
+
+- **Game detail downloads:** keep the sheet frame, title, pager and action slots
+  available while shared static panels say Loading game details. Keep download
+  failures local with explicit retry and focus in the details group. Preserve
+  the existing 16px content gaps, themes and forced-color treatment; never draw
+  sample game data while waiting.
