@@ -13,8 +13,9 @@
 --   fixtures  05:47 and 17:47    1 Odds API credit per run, only while the week is open and before its first kickoff (about
 --                                10 credits a week). Kept clear of the NFL odds runs at 06:15 and 18:15.
 --   resolve   every 5 minutes    free: resolves the draft at the first kickoff, then no-ops (already_resolved).
---   settle    09:41 and 21:41    2 credits per scores read, bought only once every pending drafted match can have finished
---                                (about 4-8 credits a week). Every Odds API call keeps the shared 50-credit reserve.
+--   settle    09:41 and 21:41    2 credits per scores read, bought once every pending drafted match can have finished, or
+--                                earlier for a finished match within 25 hours of leaving the 3-day scores feed (about
+--                                4-8 credits a week). Every Odds API call keeps the shared 50-credit reserve.
 --   nudge     every 5 minutes    free: one push per manager turn while the draft is open.
 
 -- 1. The five schedule rows, created disabled. Replace <project-ref> with the hosted project's reference.

@@ -10,7 +10,7 @@
 //   resolve   at or after the first kickoff, the deadline resolution (shared/epl-draft.mjs resolveDeadline) for every manager
 //             without a pick; once the week is resolved a rerun writes nothing.
 //   settle    when every drafted club's match is final or postponed (settleBonus ready; a 2-credit scores read once the
-//             drafted matches can have finished), writes the bonus and opens week N+1 in pickOrder from
+//             drafted matches can have finished, or earlier for a finished one about to leave the 3-day feed), writes the bonus and opens week N+1 in pickOrder from
 //             weeklyScores(after-mw<N-1>, after-mw<N>) plus the bonus, window [window_end, window_end + 7 days).
 //   nudge     pushes the manager on the clock once per turn (key season-week-ownerId-pickCount); a manager without an
 //             active push subscription is skipped and not marked.
@@ -40,11 +40,14 @@ export const EPL_RESERVE_CREDITS = 50;
 export const ODDS_COST = 1;
 export const SCORES_COST = 2;
 export const SNAPSHOT_LEAD_MS = 30 * 60_000;
-/** A match is assumed over 150 minutes after kickoff; scores are not bought before every drafted match can be. */
+/** A match is assumed over 150 minutes after kickoff; scores are normally not bought before every drafted match can be. */
 export const RESULT_AFTER_MS = 150 * 60_000;
 /** The scores read covers the last 3 days (daysFrom=3). A pending match that kicked off longer ago than this, less an hour of
  * margin, is outside the feed, so its result can never be bought: settle fails scores_incomplete without spending credits. */
 export const SCORES_LOOKBACK_MS = 3 * 86_400_000 - 60 * 60_000;
+/** A finished drafted match whose kickoff is within this long of leaving the lookback is bought now, before the rest of the week
+ * is over (a Friday match in a Friday-to-Monday week). 25 hours covers two runs of the 12-hourly settle cron (09:41, 21:41). */
+export const SCORES_BUY_AHEAD_MS = 25 * 60 * 60_000;
 const WEEK_MS = 7 * 86_400_000;
 const CODES = new Set(['GTL_SCHEDULE_AUTH', 'GTL_SCHEDULE_RUN', 'GTL_SCHEDULE_EXPIRED', 'GTL_EPL_INVALID', 'GTL_EPL_NO_WEEK', 'GTL_EPL_NOT_RESOLVED',
   'GTL_EPL_CLUB_TAKEN', 'GTL_EPL_DRAFT_CLOSED']);
@@ -239,10 +242,16 @@ async function settleJob(ctx) {
   if (!bonus.ready) {
     const results = weekResults(fixtures), first = firstMatches(fixtures);
     const waiting = [...new Set(drafted.filter(p => results[p.club]?.status === 'pending').map(p => first.get(p.club)))];
-    // Buy scores only once every drafted match still pending can have finished, and never for a match the 3-day scores feed
-    // no longer covers (an outage or budget_guard stretch past it would otherwise buy 2 credits a run with no end).
-    if (!waiting.length || waiting.some(f => Date.parse(f.commenceTime) + RESULT_AFTER_MS > ctx.now)) stop('results_pending');
-    if (waiting.some(f => ctx.now - Date.parse(f.commenceTime) > SCORES_LOOKBACK_MS)) return { reason: 'scores_incomplete', detail: { scored: 0, outsideFeed: waiting.length } };
+    const age = f => ctx.now - Date.parse(f.commenceTime);
+    // Never buy for a match the 3-day scores feed no longer covers (an outage or budget_guard stretch past it would otherwise
+    // buy 2 credits a run with no end): its result can never come back, so the run fails without spending credits.
+    const outside = waiting.filter(f => age(f) > SCORES_LOOKBACK_MS);
+    if (outside.length) return { reason: 'scores_incomplete', detail: { scored: 0, outsideFeed: outside.length } };
+    // Buy once every pending drafted match can have finished, or earlier when a finished one is about to leave the feed
+    // (fix round 2: a Friday match would otherwise be outside the feed by the time Monday's match is over).
+    const ready = waiting.filter(f => age(f) >= RESULT_AFTER_MS);
+    const expiring = new Set(ready.filter(f => age(f) > SCORES_LOOKBACK_MS - SCORES_BUY_AHEAD_MS).map(f => f.eventId));
+    if (!ready.length || (ready.length < waiting.length && !expiring.size)) stop('results_pending');
     await reserve(ctx, SCORES_COST);
     let quota = null;
     const scores = await provider(ctx, () => ctx.sources.scores({ onQuota: q => { quota = q; } }));
@@ -255,9 +264,10 @@ async function settleJob(ctx) {
       const s = byEvent.get(f.eventId);
       if (f.status !== 'scheduled') return f;
       let next = null;
-      // A drafted match the feed no longer lists once the week is over (the provider drops a postponed or abandoned match;
-      // the lookback check above keeps it inside the feed's range) is no result: postponed, score 0 (spec 6.4).
-      if (!s) next = waitingIds.has(f.eventId) && ctx.now >= end ? { ...f, status: 'postponed' } : null;
+      // A drafted match the feed no longer lists once the week is over, or once it is about to leave the feed (the provider
+      // drops a postponed or abandoned match; the lookback check above keeps it inside the feed's range) is no result:
+      // postponed, score 0 (spec 6.4).
+      if (!s) next = waitingIds.has(f.eventId) && (ctx.now >= end || expiring.has(f.eventId)) ? { ...f, status: 'postponed' } : null;
       else if (s.completed) next = { ...f, status: 'final', homeGoals: s.homeGoals, awayGoals: s.awayGoals, commenceTime: s.commenceTime };
       else if (Date.parse(s.commenceTime) >= end) next = { ...f, status: 'postponed', commenceTime: s.commenceTime };
       if (!next) return f;

@@ -293,6 +293,77 @@ test('settle: a pending drafted match older than the 3-day scores feed fails sco
   assert.ok(!service.names().includes('gtl_epl_settle_week'));
 });
 
+/** A scores feed that reports, at its own clock, every fixture in `results` that kicked off within 3 days: completed once it is
+ * 2 hours past kickoff. The fake service applies every upserted fixture row to its state, like gtl_epl_upsert_fixtures. */
+function liveWeek({ fixtures, results, omit = [] }) {
+  let now = 0;
+  const service = fakeService({ job: 'settle', state: settled(fixtures), snapshots: SNAPS });
+  const rpc = service.rpc.bind(service);
+  service.rpc = async (name, args) => {
+    const out = await rpc(name, args);
+    if (name === 'gtl_epl_upsert_fixtures') {
+      const byId = new Map(args.p_rows.map(r => [r.event_id, r]));
+      service.state = { ...service.state, fixtures: service.state.fixtures.map(f => {
+        const r = byId.get(f.eventId);
+        return r ? { ...f, status: r.status, homeGoals: r.home_goals, awayGoals: r.away_goals, commenceTime: r.commence_time } : f;
+      }) };
+    }
+    return out;
+  };
+  const calls = [];
+  const sources = { calls, async scores({ onQuota } = {}) {
+    calls.push(['scores', new Date(now).toISOString()]);
+    onQuota?.({ remaining: service.state.budget.remaining, used: 0, last: 2 });
+    return fixtures.filter(f => !omit.includes(f.eventId) && now - Date.parse(f.commenceTime) >= 0 && now - Date.parse(f.commenceTime) <= 3 * 86_400_000)
+      .map(f => { const done = now - Date.parse(f.commenceTime) >= 2 * 3_600_000 && results[f.eventId];
+        return { eventId: f.eventId, completed: !!done, home: f.home, away: f.away, homeGoals: done ? results[f.eventId][0] : null, awayGoals: done ? results[f.eventId][1] : null, commenceTime: f.commenceTime }; });
+  } };
+  const tick = async clock => { now = Date.parse(clock); return (await run({ job: 'settle', service, sources, clock: at(clock) })).body; };
+  return { service, sources, tick };
+}
+const CRON = ['2026-10-31T09:41:00Z', '2026-10-31T21:41:00Z', '2026-11-01T09:41:00Z', '2026-11-01T21:41:00Z', '2026-11-02T09:41:00Z',
+  '2026-11-02T21:41:00Z', '2026-11-03T09:41:00Z', '2026-11-03T21:41:00Z', '2026-11-04T09:41:00Z'];
+
+test('settle: a Friday 20:00 and a Monday 20:00 drafted match settle on the 09:41/21:41 cron (fix round 2)', async () => {
+  // Nemo's MNC plays Friday 2026-10-30T20:00Z; Darin's SUN plays Monday 2026-11-02T20:00Z (e8). Every other drafted match is in.
+  // Before the fix, settle waited for Monday and by then Friday's match was outside the 3-day feed: scores_incomplete forever.
+  const fixtures = FIXTURES.map((f, i) => (i === 0 ? { ...f, commenceTime: '2026-10-30T20:00:00.000Z' } : i === 7 ? f : finalFix(f, 1, 0)));
+  const { service, sources, tick } = liveWeek({ fixtures, results: { e1: [3, 0], e8: [1, 0] } });
+  const bodies = [];
+  for (const clock of CRON) {
+    const body = await tick(clock);
+    bodies.push([clock, body.status, body.reason]);
+    if (body.status === 'succeeded') break;
+  }
+  assert.deepEqual(bodies, [
+    ['2026-10-31T09:41:00Z', 'skipped', 'results_pending'], ['2026-10-31T21:41:00Z', 'skipped', 'results_pending'],
+    ['2026-11-01T09:41:00Z', 'skipped', 'results_pending'],
+    ['2026-11-01T21:41:00Z', 'skipped', 'results_pending'], // 49.7 h after Friday's kickoff: bought, MNC 3-0 stored, SUN still to play
+    ['2026-11-02T09:41:00Z', 'skipped', 'results_pending'], ['2026-11-02T21:41:00Z', 'skipped', 'results_pending'],
+    ['2026-11-03T09:41:00Z', 'succeeded', null],
+  ]);
+  assert.deepEqual(sources.calls, [['scores', '2026-11-01T21:41:00.000Z'], ['scores', '2026-11-03T09:41:00.000Z']], 'two reads, 4 credits');
+  assert.equal(service.args('gtl_epl_reserve_credits').length, 2);
+  const upserts = service.args('gtl_epl_upsert_fixtures').map(a => a.p_rows.map(r => [r.event_id, r.status, r.home_goals, r.away_goals]));
+  assert.deepEqual(upserts, [[['e1', 'final', 3, 0]], [['e8', 'final', 1, 0]]]);
+  const [settle] = service.args('gtl_epl_settle_week');
+  assert.deepEqual(settle.p_awards, [{ owner_id: NEMO, points: 15, margin: 3, club: 'MNC' }]);
+  assert.equal(settle.p_next.week, 10);
+});
+
+test('settle: a finished match about to leave the feed but missing from it is postponed, so the week can still settle', async () => {
+  const fixtures = FIXTURES.map((f, i) => (i === 0 ? { ...f, commenceTime: '2026-10-30T20:00:00.000Z' } : i === 7 ? f : finalFix(f, 1, 0)));
+  fixtures[2] = finalFix(FIXTURES[2], 3, 0);
+  const { service, tick } = liveWeek({ fixtures, results: { e8: [1, 0] }, omit: ['e1'] });
+  assert.equal((await tick('2026-11-01T09:41:00Z')).reason, 'results_pending');
+  assert.equal(service.args('gtl_epl_reserve_credits').length, 0, 'not bought before the buy-ahead window');
+  assert.equal((await tick('2026-11-01T21:41:00Z')).reason, 'results_pending');
+  assert.deepEqual(service.args('gtl_epl_upsert_fixtures').map(a => a.p_rows.map(r => [r.event_id, r.status])), [[['e1', 'postponed']]]);
+  const done = await tick('2026-11-03T09:41:00Z');
+  assert.equal(done.status, 'succeeded');
+  assert.deepEqual(service.args('gtl_epl_settle_week')[0].p_awards, [{ owner_id: SEAN, points: 15, margin: 3, club: 'TOT' }]);
+});
+
 test('settle: every drafted result in -> bonus rows to the widest margin and the next week in pick order', async () => {
   const fixtures = FIXTURES.map(f => finalFix(f, 1, 0));
   fixtures[2] = finalFix(FIXTURES[2], 4, 1); // TOT 4-1 CHE: Sean's club, margin 3
