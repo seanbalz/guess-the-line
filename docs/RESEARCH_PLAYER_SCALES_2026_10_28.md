@@ -33,3 +33,13 @@ physical-iPhone acceptance remain open. PR #289's merge is recorded separately
 in the completion register and queue. This batch makes no deployment, migration,
 source collection or frozen v62 tracker change. Verified live-game status,
 dependent Bet/Challenge destinations and broader device acceptance remain open.
+
+
+## Merge verified October 28, 2026
+
+[PR #291](https://github.com/seanbalz/guess-the-lines-repo/pull/291) merged as
+`437766277102ef6488696fc623107937138dba1f` after all nine checks passed on
+`e0d0f71ae471bf7d81d61ec41342d35a741cb4ca`. Reviews and review threads were empty;
+no CI repair was needed. Release/readback and physical-iPhone acceptance remain
+open. The next source batch keeps enlarged team-chart readouts from moving
+the plot and slider.

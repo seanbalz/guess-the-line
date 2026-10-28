@@ -22,10 +22,12 @@ The browser regression failed before the fix with plot/slider offsets differing
 by 40px, then passed afterward. It doubles the readout font/leading while keeping
 the layout at 390/320px, tests both keyboard endpoints in Light/Dark and forced
 colors, checks focus and overflow, and captures four enlarged-text views.
-The existing linked result/chart case also passed. 59 team/Research/chart
-component tests, 19 token/brand tests and typecheck passed. Four enlarged-text
-320px screenshots were inspected. Final integrated checks are recorded at
-publication.
+The existing linked result/chart case also passed. After integrating #291, all
+67 Lines/Research/Trends/gesture browser cases and 83 team/Research/Trends/chart
+component tests passed, along with 19 token/brand tests and typecheck. Four
+enlarged-text 320px screenshots were inspected. Brand QA, fixture bundle privacy
+and whitespace checks passed. These are local fixture/emulation results;
+physical-device acceptance remains separate.
 
 ## Remaining checkpoints
 
