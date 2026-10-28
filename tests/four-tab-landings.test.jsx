@@ -15,7 +15,7 @@ const { ScoreSummaryRow } = await import('../web/src/next/home/HomeSummaries.jsx
 
 function render(Screen, patch = {}) {
   state.app = { accountId: 'fixture', community: { status: 'ready', data: { week: { season: 2026, week: 6, games: [] }, picksDue: { state: 'due', week: 6, modes: [{ mode: 'guess_total' }] }, due: [{ mode: 'guess_spread', submitted: true }, { mode: 'guess_total', filled: 0, games: 2 }] } }, league: { name: 'Community', community: true }, refresh: vi.fn(), requestSignIn: vi.fn(), ...patch };
-  const shell = { state: { views: { play: {}, bets: {}, research: {} } }, go: vi.fn(), tab: vi.fn(), setView: vi.fn(), toOldApp: vi.fn(), league: state.app.league };
+  const shell = { state: { views: { play: {}, bets: {}, research: {} } }, go: vi.fn(), tab: vi.fn(), setView: vi.fn(), reload: vi.fn(), league: state.app.league };
   return renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx"><Screen/></div></ShellContext.Provider>);
 }
 

@@ -40,8 +40,7 @@ async function ready(page,baseURL,{ stale = false, chartValues = false, landing 
  expect(read.status).toBe(200);
  expect(read.body.weeks.find(w => w.week===5).entries.find(e => e.userId === ACCOUNTS.luke.id).picks[0].points).not.toBeNull();
  await signIn(page,'luke');
- await expect(page.getByRole('heading',{ name:'Community',exact:true })).toBeVisible();
- await page.evaluate(() => localStorage.setItem('gtl.app','next'));
+ await expect(page.getByRole('navigation',{ name:'Main',exact:true })).toBeVisible();
  await page.goto('about:blank'); await page.goto(landing ? '/#research' : '/#trends');
  await expect(page.getByRole('heading',{ name:landing ? 'Research' : 'Trends',level:1 })).toBeVisible();
  if (!landing) await expect(page.locator('[data-trend-availability]')).toBeVisible();
@@ -227,6 +226,8 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await page.getByRole('combobox',{name:'Matchup',exact:true}).selectOption('CAR-PHI');
   await page.getByRole('button',{name:'Game details · CAR @ PHI',exact:true}).click();
   const sheet=page.getByRole('dialog',{name:'CAR @ PHI',exact:true}); await expect(sheet).toBeVisible();
+  await expect(sheet.locator('[data-row=weather]')).toBeVisible();
+  await expect(sheet.locator('[data-section=trends]')).toBeVisible();
   const order=await sheet.evaluate(e=>{const w=e.querySelector('[data-row=weather]'),t=e.querySelector('[data-section=trends]');return Boolean(w.compareDocumentPosition(t)&Node.DOCUMENT_POSITION_FOLLOWING);});expect(order).toBe(true);
   await expect(sheet.locator('[data-trend-availability]')).toBeVisible();
   await sheet.getByRole('button',{name:/^All trends/}).click();

@@ -1,10 +1,9 @@
-// `sh.menu`, your avatar's menu (prototype spec 3.7; redesign build plan stage 10): Appearance, Use the old app and
+// `sh.menu`, your avatar's menu (prototype spec 3.7; redesign build plan stage 10): Appearance and
 // Sign out. Profile, History, How to play and Settings join it in the Me stages. Appearance opens in place as a
 // sub-view ("‹ Menu"), with Dark, Light or System and Reduce motion. Both are kept on this device under the old app's
 // own keys (`gtl.theme`, and the motion choice in `gtl.dashboard.preferences.v1`), so the two apps always agree.
 import { lazy, Suspense, useState } from 'react';
 import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch } from '../ui/index.js';
-import { APP_SWITCH_COPY } from '../../appView.js';
 import { useThemePreference } from '../../Theme.jsx';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { useShell } from '../shell/context.js';
@@ -109,8 +108,6 @@ export function MenuSheet({ args }) {
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
           <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
-          {/* D-60: the one everyday way into the old app, until older records and tools have new homes. */}
-          <LinkRow key="old" icon="swap" onClick={shell.toOldApp}>{APP_SWITCH_COPY.olderRecords}</LinkRow>
         </List>
       </Card>
       <Button variant="ghost-2" icon="logOut" className="gx-menu-signout" onClick={signOut} aria-disabled={busy || undefined}>

@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readBack, READBACK_WAITS_MS } from '../scripts/fantasy-publish.mjs';
 
-const base = 'https://github.com/seanbalz/guess-the-lines-repo/releases/download/fantasy-data-2026';
+const base = 'https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026';
 const local = { 'index.json': Buffer.from('{"v":2}'), 'a.json': Buffer.from('aaa'), 'b.json': Buffer.from('bbb') };
 const names = Object.keys(local);
 const total = READBACK_WAITS_MS.reduce((sum, ms) => sum + ms, 0);

@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useContext, useId } from 'react';
 import { Avatar, Button, FieldMark, Icon, Segmented } from '../ui/index.js';
 import { cx } from '../ui/cx.js';
-import { APP_SWITCH_COPY } from '../../appView.js';
+import { APP_RELOAD_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { navigateSport } from '../nba/route.js';
 import { EplAccessContext, SPORT_HOME, sportOptions } from '../epl/route.js';
@@ -111,7 +111,7 @@ export function Dock({ children }) {
   return dockHost ? createPortal(children, dockHost) : null;
 }
 
-/** The card each tab shows until its own stage arrives: its job, and the old app, where everything still works. */
+/** The card each tab shows until its own stage arrives: its job, and a reload. */
 export function ComingNext({ tab }) {
   const shell = useShell();
   const id = useId();
@@ -123,7 +123,7 @@ export function ComingNext({ tab }) {
         <h2 className="gx-t-section" id={id}>{SHELL_COPY.comingNext}</h2>
         <p className="gx-t-body">{info.job}</p>
         <p className="gx-t-body gx-c-2">{SHELL_COPY.sameData}</p>
-        <Button variant="primary" block onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</Button>
+        <Button variant="primary" block onClick={shell.reload}>{APP_RELOAD_COPY.reload}</Button>
       </section>
     </div>
   );

@@ -39,8 +39,7 @@ async function setup(page, baseURL, options) {
   await storeBookLines(world, { spread: Object.fromEntries(ids.map(id => [id, -3])), total: Object.fromEntries(ids.map(id => [id, 44])) });
   await sendBallot(world, 'luke', 'guess_total', Object.fromEntries(ids.map(id => [id, 42])));
   await signIn(page, 'luke');
-  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-  await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
+  await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
   await page.goto('about:blank'); await page.goto('/#lines');
   await expect(page.getByRole('heading', { name: 'Lines', exact: true })).toBeVisible();
   return { world, synthetic, ids };
@@ -59,6 +58,56 @@ async function phoneAndAxe(page, theme, testInfo) {
   expect(axe.violations.map(v => v.id)).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath(`synthetic-research-${theme}.png`) });
 }
+
+test('matchup Research details wait for opening; frame, close, late failure and local retry preserve navigation', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world, synthetic } = await setup(page, baseURL);
+  let mode = 'hold', release, requests = 0;
+  let waiting = new Promise(resolve => { release = resolve; });
+  try {
+    await page.route('**/assets/ResearchView-*.js', async route => {
+      requests++; if (mode === 'hold') await waiting;
+      return mode === 'fail' ? route.abort('failed') : route.continue();
+    });
+    const opener = page.getByRole('button', { name: 'Open weekly research', exact: true });
+    expect(requests).toBe(0); expect(synthetic.calls).toHaveLength(0);
+    await opener.click(); const dialog = sheet(page);
+    await expect(dialog.getByRole('status')).toHaveText('Loading research details…');
+    await expect.poll(() => requests).toBe(1); expect(synthetic.calls).toHaveLength(0);
+    const captures = async state => {
+      for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+        await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+        await phoneAndAxe(page, theme, info);
+        await dialog.screenshot({ path: info.outputPath(`research-download-${state}-${theme}-${forcedColors}.png`) });
+      }
+    };
+    await captures('loading');
+    await page.keyboard.press('Escape'); await expect(opener).toBeFocused();
+    const failed = page.waitForEvent('requestfailed', req => /\/assets\/ResearchView-[^/]+\.js$/.test(req.url()));
+    mode = 'fail'; release(); await failed;
+    await expect(dialog).not.toBeVisible(); await expect(opener).toBeFocused();
+    await opener.click(); await expect(dialog.getByRole('alert')).toContainText('Research details couldn’t load.');
+    await captures('error');
+    mode = 'hold'; waiting = new Promise(resolve => { release = resolve; });
+    await dialog.getByRole('button', { name: 'Try research details again', exact: true }).click();
+    const group = dialog.getByRole('group', { name: 'Research details', exact: true });
+    await expect(group).toBeFocused(); await expect(dialog.getByRole('status')).toHaveText('Loading research details…');
+    expect(synthetic.calls).toHaveLength(0);
+    mode = 'ready'; release();
+    await expect(dialog.locator('[data-research-card]')).toHaveCount(3);
+    await expect(group).toBeFocused(); expect(synthetic.calls.length).toBeGreaterThan(0);
+    await dialog.getByRole('combobox', { name: 'Evidence period', exact: true }).selectOption('recent25');
+    await expect.poll(() => synthetic.calls.at(-1)?.period).toBe('recent25');
+    await expect(dialog.locator('[data-research-card]').first().getByText('Last 25 games', { exact: true })).toBeVisible();
+    const loaded = requests;
+    await page.keyboard.press('Escape'); await expect(opener).toBeFocused();
+    await openResearch(page); expect(requests).toBe(loaded);
+    await expect(dialog.getByRole('combobox', { name: 'Evidence period', exact: true })).toHaveValue('recent30');
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
 
 test.describe('source time presentation', () => {
 test.use({ timezoneId: 'Asia/Tokyo' });

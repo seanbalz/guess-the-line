@@ -3,7 +3,7 @@
 // (the "Loading…" words stay for screen readers). D-62: each team's record (this weekend's finals, from the shared team
 // read) sits beside its name in text-2 numbers; the row stays one button that opens the game sheet.
 import { useId, useMemo, useRef } from 'react';
-import { APP_SWITCH_COPY } from '../../appView.js';
+import { APP_RELOAD_COPY } from '../../appView.js';
 import { LINES_COPY, linesBoard } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
 import { Button, CardButton, GateBanner, Icon, InfoButton, Pill, Skeleton, Tag, TeamMark } from '../ui/index.js';
@@ -143,7 +143,7 @@ export function LinesBoard({ trendsOnly = false }) {
             <p className="gx-t-strong">{LINES_COPY.failed}</p>
             <p className="gx-t-body gx-c-2">{LINES_COPY.failedHelp}</p>
             <Button variant="secondary" block onClick={() => app.refresh({ only: ['personal'] })}>{LINES_COPY.tryAgain}</Button>
-            <Button variant="ghost" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</Button>
+            <Button variant="ghost" onClick={shell.reload}>{APP_RELOAD_COPY.reload}</Button>
           </section>
         ) : unpublished ? <p className="gx-t-body gx-c-2" role="status">{LINES_COPY.unpublished}</p> : <Skeleton label={LINES_COPY.loading} shape="cards" count={3}/>}
       </div>

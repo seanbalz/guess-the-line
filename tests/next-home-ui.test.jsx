@@ -57,7 +57,7 @@ function reply(patch = {}) {
   };
 }
 
-const shell = { tab: vi.fn(), toOldApp: vi.fn(), state: { tab: 'home', sheets: [] } };
+const shell = { tab: vi.fn(), reload: vi.fn(), state: { tab: 'home', sheets: [] } };
 const app = { refresh: vi.fn(), accountId: 'u-casey' };
 const home = (community, patch = {}) => { state.home = { app, viewer: 'u-casey', community: { status: 'ready', data: community, error: null, loading: false }, ...patch }; };
 const render = () => renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx"><Home/></div></ShellContext.Provider>);
@@ -218,13 +218,13 @@ describe('while the Community read loads or fails', () => {
     expect(nodes(html, n => n.tag === 'h1').map(textOf)).toEqual(['Home']);
   });
 
-  it('a failed read shows the tab\'s fail pattern: Try again and Use the old app, announced', () => {
+  it('a failed read shows the tab\'s fail pattern: Try again and Reload the app, announced', () => {
     home(null, { community: { status: 'error', data: null, error: { status: 503, message: 'nope' }, loading: false } });
     const html = render();
     expect(markupProblems(html)).toEqual([]);
     const alert = nodes(html, attr('role', 'alert'))[0];
     expect(textOf(alert)).toContain('This tab couldn’t load.');
-    expect(buttons(html)).toEqual(['Try again', 'Use the old app']);
+    expect(buttons(html)).toEqual(['Try again', 'Reload the app']);
     expect(primaries(html)).toHaveLength(0);
     expect(textOf(alert)).not.toContain('nope');
   });

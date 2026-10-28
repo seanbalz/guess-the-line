@@ -14,6 +14,10 @@ import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 
 const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false, research: null, teams: null }));
+// SSR verifies the detail markup eagerly; the real code-loading boundary is exercised in Playwright.
+vi.mock('../web/src/next/lines/GameDetailsSlot.jsx', async () => ({
+  GameDetailsSlot: (await import('../web/src/next/lines/GameDetails.jsx')).default,
+}));
 // The native private-note editor uses the existing authenticated route wrapper. SSR never makes its effect read;
 // isolate that browser auth module here while the hosted-schema browser spec exercises the real handler and auth.
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), linesApi: vi.fn(), communityApi: vi.fn(), betsApi: vi.fn() }));
@@ -64,7 +68,7 @@ const HOUR = 3_600_000;
 const NOW = Date.parse(week.games[0].kickoff) - 24 * HOUR;
 const TODAY = { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' };
 const ref = value => ({ basis: 'line_at_guess', status: 'available', value, source: 'fixture' });
-const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), toOldApp: vi.fn(), setDirty: vi.fn(), confirmLeave: vi.fn(() => true), state: { sheets: [] } };
+const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), reload: vi.fn(), setDirty: vi.fn(), confirmLeave: vi.fn(() => true), state: { sheets: [] } };
 
 /** The data hook's answer: the viewer's own week (a sent Total, Spread drafts and a forged Spread line), the Community week. */
 function data({ now = NOW, rules = TODAY } = {}) {
@@ -165,7 +169,7 @@ describe('the Lines board', () => {
     const failed = render(<LinesBoard/>);
     expect(text(failed)).toContain('This week’s games didn’t load.');
     // D-55: the title's ⓘ is the one icon-only button; it is named for its topic.
-    expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Use the old app']);
+    expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Reload the app']);
   });
 
   it('design upgrade: while the week loads, skeleton game cards stand in, with the words kept as the status a screen reader hears', () => {

@@ -379,3 +379,46 @@ Guidance and sources.
   account/week guards, current-game paging and long-source wrapping. Reconnect
   focus to a recreated opener only within its captured account/week scope;
   unkeyed openers keep their normal modal behavior.
+
+- **Checking recorded results:** reuse the secondary button inside the result
+  card. Start the read only on request, keep its button focusable with a checking
+  status and prevent duplicate activation. Keep old observations labelled on
+  failure; show no-complete-final separately from zero. Distinguish the server
+  check time from the result's observation time and preserve scope guards.
+
+- **Game detail downloads:** keep the sheet frame, title, pager and action slots
+  available while shared static panels say Loading game details. Keep download
+  failures local with explicit retry and focus in the details group. Preserve
+  the existing 16px content gaps, themes and forced-color treatment; never draw
+  sample game data while waiting.
+
+- **Weekly-trend recovery in game sheets:** use a secondary Refresh weekly trends
+  control, labelled Retry weekly trends after failure, beside the existing
+  weekly evidence status. Keep it mounted and focusable during loading, expose
+  the busy/disabled state, and retain focus when the evidence returns. Preserve
+  stale provenance, access refusals and independent market locks.
+
+- **Trend chart control names:** append the visible trend title to line/season
+  slider names and the Chart view group name. Keep exact point/season values in
+  the value announcement. This adds accessible context without visible text or
+  plot changes; standalone charts retain their existing fallback names.
+
+- **Fantasy view loading in Research:** reuse static panels and the Fantasy title
+  while its detail code loads; keep Back and tab navigation available. Keep code/
+  style failure and explicit retry local, with a stable content region for focus
+  through loading and recovery. Reuse existing screen styles and public data
+  behavior; do not draw sample rankings while waiting.
+
+- **Full Research sheet downloads:** keep its title and Close available while
+  shared static panels say Loading research details. Keep code errors and
+  explicit retry local, preserving focus in a stable details group. Reuse the
+  original 16px gaps and existing Research styles; filters, charts and data gates
+  remain the same after loading. Keep shared Research styles eager for reliable
+  recovery across views. Inline game research stays a separate view.
+
+- **Season-table readability:** keep records, percentages and units at the normal
+  16px reading size at narrow widths; headers keep the meta style. Keep values
+  together and use a named, keyboard-focusable table scroll region when columns
+  exceed the available width, with the shared focus ring and native caption.
+  Scrolling preserves chart selection; year controls retain their 44px targets,
+  selected check and chart relationship. Keep the page within the viewport.

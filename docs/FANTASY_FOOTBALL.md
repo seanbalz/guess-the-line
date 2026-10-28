@@ -186,7 +186,11 @@ was published.
 
 ## Player tools in the new app (queue Q12–Q14)
 
-Built on branch `claude/fantasy-tools` (not merged or released). Frontend only: every
+Merged from `claude/fantasy-tools` in [PR #269](https://github.com/seanbalz/guess-the-line/pull/269)
+on October 27 as `a6d655ed03b375e48b5159a70dd82ecd2b0030fb`. Source presence and
+the existing FantasyScreen integration were rechecked October 28; feature-specific
+release/readback and physical-device acceptance remain separate and were not
+independently verified by this task. Frontend only: every
 value is derived in the browser from the loaded public snapshot by
 `shared/fantasy-tools.mjs`; no API, function, migration or snapshot change.
 

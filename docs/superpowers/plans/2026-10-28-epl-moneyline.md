@@ -70,5 +70,5 @@ Match mockup v3 "Play · Guess the Line": progress dots (locked = win color), he
 
 ### Task 6: Docs
 
-**Files:** `docs/DECISIONS.md` (D-65 addendum: distance math, leaderboard by average), `docs/RULES.md` (EPL moneyline row), `docs/COMPLETION_REGISTER.md`, `planning/PLATFORM_WORK_QUEUE.md`.
+**Files:** `docs/DECISIONS.md` (D-66 addendum: distance math, leaderboard by average), `docs/RULES.md` (EPL moneyline row), `docs/COMPLETION_REGISTER.md`, `planning/PLATFORM_WORK_QUEUE.md`.
 - [ ] Write; `python3 scripts/check-brand-docs.py`; `npm test`; commit `docs(epl): moneyline records`.

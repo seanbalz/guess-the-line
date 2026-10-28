@@ -375,19 +375,19 @@ test('an account the commissioner removed from the Community sees why, keeps its
 
     // A refresh (here back online) reads the Community again: the screen and the keyboard focus in it stay while it
     // runs and after the refusal comes back.
-    const oldApp = page.getByRole('button', { name: 'Use the old app', exact: true });
-    await oldApp.focus();
+    const reload = page.getByRole('button', { name: 'Reload the app', exact: true });
+    await reload.focus();
     const held = await holdNext(page, 'community/read');
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await held.reached;
     await painted(page);
     expect(await title(page, 'Not in the Community').count(), 'the screen stays while the Community is read again').toBe(1);
     expect(await title(page, 'Home').count()).toBe(0);
-    expect(await focusedText(page)).toBe('Use the old app');
+    expect(await focusedText(page)).toBe('Reload the app');
     expect((await held.release()).status()).toBe(403);
     await painted(page);
     await expect(title(page, 'Not in the Community')).toBeVisible();
-    await expect(oldApp).toBeFocused();
+    await expect(reload).toBeFocused();
     await expect(tab(page, 'Play')).toBeVisible();
     await tab(page, 'Play').click();
     await expect(title(page, 'Not in the Community')).toBeVisible();
@@ -415,7 +415,7 @@ test('the account did not load: the card stays through Try again, saying so, wit
     await openNewApp(page, 'luke');
     const failed = title(page, 'Your account didn’t load');
     await expect(failed).toBeVisible();
-    await expect(page.getByText('Check your connection, then try again. The old app works too.')).toBeVisible();
+    await expect(page.getByText('Check your connection, then try again.')).toBeVisible();
     await phoneChecks(page);
     await page.getByRole('button', { name: 'Try again', exact: true }).focus();
 

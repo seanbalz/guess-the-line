@@ -216,7 +216,7 @@ describe('feature flag and empty states', () => {
 describe('Play landing row', () => {
   it('1C: Guess the Points is a glow card under the plain Spread and Total rows', () => {
     state.app = { ...APP, community: { status: 'ready', data: { week: { season: 2026, week: 7, games: [] }, picksDue: { state: 'due', week: 7, modes: [{ mode: 'guess_total' }] }, due: [{ mode: 'guess_spread', submitted: true }, { mode: 'guess_total', filled: 0, games: 2 }] } } };
-    const html = renderToStaticMarkup(<ShellContext.Provider value={{ ...SHELL, league: APP.league, tab: vi.fn(), toOldApp: vi.fn() }}><div className="gx"><Play/></div></ShellContext.Provider>);
+    const html = renderToStaticMarkup(<ShellContext.Provider value={{ ...SHELL, league: APP.league, tab: vi.fn(), reload: vi.fn() }}><div className="gx"><Play/></div></ShellContext.Provider>);
     expect(markupProblems(html)).toEqual([]);
     const order = ['Guess the Spread', 'data-points-landing', 'My league'].map(name => html.indexOf(name));
     const glowing = [...walk(parseMarkup(html))].filter(n => /gx-card--hero/.test(n.attrs?.class || ''));

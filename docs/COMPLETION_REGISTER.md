@@ -48,7 +48,7 @@ establishes deployment. This task has not deployed the app or applied SQL.
 
 | Area | Implemented and released evidence | Still open |
 | --- | --- | --- |
-| Four-tab design | [PR #162 release](RELEASE_FOUR_TAB_REDESIGN.md): four roots, compact summaries, retained editors and reversible detail routes. [D-55 Round 3 release](RELEASE_2026_10_22_ROUND3.md): charts, disclosures and Home/Bets styling. | Q17 missing destinations; Q19 visual/device acceptance. Since the [October 27 release](RELEASE_2026_10_27_API_FRONTEND.md) (`gtl-api` v38, Pages `4a03e6cd`) every signed-in member opens the new app (D-60 step 1); classic stays at `?app=classic` as a recovery route. |
+| Four-tab design | [PR #162 release](RELEASE_FOUR_TAB_REDESIGN.md): four roots, compact summaries, retained editors and reversible detail routes. [D-55 Round 3 release](RELEASE_2026_10_22_ROUND3.md): charts, disclosures and Home/Bets styling. | Q17 missing destinations; Q19 visual/device acceptance. Since the [October 27 release](RELEASE_2026_10_27_API_FRONTEND.md) (`gtl-api` v38, Pages `4a03e6cd`) every signed-in member opens the new app (D-60 step 1); that release retained classic at `?app=classic`. D-65 source subsequently merged in #305 October 28 removes that entry and uses Reload the app on failures; this task has not verified its hosted cutover. |
 | Mobile layout | PR #174 toolbar/spacing fixes; PR #181 focus scroll padding released as Pages `9fb54fe4`. | October 26: Sean corrected his initial reply and reports the app does not have the scroll bug. The movement symptom is user-reported resolved. Broader Q19 device acceptance remains separate. |
 | Bets | [Actual tracking](EASIER_BET_TRACKING_RELEASE.md), [recommendation handoff](RECOMMENDED_TRACKING_RELEASE.md), [Recommended filters](RELEASE_2026_10_22_TRENDS_FILTER.md), M-10 reader and PR #204 Everyone are released. | Q06 account-level placement M-11 and the remaining dedicated Virtual Units screens. Boards M-12 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md) with `/bets/board` and `/bets/season` in `gtl-api` v38; no screen reads them yet. Reader delivery does not close the full Bets plan. |
 | Scoring and comparisons | [Core scoring](CORE_SCORING_PRODUCTION_RELEASE.md): per-game lock, personal points and receipts. [Migrations release](RELEASE_2026_10_22_MIGRATIONS.md): D-53 comparisons/preferences applied and signed-in reads verified. | Q07/Q08 phone privacy, save/reload and account-isolation acceptance; Q18 operating evidence. |
@@ -57,8 +57,8 @@ establishes deployment. This task has not deployed the app or applied SQL.
 | Fantasy | [Track 1](RELEASE_2026_10_23_FANTASY_TRACK1.md) released, first data published, readback retry fixed in #202, daily schedule in #205. Scheduled runs succeeded October 24–26; [October 26 run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40365251250). | Phone readback; richer usage/comparisons/matchup/trade tools Q12–Q15 and connected roster work follow current redesign completion. D-59 fantasy feed: the private `fantasy-feed` bucket migration `20261026220000` is applied (hosted as `20261028131021`, October 28, [card](RELEASE_2026_10_28_D59_TRENDS.md)); the machine-only `gtl-fantasy-ingest` upload is deployed (v1, October 28, through the `fantasy-ingest` release target) and answers 503 until Sean sets its upload secret; the read route, app views and exporter follow ([release card](FANTASY_FEED_RELEASE.md)). |
 | Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs (PR #219) and the worker release targets (PR #223) merged October 26 (`9da3ce6`). [October 26 release](RELEASE_2026_10_26_POINTS_JOBS.md): P-03 applied (hosted `20261026213106`, 54 migrations, digest `bd53dcf4…`), `gtl-points-jobs` v1 and `gtl-push-reminders` v5 deployed, cron jobs registered with the schedule row disabled. Open: [release card](GUESS_THE_POINTS_P03.md) step 5 (enable and one verified run) and step 6 (first actuals readback); until then no slate is drafted or published automatically and automatic Points scoring is not verified. Commissioner "Publish now" on Play › Points (preview a drafted week, confirm, publish through the existing `POST /points/slate`; no server change) merged in PR #277 (`671e3ec`) and live in Pages `48a36ee4-a4f9-48c8-a64b-b030a7d2d29a` from `9460635` (October 28, release card PR #279); signed-in commissioner acceptance on a phone is still open. |
 | Social and rewards | Existing feed/comments and group membership work. League feed (stages 61–63) and badges, awards and streaks (stage 69): routes in `gtl-api` v38 and M-13, M-21, M-22, M-23, M-25, M-26 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); signed-in feed and features reads answer 200 in hosted logs. Badges worker `gtl-league-features` v1 and its weekly schedule (Tuesday 12:00 UTC, on Sean's "once a week") are live since October 27 ([release record](RELEASE_2026_10_27_LEAGUE_FEATURES.md)); the first scheduled run recorded 58 badges, 18 awards and 10 streaks and posted the Week 7 recap. Open: phone checks. | Remaining approved friend challenges, player/social detail screens and badge/streak/award/recap pipeline; each needs its real contract and implementation gate, not a completion claim based on a mockup. |
-| Preservation and transition | [RETIRE-01–04 checklist](../planning/new-app-retirement.md) exists. Me › History (older records included) and Export my data: routes in `gtl-api` v38, M-27 and M-28 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); no signed-in use yet. | Q17 history/export, commissioner tools, invitations/creation and older-record destinations; Q09/Q10/Q19 device/full-week acceptance, then Q20 transition. No cutover or record deletion authorized by this audit. |
-| EPL Pick a Team | D-65 (approved by Sean October 28, 2026). Implemented locally, **not deployed**: pure draft and Sleeper rules (`shared/epl-draft.mjs`, `shared/epl-sleeper.mjs`, `shared/epl-clubs.mjs`), M-30 `20261028180000_gtl_epl_pick_a_team.sql` (written, not applied), `gtl-api` routes `cloud/epl.mjs`, the `gtl-epl-jobs` worker and its `epl-jobs` release target, and the commissioner scripts `scripts/epl-seed-mw09.mjs` (MW9 order and seven chat picks, Darin to pick) and `scripts/epl-import-snapshots.mjs` (after-MW8 snapshot), both dry runs by default. The `#epl` crests and screens (plan Tasks 6–8) land in their own commits. Evidence: `npm test` in the task branch; nothing hosted. | Sean's "apply M-30"; `gtl-api` and `gtl-epl-jobs` deploys; `supabase/admin/epl_jobs_cron.sql` cron registration and schedule enabled; MW9 seed and snapshot import run with `--apply` (before Darin's MW9 pick if possible); MW10 order produced by the first automatic run after MW9 results and the Tuesday snapshot. Research → Fantasy (EPL) and the EPL moneyline game are plans 2 and 3. |
+| Preservation and transition | [RETIRE-01–04 checklist](../planning/new-app-retirement.md) exists. Me › History (older records included) and Export my data: routes in `gtl-api` v38, M-27 and M-28 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); no signed-in use yet. RETIRE-03 [hosted inventory](RETIRE_03_INVENTORY_2026_10_28.md) (October 28, read-only): 47 of 48 recorded deployment URLs still serve an old-app build; closure plan awaits approval. | Q17 history/export, commissioner tools, invitations/creation and older-record destinations; Q09/Q10/Q19 device/full-week acceptance, then Q20 transition. No cutover or record deletion authorized by this audit. |
+| EPL Pick a Team | D-66 (approved by Sean October 28, 2026). Implemented locally, **not deployed**: pure draft and Sleeper rules (`shared/epl-draft.mjs`, `shared/epl-sleeper.mjs`, `shared/epl-clubs.mjs`), M-30 `20261028180000_gtl_epl_pick_a_team.sql` (written, not applied), `gtl-api` routes `cloud/epl.mjs`, the `gtl-epl-jobs` worker and its `epl-jobs` release target, and the commissioner scripts `scripts/epl-seed-mw09.mjs` (MW9 order and seven chat picks, Darin to pick) and `scripts/epl-import-snapshots.mjs` (after-MW8 snapshot), both dry runs by default. The `#epl` crests and screens (plan Tasks 6–8) land in their own commits. Evidence: `npm test` in the task branch; nothing hosted. | Sean's "apply M-30"; `gtl-api` and `gtl-epl-jobs` deploys; `supabase/admin/epl_jobs_cron.sql` cron registration and schedule enabled; MW9 seed and snapshot import run with `--apply` (before Darin's MW9 pick if possible); MW10 order produced by the first automatic run after MW9 results and the Tuesday snapshot. Research → Fantasy (EPL) and the EPL moneyline game are plans 2 and 3. |
 
 ## Current implementation lane
 
@@ -187,8 +187,9 @@ PR #296, records Pages `b57d894a-34b8-4df7-8125-a46d4438475d` from
 15:42:36 UTC October 28. It includes the Research/chart work through #293,
 superseding #292's `58bd9959` checkpoint. API v39 and the 65-row migration
 history are unchanged; 380 signed-out probes denied access. This task read the
-committed release evidence and did not repeat that hosted audit. Signed-in
-readback and phone acceptance remain open. The on-demand team-detail and Trends
+committed release evidence and did not repeat that hosted audit. A signed-in
+desktop readback of #291 and #293 on the later `91e3f51` frontend passed October 28
+(Mac mini Chrome; see the card). Phone acceptance remains open. The on-demand team-detail and Trends
 batches have no release recorded here. D-63's trend-builder product decisions
 remain proposed; its separately recorded deployment does not settle them.
 
@@ -363,8 +364,8 @@ browser cases and the final focused case passed, as did 62 component and
 Eight 320px Light/Dark and forced-color signed/percentage screenshots were
 inspected. PR #291 merged October 28 as `437766277102ef6488696fc623107937138dba1f`
 after all nine checks passed on `e0d0f71ae471bf7d81d61ec41342d35a741cb4ca`, with no
-review findings or CI fixes. Frontend release is recorded in #296; signed-in readback and device acceptance
-remain open.
+review findings or CI fixes. Frontend release is recorded in #296; signed-in desktop readback passed
+October 28 (see the chart card); device acceptance remains open.
 
 The [steady team-chart readout batch](RESEARCH_TEAM_READOUT_2026_10_28.md)
 reserves the tallest supplied game label so enlarged text does not move the
@@ -377,8 +378,8 @@ privacy checks passed. Four 320px
 enlarged-text ordinary/forced-color screenshots were inspected. PR #293 merged
 October 28 as `1d9b38c891753af7a32686db2dd3e2fbd8c404e2` after all nine checks passed
 on `754a38d28b354f552a07abff2ad7aa902c95a264`, with no review findings or CI fixes.
-Frontend release is recorded in #296; signed-in readback and device acceptance
-remain open.
+Frontend release is recorded in #296; signed-in desktop readback passed October 28
+(see the chart card); device acceptance remains open.
 
 The [on-demand team-detail batch](RESEARCH_TEAM_LOADING_2026_10_28.md) defers
 team view/chart code and styles until the sheet opens. Its frame remains usable
@@ -441,17 +442,137 @@ caught lost close-focus after a board refresh recreated the card. The scoped
 return-key repair passed the focused correction/reopen case and all 94 expanded
 final shell/Research/Lines/Trends/gesture cases. Brand QA and final fixture
 build/privacy checks passed.
-CI/merge, release/readback and phone acceptance remain open for this batch;
-#299's repaired paging head is merged as recorded above.
+PR [#300](https://github.com/seanbalz/guess-the-lines-repo/pull/300) merged as
+`7dda6d758a3218f1ec9286db4ce5ca901eb33444` after all nine checks passed on
+`a1ea585719d2e2361d32a0b3eff4fceec9d2623d`. Reviews and review threads were empty;
+no CI repairs were needed. Release/readback and phone acceptance remain open.
+
+The [in-sheet result check](RESEARCH_RESULT_CHECK_2026_10_28.md),
+`codex/research-result-check`, adds an explicit check through the existing
+weekly reader. Direct started-game opens from Trends can request a final;
+opening/paging/focus adds no read. Pending clicks deduplicate, changing games
+aborts old reads, per-game observations remain scoped and errors retain their
+labelled prior observation. Both focused browser cases, four 320px checked-result
+theme captures, full Vitest (466), 59 result/navigation/model/modal/token/brand
+tests and typecheck passed. All 95 final expanded shell/Research/Lines/Trends/
+gesture browser cases, Brand QA and final fixture build/privacy checks passed.
+The existing game reader is shared with the market section so current kickoff
+eligibility works despite a stale personal-week clock, with one game request.
+PR [#301](https://github.com/seanbalz/guess-the-lines-repo/pull/301) merged as
+`327b8e83409c3b564bd652697ed54261fd8ac741` after all nine checks passed on
+`c5573f099b120901df3f4112067fe8eaf73e04cf`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and phone acceptance remain open. Live/postponed/cancelled
+status remains separate work.
+
+The [on-demand game details](RESEARCH_GAME_LOADING_2026_10_28.md) batch,
+`codex/lazy-game-details`, keeps the frame and pager eager and loads its result,
+market/research and notes content on opening, with local download/style retry.
+The local initial static dependency graph is 25,622 raw bytes smaller (6,269
+estimated gzip); after opening, total estimated gzip is 2,738 bytes larger.
+Both focused browser cases, full Vitest (466), 59 model/navigation/modal/token/
+brand tests and typecheck passed; the 97-case expanded browser run passed 96
+cases and caught a Trends harness
+reading section order before deferred content was ready. That assertion now
+awaits those sections; all five final download/style/result/Trends cases passed.
+Eight 320px theme/forced-color captures were inspected; Brand QA and fixture
+privacy checks passed. PR [#302](https://github.com/seanbalz/guess-the-lines-repo/pull/302) merged as
+`97c45a23e594e2490d3993c3266c8aa068012ab1` after all nine checks passed on
+`bb96fa182bd1978640027ac18f535f0ec8cbeee2`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback, signed-in performance and phone acceptance remain open. This does not complete stage 33
+live status or stage 34's dependent Bet/Challenge action slots.
+
+The [weekly-trend recovery](RESEARCH_WEEKLY_TREND_RETRY_2026_10_28.md) batch,
+`codex/research-weekly-trend-retry`, adds local refresh/retry in the game and All
+trends sheets through the existing weekly reader. Controls retain focus through
+loading, stale fallback, refusal and recovery; independent market locks remain.
+The initial missing-control regression now passes, with eight inspected 320px
+theme/forced-color captures, axe/touch checks, full Vitest (466), 35 shared
+weekly-loader/state/token/brand tests and typecheck. All 98 expanded shell/
+Research/Lines/Trends/gesture cases, Brand QA and final fixture privacy checks
+passed. PR [#303](https://github.com/seanbalz/guess-the-line/pull/303) merged as
+`d737a0c8deaee8ba81faef3144d89a284b65b69e` after all nine checks passed on
+`d190fac6f18098ad25e3a766fa1e7e76be71072a`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and phone acceptance remain open. No live-status or dependent
+action-slot closure.
+
+The [chart control names](RESEARCH_CHART_CONTROL_NAMES_2026_10_28.md) batch,
+`codex/research-chart-control-names`, appends each visible trend title to line/
+season slider and view-group accessible names, preserving the exact value
+announcement and existing selection behavior. The name regressions failed
+before and passed after implementation. Full Vitest (468), 27 chart-geometry/
+token/brand tests and typecheck passed. All 98 expanded browser cases, final
+fixture privacy and Brand QA passed. PR [#304](https://github.com/seanbalz/guess-the-line/pull/304) merged as
+`c73f7230c8435c2770eb1f031d9595576e07b20c` after all nine checks passed on
+`2db07ae00fd251f27335c9026823e2ac3909e3dc`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and device/assistive-technology acceptance remain open.
+GitHub’s canonical repository name
+is now `seanbalz/guess-the-line`, verified against the unchanged repository ID;
+the repository synchronization pointer is updated.
+
+The [on-demand Fantasy view](RESEARCH_FANTASY_LOADING_2026_10_28.md) batch,
+`codex/lazy-research-fantasy`, defers the existing detail view/styles within
+Research, with static loading panels, stable route/retry focus and local code/
+stylesheet repair. Initial static graph is 26,093 raw bytes smaller (6,267
+estimated gzip); once opened, total estimated gzip is 1,311 bytes larger.
+Both focused browser cases, eight inspected 320px theme/forced-color captures,
+axe/touch checks, Vitest (468), 37 Fantasy-loader/ranking/token/brand tests
+and typecheck passed. All 108 expanded browser cases, both final focused cases,
+final fixture privacy and Brand QA passed. PR [#306](https://github.com/seanbalz/guess-the-line/pull/306)
+merged as `3387457f69d0724c3faf04a51c552fe151df4fb1` after all nine checks passed
+on `25236cc486b81bd3b34697c635b6348c660e69fd`; reviews/threads were empty and
+no CI repair was needed. Release/readback, signed-in performance and phone
+acceptance remain open. Q12–Q14's old branch-only wording is corrected: their
+existing tools merged in PR #269 as `a6d655ed03b375e48b5159a70dd82ecd2b0030fb`.
+Their feature-specific release/readback and device acceptance remain separate;
+this batch adds no Fantasy feature or integration.
+
+The [on-demand full Research sheet](RESEARCH_SHEET_LOADING_2026_10_28.md) batch,
+`codex/lazy-matchup-research`, keeps its frame eager and loads the existing full
+view on opening, with local code retry, stable focus and no view
+read while held. Inline game research moves to its own module; its body and the
+full view's markup are unchanged. Shared CSS stays eager after a regression
+exposed cross-view style recovery coupling. The pre-D-65 asset measurement
+found an initial graph 21,391 raw bytes smaller (6,229 estimated gzip);
+total estimated gzip is 2,211 bytes larger after full Research opening, or
+597 bytes larger for a game-first journey, with one additional game-detail
+asset. Focused loading coverage, eight inspected 320px
+captures, axe/touch checks, Vitest (468), 56 chart/shell-state/modal/gesture/token/
+brand tests and typecheck passed. All 110 broad cases passed before retaining
+shared CSS eagerly; five final focused Research/recovery cases and final
+game-detail stylesheet/inline-research checks passed after that adjustment.
+Final fixture privacy and Brand QA passed.
+PR [#310](https://github.com/seanbalz/guess-the-line/pull/310) merged as
+`06a4de7e4513e04fd2555b734045d09756bc2518` after all nine checks passed on repaired
+head `6f5e324d2cd69772b47ae9fb88d39d125522c334`; reviews/threads were empty.
+The repair waits for authenticated Main navigation and integrates D-65’s current
+entry flow in the Research/Trends/gesture/style-recovery fixtures. Release/
+readback, signed-in performance and phone acceptance remain open. No stage 33
+live-status or dependent slot closure.
+
+The [readable season-table batch](RESEARCH_SEASON_TABLE_2026_10_28.md),
+`codex/research-season-table`, retains 16px record/percentage/unit text at narrow
+widths, with native table semantics, a trend-named keyboard scroll region and
+shared focus treatment. Year selection and chart synchronization remain.
+Its 320px regression failed against the old 13px rule. Both focused browser
+cases, 24 inspected 320/390px theme/forced-color start/end captures (including
+simulated 200% table text), axe, Vitest (469), 27 chart/token/brand tests,
+typecheck, Brand QA and fixture privacy pass. All 109 final current-app browser
+cases pass after the authentication-readiness repair and D-65 integration. The additional 37 app-view/shell/router and 21
+Fantasy API/publish checks pass. This batch's own
+CI/merge, release/readback and device acceptance remain open.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.
 Manual Settlement is in [PR #214](https://github.com/seanbalz/guess-the-lines-repo/pull/214).
 It does not close M-18 challenge grading or M-19 scheduled settlement/status.
-M-19's shared-ticket part (D-64, proposed): automatic settlement of pending Bet Tracker tickets after the game's
+M-19's shared-ticket part (D-64, approved October 28): automatic settlement of pending Bet Tracker tickets after the game's
 Pacific day, called by the existing results worker, plus a one-time backfill for Week 7 and earlier, is written in
-`20261028120000_gtl_social_auto_settle.sql` (not applied; see the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md)).
+`20261028120000_gtl_social_auto_settle.sql`, applied by Sean in the SQL editor with the backfill run, and live with `gtl-results-refresh` deployed from `42329566` (see the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md)).
 Challenge settlement (M-18) and a status reader remain open.
 Week opening is the next commissioner page after the current design focus.
 The [preservation matrix](REDESIGN_PRESERVATION_2026_10_26.md) still identifies
@@ -471,11 +592,11 @@ Stage 75 (Export my data) is on branch `claude/redesign-export`: M-28
 (`20261026231000_gtl_me_export.sql`, apply after M-27), `/me/export` and Menu ›
 Export my data, written and not applied.
 
-## Trend builder (proposed D-63, October 28)
+## Trend builder (D-63, approved October 28)
 
 Draft PR on `claude/trend-builder`: Trends › Build, honest result card, this week's matches and per-device saved
 trends with a Home indicator ([TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026)).
-Frontend only (Pages deploy); no API deploy or migration. Not merged, not deployed; D-63 awaits Sean.
+Frontend only; merged in PR #285 (`c091ec0`) and live in Pages `0f9312bf` (release run 40691552196). D-63 approved by Sean October 28.
 
 ## What needs Sean
 

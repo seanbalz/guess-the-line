@@ -4,10 +4,10 @@
 //
 // - StartScreen and LoadFailed have no frame yet (the account decides which frame), like the name step.
 // - RemovedScreen and AccessPending show inside the frame, in place of the tab: the league pill, the menu and the
-//   tab bar still work, so the member can switch league or use the old app. Nothing the member entered is hidden by
+//   tab bar still work, so the member can switch league or reload the app. Nothing the member entered is hidden by
 //   them (D-23): the server already refuses these reads, and these screens say so in plain words.
 import { useId } from 'react';
-import { APP_SWITCH_COPY } from '../../appView.js';
+import { APP_RELOAD_COPY } from '../../appView.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Button, FieldMark, Icon } from '../ui/index.js';
 
@@ -15,7 +15,7 @@ export const APP_SCREENS_COPY = Object.freeze({
   name: 'Guess The Line',
   loading: 'Loading your leagues…',
   failedTitle: 'Your account didn’t load',
-  failedHelp: 'Check your connection, then try again. The old app works too.',
+  failedHelp: 'Check your connection, then try again.',
   tryAgain: 'Try again',
   trying: 'Trying again…',
   signOut: 'Sign out',
@@ -49,7 +49,7 @@ export function StartScreen() {
  * `/lobby` failed (not a 401, which asks to sign in again). A refusal shows the server's own words (for example
  * "Confirm your email address…"); anything else asks to check the connection.
  */
-export function LoadFailed({ error, busy, onRetry, onOldApp, onSignOut }) {
+export function LoadFailed({ error, busy, onRetry, onReload, onSignOut }) {
   const id = useId();
   const refused = typeof error?.status === 'number' && error.status >= 400 && error.status < 500 && typeof error.message === 'string' && error.message;
   return (
@@ -60,7 +60,7 @@ export function LoadFailed({ error, busy, onRetry, onOldApp, onSignOut }) {
         <h1 className="gx-t-section" id={id}>{APP_SCREENS_COPY.failedTitle}</h1>
         <p className="gx-t-body gx-c-2">{refused ? error.message : APP_SCREENS_COPY.failedHelp}</p>
         <Button variant="primary" block onClick={onRetry} aria-disabled={busy || undefined}>{busy ? APP_SCREENS_COPY.trying : APP_SCREENS_COPY.tryAgain}</Button>
-        <Button variant="secondary" block onClick={onOldApp}>{APP_SWITCH_COPY.useOld}</Button>
+        <Button variant="secondary" block onClick={onReload}>{APP_RELOAD_COPY.reload}</Button>
         <Button variant="ghost-2" onClick={onSignOut}>{APP_SCREENS_COPY.signOut}</Button>
       </section>
     </main>
@@ -68,7 +68,7 @@ export function LoadFailed({ error, busy, onRetry, onOldApp, onSignOut }) {
 }
 
 /** The Community refused this account (`/community/read` 403 after the name step): the commissioner removed it. */
-export function RemovedScreen({ hasGroups, onLeagues, onOldApp }) {
+export function RemovedScreen({ hasGroups, onLeagues, onReload }) {
   return (
     <div className="gx-screen">
       <h1 className="gx-t-title">{APP_SCREENS_COPY.removedTitle}</h1>
@@ -76,7 +76,7 @@ export function RemovedScreen({ hasGroups, onLeagues, onOldApp }) {
         <p className="gx-t-body">{APP_SCREENS_COPY.removedBody}</p>
         <p className="gx-t-body gx-c-2">{APP_SCREENS_COPY.removedHelp}</p>
         {hasGroups ? <Button variant="secondary" block onClick={onLeagues}>{APP_SCREENS_COPY.yourLeagues}</Button> : null}
-        <Button variant="ghost" onClick={onOldApp}>{APP_SWITCH_COPY.useOld}</Button>
+        <Button variant="ghost" onClick={onReload}>{APP_RELOAD_COPY.reload}</Button>
       </section>
     </div>
   );

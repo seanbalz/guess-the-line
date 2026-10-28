@@ -2,8 +2,10 @@
 
 Owner: Sean Balsiger · Version 1 · October 15, 2026
 
-GitHub `seanbalz/guess-the-lines-repo`, branch `main`, is the shared committed
-source. The [completion register](COMPLETION_REGISTER.md) records current work;
+GitHub `seanbalz/guess-the-line`, branch `main`, is the shared committed
+source. The canonical name was verified October 28, 2026 against repository ID
+`1409914333`, unchanged from `seanbalz/guess-the-lines-repo`. The
+[completion register](COMPLETION_REGISTER.md) records current work;
 dated release records establish what was deployed. The v62 JSON tracker is
 historical. Private boards, chat history, credentials, ignored local data and
 the production database are not synchronized by Git.

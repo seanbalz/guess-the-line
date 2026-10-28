@@ -91,7 +91,12 @@ async function phoneChecks(page, root = '.gx') {
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
-      if (r.right > innerWidth + 0.5 || r.left < -0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+      // Season tables intentionally scroll inside their named, focusable region;
+      // their end-column reachability is checked separately below. The region
+      // itself must still fit the viewport, and text cannot clip within a cell.
+      const tableRegion = el.closest('.gx-tc-table-wrap[role="region"]');
+      const scrolls = tableRegion && el !== tableRegion && getComputedStyle(tableRegion).overflowX === 'auto';
+      if (!scrolls && (r.right > innerWidth + 0.5 || r.left < -0.5)) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
     }
     return { targets, small, clipped };
   });
@@ -166,8 +171,7 @@ async function lukesWeek(page, baseURL, { forge = true, research, clock, optiona
 
 async function openLines(page) {
   await signIn(page, 'luke');
-  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-  await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
   await page.goto('about:blank');
   await page.goto('/#lines');
   await expect(title(page, 'Lines')).toBeVisible();
@@ -196,6 +200,82 @@ async function noLeak(page, world, where) {
 }
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
+
+test('season records stay readable on narrow phones and every column is reachable without changing the chart', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  let replaced = 0;
+  try {
+    // Synthetic wide season records exercise presentation, not historical results.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/trends/week'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      const replace = value => {
+        if (!value || typeof value !== 'object') return;
+        if (Array.isArray(value.perSeason)) {
+          value.perSeason = [[2024,272,155,115,2,25.9],[2025,272,115,155,2,-50.5]];
+          value.seasonsPos = 1; value.seasonsBet = 2; replaced++;
+        }
+        Object.values(value).forEach(replace);
+      };
+      replace(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    const calls = apiCalls(page);
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    await trend.getByRole('button', { name: 'By season', exact: true }).click();
+    const name = await trend.locator('h4').innerText();
+    const table = trend.locator('.gx-tc-table'), region = trend.locator('.gx-tc-table-wrap');
+    const reads = calls.filter(c => c === 'POST /trends/week').length;
+    const season = trend.getByRole('button', { name: 'Show 2024 season on chart', exact: true });
+    for (const { width, scale } of [{ width: 320, scale: 1 }, { width: 390, scale: 1 }, { width: 320, scale: 2 }]) for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.emulateMedia({ forcedColors, colorScheme: theme });
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await ciFonts(page);
+      // Simulate 200% table-text enlargement without changing the viewport or product data.
+      await page.evaluate(scale => {
+        let style = document.getElementById('season-text-size');
+        if (!style) { style = document.createElement('style'); style.id = 'season-text-size'; document.head.append(style); }
+        style.textContent = scale === 2 ? '.gx .gx-tc-table tbody td, .gx .gx-tc-table tbody th, .gx .gx-tc-season-pick { font-size: 32px; line-height: 40px; } .gx .gx-tc-table thead th { font-size: 26px; line-height: 36px; }' : '';
+      }, scale);
+      await expect(table.locator('tbody td').first()).toHaveCSS('font-size', `${16 * scale}px`);
+      await expect(region).toHaveRole('region');
+      await expect(region).toHaveAccessibleName(`Season results · ${name}`);
+      await expect(region).toHaveAttribute('tabindex', '0');
+      const selectedBefore = await trend.getByRole('slider', { name: 'Move across the seasons' }).inputValue();
+      await region.evaluate(el => { el.scrollLeft = 0; });
+      await region.focus(); await expect(region).toBeFocused();
+      const wide = await region.evaluate(el => el.scrollWidth > el.clientWidth);
+      if (scale === 2) expect(wide).toBe(true);
+      if (wide) {
+        await page.keyboard.press('ArrowRight');
+        await expect.poll(() => region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+      }
+      await region.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+      await expect(region).toBeFocused();
+      await expect(trend.getByRole('slider', { name: 'Move across the seasons' })).toHaveValue(selectedBefore);
+      const last = table.locator('tbody tr').first().locator('td').last();
+      await expect(last).toHaveText('+25.9');
+      expect(await last.evaluate(el => el.getBoundingClientRect().right <= el.closest('.gx-tc-table-wrap').getBoundingClientRect().right + 1)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(await axe(page)).toEqual([]);
+      await region.screenshot({ path: info.outputPath(`season-table-${width}-${theme}-${forcedColors}-${scale}x-end.png`) });
+      await season.click(); await expect(season).toBeFocused();
+      await expect(season).toHaveAttribute('aria-pressed', 'true');
+      await expect(trend.getByRole('slider', { name: 'Move across the seasons' })).toHaveValue('0');
+      await expect(trend.locator('.gx-tc-tip-value')).toHaveText('+25.9 U');
+      await region.screenshot({ path: info.outputPath(`season-table-${width}-${theme}-${forcedColors}-${scale}x-start.png`) });
+    }
+    expect(replaced).toBeGreaterThan(0);
+    expect(calls.filter(c => c === 'POST /trends/week')).toHaveLength(reads);
+    expect(calls.filter(call => !READS.includes(call))).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
 
 test('team season results and margin bars share selection without new reads or focus jumps', async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
@@ -315,6 +395,160 @@ test('team chart keeps its plot steady when enlarged game labels wrap', async ({
     }
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+test('game details wait for opening and keep their frame, pager, close and explicit retry available during downloads', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  let release, mode = 'hold', requests = 0, styles = 0;
+  let waiting = new Promise(resolve => { release = resolve; });
+  try {
+    page.on('request', request => { if (/\/assets\/GameDetails-[^/]+\.css$/.test(request.url())) styles++; });
+    await page.route('**/assets/GameDetails-*.js', async route => {
+      requests++; if (mode === 'hold') await waiting;
+      return mode === 'fail' ? route.abort('failed') : route.continue();
+    });
+    await openLines(page);
+    expect([requests, styles]).toEqual([0, 0]);
+    const calls = apiCalls(page), gameReads = () => calls.filter(call => call === 'POST /lines/game').length;
+    const opener = card(page, 'SEA-DEN');
+    await opener.click();
+    const sea = sheet(page, 'SEA @ DEN'), hou = sheet(page, 'HOU @ JAX');
+    await expect(sea.getByRole('status')).toHaveText('Loading game details…');
+    await expect.poll(() => requests).toBe(1);
+    expect(gameReads()).toBe(0);
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    await expect(hou.getByRole('status')).toHaveText('Loading game details…');
+    expect(requests).toBe(1);
+    await page.keyboard.press('Escape'); await expect(opener).toBeFocused();
+    const failed = page.waitForEvent('requestfailed', request => /\/assets\/GameDetails-[^/]+\.js$/.test(request.url()));
+    mode = 'fail'; release(); await failed;
+    await expect(hou).not.toBeVisible(); await expect(opener).toBeFocused();
+    await opener.click();
+    await expect(sea.getByRole('alert')).toContainText('Game details couldn’t load.');
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await sea.screenshot({ path: info.outputPath(`game-download-error-${theme}-${forcedColors}.png`) });
+    }
+    mode = 'hold'; waiting = new Promise(resolve => { release = resolve; });
+    await sea.getByRole('button', { name: 'Try game details again' }).click();
+    await expect(sea.getByRole('status')).toHaveText('Loading game details…');
+    await expect(sea.getByRole('group', { name: 'Game details', exact: true })).toBeFocused();
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await sea.screenshot({ path: info.outputPath(`game-download-loading-${theme}-${forcedColors}.png`) });
+    }
+    expect(gameReads()).toBe(0);
+    mode = 'ready'; release();
+    await expect(sea.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
+    await expect(sea.getByRole('group', { name: 'Game details', exact: true })).toBeFocused();
+    await expect.poll(gameReads).toBe(1);
+    const loadedRequests = requests;
+    await page.keyboard.press('Escape'); await expect(opener).toBeFocused();
+    await opener.click();
+    await expect(sea.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
+    expect(requests).toBe(loadedRequests); expect(styles).toBe(1);
+    await noLeak(page, world, 'loaded game details'); expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
+test('game details recover a failed stylesheet before showing their market and research content', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let allowStyle = false, requests = 0;
+  try {
+    await page.route('**/assets/GameDetails-*.css', route => {
+      requests++; return allowStyle ? route.continue() : route.abort('failed');
+    });
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    const game = sheet(page, 'SEA @ DEN');
+    await expect(game.getByRole('alert')).toContainText('Game details couldn’t load.');
+    await expect(game.getByRole('heading', { name: 'You on this game', exact: true })).toHaveCount(0);
+    await game.getByRole('button', { name: 'Try game details again' }).click();
+    await expect.poll(() => requests).toBe(2);
+    await expect(game.getByRole('alert')).toContainText('Game details couldn’t load.');
+    allowStyle = true;
+    await game.getByRole('button', { name: 'Try game details again' }).click();
+    await expect(game.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
+    await expect(game.getByRole('group', { name: 'Game details', exact: true })).toBeFocused();
+    await expect(game.locator('.gx-md-disclosure > summary').first()).toHaveCSS('display', 'flex');
+    expect(requests).toBe(3); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('weekly trends recover inside the game and All trends sheets without changing market gates or focus', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  let mode = 'refused', requests = 0, release;
+  const waiting = new Promise(resolve => { release = resolve; });
+  try {
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/trends/week`, async route => {
+      requests++; const chosen = mode;
+      if (chosen === 'held') await waiting;
+      if (chosen === 'refused' || chosen === 'unavailable') return route.fulfill({ status: chosen === 'refused' ? 403 : 503, json: { error: 'Fixture unavailable' } });
+      const req = route.request();
+      const reply = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      await route.fulfill({ status: reply.status, headers: Object.fromEntries(reply.headers), body: await reply.text() });
+    });
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    const game = sheet(page, 'SEA @ DEN');
+    await expect(game.locator('[data-section="trends"]')).toContainText('Trends didn’t load.');
+    const retry = game.getByRole('button', { name: 'Retry weekly trends', exact: true });
+    await expect(retry).toBeVisible();
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 320, height: 844 });
+      await retry.scrollIntoViewIfNeeded();
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await game.screenshot({ path: info.outputPath(`weekly-trend-game-error-${theme}-${forcedColors}.png`) });
+    }
+    const calls = apiCalls(page), before = requests;
+    mode = 'held'; await retry.click();
+    const refresh = game.getByRole('button', { name: 'Refresh weekly trends', exact: true });
+    await expect(refresh).toBeDisabled(); await expect(refresh).toBeFocused();
+    await expect(game.locator('[data-section="trends"]').getByRole('status')).toHaveText('Loading trends…');
+    await refresh.evaluate(button => { button.click(); button.click(); });
+    await expect.poll(() => requests).toBe(before + 1);
+    mode = 'ready'; release();
+    await expect(game.getByRole('button', { name: /^All trends/ })).toBeVisible();
+    await expect(refresh).toBeFocused(); expect(requests).toBe(before + 1);
+    await game.getByRole('button', { name: /^All trends/ }).click();
+    const all = sheet(page, 'All trends');
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toBeVisible();
+    const allRefresh = all.getByRole('button', { name: 'Refresh weekly trends', exact: true });
+    mode = 'unavailable'; await allRefresh.click();
+    await expect(all.locator('[data-trend-availability]')).toContainText('Refresh unavailable');
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toBeVisible();
+    await expect(allRefresh).toBeFocused();
+    mode = 'refused'; await allRefresh.click();
+    await expect(all.getByRole('status')).toContainText('Trends didn’t load.');
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toHaveCount(0);
+    const allRetry = all.getByRole('button', { name: 'Retry weekly trends', exact: true });
+    await expect(allRetry).toBeFocused();
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await all.screenshot({ path: info.outputPath(`weekly-trend-all-error-${theme}-${forcedColors}.png`) });
+    }
+    mode = 'ready'; await allRetry.click();
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toBeVisible();
+    await expect(allRefresh).toBeFocused();
+    await all.locator('[data-group="line"] button[aria-expanded]').first().click();
+    await expect(all).toContainText('Spread line-based records');
+    await noLeak(page, world, 'weekly trend retry');
+    expect(calls.filter(call => call !== 'POST /trends/week')).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
 });
 
 test('team details load only on opening; closing, failed download and explicit retry preserve navigation and reads', async ({ page, baseURL }, info) => {
@@ -828,11 +1062,15 @@ test('season table selection stays in sync with the chart and survives view swit
     await openLines(page); await card(page, 'HOU-JAX').click();
     const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
     const lineScrub = trend.getByRole('slider', { name: 'Move along the line' });
+    const trendTitle = await trend.locator('h4').innerText();
+    await expect(lineScrub).toHaveAccessibleName(`Move along the line · ${trendTitle}`);
+    await expect(trend.getByRole('group', { name: `Chart view · ${trendTitle}`, exact: true })).toBeVisible();
     await lineScrub.focus(); await page.keyboard.press('Home'); await page.keyboard.press('ArrowRight');
     const lineTip = await lineScrub.getAttribute('aria-valuetext');
     await trend.getByRole('button', { name: 'By season', exact: true }).click();
     const season = year => trend.getByRole('button', { name: `Show ${year} season on chart`, exact: true });
     const scrub = trend.getByRole('slider', { name: 'Move across the seasons' });
+    await expect(scrub).toHaveAccessibleName(`Move across the seasons · ${trendTitle}`);
     await expect(season(2025)).toHaveAttribute('aria-pressed', 'true');
     await season(2024).click();
     await expect(season(2024)).toBeFocused();
@@ -1121,6 +1359,18 @@ test('recorded finals have their own section and result provenance while incompl
     finalHome = 14; await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await expect(card(page, 'SEA-DEN')).toContainText('Final · SEA 0–DEN 14');
     await expect(recorded).toContainText('Final · SEA 0–DEN 7');
+    const beforeCheck = resultReads.filter(call => call === 'POST /lines/read').length;
+    await recorded.getByRole('button', { name: 'Check recorded result', exact: true }).click();
+    await expect(recorded).toContainText('Final · SEA 0–DEN 14');
+    await expect(recorded).toContainText('Checked');
+    await expect(recorded.getByRole('button', { name: 'Check recorded result', exact: true })).toBeFocused();
+    expect(resultReads.filter(call => call === 'POST /lines/read')).toHaveLength(beforeCheck + 1);
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await page.emulateMedia({ colorScheme: theme, forcedColors, reducedMotion: 'reduce' });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`checked-result-${theme}-${forcedColors}.png`) });
+    }
     await page.keyboard.press('Escape'); await expect(card(page, 'SEA-DEN')).toBeFocused();
     await card(page, 'SEA-DEN').click();
     await expect(sheet(page, 'SEA @ DEN').getByRole('region', { name: 'Recorded result', exact: true })).toContainText('Final · SEA 0–DEN 14');
@@ -1132,6 +1382,62 @@ test('recorded finals have their own section and result provenance while incompl
     await expect(page.locator('.gx')).not.toContainText('Final · SEA 0–DEN 7');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+test('a direct game open checks results on demand, ignores a late reply after paging and recovers error/missing/wrong-week states', async ({ page, baseURL }) => {
+  let now = Date.now();
+  const { world } = await lukesWeek(page, baseURL, { clock: () => now });
+  let release, mode = 'hold', requests = 0;
+  const waiting = new Promise(resolve => { release = resolve; });
+  try {
+    now = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 3600000;
+    await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    await page.goto('/#trends'); await expect(title(page, 'Trends')).toBeVisible();
+    await expect(page.locator('[data-trend-availability]')).toBeVisible();
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      requests++;
+      const chosen = mode;
+      if (chosen === 'error') return route.fulfill({ status: 503, json: { error: 'Fixture result outage' } });
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      body.games.forEach(game => { game.final = chosen === 'missing' ? null : { status: 'final', away: 0, home: 0, source: chosen === 'wrong-week' ? 'WRONG WEEK RESULT' : chosen === 'hold' ? 'LATE RESULT' : 'Fixture checked final', observedAt: body.now }; });
+      if (chosen === 'wrong-week') body.week += 1;
+      if (chosen === 'hold') await waiting;
+      await route.fulfill({ status: 200, json: body }).catch(() => {});
+    });
+    const directCalls = apiCalls(page);
+    await page.getByRole('button', { name: 'Game details · SEA @ DEN', exact: true }).click();
+    const sea = sheet(page, 'SEA @ DEN'), recorded = dialog => dialog.getByRole('region', { name: 'Recorded result', exact: true });
+    await expect(recorded(sea)).toContainText('No recorded result checked yet.');
+    expect(requests).toBe(0);
+    expect(directCalls.filter(call => call === 'POST /lines/game')).toHaveLength(1);
+    const check = recorded(sea).getByRole('button', { name: 'Check recorded result', exact: true });
+    await check.click(); await expect(check).toBeDisabled(); await expect(recorded(sea).getByRole('status')).toHaveText('Checking recorded result…');
+    await check.evaluate(button => { button.click(); button.click(); }); expect(requests).toBe(1);
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    const hou = sheet(page, 'HOU @ JAX'); await expect(recorded(hou)).toContainText('No recorded result checked yet.');
+    release(); await expect(recorded(hou)).not.toContainText('LATE RESULT');
+    await hou.getByRole('button', { name: 'Previous game, SEA @ DEN', exact: true }).click();
+    await expect(recorded(sea).getByRole('button', { name: 'Check recorded result', exact: true })).toBeEnabled();
+    await expect(recorded(sea).getByRole('status')).toHaveCount(0);
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    mode = 'error'; await recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true }).click();
+    await expect(recorded(hou).getByRole('alert')).toContainText('Couldn’t check the result.');
+    mode = 'missing'; await recorded(hou).getByRole('button', { name: 'Try result again', exact: true }).click();
+    await expect(recorded(hou)).toContainText('No complete recorded final returned for this game.');
+    await expect(recorded(hou)).toContainText('Checked');
+    mode = 'wrong-week'; await recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true }).click();
+    await expect(recorded(hou).getByRole('alert')).toBeVisible(); await expect(recorded(hou)).not.toContainText('WRONG WEEK RESULT');
+    mode = 'ready'; await recorded(hou).getByRole('button', { name: 'Try result again', exact: true }).click();
+    await expect(recorded(hou)).toContainText('Final · HOU 0–JAX 0');
+    await expect(recorded(hou)).toContainText('Fixture checked final');
+    await expect(recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true })).toBeFocused();
+    await hou.getByRole('button', { name: 'Previous game, SEA @ DEN', exact: true }).click();
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    await expect(recorded(hou)).toContainText('Final · HOU 0–JAX 0'); expect(requests).toBe(5);
+    expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('Fixture checked final');
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
 });
 
 test('board refresh failures and wrong-week replies hide market values until retry succeeds', async ({ page, baseURL }) => {

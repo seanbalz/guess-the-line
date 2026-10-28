@@ -213,14 +213,14 @@
 
 **Files:**
 - Create: `scripts/epl-seed-mw09.mjs` (calls `admin/week` and `admin/link` against a target URL with the commissioner's session token from env; dry-run by default, `--apply` to write), `scripts/epl-import-snapshots.mjs` (reads `/Users/seanbalsiger/gtl-epl-snapshots/*.json` and posts each to `admin/snapshot` with its label and stored `sources.*.sha256`; the hashes are of the original responses and are recorded, not re-checked)
-- Modify: `docs/DECISIONS.md` (new `## D-65 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)` summarizing the spec's rules; approved by Sean October 28), `docs/COMPLETION_REGISTER.md` (row "EPL Pick a Team": implemented locally, not deployed; open: M-30 apply, crons, MW10 run), `planning/PLATFORM_WORK_QUEUE.md` (step row)
+- Modify: `docs/DECISIONS.md` (new `## D-66 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)` summarizing the spec's rules; approved by Sean October 28), `docs/COMPLETION_REGISTER.md` (row "EPL Pick a Team": implemented locally, not deployed; open: M-30 apply, crons, MW10 run), `planning/PLATFORM_WORK_QUEUE.md` (step row)
 - Test: `tests/epl-seed.test.mjs` (seed script builds exactly the MW9 order and 7 picks from Global Constraints, source `seeded`, dry-run makes no request)
 
 - [ ] **Step 1: Failing test** for the seed payload.
 - [ ] **Step 2:** `node --test tests/epl-seed.test.mjs` → FAIL.
 - [ ] **Step 3: Implement** scripts and docs.
 - [ ] **Step 4:** `npm test` → PASS.
-- [ ] **Step 5: Commit** `feat(epl): MW9 seed, snapshot import and D-65 records`; push branch, open draft PR, run `npm run sync:check`, report branch, commit, PR and that M-30 is not applied.
+- [ ] **Step 5: Commit** `feat(epl): MW9 seed, snapshot import and D-66 records`; push branch, open draft PR, run `npm run sync:check`, report branch, commit, PR and that M-30 is not applied.
 
 ### Task 10: Release target `epl-jobs` for the new Edge Function
 

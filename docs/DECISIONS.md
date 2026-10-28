@@ -12,7 +12,7 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
-## D-65 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
+## D-66 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
 **Status: approved by Sean on October 28, 2026.** It adopts the design in
 [docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md](superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md)
@@ -72,8 +72,37 @@ is deployed: M-30 (`20261028180000_gtl_epl_pick_a_team.sql`) is written and **no
     import, read-only on the snapshot folder). Both are dry runs unless given `--apply`.
 
 ## D-64 (proposed — needs Sean) — pending shared bets settle automatically after the game's day (October 28, 2026)
+## D-65 — the new app is the only app; access to the old app is removed (October 28, 2026)
 
-**Status: proposed, not approved.** Sean: "make sure that all pending bets are settled after the day that the game
+The request on October 28: "Change the app to only show the new version. Remove access to the
+old version entirely." This completes D-60 step 2's access removal (RETIRE-02) now, ahead of its
+checklist, which is the "remove it entirely now" option D-60 first put forward.
+- **One app.** `web/src/main.jsx` loads only the new app. `GameHub.jsx` (the old shell) and
+  `TryNewApp.jsx` (its "Back to the new app") are deleted; no old-app chunk is built or served.
+- **No way in.** Menu › Older records and tools is gone. `?app=classic` opens the new app and is
+  dropped from the address (other parameters and the hash kept). A saved `gtl.app` is forgotten.
+- **Failures reload.** Every "Use the old app" on a failure screen, error card or failed-layer toast
+  is now **Reload the app**. When the new app's chunk cannot load or throws, `main.jsx` shows a
+  reload screen instead of the old app.
+- **What has no new-app home yet** and so is unreachable from the UI until its page ships: the
+  commissioner tools (settlement and schedule status, week opening, referee assignments, final
+  scores, the odds connection; stages 77–78) and the old group game screens (`App.jsx` in cloud
+  mode). Player records already have homes (History, Older records, Export; M-27, M-28).
+- **Tests.** The old-app-only browser specs (25 files, plus `old-app.mjs`) and the old-app
+  accessibility suite are removed with the shell; mixed specs keep their new-app cases.
+
+### What does not change
+
+No record is deleted, moved or hidden in the database (D-23); every server route and rule is
+unchanged. Shared components the new app reuses (`CommunityHome` `WeekPicks`, `SocialBetTracker`,
+`VirtualUnits`, `FantasyFootball`, `ChipPicker`) stay. The local, non-cloud `npm run dev` dashboard
+(`App.jsx` without Supabase settings) stays as an engineering tool. Old hosted deployments
+(RETIRE-03) and leftover old-UI source (RETIRE-04) remain separate follow-ups. Rollback is to
+restore the previous Pages deployment.
+
+## D-64 — pending shared bets settle automatically after the game's day (October 28, 2026)
+
+**Status: approved by Sean on October 28, 2026 ("approve D-63 and D-64").** Sean: "make sure that all pending bets are settled after the day that the game
 completes. There are still pending bets from week 7." Virtual Units and recommended picks already settle on every
 `gtl-results-refresh` run (D-26). Shared Bet Tracker tickets had no automatic path, so they stayed pending until their
 owner reported a result. The draft PR adds `20261028120000_gtl_social_auto_settle.sql` (the shared-ticket part of M-19):
@@ -96,9 +125,9 @@ Needs Sean: approve the rule (Pacific day end; parlays/props manual; owners may 
 `results-refresh` deploy. Details: [SOCIAL_BET_TRACKER.md](SOCIAL_BET_TRACKER.md#automatic-settlement-m-19-d-64-proposed--october-28-2026)
 and the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md).
 
-## D-63 (proposed — needs Sean) — user trend builder and saved-trend matches (October 28, 2026)
+## D-63 — user trend builder and saved-trend matches (October 28, 2026)
 
-**Status: proposed, not approved.** Sean asked why TrendsCenter "finds things like this and we aren't". The draft PR
+**Status: approved by Sean on October 28, 2026 ("approve D-63 and D-64").** Sean asked why TrendsCenter "finds things like this and we aren't". The draft PR
 adds Trends › Build: up to three conditions from the prepared nflverse history, a result card always labelled "Found by
 search — not tested" with W-L-P, cover rate, Wilson interval, sample, dates, "Illustrative units at -110" and the
 2002–2017 / 2018-on split; this week's matching games (line conditions only from the viewer's own saved line once that

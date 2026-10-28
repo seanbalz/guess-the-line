@@ -20,7 +20,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const OLD = 'Use the old app', OLDER = 'Older records and tools';
+const RELOAD = 'Reload the app';
 const TABS = ['Home', 'Play', 'Bets', 'Research'];
 const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 // A tab by its label; its name may add the counter's words ("Play, 2 ballots due", stage 11).
@@ -90,12 +90,11 @@ async function load(page, fragment = '') {
   await page.goto(`/${fragment}`);
 }
 
-/** Signs in on the old app, then opens the new one on this device (gtl.app = next), at `fragment`. */
+/** Signs in (the new app is the only app), then loads it again at `fragment`. */
 async function openNewApp(page, baseURL, fragment = '') {
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await signIn(page, 'luke');
-  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-  await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
+  await expect(tabBar(page)).toBeVisible();
   const calls = apiCalls(page);
   await load(page, fragment);
   await expect(tabBar(page)).toBeVisible();
@@ -191,7 +190,7 @@ test.describe('the real app', () => {
     } finally { await world.db.close(); }
   });
 
-  test('the avatar menu: Appearance opens in place with focus kept inside, Back and Escape close it, the old app is one tap away, and Sign out works', async ({ page, baseURL }) => {
+  test('the avatar menu: Appearance opens in place with focus kept inside, Back and Escape close it, no old-app row, and Sign out works', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL);
     try {
@@ -259,18 +258,13 @@ test.describe('the real app', () => {
 
       expect(writes(calls), 'the menu writes nothing').toEqual([]);
 
-      // D-60: the menu's one way into the old app opens it at ?app=classic, saving nothing.
+      // The old app is gone: the menu offers no way into it.
       await avatar.click();
-      await menu.getByRole('button', { name: OLDER }).click();
-      await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-      expect(new URL(page.url()).searchParams.get('app')).toBe('classic');
-      expect(await page.evaluate(() => localStorage.getItem('gtl.app'))).toBeNull();
-      // Only the NBA section's NFL/NBA selector (PR #167) uses new-app styles in the old app; the new-app frame is gone.
-      await expect(page.locator('.gx:not(.gx-nba-sport-entry)')).toHaveCount(0);
+      await expect(menu.getByRole('button', { name: 'Older records and tools' })).toHaveCount(0);
+      await page.keyboard.press('Escape');
+      await expect(menu).toHaveCount(0);
 
-      // Back to the new app, then Sign out from the menu.
-      await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
-      await load(page);
+      // Sign out from the menu.
       await page.getByRole('button', { name: 'Your menu' }).click();
       await page.getByRole('button', { name: 'Sign out' }).click();
       await expect(page.getByRole('heading', { name: 'Your games. Any device.' })).toBeVisible();
@@ -659,13 +653,13 @@ test.describe('the shell harness', () => {
     await expect(page.locator('.gx-dock-bar')).toHaveCount(0);
   });
 
-  test('a tab that fails shows its own error card with Try again and Use the old app; the other tabs keep working', async ({ page }) => {
+  test('a tab that fails shows its own error card with Try again and Reload the app; the other tabs keep working', async ({ page }) => {
     const { errors } = await harness(page, '#play');
     await page.getByRole('button', { name: 'Break this tab' }).click();
     const card = page.getByRole('alert');
     await expect(card).toContainText('This tab couldn’t load.');
     await expect(card.getByRole('button', { name: 'Try again' })).toBeVisible();
-    await expect(card.getByRole('button', { name: OLD })).toBeVisible();
+    await expect(card.getByRole('button', { name: RELOAD })).toBeVisible();
     await expect(tabBar(page)).toBeVisible();
     await phoneChecks(page);
     await card.getByRole('button', { name: 'Try again' }).click();
@@ -676,17 +670,18 @@ test.describe('the shell harness', () => {
     await tab(page, 'Play').click();
     await expect(page.getByRole('button', { name: 'Break this tab' }), 'a fresh start on the way back').toBeVisible();
     await page.getByRole('button', { name: 'Break this tab' }).click();
-    await page.getByRole('alert').getByRole('button', { name: OLD }).click();
-    // D-60: the old app opens at ?app=classic; nothing is saved.
-    await expect.poll(() => new URL(page.url()).searchParams.get('app')).toBe('classic');
+    await page.getByRole('alert').getByRole('button', { name: RELOAD }).click();
+    // Reload loads the same page again; the old app never opens.
+    await expect(page.getByRole('button', { name: 'Break this tab' })).toBeVisible();
+    expect(new URL(page.url()).searchParams.has('app')).toBe(false);
     expect(errors.filter(e => !/failed on purpose/.test(e))).toEqual([]);
   });
 
-  test('a layer that fails closes and says so, with Use the old app', async ({ page }) => {
+  test('a layer that fails closes and says so, with Reload the app', async ({ page }) => {
     await harness(page);
     await page.getByRole('button', { name: 'Open a broken sheet' }).click();
     await expect(page.locator('.gx-toast')).toContainText('That couldn’t open.');
-    await expect(page.locator('.gx-toast').getByRole('button', { name: OLD })).toBeVisible();
+    await expect(page.locator('.gx-toast').getByRole('button', { name: RELOAD })).toBeVisible();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.locator('.gx-app')).not.toHaveAttribute('inert', '');
   });
@@ -702,7 +697,7 @@ test.describe('the shell harness', () => {
     await page.evaluate(() => { window.__breakFragile = true; });
     await top.getByRole('button', { name: 'Show the detail' }).click();
     await expect(page.locator('.gx-toast')).toContainText('That couldn’t open.');
-    await expect(page.locator('.gx-toast').getByRole('button', { name: OLD })).toBeVisible();
+    await expect(page.locator('.gx-toast').getByRole('button', { name: RELOAD })).toBeVisible();
     const detail = sheet(page, 'Detail');
     await expect(detail, 'the sheet the member was using stays').toBeVisible();
     await expect(detail, 'and is not drawn again from scratch').toHaveAttribute('data-probe', 'same');

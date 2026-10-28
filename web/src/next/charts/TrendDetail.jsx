@@ -38,7 +38,7 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
         {info}
       </div>
       {seasons ? (
-        <div className="gx-tc-seg" role="group" aria-label="Chart view">
+        <div className="gx-tc-seg" role="group" aria-label={`Chart view · ${title}`}>
           <button type="button" aria-pressed={!bySeason} onClick={() => setView('line')}>{line.start ? `Since ${line.start}` : 'All games'}</button>
           <button type="button" aria-pressed={Boolean(bySeason)} onClick={() => setView('seasons')}>By season</button>
         </div>
@@ -47,10 +47,10 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
         <span className="gx-tc-big">{shown.headline.value}</span>
         <span className="gx-tc-headline-sub">{shown.headline.sub}</span>
       </p>
-      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label}
+      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={title} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={title}
         selectedIndex={lineSelection.index} onSelect={lineSelection.onSelect}/>}
       <StatTiles tiles={shown.tiles}/>
-      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
+      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} contextLabel={title} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
       {typeof children === 'function' ? children({ ...lineSelection, chartId: lineChartId }) : children}
     </section>
   );

@@ -3,7 +3,6 @@ import { Button, Card, Icon, InfoButton, Skeleton } from '../ui/index.js';
 import { fmtNum, fmtOdds, fmtSide } from '../format.js';
 import { INFO } from '../info.js';
 import { bestRecordedBook, lineState, marketTime, marketValue, movementGeometry } from './marketDetails.js';
-import { useGameLines } from './useGameLines.js';
 import { useChartSelection } from '../charts/useChartSelection.js';
 import './marketDetails.css';
 
@@ -81,8 +80,7 @@ export function MarketPanel({ game, market, cell, now }) {
   </Card>;
 }
 
-export function MarketDetails({ lines, gameId }) {
-  const read = useGameLines(lines, gameId);
+export function MarketDetails({ read, gameId }) {
   return <section className="gx-vstack gx-gap-12" aria-label="Market lines">
     <div className="gx-l-sechead"><h3 className="gx-t-section gx-grow">Market lines</h3><InfoButton {...INFO.marketLines}/></div>
     {read.status === 'loading' ? <Skeleton label="Loading market lines…" shape="panels" count={2}/> : read.status === 'error' ? <><p className="gx-t-body" role="status">Market lines are unavailable.</p><Button onClick={read.reload}>Retry market lines</Button></> : <>

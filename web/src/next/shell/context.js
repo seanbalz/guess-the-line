@@ -6,7 +6,7 @@ export const ShellContext = createContext(null);
 
 /**
  * `const shell = useShell()`: `shell.state` (state.js), `shell.go('play', { section: 'picks', market: 'total' })`, `shell.openSheet('sh.menu')`,
- * `shell.back()`, `shell.canGoBack`, `shell.setSheetArgs({ sub: 'appearance' })`, `shell.toast('Saved')`, `shell.toOldApp()` and the rest (Shell.jsx).
+ * `shell.back()`, `shell.canGoBack`, `shell.setSheetArgs({ sub: 'appearance' })`, `shell.toast('Saved')`, `shell.reload()` and the rest (Shell.jsx).
  */
 export function useShell() {
   const shell = useContext(ShellContext);
