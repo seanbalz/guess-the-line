@@ -388,8 +388,12 @@ The original 68 integrated browser cases and all four final team cases (includin
 repeated stylesheet-failure recovery), 84 component tests,
 19 token/brand tests, typecheck, Brand QA and fixture bundle privacy checks passed.
 Eight 320px Light/Dark and forced-color loading/error screenshots were inspected.
-Source branch: `codex/lazy-team-sheet`. CI/merge, release/readback, signed-in
-performance and device acceptance remain open.
+Source branch: `codex/lazy-team-sheet`. PR #295 merged as
+`107fc8e65971c79ee4db4cdbd7180ed3b06978f1` after all nine checks passed on
+`bfe99eb07ad46f31a62e79b82e33d8c8fc67db9d`; reviews and review threads were empty.
+The stylesheet-retry defect was repaired before merge, with main's #294 test
+reconciliation included. Release/readback, signed-in performance and device
+acceptance remain open.
 
 The [on-demand Trends page](RESEARCH_TRENDS_LOADING_2026_10_28.md) is the next
 source batch on `codex/lazy-research-trends`: the optional screen and chart styles
