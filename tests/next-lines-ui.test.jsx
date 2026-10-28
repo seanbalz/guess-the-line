@@ -13,7 +13,7 @@ import { accessFor, lineAtGuess, gamesOf } from '../shared/lines-view.mjs';
 import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 
-const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false, research: null }));
+const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false, research: null, teams: null }));
 // The native private-note editor uses the existing authenticated route wrapper. SSR never makes its effect read;
 // isolate that browser auth module here while the hosted-schema browser spec exercises the real handler and auth.
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), linesApi: vi.fn(), communityApi: vi.fn(), betsApi: vi.fn() }));
@@ -33,6 +33,11 @@ vi.mock('../web/src/next/lines/useGameLines.js', () => ({
 vi.mock('../web/src/next/research/useResearch.js', async importOriginal => ({
   ...(await importOriginal()), useResearch: () => state.research ?? { status: 'loading', data: null, reload: () => {} },
 }));
+// D-62: the shared team read (records and game logs); the bundled records until a test gives its answer.
+vi.mock('../web/src/next/teams/teamsData.js', async importOriginal => {
+  const real = await importOriginal();
+  return { ...real, useTeamSeason: () => state.teams ?? { status: 'loading', data: real.fallbackTeamSeason() } };
+});
 vi.mock('../web/src/next/lines/trendsHooks.js', () => ({
   useOfficials: () => state.officials,
   useWind: () => state.wind ?? { loading: false, wind: null, now: null },
@@ -77,7 +82,7 @@ const nodes = (html, test) => [...walk(parseMarkup(html))].filter(n => n.tag && 
 const attr = (name, value) => n => n.attrs[name] === value;
 const textOf = n => [...walk(n)].filter(x => x.text !== undefined).map(x => x.text).join(' ').replace(/\s+/g, ' ').trim();
 
-afterEach(() => { state.lines = null; state.wind = null; state.officials = null; state.openRows = false; state.research = null; });
+afterEach(() => { state.lines = null; state.wind = null; state.officials = null; state.openRows = false; state.research = null; state.teams = null; });
 
 describe('the Lines board', () => {
   it('a lock is an icon on every closed market, never "—"; your tags; current quote; at most three trend lines', () => {
@@ -107,6 +112,24 @@ describe('the Lines board', () => {
     expect(text(html)).not.toContain('Line now arrives in a later update.');
     // The forged line under the closed Spread (−11.5) never shows.
     expect(text(html)).not.toContain('11.5');
+  });
+
+  it('D-62: each team\'s record sits beside its name in text-2 numbers and is said after the matchup; the row stays one button', () => {
+    state.lines = data();
+    const record = (w, l, t = 0) => ({ overall: { w, l, t }, home: null, road: null, pointsFor: null, pointsAgainst: null, games: [] });
+    const season = year => ({ status: 'ready', data: { season: year, throughWeek: 6, fallback: false, teams: { SEA: record(3, 2), DEN: record(2, 2, 1) } } });
+    state.teams = season(2026);
+    const html = render(<LinesBoard/>);
+    expect(markupProblems(html)).toEqual([]);
+    const cards = Object.fromEntries(nodes(html, n => n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
+    const recs = card => [...walk(card)].filter(n => n.attrs?.class === 'gx-l-rec').map(textOf);
+    expect(recs(cards['SEA-DEN'])).toEqual(['3–2', '2–2–1']);
+    expect(cards['SEA-DEN'].attrs['aria-label']).toMatch(/^Seahawks at Broncos, \w{3} [^.]+ PT\. Records: Seahawks 3–2, Broncos 2–2–1\. Spread line hidden\./);
+    expect([...walk(cards['SEA-DEN'])].filter(n => n.tag === 'button'), 'no team buttons nested in the row').toHaveLength(0);
+    expect(recs(cards['HOU-JAX']), 'a team the read does not have shows no record').toEqual([]);
+    // A file for another season never labels this week's games.
+    state.teams = season(2025);
+    expect(render(<LinesBoard/>)).not.toContain('gx-l-rec');
   });
 
   it('one weather word per card from the week\'s forecasts (D-45), never digits; a trend line keeps its place; none for a dome', () => {
@@ -206,16 +229,20 @@ describe('the game sheet pages through the week (design upgrade)', () => {
 describe('the game sheet', () => {
   it('header, You on this game, the top trends with records and sample sizes, and a locked line trend with no number', () => {
     state.lines = data();
-    // Pin this header fixture so refreshed public records cannot invalidate the expected copy.
-    state.lines.records = {
-      season: 2026, retrieved_at: '2026-10-15T01:00:00Z',
-      teams: { SEA: { overall: { w: 3, l: 2, t: 0 } }, DEN: { overall: { w: 2, l: 2, t: 1 } } },
-    };
+    // Pin the team read so refreshed public records cannot invalidate the expected copy.
+    const record = (w, l, t = 0) => ({ overall: { w, l, t }, home: null, road: null, pointsFor: null, pointsAgainst: null, games: [] });
+    state.teams = { status: 'ready', data: { season: 2026, throughWeek: 6, fallback: false, teams: { SEA: record(3, 2), DEN: record(2, 2, 1) } } };
     const sea = render(<GameSheet args={{ game: 'SEA-DEN' }}/>);
     expect(markupProblems(sea)).toEqual([]);
     const t = text(sea);
     expect(t).toContain('Thu Oct 15 · 5:15 PM PT · TNF · Denver');
-    expect(t).toContain('Seahawks 3–2 · Broncos 2–2–1 · Records as of Wed Oct 14');
+    // D-62: the matchup as marks, away then home, each record under its code and each team a button to its sheet;
+    // the words line ("Seahawks 3–2 · Broncos 2–2–1") is gone and one meta line says how current the records are.
+    // Each mark keeps its letters behind the logo, so the code reads twice in plain text.
+    expect(t).toContain('SEA SEA 3–2 @ DEN DEN 2–2–1 Records through Week 6');
+    expect(t).not.toContain('Records as of');
+    expect(nodes(sea, n => n.tag === 'button' && /Open team$/.test(n.attrs['aria-label'] ?? '')).map(n => n.attrs['aria-label']))
+      .toEqual(['Seattle Seahawks, 3–2. Open team', 'Denver Broncos, 2–2–1. Open team']);
     expect(t).toContain('Draft SEA −4');
     expect(t).toContain('Submit your Spread picks to see this line.');
     expect(t).toContain('Submitted 44');

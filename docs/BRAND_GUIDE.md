@@ -331,3 +331,15 @@ the thing they explain. Every ⓘ topic is also listed in Menu › Guidance and
 sources. One exception: the Open-Meteo credit stays beside forecast values
 (D-34). The nflverse credit (CC BY 4.0) is one tap away in each trend ⓘ and in
 Guidance and sources.
+
+## D-62 team marks, records and the team page — October 27, 2026
+
+- **Matchup:** `ui/Matchup.jsx` draws away mark, code, "@", home mark, code. Sizes 24 (rows), 32 (cards) and 48 (the
+  game card at the top of a pick screen, `layout="stack"` with each record under its code). Codes use Barlow 700; the
+  "@" is `text-3`; records are Barlow 600 in `text-2`. With `onTeam`, each side is a 44px button named "Seattle
+  Seahawks, 4–2. Open team". Text-only places keep "SEA @ DEN".
+- **Records:** a team's record sits with its mark on every pick screen (two numbers per game). It amends rule of
+  restraint 3 for records only; splits and game logs open on tap.
+- **Team page:** a sheet, not a tab. One headline record, at most three tiles (Home, Road, Points per game), the last
+  five as W/L blocks with the letter in each block, a margin chart in `win`/`loss` with its value in words, and the
+  season's games as Matchup rows with scores. No market for a game that has not finished.
