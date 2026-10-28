@@ -180,15 +180,16 @@ Light/Dark 320px screenshots were inspected. PR #249 merged October 27 as
 `0c1918d992eaba0b595ab029877e87857a068daf`, with no CI fixes or review findings.
 Frontend release is recorded through #275 in the current release checkpoint; signed-in readback and device acceptance remain open.
 
-The [team release card](RELEASE_2026_10_27_TEAMS.md), merged in PR #284,
-records Pages `7b7dbabd-4fbb-4c47-b627-c7e9712513c5` from `a2ccf23` with
-API v39. This contains the Research/chart work through #275 and the D-62 team
-sheets/marks (#281–#283). It supersedes the older pending-release wording in
-batch snapshots below. This is release-lane evidence, not a hosted audit
-repeated by this task. Signed-in readback and physical-phone acceptance remain
-open. PR #289 and the player-comparison scale follow-up still need release.
-D-63's trend builder merged separately in #285 but remains explicitly proposed
-in the decision log; it is not an approved completion item.
+The [October 28 frontend release card](RELEASE_2026_10_28_D59_TRENDS.md),
+merged in PR #286, records Pages `7cca458b-b44f-47c0-a163-f47eb0adc316`
+from `0e4289a24953fbe0eddba6eb3453fcddfb3d6424`, with API v39 unchanged.
+It includes Research/chart work through #275 and the D-62 team sheets/marks,
+plus #285's trend-builder source. It supersedes the team release's `7b7dbabd`
+checkpoint and older pending-release wording below. This is release-lane evidence,
+not a hosted audit repeated by this task. Signed-in readback and phone acceptance
+remain open. PRs #289 and #291 and the team-readout follow-up
+still need release. D-63's trend-builder product decisions remain explicitly
+proposed in the decision log; its recorded deployment does not settle those decisions.
 
 The [high-contrast chart correction](RESEARCH_DESIGN_2026_10_26.md#high-contrast-chart-fallback--october-27)
 restores marks that disappeared under forced colors: season stems, win-rate bars
@@ -358,7 +359,20 @@ rates and unavailable samples stay distinct. Source branch:
 browser cases and the final focused case passed, as did 62 component and
 19 token/brand tests, typecheck, Brand QA and fixture bundle privacy checks.
 Eight 320px Light/Dark and forced-color signed/percentage screenshots were
-inspected. CI/merge, release and device acceptance remain open.
+inspected. PR #291 merged October 28 as `437766277102ef6488696fc623107937138dba1f`
+after all nine checks passed on `e0d0f71ae471bf7d81d61ec41342d35a741cb4ca`, with no
+review findings or CI fixes. Release/readback and device acceptance remain open.
+
+The [steady team-chart readout batch](RESEARCH_TEAM_READOUT_2026_10_28.md)
+reserves the tallest supplied game label so enlarged text does not move the
+plot or slider when selection changes. Source branch: `codex/team-chart-readout`.
+The regression failed before and passed after the fix; all 67 integrated
+Lines/Research/Trends/gesture browser cases passed before the final main
+integration; both affected team browser cases and 84 component tests passed
+on the final source. 19 token/brand tests, typecheck, Brand QA and fixture bundle
+privacy checks passed. Four 320px
+enlarged-text ordinary/forced-color screenshots were inspected. CI/merge,
+release/readback and device acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete

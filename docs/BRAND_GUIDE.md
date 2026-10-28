@@ -351,3 +351,5 @@ Guidance and sources.
   Scrubbing the chart selects the matching season row. Use a check plus a row tint, and a real outline in forced
   colors; keep keyboard focus on the control used. Upcoming games and finals without scores stay plain rows.
   Put the result beneath its matchup so marks, codes and scores remain readable at 320px.
+  Reserve the tallest supplied margin readout so enlarged/wrapped game labels never shift the plot or slider; keep
+  the full selected label visible and expose only its existing accessible chart/slider descriptions.

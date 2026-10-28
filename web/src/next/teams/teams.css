@@ -28,7 +28,10 @@
 
 /* ----- margin chart ----- */
 .gx .gx-team-chart { display: flex; flex-direction: column; gap: var(--gx-space-2); }
-.gx .gx-team-readout { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-1) var(--gx-space-2); min-height: 22px; margin: 0; }
+.gx .gx-team-readout { display: grid; min-height: 22px; margin: 0; }
+.gx .gx-team-readout-current, .gx .gx-team-readout-sizing, .gx .gx-team-readout-measure { grid-area: 1 / 1; min-width: 0; }
+.gx .gx-team-readout-current, .gx .gx-team-readout-measure { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-1) var(--gx-space-2); }
+.gx .gx-team-readout-sizing { display: grid; visibility: hidden; }
 .gx .gx-team-readout-value { font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-1); }
 .gx .gx-team-plot { touch-action: pan-y; cursor: crosshair; }
 .gx .gx-team-svg { display: block; width: 100%; height: auto; overflow: visible; }

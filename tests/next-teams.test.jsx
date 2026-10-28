@@ -209,7 +209,7 @@ describe('the team sheet (sh.team)', () => {
     expect(all.filter(n => n.tag === 'path' && /gx-team-bar--loss/.test(n.attrs.class))).toHaveLength(1);
     expect(all.filter(n => n.tag === 'circle' && /gx-team-tie/.test(n.attrs.class))).toHaveLength(1);
     expect(all.filter(n => n.tag === 'line' && n.attrs.class === 'gx-team-zero')).toHaveLength(1);
-    expect(textOf(cls('gx-team-readout')[0])).toBe('+12Week 7 · W 30–18 @ DEN');
+    expect(textOf(cls('gx-team-readout-current')[0])).toBe('+12Week 7 · W 30–18 @ DEN');
     expect(textOf(cls('gx-team-weeks')[0])).toBe('123457');
     expect(words(html)).toContain('Week by week · scale +21 to −14 points');
     const scrub = all.find(n => n.tag === 'input' && n.attrs.type === 'range');
