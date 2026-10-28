@@ -3,8 +3,14 @@
 // the screens it came from; the data credits are the same text and links the footers showed.
 import { TRENDS_FOOTNOTE } from '../../../shared/trends-view.mjs';
 import { footer } from '../../../shared/lines-view.mjs';
+import { NFLVERSE_SCHEDULE_URL } from '../../../shared/nfl-schedule.mjs';
 
 const credits = footer({ forecastShown: true });
+/** D-62: what a team record counts, said the same way on the team sheet's ⓘ (teams/TeamSheet.jsx) and in Guidance. */
+export const TEAM_RECORDS_COUNTED = 'Records count every regular-season final so far in the free nflverse schedule file, so Sunday’s and Monday’s finals show the same weekend.';
+/** The team records credit and link: the same text as `source_credit` and `source` in shared/team-records-2026.json. */
+export const TEAM_RECORDS_CREDIT = 'nflverse nfldata (Lee Sharpe); final scores only';
+export const TEAM_RECORDS_LINKS = Object.freeze([{ text: 'nflverse nfldata games file', url: NFLVERSE_SCHEDULE_URL }]);
 export const TRENDS_LINKS = Object.freeze([
   { text: credits.trends.text, url: credits.trends.url },
   { text: `License: ${credits.trends.license}`, url: credits.trends.licenseUrl },
@@ -170,6 +176,16 @@ export const INFO = Object.freeze({
     ],
     links: TRENDS_LINKS,
   },
+  teamRecords: {
+    title: 'About team records',
+    body: [
+      TEAM_RECORDS_COUNTED,
+      'Tap a team’s logo on Play or in a game sheet to open its page: the record, home and road splits, points per game, the last five results, a margin chart and every game this season. No line, odds or market of any kind appears there.',
+      'Each team page’s ⓘ says the week the records run through and when they were updated. If the latest records cannot be read, the page shows the copy bundled with the app and says game-by-game results are not available.',
+      `Source: ${TEAM_RECORDS_CREDIT}.`,
+    ],
+    links: TEAM_RECORDS_LINKS,
+  },
   export: {
     title: 'About Export my data',
     body: [
@@ -181,4 +197,4 @@ export const INFO = Object.freeze({
 });
 
 /** The order Menu › Guidance and sources lists the topics in. */
-export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'trendBuilder', 'research', 'researchData', 'marketLines', 'gameBets', 'yourPick', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);
+export const GUIDANCE_ORDER = Object.freeze(['scores', 'features', 'points', 'trends', 'trendBuilder', 'teamRecords', 'research', 'researchData', 'marketLines', 'gameBets', 'yourPick', 'guessPicks', 'trackedBets', 'recommended', 'virtual', 'everyone', 'weather', 'history', 'export']);
