@@ -317,6 +317,91 @@ test('team chart keeps its plot steady when enlarged game labels wrap', async ({
   } finally { await world.db.close(); }
 });
 
+test('game details wait for opening and keep their frame, pager, close and explicit retry available during downloads', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  let release, mode = 'hold', requests = 0, styles = 0;
+  let waiting = new Promise(resolve => { release = resolve; });
+  try {
+    page.on('request', request => { if (/\/assets\/GameDetails-[^/]+\.css$/.test(request.url())) styles++; });
+    await page.route('**/assets/GameDetails-*.js', async route => {
+      requests++; if (mode === 'hold') await waiting;
+      return mode === 'fail' ? route.abort('failed') : route.continue();
+    });
+    await openLines(page);
+    expect([requests, styles]).toEqual([0, 0]);
+    const calls = apiCalls(page), gameReads = () => calls.filter(call => call === 'POST /lines/game').length;
+    const opener = card(page, 'SEA-DEN');
+    await opener.click();
+    const sea = sheet(page, 'SEA @ DEN'), hou = sheet(page, 'HOU @ JAX');
+    await expect(sea.getByRole('status')).toHaveText('Loading game details…');
+    await expect.poll(() => requests).toBe(1);
+    expect(gameReads()).toBe(0);
+    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    await expect(hou.getByRole('status')).toHaveText('Loading game details…');
+    expect(requests).toBe(1);
+    await page.keyboard.press('Escape'); await expect(opener).toBeFocused();
+    const failed = page.waitForEvent('requestfailed', request => /\/assets\/GameDetails-[^/]+\.js$/.test(request.url()));
+    mode = 'fail'; release(); await failed;
+    await expect(hou).not.toBeVisible(); await expect(opener).toBeFocused();
+    await opener.click();
+    await expect(sea.getByRole('alert')).toContainText('Game details couldn’t load.');
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await sea.screenshot({ path: info.outputPath(`game-download-error-${theme}-${forcedColors}.png`) });
+    }
+    mode = 'hold'; waiting = new Promise(resolve => { release = resolve; });
+    await sea.getByRole('button', { name: 'Try game details again' }).click();
+    await expect(sea.getByRole('status')).toHaveText('Loading game details…');
+    await expect(sea.getByRole('group', { name: 'Game details', exact: true })).toBeFocused();
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await sea.screenshot({ path: info.outputPath(`game-download-loading-${theme}-${forcedColors}.png`) });
+    }
+    expect(gameReads()).toBe(0);
+    mode = 'ready'; release();
+    await expect(sea.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
+    await expect(sea.getByRole('group', { name: 'Game details', exact: true })).toBeFocused();
+    await expect.poll(gameReads).toBe(1);
+    const loadedRequests = requests;
+    await page.keyboard.press('Escape'); await expect(opener).toBeFocused();
+    await opener.click();
+    await expect(sea.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
+    expect(requests).toBe(loadedRequests); expect(styles).toBe(1);
+    await noLeak(page, world, 'loaded game details'); expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
+test('game details recover a failed stylesheet before showing their market and research content', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let allowStyle = false, requests = 0;
+  try {
+    await page.route('**/assets/GameDetails-*.css', route => {
+      requests++; return allowStyle ? route.continue() : route.abort('failed');
+    });
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    const game = sheet(page, 'SEA @ DEN');
+    await expect(game.getByRole('alert')).toContainText('Game details couldn’t load.');
+    await expect(game.getByRole('heading', { name: 'You on this game', exact: true })).toHaveCount(0);
+    await game.getByRole('button', { name: 'Try game details again' }).click();
+    await expect.poll(() => requests).toBe(2);
+    await expect(game.getByRole('alert')).toContainText('Game details couldn’t load.');
+    allowStyle = true;
+    await game.getByRole('button', { name: 'Try game details again' }).click();
+    await expect(game.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
+    await expect(game.getByRole('group', { name: 'Game details', exact: true })).toBeFocused();
+    await expect(game.locator('.gx-md-disclosure > summary').first()).toHaveCSS('display', 'flex');
+    expect(requests).toBe(3); expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('team details load only on opening; closing, failed download and explicit retry preserve navigation and reads', async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
   const { world } = await lukesWeek(page, baseURL);

@@ -459,6 +459,20 @@ eligibility works despite a stale personal-week clock, with one game request.
 CI/merge, release/readback and phone acceptance remain open; #300 is merged.
 Live/postponed/cancelled status remains separate work.
 
+The [on-demand game details](RESEARCH_GAME_LOADING_2026_10_28.md) batch,
+`codex/lazy-game-details`, keeps the frame and pager eager and loads its result,
+market/research and notes content on opening, with local download/style retry.
+The local initial static dependency graph is 25,622 raw bytes smaller (6,269
+estimated gzip); after opening, total estimated gzip is 2,738 bytes larger.
+Both focused browser cases, full Vitest (466), 59 model/navigation/modal/token/
+brand tests and typecheck passed; the 97-case expanded browser run passed 96 cases and caught a Trends harness
+reading section order before deferred content was ready. That assertion now
+awaits those sections; all five final download/style/result/Trends cases passed.
+Eight 320px theme/forced-color captures were inspected; Brand QA and fixture
+privacy checks passed. CI/merge, release/readback, signed-in
+performance and phone acceptance remain open. This does not complete stage 33
+live status or stage 34's dependent Bet/Challenge action slots.
+
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.

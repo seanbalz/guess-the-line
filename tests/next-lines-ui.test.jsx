@@ -14,6 +14,10 @@ import { TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 import { assertNoLeak, leakScan, lineSecrets, pickSecrets } from './helpers/leak-scan.mjs';
 
 const state = vi.hoisted(() => ({ lines: null, wind: null, officials: null, openRows: false, research: null, teams: null }));
+// SSR verifies the detail markup eagerly; the real code-loading boundary is exercised in Playwright.
+vi.mock('../web/src/next/lines/GameDetailsSlot.jsx', async () => ({
+  GameDetailsSlot: (await import('../web/src/next/lines/GameDetails.jsx')).default,
+}));
 // The native private-note editor uses the existing authenticated route wrapper. SSR never makes its effect read;
 // isolate that browser auth module here while the hosted-schema browser spec exercises the real handler and auth.
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), linesApi: vi.fn(), communityApi: vi.fn(), betsApi: vi.fn() }));
