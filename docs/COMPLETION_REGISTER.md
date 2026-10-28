@@ -407,11 +407,14 @@ passed; eight 320px loading/error screenshots were inspected. CI/merge,
 release/readback, signed-in performance and phone acceptance remain open.
 
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
-Play skip flow and device acceptance stay open. The board currently derives
-Started from kickoff/server time; its model does not carry verified live/final
-status. The queue now records source/time, missing/stale and privacy exit
-criteria for that remaining stage 33 work. These batches do not complete the
-whole stages.
+Play skip flow and device acceptance stay open. Correction: the base schedule
+model carries kickoff only, but `marketBoard()` already adds recorded final
+scores from `/lines/read`. The [final-result presentation batch](RESEARCH_FINAL_RESULTS_2026_10_28.md)
+on `codex/research-final-results` separates Final from Kickoff passed, exposes
+result provenance and rejects incomplete/mismatched scores. Integrated checks
+are in progress. Live/postponed/cancelled status still needs a supported data
+path; the queue keeps its source/time, missing/stale and privacy exit criteria.
+These batches do not complete the whole stages.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
