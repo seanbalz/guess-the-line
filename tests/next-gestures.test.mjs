@@ -15,7 +15,7 @@ import {
   GESTURE, closeThreshold, lockAxis, pageOffset, pagerPlace, pageStep, pageThreshold, rubberBand, scrimOpacity, sheetOffset, shouldClose, velocityOf,
 } from '../web/src/next/ui/gesture.js';
 import { HAPTIC_MS, lightHaptic } from '../web/src/next/ui/haptics.js';
-import { boardOrder, openedBoardOrder, gamePager } from '../web/src/next/lines/gameOrder.js';
+import { boardOrder, openedBoardOrder, openedBoardResult, gamePager } from '../web/src/next/lines/gameOrder.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -243,4 +243,27 @@ test('game paging follows the opened final-section order only for the complete c
   assert.deepEqual(openedBoardOrder(personal, null, context), fallback);
   assert.deepEqual(openedBoardOrder(personal, 'fixture'), fallback);
   assert.deepEqual(openedBoardOrder(null, 'fixture', context), []);
+});
+
+
+test('opened game result revalidates its recorded snapshot, keeps zero/ties and carries no market or pick fields', () => {
+  const personal = { season: 2026, week: 6, games: [{ id: 'SEA-DEN', kickoff: '2026-10-18T17:00:00Z' }] };
+  const record = { gameId: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', status: 'final', away: 0, home: 0,
+    source: 'Fixture result', origin: 'commissioner_reported', observedAt: '2026-10-18T20:00:00Z', picks: { secret: 99.125 }, spread: 97.625 };
+  const context = { accountId: 'fixture', season: 2026, week: 6, ids: ['SEA-DEN'], now: Date.parse('2026-10-18T21:00:00Z'), results: { 'SEA-DEN': record } };
+  const result = openedBoardResult(personal, 'fixture', context, 'SEA-DEN');
+  assert.equal(result.score, 'Final · SEA 0–DEN 0');
+  assert.match(result.provenance, /Commissioner-reported result.*Fixture result.*Observed/);
+  assert.deepEqual(Object.keys(result.record).sort(), ['away', 'awayCode', 'gameId', 'home', 'homeCode', 'observedAt', 'origin', 'source', 'status']);
+  assert.doesNotMatch(JSON.stringify(result), /99.125|97.625|picks|spread/);
+  for (const patch of [{ accountId: 'other' }, { season: 2025 }, { week: 7 }, { ids: [] }, { now: NaN }, { now: Date.parse('2026-10-18T16:00:00Z') }]) {
+    assert.equal(openedBoardResult(personal, 'fixture', { ...context, ...patch }, 'SEA-DEN'), null);
+  }
+  for (const patch of [{ gameId: 'SEA-SF' }, { homeCode: 'SF' }, { away: null }, { status: 'pending' }]) {
+    assert.equal(openedBoardResult(personal, 'fixture', { ...context, results: { 'SEA-DEN': { ...record, ...patch } } }, 'SEA-DEN'), null);
+  }
+  assert.equal(openedBoardResult(personal, 'fixture', context, 'SEA-SF'), null);
+  assert.equal(openedBoardResult(personal, 'fixture', { ...context, results: {} }, 'SEA-DEN'), null);
+  assert.equal(openedBoardResult(personal, 'fixture', undefined, 'SEA-DEN'), null);
+  assert.equal(openedBoardResult(personal, null, context, 'SEA-DEN'), null);
 });

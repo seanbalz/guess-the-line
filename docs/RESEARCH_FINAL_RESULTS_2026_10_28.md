@@ -61,9 +61,21 @@ typecheck passed after this repair. The fresh CI head is required before merge.
 
 ## Remaining checkpoints
 
-Source branch: `codex/research-final-results`. CI/merge, frontend release,
+Source branch: `codex/research-final-results`. Frontend release,
 signed-in readback and physical-iPhone acceptance remain open. Live scores,
 verified live/postponed/cancelled status and their source/freshness behavior still
 need a supported data path. The existing reader must not be described as a live
 score feed. Bet/Challenge destinations and the remaining Play skip flow stay
 open. This task performs no deployment, migration apply or frozen v62 change.
+
+## Merge verified October 28, 2026
+
+[PR #299](https://github.com/seanbalz/guess-the-lines-repo/pull/299) merged as
+`a5bd54391b7c7e410b20088b343943d1c94045ab` after all nine checks passed on
+`6a8b6e8715c3c1bfdf5348c3ca5db6937a457627`. Reviews and review threads were empty.
+The displayed-order paging defect was repaired before that fresh CI run.
+The next [game-sheet result batch](RESEARCH_RESULT_SHEET_2026_10_28.md) keeps
+recorded results visible on opening and repairs focus return after a background
+refresh recreates a card. Its 94-case local shell/Research/Lines/Trends/gesture
+run passed; it still needs its own CI/merge and release/phone checkpoints.
+No deployment or migration apply was performed by this task.

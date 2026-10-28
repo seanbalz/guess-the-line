@@ -26,7 +26,7 @@ import { MatchupResearch } from '../research/ResearchSheet.jsx';
 import { EveryoneGuesses } from './EveryoneGuesses.jsx';
 import { MarketDetails } from './MarketDetails.jsx';
 import { actionsForGame, GameActions } from './GameActions.jsx';
-import { openedBoardOrder, gamePager } from './gameOrder.js';
+import { openedBoardOrder, openedBoardResult, gamePager } from './gameOrder.js';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { recordsThroughText } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
@@ -75,6 +75,7 @@ export function GameSheet({ args }) {
   const officials = useOfficials(shown?.season, shown?.week, Boolean(view));
   const wind = useWind(shown?.season, shown?.week, Boolean(view));
   const order = useMemo(() => openedBoardOrder(personal.data, app.accountId, args.boardOrder), [personal.data, app.accountId, args.boardOrder]);
+  const result = openedBoardResult(personal.data, app.accountId, args.boardOrder, args.game);
   const teams = useTeamSeason();
   if (!view) {
     return (
@@ -107,6 +108,13 @@ export function GameSheet({ args }) {
         <TeamMatchup away={view.away.code} home={view.home.code} season={shown?.season ?? null} from={view.title}/>
         {recordsThroughText(teams.data) && teams.data.season === shown?.season ? <p className="gx-t-meta gx-c-2 gx-l-through">{recordsThroughText(teams.data)}</p> : null}
       </div>
+
+      {result && <Card as="section" aria-label="Recorded result" className="gx-vstack gx-gap-8">
+        <h3 className="gx-t-section">Recorded result</h3>
+        <p className="gx-t-strong">{result.score}</p>
+        <p className="gx-l-observation gx-t-meta gx-c-2">{result.provenance}</p>
+        <p className="gx-t-meta gx-c-2">Recorded when opened. Return to the board to check for updates.</p>
+      </Card>}
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={youId}>
         <h3 className="gx-t-section" id={youId}>{LINES_COPY.youOnGame}</h3>

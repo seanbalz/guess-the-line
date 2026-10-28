@@ -2,7 +2,7 @@
 // loads, skeleton game cards stand in for the board; while the quotes load, a skeleton bar stands in each open market
 // (the "Loading…" words stay for screen readers). D-62: each team's record (this weekend's finals, from the shared team
 // read) sits beside its name in text-2 numbers; the row stays one button that opens the game sheet.
-import { useId, useMemo } from 'react';
+import { useId, useMemo, useRef } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { LINES_COPY, linesBoard } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
@@ -40,7 +40,7 @@ export function withRecords(aria, card, records) {
   return at < 0 ? `${aria}. ${said}` : `${aria.slice(0, at)}. ${said}${aria.slice(at)}`;
 }
 
-function GameCard({ card, records, onOpen }) {
+function GameCard({ card, records, onOpen, focusScope }) {
   const team = (side, row, record) => (
     <span className={row === 2 ? 'gx-l-team gx-l-team--2' : 'gx-l-team'}>
       <TeamMark code={side.code} name={side.name} size={32} decorative/>
@@ -49,7 +49,7 @@ function GameCard({ card, records, onOpen }) {
     </span>
   );
   return (
-    <CardButton className="gx-l-card" aria-label={withRecords(card.aria, card, records)} data-game={card.id} onClick={onOpen}>
+    <CardButton className="gx-l-card" aria-label={withRecords(card.aria, card, records)} data-game={card.id} data-focus-return={`${focusScope}:${card.id}`} onClick={onOpen}>
       {card.status ? <span className={`${card.final ? 'gx-t-strong' : 'gx-t-meta'} gx-l-chead`}>{card.status}</span> : null}
       {card.final ? <span className="gx-l-observation gx-t-meta gx-c-2">{card.final.provenance}</span> : null}
       {card.showTime ? <span className="gx-t-meta gx-l-chead">{card.final?.kickoff ?? card.time}</span> : null}
@@ -81,7 +81,7 @@ function GameCard({ card, records, onOpen }) {
   );
 }
 
-function Group({ label, time, cards, season, onOpen }) {
+function Group({ label, time, cards, season, onOpen, focusScope }) {
   const id = useId();
   return (
     <section className="gx-l-group" aria-labelledby={id}>
@@ -89,7 +89,7 @@ function Group({ label, time, cards, season, onOpen }) {
         <h2 className="gx-t-section" id={id}>{label}</h2>
         {time ? <span className="gx-t-meta">{time}</span> : null}
       </div>
-      {cards.map(card => <GameCard key={card.id} card={card} records={matchupRecords(season.data, card.away.code, card.home.code, season.game)} onOpen={() => onOpen(card.id)}/>)}
+      {cards.map(card => <GameCard key={card.id} focusScope={focusScope} card={card} records={matchupRecords(season.data, card.away.code, card.home.code, season.game)} onOpen={() => onOpen(card.id)}/>)}
     </section>
   );
 }
@@ -100,6 +100,13 @@ export function LinesBoard({ trendsOnly = false }) {
   const shell = useShell();
   const lines = useLinesData();
   const { app, personal, community, trendsWeek, shown } = lines;
+  const openerId = useId(), openerScope = useRef({ account: null, week: null, generation: 0 });
+  const weekKey = shown ? `${shown.season}:${shown.week}` : null;
+  // An opaque key survives refresh/reparenting, but never follows a different account or resolved week.
+  if (openerScope.current.account !== app.accountId || (weekKey && openerScope.current.week !== weekKey)) {
+    openerScope.current = { account: app.accountId, week: weekKey, generation: openerScope.current.generation + 1 };
+  }
+  const focusScope = `${openerId}:${openerScope.current.generation}`;
   const markets = useBoardLines(lines, !trendsOnly);
   const teams = useTeamSeason(), season = { data: teams.data, game: shown?.season ?? null };
   const wind = useWind(shown?.season, shown?.week, Boolean(shown));
@@ -112,7 +119,9 @@ export function LinesBoard({ trendsOnly = false }) {
   const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', {
     game: gameId,
     ...(!trendsOnly && board && shown ? { boardOrder: { accountId: app.accountId, season: shown.season, week: shown.week,
-      ids: [...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? []), ...(board.finals?.cards ?? [])].map(card => card.id) } } : {}),
+      ids: [...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? []), ...(board.finals?.cards ?? [])].map(card => card.id),
+      now: markets.status === 'ready' ? markets.now : null,
+      results: Object.fromEntries((board.finals?.cards ?? []).map(card => [card.id, card.final.record])) } } : {}),
   });
   const head = (
     <div className="gx-vstack gx-gap-2">
@@ -151,9 +160,9 @@ export function LinesBoard({ trendsOnly = false }) {
         <Button variant="ghost" onClick={markets.reload}>{markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}</Button>
       </>}
       {trendsOnly ? <><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? []), ...(board.finals?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
-        {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} season={season} onOpen={open}/>)}
-        {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} season={season} onOpen={open}/> : null}
-        {board.finals ? <Group label={`${board.finals.label} · ${board.finals.count} ${board.finals.count === 1 ? 'game' : 'games'}`} cards={board.finals.cards} season={season} onOpen={open}/> : null}
+        {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} season={season} onOpen={open} focusScope={focusScope}/>)}
+        {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} season={season} onOpen={open} focusScope={focusScope}/> : null}
+        {board.finals ? <Group label={`${board.finals.label} · ${board.finals.count} ${board.finals.count === 1 ? 'game' : 'games'}`} cards={board.finals.cards} season={season} onOpen={open} focusScope={focusScope}/> : null}
       </>}
       {!board.groups.length && !board.started && !board.finals ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}
     </div>
