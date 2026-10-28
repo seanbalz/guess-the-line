@@ -25,7 +25,8 @@ The new content group preserves the original 16px gaps with shared classes.
 
 ## Local asset measurement
 
-Compared baseline `25236cc486b81bd3b34697c635b6348c660e69fd` with this source using
+Compared baseline `25236cc486b81bd3b34697c635b6348c660e69fd` with the original
+split (`f184445a0d840607d0dd9fe397578ed1d46b5104`) using
 `vite build --mode cloud-test --manifest`, the same frontend-test Supabase URL/key
 and `VITE_GTL_OFFER_NEW_APP=1`. Counts follow NextApp's static JS/CSS dependency
 graph, including entry dependencies; dynamic data/features are excluded. Gzip
@@ -72,15 +73,27 @@ The earlier Fantasy batch's 37-case Node label is clarified as Fantasy-loader/
 ranking/token/brand coverage; shell behavior was covered in its browser suite.
 The current 56-case set explicitly includes the shell-state/modal/gesture files.
 
+## Current-main compatibility
+
+A later broad run exposed an authentication-readiness race in the style-recovery
+fixture: it changed pages before sign-in completed. The fixture and the Research,
+Trends and gesture setups now wait for authenticated Main navigation. PR #310
+head `6f5e324d2cd69772b47ae9fb88d39d125522c334` integrates current main, including
+#308’s repository URL correction and #305’s D-65 new-app-only entry flow.
+The asset measurements above predate D-65; a current whole-app baseline remains
+an OPT-01 checkpoint. All nine checks passed on this repaired head; reviews and
+review threads were empty. PR #310 merged as `06a4de7e4513e04fd2555b734045d09756bc2518`.
+
 ## Remaining checkpoints
 
 Source branch: `codex/lazy-matchup-research`. PR [#306](https://github.com/seanbalz/guess-the-line/pull/306) merged as
 `3387457f69d0724c3faf04a51c552fe151df4fb1` after all nine checks passed on
 `25236cc486b81bd3b34697c635b6348c660e69fd`. Reviews/threads were empty; no CI repair.
-PR [#310](https://github.com/seanbalz/guess-the-line/pull/310) holds this batch.
+PR [#310](https://github.com/seanbalz/guess-the-line/pull/310) is merged with the
+authentication-readiness and current-main test compatibility repair above.
 Main’s documentation-only PR #307 was integrated; the work queue now reflects
 its recorded October 28 D-63/D-64 approvals, without repeating hosted verification.
-This batch needs its own CI/merge, release/readback, signed-in performance and
+This batch still needs release/readback, signed-in performance and
 physical-iPhone acceptance. Live/postponed/cancelled status and dependent
 Bet/Challenge destinations stay open. No deployment, migration apply, new data
 provider, scoring rule, collection budget or frozen v62 tracker change.

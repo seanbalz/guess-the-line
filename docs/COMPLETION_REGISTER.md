@@ -48,7 +48,7 @@ establishes deployment. This task has not deployed the app or applied SQL.
 
 | Area | Implemented and released evidence | Still open |
 | --- | --- | --- |
-| Four-tab design | [PR #162 release](RELEASE_FOUR_TAB_REDESIGN.md): four roots, compact summaries, retained editors and reversible detail routes. [D-55 Round 3 release](RELEASE_2026_10_22_ROUND3.md): charts, disclosures and Home/Bets styling. | Q17 missing destinations; Q19 visual/device acceptance. Since the [October 27 release](RELEASE_2026_10_27_API_FRONTEND.md) (`gtl-api` v38, Pages `4a03e6cd`) every signed-in member opens the new app (D-60 step 1); classic stays at `?app=classic` as a recovery route. |
+| Four-tab design | [PR #162 release](RELEASE_FOUR_TAB_REDESIGN.md): four roots, compact summaries, retained editors and reversible detail routes. [D-55 Round 3 release](RELEASE_2026_10_22_ROUND3.md): charts, disclosures and Home/Bets styling. | Q17 missing destinations; Q19 visual/device acceptance. Since the [October 27 release](RELEASE_2026_10_27_API_FRONTEND.md) (`gtl-api` v38, Pages `4a03e6cd`) every signed-in member opens the new app (D-60 step 1); that release retained classic at `?app=classic`. D-65 source subsequently merged in #305 October 28 removes that entry and uses Reload the app on failures; this task has not verified its hosted cutover. |
 | Mobile layout | PR #174 toolbar/spacing fixes; PR #181 focus scroll padding released as Pages `9fb54fe4`. | October 26: Sean corrected his initial reply and reports the app does not have the scroll bug. The movement symptom is user-reported resolved. Broader Q19 device acceptance remains separate. |
 | Bets | [Actual tracking](EASIER_BET_TRACKING_RELEASE.md), [recommendation handoff](RECOMMENDED_TRACKING_RELEASE.md), [Recommended filters](RELEASE_2026_10_22_TRENDS_FILTER.md), M-10 reader and PR #204 Everyone are released. | Q06 account-level placement M-11 and the remaining dedicated Virtual Units screens. Boards M-12 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md) with `/bets/board` and `/bets/season` in `gtl-api` v38; no screen reads them yet. Reader delivery does not close the full Bets plan. |
 | Scoring and comparisons | [Core scoring](CORE_SCORING_PRODUCTION_RELEASE.md): per-game lock, personal points and receipts. [Migrations release](RELEASE_2026_10_22_MIGRATIONS.md): D-53 comparisons/preferences applied and signed-in reads verified. | Q07/Q08 phone privacy, save/reload and account-isolation acceptance; Q18 operating evidence. |
@@ -533,7 +533,8 @@ The [on-demand full Research sheet](RESEARCH_SHEET_LOADING_2026_10_28.md) batch,
 view on opening, with local code retry, stable focus and no view
 read while held. Inline game research moves to its own module; its body and the
 full view's markup are unchanged. Shared CSS stays eager after a regression
-exposed cross-view style recovery coupling. Initial graph is 21,391 raw bytes smaller (6,229 estimated gzip);
+exposed cross-view style recovery coupling. The pre-D-65 asset measurement
+found an initial graph 21,391 raw bytes smaller (6,229 estimated gzip);
 total estimated gzip is 2,211 bytes larger after full Research opening, or
 597 bytes larger for a game-first journey, with one additional game-detail
 asset. Focused loading coverage, eight inspected 320px
@@ -542,8 +543,13 @@ brand tests and typecheck passed. All 110 broad cases passed before retaining
 shared CSS eagerly; five final focused Research/recovery cases and final
 game-detail stylesheet/inline-research checks passed after that adjustment.
 Final fixture privacy and Brand QA passed.
-This batch’s own CI/merge, release/readback, signed-in performance and
-phone acceptance remain open. No stage 33 live-status or dependent slot closure.
+PR [#310](https://github.com/seanbalz/guess-the-line/pull/310) merged as
+`06a4de7e4513e04fd2555b734045d09756bc2518` after all nine checks passed on repaired
+head `6f5e324d2cd69772b47ae9fb88d39d125522c334`; reviews/threads were empty.
+The repair waits for authenticated Main navigation and integrates D-65’s current
+entry flow in the Research/Trends/gesture/style-recovery fixtures. Release/
+readback, signed-in performance and phone acceptance remain open. No stage 33
+live-status or dependent slot closure.
 
 The [readable season-table batch](RESEARCH_SEASON_TABLE_2026_10_28.md),
 `codex/research-season-table`, retains 16px record/percentage/unit text at narrow
@@ -552,8 +558,9 @@ shared focus treatment. Year selection and chart synchronization remain.
 Its 320px regression failed against the old 13px rule. Both focused browser
 cases, 24 inspected 320/390px theme/forced-color start/end captures (including
 simulated 200% table text), axe, Vitest (469), 27 chart/token/brand tests,
-typecheck, Brand QA and fixture privacy pass; the first broad run passed 110/111 with an authentication setup race; repair
-and final new-app-only integration checks are in progress. This batch's own
+typecheck, Brand QA and fixture privacy pass. All 109 final current-app browser
+cases pass after the authentication-readiness repair and D-65 integration. The additional 37 app-view/shell/router and 21
+Fantasy API/publish checks pass. This batch's own
 CI/merge, release/readback and device acceptance remain open.
 
 Q17-C remains open. Community Members merged in
