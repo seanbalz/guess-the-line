@@ -1058,6 +1058,51 @@ test('the market board shows latest quotes separately from saved receipts and se
   } finally { await world.db.close(); }
 });
 
+test('recorded finals have their own section and result provenance while incomplete results stay started', async ({ page, baseURL }, info) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let fail = false;
+  try {
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
+      if (fail) return route.fulfill({ status: 503, json: { error: 'Fixture offline' } });
+      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      const now = Math.max(...body.games.map(g => Date.parse(g.kickoff))) + 3600000;
+      body.now = new Date(now).toISOString();
+      body.games.forEach(g => { g.started = true; });
+      body.games[0].final = { status: 'final', away: 0, home: 7, origin: 'commissioner_reported', source: 'Fixture commissioner with a deliberately long result source name', observedAt: new Date(now - 60000).toISOString() };
+      body.games[1].final = { status: 'final', away: null, home: 17 };
+      body.games[2].final = { status: 'postponed', away: 10, home: 10 };
+      await route.fulfill({ status: 200, json: body });
+    });
+    await openLines(page);
+    const finals = page.getByRole('region', { name: 'Final · 1 game' });
+    await expect(finals.locator('.gx-l-card')).toHaveCount(1);
+    await expect(finals.locator('.gx-l-card')).toHaveAttribute('data-game', 'SEA-DEN');
+    await expect(card(page, 'SEA-DEN')).toContainText('Final · SEA 0–DEN 7');
+    await expect(card(page, 'SEA-DEN')).toContainText('Commissioner-reported result');
+    await expect(card(page, 'SEA-DEN')).toContainText('Fixture commissioner');
+    await expect(card(page, 'SEA-DEN')).toContainText('Observed');
+    await expect(card(page, 'SEA-DEN')).toHaveAttribute('aria-label', /Final.*Commissioner-reported result.*Observed/);
+    await expect(page.getByRole('region', { name: /Kickoff passed.*3 games/ }).locator('.gx-l-card')).toHaveCount(3);
+    for (const id of GAMES) await expect(card(page, id).locator('[data-cell="locked"]')).toHaveCount(1);
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme-preference', theme);
+      await page.emulateMedia({ colorScheme: theme, forcedColors, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await finals.scrollIntoViewIfNeeded(); await page.screenshot({ path: info.outputPath(`recorded-final-${theme}-${forcedColors}.png`) });
+    }
+    await card(page, 'SEA-DEN').click(); await expect(sheet(page, 'SEA @ DEN')).toBeVisible();
+    await page.keyboard.press('Escape'); await expect(card(page, 'SEA-DEN')).toBeFocused();
+    fail = true; await page.getByRole('button', { name: 'Refresh market lines' }).click();
+    await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
+    await expect(finals).toHaveCount(0); await expect(page.locator('.gx-l-card')).toHaveCount(4);
+    await expect(page.locator('.gx')).not.toContainText('Fixture commissioner');
+    await expect(page.locator('.gx')).not.toContainText('Final · SEA 0–DEN 7');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('board refresh failures and wrong-week replies hide market values until retry succeeds', async ({ page, baseURL }) => {
   const { world } = await lukesWeek(page, baseURL);
   let failure = 'offline';

@@ -358,3 +358,9 @@ Guidance and sources.
   frame, back and close controls stable while the existing panels load. A failed download stays inside the frame
   with one explicit retry; preserve focus in the details and reuse the cached record read. Closing a pending view
   must return focus to its opener and a late download must not reopen it.
+
+- **Recorded final cards (October 28):** keep completed matchups in a named Final
+  section, with a strong readable score and separate result-source/observation
+  metadata. Label commissioner-reported results and kickoff times explicitly.
+  Use Kickoff passed when only the scheduled time is known; reserve live styling
+  for a verified in-progress state. Existing card, text and wrapping tokens apply.
