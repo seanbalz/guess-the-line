@@ -65,6 +65,18 @@ test('teamProjection scores a player at the position stored in that week\'s snap
   assert.notEqual(asF.total, asM.total);
 });
 
+// Task 2 stores snapshot players as {name, position, fantasy_positions, team, team_abbr, injury_status}; these are
+// the keys positionOf reads. A bare `pos` key is not read, so a snapshot that renamed it would score nothing.
+test('teamProjection scores snapshot-shaped players by their stored position and fantasy_positions keys', () => {
+  const snapshotPlayers = Object.fromEntries(Object.entries(fixture.players).map(([id, p]) => [id, {
+    name: `Player ${id}`, position: p.position, fantasy_positions: p.fantasy_positions, team: 'X', team_abbr: 'X', injury_status: null,
+  }]));
+  const out = teamProjection(Object.keys(fixture.projections), fixture.projections, snapshotPlayers, fixture.scoring);
+  assert.deepEqual(out.rows.map(r => r.points), Object.values(fixture.projections).map(s => s.pts_std));
+  const renamed = teamProjection(['1716'], fixture.projections, { 1716: { pos: ['F', 'M'] } }, fixture.scoring);
+  assert.deepEqual(renamed.rows, [{ playerId: '1716', points: null }]);
+});
+
 test('teamProjection with no position or empty inputs is null rows and a zero total', () => {
   assert.deepEqual(teamProjection(['1005'], fixture.projections, {}, fixture.scoring), { total: 0, rows: [{ playerId: '1005', points: null }] });
   assert.deepEqual(teamProjection(undefined, undefined, undefined, undefined), { total: 0, rows: [] });

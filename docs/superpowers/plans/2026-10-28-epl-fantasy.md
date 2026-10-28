@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Plan 1 Global Constraints apply (free sources, never write to Sleeper, member-only visibility, tokens-only UI, public repo).
-- Player points = Σ stat × FEPL `scoring_settings["pos_<pos>_<stat>"]`, where `<pos>` ∈ `gk|d|m|f` from the player's position at the time (first entry of `fantasy_positions`, lowercased: `GK→gk, D→d, M→m, F→f`). Projections use the same formula over projected stats (not `pts_std`).
+- Player points = Σ stat × FEPL `scoring_settings["pos_<pos>_<stat>"]`, where `<pos>` ∈ `gk|d|m|f` from the player's position at the time, lowercased (`GK→gk, D→d, M→m, F→f`): the snapshot's stored Sleeper `position` wins, because Sleeper scores a multi-position player there (an `['F','M']` player with `position: 'M'` scores with `pos_m_*`, and that reproduces Sleeper's `pts_std` exactly); with no stored `position`, the first entry of `fantasy_positions`. Projections use the same formula over projected stats (not `pts_std`).
 - Weekly team score = `weeklyScores(prev, next)` (Plan 1), the authoritative number; per-player detail is shown only for matchweeks with a stored before-kickoff starters snapshot, and labelled "from saved lineup".
 - Standings = Sleeper season points + Σ GTL Pick a Team bonus (`gtl_epl_bonus`), raw Sleeper total shown on tap.
 - Sleeper club ids map to crest codes via `team_abbr` (`MCI→MNC`, other abbreviations equal the Plan 1 codes); unknown → no crest, abbreviation text.
@@ -38,8 +38,8 @@
 **Interfaces:**
 - Produces:
   - `playerPoints(stats: Record<string, number>, pos: 'gk'|'d'|'m'|'f', scoring: Record<string, number>) -> number` (2 dp)
-  - `positionOf(player: {fantasy_positions?: string[]}) -> 'gk'|'d'|'m'|'f'|null`
-  - `teamProjection(starters: string[], projections: Record<playerId, stats>, players: Record<playerId, {fantasy_positions}>, scoring) -> {total: number, rows: [{playerId, points: number|null}]}` (`null` = no projection)
+  - `positionOf(player: {position?: string, fantasy_positions?: string[]}) -> 'gk'|'d'|'m'|'f'|null` (`position` wins, else `fantasy_positions[0]`)
+  - `teamProjection(starters: string[], projections: Record<playerId, stats>, players: Record<playerId, {position?, fantasy_positions?}>, scoring) -> {total: number, rows: [{playerId, points: number|null}]}` (`null` = no projection)
   - `winChance(projA: number, projB: number, sigma = 18) -> number` (0–1, 3 dp)
   - `seasonHigh(weeks: {week, ownerId, points}[]) -> {week, ownerId, points}|null`
   - `topScorers(rows: {ownerId, playerId, points}[]) -> Record<ownerId, {playerId, points}>`
@@ -52,7 +52,7 @@
 
 ### Task 2: Snapshot players + `epl/fantasy/read` route
 
-**Files:** Modify `cloud/epl-sources.mjs` (`fetchSleeperSnapshot` also stores `players`: only rostered player ids → `{name, pos: fantasy_positions, team, team_abbr, injury_status}`), `cloud/epl-jobs.mjs` (`snapshot` job: label `daily-<YYYY-MM-DD>` once per day plus the existing before-kickoff/after-week labels), `cloud/epl.mjs` (add `'/epl/fantasy/read':['POST']`), `shared/epl-clubs.mjs` (add `clubFromSleeperAbbr(abbr)`); Create `cloud/epl-fantasy-view.mjs`; Test `tests/epl-fantasy-view.test.mjs`
+**Files:** Modify `cloud/epl-sources.mjs` (`fetchSleeperSnapshot` also stores `players`: only rostered player ids → `{name, position, fantasy_positions, team, team_abbr, injury_status}`, keeping Sleeper's key names `position` and `fantasy_positions` because Task 1 `positionOf` reads exactly those (a `pos` key is not read and would leave every starter "No projection")), `cloud/epl-jobs.mjs` (`snapshot` job: label `daily-<YYYY-MM-DD>` once per day plus the existing before-kickoff/after-week labels), `cloud/epl.mjs` (add `'/epl/fantasy/read':['POST']`), `shared/epl-clubs.mjs` (add `clubFromSleeperAbbr(abbr)`); Create `cloud/epl-fantasy-view.mjs`; Test `tests/epl-fantasy-view.test.mjs`
 
 **Interfaces:**
 - Consumes: Task 1; Plan 1 `managersFromSnapshot`, `weeklyScores`, `pairMatchups`, `gtl_epl_bonus`, `gtl_epl_snapshots` (service reads via a new read RPC if Plan 1 has none: `gtl_epl_snapshots_read(p_labels text[])`, added as migration M-31 only if needed, following Plan 1 Gate M rules).
@@ -72,5 +72,5 @@ Match mockup v3 "Research · Fantasy" and v2 "League" charts: sub-tabs Matchup �
 
 ### Task 4: Docs
 
-**Files:** Modify `docs/DECISIONS.md` (D-67 addendum: win-chance σ 18 estimate, daily snapshot), `docs/COMPLETION_REGISTER.md` (EPL Fantasy row), `planning/PLATFORM_WORK_QUEUE.md`.
+**Files:** Modify `docs/DECISIONS.md` (D-67 addendum: win-chance σ 18 estimate, daily snapshot, player points use the snapshot's stored Sleeper `position`, else `fantasy_positions[0]`), `docs/COMPLETION_REGISTER.md` (EPL Fantasy row), `planning/PLATFORM_WORK_QUEUE.md`.
 - [ ] Step 1: write; Step 2: `python3 scripts/check-brand-docs.py` and `npm test` pass; Step 3: commit `docs(epl): fantasy records`.
