@@ -248,7 +248,7 @@ test('League board: faces, the leader, week badges, the race strip and counting 
     await lukeBadges.getByRole('button', { name: 'Bullseye, 3 times, Week 4' }).click();
     const sheet = page.getByRole('dialog', { name: 'Bullseye' });
     await expect(sheet).toContainText('Earned 3 times');
-    await expect(sheet).toContainText('Week 4 · SEA @ DEN');
+    await expect(sheet).toContainText('Week 4 · Seattle Seahawks at Denver Broncos'); // D-62: the game as marks, read as one sentence
     await sheet.getByRole('button', { name: 'Close' }).click();
     await expect(sheet).toHaveCount(0);
 

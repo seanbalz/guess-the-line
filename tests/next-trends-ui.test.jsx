@@ -3,7 +3,8 @@ import { marketSituationCards } from '../web/src/next/trends/situations.js';
 vi.mock('../web/src/auth', () => ({ cloudEnabled: false, supabase: null }));
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 import { TABS } from '../web/src/next/shell/state.js';
 import { PlayerEvidence } from '../web/src/next/trends/PlayerEvidence.jsx';
 import { TrendAvailability } from '../web/src/next/lines/parts.jsx';
@@ -25,6 +26,17 @@ describe('Trends UI evidence', () => {
   for (const word of ['Absolute error versus saved reference','Mean official points','At saved reference','At guessed line','Straight-up','Contributing games','Fixture books','Small sample','Cover performance by competition week','Player matchup']) expect(html).toContain(word);
  });
  it('labels current spread sentiment with the team and signed-home convention', () => { const data = structuredClone(history); data.weeks[0].week = 6; data.weeks[0].results = {}; const html = render(data); expect(html).toContain('Median GTL spread guess'); expect(html).toContain('Panthers '+String.fromCharCode(8722)+'7'); expect(html).toContain('Distribution uses signed home spreads: negative favors'); expect(html).toContain('signed home spread distribution'); });
+ it('D-62: each contributing game and each sentiment game is headed by its matchup as marks, away first', () => {
+  const CAR_ATL = { srcs: [teamMarks.CAR.src, teamMarks.ATL.src], name: 'Carolina Panthers at Atlanta Falcons' };
+  const nodes = [...walk(parseMarkup(render()))];
+  const h4 = nodes.find(n => n.tag === 'h4' && nameFrom(n).startsWith('2026 Week 4'));
+  expect(nameFrom(h4)).toBe('2026 Week 4 · Carolina Panthers at Atlanta Falcons');
+  expect(matchups(h4)).toEqual([CAR_ATL]);
+  const current = structuredClone(history); current.weeks[0].week = 6; current.weeks[0].results = {};
+  const summary = [...walk(parseMarkup(render(current)))].find(n => n.tag === 'summary' && nameFrom(n).includes('permitted guesses'));
+  expect(nameFrom(summary)).toBe('Carolina Panthers at Atlanta Falcons · 1 permitted guesses');
+  expect(matchups(summary)).toEqual([CAR_ATL]);
+ });
  it('hidden values do not enter markup or chart metadata', () => {
   const data = structuredClone(history); data.viewer = 'other'; data.weeks[0].gate['CAR-ATL'].spread = false; data.weeks[0].entries[0].picks[0].guess = 87.125;
   const html = render(data);
@@ -115,6 +127,10 @@ describe.each(['week','teams'])('published matchup filters in %s', section => {
   expect(changed).toContain('Game details · SEA @ DEN');
   expect(changed).not.toContain('No games match these filters.');
   expect(markupProblems(changed)).toEqual([]);
+  // D-62: the card's heading is the matchup as 32px marks, away first; the button keeps its text name.
+  const heading = [...walk(parseMarkup(changed))].find(n => n.tag === 'h3' && n.children[0]?.attrs?.class?.includes('gx-mu'));
+  expect(nameFrom(heading)).toBe('Seattle Seahawks at Denver Broncos');
+  expect(matchups(heading)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' }]);
  });
  it('uses All matchups when the current team filter removes the saved matchup', () => {
   const view = { trendSection: section, matchup: game.id, weekTeam: 'DEN' };

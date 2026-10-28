@@ -1,7 +1,7 @@
 // Presentation only. The caller supplies an immutable, validated simulation ledger. This module does not
 // generate outcomes, load inputs, read account data, persist playback or contact a service.
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Button, Card, Icon, Pill, Text } from '../ui/index.js';
+import { Button, Card, Icon, Matchup, Pill, Text } from '../ui/index.js';
 import './replay.css';
 
 const SPEEDS = Object.freeze([0.5, 1, 2]);
@@ -141,7 +141,8 @@ function ReplaySession({ replay, active }) {
   const stateLabel = index === last ? ending(replay.status) : playing ? 'Playing' : index === 0 ? 'Ready to play' : 'Paused';
   return <section ref={ref} className="gx-sim-replay" aria-labelledby={title} data-playing={playing} data-event-id={event.id} data-replay-id={replay.id}>
     <header className="gx-sim-header"><Pill tone="data">Simulation</Pill><Text variant="meta">{stateLabel}</Text></header>
-    <Text as="h2" variant="section" id={title}>{replay.teams.away.name} at {replay.teams.home.name}</Text>
+    {/* D-62: the marks; the heading keeps the replay's own team names for screen readers. */}
+    <Text as="h2" variant="section" id={title}><span className="gx-sr-only">{replay.teams.away.name} at {replay.teams.home.name}</span><Matchup away={replay.teams.away.abbreviation} home={replay.teams.home.abbreviation} size={32} aria-hidden="true"/></Text>
     <Text as="p" variant="body" tone={2}>Model-generated simulation. These are not actual game results.</Text>
     {(replay.readiness === 'research_only' || replay.publicationReady !== true) && <Card variant="s2" className="gx-sim-research"><Pill tone="pending">Research only</Pill><Text as="p">Model validation and publication checks are incomplete.</Text></Card>}
     <Card className="gx-sim-scorecard" aria-label="Simulation scoreboard">

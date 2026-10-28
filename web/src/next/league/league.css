@@ -17,7 +17,7 @@
 .gx .gx-league .gx-row-sub { white-space: normal; overflow-wrap: anywhere; }
 .gx .gx-league-picks,
 .gx .gx-league-comments { margin: 0; padding: 0; list-style: none; }
-.gx .gx-league-picks li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.gx .gx-league-picks li { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .gx .gx-league-picks { padding: var(--gx-space-3); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }
 .gx .gx-league-picks li { padding-block: var(--gx-space-2); border-bottom: 1px solid var(--gx-border); }
 .gx .gx-league-picks li:first-child { padding-top: 0; }

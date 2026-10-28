@@ -14,11 +14,16 @@ import { pointsApi } from '../../../api.js';
 import { useAppData } from '../../data/AppData.jsx';
 import { useShell } from '../../shell/context.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
-import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Sheet } from '../../ui/index.js';
+import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Matchup, Sheet } from '../../ui/index.js';
 import { INFO } from '../../info.js';
-import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
+import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
 import { PointsPublish } from './PointsPublish.jsx';
 import './points.css';
+
+/** The slot's game as marks (D-62), or the player's team as text when the game key has another form. */
+function SlotGame({ codes, text }) {
+  return codes ? <Matchup away={codes.away} home={codes.home}/> : text;
+}
 
 /**
  * The week's read, shared by the ballot, the Play landing row and the League board: `{ loading, data, error, retry }`.
@@ -155,7 +160,7 @@ function SlotCard({ slot, viewer, weekStatus, onOpen }) {
     ...(line ? [lineWords(line)] : !slot.revealed && slot.lockedIn.length ? [`${slot.lockedIn.length} locked in, guesses open at kickoff`] : [])].join('. ');
   return <CardButton variant="hero" className="gx-pt-card gx-vstack gx-gap-12" aria-label={label} data-slot={slot.slot} onClick={onOpen}>
     <SlotHead slot={slot} weekStatus={weekStatus}/>
-    <span className="gx-t-meta gx-pt-sub">{matchupText(slot)} · {kickoffText(slot.kickoff)}</span>
+    <span className="gx-t-meta gx-pt-sub"><SlotGame codes={matchupCodes(slot)} text={matchupText(slot)}/> · {kickoffText(slot.kickoff)}</span>
     {slot.state === 'void' ? <span className="gx-t-body gx-pt-sub">Void for everyone · no points</span>
       : settled ? <><Tiles slot={slot}/>{closest && <span className="gx-t-body">{closest}</span>}{slot.revealed && slot.house && <span className="gx-t-meta gx-pt-sub">House {pts(slot.house.estimate)}</span>}</>
       : <>{slot.own?.locked ? <ValueRow label="You" value={slot.own.guess}/> : slot.own ? <ValueRow label="Draft" value={slot.own.guess}/> : null}
@@ -240,7 +245,7 @@ export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, o
   return <Sheet title={title} onClose={() => { if (!busy) onClose(); }} footer={footer} className="gx-pt-sheet">
     <Card variant="hero" className="gx-vstack gx-gap-12 gx-pt-card">
       <SlotHead slot={slot} weekStatus={weekStatus}/>
-      <p className="gx-t-meta gx-pt-sub">{SLOT_NAMES[slot.slot]} · {matchupText(slot)} · {can ? 'locks ' : ''}{kickoffText(slot.kickoff)}</p>
+      <p className="gx-t-meta gx-pt-sub">{SLOT_NAMES[slot.slot]} · <SlotGame codes={matchupCodes(slot)} text={matchupText(slot)}/> · {can ? 'locks ' : ''}{kickoffText(slot.kickoff)}</p>
       {(slot.state === 'scored' || slot.closed) && slot.state !== 'void' && <><Tiles slot={slot}/>{closestLine(slot, viewer) && <p className="gx-t-body">{closestLine(slot, viewer)}</p>}</>}
       {slot.state === 'void' && <p className="gx-t-body">Void for everyone. This week’s maximum drops by 10.</p>}
       {can ? <section className="gx-vstack gx-gap-12" aria-label="Your guess">

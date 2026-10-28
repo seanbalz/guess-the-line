@@ -8,7 +8,7 @@ import { nextDraftKey } from '../../nextDrafts.js';
 import { useAppData } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, Card, Segmented } from '../ui/index.js';
+import { Avatar, Button, Card, Matchup, Segmented } from '../ui/index.js';
 import { LeagueHistory } from './LeagueHistory.jsx';
 import { PointsBoard } from '../play/points/PointsBoard.jsx';
 import { LeagueEmpty, LeagueFailure, LeagueLoading, useLeagueRead } from './useLeagueRead.jsx';
@@ -71,7 +71,7 @@ function FeedPost({ post, feed, app, onSaved }) {
   }
   return <Card as="article" className="gx-vstack gx-gap-12 gx-league-post" data-post={post.id} aria-label={`${name(post.actorId)} activity`}>
     <div className="gx-league-post-head"><Avatar id={post.actorId} name={name(post.actorId)} size={40}/><div className="gx-grow"><p className="gx-t-strong">{name(post.actorId)}</p><p className="gx-t-body gx-c-2">{postText(post)}</p><p className="gx-t-meta gx-c-3"><time dateTime={post.createdAt}>{date(post.createdAt)} PT</time></p></div></div>
-    {picks?.shown.length > 0 && <ul className="gx-league-picks gx-t-body">{picks.shown.map(([id, value]) => { const [away, home] = id.split('-'); return <li key={id}><span>{away} at {home}</span><span className="gx-n-s">{pickText(post.mode, away, home, value)}</span></li>; })}</ul>}
+    {picks?.shown.length > 0 && <ul className="gx-league-picks gx-t-body">{picks.shown.map(([id, value]) => { const [away, home] = id.split('-'); return <li key={id}><Matchup away={away} home={home}/><span className="gx-n-s">{pickText(post.mode, away, home, value)}</span></li>; })}</ul>}
     {picks && (picks.allHidden || picks.hidden > 0) && <p className="gx-t-body gx-c-2">{picks.hidden ? `${picks.hidden} games hidden` : 'Picks hidden'}. Your submission or each game's kickoff opens the permitted picks.</p>}
     <div className="gx-league-post-actions">
       <Button variant="ghost" aria-pressed={post.likedByMe === true} aria-disabled={busy || undefined} onClick={() => mutate('like', { postId: post.id, like: !post.likedByMe })}>{post.likedByMe ? 'Unlike' : 'Like'} · {post.likes || 0}</Button>

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 vi.mock('../web/src/api.js', () => ({ linesApi: vi.fn() }));
 const { ResearchCards, ResearchLeans, ResearchSources, ResearchStatus, researchLine } = await import('../web/src/next/research/ResearchCards.jsx');
 const { default: ResearchChart } = await import('../web/src/next/research/ResearchChart.jsx');
@@ -27,6 +28,15 @@ describe('shared research presentation', () => {
     expect(html).toContain('Difference from your expected market line');
     expect(html).toContain('DEN −2'); expect(html).toContain('Your expected market line');
     expect(html).toContain('Total research is locked');
+  });
+  it('D-62: each game section is headed by its matchup as 32px marks, away first, read as one sentence', () => {
+    const html = render(<ResearchLeans data={data}/>);
+    const heading = [...walk(parseMarkup(html))].find(n => n.tag === 'h3');
+    expect(nameFrom(heading)).toBe('Seattle Seahawks at Denver Broncos');
+    expect(matchups(heading)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' }]);
+    expect(html).toContain('gx-mu--32');
+    expect(html).not.toContain('SEA at DEN');
+    expect(markupProblems(html)).toEqual([]);
   });
   it('renders closed markets without their forged evidence', () => {
     const html = render(<ResearchLeans data={{ ...data, games: [{ ...game, spread: { ...game.spread, visible: false } }] }}/>);

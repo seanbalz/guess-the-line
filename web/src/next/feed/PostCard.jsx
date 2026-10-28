@@ -3,10 +3,16 @@
 // two comments. A hidden market is a lock row with a sentence, never "—" (rule 8); the picks themselves open in sh.picks.
 // The server and cloud/feed.mjs decide every number shown here; this component only draws it.
 import { useShell } from '../shell/context.js';
-import { Avatar, AvatarStack, Button, Card, FieldMark, Icon, IconButton, LockLine, Pill } from '../ui/index.js';
+import { Avatar, AvatarStack, Button, Card, FieldMark, Icon, IconButton, LockLine, Matchup, Pill } from '../ui/index.js';
 import { fmtNum, fmtPostTime, plural } from '../format.js';
-import { MARKET, commentButton, gameName, guessText, lateWords, postLine, postLink, postMeta, reactionChips, realSlipPost, systemPost } from './feedModel.js';
+import { MARKET, codes, commentButton, gameName, guessText, lateWords, postLine, postLink, postMeta, reactionChips, realSlipPost, systemPost } from './feedModel.js';
 import { react } from './feedActions.js';
+
+/** A game id ("SEA-DEN") as marks (D-62): away, "@", home; "—" when the id is not two codes. */
+export function FeedGame({ gameId }) {
+  const { away, home } = codes(gameId);
+  return away && home ? <Matchup away={away} home={home}/> : gameName(gameId);
+}
 
 function BallotRows({ post, names, viewer, shell }) {
   const own = post.actorId === viewer, name = own ? 'your' : `${names.get(post.actorId)?.displayName || 'Former member'}’s`;
@@ -28,10 +34,10 @@ function BallotRows({ post, names, viewer, shell }) {
 
 function ResultEmbed({ post }) {
   const e = post.embed ?? {}, market = MARKET[post.mode] ?? '';
-  if (!e.visible) return <div className="gx-feed-embed"><LockLine>Lock in your {market} pick for {gameName(e.gameId)} to see this result.</LockLine></div>;
+  if (!e.visible) return <div className="gx-feed-embed"><LockLine>Lock in your {market} pick for <FeedGame gameId={e.gameId}/> to see this result.</LockLine></div>;
   return <div className="gx-feed-embed gx-vstack gx-gap-4">
     <p className="gx-n-m">{guessText(post.mode, e.gameId, e.pick)} · {fmtNum(e.points)} PTS</p>
-    <p className="gx-t-meta gx-c-2">{market} · {gameName(e.gameId)}{e.points === 10 ? ' · Exact' : ''}</p>
+    <p className="gx-t-meta gx-c-2">{market} · <FeedGame gameId={e.gameId}/>{e.points === 10 ? ' · Exact' : ''}</p>
   </div>;
 }
 
@@ -44,7 +50,7 @@ function KickoffRows({ post, names, shell }) {
     return <button key={game.gameId} type="button" className="gx-feed-row" aria-label={`${gameName(game.gameId)}, ${line}. Open the game`}
       onClick={() => shell.openSheet('sh.game', { game: game.gameId })}>
       <span className="gx-grow gx-vstack gx-gap-4" aria-hidden="true">
-        <span className="gx-hstack gx-gap-12 gx-wrap"><span className="gx-t-team">{gameName(game.gameId)}</span>{people.length ? <AvatarStack people={people} max={3} size={24}/> : null}</span>
+        <span className="gx-hstack gx-gap-12 gx-wrap"><FeedGame gameId={game.gameId}/>{people.length ? <AvatarStack people={people} max={3} size={24}/> : null}</span>
         <span className="gx-t-meta gx-c-2">{line}</span>
       </span>
       <Icon icon="chevronRight" size={16} className="gx-c-3"/>

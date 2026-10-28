@@ -5,7 +5,8 @@
 // tests check the screens draw only what the read holds, keep D-38/D-55 restraint and say "—" for missing.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { markupProblems, matchups, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 const state = vi.hoisted(() => ({ app: null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn(), pointsApi: vi.fn() }));
@@ -105,7 +106,12 @@ describe('Play › Points ballot (option D)', () => {
     expect(text(rb)).toContain('1 locked in · guesses open at kickoff');
     expect(text(rb)).not.toMatch(/House/);
     expect(text(rb)).toMatch(/Draft\s+18/);
-    expect(text(card(ballot(), 'WR')).trim()).toBe('WR · Fixture WR Player To pick SEA @ DEN · Sun 10:00 AM PT');
+    // D-62: the game as marks, away first; the card's name keeps the text form.
+    const wr = card(ballot(), 'WR');
+    expect(text(wr)).toContain('WR · Fixture WR Player');
+    expect(readText(wr)).toContain('Seattle Seahawks at Denver Broncos · Sun 10:00 AM PT');
+    expect(matchups(wr).map(m => m.srcs)).toEqual([[teamMarks.SEA.src, teamMarks.DEN.src]]);
+    expect(wr.attrs['aria-label']).toContain('SEA @ DEN, Sun 10:00 AM PT');
   });
 
   it('results: You / Actual / Points tiles with PROVISIONAL, and one line naming the closest member', () => {
@@ -278,5 +284,8 @@ describe('pointsModel', () => {
     expect(model.pts(null)).toBe('—');
     expect(model.pts(0)).toBe('0');
     expect(model.matchupText({ gameKey: '2026_07_PIT_CLE' })).toBe('PIT @ CLE');
+    expect(model.matchupCodes({ gameKey: '2026_07_PIT_CLE' })).toEqual({ away: 'PIT', home: 'CLE' });
+    expect(model.matchupCodes({ gameKey: 'other', team: 'PIT' })).toBeNull();
+    expect(model.matchupText({ gameKey: 'other', team: 'PIT' })).toBe('PIT');
   });
 });

@@ -4,7 +4,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { isValidElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { markupProblems, matchups, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn(), pointsApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => null, useSharedRead: () => ({ data: null }) }));
@@ -83,7 +84,13 @@ describe('Play › Points, the commissioner’s preview and confirm', () => {
     expect(html).toContain('Commissioner only. Players can’t see this slate yet; it opens on its own Tue 12:00 AM PT.');
     const rows = [...walk(parseMarkup(html))].filter(n => n.attrs?.class === 'gx-pt-preview-row');
     expect(rows).toHaveLength(5);
-    for (const words of ['QB · Fixture QB Player', 'PIT @ CLE · Thu 5:15 PM PT', 'FLEX · Fixture FLEX Player', 'MIA @ NE · Mon 5:15 PM PT']) expect(text(html)).toContain(words);
+    for (const words of ['QB · Fixture QB Player', 'FLEX · Fixture FLEX Player']) expect(text(html)).toContain(words);
+    // D-62: each game as marks, away first, read as one sentence beside its kickoff.
+    for (const words of ['Pittsburgh Steelers at Cleveland Browns · Thu 5:15 PM PT', 'Miami Dolphins at New England Patriots · Mon 5:15 PM PT']) expect(readText(html)).toContain(words);
+    const games = matchups(html);
+    expect(games).toHaveLength(5);
+    expect(games[0]).toEqual({ srcs: [teamMarks.PIT.src, teamMarks.CLE.src], name: 'Pittsburgh Steelers at Cleveland Browns' });
+    expect(games[4]).toEqual({ srcs: [teamMarks.MIA.src, teamMarks.NE.src], name: 'Miami Dolphins at New England Patriots' });
     expect(html).not.toMatch(/19\.4|14\.2|House/);
     expect(html).toContain('Opens Week 8 for everyone now. This can’t be undone.');
     expect(html.match(/gx-btn--primary/g)).toHaveLength(2); // Publish now, and the dialog's confirm.
