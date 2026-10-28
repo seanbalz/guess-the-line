@@ -463,6 +463,10 @@ test('static: only the existing collector modules call the provider or the colle
     'scripts/boundary/guess.mjs', 'scripts/boundary/lines.mjs',
     // The two Edge functions that hand the adapter its key.
     'supabase/functions/gtl-api/index.ts', 'supabase/functions/gtl-odds-refresh/index.ts',
+    // EPL Pick a Team (plan 2026-10-28-epl-pick-a-team.md, Task 5): the gtl-epl-jobs worker's own soccer_epl reads (h2h odds,
+    // scores), which reuse readQuota and spend from the same gtl_odds_budget through gtl_epl_reserve_credits (50-credit
+    // reserve), and the Edge function that hands them the key. They call no NFL collection RPC.
+    'cloud/epl-sources.mjs', 'supabase/functions/gtl-epl-jobs/index.ts',
   ];
   const found = [];
   const walk = dir => {

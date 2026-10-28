@@ -3,7 +3,8 @@
 // Official docs checked 2026-10-08:
 // https://the-odds-api.com/liveapi/guides/v4/
 // https://the-odds-api.com/terms-and-conditions.html
-const ORIGIN = 'https://api.the-odds-api.com';
+export const ODDS_API_ORIGIN = 'https://api.the-odds-api.com';
+const ORIGIN = ODDS_API_ORIGIN;
 const SPORT = 'americanfootball_nfl';
 const MAX_BODY = 1024 * 1024;
 const MAX_EVENTS = 64;
@@ -43,7 +44,7 @@ const HTTP_STATUSES = new Set([400,401,403,404,422,429,500,502,503,504]);
 const token = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
 const american = value => Number.isInteger(value) && Math.abs(value) >= 100 && Math.abs(value) <= 10000;
 const point = (value, total) => Number.isFinite(value) && Number.isInteger(value * 2) && value >= (total ? 0 : -100) && value <= (total ? 200 : 100);
-const readQuota = headers => Object.fromEntries(['remaining', 'used', 'last'].map(key => {
+export const readQuota = headers => Object.fromEntries(['remaining', 'used', 'last'].map(key => {
   const raw = headers.get(`x-requests-${key}`);
   return [key, raw !== null && /^\d{1,9}$/.test(raw) ? Number(raw) : null];
 }));

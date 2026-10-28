@@ -20,7 +20,7 @@ test('one pick per club per week is enforced by a unique constraint', () => {
 
 test('every table is created if not exists, has row level security and service-only grants', () => {
   const tables = [...code.matchAll(/create\s+table\s+(if\s+not\s+exists\s+)?(public\.\w+)/gi)];
-  assert.ok(tables.length >= 11, `expected the 11 EPL tables, found ${tables.length}`);
+  assert.ok(tables.length >= 12, `expected the 12 EPL tables, found ${tables.length}`);
   for (const [, ine, name] of tables) {
     assert.ok(ine, `${name} must be create table if not exists`);
     assert.match(code, new RegExp(`alter\\s+table\\s+${name.replace('.', '\\.')}\\s+enable\\s+row\\s+level\\s+security`, 'i'), `${name} needs RLS`);
@@ -34,19 +34,23 @@ test('every table is created if not exists, has row level security and service-o
 test('no security definer; every function is create or replace, invoker, empty search_path', () => {
   assert.doesNotMatch(code, /security\s+definer/i);
   const fns = [...code.matchAll(/create\s+(or\s+replace\s+)?function\s+(public\.\w+)\s*\(([^)]*)\)/gi)];
-  assert.ok(fns.length === 12);
+  assert.equal(fns.length, 20);
   for (const [, orr, name] of fns) assert.ok(orr, `${name} must be create or replace`);
   assert.equal([...code.matchAll(/security\s+invoker\s+set\s+search_path\s*=\s*''/gi)].length, fns.length);
 });
 
-test('every function is revoked from the browser roles and granted to service_role', () => {
+test('every function is revoked from the browser roles and granted to service_role (the cron-only dispatcher to nobody)', () => {
   const names = [...code.matchAll(/create\s+or\s+replace\s+function\s+(public\.\w+)\s*\(([^)]*)\)/gi)].map(m => m[1]);
+  const granted = n => new RegExp(`grant\\s+execute\\s+on\\s+function[^;]*${n.replace('.', '\\.')}\\([^;]*to\\s+service_role`, 'i').test(code);
   for (const n of names) {
     assert.ok(new RegExp(`revoke\\s+all\\s+on\\s+function[^;]*${n.replace('.', '\\.')}\\(`, 'i').test(code), `${n} revoke`);
-    assert.ok(new RegExp(`grant\\s+execute\\s+on\\s+function[^;]*${n.replace('.', '\\.')}\\([^;]*to\\s+service_role`, 'i').test(code), `${n} grant`);
+    if (n === 'public.gtl_epl_dispatch_jobs') assert.ok(!granted(n) && /revoke\s+all\s+on\s+function\s+public\.gtl_epl_dispatch_jobs\(text\)\s+from\s+public\s*,\s*anon\s*,\s*authenticated\s*,\s*service_role/i.test(code), 'dispatcher is cron only');
+    else assert.ok(granted(n), `${n} grant`);
   }
   for (const n of ['gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_week_state', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices',
-    'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window']) assert.ok(names.includes(`public.${n}`), n);
+    'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window',
+    'gtl_epl_dispatch_jobs', 'gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_read_snapshots', 'gtl_epl_reserve_credits',
+    'gtl_epl_record_quota', 'gtl_epl_mark_nudge']) assert.ok(names.includes(`public.${n}`), n);
 });
 
 test('every create is idempotent and nothing is dropped or deleted', () => {

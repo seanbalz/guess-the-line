@@ -262,7 +262,7 @@ M-numbers are names. The apply order is the calendar in section 8. Real files ar
 | M-27 | 72 | `me_history` | Own changes, older records | Low | any | M-01, M-03 |
 | M-28 | 75 | `me_export` | Export my data | Low | any | M-27 |
 | M-29 | 27a | `favorite_keeps_note` | Old app's "Save to Favorites" keeps a stored note (D-40) | Low (copies the Solo ballot path unchanged) | any quiet day | — |
-| M-30 | EPL | `epl_pick_a_team` | EPL Pick a Team tables + RPCs (new objects only; schedule row off; no rollback file, nothing replaced) | Low (additive) | any | M-29 |
+| M-30 | EPL | `epl_pick_a_team` | EPL Pick a Team tables + RPCs and the gtl-epl-jobs run queue (cron-only dispatcher, one-run capability, shared Odds API reserve of 50) (new objects only; schedule rows off; cron registered by hand from supabase/admin/epl_jobs_cron.sql; no rollback file, nothing replaced) | Low (additive) | any | M-29 |
 
 Not in this ledger: the push migration `20261013030000` is in the repo but not hosted. Its apply is Sean's separate call (stage 2).
 

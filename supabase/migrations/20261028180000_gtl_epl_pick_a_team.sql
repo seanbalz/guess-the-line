@@ -8,9 +8,13 @@
 --   snapshots, unique by label), gtl_epl_weeks (a week's window, first kickoff, pick order and status), gtl_epl_fixtures,
 --   gtl_epl_prices, gtl_epl_picks (one row per manager per week; unique (season, week, club) so a club cannot be taken
 --   twice, whatever the caller does), gtl_epl_pick_history (append-only: every pick and change is kept, D-23),
---   gtl_epl_queues (a manager's private ranked list of clubs), gtl_epl_bonus, and the scheduled-job pair
---   gtl_epl_jobs_schedule / gtl_epl_job_runs (same shape as 20261009150000's week-open schedule; the schedule row
---   defaults to disabled and this file registers no cron job).
+--   gtl_epl_queues (a manager's private ranked list of clubs), gtl_epl_bonus, the scheduled-job pair
+--   gtl_epl_jobs_schedule / gtl_epl_job_runs (same shape as 20261009150000's week-open schedule; every schedule row
+--   defaults to disabled and this file registers no cron job) and gtl_epl_nudges (one turn push per manager turn).
+-- * The gtl-epl-jobs run queue (plan Task 5): gtl_epl_dispatch_jobs (cron only, never granted), gtl_epl_claim_job,
+--   gtl_epl_complete_job, the worker's reads gtl_epl_jobs_state and gtl_epl_read_snapshots, gtl_epl_reserve_credits and
+--   gtl_epl_record_quota on the Odds API budget NFL already keeps (gtl_odds_budget; never below the 50-credit reserve), and
+--   gtl_epl_mark_nudge. They read gtl_odds_budget and gtl_push_subscriptions, which earlier migrations created.
 -- * gtl_epl_member, gtl_epl_save_pick (the one writer of a manager's pick: it locks the week row, so concurrent picks
 --   serialise, and re-checks the deadline, the turn and the club in SQL), gtl_epl_save_queue, gtl_epl_week_state
 --   (the public state; queues are private and never included), and the jobs worker's writers: gtl_epl_upsert_fixtures,
@@ -123,23 +127,41 @@ create table if not exists public.gtl_epl_bonus (
   primary key(season,week,owner_id)
 );
 
--- Scheduled jobs (the EPL sync and settle worker). Disabled until an administrator enables it.
+-- Scheduled jobs (the gtl-epl-jobs worker, cloud/epl-jobs.mjs): one schedule row per job, each disabled until an
+-- administrator enables it (supabase/admin/epl_jobs_cron.sql). A run is queued per job and five-minute slot with a one-run
+-- capability (only its hash is kept), the 20261009150000 week-open pattern.
 create table if not exists public.gtl_epl_jobs_schedule (
-  job text primary key,
+  job text primary key check(job in ('snapshot','fixtures','resolve','settle','nudge')),
   enabled boolean not null default false,
-  endpoint text,
+  endpoint text check(endpoint is null or endpoint ~ '^https://[a-z0-9]+\.supabase\.co/functions/v1/gtl-epl-jobs$'),
   authorized_by text
 );
 create table if not exists public.gtl_epl_job_runs (
   id uuid primary key default gen_random_uuid(),
   job text not null,
-  capability_hash text,
+  slot_start timestamptz not null,
+  capability_hash text not null check(capability_hash ~ '^[0-9a-f]{64}$'),
   status text not null default 'queued' check(status in ('queued','running','succeeded','skipped','failed')),
+  reason text,
+  claim_token uuid,
+  claimed_at timestamptz,
   started_at timestamptz not null default clock_timestamp(),
   finished_at timestamptz,
-  detail jsonb not null default '{}' check(jsonb_typeof(detail)='object')
+  detail jsonb not null default '{}' check(jsonb_typeof(detail)='object'),
+  unique(job,slot_start)
 );
 create index if not exists gtl_epl_job_runs_job_idx on public.gtl_epl_job_runs(job,started_at desc);
+
+-- One turn notification per manager turn: the key is season-week-ownerId-pickCount, written before the push is sent so a
+-- retry or an overlapping run never sends it twice.
+create table if not exists public.gtl_epl_nudges (
+  key text primary key check(key ~ '^[0-9]{4}-[0-9]{1,2}-[0-9]{1,30}-[0-9]{1,2}$'),
+  season integer not null,
+  week integer not null,
+  owner_id text not null,
+  run_id uuid,
+  sent_at timestamptz not null default clock_timestamp()
+);
 
 alter table public.gtl_epl_managers enable row level security;
 alter table public.gtl_epl_snapshots enable row level security;
@@ -152,14 +174,18 @@ alter table public.gtl_epl_queues enable row level security;
 alter table public.gtl_epl_bonus enable row level security;
 alter table public.gtl_epl_jobs_schedule enable row level security;
 alter table public.gtl_epl_job_runs enable row level security;
+alter table public.gtl_epl_nudges enable row level security;
 revoke all on public.gtl_epl_managers,public.gtl_epl_snapshots,public.gtl_epl_weeks,public.gtl_epl_fixtures,public.gtl_epl_prices,
   public.gtl_epl_picks,public.gtl_epl_pick_history,public.gtl_epl_queues,public.gtl_epl_bonus,public.gtl_epl_jobs_schedule,
-  public.gtl_epl_job_runs from public,anon,authenticated,service_role;
+  public.gtl_epl_job_runs,public.gtl_epl_nudges from public,anon,authenticated,service_role;
 -- No delete for anyone the API runs as (D-23); the history is append-only.
 grant select,insert,update on public.gtl_epl_managers,public.gtl_epl_weeks,public.gtl_epl_fixtures,public.gtl_epl_prices,
-  public.gtl_epl_picks,public.gtl_epl_queues,public.gtl_epl_bonus,public.gtl_epl_job_runs to service_role;
-grant select,insert on public.gtl_epl_snapshots,public.gtl_epl_pick_history to service_role;
+  public.gtl_epl_picks,public.gtl_epl_queues,public.gtl_epl_bonus to service_role;
+grant select,insert on public.gtl_epl_snapshots,public.gtl_epl_pick_history,public.gtl_epl_nudges to service_role;
 grant select on public.gtl_epl_jobs_schedule to service_role;
+-- A run's job, slot and capability hash are written only by the cron dispatcher; the service role may move its state.
+grant select on public.gtl_epl_job_runs to service_role;
+grant update(status,reason,claim_token,claimed_at,finished_at,detail) on public.gtl_epl_job_runs to service_role;
 
 -- The eight Sleeper FEPL managers (Sleeper user_id, Sleeper display name, first name).
 insert into public.gtl_epl_managers(owner_id,sleeper_name,name) values
@@ -414,6 +440,164 @@ begin
   return jsonb_build_object('season',p_season,'week',p_week,'windowStart',w.window_start,'windowEnd',w.window_end,'firstKickoff',w.first_kickoff);
 end $$;
 
+-- The gtl-epl-jobs run queue (cloud/epl-jobs.mjs). ADMIN ONLY: pg_cron calls the dispatcher (supabase/admin/epl_jobs_cron.sql),
+-- and pg_net must be enabled beforehand. One run per job and five-minute slot; the token authorizes just that run, for five
+-- minutes, and only its hash is kept. A queued or running run older than ten minutes is timed out by the next dispatch.
+create or replace function public.gtl_epl_dispatch_jobs(p_job text) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare cfg public.gtl_epl_jobs_schedule; run public.gtl_epl_job_runs; token text; stamp timestamptz; net_id bigint;
+begin
+  select * into cfg from public.gtl_epl_jobs_schedule where job=p_job for update;
+  if not found or not cfg.enabled or cfg.endpoint is null then return jsonb_build_object('status','disabled'); end if;
+  stamp:=clock_timestamp();
+  update public.gtl_epl_job_runs set status='failed',reason='worker_timeout',finished_at=stamp
+    where job=cfg.job and status in ('queued','running') and coalesce(claimed_at,started_at)<stamp-interval '10 minutes';
+  token:=encode(sha256(convert_to(gen_random_uuid()::text||gen_random_uuid()::text||gen_random_uuid()::text,'UTF8')),'hex');
+  insert into public.gtl_epl_job_runs(job,slot_start,capability_hash)
+    values(cfg.job,date_bin(interval '5 minutes',stamp,timestamptz '2000-01-01 00:00:00+00'),encode(sha256(convert_to(token,'UTF8')),'hex'))
+    on conflict(job,slot_start) do nothing returning * into run;
+  if not found then return jsonb_build_object('status','already_dispatched'); end if;
+  begin
+    select net.http_post(url:=cfg.endpoint,body:=jsonb_build_object('runId',run.id),
+      headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||token),timeout_milliseconds:=60000) into net_id;
+  exception when others then
+    update public.gtl_epl_job_runs set status='failed',reason='dispatch_unavailable',finished_at=clock_timestamp() where id=run.id;
+    return jsonb_build_object('status','failed','reason','dispatch_unavailable');
+  end;
+  return jsonb_build_object('status','queued','runId',run.id);
+end $$;
+
+-- The worker claims its run with the capability it was sent. Authenticates against this exact run before even a replay.
+create or replace function public.gtl_epl_claim_job(p_token text,p_run uuid) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare run public.gtl_epl_job_runs; stamp timestamptz; v_claim uuid;
+begin
+  if p_token is null or p_token !~ '^[0-9a-f]{64}$' or p_run is null then raise exception 'GTL_SCHEDULE_AUTH' using errcode='P0001'; end if;
+  select * into run from public.gtl_epl_job_runs where id=p_run for update;
+  stamp:=clock_timestamp();
+  if not found or encode(sha256(convert_to(p_token,'UTF8')),'hex') is distinct from run.capability_hash
+    or run.started_at<stamp-interval '5 minutes' or run.started_at>stamp
+    or not exists(select 1 from public.gtl_epl_jobs_schedule s where s.job=run.job and s.enabled) then
+    raise exception 'GTL_SCHEDULE_AUTH' using errcode='P0001';
+  end if;
+  if run.status<>'queued' then return jsonb_build_object('replay',true,'runId',run.id,'job',run.job,'status',run.status,'reason',run.reason); end if;
+  v_claim:=gen_random_uuid();
+  update public.gtl_epl_job_runs set status='running',claim_token=v_claim,claimed_at=stamp where id=run.id;
+  return jsonb_build_object('replay',false,'runId',run.id,'claim',v_claim,'job',run.job,'now',stamp);
+end $$;
+
+-- A null reason means the job did its work; the named reasons record a safe no-op (skipped) or a failure to look at. The
+-- lists match cloud/epl-jobs.mjs EPL_SKIP_REASONS and EPL_FAIL_REASONS. detail holds counts only (at most 4 kB).
+create or replace function public.gtl_epl_complete_job(p_run uuid,p_claim uuid,p_reason text,p_detail jsonb) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare run public.gtl_epl_job_runs; state text;
+begin
+  select * into run from public.gtl_epl_job_runs where id=p_run for update;
+  if not found or p_claim is null or run.claim_token is distinct from p_claim then raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001'; end if;
+  if run.status<>'running' then return jsonb_build_object('runId',run.id,'status',run.status,'reason',run.reason); end if;
+  if run.claimed_at<clock_timestamp()-interval '10 minutes' then raise exception 'GTL_SCHEDULE_EXPIRED' using errcode='P0001'; end if;
+  state:=case when p_reason is null then 'succeeded'
+    when p_reason in ('no_week','not_open','not_due','no_fixtures','already_resolved','not_resolved','nothing_due','budget_guard',
+      'budget_unknown','results_pending','snapshot_pending','no_subscription','already_nudged') then 'skipped'
+    when p_reason in ('source_unavailable','write_failed','snapshot_missing','scores_incomplete','vapid_unavailable','send_failed','job_failed') then 'failed' end;
+  if state is null or (p_detail is not null and (jsonb_typeof(p_detail)<>'object' or octet_length(p_detail::text)>4096)) then
+    raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001';
+  end if;
+  update public.gtl_epl_job_runs set status=state,reason=p_reason,finished_at=clock_timestamp(),detail=coalesce(p_detail,'{}'::jsonb) where id=run.id;
+  return jsonb_build_object('runId',run.id,'status',state,'reason',p_reason);
+end $$;
+
+-- Everything a claimed run decides from: the latest week, its picks, private queues, fixtures and prices, the saved
+-- snapshot labels, season bonus totals, which managers can be pushed (never an endpoint here), and the shared Odds API budget.
+create or replace function public.gtl_epl_jobs_state(p_run uuid,p_claim uuid) returns jsonb
+language plpgsql stable security invoker set search_path='' as $$
+declare w public.gtl_epl_weeks; v_remaining integer; v_paused boolean;
+begin
+  if not exists(select 1 from public.gtl_epl_job_runs where id=p_run and claim_token=p_claim and status='running') then raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001'; end if;
+  select * into w from public.gtl_epl_weeks order by season desc,week desc limit 1;
+  select b.conservative_remaining,b.paused into v_remaining,v_paused from public.gtl_odds_budget b where b.provider='the-odds-api';
+  return jsonb_build_object(
+    'week',case when w.season is null then null else jsonb_build_object('season',w.season,'week',w.week,'windowStart',w.window_start,
+      'windowEnd',w.window_end,'firstKickoff',w.first_kickoff,'pickOrder',to_jsonb(w.pick_order),'status',w.status) end,
+    'picks',coalesce((select jsonb_agg(jsonb_build_object('ownerId',k.owner_id,'club',k.club,'source',k.source,'final',k.final)
+        order by coalesce(array_position(w.pick_order,k.owner_id),99),k.owner_id)
+      from public.gtl_epl_picks k where k.season=w.season and k.week=w.week),'[]'::jsonb),
+    'queues',coalesce((select jsonb_object_agg(q.owner_id,to_jsonb(q.clubs)) from public.gtl_epl_queues q where q.season=w.season and q.week=w.week),'{}'::jsonb),
+    'fixtures',coalesce((select jsonb_agg(jsonb_build_object('eventId',f.event_id,'home',f.home,'away',f.away,'commenceTime',f.commence_time,
+        'status',f.status,'homeGoals',f.home_goals,'awayGoals',f.away_goals) order by f.commence_time,f.event_id)
+      from public.gtl_epl_fixtures f where f.season=w.season and f.week=w.week),'[]'::jsonb),
+    'prices',coalesce((select jsonb_agg(jsonb_build_object('eventId',p.event_id,'club',p.club,'market',p.market,'price',p.price) order by p.event_id,p.club,p.market)
+      from public.gtl_epl_prices p join public.gtl_epl_fixtures f on f.event_id=p.event_id where f.season=w.season and f.week=w.week),'[]'::jsonb),
+    'snapshots',coalesce((select jsonb_agg(s.label order by s.label) from public.gtl_epl_snapshots s),'[]'::jsonb),
+    'bonusTotals',coalesce((select jsonb_object_agg(t.owner_id,t.total) from (select b.owner_id,sum(b.points) as total
+      from public.gtl_epl_bonus b where b.season=w.season group by b.owner_id) t),'{}'::jsonb),
+    'managers',coalesce((select jsonb_agg(jsonb_build_object('ownerId',m.owner_id,'name',m.name,'subscribed',m.user_id is not null and exists(
+        select 1 from public.gtl_push_subscriptions x where x.user_id=m.user_id and x.disabled_at is null)) order by m.owner_id)
+      from public.gtl_epl_managers m),'[]'::jsonb),
+    'budget',jsonb_build_object('remaining',v_remaining,'paused',coalesce(v_paused,false)));
+end $$;
+
+-- The users and rosters of up to four saved snapshots (settle's weekly scores); the stats and projections stay in the table.
+create or replace function public.gtl_epl_read_snapshots(p_run uuid,p_claim uuid,p_labels text[]) returns jsonb
+language plpgsql stable security invoker set search_path='' as $$
+begin
+  if not exists(select 1 from public.gtl_epl_job_runs where id=p_run and claim_token=p_claim and status='running') then raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001'; end if;
+  if p_labels is null or cardinality(p_labels)>4 then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  return coalesce((select jsonb_object_agg(s.label,jsonb_build_object('capturedAt',s.captured_at,'week',s.week,'users',s.payload->'users','rosters',s.payload->'rosters'))
+    from public.gtl_epl_snapshots s where s.label=any(p_labels)),'{}'::jsonb);
+end $$;
+
+-- The Odds API's 500 monthly credits are shared with NFL (gtl_odds_budget). A reservation is taken before a call, even if its
+-- result is never known, and is refused when it would leave fewer than the 50-credit reserve or the budget is paused or unknown.
+create or replace function public.gtl_epl_reserve_credits(p_run uuid,p_claim uuid,p_cost integer) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare v_remaining integer; v_paused boolean;
+begin
+  if not exists(select 1 from public.gtl_epl_job_runs where id=p_run and claim_token=p_claim and status='running') then raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001'; end if;
+  if p_cost is null or p_cost<1 or p_cost>10 then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  select b.conservative_remaining,b.paused into v_remaining,v_paused from public.gtl_odds_budget b where b.provider='the-odds-api' for update;
+  if v_remaining is null or coalesce(v_paused,true) or v_remaining-p_cost<50 then return jsonb_build_object('ok',false,'remaining',v_remaining); end if;
+  update public.gtl_odds_budget set conservative_remaining=v_remaining-p_cost,updated_at=clock_timestamp() where provider='the-odds-api';
+  return jsonb_build_object('ok',true,'remaining',v_remaining-p_cost);
+end $$;
+
+-- The provider's own x-requests-* counts after a call. The conservative budget only ever goes down here.
+create or replace function public.gtl_epl_record_quota(p_run uuid,p_claim uuid,p_remaining integer,p_used integer,p_last integer) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare v_remaining integer;
+begin
+  if not exists(select 1 from public.gtl_epl_job_runs where id=p_run and claim_token=p_claim and status='running') then raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001'; end if;
+  if coalesce(p_remaining,0)<0 or coalesce(p_used,0)<0 or coalesce(p_last,0)<0 then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  update public.gtl_odds_budget set observed_remaining=coalesce(p_remaining,observed_remaining),observed_used=coalesce(p_used,observed_used),
+    observed_last=coalesce(p_last,observed_last),observed_at=clock_timestamp(),
+    conservative_remaining=case when p_remaining is null then conservative_remaining when conservative_remaining is null then least(p_remaining,500)
+      else least(conservative_remaining,p_remaining) end,updated_at=clock_timestamp()
+    where provider='the-odds-api' returning conservative_remaining into v_remaining;
+  return jsonb_build_object('remaining',v_remaining);
+end $$;
+
+-- Marks one turn notification before it is sent. Returns the linked account's active push subscriptions only when this call
+-- recorded the turn, so a retry, an overlapping run or an unlinked manager sends nothing.
+create or replace function public.gtl_epl_mark_nudge(p_run uuid,p_claim uuid,p_season integer,p_week integer,p_owner text,p_key text) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare v_user uuid; n integer;
+begin
+  if not exists(select 1 from public.gtl_epl_job_runs where id=p_run and claim_token=p_claim and status='running') then raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001'; end if;
+  if p_key is null or p_key !~ '^[0-9]{4}-[0-9]{1,2}-[0-9]{1,30}-[0-9]{1,2}$' or p_key not like p_season||'-'||p_week||'-'||p_owner||'-%' then
+    raise exception 'GTL_EPL_INVALID' using errcode='P0001';
+  end if;
+  select m.user_id into v_user from public.gtl_epl_managers m where m.owner_id=p_owner;
+  if v_user is null then return jsonb_build_object('recorded',false,'subscriptions','[]'::jsonb); end if;
+  insert into public.gtl_epl_nudges(key,season,week,owner_id,run_id) values(p_key,p_season,p_week,p_owner,p_run) on conflict(key) do nothing;
+  get diagnostics n=row_count;
+  if n=0 then return jsonb_build_object('recorded',false,'subscriptions','[]'::jsonb); end if;
+  return jsonb_build_object('recorded',true,'subscriptions',coalesce((select jsonb_agg(jsonb_build_object('endpoint',x.endpoint,'p256dh',x.p256dh,'auth',x.auth)
+    order by x.created_at,x.endpoint) from public.gtl_push_subscriptions x where x.user_id=v_user and x.disabled_at is null),'[]'::jsonb));
+end $$;
+
+-- The dispatcher is cron's alone: no API role may queue a run.
+revoke all on function public.gtl_epl_dispatch_jobs(text) from public,anon,authenticated,service_role;
+
 -- Every function is service-only; create or replace keeps privileges, so each grant is restated.
 revoke all on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(integer,integer),
   public.gtl_epl_save_pick(uuid,integer,integer,text,timestamptz),public.gtl_epl_save_queue(uuid,integer,integer,text[]),
@@ -421,11 +605,19 @@ revoke all on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(int
   public.gtl_epl_settle_week(integer,integer,jsonb,jsonb),public.gtl_epl_save_snapshot(text,timestamptz,integer,jsonb,jsonb),
   public.gtl_epl_link_manager(text,uuid,uuid),
   public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
-  public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz) from public,anon,authenticated;
+  public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz),
+  public.gtl_epl_claim_job(text,uuid),public.gtl_epl_complete_job(uuid,uuid,text,jsonb),public.gtl_epl_jobs_state(uuid,uuid),
+  public.gtl_epl_read_snapshots(uuid,uuid,text[]),public.gtl_epl_reserve_credits(uuid,uuid,integer),
+  public.gtl_epl_record_quota(uuid,uuid,integer,integer,integer),public.gtl_epl_mark_nudge(uuid,uuid,integer,integer,text,text)
+  from public,anon,authenticated;
 grant execute on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(integer,integer),
   public.gtl_epl_save_pick(uuid,integer,integer,text,timestamptz),public.gtl_epl_save_queue(uuid,integer,integer,text[]),
   public.gtl_epl_upsert_fixtures(jsonb),public.gtl_epl_upsert_prices(jsonb),public.gtl_epl_resolve_week(integer,integer,jsonb),
   public.gtl_epl_settle_week(integer,integer,jsonb,jsonb),public.gtl_epl_save_snapshot(text,timestamptz,integer,jsonb,jsonb),
   public.gtl_epl_link_manager(text,uuid,uuid),
   public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
-  public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz) to service_role;
+  public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz),
+  public.gtl_epl_claim_job(text,uuid),public.gtl_epl_complete_job(uuid,uuid,text,jsonb),public.gtl_epl_jobs_state(uuid,uuid),
+  public.gtl_epl_read_snapshots(uuid,uuid,text[]),public.gtl_epl_reserve_credits(uuid,uuid,integer),
+  public.gtl_epl_record_quota(uuid,uuid,integer,integer,integer),public.gtl_epl_mark_nudge(uuid,uuid,integer,integer,text,text)
+  to service_role;
