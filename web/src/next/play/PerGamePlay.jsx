@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useSportGuard } from '../../sportNavigation.js';
 import { cloudApi, communityApi } from '../../api.js';
 import { pickText, shortName } from '../../communityFormat.js';
 import { communityDraftScope, readCommunityDraft, COMMUNITY_DRAFT_PREFIX } from '../../communityDraft.js';
 import { readSoloDraft, soloDraftScope } from '../../soloDraft.js';
 import { weekOpenAt } from '../../../../shared/nfl-schedule.mjs';
-import { Button, Card, Dialog, Icon, Pill, Segmented, TeamMark, cx, teamCode } from '../ui/index.js';
+import { Button, Card, Dialog, Icon, Matchup, Pill, Segmented, cx, teamCode } from '../ui/index.js';
+import { ShellContext } from '../shell/context.js';
+import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { fmtFull } from '../format.js';
 import { GuessPicker, GUESS_HELP } from './GuessPicker.jsx';
 import { ScoreReceipt } from './ScoreReceipt.jsx';
@@ -174,6 +176,9 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     card?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
   const selected = data.games.find(game => game.id === confirm);
+  // D-62: in the new app each card leads with the matchup as marks with this weekend's records, each team opening its
+  // sheet; the old app's Community Picks page (no Shell) draws the same marks without records or team buttons.
+  const inShell = useContext(ShellContext) !== null;
   return <section ref={section} className="gx-per-game gx-vstack gx-gap-16" aria-label={`Week ${data.week} picks`}>
     <p className="gx-t-body gx-c-2">Week {data.week} · {data.season}. Lock one game at a time. Spread and Total are separate; a locked guess cannot change.</p>
     <Segmented label="Market" options={SCORE_MARKETS} value={mode} onChange={value => { if (!busy && !uncertain) onMode?.(value); }}/>
@@ -203,7 +208,8 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
       return <Card as="article" key={game.id} className={cx('gx-vstack gx-gap-16 gx-play-game', stamping && 'gx-play-stamp')} aria-label={`${game.awayCode} at ${game.homeCode} ${market}`} data-game={game.id} data-state={state} data-route-focus={game.id === focusGame ? '' : undefined} ref={game.id === focusGame ? focusedGame : undefined} tabIndex={-1}>
         <header className="gx-vstack gx-gap-8">
           <div className="gx-play-card-meta"><p className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)}</p><Pill tone={tone} className={cx('gx-play-card-pill', stamping && 'gx-play-stamp-pill')}><Icon icon={STATE_ICONS[state]} size={12}/>{word}</Pill></div>
-          <h2 className="gx-score-matchup gx-t-strong"><TeamMark code={game.awayCode} size={32} decorative/><span>{game.awayCode} at {game.homeCode}</span><TeamMark code={game.homeCode} size={32} decorative/></h2>
+          {inShell ? <TeamMatchup as="h2" headingClassName="gx-score-matchup" away={game.awayCode} home={game.homeCode} season={data.season}/>
+            : <h2 className="gx-score-matchup"><Matchup away={game.awayCode} home={game.homeCode} size={48} layout="stack"/></h2>}
         </header>
         {lock ? <ScoreReceipt game={game} mode={mode} row={receipt} guess={number(ballot.picks?.[game.id])} lockedAt={lock} onScore={onScore ? () => onScore({ season: data.season, week: data.week, market: mode, scoreGame: game.id }) : undefined}/>
           : <><div className="gx-play-entry"><GuessPicker mode={mode} value={value} away={shortName(game.awayCode)} home={shortName(game.homeCode)} teamLabels={{ away: teamCode(game.awayCode), home: teamCode(game.homeCode) }} disabled={unavailable} label={`${game.awayCode} at ${game.homeCode} ${market} guess`} onChange={value => { keep({ picks: { ...picks, [game.id]: value }, base, pending: null }); setNotice(''); }}/></div>

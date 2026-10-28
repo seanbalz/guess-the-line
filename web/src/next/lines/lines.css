@@ -30,6 +30,8 @@
 }
 .gx-l-team { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 12px; min-width: 0; }
 .gx-l-team--2 { grid-row: 2; }
+/* D-62: a team's record beside its name, in text-2 numbers; the name gives way first on a narrow card. */
+.gx-l-rec { flex: none; font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; color: var(--gx-text-2); }
 .gx-l-tag1,
 .gx-l-tag2 { grid-column: 2; justify-self: end; }
 .gx-l-tag1 { grid-row: 1; }
@@ -74,6 +76,8 @@
 /* ----- game sheet ----- */
 /* The sheet body scrolls; its blocks keep their own height (a flush card hides overflow, so it could shrink to nothing). */
 .gx-l-sheet .gx-sheet-body > * { flex-shrink: 0; }
+/* D-62: the matchup as marks with records, centred under the kickoff, and its one "Records through Week N" line. */
+.gx-l-head .gx-l-through { text-align: center; }
 /* At least 56px, never a fixed width: in a wide fallback font (DejaVu Sans while Figtree has not loaded) "SPREAD" needs 58px. */
 .gx-l-ylab { flex: none; min-width: 56px; }
 .gx-l-ysub { display: flex; align-items: flex-start; gap: 4px; }

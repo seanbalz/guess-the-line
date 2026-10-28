@@ -1,7 +1,7 @@
 // Presentation only: WeekPicks still owns drafts, submission, rule checks and every disclosure gate.
 import { useId, useLayoutEffect, useRef } from 'react';
-import { Icon, TeamMark, teamCode } from '../ui/index.js';
-import { team } from '../../communityFormat.js';
+import { Icon, teamCode } from '../ui/index.js';
+import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 
 function GameCard({ game, title, kickoff, facts, reference, picker, trends, picked, changed, submitted, satOut, notOpen }) {
   const id = useId();
@@ -9,10 +9,8 @@ function GameCard({ game, title, kickoff, facts, reference, picker, trends, pick
   return <article className="panel week-pick gx-play-game" aria-labelledby={id} data-picked={picked || undefined}>
     <header className="gx-play-game-head">
       <div className="gx-play-game-meta"><time dateTime={game.kickoff}>{kickoff}</time><span className="gx-play-pick-state">{picked && <Icon icon="check" size={16}/>}{status}</span></div>
-      <h3 id={id} className="gx-play-matchup" aria-label={title}>
-        <span><TeamMark code={game.awayCode} size={32} decorative/><span>{team(game.awayCode)}</span></span>
-        <span><TeamMark code={game.homeCode} size={32} decorative/><span><small>at </small>{team(game.homeCode)}</span></span>
-      </h3>
+      {/* D-62: marks with this weekend's records, each team opening its sheet; the heading keeps the card's name. */}
+      <h3 id={id} className="gx-play-matchup" aria-label={title}><TeamMatchup away={game.awayCode} home={game.homeCode}/></h3>
     </header>
     {picker && <div className="gx-play-entry">{picker}</div>}
     {reference && <section className="gx-play-reference" aria-label="Your saved scoring reference">{reference}</section>}

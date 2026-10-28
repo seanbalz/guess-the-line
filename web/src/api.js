@@ -64,7 +64,8 @@ export async function windApi(action, body = {}, signal) {
  */
 export const GROUP_ACTIONS = Object.freeze({
   // Stage 23 (M-06): the gated lines readers, POST /lines/read (a week's board) and /lines/game (one game in full).
-  lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research']), writes: Object.freeze([]) }),
+  // D-62: /lines/teams, every team's regular-season record and game log from nflverse finals (no market data).
+  lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research', 'teams']), writes: Object.freeze([]) }),
   bets: Object.freeze({ reads: Object.freeze(['read', 'board', 'season']), writes: Object.freeze([]) }),
   // The league feed (cloud/feed.mjs, redesign stages 61 to 65): 'react' sets or takes back an emoji reaction (M-21);
   // 'feed', 'comments' and 'reactors' read a league's feed, a post's comments and who reacted, and 'share-result' posts
@@ -88,6 +89,8 @@ export const betsApi = (action, body = {}, signal) => groupApi('bets', action, b
 export const leagueApi = (action, body = {}, signal) => groupApi('league', action, body, signal);
 export const meApi = (action, body = {}, signal) => groupApi('me', action, body, signal);
 export const pointsApi = (action, body = {}, signal) => groupApi('points', action, body, signal);
+/** D-62: team records and game logs for a season (`{}` for the current one); public finals only, never a market. */
+export const readTeams = (body = {}, signal) => linesApi('teams', body, signal);
 
 
 /** Public historical Trends for an authorized published week. */

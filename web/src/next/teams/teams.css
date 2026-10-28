@@ -1,0 +1,78 @@
+/* The team sheet (D-62 rule 3, sh.team): the headline record, at most three tiles, the last five as blocks, the margin
+   chart and the season's games. State colors are the win, loss and pending tokens, always with a letter or a word. */
+.gx .gx-team-head { display: flex; align-items: center; gap: var(--gx-space-4); }
+.gx .gx-team-record { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--gx-space-1); min-width: 0; margin: 0; }
+
+/* ----- tiles: Home and Road side by side, points per game across ----- */
+.gx .gx-team-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-team-tile { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; padding: var(--gx-space-3); border-radius: var(--gx-radius-md); background: var(--gx-surface-1); }
+.gx .gx-team-tile--wide { grid-column: 1 / -1; }
+.gx .gx-team-ppg { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-1) var(--gx-space-5); }
+
+/* ----- last five: a solid block per result with its letter on it ----- */
+.gx .gx-team-five { display: flex; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-team-blk {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--gx-radius-sm);
+  color: var(--gx-on-state);
+  font: 700 20px/24px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
+.gx .gx-team-blk--win { background: var(--gx-win); }
+.gx .gx-team-blk--loss { background: var(--gx-loss); }
+.gx .gx-team-blk--pending { background: var(--gx-pending); }
+
+/* ----- margin chart ----- */
+.gx .gx-team-chart { display: flex; flex-direction: column; gap: var(--gx-space-2); }
+.gx .gx-team-readout { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-1) var(--gx-space-2); min-height: 22px; margin: 0; }
+.gx .gx-team-readout-value { font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-1); }
+.gx .gx-team-plot { touch-action: pan-y; cursor: crosshair; }
+.gx .gx-team-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gx .gx-team-band { fill: var(--gx-surface-3); }
+.gx .gx-team-zero { stroke: var(--gx-text-3); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.gx .gx-team-bar--win { fill: var(--gx-win); }
+.gx .gx-team-bar--loss { fill: var(--gx-loss); }
+.gx .gx-team-bar--on { stroke: var(--gx-text-1); stroke-width: 1.5; }
+.gx .gx-team-tie { fill: var(--gx-surface-2); stroke: var(--gx-pending); stroke-width: 2; }
+.gx .gx-team-tie.gx-team-bar--on { stroke: var(--gx-text-1); }
+.gx .gx-team-weeks { display: flex; }
+.gx .gx-team-weeks > span {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  color: var(--gx-text-3);
+  font: 600 13px/18px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+}
+.gx .gx-team-scrub { display: block; width: 100%; height: 44px; margin: 0; accent-color: var(--gx-data); }
+
+/* ----- the season's games ----- */
+.gx .gx-team-games { display: flex; flex-direction: column; margin: 0; padding: 0; border-radius: var(--gx-radius-md); background: var(--gx-surface-1); list-style: none; overflow: hidden; }
+.gx .gx-team-game {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--gx-space-2);
+  min-height: 52px;
+  padding: var(--gx-space-2) var(--gx-space-3);
+}
+.gx .gx-team-game + .gx-team-game { border-top: 1px solid var(--gx-border); }
+.gx .gx-team-game[data-next] { box-shadow: inset 3px 0 0 var(--gx-data); }
+.gx .gx-team-wk { color: var(--gx-text-2); font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gx .gx-team-end { display: inline-flex; align-items: center; gap: var(--gx-space-2); justify-self: end; }
+.gx .gx-team-when { grid-column: 2 / -1; }
+
+@media (forced-colors: active) {
+  .gx .gx-team-tile, .gx .gx-team-games { border: 1px solid CanvasText; }
+  .gx .gx-team-blk { forced-color-adjust: none; background: Canvas; color: CanvasText; border: 1px solid CanvasText; }
+  .gx .gx-team-svg { forced-color-adjust: none; }
+  .gx .gx-team-bar--win, .gx .gx-team-bar--loss { fill: CanvasText; }
+  .gx .gx-team-tie { fill: Canvas; stroke: CanvasText; }
+  .gx .gx-team-zero { stroke: CanvasText; }
+  .gx .gx-team-band { fill: Canvas; stroke: Highlight; }
+  .gx .gx-team-game[data-next] { border-left: 3px solid Highlight; }
+}

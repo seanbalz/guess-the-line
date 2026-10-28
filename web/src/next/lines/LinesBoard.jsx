@@ -1,6 +1,7 @@
 // Research Lines board: saved guesses stay as tags; current quotes come from the gated week reader. While the week
 // loads, skeleton game cards stand in for the board; while the quotes load, a skeleton bar stands in each open market
-// (the "Loading…" words stay for screen readers).
+// (the "Loading…" words stay for screen readers). D-62: each team's record (this weekend's finals, from the shared team
+// read) sits beside its name in text-2 numbers; the row stays one button that opens the game sheet.
 import { useId, useMemo } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { LINES_COPY, linesBoard } from '../../../../shared/lines-view.mjs';
@@ -14,6 +15,8 @@ import './lines.css';
 import { useBoardLines } from './useGameLines.js';
 import { boardGate, marketBoard } from './boardMarkets.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
+import { matchupRecords } from '../teams/teamModel.js';
+import { useTeamSeason } from '../teams/teamsData.js';
 
 /** A lock while closed, current/latest quote when permitted, and an explicit missing/loading state. */
 function MarketValue({ cell, className }) {
@@ -29,20 +32,29 @@ function MarketValue({ cell, className }) {
   );
 }
 
-function GameCard({ card, onOpen }) {
-  const team = (side, row) => (
+/** The card's sentence with the records said after the matchup: "Seahawks at Broncos, Sun 1:05 PM PT. Records: Seahawks 4–2, Broncos 3–3. …". */
+export function withRecords(aria, card, records) {
+  const words = [['away', card.away], ['home', card.home]].filter(([key]) => records?.[key]).map(([key, side]) => `${side.nick} ${records[key]}`);
+  if (!words.length) return aria;
+  const at = aria.indexOf('. '), said = `Records: ${words.join(', ')}`;
+  return at < 0 ? `${aria}. ${said}` : `${aria.slice(0, at)}. ${said}${aria.slice(at)}`;
+}
+
+function GameCard({ card, records, onOpen }) {
+  const team = (side, row, record) => (
     <span className={row === 2 ? 'gx-l-team gx-l-team--2' : 'gx-l-team'}>
       <TeamMark code={side.code} name={side.name} size={32} decorative/>
       <span className="gx-t-strong gx-truncate">{side.nick}</span>
+      {record ? <span className="gx-l-rec">{record}</span> : null}
     </span>
   );
   return (
-    <CardButton className="gx-l-card" aria-label={card.aria} data-game={card.id} onClick={onOpen}>
+    <CardButton className="gx-l-card" aria-label={withRecords(card.aria, card, records)} data-game={card.id} onClick={onOpen}>
       {card.status ? <span className="gx-t-meta gx-l-chead">{card.status}</span> : null}
       {card.showTime ? <span className="gx-t-meta gx-l-chead">{card.time}</span> : null}
       <span className="gx-l-teams">
-        {team(card.away, 1)}
-        {team(card.home, 2)}
+        {team(card.away, 1, records?.away)}
+        {team(card.home, 2, records?.home)}
         {card.tags.away ? <Tag k={card.tags.away.k} className="gx-l-tag1">{card.tags.away.text}</Tag> : null}
         {card.tags.home ? <Tag k={card.tags.home.k} className="gx-l-tag2">{card.tags.home.text}</Tag> : null}
         <MarketValue cell={card.spread} className="gx-l-val"/>
@@ -68,7 +80,7 @@ function GameCard({ card, onOpen }) {
   );
 }
 
-function Group({ label, time, cards, onOpen }) {
+function Group({ label, time, cards, season, onOpen }) {
   const id = useId();
   return (
     <section className="gx-l-group" aria-labelledby={id}>
@@ -76,7 +88,7 @@ function Group({ label, time, cards, onOpen }) {
         <h2 className="gx-t-section" id={id}>{label}</h2>
         {time ? <span className="gx-t-meta">{time}</span> : null}
       </div>
-      {cards.map(card => <GameCard key={card.id} card={card} onOpen={() => onOpen(card.id)}/>)}
+      {cards.map(card => <GameCard key={card.id} card={card} records={matchupRecords(season.data, card.away.code, card.home.code, season.game)} onOpen={() => onOpen(card.id)}/>)}
     </section>
   );
 }
@@ -88,6 +100,7 @@ export function LinesBoard({ trendsOnly = false }) {
   const lines = useLinesData();
   const { app, personal, community, trendsWeek, shown } = lines;
   const markets = useBoardLines(lines, !trendsOnly);
+  const teams = useTeamSeason(), season = { data: teams.data, game: shown?.season ?? null };
   const wind = useWind(shown?.season, shown?.week, Boolean(shown));
   const savedBoard = useMemo(() => (personal.data ? linesBoard({ personal: markets.status === 'ready' ? { ...personal.data, now: new Date(markets.now).toISOString() } : personal.data, community, trends: trendsWeek, wind: wind.wind, windNow: wind.now }) : null),
     [personal.data, community, trendsWeek, wind.wind, wind.now, markets.status, markets.now]);
@@ -133,8 +146,8 @@ export function LinesBoard({ trendsOnly = false }) {
         <Button variant="ghost" onClick={markets.reload}>{markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}</Button>
       </>}
       {trendsOnly ? <><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
-        {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} onOpen={open}/>)}
-        {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} onOpen={open}/> : null}
+        {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} season={season} onOpen={open}/>)}
+        {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} season={season} onOpen={open}/> : null}
       </>}
       {!board.groups.length && !board.started ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}
     </div>
