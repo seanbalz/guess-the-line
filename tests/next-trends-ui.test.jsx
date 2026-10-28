@@ -141,37 +141,34 @@ function renderPublishedSlate(week, games, view) {
  };
  return renderToStaticMarkup(<div className="gx"><ShellContext.Provider value={{ state: { views: { trends: view } }, setView: vi.fn(), openSheet: vi.fn() }}><TrendsScreen/></ShellContext.Provider></div>);
 }
-const selectedMatchup = html => {
- const select = [...walk(parseMarkup(html))].filter(n => n.tag === 'select')[1];
- return select.children.filter(n => n.tag === 'option' && Object.hasOwn(n.attrs, 'selected')).map(n => n.attrs.value);
-};
+const lipsOf = html => [...walk(parseMarkup(html))].filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip')).map(nameFrom);
 const nextGame = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-25T20:00:00Z' };
-// D-66: Teams has no Team or Matchup filter any more; it is the nesting cards (tests/next-trends-nest.test.jsx).
-describe.each(['week'])('published matchup filters in %s', section => {
- it('uses All matchups when the published week replaces the saved matchup', () => {
-  const view = { trendSection: section, matchup: game.id };
+// D-66: This Week is nesting cards (its Team and Matchup filters are gone). An address naming a game the published week
+// no longer has falls back to the first card, which lists the new week's games.
+describe('This Week nesting cards in the published slate', () => {
+ it('opens a published game; a game the new week replaced falls back to This week and its games', () => {
+  const view = { trendSection: 'week', weekGame: game.id };
   const initial = renderPublishedSlate(6,[game,nextGame],view);
-  expect(selectedMatchup(initial)).toEqual([game.id]);
+  expect(lipsOf(initial)).toEqual(['Back to This week']);
   expect(initial).toContain('Game details · CAR @ ATL');
   expect(initial).not.toContain('Game details · SEA @ DEN');
+  expect(markupProblems(initial)).toEqual([]);
   const changed = renderPublishedSlate(7,[nextGame],view);
-  expect(view.matchup).toBe(game.id);
-  expect(selectedMatchup(changed)).toEqual(['']);
+  expect(view.weekGame).toBe(game.id);
   expect(changed).toContain('Published week: 2026 Week 7');
-  expect(changed).toContain('Game details · SEA @ DEN');
-  expect(changed).not.toContain('No games match these filters.');
+  expect(lipsOf(changed)).toEqual([]);
   expect(markupProblems(changed)).toEqual([]);
-  // D-62: the card's heading is the matchup as 32px marks, away first; the button keeps its text name.
-  const heading = [...walk(parseMarkup(changed))].find(n => n.tag === 'h3' && n.children[0]?.attrs?.class?.includes('gx-mu'));
-  expect(nameFrom(heading)).toBe('Seattle Seahawks at Denver Broncos');
-  expect(matchups(heading)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' }]);
+  // D-62: each game tile is the matchup as marks, away first; the tile keeps the words in its name.
+  const tile = [...walk(parseMarkup(changed))].find(n => n.tag === 'button' && n.attrs?.['data-game'] === 'SEA-DEN');
+  expect(nameFrom(tile).startsWith('Seattle Seahawks at Denver Broncos')).toBe(true);
+  expect(matchups(tile)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' }]);
  });
- it('uses All matchups when the current team filter removes the saved matchup', () => {
-  const view = { trendSection: section, matchup: game.id, weekTeam: 'DEN' };
-  const html = renderPublishedSlate(7,[game,nextGame],view);
-  expect(selectedMatchup(html)).toEqual(['']);
+ it('a game whose market is closed shows the lock and how it opens, never a record, and keeps the game sheet', () => {
+  const html = renderPublishedSlate(7,[game,nextGame],{ trendSection: 'week', weekGame: nextGame.id });
+  expect(markupProblems(html)).toEqual([]);
+  expect([...walk(parseMarkup(html))].some(n => n.attrs?.['data-trend'] === 'locked')).toBe(true);
+  expect(html).toContain('Line-based records');
   expect(html).toContain('Game details · SEA @ DEN');
-  expect(html).not.toContain('Game details · CAR @ ATL');
-  expect(html).not.toContain('No games match these filters.');
  });
 });
+
