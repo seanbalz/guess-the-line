@@ -31,6 +31,8 @@ function WindowRecords({ card, week }) {
     </table></div>
   </details>;
 }
+
+export default TrendsScreen;
 // The Players filters belong to the account that chose them. The address restores them after a reload, but when a
 // different account signs in on this page it starts from its own defaults (not the previous account's selection).
 const PLAYER_FILTERS = Object.freeze({ player: undefined, team: undefined, playerMatchup: undefined, window: undefined });

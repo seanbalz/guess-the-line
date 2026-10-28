@@ -10,7 +10,7 @@ const prepare = state => {
  state.league.season = 2026; state.league.week = 6;
  state.games = ['SEA-DEN','CAR-PHI','NO-NYG','WAS-SF'].map((id,i) => { const [awayCode,homeCode] = id.split('-'); return { ...state.games[i], id, away: awayCode, home: homeCode, awayCode, homeCode, matchup: awayCode+' @ '+homeCode }; });
 };
-async function ready(page,baseURL,{ stale = false, chartValues = false }={}) {
+async function ready(page,baseURL,{ stale = false, chartValues = false, landing = false }={}) {
  const world = await communityWorld(page,baseURL,{ migrations: ALL, games: 4, prepare, optionalRpc: true, troyBallots: false, groupScreens: true, ...(stale ? { trendsReadSeason: async () => { throw new Error('Fixture source outage'); } } : {}) });
  const lines = { spread: Object.fromEntries(world.state.games.map(g => [g.id,3.5])), total: Object.fromEntries(world.state.games.map(g => [g.id,43.5])) };
  await storeBookLines(world,lines);
@@ -42,9 +42,9 @@ async function ready(page,baseURL,{ stale = false, chartValues = false }={}) {
  await signIn(page,'luke');
  await expect(page.getByRole('heading',{ name:'Community',exact:true })).toBeVisible();
  await page.evaluate(() => localStorage.setItem('gtl.app','next'));
- await page.goto('about:blank'); await page.goto('/#trends');
- await expect(page.getByRole('heading',{ name:'Trends',level:1 })).toBeVisible();
- await expect(page.locator('[data-trend-availability]')).toBeVisible();
+ await page.goto('about:blank'); await page.goto(landing ? '/#research' : '/#trends');
+ await expect(page.getByRole('heading',{ name:landing ? 'Research' : 'Trends',level:1 })).toBeVisible();
+ if (!landing) await expect(page.locator('[data-trend-availability]')).toBeVisible();
  return world;
 }
 async function phone(page) {
@@ -61,6 +61,69 @@ async function noSentinel(page) {
  const content=await page.locator('body').evaluate(e => e.innerText+' '+[...e.querySelectorAll('*')].flatMap(n=>[...n.attributes].filter(a=>!['class','style','d','points','viewBox'].includes(a.name)).map(a=>a.value)).join(' '));
  expect(content).not.toContain('99.125'); expect(content).not.toContain('97.625'); expect(content).not.toContain('HIDDEN SENTINEL');
 }
+test('Trends code waits for a visit, including with saved Home trends, and its loading/error states retain navigation', async ({page,baseURL}, info) => {
+ test.setTimeout(120000);
+ await page.addInitScript(() => { try {
+  localStorage.setItem('gtl.trends.saved', JSON.stringify({v:1,items:[{id:'fixture-saved',spec:{market:'spread',side:'home',filters:[]},savedAt:'2026-10-28T00:00:00Z'}]}));
+ } catch {} });
+ let release, mode='hold', requests=0;
+ let waiting=new Promise(resolve=>{release=resolve;});
+ page.on('request',request=>{if(/\/assets\/TrendsScreen-[^/]+\.js$/.test(request.url()))requests++;});
+ const world=await ready(page,baseURL,{landing:true});
+ await page.route('**/assets/TrendsScreen-*.js',async route=>{
+  if(mode==='hold') await waiting;
+  return mode==='fail' ? route.abort('failed') : route.continue();
+ });
+ const themePreference=async theme=>{
+  await page.evaluate(theme=>{localStorage.setItem('gtl.theme',theme);window.dispatchEvent(new StorageEvent('storage',{key:'gtl.theme',newValue:theme}));},theme);
+  await expect(page.locator('html')).toHaveAttribute('data-theme-preference',theme);
+ };
+ const open=async()=>{
+  await nav(page).getByRole('button',{name:/^Research(,|$)/}).click();
+  await page.locator('[data-landing="research"]').getByRole('button',{name:/^Trends/}).click();
+ };
+ try {
+  await nav(page).getByRole('button',{name:/^Home(,|$)/}).click();
+  await expect(page.locator('[data-home="saved-trends"]')).toBeVisible();
+  await expect(page.locator('[data-home="saved-trends"]')).not.toContainText('Checking');
+  expect(requests).toBe(0);
+  await open();
+  await expect(page.getByRole('region',{name:'Trends content'}).getByRole('status')).toHaveText('Loading trends…');
+  await expect.poll(()=>requests).toBe(1);
+  await nav(page).getByRole('button',{name:/^Home(,|$)/}).click();
+  const failed=page.waitForEvent('requestfailed',request=>/\/assets\/TrendsScreen-[^/]+\.js$/.test(request.url()));
+  mode='fail';release();await failed;
+  await expect(page.getByRole('region',{name:'Trends content'})).toHaveCount(0);
+  await open();
+  await expect(page.getByRole('alert')).toContainText('Trends couldn’t load.');
+  const reads=[];page.on('request',request=>{if(request.url().startsWith(`${SUPABASE}/functions/v1/gtl-api/`))reads.push(request.url());});
+  for(const theme of ['light','dark'])for(const forcedColors of ['none','active']){
+   await themePreference(theme);await page.emulateMedia({forcedColors,colorScheme:theme,reducedMotion:'reduce'});
+   await page.setViewportSize({width:320,height:844});await phone(page);await noSentinel(page);
+   expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+   await page.screenshot({path:info.outputPath(`trends-download-error-${theme}-${forcedColors}.png`)});
+  }
+  mode='hold';waiting=new Promise(resolve=>{release=resolve;});
+  await page.getByRole('button',{name:'Try trends again',exact:true}).click();
+  const region=page.getByRole('region',{name:'Trends content'});
+  await expect(region).toBeFocused();await expect(region.getByRole('status')).toHaveText('Loading trends…');
+  for(const theme of ['light','dark'])for(const forcedColors of ['none','active']){
+   await themePreference(theme);await page.emulateMedia({forcedColors,colorScheme:theme,reducedMotion:'reduce'});
+   await phone(page);await noSentinel(page);
+   await page.screenshot({path:info.outputPath(`trends-download-loading-${theme}-${forcedColors}.png`)});
+  }
+  expect(reads).toEqual([]);
+  mode='ready';release();
+  await expect(page.locator('[data-trend-availability]')).toBeVisible();await expect(region).toBeFocused();
+  await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
+  await expect(page.getByRole('combobox',{name:'Player',exact:true})).toHaveValue(ACCOUNTS.luke.id);
+  await noSentinel(page);
+  const loaded=requests;await nav(page).getByRole('button',{name:/^Home(,|$)/}).click();await open();
+  await expect(group(page,'Trends section')).toBeVisible();expect(requests).toBe(loaded);
+  expect(world.errors).toEqual([]);
+ } finally{release();await world.db.close();}
+});
+
 test('player comparison bars label exact observations and distinguish zero from missing samples', async ({page,baseURL}, testInfo) => {
  const world = await ready(page,baseURL,{chartValues:true});
  try {
