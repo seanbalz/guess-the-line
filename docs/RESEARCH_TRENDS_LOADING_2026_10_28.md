@@ -55,8 +55,9 @@ was no loading boundary. It covers a saved Home summary without a screen-code
 request, leaving a held download, a late failure, local error/retry, focus,
 320px Light/Dark and forced-color states, hidden-value scans, player entry and
 loaded-module reuse. A second browser case covers repeated stylesheet failures
-and restored player-chart styling. All 71 integrated Lines/Research/Trends/gesture
-browser cases passed, along with 84 component tests, 19 token/brand tests,
+and restored player-chart styling, including leaving/reopening a pending repair
+without bypassing its styles or repeating its request. All 71 integrated
+Lines/Research/Trends/gesture browser cases and both final focused cases passed, along with 84 component tests, 19 token/brand tests,
 typecheck, Brand QA and the fixture bundle privacy scan. Eight 320px Light/Dark
 and forced-color loading/error screenshots were inspected; error-state axe,
 touch-target and hidden-value checks also passed. CI/merge remains a separate

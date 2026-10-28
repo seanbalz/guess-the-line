@@ -396,7 +396,8 @@ source batch on `codex/lazy-research-trends`: the optional screen and chart styl
 load on a visit, with scoped loading/retry and navigation retained. Home's saved
 summary remains independent. Local asset measurements reduce the initial static
 graph by 50,418 raw bytes (13,655 estimated gzip), with a 2,708-byte estimated
-gzip overhead after opening Trends. All 71 integrated browser cases, 84
+gzip overhead after opening Trends. All 71 integrated browser cases, both final
+focused cases, 84
 component and 19 token/brand tests, typecheck, Brand QA and fixture privacy checks
 passed; eight 320px loading/error screenshots were inspected. CI/merge,
 release/readback, signed-in performance and phone acceptance remain open.

@@ -126,9 +126,13 @@ test('Trends code waits for a visit, including with saved Home trends, and its l
 
 test('Trends stylesheet failures stay local until an explicit retry restores its chart styles', async ({page,baseURL}) => {
  const world=await ready(page,baseURL,{landing:true});
- let allowStyle=false, requests=0;
+ let allowStyle=false, requests=0, releaseStyle;
+ const waiting=new Promise(resolve=>{releaseStyle=resolve;});
  try {
-  await page.route('**/assets/TrendsScreen-*.css',route=>{requests++;return allowStyle?route.continue():route.abort('failed');});
+  await page.route('**/assets/TrendsScreen-*.css',async route=>{
+   requests++;if(allowStyle)await waiting;
+   return allowStyle?route.continue():route.abort('failed');
+  });
   await page.locator('[data-landing="research"]').getByRole('button',{name:/^Trends/}).click();
   const region=page.getByRole('region',{name:'Trends content'});
   await expect(region.getByRole('alert')).toContainText('Trends couldn’t load.');
@@ -139,12 +143,21 @@ test('Trends stylesheet failures stay local until an explicit retry restores its
   await expect(page.locator('.gx-trends')).toHaveCount(0);
   allowStyle=true;
   await region.getByRole('button',{name:'Try trends again'}).click();
-  await expect(group(page,'Trends section')).toBeVisible();
+  await expect.poll(()=>requests).toBe(3);
   await expect(region).toBeFocused();
+  await expect(region.getByRole('status')).toHaveText('Loading trends…');
+  // Reopening while the repair is pending must not bypass its stylesheet promise.
+  await nav(page).getByRole('button',{name:/^Home(,|$)/}).click();
+  await nav(page).getByRole('button',{name:/^Research(,|$)/}).click();
+  await page.locator('[data-landing="research"]').getByRole('button',{name:/^Trends/}).click();
+  await expect(region.getByRole('status')).toHaveText('Loading trends…');
+  await expect(page.locator('.gx-trends')).toHaveCount(0);
+  expect(requests).toBe(3);releaseStyle();
+  await expect(group(page,'Trends section')).toBeVisible();
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
   await expect(page.locator('.gx-tr-chart').first()).toHaveCSS('display','flex');
   expect(requests).toBe(3);await noSentinel(page);expect(world.errors).toEqual([]);
- } finally {await world.db.close();}
+ } finally {releaseStyle();await world.db.close();}
 });
 
 test('player comparison bars label exact observations and distinguish zero from missing samples', async ({page,baseURL}, testInfo) => {
