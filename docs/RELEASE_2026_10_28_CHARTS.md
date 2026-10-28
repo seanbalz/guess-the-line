@@ -25,4 +25,12 @@ Sean, October 28, 2026: "continue", after the Guidance release
 
 ## Results
 
-Pending.
+- Main CI on `b4413bf`: Tests 40714631568, Dashboard checks 40714631668, Brand QA 40714631421, all success.
+- **Readiness** [run 40717870972](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40717870972) and
+  **frontend** [run 40718202459](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40718202459), gates approved
+  through the GitHub API as Sean's account after each title matched; verified **15:42:36 UTC on October 28**: Pages
+  **`b57d894a-34b8-4df7-8125-a46d4438475d`** (was `58bd9959`), 109 assets per URL, frontend SHA-256
+  `9793ac2f2c61f4b08f01f64ad08e80c2d4b24ac9374ed27b235fdd57ef1477fc`. `gtl-api` v39 and the history `1c376874…` (65 rows)
+  unchanged. **380 signed-out probes, 380 denied, none awaiting** (#288 added two Bet Tracker probes).
+- **Live readback (this PC):** `/` loads `assets/index-C2m__Aal.js`.
+- **Not verified:** signed-in use and real phones.
