@@ -9,10 +9,10 @@ import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser
 // nothing. Local PGlite only, fixture accounts only.
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const M13 = ALL.find(file => file.startsWith('20261026130000_'));
-// M-21, M-22, M-23, M-25, M-26, M-27 and M-28 were applied after M-13 on October 27, 2026, and D-59 on October 28; BEFORE_M13 is
-// the hosted schema M-13 was applied to.
+// M-21, M-22, M-23, M-25, M-26, M-27, M-28 and D-61 odds were applied after M-13 on October 27, 2026, and D-59 on October 28;
+// BEFORE_M13 is the hosted schema M-13 was applied to.
 const AFTER_M13 = ['20261026131000_', '20261026132000_', '20261026133000_', '20261026220000_', '20261026230000_', '20261026231000_',
-  '20261026233000_', '20261026234000_', '20261026235000_'];
+  '20261026233000_', '20261026234000_', '20261026235000_', '20261027160000_'];
 const BEFORE_M13 = HOSTED.filter(file => file < M13);
 const OLD_KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published', 'points_played', 'points_final'];
 const NEW_KINDS = ['bet_shared', 'challenge_offered', 'challenge_matched', 'challenge_settled', 'kickoff', 'bets_week_settled',
