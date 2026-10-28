@@ -1,0 +1,35 @@
+# Player comparison chart scales — October 28, 2026
+
+Owner: Codex · Approved D-55 Research/chart follow-through
+
+Point comparison charts scale their bars to their own observations. Equal-width
+bars in different charts can therefore represent different point gaps. The
+visible legend now names each plotting range: signed bias has negative and
+positive bounds, absolute error starts at zero, and cover rates retain their
+fixed 0–100% frame. Labels use up to four significant digits. The scale uses
+the same maximum, including the existing one-point minimum, as the bar geometry.
+
+The figure references its scale for assistive technology. Missing/non-finite
+observations keep their No sample state; with no finite observations, the scale
+says unavailable. Real zero retains its zero marker. Plot sizes, values, samples, exact-value tables,
+filters, market gates and requests are unchanged. The scale shares the existing
+zero-baseline meta line, using existing typography and colors.
+
+## Verification
+
+Four component regressions failed before the change and passed afterward:
+signed bounds, the unsigned minimum range, fixed percentages and missing
+observations. The browser fixture checks all three player-comparison ranges
+alongside the existing exact-value, zero/missing, privacy and layout assertions.
+All 25 integrated Trends/Research/gesture browser cases, 62 component tests,
+19 token/brand tests and typecheck passed. Brand QA and fixture bundle privacy
+checks passed. A final focused browser rerun passed, and eight 320px Light/Dark
+and forced-color signed/percentage screenshots were inspected.
+
+## Remaining checkpoints
+
+Branch: `codex/player-comparison-scales`. CI/merge, hosted release/readback and
+physical-iPhone acceptance remain open. PR #289's merge is recorded separately
+in the completion register and queue. This batch makes no deployment, migration,
+source collection or frozen v62 tracker change. Verified live-game status,
+dependent Bet/Challenge destinations and broader device acceptance remain open.

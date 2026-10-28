@@ -1,4 +1,5 @@
 import { useId } from 'react';
+const scaleFormat = new Intl.NumberFormat('en-US', { maximumSignificantDigits: 4 });
 export const number = value => typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '—';
 export const signed = value => value == null ? '—' : value < 0 ? '−' + number(-value) : value > 0 ? '+' + number(value) : '0';
 export function time(value) {
@@ -10,12 +11,15 @@ export function time(value) {
 /** A zero-centered plot and the same visible values in a keyboard-accessible table. Missing is a gap. */
 export function BiasChart({ rows = [], title, signedValues = true, unit = 'points' }) {
   const id = useId();
-  const max = unit === 'percent' ? 100 : Math.max(1, ...rows.filter(r => Number.isFinite(r.value)).map(r => Math.abs(r.value)));
+  const known = rows.filter(r => Number.isFinite(r.value));
+  const max = unit === 'percent' ? 100 : Math.max(1, ...known.map(r => Math.abs(r.value)));
   const center = signedValues ? 150 : 16, span = signedValues ? 128 : 268;
+  const bound = scaleFormat.format(max);
+  const scale = !known.length ? 'Scale unavailable' : `Scale: ${signedValues ? '−' + bound : '0'} to ${signedValues ? '+' : ''}${bound}${unit === 'percent' ? '%' : ' ' + unit}`;
   const valueText = value => Number.isFinite(value) ? (signedValues ? signed(value) : number(value)) : 'No sample';
-  return <figure className="gx-tr-chart" aria-labelledby={id}>
+  return <figure className="gx-tr-chart" aria-labelledby={id} aria-describedby={`${id}-scale`}>
     <figcaption className="gx-t-strong" id={id}>{title}</figcaption>
-    <p className="gx-t-meta gx-c-2">Zero baseline · {unit} · samples shown in the equivalent table</p>
+    <p className="gx-t-meta gx-c-2" id={`${id}-scale`} data-chart-scale="">{scale} · Zero baseline</p>
     {rows.length ? <ul className="gx-tr-observations" role="list" aria-label={title + ' observations'}>{rows.map(r => {
       const known = Number.isFinite(r.value), width = known ? Math.abs(r.value) / max * span : 0;
       return <li className="gx-tr-observation" key={r.label}>

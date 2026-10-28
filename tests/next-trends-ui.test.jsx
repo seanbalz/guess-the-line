@@ -51,6 +51,19 @@ describe('Trends UI evidence', () => {
   expect(markupProblems('<div class="gx">'+html+'</div>')).toEqual([]);
   expect(html).toContain('Zero baseline'); expect(html).toContain('<table'); expect(html).toContain('No sample');
  });
+ it.each([
+  [{ rows: [{ value: 3.5 }, { value: -2 }] }, 'Scale: −3.5 to +3.5 points'],
+  [{ rows: [{ value: 0.25 }, { value: 0 }], signedValues: false }, 'Scale: 0 to 1 points'],
+  [{ rows: [{ value: 25 }, { value: 50 }], signedValues: false, unit: 'percent' }, 'Scale: 0 to 100%'],
+  [{ rows: [{ value: null }, { value: NaN }] }, 'Scale unavailable'],
+ ])('describes the plotted comparison range without treating missing values as zero', (props, label) => {
+  const html = renderToStaticMarkup(<BiasChart {...props} title="Comparison"/>);
+  expect(html).toContain(label);
+  const nodes = [...walk(parseMarkup(html))];
+  const figure = nodes.find(n => n.tag === 'figure');
+  const scale = nodes.find(n => n.attrs?.id === figure.attrs['aria-describedby']);
+  expect(scale?.attrs['data-chart-scale']).toBe('');
+ });
  it('labels each observation and value beside its bar, preserving zero and missing samples', () => {
   const rows = [{ label: 'Positive week', value: 3.5 }, { label: 'Negative week', value: -3.5 }, { label: 'Zero week', value: 0 }, { label: 'Missing week', value: null }, { label: 'Invalid week', value: NaN }];
   const html = renderToStaticMarkup(<BiasChart rows={rows} title="Signed bias"/>);
