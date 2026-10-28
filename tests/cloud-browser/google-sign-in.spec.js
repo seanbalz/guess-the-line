@@ -160,4 +160,3 @@ test('email sign-in is unchanged and never contacts the Google path', async ({ p
   expect(auth.settings).toBe(0);
   expect(auth.authorize).toHaveLength(0);
 });
-
