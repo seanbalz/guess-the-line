@@ -42,6 +42,9 @@ export const SCORES_COST = 2;
 export const SNAPSHOT_LEAD_MS = 30 * 60_000;
 /** A match is assumed over 150 minutes after kickoff; scores are not bought before every drafted match can be. */
 export const RESULT_AFTER_MS = 150 * 60_000;
+/** The scores read covers the last 3 days (daysFrom=3). A pending match that kicked off longer ago than this, less an hour of
+ * margin, is outside the feed, so its result can never be bought: settle fails scores_incomplete without spending credits. */
+export const SCORES_LOOKBACK_MS = 3 * 86_400_000 - 60 * 60_000;
 const WEEK_MS = 7 * 86_400_000;
 const CODES = new Set(['GTL_SCHEDULE_AUTH', 'GTL_SCHEDULE_RUN', 'GTL_SCHEDULE_EXPIRED', 'GTL_EPL_INVALID', 'GTL_EPL_NO_WEEK', 'GTL_EPL_NOT_RESOLVED',
   'GTL_EPL_CLUB_TAKEN', 'GTL_EPL_DRAFT_CLOSED']);
@@ -236,20 +239,26 @@ async function settleJob(ctx) {
   if (!bonus.ready) {
     const results = weekResults(fixtures), first = firstMatches(fixtures);
     const waiting = [...new Set(drafted.filter(p => results[p.club]?.status === 'pending').map(p => first.get(p.club)))];
-    // Buy scores only once every drafted match still pending can have finished.
+    // Buy scores only once every drafted match still pending can have finished, and never for a match the 3-day scores feed
+    // no longer covers (an outage or budget_guard stretch past it would otherwise buy 2 credits a run with no end).
     if (!waiting.length || waiting.some(f => Date.parse(f.commenceTime) + RESULT_AFTER_MS > ctx.now)) stop('results_pending');
+    if (waiting.some(f => ctx.now - Date.parse(f.commenceTime) > SCORES_LOOKBACK_MS)) return { reason: 'scores_incomplete', detail: { scored: 0, outsideFeed: waiting.length } };
     await reserve(ctx, SCORES_COST);
     let quota = null;
     const scores = await provider(ctx, () => ctx.sources.scores({ onQuota: q => { quota = q; } }));
     if (quota) await recordQuota(ctx, quota).catch(() => {});
     const byEvent = new Map(list(scores).map(s => [s.eventId, s]));
     const end = Date.parse(week.windowEnd);
+    const waitingIds = new Set(waiting.map(f => f.eventId));
     const rows = [];
     fixtures = fixtures.map(f => {
       const s = byEvent.get(f.eventId);
-      if (!s || f.status !== 'scheduled') return f;
+      if (f.status !== 'scheduled') return f;
       let next = null;
-      if (s.completed) next = { ...f, status: 'final', homeGoals: s.homeGoals, awayGoals: s.awayGoals, commenceTime: s.commenceTime };
+      // A drafted match the feed no longer lists once the week is over (the provider drops a postponed or abandoned match;
+      // the lookback check above keeps it inside the feed's range) is no result: postponed, score 0 (spec 6.4).
+      if (!s) next = waitingIds.has(f.eventId) && ctx.now >= end ? { ...f, status: 'postponed' } : null;
+      else if (s.completed) next = { ...f, status: 'final', homeGoals: s.homeGoals, awayGoals: s.awayGoals, commenceTime: s.commenceTime };
       else if (Date.parse(s.commenceTime) >= end) next = { ...f, status: 'postponed', commenceTime: s.commenceTime };
       if (!next) return f;
       rows.push(fixtureRow(week, next));
