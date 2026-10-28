@@ -379,3 +379,21 @@ Guidance and sources.
   account/week guards, current-game paging and long-source wrapping. Reconnect
   focus to a recreated opener only within its captured account/week scope;
   unkeyed openers keep their normal modal behavior.
+
+- **Checking recorded results:** reuse the secondary button inside the result
+  card. Start the read only on request, keep its button focusable with a checking
+  status and prevent duplicate activation. Keep old observations labelled on
+  failure; show no-complete-final separately from zero. Distinguish the server
+  check time from the result's observation time and preserve scope guards.
+
+- **Game detail downloads:** keep the sheet frame, title, pager and action slots
+  available while shared static panels say Loading game details. Keep download
+  failures local with explicit retry and focus in the details group. Preserve
+  the existing 16px content gaps, themes and forced-color treatment; never draw
+  sample game data while waiting.
+
+- **Weekly-trend recovery in game sheets:** use a secondary Refresh weekly trends
+  control, labelled Retry weekly trends after failure, beside the existing
+  weekly evidence status. Keep it mounted and focusable during loading, expose
+  the busy/disabled state, and retain focus when the evidence returns. Preserve
+  stale provenance, access refusals and independent market locks.

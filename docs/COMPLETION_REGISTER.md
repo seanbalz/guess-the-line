@@ -440,8 +440,57 @@ caught lost close-focus after a board refresh recreated the card. The scoped
 return-key repair passed the focused correction/reopen case and all 94 expanded
 final shell/Research/Lines/Trends/gesture cases. Brand QA and final fixture
 build/privacy checks passed.
-CI/merge, release/readback and phone acceptance remain open for this batch;
-#299's repaired paging head is merged as recorded above.
+PR [#300](https://github.com/seanbalz/guess-the-lines-repo/pull/300) merged as
+`7dda6d758a3218f1ec9286db4ce5ca901eb33444` after all nine checks passed on
+`a1ea585719d2e2361d32a0b3eff4fceec9d2623d`. Reviews and review threads were empty;
+no CI repairs were needed. Release/readback and phone acceptance remain open.
+
+The [in-sheet result check](RESEARCH_RESULT_CHECK_2026_10_28.md),
+`codex/research-result-check`, adds an explicit check through the existing
+weekly reader. Direct started-game opens from Trends can request a final;
+opening/paging/focus adds no read. Pending clicks deduplicate, changing games
+aborts old reads, per-game observations remain scoped and errors retain their
+labelled prior observation. Both focused browser cases, four 320px checked-result
+theme captures, full Vitest (466), 59 result/navigation/model/modal/token/brand
+tests and typecheck passed. All 95 final expanded shell/Research/Lines/Trends/
+gesture browser cases, Brand QA and final fixture build/privacy checks passed.
+The existing game reader is shared with the market section so current kickoff
+eligibility works despite a stale personal-week clock, with one game request.
+PR [#301](https://github.com/seanbalz/guess-the-lines-repo/pull/301) merged as
+`327b8e83409c3b564bd652697ed54261fd8ac741` after all nine checks passed on
+`c5573f099b120901df3f4112067fe8eaf73e04cf`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and phone acceptance remain open. Live/postponed/cancelled
+status remains separate work.
+
+The [on-demand game details](RESEARCH_GAME_LOADING_2026_10_28.md) batch,
+`codex/lazy-game-details`, keeps the frame and pager eager and loads its result,
+market/research and notes content on opening, with local download/style retry.
+The local initial static dependency graph is 25,622 raw bytes smaller (6,269
+estimated gzip); after opening, total estimated gzip is 2,738 bytes larger.
+Both focused browser cases, full Vitest (466), 59 model/navigation/modal/token/
+brand tests and typecheck passed; the 97-case expanded browser run passed 96
+cases and caught a Trends harness
+reading section order before deferred content was ready. That assertion now
+awaits those sections; all five final download/style/result/Trends cases passed.
+Eight 320px theme/forced-color captures were inspected; Brand QA and fixture
+privacy checks passed. PR [#302](https://github.com/seanbalz/guess-the-lines-repo/pull/302) merged as
+`97c45a23e594e2490d3993c3266c8aa068012ab1` after all nine checks passed on
+`bb96fa182bd1978640027ac18f535f0ec8cbeee2`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback, signed-in performance and phone acceptance remain open. This does not complete stage 33
+live status or stage 34's dependent Bet/Challenge action slots.
+
+The [weekly-trend recovery](RESEARCH_WEEKLY_TREND_RETRY_2026_10_28.md) batch,
+`codex/research-weekly-trend-retry`, adds local refresh/retry in the game and All
+trends sheets through the existing weekly reader. Controls retain focus through
+loading, stale fallback, refusal and recovery; independent market locks remain.
+The initial missing-control regression now passes, with eight inspected 320px
+theme/forced-color captures, axe/touch checks, full Vitest (466), 35 shared
+weekly-loader/state/token/brand tests and typecheck. All 98 expanded shell/
+Research/Lines/Trends/gesture cases, Brand QA and final fixture privacy checks
+passed. CI/merge, release/readback and phone acceptance remain open; #302 is
+merged. No live-status or dependent action-slot closure.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
