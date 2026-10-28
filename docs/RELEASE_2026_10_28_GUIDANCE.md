@@ -6,11 +6,17 @@ Menu › Guidance and sources.
 
 ## Release: frontend
 
-- **Source:** `main` after [#290](https://github.com/seanbalz/guess-the-lines-repo/pull/290) merges (SHA recorded in
-  Results). The workflow's source step requires main push CI (Tests, Dashboard checks, Brand QA) green on that exact SHA.
-- **What ships:** #290: `INFO.teamRecords` in Menu › Guidance and sources (D-55 rule 10), after the trend builder. The team
-  sheet's ⓘ reads the same counting sentence from `web/src/next/info.js`. Nothing else in the app changes; #286 is docs
-  and tests only.
+- **Source:** `main` at **`45c5c5ae0facb5422e2c8f03308cacff97f6c391`** (#290, #286, #289; #287 is release tooling). The
+  workflow's source step requires main push CI (Tests, Dashboard checks, Brand QA) green on that exact SHA.
+- **What ships:**
+  - [#290](https://github.com/seanbalz/guess-the-lines-repo/pull/290): `INFO.teamRecords` in Menu › Guidance and sources
+    (D-55 rule 10), after the trend builder. The team sheet's ⓘ reads the same counting sentence from
+    `web/src/next/info.js`.
+  - [#289](https://github.com/seanbalz/guess-the-lines-repo/pull/289) (merged by another session): the team sheet stops
+    reusing the team-mark tile class (its 32px height and hidden overflow cut off the record, margin chart and season
+    list on the live Pages `7cca458b`); a completed game's row selects its margin bar and scrubbing the chart selects the
+    row. No new request.
+  - #286 and #287 change docs, tests and release tooling only.
 - **API and workers:** not deployed; `gtl-api` v39 and `gtl-fantasy-ingest` v1 stay.
 - **Migrations:** none. Expected hosted history **64 rows,
   `f39312113403e9b1dadc0f0331dda441686ff8a3723d5410ac087ac43eb46ad4`**.
