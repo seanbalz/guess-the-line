@@ -1060,7 +1060,7 @@ test('the market board shows latest quotes separately from saved receipts and se
 
 test('recorded finals have their own section and result provenance while incomplete results stay started', async ({ page, baseURL }, info) => {
   const { world } = await lukesWeek(page, baseURL);
-  let fail = false;
+  let fail = false, finalHome = 7;
   try {
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
       if (fail) return route.fulfill({ status: 503, json: { error: 'Fixture offline' } });
@@ -1069,7 +1069,7 @@ test('recorded finals have their own section and result provenance while incompl
       const now = Math.max(...body.games.map(g => Date.parse(g.kickoff))) + 3600000;
       body.now = new Date(now).toISOString();
       body.games.forEach(g => { g.started = true; });
-      body.games[0].final = { status: 'final', away: 0, home: 7, origin: 'commissioner_reported', source: 'Fixture commissioner with a deliberately long result source name', observedAt: new Date(now - 60000).toISOString() };
+      body.games[0].final = { status: 'final', away: 0, home: finalHome, origin: 'commissioner_reported', source: 'Fixture commissioner with a deliberately long result source name', observedAt: new Date(now - 60000).toISOString() };
       body.games[1].final = { status: 'final', away: null, home: 17 };
       body.games[2].final = { status: 'postponed', away: 10, home: 10 };
       await route.fulfill({ status: 200, json: body });
@@ -1094,14 +1094,36 @@ test('recorded finals have their own section and result provenance while incompl
     }
     const displayedOrder = await page.locator('.gx-l-card').evaluateAll(cards => cards.map(card => card.dataset.game));
     expect(displayedOrder).toEqual(['HOU-JAX', 'NO-NYG', 'WAS-SF', 'SEA-DEN']);
+    const resultReads = apiCalls(page);
     await card(page, 'SEA-DEN').click(); await expect(sheet(page, 'SEA @ DEN')).toBeVisible();
+    const recorded = sheet(page, 'SEA @ DEN').getByRole('region', { name: 'Recorded result', exact: true });
+    await expect(recorded).toContainText('Final · SEA 0–DEN 7');
+    await expect(recorded).toContainText('Commissioner-reported result');
+    await expect(recorded).toContainText('Recorded when opened');
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await page.emulateMedia({ colorScheme: theme, forcedColors, reducedMotion: 'reduce' });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`recorded-sheet-${theme}-${forcedColors}.png`) });
+    }
     await expect(sheet(page, 'SEA @ DEN')).toContainText('4 of 4');
     await expect(sheet(page, 'SEA @ DEN').getByRole('button', { name: 'Next game', exact: true })).toBeDisabled();
     await sheet(page, 'SEA @ DEN').getByRole('button', { name: 'Previous game, WAS @ SF', exact: true }).click();
     await expect(sheet(page, 'WAS @ SF')).toContainText('3 of 4');
+    await expect(sheet(page, 'WAS @ SF').getByRole('region', { name: 'Recorded result', exact: true })).toHaveCount(0);
     await sheet(page, 'WAS @ SF').getByRole('button', { name: 'Next game, SEA @ DEN', exact: true }).click();
     await expect(sheet(page, 'SEA @ DEN')).toContainText('4 of 4');
+    await expect(recorded).toContainText('Final · SEA 0–DEN 7');
+    expect(resultReads.filter(call => call === 'POST /lines/read')).toEqual([]);
+    expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('Fixture commissioner');
     expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('boardOrder');
+    // A refreshed board may contain a correction; the open sheet labels and keeps its captured observation.
+    finalHome = 14; await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(card(page, 'SEA-DEN')).toContainText('Final · SEA 0–DEN 14');
+    await expect(recorded).toContainText('Final · SEA 0–DEN 7');
+    await page.keyboard.press('Escape'); await expect(card(page, 'SEA-DEN')).toBeFocused();
+    await card(page, 'SEA-DEN').click();
+    await expect(sheet(page, 'SEA @ DEN').getByRole('region', { name: 'Recorded result', exact: true })).toContainText('Final · SEA 0–DEN 14');
     await page.keyboard.press('Escape'); await expect(card(page, 'SEA-DEN')).toBeFocused();
     fail = true; await page.getByRole('button', { name: 'Refresh market lines' }).click();
     await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();

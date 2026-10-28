@@ -371,3 +371,11 @@ Guidance and sources.
   for a verified in-progress state. Existing card, text and wrapping tokens apply.
   Game-sheet arrows and swipes follow the displayed board order captured on
   opening, with account/week guards; this snapshot stays out of URL/history.
+
+- **Recorded result in a game sheet:** reuse the board's already permitted final
+  score and source in a card below the matchup. Say Recorded when opened and
+  direct the player to the board for updates; keep this distinct from current
+  market quotes. Preserve commissioner-reported and unverified-time wording,
+  account/week guards, current-game paging and long-source wrapping. Reconnect
+  focus to a recreated opener only within its captured account/week scope;
+  unkeyed openers keep their normal modal behavior.

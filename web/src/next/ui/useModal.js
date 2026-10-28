@@ -17,6 +17,13 @@ export function tabbables(root) {
   return Array.from(root.querySelectorAll(FOCUSABLE)).filter(el => el.tabIndex >= 0 && !el.closest('[inert]') && el.getClientRects().length > 0);
 }
 
+/** Reconnect an opt-in opener only within its captured view scope, including when its DOM node was reused. */
+export function modalReturnTarget(opener, key, doc) {
+  const matches = element => element?.isConnected && (!key || element.getAttribute('data-focus-return') === key);
+  if (matches(opener)) return opener;
+  return key ? [...doc.querySelectorAll('[data-focus-return]')].find(matches) ?? null : null;
+}
+
 /**
  * `const onKeyDown = useModal(panelRef, { onEscape, initialFocusRef })`; put `onKeyDown` on the layer element and
  * `tabIndex={-1}` on the panel, which takes focus when nothing more specific is asked for.
@@ -26,10 +33,12 @@ export function useModal(panelRef, { onEscape, initialFocusRef } = {}) {
   escape.current = onEscape;
   useEffect(() => {
     const opener = typeof document !== 'undefined' ? document.activeElement : null;
+    const returnKey = opener?.getAttribute?.('data-focus-return') ?? null;
     const target = initialFocusRef?.current ?? panelRef.current;
     target?.focus({ preventScroll: true });
     return () => {
-      if (opener && opener !== document.body && opener.isConnected && typeof opener.focus === 'function') opener.focus({ preventScroll: true });
+      const target = modalReturnTarget(opener, returnKey, document);
+      if (target && target !== document.body && typeof target.focus === 'function') target.focus({ preventScroll: true });
     };
     // Once per opening: the layer mounts when it opens and unmounts when it closes.
   }, []);

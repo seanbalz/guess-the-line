@@ -29,7 +29,10 @@ export function recordedFinal(card, row, read) {
     ? `Observed ${marketTime(result.observedAt)}` : 'Result time unverified';
   const origin = result.origin === 'commissioner_reported' ? 'Commissioner-reported result' : 'Result source';
   return { score: `Final · ${card.away.code} ${result.away}–${card.home.code} ${result.home}`,
-    provenance: `${origin}: ${source} · ${time}`, kickoff: `Kickoff ${marketTime(card.kickoff)}` };
+    provenance: `${origin}: ${source} · ${time}`, kickoff: `Kickoff ${marketTime(card.kickoff)}`,
+    record: { gameId: card.id, awayCode: card.away.code, homeCode: card.home.code, status: 'final', away: result.away, home: result.home,
+      source, observedAt: typeof result.observedAt === 'string' ? result.observedAt : null,
+      origin: result.origin === 'commissioner_reported' ? 'commissioner_reported' : result.origin === 'settlement' ? 'settlement' : null } };
 }
 
 export function marketBoard(board, read) {

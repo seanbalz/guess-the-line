@@ -426,6 +426,21 @@ readback stay open. Live/postponed/cancelled status still needs a supported data
 path; the queue keeps its source/time, missing/stale and privacy exit criteria.
 These batches do not complete the whole stages.
 
+The [game-sheet result batch](RESEARCH_RESULT_SHEET_2026_10_28.md),
+`codex/research-result-sheet`, keeps a Final card's already permitted score and
+provenance visible on opening, explicitly labelled Recorded when opened. Scoped
+account/week/slate/game guards and an allowlisted result record keep quotes and
+picks out of the context; paging uses each selected game's result. No extra
+weekly read or URL/history persistence. The focused browser case, four 320px
+theme/forced-color captures, full 466-test Vitest suite, 55 model/navigation/
+modal/token/brand tests and typecheck passed. The first 72-case run passed 71 and
+caught lost close-focus after a board refresh recreated the card. The scoped
+return-key repair passed the focused correction/reopen case and all 94 expanded
+final shell/Research/Lines/Trends/gesture cases. Brand QA and final fixture
+build/privacy checks passed.
+CI/merge, release/readback and phone acceptance remain open; #299's repaired
+paging head must pass and merge first.
+
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.
