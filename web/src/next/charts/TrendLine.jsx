@@ -12,8 +12,9 @@ const W = 320;
  * `values` are the cumulative points (the first is the start). `tip(i)` returns `{ value, label }` for point `i`.
  * `start` and `end` label the two ends of the time axis; `label` names the whole chart for a screen reader.
  * Pass `selectedIndex` and `onSelect` together to retain selection outside a swapped view.
+ * `contextLabel` adds the visible trend title to the slider's accessible name.
  */
-export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect, id: chartId }) {
+export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect, id: chartId, contextLabel }) {
   const count = values.length;
   const [index, setIndex] = useState(count - 1);
   const at = Math.max(0, Math.min(selectedIndex ?? index, count - 1));
@@ -64,7 +65,7 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
         max={count - 1}
         step="1"
         value={at}
-        aria-label="Move along the line"
+        aria-label={contextLabel ? `Move along the line · ${contextLabel}` : 'Move along the line'}
         aria-valuetext={`${now.value}, ${now.label}`}
         onChange={event => select(Number(event.target.value))}
       />

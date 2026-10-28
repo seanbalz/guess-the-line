@@ -33,10 +33,10 @@ describe('the opened trend', () => {
   it('passes the kit markup rules and names every control', () => {
     expect(markupProblems(html)).toEqual([]);
     const ranges = all(html).filter(n => n.tag === 'input' && n.attrs.type === 'range');
-    expect(ranges.map(n => n.attrs['aria-label'])).toEqual(['Move along the line']);
+    expect(ranges.map(n => n.attrs['aria-label'])).toEqual(['Move along the line · Indoor game with a strong defense']);
     expect(ranges[0].attrs['aria-valuetext']).toBe('45.18 U, point 7');
     const view = all(html).find(n => n.attrs.role === 'group');
-    expect(view.attrs['aria-label']).toBe('Chart view');
+    expect(view.attrs['aria-label']).toBe('Chart view · Indoor game with a strong defense');
     expect(all(html).filter(n => n.tag === 'button' && 'aria-pressed' in n.attrs).map(n => n.attrs['aria-pressed'])).toEqual(['true', 'false']);
   });
   it('starts on the line at its last point, labelled, with the moving tooltip hidden from screen readers', () => {
@@ -52,6 +52,28 @@ describe('the opened trend', () => {
     expect(many).not.toContain('Fourth');
     for (const value of ['58.4%', '7–3', '395']) expect(many).toContain(value);
   });
+});
+
+it('equal-valued line charts retain their distinct trend names in slider and view controls', () => {
+  const line = { values: [0, 1], tip: () => ({ value: '1 U', label: 'Same evidence date' }), label: 'Cumulative units', headline: { value: '1 U', sub: 'Same record' }, tiles: [] };
+  const seasonsView = { rows: seasons, headline: { value: '1 U', sub: 'Same record' }, tiles: [] };
+  const html = render(<>{['Home favorites', 'Away underdogs'].map(title => <TrendDetail key={title} title={title} line={line} seasons={seasonsView}/>)}</>);
+  expect(all(html).filter(n => n.tag === 'input').map(n => n.attrs['aria-label'])).toEqual([
+    'Move along the line · Home favorites', 'Move along the line · Away underdogs',
+  ]);
+  expect(all(html).filter(n => n.attrs.role === 'group').map(n => n.attrs['aria-label'])).toEqual([
+    'Chart view · Home favorites', 'Chart view · Away underdogs',
+  ]);
+  expect(all(html).filter(n => n.tag === 'input').map(n => n.attrs['aria-valuetext'])).toEqual(['1 U, Same evidence date', '1 U, Same evidence date']);
+});
+
+it('season sliders distinguish their trend even when seasons and records are identical', () => {
+  const html = render(<>{['Home favorites', 'Away underdogs'].map(title => <SeasonStems key={title} contextLabel={title} seasons={seasons} selectedIndex={0} onSelect={() => {}}/>)}</>);
+  const ranges = all(html).filter(n => n.tag === 'input');
+  expect(ranges.map(n => n.attrs['aria-label'])).toEqual([
+    'Move across the seasons · Home favorites', 'Move across the seasons · Away underdogs',
+  ]);
+  expect(ranges[0].attrs['aria-valuetext']).toBe(ranges[1].attrs['aria-valuetext']);
 });
 
 describe('the compact row and the ⓘ', () => {

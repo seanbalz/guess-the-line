@@ -489,17 +489,51 @@ The initial missing-control regression now passes, with eight inspected 320px
 theme/forced-color captures, axe/touch checks, full Vitest (466), 35 shared
 weekly-loader/state/token/brand tests and typecheck. All 98 expanded shell/
 Research/Lines/Trends/gesture cases, Brand QA and final fixture privacy checks
-passed. CI/merge, release/readback and phone acceptance remain open; #302 is
-merged. No live-status or dependent action-slot closure.
+passed. PR [#303](https://github.com/seanbalz/guess-the-line/pull/303) merged as
+`d737a0c8deaee8ba81faef3144d89a284b65b69e` after all nine checks passed on
+`d190fac6f18098ad25e3a766fa1e7e76be71072a`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and phone acceptance remain open. No live-status or dependent
+action-slot closure.
+
+The [chart control names](RESEARCH_CHART_CONTROL_NAMES_2026_10_28.md) batch,
+`codex/research-chart-control-names`, appends each visible trend title to line/
+season slider and view-group accessible names, preserving the exact value
+announcement and existing selection behavior. The name regressions failed
+before and passed after implementation. Full Vitest (468), 27 chart-geometry/
+token/brand tests and typecheck passed. All 98 expanded browser cases, final
+fixture privacy and Brand QA passed. PR [#304](https://github.com/seanbalz/guess-the-line/pull/304) merged as
+`c73f7230c8435c2770eb1f031d9595576e07b20c` after all nine checks passed on
+`2db07ae00fd251f27335c9026823e2ac3909e3dc`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and device/assistive-technology acceptance remain open.
+GitHub’s canonical repository name
+is now `seanbalz/guess-the-line`, verified against the unchanged repository ID;
+the repository synchronization pointer is updated.
+
+The [on-demand Fantasy view](RESEARCH_FANTASY_LOADING_2026_10_28.md) batch,
+`codex/lazy-research-fantasy`, defers the existing detail view/styles within
+Research, with static loading panels, stable route/retry focus and local code/
+stylesheet repair. Initial static graph is 26,093 raw bytes smaller (6,267
+estimated gzip); once opened, total estimated gzip is 1,311 bytes larger.
+Both focused browser cases, eight inspected 320px theme/forced-color captures,
+axe/touch checks, Vitest (468), 37 shell/Fantasy-loader/ranking/token/brand tests
+and typecheck passed. All 108 expanded browser cases, both final focused cases,
+final fixture privacy and Brand QA passed. #304 is merged; this batch’s own
+CI/merge, release/readback, signed-in performance and phone acceptance remain
+open. Q12–Q14's old branch-only wording is corrected: their
+existing tools merged in PR #269 as `a6d655ed03b375e48b5159a70dd82ecd2b0030fb`.
+Their feature-specific release/readback and device acceptance remain separate;
+this batch adds no Fantasy feature or integration.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.
 Manual Settlement is in [PR #214](https://github.com/seanbalz/guess-the-lines-repo/pull/214).
 It does not close M-18 challenge grading or M-19 scheduled settlement/status.
-M-19's shared-ticket part (D-64, proposed): automatic settlement of pending Bet Tracker tickets after the game's
+M-19's shared-ticket part (D-64, approved October 28): automatic settlement of pending Bet Tracker tickets after the game's
 Pacific day, called by the existing results worker, plus a one-time backfill for Week 7 and earlier, is written in
-`20261028120000_gtl_social_auto_settle.sql` (not applied; see the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md)).
+`20261028120000_gtl_social_auto_settle.sql`, applied by Sean in the SQL editor with the backfill run, and live with `gtl-results-refresh` deployed from `42329566` (see the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md)).
 Challenge settlement (M-18) and a status reader remain open.
 Week opening is the next commissioner page after the current design focus.
 The [preservation matrix](REDESIGN_PRESERVATION_2026_10_26.md) still identifies
@@ -519,11 +553,11 @@ Stage 75 (Export my data) is on branch `claude/redesign-export`: M-28
 (`20261026231000_gtl_me_export.sql`, apply after M-27), `/me/export` and Menu ›
 Export my data, written and not applied.
 
-## Trend builder (proposed D-63, October 28)
+## Trend builder (D-63, approved October 28)
 
 Draft PR on `claude/trend-builder`: Trends › Build, honest result card, this week's matches and per-device saved
 trends with a Home indicator ([TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026)).
-Frontend only (Pages deploy); no API deploy or migration. Not merged, not deployed; D-63 awaits Sean.
+Frontend only; merged in PR #285 (`c091ec0`) and live in Pages `0f9312bf` (release run 40691552196). D-63 approved by Sean October 28.
 
 ## What needs Sean
 

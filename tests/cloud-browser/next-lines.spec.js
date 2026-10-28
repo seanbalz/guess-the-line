@@ -981,11 +981,15 @@ test('season table selection stays in sync with the chart and survives view swit
     await openLines(page); await card(page, 'HOU-JAX').click();
     const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
     const lineScrub = trend.getByRole('slider', { name: 'Move along the line' });
+    const trendTitle = await trend.locator('h4').innerText();
+    await expect(lineScrub).toHaveAccessibleName(`Move along the line · ${trendTitle}`);
+    await expect(trend.getByRole('group', { name: `Chart view · ${trendTitle}`, exact: true })).toBeVisible();
     await lineScrub.focus(); await page.keyboard.press('Home'); await page.keyboard.press('ArrowRight');
     const lineTip = await lineScrub.getAttribute('aria-valuetext');
     await trend.getByRole('button', { name: 'By season', exact: true }).click();
     const season = year => trend.getByRole('button', { name: `Show ${year} season on chart`, exact: true });
     const scrub = trend.getByRole('slider', { name: 'Move across the seasons' });
+    await expect(scrub).toHaveAccessibleName(`Move across the seasons · ${trendTitle}`);
     await expect(season(2025)).toHaveAttribute('aria-pressed', 'true');
     await season(2024).click();
     await expect(season(2024)).toBeFocused();
