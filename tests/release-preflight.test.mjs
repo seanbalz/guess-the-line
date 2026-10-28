@@ -233,7 +233,9 @@ const POINTS_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-points-
 const FEATURES_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-league-features --project-ref "$SUPABASE_PROJECT_REF" --use-api';
 // October 28, 2026: the D-59 fantasy feed upload worker, which checks its own upload secret instead of a one-run capability.
 const FANTASY_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-fantasy-ingest --project-ref "$SUPABASE_PROJECT_REF" --use-api';
-const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY, 'fantasy-ingest': FANTASY_DEPLOY };
+// M-19 (D-64, proposed): the existing results refresh worker, which now also settles shared tickets.
+const RESULTS_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-results-refresh --project-ref "$SUPABASE_PROJECT_REF" --use-api';
+const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY, 'fantasy-ingest': FANTASY_DEPLOY, 'results-refresh': RESULTS_DEPLOY };
 const PAGES_DEPLOY = './node_modules/.bin/wrangler pages deploy .local/cloud-dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$RELEASE_SHA" --commit-dirty=false';
 
 /** The production job's steps as release.yml declares them: name, condition, directory, step env and one-line command. */
@@ -259,7 +261,7 @@ const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step
 test('release.yml offers exactly the preflight targets, both worker targets included', () => {
   const options = releaseYaml.match(/^ {6}target:\n(?: {8}.+\n)*? {8}options: \[([^\]]+)\]/m)?.[1].split(',').map(item => item.trim());
   assert.deepEqual(options, TARGETS);
-  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features', 'fantasy-ingest']);
+  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features', 'fantasy-ingest', 'results-refresh']);
 });
 
 test('each target deploys only its own component; the worker targets never deploy gtl-api, Pages or each other', () => {
@@ -270,14 +272,16 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.deepEqual(deployCommands('deploy', 'points-jobs'), [POINTS_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'league-features'), [FEATURES_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'fantasy-ingest'), [FANTASY_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'results-refresh'), [RESULTS_DEPLOY]);
   for (const target of TARGETS) for (const mode of ['check-only', 'readiness']) assert.deepEqual(deployCommands(mode, target), [], `${mode} ${target} deploys nothing`);
   // Every deploy condition names the targets it serves; none selects by exclusion, so a new target reaches no deploy by default.
   const deploySteps = productionSteps().filter(step => / deploy /.test(step.run || ''));
-  assert.equal(deploySteps.length, 6);
+  assert.equal(deploySteps.length, 7);
   for (const step of deploySteps) assert.doesNotMatch(step.if, /!=/, step.name);
   assert.equal(deploySteps.find(step => step.run === POINTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'points-jobs'");
   assert.equal(deploySteps.find(step => step.run === FEATURES_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'league-features'");
   assert.equal(deploySteps.find(step => step.run === FANTASY_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'fantasy-ingest'");
+  assert.equal(deploySteps.find(step => step.run === RESULTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'results-refresh'");
   assert.equal(deploySteps.find(step => step.run === WORKER_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'push-reminders'");
 });
 

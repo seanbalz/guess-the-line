@@ -16,6 +16,7 @@ const { marginLayout } = await import('../web/src/next/teams/MarginChart.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { PerGameEditor } = await import('../web/src/next/play/PerGamePlay.jsx');
 const { playPresentation } = await import('../web/src/next/play/PlayPresentation.jsx');
+const { GUIDANCE_ORDER, INFO, TEAM_RECORDS_CREDIT, TEAM_RECORDS_LINKS } = await import('../web/src/next/info.js');
 const api = await import('../web/src/api.js');
 
 const game = (week, gameId, opponent, home, pf, pa, kickoff = `2026-09-${String(6 + week).padStart(2, '0')}T20:25:00Z`) => ({
@@ -259,6 +260,18 @@ describe('the team sheet (sh.team)', () => {
     ]);
     expect(info.links).toEqual([{ text: 'nflverse nfldata games file', url: 'https://example.test/games.csv' }]);
     expect(teamInfo({ ...live(), stale: true }).body).toContain('This copy may be behind the latest finals.');
+  });
+
+  it('Menu › Guidance and sources keeps "About team records": the sheet’s counting rule, no market, and the bundled file’s credit and link', () => {
+    expect(GUIDANCE_ORDER).toContain('teamRecords');
+    const topic = INFO.teamRecords;
+    expect(topic.title).toBe('About team records');
+    expect(topic.body[0]).toBe(teamInfo(live()).body[0]);
+    expect(topic.body.join(' ')).toContain('No line, odds or market of any kind appears there.');
+    expect(topic.body.join(' ')).not.toMatch(/\b(?:spread|total|moneyline|consensus)\b/i);
+    expect(TEAM_RECORDS_CREDIT).toBe(bundled.source_credit);
+    expect(TEAM_RECORDS_LINKS).toEqual([{ text: 'nflverse nfldata games file', url: bundled.source }]);
+    expect(topic.links).toBe(TEAM_RECORDS_LINKS);
   });
 
   it('the sheet: the team name as its title, a skeleton while the read loads, a back label over another sheet', () => {

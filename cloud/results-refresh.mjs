@@ -1,6 +1,6 @@
 import { readRunBody } from './odds-refresh.mjs';
 import { buildSettlementResults, validateSettlementPayload, createVirtualSettlementAdapter } from './virtual-settlement.mjs';
-const names=['gtl_claim_results_refresh','gtl_complete_results_refresh','gtl_settle_virtual_units'];
+const names=['gtl_claim_results_refresh','gtl_complete_results_refresh','gtl_settle_virtual_units','gtl_settle_social_pending'];
 const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 export function createResultsAdapter({url,serviceRoleKey,fetchImpl=fetch}) {
  const adapter=createVirtualSettlementAdapter({url,serviceRoleKey,fetchImpl});
@@ -10,7 +10,8 @@ export function createResultsAdapter({url,serviceRoleKey,fetchImpl=fetch}) {
   if(!response.ok){
    let code;try{code=(await response.json()).message;}catch{}
    const error=Error('Results operation unavailable');
-   error.code=['GTL_SCHEDULE_AUTH','GTL_SCHEDULE_RUN','GTL_SCHEDULE_EXPIRED'].includes(code)?code:'UNAVAILABLE';throw error;
+   // 404: the function is not in the schema yet (the worker can ship before its migration is applied).
+   error.code=['GTL_SCHEDULE_AUTH','GTL_SCHEDULE_RUN','GTL_SCHEDULE_EXPIRED'].includes(code)?code:response.status===404?'MISSING':'UNAVAILABLE';throw error;
   }
   return response.json();
  }};
@@ -34,6 +35,11 @@ export function createResultsHandler({service,clock=Date.now}) {
    if(!reason)try {
     for(const plan of plans)if(plan.finals.length)await service.rpc('gtl_settle_virtual_units',{p_season:plan.season,p_week:plan.week,p_results:plan.payload});
    } catch {reason='settlement_failed';}
+   // M-19 (D-64, proposed): then settle pending shared Bet Tracker tickets from the finals the ledger now holds, once the
+   // game's Pacific day has ended. It reads only stored finals, so it runs even when this run's download failed. A missing
+   // function (migration not applied yet) is a no-op; any other failure fails the run.
+   try {await service.rpc('gtl_settle_social_pending',{p_season:Number.isInteger(job.season)?job.season:null,p_week:null,p_now:null,p_dry_run:false});}
+   catch(error) {if(error?.code!=='MISSING')reason=reason??'settlement_failed';}
    const result=await service.rpc('gtl_complete_results_refresh',{p_run:runId,p_claim:job.claim,p_reason:reason});
    return json({runId,status:result.status,reason},reason?503:200);
   } catch(error) {if(error?.code==='GTL_SCHEDULE_AUTH')return json({error:'Unauthorized'},401); if(error?.code==='INPUT')return json({error:'Invalid request'},400);return json({error:'Results refresh unavailable'},503);}

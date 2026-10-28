@@ -34,6 +34,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261028120000, // M-19 / D-64 gtl_social_auto_settle: automatic settlement of pending shared tickets, awaiting Sean's "apply M-19".
   20261027160000, // D-61 gtl_odds_slots_before_points_open: odds slots 06:15/18:15 UTC, awaiting Sean's "apply D-61 odds".
 ];
 /**
