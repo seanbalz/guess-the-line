@@ -21,6 +21,11 @@
 :root:has(.gx-app):not(:has([class~="save-bar"])) {
   scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 8px);
 }
+/* iOS only, set inline on the root by viewportPin.js: how far the fixed bars must move to sit on the visible bottom
+   after the keyboard closed (0 everywhere else). It lives on the root, outside .gx, so every fixed bar inherits it. */
+:root:has(.gx-app) {
+  --gx-viewport-gap: 0px;
+}
 
 /* ===== top bar: the monogram (Home), the league pill (switcher), your avatar (menu) ===== */
 .gx-topbar {
@@ -147,7 +152,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px);
+  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px + var(--gx-viewport-gap, 0px));
   z-index: var(--gx-z-dock);
   display: flex;
   flex-direction: column;
@@ -160,12 +165,14 @@
 .gx-dock .gx-dock-bar { pointer-events: auto; }
 
 /* ===== tab bar: Home, Play, Bets, Research ===== */
-/* 64 tall with its top border, plus the home-indicator inset: a toast or dock 8 above it is 8 above the border. */
+/* 64 tall with its top border, plus the home-indicator inset: a toast or dock 8 above it is 8 above the border.
+   --gx-viewport-gap (viewportPin.js) is 0 except when iOS has left the fixed bars anchored above (or below) the bottom
+   of what is visible, after the keyboard closes; it moves the bar, the dock and toasts back together. */
 .gx-tabbar {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--gx-viewport-gap, 0px);
   z-index: var(--gx-z-tabbar);
   height: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);

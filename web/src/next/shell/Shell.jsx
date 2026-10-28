@@ -25,6 +25,7 @@ import { LAYERS, SCREENS } from './registry.jsx';
 import { connectHistory, fragmentFor, startPlace } from './router.js';
 import { canGoBack, hasLayers, initialState, isDetail, layer, layerKind, modalOpen, navigationPatch, reduce, visibleOverlay } from './state.js';
 import { SHELL_COPY } from './tabs.js';
+import { useFixedBarsPinned } from './viewportPin.js';
 import './shell.css';
 
 const browserOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false;
@@ -78,6 +79,8 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     return initialLayer && layerKind(initialLayer) && !hasLayers(start) ? reduce(start, { type: 'open', layer: layer(initialLayer) }) : start;
   });
   const [online, recheckOnline] = useOnline();
+  // iOS can leave the fixed tab bar, dock and toasts a keyboard's height up the screen (viewportPin.js).
+  useFixedBarsPinned();
   const [preferences] = useDashboardPreferences();
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);

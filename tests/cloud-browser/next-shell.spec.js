@@ -400,6 +400,41 @@ test.describe('the shell harness', () => {
     }
   });
 
+  // iOS (viewportPin.js): after the keyboard closes the tab bar must sit on the bottom of what is visible, not a
+  // keyboard's height up the screen. Chromium has no on-screen keyboard, so the keyboard is a viewport resize plus
+  // focus in a text field; this guards the CSS and the pin against moving the bars where nothing is wrong. The WebKit
+  // bug itself can only be confirmed on an iPhone.
+  test('the tab bar and dock stay on the visible bottom through a keyboard open and close', async ({ page }) => {
+    await harness(page);
+    await page.getByRole('button', { name: 'Show the dock' }).click();
+    const bars = () => page.evaluate(() => {
+      const bar = document.querySelector('.gx-tabbar').getBoundingClientRect();
+      const dock = document.querySelector('.gx-dock').getBoundingClientRect();
+      const vv = window.visualViewport;
+      return { bar: Math.round(bar.bottom), barTop: Math.round(bar.top), dock: Math.round(dock.bottom), visible: Math.round(vv.height + vv.offsetTop), gap: document.documentElement.style.getPropertyValue('--gx-viewport-gap') };
+    });
+    const pinned = async height => {
+      await expect.poll(bars).toEqual(expect.objectContaining({ bar: height, visible: height, gap: '' }));
+      const now = await bars();
+      expect(now.dock).toBe(now.barTop - 8);
+    };
+    await pinned(844);
+    // A text field at the end of the page, like a comment box or a stake field.
+    await page.evaluate(() => { const input = document.createElement('input'); input.setAttribute('aria-label', 'Keyboard test'); document.querySelector('main').append(input); });
+    for (let round = 0; round < 2; round += 1) {
+      const input = page.getByRole('textbox', { name: 'Keyboard test' });
+      await input.scrollIntoViewIfNeeded();
+      await input.focus();
+      await page.setViewportSize({ width: 390, height: 504 });
+      await pinned(504);
+      await page.evaluate(() => document.activeElement.blur());
+      await page.setViewportSize({ width: 390, height: 844 });
+      await pinned(844);
+    }
+    await page.mouse.wheel(0, 600);
+    await pinned(844);
+  });
+
   test('four tabs, nested detail Back, origin focus and reload preserve intent', async ({ page }) => {
     await harness(page);
     await expect(tabBar(page).getByRole('button')).toHaveCount(4);
