@@ -1,9 +1,11 @@
 // `sh.badge`: one badge's detail (the prototype's badge sub-view): the 96 tile (dashed when not earned), its rarity in
-// words, its rule, how often it was earned and when ("Week 6 · SEA @ DEN · Total 41 exact"), newest first.
+// words, its rule, how often it was earned and when ("Week 6 · SEA @ DEN · Total 41 exact", the game as marks), newest
+// first.
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Badge, Sheet } from '../ui/index.js';
 import { badgeMeta, earnedText } from './model.js';
+import { BadgeLine } from './BadgeLine.jsx';
 import { BADGE_BY_ID } from '../../../../shared/game-features/catalog.mjs';
 import { useFeatures } from './useFeatures.js';
 import './features.css';
@@ -22,7 +24,7 @@ export function BadgeSheet({ id, args }) {
         <p className="gx-t-body">{meta.rule}</p>
         <p className="gx-t-strong">{features.loading ? 'Loading…' : earnedText(earned?.count ?? 0)}</p>
       </div>
-      {earned?.lines.length ? <ul className="gx-fx-lines" aria-label={`When ${meta.name} was earned`}>{earned.lines.map(line => <li key={line} className="gx-t-body gx-c-2">{line}</li>)}</ul> : null}
+      {earned?.lines.length ? <ul className="gx-fx-lines" aria-label={`When ${meta.name} was earned`}>{earned.lines.map((line, index) => <li key={line} className="gx-t-body gx-c-2"><BadgeLine parts={earned.parts[index]}/></li>)}</ul> : null}
     </Sheet>
   );
 }

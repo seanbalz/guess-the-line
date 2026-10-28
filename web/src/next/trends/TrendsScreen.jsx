@@ -6,7 +6,7 @@ import { TEAM_NAMES } from '../../../../shared/nfl-schedule.mjs';
 import { PLAYER_TREND_WINDOWS } from '../../../../shared/player-trends.mjs';
 import { useShell } from '../shell/context.js';
 import { useLinesData } from '../lines/linesData.js';
-import { Button, Card, Segmented } from '../ui/index.js';
+import { Button, Card, Matchup, Segmented } from '../ui/index.js';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
 import { ShortTrend, TrendAvailability } from '../lines/parts.jsx';
 import { PlayerEvidence, Select } from './PlayerEvidence.jsx';
@@ -67,7 +67,7 @@ export function TrendsScreen() {
       <section className="gx-vstack gx-gap-16" aria-label={section === 'teams' ? 'Team history comparisons' : 'Published matchups'}>
       <h2 className="gx-t-section">{section === 'teams' ? 'Team history comparisons' : 'Published matchups'}</h2>
       {games.map(v => { const eligible = section === 'teams' && v.trendsGame ? allTrends(trendsWeek, v.id, { access: v.access, saved: v.saved, names: TEAM_NAMES }).groups.flatMap(g => g.items).filter(c => relevant(c,trendsWeek,market) && (!team || !c.team || c.team === team)).slice(0,3) : marketSituationCards(trendsWeek,v,market); return <Card key={v.id} as="section" className="gx-vstack gx-gap-12">
-        <h3 className="gx-t-section">{v.title}</h3><p className="gx-t-meta">{v.when}</p>
+        <h3 className="gx-t-section"><Matchup away={v.away.code} home={v.home.code} size={32}/></h3><p className="gx-t-meta">{v.when}</p>
         {!v.access[market] && <p className="gx-t-body">This game's {market === 'spread' ? 'Spread' : 'Total'} line-based records are hidden until your lock-in or kickoff. Historical public situations remain available.</p>}
         {section === 'teams' ? eligible.map(c => <div key={c.key} className="gx-vstack gx-gap-8"><ShortTrend as="div" card={c} rules={v.rules} variant="s2"/><WindowRecords card={c} week={trendsWeek}/></div>) : <details className="gx-tr-details"><summary className="gx-t-strong">Matchup evidence</summary><ul className="gx-l-alist">{eligible.map(c => <ShortTrend key={c.key} card={c} rules={v.rules}/>)}</ul>{eligible.map(c => <WindowRecords key={c.key} card={c} week={trendsWeek}/>)}</details>}
         {!eligible.length && <p className="gx-t-body">No qualifying highlight in this market. Inspect all records for coverage.</p>}

@@ -177,7 +177,7 @@ test('fixture screenshots and axe at 320/390 in light/dark for This Week and pop
    await page.locator('.gx-tr-chart').first().scrollIntoViewIfNeeded(); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-charts-viewport.png'});
    await page.getByText('Recurring pattern · CAR · for',{exact:true}).first().scrollIntoViewIfNeeded(); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-callout-viewport.png'});
    const context=page.locator('summary').filter({hasText:/^Current-week saved-reference context/}).first(); await context.click(); await page.locator('summary').filter({hasText:/^Current context/}).first().click();
-   await page.getByRole('heading',{name:'2026 Week 6 · CAR at PHI',exact:true}).first().evaluate(el => el.scrollIntoView({block:'start'})); await page.evaluate(() => window.scrollBy(0,-80)); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-current-viewport.png'});
+   await page.getByRole('heading',{name:'2026 Week 6 · Carolina Panthers at Philadelphia Eagles',exact:true}).first().evaluate(el => el.scrollIntoView({block:'start'})); await page.evaluate(() => window.scrollBy(0,-80)); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-current-viewport.png'});
    await context.click();
   }
   expect(world.errors).toEqual([]);

@@ -252,7 +252,7 @@ test('week progress: one tile per game shows locked, draft, open and kicked off 
     await expect(progress).toContainText('1 of 4 locked');
     // Each card says its own state in words, so the strip is never the only place a state is told.
     for (const [game, word] of [[kicked, 'Locked in'], [draft, 'Draft'], [open, 'To pick'], [late, 'Closed at kickoff']]) await expect(card(page, game.id).locator('.gx-play-card-pill')).toHaveText(word);
-    await progress.getByRole('button', { name: `Next to lock · ${draft.awayCode} at ${draft.homeCode}` }).click();
+    await progress.getByRole('button', { name: /^Next to lock · / }).click(); // D-62: the game as marks, named by full team names
     await expect(card(page, draft.id)).toBeFocused();
     await expect(card(page, draft.id)).toBeInViewport();
     await page.evaluate(() => window.scrollTo(0, 0));

@@ -5,7 +5,12 @@
 import { useId } from 'react';
 import { useShell } from '../shell/context.js';
 import { Badge, Button, Overlay } from '../ui/index.js';
+import { SEP } from '../format.js';
+import { BadgeLine } from './BadgeLine.jsx';
 import './features.css';
+
+// A badge's line draws its game as marks (D-62); an award's line is words.
+const metaOf = item => (typeof item.parts?.week === 'string' ? <BadgeLine parts={item.parts}/> : item.meta);
 
 export function FlashOverlay({ args }) {
   const shell = useShell(), titleId = useId();
@@ -20,9 +25,9 @@ export function FlashOverlay({ args }) {
       <Badge iconPath={first.icon} size={96} rarity={first.rarity}/>
       <h2 className="gx-t-display" id={titleId}>{many ? 'New results' : first.title}</h2>
       {many
-        ? <><ul className="gx-fx-lines">{shown.map(item => <li key={item.key} className="gx-t-body">{item.title} · {item.meta}</li>)}</ul>
+        ? <><ul className="gx-fx-lines">{shown.map(item => <li key={item.key} className="gx-t-body">{item.title}{SEP}{metaOf(item)}</li>)}</ul>
           {more > 0 ? <p className="gx-t-meta gx-c-2">and {more} more</p> : null}</>
-        : <p className="gx-t-body gx-c-2">{first.meta}</p>}
+        : <p className="gx-t-body gx-c-2">{metaOf(first)}</p>}
       <Button variant="primary" block onClick={close}>Nice</Button>
       <Button variant="ghost" onClick={() => { close(); shell.go('play', { section: 'features' }); }}>See badges</Button>
     </Overlay>

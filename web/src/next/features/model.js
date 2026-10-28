@@ -20,23 +20,32 @@ const marketName = market => (market === 'total' ? 'Total' : market === 'spread'
 const guessText = (market, value, game) => (market === 'total' ? fmtNum(value) : game ? fmtSpreadPick(game.away, game.home, value) : fmtNum(value));
 const points = n => (finite(n) ? `${fmtNum(n)} PTS` : DASH);
 
-/** One earned badge's line in its detail: "Week 6 · SEA @ DEN · Total 41 exact". */
-export function badgeLine(badge) {
-  const f = badge.facts ?? {}, game = matchupOf(f), parts = [`Week ${badge.week}`];
-  if (game) parts.push(game.text);
+/**
+ * One earned badge's line in three parts, so the detail can draw the game as marks (D-62): `{ week: "Week 6",
+ * game: { away, home, text } | null, detail: "Total 41 exact" | null }`.
+ */
+export function badgeParts(badge) {
+  const f = badge.facts ?? {}, game = matchupOf(f);
+  let detail = null;
   switch (badge.badge) {
-    case 'bullseye': parts.push(`${marketName(f.market)} ${guessText(f.market, f.guess, game)} exact`); break;
-    case 'double_bullseye': parts.push(`Spread ${guessText('spread', f.spread, game)} and Total ${fmtNum(f.total)} exact`); break;
-    case 'called_the_move': parts.push(`${marketName(f.market)} ${guessText(f.market, f.from, game)} to ${guessText(f.market, f.to, game)}, toward ${guessText(f.market, f.guess, game)}`); break;
-    case 'dialed_in': parts.push(`${marketName(f.market)} ${fmtNum(f.points)} of ${fmtNum(f.full)} PTS`); break;
-    case 'never_missed': parts.push(`Weeks ${f.from}–${f.to}`); break;
-    case 'sharp': parts.push(`${game ? fmtSide(game.away, game.home, f.side, f.side === 'away' ? -f.line : f.line) : fmtNum(f.line)} vs ${fmtNum(f.kickoff)} at kickoff`); break;
-    case 'dog_day': parts.push(`${game ? fmtSide(game.away, game.home, f.side, f.side === 'away' ? -f.line : f.line) : fmtNum(f.line)} won outright`); break;
-    case 'perfect_week': parts.push(`${plural(f.wins, 'win')}, no losses`); break;
-    case 'hot_hand': parts.push(`${plural(f.wins, 'win')} in a row`); break;
+    case 'bullseye': detail = `${marketName(f.market)} ${guessText(f.market, f.guess, game)} exact`; break;
+    case 'double_bullseye': detail = `Spread ${guessText('spread', f.spread, game)} and Total ${fmtNum(f.total)} exact`; break;
+    case 'called_the_move': detail = `${marketName(f.market)} ${guessText(f.market, f.from, game)} to ${guessText(f.market, f.to, game)}, toward ${guessText(f.market, f.guess, game)}`; break;
+    case 'dialed_in': detail = `${marketName(f.market)} ${fmtNum(f.points)} of ${fmtNum(f.full)} PTS`; break;
+    case 'never_missed': detail = `Weeks ${f.from}–${f.to}`; break;
+    case 'sharp': detail = `${game ? fmtSide(game.away, game.home, f.side, f.side === 'away' ? -f.line : f.line) : fmtNum(f.line)} vs ${fmtNum(f.kickoff)} at kickoff`; break;
+    case 'dog_day': detail = `${game ? fmtSide(game.away, game.home, f.side, f.side === 'away' ? -f.line : f.line) : fmtNum(f.line)} won outright`; break;
+    case 'perfect_week': detail = `${plural(f.wins, 'win')}, no losses`; break;
+    case 'hot_hand': detail = `${plural(f.wins, 'win')} in a row`; break;
     default: break;
   }
-  return parts.join(SEP);
+  return { week: `Week ${badge.week}`, game, detail };
+}
+
+/** The same line as text: "Week 6 · SEA @ DEN · Total 41 exact" (list keys and text-only places). */
+export function badgeLine(badge) {
+  const { week, game, detail } = badgeParts(badge);
+  return [week, game?.text, detail].filter(Boolean).join(SEP);
 }
 
 /** An award's value in words: "18 PTS", "Exact · 10 PTS", "90.9% return · +2.73U · 1–0–0", "Lost by 0.5". */
@@ -83,7 +92,10 @@ export function featuresModel(reply, { viewer, nameOf = () => 'Player' } = {}) {
   const grouped = list => {
     const groups = new Map();
     for (const b of list) groups.set(b.badge, [...(groups.get(b.badge) ?? []), b]);
-    return [...groups].map(([id, items]) => ({ ...badgeMeta(id), count: items.length, lines: items.sort((a, b) => Date.parse(b.visibleAt) - Date.parse(a.visibleAt)).map(badgeLine), earned: true }))
+    return [...groups].map(([id, items]) => {
+      const newest = items.sort((a, b) => Date.parse(b.visibleAt) - Date.parse(a.visibleAt));
+      return { ...badgeMeta(id), count: items.length, lines: newest.map(badgeLine), parts: newest.map(badgeParts), earned: true };
+    })
       .sort((a, b) => RANK[a.rarity] - RANK[b.rarity] || b.count - a.count || a.name.localeCompare(b.name));
   };
   const badgesOf = userId => grouped(known.filter(b => b.userId === userId));
@@ -91,7 +103,7 @@ export function featuresModel(reply, { viewer, nameOf = () => 'Player' } = {}) {
   const weeksWithBadges = known.map(b => b.week).filter(w => Number.isInteger(w));
   const badgeWeek = weeksWithBadges.length ? Math.max(...weeksWithBadges) : null;
   const earned = badgesOf(viewer);
-  const toEarn = LIVE.filter(b => !earned.some(e => e.id === b.id)).map(b => ({ ...badgeMeta(b.id), count: 0, lines: [], earned: false }));
+  const toEarn = LIVE.filter(b => !earned.some(e => e.id === b.id)).map(b => ({ ...badgeMeta(b.id), count: 0, lines: [], parts: [], earned: false }));
   const own = (reply.streaks ?? []).find(s => s.userId === viewer);
   const streaks = ['pick', 'bets'].map(id => ({ id, name: STREAK_BY_ID[id].name, unit: STREAK_BY_ID[id].unit, current: own?.[id]?.current ?? 0, best: own?.[id]?.best ?? 0 }));
   const season = reply.seasonWinners?.winners?.length ? reply.seasonWinners.winners.map(a => awardRow(a, { nameOf, viewer })) : null;
@@ -121,14 +133,15 @@ export function boardFact(model, userId, mode) {
 
 /**
  * New things to celebrate between two reads in one session (never on page load): the viewer's badges and awards in
- * `next` that `previous` did not have. Each `{ key, kind: 'badge' | 'award', title, meta, icon, rarity }`, oldest first.
+ * `next` that `previous` did not have. Each `{ key, kind: 'badge' | 'award', title, meta, icon, rarity }`, oldest first;
+ * a badge also carries `parts` (badgeParts), so the overlay can draw its game as marks.
  */
 export function newCelebrations(previous, next, viewer) {
   if (!record(previous) || !record(next)) return [];
   const seen = new Set((previous.badges ?? []).map(b => b.key));
   const out = (next.badges ?? []).filter(b => b.userId === viewer && !seen.has(b.key) && BADGE_BY_ID[b.badge])
     .sort((a, b) => Date.parse(a.visibleAt) - Date.parse(b.visibleAt))
-    .map(b => ({ key: `badge:${b.key}`, kind: 'badge', title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
+    .map(b => ({ key: `badge:${b.key}`, kind: 'badge', title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
   const had = new Set((previous.awards ?? []).flatMap(w => w.awards.filter(a => a.winners.includes(viewer)).map(a => `${w.week}:${a.id}`)));
   for (const w of next.awards ?? []) for (const a of w.awards) {
     if (!a.winners.includes(viewer) || had.has(`${w.week}:${a.id}`)) continue;

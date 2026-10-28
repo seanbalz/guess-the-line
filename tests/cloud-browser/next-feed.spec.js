@@ -100,7 +100,7 @@ test('every old kind renders; a friend\'s ballot is a lock row until Luke locks 
     const troys = card(page, 'ballot_submitted').filter({ hasText: 'Troy Fixture' });
     await troys.getByRole('button', { name: 'See Troy Fixture’s Spread picks' }).click();
     const sheet = page.getByRole('dialog', { name: 'Troy Fixture’s Spread picks' });
-    await expect(sheet).toContainText('TB @ DAL');
+    await expect(sheet).toContainText('Tampa Bay Buccaneers at Dallas Cowboys'); // D-62: the game as marks
     await expect(sheet).toContainText('DAL −6.5');
     await expect(sheet).toContainText('PHI −2.5');
     await everyWidthAndTheme(page, 'feed-picks', testInfo);

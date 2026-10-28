@@ -5,7 +5,8 @@
 // name; Pacific times stay right across the Nov 1 change; the comment limit is 500. Fixture accounts only.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
+import { markupProblems, matchups, readText } from './helpers/ui-markup.mjs';
 
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), date: value => String(value) }));
 const model = await import('../web/src/next/feed/feedModel.js');
@@ -20,6 +21,7 @@ const post = (kind, patch = {}) => ({ id: `00000000-0000-4000-8000-${String(++n)
   createdAt: '2026-10-26T18:00:00Z', reactions: { counts: {}, total: 0, mine: null }, commentCount: 0, comments: [], embed: {}, ...patch });
 const shell = { state: { views: {} }, go: vi.fn(), openSheet: vi.fn(), openPopover: vi.fn(), toast: vi.fn() };
 const render = node => renderToStaticMarkup(<ShellContext.Provider value={shell}>{node}</ShellContext.Provider>).replace(/<!-- -->/g, '');
+const said = readText;
 const card = p => render(<PostCard post={p} names={names} viewer={ME} now="2026-10-26T20:00:00Z" leagueId={null}/>);
 
 describe('folding friends\' ballots (review D4)', () => {
@@ -94,18 +96,23 @@ describe('post cards draw only what the server let through', () => {
   it('a hidden shared result shows no guess or points; an open one shows both, and an exact one is a Bullseye', () => {
     const hidden = card(post('result_shared', { mode: 'guess_spread', embed: { gameId: 'SEA-DEN', visible: false } }));
     expect(hidden).toContain('shared a Spread result');
-    expect(hidden).toContain('Lock in your Spread pick for SEA @ DEN to see this result.');
+    // D-62: the game is drawn as marks (away first) and read as one sentence.
+    const SEA_DEN = { srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' };
+    expect(said(hidden)).toContain('Lock in your Spread pick for Seattle Seahawks at Denver Broncos to see this result.');
+    expect(matchups(hidden)).toEqual([SEA_DEN]);
     expect(hidden).not.toMatch(/PTS/);
     const exact = card(post('result_shared', { mode: 'guess_spread', embed: { gameId: 'SEA-DEN', visible: true, pick: -2.5, points: 10 } }));
     expect(exact).toContain('hit a Bullseye');
     expect(exact).toContain('DEN −2.5 · 10 PTS'); // the stored spread is the home side's: −2.5 is DEN by 2.5
-    expect(exact).toContain('Spread · SEA @ DEN · Exact');
+    expect(said(exact)).toContain('Spread · Seattle Seahawks at Denver Broncos · Exact');
+    expect(matchups(exact)).toEqual([SEA_DEN]);
   });
   it('a kickoff post leads with the Guess The Line mark, lists who is in per game and opens the game thread', () => {
     const html = card(post('kickoff', { actorId: CASEY, createdAt: '2026-10-23T00:15:00Z', embed: { kickoff: '2026-10-23T00:15:00Z', games: [{ gameId: 'SEA-DEN', in: [AVERY, BLAKE], bets: 3 }] }, commentCount: 4 }));
     expect(html).toContain('Thursday night kicked off');
     expect(html).not.toContain('Casey Fixture');
-    expect(html).toContain('SEA @ DEN, 2 players in · 3 bets. Open the game');
+    expect(html).toContain('SEA @ DEN, 2 players in · 3 bets. Open the game'); // the row's name stays text
+    expect(matchups(html)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: '' }]); // inside the named row, hidden
     expect(html).toContain('Game thread · 4');
     expect(markupProblems(html)).toEqual([]);
   });
