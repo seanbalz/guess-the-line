@@ -1,4 +1,4 @@
-import { TrendsScreen } from '../trends/TrendsScreen.jsx';
+import { TrendsPage } from '../trends/TrendsPage.jsx';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
@@ -10,7 +10,7 @@ export function Research() {
   const open = section => shell.go('research', { section, season: null, week: null });
   const section = shell.state.views.research.section;
   if (section === 'games') return <LinesBoard/>;
-  if (section === 'trends') return <TrendsScreen/>;
+  if (section === 'trends') return <TrendsPage/>;
   if (section === 'fantasy') return <FantasyScreen/>;
   return <section className="gx-screen" data-landing="research">
     <div className="gx-focus-heading"><h1 className="gx-t-title">Research</h1>{app.community.data?.week && <p className="gx-t-meta">Week {app.community.data.week.week}</p>}</div>

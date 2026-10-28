@@ -43,3 +43,13 @@ dependent Bet/Challenge destinations and broader device acceptance remain open.
 no CI repair was needed. Release/readback and physical-iPhone acceptance remain
 open. The next source batch keeps enlarged team-chart readouts from moving
 the plot and slider.
+
+## Release recorded October 28, 2026
+
+[PR #296](https://github.com/seanbalz/guess-the-lines-repo/pull/296) records the
+[frontend release](RELEASE_2026_10_28_CHARTS.md) from
+`b4413bf6504d9e8286ca0f7ae1a3b3b7db0e5f6b`, including this batch. The release
+lane verified Pages `b57d894a-34b8-4df7-8125-a46d4438475d` at 15:42:36 UTC.
+This supersedes the pending-release wording above; signed-in readback and
+physical-iPhone acceptance remain open. This task inspected the committed
+evidence and did not repeat deployment or hosted verification.

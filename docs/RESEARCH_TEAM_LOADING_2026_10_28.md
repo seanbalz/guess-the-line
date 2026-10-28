@@ -60,7 +60,19 @@ fixture bundle privacy checks and a final build-size readback passed.
 
 ## Remaining checkpoints
 
-Branch: `codex/lazy-team-sheet`. CI/merge, release/readback, signed-in production
+Branch: `codex/lazy-team-sheet`. Release/readback, signed-in production
 performance and physical-iPhone acceptance remain open. The queue records #293's
 merge separately. No deployment, migration apply or frozen v62 tracker change.
 Verified live-game status and dependent Bet/Challenge destinations remain open.
+
+## Merge verified October 28, 2026
+
+[PR #295](https://github.com/seanbalz/guess-the-lines-repo/pull/295) merged as
+`107fc8e65971c79ee4db4cdbd7180ed3b06978f1` after all nine checks passed on
+`bfe99eb07ad46f31a62e79b82e33d8c8fc67db9d`. Reviews and review threads were empty.
+Before merge, a local regression caught Vite caching a failed stylesheet
+preload; the shared importer now repairs failed styles and keeps repeated
+failures inside the boundary. All four final team cases passed. Main's #294
+migration-history test reconciliation was integrated before the final CI run.
+No production deploy or migration apply was performed by this task. The next
+source batch supplies [on-demand Trends](RESEARCH_TRENDS_LOADING_2026_10_28.md).
