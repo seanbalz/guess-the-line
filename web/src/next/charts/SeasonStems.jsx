@@ -7,8 +7,8 @@ import { useId, useMemo } from 'react';
 import { ChartTooltip } from './ChartTooltip.jsx';
 import { ChartScale } from './ChartScale.jsx';
 
-/** `seasons` are `{ season, w, l, p, units }`; selection is shared with the season table. */
-export function SeasonStems({ seasons, selectedIndex, onSelect, id }) {
+/** `seasons` are `{ season, w, l, p, units }`; selection is shared with the table. `contextLabel` names the trend. */
+export function SeasonStems({ seasons, selectedIndex, onSelect, id, contextLabel }) {
   const scaleId = useId();
   const count = seasons.length;
   const at = Math.max(0, Math.min(selectedIndex, count - 1));
@@ -50,7 +50,7 @@ export function SeasonStems({ seasons, selectedIndex, onSelect, id }) {
         max={count - 1}
         step="1"
         value={at}
-        aria-label="Move across the seasons"
+        aria-label={contextLabel ? `Move across the seasons · ${contextLabel}` : 'Move across the seasons'}
         aria-valuetext={text(shown)}
         onChange={event => onSelect(Number(event.target.value))}
       />

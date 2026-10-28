@@ -43,7 +43,11 @@ hosted readback or actual-phone acceptance.
 Source branch: `codex/research-weekly-trend-retry`. PR #302 merged as
 `97c45a23e594e2490d3993c3266c8aa068012ab1` after all nine checks passed on
 `bb96fa182bd1978640027ac18f535f0ec8cbeee2`; no CI repairs or review findings.
-This batch needs its own CI/merge, release/readback and real iPhone acceptance.
+PR [#303](https://github.com/seanbalz/guess-the-line/pull/303) merged as
+`d737a0c8deaee8ba81faef3144d89a284b65b69e` after all nine checks passed on
+`d190fac6f18098ad25e3a766fa1e7e76be71072a`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and real iPhone acceptance remain open.
 Live/postponed/cancelled status and the dependent Bet/Challenge destinations stay
 open. No deployment, migration apply, scoring rule, collection budget or frozen
 v62 tracker change.
