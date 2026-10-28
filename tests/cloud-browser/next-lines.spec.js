@@ -1153,12 +1153,6 @@ test('a direct game open checks results on demand, ignores a late reply after pa
   const waiting = new Promise(resolve => { release = resolve; });
   try {
     now = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 3600000;
-    // The fixture's owner read uses its storage clock; align that view with the injected handler clock.
-    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/personal'), async route => {
-      const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers() }));
-      const body = await response.json(); body.now = new Date(now).toISOString();
-      await route.fulfill({ status: response.status, json: body });
-    });
     await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
     await page.goto('/#trends'); await expect(title(page, 'Trends')).toBeVisible();
     await expect(page.locator('[data-trend-availability]')).toBeVisible();
@@ -1173,10 +1167,12 @@ test('a direct game open checks results on demand, ignores a late reply after pa
       if (chosen === 'hold') await waiting;
       await route.fulfill({ status: 200, json: body }).catch(() => {});
     });
+    const directCalls = apiCalls(page);
     await page.getByRole('button', { name: 'Game details · SEA @ DEN', exact: true }).click();
     const sea = sheet(page, 'SEA @ DEN'), recorded = dialog => dialog.getByRole('region', { name: 'Recorded result', exact: true });
     await expect(recorded(sea)).toContainText('No recorded result checked yet.');
     expect(requests).toBe(0);
+    expect(directCalls.filter(call => call === 'POST /lines/game')).toHaveLength(1);
     const check = recorded(sea).getByRole('button', { name: 'Check recorded result', exact: true });
     await check.click(); await expect(check).toBeDisabled(); await expect(recorded(sea).getByRole('status')).toHaveText('Checking recorded result…');
     await check.evaluate(button => { button.click(); button.click(); }); expect(requests).toBe(1);

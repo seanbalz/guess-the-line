@@ -31,6 +31,7 @@ import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { recordsThroughText } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
 import { RecordedResult } from './RecordedResult.jsx';
+import { useGameLines } from './useGameLines.js';
 import './lines.css';
 
 function YouRows({ rows, onOpen }) {
@@ -73,6 +74,7 @@ export function GameSheet({ args }) {
   const close = () => { if (shell.confirmLeave()) shell.closeSheet(); };
   const view = useMemo(() => (personal.data ? gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, records, gameId: args.game }) : null),
     [personal.data, community, trendsWeek, trends.status, records, args.game]);
+  const markets = useGameLines(lines, view?.id);
   const officials = useOfficials(shown?.season, shown?.week, Boolean(view));
   const wind = useWind(shown?.season, shown?.week, Boolean(view));
   const order = useMemo(() => openedBoardOrder(personal.data, app.accountId, args.boardOrder), [personal.data, app.accountId, args.boardOrder]);
@@ -110,14 +112,14 @@ export function GameSheet({ args }) {
         {recordsThroughText(teams.data) && teams.data.season === shown?.season ? <p className="gx-t-meta gx-c-2 gx-l-through">{recordsThroughText(teams.data)}</p> : null}
       </div>
 
-      <RecordedResult key={`${app.accountId}:${shown?.season}:${shown?.week}`} lines={lines} game={view} snapshot={result}/>
+      <RecordedResult key={`${app.accountId}:${shown?.season}:${shown?.week}`} lines={lines} game={markets.status === 'ready' ? { ...view, started: markets.data.game.started === true } : view} snapshot={result}/>
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={youId}>
         <h3 className="gx-t-section" id={youId}>{LINES_COPY.youOnGame}</h3>
         <YouRows rows={view.you} onOpen={app.accountId && shown ? market => shell.openSheet('sh.yourPick', { game: view.id, market, accountId: app.accountId, season: shown.season, week: shown.week }) : null}/>
       </section>
 
-      <MarketDetails lines={lines} gameId={view.id}/>
+      <MarketDetails read={markets} gameId={view.id}/>
 
       {app.accountId && shown && <Card variant="flush"><Expander key={`${app.accountId}:${shown.season}:${shown.week}:${view.id}`} title="Everyone’s guesses" summary="Community · Spread and Total">
         <EveryoneGuesses lines={lines} game={{ id: view.id, awayCode: view.away.code, homeCode: view.home.code }} onGuess={market => shell.go('play', { section: 'picks', market, season: shown.season, week: shown.week })}/>

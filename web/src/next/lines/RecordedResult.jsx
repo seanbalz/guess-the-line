@@ -36,7 +36,7 @@ export function RecordedResult({ lines, game, snapshot }) {
       if (pending.current?.controller === controller) pending.current = null;
     }
   };
-  if (!app.accountId || !shown || (!snapshot && !game.started)) return null;
+  if (!app.accountId || !shown || (!observation && !game.started)) return null;
   const result = observation?.result;
   return <Card as="section" aria-label="Recorded result" className="gx-vstack gx-gap-8">
     <h3 className="gx-t-section">Recorded result</h3>

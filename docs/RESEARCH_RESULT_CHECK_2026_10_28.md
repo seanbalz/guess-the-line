@@ -37,19 +37,24 @@ can be explicitly checked in place with one weekly read and retained focus;
 a direct Trends open makes no automatic read, deduplicates pending clicks,
 ignores a late reply after paging, cancels pending status on return, and recovers
 error, missing-final and wrong-week states before showing a zero-score tie.
-The direct-open fixture aligns its owner-view clock with the injected handler
-clock; fixture finals and times are not production evidence.
+The direct-open fixture deliberately keeps a stale personal-week clock. The
+existing game reader supplies current kickoff eligibility and is shared with
+the market section; exactly one game read is made. Completed local observations
+stay visible during that reader’s refresh. Fixture finals and times are not
+production evidence.
 
 Four checked-result 320px Light/Dark and forced-color screenshots were inspected;
 axe and touch-target checks passed. Full Vitest (466), 59 result/navigation/
-modal/model/token/brand tests and typecheck passed. The expanded 95-case
-shell/Research/Lines/Trends/gesture run is in progress. Final build/privacy and
-CI/merge results will be recorded separately.
+modal/model/token/brand tests and typecheck passed. All 95 final expanded
+shell/Research/Lines/Trends/gesture cases passed after sharing the game reader,
+along with Brand QA and the final fixture build/privacy scan. CI/merge results
+will be recorded separately.
 
 ## Remaining checkpoints
 
 Source branch: `codex/research-result-check`. CI/merge, release/readback and real
-iPhone acceptance remain open. PR #300 must pass CI and merge first. Automatic
+iPhone acceptance remain open. PR [#300](https://github.com/seanbalz/guess-the-lines-repo/pull/300)
+merged as `7dda6d758a3218f1ec9286db4ce5ca901eb33444` after all nine checks passed on `a1ea585719d2e2361d32a0b3eff4fceec9d2623d`. Automatic
 live/postponed/cancelled status still needs a supported source/time path. This
 manual check does not complete that work. No deployment, migration apply,
 scoring rule, collection budget or frozen v62 tracker change.
