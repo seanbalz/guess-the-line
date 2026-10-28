@@ -83,6 +83,41 @@ off.
   scanned too. Also the 390 px real-slip case in
   `tests/cloud-browser/social-no-league.spec.js`.
 
+## Automatic settlement (M-19, D-64 proposed) — October 28, 2026
+
+**Status: written, not applied or deployed; the rule is proposed (D-64).** Pending shared tickets settle without the
+owner once the game is final and its Pacific day has ended.
+
+- **Database.** `20261028120000_gtl_social_auto_settle.sql` adds two service-only, security-invoker functions and
+  replaces nothing. `gtl_social_auto_grade(season, week, entry, now)` grades one ticket from the D-26 finals ledger
+  (`gtl_virtual_units_settlements`): `settle` (win/loss/push/void with final score, margin, net units, ledger version,
+  source, observedAt, eligibleAt), `waiting` (`no_final`, `postponed`, `before_day_end`) or `manual` (`parlay`, `prop`,
+  `unknown_game`, `invalid`). `gtl_settle_social_pending(season?, week?, now?, dry_run)` applies it to every pending
+  ticket under the week's row lock, bumps the week revision once, and appends one `settle` audit event per ticket by
+  actor `system`. It writes no `gtl_social_commits` row, so no feed post. `p_now` can only move the clock back
+  (preview); `p_dry_run` writes nothing.
+- **Eligibility.** 00:00 America/Los_Angeles on the day after kickoff. If the ledger ever marked the game postponed or
+  cancelled, the day of the observed final or cancellation instead. Latest postponed: pending. Latest cancelled: void.
+- **Grading.** D-26: spread = own score − other score + saved line; total = (home + away − line) × ±1; zero is a push.
+  Net units: win = stake × American multiplier (four places), loss = −stake, push = 0, void = none. An unpriced win
+  settles and stays outside ROI, as before. Saved terms never change.
+- **Never overwritten.** A result the owner reported (`user_reported`). A ticket the owner reported and then reopened
+  as pending (counted as `userReopened`). The owner of a tracked ticket can report a different result over the
+  system's; it is then theirs. A corrected final (a newer ledger version) re-grades only system settlements, once per
+  version. A later postponement never un-settles.
+- **Manual.** Parlays and props, and a leg whose game is not on that week's published slate (counted in
+  `needsManual`). NBA tickets (`nba_private.bets`) have no verified final feed and stay owner-settled.
+- **Schedule.** `cloud/results-refresh.mjs` calls it for the claimed season after `gtl_settle_virtual_units`, on every
+  `gtl-results-refresh` run (`:05`/`:35`). A missing function (worker deployed before the apply) is a no-op.
+- **Backfill.** `supabase/admin/settle_pending_backfill.sql`: a read-only preview by week and would-be result, a dry
+  run, the other pending stores, then the one write (commented out). The first worker run after both steps does the
+  same.
+- **Screens.** Details & history says "Settled automatically from the verified final score"; virtual tickets read
+  "settled from the verified final score". Records, ROI and charts read the result like any other.
+- **Tests.** `tests/social-auto-settle.test.mjs` (node grading edge cases; PGlite on `ALL`: grants, day end, push,
+  void, postponed, no final, reschedule, correction, owner results and reopen, replay, dry run, twin parity, the
+  handler reading a system settlement) and `tests/results-refresh.test.mjs`.
+
 ## Accounting and scope
 
 W–L–P uses included reported results; pushes do not enter win percentage. ROI is

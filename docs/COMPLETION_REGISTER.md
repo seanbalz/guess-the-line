@@ -357,6 +357,10 @@ Q17-C remains open. Community Members merged in
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.
 Manual Settlement is in [PR #214](https://github.com/seanbalz/guess-the-lines-repo/pull/214).
 It does not close M-18 challenge grading or M-19 scheduled settlement/status.
+M-19's shared-ticket part (D-64, proposed): automatic settlement of pending Bet Tracker tickets after the game's
+Pacific day, called by the existing results worker, plus a one-time backfill for Week 7 and earlier, is written in
+`20261028120000_gtl_social_auto_settle.sql` (not applied; see the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md)).
+Challenge settlement (M-18) and a status reader remain open.
 Week opening is the next commissioner page after the current design focus.
 The [preservation matrix](REDESIGN_PRESERVATION_2026_10_26.md) still identifies
 history, export, journal, older-record and recovery gaps. Keep one implementation

@@ -222,7 +222,7 @@ export function socialView(state, { actorId, profiles = [], games = [], season =
       audit: state.audit.filter(event => event.entryId === entry.id).map(event => ({ action: event.action, at: event.at, reason: event.reason, before: publicEntry(event.before), after: publicEntry(event.after) })),
       tailCount: state.entries.filter(tail => tail.sourceEntryId === entry.id).length, canTail: Boolean(actorId && actorId !== entry.ownerId && entry.outcome === 'pending' && preKickoff && !state.entries.some(tail => tail.ownerId === actorId && tail.sourceEntryId === entry.id)),
       netUnits: account?.net ?? null, accountingBasis: account?.basis ?? null, potentialProfitUnits, potentialReturnUnits: potentialProfitUnits === null ? null : round(entry.stakeUnits + potentialProfitUnits),
-      provenance: entry.origin === 'virtual' ? 'Virtual units; awaiting verified automatic results' : 'User-reported external bet', lateEntry: entry.legs.some(leg => {
+      provenance: entry.origin === 'virtual' ? (entry.settlementSource === 'automatic_final' ? 'Virtual units; settled from the verified final score' : 'Virtual units; awaiting verified automatic results') : 'User-reported external bet', lateEntry: entry.legs.some(leg => {
         const game = entryGames.find(game => game.id === leg.gameId), kickoff = Date.parse(game?.kickoff ?? game?.kickoffAt);
         return Number.isFinite(kickoff) && Date.parse(entry.recordedAt) >= kickoff;
       }) };

@@ -12,6 +12,31 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-64 (proposed — needs Sean) — pending shared bets settle automatically after the game's day (October 28, 2026)
+
+**Status: proposed, not approved.** Sean: "make sure that all pending bets are settled after the day that the game
+completes. There are still pending bets from week 7." Virtual Units and recommended picks already settle on every
+`gtl-results-refresh` run (D-26). Shared Bet Tracker tickets had no automatic path, so they stayed pending until their
+owner reported a result. The draft PR adds `20261028120000_gtl_social_auto_settle.sql` (the shared-ticket part of M-19):
+
+1. **When.** A pending single settles once its game's latest D-26 ledger row is a verified `final` **and** the game's
+   America/Los_Angeles calendar day has ended (00:00 Pacific the day after kickoff; Pacific day is the convention the
+   app already uses for week opening and pick days). A game the ledger ever recorded as postponed or cancelled uses the
+   day its final (or cancellation) was observed, so a rescheduled game waits for its actual day. Latest `postponed`:
+   stays pending. Latest `cancelled`: void.
+2. **What.** Spread and total singles, graded exactly as D-26 (cover the saved line; exactly on it is a push); net units
+   from the ticket's saved odds and stake. The tracker has no moneyline market. Parlays and props stay pending and are
+   reported as needing a manual result.
+3. **Who.** A `settle` audit event by actor `system`, with source, sourceUrl and observedAt; `settlementSource`
+   `automatic_final`. A result the owner reported is never overwritten, a ticket its owner reopened is left alone, and
+   an owner can still report a different result over the system's. A corrected final re-grades only system settlements.
+4. **How.** The results worker calls it after storing finals (every 30 minutes); `supabase/admin/settle_pending_backfill.sql`
+   previews and, once, settles the backlog (Week 7 and earlier).
+
+Needs Sean: approve the rule (Pacific day end; parlays/props manual; owners may override), "apply M-19", and a
+`results-refresh` deploy. Details: [SOCIAL_BET_TRACKER.md](SOCIAL_BET_TRACKER.md#automatic-settlement-m-19-d-64-proposed--october-28-2026)
+and the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md).
+
 ## D-63 (proposed — needs Sean) — user trend builder and saved-trend matches (October 28, 2026)
 
 **Status: proposed, not approved.** Sean asked why TrendsCenter "finds things like this and we aren't". The draft PR
