@@ -35,7 +35,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
   20261027160000, // D-61 gtl_odds_slots_before_points_open: odds slots 06:15/18:15 UTC, awaiting Sean's "apply D-61 odds".
-  20261026220000, // gtl_fantasy_feed_bucket (D-59)
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -163,6 +162,7 @@ export const APPLIED = [
   20261026131000, // M-21 gtl_feed_reactions: hosted as 20261027145634 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
   20261026132000, // M-22 gtl_league_feed: hosted as 20261027145711 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
   20261026133000, // M-23 gtl_kickoff_posts: hosted as 20261027145740 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
+  20261026220000, // D-59 gtl_fantasy_feed_bucket: hosted as 20261028131021 on October 28, 2026; see RELEASE_2026_10_28_D59_TRENDS.md.
   20261026230000, // M-27 gtl_me_history: hosted as 20261027160702 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
   20261026231000, // M-28 gtl_me_export: hosted as 20261027160732 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.
   20261026233000, // M-12 gtl_bets_boards: hosted as 20261027164010 on October 27, 2026; see RELEASE_2026_10_27_FEED_MIGRATIONS.md.

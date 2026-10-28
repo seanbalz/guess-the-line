@@ -1,12 +1,13 @@
 # Fantasy feed release card (D-59)
 
-Drafted October 26, 2026. **Not applied and not deployed:** each hosted step below waits for
-Sean's OK at the time. Sean's instruction: "Use the fantasy-feed bucket. Draft the migration plus a
+Drafted October 26, 2026. **Step 2 done October 28** (Sean: "Approved: apply D-59 … through the Supabase SQL editor in
+my signed-in Chrome, then deploy gtl-fantasy-ingest"); each other hosted step below waits for Sean's OK at the time. Sean's instruction: "Use the fantasy-feed bucket. Draft the migration plus a
 gtl-fantasy-ingest function with its own upload secret on a task branch; apply nothing live."
 
 ## What it adds
 
-- **Migration** `20261026220000_gtl_fantasy_feed_bucket.sql` (in `NOT_HOSTED`): one private
+- **Migration** `20261026220000_gtl_fantasy_feed_bucket.sql` (applied October 28, 2026, hosted as `20261028131021`;
+  see [RELEASE_2026_10_28_D59_TRENDS.md](RELEASE_2026_10_28_D59_TRENDS.md)): one private
   Storage bucket, `fantasy-feed`, JSON only, 10 MiB per object. It adds **no storage policy**.
   Row level security on `storage.objects` then denies anon and authenticated everything in the
   bucket, and only `service_role` reaches it. Before inserting, the file checks that row level

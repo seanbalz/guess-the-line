@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { HOSTED, migrationSql } from './migrations.mjs';
+import { HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
 import { seed } from '../server/store.mjs';
 import { accuracy, round } from '../server/domain.mjs';
 import { handleCommunity, providerCommunityError } from '../cloud/community.mjs';
@@ -42,7 +42,7 @@ test('community history: every player, week and market with the line at each gue
     assert.ok(MIGRATIONS.indexOf(MIGRATION) < MIGRATIONS.indexOf(later), `${later} applies after the history migration`);
   }
   const db = new PGlite(); t.after(() => db.close());
-  await db.exec('create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key); grant usage on schema public,auth to service_role;');
+  await db.exec(PRELUDE);
   // The Week 5 slate from the seed with an open window (deadline two hours ahead, kickoffs after it) so a D-16 save can run;
   // Sean's seed Spread ballot is migrated by 20261008182836 exactly as the hosted group-league rows were (picks, submittedAt,
   // no scoringReferences, provenance {leagueId, playerId, migration: true}).
