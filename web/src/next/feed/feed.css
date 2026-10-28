@@ -65,7 +65,7 @@
   position: fixed;
   left: var(--gx-size-gutter);
   right: var(--gx-size-gutter);
-  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 96px);
+  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 96px + var(--gx-viewport-gap, 0px));
   max-width: calc(var(--gx-size-content) - 32px);
   margin-inline: auto;
   flex-direction: column;
