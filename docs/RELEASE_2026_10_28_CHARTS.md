@@ -34,3 +34,27 @@ Sean, October 28, 2026: "continue", after the Guidance release
   unchanged. **380 signed-out probes, 380 denied, none awaiting** (#288 added two Bet Tracker probes).
 - **Live readback (this PC):** `/` loads `assets/index-C2m__Aal.js`.
 - **Not verified:** signed-in use and real phones.
+
+## Signed-in readback — October 28, 2026, about 21:45 UTC
+
+Sean, October 28: "go ahead", after asking to be taken to the live app in Chrome on the Mac mini. By then the live
+frontend was a later release from `91e3f51` (Pages `0a4c0d25`, [RELEASE_2026_10_28_NEW_APP_ONLY.md](RELEASE_2026_10_28_NEW_APP_ONLY.md)),
+which contains `b4413bf`; since then `web/src/next/teams` and `web/src/next/trends` changed only in #295 (on-demand team
+sheet) and #298 (lazy Research trends). Chrome on the Mac mini (desktop window, 1920px wide), the account already signed in there, read
+only: no guess, draft or setting was changed (all 14 Week 8 spread guesses were already locked).
+
+- **Build:** the page and a no-store fetch of `/` both load `assets/index-CWQ5bfDN.js`; no service worker.
+- **#293 team chart:** Play › Guess the Spread › the Green Bay Packers logo opens the team sheet: 4–3 through Week 7,
+  last five L W W W L, seven margin bars, "scale +24 to −21 points". With the slider focused, Home, four ArrowRight
+  presses and End (real key presses) moved the selection 0, 1, 2, 3, 4 and 6; the plot stayed at top 515px, height
+  183px and the slider at 758px for every selection, focus stayed on "Move across the games", and the page had no
+  horizontal overflow.
+- **#291 player comparison:** Research › Trends › Players shows the bounds above each chart: "Scale: −1.385 to +1.385
+  points" (signed), "Scale: 0 to 2.357 points" (absolute error), "Scale: 0 to 100%" (cover rate), a signed bound on
+  each Week 8 sentiment chart, and "Scale unavailable" on CHI @ SEA, which has 0 permitted guesses. Each figure's
+  `aria-describedby` names its scale. The bounds keep three decimals while the bar values round to two (+1.38 against
+  the +1.385 bound); that is how #291 renders the plotting range, noted here and not changed.
+- **Errors:** after a reload, no console errors; all 29 requests answered 200, including `gtl-api` `/lobby`,
+  `/community/read`, `/personal`, `/trends/week` and `/community/history`.
+- **Still not verified:** real phones, and the enlarged-text 390/320px case #293 fixed (covered by its browser specs,
+  not repeated on a device).
