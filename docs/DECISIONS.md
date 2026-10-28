@@ -12,7 +12,7 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
-## D-62 (proposed — needs Sean) — user trend builder and saved-trend matches (October 28, 2026)
+## D-63 (proposed — needs Sean) — user trend builder and saved-trend matches (October 28, 2026)
 
 **Status: proposed, not approved.** Sean asked why TrendsCenter "finds things like this and we aren't". The draft PR
 adds Trends › Build: up to three conditions from the prepared nflverse history, a result card always labelled "Found by
@@ -22,7 +22,8 @@ market is open, D-39); and up to 20 saved trends per device with a "matches this
 is ranked by result. D-32's tested presets are unchanged and stay the only tiered trends. No migration and no `gtl-api`
 change; a Pages deploy ships it. Needs Sean: approve the feature and its labels; whether held-out agreement may be
 shown at all; alerts (push/email) and account-synced saved trends as follow-ups. Details:
-[TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-62-october-28-2026).
+[TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026).
+
 ## D-62 — Teams as marks, this weekend's records when picking, and a team page (October 27, 2026)
 
 Sean: "Anytime teams are mentioned it should show the first team logo @ the other team logo.. this app needs to prefer

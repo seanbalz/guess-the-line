@@ -1,4 +1,4 @@
-// Trends › Build (proposed D-62): choose a side and up to three conditions the prepared history supports, then see the
+// Trends › Build (proposed D-63): choose a side and up to three conditions the prepared history supports, then see the
 // record against the nflverse closing line, the built-on and held-out periods, the contributing games and which of this
 // week's games fit. A built trend is always "Found by search — not tested"; nothing here ranks or sorts by result.
 // Saved trends live on this device only (no account sync, no alerts yet).

@@ -13,8 +13,6 @@ vi.mock('../web/src/api.js', () => ({ meApi: vi.fn() }));
 vi.mock('../web/src/next/home/HomeSummaries.jsx', () => ({ ScoreSummaryRow: () => <p>Your scores</p>, BetsSummaryRow: () => <p>My bets</p> }));
 const state = vi.hoisted(() => ({ home: null }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => state.home }));
-// The saved-trends row reads this week's games only when this device has saved trends (none in node).
-vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => ({ personal: {}, shown: null, trends: { status: 'idle' }, trendsWeek: null }) }));
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { Home } = await import('../web/src/next/home/Home.jsx');

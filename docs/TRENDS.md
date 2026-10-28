@@ -28,7 +28,7 @@ Recurring descriptions require at least five decided directional games across th
 
 GTL sentiment describes only guesses the viewer may see, compared with each player's own saved reference and time. It is not a sportsbook money/ticket split. Private-league analysis uses only its roster-scoped history; unavailable private data never falls back to Community. The per-game and per-market reveal rules apply before every aggregate, chart, count and callout. Account or league changes clear prior scope data synchronously.
 
-## Trend builder and saved-trend matches — proposed D-62 (October 28, 2026)
+## Trend builder and saved-trend matches — proposed D-63 (October 28, 2026)
 
 Sean asked why TrendsCenter "finds things like this and we aren't". GTL only showed pre-registered, out-of-sample-tested presets; it had no user builder and no way to see when a saved trend fits this week. Trends › **Build** adds both, under the same honesty rules. It needs a Pages deploy only: **no `gtl-api` change, no migration**.
 

@@ -1,4 +1,4 @@
-// Offline publication step for the trend builder's history (proposed D-62, docs/TRENDS.md "Trend builder").
+// Offline publication step for the trend builder's history (proposed D-63, docs/TRENDS.md "Trend builder").
 // node scripts/prepare-trend-builder.mjs [--season-file shared/trends/season-2026-week-07.csv] [--check]
 // Input: the frozen nflverse history and a redacted season file already in the repository. Output: played games only,
 // with the builder's condition values computed by the same engine as every trend (shared/trends.mjs buildFeatures).

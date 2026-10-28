@@ -1,4 +1,4 @@
-// Trend builder (proposed D-62): a member stacks up to three conditions on one market and side and sees how that
+// Trend builder (proposed D-63): a member stacks up to three conditions on one market and side and sees how that
 // situation went against the nflverse closing line. Pure and browser-safe: no React, no storage, no clock.
 //
 // Honesty rules (docs/TRENDS.md "Trend builder"): a built trend is always labelled "Found by search — not tested";

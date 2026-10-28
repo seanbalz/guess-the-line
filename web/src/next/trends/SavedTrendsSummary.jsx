@@ -1,4 +1,4 @@
-// "Matches this week" for the trends saved on this device (proposed D-62): one line on Trends › This Week and one
+// "Matches this week" for the trends saved on this device (proposed D-63): one line on Trends › This Week and one
 // row on Home. It counts saved trends that fit at least one upcoming game, using the same matching as the builder (the
 // week's schedule, and a line only from the viewer's own saved line once that market is open). No alerts are sent.
 import { Button, Card, Pill } from '../ui/index.js';
