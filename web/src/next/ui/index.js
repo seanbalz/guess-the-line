@@ -26,6 +26,7 @@ export { Avatar, AvatarStack, avatarFill, initials, AVATAR_FILLS, AVATAR_SIZES }
 export { Sheet } from './Sheet.jsx';
 export { Dialog } from './Dialog.jsx';
 export { InfoButton } from './InfoButton.jsx';
+export { Nest, NestMeter, NestSpark, NEST_MAX_STEPS } from './Nest.jsx';
 export { Toast, toastDuration, TOAST_TONES, TOAST_MS } from './Toast.jsx';
 export { Overlay } from './Overlay.jsx';
 export { TeamMark, teamCode, TEAM_MARK_SIZES } from './TeamMark.jsx';

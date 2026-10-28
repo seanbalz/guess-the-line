@@ -115,7 +115,7 @@ test('Trends code waits for a visit, including with saved Home trends, and its l
   mode='ready';release();
   await expect(page.locator('[data-trend-availability]')).toBeVisible();await expect(region).toBeFocused();
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
-  await expect(page.getByRole('combobox',{name:'Player',exact:true})).toHaveValue(ACCOUNTS.luke.id);
+  await expect(page.locator('[data-player]').first()).toHaveAttribute('data-player',ACCOUNTS.luke.id);
   await noSentinel(page);
   const loaded=requests;await nav(page).getByRole('button',{name:/^Home(,|$)/}).click();await open();
   await expect(group(page,'Trends section')).toBeVisible();expect(requests).toBe(loaded);
@@ -154,6 +154,7 @@ test('Trends stylesheet failures stay local until an explicit retry restores its
   expect(requests).toBe(3);releaseStyle();
   await expect(group(page,'Trends section')).toBeVisible();
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
+  await page.locator(`[data-player="${ACCOUNTS.luke.id}"]`).click(); await page.locator('[data-measure=gap]').click();
   await expect(page.locator('.gx-tr-chart').first()).toHaveCSS('display','flex');
   expect(requests).toBe(3);await noSentinel(page);expect(world.errors).toEqual([]);
  } finally {releaseStyle();await world.db.close();}
@@ -162,53 +163,68 @@ test('Trends stylesheet failures stay local until an explicit retry restores its
 test('player comparison bars label exact observations and distinguish zero from missing samples', async ({page,baseURL}, testInfo) => {
  const world = await ready(page,baseURL,{chartValues:true});
  try {
+  // D-66: Players › Luke › By team › CAR holds the team-oriented gap chart; the error and cover charts are Luke's measures.
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
-  await page.getByRole('combobox',{name:'Player team',exact:true}).selectOption('CAR');
-  await page.getByRole('combobox',{name:'Player matchup',exact:true}).selectOption('CAR-ATL');
-  const chart = page.locator('.gx-tr-chart').first(), rows = chart.locator('.gx-tr-observation');
+  const pl = page.getByRole('region',{name:'Player trends',exact:true}), lip = n => pl.locator('.gx-nest-lip').nth(n);
+  await pl.locator(`[data-player="${ACCOUNTS.luke.id}"]`).click();
+  await pl.locator('[data-measure=error]').click();
+  await expect(pl.locator('.gx-tr-chart').first().locator('[data-chart-scale]')).toContainText('Scale: 0 to 3.5 points');
+  await lip(1).click(); await pl.locator('[data-measure=teams]').click(); await pl.locator('[data-team=CAR]').click();
+  const chart = pl.locator('.gx-tr-chart').first(), rows = chart.locator('.gx-tr-observation');
   await expect(chart.locator('[data-chart-scale]')).toContainText('Scale: −3.5 to +3.5 points');
-  await expect(page.locator('.gx-tr-chart').nth(1).locator('[data-chart-scale]')).toContainText('Scale: 0 to 3.5 points');
-  await expect(page.locator('.gx-tr-chart').nth(2).locator('[data-chart-scale]')).toContainText('Scale: 0 to 100%');
-  await expect(rows).toHaveCount(5);
-  const expected = ['+3.5','−3.5','0','+3.5','+3.5'];
-  for (let i=0; i<5; i++) {
+  // Weeks 1–5 are CAR at ATL; Week 6 is this week's CAR at PHI guess, still pending, and counts toward the gap.
+  const expected = ['+3.5','−3.5','0','+3.5','+3.5','+3.5'];
+  await expect(rows).toHaveCount(expected.length);
+  for (let i=0; i<expected.length; i++) {
    await expect(rows.nth(i)).toContainText(`2026 Week ${i+1}`);
    await expect(rows.nth(i).locator('.gx-tr-observation-label > span').last()).toHaveText(expected[i]);
    await expect(chart.getByRole('row').nth(i+1).getByRole('cell').first()).toHaveText(expected[i]);
   }
   await expect(rows.nth(2).locator('rect')).toHaveCount(0);
   await expect(rows.nth(2).locator('.gx-tr-zero-point')).toHaveCount(1);
-  const cover = page.locator('.gx-tr-chart').nth(2), missing = cover.locator('.gx-tr-observation').filter({hasText:'2026 Week 4'});
-  await expect(missing).toContainText('No sample');
-  await expect(missing.locator('rect,circle')).toHaveCount(0);
-  await expect(cover.getByRole('row').filter({hasText:'2026 Week 4'}).getByRole('cell').first()).toHaveText('No sample');
   await expect(rows.nth(0).locator('rect')).toHaveAttribute('x','150');
   await expect(rows.nth(1).locator('rect')).toHaveAttribute('x','22');
   expect(await chart.locator('svg').evaluateAll(nodes=>nodes.every(el=>el.getAttribute('aria-hidden')==='true'))).toBe(true);
   for (const theme of ['light','dark']) {
    await page.setViewportSize({width:320,height:844});
-   await page.evaluate(theme => document.documentElement.dataset.theme=theme,theme);
+   await page.evaluate(theme=>{localStorage.setItem('gtl.theme',theme);window.dispatchEvent(new StorageEvent('storage',{key:'gtl.theme',newValue:theme}));},theme); await expect(page.locator('html')).toHaveAttribute('data-theme-preference',theme); // the app's own preference, so a layer change keeps it
    for (const forcedColors of ['none','active']) {
     await page.emulateMedia({forcedColors,colorScheme:theme});
     await chart.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
     await chart.screenshot({path:testInfo.outputPath(`player-bars-${theme}-${forcedColors}.png`)});
+    await phone(page); await noSentinel(page);
+    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))).toEqual([]);
+    const colors = await rows.nth(2).locator('circle').evaluate(el=>({stroke:getComputedStyle(el).stroke,fill:getComputedStyle(el).fill}));
+    expect(colors.stroke).not.toBe(colors.fill);
+   }
+  }
+  await page.setViewportSize({width:390,height:844}); await page.emulateMedia({forcedColors:'none'});
+  await lip(1).click(); await pl.locator('[data-measure=covers]').click();
+  const cover = pl.locator('.gx-tr-chart').first(), missing = cover.locator('.gx-tr-observation').filter({hasText:'2026 Week 4'});
+  await expect(cover.locator('[data-chart-scale]')).toContainText('Scale: 0 to 100%');
+  await expect(missing).toContainText('No sample');
+  await expect(missing.locator('rect,circle')).toHaveCount(0);
+  await expect(cover.getByRole('row').filter({hasText:'2026 Week 4'}).getByRole('cell').first()).toHaveText('No sample');
+  for (const theme of ['light','dark']) {
+   await page.setViewportSize({width:320,height:844});
+   await page.evaluate(theme=>{localStorage.setItem('gtl.theme',theme);window.dispatchEvent(new StorageEvent('storage',{key:'gtl.theme',newValue:theme}));},theme); await expect(page.locator('html')).toHaveAttribute('data-theme-preference',theme); // the app's own preference, so a layer change keeps it
+   for (const forcedColors of ['none','active']) {
+    await page.emulateMedia({forcedColors,colorScheme:theme});
     await phone(page); await noSentinel(page);
     const evidence = cover.getByRole('region');
     expect(await evidence.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
     expect(await cover.getByRole('columnheader', {name:'Decisions',exact:true}).evaluate(el => getComputedStyle(el).overflowWrap)).toBe('normal');
     await evidence.focus();
     await page.keyboard.press('End');
-    await chart.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
+    await cover.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
     expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))).toEqual([]);
-    const colors = await rows.nth(2).locator('circle').evaluate(el=>({stroke:getComputedStyle(el).stroke,fill:getComputedStyle(el).fill}));
-    expect(colors.stroke).not.toBe(colors.fill);
     await cover.screenshot({path:testInfo.outputPath(`player-percent-${theme}-${forcedColors}.png`)});
    }
   }
   expect(world.errors).toEqual([]);
  } finally { await world.db.close(); }
 });
-test('published week, market gates, team filters, game sheets/back, player windows and exact evidence',async({page,baseURL})=>{
+test('published week, market gates, team filters, game sheets/back, player windows and exact evidence',async({page,baseURL},testInfo)=>{
  const world=await ready(page,baseURL);
  try {
   await expect(page.getByText('Published week: 2026 Week 6',{exact:false})).toBeVisible();
@@ -220,11 +236,38 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(page.getByText(/Total line-based records are hidden/).first()).toBeVisible();
   await noSentinel(page);
   await group(page,'Trends market').getByRole('button',{name:'Spread',exact:true}).click();
+  // D-66 nesting cards: Teams › team › trend, one smaller layer per tap; lips and back return one layer at a time.
   await group(page,'Trends section').getByRole('button',{name:'Teams',exact:true}).click();
-  await page.getByRole('combobox',{name:'Team',exact:true}).selectOption('CAR');
-  await expect(page.getByRole('region',{name:'Team history comparisons'})).toContainText('CAR @ PHI');
-  await page.getByRole('combobox',{name:'Matchup',exact:true}).selectOption('CAR-PHI');
-  await page.getByRole('button',{name:'Game details · CAR @ PHI',exact:true}).click();
+  const nest=page.getByRole('region',{name:'Team trends',exact:true});
+  await expect(nest.getByRole('heading',{level:2,name:'Teams',exact:true})).toBeVisible();
+  await expect(nest.locator('[data-team]')).toHaveCount(8);
+  await page.screenshot({path:testInfo.outputPath('nest-teams-390.png'),fullPage:true});
+  await expect(nest).not.toContainText('Past results since 2002');
+  await nest.locator('[data-team=CAR]').click();
+  await expect(nest.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeFocused();
+  await expect(page).toHaveURL(/teamsTeam=CAR/);
+  await expect(nest).toContainText('CAR @ PHI');
+  await page.screenshot({path:testInfo.outputPath('nest-team-390.png'),fullPage:true});
+  const tile=nest.locator('button.gx-nest-tile').first();
+  const trendTitle=(await tile.locator('.gx-nest-tile-label').textContent()).trim();
+  await tile.click();
+  await expect(nest.getByRole('heading',{level:2,name:trendTitle,exact:true})).toBeFocused();
+  await expect(page).toHaveURL(/teamsTrend=t[0-9a-z]+/);
+  await expect(nest.getByRole('button',{name:'Back to Carolina Panthers',exact:true})).toBeVisible();
+  await expect(nest.locator('.gx-pill').first()).toBeVisible();
+  for (const width of [390,320]) {
+   await page.setViewportSize({width,height:844});
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await page.screenshot({path:testInfo.outputPath(`nest-trend-${width}.png`),fullPage:true});
+   expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.goBack(); await expect(nest.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
+  await nest.getByRole('button',{name:'Back to Teams',exact:true}).click();
+  await expect(nest.getByRole('heading',{level:2,name:'Teams',exact:true})).toBeVisible();
+  await nest.locator('[data-team=CAR]').click();
+  await noSentinel(page);
+  await nest.getByRole('button',{name:'Game details · CAR @ PHI',exact:true}).click();
   const sheet=page.getByRole('dialog',{name:'CAR @ PHI',exact:true}); await expect(sheet).toBeVisible();
   await expect(sheet.locator('[data-row=weather]')).toBeVisible();
   await expect(sheet.locator('[data-section=trends]')).toBeVisible();
@@ -233,26 +276,34 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await sheet.getByRole('button',{name:/^All trends/}).click();
   await expect(page.getByRole('dialog',{name:'All trends',exact:true}).locator('[data-trend-availability]')).toBeVisible();
   await page.goBack(); await expect(sheet).toBeVisible(); await page.goBack(); await expect(sheet).toBeHidden();
+  // D-66: Players › Luke › By team › CAR › For CAR replaces the team and matchup filters.
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Market accuracy',exact:true})).toBeVisible();
-  await page.getByRole('combobox',{name:'Player team',exact:true}).selectOption('CAR');
-  await expect(page.getByText(/Recurring pattern · CAR · for/)).toBeVisible();
-  await page.getByText('Current-week saved-reference context · same direction',{exact:true}).first().click();
-  await expect(page.getByText(/not a current sportsbook line/)).toBeVisible();
-  await page.getByRole('combobox',{name:'History window',exact:true}).selectOption('last5');
-  await expect(page.getByRole('figure').first()).toBeVisible();
-  await page.getByRole('combobox',{name:'Player matchup',exact:true}).selectOption('CAR-ATL');
-  await expect(page.getByRole('combobox',{name:'Player matchup',exact:true})).toHaveValue('CAR-ATL');
-  const games=page.getByRole('group',{name:'Player trends'}); // region's label remains accessible independently of role.
-  await page.locator('.gx-tr-details > summary').filter({hasText:/^Contributing games/}).first().click();
+  const pl=page.getByRole('region',{name:'Player trends',exact:true});
+  await expect(pl.getByRole('heading',{level:2,name:'Players',exact:true})).toBeVisible();
+  await pl.locator(`[data-player="${ACCOUNTS.luke.id}"]`).click();
+  await pl.locator('[data-measure=teams]').click(); await pl.locator('[data-team=CAR]').click();
+  await expect(pl.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeFocused();
+  await expect(pl.getByRole('figure').first()).toBeVisible();
+  await expect(pl.locator('[data-direction=for]')).toContainText('Recurring pattern');
+  await pl.locator('[data-direction=for]').click();
+  await expect(pl.getByRole('heading',{level:2,name:'For CAR',exact:true})).toBeFocused();
+  await expect(pl.locator('.gx-nest-lip')).toHaveCount(4);
+  await pl.locator('.gx-tr-details > summary').filter({hasText:/^This week, same direction/}).click();
+  await expect(page.getByRole('heading',{name:'2026 Week 6 · Carolina Panthers at Philadelphia Eagles',exact:true})).toBeVisible();
+  await pl.locator('.gx-tr-details > summary').filter({hasText:/^Contributing games/}).first().click();
   await expect(page.getByText('Fixture saved books',{exact:false}).first()).toBeVisible();
   await expect(page.getByText('Panthers −7',{exact:true}).first()).toBeVisible();
   await noSentinel(page);
   expect(new URL(page.url()).hash.startsWith('#research/trends?')).toBe(true); expect(new URL(page.url()).hash).not.toMatch(/guess|reference|points|99.125|97.625/); expect(new URL(page.url()).search).toBe('');
+  expect(new URL(page.url()).hash).toContain('playerItem=CAR%3Afor');
+  await page.goBack(); await expect(pl.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
+  await pl.locator('.gx-nest-lip').nth(1).click();
+  await pl.getByRole('combobox',{name:'History window',exact:true}).selectOption('last5');
+  await expect(pl.locator('[data-measure=points]')).toBeVisible();
   await nav(page).getByRole('button',{name:'Home',exact:true}).click(); await page.goBack();
   await expect(page.getByRole('heading',{name:'Trends',level:1})).toBeVisible();
-  await expect(page.getByRole('combobox',{name:'History window',exact:true})).toHaveValue('last5');
-  await page.reload(); await expect(group(page,'Trends section').getByRole('button',{name:'Players',exact:true})).toHaveAttribute('aria-pressed','true'); await expect(page.getByRole('combobox',{name:'History window',exact:true})).toHaveValue('last5'); await expect(page.getByRole('combobox',{name:'Player team',exact:true})).toHaveValue('CAR'); await expect(page.getByRole('combobox',{name:'Player matchup',exact:true})).toHaveValue('CAR-ATL'); await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
+  await expect(pl.getByRole('combobox',{name:'History window',exact:true})).toHaveValue('last5');
+  await page.reload(); await expect(group(page,'Trends section').getByRole('button',{name:'Players',exact:true})).toHaveAttribute('aria-pressed','true'); await expect(pl.getByRole('combobox',{name:'History window',exact:true})).toHaveValue('last5'); await expect(pl.locator('[data-measure=points]')).toBeVisible(); await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
   expect(world.errors).toEqual([]);
  } finally {await world.db.close();}
 });
@@ -268,17 +319,19 @@ test('fixture screenshots and axe at 320/390 in light/dark for This Week and pop
    await page.screenshot({path:'.local/trends-week-'+width+'-'+theme+'.png',fullPage:true});
    await page.screenshot({path:'.local/trends-week-'+width+'-'+theme+'-viewport.png'});
    await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
-   await expect(page.getByRole('heading',{name:'Market accuracy',exact:true})).toBeVisible();
-   await page.getByRole('combobox',{name:'Player team',exact:true}).selectOption('CAR');
-   await phone(page);await noSentinel(page);
-   expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
-   await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'.png',fullPage:true});
-   await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-viewport.png'});
-   await page.locator('.gx-tr-chart').first().scrollIntoViewIfNeeded(); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-charts-viewport.png'});
-   await page.getByText('Recurring pattern · CAR · for',{exact:true}).first().scrollIntoViewIfNeeded(); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-callout-viewport.png'});
-   const context=page.locator('summary').filter({hasText:/^Current-week saved-reference context/}).first(); await context.click(); await page.locator('summary').filter({hasText:/^Current context/}).first().click();
-   await page.getByRole('heading',{name:'2026 Week 6 · Carolina Panthers at Philadelphia Eagles',exact:true}).first().evaluate(el => el.scrollIntoView({block:'start'})); await page.evaluate(() => window.scrollBy(0,-80)); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-current-viewport.png'});
-   await context.click();
+   const pl=page.getByRole('region',{name:'Player trends',exact:true});
+   const check=async name=>{ await phone(page);await noSentinel(page);
+    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.screenshot({path:'.local/trends-players-'+name+'-'+width+'-'+theme+'.png',fullPage:true}); };
+   await expect(pl.locator('[data-player]').first()).toBeVisible(); await check('players');
+   await pl.locator(`[data-player="${ACCOUNTS.luke.id}"]`).click(); await expect(pl.locator('[data-measure=points]')).toBeVisible(); await check('player');
+   await pl.locator('[data-measure=teams]').click(); await pl.locator('[data-team=CAR]').click(); await expect(pl.getByRole('figure').first()).toBeVisible(); await check('team');
+   await pl.locator('[data-direction=for]').click(); await pl.locator('summary').filter({hasText:/^This week, same direction/}).click();
+   await expect(page.getByRole('heading',{name:'2026 Week 6 · Carolina Panthers at Philadelphia Eagles',exact:true}).first()).toBeVisible(); await check('direction');
+   await pl.locator('.gx-nest-lip').first().click(); await expect(pl.getByRole('heading',{level:2,name:'Players',exact:true})).toBeVisible();
+   await pl.getByRole('button',{name:/^This week/}).click(); await expect(pl.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible(); await check('week');
+   await pl.locator('.gx-nest-lip').first().click(); await expect(pl.getByRole('heading',{level:2,name:'Players',exact:true})).toBeVisible();
   }
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
@@ -289,16 +342,17 @@ test('history error/retry, vanished data and private comparison unavailable fail
  await page.route('**/functions/v1/gtl-api/community/history',async route=>failed?route.fulfill({status:503,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({error:'Fixture unavailable'})}):route.fallback());
  try{
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
-  await expect(page.getByRole('alert').filter({hasText:'Fixture unavailable'})).toBeVisible(); await expect(page.getByRole('heading',{name:'Market accuracy'})).toHaveCount(0);
-  failed=false;await page.getByRole('button',{name:'Try again',exact:true}).click();await expect(page.getByRole('heading',{name:'Market accuracy'})).toBeVisible();
+  await expect(page.getByRole('alert').filter({hasText:'Fixture unavailable'})).toBeVisible(); await expect(page.locator('[data-player]')).toHaveCount(0);
+  failed=false;await page.getByRole('button',{name:'Try again',exact:true}).click();await expect(page.locator(`[data-player="${ACCOUNTS.luke.id}"]`)).toBeVisible();
+  await page.locator(`[data-player="${ACCOUNTS.luke.id}"]`).click(); await expect(page.locator('[data-measure=points]')).toBeVisible();
   await world.db.transaction(async tx=>{await tx.exec('set local session_replication_role=replica');await tx.query('delete from public.gtl_weekly_ballots where user_id=$1',[ACCOUNTS.luke.id]);});
   await page.getByRole('button',{name:'Refresh player history',exact:true}).click();
-  await expect(page.getByText(/No eligible locked guesses/)).toBeVisible();await expect(page.getByRole('heading',{name:'Market accuracy'})).toHaveCount(0);
+  await expect(page.getByText(/No eligible locked guesses/)).toBeVisible();await expect(page.locator('[data-measure]')).toHaveCount(0);
   await page.route('**/functions/v1/gtl-api/league/comparison',route=>route.fulfill({status:503,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({error:'Private comparison unavailable'})}));
   await page.getByRole('button',{name:/^League: Community/}).click();
   await page.getByRole('dialog',{name:'Your leagues',exact:true}).locator('button').filter({hasText:world.state.league.name}).first().click();
   const prior=calls.length;await expect(page.getByRole('alert').filter({hasText:'Private comparison unavailable'})).toBeVisible();
-  await expect(page.getByText(/No eligible locked guesses/)).toHaveCount(0);await expect(page.getByRole('heading',{name:'Market accuracy'})).toHaveCount(0);expect(calls.length).toBe(prior);
+  await expect(page.getByText(/No eligible locked guesses/)).toHaveCount(0);await expect(page.locator('[data-measure],[data-player]')).toHaveCount(0);expect(calls.length).toBe(prior);
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
@@ -307,26 +361,29 @@ test('populated scopes mask synchronously while private read waits; next account
  const world=await ready(page,baseURL); let release; const waiting=new Promise(resolve=>{release=resolve;}); let privateStarted=false;
  try{
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Market accuracy'})).toBeVisible();
-  await page.getByRole('combobox',{name:'Player team',exact:true}).selectOption('CAR');
+  await page.locator(`[data-player="${ACCOUNTS.luke.id}"]`).click();
+  await page.locator('[data-measure=teams]').click(); await page.locator('[data-team=CAR]').click();
+  await expect(page.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   await page.route('**/functions/v1/gtl-api/league/comparison',async route=>{privateStarted=true;await waiting;await route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify({error:'Private scope unavailable'})});});
   await page.getByRole('button',{name:/^League: Community/}).click();
   await page.getByRole('dialog',{name:'Your leagues',exact:true}).locator('button').filter({hasText:world.state.league.name}).first().click();
   await expect.poll(()=>privateStarted).toBe(true);
   await expect(page.getByText('Loading scoped player history…')).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Market accuracy'})).toHaveCount(0);
-  await expect(page.getByRole('combobox',{name:'Player',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('region',{name:'Player trends',exact:true})).toHaveCount(0);
+  await expect(page.locator('[data-player],[data-measure],[data-direction]')).toHaveCount(0);
   release(); await expect(page.getByRole('alert').filter({hasText:'Private scope unavailable'})).toBeVisible();
   await page.getByRole('button',{name:/^League:/}).click();
   await page.getByRole('dialog',{name:'Your leagues',exact:true}).getByRole('button',{name:/Community/}).first().click();
-  await expect(page.getByRole('heading',{name:'Market accuracy'})).toBeVisible();
+  await expect(page.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Your menu',exact:true}).click(); await page.getByRole('button',{name:'Sign out',exact:true}).click();
   await signIn(page,'sean',{navigate:false});await expect(page.getByRole('heading',{name:'Trends',level:1})).toBeVisible();
   await nav(page).getByRole('button',{name:'Research',exact:true}).click(); await page.locator('[data-landing=research]').getByRole('button',{name:'Trends',exact:true}).click();
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
-  await expect(page.getByRole('combobox',{name:'Player',exact:true})).toHaveValue(ACCOUNTS.sean.id);
-  await expect(page.getByRole('combobox',{name:'Player team',exact:true})).toHaveValue('');
-  await expect(page.getByRole('heading',{name:'Market accuracy'})).toHaveCount(0);
+  // A new account starts at Players with itself first; the previous account's player, team and direction are gone.
+  await expect(page.getByRole('heading',{level:2,name:'Players',exact:true})).toBeVisible();
+  await expect(page.locator('.gx-nest-lip')).toHaveCount(0);
+  await expect(page.locator('[data-player]').first()).toHaveAttribute('data-player',ACCOUNTS.sean.id);
+  expect(new URL(page.url()).hash).not.toMatch(/player=|playerLayer|playerItem/);
   await noSentinel(page);expect(world.errors).toEqual([]);
  }finally{release();await world.db.close();}
 });
