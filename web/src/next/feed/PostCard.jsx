@@ -5,7 +5,7 @@
 import { useShell } from '../shell/context.js';
 import { Avatar, AvatarStack, Button, Card, FieldMark, Icon, IconButton, LockLine, Pill } from '../ui/index.js';
 import { fmtNum, fmtPostTime, plural } from '../format.js';
-import { MARKET, commentButton, gameName, guessText, lateWords, postLine, postMeta, reactionChips, realSlipPost, systemPost } from './feedModel.js';
+import { MARKET, commentButton, gameName, guessText, lateWords, postLine, postLink, postMeta, reactionChips, realSlipPost, systemPost } from './feedModel.js';
 import { react } from './feedActions.js';
 
 function BallotRows({ post, names, viewer, shell }) {
@@ -73,7 +73,7 @@ export function ReactionRow({ post, leagueId }) {
 export function PostCard({ post, names, viewer, now, leagueId }) {
   const shell = useShell();
   const system = systemPost(post), actor = names.get(post.actorId)?.displayName || 'Former member';
-  const line = postLine(post), meta = postMeta(post), late = lateWords(post);
+  const line = postLine(post), meta = postMeta(post), late = lateWords(post), link = postLink(post);
   const preview = post.comments ?? [];
   return <Card as="article" className="gx-feed-post" data-post={post.id} data-kind={post.kind} aria-label={`${system ? line : `${actor} ${line}`}, ${fmtPostTime(post.createdAt, now)}`}>
     <div className="gx-feed-head">
@@ -88,7 +88,7 @@ export function PostCard({ post, names, viewer, now, leagueId }) {
     {post.kind === 'ballot_submitted' ? <BallotRows post={post} names={names} viewer={viewer} shell={shell}/> : null}
     {post.kind === 'result_shared' ? <ResultEmbed post={post}/> : null}
     {post.kind === 'kickoff' ? <KickoffRows post={post} names={names} shell={shell}/> : null}
-    {realSlipPost(post) ? <Button variant="ghost" className="gx-feed-act" iconEnd="chevronRight" onClick={() => shell.go('bets', { section: 'tracked' })}>See real slips</Button> : null}
+    {link ? <Button variant="ghost" className="gx-feed-act" iconEnd="chevronRight" onClick={() => shell.go(link.tab, link.view)}>{link.text}</Button> : null}
     <ReactionRow post={post} leagueId={leagueId}/>
     {preview.length ? <div className="gx-vstack gx-gap-4 gx-feed-preview">
       {preview.map(comment => <p key={comment.id} className="gx-feed-cm"><span className="gx-t-meta gx-c-2 gx-none">{names.get(comment.userId)?.displayName || 'Former member'}</span> <span className="gx-feed-cm-text">{comment.body}</span></p>)}

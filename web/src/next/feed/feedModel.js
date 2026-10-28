@@ -107,9 +107,23 @@ export function namesLine(names) {
   return `${names.slice(0, 2).join(', ')} and ${names.length - 2} more`;
 }
 
-/** System posts (the week opened, a kickoff) lead with the Guess The Line mark, not the publisher's face. */
-export const systemPost = post => post.kind === 'kickoff' || post.kind === 'week_published';
+/**
+ * System posts (the week opened, a kickoff, a week's recap, the season's awards) lead with the Guess The Line mark, not
+ * the publisher's face: the features job (M-25) posts the recap and the season's awards as that week's publisher.
+ */
+const SYSTEM_KINDS = new Set(['kickoff', 'week_published', 'weekly_recap', 'season_champion']);
+export const systemPost = post => SYSTEM_KINDS.has(post.kind);
 export const realSlipPost = post => post.kind === 'bet_posted' || post.kind === 'bet_settled';
+const FEATURES = Object.freeze({ tab: 'play', view: Object.freeze({ section: 'features' }) });
+
+/** The one link under a post, or null: a real slip opens Bets; a badge, streak or awards post opens Badges and awards. */
+export function postLink(post) {
+  if (realSlipPost(post)) return { text: 'See real slips', tab: 'bets', view: { section: 'tracked' } };
+  if (post.kind === 'badge_earned') return { text: 'See badges', ...FEATURES };
+  if (post.kind === 'streak_milestone') return { text: 'See your streaks', ...FEATURES };
+  if (post.kind === 'weekly_recap' || post.kind === 'season_champion') return { text: 'See the awards', ...FEATURES };
+  return null;
+}
 
 /** The words after the actor's name ("locked in Week 6 Spread picks"); a system post's whole line. */
 export function postLine(post) {
@@ -125,6 +139,11 @@ export function postLine(post) {
     case 'points_final': return `${(post.embed?.winners?.length ?? 0) > 1 ? 'tied for the win in' : 'won'} ${week}Points`.replace(/\s+/g, ' ').trim();
     case 'result_shared': return post.embed?.visible && post.embed.points === 10 ? 'hit a Bullseye' : `shared a ${market} result`.replace(/\s+/g, ' ');
     case 'kickoff': return `${kickoffSlot(post.embed?.kickoff ?? post.createdAt, post.embed?.games?.length ?? 1)} kicked off`;
+    case 'weekly_recap': return post.week ? `Week ${post.week} awards are in` : 'Weekly awards are in';
+    case 'season_champion': return post.season ? `${post.season} season awards are in` : 'Season awards are in';
+    // The embed names no badge yet (gtl_feed_embed passes none), so the line names the week.
+    case 'badge_earned': return `earned a ${week}badge`.replace(/\s+/g, ' ');
+    case 'streak_milestone': return 'hit a streak milestone';
     default: return 'posted an update';
   }
 }
