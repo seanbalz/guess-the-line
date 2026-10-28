@@ -30,12 +30,14 @@ frontend once the screens are.
 
 ## Release 2: frontend
 
-- **Source:** `main` at **`SOURCE_FRONTEND`** (screens PRs merged), frontend only, after Release 1.
+- **Source:** `main` at **`befc0f38bed7c5b5b2bf614f9808b0edca1c0268`** (#282), frontend only, after Release 1. #283 follows
+  as its own frontend run once it is on `main`, so the records and team page do not wait for it.
 - **What ships:**
   - [#282](https://github.com/seanbalz/guess-the-lines-repo/pull/282): the shared Matchup (away mark @ home mark), each
     team's record on Play's game card, the Lines board and the game sheet, the team sheet with its margin chart and
     season games, and the locked-in card led by its score, with the details behind ⓘ.
-  - LOGOS_PR: matchups drawn as marks across the rest of the app.
+  - [#283](https://github.com/seanbalz/guess-the-lines-repo/pull/283) (next run): matchups drawn as marks across the rest
+    of the app.
   - `shared/team-records-2026.json` through Week 7 (#281), the fallback and the old app's team facts.
 - **Compatibility:** reads `POST /lines/teams` (Release 1); without it, the bundled file.
 - **Migrations:** none.
