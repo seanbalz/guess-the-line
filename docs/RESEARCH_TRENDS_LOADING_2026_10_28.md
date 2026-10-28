@@ -65,7 +65,18 @@ publication checkpoint.
 
 ## Remaining checkpoints
 
-Source branch: `codex/lazy-research-trends`. CI/merge, release/readback, signed-in
+Source branch: `codex/lazy-research-trends`. Release/readback, signed-in
 production performance and physical-iPhone acceptance remain open. Verified
 live-game status and dependent Bet/Challenge destinations remain open. No
 production deploy, migration apply or frozen v62 tracker change.
+
+## Merge verified October 28, 2026
+
+[PR #298](https://github.com/seanbalz/guess-the-lines-repo/pull/298) merged as
+`34f18a69d48f4fb3544783221352ba7ef7d495ce` after all nine checks passed on
+`33b44f8173bb9f560aebf4c04cbbfde8482376b6`. Reviews and review threads were empty;
+no CI repairs were required. The next source batch separates
+[recorded finals and result provenance](RESEARCH_FINAL_RESULTS_2026_10_28.md).
+Main's independently merged #297 viewport change is integrated in that next
+batch, with its dock/keyboard browser cases and full 466-test Vitest suite
+passing locally. This is source/test evidence, not deployment or phone acceptance.

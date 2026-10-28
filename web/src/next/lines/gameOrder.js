@@ -12,6 +12,15 @@ export function boardOrder(personal) {
   return [...upcoming, ...started].map(game => ({ id: game.id, title: `${teamOf(game.away).code} @ ${teamOf(game.home).code}` }));
 }
 
+/** The displayed board order is a scoped, in-memory snapshot; labels always come from the current week. */
+export function openedBoardOrder(personal, accountId, context) {
+  const fallback = boardOrder(personal);
+  if (!accountId || context?.accountId !== accountId || context.season !== personal?.season || context.week !== personal?.week ||
+    !Array.isArray(context.ids) || context.ids.length !== fallback.length || new Set(context.ids).size !== fallback.length) return fallback;
+  const byId = new Map(fallback.map(game => [game.id, game]));
+  return context.ids.every(id => byId.has(id)) ? context.ids.map(id => byId.get(id)) : fallback;
+}
+
 /**
  * The game sheet's pager for `gameId` in `order`: `{ index, count, unit, prevLabel, nextLabel, prev, next }`, or null
  * when the game is not on the board or is its only game. `prev` and `next` are the neighbouring game ids (null at an end).

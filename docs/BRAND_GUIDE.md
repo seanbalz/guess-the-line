@@ -363,3 +363,11 @@ Guidance and sources.
   panel skeleton and a local text/retry state while code loads. Navigation stays
   available; the same named content region retains retry focus. Existing tokens,
   chart treatment and D-63 proposed labels are unchanged.
+
+- **Recorded final cards (October 28):** keep completed matchups in a named Final
+  section, with a strong readable score and separate result-source/observation
+  metadata. Label commissioner-reported results and kickoff times explicitly.
+  Use Kickoff passed when only the scheduled time is known; reserve live styling
+  for a verified in-progress state. Existing card, text and wrapping tokens apply.
+  Game-sheet arrows and swipes follow the displayed board order captured on
+  opening, with account/week guards; this snapshot stays out of URL/history.

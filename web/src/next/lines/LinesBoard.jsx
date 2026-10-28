@@ -50,8 +50,9 @@ function GameCard({ card, records, onOpen }) {
   );
   return (
     <CardButton className="gx-l-card" aria-label={withRecords(card.aria, card, records)} data-game={card.id} onClick={onOpen}>
-      {card.status ? <span className="gx-t-meta gx-l-chead">{card.status}</span> : null}
-      {card.showTime ? <span className="gx-t-meta gx-l-chead">{card.time}</span> : null}
+      {card.status ? <span className={`${card.final ? 'gx-t-strong' : 'gx-t-meta'} gx-l-chead`}>{card.status}</span> : null}
+      {card.final ? <span className="gx-l-observation gx-t-meta gx-c-2">{card.final.provenance}</span> : null}
+      {card.showTime ? <span className="gx-t-meta gx-l-chead">{card.final?.kickoff ?? card.time}</span> : null}
       <span className="gx-l-teams">
         {team(card.away, 1, records?.away)}
         {team(card.home, 2, records?.home)}
@@ -108,7 +109,11 @@ export function LinesBoard({ trendsOnly = false }) {
   const revealScope = { accountId: app.accountId, season: shown?.season, week: shown?.week };
   const gate = boardGate(markets, forfeitView(community, revealScope)?.canConfirm === true);
   const enter = () => shell.go('play', { section: 'picks', market: gate.market, season: shown.season, week: shown.week });
-  const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', { game: gameId });
+  const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', {
+    game: gameId,
+    ...(!trendsOnly && board && shown ? { boardOrder: { accountId: app.accountId, season: shown.season, week: shown.week,
+      ids: [...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? []), ...(board.finals?.cards ?? [])].map(card => card.id) } } : {}),
+  });
   const head = (
     <div className="gx-vstack gx-gap-2">
       <div className="gx-l-sechead">
@@ -140,16 +145,17 @@ export function LinesBoard({ trendsOnly = false }) {
       {head}
       <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
       {!trendsOnly && <>
-        {markets.status === 'loading' ? <p className="gx-sr-only" role="status">Loading market lines…</p>
-          : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines are unavailable. Your saved guesses are kept.</p> : null}
+        {markets.status === 'loading' ? <p className="gx-sr-only" role="status">Loading market lines and results…</p>
+          : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines and results are unavailable. Your saved guesses are kept.</p> : null}
         <GateBanner gate={gate} onCta={enter} onSkip={() => shell.openDialog('dlg.forfeit', revealScope)} note="See picks now requires a final sit-out confirmation. Locked guesses count; drafts are kept."/>
         <Button variant="ghost" onClick={markets.reload}>{markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}</Button>
       </>}
-      {trendsOnly ? <><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
+      {trendsOnly ? <><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? []), ...(board.finals?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
         {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} season={season} onOpen={open}/>)}
         {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} season={season} onOpen={open}/> : null}
+        {board.finals ? <Group label={`${board.finals.label} · ${board.finals.count} ${board.finals.count === 1 ? 'game' : 'games'}`} cards={board.finals.cards} season={season} onOpen={open}/> : null}
       </>}
-      {!board.groups.length && !board.started ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}
+      {!board.groups.length && !board.started && !board.finals ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}
     </div>
   );
 }
