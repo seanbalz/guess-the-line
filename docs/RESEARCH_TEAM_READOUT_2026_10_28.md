@@ -23,8 +23,10 @@ by 40px, then passed afterward. It doubles the readout font/leading while keepin
 the layout at 390/320px, tests both keyboard endpoints in Light/Dark and forced
 colors, checks focus and overflow, and captures four enlarged-text views.
 The existing linked result/chart case also passed. After integrating #291, all
-67 Lines/Research/Trends/gesture browser cases and 83 team/Research/Trends/chart
-component tests passed, along with 19 token/brand tests and typecheck. Four
+67 Lines/Research/Trends/gesture browser cases passed. After integrating main's
+team-guidance and settlement changes, both focused team browser cases and
+84 team/Research/Trends/chart component tests passed on the final source.
+19 token/brand tests and typecheck also passed. Four
 enlarged-text 320px screenshots were inspected. Brand QA, fixture bundle privacy
 and whitespace checks passed. These are local fixture/emulation results;
 physical-device acceptance remains separate.

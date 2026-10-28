@@ -367,8 +367,10 @@ The [steady team-chart readout batch](RESEARCH_TEAM_READOUT_2026_10_28.md)
 reserves the tallest supplied game label so enlarged text does not move the
 plot or slider when selection changes. Source branch: `codex/team-chart-readout`.
 The regression failed before and passed after the fix; all 67 integrated
-Lines/Research/Trends/gesture browser cases, 83 component and 19 token/brand tests,
-typecheck, Brand QA and fixture bundle privacy checks passed. Four 320px
+Lines/Research/Trends/gesture browser cases passed before the final main
+integration; both affected team browser cases and 84 component tests passed
+on the final source. 19 token/brand tests, typecheck, Brand QA and fixture bundle
+privacy checks passed. Four 320px
 enlarged-text ordinary/forced-color screenshots were inspected. CI/merge,
 release/readback and device acceptance remain open.
 
