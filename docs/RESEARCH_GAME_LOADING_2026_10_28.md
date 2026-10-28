@@ -66,8 +66,12 @@ production lazy boundary. Fixtures are not signed-in production evidence.
 Source branch: `codex/lazy-game-details`. PR #301 merged as
 `327b8e83409c3b564bd652697ed54261fd8ac741` after all nine checks passed on
 `c5573f099b120901df3f4112067fe8eaf73e04cf`; no CI repairs or review findings.
-This batch still needs CI/merge, release/readback, signed-in performance and
-physical-iPhone acceptance. Live/postponed/cancelled status and dependent
+PR [#302](https://github.com/seanbalz/guess-the-lines-repo/pull/302) merged as
+`97c45a23e594e2490d3993c3266c8aa068012ab1` after all nine checks passed on
+`bb96fa182bd1978640027ac18f535f0ec8cbeee2`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback, signed-in performance and physical-iPhone acceptance remain
+open. Live/postponed/cancelled status and dependent
 Bet/Challenge destinations stay open. Source readback confirms the Bets slot
 currently exports League bets only; Bet and Challenge depend on stages 44 and 54. No deployment, migration apply, scoring
 rule, collection budget or frozen v62 tracker change.

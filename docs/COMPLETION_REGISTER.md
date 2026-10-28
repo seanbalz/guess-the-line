@@ -474,9 +474,23 @@ cases and caught a Trends harness
 reading section order before deferred content was ready. That assertion now
 awaits those sections; all five final download/style/result/Trends cases passed.
 Eight 320px theme/forced-color captures were inspected; Brand QA and fixture
-privacy checks passed. CI/merge, release/readback, signed-in
-performance and phone acceptance remain open. This does not complete stage 33
+privacy checks passed. PR [#302](https://github.com/seanbalz/guess-the-lines-repo/pull/302) merged as
+`97c45a23e594e2490d3993c3266c8aa068012ab1` after all nine checks passed on
+`bb96fa182bd1978640027ac18f535f0ec8cbeee2`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback, signed-in performance and phone acceptance remain open. This does not complete stage 33
 live status or stage 34's dependent Bet/Challenge action slots.
+
+The [weekly-trend recovery](RESEARCH_WEEKLY_TREND_RETRY_2026_10_28.md) batch,
+`codex/research-weekly-trend-retry`, adds local refresh/retry in the game and All
+trends sheets through the existing weekly reader. Controls retain focus through
+loading, stale fallback, refusal and recovery; independent market locks remain.
+The initial missing-control regression now passes, with eight inspected 320px
+theme/forced-color captures, axe/touch checks, full Vitest (466), 35 shared
+weekly-loader/state/token/brand tests and typecheck. All 98 expanded shell/
+Research/Lines/Trends/gesture cases, Brand QA and final fixture privacy checks
+passed. CI/merge, release/readback and phone acceptance remain open; #302 is
+merged. No live-status or dependent action-slot closure.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

@@ -402,6 +402,75 @@ test('game details recover a failed stylesheet before showing their market and r
   } finally { await world.db.close(); }
 });
 
+test('weekly trends recover inside the game and All trends sheets without changing market gates or focus', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  let mode = 'refused', requests = 0, release;
+  const waiting = new Promise(resolve => { release = resolve; });
+  try {
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/trends/week`, async route => {
+      requests++; const chosen = mode;
+      if (chosen === 'held') await waiting;
+      if (chosen === 'refused' || chosen === 'unavailable') return route.fulfill({ status: chosen === 'refused' ? 403 : 503, json: { error: 'Fixture unavailable' } });
+      const req = route.request();
+      const reply = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      await route.fulfill({ status: reply.status, headers: Object.fromEntries(reply.headers), body: await reply.text() });
+    });
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    const game = sheet(page, 'SEA @ DEN');
+    await expect(game.locator('[data-section="trends"]')).toContainText('Trends didn’t load.');
+    const retry = game.getByRole('button', { name: 'Retry weekly trends', exact: true });
+    await expect(retry).toBeVisible();
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 320, height: 844 });
+      await retry.scrollIntoViewIfNeeded();
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await game.screenshot({ path: info.outputPath(`weekly-trend-game-error-${theme}-${forcedColors}.png`) });
+    }
+    const calls = apiCalls(page), before = requests;
+    mode = 'held'; await retry.click();
+    const refresh = game.getByRole('button', { name: 'Refresh weekly trends', exact: true });
+    await expect(refresh).toBeDisabled(); await expect(refresh).toBeFocused();
+    await expect(game.locator('[data-section="trends"]').getByRole('status')).toHaveText('Loading trends…');
+    await refresh.evaluate(button => { button.click(); button.click(); });
+    await expect.poll(() => requests).toBe(before + 1);
+    mode = 'ready'; release();
+    await expect(game.getByRole('button', { name: /^All trends/ })).toBeVisible();
+    await expect(refresh).toBeFocused(); expect(requests).toBe(before + 1);
+    await game.getByRole('button', { name: /^All trends/ }).click();
+    const all = sheet(page, 'All trends');
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toBeVisible();
+    const allRefresh = all.getByRole('button', { name: 'Refresh weekly trends', exact: true });
+    mode = 'unavailable'; await allRefresh.click();
+    await expect(all.locator('[data-trend-availability]')).toContainText('Refresh unavailable');
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toBeVisible();
+    await expect(allRefresh).toBeFocused();
+    mode = 'refused'; await allRefresh.click();
+    await expect(all.getByRole('status')).toContainText('Trends didn’t load.');
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toHaveCount(0);
+    const allRetry = all.getByRole('button', { name: 'Retry weekly trends', exact: true });
+    await expect(allRetry).toBeFocused();
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await phoneChecks(page, '.gx-l-sheet'); expect(await axe(page)).toEqual([]);
+      await all.screenshot({ path: info.outputPath(`weekly-trend-all-error-${theme}-${forcedColors}.png`) });
+    }
+    mode = 'ready'; await allRetry.click();
+    await expect(all.getByRole('list', { name: 'Trend groups' })).toBeVisible();
+    await expect(allRefresh).toBeFocused();
+    await all.locator('[data-group="line"] button[aria-expanded]').first().click();
+    await expect(all).toContainText('Spread line-based records');
+    await noLeak(page, world, 'weekly trend retry');
+    expect(calls.filter(call => call !== 'POST /trends/week')).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
 test('team details load only on opening; closing, failed download and explicit retry preserve navigation and reads', async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
   const { world } = await lukesWeek(page, baseURL);

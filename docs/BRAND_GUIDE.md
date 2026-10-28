@@ -391,3 +391,9 @@ Guidance and sources.
   failures local with explicit retry and focus in the details group. Preserve
   the existing 16px content gaps, themes and forced-color treatment; never draw
   sample game data while waiting.
+
+- **Weekly-trend recovery in game sheets:** use a secondary Refresh weekly trends
+  control, labelled Retry weekly trends after failure, beside the existing
+  weekly evidence status. Keep it mounted and focusable during loading, expose
+  the busy/disabled state, and retain focus when the evidence returns. Preserve
+  stale provenance, access refusals and independent market locks.
