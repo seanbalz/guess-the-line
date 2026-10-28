@@ -33,4 +33,14 @@ builder frontend ([#285](https://github.com/seanbalz/guess-the-lines-repo/pull/2
 
 ## Results
 
-Pending.
+- **Readiness (frontend)** [run 40691164511](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40691164511)
+  and **frontend** [run 40691813232](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40691813232) from
+  `0e4289a`, gates approved through the GitHub API as Sean's account after each title matched; verified **13:01:07 UTC
+  on October 28**: Pages **`7cca458b-b44f-47c0-a163-f47eb0adc316`** (was `7b7dbabd`), 109 assets per URL, frontend
+  SHA-256 `697e0a0981721706a902c46740f8aec0cdd403f0f24d9c1017c417339ffc4c17`. `gtl-api` v39 (`bec3b634…`) and the
+  history `8a02c480…` (63 rows) unchanged. 378 signed-out probes, 378 denied, none awaiting.
+- **D-59 pre-checks (read-only, about 13:03 UTC):** storage row level security on for `buckets` and `objects`, 0 storage
+  policies, 0 buckets. The file at `0e4289a`, fetched from GitHub in the SQL editor tab: 1404 bytes, SHA-256
+  `276321763a2d2228aab41327a819795a8ef44980146383d1e9fb147d8f48cf27`, equal to the repo copy. **Not applied yet:** loading
+  it into Sean's SQL editor needs Sean's approval of that route by name.
+- **Not verified:** signed-in use and real phones.
