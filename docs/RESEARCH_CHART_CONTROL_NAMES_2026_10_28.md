@@ -31,7 +31,9 @@ acceptance claim.
 
 ## Remaining checkpoints
 
-Source branch: `codex/research-chart-control-names`. PR #303’s CI/merge is pending.
+Source branch: `codex/research-chart-control-names`. PR #303 merged as
+`d737a0c8deaee8ba81faef3144d89a284b65b69e` after all nine checks passed on
+`d190fac6f18098ad25e3a766fa1e7e76be71072a`; no CI repairs or review findings.
 This batch needs its own CI/merge, release/readback and device/assistive-technology
 acceptance. Live/postponed/cancelled status and dependent Bet/Challenge slots
 stay open. No deployment, migration apply, provider, collection-budget, scoring
