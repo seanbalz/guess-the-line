@@ -42,3 +42,12 @@ frontend once the screens are.
 - **Rollback:** redeploy the frontend from `9460635` (Pages `48a36ee4-a4f9-48c8-a64b-b030a7d2d29a`).
 
 ## Results
+
+- **Readiness (API)** [run 40635708798](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40635708798),
+  gate approved through the GitHub API as Sean's account after the title matched: source and exact-SHA CI verified (Tests
+  40633942391, Dashboard checks 40633942056, Brand QA 40633941691, all success).
+- **API** [run 40635900898](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40635900898), gate approved the
+  same way after the title and card matched; verified **05:06:48 UTC on October 28**: `gtl-api` v38 to **v39**, ACTIVE,
+  JWT verification on, bundle `bec3b634da98270129ed7ba68d8cc1633be8c14f4a3ac880c69fcfb456fd481c`
+  (`apiSourceVerified: false`). Hosted history `8a02c480…`, no migration applied (pending in the repo: 20261027160000,
+  20261026220000). Other workers unchanged. **378 signed-out probes, 378 denied, none awaiting.**
