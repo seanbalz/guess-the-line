@@ -441,14 +441,13 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // M-25 and M-26 (redesign stages 69 and 70) are hosted since October 27, 2026 with their routes in gtl-api v38: none awaits.
   const features = Object.fromEntries(Object.entries(awaitingDeploy).filter(([key, until]) => /20261026234000_gtl_league_features|20261026235000_gtl_features_schedule|\/league\/features/.test(until) || key.startsWith('gtl-api/league/features')));
   assert.deepEqual(Object.keys(features).length, 0);
-  // D-62: /lines/teams awaits its gtl-api deploy; the release record removes it here and in scripts/boundary/lines.mjs.
-  assert.deepEqual(awaitingDeploy, { 'gtl-api/lines/teams': 'the gtl-api deploy with /lines/teams (D-62)' }, 'only /lines/teams is awaiting deploy');
+  // D-62: /lines/teams is deployed since gtl-api v39 (October 28, 2026, RELEASE_2026_10_27_TEAMS.md): nothing awaits, and
+  // a missing route is now an unexpected 404.
+  assert.deepEqual(awaitingDeploy, {}, 'nothing is awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
-  // The entry is live: the route's exact not-deployed 404 is reported as awaiting (both probes), never as denied.
-  const notDeployed = await checkCloudBoundary({ ...options, log: () => {}, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
-    ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) });
-  assert.deepEqual(notDeployed.awaiting.map(a => a.until), Array(2).fill(awaitingDeploy['gtl-api/lines/teams']), 'no awaitingDeploy entry is dead');
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
+    ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /lines\/teams without session: unexpected 404/);
   // M-27 and M-28 are hosted and deployed: a missing History or Export function or route is now an unexpected 404.
   for (const rpc of ['gtl_me_slate', 'gtl_me_results', 'gtl_read_ballot_changes', 'gtl_read_me_records', 'gtl_export_me']) assert.ok(!Object.hasOwn(awaitingDeploy, `rpc/${rpc}`), rpc);
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/rest/v1/rpc/gtl_read_ballot_changes')
@@ -529,7 +528,7 @@ test('weekly trends and research probes require authentication, and a missing ro
   }), /trends\/week.*unexpected 200/);
 });
 
-test('D-62 /lines/teams is probed signed out and with an invalid session, and only a denial (or the exact not-deployed 404) passes', async () => {
+test('D-62 /lines/teams is probed signed out and with an invalid session, and only a denial passes', async () => {
   const captured = [];
   const result = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => {
     if (url.endsWith('/functions/v1/gtl-api/lines/teams')) captured.push(request);
@@ -541,7 +540,7 @@ test('D-62 /lines/teams is probed signed out and with an invalid session, and on
   // Records are public history, but the route is signed-in only: a served reply fails the check.
   await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
     ? new Response(JSON.stringify({ season: 2026, teams: {} }), { status: 200 }) : denied(url, request)) }), /POST lines\/teams without session: unexpected 200/);
-  // Before the deploy the function's own "Not found." is awaiting, not denied; --strict fails it.
-  await assert.rejects(checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
+  // Deployed since gtl-api v39: the function's own "Not found." now fails, with or without --strict.
+  await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
     ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /POST lines\/teams without session: unexpected 404/);
 });
