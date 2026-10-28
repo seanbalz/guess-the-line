@@ -84,7 +84,7 @@ test('older records for the commissioner seat: the retired Betting Challenge mat
     await expect(record(ACCOUNTS.troy.id)).toContainText('100.0%');
     await expect(record(ACCOUNTS.luke.id)).toContainText(old.luke.record);
     await expect(record(ACCOUNTS.luke.id)).toContainText('0.0%');
-    await expect(challenge.locator(`[data-selection="${ACCOUNTS.troy.id}:TB-DAL"]`)).toContainText('Troy Fixture · TB @ DAL · DAL −8.5 · −110');
+    await expect(challenge.locator(`[data-selection="${ACCOUNTS.troy.id}:TB-DAL"]`)).toContainText(/Troy Fixture · Tampa Bay Buccaneers at Dallas Cowboys[A-Z@]* · DAL −8\.5 · −110/); // D-62 marks
     await expect(challenge.locator(`[data-selection="${ACCOUNTS.troy.id}:TB-DAL"]`)).toContainText('Won · Final · TB 17, DAL 31 · DraftKings');
     await expect(challenge.locator(`[data-selection="${ACCOUNTS.luke.id}:TB-DAL"]`)).toContainText('Over 48.5');
     await expect(challenge.locator(`[data-selection="${ACCOUNTS.luke.id}:TB-DAL"]`)).toContainText('Lost');
@@ -101,7 +101,7 @@ test('older records for the commissioner seat: the retired Betting Challenge mat
 
     // Forecasts with each saved value.
     await open(page, 'forecasts');
-    await expect(section(page, 'forecasts').locator('[data-forecast="BUF-LAR:total"]')).toContainText('BUF @ LAR · Total');
+    await expect(section(page, 'forecasts').locator('[data-forecast="BUF-LAR:total"]')).toContainText(/Buffalo Bills at Los Angeles Rams[A-Z@]* · Total/);
     await expect(section(page, 'forecasts').locator('[data-forecast="BUF-LAR:total"]')).toContainText('47 → 49.5');
     await back(page);
 
@@ -146,8 +146,8 @@ test('older records for the commissioner seat: the retired Betting Challenge mat
     await open(page, 'benchmark');
     const freeze = section(page, 'benchmark').locator('[data-benchmark]');
     await expect(freeze).toContainText('Frozen');
-    await expect(freeze).toContainText('TB @ DAL · DAL −8.5');
-    await expect(freeze).toContainText('SF @ SEA · SEA −3');
+    await expect(freeze).toContainText(/Tampa Bay Buccaneers at Dallas Cowboys[A-Z@]* · DAL −8\.5/);
+    await expect(freeze).toContainText(/San Francisco 49ers at Seattle Seahawks[A-Z@]* · SEA −3/);
     expect(world.errors).toEqual([]);
   } finally {
     await world.db.close();

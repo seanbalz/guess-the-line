@@ -4,7 +4,9 @@ vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn() }
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
 import { WeeklyScoreContent } from '../web/src/next/play/WeeklyScore.jsx';
 import { ScoreReceipt } from '../web/src/next/play/ScoreReceipt.jsx';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { ComparisonContent } from '../web/src/next/play/ScoreComparison.jsx';
+import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 const game = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-18T20:00:00Z' };
 const entry = { userId: 'owner', mode: 'guess_spread', status: 'draft', eligible: true, scoreTiming: 'immediate', weekPoints: 8, weekScored: 1, standingsPoints: 0, awaitingKickoffPoints: 8, picks: [{ gameId: game.id, guess: -3, lockedIn: true, lockedAt: '2026-10-15T18:00:00Z', points: 8, reference: { value: -5, source: 'Synthetic three-book median', observedAt: '2026-10-15T17:59:00Z' } }] };
@@ -34,5 +36,28 @@ describe('weekly personal scoring', () => {
     const lateEntry = { ...entry, weekPoints: null, picks: [{ ...entry.picks[0], points: null, late: { minutes: 0 }, reference: { value: null, status: 'pending', reason: 'First qualifying quote has not arrived' } }] };
     const html = renderToStaticMarkup(<WeeklyScoreContent data={{ ...data, weeks: [{ ...data.weeks[0], entries: [lateEntry] }] }} view={{ scoreGame: game.id }} onChange={() => {}}/>);
     expect(html).toContain('Late · 0 min'); expect(html).toContain('First qualifying quote has not arrived');
+  });
+});
+
+describe('matchups as marks (D-62)', () => {
+  const SEA_DEN = { srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' };
+  it('each weekly game row leads with the matchup, away first; the Matchup filter keeps its text options', () => {
+    const html = render();
+    expect(matchups(html)).toEqual([SEA_DEN]);
+    const summary = [...walk(parseMarkup(html))].find(n => n.tag === 'summary' && n.children[0]?.attrs?.class?.includes('gx-mu'));
+    expect(nameFrom(summary)).toContain('Seattle Seahawks at Denver Broncos');
+    expect(html).toContain('<option value="SEA-DEN">SEA at DEN</option>');
+  });
+  it('each comparison card’s heading is the week and the matchup as 32px marks', () => {
+    const pick = { gameId: game.id, guess: -3, lockedIn: true, points: 8, reference: { value: -5, source: 'Fixture', observedAt: '2026-10-15T17:59:00Z' } };
+    const other = { ...pick, guess: -6, points: 9 };
+    const history = { viewer: 'owner', season: 2026, seasons: [2026], members: [{ id: 'owner', displayName: 'You' }, { id: 'friend', displayName: 'Friend' }],
+      weeks: [{ season: 2026, week: 6, revealed: { guess_spread: true }, games: [game], entries: [{ userId: 'owner', mode: 'guess_spread', status: 'submitted', picks: [pick] }, { userId: 'friend', mode: 'guess_spread', status: 'submitted', picks: [other] }] }] };
+    const html = renderToStaticMarkup(<div className="gx"><ComparisonContent data={history} currentWeek={6} scopeName="Community" view={{}} onChange={() => {}} onRefresh={() => {}}/></div>);
+    expect(markupProblems(html)).toEqual([]);
+    const heading = [...walk(parseMarkup(html))].find(n => n.tag === 'h2' && nameFrom(n).startsWith('Week 6 · '));
+    expect(nameFrom(heading)).toBe('Week 6 · Seattle Seahawks at Denver Broncos');
+    expect(matchups(heading)).toEqual([SEA_DEN]);
+    expect(html).toContain('gx-mu--32');
   });
 });

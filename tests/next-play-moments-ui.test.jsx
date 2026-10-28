@@ -3,7 +3,8 @@
 // games and players only; the server decides every state (tests/next-play-moments.test.mjs covers the rules).
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn() }));
 const { default: ChipPicker } = await import('../web/src/ChipPicker.jsx');
@@ -91,7 +92,10 @@ describe('week progress', () => {
     expect(tiles.every(n => n.children.some(child => child.tag === 'svg'))).toBe(true);
     const legend = nodes(html).find(n => n.attrs?.['aria-label'] === 'Games by state');
     expect(legend.children.map(textOf)).toEqual(['1Locked', '1Draft', '1Open', '1Kicked off']);
-    expect(html).toContain('Next to lock · HOU at JAX');
+    // D-62: the next game as marks inside the button, away first; the button's name still names the matchup.
+    const next = nodes(html).find(n => n.tag === 'button' && /gx-play-next/.test(n.attrs.class));
+    expect(nameFrom(next).trim()).toBe('Next to lock · Houston Texans at Jacksonville Jaguars');
+    expect(matchups(html)).toEqual([{ srcs: [teamMarks.HOU.src, teamMarks.JAX.src], name: 'Houston Texans at Jacksonville Jaguars' }]);
   });
   it('a finished week has no next button, and an empty week draws nothing', () => {
     const done = weekProgress({ games: games.slice(0, 1), ballot, picks: {}, now: NOW });

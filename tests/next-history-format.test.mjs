@@ -57,6 +57,7 @@ test('a game row: hidden stays hidden; your draft closed at kickoff is worded; t
     reference: { basis: 'saved', status: 'available', value: -3.5, source: 'The Odds API', observedAt: '2026-10-15T20:00:00Z' } }] }, GAME, { now });
   assert.deepEqual([scored.guess, scored.line, scored.points, scored.late], ['DEN −3', 'Line at your guess DEN −3.5', '9 pts', 'Late · 12 min']);
   assert.deepEqual(scored.detail, ['Source · The Odds API', 'Observed Thu Oct 15, 1:00 PM PT']);
+  assert.deepEqual([scored.matchup, scored.away, scored.home], ['SEA @ DEN', 'SEA', 'DEN'], 'the codes for the row\'s marks (D-62), away first');
 });
 
 test('your changes in plain words: drafts, lock-ins with their line, D-16 edits, a resolved line, a ruled import and Late', () => {
@@ -69,6 +70,10 @@ test('your changes in plain words: drafts, lock-ins with their line, D-16 edits,
   assert.deepEqual(line([{ gameId: 'SEA-DEN', kind: 'edited', before: 3, after: -1, reference: { status: 'available', value: 1.5 } }]).map(l => l.text), ['SEA @ DEN: changed SEA −3 to DEN −1 after submitting · line SEA −1.5']);
   assert.deepEqual(line([{ gameId: 'SEA-DEN', kind: 'resolved', reference: { status: 'available', value: -2.5 } }]).map(l => l.text), ['SEA @ DEN: line found · first line after submission DEN −2.5']);
   assert.deepEqual(line([{ gameId: 'SEA-DEN', kind: 'locked', before: null, after: 1, reference: null }], { ruled: { decision: 'D-25' } }).map(l => l.text), ['SEA @ DEN: locked in SEA −1 · commissioner-ruled (D-25)']);
+  const edited = line([{ gameId: 'SEA-DEN', kind: 'edited', before: 3, after: -1, reference: { status: 'available', value: 1.5 } }])[0];
+  assert.deepEqual([edited.away, edited.home, edited.change], ['SEA', 'DEN', 'changed SEA −3 to DEN −1 after submitting · line SEA −1.5'], 'the marks (D-62) and the words after them');
+  const outside = line([{ gameId: 'NYJ-BUF', kind: 'draft', before: null, after: 1 }])[0];
+  assert.deepEqual([outside.away, outside.home, outside.text.slice(0, 2)], [null, null, '—:'], 'a game outside the market stays "—"');
   const late = line([{ gameId: 'SEA-DEN', kind: 'locked', before: 1, after: 1 }], { late: { minutes: 12 } })[0];
   assert.deepEqual([late.at, late.late], ['Thu Oct 15, 1:00 PM PT', 'Late · 12 min']);
   assert.equal(line([{ gameId: 'SEA-DEN', kind: 'draft', before: null, after: 1 }], { at: null })[0].at, 'Time not recorded');

@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import { isRenderableReplay, ReplayViewer, replayClock } from '../web/src/next/simulation/ReplayViewer.jsx';
 import { shapeReplayFixture as replayFixture, replayFixture as generatedReplay } from './fixtures/next-simulation/replay.mjs';
-import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 const render = (replay = replayFixture, props = {}) => renderToStaticMarkup(<div className="gx"><ReplayViewer replay={replay} {...props}/></div>);
 const nodes = html => [...walk(parseMarkup(html))].filter(node => node.tag);
@@ -21,6 +22,15 @@ describe('read-only simulation viewer', () => {
       expect(words(html)).toContain(event.caption);
       expect(nodes(html).some(node => node.attrs['aria-label'] === `Buffalo Bills score ${event.score.home}`)).toBe(true);
     }
+  });
+  it('D-62: the heading draws the matchup as marks, away first, and keeps the replay’s own team names for screen readers', () => {
+    const html = render(generatedReplay);
+    const heading = nodes(html).find(node => node.tag === 'h2');
+    expect(nameFrom(heading)).toBe('Seattle Seahawks at Buffalo Bills');
+    expect(matchups(heading)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.BUF.src], name: '' }]);
+    const section = nodes(html).find(node => node.attrs['aria-labelledby'] === heading.attrs.id);
+    expect(section.attrs.class).toContain('gx-sim-replay');
+    expect(nameFrom(nodes(render()).find(node => node.tag === 'h2'))).toBe('Test Away at Test Home');
   });
   it('renders one snapshot consistently with one primary, named field and controls, and research provenance', () => {
     const html = render();
