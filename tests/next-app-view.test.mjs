@@ -166,6 +166,9 @@ test('the apps keep separate shells and allow only documented workflow and pick-
     'web/src/next/fantasy/FantasyScreen.jsx': ['FantasyFootball.jsx'],
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
     'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
+    // D-65 follow-up: Menu › Commissioner tools reuses the old Final scores and Odds connection editors, and the pure
+    // odds-schedule formatter, through one adapter.
+    'web/src/next/me/commissioner/LegacyTools.jsx': ['ResultReviewControls.jsx', 'ManualOddsControls.jsx', 'marketStatus.js'],
     // The existing D-21 chip control is reused, never a classic screen or shell.
     'web/src/next/play/PerGamePlay.jsx': ['ChipPicker.jsx'],
   };

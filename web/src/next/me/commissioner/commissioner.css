@@ -1,0 +1,9 @@
+/* Menu › Commissioner tools (D-65 follow-up). Native rows use the shared gx- classes; the adapted editors sit in gx-live-workflow. */
+.gx .gx-cm-stack { display: grid; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-cm-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-cm-fields label,
+.gx .gx-cm-field { display: grid; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-cm-games { display: grid; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-cm-games li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--gx-space-1) var(--gx-space-3); min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-cm-problem { color: var(--gx-loss); }
+.gx .gx-cm-legacy { min-width: 0; overflow-wrap: anywhere; }
