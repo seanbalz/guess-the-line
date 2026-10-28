@@ -517,14 +517,33 @@ Research, with static loading panels, stable route/retry focus and local code/
 stylesheet repair. Initial static graph is 26,093 raw bytes smaller (6,267
 estimated gzip); once opened, total estimated gzip is 1,311 bytes larger.
 Both focused browser cases, eight inspected 320px theme/forced-color captures,
-axe/touch checks, Vitest (468), 37 shell/Fantasy-loader/ranking/token/brand tests
+axe/touch checks, Vitest (468), 37 Fantasy-loader/ranking/token/brand tests
 and typecheck passed. All 108 expanded browser cases, both final focused cases,
-final fixture privacy and Brand QA passed. #304 is merged; this batch’s own
-CI/merge, release/readback, signed-in performance and phone acceptance remain
-open. Q12–Q14's old branch-only wording is corrected: their
+final fixture privacy and Brand QA passed. PR [#306](https://github.com/seanbalz/guess-the-line/pull/306)
+merged as `3387457f69d0724c3faf04a51c552fe151df4fb1` after all nine checks passed
+on `25236cc486b81bd3b34697c635b6348c660e69fd`; reviews/threads were empty and
+no CI repair was needed. Release/readback, signed-in performance and phone
+acceptance remain open. Q12–Q14's old branch-only wording is corrected: their
 existing tools merged in PR #269 as `a6d655ed03b375e48b5159a70dd82ecd2b0030fb`.
 Their feature-specific release/readback and device acceptance remain separate;
 this batch adds no Fantasy feature or integration.
+
+The [on-demand full Research sheet](RESEARCH_SHEET_LOADING_2026_10_28.md) batch,
+`codex/lazy-matchup-research`, keeps its frame eager and loads the existing full
+view on opening, with local code retry, stable focus and no view
+read while held. Inline game research moves to its own module; its body and the
+full view's markup are unchanged. Shared CSS stays eager after a regression
+exposed cross-view style recovery coupling. Initial graph is 21,391 raw bytes smaller (6,229 estimated gzip);
+total estimated gzip is 2,211 bytes larger after full Research opening, or
+597 bytes larger for a game-first journey, with one additional game-detail
+asset. Focused loading coverage, eight inspected 320px
+captures, axe/touch checks, Vitest (468), 56 chart/shell-state/modal/gesture/token/
+brand tests and typecheck passed. All 110 broad cases passed before retaining
+shared CSS eagerly; five final focused Research/recovery cases and final
+game-detail stylesheet/inline-research checks passed after that adjustment.
+Final fixture privacy and Brand QA passed.
+This batch’s own CI/merge, release/readback, signed-in performance and
+phone acceptance remain open. No stage 33 live-status or dependent slot closure.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

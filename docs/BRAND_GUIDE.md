@@ -408,3 +408,10 @@ Guidance and sources.
   style failure and explicit retry local, with a stable content region for focus
   through loading and recovery. Reuse existing screen styles and public data
   behavior; do not draw sample rankings while waiting.
+
+- **Full Research sheet downloads:** keep its title and Close available while
+  shared static panels say Loading research details. Keep code errors and
+  explicit retry local, preserving focus in a stable details group. Reuse the
+  original 16px gaps and existing Research styles; filters, charts and data gates
+  remain the same after loading. Keep shared Research styles eager for reliable
+  recovery across views. Inline game research stays a separate view.

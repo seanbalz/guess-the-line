@@ -8,7 +8,7 @@ import { Card, Icon, InfoButton, List, Pill, Row, Skeleton } from '../ui/index.j
 import { Expander, TrendList, TrendAvailability, TrendRefresh, WeatherDetail } from './parts.jsx';
 import { INFO } from '../info.js';
 import { GameNote } from './GameNote.jsx';
-import { MatchupResearch } from '../research/ResearchSheet.jsx';
+import { MatchupResearch } from '../research/MatchupResearch.jsx';
 import { EveryoneGuesses } from './EveryoneGuesses.jsx';
 import { MarketDetails } from './MarketDetails.jsx';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
