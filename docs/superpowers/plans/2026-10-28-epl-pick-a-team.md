@@ -222,6 +222,20 @@
 - [ ] **Step 4:** `npm test` → PASS.
 - [ ] **Step 5: Commit** `feat(epl): MW9 seed, snapshot import and D-65 records`; push branch, open draft PR, run `npm run sync:check`, report branch, commit, PR and that M-30 is not applied.
 
+### Task 10: Release target `epl-jobs` for the new Edge Function
+
+**Files:**
+- Modify: `.github/workflows/release.yml` (add `epl-jobs` to the `target` options and description; add a deploy step `if: inputs.mode == 'deploy' && inputs.target == 'epl-jobs'` running `./node_modules/.bin/supabase functions deploy gtl-epl-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api`, mirroring the `fantasy-ingest` step exactly), `scripts/release-preflight.mjs` (`EPL_JOBS = 'gtl-epl-jobs'`; `'epl-jobs': Object.freeze({ edgeFunction: EPL_JOBS, pages: false, createsOnFirstDeploy: true })`; the TARGETS usage string; source check requires `supabase/functions/gtl-epl-jobs/index.ts` and the config line), `supabase/config.toml` (`[functions.gtl-epl-jobs]` with `verify_jwt = false`, like `gtl-fantasy-ingest`), `docs/SHARED_DEPLOYMENT.md` (target table row + a dated paragraph like the `fantasy-ingest` one, October 28, 2026)
+- Test: the existing release-preflight tests (`tests/release-preflight*.test.mjs` or wherever `TARGETS` is asserted) extended for `epl-jobs`
+
+**Interfaces:** Consumes Task 5's `supabase/functions/gtl-epl-jobs/index.ts` (if Task 5 has not landed yet in this checkout, the source check still names the path; do not create the function here).
+
+- [ ] **Step 1: Failing test:** `TARGETS` includes `epl-jobs`; its config has `edgeFunction: 'gtl-epl-jobs'`, `createsOnFirstDeploy: true`; `release.yml` has exactly one deploy step whose `if` names `epl-jobs`, and no other step's condition selects it; `supabase/config.toml` has `[functions.gtl-epl-jobs]` + `verify_jwt = false`.
+- [ ] **Step 2:** run the test → FAIL.
+- [ ] **Step 3:** make the four edits.
+- [ ] **Step 4:** → PASS; `npm test` green; `python3 scripts/check-brand-docs.py` passes.
+- [ ] **Step 5: Commit** `feat(release): epl-jobs deploy target for gtl-epl-jobs`.
+
 ## Release (not part of the build; needs Sean)
 
 M-30 apply ("apply M-30"), `gtl-api` + `gtl-epl-jobs` deploy and the cron registration follow docs/SHARED_DEPLOYMENT.md from the Mac mini. Then run the MW9 seed (`--apply`) and snapshot import before Darin's MW9 pick if possible, otherwise after; MW10 order is produced by `settle` once MW9 results and the Tuesday snapshot are in.
