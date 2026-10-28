@@ -1,6 +1,6 @@
 // The Fantasy release index (D-57): public nflverse-derived files on the fantasy-data-<season> release of this repository.
 // Data files are content-addressed and never replaced; index.json is the only replaced asset and is uploaded last.
-export const FANTASY_REPOSITORY = 'seanbalz/guess-the-lines-repo';
+export const FANTASY_REPOSITORY = 'seanbalz/guess-the-line';
 export const MAX_FILE_BYTES = 3_000_000;
 const SNAPSHOT_FILE = /^(\d{4})-week-(\d{2})\.[0-9a-f]{8}\.json$/;
 const REVIEW_FILE = /^(\d{4})-review-week-(\d{2})\.[0-9a-f]{8}\.json$/;

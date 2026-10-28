@@ -39,8 +39,7 @@ async function setup(page, baseURL, options) {
   await storeBookLines(world, { spread: Object.fromEntries(ids.map(id => [id, -3])), total: Object.fromEntries(ids.map(id => [id, 44])) });
   await sendBallot(world, 'luke', 'guess_total', Object.fromEntries(ids.map(id => [id, 42])));
   await signIn(page, 'luke');
-  await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-  await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
+  await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
   await page.goto('about:blank'); await page.goto('/#lines');
   await expect(page.getByRole('heading', { name: 'Lines', exact: true })).toBeVisible();
   return { world, synthetic, ids };

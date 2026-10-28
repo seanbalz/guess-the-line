@@ -4,7 +4,7 @@
 // `/community/read` answers 403), the access-pending screen for a saved league this account is not in. A 401 from
 // any read or write opens "Sign in again" over whatever shows, so nothing typed is lost.
 import { useMemo, useState } from 'react';
-import { openOldApp } from '../../appView.js';
+import { reloadApp } from '../../appView.js';
 import { useAppData } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { NameStep } from '../me/NameStep.jsx';
@@ -13,7 +13,7 @@ import { AccessPending, FrameRoot, LoadFailed, RemovedScreen, StartScreen } from
 import { useShell } from './context.js';
 import { Shell } from './Shell.jsx';
 
-const toOldApp = () => openOldApp();
+const reload = () => reloadApp();
 
 /** The cover for the league showing, drawn inside the frame (it uses the frame's switcher and toasts). */
 function LeagueCover({ app }) {
@@ -27,7 +27,7 @@ function LeagueCover({ app }) {
       />
     );
   }
-  return <RemovedScreen hasGroups={app.leagues.length > 1} onLeagues={() => shell.openSheet('sh.switcher')} onOldApp={shell.toOldApp}/>;
+  return <RemovedScreen hasGroups={app.leagues.length > 1} onLeagues={() => shell.openSheet('sh.switcher')} onReload={shell.reload}/>;
 }
 
 /**
@@ -57,7 +57,7 @@ export function AppGate({ session, onSignOut }) {
     };
     return (
       <FrameRoot>
-        {failed ? <LoadFailed error={lobby.error} busy={retrying || lobby.loading} onRetry={retry} onOldApp={toOldApp} onSignOut={signOut}/> : <StartScreen/>}
+        {failed ? <LoadFailed error={lobby.error} busy={retrying || lobby.loading} onRetry={retry} onReload={reload} onSignOut={signOut}/> : <StartScreen/>}
         <SignInAgain/>
       </FrameRoot>
     );

@@ -71,7 +71,7 @@ standings" item is answered by the D-21 shared community leaderboard, which is o
 
 
 Private NFL prediction project for Sean, Troy and Luke. This checkout's remote is
-[`seanbalz/guess-the-lines-repo`](https://github.com/seanbalz/guess-the-lines-repo).
+[`seanbalz/guess-the-line`](https://github.com/seanbalz/guess-the-line).
 
 The [Week 5 Score Snapshots chat](https://chatgpt.com/c/6ac75c83-f73c-83e8-8462-e6222f85091e)
 is linked through [configuration](config/snapshots.json) and the

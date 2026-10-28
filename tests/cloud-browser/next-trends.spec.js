@@ -40,8 +40,7 @@ async function ready(page,baseURL,{ stale = false, chartValues = false, landing 
  expect(read.status).toBe(200);
  expect(read.body.weeks.find(w => w.week===5).entries.find(e => e.userId === ACCOUNTS.luke.id).picks[0].points).not.toBeNull();
  await signIn(page,'luke');
- await expect(page.getByRole('heading',{ name:'Community',exact:true })).toBeVisible();
- await page.evaluate(() => localStorage.setItem('gtl.app','next'));
+ await expect(page.getByRole('navigation',{ name:'Main',exact:true })).toBeVisible();
  await page.goto('about:blank'); await page.goto(landing ? '/#research' : '/#trends');
  await expect(page.getByRole('heading',{ name:landing ? 'Research' : 'Trends',level:1 })).toBeVisible();
  if (!landing) await expect(page.locator('[data-trend-availability]')).toBeVisible();
