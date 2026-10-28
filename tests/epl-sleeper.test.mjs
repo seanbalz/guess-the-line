@@ -15,8 +15,9 @@ const snap = totals => ({
   })),
 });
 
-test('MANAGER_NAMES maps the eight Sleeper names and is frozen', () => {
-  assert.equal(MANAGER_NAMES.NLGooner, 'Evan');
+test('MANAGER_NAMES maps the eight immutable owner ids and is frozen with no prototype', () => {
+  assert.equal(MANAGER_NAMES['719658248843632640'], 'Evan');
+  assert.equal(Object.getPrototypeOf(MANAGER_NAMES), null);
   assert.equal(Object.keys(MANAGER_NAMES).length, 8);
   assert.ok(Object.isFrozen(MANAGER_NAMES));
 });
@@ -30,12 +31,45 @@ test('seasonPoints and seasonAgainst combine whole and decimal parts', () => {
 test('managersFromSnapshot reads all eight managers from the real MW8 snapshot', () => {
   const managers = managersFromSnapshot(fixture);
   assert.equal(managers.length, 8);
-  const evan = managers.find(m => m.sleeperName === 'NLGooner');
+  const evan = managers.find(m => m.ownerId === '719658248843632640');
   assert.equal(evan.name, 'Evan');
   assert.equal(evan.seasonTotal, 918.75);
   assert.ok(Number.isInteger(evan.rosterId));
   assert.equal(typeof evan.wins, 'number');
   assert.equal(typeof evan.losses, 'number');
+});
+
+test('managersFromSnapshot names by owner_id, ignoring a changed display_name', () => {
+  const s = { users: [{ user_id: '719658248843632640', display_name: 'Renamed' }], rosters: [{ roster_id: 1, owner_id: '719658248843632640', settings: {} }] };
+  const [m] = managersFromSnapshot(s);
+  assert.equal(m.name, 'Evan');
+  assert.equal(m.sleeperName, 'Renamed');
+});
+
+test('managersFromSnapshot does not resolve prototype keys from untrusted ids or display names', () => {
+  for (const key of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+    const s = { users: [{ user_id: key, display_name: key }], rosters: [{ roster_id: 1, owner_id: key, settings: {} }] };
+    const [m] = managersFromSnapshot(s);
+    assert.equal(m.name, key);
+    assert.equal(m.sleeperName, key);
+  }
+});
+
+test('managersFromSnapshot falls back to a prototype-key display name for an unmapped owner id', () => {
+  for (const key of ['constructor', '__proto__']) {
+    const s = { users: [{ user_id: '999', display_name: key }], rosters: [{ roster_id: 1, owner_id: '999', settings: {} }] };
+    const [m] = managersFromSnapshot(s);
+    assert.equal(m.name, key);
+    assert.equal(typeof m.name, 'string');
+  }
+});
+
+test('managersFromSnapshot maps every MW8 fixture owner to the expected name', () => {
+  const byName = Object.fromEntries(managersFromSnapshot(fixture).map(m => [m.sleeperName, m.name]));
+  assert.deepEqual(byName, {
+    nemoheye: 'Nemo', steezyc9: 'Cullen', aharrison2: 'Adam', seanbalz: 'Sean',
+    NLGooner: 'Evan', LFCRed: 'Mark', sthomas111: 'Steven', Freudian: 'Darin',
+  });
 });
 
 test('managersFromSnapshot falls back to the Sleeper name when unmapped', () => {

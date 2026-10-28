@@ -3,16 +3,18 @@
 // head-to-head pairs are inferred (one manager's points-against change equals exactly one other manager's
 // points-for change). Pure: no I/O, no imports.
 
-export const MANAGER_NAMES = Object.freeze({
-  nemoheye: 'Nemo',
-  steezyc9: 'Cullen',
-  aharrison2: 'Adam',
-  seanbalz: 'Sean',
-  NLGooner: 'Evan',
-  LFCRed: 'Mark',
-  sthomas111: 'Steven',
-  Freudian: 'Darin',
-});
+// Keyed on Sleeper's immutable owner_id (user_id). display_name is mutable and user-controlled, so it is
+// presentation only. Null prototype so untrusted keys such as "constructor" never resolve through Object.prototype.
+export const MANAGER_NAMES = Object.freeze(Object.assign(Object.create(null), {
+  '719658248843632640': 'Evan',
+  '473955676301815808': 'Sean',
+  '702644837370929152': 'Steven',
+  '1259267898757611520': 'Cullen',
+  '1395236217460633600': 'Darin',
+  '1257180071064510465': 'Mark',
+  '865667912365666304': 'Nemo',
+  '719745569895018496': 'Adam',
+}));
 
 const round2 = x => Math.round(x * 100) / 100;
 
@@ -32,7 +34,7 @@ export function managersFromSnapshot(snapshot) {
       ownerId: r.owner_id,
       rosterId: r.roster_id,
       sleeperName,
-      name: MANAGER_NAMES[sleeperName] ?? sleeperName,
+      name: Object.hasOwn(MANAGER_NAMES, String(r.owner_id)) ? MANAGER_NAMES[String(r.owner_id)] : sleeperName,
       seasonTotal: seasonPoints(r.settings),
       seasonAgainst: seasonAgainst(r.settings),
       wins: r.settings?.wins ?? 0,
