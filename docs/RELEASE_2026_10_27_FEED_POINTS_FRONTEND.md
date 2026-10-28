@@ -33,7 +33,16 @@ merged and `main` is green on it, the same way as
 
 ## Readiness
 
-Pending.
+[Run 40611255315](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40611255315), observed 00:51:43 UTC on
+October 28, gate approved through the GitHub API as Sean's account after the title matched: source and exact-SHA CI
+verified; 63 rows and the digest above; Week 8 published (28 games); `gtl-api` v38 (`1647f94a…`) and every worker
+unchanged since release 2; previous Pages `5d400209` from `6b9c3d2`; 376 signed-out probes, 376 denied.
+
+It ran once an older readiness run was out of the way:
+[40599910008](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40599910008) (frontend at `671e3ec`,
+dispatched from outside this PC's sessions) had waited at its gate since 23:07 UTC and held the release concurrency
+group, so this run queued behind it. It was cancelled unapproved: it was read-only, deployed nothing, and `9460635`
+contains `671e3ec`.
 
 ## Results
 
