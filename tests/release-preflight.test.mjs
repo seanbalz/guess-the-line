@@ -231,7 +231,9 @@ const WORKER_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-push-re
 const POINTS_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-points-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api';
 // October 27, 2026 (Sean: "Add a league-features target to the release workflow"): the badges, awards and streaks worker.
 const FEATURES_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-league-features --project-ref "$SUPABASE_PROJECT_REF" --use-api';
-const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY };
+// October 28, 2026: the D-59 fantasy feed upload worker, which checks its own upload secret instead of a one-run capability.
+const FANTASY_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-fantasy-ingest --project-ref "$SUPABASE_PROJECT_REF" --use-api';
+const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY, 'fantasy-ingest': FANTASY_DEPLOY };
 const PAGES_DEPLOY = './node_modules/.bin/wrangler pages deploy .local/cloud-dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$RELEASE_SHA" --commit-dirty=false';
 
 /** The production job's steps as release.yml declares them: name, condition, directory, step env and one-line command. */
@@ -257,7 +259,7 @@ const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step
 test('release.yml offers exactly the preflight targets, both worker targets included', () => {
   const options = releaseYaml.match(/^ {6}target:\n(?: {8}.+\n)*? {8}options: \[([^\]]+)\]/m)?.[1].split(',').map(item => item.trim());
   assert.deepEqual(options, TARGETS);
-  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features']);
+  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features', 'fantasy-ingest']);
 });
 
 test('each target deploys only its own component; the worker targets never deploy gtl-api, Pages or each other', () => {
@@ -267,13 +269,15 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.deepEqual(deployCommands('deploy', 'push-reminders'), [WORKER_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'points-jobs'), [POINTS_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'league-features'), [FEATURES_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'fantasy-ingest'), [FANTASY_DEPLOY]);
   for (const target of TARGETS) for (const mode of ['check-only', 'readiness']) assert.deepEqual(deployCommands(mode, target), [], `${mode} ${target} deploys nothing`);
   // Every deploy condition names the targets it serves; none selects by exclusion, so a new target reaches no deploy by default.
   const deploySteps = productionSteps().filter(step => / deploy /.test(step.run || ''));
-  assert.equal(deploySteps.length, 5);
+  assert.equal(deploySteps.length, 6);
   for (const step of deploySteps) assert.doesNotMatch(step.if, /!=/, step.name);
   assert.equal(deploySteps.find(step => step.run === POINTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'points-jobs'");
   assert.equal(deploySteps.find(step => step.run === FEATURES_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'league-features'");
+  assert.equal(deploySteps.find(step => step.run === FANTASY_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'fantasy-ingest'");
   assert.equal(deploySteps.find(step => step.run === WORKER_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'push-reminders'");
 });
 
@@ -325,6 +329,7 @@ test('the worker targets are accepted with the same dispatch and deploy requirem
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-push-reminders' })));
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-points-jobs' })));
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-league-features' })));
+  assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-fantasy-ingest' })));
 });
 
 test('configuration: the worker targets need no Cloudflare values; the other targets need exactly what they did', () => {
@@ -333,6 +338,7 @@ test('configuration: the worker targets need no Cloudflare values; the other tar
   assert.deepEqual(configuration({}, 'push-reminders').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'points-jobs').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'league-features').missing, supabaseNames);
+  assert.deepEqual(configuration({}, 'fantasy-ingest').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'api').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'frontend').missing, [...supabaseNames, ...cloudflareNames]);
   assert.deepEqual(configuration({}, 'api-and-frontend').missing, [...supabaseNames, ...cloudflareNames]);
@@ -343,7 +349,7 @@ test('configuration: the worker targets need no Cloudflare values; the other tar
   }
 });
 
-test('a worker target\'s source must hold its entry file and keep it on its one-run capability (verify_jwt = false) before any API request', async t => {
+test('a worker target\'s source must hold its entry file and keep it on its machine credential (verify_jwt = false) before any API request', async t => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'gtl-release-worker-src-'));
   t.after(() => fs.rmSync(cwd, { force: true, recursive: true }));
   const git = (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -412,6 +418,20 @@ test('a worker target\'s source must hold its entry file and keep it on its one-
     await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'league-features' }), fake), /gtl-league-features/, label);
   }
   assert.equal(calls, 24);
+
+  // fantasy-ingest: the same two requirements, for gtl-fantasy-ingest; the refusal names its upload secret, not SQL.
+  const fantasy = { ...features, 'gtl-fantasy-ingest': 'false' }, fantasyEntries = [...featureEntries, 'gtl-fantasy-ingest'];
+  const fantasyReady = commitWith({ workers: fantasy, entries: fantasyEntries });
+  assert.equal((await checkSource(cwd, request({ RELEASE_SHA: fantasyReady, RELEASE_TARGET: 'fantasy-ingest' }), fake)).target, 'fantasy-ingest');
+  assert.equal(calls, 30);
+  for (const [label, source, error] of [
+    ['no config entry (a source from before the worker landed)', { workers: features, entries: fantasyEntries }, /gtl-fantasy-ingest at verify_jwt = false \(its upload secret is checked in the function\)/],
+    ['gateway JWT verification on', { workers: { ...fantasy, 'gtl-fantasy-ingest': 'true' }, entries: fantasyEntries }, /gtl-fantasy-ingest at verify_jwt = false/],
+    ['no entry file', { workers: fantasy, entries: featureEntries }, /supabase\/functions\/gtl-fantasy-ingest\/index\.ts/],
+  ]) {
+    await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'fantasy-ingest' }), fake), error, label);
+  }
+  assert.equal(calls, 30);
 });
 
 /** A verify/preflight fixture: a boundary checker that passes unless a test sets globalThis.gtlBoundaryFailure. */
@@ -628,6 +648,58 @@ test('league-features: the preflight records whether the worker exists, and veri
   assert.equal((await verifyRelease(cwd, env, existing, fake)).leagueFeaturesCreated, false);
   state.functions = created({ version: 3 });
   await assert.rejects(verifyRelease(cwd, env, existing, fake), /exactly one league features worker version/);
+});
+
+const FANTASY_INGEST_FN = Object.freeze({ slug: 'gtl-fantasy-ingest', version: 1, status: 'ACTIVE', verify_jwt: false, bundleSha256: 'd'.repeat(64) });
+
+// Contract (October 28, 2026): fantasy-ingest follows league-features, and its verification never calls the worker itself.
+// Until GTL_FANTASY_FEED_UPLOAD_SECRET is set it answers 503, so its 401 probe joins workerChecks only after the deploy.
+test('fantasy-ingest: the preflight records whether the worker exists, and verification takes the create or the update rule', async t => {
+  const { cwd, state, fake, before: base, migrations } = hostedFixture(t);
+  t.mock.method(Date, 'now', () => Date.parse('2026-10-28T20:00:00Z'));
+  const env = request({ RELEASE_TARGET: 'fantasy-ingest', RELEASE_MODE: 'deploy', RELEASE_HISTORY_SHA256: migrationDigest(migrations), SUPABASE_PROJECT_REF: PROJECT, VITE_SUPABASE_URL: `https://${PROJECT}.supabase.co`, VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', SUPABASE_ACCESS_TOKEN: 'private-value' });
+  const absent = await livePreflight(cwd, env, fake);
+  assert.deepEqual(absent.fantasyIngestBefore, { present: false, version: null });
+  assert.equal(absent.previousPages, null);
+  assert.ok(!('leagueFeaturesBefore' in absent) && !('pointsJobsBefore' in absent), 'only its own worker is recorded');
+  assert.ok(!('fantasyIngestBefore' in await livePreflight(cwd, { ...env, RELEASE_TARGET: 'league-features' }, fake)), 'league-features does not record it');
+  // First deploy: created ACTIVE at version 1 with JWT off and a digest; every other function unchanged.
+  const before = { ...base, fantasyIngestBefore: { present: false, version: null } };
+  const created = (values = {}) => bySlug([...base.functions, { ...FANTASY_INGEST_FN, ...values }]);
+  state.functions = created();
+  state.calls.length = 0;
+  const report = await verifyRelease(cwd, env, before, fake);
+  assert.deepEqual(report.fantasyIngest, FANTASY_INGEST_FN);
+  assert.equal(report.fantasyIngestCreated, true);
+  assert.equal(report.fantasyIngestSourceVerified, false);
+  assert.equal(report.pages, null);
+  assert.ok(!('leagueFeatures' in report) && !('pushReminders' in report));
+  // Management API metadata only: no request reaches the worker, so its 503 before the secret is set cannot fail this.
+  assert.ok(state.calls.length > 0 && state.calls.every(url => url.startsWith(`https://api.supabase.com/v1/projects/${PROJECT}/`)), state.calls.join(' '));
+  for (const [values, error] of [
+    [{ verify_jwt: true }, /JWT verification off \(its upload secret is checked in the function\)/],
+    [{ version: 2 }, /create version 1/],
+    [{ status: 'BOOTING' }, /fantasy feed upload worker must be ACTIVE/],
+    [{ bundleSha256: null }, /fantasy feed upload worker bundle digest/],
+  ]) {
+    state.functions = created(values);
+    await assert.rejects(verifyRelease(cwd, env, before, fake), error, JSON.stringify(values));
+  }
+  state.functions = created().map(item => item.slug === 'gtl-push-reminders' ? { ...item, version: 5 } : item);
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /Another Edge function changed/);
+  state.functions = created().map(item => item.slug === 'gtl-api' ? { ...item, version: 32 } : item);
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /API changed during fantasy-ingest-only release/);
+  state.functions = created();
+  await assert.rejects(verifyRelease(cwd, env, base, fake), /pre-deploy report/, 'a report without the fantasyIngestBefore record');
+  await assert.rejects(verifyRelease(cwd, env, { ...base, leagueFeaturesBefore: { present: false, version: null } }, fake), /pre-deploy report/, 'another worker\'s record');
+  // Only this target may create it: the same appearance fails a league-features run.
+  await assert.rejects(verifyRelease(cwd, { ...env, RELEASE_TARGET: 'league-features' }, { ...base, leagueFeaturesBefore: { present: false, version: null } }, fake), /Another Edge function changed/);
+  // Update (a redeploy after setting or rotating the secret): an existing worker needs exactly one version up.
+  const existing = { ...base, functions: created(), fantasyIngestBefore: { present: true, version: 1 } };
+  state.functions = created({ version: 2, bundleSha256: 'e'.repeat(64) });
+  assert.equal((await verifyRelease(cwd, env, existing, fake)).fantasyIngestCreated, false);
+  state.functions = created({ version: 3 });
+  await assert.rejects(verifyRelease(cwd, env, existing, fake), /exactly one fantasy feed upload worker version/);
 });
 
 test('points-jobs verification, update: an existing worker needs exactly one version up and the same checks', async t => {
