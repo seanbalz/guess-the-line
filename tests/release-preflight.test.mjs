@@ -29,8 +29,9 @@ test('Pages verification uses canonical HTML routes and rejects changed bytes an
   const before = { functions, observedAt: '2026-10-20T23:00:00Z', migrationHistorySha256: migrationDigest(migrations), pendingRepoMigrations: [] };
   const env = request({ RELEASE_MODE: 'deploy' });
   const routes = new Map([['/', files[0]], ['/privacy', files[1]], ['/terms', files[2]], ['/about/', files[3]], ['/assets/app.js', files[4]]]);
-  let corrupt = false, redirect = false;
+  let corrupt = false, redirect = false, access = 'public';
   const served = [];
+  const accessLogin = host => `https://guess-the-line-pages.cloudflareaccess.com/cdn-cgi/access/login/${host}?kid=k&redirect_url=%2F`;
   const fake = async (url, options) => {
     if (url.endsWith('/functions')) return { ok: true, json: async () => functions.map(f => ({ ...f, ezbr_sha256: f.bundleSha256 })) };
     if (url.endsWith('/database/query/read-only')) return { ok: true, json: async () => [{ migrations }] };
@@ -39,6 +40,14 @@ test('Pages verification uses canonical HTML routes and rejects changed bytes an
       deployment_trigger: { metadata: { commit_hash: sha } }, latest_stage: { status: 'success' },
     }] }) };
     const parsed = new URL(url);
+    if (options.redirect === 'manual') {
+      // The Preview access probe (RETIRE-03): only the immutable deployment URL, at its root.
+      assert.equal(parsed.origin + parsed.pathname, 'https://abc123.guess-the-line.pages.dev/');
+      if (access === 'public') return { ok: true, status: 200, headers: new Headers() };
+      const location = access === 'protected' ? accessLogin('abc123.guess-the-line.pages.dev')
+        : access === 'other-host' ? accessLogin('other.guess-the-line.pages.dev') : 'https://evil.example/cdn-cgi/access/login/abc123.guess-the-line.pages.dev';
+      return { ok: false, status: 302, headers: new Headers({ location }) };
+    }
     assert.equal(options.redirect, 'error');
     assert.equal(parsed.searchParams.get('release'), sha);
     assert.ok(routes.has(parsed.pathname), `Unexpected route ${parsed.pathname}`);
@@ -48,8 +57,21 @@ test('Pages verification uses canonical HTML routes and rejects changed bytes an
   };
   const report = await verifyRelease(cwd, env, before, fake);
   assert.equal(report.pages.checkedAssetsPerUrl, 5);
+  assert.equal(report.pages.deploymentUrlAccess, 'public');
   assert.equal(served.length, 10);
   assert.equal(new Set(served).size, 10);
+  // Behind Cloudflare Access the deployment URL must send its own host to the Access login; production is still read in full.
+  access = 'protected'; served.length = 0;
+  const guarded = await verifyRelease(cwd, env, before, fake);
+  assert.equal(guarded.pages.deploymentUrlAccess, 'protected');
+  assert.deepEqual(guarded.pages.checkedUrls, ['https://guess-the-line.pages.dev']);
+  assert.equal(served.length, 5);
+  assert.ok(served.every(url => url.startsWith('https://guess-the-line.pages.dev/')));
+  for (const wrong of ['other-host', 'elsewhere']) {
+    access = wrong;
+    await assert.rejects(verifyRelease(cwd, env, before, fake), /Unexpected redirect from the Pages deployment URL/, wrong);
+  }
+  access = 'public';
   corrupt = true;
   await assert.rejects(verifyRelease(cwd, env, before, fake), /differs from release manifest/);
   corrupt = false; redirect = true;
