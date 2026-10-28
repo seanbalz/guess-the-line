@@ -46,6 +46,8 @@ import { createNbaGamesCache } from './nba-games.mjs';
 import { handlePoints, POINTS_METHODS, POINTS_PUBLIC_CODES, POINTS_RPCS, PointsError, providerPointsError } from './points.mjs';
 // Streaks, badges and weekly awards (redesign stage 69, M-25): their own route group; 404 "coming soon" until M-25 is applied.
 import { handleFeatures, FEATURES_METHODS, FEATURES_RPCS, FeaturesError, providerFeaturesError } from './features.mjs';
+// EPL Pick a Team (EPL plan 1, Task 4): its own route group over the M-30 service-only functions; 404 "coming soon" until M-30 is applied.
+import { handleEpl, EPL_METHODS, EPL_PUBLIC_CODES, EPL_RPCS, EplError, providerEplError, createEplService } from './epl.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const CORS = {
@@ -90,6 +92,7 @@ const ROUTE_GROUPS = Object.freeze([
   Object.freeze({ service: 'me', methods: ME_METHODS, handle: handleMe, Error: MeError }),
   Object.freeze({ service: 'points', methods: POINTS_METHODS, handle: handlePoints, Error: PointsError }),
   Object.freeze({ service: 'features', methods: FEATURES_METHODS, handle: handleFeatures, Error: FeaturesError }),
+  Object.freeze({ service: 'epl', methods: EPL_METHODS, handle: handleEpl, Error: EplError }),
 ]);
 const GAME_METHODS = Object.freeze({ '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'] });
 /** Every module's methods map; a route belongs to exactly one (tests/route-modules.test.mjs). */
@@ -108,7 +111,7 @@ class RequestError extends Error {
  * Refusal codes a reply carries beside its sentence, so a client can act on them (build plan stage 18): GTL_BALLOT_LOCKED
  * tells both apps the picks they hold are older than the final ones, and they reload instead of offering a retry.
  */
-const PUBLIC_CODES = new Set([BALLOT_LOCKED, 'GTL_GAME_CLOSED', ...POINTS_PUBLIC_CODES]);
+const PUBLIC_CODES = new Set([BALLOT_LOCKED, 'GTL_GAME_CLOSED', ...POINTS_PUBLIC_CODES, ...EPL_PUBLIC_CODES]);
 const fail = (status, message, code) => { throw new RequestError(status, message, code); };
 const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.stringify(value), {
   status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', ...extraHeaders },
@@ -155,13 +158,13 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, feed, me, trends, fantasy, points, features, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, feed, me, trends, fantasy, points, features, epl, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
   // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
   const featuresOff = parseFeatureOff(featureOff);
-  const groupServices = { lines, bets, league, feed, me, trends, fantasy, points, features };
+  const groupServices = { lines, bets, league, feed, me, trends, fantasy, points, features, epl };
   // The live Guess rules ride along with the views both apps render (build plan, section 3.4).
   // The read fails closed on an outage; only an explicitly missing RPC carries legacy rules.
   async function withRules(view, rules = readLiveRules(optionalRpc)) {
@@ -473,6 +476,8 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     feed: groupRpc(providerFeedError),
     points: groupRpc(providerPointsError, POINTS_RPCS),
     features: groupRpc(providerFeaturesError, FEATURES_RPCS),
+    // EPL Pick a Team: its functions only, plus the latest-week and own-queue table reads (cloud/epl.mjs createEplService).
+    epl: createEplService({ rpc: groupRpc(providerEplError, EPL_RPCS).rpc, rest }),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {
