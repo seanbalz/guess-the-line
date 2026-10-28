@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS } from '../scripts/release-preflight.mjs';
+import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS, TARGET_DEPLOYS } from '../scripts/release-preflight.mjs';
 
 const sha = 'a'.repeat(40);
 const request = (extra = {}) => ({ RELEASE_SHA: sha, RELEASE_TARGET: 'frontend', RELEASE_MODE: 'check-only', ...extra });
@@ -235,7 +235,9 @@ const FEATURES_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-leagu
 const FANTASY_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-fantasy-ingest --project-ref "$SUPABASE_PROJECT_REF" --use-api';
 // M-19 (D-64, proposed): the existing results refresh worker, which now also settles shared tickets.
 const RESULTS_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-results-refresh --project-ref "$SUPABASE_PROJECT_REF" --use-api';
-const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY, 'fantasy-ingest': FANTASY_DEPLOY, 'results-refresh': RESULTS_DEPLOY };
+// October 28, 2026: the EPL jobs worker (Pick a Team plan 1), not hosted yet, so its first deploy creates it.
+const EPL_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-epl-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api';
+const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY, 'fantasy-ingest': FANTASY_DEPLOY, 'results-refresh': RESULTS_DEPLOY, 'epl-jobs': EPL_DEPLOY };
 const PAGES_DEPLOY = './node_modules/.bin/wrangler pages deploy .local/cloud-dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$RELEASE_SHA" --commit-dirty=false';
 
 /** The production job's steps as release.yml declares them: name, condition, directory, step env and one-line command. */
@@ -261,7 +263,7 @@ const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step
 test('release.yml offers exactly the preflight targets, both worker targets included', () => {
   const options = releaseYaml.match(/^ {6}target:\n(?: {8}.+\n)*? {8}options: \[([^\]]+)\]/m)?.[1].split(',').map(item => item.trim());
   assert.deepEqual(options, TARGETS);
-  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features', 'fantasy-ingest', 'results-refresh']);
+  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features', 'fantasy-ingest', 'results-refresh', 'epl-jobs']);
 });
 
 test('each target deploys only its own component; the worker targets never deploy gtl-api, Pages or each other', () => {
@@ -273,14 +275,18 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.deepEqual(deployCommands('deploy', 'league-features'), [FEATURES_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'fantasy-ingest'), [FANTASY_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'results-refresh'), [RESULTS_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'epl-jobs'), [EPL_DEPLOY]);
   for (const target of TARGETS) for (const mode of ['check-only', 'readiness']) assert.deepEqual(deployCommands(mode, target), [], `${mode} ${target} deploys nothing`);
   // Every deploy condition names the targets it serves; none selects by exclusion, so a new target reaches no deploy by default.
   const deploySteps = productionSteps().filter(step => / deploy /.test(step.run || ''));
-  assert.equal(deploySteps.length, 7);
+  assert.equal(deploySteps.length, 8);
   for (const step of deploySteps) assert.doesNotMatch(step.if, /!=/, step.name);
   assert.equal(deploySteps.find(step => step.run === POINTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'points-jobs'");
   assert.equal(deploySteps.find(step => step.run === FEATURES_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'league-features'");
   assert.equal(deploySteps.find(step => step.run === FANTASY_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'fantasy-ingest'");
+  assert.equal(deploySteps.find(step => step.run === EPL_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'epl-jobs'");
+  assert.equal(deploySteps.filter(step => /epl-jobs/.test(step.if || '')).length, 1);
+  assert.equal(productionSteps().filter(step => /epl-jobs/.test(step.if || '')).length, 1, 'no other step selects epl-jobs');
   assert.equal(deploySteps.find(step => step.run === RESULTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'results-refresh'");
   assert.equal(deploySteps.find(step => step.run === WORKER_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'push-reminders'");
 });
@@ -334,6 +340,7 @@ test('the worker targets are accepted with the same dispatch and deploy requirem
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-points-jobs' })));
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-league-features' })));
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-fantasy-ingest' })));
+  assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-epl-jobs' })));
 });
 
 test('configuration: the worker targets need no Cloudflare values; the other targets need exactly what they did', () => {
@@ -343,6 +350,7 @@ test('configuration: the worker targets need no Cloudflare values; the other tar
   assert.deepEqual(configuration({}, 'points-jobs').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'league-features').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'fantasy-ingest').missing, supabaseNames);
+  assert.deepEqual(configuration({}, 'epl-jobs').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'api').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'frontend').missing, [...supabaseNames, ...cloudflareNames]);
   assert.deepEqual(configuration({}, 'api-and-frontend').missing, [...supabaseNames, ...cloudflareNames]);
@@ -436,6 +444,20 @@ test('a worker target\'s source must hold its entry file and keep it on its mach
     await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'fantasy-ingest' }), fake), error, label);
   }
   assert.equal(calls, 30);
+
+  // epl-jobs: the same two requirements, for gtl-epl-jobs (the entry file is named here, never created by this task).
+  const epl = { ...fantasy, 'gtl-epl-jobs': 'false' }, eplEntries = [...fantasyEntries, 'gtl-epl-jobs'];
+  const eplReady = commitWith({ workers: epl, entries: eplEntries });
+  assert.equal((await checkSource(cwd, request({ RELEASE_SHA: eplReady, RELEASE_TARGET: 'epl-jobs' }), fake)).target, 'epl-jobs');
+  assert.equal(calls, 36);
+  for (const [label, source, error] of [
+    ['no config entry (a source from before the worker landed)', { workers: fantasy, entries: eplEntries }, /gtl-epl-jobs at verify_jwt = false/],
+    ['gateway JWT verification on', { workers: { ...epl, 'gtl-epl-jobs': 'true' }, entries: eplEntries }, /gtl-epl-jobs at verify_jwt = false/],
+    ['no entry file', { workers: epl, entries: fantasyEntries }, /supabase\/functions\/gtl-epl-jobs\/index\.ts/],
+  ]) {
+    await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'epl-jobs' }), fake), error, label);
+  }
+  assert.equal(calls, 36);
 });
 
 /** A verify/preflight fixture: a boundary checker that passes unless a test sets globalThis.gtlBoundaryFailure. */
@@ -749,4 +771,10 @@ test('every other target fails when gtl-points-jobs appears or changes during it
     state.functions = deployedOwn(withPoints.functions, target);
     await verifyRelease(cwd, request({ RELEASE_TARGET: target, RELEASE_MODE: 'deploy' }), withPoints, fake);
   }
+});
+
+test('supabase/config.toml registers gtl-epl-jobs with gateway JWT verification off', () => {
+  const config = fs.readFileSync(new URL('../supabase/config.toml', import.meta.url), 'utf8');
+  assert.match(config, /\[functions\.gtl-epl-jobs\]\n(?:#.*\n)*verify_jwt = false/);
+  assert.deepEqual(TARGET_DEPLOYS['epl-jobs'], { edgeFunction: 'gtl-epl-jobs', pages: false, createsOnFirstDeploy: true });
 });

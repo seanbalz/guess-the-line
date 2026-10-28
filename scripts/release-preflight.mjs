@@ -13,6 +13,7 @@ export const POINTS_JOBS = 'gtl-points-jobs';
 export const LEAGUE_FEATURES = 'gtl-league-features';
 export const FANTASY_INGEST = 'gtl-fantasy-ingest';
 export const RESULTS_REFRESH = 'gtl-results-refresh';
+export const EPL_JOBS = 'gtl-epl-jobs';
 /**
  * What each target deploys: at most one Edge Function (with its supabase/config.toml settings) and whether Pages is
  * uploaded. createsOnFirstDeploy lets a target's first deploy create its function; every other target updates one.
@@ -34,6 +35,8 @@ export const TARGET_DEPLOYS = Object.freeze({
   // M-19 (D-64, proposed): the D-26 finals worker, hosted since October 20, 2026, now also settles shared tickets. It
   // already exists, so a deploy must update it.
   'results-refresh': Object.freeze({ edgeFunction: RESULTS_REFRESH, pages: false }),
+  // October 28, 2026: the EPL jobs worker (Pick a Team plan 1, Task 10), not hosted yet, so its first deploy creates it.
+  'epl-jobs': Object.freeze({ edgeFunction: EPL_JOBS, pages: false, createsOnFirstDeploy: true }),
 });
 export const TARGETS = Object.keys(TARGET_DEPLOYS);
 const deploys = target => { assert.ok(Object.hasOwn(TARGET_DEPLOYS, target), 'Unknown release target.'); return TARGET_DEPLOYS[target]; };
@@ -46,6 +49,7 @@ const WORKERS = Object.freeze({
   // D-59: the exporter presents GTL_FANTASY_FEED_UPLOAD_SECRET; until that secret is set the function answers 503.
   [FANTASY_INGEST]: Object.freeze({ key: 'fantasyIngest', name: 'fantasy feed upload worker', auth: 'its upload secret is checked in the function' }),
   [RESULTS_REFRESH]: Object.freeze({ key: 'resultsRefresh', name: 'results refresh worker', auth: ONE_RUN }),
+  [EPL_JOBS]: Object.freeze({ key: 'eplJobs', name: 'EPL jobs worker', auth: ONE_RUN }),
 });
 /** The worker a target deploys, or null for gtl-api and frontend targets. */
 const workerFor = scope => {
@@ -73,7 +77,7 @@ const fail = message => { throw new Error(message); };
 
 export function validateRequest(env) {
   assert.match(env.RELEASE_SHA || '', /^[a-f0-9]{40}$/, 'Use a full lowercase 40-character source SHA.');
-  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, or results-refresh.');
+  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, or epl-jobs.');
   assert.ok(['check-only', 'readiness', 'deploy'].includes(env.RELEASE_MODE), 'Unknown release mode.');
   if (env.GITHUB_ACTIONS === 'true') {
     assert.equal(env.GITHUB_EVENT_NAME, 'workflow_dispatch', 'Releases are manual only.');
@@ -308,7 +312,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
 export async function main(args, env = process.env) {
   const [command, ...rest] = args;
   if (!command || command === '--help') {
-    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|fantasy-ingest|results-refresh), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
+    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|fantasy-ingest|results-refresh|epl-jobs), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
     return;
   }
   assert.ok(['source', 'configuration', 'live', 'verify'].includes(command), 'Unknown preflight command.');

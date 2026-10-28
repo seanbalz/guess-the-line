@@ -30,3 +30,7 @@ verify_jwt = false
 [functions.gtl-league-features]
 # Redesign stage 70 (M-26) badges, awards and streaks job; same one-run capability pattern as gtl-week-open.
 verify_jwt = false
+
+[functions.gtl-epl-jobs]
+# EPL Pick a Team jobs (slate, results, settle); same one-run capability pattern as gtl-week-open.
+verify_jwt = false
