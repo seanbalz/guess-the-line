@@ -63,8 +63,11 @@ production lazy boundary. Fixtures are not signed-in production evidence.
 
 ## Remaining checkpoints
 
-Source branch: `codex/lazy-game-details`. PR #301's CI/merge is still pending.
+Source branch: `codex/lazy-game-details`. PR #301 merged as
+`327b8e83409c3b564bd652697ed54261fd8ac741` after all nine checks passed on
+`c5573f099b120901df3f4112067fe8eaf73e04cf`; no CI repairs or review findings.
 This batch still needs CI/merge, release/readback, signed-in performance and
 physical-iPhone acceptance. Live/postponed/cancelled status and dependent
-Bet/Challenge destinations stay open. No deployment, migration apply, scoring
+Bet/Challenge destinations stay open. Source readback confirms the Bets slot
+currently exports League bets only; Bet and Challenge depend on stages 44 and 54. No deployment, migration apply, scoring
 rule, collection budget or frozen v62 tracker change.

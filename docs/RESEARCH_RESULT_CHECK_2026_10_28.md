@@ -47,13 +47,17 @@ Four checked-result 320px Light/Dark and forced-color screenshots were inspected
 axe and touch-target checks passed. Full Vitest (466), 59 result/navigation/
 modal/model/token/brand tests and typecheck passed. All 95 final expanded
 shell/Research/Lines/Trends/gesture cases passed after sharing the game reader,
-along with Brand QA and the final fixture build/privacy scan. CI/merge results
-will be recorded separately.
+along with Brand QA and the final fixture build/privacy scan. Source CI/merge
+evidence is recorded below.
 
 ## Remaining checkpoints
 
-Source branch: `codex/research-result-check`. CI/merge, release/readback and real
-iPhone acceptance remain open. PR [#300](https://github.com/seanbalz/guess-the-lines-repo/pull/300)
+PR [#301](https://github.com/seanbalz/guess-the-lines-repo/pull/301) merged as
+`327b8e83409c3b564bd652697ed54261fd8ac741` after all nine checks passed on
+`c5573f099b120901df3f4112067fe8eaf73e04cf`. Reviews and review threads were empty;
+no CI repairs were needed.
+Source branch: `codex/research-result-check`. Release/readback and real iPhone
+acceptance remain open. PR [#300](https://github.com/seanbalz/guess-the-lines-repo/pull/300)
 merged as `7dda6d758a3218f1ec9286db4ce5ca901eb33444` after all nine checks passed on `a1ea585719d2e2361d32a0b3eff4fceec9d2623d`. Automatic
 live/postponed/cancelled status still needs a supported source/time path. This
 manual check does not complete that work. No deployment, migration apply,

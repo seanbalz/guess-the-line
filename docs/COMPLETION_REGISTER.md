@@ -456,8 +456,12 @@ tests and typecheck passed. All 95 final expanded shell/Research/Lines/Trends/
 gesture browser cases, Brand QA and final fixture build/privacy checks passed.
 The existing game reader is shared with the market section so current kickoff
 eligibility works despite a stale personal-week clock, with one game request.
-CI/merge, release/readback and phone acceptance remain open; #300 is merged.
-Live/postponed/cancelled status remains separate work.
+PR [#301](https://github.com/seanbalz/guess-the-lines-repo/pull/301) merged as
+`327b8e83409c3b564bd652697ed54261fd8ac741` after all nine checks passed on
+`c5573f099b120901df3f4112067fe8eaf73e04cf`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and phone acceptance remain open. Live/postponed/cancelled
+status remains separate work.
 
 The [on-demand game details](RESEARCH_GAME_LOADING_2026_10_28.md) batch,
 `codex/lazy-game-details`, keeps the frame and pager eager and loads its result,
@@ -465,7 +469,8 @@ market/research and notes content on opening, with local download/style retry.
 The local initial static dependency graph is 25,622 raw bytes smaller (6,269
 estimated gzip); after opening, total estimated gzip is 2,738 bytes larger.
 Both focused browser cases, full Vitest (466), 59 model/navigation/modal/token/
-brand tests and typecheck passed; the 97-case expanded browser run passed 96 cases and caught a Trends harness
+brand tests and typecheck passed; the 97-case expanded browser run passed 96
+cases and caught a Trends harness
 reading section order before deferred content was ready. That assertion now
 awaits those sections; all five final download/style/result/Trends cases passed.
 Eight 320px theme/forced-color captures were inspected; Brand QA and fixture
