@@ -379,3 +379,9 @@ Guidance and sources.
   account/week guards, current-game paging and long-source wrapping. Reconnect
   focus to a recreated opener only within its captured account/week scope;
   unkeyed openers keep their normal modal behavior.
+
+- **Checking recorded results:** reuse the secondary button inside the result
+  card. Start the read only on request, keep its button focusable with a checking
+  status and prevent duplicate activation. Keep old observations labelled on
+  failure; show no-complete-final separately from zero. Distinguish the server
+  check time from the result's observation time and preserve scope guards.

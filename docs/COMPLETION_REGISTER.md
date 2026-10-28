@@ -443,6 +443,17 @@ build/privacy checks passed.
 CI/merge, release/readback and phone acceptance remain open for this batch;
 #299's repaired paging head is merged as recorded above.
 
+The [in-sheet result check](RESEARCH_RESULT_CHECK_2026_10_28.md),
+`codex/research-result-check`, adds an explicit check through the existing
+weekly reader. Direct started-game opens from Trends can request a final;
+opening/paging/focus adds no read. Pending clicks deduplicate, changing games
+aborts old reads, per-game observations remain scoped and errors retain their
+labelled prior observation. Both focused browser cases, four 320px checked-result
+theme captures, full Vitest (466), 59 result/navigation/model/modal/token/brand
+tests and typecheck passed. The final 95-case expanded run is in progress.
+CI/merge, release/readback and phone acceptance remain open; #300's source must
+pass and merge first. Live/postponed/cancelled status remains separate work.
+
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.

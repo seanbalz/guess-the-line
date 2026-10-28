@@ -30,6 +30,7 @@ import { openedBoardOrder, openedBoardResult, gamePager } from './gameOrder.js';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { recordsThroughText } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
+import { RecordedResult } from './RecordedResult.jsx';
 import './lines.css';
 
 function YouRows({ rows, onOpen }) {
@@ -109,12 +110,7 @@ export function GameSheet({ args }) {
         {recordsThroughText(teams.data) && teams.data.season === shown?.season ? <p className="gx-t-meta gx-c-2 gx-l-through">{recordsThroughText(teams.data)}</p> : null}
       </div>
 
-      {result && <Card as="section" aria-label="Recorded result" className="gx-vstack gx-gap-8">
-        <h3 className="gx-t-section">Recorded result</h3>
-        <p className="gx-t-strong">{result.score}</p>
-        <p className="gx-l-observation gx-t-meta gx-c-2">{result.provenance}</p>
-        <p className="gx-t-meta gx-c-2">Recorded when opened. Return to the board to check for updates.</p>
-      </Card>}
+      <RecordedResult key={`${app.accountId}:${shown?.season}:${shown?.week}`} lines={lines} game={view} snapshot={result}/>
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={youId}>
         <h3 className="gx-t-section" id={youId}>{LINES_COPY.youOnGame}</h3>
