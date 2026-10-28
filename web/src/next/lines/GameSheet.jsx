@@ -1,5 +1,6 @@
 // `sh.game`, one game read-only (redesign build plan stage 13; prototype spec 3.5; DASH-7). The header with the
-// kickoff and the team records in words (DP-16), "You on this game", the top three trends for this game in plain
+// kickoff, then the matchup as marks with each team's record (D-62; each team opens its sheet over this one) and one
+// "Records through Week N" line, "You on this game", the top three trends for this game in plain
 // words (each with its record and sample size, strongest first, a line trend locked with its market), then the
 // weather row on every game (D-45: the kickoff forecast, "Indoors" or "No current forecast"), the referee row (hidden
 // until a referee is known, a 404 included) and "All trends", which opens its own sheet over this one. The current line
@@ -26,6 +27,9 @@ import { EveryoneGuesses } from './EveryoneGuesses.jsx';
 import { MarketDetails } from './MarketDetails.jsx';
 import { actionsForGame, GameActions } from './GameActions.jsx';
 import { boardOrder, gamePager } from './gameOrder.js';
+import { TeamMatchup } from '../teams/TeamMatchup.jsx';
+import { recordsThroughText } from '../teams/teamModel.js';
+import { useTeamSeason } from '../teams/teamsData.js';
 import './lines.css';
 
 function YouRows({ rows, onOpen }) {
@@ -71,6 +75,7 @@ export function GameSheet({ args }) {
   const officials = useOfficials(shown?.season, shown?.week, Boolean(view));
   const wind = useWind(shown?.season, shown?.week, Boolean(view));
   const order = useMemo(() => boardOrder(personal.data), [personal.data]);
+  const teams = useTeamSeason();
   if (!view) {
     return (
       <Sheet title={LINES_COPY.title} onClose={close} className="gx-l-sheet">
@@ -97,9 +102,10 @@ export function GameSheet({ args }) {
   return (
     <Sheet title={view.title} onClose={close} tall className="gx-l-sheet" pager={pager}
       footer={actions.length > 0 && <GameActions game={actionGame} actions={actions} shell={shell}/>}>
-      <div className="gx-vstack gx-gap-2">
+      <div className="gx-vstack gx-gap-8 gx-l-head">
         <p className="gx-t-meta">{view.when}</p>
-        {view.records ? <p className="gx-t-meta">{view.records.text}{view.records.asOf ? ` · ${view.records.asOf}` : ''}</p> : null}
+        <TeamMatchup away={view.away.code} home={view.home.code} season={shown?.season ?? null} from={view.title}/>
+        {recordsThroughText(teams.data) && teams.data.season === shown?.season ? <p className="gx-t-meta gx-c-2 gx-l-through">{recordsThroughText(teams.data)}</p> : null}
       </div>
 
       <section className="gx-vstack gx-gap-8" aria-labelledby={youId}>
