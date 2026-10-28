@@ -87,7 +87,7 @@ export function WindCredit({ credit }) {
 }
 
 /** The one-word state pill for a tier (D-55): the full tier words live in the trend's ⓘ. */
-const tierPill = tier => BOARD_TIER_WORDS[tier] ?? (tier === 'watch' ? 'Watch list' : 'No proven edge');
+export const tierPill = tier => BOARD_TIER_WORDS[tier] ?? (tier === 'watch' ? 'Watch list' : 'No proven edge');
 
 const winRateTile = (w, l) => {
   const pct = hitPct(w, l);

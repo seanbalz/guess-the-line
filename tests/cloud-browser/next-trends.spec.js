@@ -208,7 +208,7 @@ test('player comparison bars label exact observations and distinguish zero from 
   expect(world.errors).toEqual([]);
  } finally { await world.db.close(); }
 });
-test('published week, market gates, team filters, game sheets/back, player windows and exact evidence',async({page,baseURL})=>{
+test('published week, market gates, team filters, game sheets/back, player windows and exact evidence',async({page,baseURL},testInfo)=>{
  const world=await ready(page,baseURL);
  try {
   await expect(page.getByText('Published week: 2026 Week 6',{exact:false})).toBeVisible();
@@ -220,11 +220,38 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(page.getByText(/Total line-based records are hidden/).first()).toBeVisible();
   await noSentinel(page);
   await group(page,'Trends market').getByRole('button',{name:'Spread',exact:true}).click();
+  // D-66 nesting cards: Teams › team › trend, one smaller layer per tap; lips and back return one layer at a time.
   await group(page,'Trends section').getByRole('button',{name:'Teams',exact:true}).click();
-  await page.getByRole('combobox',{name:'Team',exact:true}).selectOption('CAR');
-  await expect(page.getByRole('region',{name:'Team history comparisons'})).toContainText('CAR @ PHI');
-  await page.getByRole('combobox',{name:'Matchup',exact:true}).selectOption('CAR-PHI');
-  await page.getByRole('button',{name:'Game details · CAR @ PHI',exact:true}).click();
+  const nest=page.getByRole('region',{name:'Team trends',exact:true});
+  await expect(nest.getByRole('heading',{level:2,name:'Teams',exact:true})).toBeVisible();
+  await expect(nest.locator('[data-team]')).toHaveCount(8);
+  await page.screenshot({path:testInfo.outputPath('nest-teams-390.png'),fullPage:true});
+  await expect(nest).not.toContainText('Past results since 2002');
+  await nest.locator('[data-team=CAR]').click();
+  await expect(nest.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeFocused();
+  await expect(page).toHaveURL(/teamsTeam=CAR/);
+  await expect(nest).toContainText('CAR @ PHI');
+  await page.screenshot({path:testInfo.outputPath('nest-team-390.png'),fullPage:true});
+  const tile=nest.locator('button.gx-nest-tile').first();
+  const trendTitle=(await tile.locator('.gx-nest-tile-label').textContent()).trim();
+  await tile.click();
+  await expect(nest.getByRole('heading',{level:2,name:trendTitle,exact:true})).toBeFocused();
+  await expect(page).toHaveURL(/teamsTrend=t[0-9a-z]+/);
+  await expect(nest.getByRole('button',{name:'Back to Carolina Panthers',exact:true})).toBeVisible();
+  await expect(nest.locator('.gx-pill').first()).toBeVisible();
+  for (const width of [390,320]) {
+   await page.setViewportSize({width,height:844});
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await page.screenshot({path:testInfo.outputPath(`nest-trend-${width}.png`),fullPage:true});
+   expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.goBack(); await expect(nest.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
+  await nest.getByRole('button',{name:'Back to Teams',exact:true}).click();
+  await expect(nest.getByRole('heading',{level:2,name:'Teams',exact:true})).toBeVisible();
+  await nest.locator('[data-team=CAR]').click();
+  await noSentinel(page);
+  await nest.getByRole('button',{name:'Game details · CAR @ PHI',exact:true}).click();
   const sheet=page.getByRole('dialog',{name:'CAR @ PHI',exact:true}); await expect(sheet).toBeVisible();
   await expect(sheet.locator('[data-row=weather]')).toBeVisible();
   await expect(sheet.locator('[data-section=trends]')).toBeVisible();

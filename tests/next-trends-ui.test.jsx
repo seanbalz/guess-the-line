@@ -126,7 +126,8 @@ const selectedMatchup = html => {
  return select.children.filter(n => n.tag === 'option' && Object.hasOwn(n.attrs, 'selected')).map(n => n.attrs.value);
 };
 const nextGame = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-25T20:00:00Z' };
-describe.each(['week','teams'])('published matchup filters in %s', section => {
+// D-66: Teams has no Team or Matchup filter any more; it is the nesting cards (tests/next-trends-nest.test.jsx).
+describe.each(['week'])('published matchup filters in %s', section => {
  it('uses All matchups when the published week replaces the saved matchup', () => {
   const view = { trendSection: section, matchup: game.id };
   const initial = renderPublishedSlate(6,[game,nextGame],view);

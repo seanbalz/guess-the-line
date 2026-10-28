@@ -597,6 +597,23 @@ Draft PR on `claude/trend-builder`: Trends › Build, honest result card, this w
 trends with a Home indicator ([TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026)).
 Frontend only; merged in PR #285 (`c091ec0`) and live in Pages `0f9312bf` (release run 40691552196). D-63 approved by Sean October 28.
 
+## Research nesting cards (D-66, chosen October 28)
+
+Sean chose option 1, Nesting cards, from five options on the comparison canvas. See the
+[design spec](superpowers/specs/2026-10-28-research-nesting-cards-design.md). The first rollout is on branch
+`claude/research-nesting-cards`: Trends › Teams becomes Teams › team › trend.
+
+- **Layers:** each team shows its venue record and a meter. Each team layer holds that team's own rows, its coach
+  and QB rows, and its bound situational cards. An opened trend shows the big record and its tags, or the D-55
+  chart, with the windows behind a disclosure.
+- **Navigation:** stacked lips go back up a layer, back closes one layer, and every layer has its own address. A
+  trend's address is a hash, never its key.
+- **Fine print:** the footnote, freshness and credits move behind ⓘ.
+- **Evidence:** the cloud-browser Trends case runs the three layers at 390px and 320px, with axe and the overflow
+  check. Eleven component and navigation tests cover the mapping, the locks and the addresses.
+- **Not done:** Players, This Week, Explore games, Build and Fantasy follow one PR each. This rollout has no release
+  or real-phone check yet.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance

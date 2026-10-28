@@ -30,6 +30,8 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   (Object.hasOwn(patch, 'section') && patch.section !== state.views[tab]?.section)
   || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
   || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
+  // D-66: opening or closing a Trends nesting card is a step, so back closes one layer.
+  || (tab === 'trends' && ['teamsTeam', 'teamsTrend'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.trends?.[key] ?? null)))
 );
 export const canGoBack = state => hasLayers(state) || state.trail.length > 0 || isDetail(state);
 export const DEFAULT_TAB = 'home';
@@ -82,7 +84,7 @@ const closed = { sheets: [], dialog: null, popover: null, page: null };
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
-const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame'];
+const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'teamsTeam', 'teamsTrend'];
 function originView(current, prior, detail) {
   const view = { ...prior, ...current };
   for (const key of detail ? ROUTE_KEYS : ['section', 'view']) view[key] = prior?.[key];
