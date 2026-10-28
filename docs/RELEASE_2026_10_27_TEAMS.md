@@ -53,3 +53,12 @@ frontend once the screens are.
   JWT verification on, bundle `bec3b634da98270129ed7ba68d8cc1633be8c14f4a3ac880c69fcfb456fd481c`
   (`apiSourceVerified: false`). Hosted history `8a02c480…`, no migration applied (pending in the repo: 20261027160000,
   20261026220000). Other workers unchanged. **378 signed-out probes, 378 denied, none awaiting.**
+- **Readiness (frontend)** [run 40637289845](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40637289845) and
+  **frontend** [run 40637435347](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40637435347) from `befc0f3`
+  (main CI: Tests 40635830758, Dashboard checks 40635830819, Brand QA 40635830829, all success), gates approved the same
+  way; verified **05:22:40 UTC**: Pages **`a3aae3af-55f3-45cd-9964-9455f851074c`** (was `48a36ee4`), 108 assets per URL,
+  frontend SHA-256 `9fa94c8e6d136810c6d93a24984e74f5407f1b97b71a3abf3e05d7752a6eee47`. `gtl-api` v39 (`bec3b634…`) and the
+  history `8a02c480…` unchanged. 378 signed-out probes, 378 denied.
+- **Live readback (this PC):** `/` loads `assets/index-BYBqp6XO.js`; `NextApp-CL46NZ1h.js` carries "About team records"
+  (the team sheet) and the lazy `PerGamePlay-7NnapQWt.js` carries "Open team", "Records through Week", "About this score",
+  "Missed by" and `gx-mu-btn`.
