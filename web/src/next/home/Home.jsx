@@ -4,7 +4,7 @@
 // and the rank's last move, and your active tickets); who's in for the league; the newest week's awards as chips; and
 // this week's trends. Shared server rules govern every score and reveal; this screen only reads data, and every number
 // on it comes from those reads.
-import { useEffect, useId, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useId, useMemo, useState } from 'react';
 import { APP_SWITCH_COPY } from '../../appView.js';
 import { HOME_COPY, heroProgress, homeHero, homeTiles } from '../../../../shared/home-view.mjs';
 import { HOME_LOADING } from '../copy.js';
@@ -20,7 +20,11 @@ import { HomeStreak } from '../features/HomeStreak.jsx';
 import { peekMove, rankKey, readRank } from '../league/rankMoment.js';
 import { CountUp } from './CountUp.jsx';
 import { HERO_COPY, heroHeadline } from './homeModel.js';
+import { useSavedTrends } from '../trends/builderData.js';
 import './home.css';
+
+// Loaded only when this device has saved trends, so Home never pulls in the week reads otherwise.
+const SavedTrendsHomeRow = lazy(() => import('../trends/SavedTrendsSummary.jsx').then(m => ({ default: m.SavedTrendsHomeRow })));
 
 const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sat out', tone: 'neutral' }, out: { word: 'Not yet', tone: 'pending' } });
 
@@ -159,6 +163,7 @@ export function Home() {
   const progress = useMemo(() => (data ? heroProgress({ community: data }) : []), [data]);
   const headline = useMemo(() => (hero ? heroHeadline({ hero, community: data }) : null), [hero, data]);
   const tiles = useMemo(() => (data ? homeTiles({ community: data, viewer }) : null), [data, viewer]);
+  const savedTrends = useSavedTrends();
   // The tab bar names this screen; the title stays for screen readers and the page outline.
   const head = <h1 className="gx-t-title gx-sr-only">{HOME_COPY.title}</h1>;
   if (!hero) {
@@ -198,6 +203,7 @@ export function Home() {
       <HomeAwards app={app}/>
       <FocusRows label="This week">
         <FocusRow icon="chart" title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
+        {savedTrends.items.length ? <Suspense key="saved-trends" fallback={<span className="gx-t-meta" role="status">Checking saved trends…</span>}><SavedTrendsHomeRow onOpen={() => shell.go('research', { section: 'trends', trendSection: 'build', season: null, week: null })}/></Suspense> : null}
       </FocusRows>
     </div>
   );

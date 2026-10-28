@@ -361,6 +361,12 @@ Stage 75 (Export my data) is on branch `claude/redesign-export`: M-28
 (`20261026231000_gtl_me_export.sql`, apply after M-27), `/me/export` and Menu ›
 Export my data, written and not applied.
 
+## Trend builder (proposed D-63, October 28)
+
+Draft PR on `claude/trend-builder`: Trends › Build, honest result card, this week's matches and per-device saved
+trends with a Home indicator ([TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026)).
+Frontend only (Pages deploy); no API deploy or migration. Not merged, not deployed; D-63 awaits Sean.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance
