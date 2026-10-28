@@ -44,3 +44,12 @@ release through #283 separately. This batch makes no deployment, migration,
 source acquisition or change to the frozen v62 tracker. Verified live-game
 status and dependent Bet/Challenge destinations remain open. D-63's proposed
 trend-builder decisions are separate from this approved chart work.
+
+
+## Merge verified October 28, 2026
+
+[PR #289](https://github.com/seanbalz/guess-the-lines-repo/pull/289) merged as
+`13c1b35198e8028205059088afa5f25043ad9e8e` after all nine checks passed on
+`1582b786c4386433199e7874820bfba57700102f`. Reviews and review threads were
+empty; no CI repair was needed. Release/readback and physical-iPhone acceptance
+remain open. The next source batch makes player-comparison chart ranges visible.
