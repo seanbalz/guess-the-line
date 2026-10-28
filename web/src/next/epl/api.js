@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react';
 import { cloudApi } from '../../api.js';
-import { readEplAccess } from './route.js';
+import { cachedEplAccess, knownEplAccess } from './route.js';
 
-export const EPL_ACTIONS = Object.freeze(['draft/read', 'draft/pick', 'queue/save', 'admin/link', 'admin/week', 'admin/snapshot']);
+export const EPL_ACTIONS = Object.freeze(['draft/read', 'draft/pick', 'queue/save', 'admin/link', 'admin/week', 'admin/snapshot', 'admin/fixture']);
 /** gtl-api's EPL routes (cloud/epl.mjs); everything but the read is a save. */
 export function eplApi(action, body = {}, options = {}) {
   if (!EPL_ACTIONS.includes(action)) throw new TypeError('Unknown EPL action.');
   return cloudApi(`epl/${action}`, body, { ...options, save: action !== 'draft/read' });
 }
 
-/** True once one `epl/draft/read` shows this account may use EPL (readEplAccess); false until then. */
-export function useEplAccess(api = eplApi) {
-  const [access, setAccess] = useState(false);
+/**
+ * This account's EPL access (readEplAccess): null while the one `epl/draft/read` per signed-in account is out, then true or
+ * false. The answer is cached for the page's life (cachedEplAccess) and read again when the account changes.
+ */
+export function useEplAccess(userId, api = eplApi) {
+  const [state, setState] = useState(() => ({ userId, value: knownEplAccess(userId) }));
   useEffect(() => {
-    const controller = new AbortController();
     let live = true;
-    readEplAccess(api, { signal: controller.signal }).then(value => { if (live) setAccess(value); });
-    return () => { live = false; controller.abort(); };
-  }, [api]);
-  return access;
+    cachedEplAccess(userId, api).then(value => { if (live) setState({ userId, value }); });
+    return () => { live = false; };
+  }, [userId, api]);
+  return state.userId === userId ? state.value : knownEplAccess(userId);
 }

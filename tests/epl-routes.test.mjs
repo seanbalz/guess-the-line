@@ -51,6 +51,7 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
         return { season: args.p_season, week: args.p_week, windowStart: args.p_window_start, windowEnd: args.p_window_end, firstKickoff: args.p_first_kickoff ?? state.weekRow.firstKickoff };
       }
       if (name === 'gtl_epl_save_snapshot') return true;
+      if (name === 'gtl_epl_set_fixture_status') return { eventId: args.p_event_id, season: 2026, week: 9, status: args.p_status };
       throw new Error(`unexpected rpc ${name}`);
     },
     async latestWeek() { calls.push(['latestWeek']); return latest; },
@@ -65,10 +66,10 @@ const rejectsWith = (promise, status, code) => assert.rejects(promise, error => 
   return true;
 });
 
-test('EPL_METHODS is the six POST routes, frozen, and registered in gtl-api', () => {
+test('EPL_METHODS is the seven POST routes, frozen, and registered in gtl-api', () => {
   assert.deepEqual({ ...EPL_METHODS }, {
     '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
-    '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'],
+    '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
   });
   assert.ok(Object.isFrozen(EPL_METHODS));
   assert.equal(ROUTE_MODULES.epl, EPL_METHODS);
@@ -91,6 +92,16 @@ test('a non-member is refused 403 GTL_EPL_FORBIDDEN before any state is read', a
   }
 });
 
+test('a non-member gets 403 even for a malformed body: membership is checked before the body (pre-T8 fix wave)', async () => {
+  const bad = { '/epl/draft/read': [{ extra: 1 }, { season: 1999, week: 9 }], '/epl/draft/pick': [{}, { club: 'arsenal' }, { club: 'ARS', ownerId: SEAN }],
+    '/epl/queue/save': [{ clubs: 'ARS' }, { clubs: ['ARS', 'ARS'] }, { extra: 1 }] };
+  for (const [route, bodies] of Object.entries(bad)) for (const body of bodies) {
+    const service = fakeService({ member: null });
+    await rejectsWith(call(route, body, service), 403, 'GTL_EPL_FORBIDDEN');
+    assert.deepEqual(service.calls.map(c => c[0]), ['gtl_epl_member'], `${route} ${JSON.stringify(body)}`);
+  }
+});
+
 test('draft/read gives a member the board, the clubs playing, their own queue and last week\'s bonus', async () => {
   const service = fakeService();
   const view = await call('/epl/draft/read', {}, service);
@@ -107,8 +118,10 @@ test('draft/read gives a member the board, the clubs playing, their own queue an
   assert.equal(view.onTheClock, ADAM);
   // Postponed fixtures are not pickable; each club appears once, against its opponent, with its kickoff.
   assert.deepEqual(view.clubs.map(c => c.code), ['MNC', 'BOU', 'AVL', 'LIV', 'ARS', 'TOT']);
-  assert.deepEqual(view.clubs[0], { code: 'MNC', name: 'MNC', opponent: 'BOU', kickoff: KICKOFF, home: true });
-  assert.deepEqual(view.clubs[1], { code: 'BOU', name: 'BOU', opponent: 'MNC', kickoff: KICKOFF, home: false });
+  // The club's name comes from shared/epl-clubs.mjs, never the code (pre-T8 fix wave).
+  assert.deepEqual(view.clubs[0], { code: 'MNC', name: 'Manchester City', opponent: 'BOU', kickoff: KICKOFF, home: true });
+  assert.deepEqual(view.clubs[1], { code: 'BOU', name: 'Bournemouth', opponent: 'MNC', kickoff: KICKOFF, home: false });
+  assert.deepEqual(view.clubs.map(c => c.name), ['Manchester City', 'Bournemouth', 'Aston Villa', 'Liverpool', 'Arsenal', 'Tottenham Hotspur']);
   assert.deepEqual(view.myQueue, ['ARS', 'LIV']);
   assert.deepEqual(view.bonusLastWeek, [{ ownerId: EVAN, name: 'Evan', points: 15, margin: 3, club: 'ARS' }]);
   assert.deepEqual(service.calls.find(c => c[0] === 'readQueue'), ['readQueue', 2026, 9, ADAM]);
@@ -161,6 +174,31 @@ test('draft/pick maps the database refusals to 409 and checks the turn before wr
   }
 });
 
+test('draft/pick refuses a week with a null or unparseable first kickoff as closed, before any rule or write (pre-T8 fix wave)', async () => {
+  for (const firstKickoff of [null, 'not a time', '', 7]) {
+    const service = fakeService({ state: weekState({ weekRow: { ...weekState().weekRow, firstKickoff } }) });
+    await rejectsWith(call('/epl/draft/pick', { club: 'ARS' }, service), 409, 'GTL_EPL_DRAFT_CLOSED');
+    assert.ok(!service.calls.some(c => c[0] === 'gtl_epl_save_pick'), String(firstKickoff));
+  }
+});
+
+test('admin/fixture: the commissioner postpones or restores a match; a member is refused 403 (pre-T8 fix wave)', async () => {
+  const service = fakeService({ admin: true });
+  assert.deepEqual(await call('/epl/admin/fixture', { eventId: 'e8', status: 'postponed' }, service), { eventId: 'e8', season: 2026, week: 9, status: 'postponed' });
+  assert.deepEqual(service.calls.at(-1), ['gtl_epl_set_fixture_status', { p_event_id: 'e8', p_status: 'postponed', p_by: USER.id }]);
+  assert.equal((await call('/epl/admin/fixture', { eventId: 'e8', status: 'scheduled' }, fakeService({ admin: true }))).status, 'scheduled');
+  const member = fakeService({ member: ADAM, admin: false });
+  await rejectsWith(call('/epl/admin/fixture', { eventId: 'e8', status: 'postponed' }, member), 403, 'GTL_EPL_FORBIDDEN');
+  assert.deepEqual(member.calls.map(c => c[0]), ['gtl_community_admin']);
+  for (const body of [{}, { eventId: 'e8' }, { eventId: 'e8', status: 'final' }, { eventId: '', status: 'postponed' }, { eventId: 7, status: 'postponed' },
+    { eventId: 'x'.repeat(129), status: 'postponed' }, { eventId: 'e8', status: 'postponed', extra: 1 }]) {
+    const refused = fakeService({ admin: true });
+    await rejectsWith(call('/epl/admin/fixture', body, refused), 400, 'GTL_EPL_INVALID');
+    assert.ok(!refused.calls.some(c => c[0] === 'gtl_epl_set_fixture_status'), JSON.stringify(body));
+  }
+  await rejectsWith(call('/epl/admin/fixture', { eventId: 'e1', status: 'postponed' }, fakeService({ admin: true, errors: { gtl_epl_set_fixture_status: 'GTL_EPL_FIXTURE_LOCKED' } })), 409, 'GTL_EPL_FIXTURE_LOCKED');
+});
+
 test('queue/save keeps the order sent and refuses duplicates, more than 20, and clubs not playing', async () => {
   const service = fakeService();
   const result = await call('/epl/queue/save', { clubs: ['LIV', 'ARS', 'TOT'] }, service);
@@ -182,6 +220,7 @@ test('admin routes are the commissioner\'s alone', async () => {
     '/epl/admin/link': { ownerId: DARIN, userId: OTHER },
     '/epl/admin/week': { season: 2026, week: 9, windowStart: '2026-10-30T00:00:00Z', windowEnd: '2026-11-04T00:00:00Z' },
     '/epl/admin/snapshot': { label: 'after-mw8', capturedAt: '2026-10-28T17:32:00Z', sha256: { rosters: 'a'.repeat(64) }, payload: { rosters: [] } },
+    '/epl/admin/fixture': { eventId: 'e8', status: 'postponed' },
   };
   for (const [route, body] of Object.entries(bodies)) {
     // A linked manager (even Sean, who is also a manager) is not a commissioner unless gtl_community_admin says so.
@@ -319,7 +358,7 @@ test('the gtl-api adapter gives EPL a caller limited to its own functions, and t
     requests.push(new URL(url).pathname);
     return Response.json({ message: 'GTL_EPL_CLUB_TAKEN' }, { status: 400 });
   } });
-  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
+  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
   await assert.rejects(adapter.epl.rpc('gtl_epl_save_pick', {}), error => error instanceof EplError && error.status === 409);
   await assert.rejects(adapter.epl.rpc('gtl_epl_resolve_week', {}), /Invalid operation/);
   assert.deepEqual(requests, ['/rest/v1/rpc/gtl_epl_save_pick']);

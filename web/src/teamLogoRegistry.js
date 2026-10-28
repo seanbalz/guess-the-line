@@ -4,7 +4,7 @@
 // docs/TEAM_LOGO_SOURCES.md#official-logos-d-46 and public/team-logos/sources.json.
 import { EPL_CLUBS } from '../../shared/epl-clubs.mjs';
 
-export const TEAM_TRADEMARK_NOTICE ='NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.';
+export const TEAM_TRADEMARK_NOTICE = 'NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.';
 
 
 const official = code => Object.freeze({

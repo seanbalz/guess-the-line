@@ -10,6 +10,7 @@ const { EplAccessContext } = await import('../web/src/next/epl/route.js');
 const { EplView } = await import('../web/src/next/epl/EplApp.jsx');
 const { eplApi } = await import('../web/src/next/epl/api.js');
 const { ApiError } = await import('../web/src/apiResponse.js');
+const { NbaHeader } = await import('../web/src/next/nba/NbaHeader.jsx');
 
 const text = html => decode(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
 const pressed = html => [...html.matchAll(/<button[^>]*aria-pressed="true"[^>]*>([^<]*)<\/button>/g)].map(match => match[1]);
@@ -26,6 +27,16 @@ describe('sport switch', () => {
     expect(text(shown)).toContain('EPL');
     expect(pressed(shown)).toEqual(['NFL']);
     expect(markupProblems(shown)).toEqual([]);
+  });
+  it('the NBA header offers EPL only with access, with NBA selected (pre-T8 fix wave)', () => {
+    const shown = renderToStaticMarkup(<div className="gx"><NbaHeader epl onSportChange={() => {}}/></div>);
+    expect(text(shown)).toContain('EPL'); expect(text(shown)).toContain('NFL');
+    expect(pressed(shown)).toEqual(['NBA']);
+    expect(markupProblems(shown)).toEqual([]);
+    const hidden = renderToStaticMarkup(<div className="gx"><NbaHeader epl={false} onSportChange={() => {}}/></div>);
+    expect(text(hidden)).not.toContain('EPL');
+    expect(text(hidden)).toContain('NFL'); expect(text(hidden)).toContain('NBA');
+    expect(pressed(hidden)).toEqual(['NBA']);
   });
   it('the EPL app header has EPL selected', () => {
     const html = render({ tab: 'home' });

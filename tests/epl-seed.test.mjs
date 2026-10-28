@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { MW09, buildMw09Seed, describeSeed, parseSeedArgs, runSeed } from '../scripts/epl-seed-mw09.mjs';
 import { buildSnapshotImport, listSnapshotFiles, parseImportArgs, runImport, snapshotLabel } from '../scripts/epl-import-snapshots.mjs';
 import { EPL_CLUB_CODES } from '../shared/epl-clubs.mjs';
-import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
+import { MANAGER_NAMES, managersFromSnapshot, weeklyScores } from '../shared/epl-sleeper.mjs';
 
 const NEMO = '865667912365666304', CULLEN = '1259267898757611520', ADAM = '719745569895018496', SEAN = '473955676301815808';
 const EVAN = '719658248843632640', MARK = '1257180071064510465', STEVEN = '702644837370929152', DARIN = '1395236217460633600';
@@ -129,20 +129,86 @@ test('snapshot labels drop the capture date and give the matchweek the jobs work
   assert.equal(snapshotLabel('2026-10-28-after-mw08.txt'), null);
 });
 
-test('the import body carries the label, capture time, matchweek, the stored source hashes and the unchanged file', () => {
+test('the import body carries the label, capture time, matchweek, the stored source hashes and the trimmed file', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'epl-import-'));
   const file = snapshotFixture(dir, '2026-10-28-after-mw08.json');
   const before = fs.readFileSync(file);
   const item = buildSnapshotImport(file);
+  const original = JSON.parse(before);
   assert.deepEqual(item.body, {
     label: 'after-mw08', capturedAt: '2026-10-28T17:32:37.000Z', week: 8,
-    sha256: { users: 'a'.repeat(64), rosters: 'b'.repeat(64) }, payload: JSON.parse(before),
+    sha256: { users: 'a'.repeat(64), rosters: 'b'.repeat(64) },
+    payload: { capturedAt: original.capturedAt, leagueId: original.leagueId, sources: original.sources, trimmed: true,
+      users: original.users, rosters: [{ roster_id: 1, owner_id: SEAN, settings: { fpts: 100 } }] },
   });
   assert.equal(item.fileSha256, createHash('sha256').update(before).digest('hex'));
   assert.ok(fs.readFileSync(file).equals(before), 'the snapshot file is only read');
   assert.throws(() => buildSnapshotImport(snapshotFixture(dir, '2026-10-28-after-mw07.json', { leagueId: '1' })), /league/);
   assert.throws(() => buildSnapshotImport(snapshotFixture(dir, '2026-10-28-after-mw06.json', { capturedAt: 'soon' })), /capturedAt/);
   assert.throws(() => buildSnapshotImport(snapshotFixture(dir, '2026-10-28-after-mw05.json', { sources: { users: { sha256: 'xyz' } } })), /sha256/);
+});
+
+// A Sleeper-shaped snapshot: what the worker and the fantasy math read, plus the bulk the import leaves out.
+function fullSnapshot() {
+  const owners = Object.keys(MANAGER_NAMES);
+  const rostered = owners.map((_, i) => Array.from({ length: 3 }, (__, j) => String(1000 + i * 10 + j)));
+  const entry = (id, kind) => ({ player_id: id, stats: kind === 'stat' ? { gp: 1, min: 90, goals: Number(id) % 3 } : { pts_std: 4.5 }, category: kind, week: 8,
+    player: { first_name: 'A', last_name: 'B', metadata: { channel_id: 'x'.repeat(40) }, injury_notes: null }, team: '1031', opponent: '1049', game_id: 'g', company: 'sleeper' });
+  const unrostered = Array.from({ length: 40 }, (_, i) => String(5000 + i));
+  return {
+    capturedAt: '2026-10-28T17:32:37+00:00', purpose: 'MW9 baseline', source: 'Sleeper public API', leagueId: '1395122699423993856',
+    sources: { users: { path: '/v1/league/x/users', sha256: 'a'.repeat(64) }, rosters: { path: '/v1/league/x/rosters', sha256: 'b'.repeat(64) } },
+    state: { week: 9, season: '2026', season_type: 'regular' },
+    league: { name: 'FEPL', status: 'in_season', settings: { num_teams: 8 }, metadata: { x: 'y'.repeat(200) }, scoring_settings: { goal: 6, assist: 3 }, avatar: 'abc' },
+    users: owners.map(id => ({ user_id: id, display_name: `n${id}`, avatar: 'a'.repeat(32), metadata: { team_name: 'T' }, is_owner: false, league_id: 'x', settings: null })),
+    rosters: owners.map((id, i) => ({ owner_id: id, roster_id: i + 1, players: rostered[i], starters: rostered[i].slice(0, 2), reserve: null, taxi: null, keepers: null,
+      co_owners: null, league_id: 'x', metadata: { record: 'WWL' }, player_map: { [rostered[i][0]]: { x: 1 } },
+      settings: { fpts: 500 + i, fpts_decimal: 25, fpts_against: 480, fpts_against_decimal: 10, wins: 4, losses: 4, ties: 0, total_moves: 3 } })),
+    stats_mw8: [...rostered.flat(), ...unrostered].map(id => entry(id, 'stat')),
+    projections_mw9: [...rostered.flat(), ...unrostered].map(id => entry(id, 'proj')),
+  };
+}
+
+test('the import trims a snapshot to what settle and the fantasy math read, and the math is unchanged (pre-T8 fix wave)', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'epl-import-'));
+  const snap = fullSnapshot();
+  const file = path.join(dir, '2026-10-28-after-mw08.json');
+  fs.writeFileSync(file, JSON.stringify(snap, null, 1));
+  const { body, bytes } = buildSnapshotImport(file);
+  const p = body.payload;
+  assert.deepEqual(Object.keys(p).sort(), ['capturedAt', 'league', 'leagueId', 'projections_mw9', 'purpose', 'rosters', 'source', 'sources', 'state', 'stats_mw8', 'trimmed', 'users']);
+  assert.deepEqual(p.league, { scoring_settings: { goal: 6, assist: 3 } });
+  assert.deepEqual(p.state, snap.state);
+  assert.deepEqual(p.users[0], { user_id: snap.users[0].user_id, display_name: snap.users[0].display_name });
+  assert.deepEqual(Object.keys(p.rosters[0]).sort(), ['owner_id', 'players', 'roster_id', 'settings', 'starters']);
+  assert.deepEqual(p.rosters[0].settings, snap.rosters[0].settings);
+  const rosteredIds = new Set(snap.rosters.flatMap(r => r.players));
+  assert.equal(p.stats_mw8.length, rosteredIds.size, 'only rostered players');
+  assert.ok(p.stats_mw8.every(e => rosteredIds.has(e.player_id) && Object.keys(e).sort().join() === 'player_id,stats'));
+  assert.deepEqual(p.stats_mw8[0], { player_id: snap.stats_mw8[0].player_id, stats: snap.stats_mw8[0].stats });
+  assert.equal(p.projections_mw9.length, rosteredIds.size);
+  assert.deepEqual(managersFromSnapshot(p), managersFromSnapshot(snap));
+  assert.deepEqual(weeklyScores(p, p), weeklyScores(snap, snap));
+  assert.ok(bytes < JSON.stringify(snap).length / 2, `${bytes} trimmed vs ${JSON.stringify(snap).length}`);
+  assert.equal(bytes, Buffer.byteLength(JSON.stringify(body)), 'bytes is the posted body');
+});
+
+test('the import refuses a snapshot with no source sha256 (pre-T8 fix wave)', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'epl-import-'));
+  for (const [name, sources] of [['2026-10-28-after-mw08.json', {}], ['2026-10-28-after-mw07.json', undefined], ['2026-10-28-after-mw06.json', null]]) {
+    const file = snapshotFixture(dir, name, { sources });
+    assert.throws(() => buildSnapshotImport(file), /no source sha256/, name);
+  }
+});
+
+test('--only picks its labels before any other file is read or checked (pre-T8 fix wave)', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'epl-import-'));
+  snapshotFixture(dir, '2026-10-28-after-mw08.json');
+  snapshotFixture(dir, '2026-10-21-after-mw07.json', { leagueId: '1' }); // would refuse if built
+  fs.writeFileSync(path.join(dir, '2026-10-14-after-mw06.json'), '{ not json');
+  const result = await runImport({ dir, only: ['after-mw08'], apply: false, fetchImpl: noFetch });
+  assert.deepEqual(result.items.map(i => i.label), ['after-mw08']);
+  await assert.rejects(runImport({ dir, apply: false, fetchImpl: noFetch }), /league|JSON/, 'without --only every file is checked');
 });
 
 test('a dry-run import lists the snapshot files in order, never sends and never writes', async () => {

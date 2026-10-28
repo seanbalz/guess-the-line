@@ -34,7 +34,7 @@ test('every table is created if not exists, has row level security and service-o
 test('no security definer; every function is create or replace, invoker, empty search_path', () => {
   assert.doesNotMatch(code, /security\s+definer/i);
   const fns = [...code.matchAll(/create\s+(or\s+replace\s+)?function\s+(public\.\w+)\s*\(([^)]*)\)/gi)];
-  assert.equal(fns.length, 20);
+  assert.equal(fns.length, 22);
   for (const [, orr, name] of fns) assert.ok(orr, `${name} must be create or replace`);
   assert.equal([...code.matchAll(/security\s+invoker\s+set\s+search_path\s*=\s*''/gi)].length, fns.length);
 });
@@ -50,7 +50,7 @@ test('every function is revoked from the browser roles and granted to service_ro
   for (const n of ['gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_week_state', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices',
     'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window',
     'gtl_epl_dispatch_jobs', 'gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_read_snapshots', 'gtl_epl_reserve_credits',
-    'gtl_epl_record_quota', 'gtl_epl_mark_nudge']) assert.ok(names.includes(`public.${n}`), n);
+    'gtl_epl_record_quota', 'gtl_epl_mark_nudge', 'gtl_epl_flag_week_review', 'gtl_epl_set_fixture_status']) assert.ok(names.includes(`public.${n}`), n);
 });
 
 test('every create is idempotent and nothing is dropped or deleted', () => {
@@ -67,6 +67,12 @@ test('save_pick locks the week row and raises the coded errors', () => {
   assert.match(body, /unique_violation/);
   assert.match(body, /gtl_epl_pick_history/);
   assert.match(body, /final\s*=\s*true/i);
+});
+
+test('the week status allows needs_review and the header names the M-ledger apply order and the service-only p_now', () => {
+  assert.match(code, /check\(status in \('open','resolved','needs_review','settled'\)\)/);
+  assert.match(sql, /Apply order is the M-ledger in docs\/REDESIGN_BUILD_PLAN\.md section 6/);
+  assert.match(sql, /p_now[^\n]*must never come from a client/);
 });
 
 test('the eight managers are seeded idempotently and the schedule defaults off', () => {

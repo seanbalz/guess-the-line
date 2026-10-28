@@ -1,5 +1,5 @@
 // EPL "Pick a Team" routes on gtl-api (docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md section 6;
-// plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Six POST routes over the M-30 service-only functions
+// plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Seven POST routes over the M-30 service-only functions
 // (supabase/migrations/20261028180000_gtl_epl_pick_a_team.sql):
 //   /epl/draft/read      a linked FEPL manager or the commissioner: the week's board, the clubs playing, the caller's own queue
 //   /epl/draft/pick      the manager on the clock, or the latest picker changing their pick (gtl_epl_save_pick re-checks it all)
@@ -9,6 +9,9 @@
 //                        sent; with an order or picks it opens or corrects a seeded week (MW9) through gtl_epl_seed_week
 //   /epl/admin/snapshot  the commissioner stores a Sleeper season-total snapshot, unique by label (its body may be up to
 //                        EPL_SNAPSHOT_MAX_BYTES; every other gtl-api route keeps the 32 KB cap)
+//   /epl/admin/fixture   the commissioner marks a match postponed or scheduled again (gtl_epl_set_fixture_status): the jobs
+//                        worker never postpones a match only because a feed stopped listing it (pre-T8 fix wave)
+// The member routes check membership before the body, so a non-member always gets 403.
 // The rules in shared/epl-draft.mjs refuse an out-of-turn, taken, closed or not-playing pick before any write, so the
 // common refusals cost no write; the SQL is still the authority (it locks the week row and checks again).
 //
@@ -20,18 +23,20 @@
 import { UUID_PATTERN } from './lobby.mjs';
 import { canPick, onTheClock } from '../shared/epl-draft.mjs';
 import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
+import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
 
 export const EPL_METHODS = Object.freeze({
   '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
-  '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'],
+  '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
-  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_community_admin']);
+  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_community_admin']);
 /**
- * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). A Sleeper snapshot carries the season-total
- * stats and next-week projections for every player (the after-MW8 file is about 900 KB), which the weekly scores need in
- * full, so it cannot be trimmed to fit the 32 KB cap the other routes keep. The body is read only after sign-in.
+ * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
+ * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
+ * the 900 KB after-MW8 file), still above the 32 KB cap the other routes keep, so this route keeps its own cap and the
+ * body is posted whole, not in parts. The body is read only after sign-in.
  */
 export const EPL_SNAPSHOT_MAX_BYTES = 4 * 1024 * 1024;
 export const EPL_BODY_LIMITS = Object.freeze({ '/epl/admin/snapshot': EPL_SNAPSHOT_MAX_BYTES });
@@ -55,6 +60,7 @@ const ERRORS = Object.freeze({
   GTL_EPL_ALREADY_LINKED: [409, 'That account is already linked to another manager.'],
   GTL_EPL_SEED_REFUSED: [409, 'This matchweek already has in-app picks, so its order and picks are fixed.'],
   GTL_EPL_NOT_RESOLVED: [409, 'This matchweek has not been resolved yet.'],
+  GTL_EPL_FIXTURE_LOCKED: [409, 'That match has a result or its matchweek is settled, so it cannot change.'],
   // M-30 not on the database (not applied, or rolled back): the coming-soon answer.
   GTL_FEATURE_OFF: [404, 'Pick a Team is coming soon.', 'GTL_EPL_OFF'],
 });
@@ -93,6 +99,8 @@ const CLUB = /^[A-Z]{3}$/;
 const isClub = value => typeof value === 'string' && CLUB.test(value);
 const isManager = value => typeof value === 'string' && Object.hasOwn(MANAGER_NAMES, value);
 const nameOf = ownerId => (isManager(ownerId) ? MANAGER_NAMES[ownerId] : ownerId);
+const CLUB_NAMES = new Map(EPL_CLUBS.map(c => [c.code, c.name]));
+const clubName = code => CLUB_NAMES.get(code) ?? code;
 const given = value => value !== undefined && value !== null;
 /** A timestamp as ISO text, or null when it is not one. */
 const iso = value => (typeof value === 'string' && Number.isFinite(Date.parse(value)) ? new Date(Date.parse(value)).toISOString() : null);
@@ -126,7 +134,7 @@ function weekView(raw) {
     for (const [code, opponent, home] of [[f.home, f.away, true], [f.away, f.home, false]]) {
       if (seen.has(code)) continue;
       seen.add(code);
-      clubs.push({ code, name: code, opponent, kickoff: text(f.commenceTime), home });
+      clubs.push({ code, name: clubName(code), opponent, kickoff: text(f.commenceTime), home });
     }
   }
   const bonus = (Array.isArray(raw.bonus) ? raw.bonus : []).filter(b => record(b) && typeof b.ownerId === 'string')
@@ -154,9 +162,9 @@ async function requireCommissioner(service, user) {
 }
 
 async function draftRead({ body, user, service, now }) {
+  const owner = await member(service, user);
   keys(body, ['season', 'week']);
   checkWeekFields(body);
-  const owner = await member(service, user);
   const view = await readWeek(service, await targetWeek(body, service));
   const myQueue = owner === 'commissioner' ? null : await service.readQueue(view.season, view.week, owner);
   return {
@@ -171,12 +179,13 @@ async function draftRead({ body, user, service, now }) {
 }
 
 async function draftPick({ body, user, service, now }) {
+  const owner = await member(service, user);
   keys(body, ['club', 'season', 'week']);
   if (!isClub(body.club)) refuse('GTL_EPL_INVALID');
   checkWeekFields(body);
-  const owner = await member(service, user);
   const view = await readWeek(service, await targetWeek(body, service));
-  if (view.status !== 'open') refuse('GTL_EPL_DRAFT_CLOSED');
+  // A week without a readable first kickoff has no deadline to pick against: closed, before any rule runs.
+  if (view.status !== 'open' || !Number.isFinite(Date.parse(view.deadline))) refuse('GTL_EPL_DRAFT_CLOSED');
   const check = canPick({ order: view.order, picks: draftPicks(view.picks), managerId: owner, club: body.club,
     clubs: view.clubs.map(c => c.code), now: new Date(now), deadline: new Date(Date.parse(view.deadline)) });
   if (!check.ok) refuse(check.code);
@@ -187,11 +196,11 @@ async function draftPick({ body, user, service, now }) {
 }
 
 async function queueSave({ body, user, service, now }) {
+  const owner = await member(service, user);
   keys(body, ['clubs', 'season', 'week']);
   const clubs = body.clubs;
   if (!Array.isArray(clubs) || clubs.length > 20 || !clubs.every(isClub) || new Set(clubs).size !== clubs.length) refuse('GTL_EPL_QUEUE_INVALID');
   checkWeekFields(body);
-  const owner = await member(service, user);
   if (owner === 'commissioner') refuse('GTL_EPL_NOT_MEMBER');
   const view = await readWeek(service, await targetWeek(body, service));
   if (!isOpen(view, now)) refuse('GTL_EPL_DRAFT_CLOSED');
@@ -264,9 +273,19 @@ async function adminSnapshot({ body, user, service }) {
   return { label: body.label, saved: saved === true };
 }
 
+const EVENT_ID = /^[A-Za-z0-9_-]{1,128}$/;
+async function adminFixture({ body, user, service }) {
+  keys(body, ['eventId', 'status']);
+  await requireCommissioner(service, user);
+  if (typeof body.eventId !== 'string' || !EVENT_ID.test(body.eventId) || !['postponed', 'scheduled'].includes(body.status)) refuse('GTL_EPL_INVALID');
+  const saved = await service.rpc('gtl_epl_set_fixture_status', { p_event_id: body.eventId, p_status: body.status, p_by: user.id });
+  if (!record(saved) || !['postponed', 'scheduled'].includes(saved.status)) throw reply();
+  return { eventId: text(saved.eventId), season: isSeason(saved.season) ? saved.season : null, week: isWeek(saved.week) ? saved.week : null, status: saved.status };
+}
+
 const HANDLERS = Object.freeze({
   '/epl/draft/read': draftRead, '/epl/draft/pick': draftPick, '/epl/queue/save': queueSave,
-  '/epl/admin/link': adminLink, '/epl/admin/week': adminWeek, '/epl/admin/snapshot': adminSnapshot,
+  '/epl/admin/link': adminLink, '/epl/admin/week': adminWeek, '/epl/admin/snapshot': adminSnapshot, '/epl/admin/fixture': adminFixture,
 });
 
 export async function handleEpl({ route, body, user, service, clock = Date.now }) {

@@ -25,8 +25,9 @@ is deployed: M-30 (`20261028180000_gtl_epl_pick_a_team.sql`) is written and **no
    Bets, Research). Only GTL accounts linked to one of the 8 managers of Sean's Sleeper league **FEPL** (league
    `1395122699423993856`, `clubsoccer:epl`, season 2026), plus the commissioner, see the EPL option or read its data.
    Bets shows nothing new for EPL. EPL games are not open to the wider community.
-2. **Linking.** Each Sleeper manager links to exactly one GTL account, and only the commissioner links or unlinks.
-   Manager map: nemoheye = Nemo, steezyc9 = Cullen, aharrison2 = Adam, seanbalz = Sean, NLGooner = Evan, LFCRed = Mark,
+2. **Linking.** Each Sleeper manager links to exactly one GTL account, and only the commissioner links or unlinks. A
+   manager without a GTL account gets an invite link from the commissioner to create one, which the commissioner then
+   links (spec section 10, call 1). Manager map: nemoheye = Nemo, steezyc9 = Cullen, aharrison2 = Adam, seanbalz = Sean, NLGooner = Evan, LFCRed = Mark,
    sthomas111 = Steven, Freudian = Darin. An unlinked manager still appears in standings but cannot draft or guess.
 3. **Sleeper is read only.** Nothing is ever written to Sleeper. Weekly scores are the change in each roster's saved
    season `fpts` (with decimals) between snapshots, because Sleeper gives no matchups for this league. Opponents are

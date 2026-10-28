@@ -19,9 +19,13 @@
 --   serialise, and re-checks the deadline, the turn and the club in SQL), gtl_epl_save_queue, gtl_epl_week_state
 --   (the public state; queues are private and never included), and the jobs worker's writers: gtl_epl_upsert_fixtures,
 --   gtl_epl_upsert_prices, gtl_epl_resolve_week, gtl_epl_settle_week, gtl_epl_save_snapshot, gtl_epl_link_manager,
---   gtl_epl_seed_week, gtl_epl_set_week_window.
+--   gtl_epl_seed_week, gtl_epl_set_week_window, gtl_epl_flag_week_review (a resolved week whose drafted result can no
+--   longer be read becomes needs_review instead of settling) and gtl_epl_set_fixture_status (the commissioner postpones or
+--   restores a match; a fixture never becomes postponed only because a feed stopped listing it).
 --
--- Apply after M-29 (20261027..., the newest file on main). Rerunnable: tables and indexes are created only if missing,
+-- Apply order is the M-ledger in docs/REDESIGN_BUILD_PLAN.md section 6 (M-30 after M-29), not the file name or timestamp.
+-- p_now on gtl_epl_save_pick is a service-side clock for gtl-api and the tests only: it must never come from a client
+-- (cloud/epl.mjs passes its own clock; no browser role can call any of these functions). Rerunnable: tables and indexes are created only if missing,
 -- every function is create or replace with this exact argument list, every grant is restated, and the manager seed rows
 -- are inserted with on conflict do nothing. Every table and function is service-role only; no browser role gets
 -- anything, and no policy exists. Nothing is dropped, deleted or truncated. Off switch: the schedule row stays
@@ -55,7 +59,7 @@ create table if not exists public.gtl_epl_weeks (
   window_end timestamptz not null,
   first_kickoff timestamptz not null,
   pick_order text[] not null check(cardinality(pick_order)>=1),
-  status text not null default 'open' check(status in ('open','resolved','settled')),
+  status text not null default 'open' check(status in ('open','resolved','needs_review','settled')),
   seeded boolean not null default false,
   primary key(season,week)
 );
@@ -236,7 +240,7 @@ end $$;
 create or replace function public.gtl_epl_save_pick(p_user uuid,p_season integer,p_week integer,p_club text,p_now timestamptz default null) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 declare now_at timestamptz:=coalesce(p_now,clock_timestamp()); w public.gtl_epl_weeks; v_owner text; v_club text:=btrim(p_club);
-  cur_idx integer; last_idx integer; idx integer; act text; prior text;
+  cur_idx integer; last_idx integer; idx integer; act text; prior text; prior_final boolean;
 begin
   select * into w from public.gtl_epl_weeks where season=p_season and week=p_week for update;
   if not found then raise exception 'GTL_EPL_NO_WEEK' using errcode='P0001'; end if;
@@ -259,7 +263,9 @@ begin
       -- The previous manager's pick can no longer change once the next manager has picked.
       if idx>1 then update public.gtl_epl_picks set final=true where season=p_season and week=p_week and owner_id=w.pick_order[idx-1]; end if;
     else
-      select k.club into prior from public.gtl_epl_picks k where k.season=p_season and k.week=p_week and k.owner_id=v_owner;
+      select k.club,k.final into prior,prior_final from public.gtl_epl_picks k where k.season=p_season and k.week=p_week and k.owner_id=v_owner;
+      -- A final pick never changes (a seeded week can hold the latest picker's pick as final).
+      if prior_final then raise exception 'GTL_EPL_NOT_YOUR_TURN' using errcode='P0001'; end if;
       if prior is distinct from v_club then
         update public.gtl_epl_picks set club=v_club,picked_at=now_at,source='pick' where season=p_season and week=p_week and owner_id=v_owner;
       else act:='unchanged'; end if;
@@ -317,8 +323,9 @@ begin
   return n;
 end $$;
 
--- After the first kickoff: p_rows [{ owner_id, club|null, source }] fills in managers who did not pick (queue, auto or none),
--- every pick becomes final and the week is resolved. A manager who already picked keeps their pick; rerunning adds nothing.
+-- After the first kickoff (the database clock, never a caller's): p_rows [{ owner_id, club|null, source }] fills in managers
+-- who did not pick (queue or auto with a club playing that week, none without a club), every pick becomes final and the week
+-- is resolved. A manager who already picked keeps their pick; rerunning adds nothing. Every row is checked before any write.
 create or replace function public.gtl_epl_resolve_week(p_season integer,p_week integer,p_rows jsonb) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 declare w public.gtl_epl_weeks; r record; added integer:=0; stamp timestamptz:=clock_timestamp();
@@ -326,8 +333,14 @@ begin
   if p_rows is null or jsonb_typeof(p_rows)<>'array' then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
   select * into w from public.gtl_epl_weeks where season=p_season and week=p_week for update;
   if not found then raise exception 'GTL_EPL_NO_WEEK' using errcode='P0001'; end if;
+  if stamp<w.first_kickoff then raise exception 'GTL_EPL_NOT_DUE' using errcode='P0001'; end if;
   for r in select x.owner_id,x.club,x.source from jsonb_to_recordset(p_rows) as x(owner_id text,club text,source text) loop
-    if r.owner_id is null or not (r.owner_id=any(w.pick_order)) or r.source is null or r.source not in ('queue','auto','none') then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+    if r.owner_id is null or not (r.owner_id=any(w.pick_order)) or r.source is null or r.source not in ('queue','auto','none')
+      or (r.source='none') <> (r.club is null) then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+    if r.club is not null and not exists(select 1 from public.gtl_epl_fixtures f where f.season=p_season and f.week=p_week
+        and f.status<>'postponed' and (f.home=r.club or f.away=r.club)) then raise exception 'GTL_EPL_CLUB_NOT_PLAYING' using errcode='P0001'; end if;
+  end loop;
+  for r in select x.owner_id,x.club,x.source from jsonb_to_recordset(p_rows) as x(owner_id text,club text,source text) loop
     continue when exists(select 1 from public.gtl_epl_picks k where k.season=p_season and k.week=p_week and k.owner_id=r.owner_id);
     begin
       insert into public.gtl_epl_picks(season,week,owner_id,club,source,picked_at,final) values(p_season,p_week,r.owner_id,r.club,r.source,stamp,true);
@@ -341,7 +354,7 @@ begin
   return jsonb_build_object('season',p_season,'week',p_week,'added',added,'status',case when w.status='open' then 'resolved' else w.status end);
 end $$;
 
--- p_awards [{ owner_id, points, margin, club }] for the resolved week; p_next { week, window_start, window_end, first_kickoff, pick_order }
+-- p_awards [{ owner_id, points, margin, club }] for the resolved (or needs_review) week; p_next { week, window_start, window_end, first_kickoff, pick_order }
 -- opens the following week. Both are on conflict do nothing, so a rerun changes nothing.
 create or replace function public.gtl_epl_settle_week(p_season integer,p_week integer,p_awards jsonb,p_next jsonb) returns jsonb
 language plpgsql security invoker set search_path='' as $$
@@ -440,6 +453,37 @@ begin
   return jsonb_build_object('season',p_season,'week',p_week,'windowStart',w.window_start,'windowEnd',w.window_end,'firstKickoff',w.first_kickoff);
 end $$;
 
+-- The jobs worker flags a resolved week whose drafted match is still unresolved once the scores feed can no longer report it:
+-- the fixture stays scheduled and the week waits for the commissioner (gtl_epl_set_fixture_status) instead of settling with
+-- a guessed postponement. Any other status is returned unchanged.
+create or replace function public.gtl_epl_flag_week_review(p_season integer,p_week integer) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare w public.gtl_epl_weeks;
+begin
+  select * into w from public.gtl_epl_weeks where season=p_season and week=p_week for update;
+  if not found then raise exception 'GTL_EPL_NO_WEEK' using errcode='P0001'; end if;
+  if w.status='resolved' then
+    update public.gtl_epl_weeks set status='needs_review' where season=p_season and week=p_week returning * into w;
+  end if;
+  return jsonb_build_object('season',p_season,'week',p_week,'status',w.status);
+end $$;
+
+-- The commissioner marks a match postponed (a club whose match is postponed scores 0, spec 6.4) or scheduled again. p_by is
+-- checked here, like gtl_epl_link_manager. A final result and any match of a settled week are never changed.
+create or replace function public.gtl_epl_set_fixture_status(p_event_id text,p_status text,p_by uuid) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare f public.gtl_epl_fixtures; v_week text;
+begin
+  if p_by is null or not exists(select 1 from public.gtl_memberships where user_id=p_by and league_id='sean-troy-luke' and role='commissioner' and active) then raise exception 'GTL_EPL_FORBIDDEN' using errcode='P0001'; end if;
+  if p_status is null or p_status not in ('postponed','scheduled') then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  select * into f from public.gtl_epl_fixtures where event_id=p_event_id for update;
+  if not found then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  select w.status into v_week from public.gtl_epl_weeks w where w.season=f.season and w.week=f.week for update;
+  if f.status='final' or v_week='settled' then raise exception 'GTL_EPL_FIXTURE_LOCKED' using errcode='P0001'; end if;
+  update public.gtl_epl_fixtures set status=p_status,updated_at=clock_timestamp() where event_id=p_event_id returning * into f;
+  return jsonb_build_object('eventId',f.event_id,'season',f.season,'week',f.week,'status',f.status);
+end $$;
+
 -- The gtl-epl-jobs run queue (cloud/epl-jobs.mjs). ADMIN ONLY: pg_cron calls the dispatcher (supabase/admin/epl_jobs_cron.sql),
 -- and pg_net must be enabled beforehand. One run per job and five-minute slot; the token authorizes just that run, for five
 -- minutes, and only its hash is kept. A queued or running run older than ten minutes is timed out by the next dispatch.
@@ -498,7 +542,7 @@ begin
   if run.claimed_at<clock_timestamp()-interval '10 minutes' then raise exception 'GTL_SCHEDULE_EXPIRED' using errcode='P0001'; end if;
   state:=case when p_reason is null then 'succeeded'
     when p_reason in ('no_week','not_open','not_due','no_fixtures','already_resolved','not_resolved','nothing_due','budget_guard',
-      'budget_unknown','results_pending','snapshot_pending','no_subscription','already_nudged') then 'skipped'
+      'budget_unknown','results_pending','snapshot_pending','no_subscription','already_nudged','needs_review') then 'skipped'
     when p_reason in ('source_unavailable','write_failed','snapshot_missing','scores_incomplete','vapid_unavailable','send_failed','job_failed') then 'failed' end;
   if state is null or (p_detail is not null and (jsonb_typeof(p_detail)<>'object' or octet_length(p_detail::text)>4096)) then
     raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001';
@@ -606,6 +650,7 @@ revoke all on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(int
   public.gtl_epl_link_manager(text,uuid,uuid),
   public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
   public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz),
+  public.gtl_epl_flag_week_review(integer,integer),public.gtl_epl_set_fixture_status(text,text,uuid),
   public.gtl_epl_claim_job(text,uuid),public.gtl_epl_complete_job(uuid,uuid,text,jsonb),public.gtl_epl_jobs_state(uuid,uuid),
   public.gtl_epl_read_snapshots(uuid,uuid,text[]),public.gtl_epl_reserve_credits(uuid,uuid,integer),
   public.gtl_epl_record_quota(uuid,uuid,integer,integer,integer),public.gtl_epl_mark_nudge(uuid,uuid,integer,integer,text,text)
@@ -617,6 +662,7 @@ grant execute on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(
   public.gtl_epl_link_manager(text,uuid,uuid),
   public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
   public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz),
+  public.gtl_epl_flag_week_review(integer,integer),public.gtl_epl_set_fixture_status(text,text,uuid),
   public.gtl_epl_claim_job(text,uuid),public.gtl_epl_complete_job(uuid,uuid,text,jsonb),public.gtl_epl_jobs_state(uuid,uuid),
   public.gtl_epl_read_snapshots(uuid,uuid,text[]),public.gtl_epl_reserve_credits(uuid,uuid,integer),
   public.gtl_epl_record_quota(uuid,uuid,integer,integer,integer),public.gtl_epl_mark_nudge(uuid,uuid,integer,integer,text,text)

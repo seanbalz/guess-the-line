@@ -12,6 +12,10 @@
 //   settle    when every drafted club's match is final or postponed (settleBonus ready; a 2-credit scores read once the
 //             drafted matches can have finished, or earlier for a finished one about to leave the 3-day feed), writes the bonus and opens week N+1 in pickOrder from
 //             weeklyScores(after-mw<N-1>, after-mw<N>) plus the bonus, window [window_end, window_end + 7 days).
+//             A match becomes postponed only on positive evidence (a feed lists it with a kickoff outside the week window) or
+//             the commissioner's epl/admin/fixture; never because a feed stopped listing it. An empty scores reply changes
+//             nothing. A drafted match still unresolved once the feed can no longer report it stays scheduled and the week
+//             becomes needs_review (gtl_epl_flag_week_review) until the commissioner rules, without buying again.
 //   nudge     pushes the manager on the clock once per turn (key season-week-ownerId-pickCount); a manager without an
 //             active push subscription is skipped and not marked.
 // Every write goes through the M-30 service RPCs. The run summary, the reply and the logs carry counts and fixed reasons only:
@@ -30,10 +34,10 @@ export const EPL_JOBS = Object.freeze(['snapshot', 'fixtures', 'resolve', 'settl
 /** The only RPCs the worker may call: its run queue and reads (M-30, Task 5) and the M-30 jobs writers. */
 export const EPL_JOBS_RPCS = Object.freeze(['gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_read_snapshots',
   'gtl_epl_reserve_credits', 'gtl_epl_record_quota', 'gtl_epl_mark_nudge', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices',
-  'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_set_week_window']);
+  'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_set_week_window', 'gtl_epl_flag_week_review']);
 /** Kept in step with gtl_epl_complete_job (tests/epl-jobs-sql.test.mjs checks the SQL names every one). */
 export const EPL_SKIP_REASONS = Object.freeze(['no_week', 'not_open', 'not_due', 'no_fixtures', 'already_resolved', 'not_resolved', 'nothing_due',
-  'budget_guard', 'budget_unknown', 'results_pending', 'snapshot_pending', 'no_subscription', 'already_nudged']);
+  'budget_guard', 'budget_unknown', 'results_pending', 'snapshot_pending', 'no_subscription', 'already_nudged', 'needs_review']);
 export const EPL_FAIL_REASONS = Object.freeze(['source_unavailable', 'write_failed', 'snapshot_missing', 'scores_incomplete', 'vapid_unavailable', 'send_failed', 'job_failed']);
 /** The Odds API reserve every collector keeps (Global Constraints: never below reserveCredits=50). */
 export const EPL_RESERVE_CREDITS = 50;
@@ -43,7 +47,7 @@ export const SNAPSHOT_LEAD_MS = 30 * 60_000;
 /** A match is assumed over 150 minutes after kickoff; scores are normally not bought before every drafted match can be. */
 export const RESULT_AFTER_MS = 150 * 60_000;
 /** The scores read covers the last 3 days (daysFrom=3). A pending match that kicked off longer ago than this, less an hour of
- * margin, is outside the feed, so its result can never be bought: settle fails scores_incomplete without spending credits. */
+ * margin, is outside the feed, so its result can never be bought: the week goes to needs_review without spending credits. */
 export const SCORES_LOOKBACK_MS = 3 * 86_400_000 - 60 * 60_000;
 /** A finished drafted match whose kickoff is within this long of leaving the lookback is bought now, before the rest of the week
  * is over (a Friday match in a Friday-to-Monday week). 25 hours covers two runs of the 12-hourly settle cron (09:41, 21:41). */
@@ -235,7 +239,7 @@ async function settleJob(ctx) {
   const { week } = ctx.state;
   if (!week) stop('no_week');
   if (week.status === 'open') stop('not_resolved');
-  if (week.status !== 'resolved') stop('nothing_due');
+  if (week.status !== 'resolved' && week.status !== 'needs_review') stop('nothing_due');
   const drafted = list(ctx.state.picks).filter(p => p.club).map(p => ({ managerId: p.ownerId, club: p.club }));
   let fixtures = list(ctx.state.fixtures), scored = 0;
   let bonus = settleBonus(drafted, weekResults(fixtures));
@@ -243,33 +247,36 @@ async function settleJob(ctx) {
     const results = weekResults(fixtures), first = firstMatches(fixtures);
     const waiting = [...new Set(drafted.filter(p => results[p.club]?.status === 'pending').map(p => first.get(p.club)))];
     const age = f => ctx.now - Date.parse(f.commenceTime);
-    // Never buy for a match the 3-day scores feed no longer covers (an outage or budget_guard stretch past it would otherwise
-    // buy 2 credits a run with no end): its result can never come back, so the run fails without spending credits.
+    // A drafted match the 3-day scores feed no longer covers can never be read again: it stays scheduled and the week waits
+    // for the commissioner (needs_review), never postponed by absence and never bought for again (security review, pre-T8).
     const outside = waiting.filter(f => age(f) > SCORES_LOOKBACK_MS);
-    if (outside.length) return { reason: 'scores_incomplete', detail: { scored: 0, outsideFeed: outside.length } };
+    if (outside.length) {
+      if (week.status === 'resolved') await write(ctx, 'gtl_epl_flag_week_review', { p_season: week.season, p_week: week.week });
+      return { reason: 'needs_review', detail: { outsideFeed: outside.length } };
+    }
     // Buy once every pending drafted match can have finished, or earlier when a finished one is about to leave the feed
     // (fix round 2: a Friday match would otherwise be outside the feed by the time Monday's match is over).
     const ready = waiting.filter(f => age(f) >= RESULT_AFTER_MS);
-    const expiring = new Set(ready.filter(f => age(f) > SCORES_LOOKBACK_MS - SCORES_BUY_AHEAD_MS).map(f => f.eventId));
-    if (!ready.length || (ready.length < waiting.length && !expiring.size)) stop('results_pending');
+    const expiring = ready.filter(f => age(f) > SCORES_LOOKBACK_MS - SCORES_BUY_AHEAD_MS);
+    if (!ready.length || (ready.length < waiting.length && !expiring.length)) stop('results_pending');
     await reserve(ctx, SCORES_COST);
     let quota = null;
-    const scores = await provider(ctx, () => ctx.sources.scores({ onQuota: q => { quota = q; } }));
+    const reply = await provider(ctx, () => ctx.sources.scores({ onQuota: q => { quota = q; } }));
     if (quota) await recordQuota(ctx, quota).catch(() => {});
-    const byEvent = new Map(list(scores).map(s => [s.eventId, s]));
-    const end = Date.parse(week.windowEnd);
-    const waitingIds = new Set(waiting.map(f => f.eventId));
+    const scores = list(reply?.scores), unmapped = new Set(list(reply?.unmapped));
+    // An empty reply (an outage the provider answered with []) is no evidence of anything: nothing changes.
+    if (!scores.length) return { reason: 'results_pending', detail: { scored: 0, ...(unmapped.size ? { unmapped: unmapped.size } : { empty: true }) } };
+    const byEvent = new Map(scores.map(s => [s.eventId, s]));
+    const start = Date.parse(week.windowStart), end = Date.parse(week.windowEnd);
     const rows = [];
     fixtures = fixtures.map(f => {
       const s = byEvent.get(f.eventId);
-      if (f.status !== 'scheduled') return f;
+      // Absent from the feed (dropped, or listed under a team name we do not map): no evidence, the fixture is unchanged.
+      if (f.status !== 'scheduled' || !s) return f;
       let next = null;
-      // A drafted match the feed no longer lists once the week is over, or once it is about to leave the feed (the provider
-      // drops a postponed or abandoned match; the lookback check above keeps it inside the feed's range) is no result:
-      // postponed, score 0 (spec 6.4).
-      if (!s) next = waitingIds.has(f.eventId) && (ctx.now >= end || expiring.has(f.eventId)) ? { ...f, status: 'postponed' } : null;
-      else if (s.completed) next = { ...f, status: 'final', homeGoals: s.homeGoals, awayGoals: s.awayGoals, commenceTime: s.commenceTime };
-      else if (Date.parse(s.commenceTime) >= end) next = { ...f, status: 'postponed', commenceTime: s.commenceTime };
+      if (s.completed) next = { ...f, status: 'final', homeGoals: s.homeGoals, awayGoals: s.awayGoals, commenceTime: s.commenceTime };
+      // Positive evidence: the feed lists the match with a kickoff outside the week window, so it has moved out (spec 6.4).
+      else { const t = Date.parse(s.commenceTime); if (t >= end || t < start) next = { ...f, status: 'postponed', commenceTime: s.commenceTime }; }
       if (!next) return f;
       rows.push(fixtureRow(week, next));
       return next;
@@ -277,7 +284,7 @@ async function settleJob(ctx) {
     if (rows.length) await write(ctx, 'gtl_epl_upsert_fixtures', { p_rows: rows });
     scored = rows.length;
     bonus = settleBonus(drafted, weekResults(fixtures));
-    if (!bonus.ready) return { reason: 'results_pending', detail: { scored } };
+    if (!bonus.ready) return { reason: 'results_pending', detail: { scored, ...(unmapped.size ? { unmapped: unmapped.size } : {}) } };
   }
   const nextLabel = savedLabel(ctx.state, 'after', week.week);
   if (!nextLabel) return { reason: 'snapshot_pending', detail: { scored } };

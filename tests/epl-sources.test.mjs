@@ -144,9 +144,11 @@ test('fetchEplScores reads completed results for the last three days (2 credits)
   ];
   const { impl, calls } = fakeFetch([{ match: u => u.pathname === '/v4/sports/soccer_epl/scores', body: scores, headers: quotaHeaders(397, 103, 2) }]);
   let seen;
-  const rows = await fetchEplScores({ apiKey: KEY, fetchImpl: impl, daysFrom: 3, onQuota: q => { seen = q; } });
+  const { scores: rows, unmapped } = await fetchEplScores({ apiKey: KEY, fetchImpl: impl, daysFrom: 3, onQuota: q => { seen = q; } });
   assert.deepEqual(Object.fromEntries(calls[0].url.searchParams), { daysFrom: '3', apiKey: KEY });
   assert.deepEqual(seen, { remaining: 397, used: 103, last: 2 });
+  // Wolves is not a 2026-27 club: its event is reported apart (pre-T8 fix wave), so the worker never reads it as missing.
+  assert.deepEqual(unmapped, ['ev4']);
   assert.deepEqual(rows, [
     { eventId: 'ev1', completed: true, home: 'TOT', away: 'CHE', homeGoals: 3, awayGoals: 1, commenceTime: '2026-10-31T12:30:00.000Z' },
     { eventId: 'ev3', completed: false, home: 'LIV', away: 'EVE', homeGoals: null, awayGoals: null, commenceTime: '2026-11-02T20:00:00.000Z' },

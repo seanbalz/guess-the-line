@@ -6,7 +6,9 @@
 //                         its raw body. Sleeper's API is public and keyless.
 //   fetchEplOdds          GET /v4/sports/soccer_epl/odds, h2h from DraftKings, FanDuel and BetMGM (1 credit): every listed
 //                         event with its median American price per club.
-//   fetchEplScores        GET /v4/sports/soccer_epl/scores?daysFrom=3 (2 credits): recent and upcoming events with final goals.
+//   fetchEplScores        GET /v4/sports/soccer_epl/scores?daysFrom=3 (2 credits): recent and upcoming events with final goals,
+//                         as { scores, unmapped }: an event under a team name that maps to no club is listed in `unmapped`
+//                         (its id only), so the worker never takes it for a match the feed dropped.
 // Errors carry a fixed code and the quota the provider reported, never the key, the URL or the provider's text.
 import { ODDS_API_ORIGIN, readQuota } from './odds-provider.mjs';
 import { EPL_CLUBS, clubFromOddsName } from '../shared/epl-clubs.mjs';
@@ -167,15 +169,15 @@ export async function fetchEplScores({ apiKey, fetchImpl = fetch, daysFrom = 3, 
   const { data, quota } = result;
   onQuota?.(quota);
   if (!Array.isArray(data) || data.length > MAX_EVENTS) fail('EPL_SOURCE_PAYLOAD', quota);
-  const rows = [];
+  const rows = [], unmapped = [];
   for (const e of data) {
     const commence = record(e) ? isoTime(e.commence_time) : NaN;
     if (!record(e) || typeof e.id !== 'string' || !Number.isFinite(commence)) fail('EPL_SOURCE_PAYLOAD', quota);
     const home = clubFromOddsName(e.home_team), away = clubFromOddsName(e.away_team);
-    if (!home || !away) continue;
+    if (!home || !away) { unmapped.push(e.id); continue; }
     const homeGoals = goals(e.scores, e.home_team), awayGoals = goals(e.scores, e.away_team);
     const completed = e.completed === true && homeGoals !== null && awayGoals !== null;
     rows.push({ eventId: e.id, completed, home, away, homeGoals: completed ? homeGoals : null, awayGoals: completed ? awayGoals : null, commenceTime: new Date(commence).toISOString() });
   }
-  return rows;
+  return { scores: rows, unmapped };
 }

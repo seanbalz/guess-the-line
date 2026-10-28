@@ -27,7 +27,9 @@ async function setup(t) {
       ('e1',2026,9,'Arsenal','Chelsea','${KICK}'),('e2',2026,9,'Liverpool','Everton','${KICK}'),('e3',2026,9,'Spurs','Fulham','${KICK}');`);
   const call = async (sql, params = []) => (await db.query(sql, params)).rows[0].r;
   const pick = (user, club, now = BEFORE) => call('select public.gtl_epl_save_pick($1,2026,9,$2,$3) r', [user, club, now]);
-  return { db, call, pick };
+  // resolve_week checks the database clock against the first kickoff: the fixture week lies ahead of the test run.
+  const kickoffPassed = () => db.exec("update public.gtl_epl_weeks set first_kickoff=now()-interval '1 hour' where season=2026 and week=9");
+  return { db, call, pick, kickoffPassed };
 }
 
 test('save_pick enforces turn, club availability and the deadline', async t => {
@@ -64,8 +66,9 @@ test('two managers racing for one club: exactly one succeeds', async t => {
 });
 
 test('resolve_week fills gaps once and is idempotent', async t => {
-  const { call, pick, db } = await setup(t);
+  const { call, pick, db, kickoffPassed } = await setup(t);
   await pick(U(1), 'Arsenal');
+  await kickoffPassed();
   const rows = JSON.stringify([{ owner_id: B, club: 'Liverpool', source: 'queue' }, { owner_id: C, club: null, source: 'none' }]);
   const first = await call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', [rows]);
   assert.equal(first.added, 2); assert.equal(first.status, 'resolved');
@@ -77,8 +80,9 @@ test('resolve_week fills gaps once and is idempotent', async t => {
 });
 
 test('settle_week awards once and opens the next week once', async t => {
-  const { call, db } = await setup(t);
+  const { call, db, kickoffPassed } = await setup(t);
   await assert.rejects(call('select public.gtl_epl_settle_week(2026,9,$1::jsonb,null) r', ['[]']), /GTL_EPL_NOT_RESOLVED/);
+  await kickoffPassed();
   await call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', ['[]']);
   const awards = JSON.stringify([{ owner_id: A, points: 3, margin: 2, club: 'Arsenal' }]);
   const next = JSON.stringify({ week: 10, window_start: '2026-11-09T08:00:00Z', window_end: '2026-11-16T08:00:00Z', first_kickoff: '2026-11-14T12:30:00Z', pick_order: [C, B, A] });
@@ -120,7 +124,7 @@ test('link_manager links, refuses a second link of one account, and unlinks with
 });
 
 test('set_week_window corrects an automatic week with real picks, keeps order and picks, and refuses closed weeks', async t => {
-  const { call, pick, db } = await setup(t);
+  const { call, pick, db, kickoffPassed } = await setup(t);
   await pick(U(1), 'Arsenal');
   const set = (start, end, kick = null, week = 9) => call('select public.gtl_epl_set_week_window(2026,$4,$1,$2,$3) r', [start, end, kick, week]);
   const moved = await set('2026-11-01T00:00:00Z', '2026-11-10T00:00:00Z');
@@ -132,8 +136,61 @@ test('set_week_window corrects an automatic week with real picks, keeps order an
   assert.equal((await db.query("select count(*)::int n from public.gtl_epl_picks where club='Arsenal'")).rows[0].n, 1, 'the real pick is kept');
   await assert.rejects(set('2026-11-10T00:00:00Z', '2026-11-01T00:00:00Z'), /GTL_EPL_INVALID/);
   await assert.rejects(set('2026-11-01T00:00:00Z', '2026-11-10T00:00:00Z', null, 10), /GTL_EPL_NO_WEEK/);
+  await kickoffPassed();
   await call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', ['[]']);
   await assert.rejects(set('2026-11-01T00:00:00Z', '2026-11-10T00:00:00Z'), /GTL_EPL_DRAFT_CLOSED/);
+});
+
+test('resolve_week refuses before the first kickoff, a missing club and a club not playing (pre-T8 fix wave)', async t => {
+  const { call, db, kickoffPassed } = await setup(t);
+  const resolve = rows => call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', [JSON.stringify(rows)]);
+  await assert.rejects(resolve([]), /GTL_EPL_NOT_DUE/, 'the database clock is before the first kickoff');
+  await kickoffPassed();
+  await assert.rejects(resolve([{ owner_id: A, club: null, source: 'queue' }]), /GTL_EPL_INVALID/, 'a queue or auto row needs a club');
+  await assert.rejects(resolve([{ owner_id: A, club: null, source: 'auto' }]), /GTL_EPL_INVALID/);
+  await assert.rejects(resolve([{ owner_id: A, club: 'Arsenal', source: 'none' }]), /GTL_EPL_INVALID/, 'a none row has no club');
+  await assert.rejects(resolve([{ owner_id: A, club: 'Wolves', source: 'auto' }]), /GTL_EPL_CLUB_NOT_PLAYING/);
+  await db.exec("update public.gtl_epl_fixtures set status='postponed' where event_id='e3'");
+  await assert.rejects(resolve([{ owner_id: A, club: 'Spurs', source: 'queue' }]), /GTL_EPL_CLUB_NOT_PLAYING/, 'a postponed match is not playing');
+  assert.equal((await db.query('select count(*)::int n from public.gtl_epl_picks')).rows[0].n, 0, 'a refused resolution writes nothing');
+  const ok = await resolve([{ owner_id: A, club: 'Arsenal', source: 'auto' }, { owner_id: B, club: null, source: 'none' }]);
+  assert.equal(ok.added, 2);
+});
+
+test('save_pick refuses the latest picker changing a pick that is already final (pre-T8 fix wave)', async t => {
+  const { call, pick, db } = await setup(t);
+  await db.exec('delete from public.gtl_epl_weeks');
+  // Seeded out of order: B's pick is sent first (final), A's last (not final). B is the latest picker in the order.
+  await call(`select public.gtl_epl_seed_week(2026,9,'2026-11-02T08:00:00Z','2026-11-09T08:00:00Z','${KICK}',array['${A}','${B}','${C}'],$1::jsonb) r`,
+    [JSON.stringify([{ owner_id: B, club: 'Liverpool' }, { owner_id: A, club: 'Arsenal' }])]);
+  await assert.rejects(pick(U(2), 'Spurs'), /GTL_EPL_NOT_YOUR_TURN/, 'a final pick cannot change');
+  assert.equal((await db.query('select club from public.gtl_epl_picks where owner_id=$1', [B])).rows[0].club, 'Liverpool');
+  assert.equal((await pick(U(3), 'Spurs')).action, 'pick', 'the manager on the clock still picks');
+});
+
+test('needs_review: only a resolved week is flagged, it still settles, and the commissioner postpones or restores a match (pre-T8 fix wave)', async t => {
+  const { call, db, kickoffPassed } = await setup(t);
+  await db.exec('alter table public.gtl_memberships drop constraint gtl_memberships_league_id_fkey');
+  await db.exec(`insert into public.gtl_memberships(league_id,user_id,player_id,role,active) values('sean-troy-luke','${U(2)}','sean','commissioner',true)`);
+  const flag = () => call('select public.gtl_epl_flag_week_review(2026,9) r');
+  const setFixture = (event, status, by = U(2)) => call('select public.gtl_epl_set_fixture_status($1,$2,$3) r', [event, status, by]);
+  assert.equal((await flag()).status, 'open', 'an open week is not flagged');
+  await kickoffPassed();
+  await call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', ['[]']);
+  assert.equal((await flag()).status, 'needs_review');
+  assert.equal((await flag()).status, 'needs_review', 'a rerun keeps it');
+  await assert.rejects(setFixture('e3', 'postponed', U(1)), /GTL_EPL_FORBIDDEN/, 'only the commissioner');
+  await assert.rejects(setFixture('e3', 'final'), /GTL_EPL_INVALID/);
+  await assert.rejects(setFixture('nope', 'postponed'), /GTL_EPL_INVALID/);
+  assert.deepEqual(await setFixture('e3', 'postponed'), { eventId: 'e3', season: 2026, week: 9, status: 'postponed' });
+  assert.equal((await setFixture('e3', 'scheduled')).status, 'scheduled');
+  await db.exec("update public.gtl_epl_fixtures set status='final',home_goals=1,away_goals=0 where event_id='e1'");
+  await assert.rejects(setFixture('e1', 'postponed'), /GTL_EPL_FIXTURE_LOCKED/, 'a final result is not overwritten');
+  const settled = await call('select public.gtl_epl_settle_week(2026,9,$1::jsonb,null) r', ['[]']);
+  assert.equal(settled.awarded, 0);
+  assert.equal((await db.query('select status from public.gtl_epl_weeks where week=9')).rows[0].status, 'settled');
+  assert.equal((await flag()).status, 'settled', 'a settled week is never flagged');
+  await assert.rejects(setFixture('e3', 'postponed'), /GTL_EPL_FIXTURE_LOCKED/, 'a settled week keeps its fixtures');
 });
 
 test('the migration applies twice without error or duplicate rows', async t => {

@@ -31,6 +31,31 @@ export function sportOptions(epl) {
 export const EplAccessContext = createContext(false);
 
 /**
+ * What SportEntry does with an EPL address: `show` EplApp once access is true, `leave` for NFL when access is false (the
+ * Global Constraint: EPL is visible only to FEPL managers and the commissioner), `wait` (render nothing EPL-specific) while
+ * the access read is out, and `other` for an NFL or NBA address.
+ */
+export function eplGate(sport, access) {
+  if (sport !== 'epl') return 'other';
+  return access === true ? 'show' : access === false ? 'leave' : 'wait';
+}
+
+// One access read per signed-in account for the page's life: a new account (sign-in change) reads again.
+let accessCache = null;
+/** readEplAccess once per account id; concurrent callers share the read. No abort signal, so a cached answer is never an abort. */
+export function cachedEplAccess(userId, api) {
+  if (accessCache?.userId !== userId) {
+    const entry = { userId, value: null };
+    entry.promise = readEplAccess(api).then(value => { entry.value = value; return value; });
+    accessCache = entry;
+  }
+  return accessCache.promise;
+}
+/** The cached answer for this account, or null while it is unknown. */
+export const knownEplAccess = userId => (accessCache?.userId === userId ? accessCache.value : null);
+export function resetEplAccessCache() { accessCache = null; }
+
+/**
  * One `draft/read`: a refusal (401, 403, or the feature not switched on) hides EPL; an answer, or any other failure
  * (no week stored yet, an outage), keeps it. The server still refuses every EPL read and write to non-members.
  */
