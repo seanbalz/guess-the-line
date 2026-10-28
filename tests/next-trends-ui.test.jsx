@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { teamMarks } from '../web/src/teamLogoRegistry.js';
 import { TABS } from '../web/src/next/shell/state.js';
-import { PlayerEvidence } from '../web/src/next/trends/PlayerEvidence.jsx';
+import { PlayersNest } from '../web/src/next/trends/PlayersNest.jsx';
 import { TrendAvailability } from '../web/src/next/lines/parts.jsx';
 import { BiasChart } from '../web/src/next/trends/charts.jsx';
 import { readTrendsHistory } from '../web/src/next/trends/useTrendsHistory.js';
@@ -16,31 +16,51 @@ const reference = { value: 3.5, basis: 'saved', observedAt: '2026-09-30T20:00:00
 const history = { viewer: 'me', members: [{ id: 'me', displayName: 'Avery Fixture' }], season: 2026, seasons: [2026], weeks: [
  { season: 2026, week: 4, games: [game], gate: { 'CAR-ATL': { spread: true } }, results: { 'CAR-ATL': { status: 'final', home: 17, away: 22 } }, entries: [{ userId: 'me', mode: 'guess_spread', status: 'submitted', picks: [{ gameId: game.id, guess: 7, reference, points: 6.5 }] }] }
 ]};
-const render = (data = history, patch = {}) => renderToStaticMarkup(<div className="gx"><PlayerEvidence history={data} published={{ season: 2026, week: 6 }} view={{ market: 'spread', team: 'CAR', ...patch }} onChange={() => {}} scopeName="Fixture league"/></div>);
+// D-66: the Players section is nesting cards; each render names its layer through the view.
+const render = (data = history, patch = {}) => renderToStaticMarkup(<div className="gx"><PlayersNest history={data} published={{ season: 2026, week: 6 }} view={{ market: 'spread', ...patch }} onChange={() => {}} scopeName="Fixture league"/></div>);
 describe('Trends UI evidence', () => {
  it('filters independent markets before highlight cap', () => { const cards = Object.fromEntries(['s1','s2','s3','t1'].map((id,i) => [id,{ title: id, market: i === 3 ? 'total' : 'home_ats', tier: 2, sideRule: 'A', score: { score: 100-i }, record: { W: 3,L: 2,P: 0 } }])); const week = { season: 2026, cards, games: [{ id: 'g', home: 'ATL', away: 'CAR', tier2: Object.keys(cards).map(card => ({ card })) }] }; expect(marketSituationCards(week,{ id: 'g',access: { spread: true,total: true },saved: {} },'total').map(c => c.id)).toEqual(['t1']); });
  it('keeps the approved four primary tabs', () => expect(TABS).toEqual(['home','play','bets','research']));
- it('separates saved market accuracy, hypothetical results and exact game evidence', () => {
-  const html = render();
-  expect(markupProblems(html)).toEqual([]);
-  for (const word of ['Absolute error versus saved reference','Mean official points','At saved reference','At guessed line','Straight-up','Contributing games','Fixture books','Small sample','Cover performance by competition week','Player matchup']) expect(html).toContain(word);
+ it('separates saved market accuracy, hypothetical results and exact game evidence, one layer each', () => {
+  const players = render();
+  expect(markupProblems(players)).toEqual([]);
+  expect(players).toContain('Avery Fixture'); expect(players).toContain('6.5'); expect(players).not.toContain('gx-nest-lip');
+  const person = render(history, { player: 'me' });
+  for (const word of ['Points per game','Market error','Home-team strength gap','At saved line','By team','Back to ']) expect(person).toContain(word);
+  const covers = render(history, { player: 'me', playerLayer: 'covers' });
+  expect(markupProblems(covers)).toEqual([]);
+  for (const word of ['Opposite side','At guessed line','Straight-up','Cover performance by competition week','Contributing games','Fixture books']) expect(covers).toContain(word);
+  expect(render(history, { player: 'me', playerLayer: 'error' })).toContain('Market absolute error by competition week');
+  const team = render(history, { player: 'me', playerLayer: 'teams', playerItem: 'CAR' });
+  expect(team).toContain('CAR strength gap by competition week'); expect(team).toContain('Small sample');
+  const direction = [...walk(parseMarkup(team))].find(n => n.attrs?.['data-direction'])?.attrs['data-direction'];
+  const callout = render(history, { player: 'me', playerLayer: 'teams', playerItem: 'CAR:' + direction });
+  expect(markupProblems(callout)).toEqual([]);
+  for (const word of ['Recent','Earlier','1 finals','Contributing games']) expect(callout).toContain(word);
  });
- it('labels current spread sentiment with the team and signed-home convention', () => { const data = structuredClone(history); data.weeks[0].week = 6; data.weeks[0].results = {}; const html = render(data); expect(html).toContain('Median GTL spread guess'); expect(html).toContain('Panthers '+String.fromCharCode(8722)+'7'); expect(html).toContain('Distribution uses signed home spreads: negative favors'); expect(html).toContain('signed home spread distribution'); });
+ it('labels current spread sentiment with the team and signed-home convention', () => {
+  const data = structuredClone(history); data.weeks[0].week = 6; data.weeks[0].results = {};
+  const week = render(data, { playerLayer: 'week' });
+  expect(week).toContain('Panthers '+String.fromCharCode(8722)+'7'); expect(week).toContain('Median of 1');
+  const game = render(data, { playerLayer: 'week', playerItem: 'CAR-ATL' });
+  expect(game).toContain('signed home spread distribution');
+  expect(game).not.toContain('The distribution uses signed home spreads'); // behind the layer's ⓘ
+ });
  it('D-62: each contributing game and each sentiment game is headed by its matchup as marks, away first', () => {
   const CAR_ATL = { srcs: [teamMarks.CAR.src, teamMarks.ATL.src], name: 'Carolina Panthers at Atlanta Falcons' };
-  const nodes = [...walk(parseMarkup(render()))];
+  const nodes = [...walk(parseMarkup(render(history, { player: 'me', playerLayer: 'covers' })))];
   const h4 = nodes.find(n => n.tag === 'h4' && nameFrom(n).startsWith('2026 Week 4'));
   expect(nameFrom(h4)).toBe('2026 Week 4 · Carolina Panthers at Atlanta Falcons');
   expect(matchups(h4)).toEqual([CAR_ATL]);
   const current = structuredClone(history); current.weeks[0].week = 6; current.weeks[0].results = {};
-  const summary = [...walk(parseMarkup(render(current)))].find(n => n.tag === 'summary' && nameFrom(n).includes('permitted guesses'));
-  expect(nameFrom(summary)).toBe('Carolina Panthers at Atlanta Falcons · 1 permitted guesses');
-  expect(matchups(summary)).toEqual([CAR_ATL]);
+  const tile = [...walk(parseMarkup(render(current, { playerLayer: 'week' })))].find(n => n.tag === 'button' && n.attrs?.['data-game'] === 'CAR-ATL');
+  expect(nameFrom(tile).startsWith('Carolina Panthers at Atlanta Falcons')).toBe(true);
+  expect(matchups(tile)).toEqual([CAR_ATL]);
  });
  it('hidden values do not enter markup or chart metadata', () => {
   const data = structuredClone(history); data.viewer = 'other'; data.weeks[0].gate['CAR-ATL'].spread = false; data.weeks[0].entries[0].picks[0].guess = 87.125;
-  const html = render(data);
-  expect(html).not.toContain('87.125'); expect(html).toContain('No eligible locked guesses');
+  for (const patch of [{}, { player: 'me' }, { player: 'me', playerLayer: 'covers' }, { playerLayer: 'week' }]) expect(render(data, patch)).not.toContain('87.125');
+  expect(render(data, { player: 'me' })).toContain('No eligible locked guesses');
  });
  it('keeps calendar-only source dates and stale availability visible', () => {
   const html = renderToStaticMarkup(<TrendAvailability week={{ availability: { stale: true, sourceAsOf: '2026-10-12', reason: 'Seed fallback' } }}/>);
@@ -126,7 +146,8 @@ const selectedMatchup = html => {
  return select.children.filter(n => n.tag === 'option' && Object.hasOwn(n.attrs, 'selected')).map(n => n.attrs.value);
 };
 const nextGame = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-25T20:00:00Z' };
-describe.each(['week','teams'])('published matchup filters in %s', section => {
+// D-66: Teams has no Team or Matchup filter any more; it is the nesting cards (tests/next-trends-nest.test.jsx).
+describe.each(['week'])('published matchup filters in %s', section => {
  it('uses All matchups when the published week replaces the saved matchup', () => {
   const view = { trendSection: section, matchup: game.id };
   const initial = renderPublishedSlate(6,[game,nextGame],view);

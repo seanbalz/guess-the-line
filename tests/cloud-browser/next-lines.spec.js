@@ -91,7 +91,12 @@ async function phoneChecks(page, root = '.gx') {
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
-      if (r.right > innerWidth + 0.5 || r.left < -0.5) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
+      // Season tables intentionally scroll inside their named, focusable region;
+      // their end-column reachability is checked separately below. The region
+      // itself must still fit the viewport, and text cannot clip within a cell.
+      const tableRegion = el.closest('.gx-tc-table-wrap[role="region"]');
+      const scrolls = tableRegion && el !== tableRegion && getComputedStyle(tableRegion).overflowX === 'auto';
+      if (!scrolls && (r.right > innerWidth + 0.5 || r.left < -0.5)) clipped.push(`off screen: ${el.textContent.trim().slice(0, 40)}`);
     }
     return { targets, small, clipped };
   });
@@ -195,6 +200,82 @@ async function noLeak(page, world, where) {
 }
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
+
+test('season records stay readable on narrow phones and every column is reachable without changing the chart', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  let replaced = 0;
+  try {
+    // Synthetic wide season records exercise presentation, not historical results.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/trends/week'), async route => {
+      const req = route.request();
+      const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
+      const body = await response.json();
+      const replace = value => {
+        if (!value || typeof value !== 'object') return;
+        if (Array.isArray(value.perSeason)) {
+          value.perSeason = [[2024,272,155,115,2,25.9],[2025,272,115,155,2,-50.5]];
+          value.seasonsPos = 1; value.seasonsBet = 2; replaced++;
+        }
+        Object.values(value).forEach(replace);
+      };
+      replace(body);
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
+    });
+    const calls = apiCalls(page);
+    await openLines(page); await card(page, 'HOU-JAX').click();
+    const trend = sheet(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    await trend.getByRole('button', { name: 'By season', exact: true }).click();
+    const name = await trend.locator('h4').innerText();
+    const table = trend.locator('.gx-tc-table'), region = trend.locator('.gx-tc-table-wrap');
+    const reads = calls.filter(c => c === 'POST /trends/week').length;
+    const season = trend.getByRole('button', { name: 'Show 2024 season on chart', exact: true });
+    for (const { width, scale } of [{ width: 320, scale: 1 }, { width: 390, scale: 1 }, { width: 320, scale: 2 }]) for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.emulateMedia({ forcedColors, colorScheme: theme });
+      await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await ciFonts(page);
+      // Simulate 200% table-text enlargement without changing the viewport or product data.
+      await page.evaluate(scale => {
+        let style = document.getElementById('season-text-size');
+        if (!style) { style = document.createElement('style'); style.id = 'season-text-size'; document.head.append(style); }
+        style.textContent = scale === 2 ? '.gx .gx-tc-table tbody td, .gx .gx-tc-table tbody th, .gx .gx-tc-season-pick { font-size: 32px; line-height: 40px; } .gx .gx-tc-table thead th { font-size: 26px; line-height: 36px; }' : '';
+      }, scale);
+      await expect(table.locator('tbody td').first()).toHaveCSS('font-size', `${16 * scale}px`);
+      await expect(region).toHaveRole('region');
+      await expect(region).toHaveAccessibleName(`Season results · ${name}`);
+      await expect(region).toHaveAttribute('tabindex', '0');
+      const selectedBefore = await trend.getByRole('slider', { name: 'Move across the seasons' }).inputValue();
+      await region.evaluate(el => { el.scrollLeft = 0; });
+      await region.focus(); await expect(region).toBeFocused();
+      const wide = await region.evaluate(el => el.scrollWidth > el.clientWidth);
+      if (scale === 2) expect(wide).toBe(true);
+      if (wide) {
+        await page.keyboard.press('ArrowRight');
+        await expect.poll(() => region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+      }
+      await region.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+      await expect(region).toBeFocused();
+      await expect(trend.getByRole('slider', { name: 'Move across the seasons' })).toHaveValue(selectedBefore);
+      const last = table.locator('tbody tr').first().locator('td').last();
+      await expect(last).toHaveText('+25.9');
+      expect(await last.evaluate(el => el.getBoundingClientRect().right <= el.closest('.gx-tc-table-wrap').getBoundingClientRect().right + 1)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(await axe(page)).toEqual([]);
+      await region.screenshot({ path: info.outputPath(`season-table-${width}-${theme}-${forcedColors}-${scale}x-end.png`) });
+      await season.click(); await expect(season).toBeFocused();
+      await expect(season).toHaveAttribute('aria-pressed', 'true');
+      await expect(trend.getByRole('slider', { name: 'Move across the seasons' })).toHaveValue('0');
+      await expect(trend.locator('.gx-tc-tip-value')).toHaveText('+25.9 U');
+      await region.screenshot({ path: info.outputPath(`season-table-${width}-${theme}-${forcedColors}-${scale}x-start.png`) });
+    }
+    expect(replaced).toBeGreaterThan(0);
+    expect(calls.filter(c => c === 'POST /trends/week')).toHaveLength(reads);
+    expect(calls.filter(call => !READS.includes(call))).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
 
 test('team season results and margin bars share selection without new reads or focus jumps', async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
