@@ -11,7 +11,9 @@
 //   /epl/admin/snapshot  the commissioner stores a Sleeper season-total snapshot, unique by label (its body may be up to
 //                        EPL_SNAPSHOT_MAX_BYTES; every other gtl-api route keeps the 32 KB cap)
 //   /epl/admin/fixture   the commissioner marks a match postponed or scheduled again (gtl_epl_set_fixture_status): the jobs
-//                        worker never postpones a match only because a feed stopped listing it (pre-T8 fix wave)
+//                        worker never postpones a match only because a feed stopped listing it (pre-T8 fix wave); or, with
+//                        status 'final' and whole homeGoals/awayGoals, records a played match's score once the draft is
+//                        resolved (gtl_epl_set_fixture_result; final review), so a needs_review week is never zeroed
 // The member routes check membership before the body, so a non-member always gets 403.
 // The rules in shared/epl-draft.mjs refuse an out-of-turn, taken, closed or not-playing pick before any write, so the
 // common refusals cost no write; the SQL is still the authority (it locks the week row and checks again).
@@ -32,7 +34,7 @@ export const EPL_METHODS = Object.freeze({
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
-  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_community_admin']);
+  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin']);
 /**
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
@@ -277,10 +279,19 @@ async function adminSnapshot({ body, user, service }) {
 }
 
 const EVENT_ID = /^[A-Za-z0-9_-]{1,128}$/;
+const isGoals = value => Number.isInteger(value) && value >= 0 && value <= 99;
 async function adminFixture({ body, user, service }) {
-  keys(body, ['eventId', 'status']);
+  keys(body, ['eventId', 'status', 'homeGoals', 'awayGoals']);
   await requireCommissioner(service, user);
-  if (typeof body.eventId !== 'string' || !EVENT_ID.test(body.eventId) || !['postponed', 'scheduled'].includes(body.status)) refuse('GTL_EPL_INVALID');
+  if (typeof body.eventId !== 'string' || !EVENT_ID.test(body.eventId)) refuse('GTL_EPL_INVALID');
+  if (body.status === 'final') {
+    if (!isGoals(body.homeGoals) || !isGoals(body.awayGoals)) refuse('GTL_EPL_INVALID');
+    const saved = await service.rpc('gtl_epl_set_fixture_result', { p_event_id: body.eventId, p_home_goals: body.homeGoals, p_away_goals: body.awayGoals, p_by: user.id });
+    if (!record(saved) || saved.status !== 'final' || !isGoals(saved.homeGoals) || !isGoals(saved.awayGoals)) throw reply();
+    return { eventId: text(saved.eventId), season: isSeason(saved.season) ? saved.season : null, week: isWeek(saved.week) ? saved.week : null, status: 'final',
+      homeGoals: saved.homeGoals, awayGoals: saved.awayGoals };
+  }
+  if (!['postponed', 'scheduled'].includes(body.status) || given(body.homeGoals) || given(body.awayGoals)) refuse('GTL_EPL_INVALID');
   const saved = await service.rpc('gtl_epl_set_fixture_status', { p_event_id: body.eventId, p_status: body.status, p_by: user.id });
   if (!record(saved) || !['postponed', 'scheduled'].includes(saved.status)) throw reply();
   return { eventId: text(saved.eventId), season: isSeason(saved.season) ? saved.season : null, week: isWeek(saved.week) ? saved.week : null, status: saved.status };

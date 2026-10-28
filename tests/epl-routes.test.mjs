@@ -52,6 +52,7 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
       }
       if (name === 'gtl_epl_save_snapshot') return true;
       if (name === 'gtl_epl_set_fixture_status') return { eventId: args.p_event_id, season: 2026, week: 9, status: args.p_status };
+      if (name === 'gtl_epl_set_fixture_result') return { eventId: args.p_event_id, season: 2026, week: 9, status: 'final', homeGoals: args.p_home_goals, awayGoals: args.p_away_goals };
       throw new Error(`unexpected rpc ${name}`);
     },
     async latestWeek() { calls.push(['latestWeek']); return latest; },
@@ -200,6 +201,24 @@ test('admin/fixture: the commissioner postpones or restores a match; a member is
     assert.ok(!refused.calls.some(c => c[0] === 'gtl_epl_set_fixture_status'), JSON.stringify(body));
   }
   await rejectsWith(call('/epl/admin/fixture', { eventId: 'e1', status: 'postponed' }, fakeService({ admin: true, errors: { gtl_epl_set_fixture_status: 'GTL_EPL_FIXTURE_LOCKED' } })), 409, 'GTL_EPL_FIXTURE_LOCKED');
+});
+
+test('admin/fixture: the commissioner records a final result for a needs_review week; goals are whole and only with final (final review)', async () => {
+  const service = fakeService({ admin: true });
+  assert.deepEqual(await call('/epl/admin/fixture', { eventId: 'e8', status: 'final', homeGoals: 2, awayGoals: 1 }, service),
+    { eventId: 'e8', season: 2026, week: 9, status: 'final', homeGoals: 2, awayGoals: 1 });
+  assert.deepEqual(service.calls.at(-1), ['gtl_epl_set_fixture_result', { p_event_id: 'e8', p_home_goals: 2, p_away_goals: 1, p_by: USER.id }]);
+  const member = fakeService({ member: ADAM, admin: false });
+  await rejectsWith(call('/epl/admin/fixture', { eventId: 'e8', status: 'final', homeGoals: 2, awayGoals: 1 }, member), 403, 'GTL_EPL_FORBIDDEN');
+  for (const body of [{ eventId: 'e8', status: 'final', homeGoals: 2 }, { eventId: 'e8', status: 'final', homeGoals: -1, awayGoals: 0 },
+    { eventId: 'e8', status: 'final', homeGoals: 1.5, awayGoals: 0 }, { eventId: 'e8', status: 'final', homeGoals: '2', awayGoals: 0 },
+    { eventId: 'e8', status: 'final', homeGoals: 100, awayGoals: 0 }, { eventId: 'e8', status: 'postponed', homeGoals: 1, awayGoals: 0 }]) {
+    const refused = fakeService({ admin: true });
+    await rejectsWith(call('/epl/admin/fixture', body, refused), 400, 'GTL_EPL_INVALID');
+    assert.ok(!refused.calls.some(c => c[0].startsWith('gtl_epl_set_fixture')), JSON.stringify(body));
+  }
+  await rejectsWith(call('/epl/admin/fixture', { eventId: 'e1', status: 'final', homeGoals: 0, awayGoals: 0 },
+    fakeService({ admin: true, errors: { gtl_epl_set_fixture_result: 'GTL_EPL_FIXTURE_LOCKED' } })), 409, 'GTL_EPL_FIXTURE_LOCKED');
 });
 
 test('queue/save keeps the order sent and refuses duplicates, more than 20, and clubs not playing', async () => {
@@ -361,7 +380,7 @@ test('the gtl-api adapter gives EPL a caller limited to its own functions, and t
     requests.push(new URL(url).pathname);
     return Response.json({ message: 'GTL_EPL_CLUB_TAKEN' }, { status: 400 });
   } });
-  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
+  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_result', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
   await assert.rejects(adapter.epl.rpc('gtl_epl_save_pick', {}), error => error instanceof EplError && error.status === 409);
   await assert.rejects(adapter.epl.rpc('gtl_epl_resolve_week', {}), /Invalid operation/);
   assert.deepEqual(requests, ['/rest/v1/rpc/gtl_epl_save_pick']);

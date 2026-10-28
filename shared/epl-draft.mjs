@@ -7,10 +7,14 @@ export function priceStrength(americanOdds) {
   return americanOdds < 0 ? -americanOdds / (-americanOdds + 100) : 100 / (americanOdds + 100);
 }
 
-/** Manager ids, first pick first: ascending weekScore + weekBonus, ties by lower seasonTotal. */
+/** Whole cents: scores carry two decimals, and a float sum such as 0.56 + 5 must still tie with 5.56. */
+const cents = v => Math.round(v * 100);
+
+/** Manager ids, first pick first: ascending weekScore + weekBonus, ties by lower seasonTotal, both compared in whole cents. */
 export function pickOrder(managers) {
   return [...managers]
-    .sort((a, b) => (a.weekScore + a.weekBonus) - (b.weekScore + b.weekBonus) || a.seasonTotal - b.seasonTotal || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .map(m => ({ id: m.id, score: cents(m.weekScore) + cents(m.weekBonus), total: cents(m.seasonTotal) }))
+    .sort((a, b) => a.score - b.score || a.total - b.total || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .map(m => m.id);
 }
 

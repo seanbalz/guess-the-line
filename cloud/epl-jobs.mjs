@@ -3,17 +3,22 @@
 // (supabase/admin/epl_jobs_cron.sql) with a one-run capability verified in SQL (M-30 gtl_epl_claim_job), the gtl-week-open
 // pattern. Each run does one job against the latest week (gtl_epl_weeks, newest season and week):
 //   snapshot  saves Sleeper's season totals and lineups as before-mw<N>-kickoff in the half hour before the first kickoff and
-//             as after-mw<N> once the week's window has ended (stats week N, projections week N+1).
+//             as after-mw<N> once the week's window has ended (stats week N, projections week N+1), and only while Sleeper's
+//             state is on week N+1 (still on N: wait; past N+1: scores_incomplete, nothing saved).
 //   fixtures  before the first kickoff, one 1-credit EPL h2h odds read: the events with commence_time in
 //             [window_start, window_end) become the week's fixtures, their median prices are stored, and the first kickoff is
-//             moved earlier (never later) to the earliest one. Refused when the shared budget would drop below 50 credits.
+//             moved earlier (never later) to the earliest one. A gap of more than 36 hours between kickoffs ends the round:
+//             the window then ends 24 hours after the round's last kickoff, so a midweek round never merges with the weekend
+//             round (roundEnd). A stored postponement stays while the feed lists the same kickoff. Refused when the shared
+//             budget would drop below 50 credits.
 //   resolve   at or after the first kickoff, the deadline resolution (shared/epl-draft.mjs resolveDeadline) for every manager
 //             without a pick; once the week is resolved a rerun writes nothing.
 //   settle    when every drafted club's match is final or postponed (settleBonus ready; a 2-credit scores read once the
 //             drafted matches can have finished, or earlier for a finished one about to leave the 3-day feed), writes the bonus and opens week N+1 in pickOrder from
 //             weeklyScores(after-mw<N-1>, after-mw<N>) plus the bonus, window [window_end, window_end + 7 days).
 //             A match becomes postponed only on positive evidence (a feed lists it with a kickoff outside the week window) or
-//             the commissioner's epl/admin/fixture; never because a feed stopped listing it. An empty scores reply changes
+//             the commissioner's epl/admin/fixture; never because a feed stopped listing it. The commissioner can also record
+//             a played match's final score there (status 'final'), so a needs_review week is never zeroed. An empty scores reply changes
 //             nothing. A drafted match still unresolved once the feed can no longer report it stays scheduled and the week
 //             becomes needs_review (gtl_epl_flag_week_review) until the commissioner rules, without buying again.
 //   nudge     pushes the manager on the clock once per turn (key season-week-ownerId-pickCount); a manager without an
@@ -53,6 +58,12 @@ export const SCORES_LOOKBACK_MS = 3 * 86_400_000 - 60 * 60_000;
  * is over (a Friday match in a Friday-to-Monday week). 25 hours covers two runs of the 12-hourly settle cron (09:41, 21:41). */
 export const SCORES_BUY_AHEAD_MS = 25 * 60 * 60_000;
 const WEEK_MS = 7 * 86_400_000;
+/** A gap of more than 36 hours between kickoffs ends a round: a weekend round's widest gap (Sunday 16:30 to Monday 20:00) is
+ * 27.5 hours, while a midweek round is followed by about 2.5 days before the weekend (final review; spec 6.4). */
+export const ROUND_GAP_MS = 36 * 60 * 60_000;
+/** A split week ends this long after its round's last kickoff, so the after-mw<N> snapshot and the next draft come before the
+ * next round (which, by ROUND_GAP_MS, starts more than 12 hours later). */
+export const ROUND_END_AFTER_MS = 24 * 60 * 60_000;
 const CODES = new Set(['GTL_SCHEDULE_AUTH', 'GTL_SCHEDULE_RUN', 'GTL_SCHEDULE_EXPIRED', 'GTL_EPL_INVALID', 'GTL_EPL_NO_WEEK', 'GTL_EPL_NOT_RESOLVED',
   'GTL_EPL_CLUB_TAKEN', 'GTL_EPL_DRAFT_CLOSED']);
 class EplJobsError extends Error { constructor(code) { super('Scheduled EPL jobs request failed.'); this.code = code; } }
@@ -175,26 +186,45 @@ async function snapshotJob(ctx) {
     due.push({ label: snapshotLabels('after', n)[0], statsWeek: n, projectionsWeek: Math.min(38, n + 1) });
   if (!due.length) stop('nothing_due');
   const saved = [];
+  let pending = false;
   for (const args of due) {
     const snap = await provider(ctx, () => ctx.sources.sleeper(args));
+    // after-mw<N> must be taken while Sleeper is on week N+1 (spec 6.4: the matchweek is Sleeper's week). Still on N: Sleeper
+    // has not rolled over, so wait for the next run. Past N+1: two Sleeper weeks fell in one app week, and the weekly scores
+    // would span both, so nothing is saved and the commissioner supplies after-mw<N> (epl/admin/snapshot) (final review).
+    const sleeperWeek = snap?.payload?.state?.week;
+    if (args.label.startsWith('after-') && n < 38 && Number.isInteger(sleeperWeek)) {
+      if (sleeperWeek < n + 1) { pending = true; continue; }
+      if (sleeperWeek > n + 1) stop('scores_incomplete');
+    }
     const ok = await write(ctx, 'gtl_epl_save_snapshot', { p_label: snap.label, p_captured_at: snap.capturedAt, p_week: n, p_sha256: snap.sha256, p_payload: snap.payload });
     saved.push({ label: snap.label, saved: ok === true });
   }
+  if (pending && !saved.length) return { reason: 'snapshot_pending', detail: { saved: 0 } };
   return { saved };
 }
 
 async function fixturesJob(ctx) {
   const week = openWeek(ctx);
-  const kickoff = Date.parse(week.firstKickoff), start = Date.parse(week.windowStart), end = Date.parse(week.windowEnd);
+  const kickoff = Date.parse(week.firstKickoff), start = Date.parse(week.windowStart), windowEnd = Date.parse(week.windowEnd);
   if (ctx.now >= kickoff) stop('not_due');
   await reserve(ctx, ODDS_COST);
   const odds = await provider(ctx, () => ctx.sources.odds());
   await recordQuota(ctx, odds.quota).catch(() => {});
   const stored = new Map(list(ctx.state.fixtures).map(f => [f.eventId, f]));
-  const inWindow = list(odds.events).filter(e => { const t = Date.parse(e.commenceTime); return t >= start && t < end; });
+  const within = (e, until) => { const t = Date.parse(e.commenceTime); return t >= start && t < until; };
+  // The fixed 7-day window can hold a midweek round and the weekend round after it; the week is the first round only, so it
+  // ends ROUND_END_AFTER_MS after the last kickoff before the first gap of more than ROUND_GAP_MS (final review). The split is
+  // skipped when a fixture already stored for the week (or listed for it) lies past the cut: the commissioner corrects that
+  // week with epl/admin/week, and nothing stored is postponed by the split.
+  const end = roundEnd(list(odds.events).filter(e => within(e, windowEnd)), windowEnd, ctx.now, stored);
+  const inWindow = list(odds.events).filter(e => within(e, end));
   // A week fixture the provider now lists outside the window has moved out of the matchweek: postponed (spec 6.4).
   const moved = list(odds.events).filter(e => stored.has(e.eventId) && !inWindow.includes(e) && stored.get(e.eventId).status !== 'final');
-  const rows = [...inWindow.map(e => fixtureRow(week, { ...e, status: 'scheduled' })), ...moved.map(e => fixtureRow(week, { ...e, status: 'postponed' }))];
+  // A stored postponement (the commissioner's, or an earlier move) stays while the feed lists the same kickoff; a changed
+  // kickoff inside the window is a reschedule (final review). gtl_epl_upsert_fixtures enforces the same rule.
+  const kept = e => stored.get(e.eventId)?.status === 'postponed' && Date.parse(stored.get(e.eventId).commenceTime) === Date.parse(e.commenceTime);
+  const rows = [...inWindow.map(e => fixtureRow(week, { ...e, status: kept(e) ? 'postponed' : 'scheduled' })), ...moved.map(e => fixtureRow(week, { ...e, status: 'postponed' }))];
   if (rows.length) await write(ctx, 'gtl_epl_upsert_fixtures', { p_rows: rows });
   const observed = iso(ctx.now);
   const prices = inWindow.flatMap(e => [e.home, e.away].filter(club => Number.isInteger(e.h2h?.[club]))
@@ -202,13 +232,26 @@ async function fixturesJob(ctx) {
   if (prices.length) await write(ctx, 'gtl_epl_upsert_prices', { p_rows: prices });
   // The deadline only ever moves earlier, and only to a kickoff still ahead; the commissioner corrects anything else.
   const first = Math.min(...inWindow.map(e => Date.parse(e.commenceTime)));
-  let deadlineMoved = false;
-  if (Number.isFinite(first) && first < kickoff && first > ctx.now) {
-    await write(ctx, 'gtl_epl_set_week_window', { p_season: week.season, p_week: week.week, p_window_start: week.windowStart, p_window_end: week.windowEnd, p_first_kickoff: iso(first) });
-    deadlineMoved = true;
+  const deadlineMoved = Number.isFinite(first) && first < kickoff && first > ctx.now;
+  const windowSplit = end < windowEnd;
+  if (deadlineMoved || windowSplit) {
+    await write(ctx, 'gtl_epl_set_week_window', { p_season: week.season, p_week: week.week, p_window_start: week.windowStart, p_window_end: iso(end),
+      p_first_kickoff: deadlineMoved ? iso(first) : week.firstKickoff });
   }
   if (!inWindow.length) return { reason: 'no_fixtures', detail: { fixtures: 0, postponed: moved.length, unknown: odds.unknown ?? 0 } };
-  return { fixtures: inWindow.length, postponed: moved.length, prices: prices.length, unknown: odds.unknown ?? 0, deadlineMoved, remaining: odds.quota?.remaining ?? null };
+  return { fixtures: inWindow.length, postponed: moved.length, prices: prices.length, unknown: odds.unknown ?? 0, deadlineMoved, windowSplit, remaining: odds.quota?.remaining ?? null };
+}
+
+/** The week's end: windowEnd, or ROUND_END_AFTER_MS after the round's last kickoff when a gap of more than ROUND_GAP_MS follows
+ * it inside the window, the cut is still ahead, and no fixture stored or listed for the week lies past the cut. */
+export function roundEnd(events, windowEnd, now, stored = new Map()) {
+  const times = events.map(e => Date.parse(e.commenceTime)).sort((a, b) => a - b);
+  let cut = null;
+  for (let i = 1; i < times.length; i++) if (times[i] - times[i - 1] > ROUND_GAP_MS) { cut = times[i - 1] + ROUND_END_AFTER_MS; break; }
+  if (cut === null || cut >= windowEnd || cut <= now) return windowEnd;
+  const past = t => Number.isFinite(t) && t >= cut;
+  if ([...stored.values()].some(f => past(Date.parse(f.commenceTime))) || events.some(e => stored.has(e.eventId) && past(Date.parse(e.commenceTime)))) return windowEnd;
+  return cut;
 }
 
 async function resolveJob(ctx) {

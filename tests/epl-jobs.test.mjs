@@ -87,11 +87,11 @@ function fakeService({ job, state = baseState(), snapshots = {}, replay = false,
   return service;
 }
 
-function fakeSources({ events = [], scores = [], unmapped = [], quota = { remaining: 399, used: 101, last: 1 }, scoresQuota = { remaining: 397, used: 103, last: 2 }, fail = {} } = {}) {
+function fakeSources({ events = [], scores = [], unmapped = [], quota = { remaining: 399, used: 101, last: 1 }, scoresQuota = { remaining: 397, used: 103, last: 2 }, fail = {}, sleeperState } = {}) {
   const calls = [];
   return {
     calls,
-    async sleeper(args) { calls.push(['sleeper', args]); if (fail.sleeper) throw new Error('down'); return { capturedAt: '2026-11-04T00:05:00Z', label: args.label, sha256: { rosters: 'c'.repeat(64) }, payload: { label: args.label, rosters: [] } }; },
+    async sleeper(args) { calls.push(['sleeper', args]); if (fail.sleeper) throw new Error('down'); return { capturedAt: '2026-11-04T00:05:00Z', label: args.label, sha256: { rosters: 'c'.repeat(64) }, payload: { label: args.label, rosters: [], ...(sleeperState ? { state: sleeperState } : {}) } }; },
     async odds() { calls.push(['odds']); if (fail.odds) { const e = new Error('down'); e.quota = quota; throw e; } return { events, quota, unknown: 0 }; },
     async scores({ onQuota } = {}) { calls.push(['scores']); onQuota?.(scoresQuota); return { scores, unmapped }; },
   };
@@ -191,6 +191,49 @@ test('fixtures: a stored week event the provider now lists outside the window is
   const { service } = await run({ job: 'fixtures', sources: fakeSources({ events }), clock: at('2026-10-30T06:00:00Z') });
   const [rows] = service.args('gtl_epl_upsert_fixtures').map(a => a.p_rows);
   assert.deepEqual(rows, [{ event_id: 'e8', season: 2026, week: 9, home: 'SUN', away: 'LEE', commence_time: '2026-12-02T20:00:00.000Z', status: 'postponed', home_goals: null, away_goals: null }]);
+});
+
+test('fixtures: a commissioner postponement survives the feed still listing the old kickoff; a new kickoff reschedules it (final review)', async () => {
+  const state = baseState({ fixtures: FIXTURES.map(f => (f.eventId === 'e3' ? { ...f, status: 'postponed' } : f)) });
+  const same = [{ eventId: 'e3', home: 'TOT', away: 'CHE', commenceTime: '2026-10-31T15:00:00.000Z', h2h: { TOT: -120 } }];
+  const kept = await run({ job: 'fixtures', state, sources: fakeSources({ events: same }), clock: at('2026-10-30T06:00:00Z') });
+  assert.deepEqual(kept.service.args('gtl_epl_upsert_fixtures')[0].p_rows.map(r => [r.event_id, r.status]), [['e3', 'postponed']]);
+  const moved = [{ ...same[0], commenceTime: '2026-11-01T19:00:00.000Z' }];
+  const rescheduled = await run({ job: 'fixtures', state: baseState({ fixtures: state.fixtures }), sources: fakeSources({ events: moved }), clock: at('2026-10-30T06:00:00Z') });
+  assert.deepEqual(rescheduled.service.args('gtl_epl_upsert_fixtures')[0].p_rows.map(r => [r.event_id, r.status]), [['e3', 'scheduled']]);
+});
+
+// A midweek round (Tue/Wed) and the weekend round after it share one 7-day window; the week must end with the midweek round
+// (final review: Sleeper's week is the gameweek, spec 6.4).
+const MIDWEEK = { season: 2026, week: 14, windowStart: '2026-12-01T00:00:00.000Z', windowEnd: '2026-12-08T00:00:00.000Z', firstKickoff: '2026-12-08T00:00:00.000Z', pickOrder: ORDER, status: 'open' };
+const MIDWEEK_EVENTS = [
+  { eventId: 'm1', home: 'ARS', away: 'EVE', commenceTime: '2026-12-01T19:30:00.000Z', h2h: { ARS: -200 } },
+  { eventId: 'm2', home: 'LIV', away: 'MUN', commenceTime: '2026-12-02T20:00:00.000Z', h2h: { LIV: -150 } },
+  { eventId: 'w1', home: 'TOT', away: 'CHE', commenceTime: '2026-12-05T12:30:00.000Z', h2h: { TOT: 120 } },
+  { eventId: 'w2', home: 'NEW', away: 'CRY', commenceTime: '2026-12-06T14:00:00.000Z', h2h: { NEW: -130 } },
+];
+
+test('fixtures: a gap of more than 36 hours ends the round, so a midweek round never merges with the weekend (final review)', async () => {
+  const { body, service } = await run({ job: 'fixtures', state: baseState({ week: MIDWEEK, fixtures: [], picks: [] }), sources: fakeSources({ events: MIDWEEK_EVENTS }), clock: at('2026-12-01T06:00:00Z') });
+  assert.equal(body.status, 'succeeded');
+  assert.deepEqual(service.args('gtl_epl_upsert_fixtures')[0].p_rows.map(r => r.event_id), ['m1', 'm2'], 'the weekend round waits for its own week');
+  assert.deepEqual(service.args('gtl_epl_upsert_prices')[0].p_rows.map(r => r.event_id), ['m1', 'm2']);
+  assert.deepEqual(service.args('gtl_epl_set_week_window'), [{ p_season: 2026, p_week: 14, p_window_start: MIDWEEK.windowStart,
+    p_window_end: '2026-12-03T20:00:00.000Z', p_first_kickoff: '2026-12-01T19:30:00.000Z' }], 'the window ends 24 hours after the round\'s last kickoff');
+  // A normal Friday-to-Monday round (gaps up to 27.5 hours) keeps its window.
+  const weekend = FIXTURES.map(f => ({ eventId: f.eventId, home: f.home, away: f.away, commenceTime: f.commenceTime, h2h: {} }));
+  weekend[0] = { ...weekend[0], commenceTime: '2026-10-30T20:00:00.000Z' };
+  const normal = await run({ job: 'fixtures', state: baseState({ fixtures: [] }), sources: fakeSources({ events: weekend }), clock: at('2026-10-30T06:00:00Z') });
+  assert.equal(normal.service.args('gtl_epl_upsert_fixtures')[0].p_rows.length, 8);
+  assert.ok(normal.service.args('gtl_epl_set_week_window').every(a => a.p_window_end === END), 'the window end is unchanged');
+});
+
+test('fixtures: the round is not split once a later-round fixture is already stored for the week (final review)', async () => {
+  const stored = [fixture('w1', 'TOT', 'CHE', '2026-12-05T12:30:00.000Z')];
+  const { service } = await run({ job: 'fixtures', state: baseState({ week: MIDWEEK, fixtures: stored, picks: [] }), sources: fakeSources({ events: MIDWEEK_EVENTS }), clock: at('2026-12-01T06:00:00Z') });
+  const rows = service.args('gtl_epl_upsert_fixtures')[0].p_rows;
+  assert.deepEqual(rows.map(r => [r.event_id, r.status]), [['m1', 'scheduled'], ['m2', 'scheduled'], ['w1', 'scheduled'], ['w2', 'scheduled']], 'nothing stored is postponed by the split');
+  assert.ok(service.args('gtl_epl_set_week_window').every(a => a.p_window_end === MIDWEEK.windowEnd));
 });
 
 test('fixtures: does nothing after the first kickoff or for a closed week', async () => {
@@ -448,6 +491,26 @@ test('snapshot: saves before-mw<N>-kickoff in the half hour before the first kic
   assert.equal(padded.body.reason, 'nothing_due', 'a zero-padded import counts as the same snapshot');
   const down = await run({ job: 'snapshot', sources: fakeSources({ fail: { sleeper: true } }), clock: at('2026-10-31T12:10:00Z') });
   assert.equal(down.body.status, 'failed'); assert.equal(down.body.reason, 'source_unavailable');
+});
+
+test('snapshot: after-mw<N> waits until Sleeper is on week N+1 and fails when Sleeper is already past it (final review)', async () => {
+  const resolved = () => baseState({ week: { ...baseState().week, status: 'resolved' } });
+  const behind = await run({ job: 'snapshot', state: resolved(), sources: fakeSources({ sleeperState: { week: 9 } }), clock: at('2026-11-04T00:00:00Z') });
+  assert.equal(behind.body.status, 'skipped'); assert.equal(behind.body.reason, 'snapshot_pending');
+  assert.deepEqual(behind.service.args('gtl_epl_save_snapshot'), [], 'Sleeper still scoring week 9: nothing saved, the next run tries again');
+  const on = await run({ job: 'snapshot', state: resolved(), sources: fakeSources({ sleeperState: { week: 10 } }), clock: at('2026-11-04T00:00:00Z') });
+  assert.equal(on.body.status, 'succeeded');
+  assert.equal(on.service.args('gtl_epl_save_snapshot').length, 1);
+  const past = await run({ job: 'snapshot', state: resolved(), sources: fakeSources({ sleeperState: { week: 11 } }), clock: at('2026-11-04T00:00:00Z') });
+  assert.equal(past.body.status, 'failed'); assert.equal(past.body.reason, 'scores_incomplete');
+  assert.deepEqual(past.service.args('gtl_epl_save_snapshot'), [], 'two Sleeper weeks in one app week: the commissioner supplies after-mw9');
+});
+
+test('settle: a needs_review week settles once the commissioner records the missing final result (final review)', async () => {
+  const fixtures = FIXTURES.map((f, i) => (i === 7 ? finalFix(f, 1, 0) : finalFix(f, 2, 0)));
+  const { body, service } = await run({ job: 'settle', state: settled(fixtures, { week: { ...baseState().week, status: 'needs_review' } }), snapshots: SNAPS, clock: at('2026-11-07T21:41:00Z') });
+  assert.equal(body.status, 'succeeded');
+  assert.equal(service.args('gtl_epl_settle_week').length, 1);
 });
 
 test('nudge: pushes the manager on the clock once per turn (key season-week-ownerId-pickCount)', async () => {

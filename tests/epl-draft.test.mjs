@@ -15,6 +15,14 @@ test('pickOrder sorts by score plus bonus ascending, ties by lower season total'
   assert.deepEqual(order, ['a', 'c', 'b']);
 });
 
+test('pickOrder compares in whole cents, so float error never decides a tie (final review)', () => {
+  // 0.56 + 5 is 5.5600000000000005 in floating point; the true tie goes to the lower season total.
+  assert.deepEqual(pickOrder([{ id: 'b', weekScore: 5.56, weekBonus: 0, seasonTotal: 900 }, { id: 'a', weekScore: 0.56, weekBonus: 5, seasonTotal: 500 }]), ['a', 'b']);
+  assert.deepEqual(pickOrder([{ id: 'a', weekScore: 0.56, weekBonus: 5, seasonTotal: 500 }, { id: 'b', weekScore: 5.56, weekBonus: 0, seasonTotal: 900 }]), ['a', 'b']);
+  // Season totals built from sums (0.1 + 0.2 vs 0.3) tie too, so the id decides.
+  assert.deepEqual(pickOrder([{ id: 'y', weekScore: 1, weekBonus: 0, seasonTotal: 0.1 + 0.2 }, { id: 'x', weekScore: 1, weekBonus: 0, seasonTotal: 0.3 }]), ['x', 'y']);
+});
+
 test('pickOrder final tiebreak is id ascending', () => {
   assert.deepEqual(pickOrder([
     { id: 'z', weekScore: 50, weekBonus: 0, seasonTotal: 500 },

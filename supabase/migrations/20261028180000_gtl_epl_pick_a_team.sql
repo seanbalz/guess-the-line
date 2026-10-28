@@ -20,8 +20,9 @@
 --   (the public state; queues are private and never included), and the jobs worker's writers: gtl_epl_upsert_fixtures,
 --   gtl_epl_upsert_prices, gtl_epl_resolve_week, gtl_epl_settle_week, gtl_epl_save_snapshot, gtl_epl_link_manager,
 --   gtl_epl_seed_week, gtl_epl_set_week_window, gtl_epl_flag_week_review (a resolved week whose drafted result can no
---   longer be read becomes needs_review instead of settling) and gtl_epl_set_fixture_status (the commissioner postpones or
---   restores a match; a fixture never becomes postponed only because a feed stopped listing it).
+--   longer be read becomes needs_review instead of settling), gtl_epl_set_fixture_status (the commissioner postpones or
+--   restores a match; a fixture never becomes postponed only because a feed stopped listing it) and
+--   gtl_epl_set_fixture_result (the commissioner records a played match's score once the draft is resolved).
 --
 -- Apply order is the M-ledger in docs/REDESIGN_BUILD_PLAN.md section 6 (M-30 after M-29), not the file name or timestamp.
 -- p_now on gtl_epl_save_pick is a service-side clock for gtl-api and the tests only: it must never come from a client
@@ -295,16 +296,25 @@ begin
 end $$;
 
 -- Jobs-worker writers. p_rows: [{ event_id, season, week, home, away, commence_time, status, home_goals, away_goals }].
+-- A stored fixture is left exactly as it is when its week is settled, or when the row would move it out of a week that is no
+-- longer open (a postponed match re-listed in a later window never rewrites a closed week's history). A stored 'postponed'
+-- stays postponed when the row says 'scheduled' at the same kickoff (the commissioner's postponement is not undone by a
+-- feed that still lists the old time); a changed kickoff is a reschedule and is taken (final review).
 create or replace function public.gtl_epl_upsert_fixtures(p_rows jsonb) returns integer
 language plpgsql security invoker set search_path='' as $$
 declare n integer;
 begin
   if p_rows is null or jsonb_typeof(p_rows)<>'array' then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
-  insert into public.gtl_epl_fixtures(event_id,season,week,home,away,commence_time,status,home_goals,away_goals,updated_at)
+  insert into public.gtl_epl_fixtures as f(event_id,season,week,home,away,commence_time,status,home_goals,away_goals,updated_at)
     select r.event_id,r.season,r.week,r.home,r.away,r.commence_time,coalesce(r.status,'scheduled'),r.home_goals,r.away_goals,clock_timestamp()
     from jsonb_to_recordset(p_rows) as r(event_id text,season integer,week integer,home text,away text,commence_time timestamptz,status text,home_goals integer,away_goals integer)
     on conflict(event_id) do update set season=excluded.season,week=excluded.week,home=excluded.home,away=excluded.away,
-      commence_time=excluded.commence_time,status=excluded.status,home_goals=excluded.home_goals,away_goals=excluded.away_goals,updated_at=excluded.updated_at;
+      commence_time=excluded.commence_time,
+      status=case when f.status='postponed' and excluded.status='scheduled' and excluded.commence_time=f.commence_time then 'postponed' else excluded.status end,
+      home_goals=excluded.home_goals,away_goals=excluded.away_goals,updated_at=excluded.updated_at
+    where coalesce((select w.status from public.gtl_epl_weeks w where w.season=f.season and w.week=f.week),'open')<>'settled'
+      and ((f.season=excluded.season and f.week=excluded.week)
+        or coalesce((select w.status from public.gtl_epl_weeks w where w.season=f.season and w.week=f.week),'open')='open');
   get diagnostics n=row_count;
   return n;
 end $$;
@@ -484,6 +494,26 @@ begin
   return jsonb_build_object('eventId',f.event_id,'season',f.season,'week',f.week,'status',f.status);
 end $$;
 
+-- The commissioner records a played match's final score (final review): when the scores feed cannot report a drafted match
+-- (outage, budget guard, an unmapped name) the week waits in needs_review, and a match that was played must not be zeroed.
+-- p_by is checked here, like gtl_epl_set_fixture_status. Only after the draft is resolved (resolved or needs_review); a
+-- settled week keeps its results. A result recorded here may be corrected until the week settles.
+create or replace function public.gtl_epl_set_fixture_result(p_event_id text,p_home_goals integer,p_away_goals integer,p_by uuid) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare f public.gtl_epl_fixtures; v_week text;
+begin
+  if p_by is null or not exists(select 1 from public.gtl_memberships where user_id=p_by and league_id='sean-troy-luke' and role='commissioner' and active) then raise exception 'GTL_EPL_FORBIDDEN' using errcode='P0001'; end if;
+  if p_home_goals is null or p_away_goals is null or p_home_goals<0 or p_away_goals<0 or p_home_goals>99 or p_away_goals>99 then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  select * into f from public.gtl_epl_fixtures where event_id=p_event_id for update;
+  if not found then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  select w.status into v_week from public.gtl_epl_weeks w where w.season=f.season and w.week=f.week for update;
+  if v_week is null or v_week='settled' then raise exception 'GTL_EPL_FIXTURE_LOCKED' using errcode='P0001'; end if;
+  if v_week='open' then raise exception 'GTL_EPL_NOT_RESOLVED' using errcode='P0001'; end if;
+  update public.gtl_epl_fixtures set status='final',home_goals=p_home_goals,away_goals=p_away_goals,updated_at=clock_timestamp()
+    where event_id=p_event_id returning * into f;
+  return jsonb_build_object('eventId',f.event_id,'season',f.season,'week',f.week,'status',f.status,'homeGoals',f.home_goals,'awayGoals',f.away_goals);
+end $$;
+
 -- The gtl-epl-jobs run queue (cloud/epl-jobs.mjs). ADMIN ONLY: pg_cron calls the dispatcher (supabase/admin/epl_jobs_cron.sql),
 -- and pg_net must be enabled beforehand. One run per job and five-minute slot; the token authorizes just that run, for five
 -- minutes, and only its hash is kept. A queued or running run older than ten minutes is timed out by the next dispatch.
@@ -651,6 +681,7 @@ revoke all on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(int
   public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
   public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz),
   public.gtl_epl_flag_week_review(integer,integer),public.gtl_epl_set_fixture_status(text,text,uuid),
+  public.gtl_epl_set_fixture_result(text,integer,integer,uuid),
   public.gtl_epl_claim_job(text,uuid),public.gtl_epl_complete_job(uuid,uuid,text,jsonb),public.gtl_epl_jobs_state(uuid,uuid),
   public.gtl_epl_read_snapshots(uuid,uuid,text[]),public.gtl_epl_reserve_credits(uuid,uuid,integer),
   public.gtl_epl_record_quota(uuid,uuid,integer,integer,integer),public.gtl_epl_mark_nudge(uuid,uuid,integer,integer,text,text)
@@ -663,6 +694,7 @@ grant execute on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(
   public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
   public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz),
   public.gtl_epl_flag_week_review(integer,integer),public.gtl_epl_set_fixture_status(text,text,uuid),
+  public.gtl_epl_set_fixture_result(text,integer,integer,uuid),
   public.gtl_epl_claim_job(text,uuid),public.gtl_epl_complete_job(uuid,uuid,text,jsonb),public.gtl_epl_jobs_state(uuid,uuid),
   public.gtl_epl_read_snapshots(uuid,uuid,text[]),public.gtl_epl_reserve_credits(uuid,uuid,integer),
   public.gtl_epl_record_quota(uuid,uuid,integer,integer,integer),public.gtl_epl_mark_nudge(uuid,uuid,integer,integer,text,text)

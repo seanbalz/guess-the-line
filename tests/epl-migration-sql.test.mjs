@@ -193,6 +193,51 @@ test('needs_review: only a resolved week is flagged, it still settles, and the c
   await assert.rejects(setFixture('e3', 'postponed'), /GTL_EPL_FIXTURE_LOCKED/, 'a settled week keeps its fixtures');
 });
 
+test('upsert_fixtures keeps a commissioner postponement and never re-homes a settled week fixture (final review)', async t => {
+  const { call, db, kickoffPassed } = await setup(t);
+  await db.exec('alter table public.gtl_memberships drop constraint gtl_memberships_league_id_fkey');
+  await db.exec(`insert into public.gtl_memberships(league_id,user_id,player_id,role,active) values('sean-troy-luke','${U(2)}','sean','commissioner',true)`);
+  const row = (event, week, time, status = 'scheduled') => ({ event_id: event, season: 2026, week, home: 'Spurs', away: 'Fulham', commence_time: time, status, home_goals: null, away_goals: null });
+  const upsert = rows => call('select public.gtl_epl_upsert_fixtures($1::jsonb) r', [JSON.stringify(rows)]);
+  const fixture = async event => (await db.query('select week,status,commence_time from public.gtl_epl_fixtures where event_id=$1', [event])).rows[0];
+  await call('select public.gtl_epl_set_fixture_status($1,$2,$3) r', ['e3', 'postponed', U(2)]);
+  await upsert([row('e3', 9, KICK)]);
+  assert.equal((await fixture('e3')).status, 'postponed', 'the feed still listing the old kickoff does not undo the postponement');
+  await upsert([row('e3', 9, '2026-11-08T15:00:00Z')]);
+  assert.equal((await fixture('e3')).status, 'scheduled', 'a changed kickoff in the window is a reschedule');
+  await kickoffPassed();
+  await call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', ['[]']);
+  await call('select public.gtl_epl_settle_week(2026,9,$1::jsonb,$2::jsonb) r', ['[]', JSON.stringify({ week: 10, window_start: '2026-11-09T08:00:00Z',
+    window_end: '2026-11-16T08:00:00Z', first_kickoff: '2026-11-14T12:30:00Z', pick_order: [C, B, A] })]);
+  await upsert([row('e2', 10, '2026-11-14T15:00:00Z')]);
+  const e2 = await fixture('e2');
+  assert.equal(e2.week, 9, 'a settled week keeps its fixture');
+  assert.equal(new Date(e2.commence_time).toISOString(), new Date(KICK).toISOString());
+  await upsert([row('n1', 10, '2026-11-14T15:00:00Z')]);
+  assert.equal((await fixture('n1')).week, 10, 'a new event is still stored');
+});
+
+test('set_fixture_result: the commissioner records a played match for a needs_review week, never for an open or settled week (final review)', async t => {
+  const { call, db, kickoffPassed } = await setup(t);
+  await db.exec('alter table public.gtl_memberships drop constraint gtl_memberships_league_id_fkey');
+  await db.exec(`insert into public.gtl_memberships(league_id,user_id,player_id,role,active) values('sean-troy-luke','${U(2)}','sean','commissioner',true)`);
+  const result = (event, home, away, by = U(2)) => call('select public.gtl_epl_set_fixture_result($1,$2,$3,$4) r', [event, home, away, by]);
+  await assert.rejects(result('e3', 2, 1), /GTL_EPL_NOT_RESOLVED/, 'not before the draft is resolved');
+  await kickoffPassed();
+  await call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', ['[]']);
+  await call('select public.gtl_epl_flag_week_review(2026,9) r');
+  await assert.rejects(result('e3', 2, 1, U(1)), /GTL_EPL_FORBIDDEN/, 'only the commissioner');
+  await assert.rejects(result('e3', 2, 1, null), /GTL_EPL_FORBIDDEN/);
+  await assert.rejects(result('e3', -1, 1), /GTL_EPL_INVALID/);
+  await assert.rejects(result('e3', null, 1), /GTL_EPL_INVALID/);
+  await assert.rejects(result('nope', 1, 1), /GTL_EPL_INVALID/);
+  assert.deepEqual(await result('e3', 2, 1), { eventId: 'e3', season: 2026, week: 9, status: 'final', homeGoals: 2, awayGoals: 1 });
+  assert.deepEqual((await result('e3', 3, 1)).homeGoals, 3, 'a result can be corrected until the week settles');
+  assert.deepEqual((await db.query("select status,home_goals,away_goals from public.gtl_epl_fixtures where event_id='e3'")).rows, [{ status: 'final', home_goals: 3, away_goals: 1 }]);
+  await call('select public.gtl_epl_settle_week(2026,9,$1::jsonb,null) r', ['[]']);
+  await assert.rejects(result('e3', 0, 0), /GTL_EPL_FIXTURE_LOCKED/, 'a settled week keeps its results');
+});
+
 test('the migration applies twice without error or duplicate rows', async t => {
   const { db } = await setup(t);
   await db.exec(fs.readFileSync(FILE, 'utf8'));
