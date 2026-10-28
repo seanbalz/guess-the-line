@@ -230,7 +230,7 @@ test('team season results and margin bars share selection without new reads or f
     await expect(first).toBeFocused();
     await expect(first).toHaveAttribute('aria-pressed', 'true');
     await expect(range).toHaveValue('0');
-    await expect(team.locator('.gx-team-readout')).toContainText('Week 1');
+    await expect(team.locator('.gx-team-readout-current')).toContainText('Week 1');
     expect(await first.getAttribute('aria-controls')).toBe(await team.locator('.gx-team-plot').getAttribute('id'));
     await range.focus(); await range.press('End');
     await expect(last).toHaveAttribute('aria-pressed', 'true');
@@ -240,7 +240,7 @@ test('team season results and margin bars share selection without new reads or f
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await expect(range).toHaveValue('1');
     await expect(team.getByRole('button', { name: /^Show Week 2.*in margin chart$/ })).toHaveAttribute('aria-pressed', 'true');
-    await expect(team.locator('.gx-team-readout')).toContainText('Week 2 · T 20–20');
+    await expect(team.locator('.gx-team-readout-current')).toContainText('Week 2 · T 20–20');
     for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
       await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
       await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
@@ -270,6 +270,49 @@ test('team season results and margin bars share selection without new reads or f
     await expect(range).toHaveValue('2');
     await expect(last).toHaveAttribute('aria-pressed', 'true');
     await expect(second).toBeFocused();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('team chart keeps its plot steady when enlarged game labels wrap', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/lines/teams`, route => route.fulfill({ json: {
+      season: 2026, throughWeek: 4,
+      teams: { SEA: { overall: { w: 1, l: 0, t: 1 }, games: [
+        { week: 1, opponent: 'SF', home: true, final: true, pf: 0, pa: 0, gameId: 'SF-SEA' },
+        { week: 4, opponent: 'LAR', home: false, final: true, pf: 70, pa: 3, gameId: 'SEA-LAR' },
+      ] } },
+    } }));
+    await openLines(page);
+    await card(page, 'SEA-DEN').click();
+    await sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
+    const team = sheet(page, 'Seattle Seahawks'), chart = team.locator('.gx-team-chart');
+    const range = team.getByRole('slider', { name: 'Move across the games' });
+    // User text enlargement: keep the containing layout at phone width while doubling the readout's font and leading.
+    await page.addStyleTag({ content: '.gx .gx-team-readout-value { font-size: 36px; line-height: 44px; } .gx .gx-team-readout .gx-t-meta { font-size: 26px; line-height: 36px; }' });
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      for (const width of [390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        const positions = [];
+        for (const key of ['Home', 'End']) {
+          await range.focus(); await range.press(key);
+          await expect(range).toBeFocused();
+          const position = await chart.evaluate(el => {
+            const top = el.getBoundingClientRect().top;
+            return ['.gx-team-plot', '.gx-team-scrub'].map(selector => el.querySelector(selector).getBoundingClientRect().top - top);
+          });
+          positions.push(position);
+        }
+        expect(positions[0]).toEqual(positions[1]);
+        await expect(team.locator('.gx-team-readout-current')).toContainText('Week 4');
+        expect(await chart.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        if (width === 320) await chart.screenshot({ path: info.outputPath(`team-readout-${theme}-${forcedColors}.png`) });
+      }
+    }
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

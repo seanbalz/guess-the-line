@@ -40,9 +40,13 @@ export function MarginChart({ series, extent, selection, id }) {
     const box = event.currentTarget.getBoundingClientRect();
     if (box.width > 0) onSelect(Math.max(0, Math.min(series.length - 1, Math.floor(((event.clientX - box.left) / box.width) * series.length))));
   };
+  const readout = point => <><span className="gx-team-readout-value">{signed(point.margin)}</span><span className="gx-t-meta gx-c-2">{point.label}</span></>;
   return (
     <div className="gx-team-chart" data-chart="margin">
-      <p className="gx-team-readout" aria-hidden="true"><span className="gx-team-readout-value">{signed(shown.margin)}</span><span className="gx-t-meta gx-c-2">{shown.label}</span></p>
+      <div className="gx-team-readout" aria-hidden="true">
+        <span className="gx-team-readout-current">{readout(shown)}</span>
+        <span className="gx-team-readout-sizing">{series.map(point => <span className="gx-team-readout-measure" key={point.key ?? point.week}>{readout(point)}</span>)}</span>
+      </div>
       <div className="gx-team-plot" id={id} role="img" aria-label={`Margin by week, oldest first: ${series.map(p => p.words).join('; ')}`} aria-describedby={scaleId}
         onPointerDown={event => { if (!event.isPrimary || event.button !== 0) return; event.currentTarget.setPointerCapture?.(event.pointerId); follow(event); }}
         onPointerMove={follow}

@@ -348,6 +348,11 @@ passed. Eight 320px Light/Dark and forced-color chart/result screenshots were
 inspected; Brand QA and fixture bundle privacy checks passed. CI/merge, release
 and device acceptance remain open.
 
+The [steady team-chart readout batch](RESEARCH_TEAM_READOUT_2026_10_28.md)
+reserves the tallest supplied game label so enlarged text does not move the
+plot or slider when selection changes. Source branch: `codex/team-chart-readout`.
+CI/merge, release/readback and device acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.
