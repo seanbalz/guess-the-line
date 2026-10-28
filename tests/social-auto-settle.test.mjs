@@ -222,6 +222,12 @@ test('the twin matches the SQL grade, and players keep working after a system se
       assert.equal(Date.parse(sql.eligibleAt), Date.parse(js.eligibleAt));
     }
   }
+  // The backfill script's read-only preview (part 1) sees every pending ticket and what it would become.
+  const admin = fs.readFileSync(new URL('../supabase/admin/settle_pending_backfill.sql', import.meta.url), 'utf8');
+  const preview = admin.split('\n').filter(line => !line.trimStart().startsWith('--')).join('\n').split(';')[0];
+  const previewRows = (await w.db.query(preview)).rows, total = status => previewRows.filter(r => r.status === status).reduce((n, r) => n + Number(r.tickets), 0);
+  assert.deepEqual([total('settle'), total('waiting'), total('manual')], [6, 2, 2]);
+  assert.equal(Number(previewRows.find(r => r.would_be === 'void').tickets), 1);
   await w.settle({ p_now: '2026-10-19T07:00:00Z' });
   // The owner of a tracked ticket can still report a different result over the system's; it is then never re-graded.
   const win = await w.entryOf(w.ids.winHome);
