@@ -353,3 +353,8 @@ Guidance and sources.
   Put the result beneath its matchup so marks, codes and scores remain readable at 320px.
   Reserve the tallest supplied margin readout so enlarged/wrapped game labels never shift the plot or slider; keep
   the full selected label visible and expose only its existing accessible chart/slider descriptions.
+
+- **Team detail loading:** defer the detailed team view/chart and its styles until the sheet opens. Keep the sheet
+  frame, back and close controls stable while the existing panels load. A failed download stays inside the frame
+  with one explicit retry; preserve focus in the details and reuse the cached record read. Closing a pending view
+  must return focus to its opener and a late download must not reopen it.

@@ -6,7 +6,7 @@ import { footer } from '../../../shared/lines-view.mjs';
 import { NFLVERSE_SCHEDULE_URL } from '../../../shared/nfl-schedule.mjs';
 
 const credits = footer({ forecastShown: true });
-/** D-62: what a team record counts, said the same way on the team sheet's ⓘ (teams/TeamSheet.jsx) and in Guidance. */
+/** D-62: what a team record counts, said the same way on the team sheet's ⓘ (teams/TeamView.jsx) and in Guidance. */
 export const TEAM_RECORDS_COUNTED = 'Records count every regular-season final so far in the free nflverse schedule file, so Sunday’s and Monday’s finals show the same weekend.';
 /** The team records credit and link: the same text as `source_credit` and `source` in shared/team-records-2026.json. */
 export const TEAM_RECORDS_CREDIT = 'nflverse nfldata (Lee Sharpe); final scores only';
