@@ -12,7 +12,10 @@ A failed download stays inside the sheet with an explicit retry. Retry replaces
 only the view loader and moves focus into the details group; it does not refetch
 records or reload the app. Closing a held download restores the original game
 control; a late failure cannot reopen the abandoned sheet. Successful reopen
-uses the browser's module cache. Team values, chart selection and market gates
+uses the shared module promise. A failed stylesheet is repaired before the view
+can render; repeated failures keep the local error state. The loader tracks
+actual stylesheet error events because a failed Chrome stylesheet can still
+have a `sheet` object, and Vite remembers its failed preload URL. Team values, chart selection and market gates
 are unchanged.
 
 ## Bundle measurement
@@ -26,14 +29,14 @@ These are asset measurements, not production transfer bytes or Core Web Vitals.
 
 | Asset / graph | Before bytes | After bytes | Reduction |
 | --- | ---: | ---: | ---: |
-| NextApp JavaScript | 466,155 | 459,638 | 6,517 |
+| NextApp JavaScript | 466,155 | 460,756 | 5,399 |
 | NextApp CSS | 93,860 | 89,655 | 4,205 |
-| Initial static dependency graph (13 files) | 1,485,659 | 1,474,937 | 10,722 |
-| Same graph, estimated gzip | 424,156 | 421,493 | 2,663 |
+| Initial static dependency graph (13 files) | 1,485,659 | 1,476,055 | 9,604 |
+| Same graph, estimated gzip | 424,156 | 421,963 | 2,193 |
 
 First team opening adds a 7,662-byte JS chunk and a 4,206-byte CSS chunk
-(4,006 bytes combined estimated gzip). That adds two asset requests on demand;
-once opened, the combined estimated payload is 1,343 bytes larger than the old
+(4,008 bytes combined estimated gzip). That adds two asset requests on demand;
+once opened, the combined estimated payload is 1,815 bytes larger than the old
 eager graph because of the loader/recovery boundary and chunk overhead. The
 benefit is deferring that optional view at startup, not reducing every journey's
 total bytes. No additional API request is introduced.
@@ -45,7 +48,10 @@ view instead of waiting for its held chunk. It now verifies no team-view JS/CSS
 request before opening, an immediately usable frame, cancellation/focus return,
 a late failure, inline error, explicit retry with focus retained, successful
 recovery and module reuse without another code request or record read.
-The existing linked-selection and enlarged-readout cases also passed.
+A second regression reproduced a stylesheet failure rendering an unstyled view
+on retry. It now covers two failed stylesheet attempts, successful repair,
+styled chart rendering and retained focus. All four final team browser cases
+passed, including linked selection and enlarged readouts.
 All 68 integrated Lines/Research/Trends/gesture browser cases, 84 component
 tests, 19 token/brand tests and typecheck passed. The final focused rerun uses
 the actual stored theme preference for both loading/error matrices and passed;

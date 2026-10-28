@@ -379,9 +379,10 @@ Release/readback and device acceptance remain open.
 The [on-demand team-detail batch](RESEARCH_TEAM_LOADING_2026_10_28.md) defers
 team view/chart code and styles until the sheet opens. Its frame remains usable
 while loading or retrying, and retry does not repeat the cached record read.
-The local static dependency graph is 10,722 bytes smaller (2,663 estimated gzip),
-with a 1,343-byte estimated gzip overhead once the optional view is opened.
-All 68 integrated browser cases, the final focused case, 84 component tests,
+The local static dependency graph is 9,604 bytes smaller (2,193 estimated gzip),
+with a 1,815-byte estimated gzip overhead once the optional view is opened.
+The original 68 integrated browser cases and all four final team cases (including
+repeated stylesheet-failure recovery), 84 component tests,
 19 token/brand tests, typecheck, Brand QA and fixture bundle privacy checks passed.
 Eight 320px Light/Dark and forced-color loading/error screenshots were inspected.
 Source branch: `codex/lazy-team-sheet`. CI/merge, release/readback, signed-in

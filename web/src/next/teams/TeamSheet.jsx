@@ -3,9 +3,11 @@ import { lazy, Suspense, useRef, useState } from 'react';
 import { useShell } from '../shell/context.js';
 import { Button, Sheet, Skeleton, teamCode, teamName } from '../ui/index.js';
 import { Boundary } from '../shell/Boundary.jsx';
+import { retryViewImport } from '../ui/retryViewImport.js';
 import { useTeamSeason } from './teamsData.js';
 
-const loadView = () => lazy(() => import('./TeamView.jsx'));
+const importView = retryViewImport(() => import('./TeamView.jsx'));
+const loadView = () => lazy(importView);
 const loading = <Skeleton label="Loading team record…" shape="panels" count={3}/>;
 
 export function TeamSheet({ args }) {
