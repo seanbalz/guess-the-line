@@ -512,9 +512,9 @@ Q17-C remains open. Community Members merged in
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.
 Manual Settlement is in [PR #214](https://github.com/seanbalz/guess-the-lines-repo/pull/214).
 It does not close M-18 challenge grading or M-19 scheduled settlement/status.
-M-19's shared-ticket part (D-64, proposed): automatic settlement of pending Bet Tracker tickets after the game's
+M-19's shared-ticket part (D-64, approved October 28): automatic settlement of pending Bet Tracker tickets after the game's
 Pacific day, called by the existing results worker, plus a one-time backfill for Week 7 and earlier, is written in
-`20261028120000_gtl_social_auto_settle.sql` (not applied; see the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md)).
+`20261028120000_gtl_social_auto_settle.sql`, applied by Sean in the SQL editor with the backfill run, and live with `gtl-results-refresh` deployed from `42329566` (see the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md)).
 Challenge settlement (M-18) and a status reader remain open.
 Week opening is the next commissioner page after the current design focus.
 The [preservation matrix](REDESIGN_PRESERVATION_2026_10_26.md) still identifies
@@ -534,11 +534,11 @@ Stage 75 (Export my data) is on branch `claude/redesign-export`: M-28
 (`20261026231000_gtl_me_export.sql`, apply after M-27), `/me/export` and Menu ›
 Export my data, written and not applied.
 
-## Trend builder (proposed D-63, October 28)
+## Trend builder (D-63, approved October 28)
 
 Draft PR on `claude/trend-builder`: Trends › Build, honest result card, this week's matches and per-device saved
 trends with a Home indicator ([TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026)).
-Frontend only (Pages deploy); no API deploy or migration. Not merged, not deployed; D-63 awaits Sean.
+Frontend only; merged in PR #285 (`c091ec0`) and live in Pages `0f9312bf` (release run 40691552196). D-63 approved by Sean October 28.
 
 ## What needs Sean
 

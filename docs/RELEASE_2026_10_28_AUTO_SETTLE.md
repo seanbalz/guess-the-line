@@ -1,10 +1,10 @@
 # Automatic bet settlement release card — October 28, 2026
 
 Sean (October 28, 2026): "make sure that all pending bets are settled after the day that the game completes. There are
-still pending bets from week 7." Rule: [D-64 (proposed)](DECISIONS.md). Behavior:
+still pending bets from week 7." Rule: [D-64, approved by Sean October 28](DECISIONS.md). Behavior:
 [SOCIAL_BET_TRACKER.md](SOCIAL_BET_TRACKER.md#automatic-settlement-m-19-d-64-proposed--october-28-2026).
 
-**Status: card only.** Nothing here is applied or deployed. Each hosted step below is Sean's.
+**Status: live October 28, 2026.** Sean applied the migration and ran the backfill in the SQL editor; `results-refresh` readiness 40709474510 and deploy 40715129842 succeeded from `42329566` (migration history `1c376874…`, boundary 380/380 denied).
 
 ## What changes
 

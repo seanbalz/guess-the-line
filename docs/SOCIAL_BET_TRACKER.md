@@ -85,7 +85,7 @@ off.
 
 ## Automatic settlement (M-19, D-64 proposed) — October 28, 2026
 
-**Status: written, not applied or deployed; the rule is proposed (D-64).** Pending shared tickets settle without the
+**Status: live October 28, 2026; D-64 approved by Sean.** Sean applied `20261028120000` in the SQL editor and ran the one-time backfill; `gtl-results-refresh` was deployed from `42329566` (release run 40715129842). Pending shared tickets settle without the
 owner once the game is final and its Pacific day has ended.
 
 - **Database.** `20261028120000_gtl_social_auto_settle.sql` adds two service-only, security-invoker functions and
