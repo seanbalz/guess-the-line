@@ -98,7 +98,7 @@
 }
 .gx-offline .gx-ic { color: var(--gx-text-1); }
 .gx-offline .gx-btn--ghost-2 { color: var(--gx-text-1); }
-/* A tab or page that failed: one sentence, a way to try again and the old app. */
+/* A tab or page that failed: one sentence, a way to try again and a reload. */
 .gx-fail {
   display: flex;
   flex-direction: column;

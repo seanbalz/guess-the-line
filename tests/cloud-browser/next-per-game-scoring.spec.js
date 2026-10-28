@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL, HOSTED } from '../migrations.mjs';
-import { expectPickEnabled, pickSpread } from '../chip-entry.mjs';
-import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, useOldApp } from './community-world.mjs';
+import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // UI contract checks use fictional reads/writes over a local account fixture. SQL authority is tested separately.
 test.use({ viewport: { width: 390, height: 844 } });
@@ -120,41 +119,6 @@ test('a lost response needs readback, then shows the committed lock without a se
   } finally { await world.db.close(); }
 });
 
-test('classic group keeps a started draft read-only and submits upcoming games after Thursday', async ({ page, baseURL }) => {
-  const now = Date.now();
-  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, groupScreens: true, troyBallots: false, prepare: state => {
-    state.league.deadline = new Date(now - 3600_000).toISOString();
-    state.games.forEach((game, i) => game.kickoff = new Date(now + (i === 0 ? -1800_000 : 3600_000)).toISOString());
-  } });
-  const [closed, open] = world.state.games, { season, week } = world.state.league;
-  try {
-    // Local-only historical fixture: the first guess was saved as a draft before that game started.
-    await world.db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3) on conflict do nothing', [ACCOUNTS.luke.id, season, week]);
-    await world.db.exec('alter table public.gtl_weekly_ballots disable trigger user');
-    await world.db.query('insert into public.gtl_weekly_ballots(user_id,season,week,mode,ballot) values($1,$2,$3,$4,$5)', [ACCOUNTS.luke.id, season, week, 'guess_spread', { picks: { [closed.id]: -2 }, submittedAt: null, updatedAt: new Date(now - 7200_000).toISOString() }]);
-    await world.db.exec('alter table public.gtl_weekly_ballots enable trigger user');
-    await useOldApp(page); // D-60: the classic group screens open at ?app=classic.
-    await signIn(page, 'luke');
-    await page.getByRole('button', { name: /Groups & games/ }).click();
-    await page.locator('.hub-game').filter({ hasText: 'Triple Threat' }).getByRole('button', { name: 'Open game' }).click();
-    await expect(page.getByRole('region', { name: 'Next action' })).not.toContainText('Picks closed');
-    const menu = page.getByRole('button', { name: 'Open navigation', exact: true });
-    await expect(menu).toBeVisible(); await menu.click();
-    await page.getByRole('button', { name: 'My picks', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Trust your read.' })).toBeVisible();
-    await expectPickEnabled(page, `${closed.awayCode} at ${closed.homeCode} home spread`, false);
-    await expectPickEnabled(page, `${open.awayCode} at ${open.homeCode} home spread`, true);
-    await pickSpread(page, `${open.awayCode} at ${open.homeCode} home spread`, -3);
-    await page.getByRole('button', { name: 'Review & submit', exact: true }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Submit & reveal analysis', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Find the difference.' })).toBeVisible();
-    const saved = (await world.db.query("select ballot from public.gtl_weekly_ballots where user_id=$1 and season=$2 and week=$3 and mode='guess_spread'", [ACCOUNTS.luke.id, season, week])).rows[0].ballot;
-    expect(saved.picks[closed.id]).toBe(-2); expect(saved.closedAtKickoff).toContain(closed.id); expect(saved.lockedAt[closed.id]).toBeUndefined();
-    expect(saved.picks[open.id]).toBe(-3); expect(saved.lockedAt[open.id]).toBeTruthy();
-    expect(world.errors).toEqual([]);
-  } finally { await world.db.close(); }
-});
-
 test('native sit-out keeps an existing lock and unsaved draft, confirms through SQL, and leaves Total open', async ({ page, baseURL }, info) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, troyBallots: false });
   try {
@@ -164,16 +128,7 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
       expect((await world.api('luke', 'community/sit-out', route.request().postDataJSON())).status).toBe(200);
       await route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: '{lost-response' });
     });
-    // D-60: the old app's Community Picks opens at ?app=classic, and its footer leads back to the new app.
-    await page.goto('/?app=classic');
-    await signIn(page, 'luke', { navigate: false });
-    await page.getByRole('button', { name: /^Picks( \(|$)/ }).click();
-    await expect(page.locator('.gx-legacy-per-game .gx-per-game')).toBeVisible();
-    await page.setViewportSize({ width: 320, height: 844 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.screenshot({ path: info.outputPath('classic-community-per-game-320.png'), fullPage: true });
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole('button', { name: 'Back to the new app', exact: true }).click();
+    await signIn(page, 'luke');
     await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
     await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
     await expect(page.locator('.gx-per-game')).toBeVisible();

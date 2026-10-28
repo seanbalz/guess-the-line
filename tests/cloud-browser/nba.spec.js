@@ -7,7 +7,7 @@ import { providerNbaError } from '../../cloud/nba.mjs';
 import { normalizeNbaTicket } from '../../shared/nba-bets.mjs';
 import { prepareNbaImport } from '../../scripts/nba-private-import.mjs';
 import { ALL } from '../migrations.mjs';
-import { createCommunityWorld, pgliteAvailable, SUPABASE, signIn, ACCOUNTS, useOldApp } from './community-world.mjs';
+import { createCommunityWorld, pgliteAvailable, SUPABASE, signIn, ACCOUNTS } from './community-world.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 test.use({ actionTimeout: 10000 });
 
@@ -47,9 +47,7 @@ async function fixture(page, baseURL) {
   const directSave = async (ticket, revision = 0, owner = ACCOUNTS.luke.id) => rpc('gtl_nba_save_bet', { p_user_id: owner, p_operation_id: randomUUID(), p_ticket: normalizeNbaTicket(ticket), p_expected_revision: revision, p_reason: revision ? 'Another device correction' : null });
   return { ...world, controls, calls, directSave };
 }
-async function enter(page, hash = '#nba/games?date=2026-10-21', view = 'classic') {
-  // D-60: the new app is the default; the old app opens at ?app=classic, as Menu › Older records and tools does.
-  if (view === 'classic') await useOldApp(page);
+async function enter(page, hash = '#nba/games?date=2026-10-21', view = 'next') {
   await page.goto(`/${hash}`); await signIn(page, 'luke', { navigate: false });
   await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
 }
@@ -303,7 +301,7 @@ test('server full-set pagination, date filters, empty/unavailable/read failures 
   } finally { release?.(); await world.db.close(); }
 });
 
-for (const view of ['classic', 'next']) test(`${view} sport entry/return, NFL and NBA draft guards, browser Back and account isolation`, async ({ page, baseURL }) => {
+for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft guards, browser Back and account isolation`, async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Disposable PGlite required.'); test.setTimeout(60000);
   const world = await fixture(page, baseURL);
   try {
@@ -327,30 +325,24 @@ for (const view of ['classic', 'next']) test(`${view} sport entry/return, NFL an
     expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
     await page.getByRole('button', { name: 'NFL', exact: true }).click();
     await expect(page.locator('.gx-nba')).toHaveCount(0);
-    if (view === 'classic') {
-      await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
-      await page.getByRole('navigation', { name: 'Community sections' }).getByRole('button', { name: /^Picks/ }).click();
-      await page.getByRole('button', { name: /Pick'em/i }).first().click();
-    } else {
-      await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
-      // The sport row sits outside the sticky top bar, which keeps its token height: sticky Research group headings
-      // and Play's focus scroll margin are offset by --gx-size-topbar.
-      await page.setViewportSize({ width: 390, height: 844 });
-      const bar = await page.locator('.gx-topbar').evaluate(el => {
-        const css = getComputedStyle(el);
-        return { height: el.getBoundingClientRect().height, expected: parseFloat(css.getPropertyValue('--gx-size-topbar')) + parseFloat(css.paddingTop) + parseFloat(css.borderBottomWidth) };
-      });
-      expect(bar.expected).toBeGreaterThanOrEqual(56);
-      expect(bar.height).toBe(bar.expected);
-      await expect(page.locator('.gx-topbar .gx-sport-controls')).toHaveCount(0);
-      await expect(page.locator('.gx-sport-controls').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
-      // The four-tab Play landing (c6afb02) opens the per-game editor from its one primary action.
-      await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
-      // The current per-game entry owns the Shell dirty registry.
-      await page.getByRole('button', { name: /Pick'em/i }).first().click();
-    }
+    await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+    // The sport row sits outside the sticky top bar, which keeps its token height: sticky Research group headings
+    // and Play's focus scroll margin are offset by --gx-size-topbar.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const bar = await page.locator('.gx-topbar').evaluate(el => {
+      const css = getComputedStyle(el);
+      return { height: el.getBoundingClientRect().height, expected: parseFloat(css.getPropertyValue('--gx-size-topbar')) + parseFloat(css.paddingTop) + parseFloat(css.borderBottomWidth) };
+    });
+    expect(bar.expected).toBeGreaterThanOrEqual(56);
+    expect(bar.height).toBe(bar.expected);
+    await expect(page.locator('.gx-topbar .gx-sport-controls')).toHaveCount(0);
+    await expect(page.locator('.gx-sport-controls').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
+    // The four-tab Play landing (c6afb02) opens the per-game editor from its one primary action.
+    await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
+    // The current per-game entry owns the Shell dirty registry.
+    await page.getByRole('button', { name: /Pick'em/i }).first().click();
     let confirms = 0;
     page.on('dialog', dialog => { confirms++; dialog.dismiss(); });
     await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NBA', exact: true }).click();

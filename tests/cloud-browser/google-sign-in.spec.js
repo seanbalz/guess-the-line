@@ -1,6 +1,5 @@
 import { test as base, expect } from '@playwright/test';
 import { isWebfont } from '../fixtures/webfonts.mjs';
-import { useOldApp } from './old-app.mjs';
 
 // "Continue with Google" with Supabase Auth mocked locally. No request reaches Google or a real Supabase project: the
 // authorize navigation is answered with the redirect Supabase would send after a successful Google consent.
@@ -53,6 +52,8 @@ const test = base.extend({
         expect(request.headers().authorization).toBe(`Bearer ${token}`);
         return reply(200, { profile: { id: user.id, displayName: 'Test Player' }, leagues: [], pendingInvites: [] });
       }
+      // The new app's other reads (preferences, Community, week) answer as not deployed; anything outside gtl-api fails the test.
+      if (url.pathname.startsWith('/functions/v1/gtl-api/')) return reply(404, { error: 'Not found.' });
       auth.errors.push(`Unexpected mocked endpoint: ${url.pathname}`);
       return reply(404, { error: 'Unexpected test endpoint' });
     });
@@ -101,7 +102,7 @@ for (const theme of ['light', 'dark']) for (const width of [320, 390, 1440]) {
 test('the Google button asks Supabase for the google provider and returns to this origin, then lands in the account', async ({ page, auth, baseURL }) => {
   await page.goto('/');
   await googleButton(page).click();
-  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
   expect(auth.settings).toBe(1);
   expect(auth.authorize).toHaveLength(1);
   expect(auth.authorize[0].provider).toBe('google');
@@ -116,11 +117,12 @@ test('a pending invitation survives the Google round trip and is offered after s
   expect(new URL(page.url()).hash).toBe('');
   await page.locator('.auth-tabs').getByRole('button', { name: 'Create account', exact: true }).click();
   await googleButton(page).click();
-  await expect(page.getByRole('heading', { name: 'You have an invitation link' })).toBeVisible();
+  // The new app opens Your leagues with the saved invite link first.
+  await expect(page.getByRole('dialog', { name: 'Your leagues' }).getByText('You have an invite link', { exact: true })).toBeVisible();
   expect(auth.authorize).toHaveLength(1);
   expect(auth.authorize[0].redirect_to).not.toContain(INVITE);
   expect(await page.evaluate(() => sessionStorage.getItem('gtl.pendingInvitation'))).toBe(INVITE);
-  await expect(page.getByRole('button', { name: 'Accept invitation' })).toBeEnabled();
+  await expect(page.getByRole('dialog', { name: 'Your leagues' }).getByRole('button', { name: 'Join with your invite link', exact: true })).toBeEnabled();
 });
 
 test('a provider that is not switched on yet shows the plain message and keeps email sign-in available', async ({ page, auth }) => {
@@ -133,7 +135,7 @@ test('a provider that is not switched on yet shows the plain message and keeps e
   await page.getByLabel('Email', { exact: true }).fill('player@example.test');
   await page.getByLabel('Password', { exact: true }).fill('local-test-password');
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
   expect(auth.passwordSignIns).toBe(1);
 });
 
@@ -144,8 +146,8 @@ test('an error returned from the Google redirect is shown in plain words and rem
   expect(new URL(page.url()).hash).toBe('');
   await page.goto('/?error=server_error&error_description=Unsupported+provider%3A+provider+is+not+enabled');
   await expect(page.getByRole('alert')).toHaveText('Google sign-in isn’t switched on yet. Use email for now.');
-  // Only the error parameters go; the ?app=classic this spec opens with (D-60) stays.
-  expect([...new URL(page.url()).searchParams.keys()]).toEqual(['app']);
+  // Only the error parameters go.
+  expect([...new URL(page.url()).searchParams.keys()]).toEqual([]);
 });
 
 test('email sign-in is unchanged and never contacts the Google path', async ({ page, auth }) => {
@@ -153,11 +155,8 @@ test('email sign-in is unchanged and never contacts the Google path', async ({ p
   await page.getByLabel('Email', { exact: true }).fill('player@example.test');
   await page.getByLabel('Password', { exact: true }).fill('local-test-password');
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'My games', exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
   expect(auth.passwordSignIns).toBe(1);
   expect(auth.settings).toBe(0);
   expect(auth.authorize).toHaveLength(0);
 });
-
-// D-60: this spec covers the old app, which now opens only at ?app=classic (Menu › "Older records and tools").
-test.beforeEach(({ page }) => useOldApp(page));

@@ -5,7 +5,7 @@
 // this week's trends. Shared server rules govern every score and reveal; this screen only reads data, and every number
 // on it comes from those reads.
 import { Suspense, lazy, useEffect, useId, useMemo, useState } from 'react';
-import { APP_SWITCH_COPY } from '../../appView.js';
+import { APP_RELOAD_COPY } from '../../appView.js';
 import { HOME_COPY, heroProgress, homeHero, homeTiles } from '../../../../shared/home-view.mjs';
 import { HOME_LOADING } from '../copy.js';
 import { useShell } from '../shell/context.js';
@@ -177,7 +177,7 @@ export function Home() {
             <p className="gx-t-strong">{SHELL_COPY.tabFailed}</p>
             <p className="gx-t-body gx-c-2">{SHELL_COPY.failHelp}</p>
             <Button variant="secondary" block onClick={() => app.refresh({ only: ['community'] })}>{SHELL_COPY.tryAgain}</Button>
-            <Button variant="ghost" onClick={shell.toOldApp}>{APP_SWITCH_COPY.useOld}</Button>
+            <Button variant="ghost" onClick={shell.reload}>{APP_RELOAD_COPY.reload}</Button>
           </section>
         ) : (
           <p className="gx-t-body gx-c-2" role="status">{HOME_LOADING}</p>
