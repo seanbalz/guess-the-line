@@ -10,7 +10,7 @@ export function priceStrength(americanOdds) {
 /** Manager ids, first pick first: ascending weekScore + weekBonus, ties by lower seasonTotal. */
 export function pickOrder(managers) {
   return [...managers]
-    .sort((a, b) => (a.weekScore + a.weekBonus) - (b.weekScore + b.weekBonus) || a.seasonTotal - b.seasonTotal)
+    .sort((a, b) => (a.weekScore + a.weekBonus) - (b.weekScore + b.weekBonus) || a.seasonTotal - b.seasonTotal || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .map(m => m.id);
 }
 
@@ -73,7 +73,8 @@ export function marginRank(result) {
  * Bonus goes to the widest winning margin among drafted clubs (margin x 5); ties break on more goals for, then fewer
  * goals against; managers still tied all receive it. A pending drafted match means not ready; postponed scores 0.
  */
-export function settleBonus(picks, results) {
+export function settleBonus(allPicks, results) {
+  const picks = allPicks.filter(p => p.club); // 'none' rows from resolveDeadline carry no club
   if (picks.some(p => results[p.club]?.status === 'pending' || !results[p.club])) return { ready: false, awards: {}, winners: [] };
   const ranked = picks.map(p => ({ managerId: p.managerId, rank: marginRank(results[p.club]) })).filter(r => r.rank);
   if (!ranked.length) return { ready: true, awards: {}, winners: [] };

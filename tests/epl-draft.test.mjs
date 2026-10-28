@@ -15,6 +15,13 @@ test('pickOrder sorts by score plus bonus ascending, ties by lower season total'
   assert.deepEqual(order, ['a', 'c', 'b']);
 });
 
+test('pickOrder final tiebreak is id ascending', () => {
+  assert.deepEqual(pickOrder([
+    { id: 'z', weekScore: 50, weekBonus: 0, seasonTotal: 500 },
+    { id: 'b', weekScore: 50, weekBonus: 0, seasonTotal: 500 },
+  ]), ['b', 'z']);
+});
+
 test('onTheClock is the first manager without a pick, null when all picked', () => {
   assert.equal(onTheClock(['n', 'c', 'd'], [pk('n', 'MNC')]), 'c');
   assert.equal(onTheClock(['n', 'c'], [pk('n', 'MNC'), pk('c', 'ARS')]), null);
@@ -88,4 +95,8 @@ test('settleBonus: widest winning margin x5, tiebreaks, no winner, pending, post
   assert.deepEqual(settleBonus(picks, { ARS: fin('ARS', 1, 1), MNC: fin('MNC', 0, 2) }), { ready: true, awards: {}, winners: [] });
   assert.equal(settleBonus(picks, { ARS: fin('ARS', 3, 0), MNC: { club: 'MNC', goalsFor: 0, goalsAgainst: 0, status: 'pending' } }).ready, false);
   assert.deepEqual(settleBonus(picks, { ARS: fin('ARS', 1, 0), MNC: { club: 'MNC', goalsFor: 0, goalsAgainst: 0, status: 'postponed' } }), { ready: true, awards: { m1: 5 }, winners: ['m1'] });
+  // Null-club rows (resolveDeadline 'none') are ignored and do not block settlement.
+  assert.deepEqual(settleBonus([pk('m1', 'ARS'), pk('m2', null)], { ARS: fin('ARS', 3, 0) }), { ready: true, awards: { m1: 15 }, winners: ['m1'] });
+  // A drafted club with no result entry at all is not ready.
+  assert.equal(settleBonus([pk('m1', 'ARS'), pk('m2', 'MNC')], { ARS: fin('ARS', 3, 0) }).ready, false);
 });
