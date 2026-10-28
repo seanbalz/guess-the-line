@@ -12,9 +12,9 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
-## D-64 (proposed — needs Sean) — pending shared bets settle automatically after the game's day (October 28, 2026)
+## D-64 — pending shared bets settle automatically after the game's day (October 28, 2026)
 
-**Status: proposed, not approved.** Sean: "make sure that all pending bets are settled after the day that the game
+**Status: approved by Sean on October 28, 2026 ("approve D-63 and D-64").** Sean: "make sure that all pending bets are settled after the day that the game
 completes. There are still pending bets from week 7." Virtual Units and recommended picks already settle on every
 `gtl-results-refresh` run (D-26). Shared Bet Tracker tickets had no automatic path, so they stayed pending until their
 owner reported a result. The draft PR adds `20261028120000_gtl_social_auto_settle.sql` (the shared-ticket part of M-19):
@@ -37,9 +37,9 @@ Needs Sean: approve the rule (Pacific day end; parlays/props manual; owners may 
 `results-refresh` deploy. Details: [SOCIAL_BET_TRACKER.md](SOCIAL_BET_TRACKER.md#automatic-settlement-m-19-d-64-proposed--october-28-2026)
 and the [release card](RELEASE_2026_10_28_AUTO_SETTLE.md).
 
-## D-63 (proposed — needs Sean) — user trend builder and saved-trend matches (October 28, 2026)
+## D-63 — user trend builder and saved-trend matches (October 28, 2026)
 
-**Status: proposed, not approved.** Sean asked why TrendsCenter "finds things like this and we aren't". The draft PR
+**Status: approved by Sean on October 28, 2026 ("approve D-63 and D-64").** Sean asked why TrendsCenter "finds things like this and we aren't". The draft PR
 adds Trends › Build: up to three conditions from the prepared nflverse history, a result card always labelled "Found by
 search — not tested" with W-L-P, cover rate, Wilson interval, sample, dates, "Illustrative units at -110" and the
 2002–2017 / 2018-on split; this week's matching games (line conditions only from the viewer's own saved line once that
