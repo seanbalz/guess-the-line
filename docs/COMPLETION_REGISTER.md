@@ -186,7 +186,7 @@ API v39. This contains the Research/chart work through #275 and the D-62 team
 sheets/marks (#281–#283). It supersedes the older pending-release wording in
 batch snapshots below. This is release-lane evidence, not a hosted audit
 repeated by this task. Signed-in readback and physical-phone acceptance remain
-open. The team-chart selection follow-up still needs CI/merge and release.
+open. PR #289 and the player-comparison scale follow-up still need release.
 D-63's trend builder merged separately in #285 but remains explicitly proposed
 in the decision log; it is not an approved completion item.
 
@@ -345,8 +345,20 @@ preservation, missing-score guards and readable narrow rows. Source branch:
 `codex/team-chart-selection`. All 60 integrated Lines/Research/gesture browser
 cases, 59 team/Research/chart component tests, 19 token/brand tests and typecheck
 passed. Eight 320px Light/Dark and forced-color chart/result screenshots were
-inspected; Brand QA and fixture bundle privacy checks passed. CI/merge, release
-and device acceptance remain open.
+inspected; Brand QA and fixture bundle privacy checks passed. PR #289 merged
+October 28 as `13c1b35198e8028205059088afa5f25043ad9e8e` after all nine
+checks passed on `1582b786c4386433199e7874820bfba57700102f`, with no review
+findings or CI fixes. Release/readback and device acceptance remain open.
+
+The [player comparison scale batch](RESEARCH_PLAYER_SCALES_2026_10_28.md)
+adds visible point/percentage bounds to the existing comparison bars, derived
+from their actual plotting range. Signed bias, absolute error, fixed 0–100%
+rates and unavailable samples stay distinct. Source branch:
+`codex/player-comparison-scales`. All 25 integrated Trends/Research/gesture
+browser cases and the final focused case passed, as did 62 component and
+19 token/brand tests, typecheck, Brand QA and fixture bundle privacy checks.
+Eight 320px Light/Dark and forced-color signed/percentage screenshots were
+inspected. CI/merge, release and device acceptance remain open.
 
 The [steady team-chart readout batch](RESEARCH_TEAM_READOUT_2026_10_28.md)
 reserves the tallest supplied game label so enlarged text does not move the

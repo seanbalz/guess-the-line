@@ -68,6 +68,9 @@ test('player comparison bars label exact observations and distinguish zero from 
   await page.getByRole('combobox',{name:'Player team',exact:true}).selectOption('CAR');
   await page.getByRole('combobox',{name:'Player matchup',exact:true}).selectOption('CAR-ATL');
   const chart = page.locator('.gx-tr-chart').first(), rows = chart.locator('.gx-tr-observation');
+  await expect(chart.locator('[data-chart-scale]')).toContainText('Scale: −3.5 to +3.5 points');
+  await expect(page.locator('.gx-tr-chart').nth(1).locator('[data-chart-scale]')).toContainText('Scale: 0 to 3.5 points');
+  await expect(page.locator('.gx-tr-chart').nth(2).locator('[data-chart-scale]')).toContainText('Scale: 0 to 100%');
   await expect(rows).toHaveCount(5);
   const expected = ['+3.5','−3.5','0','+3.5','+3.5'];
   for (let i=0; i<5; i++) {
@@ -90,7 +93,7 @@ test('player comparison bars label exact observations and distinguish zero from 
    for (const forcedColors of ['none','active']) {
     await page.emulateMedia({forcedColors,colorScheme:theme});
     await chart.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
-    await page.screenshot({path:testInfo.outputPath(`player-bars-${theme}-${forcedColors}.png`)});
+    await chart.screenshot({path:testInfo.outputPath(`player-bars-${theme}-${forcedColors}.png`)});
     await phone(page); await noSentinel(page);
     const evidence = cover.getByRole('region');
     expect(await evidence.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
@@ -101,10 +104,7 @@ test('player comparison bars label exact observations and distinguish zero from 
     expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))).toEqual([]);
     const colors = await rows.nth(2).locator('circle').evaluate(el=>({stroke:getComputedStyle(el).stroke,fill:getComputedStyle(el).fill}));
     expect(colors.stroke).not.toBe(colors.fill);
-    if (forcedColors === 'none') {
-     await cover.locator('.gx-tr-observations').scrollIntoViewIfNeeded();
-     await page.screenshot({path:testInfo.outputPath(`player-percent-${theme}.png`)});
-    }
+    await cover.screenshot({path:testInfo.outputPath(`player-percent-${theme}-${forcedColors}.png`)});
    }
   }
   expect(world.errors).toEqual([]);
