@@ -29,3 +29,18 @@ Source branch: `codex/research-table-recovery`. CI/merge, hosted release/readbac
 and physical-iPhone acceptance remain separate checkpoints. Verified live-game
 status, dependent Bet/Challenge actions and the broader acceptance work remain
 open. No deployment, migration apply or frozen v62 tracker change is included.
+
+
+## Merge and release reconciliation — October 28, 2026
+
+PR #275 was already merged when this follow-up started: merge
+`a14852ec92aecb14a3c530fea7396e0a3aeb56c3`, October 27. All nine checks passed
+on `65d2e03ed137a16420694b495740f644a4aca27a`; reviews and review threads were
+empty. No CI repair was needed in this follow-up.
+
+The [feed/Points release](RELEASE_2026_10_27_FEED_POINTS_FRONTEND.md) records
+this source in Pages `48a36ee4`; the later [team release](RELEASE_2026_10_27_TEAMS.md)
+records Pages `7b7dbabd-4fbb-4c47-b627-c7e9712513c5` from `a2ccf23`, which
+contains this merge. These records supersede the original pending merge/release
+checkpoint above. Signed-in readback and physical-iPhone acceptance remain
+open; no hosted audit or deployment was performed by this follow-up.

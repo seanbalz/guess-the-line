@@ -30,9 +30,10 @@ function barPath(x, y0, y1, width) {
 }
 
 /** `series` from teamModel.marginSeries, `extent` from marginExtent. */
-export function MarginChart({ series, extent }) {
+export function MarginChart({ series, extent, selection, id }) {
   const scaleId = useId();
-  const { index, onSelect } = useChartSelection(series.map(p => p.week).join(','), series.length);
+  const local = useChartSelection(JSON.stringify(series), series.length);
+  const { index, onSelect } = selection ?? local;
   const at = Math.max(0, Math.min(index, series.length - 1)), shown = series[at];
   const layout = marginLayout(series, extent);
   const follow = event => {
@@ -42,7 +43,7 @@ export function MarginChart({ series, extent }) {
   return (
     <div className="gx-team-chart" data-chart="margin">
       <p className="gx-team-readout" aria-hidden="true"><span className="gx-team-readout-value">{signed(shown.margin)}</span><span className="gx-t-meta gx-c-2">{shown.label}</span></p>
-      <div className="gx-team-plot" role="img" aria-label={`Margin by week, oldest first: ${series.map(p => p.words).join('; ')}`} aria-describedby={scaleId}
+      <div className="gx-team-plot" id={id} role="img" aria-label={`Margin by week, oldest first: ${series.map(p => p.words).join('; ')}`} aria-describedby={scaleId}
         onPointerDown={event => { if (!event.isPrimary || event.button !== 0) return; event.currentTarget.setPointerCapture?.(event.pointerId); follow(event); }}
         onPointerMove={follow}
         onPointerUp={event => { if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}>

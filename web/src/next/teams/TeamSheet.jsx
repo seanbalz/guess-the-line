@@ -5,7 +5,8 @@
 // kind appears here. Args: `{ team }`, plus `from` (the back label) when it opens over another sheet.
 import { useId } from 'react';
 import { useShell } from '../shell/context.js';
-import { InfoButton, Matchup, Pill, Sheet, Skeleton, TeamMark, teamCode, teamName } from '../ui/index.js';
+import { Button, Icon, InfoButton, Matchup, Pill, Sheet, Skeleton, TeamMark, teamCode, teamName } from '../ui/index.js';
+import { useChartSelection } from '../charts/useChartSelection.js';
 import { fmtFull } from '../format.js';
 import { MarginChart } from './MarginChart.jsx';
 import { teamView } from './teamModel.js';
@@ -64,35 +65,43 @@ function LastFive({ items }) {
   );
 }
 
-function Games({ rows }) {
+function Games({ rows, margins, selection, chartId }) {
   const id = useId();
+  const indices = new Map(margins.map((point, index) => [point.key, index]));
   return (
     <section className="gx-vstack gx-gap-8" aria-labelledby={id}>
       <h3 className="gx-t-section" id={id}>Season</h3>
       <ol className="gx-team-games">
-        {rows.map(row => (
-          <li key={row.key} className="gx-team-game" data-next={row.next ? '' : undefined}>
-            <span className="gx-team-wk"><span className="gx-sr-only">Week </span><span aria-hidden="true">Wk </span>{row.week}</span>
+        {rows.map(row => {
+          const index = indices.get(row.key), plotted = index !== undefined, selected = plotted && selection.index === index;
+          return <li key={row.key} className="gx-team-game" data-next={row.next ? '' : undefined} data-selected={selected ? '' : undefined}>
+            {plotted ? <Button variant="ghost" className="gx-team-week-select" aria-pressed={selected} aria-controls={chartId}
+              aria-label={`Show ${margins[index].words} in margin chart`} onClick={() => selection.onSelect(index)}>
+              {selected ? <Icon icon="check" size={16}/> : <span aria-hidden="true">Wk</span>}<span aria-hidden="true">{row.week}</span>
+            </Button> : <span className="gx-team-wk"><span className="gx-sr-only">Week </span><span aria-hidden="true">Wk </span>{row.week}</span>}
             <Matchup away={row.away} home={row.home} size={24}/>
             <span className="gx-team-end">
               {row.final ? <><Pill tone={row.tone}>{row.word}</Pill><span className="gx-n-xs">{row.score}</span></>
                 : row.next ? <Pill tone="data">Next</Pill> : null}
             </span>
             {row.when ? <span className="gx-t-meta gx-c-2 gx-team-when">{row.when}</span> : null}
-          </li>
-        ))}
+          </li>;
+        })}
       </ol>
     </section>
   );
 }
 
-/** The sheet's body for a season and a team code (no hooks of its own beyond ids, so tests render it directly). */
+/** The sheet's body for a season and team code, sharing selection between completed results and the margin chart. */
 export function TeamView({ season, code }) {
   const view = teamView(season, code);
+  const chartId = useId();
+  // Same-week games from another team/season or corrected results are different evidence.
+  const selection = useChartSelection(JSON.stringify([season?.season, view?.code, view?.margins]), view?.margins.length ?? 0);
   if (!view) return <p className="gx-t-body gx-c-2" role="status">This team’s record isn’t available right now.</p>;
   const info = teamInfo(season);
   return (
-    <div className="gx-vstack gx-gap-24 gx-team" data-team={view.code}>
+    <div className="gx-vstack gx-gap-24 gx-team-view" data-team={view.code}>
       <div className="gx-team-head">
         <TeamMark code={view.code} size={48} decorative/>
         <p className="gx-team-record">
@@ -104,8 +113,8 @@ export function TeamView({ season, code }) {
       <Tiles tiles={view.tiles}/>
       {view.fallback ? <p className="gx-t-body gx-c-2" data-team="no-games">{NO_GAMES}</p> : <>
         {view.lastFive.length ? <LastFive items={view.lastFive}/> : null}
-        {view.margins.length ? <MarginChart series={view.margins} extent={view.extent}/> : null}
-        {view.rows.length ? <Games rows={view.rows}/> : null}
+        {view.margins.length ? <MarginChart series={view.margins} extent={view.extent} selection={selection} id={chartId}/> : null}
+        {view.rows.length ? <Games rows={view.rows} margins={view.margins} selection={selection} chartId={chartId}/> : null}
       </>}
     </div>
   );

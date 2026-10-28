@@ -197,6 +197,83 @@ async function noLeak(page, world, where) {
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
 
+test('team season results and margin bars share selection without new reads or focus jumps', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    const games = [
+      { week: 1, opponent: 'SF', home: true, final: true, pf: 24, pa: 17, gameId: 'SF-SEA' },
+      { week: 2, opponent: 'DEN', home: false, final: true, pf: 20, pa: 20, gameId: 'SEA-DEN' },
+      { week: 3, opponent: 'NO', home: true, final: true, pf: null, pa: null, gameId: 'NO-SEA' },
+      { week: 4, opponent: 'ARI', home: false, final: true, pf: 13, pa: 27, gameId: 'SEA-ARI' },
+      { week: 5, opponent: 'WAS', home: true, final: false, pf: null, pa: null, gameId: 'WAS-SEA' },
+    ];
+    let throughWeek = 4;
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/lines/teams`, route => route.fulfill({ json: {
+      season: 2026, throughWeek, updatedAt: '2026-10-01T00:00:00Z',
+      teams: { SEA: { overall: { w: 1, l: 1, t: 1 }, home: { w: 1, l: 0, t: 0 }, road: { w: 0, l: 1, t: 1 }, pointsFor: 57, pointsAgainst: 64, games } },
+    } }));
+    await openLines(page);
+    await card(page, 'SEA-DEN').click();
+    await sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
+    const team = sheet(page, 'Seattle Seahawks'), range = team.getByRole('slider', { name: 'Move across the games' });
+    const first = team.getByRole('button', { name: /^Show Week 1.*in margin chart$/ });
+    const last = team.getByRole('button', { name: /^Show Week 4.*in margin chart$/ });
+    // The view must not inherit the logo tile's 32px height/overflow clipping.
+    const viewHeight = await team.locator('.gx-team-view').evaluate(el => el.getBoundingClientRect().height);
+    expect(viewHeight).toBeGreaterThan(500);
+    await expect(first).toBeVisible();
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    await expect(team.getByRole('button', { name: /^Show Week (3|5).*in margin chart$/ })).toHaveCount(0);
+    const calls = apiCalls(page);
+    await first.focus(); await first.press('Enter');
+    await expect(first).toBeFocused();
+    await expect(first).toHaveAttribute('aria-pressed', 'true');
+    await expect(range).toHaveValue('0');
+    await expect(team.locator('.gx-team-readout')).toContainText('Week 1');
+    expect(await first.getAttribute('aria-controls')).toBe(await team.locator('.gx-team-plot').getAttribute('id'));
+    await range.focus(); await range.press('End');
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    await expect(range).toBeFocused();
+    await team.locator('.gx-team-plot').scrollIntoViewIfNeeded();
+    const box = await team.locator('.gx-team-plot').boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(range).toHaveValue('1');
+    await expect(team.getByRole('button', { name: /^Show Week 2.*in margin chart$/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(team.locator('.gx-team-readout')).toContainText('Week 2 · T 20–20');
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page, '.gx-team-sheet');
+      await team.locator('.gx-team-chart').scrollIntoViewIfNeeded();
+      await team.locator('.gx-team-chart').screenshot({ path: info.outputPath(`team-chart-${theme}-${forcedColors}.png`) });
+      await team.locator('.gx-team-games').scrollIntoViewIfNeeded();
+      await expect(first).toBeInViewport();
+      await expect(last).toBeInViewport();
+      expect(await axe(page)).toEqual([]);
+      await team.locator('.gx-team-games').screenshot({ path: info.outputPath(`team-selection-${theme}-${forcedColors}.png`) });
+    }
+    expect(calls).toEqual([]);
+    // A metadata-only refresh keeps selection; corrected game evidence resets it before paint.
+    const second = team.getByRole('button', { name: /^Show Week 2.*in margin chart$/ });
+    await second.focus();
+    throughWeek = 5;
+    await page.clock.setFixedTime(Date.now() + 11 * 60_000);
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect.poll(() => calls.filter(call => call === 'POST /lines/teams').length).toBe(1);
+    await expect(team.locator('.gx-team-record')).toContainText('Through Week 5');
+    await expect(range).toHaveValue('1');
+    games[0].pf = 31;
+    await page.clock.setFixedTime(Date.now() + 22 * 60_000);
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(range).toHaveValue('2');
+    await expect(last).toHaveAttribute('aria-pressed', 'true');
+    await expect(second).toBeFocused();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), current permitted quotes, no writes', async ({ page, baseURL }) => {
   const { world, fake } = await lukesWeek(page, baseURL);
   try {
@@ -512,6 +589,8 @@ test('axe in Light and Dark at 390, 320 and 1440 on the board, the game sheet an
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       for (const width of [390, 320, 1440]) {
         await page.setViewportSize({ width, height: 844 });
+        // Each board audit starts at its heading; don't inherit the previous width's deep sheet/board scroll.
+        await page.evaluate(() => window.scrollTo(0, 0));
         await phoneChecks(page);
         found[`board ${theme} ${width}`] = await axe(page);
         if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-lines-board-390-${theme}.png`), fullPage: true });

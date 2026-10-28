@@ -343,3 +343,8 @@ Guidance and sources.
 - **Team page:** a sheet, not a tab. One headline record, at most three tiles (Home, Road, Points per game), the last
   five as W/L blocks with the letter in each block, a margin chart in `win`/`loss` with its value in words, and the
   season's games as Matchup rows with scores. No market for a game that has not finished.
+
+- **Team game selection:** a completed game with known scores has a 44px week button that selects its margin bar.
+  Scrubbing the chart selects the matching season row. Use a check plus a row tint, and a real outline in forced
+  colors; keep keyboard focus on the control used. Upcoming games and finals without scores stay plain rows.
+  Put the result beneath its matchup so marks, codes and scores remain readable at 320px.
