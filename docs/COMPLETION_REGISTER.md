@@ -545,6 +545,17 @@ Final fixture privacy and Brand QA passed.
 This batch’s own CI/merge, release/readback, signed-in performance and
 phone acceptance remain open. No stage 33 live-status or dependent slot closure.
 
+The [readable season-table batch](RESEARCH_SEASON_TABLE_2026_10_28.md),
+`codex/research-season-table`, retains 16px record/percentage/unit text at narrow
+widths, with native table semantics, a trend-named keyboard scroll region and
+shared focus treatment. Year selection and chart synchronization remain.
+Its 320px regression failed against the old 13px rule. Both focused browser
+cases, 24 inspected 320/390px theme/forced-color start/end captures (including
+simulated 200% table text), axe, Vitest (469), 27 chart/token/brand tests,
+typecheck, Brand QA and fixture privacy pass; the first broad run passed 110/111 with an authentication setup race; repair
+and final new-app-only integration checks are in progress. This batch's own
+CI/merge, release/readback and device acceptance remain open.
+
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.

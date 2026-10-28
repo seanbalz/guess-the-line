@@ -94,6 +94,14 @@ describe('the compact row and the ⓘ', () => {
 });
 
 describe('win-rate evidence', () => {
+  it('names each scrollable season region by trend and preserves its native table caption', () => {
+    const html = render(<>{['Home favorites', 'Away underdogs'].map(title => <SeasonTable key={title} contextLabel={title} seasons={seasons} caption={`Seasons 2018–21 · ${title}`}/>)}</>);
+    expect(markupProblems(html)).toEqual([]);
+    const regions = all(html).filter(n => n.attrs.role === 'region');
+    expect(regions.map(n => n.attrs['aria-label'])).toEqual(['Season results · Home favorites', 'Season results · Away underdogs']);
+    expect(regions.map(n => n.attrs.tabindex)).toEqual(['0', '0']);
+    expect(all(html).filter(n => n.tag === 'caption')).toHaveLength(2);
+  });
   it('keeps no decided games distinct from a genuine zero in both trend views', () => {
     for (const losses of [0, 3]) {
       const rows = [2024, 2025].map(season => ({ season, w: 0, l: losses, p: 2, units: 0 }));

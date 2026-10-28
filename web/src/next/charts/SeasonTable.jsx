@@ -3,9 +3,9 @@ import { Icon } from '../ui/Icon.jsx';
 import { BREAK_EVEN_PCT, hitPct, recordText, signed } from './geometry.js';
 
 /** `seasons` are `{ season, w, l, p, units }`; `caption` says which period they are. */
-export function SeasonTable({ seasons, caption, selectedSeason, onSelect, chartId }) {
+export function SeasonTable({ seasons, caption, selectedSeason, onSelect, chartId, contextLabel }) {
   return (
-    <div className="gx-tc-table-wrap">
+    <div className="gx-tc-table-wrap" role="region" aria-label={contextLabel ? `Season results · ${contextLabel}` : 'Season results'} tabIndex={0}>
       <table className="gx-tc-table">
         <caption className="gx-sr-only">{caption}</caption>
         <thead><tr><th scope="col">Season</th><th scope="col">Record</th><th scope="col">Win rate</th><th scope="col">Units</th></tr></thead>
