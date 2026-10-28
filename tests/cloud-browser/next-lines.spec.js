@@ -392,6 +392,37 @@ test('team details load only on opening; closing, failed download and explicit r
   } finally { release(); await world.db.close(); }
 });
 
+test('team detail retry recovers a failed stylesheet before displaying the view', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let allowStyle = false, styleRequests = 0;
+  try {
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/lines/teams`, route => route.fulfill({ json: {
+      season: 2026, throughWeek: 1, teams: { SEA: { overall: { w: 1, l: 0, t: 0 }, games: [
+        { week: 1, opponent: 'SF', home: true, final: true, pf: 24, pa: 17, gameId: 'SF-SEA' },
+      ] } },
+    } }));
+    await page.route('**/assets/TeamView-*.css', route => {
+      styleRequests += 1; return allowStyle ? route.continue() : route.abort('failed');
+    });
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    await sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
+    const team = sheet(page, 'Seattle Seahawks');
+    await expect(team.getByRole('alert')).toContainText('Team details couldn’t load.');
+    await expect(team.locator('.gx-team-view')).toHaveCount(0);
+    await team.getByRole('button', { name: 'Try team details again' }).click();
+    await expect.poll(() => styleRequests).toBe(2);
+    await expect(team.getByRole('alert')).toContainText('Team details couldn’t load.');
+    await expect(team.locator('.gx-team-view')).toHaveCount(0);
+    allowStyle = true;
+    await team.getByRole('button', { name: 'Try team details again' }).click();
+    await expect(team.locator('.gx-team-view')).toBeVisible();
+    await expect(team.locator('.gx-team-svg')).toHaveCSS('display', 'block');
+    expect(styleRequests).toBe(3);
+    await expect(team.getByRole('group', { name: 'Team details' })).toBeFocused();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), current permitted quotes, no writes', async ({ page, baseURL }) => {
   const { world, fake } = await lukesWeek(page, baseURL);
   try {
