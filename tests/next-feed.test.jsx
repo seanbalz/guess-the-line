@@ -116,7 +116,32 @@ describe('post cards draw only what the server let through', () => {
     for (const kind of ['bet_posted', 'bet_settled']) { const html = card(post(kind, { embed: { entryId: 'e1' } })); expect(html).toContain('Real slip'); expect(html).toContain('See real slips'); }
     expect(card(post('points_played'))).toContain('is playing Week 8 Points');
     expect(card(post('points_final', { embed: { winners: [{ userId: AVERY, points: 38.4 }], house: null, max: 50 } }))).toContain('38.4 pts · House — · FINAL');
-    expect(card(post('badge_earned'))).toContain('posted an update');
+    // A kind with no writer and no line yet still shows as a post (challenges are not built).
+    expect(card(post('challenge_offered'))).toContain('posted an update');
+  });
+  it('the recap, season, badge and streak posts say what happened and open Badges and awards', () => {
+    // The features job (M-25) posts a week's recap and the season's awards as that week's publisher: the card leads with
+    // the Guess The Line mark, never the publisher's face or name.
+    const recap = card(post('weekly_recap', { actorId: CASEY, week: 7 }));
+    expect(recap).toContain('Week 7 awards are in');
+    expect(recap).not.toContain('Casey Fixture');
+    expect(recap).toContain('See the awards');
+    const season = card(post('season_champion', { actorId: CASEY, week: null }));
+    expect(season).toContain('2026 season awards are in');
+    expect(season).not.toContain('Casey Fixture');
+    const badge = card(post('badge_earned'));
+    expect(badge).toContain('Avery Fixture');
+    expect(badge).toContain('earned a Week 8 badge');
+    expect(badge).toContain('See badges');
+    expect(card(post('streak_milestone'))).toContain('hit a streak milestone');
+    for (const kind of ['weekly_recap', 'season_champion', 'badge_earned', 'streak_milestone']) {
+      const html = card(post(kind));
+      expect(html, kind).not.toContain('posted an update');
+      expect(markupProblems(html), kind).toEqual([]);
+      expect(model.postLink(post(kind)), kind).toMatchObject({ tab: 'play', view: { section: 'features' } });
+    }
+    expect(model.postLink(post('bet_posted'))).toEqual({ text: 'See real slips', tab: 'bets', view: { section: 'tracked' } });
+    expect(model.postLink(post('joined'))).toBeNull();
   });
 });
 
