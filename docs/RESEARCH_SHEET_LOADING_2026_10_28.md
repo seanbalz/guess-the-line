@@ -77,6 +77,9 @@ The current 56-case set explicitly includes the shell-state/modal/gesture files.
 Source branch: `codex/lazy-matchup-research`. PR [#306](https://github.com/seanbalz/guess-the-line/pull/306) merged as
 `3387457f69d0724c3faf04a51c552fe151df4fb1` after all nine checks passed on
 `25236cc486b81bd3b34697c635b6348c660e69fd`. Reviews/threads were empty; no CI repair.
+PR [#310](https://github.com/seanbalz/guess-the-line/pull/310) holds this batch.
+Main’s documentation-only PR #307 was integrated; the work queue now reflects
+its recorded October 28 D-63/D-64 approvals, without repeating hosted verification.
 This batch needs its own CI/merge, release/readback, signed-in performance and
 physical-iPhone acceptance. Live/postponed/cancelled status and dependent
 Bet/Challenge destinations stay open. No deployment, migration apply, new data
