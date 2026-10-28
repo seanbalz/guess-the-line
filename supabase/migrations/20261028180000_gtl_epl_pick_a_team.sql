@@ -383,7 +383,7 @@ begin
     values(p_season,p_week,p_window_start,p_window_end,p_first_kickoff,p_order,'open',true)
     on conflict(season,week) do update set window_start=excluded.window_start,window_end=excluded.window_end,first_kickoff=excluded.first_kickoff,pick_order=excluded.pick_order;
   total:=jsonb_array_length(p_picks);
-  for r in select x.owner_id,x.club,x.picked_at,x.ord from jsonb_to_recordset(p_picks) with ordinality as x(owner_id text,club text,picked_at timestamptz,ord bigint) order by x.ord loop
+  for r in select x.owner_id,x.club,x.picked_at,x.ord from rows from (jsonb_to_recordset(p_picks) as (owner_id text,club text,picked_at timestamptz)) with ordinality as x(owner_id,club,picked_at,ord) order by x.ord loop
     if r.owner_id is null or not (r.owner_id=any(p_order)) or r.club is null then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
     begin
       insert into public.gtl_epl_picks(season,week,owner_id,club,source,picked_at,final)
