@@ -113,7 +113,7 @@ function apiCalls(page) {
   });
   return calls;
 }
-const READS = ['POST /personal/read', 'POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research',
+const READS = ['POST /personal/read', 'POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research', 'POST /lines/teams',
   // D-60: sign-in lands on Home first, which reads the account's preferences and its tracked-ticket summary, and (stage 71)
   // its recap row's badges and awards.
   'POST /me/preferences', 'POST /social/read', 'POST /league/features'];
