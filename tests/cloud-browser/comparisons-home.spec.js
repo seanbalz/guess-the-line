@@ -5,6 +5,9 @@ import { communityWorld, signIn, storeBookLines, sendBallot, ACCOUNTS, pgliteAva
 
 test.use({ viewport: { width: 390,height: 844 } });
 test.skip(!pgliteAvailable,'Local PGlite runtime required');
+// A confirmed save is three local-database round trips (fresh read, save, confirming read); on a loaded machine they
+// can outlast the default five-second wait, so the confirmation gets longer. It still has to say "Settings saved.".
+const SAVE_ROUND_TRIPS = 15_000;
 async function ready(page, baseURL) {
   const world = await communityWorld(page,baseURL,{ migrations: ALL,optionalRpc: true,troyBallots: false,groupScreens: true });
   await storeBookLines(world,{ spread: Object.fromEntries(world.state.games.map((g,i) => [g.id,[-3.5,2.5][i]])),total: Object.fromEntries(world.state.games.map((g,i) => [g.id,[44.5,47.5][i]])) });
@@ -32,7 +35,7 @@ test('Home guide and account settings persist; comparisons use revealed common g
     await settings(page);
     await page.getByRole('checkbox',{ name: 'DraftKings',exact: true }).check();
     await page.getByRole('button',{ name: 'Save settings',exact: true }).click();
-    await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible();
+    await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible({ timeout: SAVE_ROUND_TRIPS });
     await page.keyboard.press('Escape');
     await page.getByRole('button',{ name: 'Your results',exact: true }).click();
     await page.getByRole('button',{ name: 'Compare players',exact: true }).click();
@@ -73,7 +76,7 @@ test('settings retain the draft on a concurrent account write; Home resets for t
     await expect(page.getByRole('checkbox',{ name: 'DraftKings',exact: true })).toBeChecked();
     expect((await world.api('luke','me/preferences',{})).body.sportsbooks).toEqual(['fanduel']);
     await page.getByRole('button',{ name: 'Save settings',exact: true }).click();
-    await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible();
+    await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible({ timeout: SAVE_ROUND_TRIPS });
     await page.keyboard.press('Escape');
     // Use the real menu sign-out so account-bound draft/cache cleanup runs.
     await page.getByRole('button',{ name: /Open menu|Your menu|Account menu/ }).click();
@@ -100,7 +103,7 @@ test('a failed settings save keeps the draft and retry checks the saved version 
     expect((await world.api('luke','me/preferences',{})).body.sportsbooks).toEqual([]);
     await page.unroute(pattern);
     await page.getByRole('button',{ name: 'Check saved settings',exact: true }).click();
-    await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible();
+    await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible({ timeout: SAVE_ROUND_TRIPS });
     expect((await world.api('luke','me/preferences',{})).body.sportsbooks).toEqual(['draftkings']);
   } finally { await world.db.close(); }
 });
