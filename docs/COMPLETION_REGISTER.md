@@ -492,6 +492,18 @@ Research/Lines/Trends/gesture cases, Brand QA and final fixture privacy checks
 passed. CI/merge, release/readback and phone acceptance remain open; #302 is
 merged. No live-status or dependent action-slot closure.
 
+The [chart control names](RESEARCH_CHART_CONTROL_NAMES_2026_10_28.md) batch,
+`codex/research-chart-control-names`, appends each visible trend title to line/
+season slider and view-group accessible names, preserving the exact value
+announcement and existing selection behavior. The name regressions failed
+before and passed after implementation. Full Vitest (468), 27 chart-geometry/
+token/brand tests and typecheck passed. All 98 expanded browser cases, final
+fixture privacy and Brand QA passed. #303 and this batch’s own CI/merge,
+release/readback and device/
+assistive-technology acceptance remain open. GitHub’s canonical repository name
+is now `seanbalz/guess-the-line`, verified against the unchanged repository ID;
+the repository synchronization pointer is updated.
+
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
 `36024875d7a04b01eaafc2bc3d46b3625538d16e` after all nine checks passed.

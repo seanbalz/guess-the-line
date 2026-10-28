@@ -397,3 +397,8 @@ Guidance and sources.
   weekly evidence status. Keep it mounted and focusable during loading, expose
   the busy/disabled state, and retain focus when the evidence returns. Preserve
   stale provenance, access refusals and independent market locks.
+
+- **Trend chart control names:** append the visible trend title to line/season
+  slider names and the Chart view group name. Keep exact point/season values in
+  the value announcement. This adds accessible context without visible text or
+  plot changes; standalone charts retain their existing fallback names.
