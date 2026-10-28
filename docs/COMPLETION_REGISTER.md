@@ -412,7 +412,8 @@ model carries kickoff only, but `marketBoard()` already adds recorded final
 scores from `/lines/read`. The [final-result presentation batch](RESEARCH_FINAL_RESULTS_2026_10_28.md)
 on `codex/research-final-results` separates Final from Kickoff passed, exposes
 result provenance and rejects incomplete/mismatched scores. All 70 integrated
-browser cases and five final board/Trends cases passed, plus 105 component and
+browser cases and seven final board/Trends/viewport cases passed after integrating
+main through #297, plus 116 component and
 41 model/token/brand tests, typecheck, Brand QA and fixture build/privacy checks;
 four 320px theme/forced-color captures were inspected. CI/merge and release/
 readback stay open. Live/postponed/cancelled status still needs a supported data

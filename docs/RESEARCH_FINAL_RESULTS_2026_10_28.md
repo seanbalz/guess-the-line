@@ -31,9 +31,9 @@ The new browser regression failed before implementation because the Final
 section did not exist. The focused implementation case passed with zero score,
 commissioner provenance, an incomplete final and a non-final result, all market
 locks retained, narrow-theme accessibility and refresh failure. All 70 integrated Lines/Research/Trends/gesture browser cases passed before
-integrating the on-demand Trends source. On the integrated source, all five
-final board/Trends cases passed, including final/refresh behavior and Trends
-code/stylesheet recovery. 105 Lines/team/Research/chart/Trends component tests,
+integrating the on-demand Trends source. After integrating Trends and main through #297, all seven final board/Trends/
+dock/keyboard cases passed, including final/refresh behavior and code/stylesheet
+recovery. All 116 component tests (including the viewport suite),
 41 board/model/token/brand tests, typecheck, Brand QA and final fixture build/
 bundle privacy checks passed. Four final 320px Light/Dark and forced-color
 screenshots were inspected; long source labels wrap, axe and touch-target checks
