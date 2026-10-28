@@ -388,6 +388,16 @@ Eight 320px Light/Dark and forced-color loading/error screenshots were inspected
 Source branch: `codex/lazy-team-sheet`. CI/merge, release/readback, signed-in
 performance and device acceptance remain open.
 
+The [on-demand Trends page](RESEARCH_TRENDS_LOADING_2026_10_28.md) is the next
+source batch on `codex/lazy-research-trends`: the optional screen and chart styles
+load on a visit, with scoped loading/retry and navigation retained. Home's saved
+summary remains independent. Local asset measurements reduce the initial static
+graph by 50,418 raw bytes (13,655 estimated gzip), with a 2,708-byte estimated
+gzip overhead after opening Trends. All 71 integrated browser cases, 84
+component and 19 token/brand tests, typecheck, Brand QA and fixture privacy checks
+passed; eight 320px loading/error screenshots were inspected. CI/merge,
+release/readback, signed-in performance and phone acceptance remain open.
+
 Verified live-game status, stage 34’s Bet/Challenge action slots, the remaining
 Play skip flow and device acceptance stay open. These batches do not complete
 the whole stages.

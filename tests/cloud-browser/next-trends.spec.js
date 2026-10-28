@@ -124,6 +124,29 @@ test('Trends code waits for a visit, including with saved Home trends, and its l
  } finally{release();await world.db.close();}
 });
 
+test('Trends stylesheet failures stay local until an explicit retry restores its chart styles', async ({page,baseURL}) => {
+ const world=await ready(page,baseURL,{landing:true});
+ let allowStyle=false, requests=0;
+ try {
+  await page.route('**/assets/TrendsScreen-*.css',route=>{requests++;return allowStyle?route.continue():route.abort('failed');});
+  await page.locator('[data-landing="research"]').getByRole('button',{name:/^Trends/}).click();
+  const region=page.getByRole('region',{name:'Trends content'});
+  await expect(region.getByRole('alert')).toContainText('Trends couldn’t load.');
+  await expect(page.locator('.gx-trends')).toHaveCount(0);
+  await region.getByRole('button',{name:'Try trends again'}).click();
+  await expect.poll(()=>requests).toBe(2);
+  await expect(region.getByRole('alert')).toContainText('Trends couldn’t load.');
+  await expect(page.locator('.gx-trends')).toHaveCount(0);
+  allowStyle=true;
+  await region.getByRole('button',{name:'Try trends again'}).click();
+  await expect(group(page,'Trends section')).toBeVisible();
+  await expect(region).toBeFocused();
+  await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
+  await expect(page.locator('.gx-tr-chart').first()).toHaveCSS('display','flex');
+  expect(requests).toBe(3);await noSentinel(page);expect(world.errors).toEqual([]);
+ } finally {await world.db.close();}
+});
+
 test('player comparison bars label exact observations and distinguish zero from missing samples', async ({page,baseURL}, testInfo) => {
  const world = await ready(page,baseURL,{chartValues:true});
  try {

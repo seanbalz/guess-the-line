@@ -2,8 +2,10 @@
 import { lazy, Suspense, useRef, useState } from 'react';
 import { Button, Skeleton } from '../ui/index.js';
 import { Boundary } from '../shell/Boundary.jsx';
+import { retryViewImport } from '../ui/retryViewImport.js';
 
-const loadScreen = () => lazy(() => import('./TrendsScreen.jsx'));
+const importScreen = retryViewImport(() => import('./TrendsScreen.jsx'));
+const loadScreen = () => lazy(importScreen);
 const loading = <div className="gx-screen"><h1 className="gx-t-title">Trends</h1><Skeleton label="Loading trends…" shape="panels" count={2}/></div>;
 
 export function TrendsPage() {
