@@ -7,6 +7,7 @@ import { useId } from 'react';
 import { useShell } from '../shell/context.js';
 import { InfoButton, Matchup, Pill, Sheet, Skeleton, TeamMark, teamCode, teamName } from '../ui/index.js';
 import { fmtFull } from '../format.js';
+import { TEAM_RECORDS_COUNTED } from '../info.js';
 import { MarginChart } from './MarginChart.jsx';
 import { teamView } from './teamModel.js';
 import { useTeamSeason } from './teamsData.js';
@@ -20,7 +21,7 @@ export function teamInfo(season) {
     season?.updatedAt ? `updated ${fmtFull(season.updatedAt)}` : null].filter(Boolean).join(', ');
   return {
     body: [
-      'Records count every regular-season final so far in the free nflverse schedule file, so Sunday’s and Monday’s finals show the same weekend.',
+      TEAM_RECORDS_COUNTED,
       when ? `${when.charAt(0).toUpperCase()}${when.slice(1)}.` : null,
       season?.stale ? 'This copy may be behind the latest finals.' : null,
       season?.fallback ? `${NO_GAMES} These records come from the copy bundled with the app.` : null,
