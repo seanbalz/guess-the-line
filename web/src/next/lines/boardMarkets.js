@@ -1,3 +1,4 @@
+import { appCode } from '../../../../shared/nfl-schedule.mjs';
 import { fmtWhen } from '../format.js';
 import { lineState, marketTime, marketValue } from './marketDetails.js';
 
@@ -20,7 +21,7 @@ export function recordedFinal(card, row, read) {
   const result = row?.final;
   const score = value => Number.isSafeInteger(value) && value >= 0;
   if (read.status !== 'ready' || !card.started || row?.started !== true || row.id !== card.id ||
-    row.awayCode !== card.away.code || row.homeCode !== card.home.code ||
+    appCode(row.awayCode) !== appCode(card.away.code) || appCode(row.homeCode) !== appCode(card.home.code) ||
     result?.status !== 'final' || !score(result.away) || !score(result.home)) return null;
   const source = typeof result.source === 'string' && result.source.trim() ? result.source.trim() : 'Source unavailable';
   const observed = Date.parse(result.observedAt);

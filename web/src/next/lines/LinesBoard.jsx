@@ -141,8 +141,8 @@ export function LinesBoard({ trendsOnly = false }) {
       {head}
       <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
       {!trendsOnly && <>
-        {markets.status === 'loading' ? <p className="gx-sr-only" role="status">Loading market lines…</p>
-          : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines are unavailable. Your saved guesses are kept.</p> : null}
+        {markets.status === 'loading' ? <p className="gx-sr-only" role="status">Loading market lines and results…</p>
+          : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines and results are unavailable. Your saved guesses are kept.</p> : null}
         <GateBanner gate={gate} onCta={enter} onSkip={() => shell.openDialog('dlg.forfeit', revealScope)} note="See picks now requires a final sit-out confirmation. Locked guesses count; drafts are kept."/>
         <Button variant="ghost" onClick={markets.reload}>{markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}</Button>
       </>}

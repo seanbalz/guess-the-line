@@ -49,6 +49,7 @@ test('final presentation keeps zero and ties, credits reported results and disti
   const result = recordedFinal(card, finalRow, read);
   assert.equal(result.score, 'Final · SEA 0–DEN 7');
   assert.match(result.provenance, /Result source: Fixture source.*Observed.*PT/);
+  assert.ok(recordedFinal({ ...card, id: 'LAR-DEN', away: { code: 'LAR' } }, { ...finalRow, id: 'LAR-DEN', awayCode: 'LA' }, read));
   assert.match(recordedFinal(card, { ...finalRow, final: { ...finalRow.final, away: 7 } }, read).score, /SEA 7–DEN 7/);
   assert.match(recordedFinal(card, { ...finalRow, final: { ...finalRow.final, origin: 'commissioner_reported' } }, read).provenance, /Commissioner-reported result/);
   for (const observedAt of [null, 'not a time', new Date(now + 1).toISOString()]) {
