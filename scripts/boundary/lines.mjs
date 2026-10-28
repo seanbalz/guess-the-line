@@ -52,6 +52,8 @@ export const apiChecks = Object.freeze([
   ['fantasy/week', {}],
   // Trends research, deployed since gtl-api v29.
   ['lines/research', {}],
+  // D-62 team records: public nflverse finals, served only to signed-in players (cloud/team-season.mjs).
+  ['lines/teams', {}],
 ]);
 
 export const workerChecks = Object.freeze([
@@ -59,4 +61,4 @@ export const workerChecks = Object.freeze([
 ]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({ 'gtl-api/lines/teams': 'the gtl-api deploy with /lines/teams (D-62)' });

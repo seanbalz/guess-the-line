@@ -28,6 +28,7 @@ import { handlePush, PUSH_METHODS, PushError, providerPushError, validVapidPubli
 // Redesign route groups and the optional-RPC reader (build plan, stage 4).
 import { handleLines, LINES_METHODS, LinesError, providerLinesError } from './lines.mjs';
 import { createResearchProvider } from './trends-research.mjs';
+import { createTeamSeasonProvider } from './team-season.mjs';
 import { TRENDS_SOURCE } from '../shared/trends.mjs';
 import researchVenues from '../shared/nfl-venues.json' with { type: 'json' };
 import researchCorrections from '../shared/trends-corrections.json' with { type: 'json' };
@@ -393,7 +394,8 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     if (!Array.isArray(rows) || rows.length > 1) throw new Error('Invalid storage response.');
     return rows[0] || null;
   }
-  // The free public nflverse schedule file: slates (D-21/D-24) and Virtual Units finals (D-26) read the same bytes.
+  // The free public nflverse schedule file: slates (D-21/D-24), Virtual Units finals (D-26) and team records (D-62,
+  // /lines/teams, cached per isolate in cloud/team-season.mjs) read the same bytes.
   async function publicSchedule() {
     const response = await fetchImpl(NFLVERSE_SCHEDULE_URL, { redirect: 'error', signal: AbortSignal.timeout(10000) });
     if (!response.ok) throw new Error('Public schedule unavailable.');
@@ -467,7 +469,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     nbaGamesCache: createNbaGamesCache(groupRpc(providerNbaError, ['gtl_nba_claim_games', 'gtl_nba_finish_games'])),
     trends: createTrendsService({ rpc: groupRpc(providerLinesError).rpc, readSeason: createSeasonReader({ fetchImpl }), clock }),
     fantasy: createFantasyService({ fetchImpl, clock }),
-    lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
+    lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }), teams: createTeamSeasonProvider({ loadSchedule: publicSchedule, clock }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     feed: groupRpc(providerFeedError),
     points: groupRpc(providerPointsError, POINTS_RPCS),
     features: groupRpc(providerFeaturesError, FEATURES_RPCS),
