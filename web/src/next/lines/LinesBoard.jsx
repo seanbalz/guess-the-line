@@ -109,7 +109,11 @@ export function LinesBoard({ trendsOnly = false }) {
   const revealScope = { accountId: app.accountId, season: shown?.season, week: shown?.week };
   const gate = boardGate(markets, forfeitView(community, revealScope)?.canConfirm === true);
   const enter = () => shell.go('play', { section: 'picks', market: gate.market, season: shown.season, week: shown.week });
-  const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', { game: gameId });
+  const open = gameId => shell.openSheet(trendsOnly ? 'sh.allTrends' : 'sh.game', {
+    game: gameId,
+    ...(!trendsOnly && board && shown ? { boardOrder: { accountId: app.accountId, season: shown.season, week: shown.week,
+      ids: [...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? []), ...(board.finals?.cards ?? [])].map(card => card.id) } } : {}),
+  });
   const head = (
     <div className="gx-vstack gx-gap-2">
       <div className="gx-l-sechead">

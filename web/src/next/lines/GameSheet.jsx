@@ -26,7 +26,7 @@ import { MatchupResearch } from '../research/ResearchSheet.jsx';
 import { EveryoneGuesses } from './EveryoneGuesses.jsx';
 import { MarketDetails } from './MarketDetails.jsx';
 import { actionsForGame, GameActions } from './GameActions.jsx';
-import { boardOrder, gamePager } from './gameOrder.js';
+import { openedBoardOrder, gamePager } from './gameOrder.js';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { recordsThroughText } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
@@ -74,7 +74,7 @@ export function GameSheet({ args }) {
     [personal.data, community, trendsWeek, trends.status, records, args.game]);
   const officials = useOfficials(shown?.season, shown?.week, Boolean(view));
   const wind = useWind(shown?.season, shown?.week, Boolean(view));
-  const order = useMemo(() => boardOrder(personal.data), [personal.data]);
+  const order = useMemo(() => openedBoardOrder(personal.data, app.accountId, args.boardOrder), [personal.data, app.accountId, args.boardOrder]);
   const teams = useTeamSeason();
   if (!view) {
     return (

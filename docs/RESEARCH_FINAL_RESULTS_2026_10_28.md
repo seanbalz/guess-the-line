@@ -45,6 +45,20 @@ finals and server clock are injected at the reader boundary. This verifies the
 presentation and existing access gates, not real settlement, live provider
 coverage or production acceptance.
 
+## Paging correction before merge
+
+Review found that moving a final card changed the visible board order while
+the game sheet still used kickoff order. A regression reproduced the last
+visible card opening as game 1 of 4. Opening now captures the complete displayed
+slate order in memory, scoped to account/season/week. The sheet uses current
+game labels and accepts only a complete permutation of its current slate;
+missing, duplicated, unknown or cross-scope IDs fall back to kickoff order.
+The order stays stable while paging and is excluded from URL/history state.
+The final card now opens as game 4 of 4, pages to the actual preceding card and
+returns focus to its opener. All three focused final/pointer/touch cases,
+36 navigation/model/token/brand tests, the full 466-test Vitest suite and
+typecheck passed after this repair. The fresh CI head is required before merge.
+
 ## Remaining checkpoints
 
 Source branch: `codex/research-final-results`. CI/merge, frontend release,

@@ -417,7 +417,11 @@ browser cases passed before the Trends integration; seven final board/Trends/
 viewport cases passed after integrating main through #297. The 116 focused
 component and 41 model/token/brand tests, full 466-test Vitest suite, typecheck,
 Brand QA and fixture build/privacy checks passed; four 320px theme/forced-color
-captures were inspected. CI/merge and release/
+captures were inspected. Before merge, a navigation review found the new final
+section was not reflected in the game pager. The scoped in-memory board-order
+repair passed its regression and pointer/touch checks (three browser cases),
+36 model/navigation/token/brand tests, full 466-test Vitest suite and typecheck.
+CI/merge and release/
 readback stay open. Live/postponed/cancelled status still needs a supported data
 path; the queue keeps its source/time, missing/stale and privacy exit criteria.
 These batches do not complete the whole stages.

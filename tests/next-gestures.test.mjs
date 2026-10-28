@@ -15,7 +15,7 @@ import {
   GESTURE, closeThreshold, lockAxis, pageOffset, pagerPlace, pageStep, pageThreshold, rubberBand, scrimOpacity, sheetOffset, shouldClose, velocityOf,
 } from '../web/src/next/ui/gesture.js';
 import { HAPTIC_MS, lightHaptic } from '../web/src/next/ui/haptics.js';
-import { boardOrder, gamePager } from '../web/src/next/lines/gameOrder.js';
+import { boardOrder, openedBoardOrder, gamePager } from '../web/src/next/lines/gameOrder.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -222,4 +222,25 @@ test('sheet and skeleton styles: tokens only, transform and opacity only, a redu
   for (const [, target] of gestures.matchAll(/(\w+)\.style\.transform =/g)) assert.ok(['panel', 'node'].includes(target), `${target}.style.transform: only the sheet panel or its body moves`);
   // Dialogs keep their own behaviour: no drag gestures on the native <dialog>.
   assert.doesNotMatch(read('web/src/next/ui/Dialog.jsx'), /useSheetGestures|onPointerDown/);
+});
+
+
+test('game paging follows the opened final-section order only for the complete current account/week slate', () => {
+  const personal = { season: 2026, week: 6, now: '2026-10-18T20:00:00Z', games: [
+    { id: 'SEA-DEN', kickoff: '2026-10-18T17:00:00Z' }, { id: 'HOU-JAX', kickoff: '2026-10-18T18:00:00Z' },
+    { id: 'NO-NYG', kickoff: '2026-10-18T19:00:00Z' },
+  ] };
+  const context = { accountId: 'fixture', season: 2026, week: 6, ids: ['HOU-JAX', 'NO-NYG', 'SEA-DEN'] };
+  const opened = openedBoardOrder(personal, 'fixture', context);
+  assert.deepEqual(opened.map(game => game.id), context.ids);
+  assert.equal(gamePager(opened, 'SEA-DEN').next, null);
+  assert.equal(gamePager(opened, 'SEA-DEN').prev, 'NO-NYG');
+  const fallback = boardOrder(personal);
+  for (const patch of [{ accountId: 'other' }, { season: 2025 }, { week: 5 }, { ids: ['HOU-JAX'] },
+    { ids: ['HOU-JAX', 'HOU-JAX', 'SEA-DEN'] }, { ids: ['HOU-JAX', 'NO-NYG', 'UNKNOWN'] }, { ids: null }]) {
+    assert.deepEqual(openedBoardOrder(personal, 'fixture', { ...context, ...patch }), fallback);
+  }
+  assert.deepEqual(openedBoardOrder(personal, null, context), fallback);
+  assert.deepEqual(openedBoardOrder(personal, 'fixture'), fallback);
+  assert.deepEqual(openedBoardOrder(null, 'fixture', context), []);
 });

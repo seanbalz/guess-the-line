@@ -369,3 +369,5 @@ Guidance and sources.
   metadata. Label commissioner-reported results and kickoff times explicitly.
   Use Kickoff passed when only the scheduled time is known; reserve live styling
   for a verified in-progress state. Existing card, text and wrapping tokens apply.
+  Game-sheet arrows and swipes follow the displayed board order captured on
+  opening, with account/week guards; this snapshot stays out of URL/history.

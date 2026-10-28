@@ -1092,7 +1092,16 @@ test('recorded finals have their own section and result provenance while incompl
       await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
       await finals.scrollIntoViewIfNeeded(); await page.screenshot({ path: info.outputPath(`recorded-final-${theme}-${forcedColors}.png`) });
     }
+    const displayedOrder = await page.locator('.gx-l-card').evaluateAll(cards => cards.map(card => card.dataset.game));
+    expect(displayedOrder).toEqual(['HOU-JAX', 'NO-NYG', 'WAS-SF', 'SEA-DEN']);
     await card(page, 'SEA-DEN').click(); await expect(sheet(page, 'SEA @ DEN')).toBeVisible();
+    await expect(sheet(page, 'SEA @ DEN')).toContainText('4 of 4');
+    await expect(sheet(page, 'SEA @ DEN').getByRole('button', { name: 'Next game', exact: true })).toBeDisabled();
+    await sheet(page, 'SEA @ DEN').getByRole('button', { name: 'Previous game, WAS @ SF', exact: true }).click();
+    await expect(sheet(page, 'WAS @ SF')).toContainText('3 of 4');
+    await sheet(page, 'WAS @ SF').getByRole('button', { name: 'Next game, SEA @ DEN', exact: true }).click();
+    await expect(sheet(page, 'SEA @ DEN')).toContainText('4 of 4');
+    expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('boardOrder');
     await page.keyboard.press('Escape'); await expect(card(page, 'SEA-DEN')).toBeFocused();
     fail = true; await page.getByRole('button', { name: 'Refresh market lines' }).click();
     await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
