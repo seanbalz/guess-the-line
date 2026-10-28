@@ -2,6 +2,7 @@
 // plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Seven POST routes over the M-30 service-only functions
 // (supabase/migrations/20261028180000_gtl_epl_pick_a_team.sql):
 //   /epl/draft/read      a linked FEPL manager or the commissioner: the week's board, the clubs playing, the caller's own queue
+//                        and own manager id (`me`)
 //   /epl/draft/pick      the manager on the clock, or the latest picker changing their pick (gtl_epl_save_pick re-checks it all)
 //   /epl/queue/save      a linked manager's private backup ranking (at most 20 different clubs playing that week)
 //   /epl/admin/link      the commissioner links an account to a manager, or unlinks one (userId null)
@@ -169,6 +170,8 @@ async function draftRead({ body, user, service, now }) {
   const myQueue = owner === 'commissioner' ? null : await service.readQueue(view.season, view.week, owner);
   return {
     season: view.season, week: view.week, status: view.status, deadline: view.deadline,
+    // The caller's own manager id (null for the unlinked commissioner): the board's "Pick <club>" turn hint. Not private.
+    me: owner === 'commissioner' ? null : owner,
     order: view.order.map(ownerId => ({ ownerId, name: nameOf(ownerId) })),
     picks: view.picks,
     onTheClock: isOpen(view, now) ? onTheClock(view.order, draftPicks(view.picks)) : null,

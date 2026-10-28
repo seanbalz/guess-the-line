@@ -1,4 +1,4 @@
-// The EPL mini-app (#epl/...): the new app's four tabs for the FEPL league. Home and Play > Pick a Team are Plan 1;
+// The EPL mini-app (#epl/...): the new app's four tabs for the FEPL league. Home and Play > Pick a Team are Plan 1 (Task 8);
 // Play > Guess the Line and Leaderboard (Plan 3) and Research > Fantasy (Plan 2) show a "Coming next" card. Bets has
 // nothing for the Premier League.
 import '../styles/tokens.css';
@@ -67,7 +67,7 @@ export function EplView({ route, onRoute, onSportChange, api = eplApi, motion })
         {route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api}/>
           : route.tab === 'bets' ? <EplBets/>
           : route.tab === 'research' ? <EplResearch/>
-          : <EplHome api={api}/>}
+          : <EplHome api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}/>}
       </main>
       <nav className="gx-tabbar" aria-label={EPL_COPY.nav}><div className="gx-tabbar-inner">
         {EPL_TABS.map(tab => {

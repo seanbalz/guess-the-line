@@ -116,6 +116,8 @@ test('draft/read gives a member the board, the clubs playing, their own queue an
     { ownerId: CULLEN, name: 'Cullen', club: 'AVL', source: 'seeded', pickedAt: '2026-10-29T11:00:00+00:00', final: false },
   ]);
   assert.equal(view.onTheClock, ADAM);
+  // The caller's own manager id, so the board knows when it is their turn (Task 8).
+  assert.equal(view.me, ADAM);
   // Postponed fixtures are not pickable; each club appears once, against its opponent, with its kickoff.
   assert.deepEqual(view.clubs.map(c => c.code), ['MNC', 'BOU', 'AVL', 'LIV', 'ARS', 'TOT']);
   // The club's name comes from shared/epl-clubs.mjs, never the code (pre-T8 fix wave).
@@ -132,6 +134,7 @@ test('draft/read reads the requested week, and the unlinked commissioner sees th
   const service = fakeService({ member: 'commissioner' });
   const view = await call('/epl/draft/read', { season: 2026, week: 9 }, service);
   assert.equal(view.myQueue, null);
+  assert.equal(view.me, null);
   assert.ok(!service.calls.some(c => c[0] === 'latestWeek' || c[0] === 'readQueue'));
 });
 
