@@ -83,7 +83,9 @@ back to the nearest valid layer.
 
 ## Later rollouts (same contract, one PR each)
 
-1. Trends › Players: player → pattern → evidence.
+1. Trends › Players (second rollout): Players › player › measure. The player's By team layer goes to a team, then
+   to one direction. Players also has This week › one game. The history window stays as one select. The team and
+   matchup filters and "Compare history windows" are replaced by these layers.
 2. Trends › This Week: highlight → trend.
 3. Explore games: game → market → trend.
 4. Trends › Build: saved trend → matches.

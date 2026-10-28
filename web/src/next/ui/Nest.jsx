@@ -47,10 +47,31 @@ export function Nest({ label, lips = [], layer, title, info, children, className
 
 /**
  * A layer's share meter: the filled part is the side's share of decided games, the tick is the 52.4% break-even at
- * -110. `label` says both in words; a missing share draws nothing (never a zero bar).
+ * -110 (`tick={false}` for a share with no break-even, such as points out of 10). `label` says it in words; a missing
+ * share draws nothing (never a zero bar).
  */
-export function NestMeter({ share, label }) {
+export function NestMeter({ share, label, tick = true }) {
   if (typeof share !== 'number' || !Number.isFinite(share)) return null;
   const width = `${Math.round(Math.min(1, Math.max(0, share)) * 1000) / 10}%`;
-  return <span className="gx-nest-meter" role="img" aria-label={label}><span style={{ width }}></span></span>;
+  return <span className={cx('gx-nest-meter', !tick && 'gx-nest-meter--plain')} role="img" aria-label={label}><span style={{ width }}></span></span>;
+}
+
+/**
+ * A tile's small picture of a run of values (one bar each, oldest first) beside the number that says it. It is
+ * decorative: the next layer holds the labelled chart and its table. A missing value leaves a gap, never a zero bar.
+ */
+export function NestSpark({ values = [], signed = false }) {
+  const known = values.filter(v => typeof v === 'number' && Number.isFinite(v));
+  if (!known.length) return null;
+  const max = Math.max(...known.map(Math.abs)) || 1, w = 8, gap = 4, h = 28, mid = signed ? h / 2 : h;
+  return (
+    <svg className="gx-nest-spark" viewBox={`0 0 ${values.length * (w + gap) - gap} ${h}`} width={values.length * (w + gap) - gap} height={h} aria-hidden="true">
+      {signed ? <line x1="0" x2={values.length * (w + gap)} y1={mid} y2={mid} className="gx-nest-spark-zero"/> : null}
+      {values.map((v, i) => {
+        if (typeof v !== 'number' || !Number.isFinite(v)) return null;
+        const len = Math.max(2, (Math.abs(v) / max) * (signed ? h / 2 : h));
+        return <rect key={i} x={i * (w + gap)} y={v < 0 ? mid : mid - len} width={w} height={len} rx="2" className={signed && v < 0 ? 'gx-nest-spark-neg' : 'gx-nest-spark-pos'}/>;
+      })}
+    </svg>
+  );
 }

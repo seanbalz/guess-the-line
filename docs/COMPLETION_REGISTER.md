@@ -611,8 +611,22 @@ Sean chose option 1, Nesting cards, from five options on the comparison canvas. 
 - **Fine print:** the footnote, freshness and credits move behind ⓘ.
 - **Evidence:** the cloud-browser Trends case runs the three layers at 390px and 320px, with axe and the overflow
   check. Eleven component and navigation tests cover the mapping, the locks and the addresses.
-- **Not done:** Players, This Week, Explore games, Build and Fantasy follow one PR each. This rollout has no release
-  or real-phone check yet.
+- **Not done:** This Week, Explore games, Build and Fantasy follow one PR each. This rollout has no release or
+  real-phone check yet.
+
+**Second rollout: Trends › Players**, on branch `claude/research-nesting-players`, stacked on the Teams branch. The
+layers are:
+
+- Players, one tile per member with points per game, viewer first, plus a This week tile.
+- One player: points, market error, strength gap, record at saved line, and By team.
+- One measure: its weekly chart and the contributing games.
+- By team › one team: the team-oriented gap chart, the record, and the for/against tiles.
+- One direction: the record, recent and earlier, the games and this week's same-direction guesses.
+- This week › one game: the median, above/equal/below, and the distribution.
+
+These layers replace the Player team and Player matchup filters and the "Compare history windows" panel; the
+history window stays as one select. The seven Players browser cases run the new path at 320px and 390px, in light,
+dark and forced colors, with axe. No release or real-phone check yet.
 
 ## What needs Sean
 

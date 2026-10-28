@@ -32,7 +32,13 @@ const render = (view, { week = weekOf(), views = [viewOf()], market = 'spread' }
   <ShellContext.Provider value={shell}><div className="gx"><TeamsNest week={week} views={views} market={market} view={view} onChange={() => {}}/></div></ShellContext.Provider>);
 const nodes = html => [...walk(parseMarkup(html))];
 const textOf = node => (node.text ?? (node.children ?? []).map(textOf).join(''));
-const surfaceSentences = html => textOf(parseMarkup(html)).split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+// Each run of text on a layer's surface, sentence by sentence; a closed disclosure, a chart's figure and its table are a
+// tap or a scroll away, so they are not surface.
+const surfaceSentences = html => {
+  const runs = [], visit = n => { if (n.text != null) runs.push(n.text); else if (!['details', 'figure', 'table'].includes(n.tag)) (n.children ?? []).forEach(visit); };
+  visit(parseMarkup(html));
+  return runs.flatMap(t => t.split(/(?<=[.!?])\s+/)).map(t => t.trim()).filter(Boolean);
+};
 
 describe('teamNest: what the layers are built from', () => {
   it('layer 1 lists each team once, by code, with its venue record for the market and its share of decided games', () => {
@@ -139,5 +145,41 @@ describe('addresses: each layer reloads, and back closes one layer', () => {
     state = reduce(state, { type: 'back' });
     expect(state.views.trends.teamsTeam ?? null).toBeNull();
     expect(state.views.research.section).toBe('trends');
+  });
+});
+
+describe('Players layers: addresses, steps and surface text', async () => {
+  const { PlayersNest } = await import('../web/src/next/trends/PlayersNest.jsx');
+  const game = { id: 'CAR-ATL', awayCode: 'CAR', homeCode: 'ATL', kickoff: '2026-10-01T20:00:00Z' };
+  const reference = { value: 3.5, basis: 'saved', observedAt: '2026-09-30T20:00:00Z', source: 'Fixture books' };
+  const history = { viewer: 'me', members: [{ id: 'me', displayName: 'Avery Fixture' }, { id: 'pal', displayName: 'Blake Fixture' }], season: 2026, seasons: [2026], weeks: [1, 2, 3, 4].map(week => ({
+    season: 2026, week, games: [game], gate: { 'CAR-ATL': { spread: true } }, results: { 'CAR-ATL': { status: 'final', home: 17, away: 22 + week } },
+    entries: ['me', 'pal'].map(userId => ({ userId, mode: 'guess_spread', status: 'submitted', picks: [{ gameId: game.id, guess: userId === 'me' ? 7 : -2, reference, points: userId === 'me' ? 6.5 : 4 }] })),
+  })) };
+  const show = view => renderToStaticMarkup(<div className="gx"><PlayersNest history={history} published={{ season: 2026, week: 6 }} view={{ market: 'spread', ...view }} onChange={() => {}} scopeName="Fixture league"/></div>);
+  it.each([[{}], [{ player: 'me' }], [{ player: 'me', playerLayer: 'covers' }], [{ player: 'me', playerLayer: 'teams' }], [{ player: 'me', playerLayer: 'teams', playerItem: 'CAR' }], [{ playerLayer: 'week' }]])('layer %j: valid markup, viewer first, no surface sentence over twelve words', view => {
+    const html = show(view);
+    expect(markupProblems(html)).toEqual([]);
+    for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
+  });
+  it('the viewer’s tile comes first and each tile opens that player', () => {
+    const tiles = nodes(show({})).filter(n => n.tag === 'button' && n.attrs?.['data-player']);
+    expect(tiles.map(n => n.attrs['data-player'])).toEqual(['me', 'pal']);
+    expect(nameFrom(tiles[0])).toContain('6.5');
+  });
+  it('the router keeps the player, layer and item; opening each is a step; the account reset is not', () => {
+    const fragment = fragmentFor('research', { section: 'trends' }, { trends: { trendSection: 'players', player: 'me', playerLayer: 'teams', playerItem: 'CAR:for' } });
+    expect(placeFromFragment(fragment).adapters.trends).toMatchObject({ player: 'me', playerLayer: 'teams', playerItem: 'CAR:for' });
+    let state = reduce(initialState(), { type: 'go', tab: 'research', view: { section: 'trends' } });
+    state = reduce(state, { type: 'view', tab: 'trends', patch: { trendSection: 'players' } });
+    const trail = state.trail.length;
+    for (const patch of [{ player: 'me', playerLayer: null, playerItem: null }, { playerLayer: 'teams', playerItem: null }, { playerItem: 'CAR' }]) state = reduce(state, { type: 'view', tab: 'trends', patch });
+    expect(state.trail.length).toBe(trail + 3);
+    state = reduce(state, { type: 'back' });
+    expect([state.views.trends.player, state.views.trends.playerLayer, state.views.trends.playerItem ?? null]).toEqual(['me', 'teams', null]);
+    const before = state.trail.length;
+    state = reduce(state, { type: 'view', tab: 'trends', patch: { player: undefined, playerLayer: undefined, playerItem: undefined, team: undefined, playerMatchup: undefined, window: undefined } });
+    expect(state.trail.length).toBe(before);
+    expect(state.views.trends.player).toBeUndefined();
   });
 });
