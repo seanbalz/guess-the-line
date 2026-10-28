@@ -8,6 +8,8 @@ test('a failed game-detail stylesheet cannot leave the full Research view unstyl
   let fail = true, failed = 0;
   try {
     await signIn(page, 'luke');
+    // The sign-in helper clicks Submit; wait for the session before navigating away.
+    await expect(page.getByRole('heading', { name: 'Community', exact: true })).toBeVisible();
     await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
     await page.goto('about:blank'); await page.goto('/#lines');
     const card = page.locator('.gx-l-card').first(); await expect(card).toBeVisible();
