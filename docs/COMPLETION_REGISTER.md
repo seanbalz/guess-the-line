@@ -186,8 +186,9 @@ PR #296, records Pages `b57d894a-34b8-4df7-8125-a46d4438475d` from
 15:42:36 UTC October 28. It includes the Research/chart work through #293,
 superseding #292's `58bd9959` checkpoint. API v39 and the 65-row migration
 history are unchanged; 380 signed-out probes denied access. This task read the
-committed release evidence and did not repeat that hosted audit. Signed-in
-readback and phone acceptance remain open. The on-demand team-detail and Trends
+committed release evidence and did not repeat that hosted audit. A signed-in
+desktop readback of #291 and #293 on the later `91e3f51` frontend passed October 28
+(Mac mini Chrome; see the card). Phone acceptance remains open. The on-demand team-detail and Trends
 batches have no release recorded here. D-63's trend-builder product decisions
 remain proposed; its separately recorded deployment does not settle them.
 
@@ -362,8 +363,8 @@ browser cases and the final focused case passed, as did 62 component and
 Eight 320px Light/Dark and forced-color signed/percentage screenshots were
 inspected. PR #291 merged October 28 as `437766277102ef6488696fc623107937138dba1f`
 after all nine checks passed on `e0d0f71ae471bf7d81d61ec41342d35a741cb4ca`, with no
-review findings or CI fixes. Frontend release is recorded in #296; signed-in readback and device acceptance
-remain open.
+review findings or CI fixes. Frontend release is recorded in #296; signed-in desktop readback passed
+October 28 (see the chart card); device acceptance remains open.
 
 The [steady team-chart readout batch](RESEARCH_TEAM_READOUT_2026_10_28.md)
 reserves the tallest supplied game label so enlarged text does not move the
@@ -376,8 +377,8 @@ privacy checks passed. Four 320px
 enlarged-text ordinary/forced-color screenshots were inspected. PR #293 merged
 October 28 as `1d9b38c891753af7a32686db2dd3e2fbd8c404e2` after all nine checks passed
 on `754a38d28b354f552a07abff2ad7aa902c95a264`, with no review findings or CI fixes.
-Frontend release is recorded in #296; signed-in readback and device acceptance
-remain open.
+Frontend release is recorded in #296; signed-in desktop readback passed October 28
+(see the chart card); device acceptance remains open.
 
 The [on-demand team-detail batch](RESEARCH_TEAM_LOADING_2026_10_28.md) defers
 team view/chart code and styles until the sheet opens. Its frame remains usable
