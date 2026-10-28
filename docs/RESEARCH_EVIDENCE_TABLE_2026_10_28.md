@@ -52,7 +52,8 @@ selector now includes its own title after the accessible-name change.
 
 ## Source and remaining checkpoints
 
-Branch: `codex/research-evidence-table`. PR #313 merged as
+Branch: `codex/research-evidence-table`, [PR #321](https://github.com/seanbalz/guess-the-line/pull/321)
+(open; own CI and merge pending). PR #313 merged as
 `9eadb74370ff819496ba5457059f5b643a99e9da` after all nine checks passed on
 `81c9286825151e1a725d367ea4b60cb0a5a0c288`; reviews and threads were empty. This batch
 needs its own CI/merge, release/readback and physical-iPhone/assistive-technology

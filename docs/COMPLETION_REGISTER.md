@@ -570,6 +570,7 @@ and threads were empty, with no failed checks requiring repair. Release/readback
 and device acceptance remain open.
 
 The [readable Research evidence batch](RESEARCH_EVIDENCE_TABLE_2026_10_28.md),
+[PR #321](https://github.com/seanbalz/guess-the-line/pull/321) on
 `codex/research-evidence-table`, brings historical records/game counts/units to
 16px numeric text with meta headers, native horizontal scrolling and candidate-
 named table/period controls. Raw records, units and chart selection remain.
