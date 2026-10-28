@@ -58,11 +58,9 @@ test('migrationSql reads the repo file byte for byte outside a rollback check', 
   for (const file of ALL) assert.equal(migrationSql(file), fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
 });
 
-test('the old-app specs, the shared community world and the persona harness take HOSTED from this module', () => {
-  // A hand-written list would drift from the hosted order; new specs pass ALL instead.
-  const users = ['tests/cloud-browser/community-world.mjs', 'tests/cloud-browser/personas/harness.mjs', 'tests/cloud-browser/community.spec.js',
-    'tests/cloud-browser/community-history.spec.js', 'tests/cloud-browser/personal.spec.js', 'tests/cloud-browser/results.spec.js',
-    'tests/cloud-browser/social-no-league.spec.js'];
+test('the shared community world and the persona harness take HOSTED from this module', () => {
+  // A hand-written list would drift from the hosted order; new specs pass ALL instead. (The old-app specs went with the old app, D-65.)
+  const users = ['tests/cloud-browser/community-world.mjs', 'tests/cloud-browser/personas/harness.mjs'];
   for (const file of users) {
     const source = fs.readFileSync(file, 'utf8');
     assert.match(source, /import \{[^}]*\bHOSTED\b[^}]*\} from '(?:\.\.\/)+migrations\.mjs'/, `${file} imports HOSTED`);
