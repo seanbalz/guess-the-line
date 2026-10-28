@@ -70,6 +70,7 @@ export function lastFive(team) {
  */
 export function marginSeries(team) {
   return finals(team).map(g => ({
+    key: `${g.week}:${g.gameId}`,
     week: g.week, margin: g.pf - g.pa, result: g.result, tone: RESULTS[g.result].tone,
     label: `Week ${g.week} · ${g.result} ${scoreText(g)} ${whereText(g)}`,
     words: `Week ${g.week}, ${RESULTS[g.result].verb} ${scoreText(g)} ${g.home || g.neutral ? 'vs' : 'at'} ${teamName(g.opponent)}`,
