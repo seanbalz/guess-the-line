@@ -51,7 +51,7 @@ The first reload assertion assumed persisted filters; it now follows the existin
 memory-only filter contract. The stylesheet case covers repeated failures and
 successful repair, including leaving/reopening during repair and styled content.
 Eight 320px loading/error Light/Dark and forced-color captures were inspected;
-axe and touch-target checks passed. All 468 Vitest tests, 37 shell/Fantasy-loader/
+axe and touch-target checks passed. All 468 Vitest tests, 37 Fantasy-loader/
 ranking/token/brand tests and typecheck passed. All 108 expanded browser cases
 passed, including both app versions’ Fantasy, four-tab, Research, Lines, Trends,
 shell and gesture cases. Both final focused cases also passed with a calibrated
@@ -73,7 +73,10 @@ has not independently repeated a hosted tools audit or implemented those tools.
 Source branch: `codex/lazy-research-fantasy`. PR #304 merged as
 `c73f7230c8435c2770eb1f031d9595576e07b20c` after all nine checks passed on
 `2db07ae00fd251f27335c9026823e2ac3909e3dc`; no CI repairs or review findings.
-This batch needs its own CI/merge, release/readback, signed-in performance and
+PR [#306](https://github.com/seanbalz/guess-the-line/pull/306) merged as
+`3387457f69d0724c3faf04a51c552fe151df4fb1` after all nine checks passed on
+`25236cc486b81bd3b34697c635b6348c660e69fd`; reviews/threads were empty and no CI repair
+was needed. This batch still needs release/readback, signed-in performance and
 physical-iPhone acceptance. Live/postponed/cancelled status and dependent
 Bet/Challenge destinations stay open. No deployment, migration apply, new Fantasy
 integration, scoring rule, collection budget or frozen v62 tracker change.
