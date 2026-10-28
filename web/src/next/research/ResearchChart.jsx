@@ -16,11 +16,12 @@ export function ChartGraphic({ series, label = 'Selected historical sample' }) {
 export default function ResearchChart({ candidate, selection }) {
   const series = candidate.series;
   if (!series) return <p className="gx-t-meta">Historical table unavailable.</p>;
+  const context = candidate.title ? ` · ${candidate.title}` : '';
   const caption = `Selected sample: ${series.selectedSample} games · records and games per period; cumulative illustrative units at -110`;
   return <div className="gx-vstack gx-gap-8">
     <p className="gx-t-label">Illustrative units at -110{series.binned ? ' · chronological bins' : ''}</p>
     <p className="gx-r-table-summary gx-t-meta" aria-hidden="true">{caption}</p>
-    <div className="gx-r-table-wrap" tabIndex={0} role="region" aria-label="Historical results table">
+    <div className="gx-r-table-wrap" tabIndex={0} role="region" aria-label={`Historical results table${context}`}>
       <table className="gx-r-table">
         <caption className="gx-sr-only">{caption}</caption>
         <thead><tr><th scope="col">Dates</th><th scope="col">Period W-L-P</th><th scope="col">Games</th><th scope="col">Total units</th></tr></thead>
@@ -28,7 +29,7 @@ export default function ResearchChart({ candidate, selection }) {
           const dates = <><span className="gx-r-table-date">{p.from.slice(0, 10)}</span>{p.to !== p.from ? <span className="gx-r-table-date">to {p.to.slice(0, 10)}</span> : null}</>;
           return <tr key={i} data-selected={selection ? selection.index === i + 1 : undefined}>
             <th scope="row">{selection ? <button type="button" className="gx-r-period-pick"
-              aria-label={`Show period ${i + 1} ending ${p.to.slice(0, 10)} on chart`} aria-pressed={selection.index === i + 1} aria-controls={selection.chartId}
+              aria-label={`Show period ${i + 1} ending ${p.to.slice(0, 10)} on chart${context}`} aria-pressed={selection.index === i + 1} aria-controls={selection.chartId}
               onClick={() => selection.onSelect(i + 1)}>
               <span>{dates}</span><Icon icon="check" size={12} className="gx-r-period-check"/>
             </button> : dates}</th>

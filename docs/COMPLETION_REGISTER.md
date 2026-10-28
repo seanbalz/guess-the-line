@@ -560,8 +560,30 @@ cases, 24 inspected 320/390px theme/forced-color start/end captures (including
 simulated 200% table text), axe, Vitest (469), 27 chart/token/brand tests,
 typecheck, Brand QA and fixture privacy pass. All 109 final current-app browser
 cases pass after the authentication-readiness repair and D-65 integration. The additional 37 app-view/shell/router and 21
-Fantasy API/publish checks pass. This batch's own
-CI/merge, release/readback and device acceptance remain open.
+Fantasy API/publish checks pass. PR [#313](https://github.com/seanbalz/guess-the-line/pull/313)
+merged October 28 as `9eadb74370ff819496ba5457059f5b643a99e9da` after all
+nine checks passed on `81c9286825151e1a725d367ea4b60cb0a5a0c288`; reviews
+and threads were empty, with no failed checks requiring repair. Release/readback
+and device acceptance remain open.
+
+The [readable Research evidence batch](RESEARCH_EVIDENCE_TABLE_2026_10_28.md),
+`codex/research-evidence-table`, brings historical records/game counts/units to
+16px numeric text with meta headers, native horizontal scrolling and candidate-
+named table/period controls. Raw records, units and chart selection remain.
+The 320px regression fails against the old 13px style; Vitest (470), 27 chart/
+token/brand checks and typecheck pass. All 17 Research/style-recovery and five
+nearby Lines browser cases pass, as do Brand QA and final fixture privacy.
+Twenty-four captures were saved and six representative theme/forced-color/
+enlarged-text screenshots were inspected. Own CI/merge, release/readback
+and device acceptance remain open.
+
+Sean's October 28 [Bet Labs example and trend-discovery follow-up](RESEARCH_TREND_DISCOVERY_2026_10_28.md)
+is tracked in Q21. The existing engine reproduces a 12–0 recent Bryce Young
+ATS sample after a team loss from checked-in history through October 11; the
+full sample is 17–11–2 and the earlier sample is 5–11–2. This is an offline,
+retrospective calculation, not current market verification or a new predictive
+signal. QB-plus-situation discovery, builder filters and verified upcoming
+applicability remain unimplemented; chart delivery does not close that work.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as

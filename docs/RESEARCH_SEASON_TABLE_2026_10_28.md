@@ -55,8 +55,12 @@ integrates that existing decision; it does not perform its production cutover.
 Branch: `codex/research-season-table`. PR [#310](https://github.com/seanbalz/guess-the-line/pull/310) merged as
 `06a4de7e4513e04fd2555b734045d09756bc2518` after all nine checks passed on
 `6f5e324d2cd69772b47ae9fb88d39d125522c334`. Reviews and threads were empty.
-The merge added no changes to the tested application/test tree. This batch still
-needs its own CI/merge, release/readback and physical-iPhone/assistive-technology
-acceptance. Remaining live-status and dependent Bet/Challenge destinations stay
-open. No deployment, migration apply, collection-budget change or frozen v62
+The merge added no changes to the tested application/test tree.
+PR [#313](https://github.com/seanbalz/guess-the-line/pull/313) subsequently merged
+October 28 as `9eadb74370ff819496ba5457059f5b643a99e9da`. All nine checks
+passed on `81c9286825151e1a725d367ea4b60cb0a5a0c288`; reviews and threads
+were empty, with no failed checks requiring repair. The merged state was read
+back from GitHub in this follow-through. Release/readback and physical-iPhone/
+assistive-technology acceptance remain open. Remaining live-status and dependent
+Bet/Challenge destinations stay open. No deployment, migration apply, collection-budget change or frozen v62
 tracker edit.
