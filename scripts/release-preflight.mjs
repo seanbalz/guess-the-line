@@ -11,6 +11,7 @@ export const ACCOUNT = '83bd659d712e968e7a61efa14107465a';
 export const PUSH_REMINDERS = 'gtl-push-reminders';
 export const POINTS_JOBS = 'gtl-points-jobs';
 export const LEAGUE_FEATURES = 'gtl-league-features';
+export const FANTASY_INGEST = 'gtl-fantasy-ingest';
 export const RESULTS_REFRESH = 'gtl-results-refresh';
 /**
  * What each target deploys: at most one Edge Function (with its supabase/config.toml settings) and whether Pages is
@@ -27,18 +28,24 @@ export const TARGET_DEPLOYS = Object.freeze({
   // Sean, October 27, 2026: "Add a league-features target to the release workflow". The redesign stage 70 (M-26) badges,
   // awards and streaks worker, not hosted yet, so its first deploy creates it.
   'league-features': Object.freeze({ edgeFunction: LEAGUE_FEATURES, pages: false, createsOnFirstDeploy: true }),
+  // October 28, 2026: the D-59 fantasy feed upload worker (docs/FANTASY_FEED_RELEASE.md step 4), not hosted yet, so its
+  // first deploy creates it.
+  'fantasy-ingest': Object.freeze({ edgeFunction: FANTASY_INGEST, pages: false, createsOnFirstDeploy: true }),
   // M-19 (D-64, proposed): the D-26 finals worker, hosted since October 20, 2026, now also settles shared tickets. It
   // already exists, so a deploy must update it.
   'results-refresh': Object.freeze({ edgeFunction: RESULTS_REFRESH, pages: false }),
 });
 export const TARGETS = Object.keys(TARGET_DEPLOYS);
 const deploys = target => { assert.ok(Object.hasOwn(TARGET_DEPLOYS, target), 'Unknown release target.'); return TARGET_DEPLOYS[target]; };
-/** Machine workers deployed with gateway JWT verification off (a one-run capability checked in SQL): report key and name. */
+/** Machine workers deployed with gateway JWT verification off: report key, name and the credential checked instead. */
+const ONE_RUN = 'its one-run capability is checked in SQL';
 const WORKERS = Object.freeze({
-  [PUSH_REMINDERS]: Object.freeze({ key: 'pushReminders', name: 'push reminder worker' }),
-  [POINTS_JOBS]: Object.freeze({ key: 'pointsJobs', name: 'points jobs worker' }),
-  [LEAGUE_FEATURES]: Object.freeze({ key: 'leagueFeatures', name: 'league features worker' }),
-  [RESULTS_REFRESH]: Object.freeze({ key: 'resultsRefresh', name: 'results refresh worker' }),
+  [PUSH_REMINDERS]: Object.freeze({ key: 'pushReminders', name: 'push reminder worker', auth: ONE_RUN }),
+  [POINTS_JOBS]: Object.freeze({ key: 'pointsJobs', name: 'points jobs worker', auth: ONE_RUN }),
+  [LEAGUE_FEATURES]: Object.freeze({ key: 'leagueFeatures', name: 'league features worker', auth: ONE_RUN }),
+  // D-59: the exporter presents GTL_FANTASY_FEED_UPLOAD_SECRET; until that secret is set the function answers 503.
+  [FANTASY_INGEST]: Object.freeze({ key: 'fantasyIngest', name: 'fantasy feed upload worker', auth: 'its upload secret is checked in the function' }),
+  [RESULTS_REFRESH]: Object.freeze({ key: 'resultsRefresh', name: 'results refresh worker', auth: ONE_RUN }),
 });
 /** The worker a target deploys, or null for gtl-api and frontend targets. */
 const workerFor = scope => {
@@ -66,7 +73,7 @@ const fail = message => { throw new Error(message); };
 
 export function validateRequest(env) {
   assert.match(env.RELEASE_SHA || '', /^[a-f0-9]{40}$/, 'Use a full lowercase 40-character source SHA.');
-  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, or results-refresh.');
+  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, or results-refresh.');
   assert.ok(['check-only', 'readiness', 'deploy'].includes(env.RELEASE_MODE), 'Unknown release mode.');
   if (env.GITHUB_ACTIONS === 'true') {
     assert.equal(env.GITHUB_EVENT_NAME, 'workflow_dispatch', 'Releases are manual only.');
@@ -127,10 +134,10 @@ export async function checkSource(cwd, env, fetchImpl = fetch) {
   const config = fs.readFileSync(path.join(cwd, 'supabase/config.toml'), 'utf8');
   const functionConfig = slug => config.split(`[functions.${slug}]`)[1]?.split(/^\[/m)[0] || '';
   assert.match(functionConfig('gtl-api'), /^verify_jwt\s*=\s*true\s*$/m, 'Release source must retain gtl-api JWT verification.');
-  // The deploy applies config.toml; the cron calls a worker with a one-run capability (checked in SQL), not a user JWT.
+  // The deploy applies config.toml; a worker's caller presents a machine credential (WORKERS[].auth), not a user JWT.
   const worker = workerFor(deploys(env.RELEASE_TARGET));
   if (worker) {
-    assert.match(functionConfig(worker.slug), /^verify_jwt\s*=\s*false\s*$/m, `Release source must keep ${worker.slug} on its one-run capability (verify_jwt = false).`);
+    assert.match(functionConfig(worker.slug), /^verify_jwt\s*=\s*false\s*$/m, `Release source must keep ${worker.slug} at verify_jwt = false (${worker.auth}).`);
     assert.ok(fs.existsSync(path.join(cwd, 'supabase/functions', worker.slug, 'index.ts')), `Release source has no supabase/functions/${worker.slug}/index.ts.`);
   }
   const base = `https://api.github.com/repos/${REPOSITORY}`;
@@ -247,7 +254,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
   let workerReport = {};
   if (worker) {
     const deployed = after.find(item => item.slug === worker.slug) || null, previous = prior(worker.slug);
-    assert.ok(deployed?.status === 'ACTIVE' && deployed.verify_jwt === false, `Deployed ${worker.name} must be ACTIVE with gateway JWT verification off (its one-run capability is checked in SQL).`);
+    assert.ok(deployed?.status === 'ACTIVE' && deployed.verify_jwt === false, `Deployed ${worker.name} must be ACTIVE with gateway JWT verification off (${worker.auth}).`);
     let created = false;
     if (scope.createsOnFirstDeploy) {
       // The preflight recorded whether the worker existed; a report from another target or an edited one does not match.
@@ -301,7 +308,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
 export async function main(args, env = process.env) {
   const [command, ...rest] = args;
   if (!command || command === '--help') {
-    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|results-refresh), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
+    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|fantasy-ingest|results-refresh), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
     return;
   }
   assert.ok(['source', 'configuration', 'live', 'verify'].includes(command), 'Unknown preflight command.');

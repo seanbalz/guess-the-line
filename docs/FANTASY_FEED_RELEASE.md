@@ -105,7 +105,10 @@ an index entry until the next upload of that feature.
    - **Revoke:** `supabase secrets unset GTL_FANTASY_FEED_UPLOAD_SECRET` and redeploy. The
      endpoint then answers 503 to everyone. `GTL_FEATURE_OFF=fantasy-feed` also stops uploads,
      but that secret is shared with `gtl-api`, so keep its other entries.
-4. **Deploy** `gtl-fantasy-ingest` from the Mac mini at the merged commit. Then add
+4. **Deploy** `gtl-fantasy-ingest` at the merged commit through the
+   [Shared production release](SHARED_DEPLOYMENT.md) workflow with target `fantasy-ingest`
+   (check-only, readiness, then an approved deploy; its first deploy creates the function, and a
+   redeploy after a rotate or revoke is the same target's update). Then add
    `['fantasy feed upload', 'gtl-fantasy-ingest', {}]` to a boundary area's `workerChecks`, so
    `npm run check:cloud` keeps proving that no-token and wrong-token uploads get 401. It is not
    listed before the deploy, because a missing function would fail the default check.

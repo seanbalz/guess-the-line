@@ -14,9 +14,9 @@ on:
         type: string
         required: true
       target:
-        description: One component (push-reminders, points-jobs, league-features and results-refresh are one worker each), or backward-compatible API then frontend
+        description: One component (push-reminders, points-jobs, league-features, fantasy-ingest and results-refresh are one worker each), or backward-compatible API then frontend
         type: choice
-        options: [frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, results-refresh]
+        options: [frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh]
         default: frontend
         required: true
       release_card:
@@ -159,6 +159,12 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: ./node_modules/.bin/supabase functions deploy gtl-league-features --project-ref "$SUPABASE_PROJECT_REF" --use-api
+      - name: Deploy only the fantasy feed upload worker (config.toml keeps verify_jwt off; its upload secret replaces it; a first deploy creates it)
+        if: inputs.mode == 'deploy' && inputs.target == 'fantasy-ingest'
+        working-directory: source
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: ./node_modules/.bin/supabase functions deploy gtl-fantasy-ingest --project-ref "$SUPABASE_PROJECT_REF" --use-api
       - name: Deploy only the results refresh worker (config.toml keeps verify_jwt off; SQL checks its one-run capability)
         if: inputs.mode == 'deploy' && inputs.target == 'results-refresh'
         working-directory: source
