@@ -62,3 +62,17 @@ frontend once the screens are.
 - **Live readback (this PC):** `/` loads `assets/index-BYBqp6XO.js`; `NextApp-CL46NZ1h.js` carries "About team records"
   (the team sheet) and the lazy `PerGamePlay-7NnapQWt.js` carries "Open team", "Records through Week", "About this score",
   "Missed by" and `gx-mu-btn`.
+- **Release 3, frontend from `a2ccf23`** (#283; main CI Tests 40636629599, Dashboard checks 40636629755, Brand QA
+  40636629605, all success): readiness [run 40638354066](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40638354066)
+  failed in "Read-only hosted preflight and schedule evidence" with "The operation was aborted due to timeout" (the known
+  probe timeout; nothing deployed); readiness [run 40638581867](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40638581867)
+  with the same inputs passed. **frontend** [run 40638736191](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40638736191),
+  gate approved the same way; verified **05:36:19 UTC**: Pages **`7b7dbabd-4fbb-4c47-b627-c7e9712513c5`** (was `a3aae3af`),
+  108 assets per URL, frontend SHA-256 `da787dc07cad83e368cb338824e3ac7b6b61d41d275e829feb5db56e0c6b2c6d`. `gtl-api` v39 and
+  the history `8a02c480…` unchanged. 378 signed-out probes, 378 denied. Live `/` loads `assets/index-COjDKQz3.js`; the
+  Matchup component (`gx-mu-row`) is in the lazy `PerGamePlay-BBcnJmyX.js` chunk.
+- **Boundary record:** `/lines/teams` leaves `awaitingDeploy` (`scripts/boundary/lines.mjs`); a not-deployed 404 from it
+  is now an unexpected 404 (`tests/cloud-boundary.test.mjs`).
+- **Rollback:** frontend from `9460635` (Pages `48a36ee4`); API from `9e6fc7f` (v38's server code).
+- **Not verified:** signed-in use and real phones. The screens were exercised on fixture accounts in Chromium (the PRs'
+  vitest and browser specs); no signed-in `/lines/teams` request had been seen when this was written.
