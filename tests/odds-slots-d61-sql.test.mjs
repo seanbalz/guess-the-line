@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { ALL, NOT_HOSTED } from './migrations.mjs';
+import { ALL, APPLIED, NOT_HOSTED } from './migrations.mjs';
 import { createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 
 // D-61 (20261027160000_gtl_odds_slots_before_points_open.sql): the twelve-hour odds slots move from 08:15/20:15 UTC to
@@ -19,8 +19,8 @@ function body(sql, name) {
   return sql.slice(start, sql.indexOf('end $$;', start) + 'end $$;'.length).replace(/^create (or replace )?function/, 'create or replace function');
 }
 
-test('D-61 is written, not applied, and changes only the slot anchor and the reported times in the three odds functions', () => {
-  assert(NOT_HOSTED.includes(20261027160000));
+test('D-61 is applied (history row 20261028144903) and changes only the slot anchor and the reported times in the three odds functions', () => {
+  assert(APPLIED.includes(20261027160000) && !NOT_HOSTED.includes(20261027160000));
   const next = read(D61);
   for (const [file, name] of [['20261008200926_gtl_twelve_hour_odds_refresh.sql', 'gtl_dispatch_odds_refresh'],
     ['20261012230000_gtl_submit_with_line_at_guess.sql', 'gtl_claim_odds_refresh'], ['20261012230000_gtl_submit_with_line_at_guess.sql', 'gtl_read_odds_schedule']]) {
