@@ -6,8 +6,8 @@ import { betsApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { Avatar, AvatarStack, Button, Card, GateBanner, LockLine, Pill, TeamMark, cx } from '../ui/index.js';
-import { fmtMatchup, fmtWhen } from '../format.js';
+import { Avatar, AvatarStack, Button, Card, GateBanner, LockLine, Matchup, Pill, cx } from '../ui/index.js';
+import { fmtWhen } from '../format.js';
 import { EVERYONE_COPY, everyoneBoard } from './everyone.js';
 import './everyone.css';
 
@@ -55,9 +55,9 @@ export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onPlace, onRe
 export function EveryoneGame({ game }) {
   return <Card as="section" className="gx-ev-game gx-vstack gx-gap-12" aria-labelledby={`gx-ev-${game.id}`} data-game={game.id}>
     <header className="gx-ev-game-head">
-      <span className="gx-hstack gx-gap-8" aria-hidden="true"><TeamMark code={game.awayCode} size={24} decorative/><TeamMark code={game.homeCode} size={24} decorative/></span>
-      <span className="gx-grow gx-vstack">
-        <h3 id={`gx-ev-${game.id}`} className="gx-t-strong">{fmtMatchup(game.awayCode, game.homeCode)}</h3>
+      <span className="gx-grow gx-vstack gx-gap-4">
+        {/* D-62: away mark, "@", home mark; the heading reads as one sentence ("Seattle Seahawks at Denver Broncos"). */}
+        <h3 id={`gx-ev-${game.id}`} className="gx-t-strong"><Matchup away={game.awayCode} home={game.homeCode} size={32}/></h3>
         {game.kickoff ? <span className="gx-t-meta gx-c-2">{fmtWhen(game.kickoff)}</span> : null}
       </span>
       <AvatarStack people={game.faces.map(face => ({ id: face.id, name: face.display, you: face.you }))} label={`${game.faces.map(face => face.name).join(', ')} picked this game`}/>

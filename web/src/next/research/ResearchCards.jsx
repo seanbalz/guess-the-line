@@ -1,5 +1,5 @@
 import { lazy, Suspense, useId, useRef, useState } from 'react';
-import { Button, Card, InfoButton, Skeleton } from '../ui/index.js';
+import { Button, Card, InfoButton, Matchup, Skeleton } from '../ui/index.js';
 import { TrendDetail, lineSelectionKey } from '../charts/TrendDetail.jsx';
 import { TrendLine } from '../charts/TrendLine.jsx';
 import { useChartSelection } from '../charts/useChartSelection.js';
@@ -180,7 +180,7 @@ function Reference({ game, market, reference, label }) {
 }
 export function ResearchLeans({ data, gameId, request }) {
   return <div className="gx-vstack gx-gap-16">{(data?.games ?? []).filter(g => !gameId || g.id === gameId).map(game => <section key={game.id} className="gx-vstack gx-gap-12" aria-label={`${game.id} research`}>
-    <h3 className="gx-t-section">{game.id.replace('-', ' at ')}</h3>
+    <h3 className="gx-t-section"><Matchup away={game.id.split('-')[0]} home={game.id.split('-')[1]} size={32}/></h3>
     {['spread', 'total'].map(market => {
       const cell = game[market], label = market === 'spread' ? 'Spread' : 'Total';
       if (!cell?.visible) return <p className="gx-t-body gx-c-2" key={market}>{label} research is locked. Lock in your guess or wait for kickoff.</p>;

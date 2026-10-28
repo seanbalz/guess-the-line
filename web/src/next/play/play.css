@@ -92,18 +92,8 @@
   background: var(--gx-accent-tint);
   color: var(--gx-accent-ink);
 }
-.gx .gx-live-play .gx-play-matchup {
-  display: grid;
-  gap: var(--gx-space-2);
-  font: 700 16px/24px var(--gx-font-body);
-}
-.gx .gx-live-play .gx-play-matchup > span {
-  display: flex;
-  align-items: center;
-  gap: var(--gx-space-3);
-  min-width: 0;
-}
-.gx .gx-live-play .gx-play-matchup small { color: var(--gx-text-3); font-weight: 500; }
+/* D-62: the matchup as marks (ui/Matchup.jsx, stack layout) with each team's record under its code. */
+.gx .gx-live-play .gx-play-matchup { display: flex; min-width: 0; margin: 0; }
 .gx .gx-live-play .gx-play-entry {
   padding: var(--gx-space-3);
   border: 1px solid var(--gx-border);

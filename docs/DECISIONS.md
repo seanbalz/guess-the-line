@@ -12,6 +12,49 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-63 (proposed — needs Sean) — user trend builder and saved-trend matches (October 28, 2026)
+
+**Status: proposed, not approved.** Sean asked why TrendsCenter "finds things like this and we aren't". The draft PR
+adds Trends › Build: up to three conditions from the prepared nflverse history, a result card always labelled "Found by
+search — not tested" with W-L-P, cover rate, Wilson interval, sample, dates, "Illustrative units at -110" and the
+2002–2017 / 2018-on split; this week's matching games (line conditions only from the viewer's own saved line once that
+market is open, D-39); and up to 20 saved trends per device with a "matches this week" line on Trends and Home. Nothing
+is ranked by result. D-32's tested presets are unchanged and stay the only tiered trends. No migration and no `gtl-api`
+change; a Pages deploy ships it. Needs Sean: approve the feature and its labels; whether held-out agreement may be
+shown at all; alerts (push/email) and account-synced saved trends as follow-ups. Details:
+[TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026).
+
+## D-62 — Teams as marks, this weekend's records when picking, and a team page (October 27, 2026)
+
+Sean: "Anytime teams are mentioned it should show the first team logo @ the other team logo.. this app needs to prefer
+visual over overloading data, simple graphs and charts and things like logos in place of names or including names. Some
+of the dissemination of information is too confusing, people need to see the records of teams updated that's weekend as
+well when they are making picks, and they need to show it on a page with charts and graphs and more info"
+
+For the new app (`web/src/next/`; the old app is retiring under D-60 and is not changed):
+
+1. **Matchups are marks.** Every matchup drawn as a heading, row or card shows the away team's mark, "@", then the home
+   team's mark, each with its code beside it (`ui/Matchup.jsx`). Screen readers hear one sentence ("Seattle Seahawks at
+   Denver Broncos"). Only places that take plain text keep "SEA @ DEN": a select option, a sheet's back label, a toast,
+   an accessible name.
+2. **Records when picking, current through this weekend.** Each team's regular-season record (W–L, with T when there is
+   one) sits with its mark wherever a player makes a pick (Play's game card, the Lines board and game sheet). Records
+   count every final so far in the free nflverse schedule file, so Sunday's and Monday's finals show the same weekend,
+   with no hand refresh or deploy. `gtl-api` reads them (`POST /lines/teams`); the bundled file is only the fallback and
+   says which week it is through. This amends rule of restraint 3 for records: two numbers per game on the card; splits
+   and game logs open on tap.
+3. **A team page.** Tapping a team's mark or record opens that team: mark and name, record, home and road records, the
+   last five results as W/L blocks, a margin chart (one bar per game, up for a win, down for a loss), points scored and
+   allowed per game, the season's games as marks with scores, and the next game. Simple charts in the D-55 style;
+   numbers carry words (rule 7). No spread, total or other market for a game that has not finished: market visibility
+   stays with the per-game gate (D-31, D-36).
+4. **Less text, more picture.** A card leads with its picture (marks, a meter, a small chart) and one headline number;
+   time stamps, sources and provenance move behind ⓘ (rule 10). Nothing a player entered is hidden or removed (D-23).
+
+Data: nflverse nfldata `games.csv` final scores (already the source for team records, slates and Virtual Units
+settlement), credited in Guidance and sources. Free sources only.
+
+
 ## D-61 — Fantasy (Guess the Points) opens Tuesday 12:00 AM PT, with every data feed refreshed first (October 27, 2026)
 
 Sean: "change the start of the fantasy guess the line to post at 12AM PST on tuesdays. i need all data to be updated as

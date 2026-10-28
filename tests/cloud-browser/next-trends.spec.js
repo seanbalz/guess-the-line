@@ -177,7 +177,7 @@ test('fixture screenshots and axe at 320/390 in light/dark for This Week and pop
    await page.locator('.gx-tr-chart').first().scrollIntoViewIfNeeded(); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-charts-viewport.png'});
    await page.getByText('Recurring pattern · CAR · for',{exact:true}).first().scrollIntoViewIfNeeded(); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-callout-viewport.png'});
    const context=page.locator('summary').filter({hasText:/^Current-week saved-reference context/}).first(); await context.click(); await page.locator('summary').filter({hasText:/^Current context/}).first().click();
-   await page.getByRole('heading',{name:'2026 Week 6 · CAR at PHI',exact:true}).first().evaluate(el => el.scrollIntoView({block:'start'})); await page.evaluate(() => window.scrollBy(0,-80)); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-current-viewport.png'});
+   await page.getByRole('heading',{name:'2026 Week 6 · Carolina Panthers at Philadelphia Eagles',exact:true}).first().evaluate(el => el.scrollIntoView({block:'start'})); await page.evaluate(() => window.scrollBy(0,-80)); await page.screenshot({path:'.local/trends-players-'+width+'-'+theme+'-current-viewport.png'});
    await context.click();
   }
   expect(world.errors).toEqual([]);
@@ -229,4 +229,66 @@ test('populated scopes mask synchronously while private read waits; next account
   await expect(page.getByRole('heading',{name:'Market accuracy'})).toHaveCount(0);
   await noSentinel(page);expect(world.errors).toEqual([]);
  }finally{release();await world.db.close();}
+});
+
+test('trend builder: conditions, honest result card, this week’s matches, saved on this device and Home indicator',async({page,baseURL},testInfo)=>{
+ test.setTimeout(120000); const world=await ready(page,baseURL);
+ try{
+  await page.evaluate(() => localStorage.removeItem('gtl.trends.saved'));
+  await group(page,'Trends section').getByRole('button',{name:'Build',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Build a trend',exact:true})).toBeVisible();
+  const result=page.locator('[data-builder=result]');
+  await expect(result.locator('[data-builder=label]')).toHaveText('Found by search — not tested');
+  await group(page,'Builder side').getByRole('button',{name:'Road team',exact:true}).click();
+  const add=page.getByRole('combobox',{name:'Add a condition',exact:true});
+  await add.selectOption({label:'Not a divisional game'});
+  await expect(result.getByRole('heading',{level:3})).toHaveText('Spread · Road team · Not a divisional game');
+  for (const text of ['Record (W-L-P)','Wilson 95% interval','Illustrative units at -110','Built on 2002–2017','Held out 2018 on']) await expect(result).toContainText(text);
+  await expect(result).not.toContainText(/\bROI\b/);
+  await expect(result.locator('[data-builder=split-label]')).not.toBeEmpty();
+  await result.getByText(/^Contributing games · \d+/).click();
+  await expect(result.getByRole('region',{name:'Contributing games, newest first'}).getByRole('row')).toHaveCount(26);
+  // The fixture week's four games are all non-divisional; the road team is known without any line.
+  const week=page.locator('[data-builder=week]');
+  await expect(week.locator('[data-builder=match-count]')).toHaveText('4 upcoming games fit this trend.');
+  await expect(week.locator('[data-match=fits]').first()).toContainText('Fits · backs');
+  // A line condition on a market this player has not opened: each game says how it opens, with no line.
+  await add.selectOption({label:'Total'});
+  await expect(week.locator('[data-match=locked]')).toHaveCount(4);
+  await expect(week.locator('[data-match=fits]')).toHaveCount(0);
+  await noSentinel(page);
+  await add.selectOption({label:'Primetime kickoff (7 PM ET or later)'});
+  await expect(page.getByRole('combobox',{name:'Add a condition',exact:true})).toHaveCount(0);
+  await expect(page.getByText('3 conditions is the most a trend can have.')).toBeVisible();
+  await page.getByRole('button',{name:'Remove condition: Total 41 or more',exact:true}).click();
+  await page.getByRole('button',{name:'Remove condition: Primetime kickoff (7 PM ET or later)',exact:true}).click();
+  await page.getByRole('button',{name:'Save trend',exact:true}).click();
+  await expect(page.getByRole('status').filter({hasText:'Saved on this device.'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Saved on this device',exact:true})).toBeDisabled();
+  const saved=page.locator('[data-builder=saved]');
+  await expect(saved.locator('[data-builder=saved-matches]')).toHaveText('Matches this week · 4');
+  await page.setViewportSize({width:320,height:844}); await phone(page);
+  for (const theme of ['light','dark']) {
+   await page.evaluate(theme => document.documentElement.dataset.theme=theme,theme); await page.emulateMedia({colorScheme:theme});
+   await page.getByRole('heading',{name:'Build a trend',exact:true}).scrollIntoViewIfNeeded(); await page.screenshot({path:testInfo.outputPath(`builder-controls-${theme}.png`)});
+   await result.scrollIntoViewIfNeeded(); await page.screenshot({path:testInfo.outputPath(`builder-${theme}.png`)});
+   await week.scrollIntoViewIfNeeded(); await page.screenshot({path:testInfo.outputPath(`builder-week-${theme}.png`)});
+   expect((await new AxeBuilder({page}).include('[data-builder=root]').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
+  }
+  await page.setViewportSize({width:390,height:844});
+  await group(page,'Trends section').getByRole('button',{name:'This Week',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Saved trends'})).toContainText('1 of 1 saved trend matches this week');
+  await nav(page).getByRole('button',{name:'Home',exact:true}).click();
+  const row=page.locator('[data-home=saved-trends]');
+  await expect(row).toContainText('Saved trends · Matches this week');
+  await expect(row).toContainText('1 of 1 saved trend matches this week');
+  await page.reload();
+  await expect(page.locator('[data-home=saved-trends]')).toContainText('1 of 1 saved trend matches this week');
+  await page.locator('[data-home=saved-trends]').click();
+  await expect(page.getByRole('heading',{name:'Build a trend',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Delete saved trend: Spread · Road team · Not a divisional game',exact:true}).click();
+  await expect(page.getByText('No saved trends on this device yet.')).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('gtl.trends.saved')).items)).toEqual([]);
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
 });

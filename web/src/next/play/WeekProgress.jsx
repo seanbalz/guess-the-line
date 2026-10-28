@@ -3,7 +3,7 @@
 // each tile with its own icon and fill so no state is color alone, a legend that says each count in words, and one
 // button to the next game still to lock. It draws what the editor passes; the server's locks decide every state.
 import { CalendarClock, Circle, Clock, Lock, Minus, Pencil } from 'lucide-react';
-import { Button, Card, Icon, Meter, cx } from '../ui/index.js';
+import { Button, Card, Icon, Matchup, Meter, cx } from '../ui/index.js';
 import { progressLegend } from './moments.js';
 
 export const STATE_ICONS = Object.freeze({ locked: Lock, draft: Pencil, open: Circle, kicked: Clock, skipped: Minus, notopen: CalendarClock });
@@ -25,7 +25,8 @@ export function WeekProgress({ progress, market, week, onNext }) {
     <ul className="gx-play-legend" aria-label="Games by state">
       {legend.map(item => <li key={item.state} className={cx('gx-play-legend-item', `gx-play-legend-item--${item.state}`)}><Icon icon={STATE_ICONS[item.state]} size={16}/><span className="gx-n-xs">{item.count}</span><span className="gx-t-meta">{item.word}</span></li>)}
     </ul>
-    {next ? <Button variant="ghost" iconEnd="chevronRight" className="gx-play-next" onClick={() => onNext?.(next.id)}>Next to lock · {next.game.awayCode} at {next.game.homeCode}</Button>
+    {/* D-62: the game as marks; the button's name reads "Next to lock · Seattle Seahawks at Denver Broncos". */}
+    {next ? <Button variant="ghost" iconEnd="chevronRight" className="gx-play-next" onClick={() => onNext?.(next.id)}>Next to lock · <Matchup away={next.game.awayCode} home={next.game.homeCode}/></Button>
       : <p className="gx-t-meta gx-c-2">{progress.locked === progress.total ? 'Every game is locked in.' : 'Nothing left to lock this week.'}</p>}
   </Card>;
 }

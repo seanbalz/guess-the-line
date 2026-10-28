@@ -11,14 +11,19 @@
 // from a fixed list of keys, and a market whose `visible` is not exactly true becomes { visible: false } with nothing
 // else, even if SQL sent a value, a book, a price, movement or a kickoff line under it. The viewer's own guess always
 // comes back (D-23: never redacted from its owner); its line at the guess only under an open market.
+//
+// D-62 adds POST /lines/teams: every team's regular-season record, points and games, from final scores in the public
+// nflverse schedule file (cloud/team-season.mjs, cached per isolate). It carries no market for any game, final or not:
+// markets stay with the per-game gate above, so its reply is rebuilt from fixed keys like every other one here.
 import { UUID_PATTERN } from './lobby.mjs';
 import { validateResearchRequest } from './trends-research.mjs';
+import { NFLVERSE_SCHEDULE_URL, TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 
 export class LinesError extends Error {
   constructor(status, message) { super(message); this.name = 'LinesError'; this.status = status; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
-export const LINES_METHODS = Object.freeze({ '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'] });
+export const LINES_METHODS = Object.freeze({ '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'], '/lines/teams': ['POST'] });
 /** Database refusal code → [status, sentence]. A code is mapped here, and deployed, before the SQL can raise it. */
 const ERRORS = Object.freeze({
   GTL_LINES_INVALID: [400, 'Check the week and game, then try again.'],
@@ -120,9 +125,41 @@ export function projectGameLines(raw) {
   };
 }
 
+const TEAM_CODES = Object.freeze(Object.keys(TEAM_NAMES));
+const MAX_TEAM_GAMES = 25;
+export const TEAM_SOURCE = Object.freeze({ name: 'nflverse nfldata', url: NFLVERSE_SCHEDULE_URL, credit: 'nflverse nfldata (Lee Sharpe); final scores only' });
+const count = value => (Number.isSafeInteger(value) && value >= 0 ? value : null);
+const teamCode = value => (TEAM_CODES.includes(value) ? value : null);
+const split = raw => ({ w: count(raw?.w), l: count(raw?.l), t: count(raw?.t) });
+/** One game of a team's season: its score and result only once final; never a line, price or other market. */
+function teamGame(raw) {
+  const done = flag(raw.final);
+  return {
+    week: week(raw.week) ? raw.week : null, gameId: GAME_ID.test(raw.gameId) ? raw.gameId : null, opponent: teamCode(raw.opponent),
+    home: flag(raw.home), neutral: flag(raw.neutral), kickoff: time(raw.kickoff), final: done,
+    pf: done ? count(raw.pf) : null, pa: done ? count(raw.pa) : null, result: done && ['W', 'L', 'T'].includes(raw.result) ? raw.result : null,
+  };
+}
+
+/** /lines/teams: one regular season for every known team, with when the public file was read and whether it is stale. */
+export function projectTeamSeason(raw) {
+  if (!record(raw) || !record(raw.teams)) throw new Error('Invalid team records reply.');
+  return {
+    season: season(raw.season) ? raw.season : null, throughWeek: Number.isSafeInteger(raw.throughWeek) && raw.throughWeek >= 0 && raw.throughWeek <= 25 ? raw.throughWeek : null,
+    finals: count(raw.finals), updatedAt: time(raw.updatedAt), stale: flag(raw.stale), source: { ...TEAM_SOURCE },
+    teams: Object.fromEntries(TEAM_CODES.filter(code => Object.hasOwn(raw.teams, code) && record(raw.teams[code])).map(code => {
+      const team = raw.teams[code];
+      return [code, {
+        overall: split(team.overall), home: split(team.home), road: split(team.road), pointsFor: count(team.pointsFor), pointsAgainst: count(team.pointsAgainst),
+        games: (Array.isArray(team.games) ? team.games : []).filter(record).slice(0, MAX_TEAM_GAMES).map(teamGame),
+      }];
+    })),
+  };
+}
+
 /**
  * The handler calls this only for a route in LINES_METHODS, after sign-in and email confirmation.
- * featureOff: the names gtl-api's GTL_FEATURE_OFF secret turns off (cloud/feature-off.mjs); `lines` stops both readers.
+ * featureOff: the names gtl-api's GTL_FEATURE_OFF secret turns off (cloud/feature-off.mjs); `lines` stops every route here.
  */
 export async function handleLines({ route, body = {}, user, service, clock = Date.now, featureOff = new Set() }) {
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new LinesError(401, 'Sign in to continue.');
@@ -130,6 +167,13 @@ export async function handleLines({ route, body = {}, user, service, clock = Dat
   if (!service?.rpc) throw new Error('Lines are not configured.');
   if (featureOff.has('lines')) throw providerLinesError('GTL_FEATURE_OFF');
   if (!record(body)) invalid();
+  if (route === '/lines/teams') {
+    if (Object.keys(body).some(key => key !== 'season')) throw new LinesError(400, 'Unexpected request field. Player identity comes from sign-in.');
+    if (body.season !== undefined && body.season !== null && !season(body.season)) throw new LinesError(400, 'Check the season, then try again.');
+    const reply = service.teams?.read ? await service.teams.read({ season: body.season ?? null }) : null;
+    if (!reply) throw new LinesError(503, 'Team records are not available right now.');
+    return projectTeamSeason(reply);
+  }
   const now = new Date(clock()).toISOString();
   if (route === '/lines/read') {
     const target = readWeek(body, ['season', 'week']);

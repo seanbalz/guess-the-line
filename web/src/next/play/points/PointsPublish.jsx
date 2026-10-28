@@ -5,7 +5,7 @@
 // action publish, which replays harmlessly when the week is already open. The preview never shows the House estimate.
 import { useEffect, useRef, useState } from 'react';
 import { pointsApi } from '../../../api.js';
-import { Button, Card, Dialog } from '../../ui/index.js';
+import { Button, Card, Dialog, Matchup } from '../../ui/index.js';
 import { PlayLoading } from '../PlayStates.jsx';
 import { previewRows, publishProblem, kickoffText } from './pointsModel.js';
 
@@ -65,7 +65,7 @@ export function PointsPublishView({ week, loading, slate, error, quiet, confirm,
     <ol className="gx-pt-preview" aria-label={`Week ${week} drafted players`}>
       {previewRows(slate).map(row => <li key={row.slot} className="gx-pt-preview-row">
         <span className="gx-pt-pill gx-t-strong">{row.slot} · {row.name}</span>
-        <span className="gx-t-meta gx-c-2">{row.matchup} · {row.kickoff}</span>
+        <span className="gx-t-meta gx-c-2">{row.codes ? <Matchup away={row.codes.away} home={row.codes.home}/> : row.matchup} · {row.kickoff}</span>
       </li>)}
     </ol>
     <Button variant="primary" block disabled={busy} onClick={onAsk}>{busy ? 'Publishing…' : 'Publish now'}</Button>

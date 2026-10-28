@@ -34,8 +34,9 @@ async function open(page, query = '') {
     }
     if (url.pathname === '/') return route.fulfill({ contentType: 'text/html', body: html });
     if (files.has(url.pathname)) return route.fulfill({ contentType: url.pathname.endsWith('.js') ? 'text/javascript' : 'text/css', body: files.get(url.pathname) });
-    // Self-hosted font requests are intentionally denied to exercise fallback layout.
-    if (!url.pathname.endsWith('.woff2')) unexpected.push(url.pathname);
+    // Self-hosted font requests are intentionally denied to exercise fallback layout; so are the heading's team marks
+    // (D-62), which then keep their letters.
+    if (!url.pathname.endsWith('.woff2') && !url.pathname.startsWith('/team-logos/')) unexpected.push(url.pathname);
     return route.fulfill({ status: 404, body: '' });
   });
   await page.goto(`${ORIGIN}/${query}`);

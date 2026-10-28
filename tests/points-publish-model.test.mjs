@@ -32,14 +32,14 @@ test('publishProblem: each refusal reads plainly', () => {
   assert.equal(publishProblem(new TypeError('Failed to fetch'), { week: 8 }), 'No connection. Reconnect and try again.');
 });
 
-test('previewRows: slot, player, matchup and kickoff; never the House; "—" for missing', () => {
+test('previewRows: slot, player, matchup (text and the codes for its marks) and kickoff; never the House; "—" for missing', () => {
   const rows = previewRows({ house: { QB: 19.4 }, slots: [
     { slot: 'QB', name: 'Fixture QB Player', team: 'PIT', gameKey: '2026_08_PIT_CLE', kickoff: '2026-10-30T00:15:00.000Z' },
     { slot: 'FLEX', name: '', team: 'MIA', gameKey: 'other', kickoff: 'bad' }, null, { name: 'no slot' },
   ] });
   assert.deepEqual(rows, [
-    { slot: 'QB', name: 'Fixture QB Player', matchup: 'PIT @ CLE', kickoff: 'Thu 5:15 PM PT' },
-    { slot: 'FLEX', name: '—', matchup: 'MIA', kickoff: '—' },
+    { slot: 'QB', name: 'Fixture QB Player', matchup: 'PIT @ CLE', codes: { away: 'PIT', home: 'CLE' }, kickoff: 'Thu 5:15 PM PT' },
+    { slot: 'FLEX', name: '—', matchup: 'MIA', codes: null, kickoff: '—' },
   ]);
   assert.deepEqual(previewRows(null), []);
 });

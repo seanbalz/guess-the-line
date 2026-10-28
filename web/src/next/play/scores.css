@@ -12,7 +12,17 @@
 .gx .gx-score-detail[open] > summary { margin-bottom: var(--gx-space-3); }
 .gx .gx-score-matchup { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-score-matchup > span { overflow-wrap: anywhere; }
+/* D-62: the per-game card's heading is the matchup as marks with records (stack layout, full width). */
+.gx .gx-per-game h2.gx-score-matchup { margin: 0; }
 .gx .gx-lock-receipt { padding: var(--gx-space-3); border-left: 2px solid var(--gx-data); border-radius: var(--gx-radius-xs); background: var(--gx-data-tint); }
+/* D-62 rule 4: the points large, then one sentence, then your guess and the saved line side by side; the rest is behind ⓘ. */
+.gx .gx-receipt-head { display: flex; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-receipt-score { display: flex; flex: 1 1 auto; align-items: baseline; gap: var(--gx-space-2); min-width: 0; margin: 0; }
+.gx .gx-receipt-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-receipt-chip { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; margin: 0; padding: var(--gx-space-2) var(--gx-space-3); border-radius: var(--gx-radius-sm); background: var(--gx-surface-1); color: var(--gx-text-2); }
+.gx .gx-receipt-chip .gx-n-m { color: var(--gx-text-1); overflow-wrap: anywhere; }
+.gx .gx-receipt-chip--you { background: var(--gx-accent-tint); }
+@media (forced-colors: active) { .gx .gx-receipt-chip { border: 1px solid CanvasText; } }
 .gx .gx-per-game .gx-play-entry { padding: var(--gx-space-3); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }
 .gx .gx-per-game .gx-play-game { margin: 0; }
 .gx .gx-per-game p { overflow-wrap: anywhere; }

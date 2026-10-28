@@ -113,7 +113,7 @@ function apiCalls(page) {
   });
   return calls;
 }
-const READS = ['POST /personal/read', 'POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research',
+const READS = ['POST /personal/read', 'POST /community/picks', 'POST /lines/read', 'POST /lines/game', 'POST /trends/week', 'GET /lobby', 'POST /community/read', 'GET /personal', 'POST /wind/read', 'POST /officials/read', 'POST /personal/notes', 'POST /lines/research', 'POST /lines/teams',
   // D-60: sign-in lands on Home first, which reads the account's preferences and its tracked-ticket summary, and (stage 71)
   // its recap row's badges and awards.
   'POST /me/preferences', 'POST /social/read', 'POST /league/features'];
@@ -260,8 +260,11 @@ test('the game sheet and the All trends sheet open and close with Back; trends i
     await card(page, 'SEA-DEN').click();
     const game = sheet(page, 'SEA @ DEN');
     await expect(game).toBeVisible();
-    await expect(game).toContainText(/Records as of /);
-    await expect(game).toContainText(/Seahawks \d+–\d+ · Broncos \d+–\d+/);
+    // D-62: the matchup as marks with each record, each team a button to its sheet, and one "Records through" line.
+    // (Until this gtl-api serves /lines/teams, the bundled records stand in.)
+    await expect(game).toContainText(/Records through Week \d+/);
+    await expect(game.getByRole('button', { name: /^Seattle Seahawks, \d+–\d+(–\d+)?\. Open team$/ })).toBeVisible();
+    await expect(game.getByRole('button', { name: /^Denver Broncos, \d+–\d+(–\d+)?\. Open team$/ })).toBeVisible();
     // You on this game: the draft and its lock; the sent Total and its line at the guess.
     const you = game.getByRole('list', { name: 'You on this game' });
     await expect(you.getByRole('listitem').nth(0)).toContainText('Draft SEA −4');

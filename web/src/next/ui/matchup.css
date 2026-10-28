@@ -1,0 +1,53 @@
+/* A matchup drawn as marks (D-62, ui/Matchup.jsx): away mark and code, "@", home mark and code, with each team's record
+   when given. Row layout sits in a list row or heading; stack layout puts code and record under each mark, for the one
+   game card at the top of a pick screen. Codes use the team style's font (Barlow 700); records are numbers (tabular). */
+.gx .gx-mu { display: inline-flex; min-width: 0; max-width: 100%; vertical-align: middle; }
+.gx .gx-mu-row { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.gx .gx-mu-side { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--gx-text-1); }
+.gx .gx-mu-words { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.gx .gx-mu-code {
+  font: 700 16px/20px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.gx .gx-mu--32 .gx-mu-code { font-size: 18px; line-height: 22px; }
+.gx .gx-mu--48 .gx-mu-code { font-size: 20px; line-height: 24px; }
+.gx .gx-mu-rec {
+  font: 600 16px/20px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--gx-text-2);
+}
+.gx .gx-mu-at { font: 600 16px/20px var(--gx-font-body); color: var(--gx-text-3); }
+
+/* Stack: two equal columns around the "@", each mark over its code over its record. */
+.gx .gx-mu--stack { display: flex; width: 100%; }
+.gx .gx-mu--stack .gx-mu-row { width: 100%; align-items: flex-start; justify-content: center; gap: 12px; }
+.gx .gx-mu--stack .gx-mu-side { flex: 1 1 0; flex-direction: column; gap: 4px; }
+.gx .gx-mu--stack .gx-mu-words { flex-direction: column; align-items: center; gap: 0; }
+/* The "@" lines up with the middle of the marks (half the mark less half its 20px line), 4px lower beside buttons. */
+.gx .gx-mu--stack .gx-mu-at { align-self: flex-start; margin-top: 2px; }
+.gx .gx-mu--stack.gx-mu--32 .gx-mu-at { margin-top: 6px; }
+.gx .gx-mu--stack.gx-mu--48 .gx-mu-at { margin-top: 14px; }
+.gx .gx-mu--stack .gx-mu-btn + .gx-mu-at { margin-top: 6px; }
+.gx .gx-mu--stack.gx-mu--32 .gx-mu-btn + .gx-mu-at { margin-top: 10px; }
+.gx .gx-mu--stack.gx-mu--48 .gx-mu-btn + .gx-mu-at { margin-top: 18px; }
+
+/* Each side as a button (with onTeam): a 44px target with no chrome of its own; the focus ring comes from base.css. */
+.gx .gx-mu-btn {
+  min-height: 44px;
+  min-width: 44px;
+  margin: 0;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--gx-dur-tap) var(--gx-ease-standard), opacity var(--gx-dur-tap) var(--gx-ease-standard);
+}
+.gx .gx-mu-btn:active { transform: scale(0.97); opacity: 0.85; }
+@media (forced-colors: active) {
+  .gx .gx-mu-btn { border: 1px solid ButtonText; }
+}

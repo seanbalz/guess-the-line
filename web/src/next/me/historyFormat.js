@@ -95,14 +95,14 @@ export function finalWords(game, result) {
   return `Final${SEP}${game?.awayCode ?? DASH} ${result.away ?? DASH}, ${game?.homeCode ?? DASH} ${result.home ?? DASH}`;
 }
 
-/** One game's row in the week detail: { matchup, guess, line, points, final, closedDraft, hidden }. */
+/** One game's row in the week detail: { matchup, away, home, guess, line, points, final, closedDraft, hidden }. */
 export function gameRow(week, entry, game, { own = false, rules, now = Date.now() } = {}) {
   const mode = entry?.mode, pick = (entry?.picks || []).find(item => item.gameId === game.id) ?? null;
   const hidden = pick?.hidden === true || (entry?.picksHidden && !pick);
   const kickedOff = Date.parse(game.kickoff) <= now;
   const draftClosed = own && pick && pick.lockedIn === false && number(pick.guess) !== null && (pick.closedAtKickoff || kickedOff);
   return {
-    gameId: game.id, matchup: matchupWords(game), hidden,
+    gameId: game.id, matchup: matchupWords(game), away: game.awayCode ?? null, home: game.homeCode ?? null, hidden,
     guess: hidden ? null : guessWords(mode, game, pick?.guess),
     line: hidden ? null : referenceWords(mode, game, pick?.reference),
     detail: hidden ? [] : referenceDetail(pick?.reference),
@@ -114,19 +114,23 @@ export function gameRow(week, entry, game, { own = false, rules, now = Date.now(
   };
 }
 
-/** One /me/changes change in plain words, one line per game: [{ text, late, at }]. */
+/**
+ * One /me/changes change in plain words, one line per game: [{ text, away, home, change, late, at }]. `text` is the whole
+ * line ("SEA @ DEN: locked in SEA −3"); `change` is the part after the matchup, for a screen that draws the game as marks.
+ */
 export function changeLines(market, change) {
   const games = new Map((market?.games || []).map(game => [game.id, game]));
   return (change?.games || []).map(item => {
     const game = games.get(item.gameId), words = value => guessWords(market.mode, game, value), match = matchupWords(game);
     const line = item.reference && number(item.reference.value) !== null ? `${SEP}line ${words(item.reference.value)}` : item.reference?.status === 'pending' ? `${SEP}line pending` : '';
-    let text;
-    if (item.kind === 'resolved') text = `${match}: line found${SEP}first line after submission ${words(item.reference?.value)}`;
-    else if (item.kind === 'locked') text = `${match}: locked in ${words(item.after)}${line}`;
-    else if (item.kind === 'edited') text = `${match}: changed ${words(item.before)} to ${words(item.after)} after submitting${line}`;
-    else text = item.before === null ? `${match}: draft ${words(item.after)}` : `${match}: draft ${words(item.before)} to ${words(item.after)}`;
-    if (change.ruled) text += `${SEP}commissioner-ruled${change.ruled.decision ? ` (${change.ruled.decision})` : ''}`;
-    return { text, at: change.at ? fmtFull(change.at) : 'Time not recorded', late: change.late ? fmtLate(change.late.minutes) : null };
+    let what;
+    if (item.kind === 'resolved') what = `line found${SEP}first line after submission ${words(item.reference?.value)}`;
+    else if (item.kind === 'locked') what = `locked in ${words(item.after)}${line}`;
+    else if (item.kind === 'edited') what = `changed ${words(item.before)} to ${words(item.after)} after submitting${line}`;
+    else what = item.before === null ? `draft ${words(item.after)}` : `draft ${words(item.before)} to ${words(item.after)}`;
+    if (change.ruled) what += `${SEP}commissioner-ruled${change.ruled.decision ? ` (${change.ruled.decision})` : ''}`;
+    return { text: `${match}: ${what}`, away: game?.awayCode ?? null, home: game?.homeCode ?? null, change: what,
+      at: change.at ? fmtFull(change.at) : 'Time not recorded', late: change.late ? fmtLate(change.late.minutes) : null };
   });
 }
 

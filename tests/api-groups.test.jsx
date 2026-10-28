@@ -9,7 +9,7 @@ vi.mock('../web/src/auth.js', () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: 'fixture-token' } }, error: null }) } },
 }));
 
-const { ApiError, GROUP_ACTIONS, betsApi, cloudApi, leagueApi, linesApi, meApi, pointsApi } = await import('../web/src/api.js');
+const { ApiError, GROUP_ACTIONS, betsApi, cloudApi, leagueApi, linesApi, meApi, pointsApi, readTeams } = await import('../web/src/api.js');
 const { SaveUncertainError } = await import('../web/src/apiResponse.js');
 
 const wrappers = { lines: linesApi, bets: betsApi, league: leagueApi, me: meApi, points: pointsApi };
@@ -40,7 +40,7 @@ describe('route-group wrappers', () => {
   });
 
   it('lines lists its readers: reads, never saves, sent as POST to their gtl-api routes', async () => {
-    expect(GROUP_ACTIONS.lines).toEqual({ reads: ['read', 'game', 'research'], writes: [] });
+    expect(GROUP_ACTIONS.lines).toEqual({ reads: ['read', 'game', 'research', 'teams'], writes: [] });
     const fetch = vi.fn(async () => new Response(JSON.stringify({ error: 'Lines are not available right now.' }), { status: 503, headers: { 'content-type': 'application/json' } }));
     vi.stubGlobal('fetch', fetch);
     for (const [action, body] of [['read', {}], ['game', { gameId: 'SEA-DEN' }], ['research', { period: 'recent30' }]]) {
@@ -49,10 +49,15 @@ describe('route-group wrappers', () => {
       expect(error).not.toBeInstanceOf(SaveUncertainError);
       expect(error.message).toBe('Lines are not available right now.');
     }
+    // D-62: readTeams is the /lines/teams read, sent with an empty body for the current season.
+    const teams = await readTeams().catch(caught => caught);
+    expect(teams).toBeInstanceOf(ApiError);
+    expect(teams).not.toBeInstanceOf(SaveUncertainError);
     expect(fetch.mock.calls.map(([url, init]) => [url, init.method, init.body])).toEqual([
       ['https://fixture.invalid/functions/v1/gtl-api/lines/read', 'POST', '{}'],
       ['https://fixture.invalid/functions/v1/gtl-api/lines/game', 'POST', '{"gameId":"SEA-DEN"}'],
       ['https://fixture.invalid/functions/v1/gtl-api/lines/research', 'POST', '{"period":"recent30"}'],
+      ['https://fixture.invalid/functions/v1/gtl-api/lines/teams', 'POST', '{}'],
     ]);
   });
 });

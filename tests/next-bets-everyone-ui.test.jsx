@@ -4,7 +4,8 @@
 // banner offers a way to lock in; an unpublished or empty week says so in one sentence.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 // The board draws what it is given; the container's read and the app data are not under test here.
 vi.mock('../web/src/api.js', () => ({ betsApi: vi.fn() }));
@@ -12,6 +13,7 @@ vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
 
 const { EveryoneBoard } = await import('../web/src/next/bets/EveryoneBets.jsx');
 const { EVERYONE_COPY } = await import('../web/src/next/bets/everyone.js');
+const { TrackedBetRow } = await import('../web/src/next/bets/TrackedBetRow.jsx');
 
 const LUKE = '00000000-0000-4000-8000-000000000003', TROY = '00000000-0000-4000-8000-000000000002', SEAN = '00000000-0000-4000-8000-000000000001';
 const data = {
@@ -64,6 +66,18 @@ describe('everyone’s picks', () => {
     expect(html).toContain('Qualified');
     expect(html).toContain('3 picks · 4.5U');
   });
+  it('D-62: each game card’s heading is the matchup as marks, away first, and names the card in one sentence', () => {
+    expect(matchups(html)).toEqual([ // kickoff order
+      { srcs: [teamMarks.HOU.src, teamMarks.JAX.src], name: 'Houston Texans at Jacksonville Jaguars' },
+      { srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' },
+    ]);
+    const nodes = [...walk(parseMarkup(html))];
+    const heading = nodes.find(n => n.attrs?.id === 'gx-ev-SEA-DEN');
+    expect(heading.tag).toBe('h3');
+    expect(nameFrom(heading)).toBe('Seattle Seahawks at Denver Broncos');
+    expect(nodes.find(n => n.attrs?.['aria-labelledby'] === 'gx-ev-SEA-DEN').attrs['data-game']).toBe('SEA-DEN');
+    expect(html).not.toContain('SEA @ DEN');
+  });
   it('names each game’s pickers for screen readers', () => {
     expect(html).toContain('You, Troy picked this game');
   });
@@ -80,5 +94,24 @@ describe('quiet weeks', () => {
     expect(html).toContain(EVERYONE_COPY.empty);
     expect(html).toContain('Place a pick');
     expect(markupProblems(html)).toEqual([]);
+  });
+});
+
+describe('a tracked bet row (D-62)', () => {
+  const games = [{ id: 'SEA-DEN', away: 'SEA', home: 'DEN' }, { id: 'KC-LV', away: 'KC', home: 'LV' }];
+  const row = entry => renderToStaticMarkup(<div className="gx"><TrackedBetRow entry={{ week: 7, outcome: 'pending', stakeUnits: 1, source: 'BetMGM', ...entry }} games={games}/></div>);
+  it('a single draws its game as marks, away first, read as one sentence', () => {
+    const html = row({ kind: 'single', legs: [{ gameId: 'SEA-DEN', selection: 'DEN −3' }] });
+    expect(markupProblems(html)).toEqual([]);
+    expect(matchups(html)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' }]);
+    expect(html).not.toContain('SEA @ DEN');
+  });
+  it('a parlay draws one matchup per leg in leg order; a leg outside the week keeps its id as text', () => {
+    const html = row({ kind: 'parlay', legs: [{ gameId: 'KC-LV' }, { gameId: 'SEA-DEN' }] });
+    expect(matchups(html).map(m => m.srcs)).toEqual([[teamMarks.KC.src, teamMarks.LV.src], [teamMarks.SEA.src, teamMarks.DEN.src]]);
+    expect(nameFrom(parseMarkup(html))).toContain('Kansas City Chiefs at Las Vegas Raiders · Seattle Seahawks at Denver Broncos');
+    const lost = row({ kind: 'single', legs: [{ gameId: 'NYJ-BUF', selection: 'Over 40' }] });
+    expect(matchups(lost)).toEqual([]);
+    expect(lost).toContain('NYJ-BUF');
   });
 });

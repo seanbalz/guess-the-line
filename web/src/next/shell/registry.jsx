@@ -20,6 +20,7 @@ import { ReactorsSheet } from '../feed/ReactorsSheet.jsx';
 import { ReactionsPopover } from '../feed/ReactionsPopover.jsx';
 import { PicksSheet } from '../feed/PicksSheet.jsx';
 import { HistoryPage } from '../me/HistoryPage.jsx';
+import { TeamSheet } from '../teams/TeamSheet.jsx';
 
 /** The original tabs use live routes; Fantasy reads public player snapshots. The transitional editors retain the hosted rules until their migrations ship. */
 export const SCREENS = Object.freeze({
@@ -39,6 +40,7 @@ export const LAYERS = Object.freeze({
   'sh.game': GameSheet, // lines (stage 13): one game, read-only
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
   'sh.research': ResearchSheet,
+  'sh.team': TeamSheet, // teams (D-62): one team's record, last five, margin chart and games; args { team, from? }
   'sh.badge': BadgeSheet, // play (stage 71): one badge's detail
   'ov.flash': FlashOverlay, // play (stage 71): a new badge or award of your own, one at a time
   'page.history': HistoryPage, // me (stages 73 and 74): Me › History, its code loaded when it opens

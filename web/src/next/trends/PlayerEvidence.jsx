@@ -1,6 +1,6 @@
 import { playerObservations, buildPlayerTrends, buildSentiment, PLAYER_TREND_WINDOWS, PLAYER_TREND_LABELS } from '../../../../shared/player-trends.mjs';
 import { pickText } from '../../communityFormat.js';
-import { Avatar, Card } from '../ui/index.js';
+import { Avatar, Card, Matchup } from '../ui/index.js';
 import { BiasChart, number, signed, time } from './charts.jsx';
 const mode = market => 'guess_' + market;
 const record = r => r.n ? r.W + ' W · ' + r.L + ' L · ' + r.P + ' P' : 'No decided or pushed games';
@@ -15,7 +15,7 @@ function Outcome({ label, value }) {
 export function EvidenceGames({ games, market, team = null, title = 'Contributing games' }) {
   return <details className="gx-tr-details"><summary className="gx-t-strong">{title} · {games.length}</summary>
     <div className="gx-vstack gx-gap-16">{games.map(row => <article key={row.key} className="gx-tr-game gx-vstack gx-gap-8">
-      <h4 className="gx-t-strong">{row.season} Week {row.week} · {row.game.awayCode} at {row.game.homeCode}</h4>
+      <h4 className="gx-t-strong">{row.season} Week {row.week} · <Matchup away={row.game.awayCode} home={row.game.homeCode}/></h4>
       <p className="gx-t-meta">Kickoff {time(row.game.kickoff)}</p>
       <dl className="gx-tr-facts">
         <dt>Guess</dt><dd>{pickText(mode(market), row.game.awayCode, row.game.homeCode, row.guess)}</dd>
@@ -93,7 +93,7 @@ function Sentiment({ history, market, published }) {
   const value = buildSentiment({ history, market, season: published.season, week: published.week });
   return <section className="gx-vstack gx-gap-12" aria-label="GTL sentiment"><h3 className="gx-t-section">GTL sentiment</h3>
     <p className="gx-t-body gx-c-2">{value.referenceNote} GTL guesses are not sportsbook ticket or money splits.</p>
-    {!value.games.length ? <p className="gx-t-body">No permitted current-week observations to show.</p> : value.games.map(row => <details key={row.game.id} className="gx-tr-details"><summary className="gx-t-strong">{row.game.awayCode} at {row.game.homeCode} · {row.count} permitted guesses</summary><p className="gx-t-body">Median GTL {market === 'spread' ? 'spread guess' : 'total guess'} {pickText(mode(market),row.game.awayCode,row.game.homeCode,row.median)}</p>
+    {!value.games.length ? <p className="gx-t-body">No permitted current-week observations to show.</p> : value.games.map(row => <details key={row.game.id} className="gx-tr-details"><summary className="gx-t-strong"><Matchup away={row.game.awayCode} home={row.game.homeCode}/> · {row.count} permitted guesses</summary><p className="gx-t-body">Median GTL {market === 'spread' ? 'spread guess' : 'total guess'} {pickText(mode(market),row.game.awayCode,row.game.homeCode,row.median)}</p>
       <p className="gx-t-meta">Numeric guess versus each saved reference: {row.savedReferenceCounts.above} above · {row.savedReferenceCounts.equal} equal · {row.savedReferenceCounts.below} below. Spread numeric above is not team strength.</p>
       <p className="gx-t-meta">Source times: {row.sourceTimes.known} known · {row.sourceTimes.missing} unavailable · {time(row.sourceTimes.from)} through {time(row.sourceTimes.to)}</p>
       {market === 'spread' && <p className="gx-t-meta">Distribution uses signed home spreads: negative favors {row.game.homeCode}; positive favors {row.game.awayCode}.</p>}

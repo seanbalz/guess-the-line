@@ -10,7 +10,8 @@ import { useAppData } from '../data/AppData.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
 import { SEP } from '../format.js';
 import { EVERYONE_COPY } from '../bets/everyone.js';
-import { betResultWords, betWords, betsRecord, matchupWords } from './historyFormat.js';
+import { betResultWords, betWords, betsRecord } from './historyFormat.js';
+import { HistoryMatchup } from './HistoryMatchup.jsx';
 
 export const BETS_COPY = Object.freeze({
   loading: 'Loading bets…',
@@ -75,7 +76,7 @@ function BetsWeek({ season, week }) {
             const game = games.get(bet.gameId), open = member.userId === viewer || data.markets?.[bet.gameId]?.[bet.market]?.visible === true;
             const result = open ? betResultWords(bet) : null;
             return (
-              <Row key={`${bet.gameId}:${bet.market}`} size={64} title={`${matchupWords(game)}${SEP}${betWords(game, bet)}`}
+              <Row key={`${bet.gameId}:${bet.market}`} size={64} title={<><HistoryMatchup game={game}/>{SEP}{betWords(game, bet)}</>}
                 sub={open ? null : <span className="gx-history-lock"><Icon icon="lock" size={16}/>{EVERYONE_COPY.locked(bet.market)}</span>}
                 end={result ? <span className="gx-vstack gx-history-bets-end"><Pill tone={result.tone}>{result.word}</Pill>{result.units ? <span className="gx-t-meta">{result.units}</span> : null}</span> : null}/>
             );

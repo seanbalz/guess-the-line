@@ -112,15 +112,17 @@ test('Guess weeks: any member\'s week with its anchors and labels; your own week
     await expect(weekRow(page)).toContainText('Late · 12 min');
     await weekRow(page).click();
     await expect(detail.getByText('Late · 12 min').first()).toBeVisible();
-    await expect(detail.locator('[data-closed-draft]')).toHaveText(['CHI @ GB · Closed at kickoff · draft 47.5 not locked in']);
+    await expect(detail.locator('[data-closed-draft]')).toHaveText([/^Chicago Bears at Green Bay Packers[A-Z@]* · Closed at kickoff · draft 47\.5 not locked in$/]); // D-62 marks
     const changes = detail.locator('[data-own-changes]');
     await expect(changes.locator('li')).toHaveCount(5);
-    await expect(changes).toContainText('TB @ DAL: draft 43.5');
-    await expect(changes).toContainText('TB @ DAL: locked in 44.5 · line pending');
-    await expect(changes).toContainText('PHI @ JAX: draft 41.5');
-    await expect(changes).toContainText('CHI @ GB: draft 47.5');
-    await expect(changes).toContainText('PHI @ JAX: locked in 41.5 · line 46.5');
-    await expect(changes.locator('li').filter({ hasText: 'PHI @ JAX: locked in' })).toContainText('Late · 12 min');
+    // D-62: each change leads with the game as marks, read as one sentence; the codes beside the marks follow it.
+    const TB_DAL = 'Tampa Bay Buccaneers at Dallas Cowboys[A-Z@]*', PHI_JAX = 'Philadelphia Eagles at Jacksonville Jaguars[A-Z@]*';
+    await expect(changes).toContainText(new RegExp(`${TB_DAL}: draft 43\\.5`));
+    await expect(changes).toContainText(new RegExp(`${TB_DAL}: locked in 44\\.5 · line pending`));
+    await expect(changes).toContainText(new RegExp(`${PHI_JAX}: draft 41\\.5`));
+    await expect(changes).toContainText(/Chicago Bears at Green Bay Packers[A-Z@]*: draft 47\.5/);
+    await expect(changes).toContainText(new RegExp(`${PHI_JAX}: locked in 41\\.5 · line 46\\.5`));
+    await expect(changes.locator('li').filter({ hasText: new RegExp(`${PHI_JAX}: locked in`) })).toContainText('Late · 12 min');
     await phoneChecks(page, 'week-own', testInfo);
 
     // Back closes the page; #history opens it again directly.
@@ -142,11 +144,11 @@ test('Bets weeks: everyone\'s Virtual Units picks for the week, who placed each 
     await expect(history(page).getByRole('combobox', { name: 'Week', exact: true })).toHaveValue('5');
     const you = history(page).locator(`[data-bets-player="${ACCOUNTS.luke.id}"]`), troy = history(page).locator(`[data-bets-player="${ACCOUNTS.troy.id}"]`);
     await expect(you).toContainText('You');
-    await expect(you).toContainText('SF @ SEA · Over 45.5 · 2U');
+    await expect(you).toContainText(/San Francisco 49ers at Seattle Seahawks[A-Z@]* · Over 45\.5 · 2U/); // D-62 marks
     await expect(you).toContainText('LOST');
     await expect(you).toContainText('−2U');
     await expect(troy).toContainText('Troy Fixture');
-    await expect(troy).toContainText('TB @ DAL · DAL −8.5 · 1U');
+    await expect(troy).toContainText(/Tampa Bay Buccaneers at Dallas Cowboys[A-Z@]* · DAL −8\.5 · 1U/);
     await expect(troy).toContainText('WIN');
     await expect(troy).toContainText('+0.91U');
     await expect(history(page).locator('[data-bets-player]')).toHaveCount(2);

@@ -12,6 +12,7 @@ import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
 import { DASH, fmtFull, SEP } from '../format.js';
 import { picksHidden } from '../copy.js';
 import { HISTORY_MARKETS, MARKET_WORD, changeLines, entryFor, gameRow, weekPointsWords, weekStatus } from './historyFormat.js';
+import { HistoryMatchup } from './HistoryMatchup.jsx';
 
 export const GUESS_COPY = Object.freeze({
   loading: 'Loading history…',
@@ -130,7 +131,7 @@ function WeekDetail({ week, data, player, mode, own, forfeit, onBack }) {
       {own && drafts.length ? (
         <section className="gx-vstack gx-gap-8" aria-label={GUESS_COPY.drafts}>
           <h3 className="gx-t-strong">{GUESS_COPY.drafts}</h3>
-          {drafts.map(row => <p key={row.gameId} className="gx-t-body gx-c-2" data-closed-draft>{row.matchup}{SEP}{row.closedDraft}</p>)}
+          {drafts.map(row => <p key={row.gameId} className="gx-t-body gx-c-2" data-closed-draft><HistoryMatchup away={row.away} home={row.home}/>{SEP}{row.closedDraft}</p>)}
         </section>
       ) : null}
       {own ? <OwnChanges season={week.season} week={week.week} mode={mode}/> : null}
@@ -144,7 +145,7 @@ function GameRow({ row }) {
       <details>
         <summary className="gx-history-game-head">
           <span className="gx-vstack gx-grow">
-            <span className="gx-t-strong">{row.matchup}</span>
+            <span className="gx-t-strong"><HistoryMatchup away={row.away} home={row.home}/></span>
             <span className="gx-t-meta gx-c-2">{row.hidden ? 'Hidden' : row.closedDraft ? 'Closed at kickoff' : row.draft ? 'Draft' : row.guess === DASH ? 'No guess' : row.line ?? 'No line saved'}</span>
           </span>
           <span className="gx-vstack gx-history-game-end">
@@ -184,7 +185,7 @@ function OwnChanges({ season, week, mode }) {
             <ol className="gx-history-changes">
               {lines.map((line, index) => (
                 <li key={index} className="gx-vstack">
-                  <span className="gx-t-body">{line.text}</span>
+                  <span className="gx-t-body"><HistoryMatchup away={line.away} home={line.home}/>: {line.change}</span>
                   <span className="gx-t-meta gx-c-2">{line.at}</span>
                   {line.late ? <Pill tone="pending">{line.late}</Pill> : null}
                 </li>

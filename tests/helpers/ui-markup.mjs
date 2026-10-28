@@ -104,3 +104,20 @@ export function markupProblems(html) {
   }
   return problems;
 }
+
+const rootOf = input => (typeof input === 'string' ? parseMarkup(input) : input);
+
+/** The words in `html` (or a parsed node) outside aria-hidden parts, in order, spaces collapsed; no aria-labels. */
+export function readText(html) {
+  return [...walk(rootOf(html))].filter(n => n.text !== undefined && !hidden(n.parent)).map(n => n.text).join('').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Each D-62 matchup (`gx-mu`, web/src/next/ui/Matchup.jsx) in `html` (or a parsed node), in document order: its mark
+ * images' src, away first, and the sentence a screen reader hears ("Seattle Seahawks at Denver Broncos"; empty when it
+ * or an ancestor is aria-hidden, as inside a row whose button carries its own name).
+ */
+export function matchups(html) {
+  return [...walk(rootOf(html))].filter(n => n.tag && (n.attrs.class ?? '').split(/\s+/).includes('gx-mu'))
+    .map(n => ({ srcs: [...walk(n)].filter(c => c.tag === 'img').map(c => c.attrs.src), name: hidden(n) ? '' : nameFrom(n).replace(/\s+/g, ' ').trim() }));
+}

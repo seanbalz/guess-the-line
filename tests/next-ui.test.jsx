@@ -693,6 +693,41 @@ describe('TeamMark (D-46 official logos, D-22 badge fallback, sized for DP-27) a
     clean(<TeamMark code="KC" name="Kansas City Chiefs" size={48}/>);
   });
 
+  it('Matchup (D-62) draws the away mark, "@", the home mark, with codes and records, and reads as one sentence', () => {
+    const node = <ui.Matchup away="SEA" home="DEN" records={{ away: '4–2', home: '3–3' }}/>;
+    const marks = els(node, byClass('gx-team'));
+    expect(marks.map(m => m.attrs['aria-hidden'])).toEqual(['true', 'true']);
+    expect(els(node, n => n.tag === 'img').map(img => img.attrs.src)).toEqual([teamMarks.SEA.src, teamMarks.DEN.src]);
+    // Away first, then "@", then home: the order Sean asked for.
+    const words = els(node, n => ['gx-mu-code', 'gx-mu-rec', 'gx-mu-at'].some(cls => byClass(cls)(n))).map(n => nameFrom({ ...n, attrs: {} }));
+    expect(words).toEqual(['SEA', '4–2', '@', 'DEN', '3–3']);
+    expect(nameFrom(one(node, byClass('gx-sr-only')))).toBe('Seattle Seahawks, 4–2, at Denver Broncos, 3–3');
+    expect(one(node, byClass('gx-mu-row')).attrs['aria-hidden']).toBe('true');
+    expect(classes(one(node, byClass('gx-mu')))).toEqual(['gx-mu', 'gx-mu--24', 'gx-mu--row']);
+    expect(els(node, n => n.tag === 'button')).toHaveLength(0);
+    clean(node);
+    clean(<ui.Matchup away="KC" home="BUF" size={48} layout="stack"/>);
+    expect(els(<ui.Matchup away="KC" home="BUF" codes={false}/>, byClass('gx-mu-code'))).toHaveLength(0);
+    expect(ui.matchupWords('KC', 'BUF')).toBe('Kansas City Chiefs at Buffalo Bills');
+  });
+
+  it('Matchup with onTeam makes each side a named button that opens that team', () => {
+    const node = <ui.Matchup away="jac" home="PHI" size={48} layout="stack" records={{ away: '2–4', home: '5–1' }} onTeam={() => {}}/>;
+    const buttons = els(node, n => n.tag === 'button');
+    expect(buttons.map(b => b.attrs['aria-label'])).toEqual(['Jacksonville Jaguars, 2–4. Open team', 'Philadelphia Eagles, 5–1. Open team']);
+    expect(buttons.every(b => classes(b).includes('gx-mu-btn') && b.attrs.type === 'button')).toBe(true);
+    expect(els(node, byClass('gx-sr-only'))).toHaveLength(0);
+    clean(node);
+  });
+
+  it('teamRecordText writes 4–2, 4–2–1 with a tie, and null for anything missing', () => {
+    expect(ui.teamRecordText({ w: 4, l: 2, t: 0 })).toBe('4–2');
+    expect(ui.teamRecordText({ w: 4, l: 2 })).toBe('4–2');
+    expect(ui.teamRecordText({ w: 4, l: 2, t: 1 })).toBe('4–2–1');
+    for (const bad of [null, {}, { w: 4 }, { w: -1, l: 2 }, { w: 1.5, l: 2 }]) expect(ui.teamRecordText(bad)).toBeNull();
+    expect(ui.teamName('LA')).toBe('Los Angeles Rams');
+  });
+
   it('the Field monogram draws Brand.jsx\'s exact Yardline G, framed by the G\'s own bounds', () => {
     const brand = readFileSync(join(ROOT, 'web/src/Brand.jsx'), 'utf8');
     const paths = [...brand.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);

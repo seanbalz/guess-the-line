@@ -116,7 +116,8 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await expect(sheet).toBeVisible();
   await expect(sheet).toContainText('Guess a line exactly (10 points).');
   await expect(sheet).toContainText('Earned 3 times');
-  await expect(sheet).toContainText('Week 4 · SEA @ DEN · Spread DEN −8.5 exact');
+  // D-62: the game is drawn as marks (read as one sentence); the codes beside the marks sit between in textContent.
+  await expect(sheet).toContainText(/Week 4 · Seattle Seahawks at Denver Broncos[A-Z@]* · Spread DEN −8\.5 exact/);
   await phoneChecks(page, info, 'features-badge');
   await sheet.getByRole('button', { name: 'Close' }).click();
   await screen.getByRole('button', { name: /^Hot Hand, Rare, not earned yet\./ }).click();

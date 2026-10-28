@@ -1,4 +1,6 @@
+import { Fragment } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { Matchup } from '../ui/Matchup.jsx';
 import { Pill } from '../ui/Pill.jsx';
 import './tracked-bets.css';
 
@@ -15,9 +17,11 @@ export function TrackedBetRow({ entry, games, children }) {
   const status = { pending: 'Pending', win: 'Won', loss: 'Lost', push: 'Push', void: 'Void' }[entry.outcome] || 'Pending';
   const tone = ['win', 'loss', 'pending'].includes(entry.outcome) ? entry.outcome : 'neutral';
   const title = entry.kind === 'parlay' ? `${entry.legs.length}-leg parlay` : leg?.selection || 'Tracked selection';
-  const matchup = entry.kind === 'parlay'
-    ? entry.legs.map(item => games.find(match => match.id === item.gameId)).filter(Boolean).map(item => `${item.away} @ ${item.home}`).join(' · ')
-    : game ? `${game.away} @ ${game.home}` : leg?.gameId;
+  // D-62: each game as marks (away, "@", home); a leg whose game is not in this week's list keeps its id as text.
+  const legGames = entry.kind === 'parlay' ? entry.legs.map(item => games.find(match => match.id === item.gameId)).filter(Boolean) : game ? [game] : [];
+  const matchup = legGames.length
+    ? legGames.map((item, index) => <Fragment key={`${item.id}:${index}`}>{index ? ' · ' : null}<Matchup away={item.away} home={item.home}/></Fragment>)
+    : entry.kind === 'parlay' ? null : leg?.gameId;
   return <details className="gx-tracked-row">
     <summary>
       <span className="gx-tracked-mark"><Icon icon="ticket" size={20}/></span>
