@@ -77,6 +77,8 @@ test('final sections retain each card once and vanish while refreshing without r
   assert.equal(view.finals.count, 1); assert.equal(view.finals.cards[0].id, card.id);
   assert.deepEqual(view.finals.cards[0].spread, { open: false });
   assert.match(view.finals.cards[0].aria, /Final.*Result source: Fixture source/);
+  const all = marketBoard(board, { ...read, data: { games: [finalRow, { ...finalRow, id: later.id, homeCode: 'SF' }] } });
+  assert.equal(all.started, null); assert.equal(all.finals.count, 2); assert.deepEqual(all.groups, []);
   for (const status of ['loading', 'error']) {
     const next = marketBoard(board, { ...read, status, data: { games: [finalRow] } });
     assert.equal(next.finals, null); assert.equal(next.started.count, 2);

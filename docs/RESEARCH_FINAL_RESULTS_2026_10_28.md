@@ -30,10 +30,14 @@ scores and source metadata while keeping the full slate and saved guesses.
 The new browser regression failed before implementation because the Final
 section did not exist. The focused implementation case passed with zero score,
 commissioner provenance, an incomplete final and a non-final result, all market
-locks retained, narrow-theme accessibility and refresh failure. Further
-integrated checks are in progress. 105 Lines/team/Research/chart/Trends component
-tests, 41 board/model/token/brand tests and typecheck passed. Final narrow visual
-and source-publication results will be recorded before handoff.
+locks retained, narrow-theme accessibility and refresh failure. All 70 integrated Lines/Research/Trends/gesture browser cases passed before
+integrating the on-demand Trends source. On the integrated source, all five
+final board/Trends cases passed, including final/refresh behavior and Trends
+code/stylesheet recovery. 105 Lines/team/Research/chart/Trends component tests,
+41 board/model/token/brand tests, typecheck, Brand QA and final fixture build/
+bundle privacy checks passed. Four final 320px Light/Dark and forced-color
+screenshots were inspected; long source labels wrap, axe and touch-target checks
+pass, and opening/closing the game sheet restores focus to the final card.
 
 The browser uses the real local app/handler with fictional data; its recorded
 finals and server clock are injected at the reader boundary. This verifies the
