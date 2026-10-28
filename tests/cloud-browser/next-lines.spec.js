@@ -317,6 +317,81 @@ test('team chart keeps its plot steady when enlarged game labels wrap', async ({
   } finally { await world.db.close(); }
 });
 
+test('team details load only on opening; closing, failed download and explicit retry preserve navigation and reads', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world } = await lukesWeek(page, baseURL);
+  let release, mode = 'hold', requests = 0, styleRequests = 0;
+  let waiting = new Promise(resolve => { release = resolve; });
+  const themePreference = async theme => {
+    await page.evaluate(theme => {
+      localStorage.setItem('gtl.theme', theme);
+      window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme }));
+    }, theme);
+    await expect(page.locator('html')).toHaveAttribute('data-theme-preference', theme);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  };
+  try {
+    page.on('request', request => { if (/\/assets\/TeamView-[^/]+\.css$/.test(request.url())) styleRequests += 1; });
+    await page.route('**/assets/TeamView-*.js', async route => {
+      requests += 1;
+      if (mode === 'hold') await waiting;
+      if (mode === 'fail') return route.abort('failed');
+      return route.continue();
+    });
+    await openLines(page);
+    await card(page, 'SEA-DEN').click();
+    const game = sheet(page, 'SEA @ DEN');
+    const opener = game.getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ });
+    await expect(opener).toBeVisible();
+    expect(requests).toBe(0);
+    expect(styleRequests).toBe(0);
+    const calls = apiCalls(page);
+    await opener.click();
+    const team = sheet(page, 'Seattle Seahawks');
+    await expect(team.getByRole('status')).toHaveText('Loading team record…');
+    await expect.poll(() => requests).toBe(1);
+    await expect(team.locator('.gx-team-view')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(game).toBeVisible();
+    await expect(opener).toBeFocused();
+    // A rejected download after closing cannot reopen the abandoned sheet.
+    const failed = page.waitForEvent('requestfailed', request => /\/assets\/TeamView-[^/]+\.js$/.test(request.url()));
+    mode = 'fail'; release(); await failed;
+    await expect(team).not.toBeVisible(); await expect(opener).toBeFocused();
+    await opener.click();
+    await expect(team.getByRole('alert')).toContainText('Team details couldn’t load.');
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await themePreference(theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 320, height: 844 });
+      await phoneChecks(page, '.gx-team-sheet'); expect(await axe(page)).toEqual([]);
+      await team.screenshot({ path: info.outputPath(`team-download-error-${theme}-${forcedColors}.png`) });
+    }
+    mode = 'hold'; waiting = new Promise(resolve => { release = resolve; });
+    await team.getByRole('button', { name: 'Try team details again' }).click();
+    await expect(team.getByRole('status')).toHaveText('Loading team record…');
+    await expect(team.getByRole('group', { name: 'Team details' })).toBeFocused();
+    for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await themePreference(theme);
+      await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
+      await phoneChecks(page, '.gx-team-sheet'); expect(await axe(page)).toEqual([]);
+      await team.screenshot({ path: info.outputPath(`team-download-loading-${theme}-${forcedColors}.png`) });
+    }
+    mode = 'ready'; release();
+    await expect(team.locator('.gx-team-view')).toBeVisible();
+    await expect(team.getByRole('group', { name: 'Team details' })).toBeFocused();
+    const loadedRequests = requests;
+    await page.keyboard.press('Escape');
+    await expect(opener).toBeFocused();
+    await opener.click();
+    await expect(team.locator('.gx-team-view')).toBeVisible();
+    expect(requests).toBe(loadedRequests);
+    expect(styleRequests).toBe(1);
+    expect(calls).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
+});
+
 test('the board: kickoff groups, YOU tags, a lock icon on each closed market (never "—"), current permitted quotes, no writes', async ({ page, baseURL }) => {
   const { world, fake } = await lukesWeek(page, baseURL);
   try {

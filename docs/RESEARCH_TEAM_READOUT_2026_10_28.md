@@ -37,3 +37,12 @@ Branch: `codex/team-chart-readout`. CI/merge, release/readback and physical-iPho
 acceptance remain open. Verified live-game status and dependent Bet/Challenge
 destinations are separate open work. This task makes no deployment, migration,
 source collection or frozen v62 tracker change.
+
+
+## Merge verified October 28, 2026
+
+[PR #293](https://github.com/seanbalz/guess-the-lines-repo/pull/293) merged as
+`1d9b38c891753af7a32686db2dd3e2fbd8c404e2` after all nine checks passed on
+`754a38d28b354f552a07abff2ad7aa902c95a264`. Reviews and review threads were empty;
+no CI repair was needed. Release/readback and physical-iPhone acceptance remain
+open. The next source batch defers team-detail code until its sheet opens.
