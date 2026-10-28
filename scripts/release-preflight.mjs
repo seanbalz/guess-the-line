@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-export const REPOSITORY = 'seanbalz/guess-the-lines-repo';
+export const REPOSITORY = 'seanbalz/guess-the-line';
 export const PROJECT = 'onmrgvcehkflfaizvedl';
 export const ACCOUNT = '83bd659d712e968e7a61efa14107465a';
 export const PUSH_REMINDERS = 'gtl-push-reminders';
