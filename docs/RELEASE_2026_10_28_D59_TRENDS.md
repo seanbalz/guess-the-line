@@ -28,8 +28,17 @@ builder frontend ([#285](https://github.com/seanbalz/guess-the-lines-repo/pull/2
 
 ## Release 3: `gtl-fantasy-ingest`
 
-- Needs a `fantasy-ingest` release target (follow-up PR). Without `GTL_FANTASY_FEED_UPLOAD_SECRET` the endpoint
-  answers 503 to everyone; Sean sets that secret himself (FANTASY_FEED_RELEASE.md step 3).
+- **Source:** `main` at **`583dbaa19e42ae6be71bbba5b349cfdf46716060`**
+  ([#287](https://github.com/seanbalz/guess-the-lines-repo/pull/287), the `fantasy-ingest` release target). Main push CI on
+  this exact SHA: Tests, Dashboard checks and Brand QA all success.
+- **Order:** `fantasy-ingest` only, after the D-59 apply. A first deploy creates the function (`verify_jwt = false`; its
+  upload secret replaces the JWT check).
+- **Compatibility:** nothing calls it yet; `gtl-api`, the app and the workers are unchanged. Without
+  `GTL_FANTASY_FEED_UPLOAD_SECRET` the endpoint answers 503 to everyone; Sean sets that secret himself
+  (FANTASY_FEED_RELEASE.md step 3).
+- **Migrations:** none. Expected hosted history **64 rows, `f39312113403e9b1dadc0f0331dda441686ff8a3723d5410ac087ac43eb46ad4`**.
+- **Rollback:** delete the `gtl-fantasy-ingest` function, or `GTL_FEATURE_OFF=fantasy-feed` (shared with `gtl-api`, so
+  keep its other entries).
 
 ## Results
 
@@ -51,5 +60,16 @@ builder frontend ([#285](https://github.com/seanbalz/guess-the-lines-repo/pull/2
   `public` false, `file_size_limit` 10485760, `allowed_mime_types` `{application/json}`; 0 storage policies. Hosted
   history **64 rows, `f39312113403e9b1dadc0f0331dda441686ff8a3723d5410ac087ac43eb46ad4`**. `tests/migrations.mjs` moves
   20261026220000 to `APPLIED`; 20261027160000 stays in `NOT_HOSTED`.
+- **Readiness (fantasy-ingest)** [run 40699268292](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40699268292)
+  and **fantasy-ingest** [run 40699619045](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40699619045) from
+  `583dbaa`, gates approved through the GitHub API as Sean's account after each title matched. Readiness read history
+  `f3931211…` and `fantasyIngestBefore` absent. Verified **13:49:12 UTC**: `gtl-fantasy-ingest` created at **v1**,
+  ACTIVE, `verify_jwt` false, bundle `326f6c5b1e6138703577c2c67c285ab91252779d37909ab6bd0cca4c6848c923`
+  (`fantasyIngestSourceVerified: false`: deployed from the clean checkout, remote bytes not independently matched).
+  `gtl-api` v39 and the history `f3931211…` (64 rows) unchanged. 378 signed-out probes, 378 denied, none awaiting.
+- **Probe from this PC, about 13:50 UTC:** `POST` with no token and with a wrong 64-hex token both answer **503**
+  `{"error":"The fantasy feed service is not configured."}` (the upload secret is not set); `GET` answers 405.
+- **Still Sean's:** set `GTL_FANTASY_FEED_UPLOAD_SECRET` (FANTASY_FEED_RELEASE.md step 3). After that, the boundary
+  `workerChecks` entry for 401s and the first upload with its access probes (steps 4 and 5).
 - **Not verified:** signed-in use and real phones. The bucket is empty; the access probes wait for the first upload
   (FANTASY_FEED_RELEASE.md step 5).
