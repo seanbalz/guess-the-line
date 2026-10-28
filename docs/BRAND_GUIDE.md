@@ -358,3 +358,8 @@ Guidance and sources.
   frame, back and close controls stable while the existing panels load. A failed download stays inside the frame
   with one explicit retry; preserve focus in the details and reuse the cached record read. Closing a pending view
   must return focus to its opener and a late download must not reopen it.
+
+- October 28, 2026: the optional Research Trends page uses the existing static
+  panel skeleton and a local text/retry state while code loads. Navigation stays
+  available; the same named content region retains retry focus. Existing tokens,
+  chart treatment and D-63 proposed labels are unchanged.
