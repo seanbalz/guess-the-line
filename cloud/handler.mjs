@@ -47,9 +47,11 @@ import { handlePoints, POINTS_METHODS, POINTS_PUBLIC_CODES, POINTS_RPCS, PointsE
 // Streaks, badges and weekly awards (redesign stage 69, M-25): their own route group; 404 "coming soon" until M-25 is applied.
 import { handleFeatures, FEATURES_METHODS, FEATURES_RPCS, FeaturesError, providerFeaturesError } from './features.mjs';
 // EPL Pick a Team (EPL plan 1, Task 4): its own route group over the M-30 service-only functions; 404 "coming soon" until M-30 is applied.
-import { handleEpl, EPL_METHODS, EPL_PUBLIC_CODES, EPL_RPCS, EplError, providerEplError, createEplService } from './epl.mjs';
+import { handleEpl, EPL_BODY_LIMITS, EPL_METHODS, EPL_PUBLIC_CODES, EPL_RPCS, EplError, providerEplError, createEplService } from './epl.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
+/** Routes whose body may exceed MAX_BODY_BYTES (only the EPL snapshot import); every other route keeps the 32 KB cap. */
+const BODY_LIMITS = Object.freeze({ ...EPL_BODY_LIMITS });
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
@@ -118,12 +120,12 @@ const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.strin
 });
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
-async function readJson(request) {
+async function readJson(request, maxBytes = MAX_BODY_BYTES) {
   if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') {
     fail(415, 'Send the request as JSON.');
   }
   const length = request.headers.get('content-length');
-  if (length && (!/^\d+$/.test(length) || Number(length) > MAX_BODY_BYTES)) fail(413, 'Request is too large.');
+  if (length && (!/^\d+$/.test(length) || Number(length) > maxBytes)) fail(413, 'Request is too large.');
   const reader = request.body?.getReader();
   if (!reader) fail(400, 'A JSON object is required.');
   const chunks = []; let size = 0;
@@ -132,7 +134,7 @@ async function readJson(request) {
       const { value, done } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > MAX_BODY_BYTES) {
+      if (size > maxBytes) {
         await reader.cancel().catch(() => {});
         fail(413, 'Request is too large.');
       }
@@ -254,7 +256,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
 
       let body;
       if (request.method === 'POST') {
-        body = await readJson(request);
+        body = await readJson(request, Object.hasOwn(BODY_LIMITS, route) ? BODY_LIMITS[route] : MAX_BODY_BYTES);
       }
       // Private NBA account tickets require verified Auth only, independent of NFL rosters and gates.
       if (Object.hasOwn(NBA_METHODS, route)) return json(await handleNba({ route, body, user, service: nba, gamesService: nbaGames }));

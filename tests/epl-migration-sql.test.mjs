@@ -104,6 +104,38 @@ test('seed_week hand-seeds a week, refuses once a real pick exists, and reruns c
   await assert.rejects(call(sql, args), /GTL_EPL_SEED_REFUSED/);
 });
 
+test('link_manager links, refuses a second link of one account, and unlinks with a null account', async t => {
+  const { call, db } = await setup(t);
+  // The league row's state shape is not what this test is about, so the fixture skips that foreign key.
+  await db.exec('alter table public.gtl_memberships drop constraint gtl_memberships_league_id_fkey');
+  await db.exec(`insert into public.gtl_memberships(league_id,user_id,player_id,role,active) values('sean-troy-luke','${U(2)}','sean','commissioner',true)`);
+  const link = (owner, user, by = U(2)) => call('select public.gtl_epl_link_manager($1,$2,$3) r', [owner, user, by]);
+  await assert.rejects(link(A, null, U(1)), /GTL_EPL_FORBIDDEN/, 'only the commissioner');
+  await assert.rejects(link(A, U(3)), /GTL_EPL_ALREADY_LINKED/, 'U(3) is Steven already');
+  assert.deepEqual(await link(A, null), { ownerId: A, userId: null });
+  assert.deepEqual((await db.query('select user_id,linked_by from public.gtl_epl_managers where owner_id=$1', [A])).rows, [{ user_id: null, linked_by: U(2) }]);
+  assert.equal((await call('select public.gtl_epl_member($1) r', [U(1)])), null, 'the unlinked account is no longer a manager');
+  assert.deepEqual(await link(A, U(4)), { ownerId: A, userId: U(4) }, 'the manager can be relinked to another account');
+  await assert.rejects(link('999', null), /GTL_EPL_UNKNOWN_MANAGER/);
+});
+
+test('set_week_window corrects an automatic week with real picks, keeps order and picks, and refuses closed weeks', async t => {
+  const { call, pick, db } = await setup(t);
+  await pick(U(1), 'Arsenal');
+  const set = (start, end, kick = null, week = 9) => call('select public.gtl_epl_set_week_window(2026,$4,$1,$2,$3) r', [start, end, kick, week]);
+  const moved = await set('2026-11-01T00:00:00Z', '2026-11-10T00:00:00Z');
+  assert.equal(Date.parse(moved.windowStart), Date.parse('2026-11-01T00:00:00Z'));
+  assert.equal(Date.parse(moved.firstKickoff), Date.parse(KICK), 'first kickoff kept when not given');
+  await set('2026-11-01T00:00:00Z', '2026-11-10T00:00:00Z', '2026-11-07T15:00:00Z');
+  const row = (await db.query('select pick_order,seeded,first_kickoff from public.gtl_epl_weeks where week=9')).rows[0];
+  assert.deepEqual([row.pick_order, row.seeded, row.first_kickoff.toISOString()], [[A, B, C], false, '2026-11-07T15:00:00.000Z']);
+  assert.equal((await db.query("select count(*)::int n from public.gtl_epl_picks where club='Arsenal'")).rows[0].n, 1, 'the real pick is kept');
+  await assert.rejects(set('2026-11-10T00:00:00Z', '2026-11-01T00:00:00Z'), /GTL_EPL_INVALID/);
+  await assert.rejects(set('2026-11-01T00:00:00Z', '2026-11-10T00:00:00Z', null, 10), /GTL_EPL_NO_WEEK/);
+  await call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', ['[]']);
+  await assert.rejects(set('2026-11-01T00:00:00Z', '2026-11-10T00:00:00Z'), /GTL_EPL_DRAFT_CLOSED/);
+});
+
 test('the migration applies twice without error or duplicate rows', async t => {
   const { db } = await setup(t);
   await db.exec(fs.readFileSync(FILE, 'utf8'));

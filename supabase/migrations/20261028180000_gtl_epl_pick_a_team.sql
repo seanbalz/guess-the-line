@@ -15,7 +15,7 @@
 --   serialise, and re-checks the deadline, the turn and the club in SQL), gtl_epl_save_queue, gtl_epl_week_state
 --   (the public state; queues are private and never included), and the jobs worker's writers: gtl_epl_upsert_fixtures,
 --   gtl_epl_upsert_prices, gtl_epl_resolve_week, gtl_epl_settle_week, gtl_epl_save_snapshot, gtl_epl_link_manager,
---   gtl_epl_seed_week.
+--   gtl_epl_seed_week, gtl_epl_set_week_window.
 --
 -- Apply after M-29 (20261027..., the newest file on main). Rerunnable: tables and indexes are created only if missing,
 -- every function is create or replace with this exact argument list, every grant is restated, and the manager seed rows
@@ -353,12 +353,12 @@ begin
   return n>0;
 end $$;
 
--- The commissioner links an account to a manager (p_by is checked here too, so a caller cannot link on their own say-so).
+-- The commissioner links an account to a manager, or unlinks the manager with p_user null (p_by is checked here too, so a
+-- caller cannot link on their own say-so). Unlinking keeps the manager row and every pick; it only clears the account.
 create or replace function public.gtl_epl_link_manager(p_owner_id text,p_user uuid,p_by uuid) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 begin
   if p_by is null or not exists(select 1 from public.gtl_memberships where user_id=p_by and league_id='sean-troy-luke' and role='commissioner' and active) then raise exception 'GTL_EPL_FORBIDDEN' using errcode='P0001'; end if;
-  if p_user is null then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
   begin
     update public.gtl_epl_managers set user_id=p_user,linked_by=p_by,linked_at=clock_timestamp() where owner_id=p_owner_id;
   exception when unique_violation then raise exception 'GTL_EPL_ALREADY_LINKED' using errcode='P0001';
@@ -397,16 +397,35 @@ begin
   return jsonb_build_object('season',p_season,'week',p_week,'seeded',n);
 end $$;
 
+-- The commissioner corrects a week's fixture window (the jobs worker takes the events with commence_time in
+-- [window_start, window_end)) and, when given, its first kickoff, for any week still open, seeded or not, whatever picks
+-- it has. The order and the picks are never touched here (gtl_epl_seed_week is the only writer of those).
+create or replace function public.gtl_epl_set_week_window(p_season integer,p_week integer,p_window_start timestamptz,p_window_end timestamptz,
+  p_first_kickoff timestamptz) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+declare w public.gtl_epl_weeks;
+begin
+  if p_window_start is null or p_window_end is null or p_window_end<=p_window_start then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
+  select * into w from public.gtl_epl_weeks where season=p_season and week=p_week for update;
+  if not found then raise exception 'GTL_EPL_NO_WEEK' using errcode='P0001'; end if;
+  if w.status<>'open' then raise exception 'GTL_EPL_DRAFT_CLOSED' using errcode='P0001'; end if;
+  update public.gtl_epl_weeks set window_start=p_window_start,window_end=p_window_end,first_kickoff=coalesce(p_first_kickoff,w.first_kickoff)
+    where season=p_season and week=p_week returning * into w;
+  return jsonb_build_object('season',p_season,'week',p_week,'windowStart',w.window_start,'windowEnd',w.window_end,'firstKickoff',w.first_kickoff);
+end $$;
+
 -- Every function is service-only; create or replace keeps privileges, so each grant is restated.
 revoke all on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(integer,integer),
   public.gtl_epl_save_pick(uuid,integer,integer,text,timestamptz),public.gtl_epl_save_queue(uuid,integer,integer,text[]),
   public.gtl_epl_upsert_fixtures(jsonb),public.gtl_epl_upsert_prices(jsonb),public.gtl_epl_resolve_week(integer,integer,jsonb),
   public.gtl_epl_settle_week(integer,integer,jsonb,jsonb),public.gtl_epl_save_snapshot(text,timestamptz,integer,jsonb,jsonb),
   public.gtl_epl_link_manager(text,uuid,uuid),
-  public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb) from public,anon,authenticated;
+  public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
+  public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz) from public,anon,authenticated;
 grant execute on function public.gtl_epl_member(uuid),public.gtl_epl_week_state(integer,integer),
   public.gtl_epl_save_pick(uuid,integer,integer,text,timestamptz),public.gtl_epl_save_queue(uuid,integer,integer,text[]),
   public.gtl_epl_upsert_fixtures(jsonb),public.gtl_epl_upsert_prices(jsonb),public.gtl_epl_resolve_week(integer,integer,jsonb),
   public.gtl_epl_settle_week(integer,integer,jsonb,jsonb),public.gtl_epl_save_snapshot(text,timestamptz,integer,jsonb,jsonb),
   public.gtl_epl_link_manager(text,uuid,uuid),
-  public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb) to service_role;
+  public.gtl_epl_seed_week(integer,integer,timestamptz,timestamptz,timestamptz,text[],jsonb),
+  public.gtl_epl_set_week_window(integer,integer,timestamptz,timestamptz,timestamptz) to service_role;

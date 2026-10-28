@@ -34,7 +34,7 @@ test('every table is created if not exists, has row level security and service-o
 test('no security definer; every function is create or replace, invoker, empty search_path', () => {
   assert.doesNotMatch(code, /security\s+definer/i);
   const fns = [...code.matchAll(/create\s+(or\s+replace\s+)?function\s+(public\.\w+)\s*\(([^)]*)\)/gi)];
-  assert.ok(fns.length === 11);
+  assert.ok(fns.length === 12);
   for (const [, orr, name] of fns) assert.ok(orr, `${name} must be create or replace`);
   assert.equal([...code.matchAll(/security\s+invoker\s+set\s+search_path\s*=\s*''/gi)].length, fns.length);
 });
@@ -46,7 +46,7 @@ test('every function is revoked from the browser roles and granted to service_ro
     assert.ok(new RegExp(`grant\\s+execute\\s+on\\s+function[^;]*${n.replace('.', '\\.')}\\([^;]*to\\s+service_role`, 'i').test(code), `${n} grant`);
   }
   for (const n of ['gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_week_state', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices',
-    'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_link_manager', 'gtl_epl_seed_week']) assert.ok(names.includes(`public.${n}`), n);
+    'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window']) assert.ok(names.includes(`public.${n}`), n);
 });
 
 test('every create is idempotent and nothing is dropped or deleted', () => {

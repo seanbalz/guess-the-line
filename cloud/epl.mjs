@@ -4,9 +4,11 @@
 //   /epl/draft/read      a linked FEPL manager or the commissioner: the week's board, the clubs playing, the caller's own queue
 //   /epl/draft/pick      the manager on the clock, or the latest picker changing their pick (gtl_epl_save_pick re-checks it all)
 //   /epl/queue/save      a linked manager's private backup ranking (at most 20 different clubs playing that week)
-//   /epl/admin/link      the commissioner links an account to a manager
-//   /epl/admin/week      the commissioner opens or corrects a seeded week (MW9), with its order and the picks made elsewhere
-//   /epl/admin/snapshot  the commissioner stores a Sleeper season-total snapshot, unique by label
+//   /epl/admin/link      the commissioner links an account to a manager, or unlinks one (userId null)
+//   /epl/admin/week      the commissioner corrects any open week's window (and first kickoff) when no order or picks are
+//                        sent; with an order or picks it opens or corrects a seeded week (MW9) through gtl_epl_seed_week
+//   /epl/admin/snapshot  the commissioner stores a Sleeper season-total snapshot, unique by label (its body may be up to
+//                        EPL_SNAPSHOT_MAX_BYTES; every other gtl-api route keeps the 32 KB cap)
 // The rules in shared/epl-draft.mjs refuse an out-of-turn, taken, closed or not-playing pick before any write, so the
 // common refusals cost no write; the SQL is still the authority (it locks the week row and checks again).
 //
@@ -25,7 +27,14 @@ export const EPL_METHODS = Object.freeze({
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
-  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_save_snapshot', 'gtl_community_admin']);
+  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_community_admin']);
+/**
+ * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). A Sleeper snapshot carries the season-total
+ * stats and next-week projections for every player (the after-MW8 file is about 900 KB), which the weekly scores need in
+ * full, so it cannot be trimmed to fit the 32 KB cap the other routes keep. The body is read only after sign-in.
+ */
+export const EPL_SNAPSHOT_MAX_BYTES = 4 * 1024 * 1024;
+export const EPL_BODY_LIMITS = Object.freeze({ '/epl/admin/snapshot': EPL_SNAPSHOT_MAX_BYTES });
 
 export class EplError extends Error {
   constructor(status, message, code) { super(message); this.name = 'EplError'; this.status = status; if (code) this.code = code; }
@@ -196,9 +205,10 @@ async function queueSave({ body, user, service, now }) {
 async function adminLink({ body, user, service }) {
   keys(body, ['ownerId', 'userId']);
   await requireCommissioner(service, user);
-  // Unlinking (userId null) needs an M-30 change: gtl_epl_link_manager refuses a null account.
-  if (!isManager(body.ownerId) || typeof body.userId !== 'string' || !UUID_PATTERN.test(body.userId)) refuse('GTL_EPL_INVALID');
-  const linked = await service.rpc('gtl_epl_link_manager', { p_owner_id: body.ownerId, p_user: body.userId.toLowerCase(), p_by: user.id });
+  // userId null unlinks the manager (the account is cleared; the manager row and every pick stay). It must be sent explicitly.
+  if (!isManager(body.ownerId) || !Object.hasOwn(body, 'userId')
+    || (body.userId !== null && (typeof body.userId !== 'string' || !UUID_PATTERN.test(body.userId)))) refuse('GTL_EPL_INVALID');
+  const linked = await service.rpc('gtl_epl_link_manager', { p_owner_id: body.ownerId, p_user: body.userId === null ? null : body.userId.toLowerCase(), p_by: user.id });
   if (!record(linked)) throw reply();
   return { ownerId: text(linked.ownerId), userId: text(linked.userId) };
 }
@@ -211,7 +221,16 @@ async function adminWeek({ body, user, service }) {
     || (given(body.firstKickoff) && !iso(body.firstKickoff))) refuse('GTL_EPL_INVALID');
   if (given(body.order) && (!Array.isArray(body.order) || !body.order.length || body.order.length > 8 || !body.order.every(isManager)
     || new Set(body.order).size !== body.order.length)) refuse('GTL_EPL_INVALID');
-  // What is not sent is kept from the stored week; a new week needs both.
+  // No order and no picks: only the window (and the first kickoff, when sent) changes, for any open week, seeded or
+  // automatic, whatever picks it has (plan Task 5: the commissioner corrects the fixture window with admin/week).
+  if (!given(body.order) && !given(body.picks)) {
+    const moved = await service.rpc('gtl_epl_set_week_window', { p_season: body.season, p_week: body.week, p_window_start: windowStart,
+      p_window_end: windowEnd, p_first_kickoff: given(body.firstKickoff) ? iso(body.firstKickoff) : null });
+    if (!record(moved) || !iso(moved.windowStart) || !iso(moved.windowEnd) || !iso(moved.firstKickoff)) throw reply();
+    return { season: body.season, week: body.week, windowStart: iso(moved.windowStart), windowEnd: iso(moved.windowEnd), firstKickoff: iso(moved.firstKickoff) };
+  }
+  // Seeding (order or picks sent, allowed only while the week is seeded or absent and has no in-app pick): what is not
+  // sent is kept from the stored week; a new week needs both an order and a first kickoff.
   const stored = given(body.order) && given(body.firstKickoff) ? null
     : await service.rpc('gtl_epl_week_state', { p_season: body.season, p_week: body.week }).then(raw => (raw ? weekView(raw) : null));
   const order = given(body.order) ? [...body.order] : stored?.order;

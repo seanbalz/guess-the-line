@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { EPL_METHODS, EPL_RPCS, EPL_PUBLIC_CODES, EplError, handleEpl, providerEplError, createEplService } from '../cloud/epl.mjs';
+import { EPL_BODY_LIMITS, EPL_METHODS, EPL_RPCS, EPL_PUBLIC_CODES, EPL_SNAPSHOT_MAX_BYTES, EplError, handleEpl, providerEplError, createEplService } from '../cloud/epl.mjs';
 import { ROUTE_METHODS, ROUTE_MODULES, createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 
 // EPL Pick a Team routes on gtl-api (plan 2026-10-28-epl-pick-a-team.md, Task 4) over the M-30 service-only RPCs.
@@ -46,6 +46,10 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
       if (name === 'gtl_epl_save_queue') return { season: args.p_season, week: args.p_week, ownerId: member, clubs: args.p_clubs };
       if (name === 'gtl_epl_link_manager') return { ownerId: args.p_owner_id, userId: args.p_user };
       if (name === 'gtl_epl_seed_week') return { season: args.p_season, week: args.p_week, seeded: args.p_picks.length };
+      if (name === 'gtl_epl_set_week_window') {
+        if (!state) throw providerEplError('GTL_EPL_NO_WEEK');
+        return { season: args.p_season, week: args.p_week, windowStart: args.p_window_start, windowEnd: args.p_window_end, firstKickoff: args.p_first_kickoff ?? state.weekRow.firstKickoff };
+      }
       if (name === 'gtl_epl_save_snapshot') return true;
       throw new Error(`unexpected rpc ${name}`);
     },
@@ -192,9 +196,17 @@ test('admin/link links an account to a manager', async () => {
   assert.deepEqual(await call('/epl/admin/link', { ownerId: DARIN, userId: OTHER }, service), { ownerId: DARIN, userId: OTHER });
   assert.deepEqual(service.calls.at(-1), ['gtl_epl_link_manager', { p_owner_id: DARIN, p_user: OTHER, p_by: USER.id }]);
   await rejectsWith(call('/epl/admin/link', { ownerId: DARIN, userId: OTHER }, fakeService({ admin: true, errors: { gtl_epl_link_manager: 'GTL_EPL_ALREADY_LINKED' } })), 409, 'GTL_EPL_ALREADY_LINKED');
-  for (const body of [{ ownerId: '1', userId: OTHER }, { ownerId: 'constructor', userId: OTHER }, { ownerId: DARIN, userId: 'x' }, { ownerId: DARIN }, { ownerId: DARIN, userId: null }]) {
+  for (const body of [{ ownerId: '1', userId: OTHER }, { ownerId: 'constructor', userId: OTHER }, { ownerId: DARIN, userId: 'x' }, { ownerId: DARIN }, { ownerId: DARIN, userId: 7 }, { ownerId: null, userId: null }]) {
     await rejectsWith(call('/epl/admin/link', body, fakeService({ admin: true })), 400);
   }
+});
+
+test('admin/link with userId null unlinks the manager', async () => {
+  const service = fakeService({ admin: true });
+  assert.deepEqual(await call('/epl/admin/link', { ownerId: DARIN, userId: null }, service), { ownerId: DARIN, userId: null });
+  assert.deepEqual(service.calls.map(c => c[0]), ['gtl_community_admin', 'gtl_epl_link_manager']);
+  assert.deepEqual(service.calls.at(-1), ['gtl_epl_link_manager', { p_owner_id: DARIN, p_user: null, p_by: USER.id }]);
+  await rejectsWith(call('/epl/admin/link', { ownerId: DARIN, userId: null }, fakeService({ admin: false })), 403, 'GTL_EPL_FORBIDDEN');
 });
 
 test('admin/week seeds MW9 with Sean\'s order and the chat picks', async () => {
@@ -213,14 +225,37 @@ test('admin/week seeds MW9 with Sean\'s order and the chat picks', async () => {
   });
 });
 
-test('admin/week keeps the stored order and kickoff when they are not sent, and maps a refused seed to 409', async () => {
+test('admin/week with only a window corrects any open week (automatic, with real picks) and never seeds', async () => {
+  // An automatically opened week (seeded false) that already has an in-app pick: gtl_epl_seed_week would refuse it.
+  const auto = weekState({ weekRow: { ...weekState().weekRow, seeded: false }, picks: [{ ownerId: NEMO, club: 'MNC', source: 'pick', pickedAt: '2026-10-30T10:00:00+00:00', final: false }] });
+  const service = fakeService({ admin: true, state: auto, errors: { gtl_epl_seed_week: 'GTL_EPL_SEED_REFUSED' } });
+  const body = { season: 2026, week: 9, windowStart: '2026-10-29T00:00:00Z', windowEnd: '2026-11-05T00:00:00Z' };
+  assert.deepEqual(await call('/epl/admin/week', body, service), {
+    season: 2026, week: 9, windowStart: '2026-10-29T00:00:00.000Z', windowEnd: '2026-11-05T00:00:00.000Z', firstKickoff: new Date(KICKOFF).toISOString(),
+  });
+  assert.deepEqual(service.calls.map(c => c[0]), ['gtl_community_admin', 'gtl_epl_set_week_window']);
+  assert.deepEqual(service.calls.at(-1)[1], { p_season: 2026, p_week: 9, p_window_start: '2026-10-29T00:00:00.000Z', p_window_end: '2026-11-05T00:00:00.000Z', p_first_kickoff: null });
+  // The first kickoff can be corrected with the window.
+  const kick = fakeService({ admin: true, state: auto });
+  const moved = await call('/epl/admin/week', { ...body, firstKickoff: '2026-10-31T15:00:00Z' }, kick);
+  assert.equal(moved.firstKickoff, '2026-10-31T15:00:00.000Z');
+  assert.equal(kick.calls.at(-1)[1].p_first_kickoff, '2026-10-31T15:00:00.000Z');
+  // A missing week is 404 and a resolved one 409; a bad window never reaches the database.
+  await rejectsWith(call('/epl/admin/week', body, fakeService({ admin: true, state: null })), 404, 'GTL_EPL_NO_WEEK');
+  await rejectsWith(call('/epl/admin/week', body, fakeService({ admin: true, errors: { gtl_epl_set_week_window: 'GTL_EPL_DRAFT_CLOSED' } })), 409, 'GTL_EPL_DRAFT_CLOSED');
+  const bad = fakeService({ admin: true });
+  await rejectsWith(call('/epl/admin/week', { ...body, windowEnd: '2026-10-28T00:00:00Z' }, bad), 400, 'GTL_EPL_INVALID');
+  assert.deepEqual(bad.calls.map(c => c[0]), ['gtl_community_admin']);
+});
+
+test('admin/week keeps the stored order and kickoff when only picks are sent, and maps a refused seed to 409', async () => {
   const service = fakeService({ admin: true });
-  await call('/epl/admin/week', { season: 2026, week: 9, windowStart: '2026-10-30T00:00:00Z', windowEnd: '2026-11-04T00:00:00Z' }, service);
+  await call('/epl/admin/week', { season: 2026, week: 9, windowStart: '2026-10-30T00:00:00Z', windowEnd: '2026-11-04T00:00:00Z', picks: [] }, service);
   const [, args] = service.calls.find(c => c[0] === 'gtl_epl_seed_week');
   assert.deepEqual(args.p_order, ORDER);
   assert.equal(args.p_first_kickoff, new Date(KICKOFF).toISOString());
   assert.deepEqual(args.p_picks, []);
-  await rejectsWith(call('/epl/admin/week', { season: 2026, week: 9, windowStart: '2026-10-30T00:00:00Z', windowEnd: '2026-11-04T00:00:00Z' }, fakeService({ admin: true, errors: { gtl_epl_seed_week: 'GTL_EPL_SEED_REFUSED' } })), 409, 'GTL_EPL_SEED_REFUSED');
+  await rejectsWith(call('/epl/admin/week', { season: 2026, week: 9, windowStart: '2026-10-30T00:00:00Z', windowEnd: '2026-11-04T00:00:00Z', order: ORDER }, fakeService({ admin: true, errors: { gtl_epl_seed_week: 'GTL_EPL_SEED_REFUSED' } })), 409, 'GTL_EPL_SEED_REFUSED');
   const base = { season: 2026, week: 10, windowStart: '2026-11-04T00:00:00Z', windowEnd: '2026-11-11T00:00:00Z', firstKickoff: '2026-11-07T12:30:00Z' };
   for (const body of [
     { ...base, windowEnd: '2026-11-01T00:00:00Z' }, { ...base, order: [NEMO, NEMO] }, { ...base, order: ['123'] },
@@ -231,7 +266,7 @@ test('admin/week keeps the stored order and kickoff when they are not sent, and 
   }
   // A new week without an order or a kickoff cannot be made up.
   await rejectsWith(call('/epl/admin/week', { ...base, firstKickoff: undefined, order: ORDER }, fakeService({ admin: true, state: null })), 400, 'GTL_EPL_INVALID');
-  await rejectsWith(call('/epl/admin/week', base, fakeService({ admin: true, state: null })), 400, 'GTL_EPL_INVALID');
+  await rejectsWith(call('/epl/admin/week', { ...base, picks: [] }, fakeService({ admin: true, state: null })), 400, 'GTL_EPL_INVALID');
 });
 
 test('admin/snapshot stores a Sleeper snapshot by label', async () => {
@@ -284,7 +319,7 @@ test('the gtl-api adapter gives EPL a caller limited to its own functions, and t
     requests.push(new URL(url).pathname);
     return Response.json({ message: 'GTL_EPL_CLUB_TAKEN' }, { status: 400 });
   } });
-  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_week_state']);
+  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
   await assert.rejects(adapter.epl.rpc('gtl_epl_save_pick', {}), error => error instanceof EplError && error.status === 409);
   await assert.rejects(adapter.epl.rpc('gtl_epl_resolve_week', {}), /Invalid operation/);
   assert.deepEqual(requests, ['/rest/v1/rpc/gtl_epl_save_pick']);
@@ -293,4 +328,24 @@ test('the gtl-api adapter gives EPL a caller limited to its own functions, and t
   const response = await handler(new Request('https://fixture.invalid/functions/v1/gtl-api/epl/draft/read', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer token' }, body: '{}' }));
   assert.equal(response.status, 403);
   assert.deepEqual(await response.json(), { error: 'Pick a Team is for the FEPL managers.', code: 'GTL_EPL_FORBIDDEN' });
+});
+
+test('gtl-api reads a full-size Sleeper snapshot on /epl/admin/snapshot and keeps the 32 KB cap everywhere else', async () => {
+  assert.deepEqual(EPL_BODY_LIMITS, { '/epl/admin/snapshot': EPL_SNAPSHOT_MAX_BYTES });
+  const service = fakeService({ admin: true });
+  const handler = createCloudHandler({ authenticate: async () => ({ ...USER, email: 'sean@example.com', emailConfirmed: true }), epl: service });
+  const post = (route, body) => handler(new Request(`https://fixture.invalid/functions/v1/gtl-api${route}`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer token' }, body }));
+  // About the size of the after-MW8 snapshot (900 KB): season-total stats for every player.
+  const stats = Object.fromEntries(Array.from({ length: 6000 }, (_, i) => [`p${i}`, { pts_half_ppr: i / 10, gp: 8, min: 600, goal: 1, ast: 2, padding: 'x'.repeat(100) }]));
+  const snapshot = JSON.stringify({ label: 'after-mw8', capturedAt: '2026-10-28T17:32:00Z', week: 8, payload: { rosters: [], stats_mw8: stats } });
+  assert.ok(snapshot.length > 900_000 && snapshot.length < EPL_SNAPSHOT_MAX_BYTES, `${snapshot.length}`);
+  const saved = await post('/epl/admin/snapshot', snapshot);
+  assert.equal(saved.status, 200, JSON.stringify(await saved.clone().json()));
+  assert.deepEqual(await saved.json(), { label: 'after-mw8', saved: true });
+  assert.equal(service.calls.at(-1)[0], 'gtl_epl_save_snapshot');
+  assert.equal(Object.keys(service.calls.at(-1)[1].p_payload.stats_mw8).length, 6000);
+  // Over the snapshot cap is still refused, and the other EPL routes keep the 32 KB cap.
+  assert.equal((await post('/epl/admin/snapshot', JSON.stringify({ label: 'x', padding: 'x'.repeat(EPL_SNAPSHOT_MAX_BYTES) }))).status, 413);
+  assert.equal((await post('/epl/admin/week', JSON.stringify({ padding: 'x'.repeat(32769) }))).status, 413);
+  assert.equal((await post('/epl/queue/save', JSON.stringify({ padding: 'x'.repeat(32769) }))).status, 413);
 });
