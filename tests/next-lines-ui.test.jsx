@@ -68,7 +68,7 @@ const HOUR = 3_600_000;
 const NOW = Date.parse(week.games[0].kickoff) - 24 * HOUR;
 const TODAY = { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' };
 const ref = value => ({ basis: 'line_at_guess', status: 'available', value, source: 'fixture' });
-const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), toOldApp: vi.fn(), setDirty: vi.fn(), confirmLeave: vi.fn(() => true), state: { sheets: [] } };
+const shell = { openSheet: vi.fn(), closeSheet: vi.fn(), reload: vi.fn(), setDirty: vi.fn(), confirmLeave: vi.fn(() => true), state: { sheets: [] } };
 
 /** The data hook's answer: the viewer's own week (a sent Total, Spread drafts and a forged Spread line), the Community week. */
 function data({ now = NOW, rules = TODAY } = {}) {

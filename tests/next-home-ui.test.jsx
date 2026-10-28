@@ -57,7 +57,7 @@ function reply(patch = {}) {
   };
 }
 
-const shell = { tab: vi.fn(), toOldApp: vi.fn(), state: { tab: 'home', sheets: [] } };
+const shell = { tab: vi.fn(), reload: vi.fn(), state: { tab: 'home', sheets: [] } };
 const app = { refresh: vi.fn(), accountId: 'u-casey' };
 const home = (community, patch = {}) => { state.home = { app, viewer: 'u-casey', community: { status: 'ready', data: community, error: null, loading: false }, ...patch }; };
 const render = () => renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx"><Home/></div></ShellContext.Provider>);
