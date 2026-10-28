@@ -402,3 +402,9 @@ Guidance and sources.
   slider names and the Chart view group name. Keep exact point/season values in
   the value announcement. This adds accessible context without visible text or
   plot changes; standalone charts retain their existing fallback names.
+
+- **Fantasy view loading in Research:** reuse static panels and the Fantasy title
+  while its detail code loads; keep Back and tab navigation available. Keep code/
+  style failure and explicit retry local, with a stable content region for focus
+  through loading and recovery. Reuse existing screen styles and public data
+  behavior; do not draw sample rankings while waiting.

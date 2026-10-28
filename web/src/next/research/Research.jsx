@@ -3,7 +3,7 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { LinesBoard } from '../lines/LinesBoard.jsx';
-import { FantasyScreen } from '../fantasy/FantasyScreen.jsx';
+import { FantasyPage } from '../fantasy/FantasyPage.jsx';
 
 export function Research() {
   const shell = useShell(), app = useAppData();
@@ -11,7 +11,7 @@ export function Research() {
   const section = shell.state.views.research.section;
   if (section === 'games') return <LinesBoard/>;
   if (section === 'trends') return <TrendsPage/>;
-  if (section === 'fantasy') return <FantasyScreen/>;
+  if (section === 'fantasy') return <FantasyPage/>;
   return <section className="gx-screen" data-landing="research">
     <div className="gx-focus-heading"><h1 className="gx-t-title">Research</h1>{app.community.data?.week && <p className="gx-t-meta">Week {app.community.data.week.week}</p>}</div>
     <FocusAction title="Know the matchup." description="Open a game for lines, sources, weather and your notes." action="Explore games" onAction={() => open('games')}/>
