@@ -502,10 +502,29 @@ season slider and view-group accessible names, preserving the exact value
 announcement and existing selection behavior. The name regressions failed
 before and passed after implementation. Full Vitest (468), 27 chart-geometry/
 token/brand tests and typecheck passed. All 98 expanded browser cases, final
-fixture privacy and Brand QA passed. #303 is merged; this batch’s own CI/merge,
-release/readback and device/assistive-technology acceptance remain open. GitHub’s canonical repository name
+fixture privacy and Brand QA passed. PR [#304](https://github.com/seanbalz/guess-the-line/pull/304) merged as
+`c73f7230c8435c2770eb1f031d9595576e07b20c` after all nine checks passed on
+`2db07ae00fd251f27335c9026823e2ac3909e3dc`. Reviews and review threads were empty;
+no CI repairs were needed.
+Release/readback and device/assistive-technology acceptance remain open.
+GitHub’s canonical repository name
 is now `seanbalz/guess-the-line`, verified against the unchanged repository ID;
 the repository synchronization pointer is updated.
+
+The [on-demand Fantasy view](RESEARCH_FANTASY_LOADING_2026_10_28.md) batch,
+`codex/lazy-research-fantasy`, defers the existing detail view/styles within
+Research, with static loading panels, stable route/retry focus and local code/
+stylesheet repair. Initial static graph is 26,093 raw bytes smaller (6,267
+estimated gzip); once opened, total estimated gzip is 1,311 bytes larger.
+Both focused browser cases, eight inspected 320px theme/forced-color captures,
+axe/touch checks, Vitest (468), 37 shell/Fantasy-loader/ranking/token/brand tests
+and typecheck passed. All 108 expanded browser cases, both final focused cases,
+final fixture privacy and Brand QA passed. #304 is merged; this batch’s own
+CI/merge, release/readback, signed-in performance and phone acceptance remain
+open. Q12–Q14's old branch-only wording is corrected: their
+existing tools merged in PR #269 as `a6d655ed03b375e48b5159a70dd82ecd2b0030fb`.
+Their feature-specific release/readback and device acceptance remain separate;
+this batch adds no Fantasy feature or integration.
 
 Q17-C remains open. Community Members merged in
 [PR #211](https://github.com/seanbalz/guess-the-lines-repo/pull/211) as
