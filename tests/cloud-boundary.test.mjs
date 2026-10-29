@@ -445,10 +445,9 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // a missing route is now an unexpected 404.
   // M-19 (D-64, proposed): its two service-only RPCs await "apply M-19"; its apply record removes them (Gate M step 8).
   const m19 = { 'rpc/gtl_social_auto_grade': 'migration 20261028120000_gtl_social_auto_settle.sql', 'rpc/gtl_settle_social_pending': 'migration 20261028120000_gtl_social_auto_settle.sql' };
-  // M-11 (stage 41): its three service-only RPCs await "apply M-11" and /bets/place the gtl-api deploy after it.
-  const m11 = Object.fromEntries(['gtl_place_bets', 'gtl_bets_newest_quote', 'gtl_bets_terms'].map(rpc => [`rpc/${rpc}`, 'migration 20261028181000_gtl_bets_place.sql']));
-  m11['gtl-api/bets/place'] = 'the gtl-api deploy with /bets/place';
-  assert.deepEqual(awaitingDeploy, { ...m19, ...m11 }, 'only M-19 and M-11 are awaiting deploy');
+  // M-11 (stage 41) is hosted since October 29, 2026 and /bets/place is deployed: nothing of it awaits.
+  for (const key of ['rpc/gtl_place_bets', 'rpc/gtl_bets_newest_quote', 'rpc/gtl_bets_terms', 'gtl-api/bets/place']) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
+  assert.deepEqual(awaitingDeploy, m19, 'only M-19 is awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
