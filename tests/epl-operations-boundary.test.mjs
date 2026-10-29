@@ -1,7 +1,7 @@
 // Transport fixtures complement real SQL privilege assertions; none of these checks touches a hosted project.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkCloudBoundary, awaitingDeploy } from '../scripts/check-cloud-boundary.mjs';
+import { checkCloudBoundary, awaitingDeploy, privateResponse } from '../scripts/check-cloud-boundary.mjs';
 import { tables,rpcChecks } from '../scripts/boundary/epl-operations.mjs';
 import { APPLIED,NOT_HOSTED,REQUIRES } from './migrations.mjs';
 const options={url:'https://onmrgvcehkflfaizvedl.supabase.co',key:'sb_publishable_fixture',log(){}};
@@ -26,4 +26,12 @@ test('M35 denied and exact-missing replies never carry private correction or int
   for(const field of ['previous_order','candidate_order','baseline_snapshot_id','verified_by','schedule_sha256','nextKickoff','outcome']){
     for(const missing of [false,true])await assert.rejects(checkCloudBoundary({...options,fetchImpl:(url,request)=>url.includes('/rest/v1/gtl_epl_order_corrections?')?response(missing?404:401,{code:missing?'PGRST205':'42501',[field]:'private'}):deny(url,request)}),/private material/);
   }
+});
+
+
+test('public weather outcome is allowed in success data but never in a denied reply', async () => {
+  assert.doesNotMatch(JSON.stringify({ refresh: { outcome: 'fetched' } }), privateResponse);
+  for (const outcome of ['fetched', 'applied', 'same_order', 'preserved_picks', 'preserved_closed'])
+    await assert.rejects(checkCloudBoundary({...options,fetchImpl:(url,request)=>url.includes('/rest/v1/gtl_epl_order_corrections?')
+      ?response(401,{code:'42501',outcome}):deny(url,request)}),/private material/);
 });
