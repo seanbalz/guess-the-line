@@ -639,6 +639,29 @@ test('the adapter calls only the listed RPCs over PostgREST and maps errors to f
   assert.throws(() => createEplJobsAdapter({ url: 'http://abc.supabase.co', serviceRoleKey: 'k' }), /Invalid/);
 });
 
+test('only an absent recheck entry point maps to optional readiness; other RPC and transport failures stay failures', async () => {
+  const cases = [
+    [404, 'PGRST202', 'missing entry', 'GTL_EPL_RECHECK_OFF'],
+    [404, '42883', 'function public.gtl_epl_recheck_state(uuid, uuid, timestamptz) does not exist', 'GTL_EPL_RECHECK_OFF'],
+    [404, '42883', 'function public.gtl_epl_recheck_due_at(timestamptz, timestamptz) does not exist', 'UNAVAILABLE'],
+    [500, 'PGRST202', 'server error', 'UNAVAILABLE'],
+    [403, '42501', 'permission denied', 'UNAVAILABLE'],
+    [404, '42P01', 'missing table', 'UNAVAILABLE'],
+  ];
+  for (const [status, code, message, expected] of cases) {
+    const adapter = createEplJobsAdapter({ url: 'https://abc.supabase.co', serviceRoleKey: 'fixture-key',
+      fetchImpl: async () => new Response(JSON.stringify({ code, message }), { status }) });
+    await assert.rejects(adapter.rpc('gtl_epl_recheck_state', {}), error => error.code === expected);
+    await assert.rejects(adapter.rpc('gtl_epl_jobs_state', {}), error => error.code === 'UNAVAILABLE');
+  }
+  const transport = createEplJobsAdapter({ url: 'https://abc.supabase.co', serviceRoleKey: 'fixture-key', fetchImpl: async () => { throw new Error('transport'); } });
+  await assert.rejects(transport.rpc('gtl_epl_recheck_state', {}), /transport/);
+  const service = fakeService({ job: 'snapshot', errors: { gtl_epl_recheck_state: 'UNAVAILABLE' } });
+  const failed = await run({ job: 'snapshot', service, clock: at('2026-10-31T12:10:00Z') });
+  assert.equal(failed.body.reason, 'job_failed');
+  assert.deepEqual(service.args('gtl_epl_save_snapshot'), [], 'a general outage is never treated as SQL not installed');
+});
+
 test('the Deno entry wires the odds key, the VAPID secrets and the service role, and nothing else', () => {
   const entry = readFileSync(new URL('../supabase/functions/gtl-epl-jobs/index.ts', import.meta.url), 'utf8');
   assert.match(entry, /from '\.\.\/\.\.\/\.\.\/cloud\/epl-jobs\.mjs'/);

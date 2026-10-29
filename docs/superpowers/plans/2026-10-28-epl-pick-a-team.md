@@ -13,7 +13,8 @@ completed a live MW9 → MW10 deadline/results/bonus/order cycle.
 The approved Tuesday correction path was missing from the original implementation. The
 [M-33 follow-on](../../EPL_STAT_RECHECKS_2026_10_29.md) adds local append-only recheck evidence, corrected Fantasy
 snapshot selection and a review flag while preserving all entered picks and draft order. It is pending migration/worker
-release; commissioner actionability and the rule for a changed next-draft order remain open. The pure league-position
+release; commissioner actionability remains open. Sean confirmed October 29: preserve entered picks and original draft
+order and flag changed totals for review. The pure league-position
 tiebreak exists, but a permitted **current** standings source is not connected. Automatic resolution now waits for review
 when missing table positions actually determine the choice; arbitrary club-code order is not acceptance of D-68.
 

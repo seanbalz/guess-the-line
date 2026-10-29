@@ -1,6 +1,6 @@
 -- M-33: D-68 Tuesday Sleeper stat rechecks. New service-only append-only evidence; no existing function is replaced.
 -- Apply after M-32 through Gate M; nothing is applied by checking in this file. All original snapshots/picks/orders remain.
--- A changed score is recorded as needs_review. Applying a different next-draft order requires the separate confirmed rule.
+-- A changed score is recorded as needs_review. Sean confirmed October 29: preserve entered picks and original draft order.
 -- Off switch: disable the existing snapshot schedule. Fix forward only: captured evidence is kept under D-23.
 
 create table if not exists public.gtl_epl_stat_rechecks (

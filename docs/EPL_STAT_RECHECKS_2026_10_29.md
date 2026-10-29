@@ -23,8 +23,9 @@ the latest week, while `after-mwN` labels were immutable. This follow-on keeps t
   baseline, so the same correction is not counted again as points in the next matchweek.
 
 This is operational correction evidence. The review flag has **no commissioner-facing route/card yet**, and no order
-correction is applied. The user ruling about a corrected order after the next draft starts remains pending. Do not mark
-the full correction workflow accepted until that rule, actionable review, release and hosted verification are complete.
+correction is applied. Sean confirmed **preserve picks and flag for review** on October 29: keep entered picks and the
+original draft order, show corrected totals separately. Do not mark the full correction workflow accepted until
+commissioner actionability, release and hosted verification are complete.
 MW38 seasonal behavior remains a separate acceptance item; this recheck path covers MW1–37.
 The first final capture still follows the existing window-end/rollover rule. This change does not establish a live
 Monday-final capture or change when the next draft first opens.
@@ -51,12 +52,14 @@ position tiebreak is operational.
 1. Review M-33 (`20261029151727_gtl_epl_stat_rechecks.sql`) through Gate M and record source hashes, preservation and
    grants. It adds one table and three functions; no applied function body is replaced. It needs the hosted M-30/M-31
    foundation and is independent of M-32's moneyline functions. Keep M-33 in `NOT_HOSTED` until actual apply evidence.
-2. Deploy a compatible `gtl-epl-jobs`, `gtl-api` and frontend source through the protected manual release workflow.
-   The new worker calls M-33 RPCs; the API/Fantasy reader understands the new snapshot label. Disabling the existing
+2. Deploy compatible source through the protected manual release workflow before applying M-33, as Gate M requires.
+   The worker recognizes only a known absent recheck entry point as optional and continues existing captures, recording
+   `recheckReady=false` in its run detail. Permission, transport and general database errors remain failures. Once M-33
+   is installed, the same worker uses its RPCs and records `recheckReady=true`; the API/Fantasy reader understands the new snapshot label. Disabling the existing
    snapshot schedule stops capture; preserve evidence instead of deleting it as rollback.
 3. Verify due-time selection, saved source hashes, one recheck/audit row, changed/unchanged review status and unchanged
    entered picks/order through authenticated readback. Do not manufacture a real correction or future MW10 completion.
-4. Complete the pending correction-order ruling and commissioner workflow, fresh standings integration and physical-phone
+4. Complete the commissioner workflow under the confirmed preserve-picks rule, fresh standings integration and physical-phone
    acceptance. Local fixture tests do not establish those outcomes.
 
 ## Local verification
@@ -68,3 +71,7 @@ the conservative deadline fallback. Typecheck, Brand QA and whitespace checks pa
 fixtures and do not perform a hosted correction, deployment or real player action.
 After integrating current main (including the rollover guard) and pending M-32's worker/preflight changes, the combined
 suite passed **277 tests with zero skips**. Typecheck, cloud build, bundle privacy scan and Brand QA also passed.
+The compatibility follow-up passed **280 tests with zero skips**, including the actual handler and adapter against an
+explicit M-30/M-31-only PGlite schema and against M-33. The former saves its daily capture and records correction
+readiness false; the latter saves a due recheck and flags changed totals. Error-mapping cases keep permissions,
+transport failures, generic missing tables and missing nested helper functions as failures.

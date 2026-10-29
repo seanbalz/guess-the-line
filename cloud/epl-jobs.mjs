@@ -96,9 +96,14 @@ export function createEplJobsAdapter({ url, serviceRoleKey, fetchImpl = fetch })
       const response = await fetchImpl(new URL(`/rest/v1/rpc/${name}`, base), { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
         headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!response.ok) {
-        let code;
-        try { code = (await response.json()).message; } catch { /* No raw provider error escapes. */ }
-        throw new EplJobsError(CODES.has(code) ? code : 'UNAVAILABLE');
+        let data;
+        try { data = await response.json(); } catch { /* No raw provider error escapes. */ }
+        // Gate M deploys compatible source before SQL. Only this exact missing entry point is optional; permissions,
+        // transport failures and missing functions inside an installed RPC still fail the run.
+        const absentEntry = data?.code === 'PGRST202' || (data?.code === '42883'
+          && /^function (?:public\.)?gtl_epl_recheck_state\s*\(/i.test(data?.message ?? ''));
+        if (name === 'gtl_epl_recheck_state' && response.status === 404 && absentEntry) throw new EplJobsError('GTL_EPL_RECHECK_OFF');
+        throw new EplJobsError(CODES.has(data?.message) ? data.message : 'UNAVAILABLE');
       }
       return response.json();
     },
@@ -198,7 +203,10 @@ const openWeek = ctx => {
 async function snapshotJob(ctx) {
   const { week } = ctx.state;
   if (!week) stop('no_week');
-  const correction = await ctx.service.rpc('gtl_epl_recheck_state', { ...ctx.run, p_now: iso(ctx.now) });
+  let correction = null;
+  let recheckReady = true;
+  try { correction = await ctx.service.rpc('gtl_epl_recheck_state', { ...ctx.run, p_now: iso(ctx.now) }); }
+  catch (error) { if (error?.code !== 'GTL_EPL_RECHECK_OFF') throw error; recheckReady = false; }
   const correctionDueAt = eplRecheckDueAt(correction ?? {});
   const recheckDue = correctionDueAt !== null && ctx.now >= correctionDueAt;
   const n = week.week, kickoff = Date.parse(week.firstKickoff), due = [];
@@ -210,7 +218,7 @@ async function snapshotJob(ctx) {
   // projections, once a UTC day, only when no other capture is due (that one is the day's capture).
   const daily = dailyLabel(ctx.now);
   if (!due.length && !list(ctx.state.snapshots).includes(daily)) due.push({ label: daily, statsWeek: n, projectionsWeek: n });
-  if (!due.length && !recheckDue) stop('nothing_due');
+  if (!due.length && !recheckDue) return { reason: 'nothing_due', detail: { recheckReady } };
   const saved = [];
   let pending = false;
   for (const args of due) {
@@ -238,11 +246,11 @@ async function snapshotJob(ctx) {
     if (snap.payload.state.week < correction.week + 1) return { reason: 'snapshot_pending', detail: { saved: saved.length, rechecked: 0 } };
     const result = await write(ctx, 'gtl_epl_record_recheck', { ...ctx.run, p_season: correction.season, p_week: correction.week,
       p_captured_at: snap.capturedAt, p_sha256: snap.sha256, p_payload: snap.payload });
-    const detail = { saved: saved.length, rechecked: result?.recorded === true ? 1 : 0, scoresChanged: result?.scoresChanged === true };
+    const detail = { saved: saved.length, recheckReady, rechecked: result?.recorded === true ? 1 : 0, scoresChanged: result?.scoresChanged === true };
     return result?.status === 'needs_review' ? { reason: 'needs_review', detail } : detail;
   }
-  if (pending && !saved.length) return { reason: 'snapshot_pending', detail: { saved: 0 } };
-  return { saved };
+  if (pending && !saved.length) return { reason: 'snapshot_pending', detail: { saved: 0, recheckReady } };
+  return { saved, recheckReady };
 }
 
 async function fixturesJob(ctx) {
