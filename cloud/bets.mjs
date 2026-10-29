@@ -14,9 +14,11 @@ export class BetsError extends Error {
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
 export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'], '/bets/read': ['POST'],
-  '/bets/board': ['POST'], '/bets/season': ['POST'] });
-// The account-level Bets readers (M-10, M-12): one off switch, GTL_FEATURE_OFF=bets.
+  '/bets/board': ['POST'], '/bets/season': ['POST'], '/bets/place': ['POST'] });
+// The account-level Bets readers (M-10, M-12) and placement (M-11): one off switch, GTL_FEATURE_OFF=bets.
+// GTL_FEATURE_OFF=bets-place turns off placement alone and keeps the readers.
 const BETS_READERS = new Set(['/bets/read', '/bets/board', '/bets/season']);
+const BETS_ROUTES = new Set([...BETS_READERS, '/bets/place']);
 /** Database refusal code → [status, sentence]. A code is mapped here, and deployed, before the SQL can raise it. */
 const ERRORS = Object.freeze({
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
@@ -31,6 +33,8 @@ const ERRORS = Object.freeze({
   GTL_LINE_LOCKED: [409, 'Submit or lock in your guess for this game and market before placing a pick.'],
   GTL_VIRTUAL_EXISTS: [409, 'You already have this matchup and market on your virtual card.'],
   GTL_BETS_INVALID: [400, 'Choose a published week and league.'],
+  GTL_BET_CHANGED: [409, 'This bet changed. Review its saved terms before placing it again.'],
+  GTL_BETS_REPLAY: [409, 'This request was already used for different bets. Review your slip and place it again.'],
 });
 export const providerBetsError = message => (Object.hasOwn(ERRORS, message) ? new BetsError(...ERRORS[message]) : new Error('Bets are unavailable.'));
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -221,13 +225,48 @@ function validatePlace(body) {
     || !finite(body.units) || body.units <= 0 || !Number.isInteger(body.units * 2) || typeof body.source !== 'string' || !time(body.quotedAt)) fail('GTL_VIRTUAL_INVALID');
 }
 
+// M-11: a slip of up to 64 bets. Each names the exact offer it was read with and, for an edit, the
+// stored terms it replaces (`expected`); a new bet sends `expected: null`. SQL repeats every check.
+const SLIP_KEYS = ['gameId', 'market', 'side', 'line', 'odds', 'units', 'source', 'quotedAt', 'expected'];
+const TERM_KEYS = ['side', 'line', 'odds', 'units', 'source', 'quotedAt'];
+const SOURCES = new Set(Object.values(BOOKS));
+function validTerms(market, terms) {
+  return SIDES[market]?.includes(terms.side) && finite(terms.line) && Number.isInteger(terms.line * 2)
+    && (market === 'total' ? terms.line >= 0 && terms.line <= 200 : Math.abs(terms.line) <= 100)
+    && Number.isInteger(terms.odds) && Math.abs(terms.odds) >= 100 && Math.abs(terms.odds) <= 10000
+    && finite(terms.units) && terms.units > 0 && Number.isInteger(terms.units * 2) && SOURCES.has(terms.source) && Boolean(time(terms.quotedAt));
+}
+function validateBetsPlace(body) {
+  const keys = Object.keys(body);
+  if (keys.length !== 4 || !['season', 'week', 'requestId', 'bets'].every(key => keys.includes(key)) || !scope(body)
+    || !UUID.test(body.requestId || '') || !Array.isArray(body.bets) || body.bets.length < 1 || body.bets.length > 64) fail('GTL_VIRTUAL_INVALID');
+  const seen = new Set();
+  return body.bets.map(bet => {
+    if (!record(bet) || Object.keys(bet).some(key => !SLIP_KEYS.includes(key)) || !Object.hasOwn(bet, 'expected')
+      || typeof bet.gameId !== 'string' || !/^[A-Z]{2,3}-[A-Z]{2,3}$/.test(bet.gameId) || !MARKETS.includes(bet.market)
+      || seen.has(`${bet.gameId}:${bet.market}`) || !validTerms(bet.market, bet)
+      || (bet.expected !== null && (!record(bet.expected) || Object.keys(bet.expected).some(key => !TERM_KEYS.includes(key))
+        || !validTerms(bet.market, bet.expected)))) fail('GTL_VIRTUAL_INVALID');
+    seen.add(`${bet.gameId}:${bet.market}`);
+    return { gameId: bet.gameId, market: bet.market, side: bet.side, line: bet.line, odds: bet.odds, units: bet.units, source: bet.source,
+      quotedAt: bet.quotedAt, expected: bet.expected === null ? null : Object.fromEntries(TERM_KEYS.map(key => [key, bet.expected[key]])) };
+  });
+}
+function placedView(raw) {
+  if (!record(raw) || !Array.isArray(raw.bets)) throw new Error('Invalid Bets place reply.');
+  return { season: integer(raw.season) ? raw.season : null, week: integer(raw.week) ? raw.week : null, requestId: UUID.test(raw.requestId || '') ? raw.requestId : null,
+    revision: integer(raw.revision) ? raw.revision : null, replayed: raw.replayed === true,
+    bets: raw.bets.map(row => ({ ...selectionView(row), edited: row?.edited === true })) };
+}
+
 /** The handler calls this only for a route in BETS_METHODS, after sign-in and email confirmation. */
 export async function handleBets({ route, body = {}, user, service, clock = Date.now, optionalRpc, featureOff = new Set() }) {
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new BetsError(401, 'Sign in to continue.');
   if (!Object.hasOwn(BETS_METHODS, route)) throw new BetsError(404, 'Not found.');
   if (!service?.rpc) throw new Error('Bets are not configured.');
-  if ((BETS_READERS.has(route) && featureOff.has('bets'))
-    || (!BETS_READERS.has(route) && featureOff.has('recommendations'))) fail('GTL_FEATURE_OFF');
+  if ((BETS_ROUTES.has(route) && featureOff.has('bets'))
+    || (route === '/bets/place' && featureOff.has('bets-place'))
+    || (!BETS_ROUTES.has(route) && featureOff.has('recommendations'))) fail('GTL_FEATURE_OFF');
   if (!record(body)) fail('GTL_VIRTUAL_INVALID');
   if (route === '/bets/read') {
     if (Object.keys(body).some(key => !['season','week','leagueId'].includes(key))
@@ -251,6 +290,13 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
       || !leagueOk(body.leagueId) || (body.who !== undefined && !UUID.test(body.who || ''))) fail('GTL_BETS_INVALID');
     return projectSeason(await service.rpc('gtl_read_bets_season', { p_user: user.id, p_season: body.season ?? null,
       p_league: body.leagueId ?? null, p_who: body.who ?? null }), user.id);
+  }
+  if (route === '/bets/place') {
+    const request = validateBetsPlace(body);
+    const placed = await service.rpc('gtl_place_bets', { p_user: user.id, p_season: body.season, p_week: body.week,
+      p_request: body.requestId, p_bets: request });
+    return { placed: placedView(placed), bets: projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season,
+      p_week: body.week, p_league: null, p_now: new Date(clock()).toISOString() }), user.id) };
   }
   if (typeof service.recommendationState !== 'function') throw new Error('Bets are not configured.');
   if (route === '/bets/recommendations') {
