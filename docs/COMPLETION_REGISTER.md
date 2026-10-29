@@ -695,6 +695,15 @@ explanation, the period-split note, the reference note, the line source and the 
 visible labels and the period table stay. Nesting cards now enter with a short slide only, with no fade or scale,
 because checks caught text mid-fade below its contrast. Not released.
 
+## M-11 Virtual Units placement (Q06, stage 41, October 28)
+
+Sean chose Q06 next. Stage 41 is written on `claude/q06-m11-placement`: M-11
+(`20261028181000_gtl_bets_place.sql`: `gtl_bet_receipts`, `gtl_place_bets`, `gtl_bets_newest_quote`, `gtl_bets_terms`) and
+`POST /bets/place` with the `bets-place` off switch. PGlite and handler checks in `tests/bets-place-sql.test.mjs`
+cover a two-bet slip, an edit with audit, replay, line lock, half units, a stale quote, kickoff, a Guess autosave
+with no 409 and an old `/virtual-pick` edit giving "This bet changed". **Not applied, not deployed:** it waits for
+Sean's "apply M-11" and a `gtl-api` deploy. The slip screen (stage 44) follows.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance
