@@ -15,7 +15,7 @@ Sleeper's [official player-map documentation](https://docs.sleeper.com/#fetch-al
 | When requested | Only the jobs source adapter opts the current UTC `daily-YYYY-MM-DD` capture into enrichment. Weekly before/after captures, correction rechecks, historical imports and Fantasy API reads never fetch the map |
 | Bounds | Fixed public Sleeper origin/path, GET, no credentials, no redirects, 10-second timeout, 4 MiB streamed/declared body bound, at most 10,000 entries |
 | Stored data | Only currently rostered IDs; only missing display names and team abbreviations supplement embedded snapshot metadata. No age, birth date, injury notes, unrelated players or arbitrary directory fields are stored |
-| Scoring | Directory `position` and `fantasy_positions` are never imported. Existing embedded snapshot positions remain authoritative; a genuinely missing position stays unknown. Per-player field merges keep display-only entries from erasing stored position fields; explicit snapshot null remains null |
+| Scoring | Directory `position` and `fantasy_positions` are never imported. Historical per-player scoring and projection totals use only the selected lineup/projection snapshot's own captured position fields. Global directories supplement names/team text only; even a later genuine embedded position cannot fill an earlier unknown. Current roster position labels likewise use the current snapshot. Missing positions stay explicit and unscored |
 | Provenance | `sha256.player_directory` and `payload.sources.player_directory` retain the raw-body hash, path, attempt time, availability/fixed failure code and separate `rostered`, `mapped`, `named`, `missingEntries` and `missingNames` counts. A key is not evidence of a nonempty bounded display name |
 | Optional outage | A failed or oversized directory response does not discard valid totals, lineups, stats or projections. The daily base snapshot is saved with explicit unavailable/coverage metadata; its saved daily label prevents subsequent five-minute jobs from requesting the map again that UTC day |
 | Persistence | Existing immutable snapshot save only; no schema or migration required. No historical snapshot is rewritten |
@@ -24,7 +24,7 @@ The daily-label guard takes effect after a successful snapshot save, as the exis
 
 ## Verification
 
-New `tests/epl-player-directory.test.mjs` covers an absent bench player, minimal roster-only output, raw hash provenance, daily-only opt-in, malformed/partial/inherited/prototype metadata, invalid JSON, request errors, HTTP rate limits/outages, entry/body limits, unchanged scoring, position preservation and successful base persistence without same-day directory retry.
+New `tests/epl-player-directory.test.mjs` covers an absent bench player, minimal roster-only output, raw hash provenance, daily-only opt-in, malformed/partial/inherited/prototype metadata, invalid JSON, request errors, HTTP rate limits/outages, entry/body limits and successful base persistence without same-day directory retry. A historical display-only lineup plus a later F position must remain unscored; a captured historical M position scores 9 rather than the later F's 100. A projection snapshot missing its own position stays unknown even when an earlier snapshot has one. This also closes the previous reader's global-position fallback risk.
 
 The committed after-MW8 **test fixture contains 88 rostered IDs**, distinct from the current hosted 150. An offline pass against the coordinator's cached directory named 88/88, added zero scoring-position fields and produced a 7,735-byte trimmed fixture (3,265 bytes before display enrichment). These counts are fixture evidence, not hosted closure of the 16-row gap.
 
@@ -32,9 +32,9 @@ Commands:
 
 ```sh
 node --test tests/epl-player-directory.test.mjs tests/epl-sources.test.mjs tests/epl-fantasy-view.test.mjs tests/epl-fantasy.test.mjs tests/epl-sleeper.test.mjs tests/epl-jobs.test.mjs
-# 100 passed
+# 101 passed
 node --test tests/epl-*.test.mjs
-# 219 passed after rebasing onto main
+# 220 passed after rebasing onto main and enforcing snapshot-only positions
 node node_modules/vitest/vitest.mjs run tests/epl-fantasy.test.jsx
 # 17 passed
 npm run typecheck

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { fetchSleeperSnapshot, SLEEPER_DIRECTORY_MAX_BYTES, SLEEPER_LEAGUE } from '../cloud/epl-sources.mjs';
 import { createEplSources, runEplJob } from '../cloud/epl-jobs.mjs';
-import { enrichPlayerDisplay, mergePlayerDirectories } from '../shared/epl-player-directory.mjs';
+import { enrichPlayerDisplay, mergePlayerDirectories, snapshotScoringDirectory } from '../shared/epl-player-directory.mjs';
 import { teamProjection } from '../shared/epl-fantasy.mjs';
 import { trimSleeperSnapshot } from '../shared/epl-sleeper.mjs';
 import { buildFantasyView } from '../cloud/epl-fantasy-view.mjs';
@@ -93,12 +93,40 @@ test('display-only newer entries preserve embedded positions and historical scor
   assert.equal(merged['1'].position, 'M');
   assert.equal(mergePlayerDirectories(old, { 1: { position: null } })['1'].position, null, 'explicit snapshot null is not overwritten');
   // A later daily capture has projections but its stat rows do not embed players. Its display supplement cannot
-  // erase the position already saved in an older snapshot when the Fantasy view merges directories.
+  // borrow a scoring position from an older snapshot, even though names can use the display lookup.
   const { fetchImpl } = fixture({ withoutEmbedded: true });
   const daily = await capture({ fetchImpl });
   const earlier = structuredClone(daily); earlier.label = 'after-mw08'; earlier.capturedAt = '2026-10-28T15:00:00Z'; earlier.payload.players = old;
   const view = buildFantasyView({ snapshots: [earlier, daily], viewerOwnerId: OWNER });
-  assert.equal(view.matchup.myProj, 9);
+  assert.equal(view.matchup.myProj, null);
+  assert.equal(view.matchup.starters[0].proj, null);
+  assert.equal(view.matchup.starters[0].pos, null);
+});
+
+test('historical display-only lineups never borrow a later scoring position; an actual captured historical position wins', () => {
+  const beforePayload = { state: { week: 9, season: '2026' }, league: { scoring_settings: scoring }, rosters: [roster],
+    players: { 1: { name: 'Earlier display only', team_abbr: 'ARS' } }, projections_mw9: [{ player_id: '1', stats: { g: 1 } }] };
+  const afterPayload = { ...structuredClone(beforePayload), state: { week: 10, season: '2026' },
+    rosters: [{ ...roster, settings: { ...roster.settings, fpts: 109 } }], stats_mw9: [{ player_id: '1', stats: { g: 1 } }] };
+  const laterPayload = { ...structuredClone(afterPayload), players: { 1: { name: 'Later forward', position: 'F', fantasy_positions: ['F'], team_abbr: 'LIV' } }, projections_mw10: [{ player_id: '1', stats: { g: 1 } }] };
+  const snapshots = [
+    { label: 'before-mw9-kickoff', capturedAt: '2026-10-31T12:00:00Z', week: 9, payload: beforePayload },
+    { label: 'after-mw9', capturedAt: '2026-11-04T00:00:00Z', week: 9, payload: afterPayload },
+    { label: 'daily-2026-11-05', capturedAt: '2026-11-05T00:00:00Z', week: 10, payload: laterPayload },
+  ];
+  const view = buildFantasyView({ snapshots, viewerOwnerId: OWNER });
+  assert.equal(view.matchup.myProj, 100, 'the later projection can use its own captured F position');
+  assert.equal(view.matchup.recent.find(row => row.week === 9).projected, null, 'earlier display-only lineup stays unknown');
+  assert.deepEqual(view.insights.topScorerPerTeam, []);
+  assert.equal(view.insights.myTopScorer, null);
+  assert.equal(view.insights.beatProjection.find(row => row.week === 9).diff, null);
+  const missing = snapshotScoringDirectory(beforePayload, laterPayload.players)['1'];
+  assert.equal(missing.position, undefined); assert.equal(missing.fantasy_positions, undefined);
+  beforePayload.players['1'].position = 'M';
+  const recorded = buildFantasyView({ snapshots, viewerOwnerId: OWNER });
+  assert.equal(recorded.matchup.recent.find(row => row.week === 9).projected, 9);
+  assert.equal(recorded.insights.myTopScorer.points, 9, 'captured M scores 9, not later F 100');
+  assert.equal(recorded.insights.beatProjection.find(row => row.week === 9).diff, 0);
 });
 
 test('partial, malformed, inherited and oversized metadata remain missing and prototype fields never become players', async () => {

@@ -19,7 +19,7 @@
 import { MANAGER_NAMES, managersFromSnapshot, pairMatchups, playersFromSnapshot, statsById, weeklyScores } from '../shared/epl-sleeper.mjs';
 import { beatProjection, playerPoints, positionOf, seasonHigh, teamProjection, topScorers, winChance } from '../shared/epl-fantasy.mjs';
 import { clubFromSleeperAbbr } from '../shared/epl-clubs.mjs';
-import { mergePlayerDirectories } from '../shared/epl-player-directory.mjs';
+import { mergePlayerDirectories, snapshotScoringDirectory } from '../shared/epl-player-directory.mjs';
 
 /** How many recent matchweeks keep per-player detail (their full snapshots are read); totals cover the whole season. */
 export const FANTASY_DETAIL_WEEKS = 6;
@@ -112,7 +112,7 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   const nameOf = ownerId => (Object.hasOwn(MANAGER_NAMES, String(ownerId)) ? MANAGER_NAMES[String(ownerId)] : managers.find(m => m.ownerId === ownerId)?.sleeperName ?? null);
   const owners = managers.map(m => m.ownerId);
 
-  // Players: every snapshot's directory, newest last so it wins.
+  // Display metadata can use every snapshot. Scoring positions come only from the selected lineup/projection snapshot.
   const players = mergePlayerDirectories(...snaps.map(s => playersFromSnapshot(s.payload)));
   const scoring = [...snaps].reverse().map(s => s.payload.league?.scoring_settings).find(record) ?? {};
 
@@ -138,7 +138,7 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   for (const n of range) {
     const lineup = before.get(n);
     if (!lineup || !Array.isArray(lineup.payload.rosters)) continue;
-    const weekPlayers = mergePlayerDirectories(players, playersFromSnapshot(lineup.payload));
+    const weekPlayers = snapshotScoringDirectory(lineup.payload, players);
     const projKey = `projections_mw${n}`, statsKey = `stats_mw${n}`;
     const projections = Object.hasOwn(lineup.payload, projKey) ? statsById(lineup.payload[projKey]) : null;
     const resultPayload = after.get(n)?.payload;
@@ -176,11 +176,12 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
     .sort((a, b) => (finite(b.s.total) - finite(a.s.total)) || (b.s.total ?? 0) - (a.s.total ?? 0) || (b.s.wins ?? 0) - (a.s.wins ?? 0) || a.i - b.i).map(({ s }) => s);
 
   // Rosters (current lineups).
+  const currentPlayers = snapshotScoringDirectory(newest.payload, players);
   const rosters = owners.map(ownerId => {
     const r = rosterOf(newest.payload, ownerId);
     const starters = ids(r?.starters);
     const bench = ids(r?.players).filter(id => !starters.includes(id));
-    return { ownerId, name: nameOf(ownerId), starters: starters.map(id => playerRow(players, id)), bench: bench.map(id => playerRow(players, id)) };
+    return { ownerId, name: nameOf(ownerId), starters: starters.map(id => playerRow(currentPlayers, id)), bench: bench.map(id => playerRow(currentPlayers, id)) };
   });
 
   // Matchup.
@@ -189,7 +190,7 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   const projSource = week ? [...snaps].reverse().find(s => Object.hasOwn(s.payload, `projections_mw${week}`) && Array.isArray(s.payload.rosters)) : null;
   const projectionFor = ownerId => {
     if (!projSource) return { total: null, rows: [] };
-    const sourcePlayers = mergePlayerDirectories(players, playersFromSnapshot(projSource.payload));
+    const sourcePlayers = snapshotScoringDirectory(projSource.payload, players);
     const starters = ids(rosterOf(projSource.payload, ownerId)?.starters);
     const p = teamProjection(starters, statsById(projSource.payload[`projections_mw${week}`]), sourcePlayers, scoring);
     return { total: p.total, rows: p.rows.map(r => ({ ...playerRow(sourcePlayers, r.playerId), proj: r.points })) };

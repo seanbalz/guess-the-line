@@ -9,12 +9,24 @@ const abbr = value => typeof value === 'string' && /^[a-z]{2,6}$/i.test(value.tr
 const name = player => text(player.metadata?.full_name) ?? text(player.full_name)
   ?? text([text(player.first_name), text(player.last_name)].filter(Boolean).join(' '));
 
-/** Merge fields per player: a display-only entry must not erase an embedded scoring position. Explicit null wins. */
+/** Combine directories for display lookup. Scoring must use snapshotScoringDirectory, never these global positions. */
 export function mergePlayerDirectories(...sources) {
   const out = Object.create(null);
   for (const source of sources) if (record(source)) for (const [id, player] of Object.entries(source)) {
     if (['__proto__', 'prototype', 'constructor'].includes(id) || !record(player)) continue;
     out[id] = { ...(out[id] ?? {}), ...player };
+  }
+  return out;
+}
+
+/** Only the selected snapshot can supply a scoring position; other snapshots supplement display metadata only. */
+export function snapshotScoringDirectory(snapshot, displayDirectory = {}) {
+  const captured = playersFromSnapshot(snapshot), out = Object.create(null);
+  for (const id of rosteredIds(snapshot)) {
+    if (!safeId(id)) continue;
+    const own = captured[id] ?? {};
+    const display = Object.hasOwn(displayDirectory, id) && record(displayDirectory[id]) ? displayDirectory[id] : {};
+    out[id] = { ...own, name: text(own.name) ?? text(display.name), team_abbr: abbr(own.team_abbr) ?? abbr(display.team_abbr) };
   }
   return out;
 }
