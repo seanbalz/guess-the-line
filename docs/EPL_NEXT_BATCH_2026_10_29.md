@@ -44,3 +44,17 @@ dependencies must follow the canonical CLI/ledger rules, not those labels alone.
 - Once EPL work is implemented or explicitly waiting on a live gate, return to
   the approved varied-trend, Research/chart and optimization queue. Preserve #363
   and other owners' unpublished work.
+
+## Final-capture source prerequisite
+
+A delayed cumulative-total capture needs evidence that the next round has not
+started; exact Sleeper N+1 by itself is insufficient. Current window placeholders
+and incomplete odds lists do not establish that interval. The operations lane is
+preserving a pending/manual-review state where interval evidence is unavailable.
+Any commissioner attestation is explicit and append-only, not invented by a job.
+This remains a source prerequisite rather than completed automatic finalization.
+
+The official FPL endpoint was considered but not called or adopted. Its
+[primary terms, sections 28(d) and 29](https://fantasy.premierleague.com/help/terms)
+restrict automated game-data extraction and reuse; endpoint reachability alone
+does not establish the verified reuse permission this repository requires.
