@@ -82,6 +82,8 @@ export function topScorers(rows = []) {
   return out;
 }
 
+// Actual minus projected; null when either is missing (a gap week reads as an em dash, never 0 or a big miss).
 export function beatProjection(actual, projected) {
+  if (!finite(actual) || !finite(projected)) return null;
   return round2(actual - projected) || 0;
 }

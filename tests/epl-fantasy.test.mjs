@@ -126,3 +126,12 @@ test('beatProjection is actual minus projected to 2 dp', () => {
   assert.equal(beatProjection(90, 98.61), -8.61);
   assert.equal(beatProjection(50, 50), 0);
 });
+
+test('beatProjection is null when the actual or the projection is missing, never 0 or a big miss', () => {
+  assert.equal(beatProjection(undefined, 98.6), null);
+  assert.equal(beatProjection(null, 98.6), null, 'null must not coerce to 0 (a -98.6 miss)');
+  assert.equal(beatProjection(104.3, null), null);
+  assert.equal(beatProjection(104.3, undefined), null);
+  assert.equal(beatProjection(Number.NaN, 98.6), null);
+  assert.equal(beatProjection('104.3', 98.6), null);
+});
