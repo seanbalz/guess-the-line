@@ -94,3 +94,12 @@ verify Trends This Week, Teams, Players and Build, including nested return paths
 Check the shared profile and Research navigation remain available, and record
 Safari versus Home Screen and Light/Dark scope explicitly. Prior #385 acceptance
 covers sport switching, not these formatting repairs.
+
+
+### Deployment follow-through
+
+The [October 29 frontend release record](RELEASE_2026_10_29_RESEARCH_FORMATTING.md)
+records #390 merge, exact-main CI, protected deployment from f522, all 125 served
+assets and fresh signed-in responsive browser checks. Physical iPhone acceptance
+is still pending the OS-required phone lock; #388 remains open. This supersedes
+the pre-deployment status above without promoting browser QA into phone evidence.

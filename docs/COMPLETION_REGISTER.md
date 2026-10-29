@@ -20,6 +20,15 @@ and gives the narrow Trends section controls two columns. This work has its own
 source/CI/deployment and physical-phone gates; prior shared-interface acceptance
 and the parallel moneyline release do not close it.
 
+PRs #389/#390 are merged and the [frontend release](RELEASE_2026_10_29_RESEARCH_FORMATTING.md)
+from `f5225bb085dada8378d6ff61ce4eedd2352d6521` passed exact-main CI, protected
+readiness/deployment and verification of all 125 production assets. Fresh signed-in
+Light browser checks verify the restored Fantasy column, loaded nested layers,
+filtering, comparison scrolling, bottom clearance and all four Trends sections;
+320px controls remain one line and 44px high. Physical iPhone acceptance is pending:
+Mirroring reports iPhone in Use, with the phone-lock request awaiting Sean.
+No phone pass is claimed. #388 stays open.
+
 ## Shared sport interface — October 29, 2026
 
 Deployed and checked in fresh authenticated desktop readback: NFL/EPL use the same frame, profile/menu
