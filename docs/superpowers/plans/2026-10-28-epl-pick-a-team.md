@@ -1,5 +1,25 @@
 # EPL foundation + Pick a Team Implementation Plan
 
+## Current evidence — October 29, 2026
+
+This plan's original task checkboxes and "not deployed" instructions below are historical execution notes, not a live
+completion ledger. M-30 and M-31 are applied, `gtl-api` and `gtl-epl-jobs` are deployed, MW9 is seeded and the five job
+schedules/cron entries are enabled. The authenticated October 29 readback matched all 26 current EPL function bodies,
+confirmed 14 tables' RLS/browser-grant boundaries and reported no failed job run. See
+[M-30 release](../../RELEASE_2026_10_29_M30.md), [M-31 release](../../RELEASE_2026_10_29_M31.md) and the
+[operations workflow](../../EPL_OPERATIONS_WORKFLOW_2026_10_29.md). These prove setup and source identity; MW9 has not
+completed a live MW9 → MW10 deadline/results/bonus/order cycle.
+
+The approved Tuesday correction path was missing from the original implementation. The
+[M-33 follow-on](../../EPL_STAT_RECHECKS_2026_10_29.md) adds local append-only recheck evidence, corrected Fantasy
+snapshot selection and a review flag while preserving all entered picks and draft order. It is pending migration/worker
+release; commissioner actionability and the rule for a changed next-draft order remain open. The pure league-position
+tiebreak exists, but a permitted **current** standings source is not connected. Automatic resolution now waits for review
+when missing table positions actually determine the choice; arbitrary club-code order is not acceptance of D-68.
+
+The original tests' "expect FAIL" steps are not retroactively checked off. Physical-phone acceptance and future hosted
+cycle/correction evidence remain separate from local tests. Use the current completion register and queue for priority.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** The 8 FEPL managers run the weekly Premier League club draft (Pick a Team) in the app, with automatic order from Sleeper scores plus bonus, queues, deadline auto-picks and widest-margin bonus, behind a new EPL option on the sport switch.
