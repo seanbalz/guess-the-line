@@ -97,6 +97,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   const choose = key => { setSelection(key); setLimit(FANTASY_PAGE); };
   const rows = rankings?.rows || [];
   const settings = { scoring: filters.scoring, passingTds: filters.passingTds };
+  // The screen's page title is its h1 on every layer; the cards below it are the layers.
   const toFantasy = { key: 'fantasy', label: 'Fantasy', onOpen: () => onLayer({ fantasyLayer: null, fantasyPlayer: null }) };
   const profile = snapshot && profileId ? <PlayerProfileSheet snapshot={snapshot} playerId={profileId} settings={settings} onClose={() => onProfile(null)}
     compare={{ compared: compareIds.includes(profileId), full: compareIds.length >= MAX_COMPARE, onCompare }}/> : null;
@@ -105,7 +106,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   const player = snapshot && view.fantasyLayer === 'player' ? rows.find(p => p.id === view.fantasyPlayer) ?? null : null;
   if (player) {
     const context = contextFor(player), trends = player.trendHighlights || [];
-    return <section className="gx-fantasy" aria-label="Fantasy Football"><Nest label="Fantasy layers" layer={'player:' + player.id} title={player.name} lips={[toFantasy]}
+    return <section className="gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer={'player:' + player.id} title={player.name} lips={[toFantasy]}
       info={<InfoButton title={`About ${player.name}’s estimate`} body={[
         `${player.sampleGames ?? '—'} recorded games in the pace estimate. Player availability is not injury-adjusted.`,
         ...trends.map(t => `${t.direction === 'up' ? 'Rising' : 'Falling'} · ${t.label}: ${t.detail}`),
@@ -141,7 +142,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
 
   // Fantasy › the week's report card.
   if (snapshot && view.fantasyLayer === 'report' && filters.scope === 'weekly' && state.review) {
-    return <section className="gx-fantasy" aria-label="Fantasy Football"><Nest label="Fantasy layers" layer="report" title={`Week ${state.review.week} report card`} lips={[toFantasy]}
+    return <section className="gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="report" title={`Week ${state.review.week} report card`} lips={[toFantasy]}
       info={<InfoButton title="About the report card" body={['A report card for GTL’s statistical pace estimates, not a forecast or betting claim. Each estimate is graded against the recorded result, beside a season-average baseline.']} links={sourceLinks(snapshot)}/>}>
       <FantasyAccuracy theme="next" review={state.review} filters={filters} scoringLabel={scoringLabel} headingLevel={3}/>
     </Nest></section>;
@@ -149,7 +150,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
 
   // Fantasy › compare.
   if (snapshot && view.fantasyLayer === 'compare') {
-    return <section className="gx-fantasy" aria-label="Fantasy Football"><Nest label="Fantasy layers" layer="compare" title="Compare players" lips={[toFantasy]}>
+    return <section className="gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="compare" title="Compare players" lips={[toFantasy]}>
       <PlayerCompare key={`${snapshot.season}-${snapshot.week}-${filters.scoring}`} snapshot={snapshot} ids={compareIds} onChange={onCompareChange} settings={settings} onProfile={onProfile}/>
       {profile}
     </Nest></section>;
@@ -160,7 +161,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   const origin = state?.fallback ? `Showing saved Week ${snapshot?.week} · live refresh unavailable`
     : state?.origin === 'hosted' && snapshot ? `Updated ${date(snapshot.generatedAt)}${state.indexStale ? ' · refresh check delayed' : ''}` : null;
   const seasons = [...new Set(entries.map(entry => entry.season))];
-  return <section className="gx-fantasy" aria-label="Fantasy Football"><Nest label="Fantasy layers" layer="fantasy" title="Fantasy Football"
+  return <section className="gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="fantasy" title="Rankings"
     info={snapshot ? <InfoButton title="About Fantasy rankings" body={methodBody(snapshot, filters, scoringLabel)} links={sourceLinks(snapshot)}/> : <InfoButton title="About Fantasy rankings" body={[INTRO]}/>}>
     {snapshot ? <p className="gx-t-meta">Week {snapshot.week} · {filters.scope === 'ros' ? 'Rest of season' : 'Weekly'} · {scoringLabel} · Stats through Week {snapshot.statsThroughWeek ?? '—'}</p> : null}
     {origin ? <p className="gx-t-meta" role="status">{origin}</p> : null}
