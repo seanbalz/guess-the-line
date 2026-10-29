@@ -4,10 +4,11 @@ Owner: Sean Balsiger · Coordinator: Codex
 
 Sean instructed “lets continue” after the next-EPL priority list. The first
 source batch is merged at `5c1b775f05a69306f20f911f4b0455c207c65ffc`.
-Frontend deployment is verified in the release chat; worker readiness succeeded
-and worker deployment is running. The release owner must confirm its result and
-evidence before next-batch main merges or deferred CI resume. This work does not
-change the pinned release source.
+Frontend and EPL worker v2 deployment are verified by the release owner; the
+main hold is cleared. [Release-evidence PR #374](https://github.com/seanbalz/guess-the-line/pull/374)
+records the hosted result. Root resumed the two deferred #370 browser jobs and
+#371 Tests/Dashboard checks. This continuation does not apply migrations or
+change the deployed source by itself.
 
 ## Work and ownership
 
@@ -19,9 +20,9 @@ change the pinned release source.
 | Monday finalization and corrected order | M-33 currently captures/audits Tuesday corrections; commissioner flag is prepared. First final capture still uses the original window/rollover rule. | Operations agent examines and fixes Monday-final scheduling with source guards, and recomputes a corrected next order only before any pick exists. | Existing picks/order stay preserved once drafting starts; commissioner review remains visible. Source evidence is required before marking scores final. |
 | Moneyline game | M-32 source is merged, NOT_HOSTED; local apply-review packet exists. No live DNB verdict. | Release owner handles named apply/enablement gates; only a real passing DNB check permits routes, regular collection and player screens to proceed. | Source, local tests, schema apply and live market availability are separate. No paid data or reserve reduction is authorized. |
 
-The agents may complete local work and push new branches during the release
-hold. They must not open new CI workloads, rerun deferred checks or merge main
-until the release owner clears it. M-34 is reserved for standings if required;
+The earlier runner/release hold is cleared. Agents may publish tested PRs and
+run CI; root reviews and merges the next batch. Preserve the release owner's
+evidence updates when integrating current main. M-34 is reserved for standings if required;
 M-35 is reserved for order correction if required. New migration timestamps and
 dependencies must follow the canonical CLI/ledger rules, not those labels alone.
 
@@ -29,6 +30,9 @@ dependencies must follow the canonical CLI/ledger rules, not those labels alone.
 
 - D-68 item 23: preserve entered picks and existing order after drafting starts;
   flag stat corrections for commissioner review. No automatic replay or deletion.
+- Midweek finalization policy is awaiting Sean: finalize once results/next Sleeper
+  week are verified, or the following Monday. Ordinary Monday capture and
+  no-picks order work proceed independently; existing midweek guards remain.
 - The commissioner flag is a read-only view; it does not prove that a prospective
   order was recomputed or provide an invented resolution action.
 - M-32/M-33 and any later migration remain separate named apply gates. “Continue”
