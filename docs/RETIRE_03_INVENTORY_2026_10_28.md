@@ -166,7 +166,7 @@ where the Cloudflare login lives.
    it (kept as the rollback target, behind Access). Each build can be rebuilt
    from its Git commit; nothing in Git or Supabase is removed. Re-run the
    inventory; deleted URLs should return 404.
-3. **Remove the legacy `App` chunk from the production build (RETIRE-04).**
+3. **Built October 29, not yet deployed — remove the legacy `App` chunk from the production build (RETIRE-04).** `web/src/main.jsx` now gates the old app on the raw `VITE_SUPABASE_*` values, so a cloud build has no `App` chunk (51 to 40 assets, about 206 KB less JavaScript); the local build keeps it. It ships with the next normal release.
    Drop the non-cloud `App` branch from `web/src/main.jsx` so the published
    `assets/` no longer contains old-app code; deploy through the normal
    [manual release workflow](SHARED_DEPLOYMENT.md).

@@ -137,6 +137,8 @@ test('main.jsx loads only the new app, lazily, behind a fallback that reloads an
   assert.doesNotMatch(main, /^import\s+\w+\s+from\s+'\.\/next\/NextApp(\.jsx)?'/m, 'the new app is not a static import of the entry');
   assert.match(main, /startAppView\(\)/);
   assert.match(main, /reloadApp\(\)/);
+  // RETIRE-04: the local-only old app is gated on the raw env values Vite inlines, so a cloud build publishes no App chunk.
+  assert.match(main, /const App = import\.meta\.env\.VITE_SUPABASE_URL \|\| import\.meta\.env\.VITE_SUPABASE_PUBLISHABLE_KEY \? null : lazy\(\(\) => import\('\.\/App\.jsx'\)\)/);
 });
 
 test('the apps keep separate shells and allow only documented workflow and pick-control adapters', () => {
