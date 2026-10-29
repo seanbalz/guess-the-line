@@ -203,3 +203,13 @@ links are neither spoiler filters nor a substitute for licensed ingestion.
 Use unavailable/stale labels, never fabricated values or zeros. No account,
 key, paid plan, scraping job, provider email or live import was created by this
 research. Original picks and snapshots are unchanged.
+
+## EPL draw-no-bet live gate — October 29, 2026
+
+On Sean's explicit enable/test approval, the hosted worker checked three upcoming MW9 fixtures. The first
+`dnb-check` run succeeded at 16:44:48 UTC: all three fixtures had qualifying two-way prices from DraftKings,
+FanDuel and BetMGM; `dnbAvailable=true` and the production `dnbGateOpen` function returned true for 2026 MW9.
+The check spent three free-plan credits (407 → 404) and retained the shared reserve. Daily bounded checking is
+enabled at 11:23 UTC. See [the dated live record](RELEASE_2026_10_29_DNB.md) for the run ID, preservation,
+schedule and verification limits. This supersedes “no live DNB verdict” for MW9; player-facing moneyline
+routes, ongoing reference collection and screens remain implementation work.
