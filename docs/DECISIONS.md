@@ -19,7 +19,7 @@ remain required. Player pick deadlines and locks are unchanged.
 (mockups v3), including the twelve "calls I made" in its section 10. Plan 1
 ([docs/superpowers/plans/2026-10-28-epl-pick-a-team.md](superpowers/plans/2026-10-28-epl-pick-a-team.md)) builds the
 foundation and Pick a Team. Research → Fantasy (EPL) and the EPL moneyline game follow as plans 2 and 3. Nothing here
-is deployed: M-30 (`20261028180000_gtl_epl_pick_a_team.sql`) is written and **not applied** until Sean says "apply M-30".
+is deployed: M-30 (`20261028190000_gtl_epl_pick_a_team.sql`) is written and **not applied** until Sean says "apply M-30".
 
 1. **Who and where.** EPL is a third option on the sport switch (NFL / NBA / EPL). It keeps the four tabs (Home, Play,
    Bets, Research). Only GTL accounts linked to one of the 8 managers of Sean's Sleeper league **FEPL** (league

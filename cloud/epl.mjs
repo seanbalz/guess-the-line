@@ -1,6 +1,6 @@
 // EPL "Pick a Team" and Research -> Fantasy routes on gtl-api (docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md section 6;
 // plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Eight POST routes over the M-30 service-only functions and tables
-// (supabase/migrations/20261028180000_gtl_epl_pick_a_team.sql):
+// (supabase/migrations/20261028190000_gtl_epl_pick_a_team.sql):
 //   /epl/draft/read      a linked FEPL manager or the commissioner: the week's board, the clubs playing, the caller's own queue
 //                        and own manager id (`me`)
 //   /epl/draft/pick      the manager on the clock, or the latest picker changing their pick (gtl_epl_save_pick re-checks it all)
