@@ -44,9 +44,12 @@ export default function EplApp({ onSportChange, api = eplApi }) {
     return () => { window.removeEventListener('popstate', changed); window.removeEventListener('hashchange', changed); };
   }, []);
   function go(next) {
-    if (eplHash(next) === eplHash(current.current)) { window.scrollTo(0, 0); return; }
+    // Tab clicks omit the section. Store the same canonical route as the URL so Play opens Pick a Team,
+    // and clicking that section cannot be discarded as a no-op while an incomplete route is rendered.
+    const hash = eplHash(next), normalized = eplRoute(hash);
+    if (hash === eplHash(current.current)) { window.scrollTo(0, 0); return; }
     if (!confirmSportLeave()) return;
-    setRoute(next); window.history.pushState(null, '', eplHash(next)); noteSportRoute(); window.scrollTo(0, 0);
+    setRoute(normalized); window.history.pushState(null, '', hash); noteSportRoute(); window.scrollTo(0, 0);
   }
   return <EplView route={route} onRoute={go} onSportChange={onSportChange} api={api} motion={preferences.motion}/>;
 }
