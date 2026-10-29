@@ -427,6 +427,13 @@ test('trend builder: conditions, honest result card, this week’s matches, save
   for (const text of ['Record (W-L-P)','Wilson 95% interval','Illustrative units at -110','Built on 2002–2017','Held out 2018 on']) await expect(result).toContainText(text);
   await expect(result).not.toContainText(/\bROI\b/);
   await expect(result.locator('[data-builder=split-label]')).not.toBeEmpty();
+  // D-66: the label's explanation, the reference note and the nflverse credit are one tap away behind the card's ⓘ.
+  await expect(result).not.toContainText('Reference only');
+  await result.getByRole('button',{name:'About the trend builder',exact:true}).click();
+  const about=page.getByRole('dialog',{name:'About the trend builder',exact:true});
+  await expect(about).toContainText('Found by search — not tested. You choose the conditions');
+  await expect(about.getByRole('link',{name:/nflverse/})).toBeVisible();
+  await page.keyboard.press('Escape'); await expect(about).toBeHidden();
   await result.getByText(/^Contributing games · \d+/).click();
   await expect(result.getByRole('region',{name:'Contributing games, newest first'}).getByRole('row')).toHaveCount(26);
   // The fixture week's four games are all non-divisional; the road team is known without any line.

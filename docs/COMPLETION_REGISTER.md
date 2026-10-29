@@ -683,6 +683,13 @@ update time in the header’s one meta line and the source behind its ⓘ. Each 
 times. The “Current line” and “Latest recorded line” labels and final-score provenance stay on the cards, and so
 does the card’s screen-reader sentence. Not released.
 
+**Fifth rollout: Trends › Build**, on branch `claude/research-nesting-build`. The result card leads with the
+record as one big W-L-P and a cover meter. Cover rate, Wilson 95% interval, sample and “Illustrative units at -110”
+become tiles, and “By season” moves into a disclosure. The paragraphs that repeated the card’s ⓘ (the label’s
+explanation, the period-split note, the reference note, the line source and the history credit) move behind it. D-63’s
+visible labels and the period table stay. Nesting cards now enter with a short slide only, with no fade or scale,
+because checks caught text mid-fade below its contrast. Not released.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance
