@@ -62,6 +62,24 @@ ignored test output. Raw signed-in screenshots remain private and ignored.
 
 ## Release and iPhone acceptance
 
+PR [#389](https://github.com/seanbalz/guess-the-line/pull/389) merged as
+`d9f81905cdec2666af0b4a02ed31207f5157419b` after all twelve checks passed on
+`7af604b8b4000e38382063f7fab3685bdd14c3fc` and independent code/visual review.
+The merged-main Persona job then exposed an existing keyboard-test race
+([run 40942802489](https://github.com/seanbalz/guess-the-line/actions/runs/40942802489/job/123690289958)).
+Deployment paused; no failing gate was bypassed.
+
+The trace shows the keyboard loop moving straight to Research after accepting
+any visible screen following Bets. The scheduled Bets heading
+focus then wins; the failure screenshot shows that heading focused on `#bets`.
+Neither Fantasy nor Trends had been entered. Five exact-main local repeats
+independently reproduced the race once. The follow-up changes only the test:
+after Enter it awaits the selected tab and the exact destination heading's focus
+handoff before advancing. Already-current Home has no new route handoff. The
+navigation focus assertion stays in place, with no sleep or automatic retry.
+All three Persona cases then passed five repetitions each (15/15), including
+the keyboard handoff on every iteration. Syntax, Brand QA and diff checks passed.
+
 Source repair does not close #388. Exact-source CI, frontend deployment, served
 asset verification and physical iPhone acceptance remain required. The existing
 moneyline release keeps its pinned source. The agreed next #388 frontend-only
