@@ -23,6 +23,13 @@
      - the whole name equals the Sleeper username (`sleeper_name`).
   3. No other profile also matches that manager by the same rules.
   - Anything ambiguous links nothing.
+- **Aliases:** these are added Oct 29 from a live read of `gtl_profiles` that Sean approved. Sean: "my user should be fistathon and seanbalz".
+  - M-31 adds `gtl_epl_manager_aliases(owner_id text references gtl_epl_managers, alias text, primary key(alias))`, service-only with RLS on.
+  - It is seeded idempotently with:
+    - `('473955676301815808','fistathon')`: Sean, Sleeper seanbalz, GTL display name "Fistathon".
+    - `('702644837370929152','sthomas')`: Steven, Sleeper sthomas111, GTL display name "Sthomas".
+  - Auto-link also matches when the whole btrimmed, lowercased display name equals an alias. The same ambiguity rules apply.
+  - With the live names this auto-links six managers: Cullen, Evan, Mark, Nemo, Sean (Fistathon) and Steven (Sthomas). Adam and Darin have no GTL account yet and will claim. Add PGlite tests for both aliases.
 - **Claim:** `gtl_epl_claim_manager(p_user uuid, p_owner_id text) -> jsonb`.
   - Refused with `GTL_EPL_ALREADY_LINKED` when the caller already has a link.
   - Refused with `GTL_EPL_CLAIMED` when the manager is already linked.
