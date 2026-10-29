@@ -487,7 +487,7 @@ test('snapshot: saves before-mw<N>-kickoff in the half hour before the first kic
   assert.deepEqual(due.service.args('gtl_epl_save_snapshot'), [{ p_label: 'before-mw9-kickoff', p_captured_at: '2026-11-04T00:05:00Z', p_week: 9, p_sha256: { rosters: 'c'.repeat(64) }, p_payload: { label: 'before-mw9-kickoff', rosters: [] } }]);
   const saved = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw08', 'before-mw9-kickoff', ...DAILY] }), clock: at('2026-10-31T12:20:00Z') });
   assert.equal(saved.body.reason, 'nothing_due');
-  const after = await run({ job: 'snapshot', state: baseState({ week: { ...baseState().week, status: 'resolved' } }), clock: at('2026-11-04T00:00:00Z') });
+  const after = await run({ job: 'snapshot', state: baseState({ week: { ...baseState().week, status: 'resolved' } }), sources: fakeSources({ sleeperState: { week: 10 } }), clock: at('2026-11-04T00:00:00Z') });
   assert.deepEqual(after.sources.calls, [['sleeper', { label: 'after-mw9', statsWeek: 9, projectionsWeek: 10 }]]);
   const padded = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw09', ...DAILY], week: { ...baseState().week, status: 'resolved' } }), clock: at('2026-11-04T00:00:00Z') });
   assert.equal(padded.body.reason, 'nothing_due', 'a zero-padded import counts as the same snapshot');
@@ -506,6 +506,20 @@ test('snapshot: after-mw<N> waits until Sleeper is on week N+1 and fails when Sl
   const past = await run({ job: 'snapshot', state: resolved(), sources: fakeSources({ sleeperState: { week: 11 } }), clock: at('2026-11-04T00:00:00Z') });
   assert.equal(past.body.status, 'failed'); assert.equal(past.body.reason, 'scores_incomplete');
   assert.deepEqual(past.service.args('gtl_epl_save_snapshot'), [], 'two Sleeper weeks in one app week: the commissioner supplies after-mw9');
+});
+
+test('snapshot: missing or malformed Sleeper week cannot permanently save an after-matchweek label', async () => {
+  const state = () => baseState({ week: { ...baseState().week, status: 'resolved' } });
+  for (const sleeperState of [undefined, {}, { week: null }, { week: '10' }, { week: 10.5 }, { week: 0 }, { week: 39 }]) {
+    const reply = await run({ job: 'snapshot', state: state(), sources: fakeSources({ sleeperState }), clock: at('2026-11-04T00:00:00Z') });
+    assert.equal(reply.body.status, 'failed', JSON.stringify(sleeperState));
+    assert.equal(reply.body.reason, 'scores_incomplete');
+    assert.deepEqual(reply.service.args('gtl_epl_save_snapshot'), []);
+  }
+  // A later valid source response can retry the same immutable label; nothing was poisoned by the failed runs.
+  const retry = await run({ job: 'snapshot', state: state(), sources: fakeSources({ sleeperState: { week: 10 } }), clock: at('2026-11-04T00:05:00Z') });
+  assert.equal(retry.body.status, 'succeeded');
+  assert.equal(retry.service.args('gtl_epl_save_snapshot')[0].p_label, 'after-mw9');
 });
 
 test('settle: a needs_review week settles once the commissioner records the missing final result (final review)', async () => {
