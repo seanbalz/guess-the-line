@@ -34,7 +34,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
-  20261029150000, // M-32 gtl_epl_moneyline: EPL Guess the Line guesses, references, board and leaderboard (needs M-30; after M-31), awaiting Sean's "apply M-32".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -175,4 +174,5 @@ export const APPLIED = [
   20261028181000, // M-11 gtl_bets_place: hosted as 20261029041843 on October 29, 2026 (SQL editor, Gate M); see RELEASE_2026_10_29_M11.md.
   20261028190000, // M-30 gtl_epl_pick_a_team: hosted as 20261029051846 on October 29, 2026 (SQL editor, Gate M); see RELEASE_2026_10_29_M30.md.
   20261029060000, // M-31 gtl_epl_open_access: hosted as 20261029131259 on October 29, 2026 (SQL editor, Gate M); see RELEASE_2026_10_29_M31.md.
+  20261029150000, // M-32 gtl_epl_moneyline: hosted as 20261029162422 on October 29, 2026 (Supabase MCP, Gate M); see RELEASE_2026_10_29_M32.md.
 ];

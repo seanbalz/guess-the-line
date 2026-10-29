@@ -11,7 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md` section 7. Depends on Plan 1 (fixtures, prices, member check, EplApp).
 
 **Source progress, October 29:** Tasks 0–2 have implementation and local tests; the live Task 0 verdict is still required.
-M-32 is not applied, the new check is not enabled, and Tasks 3–5 remain queued behind that live gate. See
+M-32 is [applied and verified](../../RELEASE_2026_10_29_M32.md) as hosted version `20261029162422`; the new check is not enabled, and Tasks 3–5 remain queued behind that live gate. See
 [the moneyline workflow evidence](../../EPL_MONEYLINE_WORKFLOW_2026_10_29.md) for verified scope and remaining steps.
 
 ## Global Constraints
@@ -61,7 +61,7 @@ Test: `tests/epl-dnb.test.mjs` (fake fetch).
 
 **Files:** Create `supabase/migrations/20261029150000_gtl_epl_moneyline.sql` (after M-31 `20261029060000`; check open PRs for the same version first); Modify `tests/migrations.mjs` (`NOT_HOSTED`), `docs/REDESIGN_BUILD_PLAN.md` §6 (M-32 row, apply after M-31); Test `tests/epl-moneyline-sql.test.mjs` (PGlite, like Plan 1's `tests/epl-migration-sql.test.mjs`)
 **Interfaces:** Tables `gtl_epl_guesses(season, week, event_id, owner_id, club, price int, status text check in ('draft','locked'), locked_at, reference_price int null, reference_observed_at, reference_source text check in ('at-lock','first-after'), distance int null, primary key(event_id, owner_id))`, `gtl_epl_guess_history` (every save); prices from Plan 1 `gtl_epl_prices` with `market='draw_no_bet'`. RPCs (service-only, invoker): `gtl_epl_save_guess(p_user, p_event_id, p_club, p_price, p_lock boolean, p_now)` (errors `GTL_EPL_GUESS_LOCKED`, `GTL_EPL_GUESS_CLOSED`, `GTL_EPL_GUESS_INVALID`, `GTL_EPL_FORBIDDEN`; on lock sets reference from newest stored DNB median for that club at or before `p_now`, else pending), `gtl_epl_resolve_pending_references(p_event_id)` (first price observed after `locked_at` and before kickoff), `gtl_epl_guess_board(p_user, p_season, p_week)` (own guesses + others' only where locked-by-viewer or kicked off), `gtl_epl_guess_leaderboard(p_season)`.
-- [x] M-32 source and executed PGlite tests implemented for Review Focus 1, 3, 4, privacy and the disabled check job. Listed in `NOT_HOSTED`; hosted apply remains open. The schedule constraint widening is fix-forward: disable `dnb-check` and preserve stored evidence rather than narrowing the constraint over its row.
+- [x] M-32 source and executed PGlite tests implemented for Review Focus 1, 3, 4, privacy and the disabled check job. Moved to `APPLIED` after the verified October 29 hosted apply; see the linked M-32 release record. The schedule constraint widening is fix-forward: disable `dnb-check` and preserve stored evidence rather than narrowing the constraint over its row.
 
 ### Task 3: Routes
 
