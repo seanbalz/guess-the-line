@@ -27,7 +27,7 @@ merge resolution. The actual shared-interface PR #379 review/merge remains coord
 - Nine combined flows passed through actual local M-32/M-36 SQL, service-role RPCs, the production handler,
   collector and provider parser. HTTP prices, accounts, fixtures and quota headers are synthetic; no hosted
   account, provider credit or player record is touched by these tests.
-- Three full-page Axe analyses passed, including 390px dark and 320px light layouts. No rules were suppressed.
+- Four full-page Axe analyses passed, including 390px dark and 320px light layouts. No rules were suppressed.
   The original sport-switch landmark failure was reproduced and fixed in the shared-shell source.
   Tests explicitly set the saved `gtl.theme` preference and assert the applied `html[data-theme]`; OS emulation
   alone does not override this app's default Dark preference. Final Light/Dark captures were visually inspected.

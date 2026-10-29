@@ -806,7 +806,7 @@ Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NF
 ## EPL moneyline combined source acceptance — October 29
 
 API, durable shared collection and shared-shell moneyline/leaderboard screens are implemented and locally
-verified together: 534 Node/SQL checks, 80 component checks, nine actual-service flows and three full-page
+verified together: 534 Node/SQL checks, 80 component checks, nine actual-service flows and four full-page
 Axe analyses passed. [Composition, evidence and release limits](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md).
 M-36 remains NOT_HOSTED and the new moneyline job is not enabled; source merge/CI and protected release
 remain separate from the already verified M-32 and live DNB gate. Physical-phone acceptance remains open.

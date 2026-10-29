@@ -198,6 +198,8 @@ test('switching from a linked manager to an unlinked account clears saved moneyl
     await page.goto('/#epl/play/guess');
     await signIn(page, 'troy', { navigate: false });
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await expect(page.getByLabel('Your moneyline price', { exact: true })).toBeVisible();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.getByRole('button', { name: 'ARS', exact: true }).click();
     await page.getByLabel('Your moneyline price', { exact: true }).fill('-133');
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();
