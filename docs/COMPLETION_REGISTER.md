@@ -677,6 +677,12 @@ A player asked to keep loading recommended bets without being sent to My bets. D
 editor; the review and the Virtual Units card keep separate draft guards. Unit test `tests/next-bets-review.test.jsx`;
 browser test in `tests/cloud-browser/recommended-bets.spec.js` saves two in a row at 390 and 320 px. Not deployed.
 
+**Fourth rollout: Explore games**, on branch `claude/research-nesting-games`. The board said the same source and
+update line under every card, 28 lines and about 390 of its 800 words on the live board. It now says them once: the
+update time in the header’s one meta line and the source behind its ⓘ. Each game sheet keeps its sources, books and
+times. The “Current line” and “Latest recorded line” labels and final-score provenance stay on the cards, and so
+does the card’s screen-reader sentence. Not released.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance
