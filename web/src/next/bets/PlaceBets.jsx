@@ -8,9 +8,9 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Dock } from '../shell/Frame.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { AvatarStack, Button, Card, Chip, ChipRail, GateBanner, IconButton, LockLine, Matchup, Pill, Sheet, Tag } from '../ui/index.js';
+import { AvatarStack, Button, Card, Chip, ChipRail, GateBanner, IconButton, LockLine, Matchup, Meter, Pill, Sheet, Tag } from '../ui/index.js';
 import { fmtNum, fmtU, fmtWhen } from '../format.js';
-import { PLACE_COPY, UNIT_CHIPS, placeBoard, placeRequest, slipEntries, slipKey, stepUnits } from './place.js';
+import { PLACE_COPY, UNIT_CHIPS, placeBoard, placeRequest, slipEntries, slipKey, stepUnits, weekCard } from './place.js';
 import './place.css';
 
 export function PlaceBets({ onDirty }) {
@@ -62,6 +62,7 @@ export function PlaceBets({ onDirty }) {
   const units = entries.reduce((sum, entry) => sum + entry.units, 0);
   return <div className="gx-place gx-vstack gx-gap-16" data-bets="place">
     <p className="gx-t-meta gx-c-2">Week {board.week} · Virtual Units · {PLACE_COPY.empty}</p>
+    <WeekCard week={weekCard(read.data, app.accountId)}/>
     {board.closed ? <GateBanner gate={{ locked: true, sentence: PLACE_COPY.banner, ctaLabel: 'Lock in a guess' }} onCta={() => shell.go('play', { section: 'picks' })}/> : null}
     {board.games.map(game => <PlaceGame key={game.id} game={game} slip={slip} disabled={busy || uncertain} onToggle={toggle}/>)}
     <Button variant="ghost" onClick={read.retry} disabled={busy}>Refresh prices</Button>
@@ -80,6 +81,17 @@ export function PlaceBets({ onDirty }) {
       <p className="gx-t-meta gx-c-2">Virtual Units are play money. Each bet saves the price shown; if a book’s price changes first, you will be asked to review it.</p>
     </Sheet> : null}
   </div>;
+}
+
+/** Stage 45: OPEN · IN PLAY · TO WIN, then RECORD · UNITS · RETURN, and the 3 bets or 3U qualification meter. */
+export function WeekCard({ week }) {
+  const stat = (label, value) => <div className="gx-place-stat"><span className="gx-t-meta gx-c-2">{label}</span><span className="gx-n-s">{value}</span></div>;
+  return <Card as="section" className="gx-place-week gx-vstack gx-gap-12" aria-labelledby="gx-place-week" data-bets="week">
+    <h2 id="gx-place-week" className="gx-t-section">Your week</h2>
+    <div className="gx-place-stats">{stat('Open', week.open)}{stat('In play', week.inPlay)}{stat('To win', week.toWin)}</div>
+    <div className="gx-place-stats">{stat('Record', week.record)}{stat('Units', week.units)}{stat('Return', week.ret)}</div>
+    <div className="gx-hstack gx-gap-8 gx-place-meter"><Meter value={week.meter.value} max={3} label={week.meter.text}/><span className="gx-t-meta gx-c-2 gx-grow">{week.meter.text}</span></div>
+  </Card>;
 }
 
 export function PlaceGame({ game, slip, disabled, onToggle }) {

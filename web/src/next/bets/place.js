@@ -7,8 +7,9 @@
 // - your own bet always shows in full; editing it sends the terms you read (`expected`), so a bet changed on another
 //   device is refused with "This bet changed" instead of being overwritten;
 // - a game that has kicked off takes no new bet or edit.
-import { DASH, fmtOdds, fmtU } from '../format.js';
+import { DASH, MINUS, fmtOdds, fmtU } from '../format.js';
 import { pickText, sideText } from './everyone.js';
+import { QUALIFY_PICKS, QUALIFY_UNITS, weekFromPicks } from '../../../../shared/bets-qual.mjs';
 
 const MARKETS = ['spread', 'total'];
 const SIDES = Object.freeze({ spread: ['away', 'home'], total: ['over', 'under'] });
@@ -109,4 +110,38 @@ export function placeRequest(board, entries, requestId) {
 export function stepUnits(units, direction) {
   const next = Math.round(((finite(units) ? units : 1) + direction * 0.5) * 2) / 2;
   return Math.min(MAX_UNITS, Math.max(0.5, next));
+}
+
+/** Units a pending bet wins at its saved American odds (stake not included). */
+export function toWinUnits(selection) {
+  const units = selection?.units, odds = selection?.odds;
+  if (!finite(units) || !finite(odds) || odds === 0) return 0;
+  return odds > 0 ? units * odds / 100 : units * 100 / Math.abs(odds);
+}
+
+/**
+ * Stage 45: your week on top of Your picks. `{ open, inPlay, toWin, record, units, ret, picks, qualified, meter }`:
+ * open and in play count pending bets before and after their game's kickoff; to win is what the pending bets would net;
+ * record, net units and return come from settled bets only (shared/bets-qual.mjs, the same arithmetic as the boards).
+ * The meter counts toward the week's qualification: 3 bets or 3 units, whichever comes first.
+ */
+export function weekCard(data, viewer) {
+  const reply = record(data) ? data : {};
+  const nowMs = Date.parse(reply.now);
+  const kickoff = Object.fromEntries((Array.isArray(reply.games) ? reply.games : []).map(game => [game.id, Date.parse(game.kickoff)]));
+  const mine = (Array.isArray(reply.bets) ? reply.bets : []).filter(bet => bet?.userId === viewer && MARKETS.includes(bet?.market));
+  const pending = mine.filter(bet => bet.status === 'pending' || bet.status == null);
+  const started = bet => !(nowMs < kickoff[bet.gameId]);
+  const week = weekFromPicks(mine);
+  const units = Math.round(week.units * 100) / 100;
+  return {
+    open: pending.filter(bet => !started(bet)).length, inPlay: pending.filter(started).length,
+    toWin: fmtU(Math.round(pending.reduce((sum, bet) => sum + toWinUnits(bet.selection), 0) * 100) / 100),
+    record: `${week.wins}-${week.losses}${week.pushes ? `-${week.pushes}` : ''}`,
+    units: week.riskUnits ? `${week.netUnits > 0 ? '+' : ''}${fmtU(week.netUnits)}` : DASH,
+    ret: week.roi === null ? DASH : `${week.roi > 0 ? '+' : week.roi < 0 ? MINUS : ''}${Math.abs(week.roi)}%`,
+    picks: week.picks, qualified: week.qualified,
+    meter: { value: Math.min(QUALIFY_PICKS, Math.max(week.picks, Math.floor(units / QUALIFY_UNITS * QUALIFY_PICKS))),
+      text: week.qualified ? 'Qualified for this week’s board' : `${week.picks} of ${QUALIFY_PICKS} bets · ${fmtU(units) === DASH ? '0U' : fmtU(units)} of ${QUALIFY_UNITS}U` },
+  };
 }
