@@ -1406,6 +1406,7 @@ test('a direct game open checks results on demand, ignores a late reply after pa
       await route.fulfill({ status: 200, json: body }).catch(() => {});
     });
     const directCalls = apiCalls(page);
+    await page.locator('[data-game="SEA-DEN"]').click(); // D-66: the game sheet is inside the game's layer
     await page.getByRole('button', { name: 'Game details · SEA @ DEN', exact: true }).click();
     const sea = sheet(page, 'SEA @ DEN'), recorded = dialog => dialog.getByRole('region', { name: 'Recorded result', exact: true });
     await expect(recorded(sea)).toContainText('No recorded result checked yet.');
