@@ -18,7 +18,7 @@ change the deployed source by itself.
 | Player names | #371 supplies bounded daily-only display enrichment and snapshot-only scoring positions; 260 EPL Node and 17 JSX tests passed locally. | Resume deferred CI after the hold, review and release, then inspect a new daily capture's nonempty-name coverage. | An old immutable capture is never overwritten. Local fixture coverage does not close the hosted metadata gap. |
 | Standings | Readiness branch at `7e25f7a9c5ed925ab94dcc5b0d03820e50c3c61a`, with 19 passing local tests and a dated community-source record. | Moneyline agent connects validated collection, private persistence and deadline resolver input, preserving provenance, licensing, freshness and old-schema compatibility. | Source readiness alone is not a connected feed. Missing/stale positions remain explicit and cannot become an alphabetical rank. |
 | Monday finalization and corrected order | M-33 currently captures/audits Tuesday corrections; commissioner flag is prepared. First final capture still uses the original window/rollover rule. | Operations agent examines and fixes Monday-final scheduling with source guards, and recomputes a corrected next order only before any pick exists. | Existing picks/order stay preserved once drafting starts; commissioner review remains visible. Source evidence is required before marking scores final. |
-| Moneyline game | M-32 source is merged, NOT_HOSTED; local apply-review packet exists. No live DNB verdict. | Release owner handles named apply/enablement gates; only a real passing DNB check permits routes, regular collection and player screens to proceed. | Source, local tests, schema apply and live market availability are separate. No paid data or reserve reduction is authorized. |
+| Moneyline game | Release owner verified M-32 applied as hosted `20261029162422`, with unchanged preservation hashes and six matching new function bodies. No DNB schedule/cron/run or live verdict. | Release owner records M-32 ledger/evidence and handles separate DNB enablement approval; only a real passing check permits routes, regular collection and player screens to proceed. | Source, local tests, schema apply and live market availability are separate. No paid data or reserve reduction is authorized. |
 
 The earlier runner/release hold is cleared. Agents may publish tested PRs and
 run CI; root reviews and merges the next batch. Preserve the release owner's
@@ -35,7 +35,8 @@ dependencies must follow the canonical CLI/ledger rules, not those labels alone.
   following-Monday wait; source guards and Tuesday correction checks remain.
 - The commissioner flag is a read-only view; it does not prove that a prospective
   order was recomputed or provide an invented resolution action.
-- M-32/M-33 and any later migration remain separate named apply gates. “Continue”
+- M-32 is applied under its named approval; M-33 and later migrations still have
+  separate named apply gates. “Continue”
   authorizes this implementation work, not an unrecorded hosted migration or job
   enablement.
 - Full MW9 → MW10 operation, actual correction readback, push delivery and physical

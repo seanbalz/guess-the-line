@@ -167,6 +167,13 @@ Sean selected: **"Preserve picks; flag for review (recommended)"**.
     flag must be visible, not merely an unseen job/audit status. It is not a
     migration apply or production-deployment approval.
 
+**M-32 status update — October 29, 2026:** the release owner reports the approved
+M-32 apply verified as hosted `20261029162422`, exact source SHA-256
+`9614ecedc62323d4c2236d431dc4da77895fede41909b4cf086aee3a2bb5c2c2`.
+This supersedes the pending-M-32 status above. DNB schedule, cron and run counts
+remain zero; no live market verdict or complete moneyline game is established.
+The canonical apply/ledger record is owned by the release chat.
+
 **Addendum — Midweek EPL finalization (October 29, 2026).** Asked whether to
 finalize midweek rounds once results and the next Sleeper week are verified, or
 wait for the following Monday, Sean selected **"Finalize once verified (recommended)"**.
