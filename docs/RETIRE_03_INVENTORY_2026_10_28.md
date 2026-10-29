@@ -2,11 +2,13 @@
 
 Owner: Sean Balsiger · Version 1 · October 28, 2026
 
-Status: **read-only inventory and proposed closure plan, waiting for Sean's
-approval.** Nothing in this record deleted, rolled back, redirected or changed a
-deployment, project setting, domain or DNS record. It is evidence for
+Status: **step 1 of the closure plan is done; steps 2–4 wait for Sean's
+approval.** The October 28 inventory below was read-only. Sean then approved
+step 1, and the main session turned on Preview access for the Pages project (see
+[Step 1 result](#step-1-result-october-28-2026)). This record itself changed no
+deployment, setting, domain or DNS record. It is evidence for
 [RETIRE-03](../planning/new-app-retirement.md#retire-03--hosting-stale-clients-and-release-evidence),
-not proof that the old app is closed.
+not proof that the old app is closed: the deployments still exist behind Access.
 
 ## Summary
 
@@ -142,13 +144,39 @@ the old app.
 | Home Screen install (`manifest.webmanifest`, `start_url: /`, `scope: /`) and `beforeinstallprompt` in `installPrompt.js` | Launch opens `/` of the origin it was installed from | An install made from a deployment URL keeps launching that old build until Step 1 below |
 | Notification clicks | Open `/#picks` on the worker's own origin | Same as installs: a worker registered on a deployment URL opens that old build |
 
-## Proposed closure plan (needs Sean's approval)
+## Step 1 result (October 28, 2026)
+
+Sean approved step 1 ("Approve retire 03 step 1"). The main session turned on
+Pages › `guess-the-line` › Settings › Preview access (*Restrict previews*)
+through Claude in Chrome on October 28. The release verify step was adapted for
+it in PR #318.
+
+Re-check with `curl`, signed out, October 29 at 01:04 UTC (October 28, 6:04 PM
+Pacific):
+
+| URL | Result |
+|---|---|
+| All 48 deployment URLs in the inventory above, plus `ae59b829` | HTTP 302 to `https://guess-the-line-pages.cloudflareaccess.com/cdn-cgi/access/login/…`; none returns the page |
+| An old asset on a deployment URL (`c251e8e1…/assets/GameHub-D4G4qexq.js`) | HTTP 302 to the same Access login |
+| `https://guess-the-line.pages.dev` (production) | HTTP 200; entry `index-BiyT3dAv.js` (a newer production deploy than `0a4c0d25`); no `GameHub` chunk, no classic switch |
+
+The production deployment's own hash URL is behind Access too; players use the
+canonical domain. What step 1 does not settle:
+
+- The deployments still exist and still point at the hosted API; anyone allowed
+  through Access can open them. Step 2 removes them.
+- The full deployment list is still unread, but Access applies to every
+  non-production URL of the project, listed or not.
+- Home Screen installs made from a deployment URL now open the Access login, not
+  the old app. Not checked on a real phone (step 4).
+
+## Proposed closure plan (step 1 done; steps 2–4 need Sean's approval)
 
 Each step changes hosting and needs Sean's explicit "approve RETIRE-03 step N".
 None deletes player records; the database is untouched. Run from the Mac mini,
 where the Cloudflare login lives.
 
-1. **Block every non-production URL with Cloudflare Access (reversible, free).**
+1. **Done October 28 — block every non-production URL with Cloudflare Access (reversible, free).**
    Pages › `guess-the-line` › Settings › General › *Enable access policy* for
    preview deployments. This puts Cloudflare Access (free Zero Trust tier) in
    front of `*.guess-the-line.pages.dev`, which covers deployment-hash URLs and
@@ -166,7 +194,7 @@ where the Cloudflare login lives.
    it (kept as the rollback target, behind Access). Each build can be rebuilt
    from its Git commit; nothing in Git or Supabase is removed. Re-run the
    inventory; deleted URLs should return 404.
-3. **Remove the legacy `App` chunk from the production build (RETIRE-04).**
+3. **Built October 29, not yet deployed — remove the legacy `App` chunk from the production build (RETIRE-04).** `web/src/main.jsx` now gates the old app on the raw `VITE_SUPABASE_*` values, so a cloud build has no `App` chunk (51 to 40 assets, about 206 KB less JavaScript); the local build keeps it. It ships with the next normal release.
    Drop the non-cloud `App` branch from `web/src/main.jsx` so the published
    `assets/` no longer contains old-app code; deploy through the normal
    [manual release workflow](SHARED_DEPLOYMENT.md).
