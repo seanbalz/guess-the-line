@@ -19,6 +19,7 @@
 import { MANAGER_NAMES, managersFromSnapshot, pairMatchups, playersFromSnapshot, statsById, weeklyScores } from '../shared/epl-sleeper.mjs';
 import { beatProjection, playerPoints, positionOf, seasonHigh, teamProjection, topScorers, winChance } from '../shared/epl-fantasy.mjs';
 import { clubFromSleeperAbbr } from '../shared/epl-clubs.mjs';
+import { mergePlayerDirectories } from '../shared/epl-player-directory.mjs';
 
 /** How many recent matchweeks keep per-player detail (their full snapshots are read); totals cover the whole season. */
 export const FANTASY_DETAIL_WEEKS = 6;
@@ -112,8 +113,7 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   const owners = managers.map(m => m.ownerId);
 
   // Players: every snapshot's directory, newest last so it wins.
-  const players = Object.create(null);
-  for (const s of snaps) Object.assign(players, playersFromSnapshot(s.payload));
+  const players = mergePlayerDirectories(...snaps.map(s => playersFromSnapshot(s.payload)));
   const scoring = [...snaps].reverse().map(s => s.payload.league?.scoring_settings).find(record) ?? {};
 
   const after = byWeek(snaps, AFTER), before = byWeek(snaps, BEFORE);
@@ -138,7 +138,7 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   for (const n of range) {
     const lineup = before.get(n);
     if (!lineup || !Array.isArray(lineup.payload.rosters)) continue;
-    const weekPlayers = Object.assign(Object.create(null), players, playersFromSnapshot(lineup.payload));
+    const weekPlayers = mergePlayerDirectories(players, playersFromSnapshot(lineup.payload));
     const projKey = `projections_mw${n}`, statsKey = `stats_mw${n}`;
     const projections = Object.hasOwn(lineup.payload, projKey) ? statsById(lineup.payload[projKey]) : null;
     const resultPayload = after.get(n)?.payload;
@@ -189,7 +189,7 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   const projSource = week ? [...snaps].reverse().find(s => Object.hasOwn(s.payload, `projections_mw${week}`) && Array.isArray(s.payload.rosters)) : null;
   const projectionFor = ownerId => {
     if (!projSource) return { total: null, rows: [] };
-    const sourcePlayers = Object.assign(Object.create(null), players, playersFromSnapshot(projSource.payload));
+    const sourcePlayers = mergePlayerDirectories(players, playersFromSnapshot(projSource.payload));
     const starters = ids(rosterOf(projSource.payload, ownerId)?.starters);
     const p = teamProjection(starters, statsById(projSource.payload[`projections_mw${week}`]), sourcePlayers, scoring);
     return { total: p.total, rows: p.rows.map(r => ({ ...playerRow(sourcePlayers, r.playerId), proj: r.points })) };
