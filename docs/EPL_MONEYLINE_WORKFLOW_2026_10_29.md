@@ -44,3 +44,14 @@ constraint is restored over a saved `dnb-check` row. The existing worker can con
 
 The other owner's moneyline checkout and untracked `data/epl/` were left untouched. Global completion and queue
 registers are coordinated separately; this record provides the evidence and dependencies for their update.
+
+## Combined operations source
+
+Integrated PR #366's source so the rollover validation and operational preflight can coexist with pending M-32.
+The operational generator defaults to `HOSTED` from the canonical migration ledger: missing moneyline functions are
+not treated as deployed-source drift while M-32 is pending. `node scripts/epl-operations-preflight.mjs --all-source`
+explicitly prints a readiness query that includes pending source and labels its result `all-source`. Tests execute both
+scopes against a database built from `HOSTED`, proving that the missing moneyline function is reported only by readiness.
+This changes source expectations only; neither mode executes SQL or connects to a provider.
+Combined verification: 264 EPL/migration/rollback tests passed with zero skips; the focused rollover/DNB/preflight
+suite passed 55 tests, and typecheck, Brand QA and diff checks passed.
