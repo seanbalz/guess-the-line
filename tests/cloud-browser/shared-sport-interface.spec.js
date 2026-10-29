@@ -107,15 +107,17 @@ test('NFL and EPL keep the current tab, shared header and account; profile saves
     await profile.getByRole('button', { name: 'Close', exact: true }).click();
     await sport(page, 'EPL').click();
     await nav(page).getByRole('button', { name: 'Bets', exact: true }).click();
-    for (const theme of ['dark', 'light']) {
+    for (const name of ['NFL', 'EPL']) for (const theme of ['dark', 'light']) {
+      await sport(page, name).click();
+      await expect(page.getByRole('navigation', { name: 'Sports', exact: true })).toBeVisible();
       await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
       for (const width of [320, 390]) {
         await page.setViewportSize({ width, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         await expect(page.getByRole('button', { name: 'Your menu', exact: true })).toBeInViewport();
         await expect(nav(page)).toBeInViewport();
-        expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
-        await page.screenshot({ path: testInfo.outputPath(`shared-epl-${theme}-${width}.png`) });
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+        await page.screenshot({ path: testInfo.outputPath(`shared-${name.toLowerCase()}-${theme}-${width}.png`) });
       }
     }
     await page.getByRole('button', { name: 'League: FEPL. Switch league', exact: true }).click();

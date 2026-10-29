@@ -43,7 +43,7 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
 export function SportControls() {
   const epl = useContext(EplAccessContext);
   const { sport, change } = useContext(SportNavigationContext);
-  return <div className="gx-sport-controls"><Segmented label="Sport" value={sport} options={sportOptions(epl)} onChange={value => change ? change(value) : navigateSport(sportSwitchHash(value, window.location.hash))}/></div>;
+  return <nav className="gx-sport-controls" aria-label="Sports"><Segmented label="Sport" value={sport} options={sportOptions(epl)} onChange={value => change ? change(value) : navigateSport(sportSwitchHash(value, window.location.hash))}/></nav>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */
