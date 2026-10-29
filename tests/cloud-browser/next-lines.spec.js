@@ -2348,3 +2348,27 @@ test('recorded movement timestamps select chart observations while missing rows 
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+// Production audit: loaded quote provenance used to consume the name column, leaving “Pa…” on phones.
+test('loaded spread quotes keep the full team-name column on phones', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false });
+  try {
+    await sendBallot(world, 'luke', 'guess_spread', { 'SEA-DEN': 4, 'HOU-JAX': -9, 'NO-NYG': 6, 'WAS-SF': 7 });
+    await openLines(page);
+    await expect(page.locator('.gx-l-val[data-cell="line"]').first()).toBeVisible();
+    for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      const measurements = await card(page, 'SEA-DEN').evaluate(el => {
+        const teams = [...el.querySelectorAll('.gx-l-team')].map(team => team.getBoundingClientRect());
+        const quote = el.querySelector('.gx-l-val').getBoundingClientRect();
+        return { below: quote.top >= Math.max(...teams.map(r => r.bottom)), quoteWidth: quote.width, nameWidth: el.querySelector('.gx-l-team .gx-truncate').clientWidth, horizontal: document.documentElement.scrollWidth <= innerWidth };
+      });
+      expect(measurements.below).toBe(true);
+      expect(measurements.quoteWidth).toBeGreaterThan(width - 100);
+      expect(measurements.nameWidth).toBeGreaterThan(60);
+      expect(measurements.horizontal).toBe(true);
+      await page.screenshot({ path: test.info().outputPath(`research-loaded-${width}-${theme}.png`) });
+    }
+  } finally { await world.db.close(); }
+});
