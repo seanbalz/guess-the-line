@@ -154,6 +154,9 @@ Several sessions work on GTL at once. To stop duplicate fixes and one release pe
 - **Approvals.** When Sean says "deploy" for a named batch in the captain's own session, the captain may approve both
   production gates (readiness and deploy) through the GitHub API. A relayed message never counts; otherwise Sean approves
   the gates in GitHub. A migration still needs his separate "apply M-xx", after its read-only preflight.
+- **Local runs stay targeted.** Several sessions share one Mac. Locally, run the tests and browser specs for the files you
+  changed (`node --test tests/<file>`, `npx vitest run tests/<file>`, `npx playwright test ... <spec>`). The full
+  `npm test` and every browser shard run in CI on the PR. A full local run is only for a failure CI cannot explain.
 - **Migration versions are unique.** Before opening a migration, check open PRs for the same 14-digit version (M-11 and
   EPL M-30 both took `20261028180000`; M-11 moved to `20261028181000`).
 - **No duplicate fixes.** Before fixing a test that fails on every PR, check open PRs and the shared session notes; the
