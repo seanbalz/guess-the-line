@@ -3,11 +3,12 @@ on:
   push:
     branches: [main]
   pull_request:
-# Every main commit gets its own run: releases need green push CI on the exact SHA, and a shared main group
-# queued commits behind each other and cancelled the ones still waiting. PR runs still replace older runs.
+# A newer commit replaces an older run on the same ref, on main too (Sean, October 29, 2026): releases ship the newest
+# green main SHA (docs/SHARED_DEPLOYMENT.md "Release train"), so an older main run would only hold runners. The event is in
+# the group so a push never cancels the nightly scheduled run, nor the other way round.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
