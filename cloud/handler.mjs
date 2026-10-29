@@ -167,6 +167,13 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
   // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
   const featuresOff = parseFeatureOff(featureOff);
   const groupServices = { lines, bets, league, feed, me, trends, fantasy, points, features, epl };
+  // A route with a raised body cap (EPL_BODY_LIMITS) gets it only once the signed-in caller is the commissioner, checked
+  // before the body is read; everyone else, and any failed check, keeps the 32 KB cap.
+  async function bodyLimit(route, user) {
+    if (!Object.hasOwn(BODY_LIMITS, route) || !epl) return MAX_BODY_BYTES;
+    try { return await epl.rpc('gtl_community_admin', { p_user: user.id }) === true ? BODY_LIMITS[route] : MAX_BODY_BYTES; }
+    catch { return MAX_BODY_BYTES; }
+  }
   // The live Guess rules ride along with the views both apps render (build plan, section 3.4).
   // The read fails closed on an outage; only an explicitly missing RPC carries legacy rules.
   async function withRules(view, rules = readLiveRules(optionalRpc)) {
@@ -256,7 +263,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
 
       let body;
       if (request.method === 'POST') {
-        body = await readJson(request, Object.hasOwn(BODY_LIMITS, route) ? BODY_LIMITS[route] : MAX_BODY_BYTES);
+        body = await readJson(request, await bodyLimit(route, user));
       }
       // Private NBA account tickets require verified Auth only, independent of NFL rosters and gates.
       if (Object.hasOwn(NBA_METHODS, route)) return json(await handleNba({ route, body, user, service: nba, gamesService: nbaGames }));
