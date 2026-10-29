@@ -28,6 +28,8 @@ desktop readback. [Release evidence](RELEASE_2026_10_29_NBA_EPL.md) records
 M-32 is now [applied and verified](RELEASE_2026_10_29_M32.md); M-33 and DNB enablement remain separate gates; correction and player metadata
 follow next. This release does not complete moneyline or physical-phone acceptance.
 
+The [next EPL batch](EPL_NEXT_BATCH_2026_10_29.md) tracks the confirmed midweek ruling, source owners and remaining live gates. Its [combined local acceptance record](EPL_NEXT_BATCH_INTEGRATION_2026_10_29.md) covers correction review, roster metadata and standings readiness.
+
 ## October 29 — Balanced logo and favicon
 
 Sean selected 01 Balanced from five visual directions. Both app logo components,
