@@ -98,3 +98,38 @@ describe('a game card', () => {
     expect(startedGame).not.toContain('gx-chip');
   });
 });
+
+describe('your week (stage 45)', async () => {
+  const { weekCard, toWinUnits } = await import('../web/src/next/bets/place.js');
+  const { WeekCard } = await import('../web/src/next/bets/PlaceBets.jsx');
+  const week = weekCard({ ...data, bets: [
+    ...data.bets,
+    { userId: LUKE, gameId: 'HOU-JAX', market: 'spread', status: 'pending', selection: { side: 'home', line: -1, odds: 120, units: 1, source: 'FanDuel', quotedAt: '2026-10-28T12:00:00.000Z' } },
+    { userId: LUKE, gameId: 'HOU-JAX', market: 'total', status: 'loss', selection: { side: 'over', line: 44.5, odds: -110, units: 1.5, source: 'BetMGM', quotedAt: '2026-10-28T12:00:00.000Z' }, result: { netUnits: -1.5 } },
+  ] }, LUKE);
+  it('counts open and in-play bets by kickoff and what they would win', () => {
+    expect(week.open).toBe(1);
+    expect(week.inPlay).toBe(1);
+    expect(toWinUnits({ units: 2, odds: -110 })).toBeCloseTo(1.818, 3);
+    expect(week.toWin).toBe('3.02U');
+  });
+  it('takes record, units and return from settled bets only, and qualifies at 3 bets or 3 units', () => {
+    expect(week.record).toBe('0-1');
+    expect(week.units).toBe('−1.5U');
+    expect(week.ret).toBe('−100%');
+    expect(week.picks).toBe(3);
+    expect(week.qualified).toBe(true);
+    expect(week.meter).toEqual({ value: 3, text: 'Qualified for this week’s board' });
+  });
+  it('shows progress before qualifying and a dash before anything settles', () => {
+    const one = weekCard({ ...data, bets: [data.bets[0]] }, LUKE);
+    expect(one.meter.text).toBe('1 of 3 bets · 2U of 3U');
+    expect(one.meter.value).toBe(2);
+    expect(one.record).toBe('0-0');
+    expect(one.units).toBe('—');
+    expect(one.ret).toBe('—');
+  });
+  it('passes the kit markup rules', () => {
+    expect(markupProblems(renderToStaticMarkup(<div className="gx"><WeekCard week={week}/></div>))).toEqual([]);
+  });
+});
