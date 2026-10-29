@@ -13,7 +13,7 @@ import { INFO } from '../info.js';
 import { forfeitView } from '../play/forfeit.js';
 import './lines.css';
 import { useBoardLines } from './useGameLines.js';
-import { boardGate, marketBoard } from './boardMarkets.js';
+import { boardGate, boardQuotes, marketBoard } from './boardMarkets.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { matchupRecords } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
@@ -70,7 +70,6 @@ function GameCard({ card, records, onOpen, focusScope }) {
           {card.tags.total ? <Tag k={card.tags.total.k}>{card.tags.total.text}</Tag> : null}
         </span>
       </span>
-      {['spread', 'total'].map(market => card[market].open && card[market].source ? <span key={market} className="gx-l-observation gx-t-meta">{market === 'spread' ? 'Spread' : 'Total'} · {card[market].source} · Updated {card[market].observed}</span> : null)}
       {card.chip ? (
         <span className="gx-l-trend" data-chip={card.chip.kind}>
           {card.chip.kind === 'trend' ? <Icon icon="diamond" size={16} fill className="gx-c-data"/> : null}
@@ -123,13 +122,19 @@ export function LinesBoard({ trendsOnly = false }) {
       now: markets.status === 'ready' ? markets.now : null,
       results: Object.fromEntries((board.finals?.cards ?? []).map(card => [card.id, card.final.record])) } } : {}),
   });
+  // D-66: the quotes' source and update time are said once, in the one meta line and the ⓘ, not under every card.
+  const quotes = trendsOnly ? null : boardQuotes(board);
+  const quotesMeta = !quotes ? null : quotes.updates ? `Quotes from ${quotes.updates} updates` : `Quotes updated ${quotes.observed}`;
+  const quotesInfo = !quotes ? [] : [quotes.updates ? 'Market quotes come from more than one update. Each game’s sheet lists its source, books and times.'
+    : `Market quotes: ${quotes.source}, updated ${quotes.observed}. Each game’s sheet lists its books and times.`];
+  const meta = [board?.meta, quotesMeta].filter(Boolean).join(' · ');
   const head = (
     <div className="gx-vstack gx-gap-2">
       <div className="gx-l-sechead">
         <h1 className="gx-t-title gx-grow">{trendsOnly ? 'Trends' : LINES_COPY.title}</h1>
-        <InfoButton title={INFO.trends.title} body={trendsOnly ? [TRENDS_INTRO, ...INFO.trends.body] : INFO.trends.body} links={INFO.trends.links}/>
+        <InfoButton title={INFO.trends.title} body={trendsOnly ? [TRENDS_INTRO, ...INFO.trends.body] : [...quotesInfo, ...INFO.trends.body]} links={INFO.trends.links}/>
       </div>
-      {board?.meta ? <p className="gx-t-meta">{board.meta}</p> : null}
+      {meta ? <p className="gx-t-meta" data-board-quotes={quotes ? (quotes.updates ? 'mixed' : 'one') : undefined}>{meta}</p> : null}
     </div>
   );
   if (!board) {

@@ -2,13 +2,13 @@
 // record against the nflverse closing line, the built-on and held-out periods, the contributing games and which of this
 // week's games fit. A built trend is always "Found by search — not tested"; nothing here ranks or sorts by result.
 // Saved trends live on this device only (no account sync, no alerts yet).
-import { Fragment, useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
   BUILDER_COPY, MAX_FILTERS, MAX_SAVED, SIDES, WHO, cleanSpec, conditionOf, conditionOptions, evaluateSpec, filterText,
   fmtInterval, fmtPct, fmtRecord, fmtUnits, lineText, resultWord, specKey, specNeeds, specTitle, weekMatches,
 } from '../../../../shared/trend-builder.mjs';
 import { lockedTrendText } from '../../../../shared/lines-view.mjs';
-import { Button, Card, InfoButton, Pill, Segmented } from '../ui/index.js';
+import { Button, Card, InfoButton, NestMeter, Pill, Segmented } from '../ui/index.js';
 import { INFO } from '../info.js';
 import { Select } from './PlayerEvidence.jsx';
 import { useBuilderHistory, useSavedTrends, weekGamesFor } from './builderData.js';
@@ -40,8 +40,9 @@ function FilterRow({ spec, filter, index, onChange, onRemove }) {
   </li>;
 }
 
-function Facts({ rows }) {
-  return <dl className="gx-tr-facts" data-builder="facts">{rows.map(([k, v]) => <Fragment key={k}><dt>{k}</dt><dd>{v}</dd></Fragment>)}</dl>;
+// D-66: the record is the one big number with its cover meter; the other D-63 facts are tiles under their own labels.
+function Fact({ label, value, sub, nowrap = true }) {
+  return <li><div className="gx-nest-tile"><span className="gx-nest-tile-label">{label}</span><span className={nowrap ? 'gx-n-s gx-nest-num' : 'gx-n-s'}>{value}</span>{sub ? <span className="gx-t-meta">{sub}</span> : null}</div></li>;
 }
 
 function PeriodRow({ label, r }) {
@@ -55,18 +56,22 @@ export function BuilderResult({ result, credit }) {
   const recent = games.slice().reverse().slice(0, shown); // newest first: date order, never by result
   const small = record.decided < 30;
   return <Card as="section" className="gx-vstack gx-gap-12" aria-labelledby={id} data-builder="result">
-    <div className="gx-tb-context"><h3 className="gx-t-section gx-grow gx-tb-title" id={id}>{specTitle(spec)}</h3><InfoButton {...INFO.trendBuilder}/></div>
+    <div className="gx-tb-context"><h3 className="gx-t-section gx-grow gx-tb-title" id={id}>{specTitle(spec)}</h3>
+      {/* D-66: the history file's credit and the reference note sit here, one tap away, with the label's explanation. */}
+      <InfoButton {...INFO.trendBuilder} links={credit ? [{ text: credit.credit, url: credit.url }, ...INFO.trendBuilder.links.filter(l => l.url !== credit.url)] : INFO.trendBuilder.links}/></div>
     <p><Pill tone="pending" className="gx-tb-pill" data-builder="label">{BUILDER_COPY.label}</Pill></p>
-    <p className="gx-t-meta">{BUILDER_COPY.labelBody}</p>
-    <Facts rows={[
-      ['Record (W-L-P)', fmtRecord(record)],
-      ['Cover rate', `${fmtPct(record.coverRate)}${record.decided ? ' · pushes excluded' : ''}`],
-      ['Wilson 95% interval', fmtInterval(record.wilson95)],
-      ['Sample', `${record.n} games${small ? ' · small sample' : ''}`],
-      ['Dates', record.n ? `${record.from} to ${record.to}` : '—'],
-      [BUILDER_COPY.units, fmtUnits(record.units)],
-    ]}/>
-    {excluded.unknown ? <p className="gx-t-meta">{excluded.unknown} games left out because a chosen condition is unknown there. {BUILDER_COPY.unknown}</p> : null}
+    <div className="gx-vstack gx-gap-8" data-builder="facts">
+      <p className="gx-nest-big"><span className="gx-n-xl">{fmtRecord(record)}</span><span className="gx-t-meta">Record (W-L-P)</span></p>
+      <NestMeter share={record.coverRate} label={`Cover rate ${fmtPct(record.coverRate)}; the tick is the 52.4% break-even`}/>
+      <ul className="gx-nest-grid">
+        <Fact label="Cover rate" value={fmtPct(record.coverRate)} sub={record.decided ? 'pushes excluded' : null}/>
+        <Fact label="Wilson 95% interval" value={fmtInterval(record.wilson95)} nowrap={false}/>
+        <Fact label="Sample" value={`${record.n} games`} sub={small ? 'small sample' : null}/>
+        <Fact label={BUILDER_COPY.units} value={fmtUnits(record.units)}/>
+      </ul>
+      <p className="gx-t-meta">Dates · {record.n ? `${record.from} to ${record.to}` : '—'}</p>
+    </div>
+    {excluded.unknown ? <p><Pill>{excluded.unknown} games left out · condition unknown</Pill></p> : null}
     <section className="gx-vstack gx-gap-8" aria-label={BUILDER_COPY.splitTitle} data-builder="split" data-split={split.state}>
       <h4 className="gx-t-strong">{BUILDER_COPY.splitTitle}</h4>
       <div className="gx-tr-table gx-tb-table" role="region" aria-label="Period records" tabIndex={0}><table>
@@ -75,16 +80,14 @@ export function BuilderResult({ result, credit }) {
         <tbody><PeriodRow label="Built on 2002–2017" r={split.builtOn}/><PeriodRow label="Held out 2018 on" r={split.holdOut}/></tbody>
       </table></div>
       <p className="gx-t-body" data-builder="split-label">{split.text}</p>
-      <p className="gx-t-meta">{BUILDER_COPY.splitBody}</p>
     </section>
-    {series.length ? <div className="gx-vstack gx-gap-8">
-      <p className="gx-t-label">{BUILDER_COPY.units} · cumulative by season</p>
+    {series.length ? <details className="gx-tr-details" data-builder="seasons"><summary className="gx-t-strong">By season · {BUILDER_COPY.units}, cumulative</summary>
       <div className="gx-tr-table gx-tb-table" role="region" aria-label="Season records" tabIndex={0}><table>
         <caption className="gx-t-meta">Each season’s record; units are cumulative</caption>
         <thead><tr><th scope="col">Season</th><th scope="col">W-L-P</th><th scope="col">Games</th><th scope="col">Units</th></tr></thead>
         <tbody>{series.map(s => <tr key={s.season}><th scope="row">{s.season}</th><td>{fmtRecord(s)}</td><td>{s.n}</td><td>{fmtUnits(s.illustrativeUnits)}</td></tr>)}</tbody>
       </table></div>
-    </div> : <p className="gx-t-body">No played game fits these conditions.</p>}
+    </details> : <p className="gx-t-body">No played game fits these conditions.</p>}
     {games.length ? <details className="gx-tr-details" data-builder="games"><summary className="gx-t-strong">Contributing games · {games.length}</summary>
       <div className="gx-tr-table gx-tb-table" role="region" aria-label="Contributing games, newest first" tabIndex={0}><table>
         <caption className="gx-t-meta">Newest first · final score · {spec.market === 'spread' ? 'closing spread' : 'closing total'}</caption>
@@ -93,8 +96,6 @@ export function BuilderResult({ result, credit }) {
       </table></div>
       {games.length > shown ? <Button variant="secondary" onClick={() => setShown(n => n + PAGE)}>Show {Math.min(PAGE, games.length - shown)} more games</Button> : null}
     </details> : null}
-    <p className="gx-t-meta">{BUILDER_COPY.reference} Line: {BUILDER_COPY.lineSource}.</p>
-    {credit ? <a className="gx-l-link gx-t-meta" href={credit.url} target="_blank" rel="noreferrer">{credit.credit}</a> : null}
   </Card>;
 }
 
@@ -121,7 +122,7 @@ export function WeekMatches({ spec, games, week, status }) {
     {unknown.length ? <div className="gx-vstack gx-gap-4"><p className="gx-t-strong">Can’t be checked yet · {unknown.length}</p>
       <ul className="gx-vstack gx-gap-4">{unknown.map(r => <li key={r.id} className="gx-t-meta" data-match="unknown">{r.title} · needs observed weather, a game-day roof or your own saved line</li>)}</ul></div> : null}
     {rest ? <p className="gx-t-meta">{rest} other upcoming {rest === 1 ? 'game doesn’t' : 'games don’t'} fit.</p> : null}
-    <p className="gx-t-meta">A fit describes the situation only; it is not a pick or a recommendation.</p>
+    <p className="gx-t-meta">A fit is not a pick or a recommendation.</p>
   </section>;
 }
 
@@ -167,7 +168,6 @@ export function TrendBuilder({ lines, market, onMarket }) {
   return <div className="gx-vstack gx-gap-16" data-builder="root">
     <section className="gx-vstack gx-gap-12" aria-label="Build a trend">
       <div className="gx-tb-context"><h2 className="gx-t-section gx-grow">Build a trend</h2><InfoButton {...INFO.trendBuilder}/></div>
-      <p className="gx-t-meta">Pick a side and up to {MAX_FILTERS} conditions. Records use played games since 2002 against the closing line. Nothing is ranked by results.</p>
       <div className="gx-tb-tabs"><Segmented label="Builder side" value={current.side} options={SIDES[current.market]} onChange={side => setSpec({ ...current, side })}/></div>
       {current.filters.length ? <ol className="gx-vstack gx-gap-12 gx-tb-filters" aria-label="Chosen conditions">{current.filters.map((f, i) => <FilterRow key={f.id} spec={current} filter={f} index={i}
         onChange={next => setSpec({ ...current, filters: current.filters.map(x => (x.id === f.id ? next : x)) })}

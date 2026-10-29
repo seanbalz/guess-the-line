@@ -24,7 +24,9 @@ describe('Trend builder UI', () => {
     const result = evaluateSpec(history, { market: 'spread', side: 'dog', filters: [{ id: 'div' }, { id: 'prime' }] });
     const html = wrap(<BuilderResult result={result} credit={history.meta.source}/>);
     expect(markupProblems(html)).toEqual([]);
-    for (const text of ['Found by search — not tested', 'Built on 2002–2017', 'Held out 2018 on', 'Illustrative units at -110', 'Wilson 95% interval', 'Contributing games · ' + result.games.length, 'Record (W-L-P)', 'Data: nflverse']) expect(html).toContain(text);
+    for (const text of ['Found by search — not tested', 'Built on 2002–2017', 'Held out 2018 on', 'Illustrative units at -110', 'Wilson 95% interval', 'Contributing games · ' + result.games.length, 'Record (W-L-P)', 'Cover rate', 'Sample', 'Dates · ']) expect(html).toContain(text);
+    // D-66: the history file's credit is one tap away behind the card's ⓘ (checked open in the cloud-browser builder case).
+    expect(html).toContain('aria-label="About the trend builder"');
     expect(html).not.toMatch(/\bROI\b/);
     expect(html).toContain(result.split.text);
     expect(bannedCopy(html.replace(/<[^>]+>/g, ' '))).toEqual([]);
