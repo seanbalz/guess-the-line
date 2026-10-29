@@ -44,6 +44,7 @@ export const FIX_FORWARD = [
   20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
   20261026131000, // M-21 gtl_feed_reactions: append-only reactions; the old like keeps reading from its own table
   20261026133000, // M-23 gtl_kickoff_posts: writes rows (kickoff posts and a backfill), kept by D-23; a trigger, no replaced body
+  20261029150000, // M-32 gtl_epl_moneyline: widens the EPL job constraint; keep dnb-check disabled rather than narrow over saved evidence.
 ];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan

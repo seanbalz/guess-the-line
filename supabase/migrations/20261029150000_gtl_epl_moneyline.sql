@@ -3,7 +3,9 @@
 -- price; a locked guess is scored by its distance from the real price at lock-in. The pure rules live in
 -- shared/epl-moneyline.mjs; this file is the durable, serialised store and its service RPCs.
 --
--- What it adds (nothing existing is changed or replaced):
+-- What it adds:
+-- * The M-30 schedule's job constraint also accepts dnb-check. This does not create a schedule row, enable a job or
+--   dispatch a request. The admin script creates that row disabled after the migration and worker are released.
 -- * gtl_epl_guesses: one row per manager per match (primary key (event_id, owner_id)): the club and price, draft or
 --   locked (D-37/D-39: a locked guess is final, an unlocked one stays a draft), the reference price with its observation
 --   time and source ('at-lock' or 'first-after'), and the distance once a reference exists.
@@ -36,9 +38,14 @@
 -- and functions). p_now on gtl_epl_save_guess is a service-side clock for gtl-api and the tests only: it must never come
 -- from a client (no browser role can call any of these functions). Rerunnable: tables and indexes are created only if
 -- missing, every function is create or replace with this exact argument list, and every grant is restated. Every table
--- and function is service-role only; no browser role gets anything, and no policy exists. Nothing is dropped, deleted or
--- truncated. Off switch: the routes are simply not called; no rollback file is needed because this file replaces no
--- existing function (Gate M step 9). No hosted action is performed by this file.
+-- and function is service-role only; no browser role gets anything, and no policy exists. No stored data is deleted or
+-- truncated. Fix-forward only: the existing job constraint is widened, so an older worker can keep handling its five jobs
+-- while dnb-check stays disabled; preserve all run evidence and guesses. No rollback file restores a narrower constraint
+-- over a future dnb-check row (Gate M step 9). No hosted action is performed by this file.
+
+alter table public.gtl_epl_jobs_schedule drop constraint if exists gtl_epl_jobs_schedule_job_check;
+alter table public.gtl_epl_jobs_schedule add constraint gtl_epl_jobs_schedule_job_check
+  check(job in ('snapshot','fixtures','resolve','settle','nudge','dnb-check'));
 
 create table if not exists public.gtl_epl_guesses (
   season integer not null check(season between 2000 and 2200),

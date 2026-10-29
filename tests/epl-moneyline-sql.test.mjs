@@ -58,6 +58,26 @@ test('M-32 is listed in NOT_HOSTED, builds on the hosted M-30 and calls no unapp
   assert.equal(REQUIRES[VERSION], undefined);
 });
 
+test('M-32 admits a disabled dnb-check schedule and reuses the existing private claim/completion queue', async t => {
+  const { db, call } = await setup(t);
+  assert.equal((await db.query('select count(*)::int n from public.gtl_epl_jobs_schedule')).rows[0].n, 0,
+    'the migration never creates or enables a schedule');
+  await db.exec("insert into public.gtl_epl_jobs_schedule(job,enabled) values('dnb-check',false)");
+  assert.deepEqual(await call("select public.gtl_epl_dispatch_jobs('dnb-check') r"), { status: 'disabled' });
+  await assert.rejects(db.exec("insert into public.gtl_epl_jobs_schedule(job) values('unknown')"), /check constraint/);
+  // Local fixture only: simulate the separately authorized enable/dispatch, without any network or hosted state.
+  await db.exec("update public.gtl_epl_jobs_schedule set enabled=true where job='dnb-check'");
+  const run = (await db.query("insert into public.gtl_epl_job_runs(job,slot_start,capability_hash) values('dnb-check',clock_timestamp(),encode(sha256(convert_to(repeat('a',64),'UTF8')),'hex')) returning id")).rows[0].id;
+  await db.exec('set role service_role');
+  const claim = await call('select public.gtl_epl_claim_job(repeat(\'a\',64),$1) r', [run]);
+  assert.equal(claim.job, 'dnb-check');
+  const complete = await call("select public.gtl_epl_complete_job($1,$2,null,'{\"season\":2026,\"week\":9,\"dnbAvailable\":false,\"events\":[]}') r", [run, claim.claim]);
+  assert.equal(complete.status, 'succeeded');
+  await db.exec('reset role');
+  const row = (await db.query('select job,status,detail from public.gtl_epl_job_runs where id=$1', [run])).rows[0];
+  assert.equal(row.job, 'dnb-check'); assert.equal(row.detail.dnbAvailable, false);
+});
+
 test('a draft saves and changes freely; Lock in takes the newest stored price at or before the save as its reference', async t => {
   const { save, price, guess, db } = await setup(t);
   await price('e1', 'ARS', -150, at(T0 + 8 * DAY));

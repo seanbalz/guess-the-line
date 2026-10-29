@@ -130,7 +130,8 @@ function fakeSources(reply) {
   const calls = [];
   return { calls, async drawNoBet(args) { calls.push(args); if (reply instanceof Error) throw reply; return typeof reply === 'function' ? reply(args) : reply; } };
 }
-const dnbReply = events => ({ quota: { remaining: 297, used: 203, last: 1 }, events });
+const dnbReply = events => ({ quota: { remaining: 297, used: 203, last: 1 },
+  events: events.map(e => ({ commenceTime: FIXTURES.find(f => f.eventId === e.eventId)?.commenceTime, ...e })) });
 const job = (service, sources, now = NOW) => runEplJob({ job: 'dnb-check', service, sources, push: {}, now, run: { p_run: RUN, p_claim: CLAIM } });
 
 test('dnb-check is a worker job with the gate constants of the plan', () => {
@@ -197,6 +198,19 @@ test('dnb-check refuses under 60 remaining credits, with no budget, or with noth
   assert.equal(ok.reason, null);
 });
 
+test('dnb-check does not count a price for an event whose provider kickoff differs from the stored fixture', async () => {
+  const sources = fakeSources(dnbReply([
+    { eventId: 'e1', available: true, home: 'MNC', away: 'BOU', commenceTime: '2026-10-30T10:00:00.000Z',
+      books: priced('MNC', 'BOU', [['draftkings', -400, 300], ['fanduel', -390, 290]]) },
+    { eventId: 'e2', available: true, home: 'TOT', away: 'CHE', commenceTime: '2026-11-07T15:00:00.000Z',
+      books: priced('TOT', 'CHE', [['draftkings', 105, -125], ['fanduel', 100, -120]]) },
+  ]));
+  const out = await job(fakeService(), sources);
+  assert.equal(out.reason, null);
+  assert.equal(out.detail.priced, 0);
+  assert.equal(out.detail.dnbAvailable, false, 'past or rescheduled prices do not establish this week\'s gate');
+});
+
 test('dnb-check with one fixture left buys nothing and skips as not_due, so it writes no gate verdict', async () => {
   // The Monday 11:23 UTC run of a Friday-to-Monday round: only Monday's match is still ahead.
   const MONDAY = Date.parse('2026-11-02T11:23:00Z');
@@ -258,6 +272,8 @@ test('dnbGateOpen: a successful check of that week, with >= 2 events priced by >
   assert.equal(dnbGateOpen({ ...ok, status: 'skipped', reason: 'budget_guard' }), false);
   assert.equal(dnbGateOpen({ ...ok, detail: { ...detail, dnbAvailable: false } }), false);
   assert.equal(dnbGateOpen({ ...ok, detail: { ...detail, events: detail.events.slice(1) } }), false, 'the flag is not trusted over the recorded books');
+  assert.equal(dnbGateOpen({ ...ok, detail: { ...detail, events: [detail.events[0], detail.events[0]] } }), false, 'two rows of one event do not qualify as two events');
+  assert.equal(dnbGateOpen({ ...ok, detail: { ...detail, events: [{ books: two }, { books: two }] } }), false, 'unnamed events cannot open the gate');
   assert.equal(dnbGateOpen({ ...ok, detail: { ...detail, events: [{ eventId: 'e1', books: two }, { eventId: 'e2', books: { draftkings: two.draftkings, pinnacle: two.fanduel } }] } }), false, 'only the three books count');
 });
 

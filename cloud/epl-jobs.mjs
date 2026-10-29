@@ -29,8 +29,8 @@
 //             credits left. The run's detail records each event's books and both prices and the dnbAvailable flag; a
 //             successful check that passes opens Guess the Line for its week, and the week stays open (dnbGateOpen). With
 //             fewer than 2 fixtures ahead it skips as not_due without buying or writing a verdict.
-// Every write goes through the M-30 service RPCs. The run summary, the reply and the logs carry counts and fixed reasons only:
-// never a key, URL, endpoint, provider text or another manager's pick.
+// Every write goes through the M-30 service RPCs. The private dnb-check run detail includes book prices as gate evidence;
+// HTTP replies and logs carry counts and fixed reasons only, never a key, URL, provider text or another manager's pick.
 import { readRunBody } from './odds-refresh.mjs';
 import { importVapid, sendWebPush } from './web-push.mjs';
 import { pacificClock } from './push-reminders.mjs';
@@ -400,7 +400,8 @@ const pricedBooks = books => DNB_BOOKS.filter(key => {
   const values = prices && typeof prices === 'object' ? Object.values(prices) : [];
   return values.length === 2 && values.every(p => Number.isInteger(p) && Math.abs(p) >= 100);
 });
-const dnbPriced = events => list(events).filter(e => pricedBooks(e?.books).length >= DNB_MIN_BOOKS).length;
+const dnbPriced = events => new Set(list(events).filter(e => typeof e?.eventId === 'string' && e.eventId.length > 0
+  && pricedBooks(e.books).length >= DNB_MIN_BOOKS).map(e => e.eventId)).size;
 
 async function dnbCheckJob(ctx) {
   const { week } = ctx.state;
@@ -421,7 +422,8 @@ async function dnbCheckJob(ctx) {
   // A reply counts for a fixture only when it names the same two clubs; the books are kept exactly as priced.
   const events = upcoming.map(f => {
     const e = byEvent.get(f.eventId);
-    const same = e?.available === true && e.home === f.home && e.away === f.away;
+    const same = e?.available === true && e.home === f.home && e.away === f.away
+      && Date.parse(e.commenceTime) === Date.parse(f.commenceTime);
     return { eventId: f.eventId, books: same ? Object.fromEntries(pricedBooks(e.books).map(key => [key, { [f.home]: e.books[key][f.home], [f.away]: e.books[key][f.away] }])) : {} };
   });
   const priced = dnbPriced(events);
