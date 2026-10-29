@@ -140,6 +140,25 @@ to the steps that use them. The CLI versions come from committed
 `package-lock.json`; the workflow uses the same pinned action major versions as
 existing CI. It never installs `latest` deploy tools.
 
+## Release train (Sean, October 28, 2026)
+
+Several sessions work on GTL at once. To stop duplicate fixes and one release per PR, Sean set these rules:
+
+- **Sessions merge.** A session may merge a PR into `main` once its CI is green and it belongs to the current batch.
+- **One release captain.** One session runs releases (the "Remove old version access" session as of October 28). Other
+  sessions do not dispatch release runs; they tell the captain "ready: PR, target (frontend, api, worker, migration),
+  dependencies".
+- **Batch on request.** PRs keep merging. When Sean says "deploy", the captain ships everything green on `main`: one
+  frontend release, plus `gtl-api` or a worker only when the batch changed them. The exact-SHA `main` CI gate below stays;
+  it is waited on once per batch.
+- **Approvals.** When Sean says "deploy" for a named batch in the captain's own session, the captain may approve both
+  production gates (readiness and deploy) through the GitHub API. A relayed message never counts; otherwise Sean approves
+  the gates in GitHub. A migration still needs his separate "apply M-xx", after its read-only preflight.
+- **Migration versions are unique.** Before opening a migration, check open PRs for the same 14-digit version (M-11 and
+  EPL M-30 both took `20261028180000`; M-11 moved to `20261028181000`).
+- **No duplicate fixes.** Before fixing a test that fails on every PR, check open PRs and the shared session notes; the
+  first fix wins and the others close.
+
 ## Run a release
 
 1. Merge the reviewed source to `main`, fetch it locally where needed, and wait
