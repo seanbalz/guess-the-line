@@ -1,8 +1,9 @@
 // EPL Home (spec section 8, mockups v3 "Home"; plan Task 8): the matchweek title, a hero card counting down to the first
 // kickoff (the Pick a Team deadline) with who picks next and how many are in, one button into Play › Pick a Team, and
-// tiles for your club and your place in the pick order. The moneyline button, moneyline rank and fantasy tiles arrive
-// with Plans 2 and 3. A refused read shows its sentence and no draft data. An account not linked to a manager sees the
-// hero without the two tiles, under the claim card (ClaimCard.jsx; EPL open access).
+// tiles for your club and your place in the pick order. The secondary moneyline button shows only your own locked
+// matches in this EPL week; its independent read never blocks Pick a Team. A refused draft read shows its sentence
+// and no draft data. An account not linked to a manager sees the hero without the two tiles, under the claim card
+// (ClaimCard.jsx; EPL open access).
 import { useId } from 'react';
 import { Button, Card, Countdown } from '../ui/index.js';
 import { fmtDay, fmtWhen } from '../format.js';
@@ -12,6 +13,7 @@ import { boardModel } from './draftModel.js';
 import { eplApi } from './api.js';
 import { useEplDraft } from './useEplDraft.js';
 import { ClaimCard } from './ClaimCard.jsx';
+import { HomeMoneylineProgress, useHomeMoneylineProgress } from './guess/HomeMoneylineProgress.jsx';
 
 export const HOME_COPY = Object.freeze({
   title: week => `Matchweek ${week}`,
@@ -37,7 +39,7 @@ function headline(model) {
   return HOME_COPY.allIn(model.total);
 }
 
-export function EplHomeView({ model, state, now, onOpenPick, onRetry, claim = null }) {
+export function EplHomeView({ model, state, now, onOpenPick, onOpenGuess, moneyline, onRetry, claim = null }) {
   const heroId = useId();
   if (!model) return <div className="gx-screen">
     <h1 className="gx-t-title">{HOME_COPY.fallbackTitle}</h1>
@@ -55,6 +57,7 @@ export function EplHomeView({ model, state, now, onOpenPick, onRetry, claim = nu
       {first ? <p className="gx-t-meta gx-epl-hero-meta">{fmtWhen(first.kickoff)} · {first.away} @ {first.home}</p> : null}
       <Button variant={model.onClockMe ? 'primary' : 'secondary'} block onClick={onOpenPick}>{model.onClockMe ? HOME_COPY.pickNow : HOME_COPY.open}</Button>
     </Card>
+    <HomeMoneylineProgress state={moneyline} onOpenGuess={onOpenGuess}/>
     {mine ? <div className="gx-epl-tiles">
       <Card className="gx-epl-tile">
         <span className="gx-t-micro gx-c-2">{HOME_COPY.yourPick}</span>
@@ -72,8 +75,9 @@ export function EplHomeView({ model, state, now, onOpenPick, onRetry, claim = nu
   </div>;
 }
 
-export function EplHome({ api = eplApi, onOpenPick }) {
+export function EplHome({ api = eplApi, accountId, onOpenPick, onOpenGuess }) {
   const { state, now, reload } = useEplDraft(api);
   const model = boardModel(state.data, now);
-  return <EplHomeView model={model} state={state} onOpenPick={onOpenPick} onRetry={reload} claim={<ClaimCard model={model} api={api} onClaimed={reload}/>}/>;
+  const moneyline = useHomeMoneylineProgress({ api, accountId, season: model?.season, week: model?.week, ownerId: model?.me });
+  return <EplHomeView model={model} state={state} now={now} moneyline={moneyline} onOpenGuess={onOpenGuess} onOpenPick={onOpenPick} onRetry={reload} claim={<ClaimCard model={model} api={api} onClaimed={reload}/>}/>;
 }

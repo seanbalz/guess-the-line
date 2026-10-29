@@ -31,7 +31,8 @@ export function EplView({ route, onRoute, api = eplApi, accountId, onDirtyChange
   return route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api} accountId={accountId} onDirtyChange={onDirtyChange}/>
     : route.tab === 'bets' ? <EplBets/>
     : route.tab === 'research' ? <EplResearch api={api}/>
-    : <EplHome api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}/>;
+    : <EplHome key={accountId} accountId={accountId} api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}
+      onOpenGuess={() => onRoute({ tab: 'play', section: 'guess' })}/>;
 }
 
 export function EplPlay({ route, onRoute, api, accountId, onDirtyChange }) {

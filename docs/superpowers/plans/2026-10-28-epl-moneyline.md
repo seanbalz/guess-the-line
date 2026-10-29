@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md` section 7. Depends on Plan 1 (fixtures, prices, member check, EplApp).
 
-**Current evidence, October 29:** Tasks 0–5 now have source and combined local acceptance; see [the integration record](../../EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md). M-32 is [applied and verified](../../RELEASE_2026_10_29_M32.md) as hosted version `20261029162422`; the deployed, enabled check's first MW9 live verdict passed ([PR #375 record](../../RELEASE_2026_10_29_DNB.md)). [Task 3's API follow-on](../../EPL_MONEYLINE_API_2026_10_29.md) is source work with guarded save/readback and shared numeric limits, pending combined M-36/UI release and hosted acceptance. M-36 adds the safe save wrapper and separately gated collector; applying schema alone does not enable collection. Historical steps below remain provenance, not live acceptance.
+**Current evidence, October 29:** Tasks 0–4 and Task 5's Play screens have source and combined local acceptance; see [the integration record](../../EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md). The final plan audit found the explicit Task 5 Home button and Task 6 canonical rules entry were still missing. [The Home/rules follow-on](../../EPL_HOME_MONEYLINE_2026_10_29.md) implements both with focused local checks; its independent Home service flow and final combined CI remain pending. M-32 is [applied and verified](../../RELEASE_2026_10_29_M32.md) as hosted version `20261029162422`; the deployed, enabled check's first MW9 live verdict passed ([PR #375 record](../../RELEASE_2026_10_29_DNB.md)). [Task 3's API follow-on](../../EPL_MONEYLINE_API_2026_10_29.md) is source work with guarded save/readback and shared numeric limits, pending combined M-36/UI release and hosted acceptance. M-36 adds the safe save wrapper and separately gated collector; applying schema alone does not enable collection. Historical steps below remain provenance, not live acceptance.
 
 ## Global Constraints
 
@@ -79,9 +79,18 @@ Current source: [M-36 collector follow-on](../../EPL_MONEYLINE_COLLECTOR_2026_10
 
 **Files:** Create `web/src/next/epl/guess/GuessList.jsx`, `GuessCard.jsx`, `PriceStepper.jsx`, `GuessLeaderboard.jsx`, `DistanceLine.jsx`, `guess.css`; Modify `web/src/next/epl/EplApp.jsx` (Play sub-tabs Guess the Line and Leaderboard replace Plan 1 placeholders), `web/src/next/epl/EplHome.jsx` (button "Guess this weekend's moneylines · N of M"); Test `tests/epl-guess.test.jsx`
 Match mockup v3 "Play · Guess the Line": progress dots (locked = win color), hero card for the next unlocked match with both crests, favorite toggle, price stepper (steps of 5 on the `toLine` scale, so −105 → +100 → +105 and +100 is shown as "+100 / −100 (even)"; typing any valid price allowed), Lock in button, note "Final once locked · measured vs the real price at lock-in"; later matches list; result card with guess vs real bubbles and the distance line; leaderboard bars by average with "N guessed".
-- [x] Source, shared-shell wiring and real-service phone-width/accessibility acceptance implemented; production release remains pending. Original acceptance: stepper from −105 up → +100, then +105; Lock in posts `{lock:true}`; closed error keeps draft and shows "This match has kicked off. Your draft wasn't locked."; leaderboard renders average with 1 decimal; FAIL → implement (tokens only) → PASS → commit `feat(epl): Guess the Line moneyline screens`.
+- [x] Source: Play screens, shared-shell wiring, and Home's secondary "Guess this weekend’s moneylines · N of M" button. Home reads the matching EPL season/week, counts only own locked matches, and keeps Pick a Team usable under read-only/unavailable/older API states. Account/week response guards and count/navigation tests pass locally.
+- [ ] Final combined acceptance including the new Home service flow, exact-head CI and release review. Prior real-service Play phone-width/accessibility checks passed; they did not cover the originally missing Home button. Production release remains pending.
+
+Original acceptance: stepper from −105 up → +100, then +105; Lock in posts `{lock:true}`; closed error keeps draft and shows "This match has kicked off. Your draft wasn't locked."; leaderboard renders average with 1 decimal; FAIL → implement (tokens only) → PASS → commit `feat(epl): Guess the Line moneyline screens`.
 
 ### Task 6: Docs
 
 **Files:** `docs/DECISIONS.md` (D-68 addendum: distance math, leaderboard by average), `docs/RULES.md` (EPL moneyline row), `docs/COMPLETION_REGISTER.md`, `planning/PLATFORM_WORK_QUEUE.md`.
-- [ ] Write; `python3 scripts/check-brand-docs.py`; `npm test`; commit `docs(epl): moneyline records`.
+- [x] Approved distance/average rules already recorded in `docs/DECISIONS.md` D-68 item 9; no decision changes needed.
+- [x] Canonical `docs/RULES.md` EPL moneyline section now records entry/visibility, per-match final locks, normalized distance, approved book median, pending/unscored references and the separate average-distance leaderboard/tiebreak.
+- [x] Existing completion register and EPL-04 queue retain source-versus-release separation; final composed head/acceptance counts remain the coordinator's update after QA. M-36 apply/readback, activation, deployment and live/device acceptance remain open.
+- [x] Brand QA passed on the Home/rules follow-on. Historical full-suite instructions below are not marked executed by these focused checks.
+- [ ] Final combined exact-head CI and Home service acceptance evidence incorporated into the source/release records.
+
+Original workflow instruction: write; `python3 scripts/check-brand-docs.py`; `npm test`; commit `docs(epl): moneyline records`. Source documentation completion does not establish hosted release.
