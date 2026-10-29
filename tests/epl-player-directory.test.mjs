@@ -166,7 +166,7 @@ test('optional directory outages and invalid maps preserve the base snapshot and
   }
 });
 
-test('a good daily base capture with a failed optional directory is saved, not repeatedly fetched that UTC day', async () => {
+for (const recheckInstalled of [false, true]) test(`a good daily base capture with a failed optional directory is saved without same-day retry (M33 ${recheckInstalled ? 'installed' : 'absent'})`, async () => {
   const { fetchImpl, calls } = fixture({ status: 503 });
   let now = NOW;
   const sources = createEplSources({ fetchImpl, clock: () => now });
@@ -174,11 +174,17 @@ test('a good daily base capture with a failed optional directory is saved, not r
   const saved = [];
   const service = { async rpc(name, args) {
     if (name === 'gtl_epl_jobs_state') return state;
+    if (name === 'gtl_epl_recheck_state') {
+      if (recheckInstalled) return null;
+      throw Object.assign(new Error('Optional M33 RPC not installed.'), { code: 'GTL_EPL_RECHECK_OFF' });
+    }
     assert.equal(name, 'gtl_epl_save_snapshot');
     saved.push(args); state.snapshots.push(args.p_label); return true;
   } };
   const run = () => runEplJob({ job: 'snapshot', service, sources, now, run: {} });
-  assert.equal((await run()).reason, null);
+  const first = await run();
+  assert.equal(first.reason, null);
+  assert.equal(first.detail.recheckReady, recheckInstalled);
   assert.equal(saved[0].p_label, DAY);
   assert.equal(saved[0].p_payload.sources.player_directory.status, 'unavailable');
   assert.equal(saved[0].p_payload.players['1'].position, 'M');
