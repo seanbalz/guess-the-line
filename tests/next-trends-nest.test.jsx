@@ -6,7 +6,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
 vi.mock('../web/src/auth', () => ({ cloudEnabled: false, supabase: null }));
-vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), linesApi: vi.fn(), readTeams: vi.fn() }));
+vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), linesApi: vi.fn(), readTeams: vi.fn(), trendsApi: vi.fn() }));
+// The saved-trends tile reads the shared lines data; these layers get theirs as props.
+vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => null }));
 const { nestTeams, nestTeamTrends, trendShare } = await import('../web/src/next/trends/teamNest.js');
 const { TeamsNest, trendSlug } = await import('../web/src/next/trends/TeamsNest.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
@@ -181,5 +183,55 @@ describe('Players layers: addresses, steps and surface text', async () => {
     state = reduce(state, { type: 'view', tab: 'trends', patch: { player: undefined, playerLayer: undefined, playerItem: undefined, team: undefined, playerMatchup: undefined, window: undefined } });
     expect(state.trail.length).toBe(before);
     expect(state.views.trends.player).toBeUndefined();
+  });
+});
+
+describe('This Week layers: top trends, games, one game, one trend', async () => {
+  const { WeekNest } = await import('../web/src/next/trends/WeekNest.jsx');
+  const card = { title: 'Home team after a loss: ATS', market: 'home_ats', tier: 2, sideRule: 'A', score: { score: 90 }, record: { W: 30, L: 20, P: 1 } };
+  const withCard = () => { const week = weekOf(); week.cards = { c1: card }; week.games[0].tier2 = [{ card: 'c1' }]; return week; };
+  const lines = { app: {}, personal: { data: null }, shown: { season: 2026, week: 6 } };
+  const show = (view, { week = withCard(), views = [viewOf()], market = 'spread' } = {}) => renderToStaticMarkup(
+    <ShellContext.Provider value={shell}><div className="gx"><WeekNest week={week} views={views} market={market} view={view} onChange={() => {}} lines={lines} onBuild={() => {}}/></div></ShellContext.Provider>);
+  const lips = html => nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip')).map(nameFrom);
+  it('This week: the top trend, a tile per game with its count, no lips, and fine print behind ⓘ', () => {
+    const html = show({});
+    expect(markupProblems(html)).toEqual([]);
+    expect(lips(html)).toEqual([]);
+    expect(html).toContain('CAR @ GB · Home team after a loss: ATS');
+    const tile = nodes(html).find(n => n.tag === 'button' && n.attrs?.['data-game'] === 'CAR-GB');
+    expect(nameFrom(tile).startsWith('Carolina Panthers at Green Bay Packers')).toBe(true);
+    expect(html).not.toContain('Past results since 2002');
+    expect(nodes(html).some(n => n.tag === 'button' && nameFrom(n) === 'About this week’s trends')).toBe(true);
+    for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
+  });
+  it('one game: a lip back to This week, its trends as tiles, and a closed market as a lock', () => {
+    const open = show({ weekGame: 'CAR-GB' });
+    expect(markupProblems(open)).toEqual([]);
+    expect(lips(open)).toEqual(['Back to This week']);
+    expect(open).toContain('Home team after a loss: ATS');
+    expect(open).toContain('Game details · CAR @ GB');
+    const closed = show({ weekGame: 'CAR-GB' }, { views: [viewOf({ spread: false, total: true })] });
+    expect(closed).toContain('Line-based records');
+    expect(nodes(closed).some(n => n.attrs?.['data-trend'] === 'locked')).toBe(true);
+  });
+  it('one trend: two lips, the record, the tags, and an address that hides the key', () => {
+    const slug = trendSlug('c1@');
+    const html = show({ weekGame: 'CAR-GB', weekTrend: slug });
+    expect(markupProblems(html)).toEqual([]);
+    expect(lips(html)).toEqual(['Back to This week', 'Back to CAR @ GB']);
+    expect(nodes(html).find(n => n.tag === 'h2').children.map(textOf).join('')).toBe('Home team after a loss: ATS');
+    expect(html).toContain('30–20–1');
+    const fragment = fragmentFor('research', { section: 'trends' }, { trends: { trendSection: 'week', weekGame: 'CAR-GB', weekTrend: slug } });
+    expect(placeFromFragment(fragment).adapters.trends).toMatchObject({ weekGame: 'CAR-GB', weekTrend: slug });
+  });
+  it('opening a game and a trend are steps; back closes one layer at a time', () => {
+    let state = reduce(initialState(), { type: 'go', tab: 'research', view: { section: 'trends' } });
+    const trail = state.trail.length;
+    state = reduce(state, { type: 'view', tab: 'trends', patch: { weekGame: 'CAR-GB', weekTrend: null } });
+    state = reduce(state, { type: 'view', tab: 'trends', patch: { weekTrend: 'tabc' } });
+    expect(state.trail.length).toBe(trail + 2);
+    state = reduce(state, { type: 'back' });
+    expect([state.views.trends.weekGame, state.views.trends.weekTrend ?? null]).toEqual(['CAR-GB', null]);
   });
 });

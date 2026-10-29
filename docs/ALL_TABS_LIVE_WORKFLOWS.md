@@ -67,6 +67,20 @@ imports and capability gates are allowlisted in `next-app-view.test.mjs`; arbitr
 cross-app screen imports remain forbidden. This implementation does not establish
 that M-07 is applied or that per-game entry is enabled on the hosted site.
 
+October 28 (D-65 follow-up) adds Menu › **Commissioner tools**, shown only to the
+Community commissioner (`shell.communityAdmin`, the Community members grant). Its
+native views (`web/src/next/me/commissioner/CommissionerTools.jsx`) cover the
+schedule and settlement status (`/community/week-open`, the Triple Threat `/state`
+odds schedule, `/virtual-units` and `/virtual-units/settle`), week opening
+(`/community/publish-preview`, `/community/publish`) and game referees
+(`/officials/read`, `/officials/set`). One adapter, `LegacyTools.jsx`, reuses the
+old `ResultReviewControls` (Final scores, `/results/review`) and
+`ManualOddsControls` (Odds connection, `/odds/preflight`, `/odds/collect`) inside
+`.gx-live-workflow`, plus the pure `marketStatus.js` formatter. Both editors keep
+their old gate: only the original Triple Threat commissioner sees them. No server
+route or rule changes. The legacy D-16 benchmark freeze (`BenchmarkControls`) is not
+carried over: it applies only under the retired common-reference scoring policy.
+
 ## Data protection and save recovery
 
 - Play keeps account/week/market draft recovery and the existing revision and

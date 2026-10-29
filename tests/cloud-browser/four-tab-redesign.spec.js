@@ -64,12 +64,17 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await page.getByRole('button', { name: /^Trends/ }).click();
     await expect(page.getByRole('heading', { name: 'Trends', exact: true })).toBeVisible();
+    // D-66: This Week is nesting cards; the game sheet is one layer in, inside a game.
+    await page.locator('[data-game]').first().click();
     await page.getByRole('button', { name: /^Game details/ }).first().click();
     await expect(page.getByRole('dialog').last()).toBeVisible();
     await page.getByRole('button', { name: /^All trends/ }).click();
     await expect(page.getByRole('dialog', { name: 'All trends', exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
+    // Back closes the game layer first, then returns to the Research landing.
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page.getByRole('heading', { level: 2, name: 'This week', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     expect(world.errors).toEqual([]);
