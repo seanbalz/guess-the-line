@@ -40,4 +40,22 @@ before #318 merged.
 
 ## Results
 
-Pending.
+- **Main CI on `4564fff`:** Tests 40794429016, Dashboard checks 40794428148 and Brand QA 40794428212 all succeeded.
+- **Deploy:** [run 40797726894](https://github.com/seanbalz/guess-the-line/actions/runs/40797726894). The gate was
+  approved through the GitHub API as Sean's account after the title matched `deploy · frontend · 4564fff…`.
+- **Verified at 01:03:10 UTC on October 29** (6:03 PM PT, October 28):
+  - Pages **`a78d867c-414c-4069-be7e-5f624c3149be`**, with 114 assets checked and frontend SHA-256
+    `55eac549e22a5fd38373c70a6cecde6e1c6b9e3c9c9c109eac28c3fbabe3e712`.
+  - The deployment URL is `protected` (Cloudflare Access), so only `https://guess-the-line.pages.dev` was read byte
+    for byte (#318).
+  - `gtl-api` v39 (bundle `bec3b634…481c`) and the migration history `1c376874…` (65 rows) are unchanged.
+  - **380 signed-out probes, 380 denied, none awaiting.**
+- **Signed-in readback** (Chrome on the Mac mini, read only):
+  - `/` loads `assets/index-BiyT3dAv.js`.
+  - This week shows its card with 14 game tiles. LV @ NYJ opens with its heading focused, and its first trend opens
+    with two lips.
+  - Browser back goes trend › game › This week, one layer at a time.
+  - Teams shows 28 team tiles; Players shows 13 member tiles and the This week tile.
+  - After a reload, there were no console errors, and `/lobby`, `/community/read`, `/personal` and `/trends/week` all
+    answered 200.
+- **Not verified:** real phones.
