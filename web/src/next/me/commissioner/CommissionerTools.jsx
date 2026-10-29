@@ -149,6 +149,12 @@ function WeekOpening({ app, week }) {
   const [preview, setPreview] = useState(null), [busy, setBusy] = useState(false), [problem, setProblem] = useState(''), [notice, setNotice] = useState('');
   const live = useRef(true);
   useEffect(() => () => { live.current = false; }, []);
+  // The open week arrives late, and moves after a publish. Follow it into the fields without remounting, so the
+  // "Week N is open." notice stays on screen after the refresh a publish makes.
+  useEffect(() => {
+    if (!week) return;
+    setSeason(String(week.season)); setNumber(String(week.week + 1)); setPreview(null);
+  }, [week?.season, week?.week]);
   async function run(action) {
     if (busy) return;
     setBusy(true); setProblem(''); setNotice('');
@@ -264,7 +270,7 @@ export function CommissionerTools({ tool = null }) {
   if (!shell.communityAdmin) body = <p className="gx-t-body">{COMMISSIONER_COPY.only}</p>;
   else if (!shown) body = <Hub open={open}/>;
   else if (shown === 'status') body = <Status app={app} week={week}/>;
-  else if (shown === 'weeks') body = <WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
+  else if (shown === 'weeks') body = <WeekOpening app={app} week={week}/>;
   else if (shown === 'referees') body = <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
   else body = <TripleThreatTool key={shown} app={app} tool={shown}/>;
   return <Sheet title={shown ? label(shown) : COMMISSIONER_COPY.title} back={back} onClose={shell.closeSheet} tall className="gx-cm">
