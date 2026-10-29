@@ -89,8 +89,15 @@ back to the nearest valid layer.
 2. Trends › This Week (third rollout): This week › game › trend. The first card keeps the evidence freshness line
    as its one meta line and holds the saved-trends tile, the top three trends and the game tiles. The Team and Matchup
    filters are replaced.
-3. Explore games: game → market → trend.
-4. Trends › Build: saved trend → matches.
+3. Explore games (fourth rollout): it already nests as board › game sheet › detail sheets, and the game sheet is
+   lean (about 190 words). Half the board’s text was the same source and update line under every card, so the board
+   now says it once. Its meta line carries the update time, the ⓘ carries the source, and each game sheet still lists
+   its books and times. The per-quote freshness labels and final-score provenance stay on the cards.
+4. Trends › Build (fifth rollout): a tool rather than a browse path, so it keeps its form. The result card leads
+   with the record as one big W-L-P and a cover meter, and the other D-63 facts become tiles under their exact labels.
+   “By season” moves into a disclosure. The paragraphs that repeated the card’s ⓘ (what “not tested” means, the
+   period split, the reference note, the line source and the credit) come off the surface. The “Found by search — not
+   tested” tag, the period table and its one-line reading stay.
 5. Fantasy.
 
 ## Tests
