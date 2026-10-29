@@ -7,6 +7,7 @@
 .gx .gx-epl-center { text-align: center; }
 .gx .gx-epl-headline { margin: 0; font: 800 22px/26px var(--gx-font-display); letter-spacing: 0.01em; color: var(--gx-text-1); }
 .gx .gx-epl-action { display: flex; flex-direction: column; gap: var(--gx-space-2); }
+.gx .gx-epl-source { display: flex; align-items: center; justify-content: center; gap: var(--gx-space-2); }
 
 /* Crests (D-46): the self-hosted files on a light chip in Dark (text-1 is the near-white ink there), none in Light. */
 .gx .gx-epl-crest {

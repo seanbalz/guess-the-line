@@ -8,9 +8,10 @@ test.beforeEach(() => test.skip(!pgliteAvailable, 'Disposable PGlite required.')
 const nav = page => page.getByRole('navigation', { name: 'Main', exact: true });
 const sport = (page, name) => page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name, exact: true });
 async function fixture(page, baseURL) {
-  const world = await communityWorld(page, baseURL), calls = [];
+  const world = await communityWorld(page, baseURL), calls = [], guessReads = [];
   page.on('request', request => {
     if (request.url().includes('/gtl-api/')) calls.push(new URL(request.url()).pathname.split('/gtl-api/')[1]);
+    if (request.url().endsWith('/gtl-api/epl/guess/read')) guessReads.push({ method: request.method(), body: request.postDataJSON() });
   });
   await page.route('**/functions/v1/gtl-api/lobby', async route => {
     const request = route.request();
@@ -18,7 +19,10 @@ async function fixture(page, baseURL) {
     await route.fulfill({ status: response.status, contentType: 'application/json', body: JSON.stringify({ ...await response.json(), epl: true }) });
   });
   await page.route('**/functions/v1/gtl-api/epl/**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ season: 2026, week: 9, status: 'open', deadline: '2099-10-31T12:30:00Z', order: [], picks: [], clubs: [], me: null }) }));
-  return { ...world, calls };
+  await page.route('**/functions/v1/gtl-api/epl/guess/read', route => route.fulfill({ status: 200, contentType: 'application/json',
+    body: JSON.stringify({ available: false, reason: 'prices_not_verified', season: 2026, week: 9, ownerId: null, fixtures: [], guesses: [],
+      weeks: [{ season: 2026, week: 9, available: false }] }) }));
+  return { ...world, calls, guessReads };
 }
 async function openProfile(page) {
   await page.getByRole('button', { name: 'Your menu', exact: true }).click();
@@ -76,7 +80,10 @@ test('NFL and EPL keep the current tab, shared header and account; profile saves
     await signIn(page, 'luke', { navigate: false });
     await expect(page.getByRole('button', { name: 'Your menu', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'League: FEPL. Switch league', exact: true })).toBeVisible();
-    expect(world.calls.filter(path => !['lobby', 'epl/draft/read'].includes(path))).toEqual([]);
+    // Home now reads its moneyline progress; unrelated NFL reads and every write still fail this allowlist.
+    await expect.poll(() => world.guessReads.length).toBeGreaterThan(0);
+    expect(world.calls.filter(path => !['lobby', 'epl/draft/read', 'epl/guess/read'].includes(path))).toEqual([]);
+    for (const read of world.guessReads) expect(read).toEqual({ method: 'POST', body: { season: 2026, week: 9 } });
     const firstLobbyCount = world.calls.filter(path => path === 'lobby').length;
     for (const tab of ['Research', 'Bets', 'Play', 'Home']) {
       await nav(page).getByRole('button', { name: tab, exact: true }).click();

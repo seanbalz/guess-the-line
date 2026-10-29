@@ -8,6 +8,12 @@ export function validPrice(p) {
   return Number.isInteger(p) && Math.abs(p) >= 100;
 }
 
+// M-36 admits references only through this provider bound. Opposite signs have distance |guess|+|real|-200.
+export const MAX_DNB_PRICE = 100_000;
+export const MAX_GUESS_PRICE = 2_147_483_647 - MAX_DNB_PRICE + 200;
+/** New entry must always fit the applied M-32 integer distance for every admitted provider reference. */
+export const validGuessPrice = p => validPrice(p) && Math.abs(p) <= MAX_GUESS_PRICE;
+
 /** American price -> line point, -100 and +100 both 0. */
 export function toLine(price) {
   return price >= 100 ? price - 100 : price + 100;

@@ -1,6 +1,6 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Reconciled October 28, 2026
+Owner: Sean Balsiger · Reconciled October 29, 2026
 
 The current task list is [the sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md).
 Sean approved finishing the existing redesign and optimizations before expanding
@@ -27,6 +27,8 @@ The existing unavailable EPL Bets content remains a separate delivery gap.
 Existing EPL moneyline work retains its own owner and gates.
 The skip-link CI correction includes focused regression and both-sport keyboard
 evidence in that record; exact-main CI and protected release gates have passed.
+These shared-shell checks do not establish moneyline gameplay deployment or
+moneyline physical-phone acceptance.
 
 ## EPL priority — October 29, 2026
 
@@ -36,24 +38,11 @@ MW9 gate evaluates true. Budget is 404 after three credits, player/scoring hashe
 checking is enabled. [Live evidence and remaining implementation](RELEASE_2026_10_29_DNB.md). This supersedes
 older “no live DNB verdict” statements for MW9; it does not complete the moneyline API, collector or screens.
 
-Sean requested parallel EPL workflow agents before returning to the remaining
-approved backlog. The [EPL work and verification record](EPL_WORKFLOW_CONTROL_2026_10_29.md)
-supersedes older EPL "not deployed" summaries below: fresh hosted checks confirm
-M-30/M-31, all 26 function hashes, five enabled jobs and seven linked managers.
-Implementation gaps remain in Tuesday corrections, the league-position tiebreak
-and moneyline, alongside a full live matchweek and physical-phone acceptance.
-No live DNB verdict exists. The [operations fix PR #366](https://github.com/seanbalz/guess-the-line/pull/366)
-is merged after all 12 checks; [moneyline readiness #367](https://github.com/seanbalz/guess-the-line/pull/367)
-also merged after all 12 checks. Repaired access #369 and tracker #368 merged;
-the first batch is now deployed from `5c1b775f05a69306f20f911f4b0455c207c65ffc`.
-Frontend run `40907820747` and EPL worker run `40909688078` passed; worker v2 is
-active, NBA navigation is hidden and EPL Research → Play works in signed-in
-desktop readback. [Release evidence](RELEASE_2026_10_29_NBA_EPL.md) records
-124 matching assets, 385/385 denied probes and unchanged saved-player hashes.
-M-32 is now [applied and verified](RELEASE_2026_10_29_M32.md); M-33 and DNB enablement remain separate gates; correction and player metadata
-follow next. This release does not complete moneyline or physical-phone acceptance.
+Sean requested parallel EPL work before returning to the remaining approved backlog. The first frontend/worker batch from `5c1b775` is deployed; API v42 and EPL jobs v2 are recorded in [release evidence](RELEASE_2026_10_29_NBA_EPL.md). M-32 is [applied and verified](RELEASE_2026_10_29_M32.md), and the live MW9 DNB check passed as recorded above.
 
-The [next EPL batch](EPL_NEXT_BATCH_2026_10_29.md) tracks the confirmed midweek ruling, source owners and remaining live gates. Its [combined local acceptance record](EPL_NEXT_BATCH_INTEGRATION_2026_10_29.md) covers correction review, roster metadata and standings readiness.
+[PR #377](https://github.com/seanbalz/guess-the-line/pull/377) merged as `e220b8d8f7663f55156e019de1d80c44493c440a` after all 12 checks. It atomically includes #370/#371, commissioner correction review, roster display enrichment and standings readiness. This establishes source completion, not new hosted operation or metadata coverage. M-33 remains unapplied; correction operation needs the M-35 cutoff guard and operator prerequisites.
+
+PR #384 merged the reviewed API, collector, moneyline/Home/leaderboard screens, canonical rules and correction/standings compatibility source as `d04e5c951d3e53fe2b5502b226c3da964955119f`, after all twelve checks passed on `ea1d616af47bcfe983949e951b47e4e63107694d`. Component PRs #378/#381/#382/#383 are merged/closed; #380's reviewed source was superseded by the combined branch. M-33/M-34/M-35 remain unapplied with their operator/source prerequisites. M-36 is [applied and verified](RELEASE_2026_10_29_M36.md), and Sean approved moneyline enablement/testing after compatible API/worker deployment. The moneyline releases, actual activation and signed-in readback remain pending; full MW9 → MW10 operation and moneyline physical-phone acceptance remain open. The frozen v62 tracker is unchanged.
 
 ## October 29 — Balanced logo and favicon
 
@@ -841,4 +830,15 @@ No additional palette, navigation or chart-direction answer is needed to continu
 
 ## October 29 NBA visibility and EPL reconciliation
 
-Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Current release evidence and remaining EPL scope](RELEASE_2026_10_29_NBA_EPL.md) supersede the older not-deployed entries. EPL moneyline is not built; D-68 requires live three-book draw-no-bet availability before implementation.
+Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Current release evidence and remaining EPL scope](RELEASE_2026_10_29_NBA_EPL.md) supersede the older not-deployed entries. The live DNB gate and M-32 apply are verified. API, durable collector and shared-shell screens pass [combined acceptance](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md) and merged CI; [M-36 is applied](RELEASE_2026_10_29_M36.md). Exact-main deployment CI, actual activation and production readback remain pending.
+
+## EPL moneyline combined source acceptance — October 29
+
+API, durable shared collection and shared-shell moneyline/leaderboard screens are implemented and locally
+verified together: 534 Node/SQL checks, 89 component checks, ten actual-service flows and six full-page
+Axe analyses passed. [Composition, evidence and release limits](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md).
+Home includes own locked-match progress and a working moneyline shortcut; saved/reference values use the existing glass tokens.
+M-36 is applied as hosted `20261029183135`: six exact private invoker functions, two empty private RLS tables,
+all 32 prior EPL functions and 17 data/scoring sets preserved, and eight strict live denials. The new moneyline
+job is not enabled. Protected releases and approved activation still require execution and readback.
+Moneyline physical-phone acceptance remains open.

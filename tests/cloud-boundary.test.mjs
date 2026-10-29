@@ -16,15 +16,16 @@ test('hosted M-32 tables and all six RPCs must deny access, not disappear or gra
       .map(name => `/rest/v1/rpc/gtl_epl_${name}`),
   ];
   for (const target of paths) {
+    const matches = url => new URL(url).pathname === target.replace(/\?$/, '');
     await t.test(target, async () => {
       let seen = 0;
       await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => {
-        if (url.includes(target)) { seen++; assert.equal(request.headers.Authorization, undefined); }
+        if (matches(url)) { seen++; assert.equal(request.headers.Authorization, undefined); }
         return denied(url, request);
       } });
       assert.equal(seen, 1, 'each newly hosted boundary is actually probed');
       for (const status of [200, 404]) await assert.rejects(() => checkCloudBoundary({ ...options, strict: true,
-        fetchImpl: async (url, request) => url.includes(target)
+        fetchImpl: async (url, request) => matches(url)
           ? new Response(JSON.stringify({ code: 'PGRST202' }), { status }) : denied(url, request),
       }), new RegExp(`unexpected ${status}`));
     });
@@ -473,6 +474,11 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // M-19 is hosted since October 28, 2026 (RELEASE_2026_10_28_AUTO_SETTLE.md): nothing awaits deploy.
   for (const key of Object.keys(m19)) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
   for (const [key, until] of Object.entries(awaitingDeploy)) {
+    if(until.startsWith('API-only deploy:')){
+      assert.ok(['gtl-api/epl/guess/read','gtl-api/epl/guess/save','gtl-api/epl/guess/leaderboard'].includes(key),'only reviewed API-only route probes may await source deployment');
+      assert.ok(!NOT_HOSTED.includes(20261029150000),'M32 schema has no absence exception');
+      continue;
+    }
     const version = /^(\d{14})\b/.exec(until);
     assert.ok(version, `${key}: pending descriptors name their migration version`);
     assert.ok(NOT_HOSTED.includes(Number(version[1])), `${key}: an applied migration cannot retain an absence exception`);

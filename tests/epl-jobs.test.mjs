@@ -35,7 +35,8 @@ function baseState(overrides = {}) {
 }
 
 /** A fake worker service: claims the run as `job`, serves `state`, records every RPC. */
-function fakeService({ job, state = baseState(), snapshots = {}, replay = false, errors = {}, recheck = null, scoresChanged = false }) {
+function fakeService({ job, state = baseState(), snapshots = {}, replay = false, errors = {}, recheck = null, scoresChanged = false,
+  orderReplies = [], captureInterval = { nextKickoff: '2026-11-07T12:30:00Z', verifiedAt: '2026-10-28T00:00:00Z', scheduleSha256: 'a'.repeat(64), source: 'commissioner_verified_schedule' } }) {
   const calls = [];
   const nudged = new Set();
   const service = {
@@ -53,7 +54,12 @@ function fakeService({ job, state = baseState(), snapshots = {}, replay = false,
           return { runId: RUN, status, reason: args.p_reason };
         }
         case 'gtl_epl_jobs_state': return service.state;
+        case 'gtl_epl_apply_recheck_orders': return orderReplies.shift() ?? { applied: 0, sameOrder: 0, preserved: 0, pending: 0 };
+        case 'gtl_epl_capture_interval': return captureInterval;
+        case 'gtl_epl_order_correction_state': { const e = new Error('not installed'); e.code = 'GTL_EPL_ORDER_STATE_OFF'; throw e; }
+        case 'gtl_epl_reserve_result_read': { const e = new Error('not installed'); e.code = 'GTL_EPL_RESULT_READ_OFF'; throw e; }
         case 'gtl_epl_recheck_state': return recheck;
+        case 'gtl_epl_standings_state': return { enabled: false, snapshot: null };
         case 'gtl_epl_record_recheck': return { recorded: true, scoresChanged, status: scoresChanged ? 'needs_review' : 'unchanged' };
         case 'gtl_epl_reserve_credits': {
           const b = service.state.budget;
@@ -91,11 +97,11 @@ function fakeService({ job, state = baseState(), snapshots = {}, replay = false,
   return service;
 }
 
-function fakeSources({ events = [], scores = [], unmapped = [], quota = { remaining: 399, used: 101, last: 1 }, scoresQuota = { remaining: 397, used: 103, last: 2 }, fail = {}, sleeperState } = {}) {
+function fakeSources({ events = [], scores = [], unmapped = [], quota = { remaining: 399, used: 101, last: 1 }, scoresQuota = { remaining: 397, used: 103, last: 2 }, fail = {}, sleeperState, sleeperRosters } = {}) {
   const calls = [];
   return {
     calls,
-    async sleeper(args) { calls.push(['sleeper', args]); if (fail.sleeper) throw new Error('down'); return { capturedAt: '2026-11-04T00:05:00Z', label: args.label, sha256: { rosters: 'c'.repeat(64) }, payload: { label: args.label, rosters: [], ...(sleeperState ? { state: sleeperState } : {}) } }; },
+    async sleeper(args) { calls.push(['sleeper', args]); if (fail.sleeper) throw new Error('down'); const after = args.label.startsWith('after-'); return { capturedAt: '2026-11-04T00:05:00Z', label: args.label, sha256: { rosters: 'c'.repeat(64) }, payload: { label: args.label, rosters: sleeperRosters ?? (after ? ORDER.map(owner_id => ({ owner_id, settings: { fpts: 500, fpts_against: 400 } })) : []), ...(sleeperState ? { state: { ...(after ? { season: '2026' } : {}), ...sleeperState } } : {}) } }; },
     async odds() { calls.push(['odds']); if (fail.odds) { const e = new Error('down'); e.quota = quota; throw e; } return { events, quota, unknown: 0 }; },
     async scores({ onQuota } = {}) { calls.push(['scores']); onQuota?.(scoresQuota); return { scores, unmapped }; },
   };
@@ -116,8 +122,8 @@ async function run({ job, state, snapshots, sources = fakeSources(), push = fake
   return { service, sources, push, response, body: await response.json(), complete: service.args('gtl_epl_complete_job').at(-1) };
 }
 
-test('the worker lists its six jobs and only its own RPCs', () => {
-  assert.deepEqual(EPL_JOBS, ['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check']);
+test('the worker lists its eight jobs and only its own RPCs', () => {
+  assert.deepEqual(EPL_JOBS, ['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check', 'standings', 'moneyline']);
   assert.equal(EPL_RESERVE_CREDITS, 50);
   for (const name of ['gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices', 'gtl_epl_save_snapshot'])
     assert.ok(EPL_JOBS_RPCS.includes(name), name);
@@ -511,7 +517,7 @@ test('snapshot: saves before-mw<N>-kickoff in the half hour before the first kic
   assert.deepEqual(due.service.args('gtl_epl_save_snapshot'), [{ p_label: 'before-mw9-kickoff', p_captured_at: '2026-11-04T00:05:00Z', p_week: 9, p_sha256: { rosters: 'c'.repeat(64) }, p_payload: { label: 'before-mw9-kickoff', rosters: [] } }]);
   const saved = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw08', 'before-mw9-kickoff', ...DAILY] }), clock: at('2026-10-31T12:20:00Z') });
   assert.equal(saved.body.reason, 'nothing_due');
-  const after = await run({ job: 'snapshot', state: baseState({ week: { ...baseState().week, status: 'resolved' } }), sources: fakeSources({ sleeperState: { week: 10 } }), clock: at('2026-11-04T00:00:00Z') });
+  const after = await run({ job: 'snapshot', state: baseState({ fixtures: FIXTURES.map(f => finalFix(f, 0, 0)), week: { ...baseState().week, status: 'resolved' } }), sources: fakeSources({ sleeperState: { week: 10 } }), clock: at('2026-11-04T00:00:00Z') });
   assert.deepEqual(after.sources.calls, [['sleeper', { label: 'after-mw9', statsWeek: 9, projectionsWeek: 10 }]]);
   const padded = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw09', ...DAILY], week: { ...baseState().week, status: 'resolved' } }), clock: at('2026-11-04T00:00:00Z') });
   assert.equal(padded.body.reason, 'nothing_due', 'a zero-padded import counts as the same snapshot');
@@ -520,7 +526,7 @@ test('snapshot: saves before-mw<N>-kickoff in the half hour before the first kic
 });
 
 test('snapshot: after-mw<N> waits until Sleeper is on week N+1 and fails when Sleeper is already past it (final review)', async () => {
-  const resolved = () => baseState({ week: { ...baseState().week, status: 'resolved' } });
+  const resolved = () => baseState({ fixtures: FIXTURES.map(f => finalFix(f, 0, 0)), week: { ...baseState().week, status: 'resolved' } });
   const behind = await run({ job: 'snapshot', state: resolved(), sources: fakeSources({ sleeperState: { week: 9 } }), clock: at('2026-11-04T00:00:00Z') });
   assert.equal(behind.body.status, 'skipped'); assert.equal(behind.body.reason, 'snapshot_pending');
   assert.deepEqual(behind.service.args('gtl_epl_save_snapshot'), [], 'Sleeper still scoring week 9: nothing saved, the next run tries again');
@@ -534,7 +540,7 @@ test('snapshot: after-mw<N> waits until Sleeper is on week N+1 and fails when Sl
 
 test('snapshot: Tuesday recheck still runs after next week opens; changed totals flag review and never rewrite picks/order', async () => {
   const recheck = { season: 2026, week: 9, lastKickoff: '2026-11-02T20:00:00Z', originalCapturedAt: '2026-11-04T00:05:00Z' };
-  const state = baseState({ week: { ...baseState().week, week: 10, windowStart: END, windowEnd: '2026-11-11T00:00:00Z', firstKickoff: '2026-11-07T12:30:00Z' }, snapshots: [...DAILY, 'daily-2026-11-04'] });
+  const state = baseState({ fixtures: [], week: { ...baseState().week, week: 10, windowStart: END, windowEnd: '2026-11-11T00:00:00Z', firstKickoff: '2026-11-07T12:30:00Z' }, snapshots: [...DAILY, 'daily-2026-11-04'] });
   for (const scoresChanged of [false, true]) {
     const service = fakeService({ job: 'snapshot', state, recheck, scoresChanged });
     const original = JSON.stringify(state);
@@ -560,7 +566,7 @@ test('snapshot: Tuesday recheck still runs after next week opens; changed totals
 });
 
 test('snapshot: missing or malformed Sleeper week cannot permanently save an after-matchweek label', async () => {
-  const state = () => baseState({ week: { ...baseState().week, status: 'resolved' } });
+  const state = () => baseState({ fixtures: FIXTURES.map(f => finalFix(f, 0, 0)), week: { ...baseState().week, status: 'resolved' } });
   for (const sleeperState of [undefined, {}, { week: null }, { week: '10' }, { week: 10.5 }, { week: 0 }, { week: 39 }]) {
     const reply = await run({ job: 'snapshot', state: state(), sources: fakeSources({ sleeperState }), clock: at('2026-11-04T00:00:00Z') });
     assert.equal(reply.body.status, 'failed', JSON.stringify(sleeperState));
@@ -671,7 +677,9 @@ test('the Deno entry wires the odds key, the VAPID secrets and the service role,
 });
 
 test('the hand-registered cron file is admin-only, registers every job disabled and never enables one', () => {
-  const sql = readFileSync(new URL('../supabase/admin/epl_jobs_cron.sql', import.meta.url), 'utf8');
+  const sql = readFileSync(new URL('../supabase/admin/epl_jobs_cron.sql', import.meta.url), 'utf8')
+    + readFileSync(new URL('../supabase/admin/epl_standings_cron.sql', import.meta.url), 'utf8')
+    + readFileSync(new URL('../supabase/admin/epl_moneyline_cron.sql', import.meta.url), 'utf8');
   assert.match(sql, /^-- ADMIN ONLY/);
   const code = sql.split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
   for (const job of EPL_JOBS) assert.match(code, new RegExp(`gtl_epl_dispatch_jobs\\('${job}'\\)`), job);
