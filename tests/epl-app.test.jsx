@@ -111,6 +111,12 @@ describe('eplApi', () => {
     await eplApi('claim', { ownerId: '719745569895018496' });
     expect(cloud.calls[0][0]).toBe('epl/claim'); expect(cloud.calls[0][1]).toEqual({ ownerId: '719745569895018496' }); expect(cloud.calls[0][2].save).toBe(true);
   });
+  it('commissioner correction reviews are a read and never a save', async () => {
+    cloud.calls.length = 0;
+    await eplApi('admin/corrections/read');
+    expect(cloud.calls[0][0]).toBe('epl/admin/corrections/read');
+    expect(cloud.calls[0][2].save).toBe(false);
+  });
   it('keeps the server’s EPL refusal codes on ApiError', () => {
     expect(new ApiError('x', 409, 'GTL_EPL_CLUB_TAKEN').code).toBe('GTL_EPL_CLUB_TAKEN');
     expect(new ApiError('x', 404, 'GTL_EPL_OFF').code).toBe('GTL_EPL_OFF');

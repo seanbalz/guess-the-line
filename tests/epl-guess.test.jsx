@@ -175,8 +175,8 @@ describe('account-scoped writes and readback', () => {
     const c = createGuessController(vi.fn().mockRejectedValue({ status: 404, code: 'GTL_EPL_GUESS_OFF' })); await c.load();
     const html = markup(<GuessList {...props({ state: c.getSnapshot() })}/>); expect(html).toContain('not available in this app version'); expect(html).not.toContain('Lock in');
   });
-  it('classifies both reads as read-only and only guess/save as a nonreplayed write', async () => {
-    cloudApi.mockClear(); for (const action of ['guess/read', 'guess/leaderboard', 'guess/save']) await eplApi(action);
-    expect(cloudApi.mock.calls.map(call => [call[0], call[2].save])).toEqual([['epl/guess/read', false], ['epl/guess/leaderboard', false], ['epl/guess/save', true]]);
+  it('preserves correction and moneyline reads as read-only; only guess/save is a nonreplayed write', async () => {
+    cloudApi.mockClear(); for (const action of ['admin/corrections/read', 'guess/read', 'guess/leaderboard', 'guess/save']) await eplApi(action);
+    expect(cloudApi.mock.calls.map(call => [call[0], call[2].save])).toEqual([['epl/admin/corrections/read', false], ['epl/guess/read', false], ['epl/guess/leaderboard', false], ['epl/guess/save', true]]);
   });
 });

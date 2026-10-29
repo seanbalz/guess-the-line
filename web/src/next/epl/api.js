@@ -2,8 +2,8 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { cloudApi } from '../../api.js';
 import { knownEplAccess, subscribeEplAccess } from './route.js';
 
-export const EPL_ACTIONS = Object.freeze(['draft/read', 'draft/pick', 'queue/save', 'admin/link', 'admin/week', 'admin/snapshot', 'admin/fixture', 'fantasy/read', 'claim', 'guess/read', 'guess/save', 'guess/leaderboard']);
-const EPL_READS = Object.freeze(['draft/read', 'fantasy/read', 'guess/read', 'guess/leaderboard']);
+export const EPL_ACTIONS = Object.freeze(['draft/read', 'draft/pick', 'queue/save', 'admin/link', 'admin/week', 'admin/snapshot', 'admin/fixture', 'admin/corrections/read', 'fantasy/read', 'claim', 'guess/read', 'guess/save', 'guess/leaderboard']);
+const EPL_READS = Object.freeze(['draft/read', 'fantasy/read', 'admin/corrections/read', 'guess/read', 'guess/leaderboard']);
 /** gtl-api's EPL routes (cloud/epl.mjs); explicit reads use read retries; writes never replay automatically. */
 export function eplApi(action, body = {}, options = {}) {
   if (!EPL_ACTIONS.includes(action)) throw new TypeError('Unknown EPL action.');
