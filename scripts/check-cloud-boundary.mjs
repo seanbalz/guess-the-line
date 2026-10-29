@@ -81,7 +81,9 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
-export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|leaseToken|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess|sportsbooks|guidanceCollapsed|tickets|source_record|source_payload|before_terms|guesses|reviews|rosters|rosterHash|nextPickCount|original_snapshot_id|recheck_snapshot_id|fpts|fpts_against|pointsChange|againstChange|referencePrice|referenceObservedAt|referenceSource|distance|previous_order|candidate_order|baseline_snapshot_id|verified_by|verified_at|schedule_sha256|scheduleSha256|next_kickoff|nextKickoff|coverage_complete|reserved_at|outcome)"\s*:|"changes"\s*:\s*[\[{]/;
+export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|leaseToken|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess|sportsbooks|guidanceCollapsed|tickets|source_record|source_payload|before_terms|guesses|reviews|rosters|rosterHash|nextPickCount|original_snapshot_id|recheck_snapshot_id|fpts|fpts_against|pointsChange|againstChange|referencePrice|referenceObservedAt|referenceSource|distance|previous_order|candidate_order|baseline_snapshot_id|verified_by|verified_at|schedule_sha256|scheduleSha256|next_kickoff|nextKickoff|coverage_complete|reserved_at)"\s*:|"changes"\s*:\s*[\[{]/;
+// Public weather replies have refresh.outcome; no denial or missing-schema reply may carry it.
+const privateDenialResponse = /"outcome"\s*:/;
 const notDeployed = (pendingDeploy, key, status, result) => Object.hasOwn(pendingDeploy, key) && status === 404
   && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : key.startsWith('table/') ? result?.code === 'PGRST205'
     : result?.error === 'Not found.' && Object.keys(result).length === 1);
@@ -122,14 +124,14 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
       let missing = null;
       try { missing = JSON.parse(text); } catch { /* Not the not-deployed answer; the checks below fail it. */ }
       if (notDeployed(pendingDeploy, pending, response.status, missing)) {
-        assert.ok(!privateResponse.test(text), `${name}: private material in not-found response`);
+        assert.ok(!privateResponse.test(text) && !privateDenialResponse.test(text), `${name}: private material in not-found response`);
         awaiting.push({ name, until: pendingDeploy[pending] });
         log(`${name}: awaiting deploy (404, not found) until ${pendingDeploy[pending]}`);
         continue;
       }
     }
     assert.ok(statuses.includes(response.status), `${name}: unexpected ${response.status}`);
-    assert.ok(!privateResponse.test(text), `${name}: private material in denied response`);
+    assert.ok(!privateResponse.test(text) && !privateDenialResponse.test(text), `${name}: private material in denied response`);
     let result;
     try { result = JSON.parse(text); } catch { assert.fail(`${name}: non-JSON denial response`); }
     // Missing tables/functions and unrelated gateway failures do not prove grants.
