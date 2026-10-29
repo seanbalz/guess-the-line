@@ -90,7 +90,7 @@
 ### Task 3: Migration M-30 and service RPCs
 
 **Files:**
-- Create: `supabase/migrations/20261028180000_gtl_epl_pick_a_team.sql`
+- Create: `supabase/migrations/20261028190000_gtl_epl_pick_a_team.sql`
 - Modify: `tests/migrations.mjs` (add version to `NOT_HOSTED`)
 - Modify: `docs/REDESIGN_BUILD_PLAN.md` §6 (ledger row M-30: "EPL Pick a Team tables + RPCs", risk low/additive, apply after M-29)
 - Test: `tests/epl-migration.test.mjs` (static SQL checks, like other migration tests)

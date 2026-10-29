@@ -4,14 +4,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { NOT_HOSTED } from './migrations.mjs';
 
-const FILE = new URL('../supabase/migrations/20261028180000_gtl_epl_pick_a_team.sql', import.meta.url);
+const FILE = new URL('../supabase/migrations/20261028190000_gtl_epl_pick_a_team.sql', import.meta.url);
 const exists = fs.existsSync(FILE);
 const sql = exists ? fs.readFileSync(FILE, 'utf8') : '';
 const code = sql.split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
 
 test('M-30 file exists and is listed in NOT_HOSTED', () => {
   assert.ok(exists, 'migration file missing');
-  assert.ok(NOT_HOSTED.includes(20261028180000));
+  assert.ok(NOT_HOSTED.includes(20261028190000));
 });
 
 test('one pick per club per week is enforced by a unique constraint', () => {

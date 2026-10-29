@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { PRELUDE } from './migrations.mjs';
 const { PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js');
 
-const FILE = 'supabase/migrations/20261028180000_gtl_epl_pick_a_team.sql';
+const FILE = 'supabase/migrations/20261028190000_gtl_epl_pick_a_team.sql';
 const U = n => `00000000-0000-4000-8000-00000000000${n}`;
 const A = '719658248843632640', B = '473955676301815808', C = '702644837370929152'; // Evan, Sean, Steven
 const KICK = '2026-11-07T12:30:00Z', BEFORE = '2026-11-06T12:00:00Z', AFTER = '2026-11-07T13:00:00Z';

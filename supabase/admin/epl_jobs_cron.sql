@@ -1,6 +1,6 @@
 -- ADMIN ONLY (EPL Pick a Team, plan 2026-10-28-epl-pick-a-team.md Task 5). Run by hand from the SQL editor, only on Sean's
 -- word, and only after:
---   1. Sean's "apply M-30" has applied 20261028180000_gtl_epl_pick_a_team.sql,
+--   1. Sean's "apply M-30" has applied 20261028190000_gtl_epl_pick_a_team.sql,
 --   2. exact-source CI is green and the gtl-epl-jobs Edge function is deployed (release target epl-jobs; verify_jwt = false:
 --      the one-run capability is the credential), with THE_ODDS_API_KEY and the VAPID secrets set, and
 --   3. pg_cron and pg_net are enabled.
