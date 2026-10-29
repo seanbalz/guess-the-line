@@ -801,4 +801,12 @@ No additional palette, navigation or chart-direction answer is needed to continu
 
 ## October 29 NBA visibility and EPL reconciliation
 
-Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Current release evidence and remaining EPL scope](RELEASE_2026_10_29_NBA_EPL.md) supersede the older not-deployed entries. EPL moneyline is not built; D-68 requires live three-book draw-no-bet availability before implementation.
+Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Current release evidence and remaining EPL scope](RELEASE_2026_10_29_NBA_EPL.md) supersede the older not-deployed entries. The live DNB gate and M-32 apply are verified. API, durable collector and shared-shell screens now pass [combined local acceptance](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md); final CI, M-36 apply/activation and production release remain pending.
+
+## EPL moneyline combined source acceptance — October 29
+
+API, durable shared collection and shared-shell moneyline/leaderboard screens are implemented and locally
+verified together: 534 Node/SQL checks, 80 component checks, nine actual-service flows and three full-page
+Axe analyses passed. [Composition, evidence and release limits](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md).
+M-36 remains NOT_HOSTED and the new moneyline job is not enabled; source merge/CI and protected release
+remain separate from the already verified M-32 and live DNB gate. Physical-phone acceptance remains open.
