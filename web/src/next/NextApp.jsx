@@ -10,17 +10,20 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
 import '../liveWorkflows.css';
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { AppDataProvider } from './data/AppData.jsx';
 import { AppGate } from './shell/AppGate.jsx';
+import { SportNavigationContext } from './sportSwitch.js';
+import { EPL_SHELL } from './epl/EplShell.jsx';
 import { addNextFontLinks } from './styles/fonts.js';
 
 export default function NextApp({ session, onSignOut }) {
-  // main.jsx's authenticated SportEntry mounts NBA before this NFL-only data provider.
+  const { sport } = useContext(SportNavigationContext);
+  // One account provider survives NFL/EPL switches; the active sport supplies the frame's screens.
   useEffect(() => { addNextFontLinks(); }, []);
   return (
-    <AppDataProvider session={session}>
-      <AppGate session={session} onSignOut={onSignOut}/>
+    <AppDataProvider session={session} sport={sport}>
+      <AppGate session={session} onSignOut={onSignOut} sport={sport} shellProps={sport === 'epl' ? EPL_SHELL : undefined}/>
     </AppDataProvider>
   );
 }

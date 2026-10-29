@@ -53,13 +53,13 @@ async function phoneChecks(page, root = '.gx') {
   await settle(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no side scroll').toBe(true);
   const report = await page.locator(root).first().evaluate(scope => {
-    const visible = el => { const s = getComputedStyle(el); return s.visibility !== 'hidden' && el.getClientRects().length > 0 && !el.closest('[inert], [hidden], dialog:not([open])'); };
+    const visible = el => { const s = getComputedStyle(el); return s.visibility !== 'hidden' && el.getClientRects().length > 0 && !el.closest('[inert], [hidden], dialog:not([open]), .gx-sr-only:not(.gx-skip-link:focus)'); };
     const targets = [...scope.querySelectorAll('button,a[href],input,select,textarea,summary,[role=button]')].filter(visible)
       .map(el => { const r = el.getBoundingClientRect(); return { name: (el.getAttribute('aria-label') || el.textContent).trim().slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) }; })
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      if (!visible(el) || el.closest('.gx-sr-only:not(.gx-skip-link:focus)') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();

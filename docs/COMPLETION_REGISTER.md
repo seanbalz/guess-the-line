@@ -9,6 +9,17 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## Shared sport interface — October 29, 2026
+
+Implemented and checked locally: NFL/EPL now use the same frame, profile/menu
+and navigation, retain the current primary section when switching, and keep
+sport-specific game modes and data contexts separate. See the
+[scope, test evidence and visual review](SHARED_SPORT_INTERFACE.md).
+This is source/local evidence; hosted release and physical-phone acceptance
+remain separate. Existing EPL moneyline work retains its own owner and gates.
+The skip-link CI correction includes focused regression and both-sport keyboard
+evidence in that record; the coordinated release owner still requires green CI.
+
 ## EPL priority — October 29, 2026
 
 **Live DNB gate follow-up:** Sean authorized enabling/testing the bounded daily check. The first hosted run

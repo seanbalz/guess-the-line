@@ -236,3 +236,17 @@
 }
 
 .gx .gx-detail-nav { width: 100%; max-width: var(--gx-size-content); margin-inline: auto; padding: var(--gx-space-2) var(--gx-space-4) 0; }
+
+/* Shared keyboard bypass; focusing main never rewrites the sport address. */
+.gx .gx-skip-link:focus {
+  position: relative;
+  width: auto;
+  height: auto;
+  min-height: var(--gx-size-touch);
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  display: block;
+  padding: var(--gx-space-3);
+}
