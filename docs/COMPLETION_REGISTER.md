@@ -39,6 +39,16 @@ succeeded from `5c1b775f05a69306f20f911f4b0455c207c65ffc`: Pages `72eb400b`,
 readback matched the source. [Release evidence](RELEASE_2026_10_29_BALANCED_LOGO.md).
 Physical-device acceptance remains separate.
 
+## October 29 — Research/EPL regression and physical iPhone sweep
+
+[Audit evidence and remaining gates](REGRESSION_AUDIT_2026_10_29.md) records
+production Research quote/name crowding, EPL shell/context discontinuity and a
+retained older Safari tab with a Trends error. Phone-layout/source repairs are in
+the audit branch, with focused and broader local verification. Physical iPhone
+logo observations cover installed app and Safari in Light/Dark; exact favicon
+Dark adaptation/cache freshness remains open. Sean confirmed restoring test
+appearance settings. This is not a blanket app acceptance or a deployed-fix claim.
+
 ## What the evidence establishes
 
 GitHub main was `7d0a48f116ae5b607bab0f92b103ebf447e20188` at this audit.

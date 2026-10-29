@@ -117,3 +117,13 @@
 .gx .gx-l-actions > button { flex: 1; }
 
 .gx .gx-l-pick { overflow-wrap: anywhere; }
+
+/* Loaded quote provenance must not take the team names' width on phones. */
+.gx-l-market-label { display: none; }
+@media (max-width: 480px) {
+  .gx-l-teams { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 44px 44px auto; }
+  .gx .gx-l-val { grid-column: 1 / -1; grid-row: 3; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-height: var(--gx-size-touch); width: 100%; max-width: none; }
+  .gx .gx-l-val .gx-l-market-label { display: block; margin-right: auto; }
+  .gx .gx-l-val > .gx-t-meta { max-width: 96px; }
+  .gx .gx-l-val > .gx-n-s { white-space: nowrap; }
+}

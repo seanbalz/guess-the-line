@@ -40,6 +40,28 @@ test('EPL tab navigation opens the default Play section and preserves explicit s
     await page.goForward();
     await expect(draft).toBeVisible();
     expect(calls.every(path => ['epl/draft/read', 'epl/fantasy/read'].includes(path))).toBe(true);
+    // Same app chrome in EPL, with shared account appearance and destination-preserving sport changes.
+    await nav.getByRole('button', { name: 'Research', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Your menu', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'League: Premier League', exact: true })).toBeVisible();
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+      await page.getByRole('dialog', { name: 'Menu', exact: true }).getByRole('button', { name: 'Appearance', exact: true }).click();
+      const appearance = page.getByRole('dialog', { name: 'Appearance', exact: true });
+      for (const theme of ['Light', 'Dark']) {
+        await appearance.getByRole('button', { name: theme, exact: true }).click();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme.toLowerCase());
+        await page.screenshot({ path: test.info().outputPath(`epl-menu-${width}-${theme}.png`) });
+      }
+      await appearance.getByRole('button', { name: 'Close', exact: true }).click();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NFL', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Research', exact: true, level: 1 })).toBeVisible();
+    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'EPL', exact: true }).click();
+    await expect(page).toHaveURL(/#epl\/research\/fantasy$/);
+    await expect(page.getByRole('heading', { name: 'Fantasy', exact: true })).toBeVisible();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

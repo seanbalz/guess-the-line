@@ -8,6 +8,17 @@ The [current completion register](../docs/COMPLETION_REGISTER.md) separates code
 deployment and acceptance. Closed GitHub issues are not proof of completion.
 The frozen v62 tracker is preserved.
 
+## Current regression sweep — October 29, 2026
+
+Sean reports Research formatting/functionality regression and says EPL feels like
+another app instead of switching sports. The [audit and physical-iPhone evidence](../docs/REGRESSION_AUDIT_2026_10_29.md)
+records AUD-01 Research quote/name crowding and AUD-02 shared chrome/tab context
+repairs in the audit branch. AUD-03 retained old Safari UI/update recovery,
+AUD-04 favicon cache/theme readback and AUD-05 complete account-tool integration
+remain open. These refine DESIGN-01 and broader Q19 acceptance; the prior resolved
+Q03 scrolling report is preserved. Validate repaired source through CI/release and
+real-device readback before closing these items.
+
 ## Immediate priority — EPL workflow agents, October 29, 2026
 
 Sean requested parallel EPL work first, then the rest of this queue. Follow the

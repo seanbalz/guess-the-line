@@ -18,6 +18,18 @@ export function eplHash(route) {
   if (!sections) return `#epl/${route.tab}`;
   return `#epl/${route.tab}/${sections.includes(route.section) ? route.section : sections[0]}`;
 }
+/** Keep the player's primary destination when changing the sport. Detail routes stay scoped to their sport. */
+export function sportSwitchHash(value, current, previousNfl = '#home') {
+  const currentTab = /^(?:#epl\/|#)(home|play|bets|research)(?:[/?]|$)/.exec(current || '')?.[1] || 'home';
+  if (value === 'epl') return eplHash({ tab: currentTab });
+  if (value === 'nfl') {
+    if (!String(current || '').startsWith('#epl/')) return previousNfl || '#home';
+    const previousTab = /^#(home|play|bets|research)(?:[/?]|$)/.exec(previousNfl || '')?.[1];
+    return previousTab === currentTab ? previousNfl : `#${currentTab}`;
+  }
+  return SPORT_HOME[value];
+}
+
 /** Any #epl… fragment belongs to the EPL section while it shows, including in-page anchors (#epl-main). */
 export const eplFragment = hash => typeof hash === 'string' && hash.startsWith('#epl');
 

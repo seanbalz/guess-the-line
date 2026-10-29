@@ -3,9 +3,9 @@
 // sub-view ("‹ Menu"), with Dark, Light or System and Reduce motion. Both are kept on this device under the old app's
 // own keys (`gtl.theme`, and the motion choice in `gtl.dashboard.preferences.v1`), so the two apps always agree.
 import { lazy, Suspense, useState } from 'react';
-import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch } from '../ui/index.js';
-import { useThemePreference } from '../../Theme.jsx';
-import { useDashboardPreferences } from '../../dashboardPreferences.js';
+import { Avatar, Button, Card, LinkRow, List, Sheet } from '../ui/index.js';
+import { Appearance } from './Appearance.jsx';
+import { MENU_COPY } from './menuCopy.js';
 import { useShell } from '../shell/context.js';
 import { AccountPreferences } from './AccountPreferences.jsx';
 import { ProfileSettings } from './ProfileSettings.jsx';
@@ -16,43 +16,7 @@ const Members = lazy(() => import('./CommunityMembers.jsx').then(module => ({ de
 const Commissioner = lazy(() => import('./commissioner/CommissionerTools.jsx').then(module => ({ default: module.CommissionerTools })));
 const ExportData = lazy(() => import('./ExportSheet.jsx').then(module => ({ default: module.ExportSheet })));
 
-export const MENU_COPY = Object.freeze({
-  title: 'Menu',
-  appearance: 'Appearance',
-  profile: 'Profile',
-  history: 'History',
-  export: 'Export my data',
-  signedInAs: email => `Signed in as ${email}`,
-  signOut: 'Sign out',
-  signingOut: 'Signing out…',
-  theme: 'Theme',
-  themes: [{ value: 'dark', label: 'Dark' }, { value: 'light', label: 'Light' }, { value: 'system', label: 'System' }],
-  guidance: 'Guidance and sources',
-  reduceMotion: 'Reduce motion',
-  reduceMotionSub: 'Your device’s own setting also stops motion.',
-  saved: 'Saved on this device, not your account. The old app uses the same setting.',
-  notSaved: 'This browser isn’t saving settings, so this lasts until you close the page.',
-});
-
-function Appearance() {
-  const theme = useThemePreference();
-  const [preferences, setPreferences, { storageAvailable }] = useDashboardPreferences();
-  const saved = (theme?.saved ?? true) && storageAvailable;
-  return (
-    <>
-      <Segmented label={MENU_COPY.theme} options={MENU_COPY.themes} value={theme?.preference ?? 'dark'} onChange={value => theme?.choose(value)}/>
-      <Card variant="flush">
-        <Switch
-          label={MENU_COPY.reduceMotion}
-          sub={MENU_COPY.reduceMotionSub}
-          checked={preferences.motion === 'reduced'}
-          onChange={on => setPreferences({ motion: on ? 'reduced' : 'system' })}
-        />
-      </Card>
-      <p className="gx-t-meta">{saved ? MENU_COPY.saved : MENU_COPY.notSaved}</p>
-    </>
-  );
-}
+export { MENU_COPY } from './menuCopy.js';
 
 /** D-55: every ⓘ topic in one list, with its sources and licenses. */
 function Guidance() {

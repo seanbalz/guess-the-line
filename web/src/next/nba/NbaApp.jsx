@@ -17,7 +17,7 @@ import { addNextFontLinks } from '../styles/fonts.js';
 import { confirmSportLeave, nbaHash, nbaRoute, today } from './route.js';
 import EplApp from '../epl/EplApp.jsx';
 import { useEplAccess } from '../epl/api.js';
-import { EplAccessContext, eplGate, primeLobby, SPORT_HOME, sportOptions } from '../epl/route.js';
+import { EplAccessContext, eplGate, primeLobby, sportOptions, sportSwitchHash } from '../epl/route.js';
 import { cloudApi } from '../../api.js';
 import { sportAt } from '../sportAt.js';
 
@@ -107,11 +107,11 @@ export function SportEntry({ session, onSignOut, children }) {
     window.history.pushState(null, '', hash);
     const event = new PopStateEvent('popstate'); event.gtlSportApproved = true; event.gtlSportFrom = from; window.dispatchEvent(event);
   }
-  const change = value => { if (value !== sport) navigate(value === 'nfl' ? previousNfl.current : SPORT_HOME[value]); };
+  const change = value => { if (value !== sport) navigate(sportSwitchHash(value, window.location.hash, previousNfl.current)); };
   // The old app's shells (including the new app's crash fallback) place this after their skip link; the new app has its own in the top bar.
   const selector = <div className="gx gx-nba-sport-entry"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={change}/></div>;
   if (sport === 'nba') return <NbaApp session={session} onSignOut={onSignOut} epl={epl} onSportChange={change}/>;
-  if (gate === 'show') return <EplApp key={session.user.id} onSportChange={change}/>;
+  if (gate === 'show') return <EplApp key={session.user.id} session={session} onSignOut={onSignOut} onSportChange={change}/>;
   // While the lobby has not answered, or until the effect above leaves for NFL, nothing EPL-specific (and no NFL read) renders.
   if (gate !== 'other') return null;
   return <EplAccessContext.Provider value={epl}><SportSlotContext.Provider value={selector}>{children}</SportSlotContext.Provider></EplAccessContext.Provider>;
