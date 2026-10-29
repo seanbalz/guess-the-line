@@ -66,3 +66,8 @@ The moneyline job must be enabled before launch for both timed collection and AP
 off switch stops new collection while preserving attempts, private capture provenance and player history.
 The current week window can legitimately make an early scheduled test return nothing due; never move a saved
 window or create a real manager guess to manufacture acceptance.
+
+
+## Combined CI integration follow-up
+
+Browser shard 4 exposed an old shared-interface fixture assertion that allowed only lobby/draft reads on EPL Home. The approved Home shortcut now also reads moneyline progress. Its fixture supplies the explicit unavailable-board shape and permits only that additional read, asserting POST plus the authoritative EPL season/week; unrelated NFL reads and writes remain rejected. All four shared-interface browser cases passed locally, and the originally failing profile/sport-switch case passed again with semantic request-body assertions. No product or migration code changed in this repair. Fresh exact-head CI is still required before merge.
