@@ -4,13 +4,13 @@
 
 **Goal:** The 8 FEPL managers guess, per EPL match, the favorite and its 2-way (draw no bet) moneyline price; each guess is scored by distance from the real price at lock-in; a leaderboard ranks lowest average distance per match guessed.
 
-**Architecture:** Pure rules in `shared/epl-moneyline.mjs`; migration M-32 (guess, reference and history tables + RPCs, service-only); `cloud/epl.mjs` routes `epl/guess/*`; Plan 1 `gtl-epl-jobs` `fixtures` job also collects `draw_no_bet` per event and resolves pending references; UI under `web/src/next/epl/guess/`.
+**Architecture:** Pure rules in `shared/epl-moneyline.mjs`; applied M-32 guess/reference/history storage and M-36 durable collection/safe writer; `cloud/epl.mjs` routes `epl/guess/*`; a separate `moneyline` worker job plus post-lock refresh hook; shared-shell UI under `web/src/next/epl/guess/`. The fixtures job's three-way cache is separate from draw-no-bet references.
 
 **Tech Stack:** as Plan 1.
 
 **Spec:** `docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md` section 7. Depends on Plan 1 (fixtures, prices, member check, EplApp).
 
-**Current evidence, October 29:** Tasks 0–4 and Task 5's Play screens have source and combined local acceptance; see [the integration record](../../EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md). The final plan audit found the explicit Task 5 Home button and Task 6 canonical rules entry were still missing. [The Home/rules follow-on](../../EPL_HOME_MONEYLINE_2026_10_29.md) implements both with focused local checks; its independent Home service flow and final combined CI remain pending. M-32 is [applied and verified](../../RELEASE_2026_10_29_M32.md) as hosted version `20261029162422`; the deployed, enabled check's first MW9 live verdict passed ([PR #375 record](../../RELEASE_2026_10_29_DNB.md)). [Task 3's API follow-on](../../EPL_MONEYLINE_API_2026_10_29.md) is source work with guarded save/readback and shared numeric limits, pending combined M-36/UI release and hosted acceptance. M-36 adds the safe save wrapper and separately gated collector; applying schema alone does not enable collection. Historical steps below remain provenance, not live acceptance.
+**Current evidence, October 29:** Tasks 0–6 source, Home integration and final CI are complete. [The production release record](../../RELEASE_2026_10_29_EPL_MONEYLINE.md) records source `d891291c8a21e2de7827826e0d194fc2e0da11a6`, API v43, EPL worker v3, all 125 served frontend assets, enabled collection and signed-in Home/entry/leaderboard readback. M-32 and M-36 are applied and verified. The first scheduled check correctly found nothing due; subsequent production lock-ins produced ten qualifying captures and consistent first-after references/distances, independently checked without exposing predictions. Timed priced capture, live multiuser/concurrency, kickoff/full-week results and physical moneyline gameplay remain separate acceptance. Historical steps below retain source provenance.
 
 ## Global Constraints
 
@@ -66,21 +66,29 @@ Test: `tests/epl-dnb.test.mjs` (fake fetch).
 Current source: `cloud/epl-guess.mjs` owns fixed-field reads, open-account visibility, member-only writes, exact-week gate/readiness, bounded server weeks, shared safe-price validation, structured refusals and uncertain-save readback. The additive M-36 wrapper checks time after its fixture lock; no fallback to M-32's older cached-time writer. See the linked API record for request/response/error and launch prerequisites. Do not check off a historical expected-failure step or hosted acceptance from these source checks.
 
 **Files:** Modify `cloud/epl.mjs` (`'/epl/guess/read'`, `'/epl/guess/save'` `{eventId, club, price, lock}`, `'/epl/guess/leaderboard'`); Test `tests/epl-guess-routes.test.mjs`
-- [x] Source and SQL/HTTP acceptance implemented; combined CI and release remain pending. Original acceptance: invalid price → 400 `GTL_EPL_GUESS_INVALID`; locked → 409; closed → 409 with the draft echoed back; save with `lock:true` triggers one shared quota-limited refresh attempt (fake) and never fails because of it; FAIL → implement → PASS → commit `feat(epl): moneyline guess routes`.
+- [x] Source/SQL/HTTP acceptance, final CI and API v43 deployment are complete. Signed-in reads and six live authentication denials passed; production lock-ins and private reference/distance consistency were subsequently observed.
+
+Original acceptance: invalid price → 400 `GTL_EPL_GUESS_INVALID`; locked → 409; closed → 409 with the saved draft preserved;
+an accepted lock invokes one bounded shared refresh and readback; source failures preserve the accepted lock. These paths
+passed the combined real-service fixture tests; later natural production reference checks have their own dated release proof.
 
 ### Task 4: Collector
 
-Current source: [M-36 collector follow-on](../../EPL_MONEYLINE_COLLECTOR_2026_10_29.md), published at latest reviewed source `88897f0d586edba2e6fdbf657ae1d97dd4d0435c`, adds durable shared event leases, bounded budget admission, both-club provenance and atomic pending-reference resolution; safe post-lock save wrapper and pure readiness reader protect Task 3. Source tests pass; **M-36 is not applied, moneyline collection remains absent/disabled pending explicit authorized setup, and live acceptance remains open.** Root owns release/global task status.
+Current delivery: [M-36 collector](../../EPL_MONEYLINE_COLLECTOR_2026_10_29.md) is applied as hosted `20261029183135`; worker v3 and API v43 are deployed, the separately approved moneyline schedule/15-minute cron are enabled, and the first operational check passed with `nothing_due`. Production lock-ins then produced ten actual priced captures with consistent immutable first-after references. [Release proof and remaining acceptance](../../RELEASE_2026_10_29_EPL_MONEYLINE.md). M-33/M-34/M-35 remain independent and unapplied.
 
-**Files:** Modify `cloud/epl-sources.mjs` (`fetchEplDrawNoBet({apiKey, fetchImpl, eventIds})`), `cloud/epl-jobs.mjs` (`fixtures` job schedules DNB collection at week open and 3 h before each kickoff; `resolve-references` after each collection); Test `tests/epl-dnb.test.mjs`
-- [x] Source and actual SQL/collector acceptance implemented; M-36 apply/activation and release remain pending. Original acceptance: Review Focus 5; credit floor 50; collection only for events not yet kicked off; FAIL → implement → PASS → commit `feat(epl): draw-no-bet collection and pending reference resolution`.
+**Files:** Modify `cloud/epl-sources.mjs` (`fetchEplDrawNoBet({apiKey, fetchImpl, eventIds})`), `cloud/epl-jobs.mjs` (separate `moneyline` job collects at its bounded open/pre-kickoff checkpoints; pending references resolve atomically inside each collection); Test `tests/epl-dnb.test.mjs`
+- [x] Source and actual SQL/collector acceptance, M-36 apply/readback, compatible release, approved enablement/test and natural lock-triggered priced capture are evidenced. First priced timed checkpoint and live shared-concurrency acceptance remain open.
+
+Original acceptance: reject three-way/invalid prices, preserve reserve 50, collect only before kickoff and atomically resolve
+eligible pending references. Source tests include failed/unknown attempts and immutable references; actual timed/concurrent
+acceptance is tracked separately below.
 
 ### Task 5: Play → Guess the Line and Leaderboard screens
 
 **Files:** Create `web/src/next/epl/guess/GuessList.jsx`, `GuessCard.jsx`, `PriceStepper.jsx`, `GuessLeaderboard.jsx`, `DistanceLine.jsx`, `guess.css`; Modify `web/src/next/epl/EplApp.jsx` (Play sub-tabs Guess the Line and Leaderboard replace Plan 1 placeholders), `web/src/next/epl/EplHome.jsx` (button "Guess this weekend's moneylines · N of M"); Test `tests/epl-guess.test.jsx`
 Match mockup v3 "Play · Guess the Line": progress dots (locked = win color), hero card for the next unlocked match with both crests, favorite toggle, price stepper (steps of 5 on the `toLine` scale, so −105 → +100 → +105 and +100 is shown as "+100 / −100 (even)"; typing any valid price allowed), Lock in button, note "Final once locked · measured vs the real price at lock-in"; later matches list; result card with guess vs real bubbles and the distance line; leaderboard bars by average with "N guessed".
 - [x] Source: Play screens, shared-shell wiring, and Home's secondary "Guess this weekend’s moneylines · N of M" button. Home reads the matching EPL season/week, counts only own locked matches, and keeps Pick a Team usable under read-only/unavailable/older API states. Account/week response guards and count/navigation tests pass locally.
-- [ ] Final combined acceptance including the new Home service flow, exact-head CI and release review. Prior real-service Play phone-width/accessibility checks passed; they did not cover the originally missing Home button. Production release remains pending.
+- [x] Final ten-flow/six-Axe acceptance includes the Home service flow; exact-head and exact-main CI, protected release and signed-in Home/entry/leaderboard readback passed. Desktop 390px checks passed; physical-phone moneyline gameplay remains open.
 
 Original acceptance: stepper from −105 up → +100, then +105; Lock in posts `{lock:true}`; closed error keeps draft and shows "This match has kicked off. Your draft wasn't locked."; leaderboard renders average with 1 decimal; FAIL → implement (tokens only) → PASS → commit `feat(epl): Guess the Line moneyline screens`.
 
@@ -89,8 +97,17 @@ Original acceptance: stepper from −105 up → +100, then +105; Lock in posts `
 **Files:** `docs/DECISIONS.md` (D-68 addendum: distance math, leaderboard by average), `docs/RULES.md` (EPL moneyline row), `docs/COMPLETION_REGISTER.md`, `planning/PLATFORM_WORK_QUEUE.md`.
 - [x] Approved distance/average rules already recorded in `docs/DECISIONS.md` D-68 item 9; no decision changes needed.
 - [x] Canonical `docs/RULES.md` EPL moneyline section now records entry/visibility, per-match final locks, normalized distance, approved book median, pending/unscored references and the separate average-distance leaderboard/tiebreak.
-- [x] Existing completion register and EPL-04 queue retain source-versus-release separation; final composed head/acceptance counts remain the coordinator's update after QA. M-36 apply/readback, activation, deployment and live/device acceptance remain open.
+- [x] Completion register, EPL-04 queue and this plan distinguish completed source/M-36 apply/deployment/activation/live readback and natural captures from remaining timed/concurrent/kickoff/device acceptance; see the production release record.
 - [x] Brand QA passed on the Home/rules follow-on. Historical full-suite instructions below are not marked executed by these focused checks.
-- [ ] Final combined exact-head CI and Home service acceptance evidence incorporated into the source/release records.
+- [x] Final combined exact-head CI, Home service acceptance and completed production release evidence are incorporated into the linked records.
 
 Original workflow instruction: write; `python3 scripts/check-brand-docs.py`; `npm test`; commit `docs(epl): moneyline records`. Source documentation completion does not establish hosted release.
+
+## Remaining operational acceptance
+
+- [ ] First priced timed checkpoint after the stored window opens (the earlier nothing-due runs are already verified).
+- [ ] Actual multiuser/shared-cache concurrency; local concurrent real-service tests already pass.
+- [ ] Kickoff-scoped leaderboard and full live matchweek cycle.
+- [ ] Physical iPhone moneyline gameplay.
+
+Natural production save/capture/reference-distance acceptance passed in the dated release record; no test prediction was manufactured.

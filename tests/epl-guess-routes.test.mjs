@@ -95,14 +95,14 @@ test('service reads only fixed week/fixture metadata and canonical exact-week bo
  assert.deepEqual(requests.find(r=>r[0]==='gtl_epl_moneyline_gate'),['gtl_epl_moneyline_gate',{p_season:2026,p_week:9}]);assert.ok(!JSON.stringify(requests).includes('gtl_epl_prices'));assert.ok(!JSON.stringify(requests).includes('gtl_epl_job_runs'));
 });
 
-test('new API-only boundary markers accept exact missing routes, never grants, malformed404 or private material',async()=>{
+test('deployed moneyline API routes require denial; absence, grants and private material are never excused',async()=>{
  const {checkCloudBoundary,awaitingDeploy}=await import('../scripts/check-cloud-boundary.mjs');
  const options={url:'https://onmrgvcehkflfaizvedl.supabase.co',key:'sb_publishable_fixture',log(){}};
  const deny=(url,r)=>Response.json({code:r.headers['Accept-Profile']?'PGRST106':'42501'},{status:r.headers['Accept-Profile']?406:401});
  for(const path of ['epl/guess/read','epl/guess/save','epl/guess/leaderboard']){
-  assert.match(awaitingDeploy[`gtl-api/${path}`],/^API-only deploy:/);
+  assert.equal(awaitingDeploy[`gtl-api/${path}`],undefined);
   const fake=(status,body)=>(url,r)=>url.endsWith(`/gtl-api/${path}`)?Response.json(body,{status}):deny(url,r);
-  const missing=await checkCloudBoundary({...options,fetchImpl:fake(404,{error:'Not found.'})});assert.equal(missing.awaiting.length,2);
+  await assert.rejects(checkCloudBoundary({...options,fetchImpl:fake(404,{error:'Not found.'})}),/unexpected 404/);
   await checkCloudBoundary({...options,strict:true,fetchImpl:deny});
   await assert.rejects(checkCloudBoundary({...options,strict:true,fetchImpl:fake(404,{error:'Not found.'})}),/unexpected 404/);
   for(const [status,body] of [[200,{}],[404,{error:'Not found.',guesses:[]}],[404,{code:'PGRST202'}],[401,{referencePrice:-150}]])await assert.rejects(checkCloudBoundary({...options,fetchImpl:fake(status,body)}),/unexpected|private material/);

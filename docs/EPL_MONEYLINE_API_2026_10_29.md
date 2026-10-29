@@ -2,7 +2,11 @@
 
 Owner: EPL operations workflow · Version 1 · October 29, 2026
 
-Source implementation only. The actual MW9 draw-no-bet gate passed in [PR #375's release record](RELEASE_2026_10_29_DNB.md); M-32 is applied. API source, the M-36 safe-save/capability wrapper and collector, UI and end-to-end release acceptance remain separate. No live guesses, source requests, migrations or deployments occurred in this lane.
+Current delivery: API v43 is deployed with JWT verification retained, M-32/M-36 applied, worker v3 active and collection enabled.
+[The production release record](RELEASE_2026_10_29_EPL_MONEYLINE.md) records exact source, signed-in reads, live privacy checks
+and observed production save/capture/reference-distance acceptance. Remaining timed/concurrent/kickoff/device checks are explicit there.
+This contract's original source-lane checks used local fixtures; no live guesses, source requests, migrations or deployments
+were performed by that source lane. The earlier MW9 gate remains in [PR #375's release record](RELEASE_2026_10_29_DNB.md).
 
 ## Read and save behavior
 

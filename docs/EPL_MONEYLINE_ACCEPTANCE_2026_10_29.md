@@ -5,7 +5,8 @@ Owner: Sean Balsiger · Version 3
 Sean requested finishing the EPL moneyline API, collection and screens, then deploying once checks pass.
 This integration combines the API, durable collector and shared-shell screen wiring with independent acceptance.
 The live MW9 source gate, M-32 apply and [verified M-36 apply](RELEASE_2026_10_29_M36.md) are recorded.
-The playable API/worker/frontend batch is not deployed by this acceptance record.
+The API/worker/frontend batch is [deployed and live-verified](RELEASE_2026_10_29_EPL_MONEYLINE.md), including enabled collection
+and subsequently observed natural lock-triggered capture/reference-distance acceptance. Local source checks below retain their own scope.
 
 ## Reviewed composition
 
@@ -63,8 +64,9 @@ apply and readback: six exact private invoker functions, two empty private RLS t
 fourteen unchanged EPL table fingerprints and three unchanged scoring sets. All eight new live privacy probes
 were denied. [Actual hosted version, hashes and limits](RELEASE_2026_10_29_M36.md).
 Sean separately approved enabling/testing moneyline collection after compatible API/worker deployment.
-Protected releases, actual schedule setup/enablement/test and signed-in hosted verification remain pending.
-No source merge is evidence that those remaining effects occurred.
+All protected releases, approved schedule setup/enablement/test and signed-in hosted reads have now passed;
+the production release record supplies actual versions, runs, served hashes and aggregate-only natural capture checks.
+Timed priced checkpoints, live multiuser/concurrency, kickoff/full-cycle and physical-moneyline acceptance remain open.
 
 The moneyline job must be enabled before launch for both timed collection and API post-save refresh. Its
 off switch stops new collection while preserving attempts, private capture provenance and player history.

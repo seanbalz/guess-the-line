@@ -473,12 +473,10 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const key of ['rpc/gtl_place_bets', 'rpc/gtl_bets_newest_quote', 'rpc/gtl_bets_terms', 'gtl-api/bets/place']) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
   // M-19 is hosted since October 28, 2026 (RELEASE_2026_10_28_AUTO_SETTLE.md): nothing awaits deploy.
   for (const key of Object.keys(m19)) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
+  // API v43 deployed all four EPL readers/writer routes on October 29; pending M33 schema is separate.
+  for (const route of ['epl/guess/read','epl/guess/save','epl/guess/leaderboard','epl/admin/corrections/read'])
+    assert.equal(awaitingDeploy[`gtl-api/${route}`], undefined);
   for (const [key, until] of Object.entries(awaitingDeploy)) {
-    if(until.startsWith('API-only deploy:')){
-      assert.ok(['gtl-api/epl/guess/read','gtl-api/epl/guess/save','gtl-api/epl/guess/leaderboard'].includes(key),'only reviewed API-only route probes may await source deployment');
-      assert.ok(!NOT_HOSTED.includes(20261029150000),'M32 schema has no absence exception');
-      continue;
-    }
     const version = /^(\d{14})\b/.exec(until);
     assert.ok(version, `${key}: pending descriptors name their migration version`);
     assert.ok(NOT_HOSTED.includes(Number(version[1])), `${key}: an applied migration cannot retain an absence exception`);
