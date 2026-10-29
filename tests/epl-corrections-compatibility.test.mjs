@@ -5,12 +5,14 @@ import { createCommunityWorld, pgliteAvailable } from './cloud-browser/community
 import { ALL, version } from './migrations.mjs';
 import { createEplJobsAdapter, createEplJobsHandler } from '../cloud/epl-jobs.mjs';
 
-for (const installed of [false, true]) test(installed
+for (const schema of ['m30-m31', 'm32', 'm33']) test(schema === 'm33'
   ? 'the real worker handler and adapter record a due recheck once M33 is installed'
-  : 'the real worker handler keeps existing daily captures working against the M30/M31 schema before M33 apply', {
+  : `the real worker handler keeps existing daily captures working against ${schema.toUpperCase()} before M33 apply`, {
   skip: pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.',
 }, async t => {
-  const legacy = ALL.filter(file => version(file) <= 20261029060000); // Explicit M30/M31 boundary, even after M33 eventually applies.
+  const installed = schema === 'm33';
+  // Explicit before-M33 boundaries remain reproducible after later apply records change HOSTED.
+  const legacy = ALL.filter(file => version(file) <= (schema === 'm32' ? 20261029150000 : 20261029060000));
   const world = await createCommunityWorld({ migrations: installed ? ALL : legacy, games: 2, troyBallots: false });
   t.after(() => world.db.close());
   const db = world.db, calls = [], transportErrors = [];

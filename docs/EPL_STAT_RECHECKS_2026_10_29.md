@@ -22,10 +22,11 @@ the latest week, while `after-mwN` labels were immutable. This follow-on keeps t
 - Fantasy weekly readers prefer the later recheck and keep the original capture. Settlement also uses a rechecked prior
   baseline, so the same correction is not counted again as points in the next matchweek.
 
-This is operational correction evidence. The review flag has **no commissioner-facing route/card yet**, and no order
-correction is applied. Sean confirmed **preserve picks and flag for review** on October 29: keep entered picks and the
-original draft order, show corrected totals separately. Do not mark the full correction workflow accepted until
-commissioner actionability, release and hosted verification are complete.
+This is operational correction evidence. A separate [commissioner review follow-on](EPL_CORRECTION_REVIEW_UI_2026_10_29.md)
+now supplies a read-only route/card locally; it is not deployed. No order correction is applied. Sean confirmed
+**preserve picks and flag for review** on October 29: keep entered picks and the original draft order, show corrected
+totals separately. Automatic recomputation for an unstarted existing draft remains open. Do not mark the full
+correction workflow accepted until source review, release and hosted verification are complete.
 MW38 seasonal behavior remains a separate acceptance item; this recheck path covers MW1–37.
 The first final capture still follows the existing window-end/rollover rule. This change does not establish a live
 Monday-final capture or change when the next draft first opens.

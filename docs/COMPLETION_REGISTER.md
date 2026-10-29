@@ -28,6 +28,8 @@ desktop readback. [Release evidence](RELEASE_2026_10_29_NBA_EPL.md) records
 M-32 is now [applied and verified](RELEASE_2026_10_29_M32.md); M-33 and DNB enablement remain separate gates; correction and player metadata
 follow next. This release does not complete moneyline or physical-phone acceptance.
 
+The [next EPL batch](EPL_NEXT_BATCH_2026_10_29.md) tracks the confirmed midweek ruling, source owners and remaining live gates. Its [combined local acceptance record](EPL_NEXT_BATCH_INTEGRATION_2026_10_29.md) covers correction review, roster metadata and standings readiness.
+
 ## October 29 — Balanced logo and favicon
 
 Sean selected 01 Balanced from five visual directions. Both app logo components,
@@ -36,8 +38,12 @@ refined geometry in this task branch. Five color variants plus the light-surface
 green are exported. [Asset record and selected preview](../design/logo-redraft-2026-10-29/README.md).
 Local verification: five brand asset tests (including PNG alpha, color, margins,
 centering and favicon theme behavior), 52 shared UI tests, Brand QA and production
-build passed. The small browser favicon omits side hashes. No deployment or
-physical-device acceptance is established by these checks.
+build passed. The small browser favicon omits side hashes. Production release
+[40907820747](https://github.com/seanbalz/guess-the-line/actions/runs/40907820747)
+succeeded from `5c1b775f05a69306f20f911f4b0455c207c65ffc`: Pages `72eb400b`,
+124 served assets verified, 385 boundary checks passed, and direct favicon/icon
+readback matched the source. [Release evidence](RELEASE_2026_10_29_BALANCED_LOGO.md).
+Physical-device acceptance remains separate.
 
 ## What the evidence establishes
 

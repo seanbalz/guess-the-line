@@ -38,16 +38,18 @@ import { canPick, onTheClock } from '../shared/epl-draft.mjs';
 import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
 import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
 import { buildFantasyView, detailLabels, fantasySeason } from './epl-fantasy-view.mjs';
+import { readEplCorrectionReviews } from './epl-correction-reviews.mjs';
 
 export const EPL_METHODS = Object.freeze({
   '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
   '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
+  '/epl/admin/corrections/read': ['POST'],
   '/epl/fantasy/read': ['POST'], '/epl/claim': ['POST'],
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
   'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin',
-  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_standings_provenance']);
+  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_standings_provenance']);
 /**
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
@@ -114,6 +116,7 @@ const weekOk = n => Number.isInteger(n) && n >= 1 && n <= 38;
 export function createEplService({ rpc, rest, rows }) {
   return {
     rpc: (name, args) => rpc(name, args),
+    readCorrectionReviews: season => readEplCorrectionReviews({ rows, season }),
     async latestWeek() {
       const row = await rest('gtl_epl_weeks', { select: 'season,week', order: 'season.desc,week.desc', limit: '1' });
       return row && Number.isInteger(row.season) && Number.isInteger(row.week) ? { season: row.season, week: row.week } : null;
@@ -271,6 +274,21 @@ async function readWeek(service, target) {
 }
 async function requireCommissioner(service, user) {
   if (await service.rpc('gtl_community_admin', { p_user: user.id }) !== true) refuse('GTL_EPL_FORBIDDEN');
+}
+
+async function correctionReviews({ body, user, service }) {
+  keys(body, ['season']);
+  if (body.season !== undefined && !isSeason(body.season)) refuse('GTL_EPL_INVALID');
+  await requireCommissioner(service, user);
+  // Compatible source precedes M-33 apply. Probe its existing pure helper before reading the new table; no new RPC/schema.
+  try { await service.rpc('gtl_epl_recheck_due_at', { p_last_kickoff: null, p_original_at: null }); }
+  catch (error) {
+    if (error instanceof EplError && error.status === 404 && error.code === 'GTL_EPL_OFF') return { available: false, season: body.season ?? null, reviews: [] };
+    throw error;
+  }
+  const season = body.season ?? (await service.latestWeek())?.season ?? null;
+  if (season === null) return { available: true, season: null, reviews: [] };
+  return { available: true, season, reviews: await service.readCorrectionReviews(season) };
 }
 
 async function draftRead({ body, user, service, now }) {
@@ -448,6 +466,7 @@ async function fantasyRead({ body, user, service }) {
 const HANDLERS = Object.freeze({
   '/epl/draft/read': draftRead, '/epl/draft/pick': draftPick, '/epl/queue/save': queueSave,
   '/epl/admin/link': adminLink, '/epl/admin/week': adminWeek, '/epl/admin/snapshot': adminSnapshot, '/epl/admin/fixture': adminFixture,
+  '/epl/admin/corrections/read': correctionReviews,
   '/epl/fantasy/read': fantasyRead, '/epl/claim': claim,
 });
 
