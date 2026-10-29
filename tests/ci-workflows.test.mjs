@@ -20,8 +20,16 @@ test('each main commit gets its own run; pull requests still replace older runs'
   }
 });
 
-test('npm test runs once, in Tests, with the skipped-test assertion', () => {
-  assert.match(workflows['test.yml'], /npm test 2>&1 \| tee \.local\/npm-test\.log/);
+test('npm test runs once, in Tests, as three shards with the skipped-test assertion, behind one required check', () => {
+  assert.match(workflows['test.yml'], /npm run test:shard 2>&1 \| tee \.local\/npm-test\.log/);
+  assert.match(workflows['test.yml'], /fail-fast: false\n\s+matrix:\n\s+shard: \[1, 2, 3\]/);
+  assert.match(workflows['test.yml'], /TEST_SHARD: \$\{\{ matrix\.shard \}\}\/3/);
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.equal(pkg.scripts['test:shard'], 'node --test --test-shard=$TEST_SHARD tests/*.test.mjs && vitest run --shard=$TEST_SHARD');
+  assert.equal(pkg.scripts.test, 'node --test tests/*.test.mjs && vitest run', 'the shards together run exactly npm test');
+  // The required check passes only when every shard passed.
+  assert.match(workflows['test.yml'], /name: Typecheck and test\n {4}needs: test-shard\n {4}if: always\(\)/);
+  assert.match(workflows['test.yml'], /test "\$\{\{ needs\.test-shard\.result \}\}" = success/);
   assert.match(workflows['test.yml'], /node:test skipped/);
   assert.doesNotMatch(dashboard, /^\s+- run: npm test$/m);
   assert.doesNotMatch(dashboard, /run: npm test\b/);
