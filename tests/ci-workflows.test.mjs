@@ -13,9 +13,9 @@ const read = name => readFileSync(new URL(`../.github/workflows/${name}`, import
 const workflows = Object.fromEntries(['test.yml', 'dashboard-checks.yml', 'brand-qa.yml'].map(name => [name, read(name)]));
 const dashboard = workflows['dashboard-checks.yml'];
 
-test('each main commit gets its own run; pull requests still replace older runs', () => {
+test('a newer commit replaces an older run on the same ref and event, main included; the nightly run is never cancelled by a push', () => {
   for (const [name, yaml] of Object.entries(workflows)) {
-    assert.match(yaml, /^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref == 'refs\/heads\/main' && github\.sha \|\| github\.ref \}\}\n {2}cancel-in-progress: \$\{\{ github\.ref != 'refs\/heads\/main' \}\}$/m, name);
+    assert.match(yaml, /^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.event_name \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: true$/m, name);
     assert.match(yaml, /^on:\n {2}push:\n {4}branches: \[main\]\n {2}pull_request:$/m, `${name} still runs on main pushes and pull requests`);
   }
 });
