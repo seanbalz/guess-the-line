@@ -9,9 +9,9 @@ const exists = fs.existsSync(FILE);
 const sql = exists ? fs.readFileSync(FILE, 'utf8') : '';
 const code = sql.split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
 
-test('M-30 file exists and is listed in NOT_HOSTED', () => {
+test('M-30 file exists and is hosted (October 29 apply record, hosted version 20261029051846)', () => {
   assert.ok(exists, 'migration file missing');
-  assert.ok(NOT_HOSTED.includes(20261028190000));
+  assert.ok(!NOT_HOSTED.includes(20261028190000), 'removed from NOT_HOSTED by its apply record (Gate M step 8)');
 });
 
 test('one pick per club per week is enforced by a unique constraint', () => {
