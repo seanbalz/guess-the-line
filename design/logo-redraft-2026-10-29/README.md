@@ -49,5 +49,8 @@ The generated sheet was then rebuilt as native SVG geometry for the selected opt
 - Brand QA and production build pass. Vite reports its existing large-chunk warning.
 - Chromium verifies actual light/dark favicon colors at 16/32/48 sizes on a 320px
   review surface with no horizontal overflow. Browser screenshots are local QA artifacts.
-- Local implementation and visual review only. Merge, hosted deployment and
-  physical-device acceptance remain separate.
+- Merged in PR #365 and deployed October 29 by successful release 40907820747
+  from `5c1b775f05a69306f20f911f4b0455c207c65ffc`. Pages `72eb400b` serves all
+  124 verified frontend assets; direct favicon/app-icon readback matches source.
+  [Release evidence](../../docs/RELEASE_2026_10_29_BALANCED_LOGO.md).
+  Physical-device acceptance remains separate.
