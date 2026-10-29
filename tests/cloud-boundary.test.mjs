@@ -549,3 +549,20 @@ test('D-62 /lines/teams is probed signed out and with an invalid session, and on
   await assert.rejects(checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
     ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /POST lines\/teams without session: unexpected 404/);
 });
+
+test('a probe that times out is retried with a fresh timeout; other errors and the third timeout are not', async () => {
+  const { probe } = await import('../scripts/check-cloud-boundary.mjs');
+  const timeout = () => Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' });
+  let calls = 0, signals = [];
+  const answer = { status: 401 };
+  const twice = async (url, request) => { calls += 1; signals.push(request.signal); if (calls < 3) throw timeout(); return answer; };
+  assert.equal(await probe(twice, 'https://x.test/a', () => ({ signal: {} })), answer);
+  assert.equal(calls, 3);
+  assert.equal(new Set(signals).size, 3, 'each attempt gets its own timeout');
+  calls = 0;
+  await assert.rejects(probe(async () => { calls += 1; throw timeout(); }, 'https://x.test/a', () => ({})), /aborted due to timeout/);
+  assert.equal(calls, 3);
+  calls = 0;
+  await assert.rejects(probe(async () => { calls += 1; throw new TypeError('fetch failed'); }, 'https://x.test/a', () => ({})), /fetch failed/);
+  assert.equal(calls, 1, 'a network error is not retried');
+});
