@@ -19,13 +19,14 @@ import { matchupRecords } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
 
 /** A lock while closed, current/latest quote when permitted, and an explicit missing/loading state. */
-function MarketValue({ cell, className }) {
+function MarketValue({ cell, className, boardLabel }) {
   if (!cell.open) return <span className={`gx-l-lock ${className ?? ''}`} data-cell="locked"><Icon icon="lock" size={16}/></span>;
   // Still loading: a skeleton bar where the line will be, never "—" (which means missing); the card's name says Loading.
   if (cell.loading) return <span className={`gx-vstack gx-l-wait ${className ?? ''}`} data-cell="loading" aria-hidden="true"><span className="gx-skel-bar gx-l-wait-bar"></span></span>;
   if (!cell.line) return <span className={`gx-vstack ${className ?? ''}`} data-cell="none"><span className="gx-n-m gx-c-3">—</span><span className="gx-t-meta">{cell.label}</span></span>;
   return (
     <span className={`gx-vstack ${className ?? ''}`} data-cell="line">
+      {boardLabel ? <span className="gx-l-market-label gx-t-micro gx-c-2">{boardLabel}</span> : null}
       <span className="gx-n-s">{cell.line}</span>
       <span className="gx-t-meta gx-c-2">{cell.label}</span>
     </span>
@@ -58,7 +59,7 @@ function GameCard({ card, records, onOpen, focusScope }) {
         {team(card.home, 2, records?.home)}
         {card.tags.away ? <Tag k={card.tags.away.k} className="gx-l-tag1">{card.tags.away.text}</Tag> : null}
         {card.tags.home ? <Tag k={card.tags.home.k} className="gx-l-tag2">{card.tags.home.text}</Tag> : null}
-        <MarketValue cell={card.spread} className="gx-l-val"/>
+        <MarketValue cell={card.spread} className="gx-l-val" boardLabel="Spread"/>
       </span>
       <span className="gx-l-cfoot">
         <span className="gx-hstack gx-gap-8">
