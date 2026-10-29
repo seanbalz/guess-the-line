@@ -75,6 +75,23 @@ keeps background controls inert. Typecheck, all 14 token checks and Brand QA als
 passed after the correction. Full CI on the corrected source remains a merge
 gate; these local results do not substitute for it.
 
+A separate full-page Axe scan then reproduced the `region` rule failure on the
+sport selector. Its existing wrapper is now a named Sports navigation landmark,
+with the same layout class and controls. The regression fails before that change
+and passes afterward with all Axe rules enabled, at 320px/390px in Light/Dark for
+both NFL and EPL. Five focused browser cases, ten EPL component tests, typecheck
+and Brand QA passed on this correction.
+
+Bundle comparison against this PR's source base
+`927ccc231b56c096656a852c4b2875074038fc76` used the same dependencies and fixture
+build configuration. The entry's static JavaScript closure shrank from 173,600
+to 160,543 gzip bytes. Entry plus signed-in `NextApp` closure changed from
+339,474 to 339,409 gzip bytes (raw bytes: 1,094,550 to 1,096,229). EPL content was
+already statically imported by `SportEntry` before this PR; it now loads through
+the shared signed-in app. These are per-file gzip sums from Vite manifests,
+excluding dynamic feature downloads and runtime API traffic, not measured
+network or interaction timings.
+
 These are local tests using synthetic accounts and disposable data. They do not
 establish hosted deployment, physical-iPhone acceptance or completion of other
 EPL features. No migration, production data write or deployment is part of this
