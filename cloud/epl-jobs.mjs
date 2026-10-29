@@ -26,8 +26,9 @@
 //             active push subscription is skipped and not marked.
 //   dnb-check the Guess the Line gate (plan 2026-10-28-epl-moneyline.md, Task 0), dispatched once a day: the draw-no-bet
 //             market (1 credit per event) for at most 3 of the week's scheduled fixtures still ahead, only with at least 60
-//             credits left. The run's detail records each event's books and both prices and the dnbAvailable flag; the
-//             newest dnb-check run opens Guess the Line for its week (dnbGateOpen).
+//             credits left. The run's detail records each event's books and both prices and the dnbAvailable flag; a
+//             successful check that passes opens Guess the Line for its week, and the week stays open (dnbGateOpen). With
+//             fewer than 2 fixtures ahead it skips as not_due without buying or writing a verdict.
 // Every write goes through the M-30 service RPCs. The run summary, the reply and the logs carry counts and fixed reasons only:
 // never a key, URL, endpoint, provider text or another manager's pick.
 import { readRunBody } from './odds-refresh.mjs';
@@ -407,6 +408,9 @@ async function dnbCheckJob(ctx) {
   const upcoming = list(ctx.state.fixtures).filter(f => f.status === 'scheduled' && Date.parse(f.commenceTime) > ctx.now)
     .sort((a, b) => Date.parse(a.commenceTime) - Date.parse(b.commenceTime) || (a.eventId < b.eventId ? -1 : 1)).slice(0, DNB_CHECK_EVENTS);
   if (!upcoming.length) stop('no_fixtures');
+  // With fewer fixtures ahead than the gate needs, a check could only say "closed": it buys nothing and writes no verdict,
+  // so a week that opened earlier stays open through its last match (the Monday run of a Friday-to-Monday round).
+  if (upcoming.length < DNB_MIN_EVENTS) stop('not_due');
   const budget = ctx.state.budget ?? {};
   if (!Number.isInteger(budget.remaining)) stop('budget_unknown');
   if (budget.paused || budget.remaining < DNB_CHECK_FLOOR) stop('budget_guard');
@@ -425,10 +429,15 @@ async function dnbCheckJob(ctx) {
     remaining: reply?.quota?.remaining ?? null, events };
 }
 
-/** The exit rule (moneyline plan, Task 0): Guess the Line is offered for a week only when the newest dnb-check run succeeded
- * and its recorded books show at least 2 events priced by at least 2 of the 3 books (the flag alone is not trusted). With
- * `{season, week}`, the check must be of that week. */
-export function dnbGateOpen(run, { season, week } = {}) {
+/** The exit rule (moneyline plan, Task 0): Guess the Line is offered for a week once a successful dnb-check of that week
+ * recorded at least 2 events priced by at least 2 of the 3 books (the flag alone is not trusted). Pass the week's dnb-check
+ * run history (any order) or a single run; skipped and failed runs and checks of other weeks are ignored, so once a week has
+ * opened, a later skip (budget_guard, no_fixtures, not_due) or a late-week check with fewer matches left never closes it.
+ * With `{season, week}`, only checks of that week count. */
+export function dnbGateOpen(runs, { season, week } = {}) {
+  return (Array.isArray(runs) ? runs : [runs]).some(run => dnbRunOpens(run, season, week));
+}
+function dnbRunOpens(run, season, week) {
   if (!run || run.status !== 'succeeded' || run.reason != null) return false;
   const detail = run.detail ?? {};
   if (detail.dnbAvailable !== true) return false;

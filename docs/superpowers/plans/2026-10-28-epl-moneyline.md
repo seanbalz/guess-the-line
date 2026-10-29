@@ -44,7 +44,7 @@
 
 Test: `tests/epl-dnb.test.mjs` (fake fetch).
 
-**Exit rule, in code:** Guess the Line is offered for a week only when the newest `dnb-check` succeeded with at least 2 of 3 events priced by at least 2 of the 3 books. Otherwise the Play → Guess the Line tab says "Moneyline guessing isn't available this week." and nothing else of plan 3 is visible. No human check is needed. Record the first live result in `docs/ODDS_PROVIDER_EVALUATION.md` in a follow-up once it runs.
+**Exit rule, in code:** Guess the Line is offered for a week once a `dnb-check` of that week succeeded with at least 2 of 3 events priced by at least 2 of the 3 books, and then stays open for the rest of that week: `dnbGateOpen` reads the week's succeeded checks, so a later skip never closes it, and the job skips as `not_due` (no credits, no verdict) when fewer than 2 fixtures are still ahead (round 1 review fix). Otherwise the Play → Guess the Line tab says "Moneyline guessing isn't available this week." and nothing else of plan 3 is visible. No human check is needed. Record the first live result in `docs/ODDS_PROVIDER_EVALUATION.md` in a follow-up once it runs.
 - [ ] Failing tests → implement → pass → commit `feat(epl): server-side draw-no-bet check job`.
 
 ### Task 1: Moneyline rules (`shared/epl-moneyline.mjs`)

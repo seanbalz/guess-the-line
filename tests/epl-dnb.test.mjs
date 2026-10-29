@@ -1,7 +1,7 @@
 // EPL Guess the Line, plan 2026-10-28-epl-moneyline.md Task 0: the server-side draw-no-bet gate. fetchEplDrawNoBet reads
 // The Odds API's event-level `draw_no_bet` market for named events (1 credit each); the gtl-epl-jobs `dnb-check` job reads at
 // most 3 upcoming fixtures once a day and records, per event, the books present and both prices; dnbGateOpen is the exit
-// rule (>= 2 of the checked events priced by >= 2 of the 3 books, from the newest dnb-check run). Fake fetch and a fake
+// rule (>= 2 of the checked events priced by >= 2 of the 3 books in a successful dnb-check of the week; once open it stays open). Fake fetch and a fake
 // service only: nothing touches the network or a database.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -197,6 +197,36 @@ test('dnb-check refuses under 60 remaining credits, with no budget, or with noth
   assert.equal(ok.reason, null);
 });
 
+test('dnb-check with one fixture left buys nothing and skips as not_due, so it writes no gate verdict', async () => {
+  // The Monday 11:23 UTC run of a Friday-to-Monday round: only Monday's match is still ahead.
+  const MONDAY = Date.parse('2026-11-02T11:23:00Z');
+  const s = state({ fixtures: [...FIXTURES, fixture('e5', 'WHU', 'BHA', '2026-11-02T20:00:00.000Z')] });
+  const service = fakeService(s), sources = fakeSources(dnbReply([]));
+  const out = await job(service, sources, MONDAY);
+  assert.equal(out.reason, 'not_due');
+  assert.ok(EPL_SKIP_REASONS.includes('not_due'));
+  assert.equal(sources.calls.length, 0);
+  assert.equal(service.args('gtl_epl_reserve_credits').length, 0);
+});
+
+test('dnbGateOpen over the run history: once a week has opened it stays open through later skips and late-week checks', () => {
+  const two = { draftkings: { A: -110, B: -110 }, fanduel: { A: -105, B: -115 } };
+  const opened = { status: 'succeeded', reason: null, finished_at: '2026-10-30T11:23:05Z',
+    detail: { season: 2026, week: 9, dnbAvailable: true, events: [{ eventId: 'e1', books: two }, { eventId: 'e2', books: two }] } };
+  const lateFalse = { status: 'succeeded', reason: null, finished_at: '2026-11-02T11:23:05Z',
+    detail: { season: 2026, week: 9, dnbAvailable: false, events: [{ eventId: 'e5', books: two }] } };
+  const skipped = { status: 'skipped', reason: 'budget_guard', finished_at: '2026-11-01T11:23:05Z', detail: {} };
+  const otherWeek = { status: 'succeeded', reason: null, finished_at: '2026-10-23T11:23:05Z',
+    detail: { season: 2026, week: 8, dnbAvailable: true, events: opened.detail.events } };
+  const week9 = { season: 2026, week: 9 };
+  assert.equal(dnbGateOpen([lateFalse, skipped, opened], week9), true, 'newest first');
+  assert.equal(dnbGateOpen([opened, skipped, lateFalse], week9), true, 'any order');
+  assert.equal(dnbGateOpen([skipped, lateFalse], week9), false, 'never opened');
+  assert.equal(dnbGateOpen([otherWeek, skipped], week9), false, 'another week does not open this one');
+  assert.equal(dnbGateOpen([], week9), false);
+  assert.equal(dnbGateOpen([opened], { season: 2026, week: 10 }), false);
+});
+
 test('dnb-check fails as source_unavailable when the provider stops, recording its quota', async () => {
   const error = Object.assign(new Error('down'), { quota: { remaining: 280, used: 220, last: 0 } });
   const service = fakeService();
@@ -217,7 +247,7 @@ test('dnb-check through the handler: a claimed run completes with the detail', a
   assert.equal(complete.p_detail.dnbAvailable, false);
 });
 
-test('dnbGateOpen: only the newest successful check of that week, with >= 2 events priced by >= 2 books, opens Guess the Line', () => {
+test('dnbGateOpen: a successful check of that week, with >= 2 events priced by >= 2 books, opens Guess the Line', () => {
   const two = { draftkings: { A: -110, B: -110 }, fanduel: { A: -105, B: -115 } };
   const detail = { season: 2026, week: 9, dnbAvailable: true, events: [{ eventId: 'e1', books: two }, { eventId: 'e2', books: two }, { eventId: 'e3', books: {} }] };
   const ok = { status: 'succeeded', reason: null, detail };
