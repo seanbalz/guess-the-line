@@ -9,7 +9,8 @@
 -- Supabase pg_cron evaluates schedules in UTC. Each job has its own schedule row and cron entry; the dispatcher queues at most
 -- one run per job and five-minute slot, and every job is a safe no-op when nothing is due.
 --   snapshot  every 15 minutes   free (Sleeper): before-mw<N>-kickoff in the 30 minutes before the first kickoff, after-mw<N>
---                                once the week's window has ended.
+--                                once the week's window has ended; otherwise daily-<YYYY-MM-DD> once a UTC day (Research ->
+--                                Fantasy). Every capture is stored trimmed to rostered players.
 --   fixtures  05:47 and 17:47    1 Odds API credit per run, only while the week is open and before its first kickoff (about
 --                                10 credits a week). Kept clear of the NFL odds runs at 06:15 and 18:15.
 --   resolve   every 5 minutes    free: resolves the draft at the first kickoff, then no-ops (already_resolved).
