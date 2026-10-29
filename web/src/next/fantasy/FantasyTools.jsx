@@ -148,7 +148,7 @@ export function PlayerCompare({ snapshot, ids, onChange, settings, onProfile, in
       <Segmented label="Comparison scoring" options={SCORING_OPTIONS} value={scoring} onChange={setScoring}/>
       <Segmented label="Comparison period" options={COMPARE_PERIODS} value={period} onChange={setPeriod}/>
       <p className="gx-t-meta" role="status">{scoringLabel} · {settings.passingTds}-point passing TDs · {estimate ? `Week ${snapshot.week} GTL pace estimate, not a result` : `Observed per game · ${period === 'recent' ? 'last 3 weeks, ' : ''}${weeksText(result.weeks)}`}</p>
-      <div className="gx-fantasy-table-wrap"><table className="gx-fantasy-table gx-fantasy-compare-table">
+      <div className="gx-fantasy-table-wrap" role="region" aria-label="Player comparison data" tabIndex={0}><table className="gx-fantasy-table gx-fantasy-compare-table">
         <caption className="gx-sr-only">Player comparison, {scoringLabel}, {estimate ? `Week ${snapshot.week} estimate` : `per game, ${weeksText(result.weeks)}`}</caption>
         <thead><tr><th scope="col"><span className="gx-sr-only">Measure</span></th>{result.rows.map(row => <th scope="col" key={row.id}>{row.name}<span className="gx-fantasy-th-sub">{row.team} {row.position}</span></th>)}</tr></thead>
         <tbody>

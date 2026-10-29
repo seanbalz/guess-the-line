@@ -9,6 +9,17 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## Research formatting follow-up — October 29, 2026
+
+[#388](https://github.com/seanbalz/guess-the-line/issues/388) remains open under
+DESIGN-01/Q19. [Reproduction, repair and acceptance scope](RESEARCH_FORMATTING_2026_10_29.md)
+cover the loaded Fantasy page losing its shared content width/gutters and
+Trends section names breaking mid-word at 320px. The implementation restores
+the existing Fantasy layout, makes its comparison table keyboard-scrollable,
+and gives the narrow Trends section controls two columns. This work has its own
+source/CI/deployment and physical-phone gates; prior shared-interface acceptance
+and the parallel moneyline release do not close it.
+
 ## Shared sport interface — October 29, 2026
 
 Deployed and checked in fresh authenticated desktop readback: NFL/EPL use the same frame, profile/menu
