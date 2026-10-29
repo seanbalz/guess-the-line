@@ -36,7 +36,7 @@ function LeagueCover({ app }) {
  */
 export const removedFromCommunity = community => community.status === 'error' && community.error?.status === 403;
 
-export function AppGate({ session, onSignOut }) {
+export function AppGate({ session, onSignOut, sport = 'nfl', shellProps }) {
   const app = useAppData();
   const [notice, setNotice] = useState(null);
   const [retrying, setRetrying] = useState(false);
@@ -70,17 +70,19 @@ export function AppGate({ session, onSignOut }) {
       </FrameRoot>
     );
   }
-  const covered = app.league.pending || (app.league.id === COMMUNITY.id && removedFromCommunity(app.community));
+  const covered = sport === 'nfl' && (app.league.pending || (app.league.id === COMMUNITY.id && removedFromCommunity(app.community)));
   return (
     <Shell
+      key={sport}
       session={session}
       onSignOut={onSignOut}
       league={app.league}
       you={you}
-      data={app.counters}
+      data={sport === 'epl' ? { community: { admin: app.community.data?.admin === true } } : app.counters}
       cover={covered ? <LeagueCover app={app}/> : null}
-      initialLayer={app.savedInvite ? 'sh.switcher' : null}
+      initialLayer={sport === 'nfl' && app.savedInvite ? 'sh.switcher' : null}
       notice={notice}
+      {...shellProps}
     >
       <SignInAgain/>
     </Shell>

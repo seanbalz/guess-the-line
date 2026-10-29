@@ -5,16 +5,19 @@ import { decode, markupProblems } from './helpers/ui-markup.mjs';
 const cloud = vi.hoisted(() => ({ calls: [] }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(async (...args) => { cloud.calls.push(args); return { ok: true }; }) }));
 
-const { SportControls } = await import('../web/src/next/shell/Frame.jsx');
+const { SportControls, TopBar, TabBar } = await import('../web/src/next/shell/Frame.jsx');
 const { EplAccessContext } = await import('../web/src/next/epl/route.js');
-const { EplView } = await import('../web/src/next/epl/EplApp.jsx');
+const { SportNavigationContext } = await import('../web/src/next/sportSwitch.js');
+const { EplView, EplPlay } = await import('../web/src/next/epl/EplApp.jsx');
+const { default: EplGuess } = await import('../web/src/next/epl/guess/EplGuess.jsx');
+const { default: EplGuessLeaderboard } = await import('../web/src/next/epl/guess/EplGuessLeaderboard.jsx');
 const { eplApi } = await import('../web/src/next/epl/api.js');
 const { ApiError } = await import('../web/src/apiResponse.js');
 const { NbaHeader } = await import('../web/src/next/nba/NbaHeader.jsx');
 
 const text = html => decode(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
 const pressed = html => [...html.matchAll(/<button[^>]*aria-pressed="true"[^>]*>([^<]*)<\/button>/g)].map(match => match[1]);
-const render = route => renderToStaticMarkup(<EplView route={route} onRoute={() => {}} onSportChange={() => {}}/>);
+const render = route => renderToStaticMarkup(<div className="gx"><EplView route={route} onRoute={() => {}}/></div>);
 
 describe('sport switch', () => {
   it('the new app shows EPL only when the account has EPL access', () => {
@@ -40,7 +43,7 @@ describe('sport switch', () => {
     expect(pressed(hidden)).toEqual(['NBA']);
   });
   it('the EPL app header has EPL selected', () => {
-    const html = render({ tab: 'home' });
+    const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport: 'epl' }}><div className="gx"><SportControls/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
     expect(html).toContain('aria-label="Sport"');
     expect(text(html)).not.toContain('NBA');
     expect(pressed(html)).toContain('EPL');
@@ -48,8 +51,18 @@ describe('sport switch', () => {
 });
 
 describe('EPL four-tab shell', () => {
+  it('passes the shell account/API/dirty/navigation contract to each moneyline child', () => {
+    const api = vi.fn(), onRoute = vi.fn(), onDirtyChange = vi.fn();
+    const props = { api, accountId: 'signed-in-gtl-account', onRoute, onDirtyChange };
+    const guess = EplPlay({ ...props, route: { tab: 'play', section: 'guess' } }).props.children.at(-1);
+    expect(guess.type).toBe(EplGuess); expect(guess.props).toMatchObject({ api, accountId: props.accountId, onNavigate: onRoute, onDirtyChange });
+    const leaderboard = EplPlay({ ...props, route: { tab: 'play', section: 'leaderboard' } }).props.children.at(-1);
+    expect(leaderboard.type).toBe(EplGuessLeaderboard); expect(leaderboard.props).toMatchObject({ api, accountId: props.accountId });
+    expect(leaderboard.props).not.toHaveProperty('week');
+  });
   it('draws Home, Play, Bets and Research with the one showing marked', () => {
-    const html = render({ tab: 'home' });
+    const html = renderToStaticMarkup(<div className="gx"><TopBar leagueName="FEPL" you={{ id: 'fixture', name: 'Fixture' }}/><TabBar current="home"/></div>);
+    expect(html).toContain('aria-label="Your menu"');
     for (const label of ['Home', 'Play', 'Bets', 'Research']) expect(html).toContain(`>${label}</span>`);
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
     expect(html).toMatch(/data-tab="home"[^>]*aria-current="page"/);
@@ -58,10 +71,9 @@ describe('EPL four-tab shell', () => {
   it('Bets has nothing for the Premier League', () => {
     const html = render({ tab: 'bets' });
     expect(text(html)).toContain("Bets aren't available for the Premier League.");
-    expect(html).toMatch(/data-tab="bets"[^>]*aria-current="page"/);
     expect(markupProblems(html)).toEqual([]);
   });
-  it('Play has Guess the Line, Pick a Team and Leaderboard; only Pick a Team is built', () => {
+  it('Play mounts Pick a Team and the separate moneyline children', () => {
     const pick = render({ tab: 'play', section: 'pick' });
     expect(text(pick)).toContain('Guess the Line'); expect(text(pick)).toContain('Leaderboard');
     expect(pressed(pick)).toContain('Pick a Team');
@@ -70,7 +82,8 @@ describe('EPL four-tab shell', () => {
     expect(markupProblems(pick)).toEqual([]);
     for (const section of ['guess', 'leaderboard']) {
       const html = render({ tab: 'play', section });
-      expect(text(html)).toContain('Coming next');
+      expect(text(html)).not.toContain('Coming next');
+      expect(text(html)).toContain(section === 'guess' ? 'Loading moneyline guesses' : 'Loading moneyline leaderboard');
       expect(html).toContain(`data-epl-section="${section}"`);
       expect(markupProblems(html)).toEqual([]);
     }

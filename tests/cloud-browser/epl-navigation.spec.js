@@ -14,13 +14,15 @@ test('EPL tab navigation opens the default Play section and preserves explicit s
     await page.route('**/functions/v1/gtl-api/epl/**', route => {
       const path = new URL(route.request().url()).pathname.split('/gtl-api/')[1];
       calls.push(path);
-      return route.fulfill({ status: path === 'epl/draft/read' ? 200 : 503, contentType: 'application/json', body: JSON.stringify(path === 'epl/draft/read'
+      return route.fulfill({ status: ['epl/draft/read', 'epl/guess/read'].includes(path) ? 200 : 503, contentType: 'application/json', body: JSON.stringify(path === 'epl/guess/read'
+        ? { season: 2026, week: 9, available: false, ownerId: null, fixtures: [], guesses: [] }
+        : path === 'epl/draft/read'
         ? { season: 2026, week: 9, status: 'open', deadline: '2099-10-31T12:30:00Z', order: [], picks: [], clubs: [], me: null }
         : { error: 'Fixture unavailable' }) });
     });
     await page.goto('/#epl/home');
     await signIn(page, 'luke', { navigate: false });
-    const nav = page.getByRole('navigation', { name: 'EPL', exact: true });
+    const nav = page.getByRole('navigation', { name: 'Main', exact: true });
     await expect(nav).toBeVisible();
     await expect(page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NBA', exact: true })).toHaveCount(0);
     const draft = page.getByRole('heading', { name: 'MW9 draft · order from MW8 score + bonus' });
@@ -32,14 +34,14 @@ test('EPL tab navigation opens the default Play section and preserves explicit s
     await nav.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(draft).toBeVisible();
     await page.getByRole('button', { name: 'Guess the Line', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Coming next' })).toBeVisible();
+    await expect(page.getByText('Moneyline guessing isn’t available this week.', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Pick a Team', exact: true }).click();
     await expect(draft).toBeVisible();
     await page.goBack();
     await expect(page.getByRole('button', { name: 'Guess the Line', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await page.goForward();
     await expect(draft).toBeVisible();
-    expect(calls.every(path => ['epl/draft/read', 'epl/fantasy/read'].includes(path))).toBe(true);
+    expect(calls.every(path => ['epl/draft/read', 'epl/fantasy/read', 'epl/guess/read'].includes(path))).toBe(true);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

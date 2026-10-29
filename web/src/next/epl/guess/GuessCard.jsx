@@ -2,14 +2,14 @@ import { Button, Card } from '../../ui/index.js';
 import { Crest } from '../DraftBoard.jsx';
 import { fmtWhen } from '../../format.js';
 import { isClosed, parsePrice, priceText, visibleGuesses } from './guessModel.js';
-import { validPrice } from '../../../../../shared/epl-moneyline.mjs';
+import { validGuessPrice } from '../../../../../shared/epl-moneyline.mjs';
 import PriceStepper from './PriceStepper.jsx';
 import DistanceLine from './DistanceLine.jsx';
 
 export default function GuessCard({ fixture, data, saved, draft, hero, busy, pending, now, onEdit, onSave, id }) {
   const closed = isClosed(fixture, now), locked = saved?.status === 'locked';
   const canEdit = hero && data.available && data.ownerId && !closed && !locked;
-  const valid = [fixture.home, fixture.away].includes(draft.club) && validPrice(parsePrice(draft.price));
+  const valid = [fixture.home, fixture.away].includes(draft.club) && validGuessPrice(parsePrice(draft.price));
   const others = visibleGuesses(data, fixture, now).filter(g => g.ownerId !== data.ownerId);
   const revealed = locked || fixture.kickedOff === true || Date.parse(fixture.commenceTime) <= now;
   return <Card as="section" variant={hero ? 'hero' : 'default'} className="gx-epl-guess-card" aria-labelledby={`${id}-title`}>

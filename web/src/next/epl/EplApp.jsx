@@ -1,97 +1,48 @@
-// The EPL mini-app (#epl/...): the new app's four tabs for the FEPL league. Home and Play > Pick a Team are Plan 1 (Task 8);
-// Research > Fantasy is Plan 2 (web/src/next/epl/fantasy/); Play > Guess the Line and Leaderboard (Plan 3) show a
-// "Coming next" card. Bets has nothing for the Premier League.
-import '../styles/tokens.css';
-import '../styles/base.css';
-import '../styles/components.css';
-import '../shell/shell.css';
+// EPL supplies sport-specific content to the same account, frame, menu and history machinery as NFL.
 import './epl.css';
-import { useEffect, useId, useRef, useState } from 'react';
-import { useDashboardPreferences } from '../../dashboardPreferences.js';
-import { noteSportRoute } from '../../sportNavigation.js';
-import { FieldMark, Icon, Segmented } from '../ui/index.js';
-import { cx } from '../ui/cx.js';
-import { addNextFontLinks } from '../styles/fonts.js';
-import { confirmSportLeave } from '../nba/route.js';
-import { EPL_TABS, eplHash, eplRoute, sportOptions } from './route.js';
+import { useCallback } from 'react';
+import { useShell } from '../shell/context.js';
+import { Segmented } from '../ui/index.js';
 import { eplApi } from './api.js';
+import { EPL_SECTIONS } from './route.js';
 import { EplHome } from './EplHome.jsx';
 import { PickATeam } from './PickATeam.jsx';
 import { EplFantasy } from './fantasy/EplFantasy.jsx';
+import EplGuess from './guess/EplGuess.jsx';
+import EplGuessLeaderboard from './guess/EplGuessLeaderboard.jsx';
 
 export const EPL_COPY = Object.freeze({
   nav: 'EPL',
   skip: 'Skip to main content',
   tabs: { home: 'Home', play: 'Play', bets: 'Bets', research: 'Research' },
   sections: { pick: 'Pick a Team', guess: 'Guess the Line', leaderboard: 'Leaderboard', fantasy: 'Fantasy' },
-  comingNext: 'Coming next',
-  soon: {
-    guess: 'Guess which club is favored in each match and its price. Each match locks at kickoff.',
-    leaderboard: 'Ranked by the lowest average distance per match guessed.',
-  },
   noBets: "Bets aren't available for the Premier League.",
 });
-const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
-export default function EplApp({ onSportChange, api = eplApi }) {
-  const [route, setRoute] = useState(() => eplRoute(window.location.hash) || { tab: 'home' });
-  const current = useRef(route); current.current = route;
-  const [preferences] = useDashboardPreferences();
-  useEffect(() => { addNextFontLinks(); }, []);
-  useEffect(() => {
-    const changed = () => { const next = eplRoute(window.location.hash); if (next && eplHash(next) !== eplHash(current.current)) setRoute(next); };
-    window.addEventListener('popstate', changed); window.addEventListener('hashchange', changed);
-    return () => { window.removeEventListener('popstate', changed); window.removeEventListener('hashchange', changed); };
-  }, []);
-  function go(next) {
-    // Tab clicks omit the section. Store the same canonical route as the URL so Play opens Pick a Team,
-    // and clicking that section cannot be discarded as a no-op while an incomplete route is rendered.
-    const hash = eplHash(next), normalized = eplRoute(hash);
-    if (hash === eplHash(current.current)) { window.scrollTo(0, 0); return; }
-    if (!confirmSportLeave()) return;
-    setRoute(normalized); window.history.pushState(null, '', hash); noteSportRoute(); window.scrollTo(0, 0);
-  }
-  return <EplView route={route} onRoute={go} onSportChange={onSportChange} api={api} motion={preferences.motion}/>;
+export function EplScreen() {
+  const shell = useShell(), tab = shell.state.tab;
+  const onDirtyChange = useCallback(dirty => shell.setDirty('epl-guess', dirty), [shell.setDirty]);
+  const route = { tab, section: shell.state.views[tab]?.section ?? EPL_SECTIONS[tab]?.[0] };
+  const onRoute = next => shell.go(next.tab, { section: next.section === EPL_SECTIONS[next.tab]?.[0] ? undefined : next.section });
+  return <EplView route={route} onRoute={onRoute} accountId={shell.you.id} onDirtyChange={onDirtyChange}/>;
+}
+/** Sport content only; header, profile, menus, offline state and tab bar are all Shell's. */
+export function EplView({ route, onRoute, api = eplApi, accountId, onDirtyChange }) {
+  return route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api} accountId={accountId} onDirtyChange={onDirtyChange}/>
+    : route.tab === 'bets' ? <EplBets/>
+    : route.tab === 'research' ? <EplResearch api={api}/>
+    : <EplHome api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}/>;
 }
 
-/** The frame and the tab showing, drawn from `route` alone (no window reads), so tests render it directly. */
-export function EplView({ route, onRoute, onSportChange, api = eplApi, motion }) {
-  const mainRef = useRef(null);
-  // The skip link moves focus without touching the address: an #epl-main fragment would read as a route.
-  function skipToMain(event) { event.preventDefault(); mainRef.current?.focus(); }
-  return <div className="gx gx-epl" data-motion={motion === 'reduced' ? 'reduce' : undefined}>
-    <a className="gx-sr-only gx-epl-skip" href="#epl-main" onClick={skipToMain}>{EPL_COPY.skip}</a>
-    <div className="gx-app">
-      <header className="gx-topbar"><div className="gx-topbar-inner gx-epl-top">
-        <FieldMark size={32}/>
-        <Segmented label="Sport" value="epl" options={sportOptions(true)} onChange={value => onSportChange?.(value)}/>
-      </div></header>
-      <main className="gx-main" id="epl-main" tabIndex={-1} ref={mainRef}>
-        {route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api}/>
-          : route.tab === 'bets' ? <EplBets/>
-          : route.tab === 'research' ? <EplResearch api={api}/>
-          : <EplHome api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}/>}
-      </main>
-      <nav className="gx-tabbar" aria-label={EPL_COPY.nav}><div className="gx-tabbar-inner">
-        {EPL_TABS.map(tab => {
-          const on = tab === route.tab;
-          return <button key={tab} type="button" className={cx('gx-tab', on && 'gx-tab--on')} data-tab={tab} aria-current={on ? 'page' : undefined} onClick={() => onRoute({ tab })}>
-            <span className="gx-tab-icon"><Icon icon={TAB_ICONS[tab]}/></span>
-            <span className="gx-tab-label">{EPL_COPY.tabs[tab]}</span>
-          </button>;
-        })}
-      </div></nav>
-    </div>
-  </div>;
-}
-
-function EplPlay({ route, onRoute, api }) {
+export function EplPlay({ route, onRoute, api, accountId, onDirtyChange }) {
   const section = route.section;
   const options = ['guess', 'pick', 'leaderboard'].map(value => ({ value, label: EPL_COPY.sections[value] }));
   return <div className="gx-screen" data-epl-section={section}>
     <h1 className="gx-t-title">{EPL_COPY.tabs.play}</h1>
-    <Segmented label={EPL_COPY.tabs.play} value={section} options={options} onChange={value => onRoute({ tab: 'play', section: value })}/>
-    {section === 'pick' ? <PickATeam api={api}/> : <ComingNextCard section={section}/>}
+    <Segmented className="gx-epl-play-tabs" label={EPL_COPY.tabs.play} value={section} options={options} onChange={value => onRoute({ tab: 'play', section: value })}/>
+    {section === 'pick' ? <PickATeam api={api}/> : section === 'leaderboard'
+      ? <EplGuessLeaderboard api={api} accountId={accountId}/>
+      : <EplGuess api={api} accountId={accountId} onNavigate={onRoute} onDirtyChange={onDirtyChange}/>}
   </div>;
 }
 
@@ -107,12 +58,4 @@ function EplBets() {
     <h1 className="gx-t-title">{EPL_COPY.tabs.bets}</h1>
     <section className="gx-empty"><p className="gx-t-body">{EPL_COPY.noBets}</p></section>
   </div>;
-}
-
-function ComingNextCard({ section, title }) {
-  const id = useId();
-  return <section className="gx-empty" aria-labelledby={id}>
-    <h2 className="gx-t-section" id={id}>{title ? `${title}: ${EPL_COPY.comingNext}` : EPL_COPY.comingNext}</h2>
-    <p className="gx-t-body gx-c-2">{EPL_COPY.soon[section]}</p>
-  </section>;
 }
