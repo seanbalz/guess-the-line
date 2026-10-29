@@ -74,10 +74,13 @@ schedule and settlement status (`/community/week-open`, the Triple Threat `/stat
 odds schedule, `/virtual-units` and `/virtual-units/settle`), week opening
 (`/community/publish-preview`, `/community/publish`) and game referees
 (`/officials/read`, `/officials/set`). One adapter, `LegacyTools.jsx`, reuses the
-old `ResultReviewControls` (Final scores, `/results/review`) and
-`ManualOddsControls` (Odds connection, `/odds/preflight`, `/odds/collect`) inside
-`.gx-live-workflow`, plus the pure `marketStatus.js` formatter. Both editors keep
-their old gate: only the original Triple Threat commissioner sees them. No server
+old `ResultReviewControls` (Final scores, `/results/review`) inside
+`.gx-live-workflow`, plus the pure `marketStatus.js` formatter. Odds connection
+(`/odds/preflight`, `/odds/collect`) is native since redesign stage 78
+(`OddsConnection.jsx`); it shares its quota rule, failure words and count-only
+summary with the old `ManualOddsControls` through the pure `oddsConnection.js`.
+Both tools keep their old gate: only the original Triple Threat commissioner sees
+them. No server
 route or rule changes. The legacy D-16 benchmark freeze (`BenchmarkControls`) is not
 carried over: it applies only under the retired common-reference scoring policy.
 

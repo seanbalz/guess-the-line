@@ -2,15 +2,7 @@ import { refreshLabel } from './marketStatus';
 import React, { useRef, useState } from 'react';
 import { Download, Radio, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { cloudApi } from './api';
-
-const count = value => Number.isSafeInteger(value) && value >= 0 ? String(value) : 'Unavailable';
-const failures = {
-  ODDS_AUTH: 'The provider did not accept the server connection. Review the saved server key, then check again.',
-  ODDS_RATE_LIMIT: 'The provider has temporarily limited requests. Wait before checking again.',
-  ODDS_BUDGET: 'The protected free quota does not allow this fetch.',
-  ODDS_QUOTA_COST: 'The provider reported an unexpected credit cost. Review the quota before collecting again.',
-  ODDS_LEASE_EXPIRED: 'The saved request expired. Check the collection status before starting another fetch.',
-};
+import { ODDS_FAILED, ODDS_FAILURES, ODDS_LOW_QUOTA, ODDS_PENDING, oddsCount as count, oddsFetchAllowed, oddsSummary } from './oddsConnection.js';
 
 export default function ManualOddsControls({ onCollected, schedule }) {
   const [busy, setBusy] = useState(''), [ready, setReady] = useState(false), [result, setResult] = useState(null), [error, setError] = useState('');
@@ -23,20 +15,20 @@ export default function ManualOddsControls({ onCollected, schedule }) {
     try {
       const next = await cloudApi(`odds/${operation}`, { requestId: requests.current[operation] });
       // Render only the collection summary. Market values never belong in these controls.
-      setResult({ operation, status: next.status, matchedEvents: next.matchedEvents, availableQuotes: next.availableQuotes, quota: next.quota });
+      setResult(oddsSummary(operation, next));
       if (next.status === 'succeeded') {
         if (operation === 'preflight') {
-          const measured = Number.isSafeInteger(next.quota?.remaining) && next.quota.remaining >= 52;
+          const measured = oddsFetchAllowed(next);
           setReady(measured);
-          if (!measured) setError('The connection responded, but a measured quota of at least 52 free credits is required to protect the reserve. Fetching stays disabled.');
+          if (!measured) setError(ODDS_LOW_QUOTA);
         }
         delete requests.current[operation];
         if (operation === 'collect') await onCollected?.();
       } else if (next.status === 'failed') {
         setReady(false); delete requests.current[operation];
-        setError(failures[next.errorCode] || 'The provider request did not complete. Check the connection before trying again.');
+        setError(ODDS_FAILURES[next.errorCode] || ODDS_FAILED);
       } else {
-        setError('This request has not completed. Retry the same action to check its saved status.');
+        setError(ODDS_PENDING);
       }
     } catch (failure) { setError(failure.message); }
     finally { setBusy(''); }

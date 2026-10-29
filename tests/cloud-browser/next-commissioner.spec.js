@@ -5,6 +5,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-world.mjs';
+import { layoutProblems } from '../helpers/phone-layout.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 test.skip(!pgliteAvailable, 'Install the local PGlite test runtime.');
@@ -104,7 +105,7 @@ test('the commissioner reaches every tool; status, week opening and referees use
   } finally { await world.db.close(); }
 });
 
-test('Final scores and Odds connection reuse the old editors for the Triple Threat commissioner', async ({ page, baseURL }, testInfo) => {
+test('Final scores reuses the old editor and Odds connection is native for the Triple Threat commissioner', async ({ page, baseURL }, testInfo) => {
   const world = await communityWorld(page, baseURL, { groupScreens: true });
   try {
     // This fixture has no reviewed-results service, so /state is read for real and opened for review here: the first game
@@ -123,12 +124,18 @@ test('Final scores and Odds connection reuse the old editors for the Triple Thre
       const sent = route.request().postDataJSON(); reviews.push(sent);
       await route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { status: 'final', season: sent.season, week: sent.week, gameId: sent.gameId, version: 1, reviewedAt: new Date().toISOString() } });
     });
-    const odds = [];
+    // Odds replies, in order: a check still running, the same check finished with too few credits, a fresh check with
+    // enough, then the fetch. Market values in a reply must never reach the page.
+    const odds = [], preflights = [
+      { status: 'running' },
+      { status: 'succeeded', matchedEvents: 2, quota: { remaining: 51, last: 0 } },
+      { status: 'succeeded', matchedEvents: 2, quota: { remaining: 400, last: 0 } },
+    ];
     await page.route(url => endpoint('odds/preflight')(url) || endpoint('odds/collect')(url), async route => {
-      const operation = new URL(route.request().url()).pathname.split('/').at(-1); odds.push(operation);
-      await route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: operation === 'preflight'
-        ? { status: 'succeeded', matchedEvents: 2, quota: { remaining: 400, last: 0 } }
-        : { status: 'succeeded', matchedEvents: 2, availableQuotes: 6, quota: { remaining: 398, last: 2 } } });
+      const operation = new URL(route.request().url()).pathname.split('/').at(-1);
+      odds.push({ operation, requestId: route.request().postDataJSON().requestId });
+      await route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: operation === 'preflight' ? preflights.shift()
+        : { status: 'succeeded', matchedEvents: 2, availableQuotes: 6, quota: { remaining: 398, last: 2 }, quotes: [{ spread: -13.25 }] } });
     });
     await openTools(page);
     await tool(page, 'Final scores');
@@ -152,13 +159,35 @@ test('Final scores and Odds connection reuse the old editors for the Triple Thre
     await back(page);
 
     await tool(page, 'Odds connection');
-    await expect(sheet(page).getByRole('button', { name: 'Fetch current lines', exact: true })).toBeDisabled();
-    await sheet(page).getByRole('button', { name: 'Check connection (zero-credit)', exact: true }).click();
-    await expect(sheet(page).getByText('Connection check completed', { exact: true })).toBeVisible();
+    const odd = sheet(page), check = odd.getByRole('button', { name: 'Check connection (zero-credit)', exact: true });
+    const fetch = odd.getByRole('button', { name: 'Fetch current lines', exact: true });
+    await expect(odd.locator('.gx-live-workflow')).toHaveCount(0);
+    await expect(fetch).toBeDisabled();
+    // A check that has not finished says so; checking again reuses its request id, so it never starts a second request.
+    await check.click();
+    await expect(odd.getByRole('alert')).toContainText('This request has not completed.');
+    await expect(odd.getByText('Request not completed', { exact: true })).toBeVisible();
+    await check.click();
+    // It finished with too few credits: fetching stays off.
+    await expect(odd.getByRole('alert')).toContainText('at least 52 free credits');
+    await expect(fetch).toBeDisabled();
+    await check.click();
+    await expect(odd.getByText('Connection check completed', { exact: true })).toBeVisible();
+    await expect(odd.getByRole('alert')).toHaveText('');
+    await expect(fetch).toBeEnabled();
     await checkLayout(page, testInfo, 'odds');
-    await sheet(page).getByRole('button', { name: 'Fetch current lines', exact: true }).click();
-    await expect(sheet(page).getByText('Manual fetch completed', { exact: true })).toBeVisible();
-    expect(odds).toEqual(['preflight', 'collect']);
+    await fetch.click();
+    await expect(odd.getByText('Manual fetch completed', { exact: true })).toBeVisible();
+    await expect(odd.locator('[data-odds="result"]')).toContainText('Available quotes saved6');
+    await expect(odd).not.toContainText('13.25');
+    await checkLayout(page, testInfo, 'odds-fetched');
+    // The native page also passes the phone rules: nothing leaves its box, overflows or overlaps at 320.
+    await page.setViewportSize({ width: 320, height: 740 });
+    expect(await page.evaluate(layoutProblems), 'odds 320').toEqual([]);
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(odds.map(call => call.operation)).toEqual(['preflight', 'preflight', 'preflight', 'collect']);
+    expect(odds[1].requestId).toBe(odds[0].requestId);
+    expect(new Set(odds.map(call => call.requestId)).size).toBe(3);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

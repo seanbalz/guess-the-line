@@ -722,6 +722,21 @@ confirms a lost reply without a duplicate, edits, refuses a bet changed elsewher
 Its frontend ships only after M-11 is applied and `/bets/place` is deployed; until then the screen reads
 "Placing Virtual Units bets opens soon".
 
+## Native Odds connection (redesign stage 78, October 29)
+
+Branch `claude/native-odds-connection`: Menu › Commissioner tools › Odds connection is now a native page
+(`web/src/next/me/commissioner/OddsConnection.jsx`) instead of the old `ManualOddsControls` inside the adapter. The rules
+are unchanged and shared with the old editor through `web/src/oddsConnection.js`: a zero-credit check must measure at least
+52 free credits before a fetch is allowed, a request that has not finished keeps its request ID so checking again never
+starts a second one, and only counts are shown, never the provider key or a market value. Same routes (`/odds/preflight`,
+`/odds/collect`) and the same original-Triple-Threat-commissioner gate. Week opening, status and referees were already native
+(#316). Final scores is the last stage 78 page still on the old editor.
+
+- **Evidence:** `tests/odds-connection-rules.test.mjs`; `tests/next-commissioner-ui.test.jsx`; the cloud-browser
+  `next-commissioner.spec.js` drives a pending check, a low-quota check, a good check and a fetch at 390 and 320 px in
+  light and dark, with axe and the phone-layout check, and confirms a reply's market value never reaches the page.
+- **Not done:** no release, no signed-in hosted check and no real-phone check.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance
