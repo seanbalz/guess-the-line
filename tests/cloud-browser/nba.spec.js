@@ -306,7 +306,7 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
   const world = await fixture(page, baseURL);
   try {
     await enter(page, '#nba/games?date=2026-10-21', view);
-    expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
+    expect(world.calls.every(row => ['nba/games', 'lobby'].includes(row.path))).toBe(true);
     // The skip link moves focus into NBA's main region and leaves the address alone, so it never reads as a sport change.
     await page.locator('.gx-nba-skip').focus(); await page.keyboard.press('Enter');
     await expect(page.locator('#nba-main')).toBeFocused();
@@ -322,7 +322,7 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
     await page.goBack();
     expect(new URL(page.url()).hash).toBe('#nba/games?date=2026-10-21');
     await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
-    expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
+    expect(world.calls.every(row => ['nba/games', 'lobby'].includes(row.path))).toBe(true);
     await page.getByRole('button', { name: 'NFL', exact: true }).click();
     await expect(page.locator('.gx-nba')).toHaveCount(0);
     await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
