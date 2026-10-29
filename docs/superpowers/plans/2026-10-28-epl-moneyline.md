@@ -10,9 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md` section 7. Depends on Plan 1 (fixtures, prices, member check, EplApp).
 
-**Source progress, October 29:** Tasks 0–2 have implementation and local tests; the live Task 0 verdict is still required.
-M-32 is [applied and verified](../../RELEASE_2026_10_29_M32.md) as hosted version `20261029162422`; the new check is not enabled, and Tasks 3–5 remain queued behind that live gate. See
-[the moneyline workflow evidence](../../EPL_MONEYLINE_WORKFLOW_2026_10_29.md) for verified scope and remaining steps.
+**Current evidence, October 29:** Tasks 0–2 have source and local tests. M-32 is [applied and verified](../../RELEASE_2026_10_29_M32.md) as hosted version `20261029162422`; the deployed, enabled check's first MW9 live verdict passed ([PR #375 record](../../RELEASE_2026_10_29_DNB.md)). [Task 3's API follow-on](../../EPL_MONEYLINE_API_2026_10_29.md) is source work with guarded save/readback and shared numeric limits, pending combined M-36/UI release and hosted acceptance. M-36 adds the safe save wrapper and separately gated collector; applying schema alone does not enable collection. Historical steps below remain provenance, not live acceptance.
 
 ## Global Constraints
 
@@ -65,10 +63,14 @@ Test: `tests/epl-dnb.test.mjs` (fake fetch).
 
 ### Task 3: Routes
 
+Current source: `cloud/epl-guess.mjs` owns fixed-field reads, open-account visibility, member-only writes, exact-week gate/readiness, bounded server weeks, shared safe-price validation, structured refusals and uncertain-save readback. The additive M-36 wrapper checks time after its fixture lock; no fallback to M-32's older cached-time writer. See the linked API record for request/response/error and launch prerequisites. Do not check off a historical expected-failure step or hosted acceptance from these source checks.
+
 **Files:** Modify `cloud/epl.mjs` (`'/epl/guess/read'`, `'/epl/guess/save'` `{eventId, club, price, lock}`, `'/epl/guess/leaderboard'`); Test `tests/epl-guess-routes.test.mjs`
 - [ ] Failing tests: invalid price → 400 `GTL_EPL_GUESS_INVALID`; locked → 409; closed → 409 with the draft echoed back; save with `lock:true` triggers one shared quota-limited refresh attempt (fake) and never fails because of it; FAIL → implement → PASS → commit `feat(epl): moneyline guess routes`.
 
 ### Task 4: Collector
+
+Current source: [M-36 collector follow-on](../../EPL_MONEYLINE_COLLECTOR_2026_10_29.md), published at `d29c1d4748d4be11b76cd479663619cbb06f0fb4`, adds durable shared event leases, bounded budget admission, both-club provenance and atomic pending-reference resolution; safe post-lock save wrapper and pure readiness reader protect Task 3. Source tests pass; **M-36 is not applied, moneyline collection remains absent/disabled pending explicit authorized setup, and live acceptance remains open.** Root owns release/global task status.
 
 **Files:** Modify `cloud/epl-sources.mjs` (`fetchEplDrawNoBet({apiKey, fetchImpl, eventIds})`), `cloud/epl-jobs.mjs` (`fixtures` job schedules DNB collection at week open and 3 h before each kickoff; `resolve-references` after each collection); Test `tests/epl-dnb.test.mjs`
 - [ ] Failing tests: Review Focus 5; credit floor 50; collection only for events not yet kicked off; FAIL → implement → PASS → commit `feat(epl): draw-no-bet collection and pending reference resolution`.

@@ -2,6 +2,8 @@
 
 Owner: Sean Balsiger · State: local implementation; M-33 is not applied and this worker is not deployed.
 
+Current follow-on: [M-35 finalization/order guards](EPL_FINALIZATION_ORDER_2026_10_29.md) add source-only zero-pick recomputation and next-round interval protection. The no-order-change/window-end statements below describe M-33 alone. **Do not enable or dispatch M-33-only correction rechecks:** exact N+1 state cannot exclude N+1 points. Keep the shared snapshot schedule paused if M-33 is applied before the guarded M-35 path and operator prerequisites are ready. Both remain unhosted; no actual correction or full-cycle acceptance is claimed.
+
 The original worker could not check Sleeper stat corrections after opening the next matchweek. Its jobs state read only
 the latest week, while `after-mwN` labels were immutable. This follow-on keeps those original records and adds a separate
 `after-mwN-recheck` snapshot plus an append-only service-only `gtl_epl_stat_rechecks` audit row.

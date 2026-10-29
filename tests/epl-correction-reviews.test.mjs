@@ -75,6 +75,14 @@ test('review endpoint performs no writer, uses its validated season, and handles
   const service = createEplService({ rpc: async (name, args) => { calls.push([name, args]); return name === 'gtl_community_admin' ? true : null; },
     rest: async () => ({ season: 2026, week: 10 }), rows: async (table, query) => { calls.push([table, query]); return []; } });
   assert.deepEqual(await read(service), { available: true, season: 2026, reviews: [] });
-  assert.deepEqual(calls.map(c => c[0]), ['gtl_community_admin', 'gtl_epl_recheck_due_at', 'gtl_epl_stat_rechecks']);
+  assert.deepEqual(calls.map(c => c[0]), ['gtl_community_admin', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state', 'gtl_epl_stat_rechecks']);
   await assert.rejects(handleEpl({ route: '/epl/admin/corrections/read', body: { season: '2026' }, user: USER, service }), error => error.status === 400);
+});
+
+test('applied/same-order outcomes leave the review list while preserved and unknown outcomes stay visible', async () => {
+  const rows = async table => table === 'gtl_epl_stat_rechecks' ? audit : table === 'gtl_epl_snapshots' ? snapshots() : [];
+  for (const outcome of ['applied','same_order']) assert.deepEqual(await readEplCorrectionReviews({ rows, season: 2026, orderStates: [{week:9,outcome}] }), []);
+  for (const orderStates of [null,[],[{week:9,outcome:'preserved_picks'}],[{week:9,outcome:'preserved_closed'}]])
+    assert.equal((await readEplCorrectionReviews({ rows, season: 2026, orderStates })).length, 1);
+  await assert.rejects(readEplCorrectionReviews({ rows, season: 2026, orderStates: [{week:9,outcome:'invented'}] }),/Invalid order/);
 });

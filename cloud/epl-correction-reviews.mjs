@@ -28,13 +28,18 @@ const source = row => ({
 });
 const delta = (before, after) => before === null || after === null ? null : round(after - before);
 
-export async function readEplCorrectionReviews({ rows, season }) {
-  const audit = await rows('gtl_epl_stat_rechecks', {
+export async function readEplCorrectionReviews({ rows, season, orderStates = null }) {
+  if (orderStates !== null && (!Array.isArray(orderStates) || orderStates.length > 38 || orderStates.some(row => !record(row) || !Number.isInteger(row.week)
+    || row.week < 1 || row.week > 37 || !['applied','same_order','preserved_picks','preserved_closed'].includes(row.outcome))
+    || new Set(orderStates.map(row => row.week)).size !== orderStates.length)) throw new Error('Invalid order-correction reply.');
+  let audit = await rows('gtl_epl_stat_rechecks', {
     select: 'season,week,checked_at,original_snapshot_id,recheck_snapshot_id', season: `eq.${season}`,
     status: 'eq.needs_review', order: 'week.desc', limit: '38',
   }, 38);
   if (!Array.isArray(audit) || audit.length > 38 || audit.some(row => !record(row) || row.season !== season || !Number.isInteger(row.week) || row.week < 1 || row.week > 37))
     throw new Error('Invalid correction reply.');
+  const applied = new Set((orderStates ?? []).filter(row => ['applied','same_order'].includes(row.outcome)).map(row => row.week));
+  audit = audit.filter(row => !applied.has(row.week)); // M-33 evidence stays immutable; only completed empty-draft outcomes leave this review list.
   if (!audit.length) return [];
   const ids = [...new Set(audit.flatMap(row => [id(row.original_snapshot_id), id(row.recheck_snapshot_id)]))];
   const weeks = [...new Set(audit.map(row => row.week + 1))];

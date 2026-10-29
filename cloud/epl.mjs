@@ -34,6 +34,7 @@
 // Until M-30 is applied PostgREST answers 404 PGRST202, the adapter reads that as GTL_FEATURE_OFF, and every route answers
 // 404 "Pick a Team is coming soon." with code GTL_EPL_OFF. Every reply is rebuilt field by field.
 import { UUID_PATTERN } from './lobby.mjs';
+import { EPL_GUESS_METHODS, EPL_GUESS_RPCS, EPL_GUESS_PUBLIC_CODES, createEplGuessService, handleEplGuess } from './epl-guess.mjs';
 import { canPick, onTheClock } from '../shared/epl-draft.mjs';
 import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
 import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
@@ -41,15 +42,16 @@ import { buildFantasyView, detailLabels, fantasySeason } from './epl-fantasy-vie
 import { readEplCorrectionReviews } from './epl-correction-reviews.mjs';
 
 export const EPL_METHODS = Object.freeze({
+  ...EPL_GUESS_METHODS,
   '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
   '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
   '/epl/admin/corrections/read': ['POST'],
   '/epl/fantasy/read': ['POST'], '/epl/claim': ['POST'],
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
-export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
+export const EPL_RPCS = Object.freeze([...EPL_GUESS_RPCS, 'gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
   'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin',
-  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_standings_provenance']);
+  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state', 'gtl_epl_standings_provenance']);
 /**
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
@@ -64,6 +66,9 @@ export class EplError extends Error {
   constructor(status, message, code) { super(message); this.name = 'EplError'; this.status = status; if (code) this.code = code; }
 }
 const ERRORS = Object.freeze({
+  GTL_EPL_GUESS_INVALID: [400, 'Choose a valid match, club and whole American price.'],
+  GTL_EPL_GUESS_LOCKED: [409, 'This guess is already locked in.'],
+  GTL_EPL_GUESS_CLOSED: [409, 'This match is closed. Your saved draft is preserved.'],
   GTL_EPL_INVALID: [400, 'Choose a valid matchweek, club and manager.'],
   GTL_EPL_QUEUE_INVALID: [400, 'A queue is up to 20 different clubs that play this matchweek.'],
   GTL_EPL_UNKNOWN_MANAGER: [400, 'That manager is not in the FEPL league.'],
@@ -87,7 +92,7 @@ const ERRORS = Object.freeze({
   GTL_FEATURE_OFF: [404, 'Pick a Team is coming soon.', 'GTL_EPL_OFF'],
 });
 /** Refusal codes a reply carries beside its sentence (cloud/handler.mjs PUBLIC_CODES). */
-export const EPL_PUBLIC_CODES = Object.freeze([...new Set(Object.entries(ERRORS).map(([code, [, , publicCode = code]]) => publicCode))]);
+export const EPL_PUBLIC_CODES = Object.freeze([...EPL_GUESS_PUBLIC_CODES, ...new Set(Object.entries(ERRORS).map(([code, [, , publicCode = code]]) => publicCode))]);
 export function providerEplError(code) {
   if (!Object.hasOwn(ERRORS, code)) return new Error('Pick a Team is unavailable.');
   const [status, message, publicCode = code] = ERRORS[code];
@@ -113,10 +118,16 @@ const weekOk = n => Number.isInteger(n) && n >= 1 && n <= 38;
  * week, the caller's own queue, and the fantasy view's snapshots and bonus rows). `rest(table, query)` answers one row or
  * null; `rows(table, query, max)` answers at most `max` rows (cloud/handler.mjs createSupabaseAdapter).
  */
-export function createEplService({ rpc, rest, rows }) {
+export function createEplService({ rpc, rest, rows, refreshForLock }) {
   return {
+    ...createEplGuessService({rpc,rest,rows,refreshForLock}),
     rpc: (name, args) => rpc(name, args),
-    readCorrectionReviews: season => readEplCorrectionReviews({ rows, season }),
+    async readCorrectionReviews(season) {
+      let orderStates = null;
+      try { orderStates = await rpc('gtl_epl_order_correction_state', { p_season: season }); }
+      catch (error) { if (!(error instanceof EplError && error.status === 404 && error.code === 'GTL_EPL_OFF')) throw error; }
+      return readEplCorrectionReviews({ rows, season, orderStates });
+    },
     async latestWeek() {
       const row = await rest('gtl_epl_weeks', { select: 'season,week', order: 'season.desc,week.desc', limit: '1' });
       return row && Number.isInteger(row.season) && Number.isInteger(row.week) ? { season: row.season, week: row.week } : null;
@@ -474,5 +485,6 @@ export async function handleEpl({ route, body, user, service, clock = Date.now }
   if (!UUID_PATTERN.test(user?.id || '') || user?.is_anonymous === true) throw new EplError(401, 'Sign in to continue.');
   if (!Object.hasOwn(EPL_METHODS, route)) throw new EplError(404, 'Not found.');
   if (!service?.rpc) throw providerEplError('GTL_FEATURE_OFF');
+  if(Object.hasOwn(EPL_GUESS_METHODS,route))return handleEplGuess({route,body:body??{},user,service,clock});
   return HANDLERS[route]({ body: body ?? {}, user, service, now: clock() });
 }
