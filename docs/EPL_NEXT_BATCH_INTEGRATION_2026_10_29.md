@@ -61,6 +61,6 @@ Browser execution used an ignored local configuration equivalent to `playwright.
 
 ## Remaining gates
 
-Root owns source review, CI orchestration, main merges, the current queue/register and release evidence. M-32 is applied per the integrated owner record; M-33 still requires a named apply, and no DNB schedule or verdict is inferred. Standings persistence/wiring, Monday-final and no-picks order correction are separate subsequent work; midweek policy is confirmed in D-68 item 24, not an unanswered question.
+Root owns source review, CI orchestration, main merges, the current queue/register and release evidence. M-32 is applied per the integrated owner record; M-33 still requires a named apply. Coordinator commit `ce479d1f5c01ea9eddda05fa599102040eaee8f2` records root's independently verified live MW9 DNB success at 16:44:48 UTC and activates the approved API/collector/child-screen tasks; those implementations are separate from this combined source packet. Standings persistence/wiring, Monday-final and no-picks order correction are separate subsequent work; midweek policy is confirmed in D-68 item 24, not an unanswered question.
 
 A new hosted daily capture and nonempty-name readback are needed to close roster metadata acceptance. A real future-matchweek/correction cycle, push delivery and physical iPhone acceptance remain open. No fixture result is promoted into those live claims.
