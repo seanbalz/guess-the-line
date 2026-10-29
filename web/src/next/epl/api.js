@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { cloudApi } from '../../api.js';
-import { cachedEplAccess, knownEplAccess } from './route.js';
+import { knownEplAccess, subscribeEplAccess } from './route.js';
 
 export const EPL_ACTIONS = Object.freeze(['draft/read', 'draft/pick', 'queue/save', 'admin/link', 'admin/week', 'admin/snapshot', 'admin/fixture']);
 /** gtl-api's EPL routes (cloud/epl.mjs); everything but the read is a save. */
@@ -10,15 +10,10 @@ export function eplApi(action, body = {}, options = {}) {
 }
 
 /**
- * This account's EPL access (readEplAccess): null while the one `epl/draft/read` per signed-in account is out, then true or
- * false. The answer is cached for the page's life (cachedEplAccess) and read again when the account changes.
+ * This account's EPL access from the lobby reply (route.js): null until a lobby reply says, then true or false. No request
+ * of its own; the NFL app's lobby read (or SportEntry's one read for a cold #epl link) supplies it.
  */
-export function useEplAccess(userId, api = eplApi) {
-  const [state, setState] = useState(() => ({ userId, value: knownEplAccess(userId) }));
-  useEffect(() => {
-    let live = true;
-    cachedEplAccess(userId, api).then(value => { if (live) setState({ userId, value }); });
-    return () => { live = false; };
-  }, [userId, api]);
-  return state.userId === userId ? state.value : knownEplAccess(userId);
+export function useEplAccess(userId) {
+  const get = useCallback(() => knownEplAccess(userId), [userId]);
+  return useSyncExternalStore(subscribeEplAccess, get, get);
 }

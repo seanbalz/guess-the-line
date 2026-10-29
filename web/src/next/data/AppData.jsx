@@ -14,6 +14,7 @@ import { clearInvitation, pendingInvitation } from '../../invitations.js';
 import { startGoogleSignIn } from '../../oauth.js';
 import { connectRefresh, createDataStore, createWriter } from './store.js';
 import { profileName, signInMethods } from './account.js';
+import { noteLobbyEpl, takePrimedLobby } from '../epl/route.js';
 import { COMMUNITY, currentLeague, leagueRows, pendingInvites, readLeagueChoice, saveLeagueChoice } from './league.js';
 
 const AppDataContext = createContext(null);
@@ -33,8 +34,9 @@ function rememberName(accountId) {
  * Lines tab) is the viewer's own week, the same call the old app's Community Picks makes: it is read only once a screen
  * asks for it (useSharedRead), then shared and kept fresh with the others.
  */
-export const apiSources = () => ({
-  lobby: signal => cloudApi('lobby', undefined, { signal }),
+export const apiSources = (accountId = '') => ({
+  // A cold #epl link's one lobby read (SportEntry) is reused here instead of asking again (epl/route.js).
+  lobby: signal => takePrimedLobby(accountId) ?? cloudApi('lobby', undefined, { signal }),
   community: signal => communityApi('read', {}, signal),
   personal: signal => cloudApi('personal', undefined, { signal }),
 });
@@ -42,7 +44,7 @@ export const apiSources = () => ({
 export function AppDataProvider({ session, sources, children }) {
   const user = session?.user ?? {};
   const accountId = typeof user.id === 'string' ? user.id : '';
-  const [store] = useState(() => createDataStore(sources ?? apiSources()));
+  const [store] = useState(() => createDataStore(sources ?? apiSources(accountId)));
   const [write] = useState(() => createWriter(store));
   useSyncExternalStore(store.subscribe, store.version, store.version);
 
@@ -58,6 +60,8 @@ export function AppDataProvider({ session, sources, children }) {
   const lobby = store.get('lobby');
   const community = store.get('community');
   const name = profileName(lobby.data);
+  // Each lobby reply says whether this account sees EPL (its `epl` field); SportEntry, above this app, reads it from there.
+  useEffect(() => { if (lobby.data) noteLobbyEpl(accountId, lobby.data); }, [lobby.data, accountId]);
   // `/community/read` refuses an account with no name; it is read once the name step is done.
   useEffect(() => { if (name) { rememberName(accountId); store.load('community'); } }, [name, store, accountId]);
 

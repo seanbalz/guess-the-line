@@ -323,7 +323,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
         if (!member || member.active !== true) throw providerVirtualError('GTL_FORBIDDEN');
         return json(await handleVirtualUnits({ route, body, user, leagueId, service: virtual, weekly, odds, optionalRpc, clock }));
       }
-      if (!gameRoute) return json(await handleLobby({ route, method: request.method, body, user, leagueId, service: lobby, siteUrl }));
+      if (!gameRoute) return json(await handleLobby({ route, method: request.method, body, user, leagueId, service: lobby, epl, siteUrl }));
       if (request.method === 'POST') {
         onlyKeys(body, route === '/ballot' ? ['revision', 'picks', 'submit'] : ['revision', 'gameId', 'market', 'side', 'line', 'odds', 'source', 'quotedAt', 'quoteReceipt']);
         if (!Number.isSafeInteger(body.revision) || body.revision < 0 || body.revision === Number.MAX_SAFE_INTEGER) fail(400, 'A valid saved revision is required.');

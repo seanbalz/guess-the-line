@@ -27,39 +27,56 @@ export function sportOptions(epl) {
   return [{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }, ...(epl ? [{ value: 'epl', label: 'EPL' }] : [])];
 }
 
-/** Whether this account sees EPL, provided by main.jsx's sport entry (false until the access read answers). */
+/** Whether this account sees EPL, provided by main.jsx's sport entry (false until a lobby reply says). */
 export const EplAccessContext = createContext(false);
 
 /**
  * What SportEntry does with an EPL address: `show` EplApp once access is true, `leave` for NFL when access is false (the
  * Global Constraint: EPL is visible only to FEPL managers and the commissioner), `wait` (render nothing EPL-specific) while
- * the access read is out, and `other` for an NFL or NBA address.
+ * the lobby has not answered, and `other` for an NFL or NBA address.
  */
 export function eplGate(sport, access) {
   if (sport !== 'epl') return 'other';
   return access === true ? 'show' : access === false ? 'leave' : 'wait';
 }
 
-// One access read per signed-in account for the page's life: a new account (sign-in change) reads again.
-let accessCache = null;
-/** readEplAccess once per account id; concurrent callers share the read. No abort signal, so a cached answer is never an abort. */
-export function cachedEplAccess(userId, api) {
-  if (accessCache?.userId !== userId) {
-    const entry = { userId, value: null };
-    entry.promise = readEplAccess(api).then(value => { entry.value = value; return value; });
-    accessCache = entry;
-  }
-  return accessCache.promise;
+// EPL access is the `epl` field of the `/lobby` reply (cloud/lobby.mjs), which the app reads anyway: the check costs no
+// request of its own. AppData.jsx notes each lobby reply here; SportEntry (above the NFL app) listens. A missing field reads
+// as false. The server still refuses every EPL read and write to non-members.
+let lobbyAccess = null;
+const listeners = new Set();
+/** The lobby reply's EPL access: true only for `epl: true`. */
+export const eplAccessFromLobby = data => data !== null && typeof data === 'object' && data.epl === true;
+/** Records this account's EPL access from a lobby reply (or false when the lobby could not be read). */
+export function noteLobbyEpl(userId, data) {
+  const value = eplAccessFromLobby(data);
+  if (lobbyAccess?.userId === userId && lobbyAccess.value === value) return;
+  lobbyAccess = { userId, value };
+  for (const listener of [...listeners]) listener();
 }
-/** The cached answer for this account, or null while it is unknown. */
-export const knownEplAccess = userId => (accessCache?.userId === userId ? accessCache.value : null);
-export function resetEplAccessCache() { accessCache = null; }
+/** The known answer for this account, or null until a lobby reply says. */
+export const knownEplAccess = userId => (lobbyAccess?.userId === userId ? lobbyAccess.value : null);
+export function subscribeEplAccess(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; }
 
-/**
- * One `draft/read`: a refusal (401, 403, or the feature not switched on) hides EPL; an answer, or any other failure
- * (no week stored yet, an outage), keeps it. The server still refuses every EPL read and write to non-members.
- */
-export async function readEplAccess(api, options = {}) {
-  try { await api('draft/read', {}, options); return true; }
-  catch (error) { return !(error?.status === 401 || error?.status === 403 || error?.code === 'GTL_EPL_OFF'); }
+// A cold #epl link mounts no NFL app, so nothing has read the lobby: SportEntry reads it once (primeLobby), and the NFL
+// app's first lobby read takes that same answer (takePrimedLobby) instead of asking again, while it is fresh.
+const PRIMED_FRESH_MS = 60_000;
+let primed = null;
+export function primeLobby(userId, read, now = Date.now) {
+  if (primed?.userId !== userId) {
+    const entry = { userId, at: null };
+    entry.promise = Promise.resolve().then(read).then(
+      data => { entry.at = now(); noteLobbyEpl(userId, data); return data; },
+      error => { primed = primed === entry ? null : primed; noteLobbyEpl(userId, null); throw error; });
+    primed = entry;
+  }
+  return primed.promise;
 }
+/** The primed lobby read for this account (once, and only while it is on its way or fresh), else null. */
+export function takePrimedLobby(userId, now = Date.now) {
+  const entry = primed?.userId === userId ? primed : null;
+  primed = null;
+  if (!entry || (entry.at !== null && now() - entry.at > PRIMED_FRESH_MS)) return null;
+  return entry.promise;
+}
+export function resetEplAccessCache() { lobbyAccess = null; primed = null; listeners.clear(); }
