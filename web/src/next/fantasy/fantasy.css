@@ -71,6 +71,7 @@
 .gx .gx-fantasy-chart-bar { position: absolute; inset: auto 0 0 0; border-radius: var(--gx-radius-xs) var(--gx-radius-xs) 0 0; background: var(--gx-data); }
 .gx .gx-fantasy-chart-bar--neg { background: var(--gx-loss); }
 .gx .gx-fantasy-table-wrap { max-width: 100%; overflow-x: auto; }
+.gx .gx-fantasy-table-wrap:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 .gx .gx-fantasy-table { width: 100%; border-collapse: collapse; font: 500 14px/20px var(--gx-font-body); font-variant-numeric: tabular-nums; }
 .gx .gx-fantasy-table :where(th, td) { padding: var(--gx-space-2) var(--gx-space-1); border-bottom: 1px solid var(--gx-border); text-align: right; vertical-align: top; }
 .gx .gx-fantasy-table :where(th:first-child) { text-align: left; }

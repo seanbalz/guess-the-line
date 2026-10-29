@@ -25,7 +25,11 @@
 .gx .gx-tr-chart th, .gx .gx-tr-chart td { overflow-wrap: normal; }
 .gx .gx-tr-table caption { text-align: left; padding-block: var(--gx-space-2); color: var(--gx-text-2); }
 .gx .gx-trends p { overflow-wrap: anywhere; }
-@media (max-width: 359px) { .gx .gx-tr-filters { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 359px) {
+  .gx .gx-tr-filters { grid-template-columns: minmax(0, 1fr); }
+  /* Four section names cannot fit one 320px row without breaking words. Keep full-size targets. */
+  .gx .gx-tr-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: var(--gx-radius-sm); }
+}
 @media (forced-colors: active) { .gx .gx-tr-positive, .gx .gx-tr-negative { fill: CanvasText; } .gx .gx-tr-zero { stroke: CanvasText; } .gx .gx-tr-zero-point { stroke: CanvasText; fill: Canvas; } }
 
 .gx .gx-tr-week-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
