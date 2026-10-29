@@ -40,4 +40,22 @@ before #318 merged.
 
 ## Results
 
-Pending.
+- **Main CI on :** Tests 40794429016, Dashboard checks 40794428148 and Brand QA 40794428212 all succeeded.
+- **Deploy:** [run 40797726894](https://github.com/seanbalz/guess-the-line/actions/runs/40797726894). The gate was
+  approved through the GitHub API as Sean's account after the title matched .
+- **Verified at 01:03:10 UTC on October 29** (6:03 PM PT, October 28):
+  - Pages ****, with 114 assets checked and frontend SHA-256
+    .
+  - The deployment URL is  (Cloudflare Access), so only  was read byte
+    for byte (#318).
+  -  v39 (bundle ) and the migration history  (65 rows) are unchanged.
+  - **380 signed-out probes, 380 denied, none awaiting.**
+- **Signed-in readback** (Chrome on the Mac mini, read only):
+  -  loads .
+  - This week shows its card with 14 game tiles. LV @ NYJ opens with its heading focused, and its first trend opens
+    with two lips.
+  - Browser back goes trend › game › This week, one layer at a time.
+  - Teams shows 28 team tiles; Players shows 13 member tiles and the This week tile.
+  - After a reload, there were no console errors, and , ,  and  all
+    answered 200.
+- **Not verified:** real phones.

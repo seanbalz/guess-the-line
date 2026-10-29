@@ -666,7 +666,10 @@ dark and forced colors, with axe. No release or real-phone check yet.
 - **Removed:** the Team and Matchup filters and the always-open "Matchup evidence" lists.
 - **Shared code:** `TrendLayer.jsx` now holds what Teams and This Week share: the tile, the lock tile, the opened
   trend and its address.
-- **Not done:** release and the real-phone check.
+- **Not done:** the real-phone check.
+
+**Released October 28** with Teams and Players: frontend from , Pages , verified at 01:03:10 UTC
+on October 29. The [release card](RELEASE_2026_10_28_RESEARCH_NESTING.md) holds the evidence and the signed-in readback.
 
 ## Recommended bets stay on Recommended (player feedback, October 28)
 
