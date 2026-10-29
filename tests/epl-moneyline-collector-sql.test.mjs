@@ -141,6 +141,7 @@ test('timed checkpoints are separate at most once per kickoff; lock refresh cann
   const allOwners=(await f.db.query('select owner_id from public.gtl_epl_managers order by owner_id limit 4')).rows;
   for(const owner of allOwners) await f.db.query("insert into public.gtl_epl_moneyline_attempts(event_id,kickoff_at,kind,owner_id,requested_at,expires_at,status) values('e1',$1,'lock',$2,$3,$4,'unavailable')",[at(K),owner.owner_id,at(T),at(T+60000)]);
   assert.equal((await f.begin(T+3600000,null,args)).status,'unavailable'); assert.equal(await f.remaining(),98);
+  assert.deepEqual(await f.call('gtl_epl_moneyline_due',{p_run:run,p_claim:claim,p_now:at(T+3600000)}),['e2'],'a locally capped match never starves other due events');
 });
 
 test('real collector hook → M36 SQL uses captured source only; preexisting at-lock reference stays fixed under later collections', async t=>{
@@ -235,4 +236,14 @@ test('independent M36 before M34 keeps existing disabled moneyline schedule and 
   assert.equal((await f.call('gtl_epl_save_guess_current',{p_user:U(1),p_event_id:'e1',p_club:'ARS',p_price:-120,p_lock:true,p_now:at(T)})).status,'locked');
   await f.db.exec("insert into public.gtl_epl_jobs_schedule(job,enabled) values('standings',false)");
   assert.equal((await f.begin()).status,'unavailable','later migration never enables collection');
+});
+
+
+test('fixture reassigned to an unpassed matchweek during lease cannot inherit old gate at finish',async t=>{
+  const f=await setup(t);await f.enable();await f.gate();await f.save();const lease=await f.begin();
+  await f.db.query("insert into public.gtl_epl_weeks(season,week,window_start,window_end,first_kickoff,pick_order) select season,10,window_start,window_end,first_kickoff,pick_order from public.gtl_epl_weeks where week=9");
+  await f.db.exec("update public.gtl_epl_fixtures set week=10 where event_id='e1'");
+  assert.equal((await f.finish(lease)).status,'unavailable');assert.equal((await f.guess()).reference_price,null);
+  assert.equal((await f.db.query('select count(*)::int n from public.gtl_epl_moneyline_collections')).rows[0].n,0);
+  assert.equal(await f.remaining(),99,'already attempted read remains reserved');
 });

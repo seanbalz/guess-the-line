@@ -121,6 +121,8 @@ begin
   return coalesce((select jsonb_agg(x.event_id) from (select f.event_id from public.gtl_epl_fixtures f join public.gtl_epl_weeks w using(season,week)
     where f.status='scheduled' and f.commence_time>stamp and w.window_start<=stamp
       and public.gtl_epl_moneyline_gate(f.season,f.week)
+      and (select count(*) from public.gtl_epl_moneyline_attempts cap where cap.event_id=f.event_id
+        and cap.requested_at>=date_trunc('day',stamp at time zone 'UTC') at time zone 'UTC')<6
       and not exists(select 1 from public.gtl_epl_moneyline_attempts a where a.event_id=f.event_id and a.kickoff_at=f.commence_time
         and a.kind=case when stamp>=f.commence_time-interval '3 hours' then 'pre-kickoff' else 'open' end)
     order by f.commence_time,f.event_id limit 10) x),'[]'::jsonb);
@@ -159,7 +161,7 @@ begin
     return jsonb_build_object('status','unavailable');
   end if;
   if p_error is not null or stamp>a.expires_at or stamp<a.requested_at or fx.status<>'scheduled' or stamp>=fx.commence_time
-    or a.kickoff_at<>fx.commence_time or not coalesce((select enabled from public.gtl_epl_jobs_schedule where job='moneyline'),false)
+    or a.kickoff_at<>fx.commence_time or not public.gtl_epl_moneyline_gate(fx.season,fx.week) or not coalesce((select enabled from public.gtl_epl_jobs_schedule where job='moneyline'),false)
     or jsonb_typeof(p_event) is distinct from 'object' or octet_length(p_event::text)>16384 then valid:=false; end if;
   if valid then
     begin

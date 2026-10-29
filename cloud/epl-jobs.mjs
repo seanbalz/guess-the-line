@@ -619,7 +619,9 @@ async function moneylineJob(ctx) {
   let due;
   try { due = await ctx.service.rpc('gtl_epl_moneyline_due', { ...ctx.run, p_now: iso(ctx.clock()) }); }
   catch (e) { if (e?.code === 'GTL_EPL_MONEYLINE_OFF') stop('not_open'); throw e; }
-  if (!Array.isArray(due) || due.length === 0) stop('nothing_due');
+  if (!Array.isArray(due) || due.length > 10 || new Set(due).size !== due.length
+    || !due.every(id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(id))) stop('job_failed');
+  if (due.length === 0) stop('nothing_due');
   const collector = createEplMoneylineCollector({ rpc: ctx.service.rpc.bind(ctx.service), drawNoBet: ctx.sources.drawNoBet, clock: ctx.clock });
   let refreshed = 0, cached = 0, unavailable = 0;
   for (const eventId of due.slice(0, 10)) {
