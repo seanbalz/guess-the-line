@@ -21,34 +21,23 @@ import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { checkTarget, postAdmin, targetFromEnv } from './epl-seed-mw09.mjs';
 import { EPL_SNAPSHOT_MAX_BYTES } from '../cloud/epl.mjs';
+import { trimSleeperSnapshot } from '../shared/epl-sleeper.mjs';
 
 export const FEPL_LEAGUE_ID = '1395122699423993856';
 export const DEFAULT_DIR = path.join(os.homedir(), 'gtl-epl-snapshots');
 const FILE = /^(?:\d{4}-\d{2}-\d{2}-)?((?:after-mw(\d{1,2}))|(?:before-mw(\d{1,2})-kickoff))\.json$/;
 const SHA256 = /^[0-9a-f]{64}$/;
-const STATS_KEY = /^(?:stats|projections)_mw\d{1,2}$/;
 /** The largest snapshot file read at all (the trimmed body must then fit EPL_SNAPSHOT_MAX_BYTES). */
 const MAX_FILE_BYTES = 32 * 1024 * 1024;
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-const pick = (value, keys) => Object.fromEntries(keys.filter(key => Object.hasOwn(value, key)).map(key => [key, value[key]]));
 
 /**
- * What the jobs worker (users, rosters), settle (roster settings) and the Plan 2 fantasy math (starters, players, scoring
- * settings, rostered players' stats and projections) read from a snapshot; everything else is left in the source file.
+ * What the jobs worker (users, rosters), settle (roster settings) and the Plan 2 fantasy view (starters, players, scoring
+ * settings, rostered players' stats and projections, and their directory) read from a snapshot; everything else is left in
+ * the source file. The same stored form the jobs worker saves (shared/epl-sleeper.mjs trimSleeperSnapshot).
  */
 export function trimSnapshot(snapshot) {
-  const out = { ...pick(snapshot, ['capturedAt', 'purpose', 'source', 'leagueId', 'sources']), trimmed: true };
-  if (Object.hasOwn(snapshot, 'state')) out.state = snapshot.state;
-  if (record(snapshot.league)) out.league = pick(snapshot.league, ['scoring_settings']);
-  if (Array.isArray(snapshot.users)) out.users = snapshot.users.filter(record).map(u => pick(u, ['user_id', 'display_name']));
-  if (Array.isArray(snapshot.rosters)) out.rosters = snapshot.rosters.filter(record).map(r => pick(r, ['roster_id', 'owner_id', 'starters', 'players', 'settings']));
-  const rostered = new Set((out.rosters ?? []).flatMap(r => [...(Array.isArray(r.players) ? r.players : []), ...(Array.isArray(r.starters) ? r.starters : [])]).map(String));
-  for (const [key, value] of Object.entries(snapshot)) {
-    if (!STATS_KEY.test(key)) continue;
-    if (Array.isArray(value)) out[key] = value.filter(e => record(e) && rostered.has(String(e.player_id))).map(e => ({ player_id: e.player_id, stats: e.stats ?? null }));
-    else if (record(value)) out[key] = Object.fromEntries(Object.entries(value).filter(([id]) => rostered.has(id)).map(([id, v]) => [id, record(v) && record(v.stats) ? { stats: v.stats } : v]));
-  }
-  return out;
+  return trimSleeperSnapshot(snapshot, ['capturedAt', 'purpose', 'source', 'leagueId', 'sources']);
 }
 
 /** `{label, week}` for a snapshot file name, or null for any other file. */

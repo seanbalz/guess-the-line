@@ -406,6 +406,14 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     if (!Array.isArray(rows) || rows.length > 1) throw new Error('Invalid storage response.');
     return rows[0] || null;
   }
+  /** A service-role table read of at most `max` rows (the EPL fantasy view's snapshots and bonus rows). */
+  async function restRows(table, query, max) {
+    const response = await request(`/rest/v1/${table}?${new URLSearchParams(query)}`, { headers });
+    if (!response.ok) throw new Error('Storage request failed.');
+    const body = await response.json();
+    if (!Array.isArray(body) || body.length > max) throw new Error('Invalid storage response.');
+    return body;
+  }
   // The free public nflverse schedule file: slates (D-21/D-24), Virtual Units finals (D-26) and team records (D-62,
   // /lines/teams, cached per isolate in cloud/team-season.mjs) read the same bytes.
   async function publicSchedule() {
@@ -485,8 +493,9 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     feed: groupRpc(providerFeedError),
     points: groupRpc(providerPointsError, POINTS_RPCS),
     features: groupRpc(providerFeaturesError, FEATURES_RPCS),
-    // EPL Pick a Team: its functions only, plus the latest-week and own-queue table reads (cloud/epl.mjs createEplService).
-    epl: createEplService({ rpc: groupRpc(providerEplError, EPL_RPCS).rpc, rest }),
+    // EPL Pick a Team and Fantasy: its functions only, plus the latest-week, own-queue, snapshot and bonus table reads
+    // (cloud/epl.mjs createEplService).
+    epl: createEplService({ rpc: groupRpc(providerEplError, EPL_RPCS).rpc, rest, rows: restRows }),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {

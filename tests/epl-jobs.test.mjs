@@ -22,10 +22,12 @@ const FIXTURES = [
 const SEVEN = [[NEMO, 'MNC'], [CULLEN, 'AVL'], [ADAM, 'LIV'], [SEAN, 'TOT'], [EVAN, 'ARS'], [MARK, 'BRE'], [STEVEN, 'NEW']]
   .map(([ownerId, club], i) => ({ ownerId, club, source: 'seeded', final: i < 6 }));
 
+const DAILY = ['daily-2026-10-31', 'daily-2026-11-04'];
 function baseState(overrides = {}) {
   return {
     week: { season: 2026, week: 9, windowStart: START, windowEnd: END, firstKickoff: KICKOFF, pickOrder: ORDER, status: 'open' },
-    picks: SEVEN, queues: {}, fixtures: FIXTURES, prices: [], snapshots: ['after-mw08'], bonusTotals: {},
+    // Today's daily snapshots are already saved, so the before/after timing tests see only their own captures.
+    picks: SEVEN, queues: {}, fixtures: FIXTURES, prices: [], snapshots: ['after-mw08', ...DAILY], bonusTotals: {},
     managers: ORDER.map(ownerId => ({ ownerId, name: ownerId, subscribed: ownerId === DARIN })),
     budget: { remaining: 400, paused: false },
     ...overrides,
@@ -483,11 +485,11 @@ test('snapshot: saves before-mw<N>-kickoff in the half hour before the first kic
   assert.equal(due.body.status, 'succeeded');
   assert.deepEqual(due.sources.calls, [['sleeper', { label: 'before-mw9-kickoff', statsWeek: 8, projectionsWeek: 9 }]]);
   assert.deepEqual(due.service.args('gtl_epl_save_snapshot'), [{ p_label: 'before-mw9-kickoff', p_captured_at: '2026-11-04T00:05:00Z', p_week: 9, p_sha256: { rosters: 'c'.repeat(64) }, p_payload: { label: 'before-mw9-kickoff', rosters: [] } }]);
-  const saved = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw08', 'before-mw9-kickoff'] }), clock: at('2026-10-31T12:20:00Z') });
+  const saved = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw08', 'before-mw9-kickoff', ...DAILY] }), clock: at('2026-10-31T12:20:00Z') });
   assert.equal(saved.body.reason, 'nothing_due');
   const after = await run({ job: 'snapshot', state: baseState({ week: { ...baseState().week, status: 'resolved' } }), clock: at('2026-11-04T00:00:00Z') });
   assert.deepEqual(after.sources.calls, [['sleeper', { label: 'after-mw9', statsWeek: 9, projectionsWeek: 10 }]]);
-  const padded = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw09'], week: { ...baseState().week, status: 'resolved' } }), clock: at('2026-11-04T00:00:00Z') });
+  const padded = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw09', ...DAILY], week: { ...baseState().week, status: 'resolved' } }), clock: at('2026-11-04T00:00:00Z') });
   assert.equal(padded.body.reason, 'nothing_due', 'a zero-padded import counts as the same snapshot');
   const down = await run({ job: 'snapshot', sources: fakeSources({ fail: { sleeper: true } }), clock: at('2026-10-31T12:10:00Z') });
   assert.equal(down.body.status, 'failed'); assert.equal(down.body.reason, 'source_unavailable');
@@ -587,4 +589,20 @@ test('the hand-registered cron file is admin-only, registers every job disabled 
   for (const job of EPL_JOBS) assert.match(code, new RegExp(`gtl_epl_dispatch_jobs\\('${job}'\\)`), job);
   assert.match(code, /insert into public\.gtl_epl_jobs_schedule[^;]*false[^;]*on conflict\s*\(job\)\s*do nothing/is);
   assert.doesNotMatch(code, /enabled\s*=\s*true/i, 'enabling stays commented');
+});
+
+test('snapshot: saves daily-<YYYY-MM-DD> once a UTC day when no other capture is due (plan 2026-10-28-epl-fantasy.md, Task 2)', async () => {
+  const quiet = baseState({ snapshots: ['after-mw08'] });
+  const daily = await run({ job: 'snapshot', state: quiet, clock: at('2026-10-30T08:04:00Z') });
+  assert.equal(daily.body.status, 'succeeded');
+  assert.deepEqual(daily.sources.calls, [['sleeper', { label: 'daily-2026-10-30', statsWeek: 9, projectionsWeek: 9 }]]);
+  assert.deepEqual(daily.service.args('gtl_epl_save_snapshot').map(a => [a.p_label, a.p_week]), [['daily-2026-10-30', 9]]);
+  const again = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw08', 'daily-2026-10-30'] }), clock: at('2026-10-30T23:59:00Z') });
+  assert.equal(again.body.reason, 'nothing_due'); assert.deepEqual(again.sources.calls, []);
+  // A before-kickoff or after-matchweek capture due in the same run is that day's capture: one Sleeper read, not two.
+  const kickoff = await run({ job: 'snapshot', state: baseState({ snapshots: ['after-mw08'] }), clock: at('2026-10-31T12:10:00Z') });
+  assert.deepEqual(kickoff.sources.calls.map(c => c[1].label), ['before-mw9-kickoff']);
+  // The daily capture never waits on Sleeper's week, unlike after-mw<N>.
+  const behind = await run({ job: 'snapshot', state: quiet, sources: fakeSources({ sleeperState: { week: 8 } }), clock: at('2026-10-30T08:04:00Z') });
+  assert.equal(behind.service.args('gtl_epl_save_snapshot').length, 1);
 });

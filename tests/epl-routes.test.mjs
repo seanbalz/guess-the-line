@@ -67,10 +67,11 @@ const rejectsWith = (promise, status, code) => assert.rejects(promise, error => 
   return true;
 });
 
-test('EPL_METHODS is the seven POST routes, frozen, and registered in gtl-api', () => {
+test('EPL_METHODS is the eight POST routes, frozen, and registered in gtl-api', () => {
   assert.deepEqual({ ...EPL_METHODS }, {
     '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
     '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
+    '/epl/fantasy/read': ['POST'],
   });
   assert.ok(Object.isFrozen(EPL_METHODS));
   assert.equal(ROUTE_MODULES.epl, EPL_METHODS);

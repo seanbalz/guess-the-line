@@ -3,7 +3,9 @@
 // query string:
 //   fetchSleeperSnapshot  the six Sleeper responses /Users/seanbalsiger/gtl-epl-snapshots/snapshot.py saves (state, league,
 //                         users, rosters, one matchweek's stats and the next one's projections), each with the SHA-256 of
-//                         its raw body. Sleeper's API is public and keyless.
+//                         its raw body, stored trimmed (shared/epl-sleeper.mjs trimSleeperSnapshot: rostered players only,
+//                         only the nonzero stats a league scoring rule uses, plus a minimal directory; the real after-MW8
+//                         snapshot goes from 650 KB to about 43 KB, about 1/15). Sleeper's API is public and keyless.
 //   fetchEplOdds          GET /v4/sports/soccer_epl/odds, h2h from DraftKings, FanDuel and BetMGM (1 credit): every listed
 //                         event with its median American price per club.
 //   fetchEplScores        GET /v4/sports/soccer_epl/scores?daysFrom=3 (2 credits): recent and upcoming events with final goals,
@@ -13,6 +15,7 @@
 import { ODDS_API_ORIGIN, readQuota } from './odds-provider.mjs';
 import { EPL_CLUBS, clubFromOddsName } from '../shared/epl-clubs.mjs';
 import { priceStrength } from '../shared/epl-draft.mjs';
+import { trimSleeperSnapshot } from '../shared/epl-sleeper.mjs';
 
 export const SLEEPER_BASE = 'https://api.sleeper.app';
 export const SLEEPER_LEAGUE = '1395122699423993856';
@@ -90,7 +93,7 @@ async function getJson(url, { maxBytes, timeoutMs }, fetchImpl) {
 const wholeSeconds = ms => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z');
 const matchweek = n => Number.isInteger(n) && n >= 1 && n <= 38;
 
-/** The Sleeper snapshot snapshot.py writes, as `{capturedAt, label, sha256: {key: hex}, payload}`. */
+/** The Sleeper snapshot snapshot.py writes, as `{capturedAt, label, sha256: {key: hex}, payload}` (payload stored trimmed). */
 export async function fetchSleeperSnapshot({ fetchImpl = fetch, label, statsWeek, projectionsWeek, clock = Date.now } = {}) {
   if (typeof label !== 'string' || !LABEL.test(label) || !matchweek(statsWeek) || !matchweek(projectionsWeek)) fail('EPL_SOURCE_CONFIG');
   const paths = [
@@ -111,7 +114,7 @@ export async function fetchSleeperSnapshot({ fetchImpl = fetch, label, statsWeek
     payload[key] = data;
     sha256[key] = digest;
   }
-  return { capturedAt, label, sha256, payload };
+  return { capturedAt, label, sha256, payload: trimSleeperSnapshot(payload) };
 }
 
 /** The median of American prices, taken on implied probability (so -110 and +110 meet at +100); null for none. */

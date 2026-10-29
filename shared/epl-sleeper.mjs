@@ -73,3 +73,106 @@ export function pairMatchups(weekly) {
   pairs.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0));
   return { pairs, unpaired: ids.filter(id => !paired.has(id)).sort() };
 }
+
+// --- Stored snapshot shape (plan 2026-10-28-epl-fantasy.md, Task 2) ---------------------------------------------------
+// A stored snapshot keeps only what settle and the fantasy view read: state, the league's scoring settings, users
+// (id, display name), rosters (id, owner, starters, players, settings), the stats and projections of rostered players
+// (only the nonzero counts some league scoring rule uses: pos_<gk|d|m|f>_<stat> keeps <stat>; Sleeper's pre-prefixed
+// copies and pts_std are dropped), and `players`, a directory of those players (name, position, team_abbr) built from the
+// `player` objects Sleeper embeds in its stats and projections rows. The directory keeps Sleeper's key names `position`
+// and, only when there is no position, `fantasy_positions`, which shared/epl-fantasy.mjs positionOf reads.
+// The real after-MW8 snapshot (650 KB as saved, 900 KB on disk) stores as about 43 KB: about 1/15 of the raw size.
+
+const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const pick = (value, keys) => Object.fromEntries(keys.filter(key => Object.hasOwn(value, key)).map(key => [key, value[key]]));
+export const SLEEPER_STATS_KEY = /^(?:stats|projections)_mw(\d{1,2})$/;
+
+/** Every rostered player id (players and starters of every roster), as strings. */
+export function rosteredIds(snapshot) {
+  return new Set((Array.isArray(snapshot?.rosters) ? snapshot.rosters : []).filter(record)
+    .flatMap(r => [...(Array.isArray(r.players) ? r.players : []), ...(Array.isArray(r.starters) ? r.starters : [])]).map(String));
+}
+
+/** A stats or projections source (Sleeper's array, or an id-keyed object) as `{playerId: stats}`. Null prototype. */
+export function statsById(value) {
+  const out = Object.create(null);
+  if (Array.isArray(value)) {
+    for (const e of value) if (record(e) && e.player_id !== undefined && record(e.stats)) out[String(e.player_id)] = e.stats;
+  } else if (record(value)) {
+    for (const [id, v] of Object.entries(value)) if (record(v)) out[id] = record(v.stats) ? v.stats : v;
+  }
+  return out;
+}
+
+const text = v => (typeof v === 'string' && v.length <= 120 ? v : null);
+function directoryEntry(player) {
+  const full = text(player.metadata?.full_name) ?? ([text(player.first_name), text(player.last_name)].filter(Boolean).join(' ') || null);
+  // Only what the view reads: the name, the scoring position (fantasy_positions only when Sleeper gives no position, since
+  // shared/epl-fantasy.mjs positionOf reads position first) and the club abbreviation.
+  const position = text(player.position);
+  const entry = { name: full, position, team_abbr: text(player.team_abbr) };
+  if (!position) entry.fantasy_positions = Array.isArray(player.fantasy_positions) ? player.fantasy_positions.filter(p => typeof p === 'string' && p.length <= 8).slice(0, 4) : [];
+  return entry;
+}
+
+/**
+ * The rostered players' directory from a raw snapshot's stats and projections rows, or the stored `players` when the
+ * snapshot is already trimmed. Later sources win, so the projections row (newer) names a player's current club.
+ */
+export function playersFromSnapshot(snapshot) {
+  const rostered = rosteredIds(snapshot);
+  const out = Object.create(null);
+  if (record(snapshot?.players)) for (const [id, p] of Object.entries(snapshot.players)) if (rostered.has(id) && record(p)) out[id] = p;
+  for (const [key, value] of Object.entries(record(snapshot) ? snapshot : {})) {
+    if (!SLEEPER_STATS_KEY.test(key) || !Array.isArray(value)) continue;
+    for (const e of value) if (record(e) && rostered.has(String(e.player_id)) && record(e.player)) out[String(e.player_id)] = directoryEntry(e.player);
+  }
+  return out;
+}
+
+const SCORING_RULE = /^pos_(?:gk|d|m|f)_(.+)$/;
+/**
+ * The stat names some league rule scores (pos_<gk|d|m|f>_<stat> -> <stat>), or null when the league has no such rule (then
+ * nothing is known to be unused and only the pre-prefixed copies and zero values are dropped).
+ */
+export function scoredStatNames(scoring) {
+  if (!record(scoring)) return null;
+  const names = new Set();
+  for (const [key, value] of Object.entries(scoring)) {
+    const m = SCORING_RULE.exec(key);
+    if (m && typeof value === 'number' && Number.isFinite(value) && value !== 0) names.add(m[1]);
+  }
+  return names.size ? names : null;
+}
+
+/** A stats row reduced to the nonzero counts some scoring rule uses (shared/epl-fantasy.mjs playerPoints reads no other). */
+function trimStats(stats, scored) {
+  if (!record(stats)) return stats ?? null;
+  const out = {};
+  for (const [key, value] of Object.entries(stats)) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value === 0) continue;
+    if (scored ? !scored.has(key) : key.startsWith('pos_')) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+/** The stored form of a Sleeper snapshot (see above). `keep` names the top-level provenance keys copied as they are. */
+export function trimSleeperSnapshot(snapshot, keep = ['capturedAt', 'label', 'purpose', 'source', 'leagueId', 'sources']) {
+  const out = { ...pick(snapshot, keep), trimmed: true };
+  if (Object.hasOwn(snapshot, 'state')) out.state = snapshot.state;
+  if (record(snapshot.league)) out.league = pick(snapshot.league, ['scoring_settings']);
+  if (Array.isArray(snapshot.users)) out.users = snapshot.users.filter(record).map(u => pick(u, ['user_id', 'display_name']));
+  if (Array.isArray(snapshot.rosters)) out.rosters = snapshot.rosters.filter(record).map(r => pick(r, ['roster_id', 'owner_id', 'starters', 'players', 'settings']));
+  const rostered = rosteredIds(out);
+  const scored = scoredStatNames(out.league?.scoring_settings);
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (!SLEEPER_STATS_KEY.test(key)) continue;
+    if (Array.isArray(value)) out[key] = value.filter(e => record(e) && rostered.has(String(e.player_id))).map(e => ({ player_id: e.player_id, stats: trimStats(e.stats, scored) }));
+    else if (record(value)) out[key] = Object.fromEntries(Object.entries(value).filter(([id]) => rostered.has(id))
+      .map(([id, v]) => [id, record(v) && record(v.stats) ? { stats: trimStats(v.stats, scored) } : trimStats(v, scored)]));
+  }
+  const players = playersFromSnapshot(snapshot);
+  if (Object.keys(players).length) out.players = { ...players };
+  return out;
+}

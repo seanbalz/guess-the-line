@@ -73,9 +73,11 @@ describe('EPL four-tab shell', () => {
       expect(markupProblems(html)).toEqual([]);
     }
   });
-  it('Research shows Fantasy, coming next', () => {
+  it('Research shows Fantasy with its four sub-tabs (plan 2026-10-28-epl-fantasy.md, Task 3)', () => {
     const html = render({ tab: 'research', section: 'fantasy' });
-    expect(text(html)).toContain('Fantasy'); expect(text(html)).toContain('Coming next');
+    for (const label of ['Fantasy', 'Matchup', 'Standings', 'Rosters', 'Insights']) expect(text(html)).toContain(label);
+    expect(text(html)).not.toContain('Coming next');
+    expect(html).toContain('data-epl-fantasy="matchup"');
     expect(markupProblems(html)).toEqual([]);
   });
 });

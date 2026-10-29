@@ -176,7 +176,10 @@ test('the import trims a snapshot to what settle and the fantasy math read, and 
   fs.writeFileSync(file, JSON.stringify(snap, null, 1));
   const { body, bytes } = buildSnapshotImport(file);
   const p = body.payload;
-  assert.deepEqual(Object.keys(p).sort(), ['capturedAt', 'league', 'leagueId', 'projections_mw9', 'purpose', 'rosters', 'source', 'sources', 'state', 'stats_mw8', 'trimmed', 'users']);
+  assert.deepEqual(Object.keys(p).sort(), ['capturedAt', 'league', 'leagueId', 'players', 'projections_mw9', 'purpose', 'rosters', 'source', 'sources', 'state', 'stats_mw8', 'trimmed', 'users']);
+  // The rostered players' directory (plan 2026-10-28-epl-fantasy.md, Task 2), from the player objects Sleeper embeds.
+  assert.equal(Object.keys(p.players).length, new Set(snap.rosters.flatMap(r => r.players)).size);
+  assert.deepEqual(p.players[snap.rosters[0].players[0]], { name: 'A B', position: null, team_abbr: null, fantasy_positions: [] }, 'fantasy_positions only when there is no position');
   assert.deepEqual(p.league, { scoring_settings: { goal: 6, assist: 3 } });
   assert.deepEqual(p.state, snap.state);
   assert.deepEqual(p.users[0], { user_id: snap.users[0].user_id, display_name: snap.users[0].display_name });
@@ -185,7 +188,9 @@ test('the import trims a snapshot to what settle and the fantasy math read, and 
   const rosteredIds = new Set(snap.rosters.flatMap(r => r.players));
   assert.equal(p.stats_mw8.length, rosteredIds.size, 'only rostered players');
   assert.ok(p.stats_mw8.every(e => rosteredIds.has(e.player_id) && Object.keys(e).sort().join() === 'player_id,stats'));
+  // This league has no pos_<gk|d|m|f>_ rules, so no stat is known to be unused: only zero counts are dropped.
   assert.deepEqual(p.stats_mw8[0], { player_id: snap.stats_mw8[0].player_id, stats: snap.stats_mw8[0].stats });
+  assert.ok(p.stats_mw8.every(e => Object.values(e.stats).every(v => v !== 0)), 'no zero counts are stored');
   assert.equal(p.projections_mw9.length, rosteredIds.size);
   assert.deepEqual(managersFromSnapshot(p), managersFromSnapshot(snap));
   assert.deepEqual(weeklyScores(p, p), weeklyScores(snap, snap));
