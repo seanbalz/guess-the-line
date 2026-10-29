@@ -1,13 +1,15 @@
 // Play › Pick a Team (spec section 6, mockups v3 "Play · Pick a Team"; plan Task 8). The hero card holds the draft board
 // (DraftBoard), the one lime button when it's your turn ("Pick Chelsea"; otherwise a line naming who's on the clock) and
 // the deadline line; under it the clubs still available, the backup ranking (queue) sheet and last matchweek's margin
-// bars. gtl-api decides every pick (cloud/epl.mjs, M-30); a refusal re-reads the board. A refused read (a non-member's
-// 403, the feature off) shows its sentence and never the board.
+// bars. gtl-api decides every pick (cloud/epl.mjs, M-30); a refusal re-reads the board. A refused read (the feature
+// off, a 401) shows its sentence and never the board. Every signed-in account reads the board (EPL open access); one not
+// linked to a manager sees it read-only, under the claim card (ClaimCard.jsx).
 import { useId, useState } from 'react';
 import { Button, Card, Skeleton, Toast } from '../ui/index.js';
 import { CrestGrid, DraftBoard } from './DraftBoard.jsx';
 import { MarginChart } from './MarginChart.jsx';
 import { QueueSheet } from './QueueSheet.jsx';
+import { ClaimCard } from './ClaimCard.jsx';
 import { PICK_COPY, boardModel, deadlineLine, readProblem, runPick } from './draftModel.js';
 import { eplApi } from './api.js';
 import { useEplDraft } from './useEplDraft.js';
@@ -43,11 +45,12 @@ export function PrimaryAction({ model, selected, busy, onPick }) {
  * The screen for one board, with no hooks of its own: `model` (boardModel), `state` (draftReducer) for loading and
  * refusals, the selected club, and the handlers. Tests press its buttons directly.
  */
-export function PickATeamView({ model, state, selected, busy, notice, onSelect, onPick, onQueue, onDismissNotice, onRetry, ids = {} }) {
+export function PickATeamView({ model, state, selected, busy, notice, onSelect, onPick, onQueue, onDismissNotice, onRetry, ids = {}, claim = null }) {
   if (!model) return <div className="gx-epl-pick"><DraftReadState state={state} model={model} onRetry={onRetry}/></div>;
   const heroId = ids.hero ?? 'gx-epl-pick-hero', availId = ids.avail ?? 'gx-epl-pick-avail', bonusId = ids.bonus ?? 'gx-epl-pick-bonus';
   return <div className="gx-epl-pick">
     {state?.stale ? <p className="gx-t-meta gx-c-2">{PICK_COPY.stale}</p> : null}
+    {claim}
     <Card as="section" variant="hero" className="gx-epl-hero" aria-labelledby={heroId}>
       <h2 className="gx-t-micro gx-epl-kicker" id={heroId}>{PICK_COPY.draftLabel(model.week)}</h2>
       <DraftBoard model={model}/>
@@ -60,7 +63,7 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
     {model.available.length && !model.locked ? <Card as="section" aria-labelledby={availId}>
       <h2 className="gx-t-micro gx-c-2" id={availId}>{PICK_COPY.available}</h2>
       <CrestGrid model={model} selected={selected} onSelect={onSelect} busy={busy}/>
-      {model.canPick ? null : <p className="gx-t-meta gx-c-2">{PICK_COPY.notYourTurn}</p>}
+      {model.canPick || model.me === null ? null : <p className="gx-t-meta gx-c-2">{PICK_COPY.notYourTurn}</p>}
     </Card> : null}
     {model.queue !== null ? <Button variant="secondary" block disabled={model.locked || busy} onClick={onQueue}>{PICK_COPY.queue}</Button> : null}
     <Card as="section" aria-labelledby={bonusId}>
@@ -92,6 +95,7 @@ export function PickATeam({ api = eplApi }) {
   }
   return <>
     <PickATeamView model={model} state={state} selected={shown} busy={busy} notice={notice} ids={ids}
+      claim={<ClaimCard model={model} api={api} onClaimed={reload}/>}
       onSelect={code => setSelected(current => (current === code ? null : code))} onPick={pick}
       onQueue={() => setQueueOpen(true)} onDismissNotice={() => setNotice(null)} onRetry={reload}/>
     {queueOpen && model ? <QueueSheet model={model} api={api} onClose={() => setQueueOpen(false)}

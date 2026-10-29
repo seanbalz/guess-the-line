@@ -95,3 +95,15 @@ test('EPL access comes from noted lobby replies per account, and a cold #epl lin
   assert.equal(takePrimedLobby('user-4'), null, 'and the NFL app reads the lobby itself');
   resetEplAccessCache();
 });
+
+test('EPL open access: any account whose lobby says epl true gets the EPL option, linked or not', () => {
+  resetEplAccessCache();
+  // Lobby replies epl: true for every signed-in account once M-30 is applied (cloud/lobby.mjs); no membership field.
+  noteLobbyEpl('watcher', { profile: { displayName: 'Someone' }, epl: true });
+  assert.equal(knownEplAccess('watcher'), true);
+  assert.equal(eplGate('epl', knownEplAccess('watcher')), 'show');
+  assert.ok(sportOptions(knownEplAccess('watcher')).some(o => o.value === 'epl'));
+  noteLobbyEpl('watcher', { profile: {}, epl: false });
+  assert.ok(!sportOptions(knownEplAccess('watcher')).some(o => o.value === 'epl'));
+  resetEplAccessCache();
+});
