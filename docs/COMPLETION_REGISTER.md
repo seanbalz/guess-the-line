@@ -653,6 +653,21 @@ These layers replace the Player team and Player matchup filters and the "Compare
 history window stays as one select. The seven Players browser cases run the new path at 320px and 390px, in light,
 dark and forced colors, with axe. No release or real-phone check yet.
 
+**Third rollout: Trends › This Week**, on branch `claude/research-nesting-week`. Its layers are This week › one game
+› one trend.
+
+- **The first card** holds:
+  - the evidence freshness line, with its "Source details";
+  - the saved-trends tile, which opens Build;
+  - the top three trends, each opening its game and trend;
+  - a tile per published game, showing its logos, how many trends are open and a lock when the market is closed.
+- **A game** lists its trends, or a lock tile while the market is closed, plus Game details. A trend is the same
+  innermost card as on Teams.
+- **Removed:** the Team and Matchup filters and the always-open "Matchup evidence" lists.
+- **Shared code:** `TrendLayer.jsx` now holds what Teams and This Week share: the tile, the lock tile, the opened
+  trend and its address.
+- **Not done:** release and the real-phone check.
+
 ## Recommended bets stay on Recommended (player feedback, October 28)
 
 A player asked to keep loading recommended bets without being sent to My bets. Draft PR on
