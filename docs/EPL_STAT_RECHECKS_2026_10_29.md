@@ -26,6 +26,8 @@ This is operational correction evidence. The review flag has **no commissioner-f
 correction is applied. The user ruling about a corrected order after the next draft starts remains pending. Do not mark
 the full correction workflow accepted until that rule, actionable review, release and hosted verification are complete.
 MW38 seasonal behavior remains a separate acceptance item; this recheck path covers MW1–37.
+The first final capture still follows the existing window-end/rollover rule. This change does not establish a live
+Monday-final capture or change when the next draft first opens.
 
 ## League-position fallback
 
@@ -64,3 +66,5 @@ changed/unchanged rechecks, complete-owner and numeric-total checks, SQL due-tim
 replay idempotency, browser-role denial, a newer not-yet-due round, corrected weekly baselines, Fantasy selection and
 the conservative deadline fallback. Typecheck, Brand QA and whitespace checks passed. These checks use fabricated
 fixtures and do not perform a hosted correction, deployment or real player action.
+After integrating current main (including the rollover guard) and pending M-32's worker/preflight changes, the combined
+suite passed **277 tests with zero skips**. Typecheck, cloud build, bundle privacy scan and Brand QA also passed.
