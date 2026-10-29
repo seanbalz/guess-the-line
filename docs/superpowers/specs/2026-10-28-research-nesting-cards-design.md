@@ -98,7 +98,15 @@ back to the nearest valid layer.
    “By season” moves into a disclosure. The paragraphs that repeated the card’s ⓘ (what “not tested” means, the
    period split, the reference note, the line source and the credit) come off the surface. The “Found by search — not
    tested” tag, the period table and its one-line reading stay.
-5. Fantasy.
+5. Fantasy (sixth rollout): one rankings card leads to one player. The rankings card leads to the report card and
+   to Compare.
+   - **Rankings card:** one meta line (week, period, scoring, stats through). Period, season, week, scoring and
+     position are visible, and the other filters sit under "More filters". Tiles lead to the report card and Compare,
+     and each ranked player is one tile with one big estimate.
+   - **Player layer:** the estimate, the trends as tiles, the matchup behind a disclosure, and the profile and compare
+     tools. The method, scoring rules, sources and trend sentences sit behind ⓘ.
+   - **Lips:** a lip that returns to the place just before goes back, rather than adding a step, so the next Back
+     leaves the section.
 
 ## Tests
 

@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Nightly: every hosted migration's rollback too (tests/rollback.test.mjs, GTL_ROLLBACK_ALL).
+  schedule:
+    - cron: '17 11 * * *'
+  workflow_dispatch:
 # Every main commit gets its own run: releases need green push CI on the exact SHA, and a shared main group
 # queued commits behind each other and cancelled the ones still waiting. PR runs still replace older runs.
 concurrency:
@@ -23,12 +27,19 @@ jobs:
       - run: npm ci
       - name: Verify Git synchronization, private recovery and UI paths on Windows
         run: node --test tests/git-sync.test.mjs tests/local-recovery.test.mjs tests/sportsbook-sources-ui.test.mjs
-  test:
-    name: Typecheck and test
+  # npm test in three parallel shards (node --test and vitest --shard); "Typecheck and test" below is the one check that
+  # branch protection and the release gate (scripts/release-preflight.mjs REQUIRED_CI) require, so the shard names can change.
+  test-shard:
+    name: Test shard (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - name: Check the diff for whitespace errors and conflict markers
+        if: matrix.shard == 1
         shell: bash
         env:
           # The PR's base tip, or the previous main tip for a push; HEAD is the PR merge commit or the pushed tip.
@@ -51,11 +62,15 @@ jobs:
       - name: Install disposable database test runtime
         run: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
       - run: npm run typecheck
+        if: matrix.shard == 1
       - name: Run the test suites
         shell: bash
+        env:
+          GTL_ROLLBACK_ALL: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '1' || '' }}
+          TEST_SHARD: ${{ matrix.shard }}/3
         run: |
           mkdir -p .local
-          npm test 2>&1 | tee .local/npm-test.log
+          npm run test:shard 2>&1 | tee .local/npm-test.log
       - name: Assert that node:test skipped nothing
         shell: bash
         run: |
@@ -75,3 +90,12 @@ jobs:
             exit 1
           fi
       - run: npm run score -- --week 6
+        if: matrix.shard == 1
+  test:
+    name: Typecheck and test
+    needs: test-shard
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every test shard passed
+        run: test "${{ needs.test-shard.result }}" = success

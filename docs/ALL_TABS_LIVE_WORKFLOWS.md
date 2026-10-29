@@ -119,3 +119,11 @@ The app shells remain separate; the shared snapshot contains no account data.
 FantasyFootball uses only Button, Card, Segmented, Switch and LockLine from the
 presentation kit for its next theme, and FantasyAccuracy.jsx uses Card and Pill; it
 does not import the next shell or account context.
+
+**October 28 (D-66):** Research › Fantasy no longer wraps FantasyFootball. The
+new-app `FantasyNest.jsx` lays the same rankings out as nesting cards: the
+rankings card, one player, the report card and compare. It is the adapter now and
+imports only `fantasyData.js`, `fantasyContext.js` and `FantasyAccuracy.jsx`, the
+snapshot and game-context reads and the report card, with the same
+`shared/fantasy-*` engine. FantasyFootball stays for the old Community screen's
+Fantasy tab.

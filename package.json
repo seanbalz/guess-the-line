@@ -12,6 +12,7 @@
     "build": "vite build",
     "start": "node server/index.mjs",
     "test": "node --test tests/*.test.mjs && vitest run",
+    "test:shard": "node --test --test-shard=$TEST_SHARD tests/*.test.mjs && vitest run --shard=$TEST_SHARD",
     "check": "npm run typecheck && npm test && npm run build",
     "test:browser": "playwright test",
     "build:cloud": "vite build --mode cloud --outDir ../.local/cloud-dist",

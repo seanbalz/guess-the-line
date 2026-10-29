@@ -53,7 +53,7 @@ function erf(x) {
 }
 
 // P(A outscores B) when each final score is Normal(projection, sigma) independently: the difference has standard
-// deviation sigma * sqrt(2). sigma 18 is an estimate (D-67 addendum), not a fitted value. Null for non-numeric input.
+// deviation sigma * sqrt(2). sigma 18 is an estimate (D-68 addendum), not a fitted value. Null for non-numeric input.
 export function winChance(projA, projB, sigma = 18) {
   if (!finite(projA) || !finite(projB)) return null;
   const diff = projA - projB;

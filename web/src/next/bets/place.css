@@ -1,0 +1,22 @@
+/* Bets › Virtual › Your picks (stages 43 and 44): one card per game with its two markets, a price chip per side, your
+   saved bet as a tag, and the slip in the dock. Nothing here decides what is hidden: a closed market simply has a lock
+   line where the prices would be. */
+.gx .gx-place { min-width: 0; padding-bottom: calc(var(--gx-size-dock) + var(--gx-space-4)); }
+.gx .gx-place-game-head { display: flex; align-items: center; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-place-game-head > .gx-grow { min-width: 0; }
+.gx .gx-place-market { min-width: 0; padding-top: var(--gx-space-3); border-top: 1px solid var(--gx-border); }
+.gx .gx-place-market > .gx-hstack { flex-wrap: wrap; row-gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-place-market .gx-tag { max-width: 100%; overflow-wrap: anywhere; }
+.gx .gx-place-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-place-sides .gx-chip { justify-content: flex-start; min-width: 0; height: auto; min-height: 48px; padding-block: var(--gx-space-2); text-align: left; }
+/* Text on lime is always accent-text (brand guide), the book name included. */
+.gx .gx-place-sides .gx-chip--on .gx-c-2 { color: inherit; }
+.gx .gx-place-sides .gx-chip .gx-vstack { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-place-dock { min-width: 0; }
+.gx .gx-place-dock > .gx-grow { min-width: 0; }
+.gx .gx-place-slip { margin: 0; padding: 0; list-style: none; }
+.gx .gx-place-slip-row { min-width: 0; padding-bottom: var(--gx-space-4); border-bottom: 1px solid var(--gx-border); }
+.gx .gx-place-slip-row > .gx-hstack { align-items: flex-start; min-width: 0; }
+.gx .gx-place-slip-row .gx-grow { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-place-units { flex-wrap: wrap; }
+.gx .gx-place-stepper { justify-content: center; }

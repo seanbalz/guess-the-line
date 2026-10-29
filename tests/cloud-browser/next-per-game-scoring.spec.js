@@ -10,7 +10,7 @@ test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never 
 const routeName = name => `${SUPABASE}/functions/v1/gtl-api/${name}`;
 const tabs = page => page.getByRole('navigation', { name: 'Main' });
 
-async function fixture(page, baseURL) {
+async function fixture(page, baseURL, { beforePlay } = {}) {
   const world = await communityWorld(page, baseURL, { migrations: HOSTED, optionalRpc: true });
   const personal = structuredClone((await world.api('luke', 'personal')).body);
   personal.rules = { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring: true };
@@ -34,6 +34,7 @@ async function fixture(page, baseURL) {
     { season: personal.season, week: personal.week - 1, games: [{ ...personal.games[0] }], entries: [] },
   ] }));
   await signIn(page, 'luke');
+  if (beforePlay) { await expect(tabs(page)).toBeVisible(); await beforePlay(personal); }
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
   await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
   await expect(page.locator('.gx-per-game')).toBeVisible();
@@ -155,6 +156,26 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
     expect(sitOutWrites).toBe(1);
     await page.getByRole('group', { name: 'Market', exact: true }).getByRole('button', { name: 'Total', exact: true }).click();
     await expect(page.locator(`[data-game="${first.id}"] .gx-guess-num[data-value="44"]`)).toBeEnabled();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('an unsaved guess left on a removed group game screen is offered once, read-only, and restores as an unlocked draft', async ({ page, baseURL }) => {
+  // RETIRE-01 (D-65): the old group screens kept a 24-hour copy in this tab (predictionDraft.js, gtl.tab-draft.v1.*).
+  const world = await fixture(page, baseURL, { beforePlay: personal => page.evaluate(({ id, season, week, games }) => {
+    const ids = games.map(game => game.id), blank = Object.fromEntries(ids.map(gameId => [gameId, '']));
+    sessionStorage.setItem(`gtl.tab-draft.v1.${encodeURIComponent(id)}.${season}.${week}.guess_spread`, JSON.stringify({
+      draft: { ...blank, [ids[0]]: '-3.5' }, base: blank, pendingSave: null, updatedAt: new Date().toISOString() }));
+  }, { id: ACCOUNTS.luke.id, season: personal.season, week: personal.week, games: personal.games }) });
+  try {
+    const game = world.personal.games[0];
+    const retained = page.locator('details').filter({ hasText: 'Previous group game draft retained' });
+    await expect(retained).toHaveCount(1);
+    await retained.locator('summary').click();
+    await expect(retained).toContainText(`${game.awayCode} at ${game.homeCode}`);
+    await retained.getByRole('button').click();
+    await expect(page.getByText('Unlocked draft guesses restored. Review and save them when ready.', { exact: true })).toBeVisible();
+    expect(world.writes).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
