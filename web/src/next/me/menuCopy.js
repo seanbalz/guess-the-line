@@ -15,4 +15,3 @@ export const MENU_COPY = Object.freeze({
   saved: 'Saved on this device, not your account. The old app uses the same setting.',
   notSaved: 'This browser isn’t saving settings, so this lasts until you close the page.',
 });
-
