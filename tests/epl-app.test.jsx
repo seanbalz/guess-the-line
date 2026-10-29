@@ -20,11 +20,12 @@ describe('sport switch', () => {
   it('the new app shows EPL only when the account has EPL access', () => {
     const without = renderToStaticMarkup(<div className="gx"><SportControls/></div>);
     expect(text(without)).not.toContain('EPL');
-    expect(text(without)).toContain('NFL'); expect(text(without)).toContain('NBA');
+    expect(text(without)).toContain('NFL'); expect(text(without)).not.toContain('NBA');
     const hidden = renderToStaticMarkup(<EplAccessContext.Provider value={false}><div className="gx"><SportControls/></div></EplAccessContext.Provider>);
     expect(text(hidden)).not.toContain('EPL');
     const shown = renderToStaticMarkup(<EplAccessContext.Provider value={true}><div className="gx"><SportControls/></div></EplAccessContext.Provider>);
     expect(text(shown)).toContain('EPL');
+    expect(text(shown)).not.toContain('NBA');
     expect(pressed(shown)).toEqual(['NFL']);
     expect(markupProblems(shown)).toEqual([]);
   });
@@ -41,6 +42,7 @@ describe('sport switch', () => {
   it('the EPL app header has EPL selected', () => {
     const html = render({ tab: 'home' });
     expect(html).toContain('aria-label="Sport"');
+    expect(text(html)).not.toContain('NBA');
     expect(pressed(html)).toContain('EPL');
   });
 });

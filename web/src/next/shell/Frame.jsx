@@ -36,7 +36,7 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
 }
 
 /**
- * The NFL/NBA (and, for FEPL members, EPL) selector, a plain row right after the top bar. It stays out of the sticky
+ * The NFL/EPL selector, a plain row right after the top bar. NBA is hidden from this navigation. It stays out of the sticky
  * bar so the bar keeps its --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
  */
 export function SportControls() {

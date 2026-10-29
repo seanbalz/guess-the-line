@@ -22,9 +22,9 @@ export function eplHash(route) {
 export const eplFragment = hash => typeof hash === 'string' && hash.startsWith('#epl');
 
 export const SPORT_HOME = Object.freeze({ nba: '#nba/games', epl: '#epl/home' });
-/** NFL / NBA, plus EPL whenever the lobby says `epl: true` (every signed-in account once M-30 is applied; EPL open access). */
+/** NBA is hidden from navigation (Sean, October 29); saved NBA links still open their retained records. */
 export function sportOptions(epl) {
-  return [{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }, ...(epl ? [{ value: 'epl', label: 'EPL' }] : [])];
+  return [{ value: 'nfl', label: 'NFL' }, ...(epl ? [{ value: 'epl', label: 'EPL' }] : [])];
 }
 
 /** Whether this account sees EPL, provided by main.jsx's sport entry (false until a lobby reply says). */

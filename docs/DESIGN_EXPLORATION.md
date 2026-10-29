@@ -1,5 +1,16 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## October 29, 2026 — logo and favicon refinement selected
+
+Sean asked for a more symmetrical logo, color variations and favicon edits,
+then selected **01 Balanced (recommended)** from five visual directions.
+[Comparison board](../design/logo-redraft-2026-10-29/concepts.png) ·
+[Selected implementation](../design/logo-redraft-2026-10-29/selected-preview.png) ·
+[Asset and verification record](../design/logo-redraft-2026-10-29/README.md).
+This replaces the original Yardline G geometry in the identity rows below.
+The theme pairing and transparent backgrounds remain; alternate colors are
+exported assets. The simplified favicon drops the fine side hashes.
+
 ## Status by category — October 26, 2026
 
 This table is the current status. Each row cites the decision that set it, with
