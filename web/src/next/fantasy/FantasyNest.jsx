@@ -176,7 +176,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
       </div>
       <details className="gx-tr-details" data-fantasy="more-filters"><summary className="gx-t-strong">More filters</summary>
         <div className="gx-fantasy-filters">
-          <div className="gx-fantasy-filter-grid">
+          <div className="gx-fantasy-more-grid">
             <Field name="Passing touchdowns" value={filters.passingTds} onChange={value => update('passingTds', Number(value))} options={[{ value: 4, label: '4 points' }, { value: 6, label: '6 points' }]}/>
             <Field name="Team" value={filters.team} onChange={value => update('team', value)} options={[{ value: 'ALL', label: 'All teams' }, ...(rankings?.teams || []).map(team => ({ value: team, label: team }))]}/>
           </div>
