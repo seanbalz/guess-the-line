@@ -61,8 +61,8 @@ let PGlite;
 try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit local-only skip below. */ }
 const skip = PGlite ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 
-test('M-19 is written, not applied, and adds functions only', () => {
-  assert.ok(ALL.includes(MIGRATION)); assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
+test('M-19 is hosted (Sean, SQL editor, October 28) and adds functions only', () => {
+  assert.ok(ALL.includes(MIGRATION)); assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'recorded as applied (RELEASE_2026_10_28_AUTO_SETTLE.md)');
   const sql = fs.readFileSync(new URL(`../supabase/migrations/${MIGRATION}`, import.meta.url), 'utf8');
   assert.doesNotMatch(sql, /create or replace function|^-- replaces /m, 'nothing existing is replaced');
   assert.doesNotMatch(sql, /cron\.schedule|insert into public\.gtl_social_commits/);
