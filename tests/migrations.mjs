@@ -35,6 +35,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
   20261028190000, // M-30 gtl_epl_pick_a_team: EPL Pick a Team tables and service RPCs (new objects only), awaiting Sean's "apply M-30".
+  20261029060000, // M-31 gtl_epl_open_access: EPL automatic manager linking, claims and the link audit (needs M-30), awaiting Sean's "apply M-31".
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -54,7 +55,9 @@ export const FIX_FORWARD = [
  */
 // M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
-export const REQUIRES = Object.freeze({});
+export const REQUIRES = Object.freeze({
+  20261029060000: [20261028190000], // M-31 reads M-30's EPL tables and replaces its gtl_epl_link_manager
+});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
