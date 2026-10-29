@@ -34,6 +34,10 @@ export const rpcChecks = Object.freeze([
   ['gtl_bets_week_rows', { p_season: 2026, p_week: 5, p_users: [missingId] }],
   ['gtl_read_bets_board', { p_user: missingId, p_season: null, p_week: null, p_league: null }],
   ['gtl_read_bets_season', { p_user: missingId, p_season: null, p_league: null, p_who: null }],
+  // M-11 (stage 41): account-level placement, its quote helper and its terms helper, service-only.
+  ['gtl_place_bets', { p_user: missingId, p_season: 2026, p_week: 5, p_request: missingId, p_bets: [] }],
+  ['gtl_bets_newest_quote', { p_season: 2026, p_week: 5, p_sig: {}, p_game: 'AAA-BBB', p_market: 'spread', p_book: 'draftkings', p_now: null }],
+  ['gtl_bets_terms', { p_selection: {} }],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -48,6 +52,7 @@ export const apiChecks = Object.freeze([
   ['bets/read', {}],
   ['bets/board', {}],
   ['bets/season', {}],
+  ['bets/place', {}],
 ]);
 
 export const workerChecks = Object.freeze([
@@ -60,4 +65,8 @@ export const workerChecks = Object.freeze([
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_social_auto_grade': 'migration 20261028120000_gtl_social_auto_settle.sql',
   'rpc/gtl_settle_social_pending': 'migration 20261028120000_gtl_social_auto_settle.sql',
+  'rpc/gtl_place_bets': 'migration 20261028181000_gtl_bets_place.sql',
+  'rpc/gtl_bets_newest_quote': 'migration 20261028181000_gtl_bets_place.sql',
+  'rpc/gtl_bets_terms': 'migration 20261028181000_gtl_bets_place.sql',
+  'gtl-api/bets/place': 'the gtl-api deploy with /bets/place',
 });
