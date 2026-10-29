@@ -1,0 +1,114 @@
+/* Research › Fantasy (EPL) (plan 2026-10-28-epl-fantasy.md, Task 3; mockups v3 "Research · Fantasy", v2 "League"). Tokens
+   only (tests/next-tokens.test.mjs): hero card and glass bubbles from D-38/D-55, lime on your one active choice, the chart
+   kit's bars (charts.css gx-tc-bar). A missing value is an em dash and a chart gap, never a 0 bar. */
+.gx .gx-epl-fx { display: flex; flex-direction: column; gap: var(--gx-space-4); }
+.gx .gx-epl-fx-stack { display: flex; flex-direction: column; gap: var(--gx-space-4); }
+.gx .gx-epl-fx-footer { margin: 0; text-align: center; }
+
+/* Matchup hero: two glass bubbles and the gradient win-chance bar. */
+.gx .gx-epl-fx-vs { display: flex; align-items: center; justify-content: center; gap: var(--gx-space-3); }
+.gx .gx-epl-fx-bubble {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gx-space-1);
+  padding: var(--gx-space-3);
+  border-radius: var(--gx-radius-lg);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  backdrop-filter: var(--gx-glass-blur);
+}
+.gx .gx-epl-fx-bubble--me { background: var(--gx-accent-tint); box-shadow: var(--gx-glow-accent); }
+.gx .gx-epl-fx-bubble-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 13px/18px var(--gx-font-body); color: var(--gx-hero-text-2); }
+.gx .gx-epl-fx-bubble-num { font: 700 30px/34px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-1); }
+.gx .gx-epl-fx-vs-word { font: 700 13px/18px var(--gx-font-body); color: var(--gx-hero-text-2); }
+.gx .gx-epl-fx-chance { position: relative; display: block; height: 8px; border-radius: var(--gx-radius-pill); background: var(--gx-track); overflow: hidden; }
+.gx .gx-epl-fx-chance-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--gx-radius-pill); background-image: linear-gradient(90deg, var(--gx-bar-1), var(--gx-bar-2)); }
+.gx .gx-epl-fx-chance-line { display: flex; align-items: center; justify-content: center; gap: var(--gx-space-1); }
+.gx .gx-epl-fx-chance-text { margin: 0; font: 700 16px/24px var(--gx-font-body); color: var(--gx-text-1); }
+
+/* Player rows (starters, rosters, top scorers). */
+.gx .gx-epl-fx-players { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-epl-fx-player { display: flex; align-items: center; gap: var(--gx-space-2); min-height: 32px; }
+.gx .gx-epl-fx-pos {
+  flex: none;
+  min-width: 28px;
+  padding: 2px 4px;
+  border-radius: var(--gx-radius-xs);
+  background: var(--gx-surface-3);
+  text-align: center;
+  text-transform: uppercase;
+  font: 700 12px/16px var(--gx-font-body);
+  color: var(--gx-text-1);
+}
+.gx .gx-epl-fx-noclub { flex: none; width: 22px; height: 22px; }
+.gx .gx-epl-fx-player-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 16px/22px var(--gx-font-body); color: var(--gx-text-1); }
+.gx .gx-epl-fx-player-bar { flex: 0 0 72px; margin-top: 0; }
+.gx .gx-epl-fx-num { flex: none; min-width: 44px; text-align: right; font: 700 16px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-1); }
+.gx .gx-epl-fx-none { flex: none; font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+
+/* Projected vs actual: paired bars per matchweek; a gap is an empty dashed track. */
+.gx .gx-epl-fx-recent { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-epl-fx-recent-row { display: grid; grid-template-columns: 48px 52px 52px minmax(0, 1fr); align-items: center; gap: var(--gx-space-2); }
+.gx .gx-epl-fx-recent-week { font: 700 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-epl-fx-pairs { display: flex; flex-direction: column; gap: 3px; }
+.gx .gx-epl-fx-pair { position: relative; display: block; height: 6px; border-radius: var(--gx-radius-pill); background: var(--gx-track); }
+.gx .gx-epl-fx-pair-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--gx-radius-pill); background: var(--gx-text-3); }
+.gx .gx-epl-fx-pair--actual .gx-epl-fx-pair-fill { background-image: linear-gradient(90deg, var(--gx-bar-1), var(--gx-bar-2)); }
+.gx .gx-epl-fx-pair--gap { background: none; border: 1px dashed var(--gx-border); }
+
+/* Legends. */
+.gx .gx-epl-fx-legend { display: flex; flex-wrap: wrap; gap: var(--gx-space-3); margin: var(--gx-space-2) 0 0; }
+.gx .gx-epl-fx-key { display: inline-flex; align-items: center; gap: var(--gx-space-1); font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-epl-fx-key::before { content: ""; display: inline-block; width: 12px; height: 4px; border-radius: var(--gx-radius-pill); background: var(--gx-text-3); }
+.gx .gx-epl-fx-key--me::before,
+.gx .gx-epl-fx-key--actual::before { background: var(--gx-chart-line); }
+
+/* Standings: one bar per manager; yours is lime. The row opens to show Sleeper's raw total and the bonus. */
+.gx .gx-epl-fx-standings { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-epl-fx-split-body { margin: var(--gx-space-1) 0 0; }
+.gx .gx-epl-fx-stand-head {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--gx-space-1) var(--gx-space-2);
+  min-height: var(--gx-size-touch);
+  cursor: pointer;
+  list-style: none;
+}
+.gx .gx-epl-fx-stand-head::-webkit-details-marker { display: none; }
+.gx .gx-epl-fx-stand-head:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; border-radius: var(--gx-radius-sm); }
+.gx .gx-epl-fx-rank { font: 700 13px/18px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-2); }
+.gx .gx-epl-fx-stand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 16px/22px var(--gx-font-body); color: var(--gx-text-1); }
+.gx .gx-epl-fx-record { font: 700 13px/18px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-2); }
+.gx .gx-epl-fx-stand-bar { grid-column: 2 / -1; margin-top: 0; }
+.gx .gx-epl-fx-stand--me .gx-tc-bar-fill { background-image: none; background-color: var(--gx-accent); }
+.gx .gx-epl-fx-stand--me .gx-epl-fx-stand-name { color: var(--gx-accent-ink); }
+
+/* Insights tiles and the weekly line. */
+.gx .gx-epl-fx-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-epl-fx-tile {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--gx-space-1);
+  padding: var(--gx-space-3);
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+}
+.gx .gx-epl-fx-tile-num { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 22px/28px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-1); }
+.gx .gx-epl-fx-chart { margin: 0; }
+.gx .gx-epl-fx-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gx .gx-epl-fx-line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.gx .gx-epl-fx-line--me { stroke: var(--gx-chart-line); }
+.gx .gx-epl-fx-line--avg { stroke: var(--gx-text-3); stroke-dasharray: 4 4; }
+.gx .gx-epl-fx-dot--me { fill: var(--gx-chart-line); }
+.gx .gx-epl-fx-dot--avg { fill: var(--gx-text-3); }
+.gx .gx-epl-fx-high { fill: var(--gx-accent); stroke: var(--gx-canvas); stroke-width: 2; }
+.gx .gx-epl-fx-roster--me { box-shadow: var(--gx-glow-accent); }
+@media (max-width: 360px) {
+  .gx .gx-epl-fx-tiles { grid-template-columns: minmax(0, 1fr); }
+}

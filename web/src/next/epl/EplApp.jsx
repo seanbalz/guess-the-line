@@ -1,6 +1,6 @@
 // The EPL mini-app (#epl/...): the new app's four tabs for the FEPL league. Home and Play > Pick a Team are Plan 1 (Task 8);
-// Play > Guess the Line and Leaderboard (Plan 3) and Research > Fantasy (Plan 2) show a "Coming next" card. Bets has
-// nothing for the Premier League.
+// Research > Fantasy is Plan 2 (web/src/next/epl/fantasy/); Play > Guess the Line and Leaderboard (Plan 3) show a
+// "Coming next" card. Bets has nothing for the Premier League.
 import '../styles/tokens.css';
 import '../styles/base.css';
 import '../styles/components.css';
@@ -17,6 +17,7 @@ import { EPL_TABS, eplHash, eplRoute, sportOptions } from './route.js';
 import { eplApi } from './api.js';
 import { EplHome } from './EplHome.jsx';
 import { PickATeam } from './PickATeam.jsx';
+import { EplFantasy } from './fantasy/EplFantasy.jsx';
 
 export const EPL_COPY = Object.freeze({
   nav: 'EPL',
@@ -27,7 +28,6 @@ export const EPL_COPY = Object.freeze({
   soon: {
     guess: 'Guess which club is favored in each match and its price. Each match locks at kickoff.',
     leaderboard: 'Ranked by the lowest average distance per match guessed.',
-    fantasy: 'Your FEPL matchup, standings, rosters and insights.',
   },
   noBets: "Bets aren't available for the Premier League.",
 });
@@ -66,7 +66,7 @@ export function EplView({ route, onRoute, onSportChange, api = eplApi, motion })
       <main className="gx-main" id="epl-main" tabIndex={-1} ref={mainRef}>
         {route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api}/>
           : route.tab === 'bets' ? <EplBets/>
-          : route.tab === 'research' ? <EplResearch/>
+          : route.tab === 'research' ? <EplResearch api={api}/>
           : <EplHome api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}/>}
       </main>
       <nav className="gx-tabbar" aria-label={EPL_COPY.nav}><div className="gx-tabbar-inner">
@@ -92,10 +92,10 @@ function EplPlay({ route, onRoute, api }) {
   </div>;
 }
 
-function EplResearch() {
+function EplResearch({ api }) {
   return <div className="gx-screen" data-epl-section="fantasy">
     <h1 className="gx-t-title">{EPL_COPY.tabs.research}</h1>
-    <ComingNextCard section="fantasy" title={EPL_COPY.sections.fantasy}/>
+    <EplFantasy api={api}/>
   </div>;
 }
 
