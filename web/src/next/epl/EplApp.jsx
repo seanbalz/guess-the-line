@@ -39,7 +39,7 @@ export function EplPlay({ route, onRoute, api, accountId, onDirtyChange }) {
   const options = ['guess', 'pick', 'leaderboard'].map(value => ({ value, label: EPL_COPY.sections[value] }));
   return <div className="gx-screen" data-epl-section={section}>
     <h1 className="gx-t-title">{EPL_COPY.tabs.play}</h1>
-    <Segmented label={EPL_COPY.tabs.play} value={section} options={options} onChange={value => onRoute({ tab: 'play', section: value })}/>
+    <Segmented className="gx-epl-play-tabs" label={EPL_COPY.tabs.play} value={section} options={options} onChange={value => onRoute({ tab: 'play', section: value })}/>
     {section === 'pick' ? <PickATeam api={api}/> : section === 'leaderboard'
       ? <EplGuessLeaderboard api={api} accountId={accountId}/>
       : <EplGuess api={api} accountId={accountId} onNavigate={onRoute} onDirtyChange={onDirtyChange}/>}

@@ -1,4 +1,6 @@
 .gx .gx-epl-guesses { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; }
+/* Let the two multiword labels wrap at spaces while keeping Leaderboard intact at 320px. */
+.gx .gx-epl-play-tabs .gx-seg-btn:last-child { flex: 0 0 auto; white-space: nowrap; }
 .gx .gx-epl-guess-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-3); }
 .gx .gx-epl-guess-heading select { display: block; max-width: 100%; min-height: 44px; font: 500 16px/24px var(--gx-font-body); background: var(--gx-surface-2); color: var(--gx-text-1); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); }
 .gx .gx-epl-guess-card { display: flex; flex-direction: column; gap: var(--gx-space-3); }

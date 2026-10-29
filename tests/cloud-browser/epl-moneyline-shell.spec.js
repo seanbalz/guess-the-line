@@ -40,6 +40,9 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
     await expect(page.getByRole('heading', { name: 'Matchweek 17', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Your menu', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByLabel('Your moneyline price', { exact: true }).fill('2147383848');
+    await expect(page.getByRole('button', { name: 'Lock in', exact: true })).toBeDisabled();
+    await expect(page.getByText(/storage limit/)).toBeVisible();
     await page.getByLabel('Your moneyline price', { exact: true }).fill('-135');
     page.once('dialog', async dialog => { dialogs.push(dialog.message()); await dialog.dismiss(); });
     await page.getByRole('button', { name: 'Leaderboard', exact: true }).click();
@@ -67,6 +70,7 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
       await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
       await page.setViewportSize({ width: 320, height: 844 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(await page.getByRole('button', { name: 'Leaderboard', exact: true }).evaluate(button => { const range = document.createRange(); range.selectNodeContents(button); return range.getClientRects().length; })).toBe(1);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
       await page.screenshot({ path: testInfo.outputPath(`moneyline-shared-${theme}-320.png`), fullPage: true });
     }

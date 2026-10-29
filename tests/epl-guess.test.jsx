@@ -11,6 +11,7 @@ const { GuessLeaderboard } = await import('../web/src/next/epl/guess/EplGuessLea
 const { default: PriceStepper } = await import('../web/src/next/epl/guess/PriceStepper.jsx');
 const { default: GuessCard } = await import('../web/src/next/epl/guess/GuessCard.jsx');
 const { default: DistanceLine } = await import('../web/src/next/epl/guess/DistanceLine.jsx');
+const { MAX_GUESS_PRICE } = await import('../shared/epl-moneyline.mjs');
 const { Button } = await import('../web/src/next/ui/index.js');
 const NOW = Date.parse('2099-01-01T00:00:00Z');
 const fixture = { eventId: 'e1', home: 'ARS', away: 'CHE', commenceTime: '2099-01-02T12:30:00Z', status: 'scheduled', kickedOff: false };
@@ -35,6 +36,16 @@ describe('moneyline input and honest results', () => {
     const controls = tree.props.children[1].props.children;
     controls[2].props.onClick(); expect(onChange).toHaveBeenCalledWith('100');
     const html = markup(tree); expect(markupProblems(html)).toEqual([]); expect(html).toContain('inputMode="text"');
+  });
+  it('allows the shared storage-safe boundary and disables a step beyond either edge', () => {
+    for (const sign of [-1, 1]) {
+      const tree = PriceStepper({ value: String(sign * MAX_GUESS_PRICE), onChange: vi.fn(), id: 'edge' });
+      const controls = tree.props.children[1].props.children;
+      expect(controls[sign < 0 ? 0 : 2].props.disabled).toBe(true);
+      expect(controls[sign < 0 ? 2 : 0].props.disabled).toBe(false);
+      const bad = markup(<PriceStepper value={String(sign * (MAX_GUESS_PRICE + 1))} onChange={() => {}} id="bad"/>);
+      expect(bad).toContain('aria-invalid="true"'); expect(bad).toContain('storage limit');
+    }
   });
   it('shows pending vs permanently unscored and captured reference source/time without substituting zero', () => {
     expect(plain(markup(<DistanceLine guess={locked}/>))).toContain('Reference pending');
@@ -152,6 +163,13 @@ describe('account-scoped writes and readback', () => {
     for (const data of [board({ available: false }), board({ ownerId: null }), board({ fixtures: [{ ...fixture, status: 'postponed' }] }), board()]) {
       const api = vi.fn().mockResolvedValue(data), c = createGuessController(api); await c.load(); c.edit('e1', { club: 'ARS', price: '99' }); await c.save('e1', true); expect(api).toHaveBeenCalledTimes(1);
     }
+  });
+  it('refuses wider new guesses but preserves readable legacy stored values', async () => {
+    const legacy = guess({ price: MAX_GUESS_PRICE + 1 }), api = vi.fn().mockResolvedValue(board({ guesses: [legacy] }));
+    const c = createGuessController(api); await c.load();
+    expect(c.getSnapshot().status).toBe('ready'); expect(c.getSnapshot().data.guesses[0].price).toBe(legacy.price);
+    for (const price of [MAX_GUESS_PRICE + 1, -MAX_GUESS_PRICE - 1]) { c.edit('e1', { club: 'ARS', price: String(price) }); await c.save('e1', true); }
+    expect(api).toHaveBeenCalledTimes(1);
   });
   it('old-API reads show a clear unavailable sentence without entry', async () => {
     const c = createGuessController(vi.fn().mockRejectedValue({ status: 404, code: 'GTL_EPL_GUESS_OFF' })); await c.load();

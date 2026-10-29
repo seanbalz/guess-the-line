@@ -1,4 +1,4 @@
-import { fromLine, toLine, validPrice } from '../../../../../shared/epl-moneyline.mjs';
+import { fromLine, toLine, validPrice, validGuessPrice } from '../../../../../shared/epl-moneyline.mjs';
 
 export const priceText = price => validPrice(price) ? price === 100 || price === -100 ? '+100 / −100 (even)' : `${price > 0 ? '+' : '−'}${Math.abs(price)}` : '—';
 export const parsePrice = value => /^[-+−]?\d+$/.test(String(value).trim()) ? Number(String(value).trim().replace('−', '-')) : NaN;
@@ -62,7 +62,7 @@ export function createGuessController(api) {
     if (state.busy || state.uncertain || state.status !== 'ready') return;
     const data = state.data, fixture = data?.fixtures.find(f => f.eventId === eventId), saved = ownGuess(data, eventId);
     const draft = state.drafts[eventId] ?? saved;
-    if (!data.available || !fixture || !data.ownerId || !draft || saved?.status === 'locked' || isClosed(fixture) || ![fixture.home, fixture.away].includes(draft.club) || !validPrice(parsePrice(draft.price))) return;
+    if (!data.available || !fixture || !data.ownerId || !draft || saved?.status === 'locked' || isClosed(fixture) || ![fixture.home, fixture.away].includes(draft.club) || !validGuessPrice(parsePrice(draft.price))) return;
     const id = ++generation, key = `${data.season}/${data.week}`;
     set({ busy: true, notice: null });
     try {
