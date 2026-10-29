@@ -39,9 +39,9 @@ async function setup(page, baseURL, options) {
   await storeBookLines(world, { spread: Object.fromEntries(ids.map(id => [id, -3])), total: Object.fromEntries(ids.map(id => [id, 44])) });
   await sendBallot(world, 'luke', 'guess_total', Object.fromEntries(ids.map(id => [id, 42])));
   await signIn(page, 'luke');
-  await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible({ timeout: 30000 });
   await page.goto('about:blank'); await page.goto('/#lines');
-  await expect(page.getByRole('heading', { name: 'Lines', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Lines', exact: true })).toBeVisible({ timeout: 30000 });
   return { world, synthetic, ids };
 }
 const sheet = page => page.getByRole('dialog', { name: 'Trends', exact: true });
@@ -58,6 +58,69 @@ async function phoneAndAxe(page, theme, testInfo) {
   expect(axe.violations.map(v => v.id)).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath(`synthetic-research-${theme}.png`) });
 }
+
+test('historical evidence keeps readable values, candidate context and chart selection while scrolling', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world, synthetic } = await setup(page, baseURL, { multipleBins: true });
+  try {
+    await openResearch(page);
+    const cards = sheet(page).locator('[data-research-card]');
+    const first = cards.first(), other = cards.nth(1);
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    await expect(first.getByRole('table')).toBeVisible();
+    const table = first.getByRole('table'), region = first.locator('.gx-r-table-wrap');
+    const point = table.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart · Synthetic pattern A', exact: true });
+    const slider = first.getByRole('slider');
+    const calls = synthetic.calls.length;
+    for (const { width, scale } of [{ width: 320, scale: 1 }, { width: 390, scale: 1 }, { width: 320, scale: 2 }]) for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.emulateMedia({ forcedColors, colorScheme: theme });
+      await page.evaluate(({ theme, scale }) => {
+        localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme }));
+        let style = document.getElementById('evidence-text-size');
+        if (!style) { style = document.createElement('style'); style.id = 'evidence-text-size'; document.head.append(style); }
+        style.textContent = scale === 2 ? '.gx .gx-r-table tbody td, .gx .gx-r-table tbody th, .gx .gx-r-period-pick { font-size: 32px; line-height: 40px; } .gx .gx-r-table thead th { font-size: 26px; line-height: 36px; }' : '';
+      }, { theme, scale });
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await expect(table.locator('tbody td').first()).toHaveCSS('font-size', `${16 * scale}px`);
+      await expect(region).toHaveAccessibleName('Historical results table · Synthetic pattern A');
+      await expect(region).toHaveAttribute('tabindex', '0');
+      const selected = await slider.inputValue();
+      await region.evaluate(el => { el.scrollLeft = 0; });
+      await region.focus(); await expect(region).toBeFocused();
+      const wide = await region.evaluate(el => el.scrollWidth > el.clientWidth);
+      if (scale === 2) expect(wide).toBe(true);
+      if (wide) {
+        await page.keyboard.press('ArrowRight');
+        await expect.poll(() => region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+      }
+      await region.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+      await expect(slider).toHaveValue(selected);
+      const units = table.locator('tbody tr').first().locator('td').last();
+      await expect(units).toHaveText('0.82');
+      expect(await units.evaluate(el => el.getBoundingClientRect().right <= el.closest('.gx-r-table-wrap').getBoundingClientRect().right + 1)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+      await region.screenshot({ path: info.outputPath(`evidence-table-${width}-${theme}-${forcedColors}-${scale}x-end.png`) });
+      await point.click(); await expect(point).toBeFocused();
+      await expect(point).toHaveAttribute('aria-pressed', 'true'); await expect(slider).toHaveValue('1');
+      await expect(table.locator('tbody tr').first()).toContainText('2-1-1');
+      await region.screenshot({ path: info.outputPath(`evidence-table-${width}-${theme}-${forcedColors}-${scale}x-start.png`) });
+    }
+    expect(synthetic.calls).toHaveLength(calls);
+    // D-55 keeps one detail open per list. Switching candidates must identify its own table/chart.
+    const firstChart = await point.getAttribute('aria-controls');
+    await other.locator('.gx-tc-row').click();
+    await other.getByRole('button', { name: 'View evidence', exact: true }).click();
+    await expect(other.locator('.gx-r-table-wrap')).toHaveAccessibleName('Historical results table · Synthetic pattern B');
+    const otherPoint = other.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart · Synthetic pattern B', exact: true });
+    expect(await otherPoint.getAttribute('aria-controls')).not.toBe(firstChart);
+    await expect(other.getByRole('slider')).toHaveValue('2');
+    await otherPoint.click(); await expect(otherPoint).toBeFocused();
+    await expect(other.getByRole('slider')).toHaveValue('1');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
 
 test('matchup Research details wait for opening; frame, close, late failure and local retry preserve navigation', async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
@@ -537,8 +600,8 @@ test('Research evidence dates and chart points share selection without changing 
     const first = sheet(page).locator('[data-research-card]').first();
     await first.getByRole('button', { name: 'View evidence', exact: true }).click();
     const table = first.getByRole('table'), slider = first.getByRole('slider');
-    const early = table.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart', exact: true });
-    const last = table.getByRole('button', { name: 'Show period 2 ending 2026-10-20 on chart', exact: true });
+    const early = table.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart · Synthetic pattern A', exact: true });
+    const last = table.getByRole('button', { name: 'Show period 2 ending 2026-10-20 on chart · Synthetic pattern A', exact: true });
     await expect(last).toHaveAttribute('aria-pressed', 'true');
     const detailReads = synthetic.calls.filter(c => c.candidateId === 'synthetic-a').length;
     for (const theme of ['light', 'dark']) {
@@ -587,7 +650,7 @@ test('Research evidence dates and chart points share selection without changing 
     const fallback = sheet(page).locator('[data-research-card="synthetic-opposition"]');
     await fallback.locator('.gx-tc-row').click();
     await fallback.getByRole('button', { name: 'View evidence', exact: true }).click();
-    await fallback.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart', exact: true }).click();
+    await fallback.getByRole('button', { name: 'Show period 1 ending 2025-10-20 on chart · Synthetic pattern Opposition', exact: true }).click();
     await expect(fallback.getByRole('slider')).toHaveValue('1');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
