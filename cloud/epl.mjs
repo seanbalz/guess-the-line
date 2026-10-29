@@ -102,7 +102,7 @@ const snapshotRow = row => ({ label: row.label, week: Number.isInteger(row.week)
     : Object.fromEntries(Object.entries(row).filter(([key, value]) => !SNAPSHOT_META.has(key) && value !== null && value !== undefined)) });
 const part = key => `${key}:payload->${key}`;
 const weekNumber = (re, label) => { const m = re.exec(label); return m ? Number(m[1]) : null; };
-const AFTER_LABEL = /^after-mw0?(\d{1,2})$/;
+const AFTER_LABEL = /^after-mw0?(\d{1,2})(?:-recheck)?$/;
 const BEFORE_LABEL = /^before-mw0?(\d{1,2})-kickoff$/;
 const weekOk = n => Number.isInteger(n) && n >= 1 && n <= 38;
 

@@ -25,7 +25,7 @@ export const FANTASY_DETAIL_WEEKS = 6;
 /** The projected-vs-actual chart's length. */
 export const FANTASY_RECENT_WEEKS = 4;
 
-const AFTER = /^after-mw0?(\d{1,2})$/;
+const AFTER = /^after-mw0?(\d{1,2})(?:-recheck)?$/;
 const BEFORE = /^before-mw0?(\d{1,2})-kickoff$/;
 const round2 = x => Math.round(x * 100) / 100;
 const finite = x => typeof x === 'number' && Number.isFinite(x);
