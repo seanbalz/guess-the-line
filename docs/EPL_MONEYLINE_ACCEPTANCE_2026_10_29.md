@@ -1,10 +1,11 @@
 # EPL moneyline combined acceptance — October 29, 2026
 
-Owner: Sean Balsiger · Version 2
+Owner: Sean Balsiger · Version 3
 
 Sean requested finishing the EPL moneyline API, collection and screens, then deploying once checks pass.
 This integration combines the API, durable collector and shared-shell screen wiring with independent acceptance.
-The live MW9 source gate and M-32 apply are already recorded; **M-36 and this playable batch are not deployed by this record**.
+The live MW9 source gate, M-32 apply and [verified M-36 apply](RELEASE_2026_10_29_M36.md) are recorded.
+The playable API/worker/frontend batch is not deployed by this acceptance record.
 
 ## Reviewed composition
 
@@ -19,7 +20,8 @@ The live MW9 source gate and M-32 apply are already recorded; **M-36 and this pl
 
 The API action-list conflict was resolved by preserving both commissioner correction reads and moneyline actions;
 all explicit reads retain read retries and writes never replay automatically. No other behavior was invented in
-merge resolution. The actual shared-interface PR #379 review/merge remains coordinated with its frontend owner.
+merge resolution. Shared-interface PR #379 merged as `a41f68362acb5165b17ef6f20673d23d1a2c9ec8`;
+its detailed frontend/device evidence remains separate from moneyline gameplay acceptance.
 
 ## Local verification
 
@@ -55,12 +57,14 @@ It adds two private tables and six service-only functions, including the post-lo
 effect-free readiness reader. Applied M-32 remains byte-identical. Dependencies are hosted M-30/M-32;
 pending correction/standings migrations must not be mistaken for prerequisites or applied implicitly.
 
-SELECT-only metadata and preservation queries were validated in local read-only transactions: six matching
-function bodies, two private tables, fourteen existing EPL table fingerprints and three scoring sets. Fresh
-hosted preflight, exact-source CI, migration apply/readback, protected deployment,
-separately authorized moneyline schedule setup/enablement and signed-in hosted verification remain required.
-No source merge is evidence that those effects occurred.
-Sean separately approved “Apply M-36 after checks pass” in the release chat. Collector enablement approval remains pending.
+After all twelve checks passed on `ea1d616af47bcfe983949e951b47e4e63107694d`, PR #384 merged as
+`d04e5c951d3e53fe2b5502b226c3da964955119f`. Sean's named M-36 approval was followed by fresh hosted preflight,
+apply and readback: six exact private invoker functions, two empty private RLS tables, 32 preserved EPL functions,
+fourteen unchanged EPL table fingerprints and three unchanged scoring sets. All eight new live privacy probes
+were denied. [Actual hosted version, hashes and limits](RELEASE_2026_10_29_M36.md).
+Sean separately approved enabling/testing moneyline collection after compatible API/worker deployment.
+Protected releases, actual schedule setup/enablement/test and signed-in hosted verification remain pending.
+No source merge is evidence that those remaining effects occurred.
 
 The moneyline job must be enabled before launch for both timed collection and API post-save refresh. Its
 off switch stops new collection while preserving attempts, private capture provenance and player history.
@@ -70,4 +74,4 @@ window or create a real manager guess to manufacture acceptance.
 
 ## Combined CI integration follow-up
 
-Browser shard 4 exposed an old shared-interface fixture assertion that allowed only lobby/draft reads on EPL Home. The approved Home shortcut now also reads moneyline progress. Its fixture supplies the explicit unavailable-board shape and permits only that additional read, asserting POST plus the authoritative EPL season/week; unrelated NFL reads and writes remain rejected. All four shared-interface browser cases passed locally, and the originally failing profile/sport-switch case passed again with semantic request-body assertions. No product or migration code changed in this repair. Fresh exact-head CI is still required before merge.
+Browser shard 4 exposed an old shared-interface fixture assertion that allowed only lobby/draft reads on EPL Home. The approved Home shortcut now also reads moneyline progress. Its fixture supplies the explicit unavailable-board shape and permits only that additional read, asserting POST plus the authoritative EPL season/week; unrelated NFL reads and writes remain rejected. All four shared-interface browser cases passed locally, and the originally failing profile/sport-switch case passed again with semantic request-body assertions. No product or migration code changed in this repair. All twelve final exact-head checks then passed before merge.

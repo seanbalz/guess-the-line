@@ -480,6 +480,15 @@ there are now 34. Only this version was marked applied; neither a generic
 M-05, M-06 and M-08 remain unapplied. The earlier checklist below is preserved
 as dated evidence and is not a command to replay old migrations.
 
+## October 29 M-36 apply record
+
+The [M-36 apply record](RELEASE_2026_10_29_M36.md) maps repo version `20261029165947` to hosted version
+`20261029183135`. It was applied alone through Supabase MCP after the merged, green moneyline source and Sean's
+named approval. History now has 71 entries; no historical repair command or generic `db push` was run.
+M-33/M-34/M-35 remain unapplied. The canonical applied list is `tests/migrations.mjs`; compatible deployment and
+authorized moneyline activation remain separate from this additive apply. The dated commands below are not an
+operational recipe for the current project; use [the manual release process](SHARED_DEPLOYMENT.md).
+
 ## Release checklist — October 9, 2026
 
 One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 were Sean's, run from the machine with the Supabase and Cloudflare logins, and are **done** (steps 5–7 on October 12, step 8 on October 14). Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).

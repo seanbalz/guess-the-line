@@ -1,6 +1,6 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Reconciled October 28, 2026
+Owner: Sean Balsiger · Reconciled October 29, 2026
 
 The current task list is [the sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md).
 Sean approved finishing the existing redesign and optimizations before expanding
@@ -15,10 +15,11 @@ Implemented and checked locally: NFL/EPL now use the same frame, profile/menu
 and navigation, retain the current primary section when switching, and keep
 sport-specific game modes and data contexts separate. See the
 [scope, test evidence and visual review](SHARED_SPORT_INTERFACE.md).
-This is source/local evidence; hosted release and physical-phone acceptance
-remain separate. Existing EPL moneyline work retains its own owner and gates.
-The skip-link CI correction includes focused regression and both-sport keyboard
-evidence in that record; the coordinated release owner still requires green CI.
+PR #379 merged as `a41f68362acb5165b17ef6f20673d23d1a2c9ec8`; its pinned frontend
+deployment run `40926218502` succeeded. Detailed shared-shell release/device evidence
+is being reconciled separately in PR #385. It does not establish moneyline gameplay
+deployment or phone acceptance. The skip-link correction and both-sport keyboard
+evidence remain in the source record.
 
 ## EPL priority — October 29, 2026
 
@@ -32,7 +33,7 @@ Sean requested parallel EPL work before returning to the remaining approved back
 
 [PR #377](https://github.com/seanbalz/guess-the-line/pull/377) merged as `e220b8d8f7663f55156e019de1d80c44493c440a` after all 12 checks. It atomically includes #370/#371, commissioner correction review, roster display enrichment and standings readiness. This establishes source completion, not new hosted operation or metadata coverage. M-33 remains unapplied; correction operation needs the M-35 cutoff guard and operator prerequisites.
 
-Current follow-ons: #378 standings persistence/resolver input (migration-order repair pushed; fresh CI pending); #380 finalization/order corrections (two review findings repaired, fresh CI pending); #381 moneyline UI (published, CI/combined acceptance pending). Actual API, collector and shared-shell integration are in local source/acceptance work. [Current ownership, heads and remaining gates](EPL_NEXT_BATCH_2026_10_29.md) distinguish those states. Full MW9 → MW10 operation and physical-phone acceptance remain open. The release owner retains hosted writes/deployments; the frozen v62 tracker is unchanged.
+PR #384 merged the reviewed API, collector, moneyline/Home/leaderboard screens, canonical rules and correction/standings compatibility source as `d04e5c951d3e53fe2b5502b226c3da964955119f`, after all twelve checks passed on `ea1d616af47bcfe983949e951b47e4e63107694d`. Component PRs #378/#381/#382/#383 are merged/closed; #380's reviewed source was superseded by the combined branch. M-33/M-34/M-35 remain unapplied with their operator/source prerequisites. M-36 is [applied and verified](RELEASE_2026_10_29_M36.md), and Sean approved moneyline enablement/testing after compatible API/worker deployment. The moneyline releases, actual activation and signed-in readback remain pending; full MW9 → MW10 operation and moneyline physical-phone acceptance remain open. The frozen v62 tracker is unchanged.
 
 ## October 29 — Balanced logo and favicon
 
@@ -812,7 +813,7 @@ No additional palette, navigation or chart-direction answer is needed to continu
 
 ## October 29 NBA visibility and EPL reconciliation
 
-Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Current release evidence and remaining EPL scope](RELEASE_2026_10_29_NBA_EPL.md) supersede the older not-deployed entries. The live DNB gate and M-32 apply are verified. API, durable collector and shared-shell screens now pass [combined local acceptance](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md); final CI, M-36 apply/activation and production release remain pending.
+Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Current release evidence and remaining EPL scope](RELEASE_2026_10_29_NBA_EPL.md) supersede the older not-deployed entries. The live DNB gate and M-32 apply are verified. API, durable collector and shared-shell screens pass [combined acceptance](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md) and merged CI; [M-36 is applied](RELEASE_2026_10_29_M36.md). Exact-main deployment CI, actual activation and production readback remain pending.
 
 ## EPL moneyline combined source acceptance — October 29
 
@@ -820,5 +821,7 @@ API, durable shared collection and shared-shell moneyline/leaderboard screens ar
 verified together: 534 Node/SQL checks, 89 component checks, ten actual-service flows and six full-page
 Axe analyses passed. [Composition, evidence and release limits](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md).
 Home includes own locked-match progress and a working moneyline shortcut; saved/reference values use the existing glass tokens.
-M-36 remains NOT_HOSTED and the new moneyline job is not enabled; source merge/CI and protected release
-remain separate from the already verified M-32 and live DNB gate. Physical-phone acceptance remains open.
+M-36 is applied as hosted `20261029183135`: six exact private invoker functions, two empty private RLS tables,
+all 32 prior EPL functions and 17 data/scoring sets preserved, and eight strict live denials. The new moneyline
+job is not enabled. Protected releases and approved activation still require execution and readback.
+Moneyline physical-phone acceptance remains open.
