@@ -1,12 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { awaitingDeploy, checkCloudBoundary } from '../scripts/check-cloud-boundary.mjs';
+import { NOT_HOSTED } from './migrations.mjs';
 
 const options = { url: 'https://onmrgvcehkflfaizvedl.supabase.co', key: 'sb_publishable_boundary_fixture', log() {} };
 function denied(url, request) {
   const schema = request.headers['Accept-Profile'];
   return new Response(JSON.stringify({ code: schema ? 'PGRST106' : '42501', message: 'Permission denied.' }), { status: schema ? 406 : 401 });
 }
+
+test('hosted M-32 tables and all six RPCs must deny access, not disappear or grant it', async t => {
+  const paths = [
+    '/rest/v1/gtl_epl_guesses?', '/rest/v1/gtl_epl_guess_history?',
+    ...['moneyline_distance', 'guess_json', 'save_guess', 'resolve_pending_references', 'guess_board', 'guess_leaderboard']
+      .map(name => `/rest/v1/rpc/gtl_epl_${name}`),
+  ];
+  for (const target of paths) {
+    await t.test(target, async () => {
+      let seen = 0;
+      await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => {
+        if (url.includes(target)) { seen++; assert.equal(request.headers.Authorization, undefined); }
+        return denied(url, request);
+      } });
+      assert.equal(seen, 1, 'each newly hosted boundary is actually probed');
+      for (const status of [200, 404]) await assert.rejects(() => checkCloudBoundary({ ...options, strict: true,
+        fetchImpl: async (url, request) => url.includes(target)
+          ? new Response(JSON.stringify({ code: 'PGRST202' }), { status }) : denied(url, request),
+      }), new RegExp(`unexpected ${status}`));
+    });
+  }
+});
 
 test('boundary probes reviewed results without credentials, real actors or valid write payloads', async () => {
   const captured = [];
@@ -449,9 +472,13 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const key of ['rpc/gtl_place_bets', 'rpc/gtl_bets_newest_quote', 'rpc/gtl_bets_terms', 'gtl-api/bets/place']) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
   // M-19 is hosted since October 28, 2026 (RELEASE_2026_10_28_AUTO_SETTLE.md): nothing awaits deploy.
   for (const key of Object.keys(m19)) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
-  assert.deepEqual(awaitingDeploy, {}, 'nothing is awaiting deploy');
+  for (const [key, until] of Object.entries(awaitingDeploy)) {
+    const version = /^(\d{14})\b/.exec(until);
+    assert.ok(version, `${key}: pending descriptors name their migration version`);
+    assert.ok(NOT_HOSTED.includes(Number(version[1])), `${key}: an applied migration cannot retain an absence exception`);
+  }
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
-  assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
+  assert.equal(result.awaiting.length, 0, 'every present resource must deny access, even while its rollout is pending');
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
     ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /lines\/teams without session: unexpected 404/);
   // M-27 and M-28 are hosted and deployed: a missing History or Export function or route is now an unexpected 404.
