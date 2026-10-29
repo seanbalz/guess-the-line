@@ -52,7 +52,8 @@ callers, one two-minute lease at a time, at most one refresh per accepted lock, 
 and stored kickoff (week open, then within three hours before kickoff). A missed open checkpoint is not replayed after
 the late checkpoint begins. Failed and uncertain attempts consume the same limits before network I/O. Restarting the
 worker cannot reset counters/checkpoints. Auth/rate-limit failures add shared five-minute backoff, and a scheduled batch
-stops at its first unavailable event. The separate disabled job checks at most ten candidates per tick and reports
+stops at its first unavailable event. Candidate planning omits events already at their daily cap so one capped
+match cannot starve other due matches. The separate disabled job checks at most ten candidates per tick and reports
 refreshed/cached/unavailable counts only.
 
 Each source call is one bounded event request, without redirects/retries, and retains the raw-response SHA-256,
@@ -62,7 +63,7 @@ minutes before collection. Three-way, unknown, missing, stale or future evidence
 The median uses the normalized American line where −100 equals +100, including even-count half-away rounding.
 No timestamp, club name, price or missing market is invented.
 
-Finish revalidates the lease/token, current fixture identity/kickoff, enabled state, bounded source evidence and trusted
+Finish revalidates the lease/token, current fixture identity/kickoff and its current matchweek gate, enabled state, bounded source evidence and trusted
 current time. A result arriving at/after kickoff, after lease expiry or after rescheduling writes no prices/reference,
 even if it claims an earlier observation. Its quota still reduces the budget when available. Duplicate finish is inert.
 
@@ -77,7 +78,8 @@ rolling back other managers' valid references. This is not a zero score or a cla
 
 ## Source validation and remaining work
 
-Local validation: **464 targeted Node tests passed, zero skips**, including the complete EPL suites, rollback/migration
+Local validation: **464 broad targeted Node tests passed, zero skips**, followed by 192 targeted tests after the
+current-week/cap guard review. The final worker contract regression rejects malformed due state without a request. Coverage includes the complete EPL suites, rollback/migration
 checks, boundary/pending-table/area suites and weather attribution regression. Typecheck, 14 token tests, Brand QA, cloud
 build and bundle-only privacy checks passed (existing large-chunk warning only). The checks include real PGlite admission/finish flows on M-30/M-31/M-32 without pending migrations, concurrent
 manager leases, sticky gate history, disabled pending locks, quota floor/no raise/no refund, bounded timings/checkpoints,
