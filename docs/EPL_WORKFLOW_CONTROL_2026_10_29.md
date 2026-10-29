@@ -125,3 +125,31 @@ physical iPhone Safari/Home Screen acceptance remains separate. All remaining
 items above have a named owner or an explicit source, product-rule, release or
 future-event dependency. Return to the non-EPL queue after those boundaries are
 recorded; do not label them complete to clear the work list.
+
+## First-batch production readback — October 29, 16:18 UTC
+
+This addendum supersedes the first batch's pending CI/release statuses in the preparation snapshot above.
+PRs #364–#369 are included in pinned source `5c1b775f05a69306f20f911f4b0455c207c65ffc`; all exact-main
+checks passed. The [frontend release 40907820747](https://github.com/seanbalz/guess-the-line/actions/runs/40907820747)
+and [EPL worker release 40909688078](https://github.com/seanbalz/guess-the-line/actions/runs/40909688078)
+succeeded. Pages `72eb400b-77df-4ef0-944f-8ceb7b04c38f` serves the verified 124 assets; worker v2 is ACTIVE.
+API remains v42. Both release verifications denied all 385 boundary probes and retained the reviewed migration digest.
+
+Independent signed-in desktop readback confirms NBA is absent from sport navigation and Research → Play opens
+Pick a Team. Hosted function hashes, grants/RLS, five schedules/cron entries and five saved-player table digests
+were preserved. The scheduled nudge's post-deploy `nothing_due` result is an invocation check, not proof of push
+delivery or settlement. See the [complete release record](RELEASE_2026_10_29_NBA_EPL.md) for versions, hashes,
+approval, preservation, rollback and verification limits.
+
+M-32 is still NOT_HOSTED; M-33 and the next correction/player-metadata batch remain outside this release.
+No DNB schedule or provider check was enabled. The moneyline API/collector/UI, current standings integration,
+first full matchweek cycle and physical-phone acceptance retain their existing exit criteria.
+
+## M-32 apply addendum — October 29, 16:24 UTC
+
+Sean subsequently said “Apply M-32” in the release chat. Supabase recorded hosted version `20261029162422`;
+[the dated apply record](RELEASE_2026_10_29_M32.md) verifies six exact new functions, two private empty tables,
+all 26 prior bodies and all 13 protected record/scoring digests unchanged. The canonical ledger is updated.
+Migration history is now 70 entries, digest `904f30b98e82e3705f72f2bc8efc787352bb616bbed0b3433f461041596803c1`.
+This supersedes the M-32 pending statements in the earlier preparation/release snapshots, not the remaining
+DNB enablement, actual market verdict, M-33 or moneyline API/collector/UI gates. No DNB schedule or run exists.

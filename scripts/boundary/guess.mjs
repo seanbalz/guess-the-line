@@ -12,10 +12,19 @@ export const tables = Object.freeze([
   'result_review_lock', 'reviewed_result_events', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'ruled_ballot_imports', 'week_forfeits',
   // P-03 (hosted since October 26, 2026, RELEASE_2026_10_26_POINTS_JOBS.md): the Points job schedule and its run queue.
   'points_job_schedule', 'points_job_runs',
+  // M-32 (hosted October 29, 2026): private EPL moneyline guesses and append-only history.
+  'epl_guesses', 'epl_guess_history',
 ]);
 
 /** [rpc, inert body]: each is called anonymously and must be denied. */
 export const rpcChecks = Object.freeze([
+  // M-32: service-only. No real actor/event, valid guess, or clock is supplied to a writer.
+  ['gtl_epl_moneyline_distance', { p_guess: -100, p_real: 100 }],
+  ['gtl_epl_guess_json', { p_g: null, p_kickoff: null, p_at: null }],
+  ['gtl_epl_save_guess', { p_user: missingId, p_event_id: 'boundary-missing-event', p_club: 'invalid', p_price: 0, p_lock: false, p_now: null }],
+  ['gtl_epl_resolve_pending_references', { p_event_id: 'boundary-missing-event' }],
+  ['gtl_epl_guess_board', { p_user: missingId, p_season: 2026, p_week: 0 }],
+  ['gtl_epl_guess_leaderboard', { p_season: 0 }],
   ['gtl_weekly_slate', { p_state: {} }],
   ['gtl_submission_reference', { p_payload: {}, p_game: {}, p_market: 'spread', p_saved: null }],
   ['gtl_submission_intent_context', { p_user: missingId, p_intent: {} }],
