@@ -13,7 +13,9 @@ import './styles.css';
 // The Google Fonts stylesheet loads as media="print" so it never blocks the first paint (display=swap shows the system
 // fallback until the webfont arrives); it applies to the screen as soon as the app starts.
 document.querySelector('link[data-gtl-fonts]')?.setAttribute('media', 'all');
-const App = lazy(() => import('./App.jsx'));
+// The old app is only for the local (non-cloud) build. The test is written on the raw env values so Vite inlines them
+// and a cloud build drops the App chunk entirely (D-65, RETIRE-04): no old-app code is published with the new app.
+const App = import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ? null : lazy(() => import('./App.jsx'));
 // D-38: the new app is one lazy chunk (with its own CSS). It is the only app a signed-in member can open (appView.js).
 const NextApp = lazy(() => import('./next/NextApp.jsx'));
 
@@ -42,4 +44,4 @@ function SignedIn(props) {
   </SportEntry>;
 }
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><ThemeProvider>{cloudRequested ? <AuthGate>{props => <SignedIn key={props.session.user.id} {...props}/>}</AuthGate> : <DeferredScreen label="your league"><App/></DeferredScreen>}</ThemeProvider></React.StrictMode>);
+createRoot(document.getElementById('root')).render(<React.StrictMode><ThemeProvider>{cloudRequested ? <AuthGate>{props => <SignedIn key={props.session.user.id} {...props}/>}</AuthGate> : App && <DeferredScreen label="your league"><App/></DeferredScreen>}</ThemeProvider></React.StrictMode>);

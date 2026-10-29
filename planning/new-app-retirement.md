@@ -130,7 +130,7 @@ routing from the redesign plan, not assigned workers.
 |---|---|---|---|---|---|---|
 | RETIRE-01 | P0 | Reconcile the active build and prove record/workflow preservation | Open — source matching done; destinations, draft recovery and preservation verification remain | A + B + C + E / TBD | Matched deployed source; full inventory; stages 28–31, 47, 72–78 | Not committed |
 | RETIRE-02 | P0 | Make the new app the only runtime and remove every classic escape path | Built October 28 (D-65): the new app is the only runtime; no escape path, `?app=classic` dropped, failures reload; commissioner tools still need new homes | A / TBD | RETIRE-01; stages 9–11, 37, 76–80; shared-shell acceptance | Not committed |
-| RETIRE-03 | P0 | Close old hosted entry points and verify cutover on existing devices | Open — October 28 read-only [inventory](../docs/RETIRE_03_INVENTORY_2026_10_28.md): production is new-app only; 47 of 48 recorded deployment URLs still serve an old-app build against the hosted API; closure plan awaits Sean's approval | Integration / TBD | RETIRE-01/02; release checks; actual hosting access | Not committed |
+| RETIRE-03 | P0 | Close old hosted entry points and verify cutover on existing devices | Open — October 28 read-only [inventory](../docs/RETIRE_03_INVENTORY_2026_10_28.md): production is new-app only; 47 of 48 recorded deployment URLs still serve an old-app build against the hosted API; step 1 done October 28: every non-production URL now redirects to Cloudflare Access (49 checked); deletion (step 2) and device checks await approval | Integration / TBD | RETIRE-01/02; release checks; actual hosting access | Not committed |
 | RETIRE-04 | P1 | Remove unused old UI code while preserving recovery evidence | Open — follows verified cutover | A / TBD | RETIRE-03; stage 81; dependency audit | Not committed |
 
 ### RETIRE-01 — preservation before access removal
@@ -202,7 +202,13 @@ routing from the redesign plan, not assigned workers.
   still needs the Cloudflare login. No custom domain or preview alias is
   recorded; the service worker never cached pages. The proposed closure plan
   (Access policy on non-production URLs, then deletion after RETIRE-01 backups)
-  waits for Sean's approval.
+  was proposed for approval.
+- **Step 1 done October 28:** Sean approved; Preview access (*Restrict
+  previews*) is on for the Pages project. Re-check October 29 01:04 UTC: all 49
+  deployment URLs checked return HTTP 302 to Cloudflare Access; production returns
+  HTTP 200 with no `GameHub` chunk. The old deployments still exist behind
+  Access; step 2 (deletion after RETIRE-01 backups) and step 4 (device checks)
+  wait for Sean's approval.
 - Inventory canonical/custom domains, preview/branch and historical deployment
   URLs and any separately served legacy build. Redirect or disable old hosted
   entry points without deleting player records; changing the current frontend
