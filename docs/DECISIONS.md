@@ -167,6 +167,17 @@ Sean selected: **"Preserve picks; flag for review (recommended)"**.
     flag must be visible, not merely an unseen job/audit status. It is not a
     migration apply or production-deployment approval.
 
+**Addendum — Midweek EPL finalization (October 29, 2026).** Asked whether to
+finalize midweek rounds once results and the next Sleeper week are verified, or
+wait for the following Monday, Sean selected **"Finalize once verified (recommended)"**.
+
+24. **Midweek finalization.** Finalize a midweek round as soon as all results and
+    the exact next Sleeper week/season are verified, with complete valid scoring
+    totals. Do not wait for the following Monday merely because the round was
+    played midweek. Missing, incomplete or out-of-interval source evidence remains
+    pending; it does not authorize invented finals or bonuses. Tuesday correction
+    checks and item 23's preservation rule remain separate requirements.
+
 ## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
 
 Sean chose Q06 next, then, asked where the new placing screen (redesign stages 43 and 44) should live: "Replace Your
