@@ -1,6 +1,6 @@
 # Research and shared NFL/EPL interface release — October 29, 2026
 
-Owner: Sean Balsiger · Version 1
+Owner: Sean Balsiger · Version 2
 
 ## Authorization and source
 
@@ -99,7 +99,7 @@ as physical evidence.
 | NFL Home → EPL Home → NFL Home | Home stayed selected; sport-specific Home content loaded, shared profile/navigation retained |
 | EPL Play → NFL Play → EPL Play | Play stayed selected; sport-specific content retained and shared profile/navigation visible |
 | EPL Bets → NFL Bets | Bets stayed selected; existing NFL ticket counts loaded and shared profile/navigation retained |
-| NFL Bets → EPL Bets | Unverified after intermittent automated/manual input attempts; controlled physical recheck still required |
+| NFL Bets → EPL Bets | User confirmed the direct physical-phone transition; operator then observed EPL selected, Bets active, same avatar/header/four-tab navigation in the mirror |
 
 Pointer input intermittently returned `noWindowsAvailable` despite a visible
 mirror. Native window focus actions sometimes restored taps; Safari keyboard
@@ -110,19 +110,29 @@ ambiguous Home observation across that interruption was excluded; controlled
 Play transitions were subsequently verified in both directions. Failed inputs
 are not classified as product failures or successful interactions.
 
-The final reverse Bets switch was prepared on loaded NFL Bets. Sean was asked
-for one manual EPL click in the Mac mirror, reported done through the coordinated
-chat, and directly asked this chat to retry. Fresh observations around these
-interrupted attempts showed Home instead of a reliable EPL Bets endpoint; a
-later snapshot showed EPL Home. Those ambiguous observations are not accepted
-as a successful Bets transition or a reproducible application defect. Additional
-controlled retries still encountered input failures. The final phone state was
-Safari on loaded NFL Bets; no final reverse-Bets pass is claimed. Re-establish a
-reliable input surface and reproduce this specific transition before closing it.
+The final reverse Bets transition required user assistance. Seven directional
+switches were operator-observed using working taps or visibly focused keyboard
+activation. For the eighth, Sean answered the coordinated direct-phone question
+“On the iPhone itself, open NFL → Bets, then tap EPL. Does EPL Bets stay selected
+with your profile and the same bottom navigation visible?” with “Yes — EPL Bets,
+profile, and navigation stay visible.” That human reply was read back from the
+shared-interface chat. The operator separately observed the actual final EPL
+Bets endpoint in Mirroring, and the other owner independently reviewed its saved
+screenshot. This is a user-confirmed transition with an operator-observed
+endpoint, not a successful automated final tap. Earlier ambiguous Home snapshots
+remain excluded; they are not treated as application defects.
+
+The bounded physical Safari matrix is therefore complete. EPL Bets displays the
+existing “Bets aren't available for the Premier League” message and an otherwise
+mostly empty content area. That is the deployed unavailable-feature state, not
+a failed content load. The shared-shell pass does not deliver EPL Bets; the
+separate moneyline guessing screens belong under Play and do not themselves
+implement this Bets destination. Sport-specific delivery gaps remain open.
+The final observed phone state is Safari → EPL → Bets in the original Light theme.
 
 Private screenshots and the ordered local log record only actually observed
-results. The ambiguous Home capture is named accordingly rather than labelled
-as an EPL Bets pass. They remain ignored local evidence because they contain
+results. The ambiguous Home capture is named accordingly; the final EPL Bets image
+contains the actually observed final endpoint. They remain ignored local evidence because they contain
 account/game information, not public repository assets.
 
 Existing tabs, installation, storage, drafts and original phone/app appearance

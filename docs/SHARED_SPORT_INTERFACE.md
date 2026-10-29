@@ -6,10 +6,11 @@ Release checkpoint: PR #379 merged green as
 `a41f68362acb5165b17ef6f20673d23d1a2c9ec8` and the combined frontend release
 passed with all 125 assets verified. [Production and desktop readback](RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md)
 confirm the same profile/menu/navigation and current primary section across both
-sports. Physical Safari confirms Research, matching profiles, both Home/Play/
-Research directions and EPL→NFL Bets; the reverse Bets switch remains pending
-a controlled physical recheck after intermittent mirroring input and ambiguous
-Home observations.
+sports. Physical Safari confirms loaded Research, matching profiles and all four
+primary sections in both directions. The final NFL→EPL Bets transition was
+user-confirmed directly on the phone with its endpoint separately observed;
+seven other directions were operator-observed. Unavailable EPL Bets content and
+other sport-specific delivery gaps remain separate.
 Source/local-only statements below describe the implementation phase;
 this checkpoint supersedes their merge/release-pending status.
 
