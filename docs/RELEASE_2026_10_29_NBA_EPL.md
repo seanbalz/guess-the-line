@@ -26,7 +26,7 @@ GitHub verifies the API/frontend release [40829236564](https://github.com/seanba
 
 ## Remaining scope
 
-EPL moneyline (D-68 plan 3) has tested rules, private schema source and a bounded DNB check, but its API routes, regular collector and playable UI remain unfinished behind the live odds-source gate. M-32 `20261029150000_gtl_epl_moneyline.sql` remains pending and no DNB schedule is created or enabled. M-33 correction work, player metadata enrichment and commissioner review follow-ons are outside this pinned release. Future MW9 settlement, MW10 automatic order, final manager linking and physical-phone acceptance remain separate. No date-dependent outcomes are fabricated. See the [workflow control record](EPL_WORKFLOW_CONTROL_2026_10_29.md).
+EPL moneyline (D-68 plan 3) has tested rules, private schema source and a bounded DNB check, but its API routes, regular collector and playable UI remain unfinished behind the live odds-source gate. M-32 was pending during the code release and was subsequently [applied and verified](RELEASE_2026_10_29_M32.md) on Sean’s named approval. No DNB schedule is created or enabled. M-33 correction work, player metadata enrichment and commissioner review follow-ons are outside this pinned release. Future MW9 settlement, MW10 automatic order, final manager linking and physical-phone acceptance remain separate. No date-dependent outcomes are fabricated. See the [workflow control record](EPL_WORKFLOW_CONTROL_2026_10_29.md).
 
 ## Signed-in desktop readback
 
@@ -61,4 +61,4 @@ Worker source-only verification [40908417519](https://github.com/seanbalz/guess-
 
 The workflow deployed the clean pinned checkout and verified remote version/status/hash, but did not independently match the remote worker bundle bytes to source. No migration, seed, claim, queue, DNB schedule, provider configuration or kickoff lock was changed. The worker run did not redeploy the frontend.
 
-Rollback remains a reviewed code revert followed by the exact-source release process; preserve all hosted data and migration history. M-32 is fix-forward and remains unapplied. The separate [M-32 workflow record](EPL_MONEYLINE_WORKFLOW_2026_10_29.md) describes its next gates.
+Rollback remains a reviewed code revert followed by the exact-source release process; preserve all hosted data and migration history. M-32 is fix-forward; its subsequent separately authorized apply is recorded in [the M-32 release](RELEASE_2026_10_29_M32.md). The separate [M-32 workflow record](EPL_MONEYLINE_WORKFLOW_2026_10_29.md) describes its next gates.

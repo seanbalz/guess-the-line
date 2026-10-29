@@ -144,3 +144,12 @@ approval, preservation, rollback and verification limits.
 M-32 is still NOT_HOSTED; M-33 and the next correction/player-metadata batch remain outside this release.
 No DNB schedule or provider check was enabled. The moneyline API/collector/UI, current standings integration,
 first full matchweek cycle and physical-phone acceptance retain their existing exit criteria.
+
+## M-32 apply addendum — October 29, 16:24 UTC
+
+Sean subsequently said “Apply M-32” in the release chat. Supabase recorded hosted version `20261029162422`;
+[the dated apply record](RELEASE_2026_10_29_M32.md) verifies six exact new functions, two private empty tables,
+all 26 prior bodies and all 13 protected record/scoring digests unchanged. The canonical ledger is updated.
+Migration history is now 70 entries, digest `904f30b98e82e3705f72f2bc8efc787352bb616bbed0b3433f461041596803c1`.
+This supersedes the M-32 pending statements in the earlier preparation/release snapshots, not the remaining
+DNB enablement, actual market verdict, M-33 or moneyline API/collector/UI gates. No DNB schedule or run exists.

@@ -25,7 +25,7 @@ Frontend run `40907820747` and EPL worker run `40909688078` passed; worker v2 is
 active, NBA navigation is hidden and EPL Research → Play works in signed-in
 desktop readback. [Release evidence](RELEASE_2026_10_29_NBA_EPL.md) records
 124 matching assets, 385/385 denied probes and unchanged saved-player hashes.
-M-32/M-33 and DNB enablement remain separate gates; correction and player metadata
+M-32 is now [applied and verified](RELEASE_2026_10_29_M32.md); M-33 and DNB enablement remain separate gates; correction and player metadata
 follow next. This release does not complete moneyline or physical-phone acceptance.
 
 ## October 29 — Balanced logo and favicon
@@ -93,8 +93,8 @@ establishes deployment. This task has not deployed the app or applied SQL.
 | EPL open access and automatic linking | [M-31 is applied](RELEASE_2026_10_29_M31.md); its function hashes and service-only permissions match current source. Fresh October 29 aggregate readback shows eight managers, seven linked. Confirmed-account open reads and audited auto-link/claim flows are implemented. | Remaining manager must claim or be linked by the commissioner under the existing identity flow. Agent acceptance covers account switching, aliases, claim conflicts and private queues without changing a real account; real phone acceptance remains separate. Manual links remain manual audit events. |
 
 EPL moneyline readiness is separately published in [PR #367](https://github.com/seanbalz/guess-the-line/pull/367):
-pure rules, service-only pending M-32 and a disabled `dnb-check` path. These are
-merged source changes, with M-32 still NOT_HOSTED. The real DNB gate has never run; routes, ongoing
+pure rules, service-only M-32 and a disabled `dnb-check` path. M-32 is now
+[applied and verified](RELEASE_2026_10_29_M32.md), hosted as `20261029162422`. The real DNB gate has never run; routes, ongoing
 collection and player screens remain gated and are not completed by this PR.
 
 The independent [NBA/EPL release-verification record](RELEASE_2026_10_29_NBA_EPL.md)

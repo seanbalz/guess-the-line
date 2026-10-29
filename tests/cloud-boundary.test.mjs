@@ -8,6 +8,28 @@ function denied(url, request) {
   return new Response(JSON.stringify({ code: schema ? 'PGRST106' : '42501', message: 'Permission denied.' }), { status: schema ? 406 : 401 });
 }
 
+test('hosted M-32 tables and all six RPCs must deny access, not disappear or grant it', async t => {
+  const paths = [
+    '/rest/v1/gtl_epl_guesses?', '/rest/v1/gtl_epl_guess_history?',
+    ...['moneyline_distance', 'guess_json', 'save_guess', 'resolve_pending_references', 'guess_board', 'guess_leaderboard']
+      .map(name => `/rest/v1/rpc/gtl_epl_${name}`),
+  ];
+  for (const target of paths) {
+    await t.test(target, async () => {
+      let seen = 0;
+      await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => {
+        if (url.includes(target)) { seen++; assert.equal(request.headers.Authorization, undefined); }
+        return denied(url, request);
+      } });
+      assert.equal(seen, 1, 'each newly hosted boundary is actually probed');
+      for (const status of [200, 404]) await assert.rejects(() => checkCloudBoundary({ ...options, strict: true,
+        fetchImpl: async (url, request) => url.includes(target)
+          ? new Response(JSON.stringify({ code: 'PGRST202' }), { status }) : denied(url, request),
+      }), new RegExp(`unexpected ${status}`));
+    });
+  }
+});
+
 test('boundary probes reviewed results without credentials, real actors or valid write payloads', async () => {
   const captured = [];
   await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
