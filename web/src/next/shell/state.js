@@ -32,6 +32,7 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
+  || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))
   || (tab === 'trends' && !Object.hasOwn(patch, 'window') && ['teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.trends?.[key] ?? null)))
 );
 export const canGoBack = state => hasLayers(state) || state.trail.length > 0 || isDetail(state);
@@ -85,13 +86,23 @@ const closed = { sheets: [], dialog: null, popover: null, page: null };
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
-const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend'];
+const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'fantasyLayer', 'fantasyPlayer'];
 function originView(current, prior, detail) {
   const view = { ...prior, ...current };
   for (const key of detail ? ROUTE_KEYS : ['section', 'view']) view[key] = prior?.[key];
   return view;
 }
-const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...view }]));
+/** Whether applying `patch` to `tab`'s view reproduces the trail's last place (same tab, section and route keys). */
+function returnsToPrior(state, tab, patch) {
+  const prior = state.trail.at(-1);
+  if (!prior || prior.tab !== state.tab || hasLayers(state)) return false;
+  const { adapter } = destination(tab, patch);
+  const before = adapter ? prior.adapters?.[adapter] : prior.view;
+  if (!before || (adapter && (prior.view?.section ?? null) !== (state.views[state.tab]?.section ?? null))) return false;
+  const after = { ...state.views[adapter ?? tab], ...patch };
+  return ROUTE_KEYS.every(key => (after[key] ?? null) === (before[key] ?? null));
+}
+const mergeAdapters =(views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...view }]));
 
 /** Every layer that is open, overlays queued behind the first one included. */
 export function layerCount(state) {
@@ -131,7 +142,12 @@ export function reduce(state, action) {
     }
     case 'view': {
       if ((!isTab(action.tab) && !LEGACY_TABS.includes(action.tab)) || !isRecord(action.patch)) return state;
-      if (navigationPatch(state, action.tab, action.patch)) return reduce(state, { type: 'go', tab: action.tab, view: action.patch });
+      if (navigationPatch(state, action.tab, action.patch)) {
+        // D-66: a step that lands exactly on the previous place (a nesting card's lip to its parent) goes back, so the
+        // next Back leaves the section instead of reopening the layer just closed.
+        if (returnsToPrior(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
+        return reduce(state, { type: 'go', tab: action.tab, view: action.patch });
+      }
       return { ...state, views: withView(state.views, action.tab, action.patch) };
     }
     case 'back': {

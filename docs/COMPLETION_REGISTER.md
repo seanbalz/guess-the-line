@@ -693,6 +693,17 @@ explanation, the period-split note, the reference note, the line source and the 
 visible labels and the period table stay. Nesting cards now enter with a short slide only, with no fade or scale,
 because checks caught text mid-fade below its contrast. Not released.
 
+**Sixth rollout: Research › Fantasy**, on branch `claude/research-nesting-fantasy`. The new-app `FantasyNest.jsx`
+replaces the wrapped old `FantasyFootball` rankings; the same `shared/fantasy-*` engine, reads and gates stay.
+
+- **Rankings card:** one meta line, then period, season, week, scoring and position. The other filters sit under
+  “More filters”, and tiles open the report card and Compare. Each ranked player is one tile with one big estimate.
+- **Player layer:** the estimate, trends as tiles, the matchup behind a disclosure, and the profile and compare tools.
+  The method, scoring, sources and trend sentences sit behind ⓘ.
+- **Lips now go back:** a lip that returns to the place just before goes back instead of adding a step, in every
+  nesting card, so Back after a lip leaves the section.
+- **Not done:** release and the real-phone check.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance

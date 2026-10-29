@@ -92,3 +92,12 @@
 .gx .gx-fantasy-chosen-name:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 @media (max-width: 359px) { .gx .gx-fantasy-table { font-size: 13px; } }
 .gx .gx-fantasy-compare .gx-seg-btn { white-space: nowrap; padding: 0 8px; }
+
+/* D-66: a ranked player is one tile; the opened player is the next layer. */
+.gx .gx-fantasy-row { gap: var(--gx-space-2); }
+.gx .gx-fantasy-row-top { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; gap: var(--gx-space-3); align-items: start; width: 100%; }
+/* The Compare layer's heading already names the comparison card: keep the card's own heading for assistive tech only. */
+.gx .gx-nest-card .gx-fantasy-compare > #gx-fantasy-compare-title { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.gx .gx-fantasy-row-meta { display: flex; flex-wrap: wrap; gap: var(--gx-space-1) var(--gx-space-3); }
+/* Disclosures in the Fantasy layers (More filters, This week's matchup) are 44px controls like the rest. */
+.gx .gx-fantasy .gx-tr-details > summary { display: flex; align-items: center; min-height: var(--gx-size-touch); cursor: pointer; overflow-wrap: anywhere; }
