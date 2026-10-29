@@ -24,6 +24,14 @@ remain required. Player pick deadlines and locks are unchanged.
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
+**Deployment status update — October 29, 2026:** M-30 and M-31 are applied;
+API v42 and EPL jobs v1 are active. See the dated [M-30](RELEASE_2026_10_29_M30.md)
+and [M-31](RELEASE_2026_10_29_M31.md) release records and the fresh
+[workflow verification](EPL_WORKFLOW_CONTROL_2026_10_29.md). The original
+"not deployed/not applied" wording below describes the decision's initial state;
+it is not an instruction to reapply these migrations. Moneyline M-32 and its
+live DNB verdict remain pending. Product rules and later addenda still govern.
+
 **Status: approved by Sean on October 28, 2026.** It adopts the design in
 [docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md](superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md)
 (mockups v3), including the twelve "calls I made" in its section 10. Plan 1
@@ -145,6 +153,19 @@ item 14's "linked managers and the commissioner only" for `epl/fantasy/read`. No
 22. **Known risk (accepted).** An account could rename itself to an unclaimed manager's name, or claim a manager that is
     not theirs, before the real manager does. Sean accepts this because FEPL is 8 friends. Every link is audited and the
     commissioner can unlink, which the account cannot undo itself, and relink.
+
+**Addendum — Tuesday stat corrections after drafting starts (October 29, 2026).**
+Asked whether to preserve picks and flag a changed next-draft order for review,
+Sean selected: **"Preserve picks; flag for review (recommended)"**.
+
+23. **Preserve and flag.** If Tuesday stat corrections would change the next EPL
+    draft order after someone has picked, keep the existing picks and order and
+    flag the affected order for commissioner review. Corrected score evidence
+    remains separate and append-only; retain the original snapshot and show the
+    corrected totals without silently reordering, deleting or replaying entered
+    picks. This confirms the correction conflict policy; the commissioner review
+    flag must be visible, not merely an unseen job/audit status. It is not a
+    migration apply or production-deployment approval.
 
 ## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
 
