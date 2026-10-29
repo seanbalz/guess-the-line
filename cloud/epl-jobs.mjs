@@ -206,7 +206,10 @@ async function snapshotJob(ctx) {
     // has not rolled over, so wait for the next run. Past N+1: two Sleeper weeks fell in one app week, and the weekly scores
     // would span both, so nothing is saved and the commissioner supplies after-mw<N> (epl/admin/snapshot) (final review).
     const sleeperWeek = snap?.payload?.state?.week;
-    if (args.label.startsWith('after-') && n < 38 && Number.isInteger(sleeperWeek)) {
+    if (args.label.startsWith('after-') && n < 38) {
+      // A successful HTTP response with an absent/malformed week is still no rollover evidence. These labels are
+      // immutable, so accepting one would permanently anchor weekly scores to an unknown interval.
+      if (!Number.isInteger(sleeperWeek) || sleeperWeek < 1 || sleeperWeek > 38) stop('scores_incomplete');
       if (sleeperWeek < n + 1) { pending = true; continue; }
       if (sleeperWeek > n + 1) stop('scores_incomplete');
     }

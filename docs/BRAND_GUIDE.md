@@ -2,6 +2,27 @@
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
 The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-60 (October 26, 2026) it is the app every member uses; everything above applies only to the old app, which stays reachable for older records and tools until it is deleted.
 
+## Balanced logo refinement — October 29, 2026
+
+Sean selected **01 Balanced** from the [five-option comparison board](../design/logo-redraft-2026-10-29/concepts.png).
+The [selected vector preview](../design/logo-redraft-2026-10-29/selected-preview.png)
+shows the implementation: equal outer corner cuts, consistent body weight and
+mirrored yard-line lengths/spacing. The letter G remains intentionally open on
+its right; balanced proportions do not mean literal mirror symmetry.
+
+This supersedes the original-path geometry requirement below. Both app logo
+components use `0 8 64 48`; the browser favicon omits the fine yard lines and
+frames the G at `8 8 48 48` for small-size clarity. D-44 transparency, accessible
+name, lime/deep-green theme colors and 12% home-screen margins remain in effect.
+The 180/192/512 PNG icons use the updated full mark, including notification uses.
+
+Five dark-surface color exports (lime, cyan, emerald, amber, white) and a deep-green
+light-surface export use existing `tokens-next.json` colors. They are alternate
+brand assets, not new semantic UI colors or a change to the selected app palette.
+The app continues to use its existing theme green. The image-generated concept
+board is visual exploration; the SVG exports and component paths are the exact
+implementation. See the [asset record](../design/logo-redraft-2026-10-29/README.md).
+
 ## Brand position
 Competitive NFL spread prediction meets fantasy-sports game day. Tone: precise, fast, confident, playful competition; NOT a real-money sportsbook. Inspiration: DraftKings (dense live stats), FanDuel (clear market rows), Sleeper (social competition), ESPN/CBS (scoreboard hierarchy). Borrow interaction patterns only; do not copy their logos, trade dress, artwork or proprietary iconography.
 
