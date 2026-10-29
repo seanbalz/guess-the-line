@@ -19,6 +19,8 @@ readiness run in isolated checkouts; existing player records remain preserved.
 The non-EPL sequence below resumes after EPL implementation or explicit live
 acceptance/dependency gates. Research/trends PR #363 stays separate.
 
+Follow the [next EPL batch](../docs/EPL_NEXT_BATCH_2026_10_29.md) for current continuation ownership and the [combined acceptance record](../docs/EPL_NEXT_BATCH_INTEGRATION_2026_10_29.md) for local integration evidence. Named apply, release and real-device gates remain recorded separately.
+
 ## Active order and exit criteria
 
 Sean selected **Research and charts** as the next player-facing design batch on

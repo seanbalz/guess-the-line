@@ -35,7 +35,7 @@ describe('Menu › Commissioner tools visibility', () => {
   });
 
   it('a player who reaches the tools’ address gets the ordinary Menu, never a tool', () => {
-    for (const tool of [null, 'status', 'weeks', 'referees', 'results', 'odds']) {
+    for (const tool of [null, 'status', 'weeks', 'referees', 'results', 'odds', 'epl-corrections']) {
       const html = render(<MenuSheet args={{ sub: 'commissioner', tool }}/>, false);
       expect(html).not.toContain('Commissioner tools');
       expect(html).toContain('Sign out');
@@ -46,11 +46,11 @@ describe('Menu › Commissioner tools visibility', () => {
     expect(html).not.toContain('Final scores');
   });
 
-  it('the hub lists the five tools with accessible markup', () => {
+  it('the hub lists the six tools with accessible markup', () => {
     const html = render(<CommissionerTools/>, true);
     expect(markupProblems(html)).toEqual([]);
     for (const tool of COMMISSIONER_COPY.tools) expect(html).toContain(tool.label);
-    expect(COMMISSIONER_COPY.tools.map(tool => tool.id)).toEqual(['status', 'weeks', 'referees', 'results', 'odds']);
+    expect(COMMISSIONER_COPY.tools.map(tool => tool.id)).toEqual(['status', 'weeks', 'referees', 'results', 'odds', 'epl-corrections']);
   });
 
   it('each tool opens as its own sub-view with a way back to the tools', () => {

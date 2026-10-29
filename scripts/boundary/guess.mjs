@@ -14,6 +14,8 @@ export const tables = Object.freeze([
   'points_job_schedule', 'points_job_runs',
   // M-32 (hosted October 29, 2026): private EPL moneyline guesses and append-only history.
   'epl_guesses', 'epl_guess_history',
+  // M-33 is pending; absence is reported separately from a verified permission denial.
+  'epl_stat_rechecks',
 ]);
 
 /** [rpc, inert body]: each is called anonymously and must be denied. */
@@ -25,6 +27,10 @@ export const rpcChecks = Object.freeze([
   ['gtl_epl_resolve_pending_references', { p_event_id: 'boundary-missing-event' }],
   ['gtl_epl_guess_board', { p_user: missingId, p_season: 2026, p_week: 0 }],
   ['gtl_epl_guess_leaderboard', { p_season: 0 }],
+  // M-33: no real job capability, actor, valid week or snapshot is supplied.
+  ['gtl_epl_recheck_due_at', { p_last_kickoff: null, p_original_at: null }],
+  ['gtl_epl_recheck_state', { p_run: missingId, p_claim: missingId, p_now: null }],
+  ['gtl_epl_record_recheck', { p_run: missingId, p_claim: missingId, p_season: 0, p_week: 0, p_captured_at: null, p_sha256: {}, p_payload: null }],
   ['gtl_weekly_slate', { p_state: {} }],
   ['gtl_submission_reference', { p_payload: {}, p_game: {}, p_market: 'spread', p_saved: null }],
   ['gtl_submission_intent_context', { p_user: missingId, p_intent: {} }],
@@ -139,6 +145,7 @@ export const apiChecks = Object.freeze([
   ['points/draft', { season: 2026, week: 5, slot: 'QB', guess: 0, requestId: missingId }],
   ['points/lock', { season: 2026, week: 5, slot: 'QB', guess: 0, requestId: missingId }],
   ['points/slate', { action: 'preview', season: 2026, week: 5 }],
+  ['epl/admin/corrections/read', {}],
 ]);
 
 /** [log name, Edge Function, body]: scheduled workers called without and with an invalid machine token; each must answer 401. */
@@ -149,4 +156,10 @@ export const workerChecks = Object.freeze([
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
 // P-03's four functions left this list with its hosted apply (RELEASE_2026_10_26_POINTS_JOBS.md, Gate M step 8).
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({
+  'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
+  'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
+  'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
+  'rpc/gtl_epl_record_recheck': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
+  'gtl-api/epl/admin/corrections/read': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
+});

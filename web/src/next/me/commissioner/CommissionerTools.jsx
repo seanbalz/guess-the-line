@@ -8,8 +8,9 @@
 // - Final scores: the old editor through the documented adapter (LegacyTools.jsx); Odds connection: native
 //   (OddsConnection.jsx, stage 78). Both are shown only to the original Triple Threat commissioner, as before
 //   (`/results/review`, `/odds/preflight`, `/odds/collect`).
+// - EPL stat corrections: read-only original/corrected totals and preserved draft context; loaded only when opened.
 // The code loads only when the commissioner opens the tools.
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { cloudApi, communityApi, officialsApi } from '../../../api.js';
 import { rememberOfficial } from '../../../trendsLoaders.js';
 import { refereeFor } from '../../../../../shared/trends-view.mjs';
@@ -21,6 +22,7 @@ import { Button, Card, LinkRow, List, Pill, Sheet } from '../../ui/index.js';
 import { FinalScoresEditor, oddsScheduleText } from './LegacyTools.jsx';
 import { OddsConnection } from './OddsConnection.jsx';
 import './commissioner.css';
+const EplCorrectionReviews = lazy(() => import('./EplCorrectionReviews.jsx'));
 
 export const TRIPLE_THREAT = 'sean-troy-luke';
 export const COMMISSIONER_COPY = Object.freeze({
@@ -32,6 +34,7 @@ export const COMMISSIONER_COPY = Object.freeze({
     { id: 'referees', icon: 'people', label: 'Game referees' },
     { id: 'results', icon: 'trophy', label: 'Final scores' },
     { id: 'odds', icon: 'chart', label: 'Odds connection' },
+    { id: 'epl-corrections', icon: 'chart', label: 'EPL stat corrections' },
   ]),
   originalOnly: 'Only the original Triple Threat commissioner can use this tool.',
 });
@@ -66,7 +69,7 @@ function Problem({ children }) {
 
 function Hub({ open }) {
   return <>
-    <p className="gx-t-body gx-c-2">Commissioner only. Each tool checks your access again when it saves.</p>
+    <p className="gx-t-body gx-c-2">Commissioner only. Each tool checks your access.</p>
     <Card variant="flush"><List>
       {COMMISSIONER_COPY.tools.map(tool => <LinkRow key={tool.id} icon={tool.icon} onClick={() => open(tool.id)}>{tool.label}</LinkRow>)}
     </List></Card>
@@ -272,6 +275,7 @@ export function CommissionerTools({ tool = null }) {
   else if (shown === 'status') body = <Status app={app} week={week}/>;
   else if (shown === 'weeks') body = <WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} notice={weekNotice} onNotice={setWeekNotice}/>;
   else if (shown === 'referees') body = <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
+  else if (shown === 'epl-corrections') body = <Suspense fallback={<p role="status" className="gx-t-body">Loading EPL correction reviews…</p>}><EplCorrectionReviews/></Suspense>;
   else body = <TripleThreatTool key={shown} app={app} tool={shown}/>;
   return <Sheet title={shown ? label(shown) : COMMISSIONER_COPY.title} back={back} onClose={shell.closeSheet} tall className="gx-cm">
     <div className="gx-cm-stack" data-commissioner-tool={shown ?? 'hub'}>{body}</div>

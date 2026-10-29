@@ -5,7 +5,10 @@
 //                         users, rosters, one matchweek's stats and the next one's projections), each with the SHA-256 of
 //                         its raw body, stored trimmed (shared/epl-sleeper.mjs trimSleeperSnapshot: rostered players only,
 //                         only the nonzero stats a league scoring rule uses, plus a minimal directory; the real after-MW8
-//                         snapshot goes from 650 KB to about 43 KB, about 1/15). Sleeper's API is public and keyless.
+//                         snapshot goes from 650 KB to about 43 KB, about 1/15). Only a current UTC daily capture may
+//                         supplement rostered names/team abbreviations from /v1/players/clubsoccer:epl (optional,
+//                         bounded, raw hash retained); a current-directory position is never a scoring position.
+//                         Sleeper's API is public and keyless.
 //   fetchEplOdds          GET /v4/sports/soccer_epl/odds, h2h from DraftKings, FanDuel and BetMGM (1 credit): every listed
 //                         event with its median American price per club.
 //   fetchEplScores        GET /v4/sports/soccer_epl/scores?daysFrom=3 (2 credits): recent and upcoming events with final goals,
@@ -19,6 +22,7 @@ import { ODDS_API_ORIGIN, readQuota } from './odds-provider.mjs';
 import { EPL_CLUBS, clubFromOddsName } from '../shared/epl-clubs.mjs';
 import { priceStrength } from '../shared/epl-draft.mjs';
 import { trimSleeperSnapshot } from '../shared/epl-sleeper.mjs';
+import { enrichPlayerDisplay } from '../shared/epl-player-directory.mjs';
 
 export const SLEEPER_BASE = 'https://api.sleeper.app';
 export const SLEEPER_LEAGUE = '1395122699423993856';
@@ -26,6 +30,11 @@ const SLEEPER_SEASON = 2026;
 const ODDS_BOOKS = Object.freeze(['draftkings', 'fanduel', 'betmgm']);
 const MIB = 1024 * 1024;
 const SLEEPER_LIMIT = Object.freeze({ maxBytes: 8 * MIB, timeoutMs: 30_000 });
+// October 29 public EPL map: 2.33 MB / 1,910 players. Fail optional enrichment safely if it grows beyond these bounds.
+export const SLEEPER_DIRECTORY_MAX_BYTES = 4 * MIB;
+const DIRECTORY_LIMIT = Object.freeze({ maxBytes: SLEEPER_DIRECTORY_MAX_BYTES, timeoutMs: 10_000 });
+const DIRECTORY_PATH = '/v1/players/clubsoccer:epl';
+const DIRECTORY_MAX_PLAYERS = 10_000;
 const ODDS_LIMIT = Object.freeze({ maxBytes: 1 * MIB, timeoutMs: 10_000 });
 const MAX_EVENTS = 80;
 const LABEL = /^[a-z0-9][a-z0-9-]{0,63}$/;
@@ -53,7 +62,7 @@ const isoTime = v => (typeof v === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d
 /** Reads at most maxBytes of a response body (refusing a larger declared length before reading). */
 async function readBounded(response, maxBytes) {
   const declared = Number(response.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > maxBytes) fail('EPL_SOURCE_BODY_LIMIT');
+  if (Number.isFinite(declared) && declared > maxBytes) { void response.body?.cancel().catch(() => {}); fail('EPL_SOURCE_BODY_LIMIT'); }
   const reader = response.body?.getReader();
   if (!reader) return new Uint8Array(0);
   const chunks = []; let length = 0;
@@ -97,7 +106,7 @@ const wholeSeconds = ms => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z');
 const matchweek = n => Number.isInteger(n) && n >= 1 && n <= 38;
 
 /** The Sleeper snapshot snapshot.py writes, as `{capturedAt, label, sha256: {key: hex}, payload}` (payload stored trimmed). */
-export async function fetchSleeperSnapshot({ fetchImpl = fetch, label, statsWeek, projectionsWeek, clock = Date.now } = {}) {
+export async function fetchSleeperSnapshot({ fetchImpl = fetch, label, statsWeek, projectionsWeek, clock = Date.now, enrichDirectory = false } = {}) {
   if (typeof label !== 'string' || !LABEL.test(label) || !matchweek(statsWeek) || !matchweek(projectionsWeek)) fail('EPL_SOURCE_CONFIG');
   const paths = [
     ['state', '/v1/state/clubsoccer:epl', record],
@@ -117,7 +126,28 @@ export async function fetchSleeperSnapshot({ fetchImpl = fetch, label, statsWeek
     payload[key] = data;
     sha256[key] = digest;
   }
-  return { capturedAt, label, sha256, payload: trimSleeperSnapshot(payload) };
+  const trimmed = trimSleeperSnapshot(payload);
+  // Only the worker's current UTC daily capture requests the optional map. Before/after/recheck captures and API
+  // views never request it. A failed optional request still returns a good base capture, which saves the daily label
+  // and prevents the scheduler retrying the directory every five minutes that day.
+  if (enrichDirectory === true && label === `daily-${capturedAt.slice(0, 10)}`) {
+    const source = { path: DIRECTORY_PATH, attemptedAt: capturedAt };
+    let directory = null;
+    try {
+      const result = await getJson(new URL(DIRECTORY_PATH, SLEEPER_BASE), DIRECTORY_LIMIT, fetchImpl);
+      source.sha256 = result.sha256; sha256.player_directory = result.sha256;
+      if (!record(result.data) || Object.keys(result.data).length > DIRECTORY_MAX_PLAYERS) fail('EPL_SOURCE_PAYLOAD');
+      directory = result.data;
+      source.status = 'available';
+    } catch (error) {
+      source.status = 'unavailable';
+      source.code = error instanceof EplSourceError ? error.code : 'EPL_SOURCE_UNAVAILABLE';
+    }
+    const enriched = enrichPlayerDisplay(trimmed, directory);
+    trimmed.players = enriched.players;
+    trimmed.sources.player_directory = { ...source, ...enriched.coverage };
+  }
+  return { capturedAt, label, sha256, payload: trimmed };
 }
 
 /** The median of American prices, taken on implied probability (so -110 and +110 meet at +100); null for none. */
