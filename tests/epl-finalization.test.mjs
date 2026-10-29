@@ -99,3 +99,36 @@ test('Tuesday cumulative recheck at the next-round cutoff is unavailable even wh
   assert.equal((await f.run('snapshot')).reason,'scores_incomplete');assert.equal(f.sleeperCalls(),0);
   assert.ok(!f.calls.some(([name])=>name==='gtl_epl_record_recheck'));
 });
+
+
+test('rejected final evidence keeps its failure reason and independently saves today daily exactly once',async()=>{
+  for(const [change,crossesClock] of [[snap=>{snap.payload.rosters.pop();},false],[snap=>{snap.payload.state.season='2025';},false],
+    [snap=>{snap.payload.state.week='10';},false],[snap=>{snap.payload.state.week=11;},false],
+    [snap=>{snap.capturedAt='2026-11-07T12:30Z';},false],[()=>{},true]]){
+    const f=fixture({final:true});f.state.snapshots=f.state.snapshots.filter(label=>label!=='daily-2026-11-02');
+    const original=f.sources.sleeper;f.sources.sleeper=async args=>{const snap=await original(args);if(args.label.startsWith('after-'))change(snap);return snap;};
+    const crossClock=crossesClock?()=>Date.parse('2026-11-07T12:30Z'):undefined;
+    assert.equal((await f.run('snapshot',crossClock)).reason,'scores_incomplete');
+    assert.ok(!f.state.snapshots.includes('after-mw9'));
+    assert.equal(f.state.snapshots.filter(label=>label==='daily-2026-11-02').length,1);
+    assert.equal(f.calls.filter(([name,args])=>name==='gtl_epl_save_snapshot'&&args.p_label==='daily-2026-11-02').length,1);
+    await f.run('snapshot',crossClock);
+    assert.equal(f.state.snapshots.filter(label=>label==='daily-2026-11-02').length,1);
+    assert.ok(!f.state.snapshots.includes('after-mw9'));
+  }
+});
+
+
+test('second order recompute reads a fresh clock after correction fetch/writer instead of run start',async()=>{
+ const f=fixture({final:true});f.state.week={...f.state.week,week:10};f.state.fixtures=[];f.state.snapshots.push('after-mw9');f.at('2026-11-03T20:05Z');
+ const before=Date.parse('2026-11-03T20:05Z'),after=before+60_000;let clock=before;
+ const original=f.service.rpc;f.service.rpc=async(name,args)=>{
+   if(name==='gtl_epl_recheck_state')return {season:2026,week:9,lastKickoff:match.commenceTime,originalCapturedAt:'2026-11-03T02:00Z'};
+   if(name==='gtl_epl_record_recheck'){clock=after;return {recorded:true,scoresChanged:true,status:'needs_review'};}
+   return original(name,args);
+ };
+ const outcome=await f.run('snapshot',()=>clock);
+ assert.equal(outcome.reason,'needs_review');
+ const applies=f.calls.filter(([name])=>name==='gtl_epl_apply_recheck_orders');
+ assert.equal(applies.length,2);assert.equal(Date.parse(applies[0][1].p_now),before);assert.equal(Date.parse(applies[1][1].p_now),after);
+});

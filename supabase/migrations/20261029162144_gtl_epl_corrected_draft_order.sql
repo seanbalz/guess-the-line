@@ -116,6 +116,8 @@ begin
     select * into nxt from public.gtl_epl_weeks where season=item.season and week=item.week+1 for update;
     if not found then pending:=pending+1; continue; end if;
     select min(next_kickoff) into cutoff from public.gtl_epl_capture_intervals where season=item.season and week=item.week and next_week=item.week+1 and coverage_complete;
+    -- Evaluate the deadline after both locks: provider/row-lock wait must never backdate a reorder.
+    stamp:=greatest(coalesce(p_now,clock_timestamp()),clock_timestamp());
     -- save_pick locks this exact row too: either its pick wins first, or it observes the corrected order afterwards.
     outcome:=null;
     if exists(select 1 from public.gtl_epl_picks where season=nxt.season and week=nxt.week) then outcome:='preserved_picks';

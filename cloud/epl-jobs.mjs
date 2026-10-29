@@ -216,7 +216,7 @@ async function snapshotJob(ctx) {
   const { week } = ctx.state;
   if (!week) stop('no_week');
   const applyOrders = async () => {
-    try { return { orderUpdateReady: true, ...await ctx.service.rpc('gtl_epl_apply_recheck_orders', { ...ctx.run, p_now: iso(ctx.now) }) }; }
+    try { return { orderUpdateReady: true, ...await ctx.service.rpc('gtl_epl_apply_recheck_orders', { ...ctx.run, p_now: iso(ctx.clock()) }) }; }
     catch (error) { if (error?.code !== 'GTL_EPL_ORDER_UPDATE_OFF') throw error; return { orderUpdateReady: false }; }
   };
   let order = await applyOrders();
@@ -262,14 +262,16 @@ async function snapshotJob(ctx) {
     // would span both, so nothing is saved and the commissioner supplies after-mw<N> (epl/admin/snapshot) (final review).
     const sleeperWeek = snap?.payload?.state?.week;
     if (args.label.startsWith('after-') && n < 38) {
-      if (!captureInterval?.legacy && (!captureInterval?.ready || !Number.isFinite(Date.parse(snap.capturedAt)) || Date.parse(snap.capturedAt) >= captureInterval.expires || ctx.clock() >= captureInterval.expires)) stop('scores_incomplete');
-      // A successful HTTP response with an absent/malformed week is still no rollover evidence. These labels are
-      // immutable, so accepting one would permanently anchor weekly scores to an unknown interval.
-      if (!Number.isInteger(sleeperWeek) || sleeperWeek < 1 || sleeperWeek > 38) stop('scores_incomplete');
-      if (String(snap?.payload?.state?.season) !== String(week.season)) stop('scores_incomplete');
+      const contaminated = !captureInterval?.legacy && (!captureInterval?.ready || !Number.isFinite(Date.parse(snap.capturedAt))
+        || Date.parse(snap.capturedAt) >= captureInterval.expires || ctx.clock() >= captureInterval.expires);
+      // A rejected final is not a daily capture. Retain its failure reason while allowing the independent daily refresh.
+      if (contaminated || !Number.isInteger(sleeperWeek) || sleeperWeek < 1 || sleeperWeek > 38
+        || String(snap?.payload?.state?.season) !== String(week.season) || sleeperWeek > n + 1
+        || !completeEplTotals(snap.payload, week.pickOrder)) {
+        finalWait = { reason: 'scores_incomplete', detail: { captureIntervalReady: captureInterval?.ready === true } };
+        pending = true; continue;
+      }
       if (sleeperWeek < n + 1) { pending = true; continue; }
-      if (sleeperWeek > n + 1) stop('scores_incomplete');
-      if (!completeEplTotals(snap.payload, week.pickOrder)) stop('scores_incomplete');
     }
     const ok = await write(ctx, 'gtl_epl_save_snapshot', { p_label: snap.label, p_captured_at: snap.capturedAt, p_week: n, p_sha256: snap.sha256, p_payload: snap.payload });
     saved.push({ label: snap.label, saved: ok === true });

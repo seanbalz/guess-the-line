@@ -113,3 +113,12 @@ test('result reservations share cooldown/cap across jobs, count unknown attempts
   assert.equal((await f.rpc('gtl_epl_reserve_result_read',[RUN,CLAIM,2026,10,'2026-11-10T20:05Z'])).reason,'budget_guard');
   for(const role of ['anon','authenticated'])await assert.rejects(()=>f.db.transaction(async tx=>{await tx.exec(`set local role ${role}`);return tx.query('select * from public.gtl_epl_order_corrections');}),/permission denied/);
 });
+
+
+test('post-lock database clock prevents a reorder using a stale pre-deadline supplied timestamp', {skip},async t=>{
+ const f=await fixture(t);
+ await f.db.exec("update public.gtl_epl_weeks set first_kickoff=clock_timestamp()-interval '1 second' where week=10");
+ assert.equal((await f.apply('2026-10-01T00:00Z')).preserved,1);
+ assert.deepEqual(await f.order(),ORDER);
+ assert.deepEqual(await f.rpc('gtl_epl_order_correction_state',[2026]),[{week:9,outcome:'preserved_closed'}]);
+});
