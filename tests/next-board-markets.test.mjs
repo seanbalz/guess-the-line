@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boardMarket, boardGate, marketBoard, recordedFinal } from '../web/src/next/lines/boardMarkets.js';
+import { boardMarket, boardGate, boardQuotes, marketBoard, recordedFinal } from '../web/src/next/lines/boardMarkets.js';
 import { SIX_HOURS } from '../web/src/next/lines/marketDetails.js';
 
 const now = Date.parse('2026-10-26T20:00:00Z');
@@ -84,4 +84,17 @@ test('final sections retain each card once and vanish while refreshing without r
     assert.equal(next.finals, null); assert.equal(next.started.count, 2);
     assert.doesNotMatch(JSON.stringify(next), /Fixture source|Final · SEA/);
   }
+});
+
+test('D-66: the board names one quote source and update once, counts distinct updates, and ignores closed cells', () => {
+  const cell = (source, observed, open = true) => ({ open, line: '1', label: 'Current line', source, observed });
+  const board = cards => ({ groups: [{ cards }], started: null, finals: null });
+  const a = { spread: cell('The Odds API · 3-book median', 'Wed 11:12 AM PT'), total: cell('The Odds API · 3-book median', 'Wed 11:12 AM PT') };
+  assert.deepEqual(boardQuotes(board([a, a])), { source: 'The Odds API · 3-book median', observed: 'Wed 11:12 AM PT' });
+  const later = { ...a, total: cell('The Odds API · 3-book median', 'Wed 5:12 PM PT') };
+  assert.deepEqual(boardQuotes(board([a, later])), { updates: 2 });
+  // A closed market never contributes its (hidden) source; a board with no open quote says nothing.
+  assert.deepEqual(boardQuotes(board([{ spread: cell('hidden', 'x', false), total: { open: false } }, a])), { source: 'The Odds API · 3-book median', observed: 'Wed 11:12 AM PT' });
+  assert.equal(boardQuotes(board([{ spread: { open: false }, total: { open: false } }])), null);
+  assert.equal(boardQuotes(null), null);
 });
