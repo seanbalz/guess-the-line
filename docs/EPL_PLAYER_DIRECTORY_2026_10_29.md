@@ -1,6 +1,6 @@
 # EPL-DATA-01 — roster display metadata
 
-Owner: EPL access/data agent. Branch: `codex/epl-player-directory`, initially from `76329b7f2c57bdb2a2710ab5a90817c3318f75da` and rebased onto current main `5648082d7da31b879ff8211749f12b572fc94908` before publication.
+Owner: EPL access/data agent. Branch: `codex/epl-player-directory`, initially from `76329b7f2c57bdb2a2710ab5a90817c3318f75da`, rebased onto `5648082d7da31b879ff8211749f12b572fc94908`, then integrated current main `c146bceb28324804cd75daef3b4824b6b7c10aa7` (including the separate draw-no-bet source work) for final verification.
 
 ## Problem and evidence
 
@@ -34,7 +34,7 @@ Commands:
 node --test tests/epl-player-directory.test.mjs tests/epl-sources.test.mjs tests/epl-fantasy-view.test.mjs tests/epl-fantasy.test.mjs tests/epl-sleeper.test.mjs tests/epl-jobs.test.mjs
 # 101 passed
 node --test tests/epl-*.test.mjs
-# 220 passed after rebasing onto main and enforcing snapshot-only positions
+# 260 passed after current-main integration and enforcing snapshot-only positions
 node node_modules/vitest/vitest.mjs run tests/epl-fantasy.test.jsx
 # 17 passed
 npm run typecheck
