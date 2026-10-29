@@ -116,7 +116,7 @@ export function createEplJobsAdapter({ url, serviceRoleKey, fetchImpl = fetch })
 /** The worker's public sources. A missing Odds API key fails only the jobs that need it. */
 export function createEplSources({ apiKey, fetchImpl = fetch, clock = Date.now } = {}) {
   return {
-    sleeper: ({ label, statsWeek, projectionsWeek }) => fetchSleeperSnapshot({ fetchImpl, label, statsWeek, projectionsWeek, clock }),
+    sleeper: ({ label, statsWeek, projectionsWeek }) => fetchSleeperSnapshot({ fetchImpl, label, statsWeek, projectionsWeek, clock, enrichDirectory: /^daily-\d{4}-\d{2}-\d{2}$/.test(label) }),
     odds: () => fetchEplOdds({ apiKey, fetchImpl }),
     scores: ({ onQuota } = {}) => fetchEplScores({ apiKey, fetchImpl, daysFrom: 3, onQuota }),
     drawNoBet: ({ eventIds }) => fetchEplDrawNoBet({ apiKey, fetchImpl, eventIds }),
