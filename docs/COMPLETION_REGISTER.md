@@ -1,13 +1,46 @@
 # Guess The Line — current completion register
 
-Owner: Sean Balsiger · Reconciled October 28, 2026
+Owner: Sean Balsiger · Reconciled October 29, 2026
 
 The current task list is [the sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md).
 Sean approved finishing the existing redesign and optimizations before expanding
 scope. The approved direction remains Home / Play / Bets / Research, “One thing
 first,” with D-55 Round 3 charts. No new design selection is required for this work.
+The [October 29 unfinished-work index](../planning/OPEN_WORK_2026_10_29.md)
+is the current consolidated view of in-progress work and residual acceptance.
+It reconciles later Bets/EPL/commissioner source and release evidence, all seven
+open release cards and preserved local branches. Its current statuses supersede
+older dated narratives below. Sean's active priority is varied trend discovery.
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
+
+## October 29 current work
+
+The [first discovery engine](TREND_DISCOVERY_ENGINE_2026_10_29.md) is implemented
+on `codex/trend-discovery`: team/QB/coach plus 13 situations, seven explicit
+windows, disjoint earlier comparisons and overlap-aware variety selection.
+A pinned free-source scan through October 26 evaluated 4,719 candidates across
+33,033 windows and retained 312 empty queries, alongside all losing results.
+38 targeted Node tests and typecheck passed. The [compact run record](../model/trends/discovery-2026-10-29.json)
+preserves hashes, exact selected samples and search counts. Own CI/merge and
+product publication/integration remain open. The committed server snapshot
+still stops October 19; no current applicability, forecast or production update
+is inferred from this offline implementation.
+
+PR #321 is now merged as `d06019c9a58e9106b4e65af95c60372912c5c0d6`; all nine
+checks passed on `ee9419f8fd8e3545ab55723bd31f2fea28fc5afd`. The latest
+successful frontend release [40887118540](https://github.com/seanbalz/guess-the-line/actions/runs/40887118540)
+uses source `76329b7`, which includes it and native Odds connection (#357).
+This task verified GitHub workflow/source evidence, not hosted bytes or phones.
+
+Corrections to older statuses: M-11/M-30/M-31 are recorded applied; the repo's
+`NOT_HOSTED` list is empty. EPL draft/Fantasy/open access and native Virtual
+Units placement have merged source and release records. Real operational/device
+checks, native Final scores, remaining Challenge/board/social contracts,
+retirement preservation and measured signed-in performance remain. #214 is
+closed unmerged; the old branch is preserved and does not override #316's
+existing native status/Virtual Units settlement. The open-work index gives
+owners, dependencies and next evidence for every residual group.
 
 ## What the evidence establishes
 

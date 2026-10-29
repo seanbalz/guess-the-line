@@ -1,0 +1,524 @@
+{
+  "version": "discovery-2026-10-29-v1",
+  "discoveredAt": "2026-10-29T14:38:52Z",
+  "label": "Found by search \u2014 not tested",
+  "source": {
+    "rows": 7548,
+    "latestCompleted": "2026-10-26",
+    "credit": "Data: nflverse; schedules maintained by Lee Sharpe (CC BY 4.0), modified",
+    "url": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "lineSource": "nflverse schedule file: last recorded line (book not documented)",
+    "sha256": "bf6c4fb7289d03e4927bbffd40e8578d4b2501298628f2dd526fdbb0608a0015",
+    "inputs": {
+      "venues": {
+        "file": "shared/nfl-venues.json",
+        "sha256": "8f22d135f198c171e59f98d99e047eb33b71bbb71d4f1617d2464f2b7e944188"
+      },
+      "corrections": {
+        "file": "shared/trends-corrections.json",
+        "sha256": "fcac34e2b44421a75207fd45838217c36b0e1d7adc1896a7cce6a02fe6e3d5d9"
+      }
+    }
+  },
+  "scope": {
+    "teams": [
+      "ARI",
+      "ATL",
+      "BAL",
+      "BUF",
+      "CAR",
+      "CHI",
+      "CIN",
+      "CLE",
+      "DAL",
+      "DEN",
+      "DET",
+      "GB",
+      "IND",
+      "JAX",
+      "KC",
+      "LA",
+      "LAC",
+      "LV",
+      "MIA",
+      "MIN",
+      "NE",
+      "NYJ",
+      "PHI",
+      "PIT",
+      "SEA",
+      "TB",
+      "TEN",
+      "WAS"
+    ],
+    "week": 8,
+    "upcomingGameIds": [
+      "2026_08_CAR_GB",
+      "2026_08_ARI_DAL",
+      "2026_08_ATL_TB",
+      "2026_08_BAL_BUF",
+      "2026_08_CLE_PIT",
+      "2026_08_IND_JAX",
+      "2026_08_LV_NYJ",
+      "2026_08_MIN_DET",
+      "2026_08_TEN_CIN",
+      "2026_08_LAC_LA",
+      "2026_08_KC_DEN",
+      "2026_08_NE_MIA",
+      "2026_08_PHI_WAS",
+      "2026_08_CHI_SEA"
+    ],
+    "currentApplicability": "Not verified; historical associations do not establish starters, coaches or a current condition match.",
+    "entityRule": "Seen in completed games this or previous season; historical association only.",
+    "situations": [
+      "off-loss",
+      "off-win",
+      "off-blowout-loss",
+      "off-close-loss",
+      "bye",
+      "short-rest",
+      "rest-advantage",
+      "home",
+      "road",
+      "favorite",
+      "underdog",
+      "division",
+      "primetime"
+    ],
+    "windows": [
+      "recent10",
+      "recent12",
+      "recent20",
+      "recent30",
+      "season",
+      "previousSeason",
+      "all"
+    ],
+    "markets": [
+      "spread:back-entity",
+      "total:over",
+      "total:under"
+    ]
+  },
+  "searched": {
+    "entities": 121,
+    "candidates": 4719,
+    "windows": 33033,
+    "empty": 312
+  },
+  "selection": {
+    "window": "recent12",
+    "minimumGames": 10,
+    "limit": 8,
+    "maxPerEntity": 1,
+    "maxPerFamily": 2,
+    "eligible": 3081,
+    "note": "At most one result per connected same-market group sharing half the smaller selected sample. Selection also excludes pairs sharing half the smaller sample across markets. Groups are not claims of independence. Order ignores results."
+  },
+  "overlapGroups": 588,
+  "examples": [
+    {
+      "id": "discovery-2026-10-29-v1|coach:Brian Schottenheimer|favorite|over",
+      "title": "Brian Schottenheimer as favorite \u00b7 over",
+      "entity": {
+        "kind": "coach",
+        "value": "Brian Schottenheimer",
+        "name": "Brian Schottenheimer",
+        "teams": [
+          "DAL"
+        ]
+      },
+      "family": "line-role",
+      "market": "total",
+      "side": "over",
+      "window": "recent12",
+      "sample": 12,
+      "requested": 12,
+      "completeWindow": true,
+      "record": [
+        9,
+        3,
+        0
+      ],
+      "earlierRecord": [
+        2,
+        1,
+        0
+      ],
+      "dates": {
+        "from": "2025-10-19T20:25:00.000Z",
+        "to": "2026-10-27T00:15:00.000Z"
+      },
+      "gameIds": [
+        "2025_07_WAS_DAL",
+        "2025_09_ARI_DAL",
+        "2025_11_DAL_LV",
+        "2025_15_MIN_DAL",
+        "2025_16_LAC_DAL",
+        "2025_17_DAL_WAS",
+        "2025_18_DAL_NYG",
+        "2026_01_DAL_NYG",
+        "2026_02_WAS_DAL",
+        "2026_05_TB_DAL",
+        "2026_06_DAL_GB",
+        "2026_07_DAL_PHI"
+      ],
+      "groupId": "discovery-2026-10-29-v1|coach:Brian Schottenheimer|favorite|over"
+    },
+    {
+      "id": "discovery-2026-10-29-v1|qb:00-0036389|division|spread",
+      "title": "Jalen Hurts in divisional games \u00b7 ATS",
+      "entity": {
+        "kind": "qb",
+        "value": "00-0036389",
+        "name": "Jalen Hurts",
+        "teams": [
+          "PHI"
+        ]
+      },
+      "family": "schedule",
+      "market": "spread",
+      "side": "back-entity",
+      "window": "recent12",
+      "sample": 12,
+      "requested": 12,
+      "completeWindow": true,
+      "record": [
+        6,
+        6,
+        0
+      ],
+      "earlierRecord": [
+        8,
+        10,
+        2
+      ],
+      "dates": {
+        "from": "2024-11-10T21:25:00.000Z",
+        "to": "2026-10-27T00:15:00.000Z"
+      },
+      "gameIds": [
+        "2024_10_PHI_DAL",
+        "2024_11_WAS_PHI",
+        "2024_16_PHI_WAS",
+        "2024_17_DAL_PHI",
+        "2024_21_WAS_PHI",
+        "2025_01_DAL_PHI",
+        "2025_06_PHI_NYG",
+        "2025_08_NYG_PHI",
+        "2025_12_PHI_DAL",
+        "2025_16_PHI_WAS",
+        "2026_01_WAS_PHI",
+        "2026_07_DAL_PHI"
+      ],
+      "groupId": "discovery-2026-10-29-v1|coach:Nick Sirianni|division|spread"
+    },
+    {
+      "id": "discovery-2026-10-29-v1|team:PHI|home|under",
+      "title": "PHI at home \u00b7 under",
+      "entity": {
+        "kind": "team",
+        "value": "PHI",
+        "name": "PHI",
+        "teams": [
+          "PHI"
+        ]
+      },
+      "family": "venue",
+      "market": "total",
+      "side": "under",
+      "window": "recent12",
+      "sample": 12,
+      "requested": 12,
+      "completeWindow": true,
+      "record": [
+        6,
+        6,
+        0
+      ],
+      "earlierRecord": [
+        101,
+        96,
+        6
+      ],
+      "dates": {
+        "from": "2025-09-21T17:00:00.000Z",
+        "to": "2026-10-27T00:15:00.000Z"
+      },
+      "gameIds": [
+        "2025_03_LA_PHI",
+        "2025_05_DEN_PHI",
+        "2025_08_NYG_PHI",
+        "2025_11_DET_PHI",
+        "2025_13_CHI_PHI",
+        "2025_15_LV_PHI",
+        "2025_18_WAS_PHI",
+        "2025_19_SF_PHI",
+        "2026_01_WAS_PHI",
+        "2026_04_LA_PHI",
+        "2026_06_CAR_PHI",
+        "2026_07_DAL_PHI"
+      ],
+      "groupId": "discovery-2026-10-29-v1|coach:Nick Sirianni|favorite|over"
+    },
+    {
+      "id": "discovery-2026-10-29-v1|coach:Andy Reid|off-win|spread",
+      "title": "Andy Reid after a team win \u00b7 ATS",
+      "entity": {
+        "kind": "coach",
+        "value": "Andy Reid",
+        "name": "Andy Reid",
+        "teams": [
+          "KC"
+        ]
+      },
+      "family": "form",
+      "market": "spread",
+      "side": "back-entity",
+      "window": "recent12",
+      "sample": 12,
+      "requested": 12,
+      "completeWindow": true,
+      "record": [
+        5,
+        7,
+        0
+      ],
+      "earlierRecord": [
+        135,
+        123,
+        6
+      ],
+      "dates": {
+        "from": "2025-02-09T23:30:00.000Z",
+        "to": "2026-10-26T00:20:00.000Z"
+      },
+      "gameIds": [
+        "2024_22_KC_PHI",
+        "2025_04_BAL_KC",
+        "2025_05_KC_JAX",
+        "2025_07_LV_KC",
+        "2025_08_WAS_KC",
+        "2025_09_KC_BUF",
+        "2025_13_KC_DAL",
+        "2026_02_IND_KC",
+        "2026_03_KC_MIA",
+        "2026_04_KC_LV",
+        "2026_06_LAC_KC",
+        "2026_07_KC_SEA"
+      ],
+      "groupId": "discovery-2026-10-29-v1|coach:Andy Reid|division|spread"
+    },
+    {
+      "id": "discovery-2026-10-29-v1|qb:00-0034869|rest-advantage|over",
+      "title": "Sam Darnold with 3+ more rest days \u00b7 over",
+      "entity": {
+        "kind": "qb",
+        "value": "00-0034869",
+        "name": "Sam Darnold",
+        "teams": [
+          "SEA"
+        ]
+      },
+      "family": "rest",
+      "market": "total",
+      "side": "over",
+      "window": "recent12",
+      "sample": 11,
+      "requested": 12,
+      "completeWindow": false,
+      "record": [
+        7,
+        4,
+        0
+      ],
+      "earlierRecord": [
+        0,
+        0,
+        0
+      ],
+      "dates": {
+        "from": "2018-09-30T17:00:00.000Z",
+        "to": "2026-10-26T00:20:00.000Z"
+      },
+      "gameIds": [
+        "2018_04_NYJ_JAX",
+        "2019_16_PIT_NYJ",
+        "2021_04_CAR_DAL",
+        "2022_14_CAR_SEA",
+        "2024_07_DET_MIN",
+        "2024_09_IND_MIN",
+        "2025_05_TB_SEA",
+        "2025_09_SEA_WAS",
+        "2025_17_SEA_CAR",
+        "2025_20_SF_SEA",
+        "2026_07_KC_SEA"
+      ],
+      "groupId": "discovery-2026-10-29-v1|qb:00-0034869|rest-advantage|over"
+    },
+    {
+      "id": "discovery-2026-10-29-v1|team:KC|underdog|spread",
+      "title": "KC as underdog \u00b7 ATS",
+      "entity": {
+        "kind": "team",
+        "value": "KC",
+        "name": "KC",
+        "teams": [
+          "KC"
+        ]
+      },
+      "family": "line-role",
+      "market": "spread",
+      "side": "back-entity",
+      "window": "recent12",
+      "sample": 12,
+      "requested": 12,
+      "completeWindow": true,
+      "record": [
+        8,
+        4,
+        0
+      ],
+      "earlierRecord": [
+        75,
+        62,
+        3
+      ],
+      "dates": {
+        "from": "2023-02-12T23:30:00.000Z",
+        "to": "2026-10-26T00:20:00.000Z"
+      },
+      "gameIds": [
+        "2022_22_KC_PHI",
+        "2023_18_KC_LAC",
+        "2023_20_KC_BUF",
+        "2023_21_KC_BAL",
+        "2023_22_SF_KC",
+        "2024_07_KC_SF",
+        "2024_11_KC_BUF",
+        "2024_18_KC_DEN",
+        "2025_02_PHI_KC",
+        "2025_04_BAL_KC",
+        "2025_17_DEN_KC",
+        "2026_07_KC_SEA"
+      ],
+      "groupId": "discovery-2026-10-29-v1|coach:Andy Reid|underdog|spread"
+    },
+    {
+      "id": "discovery-2026-10-29-v1|coach:Nick Sirianni|primetime|under",
+      "title": "Nick Sirianni in primetime games \u00b7 under",
+      "entity": {
+        "kind": "coach",
+        "value": "Nick Sirianni",
+        "name": "Nick Sirianni",
+        "teams": [
+          "PHI"
+        ]
+      },
+      "family": "schedule",
+      "market": "total",
+      "side": "under",
+      "window": "recent12",
+      "sample": 12,
+      "requested": 12,
+      "completeWindow": true,
+      "record": [
+        8,
+        4,
+        0
+      ],
+      "earlierRecord": [
+        8,
+        8,
+        0
+      ],
+      "dates": {
+        "from": "2024-01-16T01:00:00.000Z",
+        "to": "2026-10-27T00:15:00.000Z"
+      },
+      "gameIds": [
+        "2023_19_PHI_TB",
+        "2024_01_GB_PHI",
+        "2024_02_ATL_PHI",
+        "2024_11_WAS_PHI",
+        "2024_12_PHI_LA",
+        "2025_01_DAL_PHI",
+        "2025_06_PHI_NYG",
+        "2025_10_PHI_GB",
+        "2025_11_DET_PHI",
+        "2025_14_PHI_LAC",
+        "2026_03_PHI_CHI",
+        "2026_07_DAL_PHI"
+      ],
+      "groupId": "discovery-2026-10-29-v1|coach:Nick Sirianni|primetime|over"
+    },
+    {
+      "id": "discovery-2026-10-29-v1|team:SEA|home|spread",
+      "title": "SEA at home \u00b7 ATS",
+      "entity": {
+        "kind": "team",
+        "value": "SEA",
+        "name": "SEA",
+        "teams": [
+          "SEA"
+        ]
+      },
+      "family": "venue",
+      "market": "spread",
+      "side": "back-entity",
+      "window": "recent12",
+      "sample": 12,
+      "requested": 12,
+      "completeWindow": true,
+      "record": [
+        6,
+        4,
+        2
+      ],
+      "earlierRecord": [
+        105,
+        88,
+        7
+      ],
+      "dates": {
+        "from": "2025-10-05T20:05:00.000Z",
+        "to": "2026-10-26T00:20:00.000Z"
+      },
+      "gameIds": [
+        "2025_05_TB_SEA",
+        "2025_07_HOU_SEA",
+        "2025_10_ARI_SEA",
+        "2025_13_MIN_SEA",
+        "2025_15_IND_SEA",
+        "2025_16_LA_SEA",
+        "2025_20_SF_SEA",
+        "2025_21_LA_SEA",
+        "2026_01_NE_SEA",
+        "2026_04_LAC_SEA",
+        "2026_05_SF_SEA",
+        "2026_07_KC_SEA"
+      ],
+      "groupId": "discovery-2026-10-29-v1|coach:Mike Macdonald|division|spread"
+    }
+  ],
+  "fullLocalReport": {
+    "path": ".local/trends-discovery/report.json",
+    "bytes": 61705222,
+    "sha256": "6d43ea96c07251f91b2b98c39741c73e4b7d2aa3597cb5286b77714aaee441ff",
+    "contains": "Every evaluated query/window, including losing and empty queries; not a served payload."
+  },
+  "implementationInputs": {
+    "shared/trends-discovery.mjs": "6ad067c76fb43a1e57c6a05197b9451f8c8b57d44fff6de280187316ead8073b",
+    "shared/trends-research-candidates.mjs": "8cb285e73621a112dd14fbef17e273ea7b4d98c008fc6254611654501d3c8e9f",
+    "shared/trends.mjs": "7c499fcf1b6e1db2fffd61b76a874fa82a332c702eb52bc8ae2da274b78871aa"
+  },
+  "limitations": [
+    "Descriptive search; no predictive validation or current-market recommendation.",
+    "Week scope is schedule-team relevance only; starting QB, coach and situation applicability are not verified.",
+    "Recent windows overlap. Earlier/recent samples are disjoint. Same-market overlap groups are not claims of statistical independence.",
+    "Actual prices are not used; illustrative units use fixed -110.",
+    "No server snapshot, candidate registry, source feed, endpoint, scoring rule or app screen was changed."
+  ]
+}
