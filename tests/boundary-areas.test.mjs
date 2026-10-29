@@ -62,7 +62,7 @@ test('awaitingDeploy is the union of the area files, and each entry is probed by
     for (const [key, until] of Object.entries(area.awaitingDeploy)) {
       assert.ok(!Object.hasOwn(joined, key), `${key} is awaiting deploy in two areas`);
       joined[key] = until;
-      const probed = key.startsWith('rpc/')
+      const probed = key.startsWith('table/') ? area.tables.some(table => `table/${table}` === key) : key.startsWith('rpc/')
         ? area.rpcChecks.some(([rpc]) => `rpc/${rpc}` === key)
         : area.apiChecks.some(([route]) => `gtl-api/${route.split('?')[0]}` === key);
       assert.ok(probed, `${name}: ${key} is awaiting deploy but not probed by ${name}`);
