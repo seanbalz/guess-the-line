@@ -22,7 +22,7 @@ export function moneylineRest(db) {
       if (['select', 'order', 'limit'].includes(column)) continue;
       const [operator, ...parts] = String(filter).split('.'), value = parts.join('.');
       if (operator === 'is' && value === 'null') { where.push(`${identifier(column)} is null`); continue; }
-      const sqlOperator = { eq: '=', neq: '<>', gt: '>', gte: '>=', lt: '<', lte: '<=' }[operator];
+      const sqlOperator = { eq: '=', neq: '<>', gt: '>', gte: '>=', lt: '<', lte: '<=', cs: '@>' }[operator];
       if (!sqlOperator) throw new Error(`Unsupported fixture filter ${operator}`);
       params.push(value); where.push(`${identifier(column)} ${sqlOperator} $${params.length}`);
     }

@@ -14,6 +14,19 @@ async function fixture(page, baseURL) {
   return world;
 }
 
+test('new moneyline guesses stay within representable distance bounds before any write', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Disposable PGlite required.');
+  const world = await fixture(page, baseURL);
+  try {
+    for (const price of [2147383848, -2147383848, 2147483647, -2147483647]) {
+      const result = await world.api('troy', 'guess/save', { eventId: 'flow-ars-che', club: 'ARS', price, lock: true });
+      expect(result).toMatchObject({ status: 400, body: { code: 'GTL_EPL_GUESS_INVALID' } });
+    }
+    expect((await world.db.query('select count(*)::int n from public.gtl_epl_guesses')).rows[0].n).toBe(0);
+    expect((await world.db.query('select count(*)::int n from public.gtl_epl_guess_history')).rows[0].n).toBe(0);
+  } finally { await world.db.close(); }
+});
+
 test('moneyline real-handler flow locks once, preserves draft on kickoff refusal and isolates viewers', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Disposable PGlite required.');
   const world = await fixture(page, baseURL);
@@ -72,6 +85,47 @@ test('moneyline screen steps across even odds and recovers a committed lock with
     await expect(page.getByRole('img', { name: '1 of 3 matches locked', exact: true })).toBeVisible();
     expect(world.calls.filter(c => c.path === 'epl/guess/save' && c.body.lock)).toHaveLength(1);
     expect((await world.db.query("select count(*)::int n from public.gtl_epl_guess_history where action='lock'")).rows[0].n).toBe(1);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('switching from a linked manager to an unlinked account clears saved moneyline entry', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Disposable PGlite required.');
+  const world = await fixture(page, baseURL);
+  try {
+    await page.goto('/#epl/play/guess');
+    await signIn(page, 'troy', { navigate: false });
+    await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByLabel('Your moneyline price', { exact: true }).fill('-133');
+    await page.getByRole('button', { name: 'Save draft', exact: true }).click();
+    await expect(page.getByText('Draft saved.', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Menu', exact: true }).getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'luke', { navigate: false });
+    await page.goto('/#epl/play/guess');
+    await expect(page.getByText('You’re viewing read-only. Link an FEPL manager in Pick a Team to enter guesses.', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Lock in', exact: true })).toHaveCount(0);
+    expect((await world.api('luke', 'guess/read')).body.guesses).toEqual([]);
+    expect((await world.db.query("select price,status from public.gtl_epl_guesses where event_id='flow-ars-che'")).rows)
+      .toEqual([{ price: -133, status: 'draft' }]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('kickoff between opening the card and submitting retains the unsaved browser draft', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Disposable PGlite required.');
+  const world = await fixture(page, baseURL);
+  try {
+    await page.goto('/#epl/play/guess');
+    await signIn(page, 'troy', { navigate: false });
+    await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByLabel('Your moneyline price', { exact: true }).fill('-137');
+    await world.db.exec("update public.gtl_epl_fixtures set commence_time=now()-interval '1 minute' where event_id='flow-ars-che'");
+    await page.getByRole('button', { name: 'Lock in', exact: true }).click();
+    await expect(page.getByText("This match has kicked off. Your draft wasn't locked.", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Your unsaved draft: ARS.*137/)).toBeVisible();
+    expect((await world.db.query("select count(*)::int n from public.gtl_epl_guesses where event_id='flow-ars-che'")).rows[0].n).toBe(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
