@@ -71,6 +71,30 @@ is deployed: M-30 (`20261028180000_gtl_epl_pick_a_team.sql`) is written and **no
     `scripts/epl-seed-mw09.mjs` (MW9 seed and account links) and `scripts/epl-import-snapshots.mjs` (snapshot
     import, read-only on the snapshot folder). Both are dry runs unless given `--apply`.
 
+**Addendum — Research → Fantasy (EPL), plan 2 (October 28, 2026).** Built from
+[docs/superpowers/plans/2026-10-28-epl-fantasy.md](superpowers/plans/2026-10-28-epl-fantasy.md); not deployed (it needs
+M-30 and a `gtl-api` / `gtl-epl-jobs` deploy).
+
+12. **Player points.** A player's points are Sleeper's raw stats times FEPL's own `scoring_settings["pos_<pos>_<stat>"]`,
+    at the position stored in that matchweek's snapshot: Sleeper's `position` when present (it is where Sleeper scores a
+    multi-position player, and it reproduces Sleeper's `pts_std`), otherwise the first `fantasy_positions` entry.
+    Projections use the same formula over projected stats. A starter with no projection row adds 0 to the team total and
+    shows "No projection".
+13. **Win chance** is `Φ((projA − projB) / (σ·√2))` with σ = 18 points. The 18 is an estimate, not fitted; the screen's ⓘ
+    says so.
+14. **Snapshots.** The jobs worker stores Sleeper snapshots trimmed to rostered players, with a players directory under
+    Sleeper's key names, and adds a `daily-<YYYY-MM-DD>` capture once a UTC day (beside `before-mw<N>-kickoff` and
+    `after-mw<N>`). The `epl/fantasy/read` route (linked managers and the commissioner only) builds the view from stored
+    snapshots and the season's bonus rows; it never calls Sleeper per request. Per-player detail (top scorers, projected
+    vs actual) covers the last 6 matchweeks with a saved before-kickoff lineup and is labelled "from saved lineups".
+15. **This week's opponent (my call, Sean to check).** Sleeper gives no schedule for this league, so the opponent is read
+    from the last scored round of the round robin (8 managers: the pairing 7 matchweeks earlier), and only while every
+    scored repeat so far agrees with the round it repeats. Otherwise, or when that round's pairing is ambiguous, the
+    screen says "Matchup unavailable this week" and still shows your own projection. With tracking from MW9, the first
+    opponent can show at MW16.
+16. **Standings** rank Sleeper season points plus the season's Pick a Team bonus; the raw Sleeper total shows on tap.
+    Missing weeks are an em dash and a gap in the charts, never 0.
+
 ## D-66 — Research becomes nesting cards: one smaller layer per tap (October 28, 2026)
 
 Sean, October 28: "theres still way too much text across the app and not enough visuals and easy navigation and
