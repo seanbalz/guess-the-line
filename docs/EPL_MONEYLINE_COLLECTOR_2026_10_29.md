@@ -75,7 +75,9 @@ rolling back other managers' valid references. This is not a zero score or a cla
 
 ## Source validation and remaining work
 
-Local source checks include real PGlite admission/finish flows on M-30/M-31/M-32 without pending migrations, concurrent
+Local validation: **463 targeted Node tests passed, zero skips**, including the complete EPL suites, rollback/migration
+checks, boundary/pending-table/area suites and weather attribution regression. Typecheck, 14 token tests, Brand QA, cloud
+build and bundle-only privacy checks passed (existing large-chunk warning only). The checks include real PGlite admission/finish flows on M-30/M-31/M-32 without pending migrations, concurrent
 manager leases, sticky gate history, disabled pending locks, quota floor/no raise/no refund, bounded timings/checkpoints,
 first-after provenance despite a newer cache row, idempotent/expired finish, invalid/stale/future/three-way data,
 immutable at-lock references and extreme-distance review. Mock boundary probes cover both tables and all six RPCs.
