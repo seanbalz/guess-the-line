@@ -71,13 +71,13 @@ export function SportEntry({ session, onSignOut, children }) {
   const state = useRef(sport); state.current = sport;
   const previousNfl = useRef(sport !== 'nfl' ? '#home' : window.location.hash || '#home');
   const accepted = useRef(window.location.hash);
-  // EPL access is the lobby reply's `epl` (no request of its own): the EPL option shows only for FEPL members (and the
-  // commissioner). null until a lobby reply says; a cold #epl link reads the lobby once, which the NFL app then reuses.
+  // EPL is open to every confirmed account once M-30 is available. NBA and EPL mount no NFL app, so both must prime
+  // the lobby when this account's access is unknown (including after an account switch on a saved NBA address).
   const access = useEplAccess(session.user.id), epl = access === true;
   const gate = eplGate(sport, access);
   useEffect(() => {
-    if (gate === 'wait') primeLobby(session.user.id, () => cloudApi('lobby')).catch(() => { /* Read as no EPL: leaves for NFL. */ });
-  }, [gate, session.user.id]);
+    if (gate === 'wait' || (sport === 'nba' && access === null)) primeLobby(session.user.id, () => cloudApi('lobby')).catch(() => { /* Read as no EPL; a cold EPL address leaves for NFL. */ });
+  }, [gate, sport, access, session.user.id]);
   // A cold #epl/... link for an account without EPL: leave for NFL in place (replace, so Back does not return to it).
   useEffect(() => {
     if (gate !== 'leave') return;

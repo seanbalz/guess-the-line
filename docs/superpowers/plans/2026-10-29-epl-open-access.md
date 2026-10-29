@@ -1,5 +1,18 @@
 # EPL open access and automatic manager linking Implementation Plan
 
+## Current status — October 29, 2026
+
+PR #358 is merged. The [M-31 release record](../../RELEASE_2026_10_29_M31.md) records API v42 and Pages `7af96003` from `43c3a84` (release run `40829236564`), followed by the M-31 apply as hosted version `20261029131259`. The original unchecked TDD/build instructions below are historical recipes, not current open tasks.
+
+| Task | Source / recorded hosted state | Current acceptance / remaining work |
+| --- | --- | --- |
+| 1. M-31 SQL | Implemented, merged, applied; append-only audit, aliases, first-claim lock and commissioner-unlink protection present | Local PGlite cases pass; current hosted permission/hash checks belong to the coordinator. No live claims were made by the acceptance agent |
+| 2. API and lobby | Open reads, automatic-link attempt, claims, private queues and member-only writes implemented and included in recorded v42 release | Existing route tests plus [October 29 browser acceptance](../../EPL_ACCESS_ACCEPTANCE_2026_10_29.md) pass locally. A real unlinked draft read can mutate a link and is not a read-only hosted acceptance probe |
+| 3. Claim card and read-only EPL | Implemented and included in recorded frontend release | Browser covers claim → own queue, losing claim refresh, Just watching/reload, unlinked Fantasy and account switching. New navigation/phone-label fixes are source work pending their own CI/merge/release; physical iPhone acceptance remains open |
+| 4. Docs | D-68 addendum and release/apply evidence persisted; current-status summary added here | Coordinator reconciles global register/queue. Preserve earlier instructions as history |
+
+The release card's six linked managers is a dated release observation, not a constant current count. Future membership changes require fresh evidence. Real simultaneous PostgreSQL claims and physical Safari/Home Screen acceptance remain distinct from PGlite and Chrome phone-width fixtures.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Every signed-in GTL account sees EPL and can read the Pick a Team board and Research → Fantasy. An account links itself to its FEPL manager automatically when its display name uniquely matches; otherwise it can claim an unclaimed manager in one tap. Only linked managers can pick or keep a queue.

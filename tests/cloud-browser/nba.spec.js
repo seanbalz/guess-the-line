@@ -88,7 +88,7 @@ test('cold NBA entry, actual SQL single/parlay lifecycle, receipts, History, exa
   try {
     await enter(page);
     await expect(page.getByText('Time unavailable', { exact: false }).first()).toBeVisible();
-    expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
+    expect(world.calls.every(row => ['nba/games', 'lobby'].includes(row.path))).toBe(true);
     await expect(page.getByText('LIVE', { exact: true })).toHaveCount(1);
     await expect(page.getByText('Cached · BALLDONTLIE', { exact: false })).toBeVisible();
     fs.mkdirSync('.local/previews/nba', { recursive: true });
