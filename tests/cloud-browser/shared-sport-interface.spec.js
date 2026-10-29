@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { layoutProblems } from '../helpers/phone-layout.mjs';
 
 test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Disposable PGlite required.'));
@@ -24,6 +25,49 @@ async function openProfile(page) {
   await page.getByRole('dialog', { name: 'Menu', exact: true }).getByRole('button', { name: 'Profile', exact: true }).click();
   return page.getByRole('dialog', { name: 'Profile', exact: true });
 }
+
+for (const name of ['NFL', 'EPL']) test(`${name} keyboard skip link reveals a full target, keeps the sport address and respects modal focus`, async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  const route = name === 'EPL' ? '/#epl/bets' : '/#bets';
+  try {
+    await page.goto(route);
+    await signIn(page, 'luke', { navigate: false });
+    await expect(nav(page)).toBeVisible();
+    for (const theme of ['dark', 'light']) for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.reload();
+      await expect(nav(page)).toBeVisible();
+      await expect(sport(page, name)).toHaveAttribute('aria-pressed', 'true');
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      const address = page.url(), skip = page.getByRole('link', { name: 'Skip to main content', exact: true });
+      // Unfocused skip links have a box, but are intentionally clipped. Phone helpers
+      // exclude that state only; a focused skip link must meet all ordinary target/layout checks.
+      expect(await skip.evaluate(el => getComputedStyle(el).clip)).not.toBe('auto');
+      await page.keyboard.press('Tab');
+      await expect(skip).toBeFocused();
+      await expect(skip).toBeInViewport();
+      expect(await skip.evaluate(el => {
+        const box = el.getBoundingClientRect();
+        return box.width >= 44 && box.height >= 44 && getComputedStyle(el).clip === 'auto';
+      })).toBe(true);
+      expect(await page.evaluate(layoutProblems)).toEqual([]);
+      await page.keyboard.press('Enter');
+      await expect(page.getByRole('main')).toBeFocused();
+      expect(page.url()).toBe(address);
+      await expect(sport(page, name)).toHaveAttribute('aria-pressed', 'true');
+    }
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    const menu = page.getByRole('dialog', { name: 'Menu', exact: true });
+    await expect(menu).toBeVisible();
+    await expect(page.locator('.gx-app')).toHaveAttribute('inert', '');
+    const skip = page.locator('.gx-skip-link');
+    await skip.evaluate(el => el.focus());
+    await expect(skip).not.toBeFocused();
+    await page.keyboard.press('Tab');
+    expect(await menu.evaluate(el => el.contains(document.activeElement))).toBe(true);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
 
 test('NFL and EPL keep the current tab, shared header and account; profile saves carry across sports', async ({ page, baseURL }, testInfo) => {
   const world = await fixture(page, baseURL);
