@@ -77,12 +77,15 @@ describe('Commissioner tools routes and adapter', () => {
     expect(read('web/src/ManualOddsControls.jsx')).toContain('cloudApi(`odds/${operation}`');
   });
 
-  it('reuse the old Final scores and Odds connection editors only through LegacyTools.jsx', () => {
+  it('reuse the old Final scores editor only through LegacyTools.jsx; Odds connection is native (stage 78)', () => {
     const adapter = read('web/src/next/me/commissioner/LegacyTools.jsx');
-    expect(adapter).toMatch(/import ManualOddsControls from '\.\.\/\.\.\/\.\.\/ManualOddsControls\.jsx'/);
     expect(adapter).toMatch(/import ResultReviewControls from '\.\.\/\.\.\/\.\.\/ResultReviewControls\.jsx'/);
     expect(adapter).toContain('gx-live-workflow');
+    expect(adapter).not.toMatch(/ManualOddsControls/);
     expect(read('web/src/next/me/commissioner/CommissionerTools.jsx')).not.toMatch(/ResultReviewControls|ManualOddsControls|marketStatus/);
+    const odds = read('web/src/next/me/commissioner/OddsConnection.jsx');
+    expect(odds).not.toMatch(/from '[^']*(ManualOddsControls|lucide-react)[^']*'|className="[^"]*gx-live-workflow/);
+    expect(odds).toContain('cloudApi(`odds/${operation}`, { requestId: requests.current[operation] })');
     expect(read('docs/ALL_TABS_LIVE_WORKFLOWS.md')).toContain('LegacyTools.jsx');
   });
 

@@ -5,8 +5,9 @@
 //   settlement (`/virtual-units`, and `/virtual-units/settle` to run it now, D-26);
 // - Week opening: review the public schedule and publish a week early (`/community/publish-preview`, `/community/publish`);
 // - Game referees: one per game, kept with its history (`/officials/read`, `/officials/set`);
-// - Final scores and Odds connection: the old editors through the documented adapter (LegacyTools.jsx), shown only to
-//   the original Triple Threat commissioner, as before (`/results/review`, `/odds/preflight`, `/odds/collect`).
+// - Final scores: the old editor through the documented adapter (LegacyTools.jsx); Odds connection: native
+//   (OddsConnection.jsx, stage 78). Both are shown only to the original Triple Threat commissioner, as before
+//   (`/results/review`, `/odds/preflight`, `/odds/collect`).
 // The code loads only when the commissioner opens the tools.
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { cloudApi, communityApi, officialsApi } from '../../../api.js';
@@ -17,7 +18,8 @@ import { fmtFull } from '../../format.js';
 import { useTrendWeek } from '../../lines/trendsHooks.js';
 import { useShell } from '../../shell/context.js';
 import { Button, Card, LinkRow, List, Pill, Sheet } from '../../ui/index.js';
-import { FinalScoresEditor, OddsConnectionEditor, oddsScheduleText } from './LegacyTools.jsx';
+import { FinalScoresEditor, oddsScheduleText } from './LegacyTools.jsx';
+import { OddsConnection } from './OddsConnection.jsx';
 import './commissioner.css';
 
 export const TRIPLE_THREAT = 'sean-troy-luke';
@@ -254,7 +256,7 @@ function TripleThreatTool({ app, tool }) {
   if (triple.loading) return <p className="gx-t-body" role="status">Loading the Triple Threat week…</p>;
   if (!triple.data) return <div className="gx-cm-stack"><Problem>{plain(triple.error)}</Problem><Button onClick={triple.reload}>Try again</Button></div>;
   if (tool === 'results') return triple.data.resultReview ? <FinalScoresEditor data={triple.data} onReviewed={triple.reload}/> : <p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>;
-  return triple.commissioner ? <OddsConnectionEditor data={triple.data} onCollected={triple.reload}/> : <p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>;
+  return triple.commissioner ? <OddsConnection data={triple.data} onCollected={triple.reload}/> : <p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>;
 }
 
 export function CommissionerTools({ tool = null }) {

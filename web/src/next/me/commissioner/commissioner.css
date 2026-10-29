@@ -1,4 +1,4 @@
-/* Menu › Commissioner tools (D-65 follow-up). Native rows use the shared gx- classes; the adapted editors sit in gx-live-workflow. */
+/* Menu › Commissioner tools (D-65 follow-up). Native rows use the shared gx- classes; the adapted Final scores editor sits in gx-live-workflow. */
 .gx .gx-cm-stack { display: grid; gap: var(--gx-space-3); min-width: 0; }
 .gx .gx-cm-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
 .gx .gx-cm-fields label,
@@ -7,3 +7,6 @@
 .gx .gx-cm-games li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--gx-space-1) var(--gx-space-3); min-width: 0; overflow-wrap: anywhere; }
 .gx .gx-cm-problem { color: var(--gx-loss); }
 .gx .gx-cm-legacy { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-cm-counts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); margin: 0; }
+.gx .gx-cm-counts div { display: grid; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-cm-counts dd { margin: 0; }
