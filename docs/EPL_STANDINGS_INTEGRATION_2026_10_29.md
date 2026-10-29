@@ -19,7 +19,9 @@ M-34 was generated with the repository's installed Supabase CLI as
 - `gtl_epl_standings_usage`: one immutable snapshot reference per draft whose resolution needed table positions, including
   the claimed run and use time. Later captures cannot replace that reference.
 
-The migration widens the schedule check for a separate `standings` job. It creates **no schedule row** and enables
+The migration widens the schedule check for a separate `standings` job, retaining the reserved `moneyline` job as well
+so independent M-36 can apply first without a later M-34 narrowing its constraint. Neither migration depends on the other
+feature's tables or RPCs. It creates **no schedule row** and enables
 nothing. It is explicitly fix-forward: stop collection by disabling its row and retain captured evidence and usage.
 Apply order follows M-33; the shared migration ledger keeps M-34 in `NOT_HOSTED` and `FIX_FORWARD`.
 

@@ -40,6 +40,10 @@ test('M-34 is pending/fix-forward and creates no standing schedule or enabled co
   assert.equal((await f.db.query("select count(*)::int n from public.gtl_epl_jobs_schedule where job='standings'")).rows[0].n, 0);
   await f.db.exec("insert into public.gtl_epl_jobs_schedule(job,enabled) values('standings',false)");
   assert.deepEqual((await f.db.query("select public.gtl_epl_dispatch_jobs('standings') r")).rows[0].r, { status: 'disabled' });
+  // Independent M-36 may apply first and leave a disabled moneyline row. M-34 must never narrow that admission.
+  await f.db.exec("insert into public.gtl_epl_jobs_schedule(job,enabled) values('moneyline',false)");
+  await f.db.exec(fs.readFileSync(FILE,'utf8'));
+  assert.deepEqual((await f.db.query("select public.gtl_epl_dispatch_jobs('moneyline') r")).rows[0].r, { status: 'disabled' });
 });
 
 test('dated source persistence is private, append-only and replay-safe; the same identity cannot be rewritten', { skip }, async t => {
