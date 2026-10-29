@@ -477,3 +477,17 @@ test('the Play counter: ballots still due this week, from the server\'s picksDue
   assert.deepEqual(tabBadge('play', due('due', ['guess_spread', 'guess_total'])), { label: 'Play', name: 'Play, 2 ballots due', count: 2, dot: false });
   assert.deepEqual(tabBadge('play', { lobby: {}, community: null }), { label: 'Play', name: 'Play', count: 0, dot: false });
 });
+
+test('EPL automatic refresh keeps account data fresh without polling previously visited NFL reads', async () => {
+  const calls = { lobby: 0, community: 0, personal: 0 }, win = fakeWindow();
+  const store = createDataStore(Object.fromEntries(Object.keys(calls).map(name => [name, async () => { calls[name]++; return { name }; }])));
+  await Promise.all(Object.keys(calls).map(name => store.load(name)));
+  const disconnect = connectRefresh(win, store, { only: ['lobby'], focusMs: 0 });
+  for (const refresh of [() => win.fire('focus'), () => win.fire('online'), () => win.tickInterval()]) { refresh(); await tick(); }
+  assert.deepEqual(calls, { lobby: 4, community: 1, personal: 1 });
+  disconnect();
+  const nfl = connectRefresh(win, store);
+  win.tickInterval(); await tick();
+  assert.deepEqual(calls, { lobby: 5, community: 2, personal: 2 });
+  nfl();
+});

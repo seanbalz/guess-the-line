@@ -1,5 +1,14 @@
 # Decision log
 
+## Shared NFL/EPL interface — October 29, 2026
+
+Sean confirmed a shared interface with sport-specific game modes, the same
+profile and navigation, and staying in the current primary section when switching
+sports. This supersedes the separate EPL mini-app frame. The
+[implementation and verification record](SHARED_SPORT_INTERFACE.md) describes
+shared account state, route isolation and sport-specific availability.
+This decision does not change game rules or authorize a production release.
+
 ## Logo refinement — October 29, 2026
 
 Sean requested a more symmetrical logo, different color variations and favicon

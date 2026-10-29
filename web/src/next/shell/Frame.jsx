@@ -7,7 +7,8 @@ import { cx } from '../ui/cx.js';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { navigateSport } from '../nba/route.js';
-import { EplAccessContext, SPORT_HOME, sportOptions } from '../epl/route.js';
+import { EplAccessContext, sportOptions } from '../epl/route.js';
+import { SportNavigationContext, sportSwitchHash } from '../sportSwitch.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
 // Four primary destinations, using the shared original icon language.
@@ -41,7 +42,8 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
  */
 export function SportControls() {
   const epl = useContext(EplAccessContext);
-  return <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={value => navigateSport(SPORT_HOME[value])}/></div>;
+  const { sport, change } = useContext(SportNavigationContext);
+  return <div className="gx-sport-controls"><Segmented label="Sport" value={sport} options={sportOptions(epl)} onChange={value => change ? change(value) : navigateSport(sportSwitchHash(value, window.location.hash))}/></div>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */

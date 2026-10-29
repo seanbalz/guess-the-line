@@ -5,8 +5,9 @@ import { decode, markupProblems } from './helpers/ui-markup.mjs';
 const cloud = vi.hoisted(() => ({ calls: [] }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(async (...args) => { cloud.calls.push(args); return { ok: true }; }) }));
 
-const { SportControls } = await import('../web/src/next/shell/Frame.jsx');
+const { SportControls, TopBar, TabBar } = await import('../web/src/next/shell/Frame.jsx');
 const { EplAccessContext } = await import('../web/src/next/epl/route.js');
+const { SportNavigationContext } = await import('../web/src/next/sportSwitch.js');
 const { EplView } = await import('../web/src/next/epl/EplApp.jsx');
 const { eplApi } = await import('../web/src/next/epl/api.js');
 const { ApiError } = await import('../web/src/apiResponse.js');
@@ -14,7 +15,7 @@ const { NbaHeader } = await import('../web/src/next/nba/NbaHeader.jsx');
 
 const text = html => decode(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
 const pressed = html => [...html.matchAll(/<button[^>]*aria-pressed="true"[^>]*>([^<]*)<\/button>/g)].map(match => match[1]);
-const render = route => renderToStaticMarkup(<EplView route={route} onRoute={() => {}} onSportChange={() => {}}/>);
+const render = route => renderToStaticMarkup(<div className="gx"><EplView route={route} onRoute={() => {}}/></div>);
 
 describe('sport switch', () => {
   it('the new app shows EPL only when the account has EPL access', () => {
@@ -40,7 +41,7 @@ describe('sport switch', () => {
     expect(pressed(hidden)).toEqual(['NBA']);
   });
   it('the EPL app header has EPL selected', () => {
-    const html = render({ tab: 'home' });
+    const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport: 'epl' }}><div className="gx"><SportControls/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
     expect(html).toContain('aria-label="Sport"');
     expect(text(html)).not.toContain('NBA');
     expect(pressed(html)).toContain('EPL');
@@ -49,7 +50,8 @@ describe('sport switch', () => {
 
 describe('EPL four-tab shell', () => {
   it('draws Home, Play, Bets and Research with the one showing marked', () => {
-    const html = render({ tab: 'home' });
+    const html = renderToStaticMarkup(<div className="gx"><TopBar leagueName="FEPL" you={{ id: 'fixture', name: 'Fixture' }}/><TabBar current="home"/></div>);
+    expect(html).toContain('aria-label="Your menu"');
     for (const label of ['Home', 'Play', 'Bets', 'Research']) expect(html).toContain(`>${label}</span>`);
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
     expect(html).toMatch(/data-tab="home"[^>]*aria-current="page"/);
@@ -58,7 +60,6 @@ describe('EPL four-tab shell', () => {
   it('Bets has nothing for the Premier League', () => {
     const html = render({ tab: 'bets' });
     expect(text(html)).toContain("Bets aren't available for the Premier League.");
-    expect(html).toMatch(/data-tab="bets"[^>]*aria-current="page"/);
     expect(markupProblems(html)).toEqual([]);
   });
   it('Play has Guess the Line, Pick a Team and Leaderboard; only Pick a Team is built', () => {
