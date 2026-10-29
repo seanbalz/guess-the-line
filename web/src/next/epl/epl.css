@@ -1,6 +1,7 @@
 /* The EPL mini-app (EplApp.jsx). It reuses the new app's frame (shell.css: top bar, main, tab bar); these rules only
    place the sport switch in the top bar and show the skip link on focus. */
 .gx.gx-epl { min-height: 100vh; min-height: 100dvh; background: var(--gx-canvas); }
+.gx .gx-epl-top .gx-seg { flex: 0 1 240px; min-width: 0; }
 .gx .gx-epl-skip:focus { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; display: block; padding: var(--gx-space-3); }
 
 /* ===== Pick a Team and EPL Home (Task 8; mockups v3 "Home" and "Play · Pick a Team") ===== */

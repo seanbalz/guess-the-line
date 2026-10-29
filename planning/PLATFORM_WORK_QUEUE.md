@@ -12,8 +12,9 @@ The frozen v62 tracker is preserved.
 
 Sean reports Research formatting/functionality regression and says EPL feels like
 another app instead of switching sports. The [audit and physical-iPhone evidence](../docs/REGRESSION_AUDIT_2026_10_29.md)
-records AUD-01 Research quote/name crowding and AUD-02 shared chrome/tab context
-repairs in the audit branch. AUD-03 retained old Safari UI/update recovery,
+records AUD-01 Research quote/name crowding repairs in #376. AUD-02 shared
+chrome/tab context and AUD-05 account integration are owned by #379; the
+overlapping partial EPL implementation was removed from #376 before merge. AUD-03 retained old Safari UI/update recovery,
 AUD-04 favicon cache/theme readback and AUD-05 complete account-tool integration
 remain open. These refine DESIGN-01 and broader Q19 acceptance; the prior resolved
 Q03 scrolling report is preserved. Validate repaired source through CI/release and

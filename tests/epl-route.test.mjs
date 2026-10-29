@@ -107,14 +107,3 @@ test('EPL open access: any account whose lobby says epl true gets the EPL option
   assert.ok(!sportOptions(knownEplAccess('watcher')).some(o => o.value === 'epl'));
   resetEplAccessCache();
 });
-
-// A sport selection keeps the active app tab; only the sport-specific detail address changes.
-test('sport switching preserves the active destination and restores matching NFL detail', async () => {
-  const { sportSwitchHash } = await import('../web/src/next/epl/route.js');
-  assert.equal(sportSwitchHash('epl', '#research/games?season=2026&week=8'), '#epl/research/fantasy');
-  assert.equal(sportSwitchHash('epl', '#play/picks'), '#epl/play/pick');
-  assert.equal(sportSwitchHash('epl', '#bets/active'), '#epl/bets');
-  assert.equal(sportSwitchHash('nfl', '#nba/games', '#research/games'), '#research/games');
-  assert.equal(sportSwitchHash('nfl', '#epl/research/fantasy', '#research/games'), '#research/games');
-  assert.equal(sportSwitchHash('nfl', '#epl/play/pick', '#research/games'), '#play');
-});

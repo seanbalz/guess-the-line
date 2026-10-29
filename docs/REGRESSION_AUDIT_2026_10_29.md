@@ -13,10 +13,10 @@ at audit start was `5c1b775f05a69306f20f911f4b0455c207c65ffc`, Pages `72eb400b`.
 | ID | Finding and evidence | State / exit criterion |
 | --- | --- | --- |
 | AUD-01 | On signed-in production at 390px, loading quotes squeezes the Lines board's team names to “Pa…”. Provenance, the quote and saved-pick tags compete for three columns. The broad phone test permits deliberate ellipsis and did not flag this loss of useful names. | Fixed in this branch: phone cards put the spread quote and provenance on their own full-width row. A new loaded-quote regression fails against the original implementation and passes after repair at 320/390 in both themes. Source/CI, merge, release and physical readback of the repair remain required. |
-| AUD-02 | Production EPL removes the league/account header controls, moves the sport selector into the header, and always enters Home from NFL Research. Source mounts a separate EPL frame. | First integration repair in this branch: reuse TopBar, keep the selector below it, expose shared Appearance plus account/sign-out controls, retain the active primary tab across sport changes, and use the fixed-bar viewport correction hook. Existing NBA return routes and unsaved-change guards remain. New browser coverage checks appearance at both phone widths and Research → EPL → NFL context. |
+| AUD-02 | Production EPL removes the league/account header controls, moves the sport selector into the header, and always enters Home from NFL Research. Source mounts a separate EPL frame. | Shared-shell ownership is [PR #379](https://github.com/seanbalz/guess-the-line/pull/379), following Sean’s confirmed persistent profile/navigation/current-section instruction. This audit branch’s partial EPL header/menu repair was removed before merge to avoid conflicting implementations. Validate the combined Research repair and full shared Shell/MenuSheet/account provider before release; existing NBA and unsaved-draft guards remain required. |
 | AUD-03 | The existing physical Safari tab showed NBA navigation and a Trends error. A fresh Safari tab showed current NFL/EPL navigation; fresh desktop Trends loaded successfully with no captured warnings/errors. | Open: retained older running UI is observed; the exact old source and cause of its Trends failure were not established. Add a safe update/reload affordance and test background/resume, preserving drafts and uncertain writes. Do not solve this by clearing storage or forcing an automatic reload. |
 | AUD-04 | Safari displayed a readable deep-green G on a white favicon badge in both system appearances. Its expected automatic lime rendering in Dark was not established. The installed app icon rendered after an initially blank Spotlight result. | Versioned favicon and apple-touch-icon references added in this branch for new document loads. Recheck after deployment on this existing installation. Changing HTML does not prove replacement of an already-cached iOS launcher icon. |
-| AUD-05 | EPL still has different available account tools and sport content. Its new menu supplies Appearance and sign-out, while Profile/History/Export/admin tools remain in the NFL shell. EPL Bets and moneyline/leaderboard placeholders are existing delivery gaps. | Open: complete account-tool integration and working sport destinations through their real contracts. The header repair does not establish complete feature parity. Keep real unavailable states; do not fabricate football, fantasy or betting data. |
+| AUD-05 | Production EPL has different available account tools and sport content. Profile/History/Export/admin tools are absent from its initial mini-app frame. EPL Bets and moneyline/leaderboard placeholders are separate delivery gaps. | Full account-tool/shared-frame integration is owned by #379, including retained account/profile state and commissioner access. It requires combined CI/release/readback. Sport-specific unfinished modes remain open; shared chrome must not fabricate their data or claim they are delivered. |
 
 Owner for source repairs and AUD-03/AUD-05 follow-through: Codex. Physical
 acceptance: Sean with Codex. This report is persisted backlog evidence, not a
@@ -41,6 +41,12 @@ account link, league membership, public post or bet was written by live checks.
 
 ## Verification scope
 
+The initial local runs below include the superseded partial EPL implementation.
+Before merging, the overlapping code and its additional tests were removed from
+#376 in favor of #379. Final combined verification is recorded in the release
+evidence; initial counts alone do not validate the reconciled result.
+
+
 - Baseline: six existing browser scenarios passed: broad phone formatting,
   phone scrolling/fixed bars, score/chip spacing, four-tab roots and EPL routing.
 - Repairs: 56 affected browser scenarios passed, including all Research Lines
@@ -60,11 +66,10 @@ account link, league membership, public post or bet was written by live checks.
   from the available signed-in account, not every role or server-side operation.
 
 Synthetic local previews (no private player data):
-[Research repair](../design/audits/2026-10-29/research-loaded-light.png) ·
-[EPL shared appearance](../design/audits/2026-10-29/epl-menu-dark.png).
-The EPL preview deliberately exercises a failed Fantasy fixture read and its retry
-state. It is not a production outage screenshot. Private device/production page
-contents are not copied into this public repository.
+[Research repair](../design/audits/2026-10-29/research-loaded-light.png).
+Shared-shell previews belong to [PR #379](https://github.com/seanbalz/guess-the-line/pull/379).
+The initial partial-menu preview was removed during reconciliation. Private
+device/production contents are not copied into this public repository.
 
 The existing trend-variety work is [PR #363](https://github.com/seanbalz/guess-the-line/pull/363),
 a separate offline discovery change; this audit does not mark its API/UI integration

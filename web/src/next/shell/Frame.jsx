@@ -7,21 +7,21 @@ import { cx } from '../ui/cx.js';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { navigateSport } from '../nba/route.js';
-import { EplAccessContext, sportOptions, sportSwitchHash } from '../epl/route.js';
+import { EplAccessContext, SPORT_HOME, sportOptions } from '../epl/route.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
 // Four primary destinations, using the shared original icon language.
 const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
 /** Top bar (spec 1.3): the Field monogram (to Home), the league pill (the switcher) and your avatar (the menu). */
-export function TopBar({ leagueName, you, onHome, onLeague, onMenu, leagueActionLabel }) {
+export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
   return (
     <header className="gx-topbar">
       <div className="gx-topbar-inner">
         <button type="button" className="gx-top-btn" aria-label={SHELL_COPY.home} onClick={onHome}>
           <FieldMark size={32}/>
         </button>
-        <button type="button" className="gx-league-btn" aria-label={leagueActionLabel ?? leagueLabel(leagueName)} onClick={onLeague}>
+        <button type="button" className="gx-league-btn" aria-label={leagueLabel(leagueName)} onClick={onLeague}>
           <span className="gx-league-pill">
             <span className="gx-league-name gx-truncate">{leagueName}</span>
             <Icon icon="chevronDown" size={16}/>
@@ -41,7 +41,7 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu, leagueAction
  */
 export function SportControls() {
   const epl = useContext(EplAccessContext);
-  return <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={value => navigateSport(sportSwitchHash(value, window.location.hash))}/></div>;
+  return <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={value => navigateSport(SPORT_HOME[value])}/></div>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */

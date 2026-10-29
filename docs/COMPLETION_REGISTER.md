@@ -43,8 +43,9 @@ Physical-device acceptance remains separate.
 
 [Audit evidence and remaining gates](REGRESSION_AUDIT_2026_10_29.md) records
 production Research quote/name crowding, EPL shell/context discontinuity and a
-retained older Safari tab with a Trends error. Phone-layout/source repairs are in
-the audit branch, with focused and broader local verification. Physical iPhone
+retained older Safari tab with a Trends error. Research phone-layout and favicon-reference repairs are in #376. Full shared
+EPL shell/profile ownership is #379; #376’s overlapping partial implementation
+was removed before merge. Combined verification and release remain required. Physical iPhone
 logo observations cover installed app and Safari in Light/Dark; exact favicon
 Dark adaptation/cache freshness remains open. Sean confirmed restoring test
 appearance settings. This is not a blanket app acceptance or a deployed-fix claim.

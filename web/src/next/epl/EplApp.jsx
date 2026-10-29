@@ -1,4 +1,4 @@
-// EPL sport views (#epl/...) use the same top bar, sport row and four-tab layout as NFL. Home and Play > Pick a Team are Plan 1 (Task 8);
+// The EPL mini-app (#epl/...): the new app's four tabs for the FEPL league. Home and Play > Pick a Team are Plan 1 (Task 8);
 // Research > Fantasy is Plan 2 (web/src/next/epl/fantasy/); Play > Guess the Line and Leaderboard (Plan 3) show a
 // "Coming next" card. Bets has nothing for the Premier League.
 import '../styles/tokens.css';
@@ -6,12 +6,10 @@ import '../styles/base.css';
 import '../styles/components.css';
 import '../shell/shell.css';
 import './epl.css';
-import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { noteSportRoute } from '../../sportNavigation.js';
-import { Avatar, Button, Card, Icon, Segmented, Sheet } from '../ui/index.js';
-import { TopBar } from '../shell/Frame.jsx';
-import { useFixedBarsPinned } from '../shell/viewportPin.js';
+import { FieldMark, Icon, Segmented } from '../ui/index.js';
 import { cx } from '../ui/cx.js';
 import { addNextFontLinks } from '../styles/fonts.js';
 import { confirmSportLeave } from '../nba/route.js';
@@ -20,8 +18,6 @@ import { eplApi } from './api.js';
 import { EplHome } from './EplHome.jsx';
 import { PickATeam } from './PickATeam.jsx';
 import { EplFantasy } from './fantasy/EplFantasy.jsx';
-
-const Appearance = lazy(() => import('../me/Appearance.jsx').then(module => ({ default: module.Appearance })));
 
 export const EPL_COPY = Object.freeze({
   nav: 'EPL',
@@ -37,8 +33,7 @@ export const EPL_COPY = Object.freeze({
 });
 const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
-export default function EplApp({ session, onSignOut, onSportChange, api = eplApi }) {
-  useFixedBarsPinned();
+export default function EplApp({ onSportChange, api = eplApi }) {
   const [route, setRoute] = useState(() => eplRoute(window.location.hash) || { tab: 'home' });
   const current = useRef(route); current.current = route;
   const [preferences] = useDashboardPreferences();
@@ -56,29 +51,21 @@ export default function EplApp({ session, onSignOut, onSportChange, api = eplApi
     if (!confirmSportLeave()) return;
     setRoute(normalized); window.history.pushState(null, '', hash); noteSportRoute(); window.scrollTo(0, 0);
   }
-  return <EplView route={route} onRoute={go} onSportChange={onSportChange} api={api} motion={preferences.motion} session={session} onSignOut={onSignOut}/>;
+  return <EplView route={route} onRoute={go} onSportChange={onSportChange} api={api} motion={preferences.motion}/>;
 }
 
 /** The frame and the tab showing, drawn from `route` alone (no window reads), so tests render it directly. */
-export function EplView({ route, onRoute, onSportChange, api = eplApi, motion, session, onSignOut }) {
-  const [panel, setPanel] = useState(null);
-  const [signOutError, setSignOutError] = useState('');
-  const [signingOut, setSigningOut] = useState(false);
-  const user = session?.user ?? {};
-  const you = { id: user.id ?? '', name: user.user_metadata?.display_name || user.user_metadata?.full_name || user.email || 'Your account' };
-  async function signOut() {
-    if (signingOut || !confirmSportLeave()) return;
-    setSigningOut(true);
-    try { await onSignOut?.(); } catch (error) { setSignOutError(error.message); setSigningOut(false); }
-  }
+export function EplView({ route, onRoute, onSportChange, api = eplApi, motion }) {
   const mainRef = useRef(null);
   // The skip link moves focus without touching the address: an #epl-main fragment would read as a route.
   function skipToMain(event) { event.preventDefault(); mainRef.current?.focus(); }
   return <div className="gx gx-epl" data-motion={motion === 'reduced' ? 'reduce' : undefined}>
     <a className="gx-sr-only gx-epl-skip" href="#epl-main" onClick={skipToMain}>{EPL_COPY.skip}</a>
     <div className="gx-app">
-      <TopBar leagueName="Premier League" leagueActionLabel="League: Premier League" you={you} onHome={() => onRoute({ tab: 'home' })} onLeague={() => setPanel('league')} onMenu={() => setPanel('menu')}/>
-      <div className="gx-sport-controls"><Segmented label="Sport" value="epl" options={sportOptions(true)} onChange={value => onSportChange?.(value)}/></div>
+      <header className="gx-topbar"><div className="gx-topbar-inner gx-epl-top">
+        <FieldMark size={32}/>
+        <Segmented label="Sport" value="epl" options={sportOptions(true)} onChange={value => onSportChange?.(value)}/>
+      </div></header>
       <main className="gx-main" id="epl-main" tabIndex={-1} ref={mainRef}>
         {route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api}/>
           : route.tab === 'bets' ? <EplBets/>
@@ -94,17 +81,6 @@ export function EplView({ route, onRoute, onSportChange, api = eplApi, motion, s
           </button>;
         })}
       </div></nav>
-      {panel ? <Sheet title={panel === 'league' ? 'Premier League' : panel === 'appearance' ? 'Appearance' : 'Menu'} onClose={() => setPanel(null)} back={panel === 'appearance' ? { label: 'Menu', onBack: () => setPanel('menu') } : undefined}>
-        {panel === 'appearance' ? <Suspense fallback={<p role="status">Loading appearance…</p>}><Appearance/></Suspense> : panel === 'league' ? <>
-          <p className="gx-t-body">Premier League competitions and FEPL Fantasy share this sport’s Home, Play and Research tabs.</p>
-          <Button onClick={() => { setPanel(null); onRoute({ tab: 'play', section: 'pick' }); }}>Pick a Team</Button>
-        </> : <>
-          <Card className="gx-menu-account"><Avatar id={you.id} name={you.name} size={56}/><div><p className="gx-t-strong">{you.name}</p><p className="gx-t-meta gx-c-2">Signed in as {user.email}</p></div></Card>
-          <Button variant="secondary" onClick={() => setPanel('appearance')}>Appearance</Button>
-          {onSignOut ? <Button variant="ghost-2" onClick={signOut} aria-disabled={signingOut || undefined}>{signingOut ? 'Signing out…' : 'Sign out'}</Button> : null}
-          {signOutError ? <p role="alert">{signOutError}</p> : null}
-        </>}
-      </Sheet> : null}
     </div>
   </div>;
 }
