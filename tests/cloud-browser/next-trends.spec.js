@@ -49,7 +49,7 @@ async function ready(page,baseURL,{ stale = false, chartValues = false, landing 
 async function phone(page) {
  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
  const problems = await page.locator('.gx').evaluate(root => {
-  const visible = e => e.getClientRects().length && !e.closest('[hidden],[inert],dialog:not([open])');
+  const visible = e => e.getClientRects().length && !e.closest('[hidden],[inert],dialog:not([open]),.gx-sr-only:not(.gx-skip-link:focus)');
   const bad = [...root.querySelectorAll('button,a[href],select,summary')].filter(visible).filter(e => { const r=e.getBoundingClientRect();return r.width<43.5||r.height<43.5; }).map(e=>e.textContent);
   for (const tab of root.querySelectorAll('.gx-tabbar button')) { const r = tab.getBoundingClientRect(); if (r.left < -.5 || r.right > innerWidth + .5) bad.push('Navigation tab clipped'); }
   return bad;

@@ -17,6 +17,8 @@ sport-specific game modes and data contexts separate. See the
 [scope, test evidence and visual review](SHARED_SPORT_INTERFACE.md).
 This is source/local evidence; hosted release and physical-phone acceptance
 remain separate. Existing EPL moneyline work retains its own owner and gates.
+The skip-link CI correction includes focused regression and both-sport keyboard
+evidence in that record; the coordinated release owner still requires green CI.
 
 ## EPL priority — October 29, 2026
 
