@@ -24,6 +24,7 @@ for (const installed of [false, true]) test(installed
     await db.query("insert into public.gtl_epl_weeks(season,week,window_start,window_end,first_kickoff,pick_order) values(2026,10,'2026-11-04','2026-11-11','2026-11-07T12:30Z',$1)", [owners]);
     await db.exec("insert into public.gtl_epl_fixtures(event_id,season,week,home,away,commence_time,status,home_goals,away_goals) values('fixture',2026,9,'ARS','LIV','2026-11-02T20:00Z','final',2,0)");
     await db.query("insert into public.gtl_epl_snapshots(label,captured_at,week,payload) values('after-mw9','2026-11-03T02:00Z',9,$1)", [{ state: { season: '2026', week: 10 }, rosters: rosterRows(false) }]);
+    await db.exec("insert into public.gtl_epl_capture_intervals(season,week,next_week,next_kickoff,verified_at,verified_by,schedule_sha256,reference,coverage_complete) values(2026,9,10,'2026-11-07T12:30Z','2026-10-28T12:00Z','00000000-0000-4000-8000-000000000003',repeat('a',64),'https://example.test/schedule',true)");
   }
   await db.query("insert into public.gtl_epl_jobs_schedule(job,enabled,endpoint) values('snapshot',true,'https://example.supabase.co/functions/v1/gtl-epl-jobs')");
   await db.query("insert into public.gtl_epl_job_runs(id,job,slot_start,capability_hash) values($1,'snapshot',clock_timestamp(),$2)", [runId, createHash('sha256').update(capability).digest('hex')]);
@@ -60,5 +61,6 @@ for (const installed of [false, true]) test(installed
   const storedRun = (await db.query('select status,detail from public.gtl_epl_job_runs where id=$1', [runId])).rows[0];
   assert.equal(storedRun.status, installed ? 'skipped' : 'succeeded');
   assert.equal(storedRun.detail.recheckReady, installed, 'operational readback explicitly distinguishes captures from correction readiness');
+  assert.equal(storedRun.detail.orderUpdateReady, installed);
   assert.deepEqual(transportErrors, []);
 });

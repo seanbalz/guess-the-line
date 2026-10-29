@@ -36,6 +36,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 export const NOT_HOSTED = [
   20261029150000, // M-32 gtl_epl_moneyline: EPL Guess the Line guesses, references, board and leaderboard (needs M-30; after M-31), awaiting Sean's "apply M-32".
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
+  20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -57,7 +58,7 @@ export const FIX_FORWARD = [
 // M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
 // M-31 (20261029060000) reads M-30's EPL tables; M-30 is hosted (20261029051846), so it needs no entry here.
-export const REQUIRES = Object.freeze({});
+export const REQUIRES = Object.freeze({ 20261029162144: [20261029151727] });
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();

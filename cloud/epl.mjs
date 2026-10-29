@@ -49,7 +49,7 @@ export const EPL_METHODS = Object.freeze({
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
   'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin',
-  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at']);
+  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state']);
 /**
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
@@ -116,7 +116,12 @@ const weekOk = n => Number.isInteger(n) && n >= 1 && n <= 38;
 export function createEplService({ rpc, rest, rows }) {
   return {
     rpc: (name, args) => rpc(name, args),
-    readCorrectionReviews: season => readEplCorrectionReviews({ rows, season }),
+    async readCorrectionReviews(season) {
+      let orderStates = null;
+      try { orderStates = await rpc('gtl_epl_order_correction_state', { p_season: season }); }
+      catch (error) { if (!(error instanceof EplError && error.status === 404 && error.code === 'GTL_EPL_OFF')) throw error; }
+      return readEplCorrectionReviews({ rows, season, orderStates });
+    },
     async latestWeek() {
       const row = await rest('gtl_epl_weeks', { select: 'season,week', order: 'season.desc,week.desc', limit: '1' });
       return row && Number.isInteger(row.season) && Number.isInteger(row.week) ? { season: row.season, week: row.week } : null;
