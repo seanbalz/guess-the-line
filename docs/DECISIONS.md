@@ -12,6 +12,20 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
+
+Sean chose Q06 next, then, asked where the new placing screen (redesign stages 43 and 44) should live: "Replace Your
+picks". This settles where stage 43's Place board goes under the approved four-tab Bets (One thing first), which
+replaced the old section switch (Place, Challenges, My bets, Real slips).
+- **Bets › Virtual › Your picks** is one screen for every player, Community included, on the published week from
+  `/bets/read`: each game's best named-book prices per side, your saved bet, friends' faces, and a slip in the dock with
+  0.5 to 3U chips and a half-unit stepper. It places and edits through `/bets/place` (M-11, stage 41).
+- **The private-league requirement goes away.** The league showing only filters whose faces appear; the bets are the
+  account's, the same rows in every league. The old group Virtual Units screen is no longer reached from Bets; every
+  row it wrote stays and keeps counting (D-23).
+- **Unchanged:** the line lock (a market's prices show after you lock in that game's guess, or at kickoff), kickoff
+  closes a game, half units, and Recommended's own Virtual Units placement.
+
 ## D-66 — Research becomes nesting cards: one smaller layer per tap (October 28, 2026)
 
 Sean, October 28: "theres still way too much text across the app and not enough visuals and easy navigation and
