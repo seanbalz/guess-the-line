@@ -87,7 +87,10 @@ test('the commissioner reaches every tool; status, week opening and referees use
     await expect(sheet(page).getByRole('list', { name: `Week ${open.week + 1} schedule` })).toContainText('Seattle Seahawks @ Denver Broncos');
     expect(await slates()).toEqual(before);
     await checkLayout(page, testInfo, 'weeks');
+    // Publishing refreshes the Community week; the notice must survive that refresh, not only the moment before it.
+    const refreshed = page.waitForResponse(response => endpoint('community/read')(new URL(response.url())) && response.request().method() === 'POST');
     await sheet(page).getByRole('button', { name: `Publish Week ${open.week + 1}`, exact: true }).click();
+    await refreshed;
     await expect(sheet(page).getByText(`Week ${open.week + 1} is open.`, { exact: true })).toBeVisible();
     expect(await slates()).toEqual([...before, { season: open.season, week: open.week + 1 }]);
     await back(page);
