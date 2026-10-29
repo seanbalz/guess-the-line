@@ -8,6 +8,12 @@ source `f2147b8fee59d001cd016bd33acf981e08b89503` (#379) and child source
 `263d9f1648ff4491d67a93e9d94caf8bb7365d15` (#381), preserving the main release
 evidence through #375. This is source integration only.
 
+The corrected shared-interface head
+`858d2484f4f852c0dd34589bf4258319efb6ad61` is now integrated. Its focused skip
+link sizing and visibility-helper corrections are preserved, along with both
+sports' keyboard/modal coverage. Moneyline child wiring and storage guards are
+unchanged by that merge. This does not establish that #379 has merged or shipped.
+
 | Item | Evidence/status | Exit gate |
 | --- | --- | --- |
 | Existing Play slots | Guess and Leaderboard placeholders now mount the reviewed children | Final combined source/CI |
@@ -47,3 +53,9 @@ browser cases passed together after the helper integration. At 320px the
 Leaderboard label stays intact while the two multiword tabs wrap at spaces.
 Typecheck, Brand QA, cloud build and bundle-only privacy checks passed. The
 existing large-chunk build advisory remains.
+
+After the corrected shared-interface merge, **75 EPL JSX tests**, **62
+shell/router/data/token tests**, typecheck, Brand QA and whitespace checks passed.
+All **seven** focused browser cases passed together, including NFL/EPL keyboard
+skip links at both widths/themes, modal focus, shared profile/navigation and
+the moneyline shell/draft/account cases. These remain local fixture results.
