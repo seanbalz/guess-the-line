@@ -11,6 +11,12 @@ as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
 ## EPL priority — October 29, 2026
 
+**Live DNB gate follow-up:** Sean authorized enabling/testing the bounded daily check. The first hosted run
+succeeded October 29 at 16:44:48 UTC, qualifying all three sampled fixtures across all three books; the actual
+MW9 gate evaluates true. Budget is 404 after three credits, player/scoring hashes are preserved, and daily
+checking is enabled. [Live evidence and remaining implementation](RELEASE_2026_10_29_DNB.md). This supersedes
+older “no live DNB verdict” statements for MW9; it does not complete the moneyline API, collector or screens.
+
 Sean requested parallel EPL workflow agents before returning to the remaining
 approved backlog. The [EPL work and verification record](EPL_WORKFLOW_CONTROL_2026_10_29.md)
 supersedes older EPL "not deployed" summaries below: fresh hosted checks confirm
@@ -19,10 +25,14 @@ Implementation gaps remain in Tuesday corrections, the league-position tiebreak
 and moneyline, alongside a full live matchweek and physical-phone acceptance.
 No live DNB verdict exists. The [operations fix PR #366](https://github.com/seanbalz/guess-the-line/pull/366)
 is merged after all 12 checks; [moneyline readiness #367](https://github.com/seanbalz/guess-the-line/pull/367)
-also merged after all 12 checks. Repaired access #369 is in fresh CI. The coordinated first release includes
-#364/#366/#367/repaired #369 and tracker #368; correction and player metadata
-follow next. Deployment stays in the existing release chat. None of these source
-states is a new hosted release.
+also merged after all 12 checks. Repaired access #369 and tracker #368 merged;
+the first batch is now deployed from `5c1b775f05a69306f20f911f4b0455c207c65ffc`.
+Frontend run `40907820747` and EPL worker run `40909688078` passed; worker v2 is
+active, NBA navigation is hidden and EPL Research → Play works in signed-in
+desktop readback. [Release evidence](RELEASE_2026_10_29_NBA_EPL.md) records
+124 matching assets, 385/385 denied probes and unchanged saved-player hashes.
+M-32 is now [applied and verified](RELEASE_2026_10_29_M32.md); M-33 and DNB enablement remain separate gates; correction and player metadata
+follow next. This release does not complete moneyline or physical-phone acceptance.
 
 ## October 29 — Balanced logo and favicon
 
@@ -88,13 +98,13 @@ establishes deployment. This task has not deployed the app or applied SQL.
 | Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs (PR #219) and the worker release targets (PR #223) merged October 26 (`9da3ce6`). [October 26 release](RELEASE_2026_10_26_POINTS_JOBS.md): P-03 applied (hosted `20261026213106`, 54 migrations, digest `bd53dcf4…`), `gtl-points-jobs` v1 and `gtl-push-reminders` v5 deployed, cron jobs registered with the schedule row disabled. Open: [release card](GUESS_THE_POINTS_P03.md) step 5 (enable and one verified run) and step 6 (first actuals readback); until then no slate is drafted or published automatically and automatic Points scoring is not verified. Commissioner "Publish now" on Play › Points (preview a drafted week, confirm, publish through the existing `POST /points/slate`; no server change) merged in PR #277 (`671e3ec`) and live in Pages `48a36ee4-a4f9-48c8-a64b-b030a7d2d29a` from `9460635` (October 28, release card PR #279); signed-in commissioner acceptance on a phone is still open. |
 | Social and rewards | Existing feed/comments and group membership work. League feed (stages 61–63) and badges, awards and streaks (stage 69): routes in `gtl-api` v38 and M-13, M-21, M-22, M-23, M-25, M-26 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); signed-in feed and features reads answer 200 in hosted logs. Badges worker `gtl-league-features` v1 and its weekly schedule (Tuesday 12:00 UTC, on Sean's "once a week") are live since October 27 ([release record](RELEASE_2026_10_27_LEAGUE_FEATURES.md)); the first scheduled run recorded 58 badges, 18 awards and 10 streaks and posted the Week 7 recap. Open: phone checks. | Remaining approved friend challenges, player/social detail screens and badge/streak/award/recap pipeline; each needs its real contract and implementation gate, not a completion claim based on a mockup. |
 | Preservation and transition | [RETIRE-01–04 checklist](../planning/new-app-retirement.md) exists. Me › History (older records included) and Export my data: routes in `gtl-api` v38, M-27 and M-28 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); no signed-in use yet. RETIRE-03 [hosted inventory](RETIRE_03_INVENTORY_2026_10_28.md) (October 28, read-only): 47 of 48 recorded deployment URLs served an old-app build; step 1 (October 28) put every non-production URL behind Cloudflare Access (49 checked, all HTTP 302); deletion and device checks await approval. | Q17 history/export, commissioner tools (Menu › Commissioner tools built October 28 for D-65: status, week opening, referees, final scores, odds connection; draft PR #316, not deployed, no signed-in use), invitations/creation and older-record destinations; Q09/Q10/Q19 device/full-week acceptance, then Q20 transition. No cutover or record deletion authorized by this audit. |
-| EPL Pick a Team | M-30 is [applied](RELEASE_2026_10_29_M30.md); `gtl-api` v42 and `gtl-epl-jobs` v1 are active. Fresh October 29 read-only checks verify all 26 current EPL function hashes, browser-role denial, five enabled jobs, seeded MW9 and after-MW8/daily snapshots. See the [workflow record](EPL_WORKFLOW_CONTROL_2026_10_29.md). | Rollover validation repair [#366](https://github.com/seanbalz/guess-the-line/pull/366) merged after all 12 CI checks passed; not yet released by this workflow; Tuesday capture/audit is in #370 with M-33 pending; the commissioner flag and current league-table source remain open. Sean confirmed preserve picks/order and flag review (D-68 item 23). Full MW9 → MW10 automatic cycle and phone acceptance remain open. |
-| EPL Research → Fantasy | Stored-snapshot routes and Matchup/Standings/Rosters/Insights screens are implemented and included in the recorded [M-31/API/frontend release](RELEASE_2026_10_29_M31.md). An after-MW8 and October 29 daily snapshot are hosted; no per-request Sleeper fetch is introduced. | [PR #369](https://github.com/seanbalz/guess-the-line/pull/369) supplies tested narrow-screen and account-discovery fixes plus disposable-SQL browser acceptance; CI/release pending. EPL-DATA-01 tracks 16/150 rostered players lacking saved metadata. Before-kickoff/after-MW9 captures, full-cycle readback and a real linked/unlinked phone check remain open. Opponent inference remains unavailable until the approved scored-repeat evidence exists (first possible MW17). |
+| EPL Pick a Team | M-30 is [applied](RELEASE_2026_10_29_M30.md); `gtl-api` v42 and `gtl-epl-jobs` v2 are active. Fresh October 29 read-only checks verify all 26 current EPL function hashes, browser-role denial, five enabled jobs, seeded MW9 and after-MW8/daily snapshots. See the [workflow record](EPL_WORKFLOW_CONTROL_2026_10_29.md). | Rollover validation repair [#366](https://github.com/seanbalz/guess-the-line/pull/366) deployed in worker v2 with [verified release evidence](RELEASE_2026_10_29_NBA_EPL.md); Tuesday capture/audit is in #370 with M-33 pending; the commissioner flag and current league-table source remain open. Sean confirmed preserve picks/order and flag review (D-68 item 23). Full MW9 → MW10 automatic cycle and phone acceptance remain open. |
+| EPL Research → Fantasy | Stored-snapshot routes and Matchup/Standings/Rosters/Insights screens are implemented and included in the recorded [M-31/API/frontend release](RELEASE_2026_10_29_M31.md). An after-MW8 and October 29 daily snapshot are hosted; no per-request Sleeper fetch is introduced. | [PR #369](https://github.com/seanbalz/guess-the-line/pull/369) supplies tested narrow-screen and account-discovery fixes plus disposable-SQL browser acceptance; merged and deployed in the [October 29 batch](RELEASE_2026_10_29_NBA_EPL.md). EPL-DATA-01 tracks 16/150 rostered players lacking saved metadata. Before-kickoff/after-MW9 captures, full-cycle readback and a real linked/unlinked phone check remain open. Opponent inference remains unavailable until the approved scored-repeat evidence exists (first possible MW17). |
 | EPL open access and automatic linking | [M-31 is applied](RELEASE_2026_10_29_M31.md); its function hashes and service-only permissions match current source. Fresh October 29 aggregate readback shows eight managers, seven linked. Confirmed-account open reads and audited auto-link/claim flows are implemented. | Remaining manager must claim or be linked by the commissioner under the existing identity flow. Agent acceptance covers account switching, aliases, claim conflicts and private queues without changing a real account; real phone acceptance remains separate. Manual links remain manual audit events. |
 
 EPL moneyline readiness is separately published in [PR #367](https://github.com/seanbalz/guess-the-line/pull/367):
-pure rules, service-only pending M-32 and a disabled `dnb-check` path. These are
-merged source changes, with M-32 still NOT_HOSTED. The real DNB gate has never run; routes, ongoing
+pure rules, service-only M-32 and a disabled `dnb-check` path. M-32 is now
+[applied and verified](RELEASE_2026_10_29_M32.md), hosted as `20261029162422`. The real DNB gate has never run; routes, ongoing
 collection and player screens remain gated and are not completed by this PR.
 
 The independent [NBA/EPL release-verification record](RELEASE_2026_10_29_NBA_EPL.md)
