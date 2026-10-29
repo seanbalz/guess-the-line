@@ -447,7 +447,9 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   const m19 = { 'rpc/gtl_social_auto_grade': 'migration 20261028120000_gtl_social_auto_settle.sql', 'rpc/gtl_settle_social_pending': 'migration 20261028120000_gtl_social_auto_settle.sql' };
   // M-11 (stage 41) is hosted since October 29, 2026 and /bets/place is deployed: nothing of it awaits.
   for (const key of ['rpc/gtl_place_bets', 'rpc/gtl_bets_newest_quote', 'rpc/gtl_bets_terms', 'gtl-api/bets/place']) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
-  assert.deepEqual(awaitingDeploy, m19, 'only M-19 is awaiting deploy');
+  // M-19 is hosted since October 28, 2026 (RELEASE_2026_10_28_AUTO_SETTLE.md): nothing awaits deploy.
+  for (const key of Object.keys(m19)) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
+  assert.deepEqual(awaitingDeploy, {}, 'nothing is awaiting deploy');
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
   assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')

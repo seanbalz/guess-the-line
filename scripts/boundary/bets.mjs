@@ -65,6 +65,4 @@ export const workerChecks = Object.freeze([
 // M-11 (stage 41) is hosted as 20261029041843 since October 29, 2026, after /bets/place shipped in the 1998e4c gtl-api
 // release (RELEASE_2026_10_29_M11.md).
 export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_social_auto_grade': 'migration 20261028120000_gtl_social_auto_settle.sql',
-  'rpc/gtl_settle_social_pending': 'migration 20261028120000_gtl_social_auto_settle.sql',
 });
