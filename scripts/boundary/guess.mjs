@@ -164,12 +164,8 @@ export const workerChecks = Object.freeze([
 // P-03's four functions left this list with its hosted apply (RELEASE_2026_10_26_POINTS_JOBS.md, Gate M step 8).
 export const awaitingDeploy = Object.freeze({
   ...eplOpsAwaiting,
-  'gtl-api/epl/guess/read':'API-only deploy: EPL moneyline routes (M-32 already applied)',
-  'gtl-api/epl/guess/save':'API-only deploy: EPL moneyline routes (M-32 already applied)',
-  'gtl-api/epl/guess/leaderboard':'API-only deploy: EPL moneyline routes (M-32 already applied)',
   'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_record_recheck': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
-  'gtl-api/epl/admin/corrections/read': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
 });

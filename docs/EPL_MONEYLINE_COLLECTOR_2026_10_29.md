@@ -1,10 +1,13 @@
 # EPL moneyline collector source — October 29, 2026
 
-Status: **source implementation, M-36 not applied and regular collection absent/disabled.** No provider request,
-production pick, hosted write, schedule mutation or deployment was made by this lane. Local checks use mock source
-responses and disposable PGlite. The coordinator separately verified the MW9/2026 live DNB gate passed in run
+Current status: **M-36 applied, API v43/worker v3 deployed, collection enabled and production lock-triggered capture verified.**
+[The production release record](RELEASE_2026_10_29_EPL_MONEYLINE.md) gives exact source, protected runs, preservation,
+privacy, first operational check and ten natural captures/references. Timed priced checkpoints, shared live concurrency,
+kickoff/full-cycle and physical-moneyline acceptance remain open. The source lane itself used mock responses and
+disposable PGlite; its dated evidence below is distinct from the later release owner's hosted actions.
+The coordinator separately verified the MW9/2026 live DNB gate passed in run
 `776bb6ae-6ead-40f0-a1cf-3449d46d3f25` at 16:44:48Z: three fixtures priced, three allowed books each, remaining 404.
-That gate permits implementation; it is not evidence that this regular collector is operating.
+The later release record supersedes this gate-only snapshot for actual collector operation.
 
 ## Durable admission and safe lock-in
 
@@ -85,10 +88,11 @@ build and bundle-only privacy checks passed (existing large-chunk warning only).
 manager leases, sticky gate history, disabled pending locks, quota floor/no raise/no refund, bounded timings/checkpoints,
 first-after provenance despite a newer cache row, idempotent/expired finish, invalid/stale/future/three-way data,
 immutable at-lock references and extreme-distance review. Mock boundary probes cover both tables and all six RPCs.
-Pending resources are marked for M-36; default absence is awaiting apply, strict absence and accidentally granted access fail.
-These mocks do not establish live M-36 denials or expand the release owner's previous 393 live-probe result.
+M-36's two tables and six RPCs are now mandatory hosted boundary resources; missing or granted replies fail.
+The release record separately verifies all eight live database denials and six API authentication denials.
+These source mocks are not substitutes for that hosted proof. Unrelated pending M-33/M-34/M-35 objects retain their own exceptions.
 
-Still required: exact source review/green CI, M-36 Gate M apply/preservation/grants readback, compatible API and worker
-release, separately authorized disabled setup/enablement, then live bounded collection/reference and privacy acceptance.
-Moneyline API/UI and independent end-to-end acceptance are coordinated in their own lanes. Source publication is neither
-production enablement nor operational completion.
+Completed in the linked release record: exact source/green CI, M-36 apply/preservation/grants, worker/API/frontend release,
+approved activation/test, signed-in screens and natural priced capture/reference-distance checks.
+Still required: a priced timed checkpoint, actual multiuser/shared-concurrency behavior, kickoff/leaderboard/full-cycle
+operation and physical-phone moneyline acceptance. No real player entry was manufactured for release testing.

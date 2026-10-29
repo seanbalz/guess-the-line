@@ -14,17 +14,20 @@ const resources = [
   { key: 'gtl-api/epl/admin/corrections/read', path: '/functions/v1/gtl-api/epl/admin/corrections/read', missing: { error: 'Not found.' }, count: 2 },
 ];
 
-test('M33 stays pending while the canonical M32 apply and its mandatory live boundaries remain intact', () => {
+test('M33 schema stays pending while applied M32 and deployed API routes have mandatory boundaries', () => {
   assert.ok(NOT_HOSTED.includes(20261029151727));
   assert.ok(!APPLIED.includes(20261029151727));
   assert.ok(APPLIED.includes(20261029150000));
   assert.ok(!NOT_HOSTED.includes(20261029150000));
-  for (const resource of resources) assert.match(awaitingDeploy[resource.key], /^20261029151727\b/);
+  for (const resource of resources) {
+    if (resource.key.startsWith('gtl-api/')) assert.equal(awaitingDeploy[resource.key], undefined);
+    else assert.match(awaitingDeploy[resource.key], /^20261029151727\b/);
+  }
   for (const rpc of ['moneyline_distance', 'guess_json', 'save_guess', 'resolve_pending_references', 'guess_board', 'guess_leaderboard'])
     assert.equal(awaitingDeploy[`rpc/gtl_epl_${rpc}`], undefined, 'applied M32 absence cannot be excused');
 });
 
-for (const resource of resources) test(`${resource.key}: a real denial passes; exact absence is awaiting, never a grant or strict pass`, async () => {
+for (const resource of resources) test(`${resource.key}: denial required; only pending schema absence is allowed`, async () => {
   const calls = [];
   await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => {
     if (url.includes(resource.path)) calls.push(request);
@@ -36,9 +39,12 @@ for (const resource of resources) test(`${resource.key}: a real denial passes; e
     assert.ok(calls.every(request => request.method === 'POST' && request.body === '{}'));
   } else assert.ok(calls.every(request => request.headers.Authorization === undefined));
   const missing = (url, request) => url.includes(resource.path) ? reply(404, resource.missing) : denied(url, request);
-  const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-  assert.equal(result.awaiting.length, resource.count);
-  assert.equal(result.denied, result.checked - resource.count);
+  if (resource.key.startsWith('gtl-api/')) await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: missing }), /unexpected 404/);
+  else {
+    const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
+    assert.equal(result.awaiting.length, resource.count);
+    assert.equal(result.denied, result.checked - resource.count);
+  }
   await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: missing }), /unexpected 404/);
   for (const status of [200, 400]) await assert.rejects(() => checkCloudBoundary({ ...options,
     fetchImpl: (url, request) => url.includes(resource.path) ? reply(status, {}) : denied(url, request),

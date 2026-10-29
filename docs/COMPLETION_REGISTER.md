@@ -47,13 +47,14 @@ moneyline physical-phone acceptance.
 succeeded October 29 at 16:44:48 UTC, qualifying all three sampled fixtures across all three books; the actual
 MW9 gate evaluates true. Budget is 404 after three credits, player/scoring hashes are preserved, and daily
 checking is enabled. [Live evidence and remaining implementation](RELEASE_2026_10_29_DNB.md). This supersedes
-older “no live DNB verdict” statements for MW9; it does not complete the moneyline API, collector or screens.
+older “no live DNB verdict” statements for MW9. The later [moneyline release](RELEASE_2026_10_29_EPL_MONEYLINE.md)
+separately records the completed API, collector/screens deployment and natural production captures.
 
 Sean requested parallel EPL work before returning to the remaining approved backlog. The first frontend/worker batch from `5c1b775` is deployed; API v42 and EPL jobs v2 are recorded in [release evidence](RELEASE_2026_10_29_NBA_EPL.md). M-32 is [applied and verified](RELEASE_2026_10_29_M32.md), and the live MW9 DNB check passed as recorded above.
 
 [PR #377](https://github.com/seanbalz/guess-the-line/pull/377) merged as `e220b8d8f7663f55156e019de1d80c44493c440a` after all 12 checks. It atomically includes #370/#371, commissioner correction review, roster display enrichment and standings readiness. This establishes source completion, not new hosted operation or metadata coverage. M-33 remains unapplied; correction operation needs the M-35 cutoff guard and operator prerequisites.
 
-PR #384 merged the reviewed API, collector, moneyline/Home/leaderboard screens, canonical rules and correction/standings compatibility source as `d04e5c951d3e53fe2b5502b226c3da964955119f`, after all twelve checks passed on `ea1d616af47bcfe983949e951b47e4e63107694d`. Component PRs #378/#381/#382/#383 are merged/closed; #380's reviewed source was superseded by the combined branch. M-33/M-34/M-35 remain unapplied with their operator/source prerequisites. M-36 is [applied and verified](RELEASE_2026_10_29_M36.md), and Sean approved moneyline enablement/testing after compatible API/worker deployment. The moneyline releases, actual activation and signed-in readback remain pending; full MW9 → MW10 operation and moneyline physical-phone acceptance remain open. The frozen v62 tracker is unchanged.
+PR #384 merged the reviewed API, collector, moneyline/Home/leaderboard screens, canonical rules and correction/standings compatibility source as `d04e5c951d3e53fe2b5502b226c3da964955119f`, after all twelve checks passed on `ea1d616af47bcfe983949e951b47e4e63107694d`. Component PRs #378/#381/#382/#383 are merged/closed; #380's reviewed source was superseded by the combined branch. M-33/M-34/M-35 remain unapplied with their operator/source prerequisites. M-36 is [applied and verified](RELEASE_2026_10_29_M36.md). The [completed moneyline release](RELEASE_2026_10_29_EPL_MONEYLINE.md) from `d891291c8a21e2de7827826e0d194fc2e0da11a6` deployed API v43, worker v3 and all 125 frontend assets, enabled/tested collection and passed signed-in readback. Later production lock-ins produced ten priced captures with consistent references/distances; no test prediction was manufactured. Timed priced collection, shared live concurrency, kickoff/full-cycle and physical-moneyline acceptance remain open. The frozen v62 tracker is unchanged.
 
 ## October 29 — Balanced logo and favicon
 
@@ -841,7 +842,7 @@ No additional palette, navigation or chart-direction answer is needed to continu
 
 ## October 29 NBA visibility and EPL reconciliation
 
-Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Current release evidence and remaining EPL scope](RELEASE_2026_10_29_NBA_EPL.md) supersede the older not-deployed entries. The live DNB gate and M-32 apply are verified. API, durable collector and shared-shell screens pass [combined acceptance](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md) and merged CI; [M-36 is applied](RELEASE_2026_10_29_M36.md). Exact-main deployment CI, actual activation and production readback remain pending.
+Sean requested hiding NBA and deploying all EPL work. NBA is removed from the NFL/EPL sport switch; existing NBA ticket links and records remain available. [Earlier release evidence](RELEASE_2026_10_29_NBA_EPL.md) and the [completed moneyline release](RELEASE_2026_10_29_EPL_MONEYLINE.md) supersede older not-deployed entries. M-32/M-36 and the live weekly DNB gate are verified; API v43, worker v3, Home/Play/leaderboard screens, approved collection and signed-in readback are delivered. Remaining timed/concurrent/kickoff/device and M-33/M-34/M-35 operation gates stay explicit.
 
 ## EPL moneyline combined source acceptance — October 29
 
@@ -850,6 +851,16 @@ verified together: 534 Node/SQL checks, 89 component checks, ten actual-service 
 Axe analyses passed. [Composition, evidence and release limits](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md).
 Home includes own locked-match progress and a working moneyline shortcut; saved/reference values use the existing glass tokens.
 M-36 is applied as hosted `20261029183135`: six exact private invoker functions, two empty private RLS tables,
-all 32 prior EPL functions and 17 data/scoring sets preserved, and eight strict live denials. The new moneyline
-job is not enabled. Protected releases and approved activation still require execution and readback.
-Moneyline physical-phone acceptance remains open.
+all 32 prior EPL functions and 17 data/scoring sets preserved at apply, and eight strict live denials.
+The moneyline job is enabled every 15 minutes; protected worker/API/frontend releases and live readback passed.
+Fourteen strict moneyline privacy probes and all 125 served asset hashes passed; natural production lock-ins later
+produced ten captures/references with consistent distance calculations. Timed checkpoint, live shared/concurrency,
+kickoff/full-cycle and physical-phone moneyline acceptance remain open. See the production release record for dated scopes.
+
+## Research formatting remains separate — October 29
+
+Sean reported persistent formatting, especially Trending. [Issue #388](https://github.com/seanbalz/guess-the-line/issues/388)
+distinguishes the screenshot-observed Fantasy full-width/gutter defect from Trending details needing reproduction.
+The UI workflow owns [PR #389](https://github.com/seanbalz/guess-the-line/pull/389), whose source has merged;
+Redraft owns its separate frontend release and physical-phone verification. This moneyline batch includes no formatting fix
+and does not close that acceptance. Shared-shell navigation/phone checks also do not close it.
