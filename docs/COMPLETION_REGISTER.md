@@ -653,6 +653,15 @@ These layers replace the Player team and Player matchup filters and the "Compare
 history window stays as one select. The seven Players browser cases run the new path at 320px and 390px, in light,
 dark and forced colors, with axe. No release or real-phone check yet.
 
+## Recommended bets stay on Recommended (player feedback, October 28)
+
+A player asked to keep loading recommended bets without being sent to My bets. Draft PR on
+`claude/quizzical-ritchie-2b5da5`: Track this bet now opens the tracker's review editor over Recommended
+(`SocialBetTracker` `reviewOnly`), so the market choice, scroll position and open card stay put. A save shows
+"Bet saved to My bets" with a View action to that ticket's week. Failure and uncertain-save recovery stay in the
+editor; the review and the Virtual Units card keep separate draft guards. Unit test `tests/next-bets-review.test.jsx`;
+browser test in `tests/cloud-browser/recommended-bets.spec.js` saves two in a row at 390 and 320 px. Not deployed.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance

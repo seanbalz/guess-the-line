@@ -24,6 +24,12 @@ async function openTotal(page, gameId) {
   await card.locator('summary').click();
   return card;
 }
+// Player feedback (October 28, 2026): a saved recommendation keeps the player on Recommended; the toast offers My bets.
+const savedToast = page => page.locator('.gx-toast').filter({ hasText: 'Bet saved to My bets' });
+async function viewSavedTicket(page) {
+  await savedToast(page).getByRole('button', { name: 'View', exact: true }).click();
+  await expect(view(page, 'Tracked bets')).toHaveAttribute('aria-pressed', 'true');
+}
 async function playTotal(page, world) {
   await (await openTotal(page, world.state.games[0].id)).getByRole('button', { name: 'Play with Virtual Units', exact: true }).click();
 }
@@ -103,7 +109,7 @@ test('a reviewed recommendation becomes one actual tracked ticket and survives r
     await view(page, 'Recommended').click();
     const gameId = world.state.games[0].id, card = await openTotal(page, gameId);
     await card.getByRole('button', { name: 'Track this bet', exact: true }).click();
-    await expect(view(page, 'Tracked bets')).toHaveAttribute('aria-pressed', 'true');
+    await expect(view(page, 'Recommended')).toHaveAttribute('aria-pressed', 'true');
     const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
     await expect(editor).toBeVisible();
     await expect(editor.getByRole('group', { name: 'Units risked', exact: true }).getByRole('button', { name: 'Unknown', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -123,12 +129,56 @@ test('a reviewed recommendation becomes one actual tracked ticket and survives r
     expect(writes[0].body.source).toBeTruthy();
     expect(writes[0].body.quotedAt).toBe(world.observedAt);
     expect(await picksCount(world)).toBe(0);
+    await expect(view(page, 'Recommended')).toHaveAttribute('aria-pressed', 'true');
+    await expect(card).toHaveAttribute('open', '');
+    await viewSavedTicket(page);
     await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
     await expect(page.locator('.gx-tracked-row > summary')).toContainText('Over 44.5');
     await page.reload();
     await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
     await page.locator('.gx-tracked-row > summary').click();
     await expect(page.locator('.social-bet-card')).toContainText(writes[0].body.source);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// Player feedback (October 28, 2026): "after I load a bet in I want it to stay on the recommendations screen".
+for (const width of [390, 320]) test(`two recommended bets save in a row without leaving Recommended at ${width}px`, async ({ page, baseURL }) => {
+  await page.setViewportSize({ width, height: 844 });
+  const world = await fixture(page, baseURL);
+  try {
+    const calls = requests(page), [first, second] = world.state.games;
+    await openRecommended(page);
+    await market(page, 'Totals').click();
+    // The first bet is reviewed in dark and the second in light, so each width is seen in both themes.
+    for (const [game, theme] of [[first, 'dark'], [second, 'light']]) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      const card = await openTotal(page, game.id);
+      await card.getByRole('button', { name: 'Track this bet', exact: true }).click();
+      const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
+      await expect(editor).toBeVisible();
+      expect(await editor.evaluate(node => node.scrollWidth <= node.clientWidth + 1), `${theme} ${width}px editor fits`).toBe(true);
+      await page.screenshot({ path: `.local/previews/recommended-review-${theme}-${width}.png` });
+      const scrolled = await page.evaluate(() => window.scrollY);
+      await editor.getByLabel('I placed this bet elsewhere and checked these ticket terms.').check();
+      await editor.getByRole('button', { name: 'Save tracked bet', exact: true }).click();
+      await expect(editor).toHaveCount(0);
+      await expect(savedToast(page)).toBeVisible();
+      await expect(view(page, 'Recommended')).toHaveAttribute('aria-pressed', 'true');
+      await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'true');
+      await expect(card).toHaveAttribute('open', '');
+      expect(Math.abs(await page.evaluate(() => window.scrollY) - scrolled)).toBeLessThanOrEqual(1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${theme} ${width}px page fits`).toBe(true);
+      await page.screenshot({ path: `.local/previews/recommended-saved-${theme}-${width}.png` });
+    }
+    const writes = calls.filter(call => call.path === 'social/create');
+    expect(writes.map(call => call.body.legs[0].gameId)).toEqual([first.id, second.id]);
+    expect(writes.every(call => call.body.origin === 'tracked' && call.body.stakeUnits === null && call.body.quotedAt === world.observedAt)).toBe(true);
+    expect(placements(calls)).toHaveLength(0);
+    expect(await picksCount(world)).toBe(0);
+    await viewSavedTicket(page);
+    await expect(page.locator('.gx-tracked-row')).toHaveCount(2);
+    await expect(page.getByLabel('Competition week')).toHaveValue(`${world.state.league.season}:${world.state.league.week}`);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -142,8 +192,11 @@ test('cancelling a recommendation review writes neither a tracked ticket nor a v
     const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
     await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(editor).toHaveCount(0);
+    await expect(view(page, 'Recommended')).toHaveAttribute('aria-pressed', 'true');
+    await expect(savedToast(page)).toHaveCount(0);
     expect(calls.filter(call => call.path === 'social/create')).toHaveLength(0);
     expect(placements(calls)).toHaveLength(0);
+    await view(page, 'Tracked bets').click();
     await expect(page.locator('.gx-tracked-row')).toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -176,6 +229,7 @@ test('recommendation ticket recovery keeps its original week and does not duplic
     expect(writes).toHaveLength(2);
     expect(writes[0].body.week).toBe(week);
     expect(writes[1].body).toEqual(writes[0].body);
+    await viewSavedTicket(page);
     await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
     await expect(page.locator('.gx-tracked-row > summary')).toContainText(`Week ${week}`);
     await expect(page.getByLabel('Competition week')).toHaveValue(`${world.state.league.season}:${week}`);
@@ -631,11 +685,11 @@ test('the chosen market stays while tracking a bet and returning to Recommended 
     await openRecommended(page);
     await market(page, 'Totals').click();
     await (await openTotal(page, world.state.games[0].id)).getByRole('button', { name: 'Track this bet', exact: true }).click();
-    await expect(view(page, 'Tracked bets')).toHaveAttribute('aria-pressed', 'true');
+    await expect(view(page, 'Recommended')).toHaveAttribute('aria-pressed', 'true');
     const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
     await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(editor).toHaveCount(0);
-    await view(page, 'Recommended').click();
+    await expect(view(page, 'Recommended')).toHaveAttribute('aria-pressed', 'true');
     await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'true');
     await expect(cards(page)).toHaveCount(3);
     expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
