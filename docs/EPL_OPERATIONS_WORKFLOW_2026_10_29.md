@@ -42,12 +42,15 @@ Generate the administrator's read-only query from the current checkout:
 node scripts/epl-operations-preflight.mjs
 ```
 
-The utility prints one SELECT and makes no network connection. Its expected hashes come from the newest definition
-of each EPL function across the local migration catalog, so a superseded M-30 body is not mistaken for drift after
-M-31. Run it on the intended project through the authenticated database connector. Review missing/duplicate function
+The utility prints one SELECT and makes no network connection. By default its expected hashes come from the newest
+definition of each EPL function across `HOSTED` in the canonical migration ledger, labelled `hosted-ledger`. A superseded
+M-30 body is not mistaken for drift after M-31, and pending M-32 functions are not expected in the deployed schema.
+Run it on the intended project through the authenticated database connector. Review missing/duplicate function
 signatures, `source_matches`, invoker/search-path configuration and grants; compare returned schedules and captures
-with expected lifecycle events. A missing expected function is reported as a mismatch. An unapplied local migration
-will also report mismatches until its separate release gate is completed.
+with expected lifecycle events. A missing expected function is reported as a mismatch. For separate release readiness,
+`node scripts/epl-operations-preflight.mjs --all-source` includes every local migration and labels the result `all-source`:
+pending functions correctly appear missing until applied. Refresh the ledger and hosted evidence before treating either
+scope as the current release state.
 
 Output includes hashes, configuration and aggregate run reasons. It omits snapshot payloads, picks, private queues,
 account IDs, push endpoints, capabilities and cron commands. Do not publish raw snapshots or private local exports.
