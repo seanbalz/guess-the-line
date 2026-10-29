@@ -4,6 +4,7 @@ import { cloudApi, communityApi } from '../../api.js';
 import { pickText, shortName } from '../../communityFormat.js';
 import { communityDraftScope, readCommunityDraft, COMMUNITY_DRAFT_PREFIX } from '../../communityDraft.js';
 import { readSoloDraft, soloDraftScope } from '../../soloDraft.js';
+import { DRAFT_PREFIX, draftHasChanges, readDraft as readGroupDraft } from '../../predictionDraft.js';
 import { weekOpenAt } from '../../../../shared/nfl-schedule.mjs';
 import { Button, Card, Dialog, Icon, Matchup, Pill, Segmented, cx, teamCode } from '../ui/index.js';
 import { ShellContext } from '../shell/context.js';
@@ -40,6 +41,12 @@ const vibrate = () => { try { globalThis.navigator?.vibrate?.(20); } catch { /* 
  * `reveal` (the new app only: `{ members }`) turns on the reveal moment, which reads `/community/picks` for this week
  * and market; the old app's Community Picks page passes none and reads nothing more than before.
  */
+/** The old group screens' tab copy (predictionDraft.js, same account, week and market), only when it changed a guess. */
+function groupDraft(accountId, data, mode) {
+  if (!accountId || !Array.isArray(data.games)) return null;
+  const copy = readGroupDraft(`${DRAFT_PREFIX}${encodeURIComponent(accountId)}.${data.season}.${data.week}.${mode}`, data.games);
+  return draftHasChanges(copy) ? copy : null;
+}
 export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', focusGame, optOuts = [], reveal, onMode, onScore, onSaved, onSignInAgain, setDirty }) {
   const key = keyOf(accountId, initialData, mode);
   const focusedGame = useRef(null), section = useRef(null);
@@ -57,6 +64,8 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   const [olderDrafts] = useState(() => [
     ['Previous Picks draft', readCommunityDraft(communityDraftScope({ accountId, season: initialData.season, week: initialData.week, mode }), initialData.games)],
     ['Previous Solo draft', readSoloDraft(soloDraftScope({ accountId, season: initialData.season, week: initialData.week, mode }), initialData.games)],
+    // RETIRE-01 (D-65): the removed group game screens kept unsaved guesses in this tab for 24 hours; offer an edited copy here.
+    ['Previous group game draft', groupDraft(accountId, initialData, mode)],
   ].filter(([, copy]) => copy));
   const pending = draft?.pending, ballot = data.ballots?.[mode], picks = mergeDraft(data, mode, draft), base = savedPicks({ ...data, mode });
   const sitOutPending = draft?.sitOutPending === true, uncertain = Boolean(pending || sitOutPending);

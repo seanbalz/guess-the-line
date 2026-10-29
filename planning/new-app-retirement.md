@@ -110,7 +110,7 @@ Sean chose two steps ([D-60](../docs/DECISIONS.md)).
 | Export my data | `/me/export` (stage 75, M-28) | History and export lane |
 | Settlement and schedule status | Menu › Commissioner tools › Schedule and settlement status (October 28, D-65 follow-up; built, not deployed) | Commissioner tools |
 | Week opening, referee assignments, final scores, odds connection | Menu › Commissioner tools (October 28, D-65 follow-up; built, not deployed) | Commissioner tools |
-| Group-draft reconciliation and device recovery | RETIRE-01 | Integration |
+| Group-draft reconciliation and device recovery | Play › Previous group game draft (October 29): an edited old group-screen tab copy (`gtl.tab-draft.v1.*`, 24 hours) is listed read-only and restores as an unlocked draft; copies on other devices or older than 24 hours cannot be recovered | Integration |
 
 When the table is clear:
 1. Remove the Menu row, the failure screens' "Use the old app", `?app=classic` and the
