@@ -108,7 +108,7 @@ physical-phone acceptance is not inferred from this engine test run.
 
 ## Remaining delivery
 
-Own CI and merge are open. Next: compact reviewed publication and D-66 Research/
+Open [PR #363](https://github.com/seanbalz/guess-the-line/pull/363) on `codex/trend-discovery`; own CI and merge are open. Next: compact reviewed publication and D-66 Research/
 Explore integration, linked game-by-game evidence, entity/builder controls,
 verified current assignments/conditions, prospective registration storage and
 held-out/shuffled discovery evaluation. Keep the existing consistency thresholds

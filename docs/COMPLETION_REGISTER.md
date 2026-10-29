@@ -17,7 +17,8 @@ as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 ## October 29 current work
 
 The [first discovery engine](TREND_DISCOVERY_ENGINE_2026_10_29.md) is implemented
-on `codex/trend-discovery`: team/QB/coach plus 13 situations, seven explicit
+in open [PR #363](https://github.com/seanbalz/guess-the-line/pull/363) on
+`codex/trend-discovery`: team/QB/coach plus 13 situations, seven explicit
 windows, disjoint earlier comparisons and overlap-aware variety selection.
 A pinned free-source scan through October 26 evaluated 4,719 candidates across
 33,033 windows and retained 312 empty queries, alongside all losing results.
