@@ -114,3 +114,10 @@ test('leaderboard: a manager with only unscored guesses has no average and sits 
   ]);
   assert.deepEqual(leaderboard([]), []);
 });
+
+test('new guess bound guarantees applied integer distance for every admitted reference without changing legacy scoring',async()=>{
+ const {validGuessPrice,MAX_GUESS_PRICE,MAX_DNB_PRICE}=await import('../shared/epl-moneyline.mjs');
+ assert.equal(MAX_GUESS_PRICE,2147383847);
+ for(const sign of [-1,1]){const p=sign*MAX_GUESS_PRICE;assert.equal(validGuessPrice(p),true);assert.equal(distance(p,-sign*MAX_DNB_PRICE),2147483647);assert.equal(validGuessPrice(p+sign),false);}
+ assert.equal(validPrice(2147483647),true,'legacy price/score math retains its existing domain');
+});
