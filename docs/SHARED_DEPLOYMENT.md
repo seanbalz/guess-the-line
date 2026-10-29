@@ -204,7 +204,11 @@ state and the artifact before retrying. The workflow verifies other Edge
 function versions/configuration and migration history stayed unchanged; it does
 not hash all player data or automatically roll back production. Use the release
 card's reviewed recovery plan. Frontend verification compares every served
-manifest asset at both the immutable deployment URL and production URL. HTML uses
+manifest asset at both the immutable deployment URL and production URL. Since
+October 28, 2026 (RETIRE-03), Cloudflare Access guards preview and deployment URLs.
+When the immutable URL redirects to the Access login for exactly its own host, the
+report records `deploymentUrlAccess: "protected"` and only the production URL is
+compared. Any other redirect from the immutable URL fails the release. HTML uses
 canonical paths (`index.html` to `/`, `privacy.html` to `/privacy`, nested index
 files to their directory). Unexpected redirects remain rejected and every response
 must match its artifact hash. `_headers`
