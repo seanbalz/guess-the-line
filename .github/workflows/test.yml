@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Nightly: every hosted migration's rollback too (tests/rollback.test.mjs, GTL_ROLLBACK_ALL).
+  schedule:
+    - cron: '17 11 * * *'
+  workflow_dispatch:
 # Every main commit gets its own run: releases need green push CI on the exact SHA, and a shared main group
 # queued commits behind each other and cancelled the ones still waiting. PR runs still replace older runs.
 concurrency:
@@ -53,6 +57,8 @@ jobs:
       - run: npm run typecheck
       - name: Run the test suites
         shell: bash
+        env:
+          GTL_ROLLBACK_ALL: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '1' || '' }}
         run: |
           mkdir -p .local
           npm test 2>&1 | tee .local/npm-test.log
