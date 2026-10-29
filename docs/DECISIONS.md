@@ -170,9 +170,14 @@ Sean selected: **"Preserve picks; flag for review (recommended)"**.
 **M-32 status update — October 29, 2026:** the release owner reports the approved
 M-32 apply verified as hosted `20261029162422`, exact source SHA-256
 `9614ecedc62323d4c2236d431dc4da77895fede41909b4cf086aee3a2bb5c2c2`.
-This supersedes the pending-M-32 status above. DNB schedule, cron and run counts
-remain zero; no live market verdict or complete moneyline game is established.
-The canonical apply/ledger record is owned by the release chat.
+This supersedes the pending-M-32 status above. At apply verification, DNB
+schedule, cron and run counts were zero. The release chat owns the canonical
+apply/ledger record. Subsequently, Sean approved enabling/testing DNB; run
+`776bb6ae-6ead-40f0-a1cf-3449d46d3f25` succeeded at 16:44:48 UTC for 2026 MW9,
+with all three checked events priced by all three allowed books. Root verified
+the hosted gate independently. See [live evidence PR #375](https://github.com/seanbalz/guess-the-line/pull/375).
+This opens the approved API/collector/UI build gate; it does not establish a
+complete playable or released moneyline game.
 
 **Addendum — Midweek EPL finalization (October 29, 2026).** Asked whether to
 finalize midweek rounds once results and the next Sleeper week are verified, or

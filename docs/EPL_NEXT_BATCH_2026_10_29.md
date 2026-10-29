@@ -18,7 +18,7 @@ change the deployed source by itself.
 | Player names | #371 supplies bounded daily-only display enrichment and snapshot-only scoring positions; 260 EPL Node and 17 JSX tests passed locally. | Resume deferred CI after the hold, review and release, then inspect a new daily capture's nonempty-name coverage. | An old immutable capture is never overwritten. Local fixture coverage does not close the hosted metadata gap. |
 | Standings | Readiness branch at `7e25f7a9c5ed925ab94dcc5b0d03820e50c3c61a`, with 19 passing local tests and a dated community-source record. | Moneyline agent connects validated collection, private persistence and deadline resolver input, preserving provenance, licensing, freshness and old-schema compatibility. | Source readiness alone is not a connected feed. Missing/stale positions remain explicit and cannot become an alphabetical rank. |
 | Monday finalization and corrected order | M-33 currently captures/audits Tuesday corrections; commissioner flag is prepared. First final capture still uses the original window/rollover rule. | Operations agent examines and fixes Monday-final scheduling with source guards, and recomputes a corrected next order only before any pick exists. | Existing picks/order stay preserved once drafting starts; commissioner review remains visible. Source evidence is required before marking scores final. |
-| Moneyline game | Release owner verified M-32 applied as hosted `20261029162422`, with unchanged preservation hashes and six matching new function bodies. No DNB schedule/cron/run or live verdict. | Release owner records M-32 ledger/evidence and handles separate DNB enablement approval; only a real passing check permits routes, regular collection and player screens to proceed. | Source, local tests, schema apply and live market availability are separate. No paid data or reserve reduction is authorized. |
+| Moneyline game | Release owner verified M-32 applied as hosted `20261029162422`, with unchanged preservation hashes and six matching new function bodies. The authorized MW9 DNB check passed: three events priced by all three allowed books; six schedules now enabled. | Release owner records apply and live-check evidence in #374/#375. API, regular collector and player-screen work now proceeds from the verified gate; source/privacy/budget/release checks still apply. | Source, local tests, schema apply and live market availability are separate. Free sources and the existing 50-credit reserve remain mandatory. |
 
 The earlier runner/release hold is cleared. Agents may publish tested PRs and
 run CI; root reviews and merges the next batch. Preserve the release owner's
@@ -58,3 +58,19 @@ The official FPL endpoint was considered but not called or adopted. Its
 [primary terms, sections 28(d) and 29](https://fantasy.premierleague.com/help/terms)
 restrict automated game-data extraction and reuse; endpoint reachability alone
 does not establish the verified reuse permission this repository requires.
+
+## Live moneyline gate — verified October 29
+
+After Sean's explicit enable-and-test approval in the release chat, run
+`776bb6ae-6ead-40f0-a1cf-3449d46d3f25` succeeded at 16:44:48 UTC for 2026 MW9.
+Root independently read the hosted run: `dnbAvailable=true`, checked/priced 3/3,
+book counts 3/3/3, and 404 credits remaining after the three-credit check.
+[Evidence PR #375](https://github.com/seanbalz/guess-the-line/pull/375) records the
+live result. No future prices or player guesses are published here.
+
+The approved plan's previously gated moneyline tasks are active: operations agent
+owns API Task 3 after its M-35 work; moneyline agent owns collector Task 4 after
+M-34; access agent owns child-screen Task 5 after combined integration. Existing
+SportEntry/EplApp/shared-shell/router/profile ownership stays with **Keep EPL and
+NFL interface consistent**. That chat owns the confirmed shared interface and
+stay-in-section switching; sport-specific game modes remain distinct.
