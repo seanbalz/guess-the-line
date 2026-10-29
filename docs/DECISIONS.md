@@ -167,6 +167,29 @@ Sean selected: **"Preserve picks; flag for review (recommended)"**.
     flag must be visible, not merely an unseen job/audit status. It is not a
     migration apply or production-deployment approval.
 
+**M-32 status update — October 29, 2026:** the release owner reports the approved
+M-32 apply verified as hosted `20261029162422`, exact source SHA-256
+`9614ecedc62323d4c2236d431dc4da77895fede41909b4cf086aee3a2bb5c2c2`.
+This supersedes the pending-M-32 status above. At apply verification, DNB
+schedule, cron and run counts were zero. The release chat owns the canonical
+apply/ledger record. Subsequently, Sean approved enabling/testing DNB; run
+`776bb6ae-6ead-40f0-a1cf-3449d46d3f25` succeeded at 16:44:48 UTC for 2026 MW9,
+with all three checked events priced by all three allowed books. Root verified
+the hosted gate independently. See [live evidence PR #375](https://github.com/seanbalz/guess-the-line/pull/375).
+This opens the approved API/collector/UI build gate; it does not establish a
+complete playable or released moneyline game.
+
+**Addendum — Midweek EPL finalization (October 29, 2026).** Asked whether to
+finalize midweek rounds once results and the next Sleeper week are verified, or
+wait for the following Monday, Sean selected **"Finalize once verified (recommended)"**.
+
+24. **Midweek finalization.** Finalize a midweek round as soon as all results and
+    the exact next Sleeper week/season are verified, with complete valid scoring
+    totals. Do not wait for the following Monday merely because the round was
+    played midweek. Missing, incomplete or out-of-interval source evidence remains
+    pending; it does not authorize invented finals or bonuses. Tuesday correction
+    checks and item 23's preservation rule remain separate requirements.
+
 ## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
 
 Sean chose Q06 next, then, asked where the new placing screen (redesign stages 43 and 44) should live: "Replace Your

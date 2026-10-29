@@ -37,6 +37,7 @@ import { pacificClock } from './push-reminders.mjs';
 import { fetchEplDrawNoBet, fetchEplOdds, fetchEplScores, fetchSleeperSnapshot } from './epl-sources.mjs';
 import { onTheClock, pickOrder, resolveDeadline, settleBonus } from '../shared/epl-draft.mjs';
 import { managersFromSnapshot, weeklyScores } from '../shared/epl-sleeper.mjs';
+import { eplRecheckDueAt } from '../shared/epl-corrections.mjs';
 
 const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers });
@@ -45,7 +46,8 @@ export const EPL_JOBS = Object.freeze(['snapshot', 'fixtures', 'resolve', 'settl
 /** The only RPCs the worker may call: its run queue and reads (M-30, Task 5) and the M-30 jobs writers. */
 export const EPL_JOBS_RPCS = Object.freeze(['gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_read_snapshots',
   'gtl_epl_reserve_credits', 'gtl_epl_record_quota', 'gtl_epl_mark_nudge', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices',
-  'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_set_week_window', 'gtl_epl_flag_week_review']);
+  'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_set_week_window', 'gtl_epl_flag_week_review',
+  'gtl_epl_recheck_state', 'gtl_epl_record_recheck']);
 /** Kept in step with gtl_epl_complete_job (tests/epl-jobs-sql.test.mjs checks the SQL names every one). */
 export const EPL_SKIP_REASONS = Object.freeze(['no_week', 'not_open', 'not_due', 'no_fixtures', 'already_resolved', 'not_resolved', 'nothing_due',
   'budget_guard', 'budget_unknown', 'results_pending', 'snapshot_pending', 'no_subscription', 'already_nudged', 'needs_review']);
@@ -94,9 +96,14 @@ export function createEplJobsAdapter({ url, serviceRoleKey, fetchImpl = fetch })
       const response = await fetchImpl(new URL(`/rest/v1/rpc/${name}`, base), { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
         headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!response.ok) {
-        let code;
-        try { code = (await response.json()).message; } catch { /* No raw provider error escapes. */ }
-        throw new EplJobsError(CODES.has(code) ? code : 'UNAVAILABLE');
+        let data;
+        try { data = await response.json(); } catch { /* No raw provider error escapes. */ }
+        // Gate M deploys compatible source before SQL. Only this exact missing entry point is optional; permissions,
+        // transport failures and missing functions inside an installed RPC still fail the run.
+        const absentEntry = data?.code === 'PGRST202' || (data?.code === '42883'
+          && /^function (?:public\.)?gtl_epl_recheck_state\s*\(/i.test(data?.message ?? ''));
+        if (name === 'gtl_epl_recheck_state' && response.status === 404 && absentEntry) throw new EplJobsError('GTL_EPL_RECHECK_OFF');
+        throw new EplJobsError(CODES.has(data?.message) ? data.message : 'UNAVAILABLE');
       }
       return response.json();
     },
@@ -106,7 +113,7 @@ export function createEplJobsAdapter({ url, serviceRoleKey, fetchImpl = fetch })
 /** The worker's public sources. A missing Odds API key fails only the jobs that need it. */
 export function createEplSources({ apiKey, fetchImpl = fetch, clock = Date.now } = {}) {
   return {
-    sleeper: ({ label, statsWeek, projectionsWeek }) => fetchSleeperSnapshot({ fetchImpl, label, statsWeek, projectionsWeek, clock }),
+    sleeper: ({ label, statsWeek, projectionsWeek }) => fetchSleeperSnapshot({ fetchImpl, label, statsWeek, projectionsWeek, clock, enrichDirectory: /^daily-\d{4}-\d{2}-\d{2}$/.test(label) }),
     odds: () => fetchEplOdds({ apiKey, fetchImpl }),
     scores: ({ onQuota } = {}) => fetchEplScores({ apiKey, fetchImpl, daysFrom: 3, onQuota }),
     drawNoBet: ({ eventIds }) => fetchEplDrawNoBet({ apiKey, fetchImpl, eventIds }),
@@ -129,7 +136,8 @@ export function snapshotLabels(kind, week) {
 }
 /** The daily snapshot label for a time: daily-<YYYY-MM-DD> (UTC). */
 export const dailyLabel = ms => `daily-${new Date(ms).toISOString().slice(0, 10)}`;
-const savedLabel = (state, kind, week) => snapshotLabels(kind, week).find(label => list(state.snapshots).includes(label)) ?? null;
+const savedLabel = (state, kind, week) => [...(kind === 'after' ? [`after-mw${week}-recheck`] : []), ...snapshotLabels(kind, week)]
+  .find(label => list(state.snapshots).includes(label)) ?? null;
 
 /** The turn notification: the matchweek and its lock time only, never a club or another manager. */
 export function nudgePayload({ season, week, firstKickoff }) {
@@ -195,6 +203,12 @@ const openWeek = ctx => {
 async function snapshotJob(ctx) {
   const { week } = ctx.state;
   if (!week) stop('no_week');
+  let correction = null;
+  let recheckReady = true;
+  try { correction = await ctx.service.rpc('gtl_epl_recheck_state', { ...ctx.run, p_now: iso(ctx.now) }); }
+  catch (error) { if (error?.code !== 'GTL_EPL_RECHECK_OFF') throw error; recheckReady = false; }
+  const correctionDueAt = eplRecheckDueAt(correction ?? {});
+  const recheckDue = correctionDueAt !== null && ctx.now >= correctionDueAt;
   const n = week.week, kickoff = Date.parse(week.firstKickoff), due = [];
   if (week.status === 'open' && list(ctx.state.fixtures).length && ctx.now >= kickoff - SNAPSHOT_LEAD_MS && ctx.now < kickoff && !savedLabel(ctx.state, 'before', n))
     due.push({ label: snapshotLabels('before', n)[0], statsWeek: Math.max(1, n - 1), projectionsWeek: n });
@@ -204,7 +218,7 @@ async function snapshotJob(ctx) {
   // projections, once a UTC day, only when no other capture is due (that one is the day's capture).
   const daily = dailyLabel(ctx.now);
   if (!due.length && !list(ctx.state.snapshots).includes(daily)) due.push({ label: daily, statsWeek: n, projectionsWeek: n });
-  if (!due.length) stop('nothing_due');
+  if (!due.length && !recheckDue) return { reason: 'nothing_due', detail: { recheckReady } };
   const saved = [];
   let pending = false;
   for (const args of due) {
@@ -223,8 +237,20 @@ async function snapshotJob(ctx) {
     const ok = await write(ctx, 'gtl_epl_save_snapshot', { p_label: snap.label, p_captured_at: snap.capturedAt, p_week: n, p_sha256: snap.sha256, p_payload: snap.payload });
     saved.push({ label: snap.label, saved: ok === true });
   }
-  if (pending && !saved.length) return { reason: 'snapshot_pending', detail: { saved: 0 } };
-  return { saved };
+  if (recheckDue) {
+    const args = { label: `after-mw${correction.week}-recheck`, statsWeek: correction.week, projectionsWeek: correction.week + 1 };
+    const snap = await provider(ctx, () => ctx.sources.sleeper(args));
+    const state = snap?.payload?.state;
+    if (!Number.isInteger(state?.week) || state.week < 1 || state.week > 38 || state.week > correction.week + 1
+      || String(state.season) !== String(correction.season)) stop('scores_incomplete');
+    if (snap.payload.state.week < correction.week + 1) return { reason: 'snapshot_pending', detail: { saved: saved.length, rechecked: 0 } };
+    const result = await write(ctx, 'gtl_epl_record_recheck', { ...ctx.run, p_season: correction.season, p_week: correction.week,
+      p_captured_at: snap.capturedAt, p_sha256: snap.sha256, p_payload: snap.payload });
+    const detail = { saved: saved.length, recheckReady, rechecked: result?.recorded === true ? 1 : 0, scoresChanged: result?.scoresChanged === true };
+    return result?.status === 'needs_review' ? { reason: 'needs_review', detail } : detail;
+  }
+  if (pending && !saved.length) return { reason: 'snapshot_pending', detail: { saved: 0, recheckReady } };
+  return { saved, recheckReady };
 }
 
 async function fixturesJob(ctx) {
@@ -290,12 +316,15 @@ async function resolveJob(ctx) {
     const row = f && list(ctx.state.prices).find(p => p.eventId === f.eventId && p.club === club && p.market === market);
     return row && Number.isFinite(Number(row.price)) ? Number(row.price) : undefined;
   };
-  // League position is not stored yet, so the last tiebreak is the club code (shared/epl-draft.mjs autoClub).
+  // No verified current table source is connected yet. If price evidence reaches the position tiebreak, the strict
+  // resolver leaves this run for review instead of inventing an order from club codes.
   const favorability = Object.fromEntries(clubs.map(club => [club, { twoWay: price(club, 'draw_no_bet'), threeWay: price(club, 'h2h') }]));
   const picks = list(ctx.state.picks).map(p => ({ managerId: p.ownerId, club: p.club }));
   const queues = Object.fromEntries(Object.entries(ctx.state.queues ?? {}).map(([owner, q]) => [owner, list(q)]));
-  const rows = resolveDeadline({ order: week.pickOrder, picks, queues, clubs, favorability })
-    .filter(r => r.source !== 'pick').map(r => ({ owner_id: r.managerId, club: r.club, source: r.source }));
+  let resolved;
+  try { resolved = resolveDeadline({ order: week.pickOrder, picks, queues, clubs, favorability, requirePosition: true }); }
+  catch (error) { if (error?.message === 'EPL_STANDINGS_REQUIRED') stop('needs_review'); throw error; }
+  const rows = resolved.filter(r => r.source !== 'pick').map(r => ({ owner_id: r.managerId, club: r.club, source: r.source }));
   const result = await write(ctx, 'gtl_epl_resolve_week', { p_season: week.season, p_week: week.week, p_rows: rows });
   const count = source => rows.filter(r => r.source === source).length;
   return { added: Number(result?.added) || 0, queue: count('queue'), auto: count('auto'), none: count('none') };
