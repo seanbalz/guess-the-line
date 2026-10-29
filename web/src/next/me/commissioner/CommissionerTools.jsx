@@ -264,7 +264,8 @@ export function CommissionerTools({ tool = null }) {
   if (!shell.communityAdmin) body = <p className="gx-t-body">{COMMISSIONER_COPY.only}</p>;
   else if (!shown) body = <Hub open={open}/>;
   else if (shown === 'status') body = <Status app={app} week={week}/>;
-  else if (shown === 'weeks') body = <WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
+  // Keyed only by whether the week has loaded: publishing refreshes the Community week, and a remount would drop its notice.
+  else if (shown === 'weeks') body = <WeekOpening key={week ? 'week' : 'none'} app={app} week={week}/>;
   else if (shown === 'referees') body = <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
   else body = <TripleThreatTool key={shown} app={app} tool={shown}/>;
   return <Sheet title={shown ? label(shown) : COMMISSIONER_COPY.title} back={back} onClose={shell.closeSheet} tall className="gx-cm">
