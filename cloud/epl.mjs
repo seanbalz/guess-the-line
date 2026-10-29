@@ -83,8 +83,16 @@ export function providerEplError(code) {
 
 const SNAPSHOT_LABEL = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const OWNER_ID = /^[0-9]{1,30}$/;
+const SNAPSHOT_META = new Set(['label', 'week', 'captured_at', 'id']);
+/** A stored snapshot row as the view reads it: `payload` (whole) or the aliased payload parts, a missing part left out. */
 const snapshotRow = row => ({ label: row.label, week: Number.isInteger(row.week) ? row.week : null, capturedAt: row.captured_at,
-  payload: row.payload !== undefined ? row.payload : { users: row.users ?? null, rosters: row.rosters ?? null, state: row.state ?? null } });
+  payload: row.payload !== undefined ? row.payload
+    : Object.fromEntries(Object.entries(row).filter(([key, value]) => !SNAPSHOT_META.has(key) && value !== null && value !== undefined)) });
+const part = key => `${key}:payload->${key}`;
+const weekNumber = (re, label) => { const m = re.exec(label); return m ? Number(m[1]) : null; };
+const AFTER_LABEL = /^after-mw0?(\d{1,2})$/;
+const BEFORE_LABEL = /^before-mw0?(\d{1,2})-kickoff$/;
+const weekOk = n => Number.isInteger(n) && n >= 1 && n <= 38;
 
 /**
  * gtl-api's EPL service: the group RPC caller plus the service-role table reads that no M-30 function covers (the latest
@@ -103,18 +111,43 @@ export function createEplService({ rpc, rest, rows }) {
       return Array.isArray(row?.clubs) ? row.clubs.filter(club => typeof club === 'string') : [];
     },
     /**
-     * Every non-daily snapshot's totals and lineups (users, rosters and state only: light), the newest snapshot of any kind in
-     * full, and in full only the last weeks with a saved lineup (detailLabels). Three bounded reads; no Sleeper call.
+     * The parts of the stored snapshots the fantasy view reads (cloud/epl-fantasy-view.mjs), never a whole payload:
+     *   1. every non-daily snapshot's rosters and state (the season totals and saved lineups), newest 200 kept;
+     *   2. the newest snapshot of any kind: its state, then its users, rosters, league scoring, players and this week's
+     *      projections;
+     *   3. for the last weeks with a saved lineup (detailLabels) only: a before-kickoff lineup's players and that week's
+     *      projections, and an after snapshot's players and that week's stats (plus this week's projections, which the
+     *      after snapshot of last week carries).
+     * Bounded reads; no Sleeper call.
      */
     async readSnapshots() {
-      const light = await rows('gtl_epl_snapshots', { select: 'label,week,captured_at,users:payload->users,rosters:payload->rosters,state:payload->state',
-        label: 'not.like.daily-*', order: 'captured_at.asc', limit: '200' }, 200);
-      const newest = await rows('gtl_epl_snapshots', { select: 'label,week,captured_at,payload', order: 'captured_at.desc,id.desc', limit: '1' }, 1);
-      const byLabel = new Map(light.map(row => [row.label, snapshotRow(row)]));
-      const wanted = detailLabels([...byLabel.values()]).filter(label => SNAPSHOT_LABEL.test(label) && label !== newest[0]?.label);
-      const full = wanted.length ? await rows('gtl_epl_snapshots', { select: 'label,week,captured_at,payload', label: `in.(${wanted.join(',')})`, limit: String(wanted.length) }, wanted.length) : [];
-      for (const row of [...full, ...newest]) byLabel.set(row.label, snapshotRow(row));
-      return [...byLabel.values()];
+      const light = await rows('gtl_epl_snapshots', { select: `label,week,captured_at,${part('rosters')},${part('state')}`,
+        label: 'not.like.daily-*', order: 'captured_at.desc,id.desc', limit: '200' }, 200);
+      const byLabel = new Map([...light].reverse().map(row => [row.label, snapshotRow(row)]));
+      const merge = row => { const prev = byLabel.get(row.label); const next = snapshotRow(row); byLabel.set(row.label, prev ? { ...prev, ...next, payload: { ...prev.payload, ...next.payload } } : next); };
+
+      const [head] = await rows('gtl_epl_snapshots', { select: `label,week,captured_at,${part('state')}`, order: 'captured_at.desc,id.desc', limit: '1' }, 1);
+      const stateWeek = Number(head?.state?.week);
+      const week = weekOk(stateWeek) ? stateWeek : weekOk(head?.week) ? head.week : null;
+      if (head && SNAPSHOT_LABEL.test(head.label)) {
+        const cols = ['users', 'rosters', 'state', 'league', 'players', ...(week ? [`projections_mw${week}`] : [])].map(part).join(',');
+        for (const row of await rows('gtl_epl_snapshots', { select: `label,week,captured_at,${cols}`, label: `eq.${head.label}`, limit: '1' }, 1)) merge(row);
+      }
+
+      const wanted = detailLabels([...byLabel.values()]).filter(label => SNAPSHOT_LABEL.test(label));
+      const groups = [
+        [wanted.filter(l => BEFORE_LABEL.test(l)), l => [`projections_mw${weekNumber(BEFORE_LABEL, l)}`]],
+        [wanted.filter(l => AFTER_LABEL.test(l)), l => [`stats_mw${weekNumber(AFTER_LABEL, l)}`]],
+      ];
+      for (const [labels, keysOf] of groups) {
+        if (!labels.length) continue;
+        const keys = new Set(['players', ...labels.flatMap(keysOf)]);
+        if (week && keysOf === groups[1][1]) keys.add(`projections_mw${week}`);
+        const list = await rows('gtl_epl_snapshots', { select: `label,week,captured_at,${[...keys].map(part).join(',')}`,
+          label: `in.(${labels.join(',')})`, limit: String(labels.length) }, labels.length);
+        for (const row of list) merge(row);
+      }
+      return [...byLabel.values()].sort((a, b) => Date.parse(a.capturedAt) - Date.parse(b.capturedAt));
     },
     async readBonus(season) {
       const list = await rows('gtl_epl_bonus', { select: 'owner_id,week,points', season: `eq.${season}`, limit: '400' }, 400);

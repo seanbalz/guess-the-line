@@ -2,6 +2,12 @@
 // Task 3). Missing data is an em dash, never 0 (brand guide). Pure.
 export const DASH = '—';
 
+const UNAVAILABLE = Object.freeze({
+  'no-repeat': "Sleeper doesn't list this league's matchups. Your opponent shows once a full repeat of the schedule has been scored.",
+  'no-team': "You don't have a team in this league, so there's no matchup to show.",
+  ambiguous: "The scores don't give one clear opponent this week, so none is guessed.",
+});
+
 export const FANTASY_COPY = Object.freeze({
   title: 'Fantasy',
   sections: Object.freeze({ matchup: 'Matchup', standings: 'Standings', rosters: 'Rosters', insights: 'Insights' }),
@@ -13,11 +19,12 @@ export const FANTASY_COPY = Object.freeze({
   failed: "Fantasy didn't load. Check your connection and try again.",
   kicker: week => `MW${week} · projections from Sleeper`,
   unavailable: 'Matchup unavailable this week',
-  unavailableBody: "Sleeper doesn't list this league's matchups, and last round's pairing can't be read from the scores.",
+  // One sentence per reason (cloud/epl-fantasy-view.mjs inferOpponent); an unknown reason reads as ambiguous.
+  unavailableBody: reason => UNAVAILABLE[reason] ?? UNAVAILABLE.ambiguous,
   yourProjection: 'Your projection',
   vs: 'vs',
   winChance: pct => `Win chance ${pct}%`,
-  basis: (week, cycle) => `Opponent from the MW${week} round; the schedule repeats every ${cycle} matchweeks.`,
+  basis: (a, b) => `Opponent inferred from the repeating schedule (MW${a} and MW${b} matched)`,
   winInfoTitle: 'About win chance',
   winInfo: [
     'Each projected total is the sum of your starters\' Sleeper projections, scored with FEPL\'s own scoring settings.',
@@ -54,8 +61,6 @@ export const fmtPts = x => (finite(x) ? NUM.format(x) : DASH);
 export const fmtSigned = x => (!finite(x) ? DASH : x > 0 ? `+${NUM.format(x)}` : x < 0 ? `−${NUM.format(-x)}` : '0');
 /** A 0–1 chance as a whole percent, or null. */
 export const pct = x => (finite(x) ? Math.round(x * 100) : null);
-/** The round-robin length for a league of `n` managers. */
-export const cycleOf = n => (n % 2 ? n : n - 1);
 
 /** The sentence for a refused or failed read. */
 export function fantasyProblem(error) {

@@ -4,7 +4,8 @@
 //   fetchSleeperSnapshot  the six Sleeper responses /Users/seanbalsiger/gtl-epl-snapshots/snapshot.py saves (state, league,
 //                         users, rosters, one matchweek's stats and the next one's projections), each with the SHA-256 of
 //                         its raw body, stored trimmed (shared/epl-sleeper.mjs trimSleeperSnapshot: rostered players only,
-//                         plus their directory, about 1/10 of the raw size). Sleeper's API is public and keyless.
+//                         only the nonzero stats a league scoring rule uses, plus a minimal directory; the real after-MW8
+//                         snapshot goes from 650 KB to about 43 KB, about 1/15). Sleeper's API is public and keyless.
 //   fetchEplOdds          GET /v4/sports/soccer_epl/odds, h2h from DraftKings, FanDuel and BetMGM (1 credit): every listed
 //                         event with its median American price per club.
 //   fetchEplScores        GET /v4/sports/soccer_epl/scores?daysFrom=3 (2 credits): recent and upcoming events with final goals,

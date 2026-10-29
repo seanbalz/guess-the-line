@@ -65,8 +65,8 @@ test('teamProjection scores a player at the position stored in that week\'s snap
   assert.notEqual(asF.total, asM.total);
 });
 
-// Task 2 stores snapshot players as {name, position, fantasy_positions, team, team_abbr, injury_status}; these are
-// the keys positionOf reads. A bare `pos` key is not read, so a snapshot that renamed it would score nothing.
+// Task 2 stores snapshot players as {name, position, team_abbr} (fantasy_positions too when there is no position); these
+// are the keys positionOf reads. A bare `pos` key is not read, so a snapshot that renamed it would score nothing.
 test('teamProjection scores snapshot-shaped players by their stored position and fantasy_positions keys', () => {
   const snapshotPlayers = Object.fromEntries(Object.entries(fixture.players).map(([id, p]) => [id, {
     name: `Player ${id}`, position: p.position, fantasy_positions: p.fantasy_positions, team: 'X', team_abbr: 'X', injury_status: null,
@@ -77,9 +77,11 @@ test('teamProjection scores snapshot-shaped players by their stored position and
   assert.deepEqual(renamed.rows, [{ playerId: '1716', points: null }]);
 });
 
-test('teamProjection with no position or empty inputs is null rows and a zero total', () => {
-  assert.deepEqual(teamProjection(['1005'], fixture.projections, {}, fixture.scoring), { total: 0, rows: [{ playerId: '1005', points: null }] });
-  assert.deepEqual(teamProjection(undefined, undefined, undefined, undefined), { total: 0, rows: [] });
+test('teamProjection with no projected starter (every row null, or no starters) totals null, never 0', () => {
+  assert.deepEqual(teamProjection(['1005'], fixture.projections, {}, fixture.scoring), { total: null, rows: [{ playerId: '1005', points: null }] });
+  assert.deepEqual(teamProjection(['1005', '9999'], {}, fixture.players, fixture.scoring), { total: null, rows: [{ playerId: '1005', points: null }, { playerId: '9999', points: null }] });
+  assert.deepEqual(teamProjection(undefined, undefined, undefined, undefined), { total: null, rows: [] });
+  assert.equal(beatProjection(80, teamProjection(['1005'], {}, fixture.players, fixture.scoring).total), null, 'so the vs-projection diff is null too');
 });
 
 test('winChance is the normal probability of A outscoring B with independent sigma-18 scores', () => {

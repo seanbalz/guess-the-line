@@ -23,7 +23,7 @@ function view(patch = {}) {
   return {
     season: 2026, week: 12, viewer: SEAN, capturedAt: '2026-11-25T00:05:00.000Z',
     matchup: {
-      week: 12, basisWeek: 5, me: { ownerId: SEAN, name: 'Sean' }, opp: { ownerId: EVAN, name: 'Evan' }, myProj: 104.2, oppProj: 98.6, winChance: 0.587,
+      week: 12, basisWeek: 5, matched: [2, 5], me: { ownerId: SEAN, name: 'Sean' }, opp: { ownerId: EVAN, name: 'Evan' }, myProj: 104.2, oppProj: 98.6, winChance: 0.587,
       starters: [
         { playerId: '11', name: 'Erling Haaland', pos: 'F', club: 'MNC', clubText: 'MCI', proj: 18.4 },
         { playerId: '12', name: 'Martin Odegaard', pos: 'M', club: 'ARS', clubText: 'ARS', proj: null },
@@ -74,11 +74,24 @@ describe('Matchup', () => {
     expect(text(html)).toContain('WOL');
   });
   it('an unavailable matchup says so exactly, and still shows your projection', () => {
-    const v = view({ matchup: { unavailable: true, week: 12, me: { ownerId: SEAN, name: 'Sean' }, myProj: 78.5, starters: [], recent: [] } });
+    const v = view({ matchup: { unavailable: true, reason: 'no-repeat', week: 12, me: { ownerId: SEAN, name: 'Sean' }, myProj: 78.5, starters: [], recent: [] } });
     const t = text(wrap(<MatchupPanel view={v}/>));
     expect(t).toContain('Matchup unavailable this week');
     expect(t).toContain('78.5');
     expect(t).not.toContain('Win chance');
+  });
+  it('the opponent line says it is inferred, naming the two matchweeks that matched', () => {
+    expect(text(wrap(<MatchupPanel view={view()}/>))).toContain('Opponent inferred from the repeating schedule (MW2 and MW5 matched)');
+  });
+  it('each reason for an unavailable matchup has its own sentence', () => {
+    const body = reason => text(wrap(<MatchupPanel view={view({ matchup: { unavailable: true, reason, week: 12, me: reason === 'no-team' ? null : { ownerId: SEAN, name: 'Sean' }, myProj: null, starters: [], recent: [] } })}/>));
+    const sentences = ['no-repeat', 'no-team', 'ambiguous'].map(reason => FANTASY_COPY.unavailableBody(reason));
+    expect(new Set(sentences).size).toBe(3);
+    for (const [i, reason] of ['no-repeat', 'no-team', 'ambiguous'].entries()) expect(body(reason)).toContain(sentences[i]);
+    expect(sentences[0]).toMatch(/repeat/i);
+    expect(sentences[1]).toMatch(/team/i);
+    expect(sentences[2]).toMatch(/ambiguous|clear/i);
+    expect(FANTASY_COPY.unavailableBody(undefined)).toBe(sentences[2]);
   });
   it('projected vs actual draws a missing week as an em dash, not a 0 bar', () => {
     const html = wrap(<MatchupPanel view={view()}/>);
@@ -98,6 +111,15 @@ describe('Standings', () => {
     expect(t).toContain('1,080.5'); expect(t).toContain('7–4');
     expect(t).toContain('Sleeper 1,060.5 + Pick a Team bonus 20');
     expect(html).toContain('<details');
+    expect(markupProblems(html)).toEqual([]);
+  });
+  it('a missing name or missing Sleeper settings shows an em dash, never empty or 0', () => {
+    const v = view({ standings: [...view().standings, { ownerId: '999', name: null, wins: null, losses: null, sleeperTotal: null, bonus: 5, total: null }] });
+    const html = wrap(<StandingsPanel view={v}/>);
+    const row = html.slice(html.indexOf('>', html.indexOf('data-owner="999"')) + 1);
+    const head = text(row.slice(0, row.indexOf('</summary>')));
+    expect(head).toBe('4 — — —');
+    expect(text(row.slice(0, row.indexOf('</li>')))).toContain('Sleeper — + Pick a Team bonus 5');
     expect(markupProblems(html)).toEqual([]);
   });
 });
@@ -132,9 +154,14 @@ describe('Insights and the weekly line', () => {
     const html = wrap(<InsightsPanel view={view()}/>);
     const t = text(html);
     expect(t).toContain('Season high'); expect(t).toContain('100'); expect(t).toContain('Erling Haaland');
-    expect(t).toMatch(/vs projection —/i);
+    expect(t).toMatch(/vs projection \+10 MW9/i);
     expect(t).toContain('Mo Salah');
     expect(markupProblems(html)).toEqual([]);
+  });
+  it('the vs-projection tile uses the latest week with a diff, and an em dash when no week has one', () => {
+    const at = beat => text(wrap(<InsightsPanel view={view({ insights: { ...view().insights, beatProjection: beat } })}/>));
+    expect(at([{ ownerId: SEAN, week: 9, diff: 10 }, { ownerId: SEAN, week: 10, diff: -8.61 }, { ownerId: SEAN, week: 11, diff: null }, { ownerId: EVAN, week: 11, diff: 3 }])).toMatch(/vs projection −8\.61 MW10/i);
+    expect(at([{ ownerId: SEAN, week: 10, diff: null }, { ownerId: SEAN, week: 11, diff: null }])).toMatch(/vs projection — (Weekly|Top)/i);
   });
   it('before weekly detail exists, the note names the first matchweek', () => {
     const v = view({ insights: { ...view().insights, weekly: [], seasonHigh: null, myTopScorer: null, topScorerPerTeam: [], beatProjection: [], detailWeeks: [], detailStartsWeek: 9 } });

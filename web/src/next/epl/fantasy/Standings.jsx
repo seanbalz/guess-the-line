@@ -1,8 +1,8 @@
 // Research › Fantasy › Standings: every manager as a bar of season points plus the Pick a Team bonus (spec 6.5), ranked,
-// with W–L; your bar is lime and your row aria-current. Tapping a row opens the split: Sleeper's raw total and the bonus.
+// with W–L (a missing name, record or total is an em dash, never empty or 0); your bar is lime and your row aria-current. Tapping a row opens the split: Sleeper's raw total and the bonus.
 import { useId } from 'react';
 import { Card } from '../../ui/index.js';
-import { FANTASY_COPY, fmtPts } from './fantasyModel.js';
+import { DASH, FANTASY_COPY, fmtPts } from './fantasyModel.js';
 
 const finite = x => typeof x === 'number' && Number.isFinite(x);
 
@@ -19,10 +19,10 @@ export function StandingsPanel({ view }) {
           <details className="gx-epl-fx-split">
             <summary className="gx-epl-fx-stand-head">
               <span className="gx-epl-fx-rank">{i + 1}</span>
-              <span className="gx-epl-fx-stand-name">{r.name}</span>
-              <span className="gx-epl-fx-record">{`${r.wins}–${r.losses}`}</span>
+              <span className="gx-epl-fx-stand-name">{r.name || DASH}</span>
+              <span className="gx-epl-fx-record">{finite(r.wins) && finite(r.losses) ? `${r.wins}–${r.losses}` : DASH}</span>
               <span className="gx-epl-fx-num">{fmtPts(r.total)}</span>
-              <span className="gx-tc-bar gx-epl-fx-stand-bar" aria-hidden="true"><span className="gx-tc-bar-fill" style={{ width: `${Math.round((Math.max(0, r.total) / widest) * 100)}%` }}></span></span>
+              <span className="gx-tc-bar gx-epl-fx-stand-bar" aria-hidden="true"><span className="gx-tc-bar-fill" style={{ width: `${finite(r.total) ? Math.round((Math.max(0, r.total) / widest) * 100) : 0}%` }}></span></span>
             </summary>
             <p className="gx-t-meta gx-c-2 gx-epl-fx-split-body">{FANTASY_COPY.split(fmtPts(r.sleeperTotal), fmtPts(r.bonus))}</p>
           </details>

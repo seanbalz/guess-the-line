@@ -2,12 +2,12 @@
 // bubbles, the gradient win-chance bar and "Win chance N%" (the ⓘ explains the 18-point estimate); your starters with
 // a position tag, crest, name, projection bar and value ("No projection" when Sleeper has none); and projected vs actual
 // for the last 4 matchweeks as paired bars, a missing week an em dash. Sleeper lists no matchups for this league, so the
-// opponent is read from the last round of the repeating schedule (cloud/epl-fantasy-view.mjs); otherwise "Matchup
-// unavailable this week".
+// opponent is inferred from the repeating schedule once a full repeat has been scored and agrees
+// (cloud/epl-fantasy-view.mjs); otherwise "Matchup unavailable this week" and the reason's sentence.
 import { useId } from 'react';
 import { Card, InfoButton } from '../../ui/index.js';
 import { Crest } from '../DraftBoard.jsx';
-import { DASH, FANTASY_COPY, cycleOf, fmtPts, pct } from './fantasyModel.js';
+import { DASH, FANTASY_COPY, fmtPts, pct } from './fantasyModel.js';
 
 const finite = x => typeof x === 'number' && Number.isFinite(x);
 
@@ -70,7 +70,7 @@ export function MatchupPanel({ view }) {
       {m.unavailable
         ? <>
           <p className="gx-epl-headline">{FANTASY_COPY.unavailable}</p>
-          <p className="gx-t-meta gx-epl-hero-meta">{FANTASY_COPY.unavailableBody}</p>
+          <p className="gx-t-meta gx-epl-hero-meta">{FANTASY_COPY.unavailableBody(m.reason)}</p>
           {m.me ? <div className="gx-epl-fx-vs"><Bubble name={`${FANTASY_COPY.yourProjection} · ${m.me.name}`} value={m.myProj} me/></div> : null}
         </>
         : <>
@@ -86,7 +86,7 @@ export function MatchupPanel({ view }) {
               <InfoButton title={FANTASY_COPY.winInfoTitle} body={FANTASY_COPY.winInfo}/>
             </div>
           </>}
-          {m.basisWeek ? <p className="gx-t-meta gx-epl-hero-meta">{FANTASY_COPY.basis(m.basisWeek, cycleOf(view.standings?.length ?? 8))}</p> : null}
+          {Array.isArray(m.matched) && m.matched.length === 2 ? <p className="gx-t-meta gx-epl-hero-meta">{FANTASY_COPY.basis(m.matched[0], m.matched[1])}</p> : null}
         </>}
     </Card>
     {m.starters?.length ? <Card as="section" aria-labelledby={`${base}-starters`}>

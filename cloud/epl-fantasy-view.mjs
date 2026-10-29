@@ -8,8 +8,12 @@
 //     (no match has been played between the two, so their season totals agree). A week without both is null, never 0.
 //   * Per-player detail (top scorers, projected vs actual) exists only for weeks with a before-mw<N>-kickoff lineup: the
 //     players scored are that saved lineup's starters ("from saved lineup"), each at the position stored in that snapshot.
-//   * Sleeper gives this league no schedule, so this week's opponent is read from the last scored round of the round-robin
-//     (8 managers: every 7 matchweeks), and only while every scored repeat so far agrees; otherwise "Matchup unavailable".
+//   * Sleeper gives this league no schedule, so this week's opponent is inferred from the round-robin (8 managers: every
+//     7 matchweeks) only once at least one full repeat has been scored and agrees: for some n, weeks n and n+7 are both
+//     scored with the viewer paired the same way, and no scored repeat pairs the viewer differently. The opponent is the
+//     viewer's partner in the latest scored week this week repeats. Otherwise "Matchup unavailable" with a reason:
+//     no-repeat (no full repeat scored, or no scored round for this week to repeat), ambiguous (a repeat disagrees, or the
+//     viewer is unpaired in the round this week repeats) or no-team (a viewer with no team, such as the commissioner).
 //   * Standings = Sleeper season points + the season's Pick a Team bonus (gtl_epl_bonus), the raw Sleeper total kept.
 // Managers are keyed by Sleeper owner_id; display names are presentation only (a rename changes nothing).
 import { MANAGER_NAMES, managersFromSnapshot, pairMatchups, playersFromSnapshot, statsById, weeklyScores } from '../shared/epl-sleeper.mjs';
@@ -69,6 +73,30 @@ function playerRow(players, playerId) {
 
 /** Partner of each owner in a week's unambiguous pairs. */
 const partners = pairs => new Map(pairs.flatMap(([a, b]) => [[a, b], [b, a]]));
+
+/**
+ * The viewer's opponent in `week` from the scored weeks (`scores`: week -> weeklyScores), or why there is none. Every week
+ * the viewer has a score in gives its partner, or null when the pairing there is ambiguous. A repeat pair (n, n+cycle)
+ * with a partner in both weeks confirms the schedule when the partners are equal and contradicts it otherwise.
+ */
+export function inferOpponent(scores, viewer, week, cycle) {
+  if (!viewer || !Number.isInteger(week) || !Number.isInteger(cycle) || cycle < 1) return { reason: 'no-repeat' };
+  const partnerIn = new Map();
+  for (const [n, s] of scores) if (s && Object.hasOwn(s, viewer)) partnerIn.set(n, partners(pairMatchups(s).pairs).get(viewer) ?? null);
+  let contradicted = false, matched = null;
+  for (const [n, opp] of partnerIn) {
+    const later = partnerIn.get(n + cycle);
+    if (!opp || !later) continue;
+    if (later !== opp) contradicted = true;
+    else if (!matched || n > matched[0]) matched = [n, n + cycle];
+  }
+  let basisWeek = null;
+  for (let n = week - cycle; n >= 1; n -= cycle) if (partnerIn.has(n)) { basisWeek = n; break; }
+  const oppId = basisWeek ? partnerIn.get(basisWeek) : null;
+  if (contradicted || (basisWeek && !oppId)) return { reason: 'ambiguous' };
+  if (!matched || !oppId) return { reason: 'no-repeat' };
+  return { oppId, basisWeek, matched };
+}
 
 export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null } = {}) {
   const all = usable(snapshots);
@@ -138,9 +166,14 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   // Standings.
   const bonusBy = new Map();
   for (const b of Array.isArray(bonus) ? bonus : []) if (record(b) && finite(b.points)) bonusBy.set(b.ownerId, (bonusBy.get(b.ownerId) ?? 0) + b.points);
-  const standings = managers.map(m => ({ ownerId: m.ownerId, name: nameOf(m.ownerId), wins: m.wins, losses: m.losses, sleeperTotal: m.seasonTotal,
-    bonus: round2(bonusBy.get(m.ownerId) ?? 0), total: round2(m.seasonTotal + (bonusBy.get(m.ownerId) ?? 0)) }))
-    .map((s, i) => ({ s, i })).sort((a, b) => b.s.total - a.s.total || b.s.wins - a.s.wins || a.i - b.i).map(({ s }) => s);
+  // A roster with no Sleeper settings has no record or total (null, an em dash on screen), never 0; it sorts last.
+  const known = ownerId => record(rosterOf(newest.payload, ownerId)?.settings);
+  const standings = managers.map(m => {
+    const bonusPts = round2(bonusBy.get(m.ownerId) ?? 0);
+    if (!known(m.ownerId)) return { ownerId: m.ownerId, name: nameOf(m.ownerId), wins: null, losses: null, sleeperTotal: null, bonus: bonusPts, total: null };
+    return { ownerId: m.ownerId, name: nameOf(m.ownerId), wins: m.wins, losses: m.losses, sleeperTotal: m.seasonTotal, bonus: bonusPts, total: round2(m.seasonTotal + bonusPts) };
+  }).map((s, i) => ({ s, i }))
+    .sort((a, b) => (finite(b.s.total) - finite(a.s.total)) || (b.s.total ?? 0) - (a.s.total ?? 0) || (b.s.wins ?? 0) - (a.s.wins ?? 0) || a.i - b.i).map(({ s }) => s);
 
   // Rosters (current lineups).
   const rosters = owners.map(ownerId => {
@@ -162,25 +195,17 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
     return { total: p.total, rows: p.rows.map(r => ({ ...playerRow(sourcePlayers, r.playerId), proj: r.points })) };
   };
   let matchup;
-  if (!viewer) matchup = { unavailable: true, week, me: null, myProj: null, starters: [], recent };
+  if (!viewer) matchup = { unavailable: true, reason: 'no-team', week, me: null, myProj: null, starters: [], recent };
   else {
     const mine = projectionFor(viewer);
     const me = { ownerId: viewer, name: nameOf(viewer) };
     const cycle = owners.length % 2 ? owners.length : owners.length - 1;
-    const paired = new Map([...scores].map(([n, s]) => [n, partners(pairMatchups(s).pairs)]));
-    // Every scored repeat must agree with the round it repeats; any disagreement means the schedule is not a fixed cycle.
-    const consistent = cycle >= 1 && [...paired].every(([n, map]) => {
-      const later = paired.get(n + cycle);
-      return !later || [...map].every(([a, b]) => !later.has(a) || later.get(a) === b);
-    });
-    let basisWeek = null;
-    for (let n = week - cycle; consistent && cycle >= 1 && n >= 1; n -= cycle) if (paired.has(n) && scores.get(n)?.[viewer]) { basisWeek = n; break; }
-    const oppId = basisWeek ? paired.get(basisWeek).get(viewer) ?? null : null;
-    if (!oppId) matchup = { unavailable: true, week, me, myProj: mine.total, starters: mine.rows, recent };
+    const inferred = inferOpponent(scores, viewer, week, cycle);
+    if (!inferred.oppId) matchup = { unavailable: true, reason: inferred.reason, week, me, myProj: mine.total, starters: mine.rows, recent };
     else {
-      const theirs = projectionFor(oppId);
-      matchup = { week, basisWeek, me, opp: { ownerId: oppId, name: nameOf(oppId) }, myProj: mine.total, oppProj: theirs.total,
-        winChance: winChance(mine.total, theirs.total), starters: mine.rows, recent };
+      const theirs = projectionFor(inferred.oppId);
+      matchup = { week, basisWeek: inferred.basisWeek, matched: inferred.matched, me, opp: { ownerId: inferred.oppId, name: nameOf(inferred.oppId) },
+        myProj: mine.total, oppProj: theirs.total, winChance: winChance(mine.total, theirs.total), starters: mine.rows, recent };
     }
   }
 

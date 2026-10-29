@@ -1,5 +1,5 @@
 // Research › Fantasy › Insights: tiles for the season high, your top scorer and how far you beat or missed your last
-// projection; the top scorer per team (from saved lineups); and the weekly points line, you against the league average.
+// projection (the latest matchweek that has one); the top scorer per team (from saved lineups); and the weekly points line, you against the league average.
 // Weekly numbers exist only from the first tracked matchweek; before that a note says where they start.
 import { useId } from 'react';
 import { Card } from '../../ui/index.js';
@@ -20,7 +20,7 @@ export function InsightsPanel({ view }) {
   const high = ins.seasonHigh;
   const top = ins.myTopScorer;
   const mine = (ins.beatProjection ?? []).filter(b => b.ownerId === view.viewer);
-  const last = mine.at(-1) ?? null;
+  const last = mine.findLast(b => typeof b.diff === 'number' && Number.isFinite(b.diff)) ?? null;
   const hasWeekly = (ins.weekly ?? []).some(w => typeof w.points === 'number');
   return <div className="gx-epl-fx-stack">
     <div className="gx-epl-fx-tiles">

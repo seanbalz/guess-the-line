@@ -79,19 +79,24 @@ M-30 and a `gtl-api` / `gtl-epl-jobs` deploy).
     at the position stored in that matchweek's snapshot: Sleeper's `position` when present (it is where Sleeper scores a
     multi-position player, and it reproduces Sleeper's `pts_std`), otherwise the first `fantasy_positions` entry.
     Projections use the same formula over projected stats. A starter with no projection row adds 0 to the team total and
-    shows "No projection".
+    shows "No projection"; a lineup with no projected starter at all has no projected total (an em dash), never 0.
 13. **Win chance** is `Φ((projA − projB) / (σ·√2))` with σ = 18 points. The 18 is an estimate, not fitted; the screen's ⓘ
     says so.
-14. **Snapshots.** The jobs worker stores Sleeper snapshots trimmed to rostered players, with a players directory under
-    Sleeper's key names, and adds a `daily-<YYYY-MM-DD>` capture once a UTC day (beside `before-mw<N>-kickoff` and
-    `after-mw<N>`). The `epl/fantasy/read` route (linked managers and the commissioner only) builds the view from stored
-    snapshots and the season's bonus rows; it never calls Sleeper per request. Per-player detail (top scorers, projected
-    vs actual) covers the last 6 matchweeks with a saved before-kickoff lineup and is labelled "from saved lineups".
-15. **This week's opponent (my call, Sean to check).** Sleeper gives no schedule for this league, so the opponent is read
-    from the last scored round of the round robin (8 managers: the pairing 7 matchweeks earlier), and only while every
-    scored repeat so far agrees with the round it repeats. Otherwise, or when that round's pairing is ambiguous, the
-    screen says "Matchup unavailable this week" and still shows your own projection. With tracking from MW9, the first
-    opponent can show at MW16.
+14. **Snapshots.** The jobs worker stores Sleeper snapshots trimmed to rostered players and to the nonzero stats some
+    FEPL scoring rule uses, with a minimal players directory under Sleeper's key names (the real after-MW8 snapshot is
+    650 KB raw and about 43 KB stored), and adds a `daily-<YYYY-MM-DD>` capture once a UTC day (beside
+    `before-mw<N>-kickoff` and `after-mw<N>`). The `epl/fantasy/read` route (linked managers and the commissioner only)
+    builds the view from stored snapshots and the season's bonus rows, selecting only the parts of each snapshot it reads;
+    it never calls Sleeper per request. Per-player detail (top scorers, projected vs actual) covers the last 6 matchweeks
+    with a saved before-kickoff lineup and is labelled "from saved lineups".
+15. **This week's opponent (controller ruling, October 28, 2026).** Sleeper gives no schedule for this league, so the
+    opponent is inferred from the round robin (8 managers: the pairing repeats every 7 matchweeks) only once at least one
+    full repeat has been scored and agrees: for some matchweek n, both MWn and MWn+7 are scored with you paired with the
+    same manager, and no scored repeat pairs you differently. The opponent is then your partner in the latest scored
+    round this week repeats, and the screen says "Opponent inferred from the repeating schedule (MWa and MWb matched)".
+    Otherwise it says "Matchup unavailable this week", with one sentence for each case (no full repeat scored yet; you
+    have no team, as the commissioner; an ambiguous or disagreeing pairing), and still shows your own projection. It
+    never guesses. With tracking from MW9, the first full repeat is MW9 and MW16, so the first opponent can show at MW17.
 16. **Standings** rank Sleeper season points plus the season's Pick a Team bonus; the raw Sleeper total shows on tap.
     Missing weeks are an em dash and a gap in the charts, never 0.
 

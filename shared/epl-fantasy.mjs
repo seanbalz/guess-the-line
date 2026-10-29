@@ -1,7 +1,8 @@
 // Fantasy math for the Premier League Sleeper league (Research -> Fantasy). A player's points are Sleeper's raw stat
 // counts times the league's position-prefixed scoring_settings (pos_<gk|d|m|f>_<stat>); stats rows also carry
 // pre-prefixed copies (pos_f_g) and Sleeper's standard total (pts_std), which are ignored so nothing double counts.
-// A starter with no projection row scores null ("No projection") and is left out of totals, never NaN.
+// A starter with no projection row scores null ("No projection") and is left out of totals, never NaN; a lineup with no
+// projected starter totals null.
 // Pure: no I/O, no imports.
 
 const round2 = x => Math.round(x * 100) / 100;
@@ -37,7 +38,8 @@ export function teamProjection(starters = [], projections = {}, players = {}, sc
     const pos = positionOf(player);
     return { playerId, points: stats && pos ? playerPoints(stats, pos, scoring ?? {}) : null };
   });
-  const total = round2(rows.reduce((sum, r) => sum + (r.points ?? 0), 0));
+  // No projected starter at all is an unknown total (null), never 0.
+  const total = rows.some(r => r.points !== null) ? round2(rows.reduce((sum, r) => sum + (r.points ?? 0), 0)) : null;
   return { total, rows };
 }
 
