@@ -1,4 +1,4 @@
-import { lazy, useCallback, useEffect, useState } from 'react';
+import { lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Coins, ListFilter, NotebookPen, Users } from 'lucide-react';
 import DeferredScreen from '../../DeferredScreen.jsx';
 import { useAppData } from '../data/AppData.jsx';
@@ -13,6 +13,7 @@ import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { useTicketSummary } from './useTicketSummary.js';
+import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
 import './bets.css';
 import '../../liveBets.css';
@@ -61,35 +62,45 @@ function BetsDetail() {
     week: value.allHistory ? null : value.selectedWeek?.week ?? null,
     period: value.allHistory ? 'all' : null,
   }), [shell.setView, shell.state.views.bets.trackers, destination]);
-  // BETS-NEXT-01: Recommended's All / Spreads / Totals choice is a Bets view preference. It survives Track this bet
-  // and returning within Bets; it is not part of the address and changes nothing that is saved. The embedded
-  // Recommended list filters by it; the new app's own segmented control is drawn here and handed to that list.
+  // BETS-NEXT-01: Recommended's All / Spreads / Totals choice is a Bets view preference. It survives reviewing a
+  // recommended bet and returning within Bets; it is not part of the address and changes nothing that is saved. The
+  // embedded Recommended list filters by it; the new app's own segmented control is drawn here and handed to that list.
   const recommendedMarket = recommendationMarket(route.recommendedMarket);
   const chooseRecommendedMarket = useCallback(value => shell.setView('bets', { recommendedMarket: value }), [shell.setView]);
   const marketControl = <Segmented label="Recommendation market" value={recommendedMarket} onChange={chooseRecommendedMarket} options={RECOMMENDED_MARKETS}/>;
   const { setDirty } = shell;
   const [ticketRequest, setTicketRequest] = useState(null);
-  const ticketConsumed = useCallback(() => setTicketRequest(null), []);
-  const dirty = useCallback(value => setDirty('bets', value), [setDirty]);
-  useEffect(() => () => setDirty('bets', false), [setDirty]);
+  const drafts = useMemo(() => draftParts(setDirty), [setDirty]);
+  const clearDirty = drafts.clear;
+  const dirty = useCallback(value => drafts.mark('view', value), [drafts]);
+  const reviewDirty = useCallback(value => drafts.mark('review', value), [drafts]);
+  useEffect(() => clearDirty, [clearDirty]);
   const saved = () => app.refresh({ only: ['community', 'personal'] });
   const league = app.league;
   const privateLeague = !league.community && !league.pending && app.leagues.some(item => item.id === league.id && !item.community);
   function choose(next) {
     if (next === view || !shell.confirmLeave()) return;
-    setDirty('bets', false);
+    clearDirty();
+    setTicketRequest(null);
     shell.setView('bets', { view: next, season: null, week: null, period: null });
   }
   function chooseVirtual(next) {
     if (next === destination || !shell.confirmLeave()) return;
-    setDirty('bets', false);
+    clearDirty();
     shell.setView('bets', { view: next, season: null, week: null, period: null });
   }
+  // Player feedback (October 28, 2026): reviewing a recommended bet opens the tracker's editor over Recommended, so the
+  // list, its market, scroll and open card stay put for the next one. A saved ticket says so with a way to My bets.
   function trackRecommendation(ticket) {
-    if (!shell.confirmLeave()) return;
+    if (ticketRequest) return;
     setTicketRequest({ id: crypto.randomUUID(), accountId: app.accountId, ticket });
-    setDirty('bets', false);
-    shell.setView('bets', { view: 'tracked', season: ticket.season, week: ticket.week, period: null });
+  }
+  function reviewDone({ saved: wasSaved }) {
+    const ticket = ticketRequest?.ticket;
+    setTicketRequest(null);
+    reviewDirty(false);
+    if (!wasSaved || !ticket) return;
+    shell.toast(...savedTicketToast(ticket, shell.go));
   }
   const introduction = {
     tracked: 'Tickets you placed elsewhere, with results and history.',
@@ -110,9 +121,10 @@ function BetsDetail() {
       <Button aria-label="Virtual Units" aria-pressed={view === 'virtual'} onClick={() => choose('virtual')}>Virtual</Button>
     </div>
     {view === 'tracked' ? <>
-      <DeferredScreen label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} ticketRequest={ticketRequest?.accountId === app.accountId ? ticketRequest : null} onTicketConsumed={ticketConsumed} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
+      <DeferredScreen label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
     </> : view === 'recommended' ? <>
       <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
+      {ticketRequest?.accountId === app.accountId && <DeferredScreen resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>}
     </> : <>
       <Segmented label="Virtual Units view" value={destination === 'everyone' ? 'everyone' : 'virtual'} onChange={chooseVirtual} options={VIRTUAL_VIEWS}/>
       {destination === 'everyone' ? <EveryoneBets onPlace={() => chooseVirtual('virtual')}/> : privateLeague ? <>

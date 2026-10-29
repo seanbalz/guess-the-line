@@ -12,6 +12,8 @@ import { ProfileSettings } from './ProfileSettings.jsx';
 import { GUIDANCE_ORDER, INFO } from '../info.js';
 
 const Members = lazy(() => import('./CommunityMembers.jsx').then(module => ({ default: module.CommunityMembers })));
+// D-65 follow-up: the commissioner's tools load only when the Community commissioner opens them.
+const Commissioner = lazy(() => import('./commissioner/CommissionerTools.jsx').then(module => ({ default: module.CommissionerTools })));
 const ExportData = lazy(() => import('./ExportSheet.jsx').then(module => ({ default: module.ExportSheet })));
 
 export const MENU_COPY = Object.freeze({
@@ -70,6 +72,7 @@ export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
   if (args.sub === 'members') return <Suspense fallback={<Sheet title="Community members" onClose={shell.closeSheet}><p role="status">Loading members…</p></Sheet>}><Members key={shell.you.id}/></Suspense>;
+  if (args.sub === 'commissioner' && shell.communityAdmin) return <Suspense fallback={<Sheet title="Commissioner tools" onClose={shell.closeSheet}><p role="status">Loading…</p></Sheet>}><Commissioner key={shell.you.id} tool={args.tool ?? null}/></Suspense>;
   if (args.sub === 'export') return <Suspense fallback={<Sheet title={MENU_COPY.export} onClose={shell.closeSheet}><p role="status">Loading…</p></Sheet>}><ExportData key={shell.you.id}/></Suspense>;
   if (args.sub === 'preferences') return <AccountPreferences key={shell.you.id}/>;
   if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
@@ -102,6 +105,7 @@ export function MenuSheet({ args }) {
       <Card variant="flush">
         <List>
           {shell.communityAdmin && <LinkRow icon="people" onClick={() => shell.setSheetArgs({ sub: 'members' })}>Community members</LinkRow>}
+          {shell.communityAdmin && <LinkRow icon="settings" onClick={() => shell.setSheetArgs({ sub: 'commissioner', tool: null })}>Commissioner tools</LinkRow>}
           <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
           <LinkRow key="history" icon="clock" onClick={() => shell.openPage('page.history', {})}>{MENU_COPY.history}</LinkRow>
           <LinkRow key="export" icon="receipt" onClick={() => shell.setSheetArgs({ sub: 'export' })}>{MENU_COPY.export}</LinkRow>

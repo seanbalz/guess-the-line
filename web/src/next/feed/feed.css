@@ -51,7 +51,7 @@
 .gx .gx-feed-act { align-self: flex-start; }
 .gx .gx-feed-preview { margin-top: calc(-1 * var(--gx-space-1)); }
 .gx .gx-feed-cm { display: flex; align-items: baseline; gap: var(--gx-space-2); min-width: 0; }
-.gx .gx-feed-cm-text { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.gx .gx-feed-cm-text { min-width: 0; overflow-wrap: anywhere; white-space: break-spaces; }
 /* Sheets: comments, reactors, one player's picks. */
 .gx .gx-feed-crow { display: flex; align-items: flex-start; gap: var(--gx-space-3); padding: var(--gx-space-3) var(--gx-space-4); }
 .gx .gx-feed-cin { min-height: var(--gx-size-touch); }

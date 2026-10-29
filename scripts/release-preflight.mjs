@@ -240,6 +240,20 @@ export async function livePreflight(cwd, env, fetchImpl = fetch) {
   return { source: env.RELEASE_SHA, target: env.RELEASE_TARGET, deployed: false, observedAt: observed.toISOString(), migrationHistorySha256: digest, migrationCount: row.migrations.length, pendingRepoMigrations: NOT_HOSTED, schedule, functions, ...workerBefore, previousPages, boundary };
 }
 
+/** 'public' when the immutable Pages URL serves the build, 'protected' when Cloudflare Access sends it to the login for exactly that host. */
+export async function previewAccess(url, sha, fetchImpl = fetch) {
+  const host = new URL(url).host;
+  const response = await fetchImpl(`${url}/?release=${sha}`, { cache: 'no-store', redirect: 'manual', signal: AbortSignal.timeout(15000) });
+  if (response.status >= 300 && response.status < 400) {
+    const location = new URL(response.headers.get('location') || 'https://invalid.invalid', url);
+    assert.ok(location.protocol === 'https:' && location.hostname.endsWith('.cloudflareaccess.com')
+      && location.pathname === `/cdn-cgi/access/login/${host}`, 'Unexpected redirect from the Pages deployment URL.');
+    return 'protected';
+  }
+  assert.ok(response.ok, 'Pages deployment URL request failed.');
+  return 'public';
+}
+
 export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
   const scope = deploys(env.RELEASE_TARGET);
   const after = functionSummary(await supabase('functions', env, {}, fetchImpl));
@@ -290,7 +304,11 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
     assert.equal(manifest.gitHead, env.RELEASE_SHA, 'Manifest source mismatch.');
     assert.equal(manifest.dirtyWorkingTree, false, 'Manifest source was dirty.');
     const served = manifest.artifacts.filter(file => !['_headers', '_redirects'].includes(file.path));
-    for (const base of [deployment.url, 'https://guess-the-line.pages.dev']) {
+    // Preview access (RETIRE-03, October 28, 2026): Cloudflare Access may guard the immutable deployment URL. Then it must
+    // redirect to the Access login for exactly that host, and only the production URL is read byte for byte.
+    const deploymentAccess = await previewAccess(deployment.url, env.RELEASE_SHA, fetchImpl);
+    const bases = deploymentAccess === 'protected' ? ['https://guess-the-line.pages.dev'] : [deployment.url, 'https://guess-the-line.pages.dev'];
+    for (const base of bases) {
       for (const file of served) {
         // Pages canonicalizes HTML routes; request the canonical path while rejecting redirects.
         const servedPath = file.path.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '');
@@ -299,7 +317,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
         assert.equal(hash(Buffer.from(await response.arrayBuffer())), file.sha256, 'Served frontend differs from release manifest.');
       }
     }
-    pages = { id: deployment.id, url: deployment.url, productionUrl: 'https://guess-the-line.pages.dev', checkedAssetsPerUrl: served.length, frontendSha256: manifest.frontendSha256 };
+    pages = { id: deployment.id, url: deployment.url, productionUrl: 'https://guess-the-line.pages.dev', deploymentUrlAccess: deploymentAccess, checkedUrls: bases, checkedAssetsPerUrl: served.length, frontendSha256: manifest.frontendSha256 };
   }
   return { requestedSource: env.RELEASE_SHA, target: env.RELEASE_TARGET, checkedAt: new Date().toISOString(), api, pages, boundary,
     ...workerReport,

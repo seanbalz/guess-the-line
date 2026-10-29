@@ -232,10 +232,34 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await page.setViewportSize({width:320,height:844}); await nav(page).getByRole('button',{name:'Home',exact:true}).focus();
   for (let i=0;i<3;i++) { await page.keyboard.press('Tab'); await phone(page); }
   await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toBeFocused(); await page.setViewportSize({width:390,height:844});
+  // D-66 nesting cards on This Week: a closed market is a lock inside the game; This week › game › trend › back.
+  const week=page.getByRole('region',{name:'Week trends',exact:true});
   await group(page,'Trends market').getByRole('button',{name:'Total',exact:true}).click();
-  await expect(page.getByText(/Total line-based records are hidden/).first()).toBeVisible();
+  await week.locator('[data-game=CAR-PHI]').click();
+  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeFocused();
+  await expect(week.getByText(/Total line-based records/).first()).toBeVisible();
   await noSentinel(page);
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click();
+  await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
   await group(page,'Trends market').getByRole('button',{name:'Spread',exact:true}).click();
+  await week.locator('[data-game=CAR-PHI]').click();
+  const weekTile=week.locator('button.gx-nest-tile').first();
+  const weekTitle=(await weekTile.locator('.gx-nest-tile-label').textContent()).trim();
+  await weekTile.click();
+  await expect(week.getByRole('heading',{level:2,name:weekTitle,exact:true})).toBeFocused();
+  await expect(page).toHaveURL(/weekTrend=t[0-9a-z]+/);
+  await expect(week.getByRole('button',{name:'Back to CAR @ PHI',exact:true})).toBeVisible();
+  for (const width of [390,320]) {
+   await page.setViewportSize({width,height:844}); await phone(page);
+   expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
+   await page.screenshot({path:testInfo.outputPath(`week-trend-${width}.png`),fullPage:true});
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.goBack(); await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeVisible();
+  await page.screenshot({path:testInfo.outputPath('week-game-390.png'),fullPage:true});
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click();
+  await page.screenshot({path:testInfo.outputPath('week-390.png'),fullPage:true});
+  await noSentinel(page);
   // D-66 nesting cards: Teams › team › trend, one smaller layer per tap; lips and back return one layer at a time.
   await group(page,'Trends section').getByRole('button',{name:'Teams',exact:true}).click();
   const nest=page.getByRole('region',{name:'Team trends',exact:true});
