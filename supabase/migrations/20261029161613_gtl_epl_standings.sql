@@ -1,12 +1,13 @@
 -- M-34 EPL community standings: private, append-only dated tables and immutable deadline usage.
 -- Apply after M-33 in the ledger; no hosted action, schedule row or enablement is performed here.
 -- Fix-forward: the job constraint widens. Disable standings to stop collection; keep all evidence and usage rows.
+-- Retain the reserved moneyline job too: independent M-36 may be applied first. No row or RPC is required here.
 -- Existing five/six jobs and the original resolve writer remain unchanged. All new RPCs are service-only invokers.
 -- p_now is a trusted worker clock/test seam, never a client input. Every writer requires a live job claim.
 
 alter table public.gtl_epl_jobs_schedule drop constraint if exists gtl_epl_jobs_schedule_job_check;
 alter table public.gtl_epl_jobs_schedule add constraint gtl_epl_jobs_schedule_job_check
-  check(job in ('snapshot','fixtures','resolve','settle','nudge','dnb-check','standings'));
+  check(job in ('snapshot','fixtures','resolve','settle','nudge','dnb-check','standings','moneyline'));
 
 create table if not exists public.gtl_epl_standings (
   id uuid primary key default gen_random_uuid(),
