@@ -266,3 +266,38 @@ test('moneyline board uses the EPL week and exposes no other manager draft or un
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+test('EPL Home links to moneyline entry with only the signed-in manager’s locked progress', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Disposable PGlite required.');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => { if (!localStorage.getItem('gtl.theme')) localStorage.setItem('gtl.theme', 'dark'); });
+  const world = await fixture(page, baseURL);
+  try {
+    expect((await world.api('troy', 'guess/save', { eventId: 'flow-ars-che', club: 'ARS', price: -125, lock: true })).status).toBe(200);
+    expect((await world.api('troy', 'guess/save', { eventId: 'flow-liv-eve', club: 'LIV', price: -130, lock: false })).status).toBe(200);
+    expect((await world.api('sean', 'guess/save', { eventId: 'flow-tot-ful', club: 'FUL', price: 120, lock: true })).status).toBe(200);
+    await page.goto('/#epl/home');
+    await signIn(page, 'troy', { navigate: false });
+    const shortcut = page.getByRole('button', { name: /Guess this weekend’s moneylines.*1 of 3/i });
+    await expect(shortcut).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({ path: '.local/epl-moneyline-home-390-dark.png', fullPage: true });
+    await page.evaluate(() => localStorage.setItem('gtl.theme', 'light'));
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await expect(shortcut).toBeVisible();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const box = await shortcut.boundingBox();
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(320);
+    await page.screenshot({ path: '.local/epl-moneyline-home-320-light.png', fullPage: true });
+    await shortcut.click();
+    await expect(page).toHaveURL(/#epl\/play\/guess$/);
+    await expect(page.getByText('1 of 3 locked', { exact: true })).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
