@@ -30,8 +30,8 @@ async function setup(t) {
   return { db, call, profile, autoLink, claim, linkedTo, audit };
 }
 
-test('M-31 is listed in NOT_HOSTED and builds on the hosted M-30', () => {
-  assert.ok(NOT_HOSTED.includes(20261029060000));
+test('M-31 is hosted (October 29 apply record, hosted 20261029131259) and builds on the hosted M-30', () => {
+  assert.ok(!NOT_HOSTED.includes(20261029060000), 'removed from NOT_HOSTED by its apply record (Gate M step 8)');
   assert.ok(APPLIED.includes(20261028190000));
   assert.equal(REQUIRES[20261029060000], undefined);
 });
