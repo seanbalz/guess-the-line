@@ -1,6 +1,6 @@
 # Production regression and iPhone audit — October 29, 2026
 
-Owner: Sean Balsiger · Version 1
+Owner: Sean Balsiger · Version 2
 
 Sean requested a fresh formatting/functionality sweep and real iPhone logo/favicon
 checks. He identified Research and the NFL/EPL transition: changing sports feels
@@ -9,6 +9,16 @@ like opening a different app. This audit starts from main
 at audit start was `5c1b775f05a69306f20f911f4b0455c207c65ffc`, Pages `72eb400b`.
 
 ## Findings, repairs and remaining gates
+
+Release checkpoint: #376 and #379 merged with all checks passing. The combined
+frontend is [deployed and verified](RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md)
+from `a41f68362acb5165b17ef6f20673d23d1a2c9ec8` (125 matching assets).
+Fresh signed-in desktop readback verifies full Research names at 390px, the same
+read-only profile in both sports, and all four primary tabs retained in both
+directions. The original source-pending wording in the table below describes
+the initial audit; this checkpoint supersedes those source/merge/release gates.
+Post-deploy physical Research/switch acceptance is pending iPhone reconnection.
+AUD-03 and the exact adaptive/cached-icon uncertainty remain open.
 
 | ID | Finding and evidence | State / exit criterion |
 | --- | --- | --- |

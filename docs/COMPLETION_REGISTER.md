@@ -11,14 +11,18 @@ as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
 ## Shared sport interface — October 29, 2026
 
-Implemented and checked locally: NFL/EPL now use the same frame, profile/menu
+Deployed and checked in fresh authenticated desktop readback: NFL/EPL use the same frame, profile/menu
 and navigation, retain the current primary section when switching, and keep
 sport-specific game modes and data contexts separate. See the
 [scope, test evidence and visual review](SHARED_SPORT_INTERFACE.md).
-This is source/local evidence; hosted release and physical-phone acceptance
-remain separate. Existing EPL moneyline work retains its own owner and gates.
+PR #379 merged after all twelve checks passed; the frontend release from
+`a41f68362acb5165b17ef6f20673d23d1a2c9ec8` verified all 125 served assets.
+[Release and desktop acceptance](RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md)
+cover the same read-only profile and all four primary sections in both directions.
+Physical Research/switch acceptance remains pending the iPhone mirroring unlock.
+Existing EPL moneyline work retains its own owner and gates.
 The skip-link CI correction includes focused regression and both-sport keyboard
-evidence in that record; the coordinated release owner still requires green CI.
+evidence in that record; exact-main CI and protected release gates have passed.
 
 ## EPL priority — October 29, 2026
 
@@ -68,10 +72,17 @@ Physical-device acceptance remains separate.
 production Research quote/name crowding, EPL shell/context discontinuity and a
 retained older Safari tab with a Trends error. Research phone-layout and favicon-reference repairs are in #376. Full shared
 EPL shell/profile ownership is #379; #376’s overlapping partial implementation
-was removed before merge. Combined verification and release remain required. Physical iPhone
+was removed before merge. Both PRs merged green; combined frontend release
+[40926218502](https://github.com/seanbalz/guess-the-line/actions/runs/40926218502)
+passed from `a41f68362acb5165b17ef6f20673d23d1a2c9ec8`, with 125 served assets
+verified. Fresh desktop checks pass loaded Research at 390px and the same
+profile/navigation/current primary section across both sports in all four tabs.
+[Release/readback evidence](RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md)
+keeps post-deploy iPhone acceptance pending reconnection. Physical iPhone
 logo observations cover installed app and Safari in Light/Dark; exact favicon
 Dark adaptation/cache freshness remains open. Sean confirmed restoring test
-appearance settings. This is not a blanket app acceptance or a deployed-fix claim.
+appearance settings. Older running-client recovery and exact cached-favicon
+adaptation remain open; this is not blanket app acceptance.
 
 ## What the evidence establishes
 

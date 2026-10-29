@@ -15,10 +15,15 @@ another app instead of switching sports. The [audit and physical-iPhone evidence
 records AUD-01 Research quote/name crowding repairs in #376. AUD-02 shared
 chrome/tab context and AUD-05 account integration are owned by #379; the
 overlapping partial EPL implementation was removed from #376 before merge. AUD-03 retained old Safari UI/update recovery,
-AUD-04 favicon cache/theme readback and AUD-05 complete account-tool integration
-remain open. These refine DESIGN-01 and broader Q19 acceptance; the prior resolved
-Q03 scrolling report is preserved. Validate repaired source through CI/release and
-real-device readback before closing these items.
+AUD-04 favicon cache/theme readback and unfinished sport-specific modes remain
+open. #376/#379 are merged and the combined frontend is
+[deployed from a41f683](../docs/RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md):
+125 served assets matched. Loaded Research at 390px and same profile/navigation/
+current section in all four tabs pass fresh authenticated desktop readback.
+Post-deploy physical Research/switch acceptance awaits iPhone reconnection;
+AUD-03 safe older-client recovery and exact adaptive/cached-icon readback remain
+open. These refine DESIGN-01 and broader Q19 acceptance; the prior resolved Q03
+scrolling report is preserved.
 
 ## Immediate priority — EPL workflow agents, October 29, 2026
 

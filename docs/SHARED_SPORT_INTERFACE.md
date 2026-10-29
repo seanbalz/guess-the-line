@@ -2,6 +2,14 @@
 
 Owner: Sean Balsiger · Confirmed October 29, 2026
 
+Release checkpoint: PR #379 merged green as
+`a41f68362acb5165b17ef6f20673d23d1a2c9ec8` and the combined frontend release
+passed with all 125 assets verified. [Production and desktop readback](RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md)
+confirm the same profile/menu/navigation and current primary section across both
+sports. Physical Research/switch acceptance remains pending iPhone mirroring
+unlock. Source/local-only statements below describe the implementation phase;
+this checkpoint supersedes their merge/release-pending status.
+
 Sean confirmed one shared interface with sport-specific game modes. Switching
 NFL/EPL keeps the current primary section: Home, Play, Bets or Research.
 Research → Fantasy maps to Fantasy in the other sport. Other sport-specific
