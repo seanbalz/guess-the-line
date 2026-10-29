@@ -22,7 +22,7 @@ import { DetailBack, OfflineBanner, SportControls, TabBar, TopBar } from './Fram
 import { DialogHost, OverlayHost, PageHost, PopoverHost, SheetHost } from './LayerHosts.jsx';
 import { ToastHost } from './ToastHost.jsx';
 import { LAYERS, SCREENS } from './registry.jsx';
-import { connectHistory, fragmentFor, startPlace } from './router.js';
+import { connectHistory, NFL_ROUTER, startPlace } from './router.js';
 import { canGoBack, hasLayers, initialState, isDetail, layer, layerKind, modalOpen, navigationPatch, reduce, visibleOverlay } from './state.js';
 import { SHELL_COPY } from './tabs.js';
 import { useFixedBarsPinned } from './viewportPin.js';
@@ -73,9 +73,9 @@ function useHeight(element) {
 
 const prefersReducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, children }) {
+export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, router = NFL_ROUTER, className = '', children }) {
   const [state, dispatch] = useReducer(reduce, null, () => {
-    const start = initialState(startPlace(window));
+    const start = initialState(startPlace(window, router));
     return initialLayer && layerKind(initialLayer) && !hasLayers(start) ? reduce(start, { type: 'open', layer: layer(initialLayer) }) : start;
   });
   const [online, recheckOnline] = useOnline();
@@ -116,7 +116,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const history = useRef(null);
   const synced = useRef(null);
   useEffect(() => {
-    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch, confirmLeave, beforeNavigate: rememberPosition });
+    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch, confirmLeave, beforeNavigate: rememberPosition, route: router });
     history.current = connection;
     connection.sync(null, stateRef.current);
     synced.current = stateRef.current;
@@ -132,7 +132,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
 
   // Keep scroll/focus privately in memory; addresses/history never contain DOM or editor records.
   const positions = useRef(new Map());
-  const positionKey = current => isDetail(current) ? fragmentFor(current.tab, current.views[current.tab], current.views) : current.tab;
+  const positionKey = current => isDetail(current) ? router.fragmentFor(current.tab, current.views[current.tab], current.views) : current.tab;
   const rememberPosition = useCallback(() => {
     const node = document.activeElement;
     positions.current.set(positionKey(stateRef.current), { scroll: window.scrollY, focus: node && node !== document.body ? { id: node.id, tag: node.tagName, label: node.getAttribute('aria-label'), text: node.textContent?.trim() } : null });
@@ -277,8 +277,9 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (
     <ShellContext.Provider value={value}>
-      <div className="gx" data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
+      <div className={`gx ${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
+          <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
           <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
           <SportControls/>
           <main className="gx-main" id="main" tabIndex={-1}>

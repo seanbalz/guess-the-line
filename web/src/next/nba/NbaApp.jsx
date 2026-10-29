@@ -15,9 +15,9 @@ import { useNbaData } from './useNbaData.js';
 import { nbaApi } from './api.js';
 import { addNextFontLinks } from '../styles/fonts.js';
 import { confirmSportLeave, nbaHash, nbaRoute, today } from './route.js';
-import EplApp from '../epl/EplApp.jsx';
+import { SportNavigationContext, sportSwitchHash } from '../sportSwitch.js';
 import { useEplAccess } from '../epl/api.js';
-import { EplAccessContext, eplGate, primeLobby, SPORT_HOME, sportOptions } from '../epl/route.js';
+import { EplAccessContext, eplGate, primeLobby, sportOptions } from '../epl/route.js';
 import { cloudApi } from '../../api.js';
 import { sportAt } from '../sportAt.js';
 
@@ -65,7 +65,7 @@ function NbaOwner({ session, onSignOut, onSportChange, epl = false, api = nbaApi
   </div></div>;
 }
 
-/** Mount above all NFL eligibility providers; cold NBA and EPL links issue no NFL reads. */
+/** Resolve sport access above the shared account provider; cold NBA/EPL links issue no NFL gameplay reads. */
 export function SportEntry({ session, onSignOut, children }) {
   const [sport, setSport] = useState(() => sportAt(window.location.hash));
   const state = useRef(sport); state.current = sport;
@@ -107,12 +107,11 @@ export function SportEntry({ session, onSignOut, children }) {
     window.history.pushState(null, '', hash);
     const event = new PopStateEvent('popstate'); event.gtlSportApproved = true; event.gtlSportFrom = from; window.dispatchEvent(event);
   }
-  const change = value => { if (value !== sport) navigate(value === 'nfl' ? previousNfl.current : SPORT_HOME[value]); };
+  const change = value => { if (value !== sport) navigate(sport === 'nba' && value === 'nfl' ? previousNfl.current : sportSwitchHash(value, window.location.hash)); };
   // The old app's shells (including the new app's crash fallback) place this after their skip link; the new app has its own in the top bar.
   const selector = <div className="gx gx-nba-sport-entry"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={change}/></div>;
   if (sport === 'nba') return <NbaApp session={session} onSignOut={onSignOut} epl={epl} onSportChange={change}/>;
-  if (gate === 'show') return <EplApp key={session.user.id} onSportChange={change}/>;
   // While the lobby has not answered, or until the effect above leaves for NFL, nothing EPL-specific (and no NFL read) renders.
-  if (gate !== 'other') return null;
-  return <EplAccessContext.Provider value={epl}><SportSlotContext.Provider value={selector}>{children}</SportSlotContext.Provider></EplAccessContext.Provider>;
+  if (gate === 'wait' || gate === 'leave') return null;
+  return <EplAccessContext.Provider value={epl}><SportNavigationContext.Provider value={{ sport, change }}><SportSlotContext.Provider value={selector}>{children}</SportSlotContext.Provider></SportNavigationContext.Provider></EplAccessContext.Provider>;
 }

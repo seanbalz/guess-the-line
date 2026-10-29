@@ -66,31 +66,34 @@ export const isLegacyFragment = fragment => {
   return LEGACY_TABS.includes(name) || name === 'feed' || name === 'groups' || (/^history(?:\/|$)/.test(name) && !!placeFromFragment(fragment)) || (name.startsWith('picks') && !!placeFromFragment(fragment));
 };
 const urlWith = (location, fragment) => `${location.pathname}${location.search}${fragment}`;
-const fromState = state => routePlace(state.tab, state.views[state.tab], state.views);
-const routeFragment = state => fragmentFor(state.tab, state.views[state.tab], state.views);
-function safePlace(place) {
+const fromState = (state, route) => route.cleanPlace({ tab: state.tab, view: state.views[state.tab], adapters: state.views });
+const routeFragment = (state, route) => route.fragmentFor(state.tab, state.views[state.tab], state.views);
+function safePlace(place, route) {
   if (!isTab(place?.tab)) return null;
-  return routePlace(place.tab, place.view, place.adapters);
+  return route.cleanPlace(place);
 }
-function entryFor(state, layer = false) {
-  const place = fromState(state);
-  return { gxRoute: { ...place, trail: state.trail.map(safePlace).filter(Boolean) }, ...(layer ? { gxLayer: true } : {}) };
+function entryFor(state, layer = false, route) {
+  const place = fromState(state, route);
+  return { gxSport: route.sport, gxRoute: { ...place, trail: state.trail.map(place => safePlace(place, route)).filter(Boolean) }, ...(layer ? { gxLayer: true } : {}) };
 }
-function readEntry(entry) {
-  const place = safePlace(entry?.gxRoute);
-  return place ? { ...place, trail: (Array.isArray(entry.gxRoute.trail) ? entry.gxRoute.trail : []).map(safePlace).filter(Boolean) } : null;
+function readEntry(entry, route) {
+  if ((entry?.gxSport ?? 'nfl') !== route.sport) return null;
+  const place = safePlace(entry?.gxRoute, route);
+  return place ? { ...place, trail: (Array.isArray(entry.gxRoute.trail) ? entry.gxRoute.trail : []).map(place => safePlace(place, route)).filter(Boolean) } : null;
 }
-export function startPlace(win) {
+export function startPlace(win, route = NFL_ROUTER) {
+  const { placeFromFragment, fragmentFor, isLegacyFragment } = route;
   let place = placeFromFragment(win.location.hash);
-  const saved = readEntry(win.history.state);
+  const saved = readEntry(win.history.state, route);
   if (place && saved && fragmentFor(saved.tab, saved.view, saved.adapters) === fragmentFor(place.tab, place.view, place.adapters)) place = { ...place, trail: saved.trail };
   try {
     if (place && isLegacyFragment(win.location.hash)) win.history.replaceState(null, '', urlWith(win.location, fragmentFor(place.tab, place.view, place.adapters)));
-    else if (win.history.state?.gxLayer) win.history.replaceState(saved ? { gxRoute: saved, gxIndex: win.history.state.gxIndex } : null, '', win.location.href);
+    else if (win.history.state?.gxLayer) win.history.replaceState(saved ? { gxSport: route.sport, gxRoute: saved, gxIndex: win.history.state.gxIndex } : null, '', win.location.href);
   } catch { /* Navigation still works in memory. */ }
   return place;
 }
-export function connectHistory(win, { getState, dispatch, confirmLeave = () => true, beforeNavigate = () => {} }) {
+export function connectHistory(win, { getState, dispatch, confirmLeave = () => true, beforeNavigate = () => {}, route = NFL_ROUTER }) {
+  const { placeFromFragment, fragmentFor, isLegacyFragment } = route;
   const { history, location } = win;
   let index = Number.isInteger(history.state?.gxIndex) ? history.state.gxIndex : 0;
   let ours = 0;
@@ -98,7 +101,7 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
   let disconnected = false;
   function write(state, push = false, layer = false, preserveFragment = false) {
     if (push) index += 1;
-    try { history[push ? 'pushState' : 'replaceState']({ ...entryFor(state, layer), gxIndex: index }, '', preserveFragment ? location.href : urlWith(location, routeFragment(state))); } catch { /* In memory only. */ }
+    try { history[push ? 'pushState' : 'replaceState']({ ...entryFor(state, layer, route), gxIndex: index }, '', preserveFragment ? location.href : urlWith(location, routeFragment(state, route))); } catch { /* In memory only. */ }
   }
   function settle(state, navigation) {
     const onLayer = history.state?.gxLayer === true;
@@ -149,13 +152,13 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
       else write(state, true, hasLayers(state));
     };
     const address = placeFromFragment(location.hash);
-    const followed = isLegacyFragment(location.hash) || (address && fragmentFor(address.tab, address.view, address.adapters) !== routeFragment(state));
+    const followed = isLegacyFragment(location.hash) || (address && fragmentFor(address.tab, address.view, address.adapters) !== routeFragment(state, route));
     if (hasLayers(state) && !followed) {
       if (!confirmLeave()) { rejectTraversal(); return; }
       index = targetIndex;
       dispatch({ type: 'closeTop' }); return;
     }
-    const saved = readEntry(history.state);
+    const saved = readEntry(history.state, route);
     const place = saved ?? address ?? { tab: DEFAULT_TAB };
     if (!confirmLeave()) { rejectTraversal(); return; }
     index = targetIndex;
@@ -166,3 +169,5 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
   win.addEventListener('popstate', onPopState);
   return { sync, disconnect() { disconnected = true; win.removeEventListener('popstate', onPopState); } };
 }
+
+export const NFL_ROUTER = Object.freeze({ sport: 'nfl', placeFromFragment, fragmentFor, isLegacyFragment, cleanPlace: place => routePlace(place.tab, place.view, place.adapters) });
