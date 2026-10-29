@@ -684,7 +684,14 @@ Sean chose Q06 next. Stage 41 is written on `claude/q06-m11-placement`: M-11
 `POST /bets/place` with the `bets-place` off switch. PGlite and handler checks in `tests/bets-place-sql.test.mjs`
 cover a two-bet slip, an edit with audit, replay, line lock, half units, a stale quote, kickoff, a Guess autosave
 with no 409 and an old `/virtual-pick` edit giving "This bet changed". **Not applied, not deployed:** it waits for
-Sean's "apply M-11" and a `gtl-api` deploy. The slip screen (stage 44) follows.
+Sean's "apply M-11" and a `gtl-api` deploy.
+
+Stages 43–44 (D-67) are on `claude/q06-bets-place-ui`, stacked on M-11: Bets › Virtual › Your picks is the
+account-level placing screen (`web/src/next/bets/place.js`, `PlaceBets.jsx`) with the slip in the dock. Unit tests in
+`tests/next-bets-place.test.jsx`; the browser case in `tests/cloud-browser/next-bets-live.spec.js` places two bets,
+confirms a lost reply without a duplicate, edits, refuses a bet changed elsewhere and fits 390/320px in both themes.
+Its frontend ships only after M-11 is applied and `/bets/place` is deployed; until then the screen reads
+"Placing Virtual Units bets opens soon".
 
 ## What needs Sean
 
