@@ -168,7 +168,8 @@ test.describe('the real app', () => {
           await expect(page.getByRole('group', { name: 'Ranking period', exact: true })).toBeVisible();
           await expect(page.getByRole('combobox', { name: 'Scoring', exact: true })).toBeVisible();
           await expect(page.getByRole('list', { name: 'Ranked players', exact: true })).toBeVisible();
-          await expect(page.getByRole('button', { name: 'Back to Research', exact: true })).toBeVisible();
+          // D-66: Fantasy uses the shell's Back, like the other Research sections (no Back to Research of its own).
+          await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
         }
         if (name === 'Lines') await expect(page.locator('.gx-l-group').first()).toBeVisible();
       }

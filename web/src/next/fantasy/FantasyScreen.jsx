@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import FantasyFootball from '../../FantasyFootball.jsx';
 import { fantasyWeekKey } from '../../fantasyData.js';
 import { useShell } from '../shell/context.js';
 import { MAX_COMPARE } from '../../../../shared/fantasy-tools.mjs';
-import { FantasyTools, PlayerToolButtons } from './FantasyTools.jsx';
+import { FantasyNest } from './FantasyNest.jsx';
 import './fantasy.css';
 
+// D-66: Research › Fantasy is nesting cards. The week, filters and page size live in the shell's Fantasy view (restored
+// after a reload by season and week); the open layer and player are its route keys, so back closes one layer.
 export function FantasyScreen() {
   const shell = useShell();
   const view = shell.state.views.fantasy;
@@ -17,8 +18,6 @@ export function FantasyScreen() {
     shell.setView('fantasy', { ...patch, season, week });
   };
   const toggle = id => setCompareIds(ids => ids.includes(id) ? ids.filter(item => item !== id) : ids.length < MAX_COMPARE ? [...ids, id] : ids);
-  return <FantasyFootball key={shell.state.nav} navigationState={navigationState} onNavigationState={remember} theme="next" onBack={shell.back} backLabel="Back to Research"
-    renderPlayerTools={player => <PlayerToolButtons player={player} compared={compareIds.includes(player.id)} full={compareIds.length >= MAX_COMPARE} onProfile={setProfileId} onCompare={toggle}/>}
-    renderTools={({ snapshot, filters }) => <FantasyTools snapshot={snapshot} filters={filters} profileId={profileId} onProfile={setProfileId} onCloseProfile={() => setProfileId(null)}
-      compareIds={compareIds.filter(id => snapshot.players.some(player => player.id === id))} onCompareChange={setCompareIds} onCompare={toggle}/>}/>;
+  return <FantasyNest navigationState={navigationState} onNavigationState={remember} view={view} onLayer={patch => shell.setView('fantasy', patch)}
+    profileId={profileId} onProfile={setProfileId} compareIds={compareIds} onCompareChange={setCompareIds} onCompare={toggle}/>;
 }

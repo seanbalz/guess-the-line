@@ -166,7 +166,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
-    'web/src/next/fantasy/FantasyScreen.jsx': ['FantasyFootball.jsx'],
+    // D-66: the Fantasy nesting cards reuse the snapshot and game-context reads and the report card, not the old screen.
+    'web/src/next/fantasy/FantasyNest.jsx': ['fantasyData.js', 'fantasyContext.js', 'FantasyAccuracy.jsx'],
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
     'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
     // D-65 follow-up: Menu › Commissioner tools reuses the old Final scores and Odds connection editors, and the pure
