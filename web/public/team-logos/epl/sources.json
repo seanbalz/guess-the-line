@@ -1,0 +1,750 @@
+{
+  "coverage": {
+    "active": 20,
+    "totalClubs": 20
+  },
+  "decision": "Plan 2026-10-28-epl-pick-a-team.md Task 6; D-46 logo rule extended to Premier League crests (spec section 8)",
+  "scope": "Premier League club crests used only to identify each club next to its name. Trademarks of their owners; not licensed; no endorsement. Self-hosted downscaled copies of ESPN CDN images for the club list in shared/epl-clubs.mjs (see docs/TEAM_LOGO_SOURCES.md#premier-league-crests).",
+  "assets": {
+    "BOU": {
+      "team": "Bournemouth",
+      "file": "BOU.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/349.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "BOU",
+        "name": "Bournemouth",
+        "espnId": 349
+      },
+      "fetchedAt": "2026-10-28T21:50:14Z",
+      "original": {
+        "sha256": "0383002b303b31fd4672b7823672c472660be4f2175d84ac480a26e1a06e61bb",
+        "bytes": 61133,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "ef9f309aede6539ce7b76e2c86349fc5db12a4528d983912ad7dff5e1e8e98f0",
+      "bytes": 20722,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "ARS": {
+      "team": "Arsenal",
+      "file": "ARS.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/359.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "ARS",
+        "name": "Arsenal",
+        "espnId": 359
+      },
+      "fetchedAt": "2026-10-28T21:50:15Z",
+      "original": {
+        "sha256": "92f1bb35662ff56dde09e1f8084221a458357a6df390bc97b2ed6495f6e39f53",
+        "bytes": 36280,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "edd82a851425dd4fa3af2a6210f6968fcaec3f01bb09c54901d507aff9c0d8bf",
+      "bytes": 21090,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "AVL": {
+      "team": "Aston Villa",
+      "file": "AVL.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/362.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "AVL",
+        "name": "Aston Villa",
+        "espnId": 362
+      },
+      "fetchedAt": "2026-10-28T21:50:15Z",
+      "original": {
+        "sha256": "aad2e636ade60b485855deacfe74f831c8dcae46de72079c7f521b06c1b5865b",
+        "bytes": 78018,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "e80b0b00b56a9d93ce81bbf5425f41e7248ec4714c27a410a6cd766cb563cbab",
+      "bytes": 16056,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "BRE": {
+      "team": "Brentford",
+      "file": "BRE.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/337.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "BRE",
+        "name": "Brentford",
+        "espnId": 337
+      },
+      "fetchedAt": "2026-10-28T21:50:15Z",
+      "original": {
+        "sha256": "7104e162e0e5158336ac94dd895435c66f9c4cbf1a66719b6d1948eb11c2fbb3",
+        "bytes": 121058,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "e109d1430d6b81a49c0c28580bac4bd521c2c27410daa1ea13a61da382c33408",
+      "bytes": 24687,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "BHA": {
+      "team": "Brighton",
+      "file": "BHA.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/331.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "BHA",
+        "name": "Brighton",
+        "espnId": 331
+      },
+      "fetchedAt": "2026-10-28T21:50:15Z",
+      "original": {
+        "sha256": "b1a7041908644caca2c328a329aa8494d6c531cc32f4b11b7fceba43bc93e484",
+        "bytes": 77720,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "974ea758f2983c3b546db4ff5d7ffa650a27675c45b6fdbdc8d9f1c5be7cb433",
+      "bytes": 17856,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "CHE": {
+      "team": "Chelsea",
+      "file": "CHE.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "CHE",
+        "name": "Chelsea",
+        "espnId": 363
+      },
+      "fetchedAt": "2026-10-28T21:50:15Z",
+      "original": {
+        "sha256": "6f14d86b5e35074e91462c7ede6e822f6a6c9f6cb723cd04ea6b8d36f2fa5392",
+        "bytes": 59969,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "d14dc9cc1c61674ef900b94fa0c907b2b8509cc98455d1901d8a9d51cd5a04a5",
+      "bytes": 27993,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "COV": {
+      "team": "Coventry City",
+      "file": "COV.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/388.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "COV",
+        "name": "Coventry City",
+        "espnId": 388
+      },
+      "fetchedAt": "2026-10-28T21:50:16Z",
+      "original": {
+        "sha256": "6959102823b1b8e3bad688a23bc24efed5cc02c606ff65a66a10c6ec15aa9b57",
+        "bytes": 147977,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "29d5e77eeaaa9444efd772b2f7fbccc2715632abee0d037f7c2d8259f8a9daaf",
+      "bytes": 26871,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "CRY": {
+      "team": "Crystal Palace",
+      "file": "CRY.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/384.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "CRY",
+        "name": "Crystal Palace",
+        "espnId": 384
+      },
+      "fetchedAt": "2026-10-28T21:50:16Z",
+      "original": {
+        "sha256": "bc829f12cbd54aa1116888d68fda2cfe8bf4c16adea80033af748ca54a153920",
+        "bytes": 80572,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "006613315d33c6610573b7ecd25e6ea077720bf976802f09c0ddc5c0322870fe",
+      "bytes": 23759,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "EVE": {
+      "team": "Everton",
+      "file": "EVE.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/368.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "EVE",
+        "name": "Everton",
+        "espnId": 368
+      },
+      "fetchedAt": "2026-10-28T21:50:16Z",
+      "original": {
+        "sha256": "eaedbe5e3b18ddef08c09d07fdca62bcac65165b7bb9af4780acce36841aee20",
+        "bytes": 146091,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "c6ab0b3c03f575f0ccc5d1ad75a018f5e9b76472a4d7bebee5f41c07289b88a6",
+      "bytes": 23473,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "FUL": {
+      "team": "Fulham",
+      "file": "FUL.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/370.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "FUL",
+        "name": "Fulham",
+        "espnId": 370
+      },
+      "fetchedAt": "2026-10-28T21:50:16Z",
+      "original": {
+        "sha256": "b9148eac6e2150c0498eca2924e755ae710d04d3fce66993050cf45942ca4a19",
+        "bytes": 16696,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "8d43c1e42b88f9947e601e7a5d3f64e40cee4c50fdc023095e6257cd11522765",
+      "bytes": 10431,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "HUL": {
+      "team": "Hull City",
+      "file": "HUL.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/306.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "HUL",
+        "name": "Hull City",
+        "espnId": 306
+      },
+      "fetchedAt": "2026-10-28T21:50:16Z",
+      "original": {
+        "sha256": "8147c0d4c418e56f133dcc79e38120cd742aab84e7ce72fa3c873f872100ab65",
+        "bytes": 75616,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "a7b85fb9b6f8b044c5106393d0161ee99872908064f9aac91e9cc96c3dd9ecd6",
+      "bytes": 21654,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "IPS": {
+      "team": "Ipswich Town",
+      "file": "IPS.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/373.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "IPS",
+        "name": "Ipswich Town",
+        "espnId": 373
+      },
+      "fetchedAt": "2026-10-28T21:50:17Z",
+      "original": {
+        "sha256": "e253aeaf39ff7c9d19f91ce78464de947b275fdbea4bf595e602d42367cea1b7",
+        "bytes": 22565,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "ac534881443a59e71ce8d590569befa3972d0907dad3ac69bcaacaaad4af9ef0",
+      "bytes": 16329,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "LEE": {
+      "team": "Leeds United",
+      "file": "LEE.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/357.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "LEE",
+        "name": "Leeds United",
+        "espnId": 357
+      },
+      "fetchedAt": "2026-10-28T21:50:17Z",
+      "original": {
+        "sha256": "69d5d4251e740fc8d525c3c967e817575b0ac2e2af7be03f23e40d494c383790",
+        "bytes": 237616,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "4b775c99d3be183c7e266af974aa0e704ea8c914eda9a250b864da7bc30f1190",
+      "bytes": 24512,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "LIV": {
+      "team": "Liverpool",
+      "file": "LIV.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "LIV",
+        "name": "Liverpool",
+        "espnId": 364
+      },
+      "fetchedAt": "2026-10-28T21:50:17Z",
+      "original": {
+        "sha256": "9f2c56faf3631eb32fb5cccd84d31827ba38fcd9dd3280f597b221711a8797de",
+        "bytes": 35827,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "84ba508f4ec5c3d27ed9f9ede0f92450a70c4ca8f1704b3df1725d0fbd8df5cf",
+      "bytes": 11607,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "MNC": {
+      "team": "Manchester City",
+      "file": "MNC.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "MNC",
+        "name": "Manchester City",
+        "espnId": 382
+      },
+      "fetchedAt": "2026-10-28T21:50:17Z",
+      "original": {
+        "sha256": "70e005bdab0ada41a153760398b4a2ef99f956bf9e72954686caa70da8c30c0b",
+        "bytes": 130387,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "23afacc746dd3719e91df6920e96cbed3bade9838e74ed4bab770ebd5fe300a1",
+      "bytes": 29318,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "MUN": {
+      "team": "Manchester United",
+      "file": "MUN.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "MUN",
+        "name": "Manchester United",
+        "espnId": 360
+      },
+      "fetchedAt": "2026-10-28T21:50:18Z",
+      "original": {
+        "sha256": "03486cf5cf90d580d6132ab115cc747be7b2e3519fd6e08be56675cf5897f0b7",
+        "bytes": 73159,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "99a1d5bfe03e4bb3db7e10de8102261464bde70c11e8ea22ee307048c0f345fa",
+      "bytes": 25689,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "NEW": {
+      "team": "Newcastle United",
+      "file": "NEW.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/361.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "NEW",
+        "name": "Newcastle United",
+        "espnId": 361
+      },
+      "fetchedAt": "2026-10-28T21:50:18Z",
+      "original": {
+        "sha256": "5e926d9f8c18b1b20e2e86a830ad56d4a9094673f172c0f8fabf617917e1910d",
+        "bytes": 189751,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "41ff78caca80dc63cb811f01f01eb4a474eea689586d1ffc6423ceacdbf2acf0",
+      "bytes": 26305,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "NFO": {
+      "team": "Nottingham Forest",
+      "file": "NFO.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/393.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "NFO",
+        "name": "Nottingham Forest",
+        "espnId": 393
+      },
+      "fetchedAt": "2026-10-28T21:50:18Z",
+      "original": {
+        "sha256": "766868d667069609a8904ba1ec6a66f09fccfe9fbad21300791bf778dd9ddaae",
+        "bytes": 20645,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "8a364d3fed5027db795b6ec8f8897c48d4101282391c54eb79567f6f72d61007",
+      "bytes": 10132,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "SUN": {
+      "team": "Sunderland",
+      "file": "SUN.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/366.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "SUN",
+        "name": "Sunderland",
+        "espnId": 366
+      },
+      "fetchedAt": "2026-10-28T21:50:18Z",
+      "original": {
+        "sha256": "aee718a79be592a8bb36ab68b0960a1dbb5763692f4d91c3f4249f95edbf19af",
+        "bytes": 53898,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "53110fcc65094c9a7753e45137ff90c8dd1169698df4b748db79e7e811c0d19b",
+      "bytes": 19576,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    },
+    "TOT": {
+      "team": "Tottenham Hotspur",
+      "file": "TOT.png",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/367.png",
+      "sourceIndex": "shared/epl-clubs.mjs",
+      "sourceIndexRow": {
+        "code": "TOT",
+        "name": "Tottenham Hotspur",
+        "espnId": 367
+      },
+      "fetchedAt": "2026-10-28T21:50:18Z",
+      "original": {
+        "sha256": "f66f956414b0fd99df6a7e29bed0bd8a849f11d41bd749a1e08ff8d032570d35",
+        "bytes": 26224,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "sha256": "b826d2742886aa97470d797ef73dac704f26f8910404374afd9449dcbc587639",
+      "bytes": 8298,
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "rightsBasis": "trademark-identification",
+      "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+      "licensed": false,
+      "reviewedAt": "2026-10-28",
+      "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+      "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+    }
+  }
+}

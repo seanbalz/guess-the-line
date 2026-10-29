@@ -2,6 +2,8 @@
 // images listed in the nflverse teams file, each verified transparent (alpha channel, transparent corners). Used only
 // to identify a team next to its name, under the trademark notice below; not licensed, no endorsement. Records:
 // docs/TEAM_LOGO_SOURCES.md#official-logos-d-46 and public/team-logos/sources.json.
+import { EPL_CLUBS } from '../../shared/epl-clubs.mjs';
+
 export const TEAM_TRADEMARK_NOTICE = 'NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.';
 
 
@@ -71,6 +73,22 @@ export function resolveTeamBadge(code) {
   const key = canonicalCode(code);
   const candidate = Object.hasOwn(originalTeamBadges, key) ? originalTeamBadges[key] : null;
   return candidate?.rightsStatus === 'original' && usable(candidate) ? candidate : null;
+}
+
+// Premier League crests (plan 2026-10-28-epl-pick-a-team.md, Task 6): the D-46 rule extended to the 20 EPL clubs.
+// Self-hosted 128px downscaled copies of ESPN CDN crests, used only to identify a club next to its name, under the notice
+// below; not licensed, no endorsement. Records: docs/TEAM_LOGO_SOURCES.md#premier-league-crests and
+// public/team-logos/epl/sources.json. Kept apart from teamMarks so an EPL code never resolves as an NFL team.
+export const EPL_TRADEMARK_NOTICE = 'Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.';
+
+const clubCrests = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(
+  EPL_CLUBS.map(({ code, name }) => [code, Object.freeze({ src: `/team-logos/epl/${code}.png`, alt: `${name} crest` })]),
+)));
+
+/** The self-hosted crest `{src, alt}` for an EPL club code (case and surrounding space ignored), or null. */
+export function resolveClubCrest(code) {
+  const key = typeof code === 'string' ? code.trim().toUpperCase() : '';
+  return clubCrests[key] ?? null;
 }
 
 export default approvedTeamLogos;

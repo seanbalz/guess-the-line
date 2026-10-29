@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EPL mockups v3</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--canvas:#070B16;--s1:#111A2D;--s2:#1B253B;--s3:#26314B;--border:#303D57;--bs:#7A89A6;--t1:#F5F7FB;--t2:#BAC6D8;--t3:#95A2BB;--accent:#B8F34B;--atext:#101B0A;--atint:#283831;--data:#38BDF8;--win:#34D399;--wint:#17383E;--loss:#FC7C8E;--pend:#FBBF24;--pt:#32312C;--live:#D08CFF;
+--hero:radial-gradient(110% 60% at 90% 25%,#1E6390 0%,rgba(30,99,144,0) 62%),linear-gradient(170deg,#154870 0%,#0C2540 55%,#0A1730 100%);
+--ring:0 0 0 1px rgba(125,211,252,.3),0 18px 48px rgba(0,0,0,.45);
+--glass:rgba(255,255,255,.1);--gsh:inset 0 0 0 1px rgba(255,255,255,.2),inset 0 1px 0 rgba(255,255,255,.18),0 6px 18px rgba(0,0,0,.25);
+--glow:0 0 0 1px rgba(184,243,75,.6),0 0 20px rgba(184,243,75,.3);--glowwin:0 0 0 1px rgba(52,211,153,.6),0 0 24px rgba(52,211,153,.35)}
+*{box-sizing:border-box}body{margin:0;background:#03050b;color:var(--t1);font:16px/24px Figtree,system-ui,sans-serif;padding:24px 16px}
+h1{font:800 28px/34px "Big Shoulders Display",Impact,sans-serif;margin:0 0 4px}.sub{color:var(--t2);margin:0 0 24px;max-width:960px}
+.row{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.col{display:flex;flex-direction:column;align-items:center;gap:8px}.cap{color:var(--t2);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.phone{width:360px;background:var(--canvas);background-image:radial-gradient(120% 40% at 50% 0%,rgba(30,99,144,.35),transparent 60%);border:1px solid var(--border);border-radius:24px;overflow:hidden}
+.top{padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.g{font:800 22px "Big Shoulders Display";color:var(--accent)}
+.seg{display:flex;background:var(--s2);border-radius:999px;padding:3px}.seg span{padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;color:var(--t2)}.seg .on{background:var(--s3);color:var(--t1);box-shadow:var(--glow)}
+.nav{display:flex;gap:6px;padding:0 16px 10px}.nav span{flex:1;text-align:center;padding:7px 0;border-radius:999px;background:var(--glass);box-shadow:var(--gsh);font-size:13px;font-weight:700;color:var(--t2)}.nav .on{background:var(--accent);color:var(--atext);box-shadow:var(--glow)}
+.body{padding:4px 16px 18px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--s1);border-radius:16px;padding:12px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 1px 2px rgba(0,0,0,.35)}
+.hero{background:var(--hero);box-shadow:var(--ring);border-radius:24px;padding:14px}
+.k{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}.hero .k{color:#C9DCEB}
+.num{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+.big{font:700 36px/38px "Barlow Condensed"}
+.crest{width:28px;height:28px;border-radius:999px;background:#F5F7FB;padding:3px;object-fit:contain;flex:none}
+.crest.lg{width:44px;height:44px;padding:5px}.crest.sm{width:22px;height:22px;padding:2px}
+.bub{background:var(--glass);box-shadow:var(--gsh);border-radius:16px;padding:8px 10px;backdrop-filter:blur(14px)}
+.vs{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--s3);color:var(--t2);text-transform:uppercase}
+.pill.p{background:var(--pt);color:var(--pend)}.pill.l{background:var(--accent);color:var(--atext);box-shadow:var(--glow)}
+.meta{font-size:13px;color:var(--t3)}.hero .meta{color:#C9DCEB}.sample{color:var(--pend);font-size:12px;font-weight:700}
+/* draft nodes */
+.nodes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;margin-top:10px}
+.node{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:700;color:#C9DCEB}
+.node .ball{position:relative;width:60px;height:60px;border-radius:999px;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.35),rgba(255,255,255,.06) 45%,rgba(255,255,255,.02) 70%);box-shadow:var(--gsh);display:flex;align-items:center;justify-content:center}
+.node .ball img{width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.node .o{position:absolute;top:-4px;left:-4px;width:20px;height:20px;border-radius:999px;background:var(--s3);font:700 12px/20px "Barlow Condensed";text-align:center;color:var(--t1)}
+.node.now .ball{box-shadow:var(--glow);background:radial-gradient(circle at 35% 28%,rgba(184,243,75,.45),rgba(184,243,75,.08) 55%,transparent 75%)}
+.node.now .o{background:var(--accent);color:var(--atext)}
+.node.now .ball span{font:800 20px "Big Shoulders Display";color:var(--accent)}
+.avail{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.avail div{display:flex;flex-direction:column;align-items:center;gap:2px;font:700 12px "Barlow Condensed";color:var(--t2)}
+.avail .x{opacity:.28}
+.btn{display:block;text-align:center;background:var(--accent);color:var(--atext);font-weight:800;padding:12px;border-radius:999px;box-shadow:var(--glow)}
+.btn2{display:block;text-align:center;background:var(--glass);box-shadow:var(--gsh);color:var(--t1);font-weight:700;padding:10px;border-radius:999px}
+.teams{display:flex;gap:8px;margin:8px 0}.teams span{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;border-radius:999px;background:var(--glass);box-shadow:var(--gsh);font-weight:700;font-size:14px}.teams .on{background:var(--accent);color:var(--atext);box-shadow:var(--glow)}
+.input{display:flex;align-items:center;justify-content:space-between;background:var(--glass);box-shadow:var(--gsh);border-radius:16px;padding:6px 12px}
+table{width:100%;border-collapse:collapse;font-size:14px}td{padding:5px 0;border-bottom:1px solid var(--border)}tr:last-child td{border:0}td.r{text-align:right}.me td{color:var(--accent)}
+svg text{font-family:"Barlow Condensed",sans-serif;font-weight:600}
+.leg{display:flex;gap:10px;font-size:12px;color:var(--t2);flex-wrap:wrap}.leg i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}.tiles .bub{text-align:center}.tiles .num{font-size:24px;line-height:26px;display:block}
+.fx{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px}.fx:last-child{border:0}.fx .t{flex:1}
+
+.phone{display:flex;flex-direction:column;min-height:760px}.body{flex:1}
+.tabbar{display:flex;justify-content:space-around;padding:8px 8px 14px;background:var(--s1);border-top:1px solid var(--border)}
+.tabbar span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:700;color:var(--t3);padding:4px 10px;border-radius:999px}
+.tabbar span b{width:22px;height:22px;border-radius:7px;background:var(--s3)}
+.tabbar .on{color:var(--t1)}.tabbar .on b{background:var(--accent);box-shadow:var(--glow)}
+.title{font:800 28px/32px "Big Shoulders Display";padding:0 16px 8px}
+.subnav{display:flex;gap:6px;padding:0 16px 10px}.subnav span{padding:6px 12px;border-radius:999px;background:var(--glass);box-shadow:var(--gsh);font-size:13px;font-weight:700;color:var(--t2)}.subnav .on{background:var(--accent);color:var(--atext);box-shadow:var(--glow)}
+.gamecard{display:flex;flex-direction:column;gap:6px}
+.gl{display:flex;align-items:center;gap:8px}.gl .t{flex:1;font-weight:700}
+.pl{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px}.pl:last-child{border:0}
+.pos{width:26px;text-align:center;font:700 12px/20px "Barlow Condensed";border-radius:6px;background:var(--s3);color:var(--t2)}
+.pl .n{flex:1}.pl .n small{display:block;color:var(--t3);font-size:12px;line-height:14px}
+.pb{width:64px;height:6px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.pb i{display:block;height:100%;background:linear-gradient(90deg,#7DD3FC,#34D399)}
+.home-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.home-tiles .card{display:flex;flex-direction:column;gap:4px}
+.cd{display:flex;gap:6px;margin-top:8px}.cd .bub{flex:1;text-align:center}.cd .num{font-size:26px;line-height:28px;display:block}
+</style></head><body>
+<h1>Premier League · v3 · inside the four tabs</h1>
+<p class="sub">EPL now uses the app's own tab bar: <b>Home · Play · Bets · Research</b>, with NFL / NBA / EPL at the top. <b>Play</b> holds both EPL games: Guess the Line (moneyline) and Pick a Team. <b>Research → Fantasy</b> holds the Sleeper league: matchups, projections, rosters, standings, insights. Bets for EPL isn't planned. <span class="sample">SAMPLE</span> = placeholder numbers.</p>
+<div class="row">
+
+<!-- HOME -->
+<div class="col"><div class="cap">Home</div><div class="phone">
+ <div class="top"><span class="g">G</span><div class="seg"><span>NFL</span><span>NBA</span><span class="on">EPL</span></div></div>
+ <div class="title">Matchweek 9</div>
+ <div class="body">
+  <div class="hero"><div class="k">Due before first kickoff</div>
+   <div style="font:800 22px/26px 'Big Shoulders Display';margin-top:4px">Darin picks last · 7 of 8 in</div>
+   <div class="cd"><div class="bub"><span class="num">2</span><span class="meta">days</span></div><div class="bub"><span class="num">14</span><span class="meta">hrs</span></div><div class="bub"><span class="num">06</span><span class="meta">min</span></div></div>
+   <div class="meta" style="margin-top:6px">Sat 5:30 AM PT · MUN @ CHE</div>
+   <span class="btn" style="margin-top:10px">Guess this weekend's moneylines · 3 of 10</span></div>
+  <div class="home-tiles">
+   <div class="card"><div class="k">Your pick</div><div class="gl"><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/367.png" alt=""><span class="t">Tottenham</span></div><div class="meta">vs CRY · Sat</div></div>
+   <div class="card"><div class="k">Moneyline rank</div><div class="num" style="font-size:30px">2<span class="meta"> / 8</span></div><div class="meta">168 off <span class="sample">SAMPLE</span></div></div>
+   <div class="card"><div class="k">Fantasy</div><div class="num" style="font-size:30px">104.2</div><div class="meta">proj vs NLGooner <span class="sample">SAMPLE</span></div></div>
+   <div class="card"><div class="k">Standing</div><div class="num" style="font-size:30px">2<span class="meta"> / 8</span></div><div class="meta">5–3 · 824.5 pts</div></div>
+  </div>
+ </div>
+ <div class="tabbar"><span class="on"><b></b>Home</span><span><b></b>Play</span><span><b></b>Bets</span><span><b></b>Research</span></div>
+</div></div>
+
+<!-- PLAY: GUESS THE LINE -->
+<div class="col"><div class="cap">Play · Guess the Line (moneyline)</div><div class="phone">
+ <div class="top"><span class="g">G</span><div class="seg"><span>NFL</span><span>NBA</span><span class="on">EPL</span></div></div>
+ <div class="title">Play</div>
+ <div class="subnav"><span class="on">Guess the Line</span><span>Pick a Team</span><span>Leaderboard</span></div>
+ <div class="body">
+  <div class="card" style="padding:10px 14px"><div class="vs"><span class="k">3 of 10 locked</span><span class="meta">2-way · draw = push</span></div>
+   <div style="display:flex;gap:4px;margin-top:6px"><i style="flex:1;height:8px;border-radius:9px;background:#34D399"></i><i style="flex:1;height:8px;border-radius:9px;background:#34D399"></i><i style="flex:1;height:8px;border-radius:9px;background:#34D399"></i><i style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.16)"></i><i style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.16)"></i><i style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.16)"></i><i style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.16)"></i><i style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.16)"></i><i style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.16)"></i><i style="flex:1;height:8px;border-radius:9px;background:rgba(255,255,255,.16)"></i></div></div>
+  <div class="hero"><div class="k">Next up · Sat 7:30 AM PT · locks at kickoff</div>
+   <div class="vs" style="margin-top:8px"><div style="display:flex;align-items:center;gap:8px"><img class="crest lg" src="https://a.espncdn.com/i/teamlogos/soccer/500/384.png" alt=""><b>Crystal Palace</b></div><span class="meta">@</span><div style="display:flex;align-items:center;gap:8px"><b>Spurs</b><img class="crest lg" src="https://a.espncdn.com/i/teamlogos/soccer/500/367.png" alt=""></div></div>
+   <div style="margin-top:10px;font-size:14px;font-weight:600">Who's the favorite?</div>
+   <div class="teams"><span>CRY</span><span class="on">TOT</span></div>
+   <div class="input"><span style="font-size:14px;color:#C9DCEB">Spurs price</span><span style="display:flex;align-items:center;gap:10px"><span class="bub" style="padding:2px 10px">−</span><span class="big" style="font-size:30px">−125</span><span class="bub" style="padding:2px 10px">+</span></span></div>
+   <span class="btn" style="margin-top:10px">Lock in</span><div class="meta" style="margin-top:6px;text-align:center">Final once locked · measured vs the real price at lock-in</div></div>
+  <div class="card"><div class="k">Later this weekend</div>
+   <div class="fx"><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/370.png" alt=""><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/362.png" alt=""><span class="t">FUL @ AVL · Sat</span><span class="pill">Open</span></div>
+   <div class="fx"><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/364.png" alt=""><span class="t">Liverpool · Sun</span><span class="pill">Open</span></div>
+   <div class="fx"><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/359.png" alt=""><span class="t">Arsenal · Sun</span><span class="pill">Open</span></div></div>
+ </div>
+ <div class="tabbar"><span><b></b>Home</span><span class="on"><b></b>Play</span><span><b></b>Bets</span><span><b></b>Research</span></div>
+</div></div>
+
+<!-- PLAY: PICK A TEAM -->
+<div class="col"><div class="cap">Play · Pick a Team</div><div class="phone">
+ <div class="top"><span class="g">G</span><div class="seg"><span>NFL</span><span>NBA</span><span class="on">EPL</span></div></div>
+ <div class="title">Play</div>
+ <div class="subnav"><span>Guess the Line</span><span class="on">Pick a Team</span><span>Leaderboard</span></div>
+ <div class="body">
+  <div class="hero"><div class="k">MW9 draft · order from MW8 score + bonus</div>
+   <div class="nodes">
+    <div class="node"><div class="ball"><span class="o">1</span><img src="https://a.espncdn.com/i/teamlogos/soccer/500/382.png" alt="Man City"></div>Nemo</div>
+    <div class="node"><div class="ball"><span class="o">2</span><img src="https://a.espncdn.com/i/teamlogos/soccer/500/362.png" alt="Aston Villa"></div>Cullen</div>
+    <div class="node"><div class="ball"><span class="o">3</span><img src="https://a.espncdn.com/i/teamlogos/soccer/500/364.png" alt="Liverpool"></div>Adam</div>
+    <div class="node"><div class="ball"><span class="o">4</span><img src="https://a.espncdn.com/i/teamlogos/soccer/500/367.png" alt="Tottenham"></div>Sean</div>
+    <div class="node"><div class="ball"><span class="o">5</span><img src="https://a.espncdn.com/i/teamlogos/soccer/500/359.png" alt="Arsenal"></div>Evan</div>
+    <div class="node"><div class="ball"><span class="o">6</span><img src="https://a.espncdn.com/i/teamlogos/soccer/500/337.png" alt="Brentford"></div>Mark</div>
+    <div class="node"><div class="ball"><span class="o">7</span><img src="https://a.espncdn.com/i/teamlogos/soccer/500/361.png" alt="Newcastle"></div>Steven</div>
+    <div class="node now"><div class="ball"><span class="o">8</span><span>?</span></div>Darin</div>
+   </div>
+   <span class="btn" style="margin-top:12px">Darin is on the clock</span>
+   <div class="meta" style="margin-top:6px;text-align:center">Locks Sat 5:30 AM PT · widest win = margin × 5</div></div>
+  <div class="card"><div class="k">Still available</div>
+   <div class="avail">
+    <div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/349.png" alt="">BOU</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/331.png" alt="">BHA</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/363.png" alt="">CHE</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/388.png" alt="">COV</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/384.png" alt="">CRY</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/368.png" alt="">EVE</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/370.png" alt="">FUL</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/306.png" alt="">HUL</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/373.png" alt="">IPS</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/357.png" alt="">LEE</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/360.png" alt="">MUN</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/393.png" alt="">NFO</div><div><img class="crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/366.png" alt="">SUN</div>
+   </div></div>
+  <span class="btn2">Set my backup ranking (queue)</span>
+ </div>
+ <div class="tabbar"><span><b></b>Home</span><span class="on"><b></b>Play</span><span><b></b>Bets</span><span><b></b>Research</span></div>
+</div></div>
+
+<!-- RESEARCH: FANTASY -->
+<div class="col"><div class="cap">Research · Fantasy (Sleeper FEPL)</div><div class="phone">
+ <div class="top"><span class="g">G</span><div class="seg"><span>NFL</span><span>NBA</span><span class="on">EPL</span></div></div>
+ <div class="title">Fantasy</div>
+ <div class="subnav"><span class="on">Matchup</span><span>Standings</span><span>Rosters</span><span>Insights</span></div>
+ <div class="body">
+  <div class="hero"><div class="k">MW9 · projections from Sleeper <span class="sample">SAMPLE</span></div>
+   <div class="vs" style="margin-top:8px">
+    <div class="bub" style="flex:1"><div class="meta">seanbalz</div><div class="big">104.2</div></div><span class="meta">vs</span>
+    <div class="bub" style="flex:1;text-align:right"><div class="meta">NLGooner</div><div class="big">98.6</div></div></div>
+   <div style="margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden"><div style="width:57%;height:100%;background:linear-gradient(90deg,#7DD3FC,#34D399)"></div></div>
+   <div class="meta" style="margin-top:4px">Win chance 57% · your bonus pick: TOT</div></div>
+  <div class="card"><div class="k">Your starters · projected <span class="sample">SAMPLE</span></div>
+   <div class="pl"><span class="pos">F</span><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/382.png" alt=""><span class="n">Haaland<small>vs BHA · Sat</small></span><span class="pb"><i style="width:92%"></i></span><span class="num">18.4</span></div>
+   <div class="pl"><span class="pos">M</span><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/359.png" alt=""><span class="n">Ødegaard<small>Sun</small></span><span class="pb"><i style="width:70%"></i></span><span class="num">13.9</span></div>
+   <div class="pl"><span class="pos">M</span><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/362.png" alt=""><span class="n">Rogers<small>vs FUL · Sat</small></span><span class="pb"><i style="width:58%"></i></span><span class="num">11.6</span></div>
+   <div class="pl"><span class="pos">D</span><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/364.png" alt=""><span class="n">Van Dijk<small>Sun</small></span><span class="pb"><i style="width:50%"></i></span><span class="num">9.8</span></div>
+   <div class="pl"><span class="pos">GK</span><img class="crest sm" src="https://a.espncdn.com/i/teamlogos/soccer/500/337.png" alt=""><span class="n">Flekken<small>vs NFO · Sat</small></span><span class="pb"><i style="width:30%"></i></span><span class="num">6.1</span></div>
+   <div class="meta" style="margin-top:4px">+ 6 more · tap a player for stats</div></div>
+  <div class="card"><div class="k">Projected vs actual · last 4 MW <span class="sample">SAMPLE</span></div>
+   <svg viewBox="0 0 320 96" width="100%" style="margin-top:6px">
+    <g>
+     <rect x="20" y="30" width="22" height="56" rx="6" fill="#7A89A6" opacity=".5"/><rect x="46" y="18" width="22" height="68" rx="6" fill="#38BDF8"/>
+     <rect x="100" y="34" width="22" height="52" rx="6" fill="#7A89A6" opacity=".5"/><rect x="126" y="44" width="22" height="42" rx="6" fill="#38BDF8"/>
+     <rect x="180" y="28" width="22" height="58" rx="6" fill="#7A89A6" opacity=".5"/><rect x="206" y="24" width="22" height="62" rx="6" fill="#38BDF8"/>
+     <rect x="260" y="32" width="22" height="54" rx="6" fill="#7A89A6" opacity=".5"/><rect x="286" y="10" width="22" height="76" rx="6" fill="#B8F34B"/>
+    </g><g fill="#95A2BB" font-size="11"><text x="34" y="96">MW5</text><text x="114" y="96">MW6</text><text x="194" y="96">MW7</text><text x="274" y="96">MW8</text></g></svg>
+   <div class="leg"><span><i style="background:#7A89A6"></i>Projected</span><span><i style="background:#38BDF8"></i>Actual</span><span><i style="background:#B8F34B"></i>Beat projection most</span></div></div>
+ </div>
+ <div class="tabbar"><span><b></b>Home</span><span><b></b>Play</span><span><b></b>Bets</span><span class="on"><b></b>Research</span></div>
+</div></div>
+
+</div></body></html>
