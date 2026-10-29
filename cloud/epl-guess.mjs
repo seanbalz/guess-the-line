@@ -2,7 +2,6 @@
 import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
 import { validGuessPrice } from '../shared/epl-moneyline.mjs';
 import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
-import { dnbGateOpen } from './epl-jobs.mjs';
 const record=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const seasonOk=v=>Number.isInteger(v)&&v>=2000&&v<=2200;
 const weekOk=v=>Number.isInteger(v)&&v>=1&&v<=38;
@@ -74,10 +73,8 @@ export function createEplGuessService({rpc,rest,rows,refreshForLock}){
       return weeks.map(w=>({season:w.season,week:w.week}));
     },
     async guessGate(season,week){
-      // Read only a bounded history of successful true verdicts for this exact week; validate book/event evidence again.
-      const runs=await rows('gtl_epl_job_runs',{select:'status,reason,detail',job:'eq.dnb-check',status:'eq.succeeded',reason:'is.null',
-        detail:`cs.${JSON.stringify({season,week,dnbAvailable:true})}`,order:'slot_start.asc,id.asc',limit:'100'},100);
-      return dnbGateOpen(runs,{season,week});
+      const result=await rpc('gtl_epl_moneyline_gate',{p_season:season,p_week:week});
+      if(typeof result!=='boolean')throw invalidReply();return result;
     },
     async guessFixture(eventId){
       const f=await rest('gtl_epl_fixtures',{select:'event_id,season,week',event_id:`eq.${eventId}`,limit:'1'});
@@ -86,20 +83,20 @@ export function createEplGuessService({rpc,rest,rows,refreshForLock}){
     },
   };
 }
-async function weeksView(service){
+async function weeksView(service,ready){
   const list=await service.guessWeeks();
   if(!Array.isArray(list)||list.length>38||list.some(w=>!seasonOk(w.season)||!weekOk(w.week)))throw invalidReply();
   const out=[];
   // Sequential bounded reads avoid a burst of 38 service requests from one catalog read.
-  for(const w of list)out.push({...w,available:await service.guessGate(w.season,w.week)===true});
+  for(const w of list)out.push({...w,available:ready&&await service.guessGate(w.season,w.week)===true});
   return out;
 }
 async function guessRead({body,user,service}){
   keys(body,['season','week']);
   if((body.season!==undefined||body.week!==undefined)&&(!seasonOk(body.season)||!weekOk(body.week)))fail('GTL_EPL_GUESS_INVALID');
-  const weeks=await weeksView(service),target=body.season!==undefined?{season:body.season,week:body.week}:weeks[0]?{season:weeks[0].season,week:weeks[0].week}:null;
-  if(!target)return {available:false,reason:'prices_not_verified',...empty(),weeks,ownerNames:{...MANAGER_NAMES}};
   const ready=await service.guessReady();
+  const weeks=await weeksView(service,ready),target=body.season!==undefined?{season:body.season,week:body.week}:weeks[0]?{season:weeks[0].season,week:weeks[0].week}:null;
+  if(!target)return {available:false,reason:'prices_not_verified',...empty(),weeks,ownerNames:{...MANAGER_NAMES}};
   const available=ready&&((weeks.find(w=>w.season===target.season&&w.week===target.week)?.available)??await service.guessGate(target.season,target.week));
   let board;
   try{board=boardView(await service.rpc('gtl_epl_guess_board',{p_user:user.id,p_season:target.season,p_week:target.week}),target);}
@@ -154,7 +151,7 @@ async function guessLeaderboard({body,service}){
   if(new Set(rows.map(r=>r.ownerId)).size!==rows.length)throw invalidReply();return {season,rows};
 }
 export const EPL_GUESS_METHODS=Object.freeze({'/epl/guess/read':['POST'],'/epl/guess/save':['POST'],'/epl/guess/leaderboard':['POST']});
-export const EPL_GUESS_RPCS=Object.freeze(['gtl_epl_guess_board','gtl_epl_save_guess_current','gtl_epl_guess_leaderboard','gtl_epl_moneyline_save_ready']);
+export const EPL_GUESS_RPCS=Object.freeze(['gtl_epl_guess_board','gtl_epl_save_guess_current','gtl_epl_guess_leaderboard','gtl_epl_moneyline_save_ready','gtl_epl_moneyline_gate']);
 export async function handleEplGuess(args){
   if(args.route==='/epl/guess/read')return guessRead(args);
   if(args.route==='/epl/guess/save')return guessSave(args);

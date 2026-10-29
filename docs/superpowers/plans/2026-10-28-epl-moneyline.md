@@ -70,6 +70,8 @@ Current source: `cloud/epl-guess.mjs` owns fixed-field reads, open-account visib
 
 ### Task 4: Collector
 
+Current source: [M-36 collector follow-on](../../EPL_MONEYLINE_COLLECTOR_2026_10_29.md), published at `d29c1d4748d4be11b76cd479663619cbb06f0fb4`, adds durable shared event leases, bounded budget admission, both-club provenance and atomic pending-reference resolution; safe post-lock save wrapper and pure readiness reader protect Task 3. Source tests pass; **M-36 is not applied, moneyline collection remains absent/disabled pending explicit authorized setup, and live acceptance remains open.** Root owns release/global task status.
+
 **Files:** Modify `cloud/epl-sources.mjs` (`fetchEplDrawNoBet({apiKey, fetchImpl, eventIds})`), `cloud/epl-jobs.mjs` (`fixtures` job schedules DNB collection at week open and 3 h before each kickoff; `resolve-references` after each collection); Test `tests/epl-dnb.test.mjs`
 - [ ] Failing tests: Review Focus 5; credit floor 50; collection only for events not yet kicked off; FAIL → implement → PASS → commit `feat(epl): draw-no-bet collection and pending reference resolution`.
 

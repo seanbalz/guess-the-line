@@ -502,7 +502,7 @@ test('the gtl-api adapter gives EPL a caller limited to its own functions, and t
     requests.push(new URL(url).pathname);
     return Response.json({ message: 'GTL_EPL_CLUB_TAKEN' }, { status: 400 });
   } });
-  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_guess_board', 'gtl_epl_guess_leaderboard', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_moneyline_save_ready', 'gtl_epl_order_correction_state', 'gtl_epl_recheck_due_at', 'gtl_epl_save_guess_current', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_result', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_standings_provenance', 'gtl_epl_week_state']);
+  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_guess_board', 'gtl_epl_guess_leaderboard', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_moneyline_gate', 'gtl_epl_moneyline_save_ready', 'gtl_epl_order_correction_state', 'gtl_epl_recheck_due_at', 'gtl_epl_save_guess_current', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_result', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_standings_provenance', 'gtl_epl_week_state']);
   await assert.rejects(adapter.epl.rpc('gtl_epl_save_pick', {}), error => error instanceof EplError && error.status === 409);
   await assert.rejects(adapter.epl.rpc('gtl_epl_resolve_week', {}), /Invalid operation/);
   assert.deepEqual(requests, ['/rest/v1/rpc/gtl_epl_save_pick']);
