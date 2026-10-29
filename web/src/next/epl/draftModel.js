@@ -87,6 +87,12 @@ export function boardModel(read, now) {
       : null,
     clubs,
     bonus: Array.isArray(read.bonusLastWeek) ? read.bonusLastWeek : [],
+    standingsSource: read.standingsSource?.kind === 'wikimedia-community' && read.standingsSource.official === false
+      && /^\d{4}-\d{2}-\d{2}$/.test(read.standingsSource.dataAsOf ?? '')
+      && ms(`${read.standingsSource.dataAsOf}T12:00:00Z`) !== null
+      && new Date(`${read.standingsSource.dataAsOf}T12:00:00Z`).toISOString().slice(0, 10) === read.standingsSource.dataAsOf
+      && /^https:\/\/en\.wikipedia\.org\/w\/index\.php\?title=[^&]+&oldid=\d+$/.test(read.standingsSource.source?.url ?? '')
+      && read.standingsSource.license?.url === 'https://creativecommons.org/licenses/by-sa/4.0/' ? read.standingsSource : null,
   };
 }
 

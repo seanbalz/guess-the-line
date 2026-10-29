@@ -5,7 +5,7 @@
 // off, a 401) shows its sentence and never the board. Every signed-in account reads the board (EPL open access); one not
 // linked to a manager sees it read-only, under the claim card (ClaimCard.jsx).
 import { useId, useState } from 'react';
-import { Button, Card, Skeleton, Toast } from '../ui/index.js';
+import { Button, Card, Skeleton, Toast, InfoButton } from '../ui/index.js';
 import { CrestGrid, DraftBoard } from './DraftBoard.jsx';
 import { MarginChart } from './MarginChart.jsx';
 import { QueueSheet } from './QueueSheet.jsx';
@@ -57,6 +57,7 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
       <div className="gx-epl-action">
         <PrimaryAction model={model} selected={selected} busy={busy} onPick={onPick}/>
         <p className="gx-t-meta gx-epl-center gx-epl-hero-meta">{deadlineLine(model)}</p>
+        <StandingsSource source={model.standingsSource}/>
       </div>
     </Card>
     {notice ? <Toast text={notice.text} tone={notice.tone} onDismiss={onDismissNotice} className="gx-epl-toast"/> : null}
@@ -70,6 +71,20 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
       <h2 className="gx-t-micro gx-c-2" id={bonusId}>{PICK_COPY.bonusTitle}</h2>
       <MarginChart bonus={model.bonus} review={model.review} clubName={model.clubName}/>
     </Card>
+  </div>;
+}
+
+export function StandingsSource({ source }) {
+  if (!source || !Number.isFinite(Date.parse(`${source.dataAsOf}T12:00:00Z`))) return null;
+  const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${source.dataAsOf}T12:00:00Z`));
+  return <div className="gx-epl-source">
+    <span className="gx-t-meta gx-epl-hero-meta">Table used · {date}</span>
+    <InfoButton title="About table fallback" body={[
+      'A table position was needed to resolve this draft. The saved table stays attached to that decision.',
+      `Community standings from Wikipedia contributors, updated ${date}. Not independently verified official Premier League standings.`,
+      'Changes: extracted match results, calculated standings and normalized club names. Derived data is available under CC BY-SA 4.0.',
+    ]} links={[{ text: 'Source and contributors', url: source.source.url }, { text: 'CC BY-SA 4.0', url: source.license.url }]}/>
   </div>;
 }
 

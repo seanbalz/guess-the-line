@@ -8,9 +8,17 @@ export const tables = Object.freeze([
   'feed_reaction_events',
   // M-25 and M-26 (hosted since October 27, 2026): the features job's records and its schedule.
   'feature_runs', 'badge_events', 'weekly_awards', 'player_streaks', 'features_schedule', 'features_schedule_runs',
+  // M-34: pending private dated standings and immutable deadline references.
+  'epl_standings', 'epl_standings_usage',
 ]);
 
 export const rpcChecks = Object.freeze([
+  // M-34: inert claim IDs/null source only; no real run, snapshot or pick can be written.
+  ['gtl_epl_standings_valid', { p_record: null, p_season: 2026, p_round: 8, p_now: null }],
+  ['gtl_epl_standings_state', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_now: null }],
+  ['gtl_epl_save_standings', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_record: null, p_now: null }],
+  ['gtl_epl_resolve_with_standings', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_rows: null, p_standings: missingId, p_now: null }],
+  ['gtl_epl_standings_provenance', { p_season: 2026, p_week: 9 }],
   ['gtl_read_score_comparison', { p_user: missingId, p_season: 2026, p_league: null, p_now: null }],
   ['gtl_save_profile', { ...actor, p_display_name: 'Boundary check' }],
   ['gtl_lobby', { ...actor, p_email: fixtureEmail }],
@@ -87,4 +95,12 @@ export const workerChecks = Object.freeze([
 // (redesign stages 61 to 63) is hosted and deployed since October 27, 2026: M-21, M-22 and M-23 applied, and the five
 // /league/* feed routes in gtl-api v38 (RELEASE_2026_10_27_FEED_MIGRATIONS.md), so none of its pieces awaits deploy. So are
 // M-25 and M-26 (redesign stages 69 and 70) with /league/features and /league/features/run (the same record).
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({
+  'table/epl_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'table/epl_standings_usage': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_standings_valid': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_standings_state': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_save_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_resolve_with_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_standings_provenance': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+});

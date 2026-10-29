@@ -49,7 +49,7 @@ export const EPL_METHODS = Object.freeze({
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
   'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin',
-  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state']);
+  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state', 'gtl_epl_standings_provenance']);
 /**
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
@@ -309,6 +309,11 @@ async function draftRead({ body, user, service, now }) {
     else claimable = linked === null;
   }
   const view = await readWeek(service, await targetWeek(body, service));
+  let standingsSource = null;
+  if (view.status !== 'open') {
+    try { standingsSource = await service.rpc('gtl_epl_standings_provenance', { p_season: view.season, p_week: view.week }); }
+    catch (error) { if (!(error instanceof EplError && error.code === 'GTL_EPL_OFF')) throw error; }
+  }
   const manager = owner !== null && owner !== 'commissioner';
   // Queues are private: only a linked manager's own is read. A non-member's is empty; the commissioner keeps none.
   const myQueue = manager ? await service.readQueue(view.season, view.week, owner) : owner === 'commissioner' ? null : [];
@@ -325,6 +330,7 @@ async function draftRead({ body, user, service, now }) {
     bonusLastWeek: view.bonus,
     // An unlinked caller's unclaimed managers (M-31 applied); null for a linked manager or before M-31.
     claim,
+    ...(standingsSource ? { standingsSource } : {}),
   };
 }
 

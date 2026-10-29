@@ -1,8 +1,9 @@
 # EPL standings source readiness — October 29, 2026
 
-Status: a bounded Wikimedia community-data adapter and dated record are ready for review. **No provider connection,
-scheduled collection, database persistence, worker fallback wiring or deployment is enabled.** The standings-source
-task remains open until those steps have their own exact-source review/release and hosted acceptance evidence.
+Status: capture and normalization evidence from the readiness branch. The follow-on
+[M-34 integration source](EPL_STANDINGS_INTEGRATION_2026_10_29.md) adds guarded private persistence and resolver wiring.
+**No hosted collection, persistence apply or deployment is established by this record.** Operational acceptance remains
+open until separate release/apply/enablement and authenticated readback.
 
 ## Verified source and normalization
 
@@ -43,10 +44,11 @@ The committed snapshot expires under those rules. A consumer must provide a trus
 clock; validation is not authentication of arbitrary client-provided provenance. Postponed or partly completed rounds and
 points deductions are deliberately unsupported in this version. They remain unavailable rather than manufacturing ranks.
 
-Future integration must persist a service-collected record with provenance, revalidate it when read, and supply positions
-to M-33's strict `favorability[club].position` path only when ready. Missing/stale/incomplete data must preserve the existing
+The M-34 integration source persists a service-collected record with provenance, revalidates it when read and supplies
+positions to M-33's strict `favorability[club].position` path only when ready. Its release/apply and collection enablement
+are separate gates. Missing/stale/incomplete data must preserve the existing
 `needs_review` behavior. Do not add a table input supplied by a browser, silently use this fixture as current, bypass a
-quota guard, or re-order entered picks. No migration or production import is part of this change.
+quota guard, or re-order entered picks. The historical JSON fixture is not a production import.
 
 ## Reuse and attribution
 

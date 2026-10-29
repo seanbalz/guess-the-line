@@ -59,6 +59,7 @@ function fakeService({ job, state = baseState(), snapshots = {}, replay = false,
         case 'gtl_epl_order_correction_state': { const e = new Error('not installed'); e.code = 'GTL_EPL_ORDER_STATE_OFF'; throw e; }
         case 'gtl_epl_reserve_result_read': { const e = new Error('not installed'); e.code = 'GTL_EPL_RESULT_READ_OFF'; throw e; }
         case 'gtl_epl_recheck_state': return recheck;
+        case 'gtl_epl_standings_state': return { enabled: false, snapshot: null };
         case 'gtl_epl_record_recheck': return { recorded: true, scoresChanged, status: scoresChanged ? 'needs_review' : 'unchanged' };
         case 'gtl_epl_reserve_credits': {
           const b = service.state.budget;
@@ -121,8 +122,8 @@ async function run({ job, state, snapshots, sources = fakeSources(), push = fake
   return { service, sources, push, response, body: await response.json(), complete: service.args('gtl_epl_complete_job').at(-1) };
 }
 
-test('the worker lists its six jobs and only its own RPCs', () => {
-  assert.deepEqual(EPL_JOBS, ['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check']);
+test('the worker lists its seven jobs and only its own RPCs', () => {
+  assert.deepEqual(EPL_JOBS, ['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check', 'standings']);
   assert.equal(EPL_RESERVE_CREDITS, 50);
   for (const name of ['gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices', 'gtl_epl_save_snapshot'])
     assert.ok(EPL_JOBS_RPCS.includes(name), name);
@@ -676,7 +677,8 @@ test('the Deno entry wires the odds key, the VAPID secrets and the service role,
 });
 
 test('the hand-registered cron file is admin-only, registers every job disabled and never enables one', () => {
-  const sql = readFileSync(new URL('../supabase/admin/epl_jobs_cron.sql', import.meta.url), 'utf8');
+  const sql = readFileSync(new URL('../supabase/admin/epl_jobs_cron.sql', import.meta.url), 'utf8')
+    + readFileSync(new URL('../supabase/admin/epl_standings_cron.sql', import.meta.url), 'utf8');
   assert.match(sql, /^-- ADMIN ONLY/);
   const code = sql.split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
   for (const job of EPL_JOBS) assert.match(code, new RegExp(`gtl_epl_dispatch_jobs\\('${job}'\\)`), job);
