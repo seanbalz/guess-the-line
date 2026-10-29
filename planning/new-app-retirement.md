@@ -108,8 +108,8 @@ Sean chose two steps ([D-60](../docs/DECISIONS.md)).
 | Saved games and forecasts; the journal (read-only) | History: older records (stage 74) | History and export lane |
 | Real slips by week | History (stage 74) | History and export lane |
 | Export my data | `/me/export` (stage 75, M-28) | History and export lane |
-| Settlement and schedule status | Settlement console (PR #214) | Codex lane |
-| Week opening, referee assignments, final scores, odds connection | Commissioner tools (stages 77–78) | Codex lane |
+| Settlement and schedule status | Menu › Commissioner tools › Schedule and settlement status (October 28, D-65 follow-up; built, not deployed) | Commissioner tools |
+| Week opening, referee assignments, final scores, odds connection | Menu › Commissioner tools (October 28, D-65 follow-up; built, not deployed) | Commissioner tools |
 | Group-draft reconciliation and device recovery | RETIRE-01 | Integration |
 
 When the table is clear:

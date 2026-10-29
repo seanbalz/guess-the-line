@@ -104,14 +104,20 @@ implemented on a review branch; not deployed, and real-phone acceptance is separ
   unchanged ranking helper, so no locked line can appear.
 - The choice is kept in the Bets view state, so it survives Add to card, Track
   this bet, switching Bets views and returning to the Bets root in the same
-  visit. It is not in the address or synced across devices; a reload starts at
+  visit.
+- Track this bet (player feedback, October 28, 2026) opens the tracker's review
+  editor over Recommended instead of moving to My bets. The list, market choice,
+  scroll position and open card stay put, so the next bet can be loaded at once.
+  A save shows "Bet saved to My bets" with a View action that opens that
+  ticket's week in My bets; cancelling writes nothing. A failed or unconfirmed
+  save keeps the editor and its recovery (Check saved bets, Retry same save). It is not in the address or synced across devices; a reload starts at
   All. The old app's Virtual Units → Recommended view stays on All.
 - Checks: `tests/recommended-bets.test.mjs` (order, filter before the limit,
   empty market, no mutation) and the market-filter cases in
   `tests/cloud-browser/recommended-bets.spec.js` (all three choices, an empty
   market with draft-only guesses, the limit after filtering, a card selection
-  across filter changes, Track this bet and return, keyboard, 320/390px in both
-  themes, axe).
+  across filter changes, Track this bet and return, two bets saved in a row
+  without leaving Recommended, keyboard, 320/390px in both themes, axe).
 
 ## Services and release scope
 
