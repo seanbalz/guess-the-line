@@ -1,8 +1,12 @@
 // EPL "Pick a Team" and Research -> Fantasy routes on gtl-api (docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md section 6;
-// plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Eight POST routes over the M-30 service-only functions and tables
-// (supabase/migrations/20261028190000_gtl_epl_pick_a_team.sql):
-//   /epl/draft/read      a linked FEPL manager or the commissioner: the week's board, the clubs playing, the caller's own queue
-//                        and own manager id (`me`)
+// plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Nine POST routes over the M-30 service-only functions and tables
+// (supabase/migrations/20261028190000_gtl_epl_pick_a_team.sql) and M-31's linking functions
+// (supabase/migrations/20261029060000_gtl_epl_open_access.sql; EPL open access plan 2026-10-29-epl-open-access.md, Task 2):
+//   /epl/draft/read      any signed-in, email-confirmed account (D-68 addendum, Sean on October 29, 2026: "EPL section can
+//                        show for everyone"): the week's board, the clubs playing, and for a linked manager their own queue
+//                        and manager id (`me`). An unlinked caller is first linked automatically (gtl_epl_auto_link, once
+//                        per read; skipped while M-31 is not applied); one still unlinked gets `me: null`, `myQueue: []`
+//                        (null for the commissioner) and `claim: { managers }`, the unclaimed managers to claim
 //   /epl/draft/pick      the manager on the clock, or the latest picker changing their pick (gtl_epl_save_pick re-checks it all)
 //   /epl/queue/save      a linked manager's private backup ranking (at most 20 different clubs playing that week)
 //   /epl/admin/link      the commissioner links an account to a manager, or unlinks one (userId null)
@@ -14,10 +18,13 @@
 //                        worker never postpones a match only because a feed stopped listing it (pre-T8 fix wave); or, with
 //                        status 'final' and whole homeGoals/awayGoals, records a played match's score once the draft is
 //                        resolved (gtl_epl_set_fixture_result; final review), so a needs_review week is never zeroed
-//   /epl/fantasy/read    a linked FEPL manager or the commissioner: Research -> Fantasy (plan 2026-10-28-epl-fantasy.md, Task 2),
-//                        built from stored Sleeper snapshots and the season's bonus rows (cloud/epl-fantasy-view.mjs), never
-//                        from a live Sleeper call
-// The member routes check membership before the body, so a non-member always gets 403.
+//   /epl/fantasy/read    any signed-in account: Research -> Fantasy (plan 2026-10-28-epl-fantasy.md, Task 2), built from
+//                        stored Sleeper snapshots and the season's bonus rows (cloud/epl-fantasy-view.mjs), never from a
+//                        live Sleeper call; a non-member's view has no viewer, so no matchup of its own
+//   /epl/claim           any signed-in account claims an unclaimed manager, { ownerId } (gtl_epl_claim_manager: the first
+//                        claim wins; GTL_EPL_CLAIMED and GTL_EPL_ALREADY_LINKED are 409, and a manager the
+//                        commissioner unlinked this account from is GTL_EPL_FORBIDDEN, 403)
+// The write routes (pick, queue/save) check membership before the body, so a non-member always gets 403 there.
 // The rules in shared/epl-draft.mjs refuse an out-of-turn, taken, closed or not-playing pick before any write, so the
 // common refusals cost no write; the SQL is still the authority (it locks the week row and checks again).
 //
@@ -35,11 +42,12 @@ import { buildFantasyView, detailLabels, fantasySeason } from './epl-fantasy-vie
 export const EPL_METHODS = Object.freeze({
   '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
   '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
-  '/epl/fantasy/read': ['POST'],
+  '/epl/fantasy/read': ['POST'], '/epl/claim': ['POST'],
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
-  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin']);
+  'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin',
+  'gtl_epl_auto_link', 'gtl_epl_claim_manager']);
 /**
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
@@ -68,6 +76,8 @@ const ERRORS = Object.freeze({
   GTL_EPL_CLUB_NOT_PLAYING: [409, 'That club has no match this matchweek.'],
   GTL_EPL_CLUB_TAKEN: [409, 'Another manager already picked that club.'],
   GTL_EPL_ALREADY_LINKED: [409, 'That account is already linked to another manager.'],
+  // M-31: a claim on a manager another account already holds (the first claim wins).
+  GTL_EPL_CLAIMED: [409, 'Someone already claimed that manager.'],
   GTL_EPL_SEED_REFUSED: [409, 'This matchweek already has in-app picks, so its order and picks are fixed.'],
   GTL_EPL_NOT_RESOLVED: [409, 'This matchweek has not been resolved yet.'],
   GTL_EPL_FIXTURE_LOCKED: [409, 'That match has a result or its matchweek is settled, so it cannot change.'],
@@ -84,6 +94,7 @@ export function providerEplError(code) {
 
 const SNAPSHOT_LABEL = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const OWNER_ID = /^[0-9]{1,30}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SNAPSHOT_META = new Set(['label', 'week', 'captured_at', 'id']);
 /** A stored snapshot row as the view reads it: `payload` (whole) or the aliased payload parts, a missing part left out. */
 const snapshotRow = row => ({ label: row.label, week: Number.isInteger(row.week) ? row.week : null, capturedAt: row.captured_at,
@@ -150,6 +161,19 @@ export function createEplService({ rpc, rest, rows }) {
       }
       return [...byLabel.values()].sort((a, b) => Date.parse(a.capturedAt) - Date.parse(b.capturedAt));
     },
+    /**
+     * The managers no account holds yet, for the claim card (owner id and name only; never an account id). With the
+     * caller's id, a manager the commissioner unlinked that account from (an M-31 'unlink' audit row) is left out:
+     * gtl_epl_claim_manager refuses that pair, so the card never offers it.
+     */
+    async unclaimedManagers(userId) {
+      const list = await rows('gtl_epl_managers', { select: 'owner_id,name', user_id: 'is.null', order: 'owner_id.asc', limit: '8' }, 8);
+      const free = list.filter(r => record(r) && isManager(r.owner_id));
+      if (typeof userId !== 'string' || !UUID.test(userId) || !free.length) return free.map(r => ({ ownerId: r.owner_id, name: nameOf(r.owner_id) }));
+      const unlinked = new Set((await rows('gtl_epl_link_audit', { select: 'owner_id', user_id: `eq.${userId}`, action: 'eq.unlink', limit: '100' }, 100))
+        .filter(r => record(r) && typeof r.owner_id === 'string').map(r => r.owner_id));
+      return free.filter(r => !unlinked.has(r.owner_id)).map(r => ({ ownerId: r.owner_id, name: nameOf(r.owner_id) }));
+    },
     async readBonus(season) {
       const list = await rows('gtl_epl_bonus', { select: 'owner_id,week,points', season: `eq.${season}`, limit: '400' }, 400);
       return list.filter(r => record(r) && typeof r.owner_id === 'string' && OWNER_ID.test(r.owner_id) && Number.isInteger(r.week) && Number.isInteger(r.points))
@@ -214,12 +238,32 @@ function weekView(raw) {
 const draftPicks = picks => picks.map(p => ({ managerId: p.ownerId, club: p.club }));
 const isOpen = (view, now) => view.status === 'open' && Number.isFinite(Date.parse(view.deadline)) && now < Date.parse(view.deadline);
 
-async function member(service, user) {
+/** The caller's linked owner id, 'commissioner' (an unlinked commissioner), or null for any other account. */
+async function viewer(service, user) {
   const owner = await service.rpc('gtl_epl_member', { p_user: user.id });
-  if (owner === null || owner === undefined) refuse('GTL_EPL_MEMBER_ONLY');
+  if (owner === null || owner === undefined) return null;
   if (owner !== 'commissioner' && !isManager(owner)) throw reply();
   return owner;
 }
+async function member(service, user) {
+  return (await viewer(service, user)) ?? refuse('GTL_EPL_MEMBER_ONLY');
+}
+/**
+ * gtl_epl_auto_link for an unlinked caller: the owner id it linked, null when nothing matched uniquely, or undefined
+ * while M-31 is not applied (the function is missing, so there is nothing to claim through either).
+ */
+async function autoLink(service, user) {
+  try {
+    const owner = await service.rpc('gtl_epl_auto_link', { p_user: user.id });
+    if (owner === null || owner === undefined) return null;
+    if (!isManager(owner)) throw reply();
+    return owner;
+  } catch (error) {
+    if (error instanceof EplError && error.code === 'GTL_EPL_OFF') return undefined;
+    throw error;
+  }
+}
+const byName = (a, b) => a.name.localeCompare(b.name);
 async function readWeek(service, target) {
   const raw = await service.rpc('gtl_epl_week_state', { p_season: target.season, p_week: target.week });
   if (raw === null || raw === undefined) refuse('GTL_EPL_NO_WEEK');
@@ -230,22 +274,43 @@ async function requireCommissioner(service, user) {
 }
 
 async function draftRead({ body, user, service, now }) {
-  const owner = await member(service, user);
+  let owner = await viewer(service, user);
+  // The body is checked before the automatic link, so a malformed read never writes a link.
   keys(body, ['season', 'week']);
   checkWeekFields(body);
+  // Unlinked (any account, or the commissioner without a manager): try the automatic link once, before the view.
+  let claimable = false;
+  if (owner === null || owner === 'commissioner') {
+    const linked = await autoLink(service, user);
+    if (linked) owner = linked;
+    else claimable = linked === null;
+  }
   const view = await readWeek(service, await targetWeek(body, service));
-  const myQueue = owner === 'commissioner' ? null : await service.readQueue(view.season, view.week, owner);
+  const manager = owner !== null && owner !== 'commissioner';
+  // Queues are private: only a linked manager's own is read. A non-member's is empty; the commissioner keeps none.
+  const myQueue = manager ? await service.readQueue(view.season, view.week, owner) : owner === 'commissioner' ? null : [];
+  const claim = claimable ? { managers: [...await service.unclaimedManagers(user.id)].sort(byName).map(m => ({ ownerId: m.ownerId, name: m.name })) } : null;
   return {
     season: view.season, week: view.week, status: view.status, deadline: view.deadline,
-    // The caller's own manager id (null for the unlinked commissioner): the board's "Pick <club>" turn hint. Not private.
-    me: owner === 'commissioner' ? null : owner,
+    // The caller's own manager id (null when unlinked): the board's "Pick <club>" turn hint. Not private.
+    me: manager ? owner : null,
     order: view.order.map(ownerId => ({ ownerId, name: nameOf(ownerId) })),
     picks: view.picks,
     onTheClock: isOpen(view, now) ? onTheClock(view.order, draftPicks(view.picks)) : null,
     clubs: view.clubs,
     myQueue: myQueue === null ? null : [...myQueue],
     bonusLastWeek: view.bonus,
+    // An unlinked caller's unclaimed managers (M-31 applied); null for a linked manager or before M-31.
+    claim,
   };
+}
+
+async function claim({ body, user, service }) {
+  keys(body, ['ownerId']);
+  if (!isManager(body.ownerId)) refuse('GTL_EPL_INVALID');
+  const saved = await service.rpc('gtl_epl_claim_manager', { p_user: user.id, p_owner_id: body.ownerId });
+  if (!record(saved) || saved.ownerId !== body.ownerId) throw reply();
+  return { ownerId: body.ownerId, name: nameOf(body.ownerId) };
 }
 
 async function draftPick({ body, user, service, now }) {
@@ -363,7 +428,8 @@ async function adminFixture({ body, user, service }) {
 }
 
 async function fantasyRead({ body, user, service }) {
-  const owner = await member(service, user);
+  // Open to every account (D-68 addendum); a non-member's view has no viewer, like the unlinked commissioner's.
+  const owner = await viewer(service, user);
   keys(body, []);
   const snapshots = await service.readSnapshots();
   const season = fantasySeason(snapshots);
@@ -376,7 +442,7 @@ async function fantasyRead({ body, user, service }) {
 const HANDLERS = Object.freeze({
   '/epl/draft/read': draftRead, '/epl/draft/pick': draftPick, '/epl/queue/save': queueSave,
   '/epl/admin/link': adminLink, '/epl/admin/week': adminWeek, '/epl/admin/snapshot': adminSnapshot, '/epl/admin/fixture': adminFixture,
-  '/epl/fantasy/read': fantasyRead,
+  '/epl/fantasy/read': fantasyRead, '/epl/claim': claim,
 });
 
 export async function handleEpl({ route, body, user, service, clock = Date.now }) {

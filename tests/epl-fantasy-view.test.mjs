@@ -322,10 +322,14 @@ test('/epl/fantasy/read is a POST route and answers the caller\'s view from stor
   assert.deepEqual(service.calls[2], ['readBonus', 2026]);
 });
 
-test('/epl/fantasy/read refuses a non-member with 403 before reading anything, and refuses a body', async () => {
+test('/epl/fantasy/read answers a non-member the league view with no viewer of its own, and refuses a body', async () => {
   const service = fantasyService({ member: null });
-  await assert.rejects(handleEpl({ route: '/epl/fantasy/read', body: {}, user: USER, service }), e => e.status === 403 && e.code === 'GTL_EPL_FORBIDDEN');
-  assert.deepEqual(service.calls.map(c => c[0]), ['gtl_epl_member']);
+  const view = await handleEpl({ route: '/epl/fantasy/read', body: {}, user: USER, service });
+  assert.equal(view.viewer, null);
+  assert.equal(view.matchup.unavailable, true);
+  assert.equal(view.insights.myTopScorer ?? null, null);
+  assert.equal(view.standings.length, 4);
+  assert.deepEqual(service.calls.map(c => c[0]), ['gtl_epl_member', 'readSnapshots', 'readBonus']);
   await assert.rejects(handleEpl({ route: '/epl/fantasy/read', body: { week: 9 }, user: USER, service: fantasyService() }), e => e.status === 400);
   await assert.rejects(handleEpl({ route: '/epl/fantasy/read', body: {}, user: { id: 'nope' }, service: fantasyService() }), e => e.status === 401);
 });

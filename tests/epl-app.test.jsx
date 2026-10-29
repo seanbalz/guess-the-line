@@ -91,6 +91,11 @@ describe('eplApi', () => {
     expect(cloud.calls[1][0]).toBe('epl/draft/pick'); expect(cloud.calls[1][2].save).toBe(true);
     expect(() => eplApi('draft/settle')).toThrow(TypeError);
   });
+  it('claim posts epl/claim { ownerId } as a save (EPL open access, Task 3)', async () => {
+    cloud.calls.length = 0;
+    await eplApi('claim', { ownerId: '719745569895018496' });
+    expect(cloud.calls[0][0]).toBe('epl/claim'); expect(cloud.calls[0][1]).toEqual({ ownerId: '719745569895018496' }); expect(cloud.calls[0][2].save).toBe(true);
+  });
   it('keeps the server’s EPL refusal codes on ApiError', () => {
     expect(new ApiError('x', 409, 'GTL_EPL_CLUB_TAKEN').code).toBe('GTL_EPL_CLUB_TAKEN');
     expect(new ApiError('x', 404, 'GTL_EPL_OFF').code).toBe('GTL_EPL_OFF');

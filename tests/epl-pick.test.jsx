@@ -15,6 +15,7 @@ const { EplHomeView } = await import('../web/src/next/epl/EplHome.jsx');
 const { boardModel, draftReducer, runPick, saveQueue, moveClub, PICK_COPY } = await import('../web/src/next/epl/draftModel.js');
 const { Button } = await import('../web/src/next/ui/index.js');
 const { ApiError } = await import('../web/src/apiResponse.js');
+const { ClaimCardView, CLAIM_COPY, runClaim, claimManagers, justWatching, setJustWatching } = await import('../web/src/next/epl/ClaimCard.jsx');
 
 const ID = { Nemo: '865667912365666304', Cullen: '1259267898757611520', Adam: '719745569895018496', Sean: '473955676301815808',
   Evan: '719658248843632640', Mark: '1257180071064510465', Steven: '702644837370929152', Darin: '1395236217460633600' };
@@ -30,7 +31,7 @@ const CLUBS = [
   ['BRE', 'Brentford', 'COV', true], ['COV', 'Coventry City', 'BRE', false], ['NEW', 'Newcastle United', 'HUL', true], ['HUL', 'Hull City', 'NEW', false],
 ].map(([code, name, opponent, home], i) => ({ code, name, opponent, home, kickoff: new Date(Date.parse(DEADLINE) + Math.floor(i / 2) * 9_000_000).toISOString() }));
 
-function read({ me = ID.Darin, picks = Object.keys(PICKED), status = 'open', onTheClock, queue = ['CHE', 'MUN'], bonus } = {}) {
+function read({ me = ID.Darin, picks = Object.keys(PICKED), status = 'open', onTheClock, queue = ['CHE', 'MUN'], bonus, myQueue, claim = null } = {}) {
   const made = picks.map((name, i) => ({ ownerId: ID[name], name, club: PICKED[name] ?? 'CHE', source: 'seeded', pickedAt: `2026-10-29T1${i}:00:00+00:00`, final: i < picks.length - 1 }));
   return {
     season: 2026, week: 9, status, deadline: DEADLINE, me,
@@ -38,8 +39,9 @@ function read({ me = ID.Darin, picks = Object.keys(PICKED), status = 'open', onT
     picks: made,
     onTheClock: onTheClock === undefined ? (ID[NAMES.find(n => !picks.includes(n))] ?? null) : onTheClock,
     clubs: CLUBS,
-    myQueue: me ? queue : null,
+    myQueue: myQueue !== undefined ? myQueue : me ? queue : null,
     bonusLastWeek: bonus ?? [{ ownerId: ID.Evan, name: 'Evan', points: 15, margin: 3, club: 'ARS' }],
+    claim,
   };
 }
 
@@ -237,5 +239,85 @@ describe('EPL Home', () => {
     const page = home(null, { state: refused });
     expect(text(page)).toContain('Pick a Team is for the FEPL managers.');
     expect(page).not.toContain('role="timer"');
+  });
+});
+
+// EPL open access (plan 2026-10-29-epl-open-access.md, Task 3): every signed-in account reads the board; an unlinked one
+// (`me: null`, `myQueue: []`, `claim.managers`) sees it read-only with the claim card.
+describe('read-only EPL and the claim card', () => {
+  const UNCLAIMED = [{ ownerId: ID.Adam, name: 'Adam' }, { ownerId: ID.Darin, name: 'Darin' }];
+  const unlinked = (patch = {}) => read({ me: null, myQueue: [], claim: { managers: UNCLAIMED }, ...patch });
+  const claimHtml = props => renderToStaticMarkup(<div className="gx"><ClaimCardView {...props}/></div>);
+
+  it('an unlinked account sees the board read-only: no pick, crest or queue buttons', () => {
+    const model = boardModel(unlinked({ onTheClock: ID.Darin }), BEFORE);
+    expect(model.canPick).toBe(false);
+    expect(model.queue).toBeNull();
+    const props = viewProps({ model });
+    const page = html(props);
+    expect(page.match(/data-epl-node=/g)).toHaveLength(8);
+    expect(text(page)).toContain('Darin is on the clock');
+    const all = buttons(tree(props));
+    expect(all.map(b => label(b.props.children)).join('|')).not.toMatch(/backup ranking|Pick /);
+    expect(all.filter(b => b.props['data-epl-club'])).toEqual([]);
+    expect(text(page)).not.toContain(PICK_COPY.notYourTurn);
+    expect(markupProblems(page)).toEqual([]);
+  });
+
+  it('the claim card asks "Which FEPL manager are you?" with one button per unclaimed manager and "Just watching"', () => {
+    const managers = claimManagers(boardModel(unlinked(), BEFORE));
+    expect(managers).toEqual(UNCLAIMED);
+    const onClaim = vi.fn(), onWatch = vi.fn();
+    const page = claimHtml({ managers, busy: false, onClaim, onWatch });
+    expect(text(page)).toContain('Which FEPL manager are you?');
+    expect(CLAIM_COPY.title).toBe('Which FEPL manager are you?');
+    expect(markupProblems(page)).toEqual([]);
+    const all = buttons(ClaimCardView({ managers, busy: false, onClaim, onWatch }));
+    expect(all.map(b => label(b.props.children))).toEqual(['Adam', 'Darin', 'Just watching']);
+    all[1].props.onClick();
+    expect(onClaim).toHaveBeenCalledWith(ID.Darin);
+    all[2].props.onClick();
+    expect(onWatch).toHaveBeenCalled();
+  });
+
+  it('"Just watching" hides the card for the session', () => {
+    setJustWatching(false);
+    expect(justWatching()).toBe(false);
+    setJustWatching(true);
+    expect(justWatching()).toBe(true);
+    setJustWatching(false);
+  });
+
+  it('a linked account (or no unclaimed manager) never sees the card', () => {
+    expect(claimManagers(boardModel(read({ claim: { managers: UNCLAIMED } }), BEFORE))).toEqual([]);
+    expect(claimManagers(boardModel(read(), BEFORE))).toEqual([]);
+    expect(claimManagers(boardModel(unlinked({ claim: { managers: [] } }), BEFORE))).toEqual([]);
+    expect(claimManagers(boardModel(unlinked({ claim: null }), BEFORE))).toEqual([]);
+    expect(claimManagers(null)).toEqual([]);
+    expect(claimHtml({ managers: [], busy: false, onClaim: () => {}, onWatch: () => {} })).toBe('<div class="gx"></div>');
+  });
+
+  it('claiming calls claim { ownerId }, then reloads', async () => {
+    const api = vi.fn(async () => ({ ownerId: ID.Adam, name: 'Adam' }));
+    const result = await runClaim({ api, ownerId: ID.Adam, name: 'Adam' });
+    expect(api).toHaveBeenCalledWith('claim', { ownerId: ID.Adam });
+    expect(result).toEqual({ refresh: true, notice: { text: 'You’re linked as Adam.', tone: 'done' } });
+  });
+
+  it('GTL_EPL_CLAIMED shows "Someone already claimed that manager." and reloads', async () => {
+    const api = vi.fn(async () => { throw new ApiError('Someone already claimed that manager.', 409, 'GTL_EPL_CLAIMED'); });
+    const result = await runClaim({ api, ownerId: ID.Adam, name: 'Adam' });
+    expect(result).toEqual({ refresh: true, notice: { text: 'Someone already claimed that manager.', tone: 'warning' } });
+    const failed = await runClaim({ api: vi.fn(async () => { throw new ApiError('Unavailable', 503); }), ownerId: ID.Adam, name: 'Adam' });
+    expect(failed.refresh).toBe(false);
+    expect(failed.notice.tone).toBe('error');
+  });
+
+  it('EPL Home for an unlinked account has no "your pick" tiles and no pick button', () => {
+    const page = renderToStaticMarkup(<div className="gx"><EplHomeView model={boardModel(unlinked(), BEFORE)} now={BEFORE} onOpenPick={() => {}}/></div>);
+    expect(text(page)).toContain('Darin picks next');
+    expect(text(page)).not.toContain('Your pick');
+    expect(text(page)).not.toContain('Make your pick');
+    expect(markupProblems(page)).toEqual([]);
   });
 });

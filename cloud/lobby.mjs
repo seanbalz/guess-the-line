@@ -1,5 +1,3 @@
-import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
-
 export const LOBBY_METHODS = {
   '/lobby': ['GET'], '/profile': ['POST'], '/leagues': ['POST'],
   '/invites': ['GET', 'POST'], '/invite/accept': ['POST'], '/invite/revoke': ['POST'],
@@ -48,15 +46,17 @@ export async function hashInviteToken(token) {
 const randomToken = () => [...crypto.getRandomValues(new Uint8Array(32))].map(byte => byte.toString(16).padStart(2, '0')).join('');
 
 /**
- * Whether this account sees EPL (Pick a Team): gtl_epl_member answers a linked FEPL manager's owner id or 'commissioner'.
- * The lobby reply carries it so the app's EPL access costs no request of its own. Any failure, including M-30 not
- * applied (GTL_EPL_OFF), reads as false and never fails the lobby; every EPL route still checks membership itself.
+ * Whether EPL shows for this account. EPL open access (D-68 addendum, Sean on October 29, 2026: "EPL section can show
+ * for everyone"): every signed-in account sees it once M-30 is applied, that is once gtl_epl_member exists and answers,
+ * whatever it answers (a non-member's null included). The lobby reply carries it so the app's EPL access costs no
+ * request of its own. Any failure, including M-30 not applied (GTL_EPL_OFF), reads as false and never fails the lobby;
+ * the EPL write routes still check membership themselves.
  */
-export async function eplMember(epl, userId) {
+export async function eplAvailable(epl, userId) {
   if (!epl?.rpc) return false;
   try {
-    const owner = await epl.rpc('gtl_epl_member', { p_user: userId });
-    return owner === 'commissioner' || (typeof owner === 'string' && Object.hasOwn(MANAGER_NAMES, owner));
+    await epl.rpc('gtl_epl_member', { p_user: userId });
+    return true;
   } catch { return false; }
 }
 
@@ -67,8 +67,8 @@ export async function handleLobby({ route, method, body = {}, user, leagueId, se
   if (!service) throw new Error('Private game service not configured.');
   const actor = { p_user_id: user.id };
   if (route === '/lobby') {
-    const [reply, member] = await Promise.all([service.rpc('gtl_lobby', { ...actor, p_email: email }), eplMember(epl, user.id)]);
-    return reply !== null && typeof reply === 'object' && !Array.isArray(reply) ? { ...reply, epl: member } : reply;
+    const [reply, eplOn] = await Promise.all([service.rpc('gtl_lobby', { ...actor, p_email: email }), eplAvailable(epl, user.id)]);
+    return reply !== null && typeof reply === 'object' && !Array.isArray(reply) ? { ...reply, epl: eplOn } : reply;
   }
   if (route === '/profile') {
     fields(body, ['displayName']);

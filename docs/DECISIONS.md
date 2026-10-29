@@ -100,6 +100,42 @@ M-30 and a `gtl-api` / `gtl-epl-jobs` deploy).
 16. **Standings** rank Sleeper season points plus the season's Pick a Team bonus; the raw Sleeper total shows on tap.
     Missing weeks are an em dash and a gap in the charts, never 0.
 
+**Addendum — EPL open access and automatic linking (October 29, 2026).** Sean: "lets automatically link users to
+fantasy epl team, also EPL section can show for everyone". Built from
+[docs/superpowers/plans/2026-10-29-epl-open-access.md](superpowers/plans/2026-10-29-epl-open-access.md). This replaces
+item 1's "only linked accounts see the EPL option or read its data" and item 2's "only the commissioner links", and
+item 14's "linked managers and the commissioner only" for `epl/fantasy/read`. Nothing is deployed: M-31
+(`20261029060000_gtl_epl_open_access.sql`) is written and **not applied** until Sean says "apply M-31", after M-30.
+
+17. **Open reads.** Every signed-in, email-confirmed account sees EPL on the sport switch (the lobby's `epl` is true
+    whenever M-30 answers; a missing or failing EPL function makes it false and never fails the lobby) and can read
+    Pick a Team (`epl/draft/read`) and Research → Fantasy (`epl/fantasy/read`). An unlinked account gets `me: null` and
+    `myQueue: []` and sees the board read-only. A queue stays private to its owner; nobody else ever sees it.
+18. **Writes stay member-only.** Picking (`epl/draft/pick`) and saving a queue (`epl/queue/save`) still need a linked
+    manager (`gtl_epl_member`), otherwise 403 `GTL_EPL_FORBIDDEN`. The commissioner routes are unchanged.
+19. **Automatic link.** On `epl/draft/read` an unlinked caller is linked once through `gtl_epl_auto_link` (skipped
+    silently while M-31 is unapplied). It links only when the caller has no link, exactly one unclaimed manager matches
+    the caller's GTL display name, and no other profile matches that manager. A display name matches a manager,
+    case-insensitively after trimming, when its first word is the manager's first name (Nemo, Cullen, Adam, Sean, Evan,
+    Mark, Steven, Darin), or the whole name is the Sleeper username or one of the manager's aliases. Anything ambiguous
+    links nothing. Aliases come from a live read of `gtl_profiles` that Sean approved on October 29 ("my user should be
+    fistathon and seanbalz"): Sean is "fistathon" and Steven is "sthomas". With the October 29 names this links six
+    managers (Cullen, Evan, Mark, Nemo, Sean, Steven); Adam and Darin have no GTL account yet.
+20. **Claim.** An account still unlinked sees "Which FEPL manager are you?" with one button per unclaimed manager and
+    "Just watching" (hides the card for the browser session). A claim (`epl/claim {ownerId}`,
+    `gtl_epl_claim_manager`) links it to that manager. The first claim wins (the manager row is locked); a later claim
+    gets `GTL_EPL_CLAIMED` (409, "Someone already claimed that manager."), an account that is already linked gets
+    `GTL_EPL_ALREADY_LINKED` (409), and an unknown manager `GTL_EPL_INVALID` (400). A manager the commissioner
+    unlinked this account from is left off its card and its claim gets `GTL_EPL_FORBIDDEN` (403).
+21. **Audit.** Every link, unlink, claim and automatic link writes a `gtl_epl_link_audit` row (manager, account, action,
+    by whom, when). The table is append-only and nothing is deleted (D-23). The commissioner can still link or unlink
+    through `epl/admin/link` (`userId: null` unlinks). An unlink sticks: neither the automatic link nor a claim gives
+    that account that manager again (both read the account's `unlink` audit rows); only the commissioner relinks the
+    pair through `epl/admin/link`.
+22. **Known risk (accepted).** An account could rename itself to an unclaimed manager's name, or claim a manager that is
+    not theirs, before the real manager does. Sean accepts this because FEPL is 8 friends. Every link is audited and the
+    commissioner can unlink, which the account cannot undo itself, and relink.
+
 ## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
 
 Sean chose Q06 next, then, asked where the new placing screen (redesign stages 43 and 44) should live: "Replace Your

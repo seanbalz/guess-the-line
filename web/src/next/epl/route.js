@@ -22,7 +22,7 @@ export function eplHash(route) {
 export const eplFragment = hash => typeof hash === 'string' && hash.startsWith('#epl');
 
 export const SPORT_HOME = Object.freeze({ nba: '#nba/games', epl: '#epl/home' });
-/** NFL / NBA, plus EPL for accounts linked to an FEPL manager (and the commissioner). */
+/** NFL / NBA, plus EPL whenever the lobby says `epl: true` (every signed-in account once M-30 is applied; EPL open access). */
 export function sportOptions(epl) {
   return [{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }, ...(epl ? [{ value: 'epl', label: 'EPL' }] : [])];
 }
@@ -31,9 +31,9 @@ export function sportOptions(epl) {
 export const EplAccessContext = createContext(false);
 
 /**
- * What SportEntry does with an EPL address: `show` EplApp once access is true, `leave` for NFL when access is false (the
- * Global Constraint: EPL is visible only to FEPL managers and the commissioner), `wait` (render nothing EPL-specific) while
- * the lobby has not answered, and `other` for an NFL or NBA address.
+ * What SportEntry does with an EPL address: `show` EplApp once access is true, `leave` for NFL when access is false, `wait` (render nothing EPL-specific) while
+ * the lobby has not answered, and `other` for an NFL or NBA address. Since EPL open access (D-68 addendum) the lobby says
+ * `epl: true` for every signed-in account once M-30 is applied, linked to a manager or not.
  */
 export function eplGate(sport, access) {
   if (sport !== 'epl') return 'other';
@@ -42,7 +42,7 @@ export function eplGate(sport, access) {
 
 // EPL access is the `epl` field of the `/lobby` reply (cloud/lobby.mjs), which the app reads anyway: the check costs no
 // request of its own. AppData.jsx notes each lobby reply here; SportEntry (above the NFL app) listens. A missing field reads
-// as false. The server still refuses every EPL read and write to non-members.
+// as false. The server lets every account read EPL and refuses picks and queues to accounts not linked to a manager.
 let lobbyAccess = null;
 const listeners = new Set();
 /** The lobby reply's EPL access: true only for `epl: true`. */

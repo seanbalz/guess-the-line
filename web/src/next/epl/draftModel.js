@@ -79,7 +79,12 @@ export function boardModel(read, now) {
     clubName: nameOfClub,
     myNode, myClub: myNode?.club ? clubOf.get(myNode.club) ?? { code: myNode.club, name: myNode.clubName } : null,
     firstMatch: firstHome ? { home: firstHome.code, away: firstHome.opponent, kickoff: firstHome.kickoff } : null,
-    queue: Array.isArray(read.myQueue) ? read.myQueue : null,
+    // Queues are a linked manager's own: an unlinked account (me null, myQueue []) gets no queue button.
+    queue: me !== null && Array.isArray(read.myQueue) ? read.myQueue : null,
+    // The managers an unlinked account may claim (EPL open access; the claim card).
+    claim: me === null && Array.isArray(read.claim?.managers)
+      ? read.claim.managers.filter(m => typeof m?.ownerId === 'string' && typeof m?.name === 'string').map(m => ({ ownerId: m.ownerId, name: m.name }))
+      : null,
     clubs,
     bonus: Array.isArray(read.bonusLastWeek) ? read.bonusLastWeek : [],
   };
