@@ -1,5 +1,5 @@
 // Public sources for the gtl-epl-jobs worker (plan 2026-10-28-epl-pick-a-team.md, Task 5). Server only: never import into
-// web/. Three reads, each bounded in size and time, with no redirects and no credentials beyond The Odds API key in its own
+// web/. Four reads, each bounded in size and time, with no redirects and no credentials beyond The Odds API key in its own
 // query string:
 //   fetchSleeperSnapshot  the six Sleeper responses /Users/seanbalsiger/gtl-epl-snapshots/snapshot.py saves (state, league,
 //                         users, rosters, one matchweek's stats and the next one's projections), each with the SHA-256 of
@@ -11,6 +11,9 @@
 //   fetchEplScores        GET /v4/sports/soccer_epl/scores?daysFrom=3 (2 credits): recent and upcoming events with final goals,
 //                         as { scores, unmapped }: an event under a team name that maps to no club is listed in `unmapped`
 //                         (its id only), so the worker never takes it for a match the feed dropped.
+//   fetchEplDrawNoBet     GET /v4/sports/soccer_epl/events/<id>/odds, draw_no_bet from the same three books (1 credit per
+//                         event; plan 2026-10-28-epl-moneyline.md Tasks 0 and 4): each book's two prices, a 3-way or
+//                         sub-100 price rejected.
 // Errors carry a fixed code and the quota the provider reported, never the key, the URL or the provider's text.
 import { ODDS_API_ORIGIN, readQuota } from './odds-provider.mjs';
 import { EPL_CLUBS, clubFromOddsName } from '../shared/epl-clubs.mjs';
@@ -154,6 +157,58 @@ export async function fetchEplOdds({ apiKey, fetchImpl = fetch } = {}) {
     events.push({ eventId: e.id, home, away, commenceTime: new Date(commence).toISOString(), h2h });
   }
   return { events, quota, unknown };
+}
+
+/** At most this many events in one draw-no-bet read (1 credit each): a full matchweek is 10. */
+export const DNB_MAX_EVENTS = 20;
+const EVENT_ID = /^[A-Za-z0-9_-]{1,100}$/;
+/** A book stops the read only when the key is refused or the provider is limiting; any other failure is that event's. */
+const STOPPING = new Set(['EPL_SOURCE_AUTH', 'EPL_SOURCE_RATE_LIMIT']);
+
+/** One book's draw-no-bet market: both clubs' American prices, or null for anything else (a third outcome such as "Draw", a
+ * missing club, a price with |p| < 100, or more than one such market). */
+function dnbBook(b, homeName, awayName, home, away) {
+  const markets = (Array.isArray(b.markets) ? b.markets : []).filter(m => record(m) && m.key === 'draw_no_bet');
+  if (markets.length !== 1 || !Array.isArray(markets[0].outcomes) || markets[0].outcomes.length !== 2) return null;
+  const price = name => { const o = markets[0].outcomes.find(x => record(x) && x.name === name); return o && american(o.price) ? o.price : null; };
+  const h = price(homeName), a = price(awayName);
+  return h === null || a === null ? null : { [home]: h, [away]: a };
+}
+
+/** EPL draw-no-bet odds for named events (event-level market, 1 credit per event), from DraftKings, FanDuel and BetMGM:
+ * `{events: [{eventId, available, home, away, commenceTime, books: {book: {club: price}}, rejected}], quota}`. An event the
+ * provider cannot price (not found, unavailable, an invalid reply or one for another event) is `{eventId, available: false}`;
+ * `rejected` counts the books whose market was not a valid 2-way price. `quota` is the newest the provider reported. */
+export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds } = {}) {
+  const key = oddsKey(apiKey);
+  if (!Array.isArray(eventIds) || !eventIds.length || eventIds.length > DNB_MAX_EVENTS || new Set(eventIds).size !== eventIds.length
+    || !eventIds.every(id => typeof id === 'string' && EVENT_ID.test(id))) fail('EPL_SOURCE_CONFIG');
+  const events = [];
+  let quota = null;
+  for (const eventId of eventIds) {
+    const url = new URL(`/v4/sports/soccer_epl/events/${eventId}/odds`, ODDS_API_ORIGIN);
+    url.search = new URLSearchParams({ regions: 'us', markets: 'draw_no_bet', bookmakers: ODDS_BOOKS.join(','), oddsFormat: 'american', apiKey: key });
+    const none = { eventId, available: false, books: {}, rejected: 0 };
+    let data;
+    try {
+      const reply = await getJson(url, ODDS_LIMIT, fetchImpl);
+      quota = reply.quota ?? quota; data = reply.data;
+    } catch (error) {
+      if (error?.quota) quota = error.quota;
+      if (STOPPING.has(error?.code)) throw error;
+      events.push(none); continue;
+    }
+    const commence = record(data) ? isoTime(data.commence_time) : NaN;
+    const home = record(data) ? clubFromOddsName(data.home_team) : null, away = record(data) ? clubFromOddsName(data.away_team) : null;
+    if (!record(data) || data.id !== eventId || !Number.isFinite(commence) || !home || !away || home === away) { events.push(none); continue; }
+    const books = {}; let rejected = 0;
+    for (const b of (Array.isArray(data.bookmakers) ? data.bookmakers : []).filter(x => record(x) && ODDS_BOOKS.includes(x.key))) {
+      const prices = Object.hasOwn(books, b.key) ? null : dnbBook(b, data.home_team, data.away_team, home, away);
+      if (prices) books[b.key] = prices; else rejected++;
+    }
+    events.push({ eventId, available: true, home, away, commenceTime: new Date(commence).toISOString(), books, rejected });
+  }
+  return { events, quota };
 }
 
 const goals = (scores, name) => {
