@@ -66,7 +66,8 @@ export const GROUP_ACTIONS = Object.freeze({
   // Stage 23 (M-06): the gated lines readers, POST /lines/read (a week's board) and /lines/game (one game in full).
   // D-62: /lines/teams, every team's regular-season record and game log from nflverse finals (no market data).
   lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research', 'teams']), writes: Object.freeze([]) }),
-  bets: Object.freeze({ reads: Object.freeze(['read', 'board', 'season']), writes: Object.freeze([]) }),
+  // M-11 (stage 41): 'place' places or edits a slip of Virtual Units bets for the published week.
+  bets: Object.freeze({ reads: Object.freeze(['read', 'board', 'season']), writes: Object.freeze(['place']) }),
   // The league feed (cloud/feed.mjs, redesign stages 61 to 65): 'react' sets or takes back an emoji reaction (M-21);
   // 'feed', 'comments' and 'reactors' read a league's feed, a post's comments and who reacted, and 'share-result' posts
   // your own scored guess (M-22). Comments are still written through communityApi('comment').
