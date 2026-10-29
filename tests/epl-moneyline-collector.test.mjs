@@ -101,3 +101,13 @@ test('missing edge provider configuration makes zero RPC/provider calls',async()
   const refresh=createEplMoneylineRefreshForLock({url:'https://fixture.supabase.co',serviceRoleKey:'test-service',apiKey:'',fetchImpl:async()=>{calls++;throw Error('must not fetch');}});
   assert.deepEqual(await refresh({userId:U(1),eventId:'e1'}),{status:'unavailable'});assert.equal(calls,0);
 });
+
+
+test('malformed due state cannot masquerade as an empty schedule or trigger a provider read',async()=>{
+  for(const due of [null,{},['e1','e1'],['bad/id']]) {
+    let calls=0;
+    const result=await runEplJob({job:'moneyline',now:T,run:{p_run:U(1),p_claim:U(2)},
+      service:{rpc:async name=>name==='gtl_epl_jobs_state'?{}:due},sources:{drawNoBet:async()=>{calls++;}}});
+    assert.equal(result.reason,'job_failed');assert.equal(calls,0);
+  }
+});
