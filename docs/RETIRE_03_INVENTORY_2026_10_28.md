@@ -165,10 +165,32 @@ canonical domain. What step 1 does not settle:
 
 - The deployments still exist and still point at the hosted API; anyone allowed
   through Access can open them. Step 2 removes them.
-- The full deployment list is still unread, but Access applies to every
-  non-production URL of the project, listed or not.
+- The full deployment list was read on October 29 (63 deployments; see below).
 - Home Screen installs made from a deployment URL now open the Access login, not
   the old app. Not checked on a real phone (step 4).
+
+## Full deployment list (October 29, 2026)
+
+Read on October 29 at about 01:55 UTC from the Cloudflare dashboard's API through
+Sean's signed-in Chrome (GET requests only; nothing changed):
+
+- **63 deployments**, every one `production` on branch `main`. No preview
+  deployments, no branch aliases and **no custom domains**; the only project
+  domain is `guess-the-line.pages.dev`. The inventory above had found 48 of them.
+- Canonical deployment: **`bb293cc1`** (from `4564fff`, 01:47 UTC).
+- The 15 not in the inventory: `bb293cc1`, `46696b67`, `a78d867c`, `7789e3ad`,
+  `d5f2d9a3`, `ae59b829`, `a3aae3af`, `394e1ec0`, `d53b04a8`, `8f87009d`,
+  `107ed858`, `9318df50`, `a1e78413`, `27ca17cd`, `e9e550b4`. Twelve are older
+  builds from October 8 to 28; the first five are October 28 and 29 releases.
+- `curl` re-check at 01:58 UTC: **all 63 deployment URLs return HTTP 302 to
+  Cloudflare Access.** `https://guess-the-line.pages.dev` returns HTTP 200 with
+  no `GameHub` chunk.
+
+So step 1 covers every hosted copy the project has. For step 2, the
+deletion list is all 63 except the canonical deployment and the one before it,
+taken at the time of deletion (today that keeps `bb293cc1` and `a78d867c`, both
+from `4564fff`, and deletes 61). Re-read the list right before deleting:
+each release adds one.
 
 ## Proposed closure plan (step 1 done; steps 2–4 need Sean's approval)
 
