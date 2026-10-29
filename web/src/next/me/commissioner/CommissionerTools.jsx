@@ -143,10 +143,13 @@ function Status({ app, week }) {
   </>;
 }
 
-function WeekOpening({ app, week }) {
+// A publish refreshes Community, which moves the open week and so remounts this form (its key); the parent carries the
+// confirmation across that remount, so "Week N is open." stays on screen.
+function WeekOpening({ app, week, notice: carried = '', onNotice }) {
   const id = useId();
   const [season, setSeason] = useState(String(week?.season || new Date().getFullYear())), [number, setNumber] = useState(String((week?.week || 0) + 1));
-  const [preview, setPreview] = useState(null), [busy, setBusy] = useState(false), [problem, setProblem] = useState(''), [notice, setNotice] = useState('');
+  const [preview, setPreview] = useState(null), [busy, setBusy] = useState(false), [problem, setProblem] = useState(''), [notice, setNoticeState] = useState(carried);
+  const setNotice = message => { setNoticeState(message); onNotice?.(message); };
   const live = useRef(true);
   useEffect(() => () => { live.current = false; }, []);
   async function run(action) {
@@ -257,14 +260,15 @@ function TripleThreatTool({ app, tool }) {
 export function CommissionerTools({ tool = null }) {
   const app = useAppData(), shell = useShell();
   const week = app.community?.data?.week ?? null;
-  const open = next => shell.setSheetArgs({ sub: 'commissioner', tool: next });
+  const [weekNotice, setWeekNotice] = useState('');
+  const open = next => { setWeekNotice(''); shell.setSheetArgs({ sub: 'commissioner', tool: next }); };
   const shown = shell.communityAdmin && COMMISSIONER_COPY.tools.some(item => item.id === tool) ? tool : null;
   const back = shown ? { label: COMMISSIONER_COPY.title, onBack: () => open(null) } : { label: 'Menu', onBack: () => shell.setSheetArgs({ sub: null, tool: null }) };
   let body;
   if (!shell.communityAdmin) body = <p className="gx-t-body">{COMMISSIONER_COPY.only}</p>;
   else if (!shown) body = <Hub open={open}/>;
   else if (shown === 'status') body = <Status app={app} week={week}/>;
-  else if (shown === 'weeks') body = <WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
+  else if (shown === 'weeks') body = <WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} notice={weekNotice} onNotice={setWeekNotice}/>;
   else if (shown === 'referees') body = <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
   else body = <TripleThreatTool key={shown} app={app} tool={shown}/>;
   return <Sheet title={shown ? label(shown) : COMMISSIONER_COPY.title} back={back} onClose={shell.closeSheet} tall className="gx-cm">

@@ -57,6 +57,22 @@ export function marketBoard(board, read) {
     finals: finals.length ? { label: 'Final', count: finals.length, cards: finals } : null };
 }
 
+/**
+ * D-66: the board says where its quotes come from once, not on every card. `{ source, observed }` when every open
+ * quote shares one source and update time, `{ updates }` (how many distinct ones) when they differ, or null when no
+ * open quote has a source. Each game's sheet still lists its own source, books and times.
+ */
+export function boardQuotes(board) {
+  const cards = [...(board?.groups ?? []).flatMap(group => group.cards), ...(board?.started?.cards ?? []), ...(board?.finals?.cards ?? [])];
+  const seen = new Map();
+  for (const card of cards) for (const market of ['spread', 'total']) {
+    const cell = card[market];
+    if (cell?.open && cell.source) seen.set(`${cell.source}\u0000${cell.observed}`, { source: cell.source, observed: cell.observed });
+  }
+  if (!seen.size) return null;
+  return seen.size === 1 ? [...seen.values()][0] : { updates: seen.size };
+}
+
 /** One gate per board; the M-03 reader controls whether a reveal confirmation is offered. */
 export function boardGate(read, canReveal = false) {
   if (read.status !== 'ready') return null;
