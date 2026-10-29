@@ -116,3 +116,18 @@ test('shared new-entry bound fits every admitted reference; larger legacy stored
  const f=world({ready:false});const read=await f.call('read');assert.equal(read.available,false);assert.equal(read.reason,'schema_unavailable');assert.equal(read.guesses.length,1);
  await assert.rejects(f.call('save',{eventId:'e1',club:'ARS',price:-130,lock:true}),e=>e.code==='GTL_EPL_GUESS_OFF');assert.ok(!f.calls.some(c=>c[0]==='gtl_epl_save_guess_current'));
 });
+
+
+test('full-season gate catalog has at most four reads in flight, stable order and no provider calls',async()=>{
+ const f=world({current:null});const weeks=Array.from({length:38},(_,i)=>({season:2026,week:38-i}));
+ f.service.guessWeeks=async()=>weeks;let active=0,peak=0,count=0;
+ f.service.guessGate=async(season,week)=>{active++;count++;peak=Math.max(peak,active);await new Promise(resolve=>setImmediate(resolve));active--;return week%2===0;};
+ const view=await f.call('read',{season:2026,week:9});assert.equal(peak,4);assert.equal(active,0);assert.equal(count,38);assert.deepEqual(view.weeks,weeks.map(w=>({...w,available:w.week%2===0})));assert.ok(!f.calls.some(c=>c[0]==='refresh'));
+ const off=world({ready:false});off.service.guessGate=()=>{throw new Error('readiness false must buy/read no gate');};assert.equal((await off.call('read')).available,false);
+});
+
+test('a failing catalog worker yields no partial board and every active read finishes',async()=>{
+ const f=world();f.service.guessWeeks=async()=>Array.from({length:8},(_,i)=>({season:2026,week:i+1}));let active=0;
+ f.service.guessGate=async(season,week)=>{active++;await new Promise(resolve=>setImmediate(resolve));active--;if(week===2)throw new Error('gate unavailable');return true;};
+ await assert.rejects(f.call('read'),/gate unavailable/);assert.equal(active,0);assert.ok(!f.calls.some(c=>c[0]==='gtl_epl_guess_board'));
+});

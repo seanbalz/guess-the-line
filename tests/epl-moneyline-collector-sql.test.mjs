@@ -224,3 +224,15 @@ test('an observation completed before a concurrent lock cannot become that pendi
   assert.equal((await f.guess()).reference_source,'first-after');
   assert.equal((await f.db.query('select reference_price from public.gtl_epl_guesses where owner_id=$1',[OWNERS[1]])).rows[0].reference_price,null);
 });
+
+test('independent M36 before M34 keeps existing disabled moneyline schedule and safe-save capabilities',async t=>{
+  const f=await setup(t);await f.enable();await f.gate();
+  await f.db.exec("update public.gtl_epl_jobs_schedule set enabled=false where job='moneyline'");
+  await f.db.exec(fs.readFileSync('supabase/migrations/20261029161613_gtl_epl_standings.sql','utf8'));
+  assert.equal((await f.db.query("select enabled from public.gtl_epl_jobs_schedule where job='moneyline'")).rows[0].enabled,false);
+  assert.equal(await f.call('gtl_epl_moneyline_save_ready'),true);
+  assert.equal(await f.call('gtl_epl_moneyline_gate',{p_season:2026,p_week:9}),true);
+  assert.equal((await f.call('gtl_epl_save_guess_current',{p_user:U(1),p_event_id:'e1',p_club:'ARS',p_price:-120,p_lock:true,p_now:at(T)})).status,'locked');
+  await f.db.exec("insert into public.gtl_epl_jobs_schedule(job,enabled) values('standings',false)");
+  assert.equal((await f.begin()).status,'unavailable','later migration never enables collection');
+});
