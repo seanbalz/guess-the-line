@@ -34,6 +34,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261029150000, // M-32 gtl_epl_moneyline: EPL Guess the Line guesses, references, board and leaderboard (needs M-30; after M-31), awaiting Sean's "apply M-32".
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
 ];
 /**
@@ -44,6 +45,7 @@ export const FIX_FORWARD = [
   20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
   20261026131000, // M-21 gtl_feed_reactions: append-only reactions; the old like keeps reading from its own table
   20261026133000, // M-23 gtl_kickoff_posts: writes rows (kickoff posts and a backfill), kept by D-23; a trigger, no replaced body
+  20261029150000, // M-32 gtl_epl_moneyline: widens the EPL job constraint; keep dnb-check disabled rather than narrow over saved evidence.
 ];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan

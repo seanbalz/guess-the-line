@@ -116,8 +116,8 @@ async function run({ job, state, snapshots, sources = fakeSources(), push = fake
   return { service, sources, push, response, body: await response.json(), complete: service.args('gtl_epl_complete_job').at(-1) };
 }
 
-test('the worker lists its five jobs and only its own RPCs', () => {
-  assert.deepEqual(EPL_JOBS, ['snapshot', 'fixtures', 'resolve', 'settle', 'nudge']);
+test('the worker lists its six jobs and only its own RPCs', () => {
+  assert.deepEqual(EPL_JOBS, ['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check']);
   assert.equal(EPL_RESERVE_CREDITS, 50);
   for (const name of ['gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices', 'gtl_epl_save_snapshot'])
     assert.ok(EPL_JOBS_RPCS.includes(name), name);

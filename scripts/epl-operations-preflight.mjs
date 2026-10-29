@@ -3,8 +3,10 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { catalog, readMigrations } from './migration-functions.mjs';
+import { ALL, HOSTED } from '../tests/migrations.mjs';
 
-export function eplFunctionExpectations(entries = readMigrations()) {
+// The applied ledger is the operational baseline. Pending source (M-32, for example) is a separate readiness target.
+export function eplFunctionExpectations(entries = readMigrations(HOSTED)) {
   return [...catalog(entries).latest.entries()]
     .filter(([name]) => name.startsWith('public.gtl_epl_'))
     .sort(([a], [b]) => a.localeCompare(b))
@@ -13,10 +15,11 @@ export function eplFunctionExpectations(entries = readMigrations()) {
 
 const quote = value => `'${value.replaceAll("'", "''")}'`;
 
-export function eplOperationsPreflightSql(entries = readMigrations()) {
+export function eplOperationsPreflightSql(entries, { scope = entries === undefined ? 'hosted-ledger' : 'provided' } = {}) {
   const expected = eplFunctionExpectations(entries);
   if (!expected.length) throw new Error('No EPL function definitions found.');
-  return `-- EPL operational readback. Generated from this checkout's latest migration bodies.
+  return `-- EPL operational readback. Source scope: ${scope}.
+-- Default: the applied migration ledger; --all-source: readiness against every local migration, including pending files.
 -- Run on the intended hosted project using an authenticated administrator. SELECT only.
 -- No snapshot payloads, picks, queues, user IDs, endpoints, capabilities or cron commands are returned.
 with expected(name, md5, migration) as (values
@@ -34,6 +37,7 @@ ${expected.map(fn => `  (${quote(fn.name)}, ${quote(fn.md5)}, ${quote(fn.file)})
   from public.gtl_epl_job_runs where started_at>=clock_timestamp()-interval '7 days' group by job,status,reason
 )
 select jsonb_build_object(
+  'sourceScope',${quote(scope)},
   'checkedAt',clock_timestamp(),
   'functions',coalesce((select jsonb_agg(to_jsonb(f) order by f.name,f.signature) from functions f),'[]'::jsonb),
   'tables',coalesce((select jsonb_agg(jsonb_build_object('name',c.relname,'rls',c.relrowsecurity,
@@ -54,6 +58,8 @@ select jsonb_build_object(
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (process.argv.length > 2) { console.error('Usage: node scripts/epl-operations-preflight.mjs'); process.exitCode = 2; }
-  else process.stdout.write(eplOperationsPreflightSql());
+  if (process.argv.length > 3 || (process.argv[2] && process.argv[2] !== '--all-source')) {
+    console.error('Usage: node scripts/epl-operations-preflight.mjs [--all-source]'); process.exitCode = 2;
+  } else process.stdout.write(process.argv[2] === '--all-source'
+    ? eplOperationsPreflightSql(readMigrations(ALL), { scope: 'all-source' }) : eplOperationsPreflightSql());
 }
