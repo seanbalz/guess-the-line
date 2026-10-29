@@ -10,7 +10,7 @@ import { ALL, NOT_HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable, storeBookLines } from './cloud-browser/community-world.mjs';
 import { sendBallot } from './helpers/guess-week.mjs';
 
-const MIGRATION = '20261028180000_gtl_bets_place.sql';
+const MIGRATION = '20261028181000_gtl_bets_place.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed.';
 const FUNCTIONS = ['gtl_place_bets(uuid,integer,integer,uuid,jsonb)', 'gtl_bets_newest_quote(integer,integer,jsonb,text,text,text,timestamptz)', 'gtl_bets_terms(jsonb)'];
 

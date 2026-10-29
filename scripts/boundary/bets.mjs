@@ -65,8 +65,8 @@ export const workerChecks = Object.freeze([
 export const awaitingDeploy = Object.freeze({
   'rpc/gtl_social_auto_grade': 'migration 20261028120000_gtl_social_auto_settle.sql',
   'rpc/gtl_settle_social_pending': 'migration 20261028120000_gtl_social_auto_settle.sql',
-  'rpc/gtl_place_bets': 'migration 20261028180000_gtl_bets_place.sql',
-  'rpc/gtl_bets_newest_quote': 'migration 20261028180000_gtl_bets_place.sql',
-  'rpc/gtl_bets_terms': 'migration 20261028180000_gtl_bets_place.sql',
+  'rpc/gtl_place_bets': 'migration 20261028181000_gtl_bets_place.sql',
+  'rpc/gtl_bets_newest_quote': 'migration 20261028181000_gtl_bets_place.sql',
+  'rpc/gtl_bets_terms': 'migration 20261028181000_gtl_bets_place.sql',
   'gtl-api/bets/place': 'the gtl-api deploy with /bets/place',
 });

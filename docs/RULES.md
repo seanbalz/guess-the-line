@@ -258,7 +258,7 @@ scheduler is a later stage.
 
 ## Virtual Units placement (M-11, written)
 
-M-11 (`20261028180000_gtl_bets_place.sql`, build plan stage 41) adds
+M-11 (`20261028181000_gtl_bets_place.sql`, build plan stage 41) adds
 `POST /bets/place` for the published community week. It is written and not
 applied; it waits for Sean's "apply M-11" and a `gtl-api` deploy.
 
