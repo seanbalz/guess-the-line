@@ -24,7 +24,7 @@ async function capture(page, info, state) {
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const short = await page.locator('.gx').evaluate(root => [...root.querySelectorAll('button,a[href]')].filter(el => el.getClientRects().length && !el.closest('[hidden],[inert]')).filter(el => { const r = el.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; }).map(el => el.textContent));
+    const short = await page.locator('.gx').evaluate(root => [...root.querySelectorAll('button,a[href]')].filter(el => el.getClientRects().length && !el.closest('[hidden],[inert],.gx-sr-only:not(.gx-skip-link:focus)')).filter(el => { const r = el.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; }).map(el => el.textContent));
     expect(short).toEqual([]);
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
     await page.screenshot({ path: info.outputPath(`fantasy-${state}-${theme}-${forcedColors}.png`) });

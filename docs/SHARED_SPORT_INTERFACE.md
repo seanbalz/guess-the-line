@@ -35,9 +35,11 @@ moneyline implementation. That work is coordinated with the **Review Guess the
 Line progress** chat and is not claimed complete by this interface change.
 
 The child contract reserved for that follow-on is `guess/EplGuess.jsx` with
-`{ api, accountId, onNavigate }` and `guess/EplGuessLeaderboard.jsx` with
+`{ api, accountId, onNavigate?, onDirtyChange? }` and `guess/EplGuessLeaderboard.jsx` with
 `{ api, accountId, season? }`. EPL matchweek comes from EPL server data. Shell
-integration must not substitute the currently selected NFL week.
+integration must not substitute the currently selected NFL week. The shared
+shell owns the leave guard when the child delegates dirty state to it; cleanup
+must clear that state when the child unmounts.
 
 ## Verification and release boundary
 
@@ -57,10 +59,28 @@ Local verification on October 29:
   retained NBA entry/return and draft guards. There are 32 unique browser checks
   across these runs.
 
+The first PR CI run identified 29 browser failures because ten phone-layout
+helpers measured the intentionally hidden skip link as a visible 1px target.
+Those helpers now exclude screen-reader-only content while continuing to measure
+the skip link when focus reveals it. Hidden route headings remain excluded even
+when navigation focuses them. Ordinary target-size and clipping checks remain
+in place; the revealed link also has the shared 44px minimum-height token.
+
+All 29 originally failing cases passed across the focused correction runs. The
+first rerun passed 32 of 33 cases; the remaining Home-heading check passed in the
+final five-case run together with all four shared-sport checks. The two new
+keyboard tests cover NFL/EPL at 320px and 390px in both themes: Tab reveals the
+link, Enter focuses main without changing the sport address, and an open menu
+keeps background controls inert. Typecheck, all 14 token checks and Brand QA also
+passed after the correction. Full CI on the corrected source remains a merge
+gate; these local results do not substitute for it.
+
 These are local tests using synthetic accounts and disposable data. They do not
 establish hosted deployment, physical-iPhone acceptance or completion of other
 EPL features. No migration, production data write or deployment is part of this
-change. Release remains coordinated with **Hide NBA and deploy EPL items**.
+change. The **Redraft logo and favicon** chat owns the coordinated frontend
+release of PRs #376 and #379. The **Review Guess the Line progress** and
+**Hide NBA and deploy EPL items** chats retain the separate EPL follow-on work.
 
 | Dark, 320px | Light, 320px |
 | --- | --- |
