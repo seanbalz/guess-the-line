@@ -54,9 +54,8 @@ export const FIX_FORWARD = [
  */
 // M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
-export const REQUIRES = Object.freeze({
-  20261029060000: [20261028190000], // M-31 reads M-30's EPL tables and replaces its gtl_epl_link_manager
-});
+// M-31 (20261029060000) reads M-30's EPL tables; M-30 is hosted (20261029051846), so it needs no entry here.
+export const REQUIRES = Object.freeze({});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();

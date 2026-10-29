@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { NOT_HOSTED, PRELUDE, REQUIRES } from './migrations.mjs';
+import { APPLIED, NOT_HOSTED, PRELUDE, REQUIRES } from './migrations.mjs';
 const { PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js');
 
 const M30 = 'supabase/migrations/20261028190000_gtl_epl_pick_a_team.sql';
@@ -30,9 +30,10 @@ async function setup(t) {
   return { db, call, profile, autoLink, claim, linkedTo, audit };
 }
 
-test('M-31 is listed in NOT_HOSTED and requires the unapplied M-30', () => {
+test('M-31 is listed in NOT_HOSTED and builds on the hosted M-30', () => {
   assert.ok(NOT_HOSTED.includes(20261029060000));
-  assert.deepEqual(REQUIRES[20261029060000], [20261028190000]);
+  assert.ok(APPLIED.includes(20261028190000));
+  assert.equal(REQUIRES[20261029060000], undefined);
 });
 
 test('a unique first-name match links the caller, and an already-linked caller then gets null', async t => {
