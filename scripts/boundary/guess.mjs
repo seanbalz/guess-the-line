@@ -4,9 +4,11 @@
 // lines, bets, league, me (redesign build plan, stage 4). A new table, RPC, route or worker joins its
 // area's file; while it is not hosted yet, it is also listed in that file's awaitingDeploy.
 import { missingId, missingLeague } from './fixtures.mjs';
+import { tables as eplOpsTables, rpcChecks as eplOpsRpcChecks, awaitingDeploy as eplOpsAwaiting } from './epl-operations.mjs';
 
 /** Tables, without the `gtl_` prefix: each is read anonymously and must be denied. */
 export const tables = Object.freeze([
+  ...eplOpsTables,
   'prediction_archives', 'weekly_slates', 'weekly_versions', 'weekly_ballots', 'weekly_selections', 'weekly_eligibility_rulings',
   'submission_odds_intents', 'reference_line_imports', 'reference_lines', 'reference_line_voids', 'benchmark_policies', 'frozen_benchmarks',
   'result_review_lock', 'reviewed_result_events', 'weekly_optouts', 'week_open_schedule', 'week_open_runs', 'ruled_ballot_imports', 'week_forfeits',
@@ -20,6 +22,7 @@ export const tables = Object.freeze([
 
 /** [rpc, inert body]: each is called anonymously and must be denied. */
 export const rpcChecks = Object.freeze([
+  ...eplOpsRpcChecks,
   // M-32: service-only. No real actor/event, valid guess, or clock is supplied to a writer.
   ['gtl_epl_moneyline_distance', { p_guess: -100, p_real: 100 }],
   ['gtl_epl_guess_json', { p_g: null, p_kickoff: null, p_at: null }],
@@ -157,6 +160,7 @@ export const workerChecks = Object.freeze([
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
 // P-03's four functions left this list with its hosted apply (RELEASE_2026_10_26_POINTS_JOBS.md, Gate M step 8).
 export const awaitingDeploy = Object.freeze({
+  ...eplOpsAwaiting,
   'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',

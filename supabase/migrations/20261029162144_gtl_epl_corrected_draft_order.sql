@@ -127,7 +127,7 @@ begin
     end if;
     select * into corrected from public.gtl_epl_snapshots where id=item.recheck_snapshot_id;
     if cutoff is null or corrected.captured_at>=cutoff then pending:=pending+1; continue; end if;
-    select * into baseline from public.gtl_epl_snapshots where label in ('after-mw'||(w.week-1),'after-mw'||lpad((w.week-1)::text,2,'0'),'after-mw'||(w.week-1)||'-recheck')
+    select * into baseline from public.gtl_epl_snapshots where payload->'state'->>'season'=w.season::text and label in ('after-mw'||(w.week-1),'after-mw'||lpad((w.week-1)::text,2,'0'),'after-mw'||(w.week-1)||'-recheck')
       order by (label like '%-recheck') desc,captured_at desc,id desc limit 1;
     if not found or baseline.captured_at>=corrected.captured_at
       or baseline.payload->'state'->>'season' is distinct from w.season::text

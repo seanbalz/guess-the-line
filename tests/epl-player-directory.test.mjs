@@ -166,7 +166,7 @@ test('optional directory outages and invalid maps preserve the base snapshot and
   }
 });
 
-for (const recheckInstalled of [false, true]) test(`a good daily base capture with a failed optional directory is saved without same-day retry (M33 ${recheckInstalled ? 'installed' : 'absent'})`, async () => {
+for (const [recheckInstalled,orderInstalled] of [[false,false],[true,false],[true,true]]) test(`a good daily base capture with a failed optional directory is saved without same-day retry (M33 ${recheckInstalled ? 'installed' : 'absent'}, M35 ${orderInstalled ? 'installed' : 'absent'})`, async () => {
   const { fetchImpl, calls } = fixture({ status: 503 });
   let now = NOW;
   const sources = createEplSources({ fetchImpl, clock: () => now });
@@ -174,6 +174,10 @@ for (const recheckInstalled of [false, true]) test(`a good daily base capture wi
   const saved = [];
   const service = { async rpc(name, args) {
     if (name === 'gtl_epl_jobs_state') return state;
+    if (name === 'gtl_epl_apply_recheck_orders') {
+      if (orderInstalled) return {applied:0,sameOrder:0,preserved:0,pending:0};
+      throw Object.assign(new Error('Optional M35 RPC not installed.'), {code:'GTL_EPL_ORDER_UPDATE_OFF'});
+    }
     if (name === 'gtl_epl_recheck_state') {
       if (recheckInstalled) return null;
       throw Object.assign(new Error('Optional M33 RPC not installed.'), { code: 'GTL_EPL_RECHECK_OFF' });
@@ -185,6 +189,7 @@ for (const recheckInstalled of [false, true]) test(`a good daily base capture wi
   const first = await run();
   assert.equal(first.reason, null);
   assert.equal(first.detail.recheckReady, recheckInstalled);
+  assert.equal(first.detail.orderUpdateReady,orderInstalled);
   assert.equal(saved[0].p_label, DAY);
   assert.equal(saved[0].p_payload.sources.player_directory.status, 'unavailable');
   assert.equal(saved[0].p_payload.players['1'].position, 'M');
