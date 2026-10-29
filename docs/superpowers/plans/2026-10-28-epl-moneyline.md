@@ -4,15 +4,19 @@
 
 **Goal:** The 8 FEPL managers guess, per EPL match, the favorite and its 2-way (draw no bet) moneyline price; each guess is scored by distance from the real price at lock-in; a leaderboard ranks lowest average distance per match guessed.
 
-**Architecture:** Pure rules in `shared/epl-moneyline.mjs`; migration M-31 (guess, reference and history tables + RPCs, service-only); `cloud/epl.mjs` routes `epl/guess/*`; Plan 1 `gtl-epl-jobs` `fixtures` job also collects `draw_no_bet` per event and resolves pending references; UI under `web/src/next/epl/guess/`.
+**Architecture:** Pure rules in `shared/epl-moneyline.mjs`; migration M-32 (guess, reference and history tables + RPCs, service-only); `cloud/epl.mjs` routes `epl/guess/*`; Plan 1 `gtl-epl-jobs` `fixtures` job also collects `draw_no_bet` per event and resolves pending references; UI under `web/src/next/epl/guess/`.
 
 **Tech Stack:** as Plan 1.
 
 **Spec:** `docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md` section 7. Depends on Plan 1 (fixtures, prices, member check, EplApp).
 
+**Source progress, October 29:** Tasks 0–2 have implementation and local tests; the live Task 0 verdict is still required.
+M-32 is not applied, the new check is not enabled, and Tasks 3–5 remain queued behind that live gate. See
+[the moneyline workflow evidence](../../EPL_MONEYLINE_WORKFLOW_2026_10_29.md) for verified scope and remaining steps.
+
 ## Global Constraints
 
-- Only the 8 FEPL managers (Plan 1 `gtl_epl_member` returns an owner_id; the commissioner without an FEPL row cannot guess).
+- Only linked FEPL managers can guess (`gtl_epl_member` returns an owner_id). Since M-31 (Oct 29, D-68 addendum) every signed-in account can read EPL, so the leaderboard and the guesses others may see (per the visibility rule) are readable by everyone; writes stay member-only.
 - Market: 2-way draw-no-bet. Real price = median of DraftKings, FanDuel, BetMGM for the chosen club.
 - Guess = `{eventId, club, price}`; `club` is home or away of that event; `price` is an integer American price with |price| ≥ 100 (−100 and +100 both allowed and equal).
 - Distance: map American odds to a line where −100 ≡ +100: `x(p) = p >= 100 ? p - 100 : p + 100` (so +120 → 20, −110 → −10); distance = `|x(guess) − x(real)|`. −110 vs +120 = 30; −150 vs −120 = 30; +100 vs −100 = 0.
@@ -32,25 +36,32 @@
 
 ---
 
-### Task 0 (gate): live draw-no-bet check — stop if it fails
+### Task 0 (gate, server-side): draw-no-bet check inside gtl-epl-jobs
 
-**Files:** Create `scripts/epl-dnb-check.mjs` (reads `THE_ODDS_API_KEY` from env, lists `soccer_epl` events, fetches `/v4/sports/soccer_epl/events/<id>/odds?regions=us&markets=draw_no_bet&bookmakers=draftkings,fanduel,betmgm&oddsFormat=american` for at most 3 events, prints per event the books present, both prices, and `x-requests-remaining`; refuses to run if remaining < 60); record the output in `docs/ODDS_PROVIDER_EVALUATION.md` (dated row).
-- [ ] Run on the Mac mini (where the key lives): `THE_ODDS_API_KEY=… node scripts/epl-dnb-check.mjs`.
-- [ ] **Exit criteria:** ≥ 2 of 3 events return `draw_no_bet` from ≥ 2 of the 3 books with two prices each. If not met: stop this plan and bring the output to Sean (spec section 9). If the market key differs (e.g. only via `h2h_lay`/alternate), stop and bring it to Sean.
-- [ ] Commit `docs(epl): live draw-no-bet check result`.
+**Controller ruling (Oct 29):** Sean asked for everything to run without him, and the odds key exists only in the hosted function secrets. So the gate check runs inside the deployed worker, not by hand. It replaces the manual `scripts/epl-dnb-check.mjs`.
+
+**Files:** Modify `cloud/epl-sources.mjs` (`fetchEplDrawNoBet`, the same as Task 4's signature) and `cloud/epl-jobs.mjs`. Add a job `dnb-check` that:
+- runs at most once a day, on the existing schedule table (a new row the cron file adds, created disabled, and added to `supabase/admin/epl_jobs_cron.sql`);
+- checks at most 3 upcoming events, and refuses to run if remaining credits are under 60;
+- records per event the books present and both prices in the run's `detail`;
+- sets a `dnbAvailable` flag, stored as the newest `dnb-check` run.
+
+Test: `tests/epl-dnb.test.mjs` (fake fetch).
+
+**Exit rule, in code:** Guess the Line is offered for a week once a `dnb-check` of that week succeeded with at least 2 of 3 events priced by at least 2 of the 3 books, and then stays open for the rest of that week: `dnbGateOpen` reads the week's succeeded checks, so a later skip never closes it, and the job skips as `not_due` (no credits, no verdict) when fewer than 2 fixtures are still ahead (round 1 review fix). Otherwise the Play → Guess the Line tab says "Moneyline guessing isn't available this week." and nothing else of plan 3 is visible. No human check is needed. Record the first live result in `docs/ODDS_PROVIDER_EVALUATION.md` in a follow-up once it runs.
+- [x] Source and fake-provider tests implemented; disabled schedule SQL is compatible with M-32. This completes the check's implementation only; deployment, enablement and a live passing result remain open.
 
 ### Task 1: Moneyline rules (`shared/epl-moneyline.mjs`)
 
 **Files:** Create `shared/epl-moneyline.mjs`; Test `tests/epl-moneyline.test.mjs`
 **Interfaces:** Produces `toLine(price: number) -> number`, `distance(guess: number, real: number) -> number`, `validPrice(p) -> boolean`, `median(prices: number[]) -> number|null` (on the `toLine` scale, converted back; even count → mean of middle two on the line scale, rounded to integer American), `leaderboard(rows: {ownerId, distance: number|null}[]) -> {ownerId, average: number, guessed: number, unscored: number}[]` (sorted average asc, then guessed desc, then ownerId).
-- [ ] Step 1: failing tests: `distance(-110, 120) === 30`; `distance(-150, -120) === 30`; `distance(100, -100) === 0`; `distance(-105, 105) === 10`; `validPrice(99) === false`, `validPrice(-100) === true`; `median([-110, 120])` → `105` (line −10 and 20 → 5 → +105); `leaderboard` average ties broken by guessed.
-- [ ] Step 2 FAIL → Step 3 implement → Step 4 PASS → Step 5 commit `feat(epl): moneyline distance and leaderboard rules`.
+- [x] Pure rules and tests implemented: distance across even odds, validation, normalized book median and leaderboard ties. Tested locally; this is not hosted evidence.
 
-### Task 2: Migration M-31 (guesses)
+### Task 2: Migration M-32 (guesses)
 
-**Files:** Create `supabase/migrations/<stamp>_gtl_epl_moneyline.sql` (stamp after M-30); Modify `tests/migrations.mjs` (`NOT_HOSTED`), `docs/REDESIGN_BUILD_PLAN.md` §6 (M-31 row, apply after M-30); Test `tests/epl-moneyline-sql.test.mjs` (PGlite, like Plan 1's `tests/epl-migration-sql.test.mjs`)
+**Files:** Create `supabase/migrations/20261029150000_gtl_epl_moneyline.sql` (after M-31 `20261029060000`; check open PRs for the same version first); Modify `tests/migrations.mjs` (`NOT_HOSTED`), `docs/REDESIGN_BUILD_PLAN.md` §6 (M-32 row, apply after M-31); Test `tests/epl-moneyline-sql.test.mjs` (PGlite, like Plan 1's `tests/epl-migration-sql.test.mjs`)
 **Interfaces:** Tables `gtl_epl_guesses(season, week, event_id, owner_id, club, price int, status text check in ('draft','locked'), locked_at, reference_price int null, reference_observed_at, reference_source text check in ('at-lock','first-after'), distance int null, primary key(event_id, owner_id))`, `gtl_epl_guess_history` (every save); prices from Plan 1 `gtl_epl_prices` with `market='draw_no_bet'`. RPCs (service-only, invoker): `gtl_epl_save_guess(p_user, p_event_id, p_club, p_price, p_lock boolean, p_now)` (errors `GTL_EPL_GUESS_LOCKED`, `GTL_EPL_GUESS_CLOSED`, `GTL_EPL_GUESS_INVALID`, `GTL_EPL_FORBIDDEN`; on lock sets reference from newest stored DNB median for that club at or before `p_now`, else pending), `gtl_epl_resolve_pending_references(p_event_id)` (first price observed after `locked_at` and before kickoff), `gtl_epl_guess_board(p_user, p_season, p_week)` (own guesses + others' only where locked-by-viewer or kicked off), `gtl_epl_guess_leaderboard(p_season)`.
-- [ ] Failing SQL tests for Review Focus 1, 3, 4; FAIL → write migration → PASS → commit `feat(epl): M-31 moneyline guesses (not applied)`.
+- [x] M-32 source and executed PGlite tests implemented for Review Focus 1, 3, 4, privacy and the disabled check job. Listed in `NOT_HOSTED`; hosted apply remains open. The schedule constraint widening is fix-forward: disable `dnb-check` and preserve stored evidence rather than narrowing the constraint over its row.
 
 ### Task 3: Routes
 
