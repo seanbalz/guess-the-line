@@ -1,7 +1,7 @@
 // Boundary readiness uses fake HTTP replies only. No live table/RPC, provider or hosted migration is touched.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { awaitingDeploy, checkCloudBoundary } from '../scripts/check-cloud-boundary.mjs';
+import { awaitingDeploy, checkCloudBoundary, privateResponse } from '../scripts/check-cloud-boundary.mjs';
 import { NOT_HOSTED, APPLIED } from './migrations.mjs';
 
 const options = { url: 'https://onmrgvcehkflfaizvedl.supabase.co', key: 'sb_publishable_boundary_fixture', log() {} };
@@ -66,4 +66,11 @@ test('commissioner correction denials and pending-table replies cannot carry rev
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: (url, request) => url.includes('/rest/v1/gtl_epl_stat_rechecks?')
     ? reply(404, { code: 'PGRST205', rosters: [] }) : denied(url, request),
   }), /private material in not-found response/);
+});
+
+// Public provider license attribution uses a string, while correction evidence is structured.
+test('public change attribution passes while correction changes arrays and objects remain private', () => {
+  assert.doesNotMatch(JSON.stringify({ attribution: { changes: 'Kickoff-hour values selected by GTL' } }), privateResponse);
+  for (const changes of [[], {}, [{ pointsChange: 4 }]])
+    assert.match(JSON.stringify({ changes }), privateResponse);
 });
