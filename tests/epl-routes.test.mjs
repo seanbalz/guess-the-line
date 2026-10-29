@@ -32,7 +32,8 @@ function weekState(overrides = {}) {
 }
 
 /** A fake EPL service: `member` is what gtl_epl_member answers, `admin` what gtl_community_admin answers. */
-function fakeService({ member = ADAM, admin = false, state = weekState(), queue = ['ARS', 'LIV'], latest = { season: 2026, week: 9 }, errors = {} } = {}) {
+function fakeService({ member = ADAM, admin = false, state = weekState(), queue = ['ARS', 'LIV'], latest = { season: 2026, week: 9 }, errors = {},
+  autoLink = null, unclaimed = [[DARIN, 'Darin'], [ADAM, 'Adam']] } = {}) {
   const calls = [];
   return {
     calls,
@@ -40,6 +41,8 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
       calls.push([name, args]);
       if (Object.hasOwn(errors, name)) throw providerEplError(errors[name]);
       if (name === 'gtl_epl_member') return member;
+      if (name === 'gtl_epl_auto_link') return autoLink;
+      if (name === 'gtl_epl_claim_manager') return { ownerId: args.p_owner_id, userId: args.p_user, name: 'Adam' };
       if (name === 'gtl_community_admin') return admin;
       if (name === 'gtl_epl_week_state') return state;
       if (name === 'gtl_epl_save_pick') return { season: args.p_season, week: args.p_week, ownerId: member, club: args.p_club, action: 'pick', picks: [...state.picks, { ownerId: member, club: args.p_club, source: 'pick', pickedAt: new Date(NOW).toISOString(), final: false }] };
@@ -57,6 +60,7 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
     },
     async latestWeek() { calls.push(['latestWeek']); return latest; },
     async readQueue(season, week, ownerId) { calls.push(['readQueue', season, week, ownerId]); return queue; },
+    async unclaimedManagers() { calls.push(['unclaimedManagers']); return unclaimed.map(([ownerId, name]) => ({ ownerId, name })); },
   };
 }
 const call = (route, body, service, user = USER) => handleEpl({ route, body, user, service, clock: () => NOW });
@@ -67,11 +71,11 @@ const rejectsWith = (promise, status, code) => assert.rejects(promise, error => 
   return true;
 });
 
-test('EPL_METHODS is the eight POST routes, frozen, and registered in gtl-api', () => {
+test('EPL_METHODS is the nine POST routes, frozen, and registered in gtl-api', () => {
   assert.deepEqual({ ...EPL_METHODS }, {
     '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
     '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
-    '/epl/fantasy/read': ['POST'],
+    '/epl/fantasy/read': ['POST'], '/epl/claim': ['POST'],
   });
   assert.ok(Object.isFrozen(EPL_METHODS));
   assert.equal(ROUTE_MODULES.epl, EPL_METHODS);
@@ -85,17 +89,17 @@ test('every route requires a signed-in account and an unknown route is 404', asy
   await rejectsWith(call('/epl/unknown', {}, fakeService()), 404);
 });
 
-test('a non-member is refused 403 GTL_EPL_FORBIDDEN before any state is read', async () => {
-  for (const route of ['/epl/draft/read', '/epl/draft/pick', '/epl/queue/save']) {
+test('a non-member is refused 403 GTL_EPL_FORBIDDEN on the writes before any state is read (EPL open access: reads are open)', async () => {
+  for (const route of ['/epl/draft/pick', '/epl/queue/save']) {
     const service = fakeService({ member: null });
-    const body = route === '/epl/draft/pick' ? { club: 'ARS' } : route === '/epl/queue/save' ? { clubs: [] } : {};
+    const body = route === '/epl/draft/pick' ? { club: 'ARS' } : { clubs: [] };
     await rejectsWith(call(route, body, service), 403, 'GTL_EPL_FORBIDDEN');
     assert.deepEqual(service.calls.map(c => c[0]), ['gtl_epl_member'], route);
   }
 });
 
 test('a non-member gets 403 even for a malformed body: membership is checked before the body (pre-T8 fix wave)', async () => {
-  const bad = { '/epl/draft/read': [{ extra: 1 }, { season: 1999, week: 9 }], '/epl/draft/pick': [{}, { club: 'arsenal' }, { club: 'ARS', ownerId: SEAN }],
+  const bad = { '/epl/draft/pick': [{}, { club: 'arsenal' }, { club: 'ARS', ownerId: SEAN }],
     '/epl/queue/save': [{ clubs: 'ARS' }, { clubs: ['ARS', 'ARS'] }, { extra: 1 }] };
   for (const [route, bodies] of Object.entries(bad)) for (const body of bodies) {
     const service = fakeService({ member: null });
@@ -138,6 +142,93 @@ test('draft/read reads the requested week, and the unlinked commissioner sees th
   assert.equal(view.myQueue, null);
   assert.equal(view.me, null);
   assert.ok(!service.calls.some(c => c[0] === 'latestWeek' || c[0] === 'readQueue'));
+});
+
+test('draft/read opens the board to any account: a non-member sees it read-only with the unclaimed managers to claim', async () => {
+  const service = fakeService({ member: null });
+  const view = await call('/epl/draft/read', {}, service);
+  assert.equal(view.week, 9);
+  assert.equal(view.me, null);
+  assert.deepEqual(view.myQueue, []);
+  assert.equal(view.onTheClock, ADAM);
+  assert.equal(view.picks.length, 2);
+  // Sorted by name; the names come from shared/epl-sleeper.mjs, never the stored row.
+  assert.deepEqual(view.claim, { managers: [{ ownerId: ADAM, name: 'Adam' }, { ownerId: DARIN, name: 'Darin' }] });
+  // Queues stay private: a non-member never reads one.
+  assert.ok(!service.calls.some(c => c[0] === 'readQueue'));
+  // The automatic link is tried exactly once, with the caller's own id, before the view is built.
+  assert.deepEqual(service.calls.filter(c => c[0] === 'gtl_epl_auto_link'), [['gtl_epl_auto_link', { p_user: USER.id }]]);
+  assert.ok(service.calls.findIndex(c => c[0] === 'gtl_epl_auto_link') < service.calls.findIndex(c => c[0] === 'gtl_epl_week_state'));
+});
+
+test('draft/read links an unlinked caller automatically, then answers as that manager with no claim', async () => {
+  const service = fakeService({ member: null, autoLink: ADAM });
+  const view = await call('/epl/draft/read', {}, service);
+  assert.equal(view.me, ADAM);
+  assert.deepEqual(view.myQueue, ['ARS', 'LIV']);
+  assert.equal(view.claim, null);
+  assert.deepEqual(service.calls.find(c => c[0] === 'readQueue'), ['readQueue', 2026, 9, ADAM]);
+  assert.ok(!service.calls.some(c => c[0] === 'unclaimedManagers'));
+  assert.equal(service.calls.filter(c => c[0] === 'gtl_epl_auto_link').length, 1);
+  // An answer that is not a manager id is never trusted.
+  await assert.rejects(call('/epl/draft/read', {}, fakeService({ member: null, autoLink: 'not-a-manager' })), /Invalid Pick a Team reply/);
+});
+
+test('draft/read: a linked manager is never auto-linked; the unlinked commissioner is tried and may claim', async () => {
+  const linked = fakeService();
+  const view = await call('/epl/draft/read', {}, linked);
+  assert.equal(view.claim, null);
+  assert.ok(!linked.calls.some(c => c[0] === 'gtl_epl_auto_link' || c[0] === 'unclaimedManagers'));
+
+  const commissioner = fakeService({ member: 'commissioner' });
+  const board = await call('/epl/draft/read', {}, commissioner);
+  assert.equal(board.me, null);
+  assert.equal(board.myQueue, null);
+  assert.equal(board.claim.managers.length, 2);
+  assert.equal(commissioner.calls.filter(c => c[0] === 'gtl_epl_auto_link').length, 1);
+
+  const sean = await call('/epl/draft/read', {}, fakeService({ member: 'commissioner', autoLink: SEAN }));
+  assert.equal(sean.me, SEAN);
+  assert.equal(sean.claim, null);
+});
+
+test('draft/read skips the automatic link while M-31 is not applied, and offers no claim', async () => {
+  const service = fakeService({ member: null, errors: { gtl_epl_auto_link: 'GTL_FEATURE_OFF' } });
+  const view = await call('/epl/draft/read', {}, service);
+  assert.equal(view.me, null);
+  assert.deepEqual(view.myQueue, []);
+  assert.equal(view.claim, null);
+  assert.ok(!service.calls.some(c => c[0] === 'unclaimedManagers'));
+  // Any other auto-link failure is not hidden.
+  await assert.rejects(call('/epl/draft/read', {}, fakeService({ member: null, errors: { gtl_epl_auto_link: 'secret detail' } })), /unavailable/);
+});
+
+test('draft/read checks a non-member\'s body before the automatic link writes anything', async () => {
+  for (const body of [{ extra: 1 }, { season: 1999, week: 9 }]) {
+    const service = fakeService({ member: null });
+    await rejectsWith(call('/epl/draft/read', body, service), 400, 'GTL_EPL_INVALID');
+    assert.deepEqual(service.calls.map(c => c[0]), ['gtl_epl_member']);
+  }
+});
+
+test('claim: any account claims an unclaimed manager; refusals map to 409 and 400', async () => {
+  const service = fakeService({ member: null });
+  assert.deepEqual(await call('/epl/claim', { ownerId: ADAM }, service), { ownerId: ADAM, name: 'Adam' });
+  assert.deepEqual(service.calls, [['gtl_epl_claim_manager', { p_user: USER.id, p_owner_id: ADAM }]]);
+  for (const [code, status, publicCode] of [['GTL_EPL_CLAIMED', 409, 'GTL_EPL_CLAIMED'], ['GTL_EPL_ALREADY_LINKED', 409, 'GTL_EPL_ALREADY_LINKED'],
+    ['GTL_EPL_INVALID', 400, 'GTL_EPL_INVALID'], ['GTL_FEATURE_OFF', 404, 'GTL_EPL_OFF']]) {
+    await rejectsWith(call('/epl/claim', { ownerId: ADAM }, fakeService({ errors: { gtl_epl_claim_manager: code } })), status, publicCode);
+  }
+  assert.equal(providerEplError('GTL_EPL_CLAIMED').message, 'Someone already claimed that manager.');
+  for (const body of [{}, { ownerId: '123' }, { ownerId: 7 }, { ownerId: ADAM, userId: OTHER }]) {
+    const bad = fakeService();
+    await rejectsWith(call('/epl/claim', body, bad), 400, 'GTL_EPL_INVALID');
+    assert.deepEqual(bad.calls, []);
+  }
+  // A reply for another manager is never passed on.
+  const wrong = fakeService();
+  wrong.rpc = async () => ({ ownerId: DARIN, userId: USER.id });
+  await assert.rejects(call('/epl/claim', { ownerId: ADAM }, wrong), /Invalid Pick a Team reply/);
 });
 
 test('draft/read: nobody is on the clock after the deadline, and a missing week is 404', async () => {
@@ -353,7 +444,7 @@ test('the error map: unknown codes stay private, M-30 not applied reads as comin
   const statuses = {
     GTL_EPL_INVALID: 400, GTL_EPL_QUEUE_INVALID: 400, GTL_EPL_UNKNOWN_MANAGER: 400, GTL_EPL_FORBIDDEN: 403, GTL_EPL_NOT_MEMBER: 403,
     GTL_EPL_NO_WEEK: 404, GTL_EPL_DRAFT_CLOSED: 409, GTL_EPL_NOT_YOUR_TURN: 409, GTL_EPL_CLUB_NOT_PLAYING: 409, GTL_EPL_CLUB_TAKEN: 409,
-    GTL_EPL_ALREADY_LINKED: 409, GTL_EPL_SEED_REFUSED: 409, GTL_EPL_NOT_RESOLVED: 409,
+    GTL_EPL_ALREADY_LINKED: 409, GTL_EPL_CLAIMED: 409, GTL_EPL_SEED_REFUSED: 409, GTL_EPL_NOT_RESOLVED: 409,
   };
   for (const [code, status] of Object.entries(statuses)) {
     assert.equal(providerEplError(code).status, status, code);
@@ -375,21 +466,50 @@ test('createEplService reads the latest week and a queue through the table reade
   assert.deepEqual(await none.readQueue(2026, 9, ADAM), []);
 });
 
+test('createEplService lists the unclaimed managers by owner id and name only', async () => {
+  const reads = [];
+  const service = createEplService({ rpc: async () => null, rest: async () => null, rows: async (table, query, max) => {
+    reads.push([table, query, max]);
+    return [{ owner_id: DARIN, name: 'Darin' }, { owner_id: ADAM, name: 'Adam' }, { owner_id: '999', name: 'Stranger' }, { owner_id: null }, 'x'];
+  } });
+  assert.deepEqual(await service.unclaimedManagers(), [{ ownerId: DARIN, name: 'Darin' }, { ownerId: ADAM, name: 'Adam' }]);
+  assert.deepEqual(reads, [['gtl_epl_managers', { select: 'owner_id,name', user_id: 'is.null', order: 'owner_id.asc', limit: '8' }, 8]]);
+});
+
 test('the gtl-api adapter gives EPL a caller limited to its own functions, and the handler sends the public code', async () => {
   const requests = [];
   const adapter = createSupabaseAdapter({ url: 'https://project.supabase.co', anonKey: 'public-test-key', serviceRoleKey: 'server-test-secret', fetchImpl: async (url, options) => {
     requests.push(new URL(url).pathname);
     return Response.json({ message: 'GTL_EPL_CLUB_TAKEN' }, { status: 400 });
   } });
-  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_result', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
+  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_result', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
   await assert.rejects(adapter.epl.rpc('gtl_epl_save_pick', {}), error => error instanceof EplError && error.status === 409);
   await assert.rejects(adapter.epl.rpc('gtl_epl_resolve_week', {}), /Invalid operation/);
   assert.deepEqual(requests, ['/rest/v1/rpc/gtl_epl_save_pick']);
 
   const handler = createCloudHandler({ authenticate: async () => ({ ...USER, email: 'adam@example.com', emailConfirmed: true }), epl: fakeService({ member: null }) });
-  const response = await handler(new Request('https://fixture.invalid/functions/v1/gtl-api/epl/draft/read', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer token' }, body: '{}' }));
+  const response = await handler(new Request('https://fixture.invalid/functions/v1/gtl-api/epl/draft/pick', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer token' }, body: '{"club":"ARS"}' }));
   assert.equal(response.status, 403);
   assert.deepEqual(await response.json(), { error: 'Pick a Team is for the FEPL managers.', code: 'GTL_EPL_FORBIDDEN' });
+});
+
+test('gtl-api answers a confirmed non-member\'s draft/read with 200 and passes the claim code on', async () => {
+  const post = (handler, route, body) => handler(new Request(`https://fixture.invalid/functions/v1/gtl-api${route}`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer token' }, body }));
+  const confirmed = async () => ({ ...USER, email: 'watcher@example.com', emailConfirmed: true });
+  const read = await post(createCloudHandler({ authenticate: confirmed, epl: fakeService({ member: null }) }), '/epl/draft/read', '{}');
+  assert.equal(read.status, 200);
+  const view = await read.json();
+  assert.equal(view.me, null);
+  assert.deepEqual(view.myQueue, []);
+  assert.equal(view.claim.managers.length, 2);
+  const claimed = await post(createCloudHandler({ authenticate: confirmed, epl: fakeService({ errors: { gtl_epl_claim_manager: 'GTL_EPL_CLAIMED' } }) }), '/epl/claim', JSON.stringify({ ownerId: ADAM }));
+  assert.equal(claimed.status, 409);
+  assert.deepEqual(await claimed.json(), { error: 'Someone already claimed that manager.', code: 'GTL_EPL_CLAIMED' });
+  // An unconfirmed email is still refused before any EPL call.
+  const service = fakeService({ member: null });
+  const unconfirmed = await post(createCloudHandler({ authenticate: async () => ({ ...USER, email: 'watcher@example.com', emailConfirmed: false }), epl: service }), '/epl/draft/read', '{}');
+  assert.equal(unconfirmed.status, 403);
+  assert.deepEqual(service.calls, []);
 });
 
 test('gtl-api reads a full-size Sleeper snapshot on /epl/admin/snapshot and keeps the 32 KB cap everywhere else', async () => {

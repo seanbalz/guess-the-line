@@ -29,10 +29,11 @@ test('any confirmed account can open lobby without an existing league membership
   assert.deepEqual(server.calls, [{ name: 'gtl_lobby', args: { p_user_id: uid, p_email: 'owner@example.invalid' } }]);
 });
 
-test('the lobby reply says whether this account sees EPL, and an EPL failure never fails the lobby', async () => {
+test('the lobby reply says whether EPL is on (M-30 answers, for every account), and an EPL failure never fails the lobby', async () => {
   const reply = () => ({ profile: { id: uid, displayName: 'Player' }, leagues: [], pendingInvites: [] });
   const epl = answer => ({ calls: [], async rpc(name, args) { this.calls.push({ name, args }); return answer(); } });
-  for (const [answer, expected] of [[() => '473955676301815808', true], [() => 'commissioner', true], [() => null, false], [() => 'not-a-manager', false],
+  // EPL open access (D-68 addendum): any answer from gtl_epl_member, a non-member's null included, means EPL shows.
+  for (const [answer, expected] of [[() => '473955676301815808', true], [() => 'commissioner', true], [() => null, true], [() => undefined, true], [() => 'not-a-manager', true],
     [() => { throw Object.assign(new Error('Pick a Team is coming soon.'), { status: 404, code: 'GTL_EPL_OFF' }); }, false],
     [() => { throw new Error('token=SECRET outage'); }, false]]) {
     const service = epl(answer), server = app({ rpc: reply, epl: service });
