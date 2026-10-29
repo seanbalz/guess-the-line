@@ -6,7 +6,7 @@ Sean requested: "hide the nba section of the app" and "deploy all epl items, pro
 
 ## Change and preservation
 
-Remove NBA from the NFL and EPL sport switch. Saved NBA deep links still open the existing private records and retain unsaved-draft guards. No table, ticket, API, migration, collector, quota or schedule changes are required. Existing GTL Segmented controls and tokens are retained. Reverting the navigation commit restores the NBA option.
+Remove NBA from the NFL and EPL sport switch. Normalize EPL tab destinations before storing route state: Home/Research → Play now opens Pick a Team instead of a blank Coming next card, and section clicks and browser history stay consistent. Saved NBA deep links still open the existing private records and retain unsaved-draft guards. No table, ticket, API, migration, collector, quota or schedule changes are required. Existing GTL Segmented controls and tokens are retained. Reverting the navigation commit restores the NBA option.
 
 ## Live EPL evidence
 
@@ -28,9 +28,13 @@ GitHub verifies the API/frontend release [40829236564](https://github.com/seanba
 
 EPL moneyline (D-68 plan 3) is not implemented and cannot be deployed. Its required live three-book draw-no-bet source check remains open. Future MW9 settlement, MW10 automatic order, final manager linking, signed-in readback and physical-phone acceptance are separate from deployment. No date-dependent outcomes are fabricated.
 
+## Signed-in desktop readback
+
+The existing signed-in Chrome session showed all eight MW9 picks and loaded Fantasy Matchup, Standings, Rosters and Insights. Matchup correctly reports unavailable until a full repeated schedule can be inferred; Insights says weekly detail starts MW9. Some roster entries display Unknown player; this remains a snapshot/player-directory quality follow-up, not a completed acceptance check. A live navigation defect (Research → Play rendered an incomplete route and ignored Pick a Team) was reproduced and fixed in this batch.
+
 ## Local validation
 
-Typecheck, Brand QA, nine routing tests, thirteen component tests and all five NBA browser scenarios passed (zero skips). Browser scenarios retain saved-ticket access, exact accounting, uncertainty recovery, privacy isolation and draft guards, while checking NBA is absent from the NFL switch. Component checks verify NBA is absent from EPL too.
+Typecheck, Brand QA, nine routing tests, thirteen component tests and all five NBA browser scenarios passed (zero skips). An additional EPL browser regression passed: Home → Play, Research → Play, explicit sections, Back/Forward, no writes and NBA hidden. Browser scenarios retain saved-ticket access, exact accounting, uncertainty recovery, privacy isolation and draft guards, while checking NBA is absent from the NFL switch. Component checks verify NBA is absent from EPL too.
 
 ## This frontend release
 
