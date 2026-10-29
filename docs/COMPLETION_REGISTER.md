@@ -11,6 +11,12 @@ as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
 ## EPL priority — October 29, 2026
 
+**Live DNB gate follow-up:** Sean authorized enabling/testing the bounded daily check. The first hosted run
+succeeded October 29 at 16:44:48 UTC, qualifying all three sampled fixtures across all three books; the actual
+MW9 gate evaluates true. Budget is 404 after three credits, player/scoring hashes are preserved, and daily
+checking is enabled. [Live evidence and remaining implementation](RELEASE_2026_10_29_DNB.md). This supersedes
+older “no live DNB verdict” statements for MW9; it does not complete the moneyline API, collector or screens.
+
 Sean requested parallel EPL workflow agents before returning to the remaining
 approved backlog. The [EPL work and verification record](EPL_WORKFLOW_CONTROL_2026_10_29.md)
 supersedes older EPL "not deployed" summaries below: fresh hosted checks confirm
