@@ -30,9 +30,9 @@ dependencies must follow the canonical CLI/ledger rules, not those labels alone.
 
 - D-68 item 23: preserve entered picks and existing order after drafting starts;
   flag stat corrections for commissioner review. No automatic replay or deletion.
-- Midweek finalization policy is awaiting Sean: finalize once results/next Sleeper
-  week are verified, or the following Monday. Ordinary Monday capture and
-  no-picks order work proceed independently; existing midweek guards remain.
+- D-68 item 24: Sean confirmed midweek rounds finalize once all results and the
+  exact next Sleeper week/season are verified, with complete valid totals. No
+  following-Monday wait; source guards and Tuesday correction checks remain.
 - The commissioner flag is a read-only view; it does not prove that a prospective
   order was recomputed or provide an invented resolution action.
 - M-32/M-33 and any later migration remain separate named apply gates. “Continue”
