@@ -1,4 +1,4 @@
-// D-67 / plan 2026-10-28-epl-pick-a-team.md Task 9: open Premier League matchweek 9 by hand. MW9 began before the app
+// D-68 / plan 2026-10-28-epl-pick-a-team.md Task 9: open Premier League matchweek 9 by hand. MW9 began before the app
 // did, so its order (Sean's) and the seven picks already made in the FEPL chat are seeded through gtl-api's commissioner
 // route /epl/admin/week (gtl_epl_seed_week stamps every pick source 'seeded'; all but the latest are final) and Darin is
 // left on the clock. Optionally links FEPL managers to their GTL accounts through /epl/admin/link.

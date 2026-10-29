@@ -13,7 +13,12 @@ const snapshot = JSON.parse(fs.readFileSync(new URL('../../shared/fantasy/2026-w
 const expected = filters => buildRankings(snapshot, { ...DEFAULT_FILTERS, ...filters }).rows;
 const root = (page, app) => page.locator(app === 'next' ? '.gx-fantasy' : '.fantasy-football');
 const list = screen => screen.getByRole('list', { name: 'Ranked players', exact: true });
-const rowNames = async screen => list(screen).locator('summary').evaluateAll(rows => rows.map(row => row.querySelector('[class$="fantasy-player-main"] > strong').textContent));
+const rowNames = async screen => list(screen).locator('[data-player]').evaluateAll(rows => rows.map(row => row.querySelector('[class$="fantasy-player-main"] > strong').textContent));
+// D-66 nesting cards: the extra filters sit under More filters; a row opens the player one layer in; the lip comes back.
+const more = screen => screen.locator('[data-fantasy=more-filters]');
+async function moreFilters(screen) { if (!(await more(screen).evaluate(el => el.open))) await more(screen).locator('summary').click(); }
+async function resetFilters(screen) { await moreFilters(screen); await more(screen).getByRole('button', { name: 'Reset filters', exact: true }).click(); }
+const backToFantasy = screen => screen.getByRole('button', { name: 'Back to Fantasy', exact: true }).click();
 
 async function open(page, baseURL, app, worldOptions = {}) {
   const world = await communityWorld(page, baseURL, { migrations: ALL, ...worldOptions });
@@ -63,6 +68,7 @@ test.describe('fantasy rankings', () => {
         await screen.getByRole('combobox', { name: 'Scoring', exact: true }).selectOption(scoring);
         await rowsMatch(screen, { scoring });
       }
+      await moreFilters(screen);
       await screen.getByRole('combobox', { name: 'Passing touchdowns', exact: true }).selectOption('6');
       await rowsMatch(screen, { passingTds: 6 });
       expect(expected({ passingTds: 6 }).slice(0, 50).map(row => row.id)).not.toEqual(expected({}).slice(0, 50).map(row => row.id));
@@ -77,16 +83,20 @@ test.describe('fantasy rankings', () => {
       await screen.getByRole('combobox', { name: 'Team', exact: true }).selectOption(selected.team);
       await screen.getByLabel('Find a player', { exact: true }).fill(selected.name);
       await rowsMatch(screen, { position: 'WR', team: selected.team, search: selected.name });
-      await expect(list(screen).locator('summary')).toContainText(`Overall ${selected.overallRank}`);
-      await screen.getByRole('button', { name: 'Reset filters', exact: true }).first().click();
+      await expect(list(screen).locator('[data-player]')).toContainText(`Overall ${selected.overallRank}`);
+      await resetFilters(screen);
 
       await screen.getByLabel('Strong trends only', { exact: true }).check();
       await rowsMatch(screen, { trendsOnly: true });
       const trend = expected({ trendsOnly: true })[0];
-      await list(screen).locator('summary').first().click();
-      await expect(list(screen).locator('li').first().getByText('Trends entering Week 6', { exact: true })).toBeVisible();
-      await expect(list(screen).locator('li').first().getByText(trend.trendHighlights[0].detail, { exact: true })).toBeVisible();
-      await screen.getByRole('button', { name: 'Reset filters', exact: true }).first().click();
+      await list(screen).locator('[data-player]').first().click();
+      await expect(screen.getByRole('heading', { level: 2, name: trend.name, exact: true })).toBeFocused();
+      await expect(screen.getByText('Trends entering Week 6', { exact: true })).toBeVisible();
+      await screen.getByRole('button', { name: `About ${trend.name}’s estimate`, exact: true }).click();
+      await expect(page.getByRole('dialog', { name: `About ${trend.name}’s estimate`, exact: true })).toContainText(trend.trendHighlights[0].detail);
+      await page.keyboard.press('Escape');
+      await backToFantasy(screen);
+      await resetFilters(screen);
 
       const bye = snapshot.players.find(player => player.weekly.status === 'bye' && expected({ scope: 'ros', search: player.name }).some(row => row.id === player.id));
       await screen.getByLabel('Find a player', { exact: true }).fill(bye.name);
@@ -95,15 +105,17 @@ test.describe('fantasy rankings', () => {
       await rowsMatch(screen, { scope: 'ros', search: bye.name });
       await expect(list(screen).getByText('Bye this week', { exact: true })).toBeVisible();
       await expect(list(screen).getByText(/\/ game · \d+ scheduled games/)).toBeVisible();
-      await screen.getByRole('button', { name: 'Reset filters', exact: true }).first().click();
+      await resetFilters(screen);
       await screen.getByRole('combobox', { name: 'Position', exact: true }).selectOption('DST');
       await expect(screen.getByText(/^Defense and special teams rankings are unavailable/)).toBeVisible();
-      await screen.getByRole('button', { name: 'Reset filters', exact: true }).first().click();
-      await screen.locator('summary').filter({ hasText: 'Method, scoring & sources' }).click();
-      await expect(screen.getByText(snapshot.method.description, { exact: true })).toBeVisible();
-      await expect(screen.getByRole('link', { name: snapshot.sources[0].name, exact: true })).toHaveAttribute('href', snapshot.sources[0].url);
+      await resetFilters(screen);
+      await screen.getByRole('button', { name: 'About Fantasy rankings', exact: true }).click();
+      const about = page.getByRole('dialog', { name: 'About Fantasy rankings', exact: true });
+      await expect(about.getByText(snapshot.method.description, { exact: true })).toBeVisible();
+      await expect(about.getByRole('link', { name: snapshot.sources[0].name, exact: true })).toHaveAttribute('href', snapshot.sources[0].url);
+      await page.keyboard.press('Escape');
       expect(world.errors).toEqual([]);
-      await screen.getByRole('button', { name: app === 'next' ? 'Back to Research' : 'Back to Home', exact: true }).click();
+      await page.getByRole('button', { name: 'Back', exact: true }).click();
       if (app === 'next') {
         await expect(page.getByRole('heading', { name: 'Research', exact: true })).toBeVisible();
         await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Research', exact: true })).toHaveAttribute('aria-current', 'page');
@@ -128,24 +140,31 @@ test.describe('fantasy rankings', () => {
           await layout(page, screen);
           const result = await new AxeBuilder({ page }).include(app === 'next' ? '.gx-fantasy' : '.fantasy-football').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
           expect(result.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
+          await moreFilters(screen);
           await screen.getByLabel('Find a player', { exact: true }).focus();
           await page.keyboard.type('unlikely player name');
           await expect(screen.getByText('No players match these filters.', { exact: true })).toBeVisible();
           await page.keyboard.press('Tab');
           await expect(screen.getByLabel('Strong trends only', { exact: true })).toBeFocused();
-          await screen.getByRole('button', { name: 'Reset filters', exact: true }).first().click();
+          await resetFilters(screen);
           await screen.getByRole('combobox', { name: 'Position', exact: true }).selectOption('WR');
           await screen.getByLabel('Strong trends only', { exact: true }).check();
-          await list(screen).locator('summary').first().scrollIntoViewIfNeeded();
+          await list(screen).locator('[data-player]').first().scrollIntoViewIfNeeded();
           await page.screenshot({ path: testInfo.outputPath(`fantasy-${app}-${width}-${theme}.png`) });
-          await screen.getByRole('button', { name: 'Reset filters', exact: true }).first().click();
+          // The player layer at this width: the estimate, trends and tools, one layer in.
+          await list(screen).locator('[data-player]').first().click();
+          await expect(screen.getByRole('button', { name: 'Back to Fantasy', exact: true })).toBeVisible();
+          await layout(page, screen);
+          expect((await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()).violations.map(issue => issue.id)).toEqual([]);
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-${app}-player-${width}-${theme}.png`), fullPage: true });
+          await backToFantasy(screen);
+          await resetFilters(screen);
           if (width === 320) {
-            const method = screen.locator('summary').filter({ hasText: 'Method, scoring & sources' });
-            await method.click();
-            await screen.getByRole('link', { name: snapshot.sources[0].name, exact: true }).scrollIntoViewIfNeeded();
-            await layout(page, screen);
+            await screen.getByRole('button', { name: 'About Fantasy rankings', exact: true }).click();
+            const about = page.getByRole('dialog', { name: 'About Fantasy rankings', exact: true });
+            await about.getByRole('link', { name: snapshot.sources[0].name, exact: true }).scrollIntoViewIfNeeded();
             await page.screenshot({ path: testInfo.outputPath(`fantasy-${app}-sources-320-${theme}.png`) });
-            await method.click();
+            await page.keyboard.press('Escape');
           }
         }
       }
@@ -158,7 +177,9 @@ test.describe('fantasy rankings', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     const { screen } = await open(page, baseURL, 'next');
     await expect(screen.getByText('Showing saved Week 6 · live refresh unavailable')).toBeVisible();
-    await list(screen).locator('summary').first().click();
+    await list(screen).locator('[data-player]').first().click();
+    const matchup = screen.locator('[data-fantasy=context] > summary');
+    if (await matchup.count()) await matchup.click();
     // The signed-in player has locked nothing for this week, so no implied total may appear anywhere.
     await expect(screen.getByText(/Implied team total \d/)).toHaveCount(0);
     await layout(page, screen);
@@ -205,12 +226,16 @@ test.describe('fantasy rankings', () => {
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await expect(screen.getByRole('status').filter({ hasText: /^Updated / })).toBeVisible();
         await expect(screen.getByText('Showing saved Week 6', { exact: false })).toHaveCount(0);
+        // D-66: the report card is one layer in, from its tile on the rankings card.
+        await screen.locator('[data-fantasy=report]').click();
+        await expect(screen.getByRole('button', { name: 'Back to Fantasy', exact: true })).toBeVisible();
         const card = screen.getByLabel('Week 5 accuracy');
         await expect(card).toBeVisible();
         await expect(card.getByText('PROVISIONAL', { exact: true })).toBeVisible();
         await layout(page, screen);
         const results = await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
         expect(results.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
+        await backToFantasy(screen);
       }
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
@@ -228,7 +253,7 @@ test.describe('fantasy rankings', () => {
         await expect(list(screen)).toBeVisible();
         for (const width of [320, 390]) {
           await page.setViewportSize({ width, height: 844 });
-          await list(screen).locator('summary').first().click();
+          await list(screen).locator('[data-player]').first().click();
           await screen.getByRole('button', { name: `Usage & production: ${first.name}`, exact: true }).click();
           const sheet = page.getByRole('dialog', { name: first.name, exact: true });
           await expect(sheet).toBeVisible();
@@ -245,6 +270,10 @@ test.describe('fantasy rankings', () => {
           await expect(sheet).toHaveCount(0);
 
           await screen.getByRole('button', { name: `Add to compare: ${first.name}`, exact: true }).click();
+          // D-66: Compare is one layer in, from its tile on the rankings card.
+          await backToFantasy(screen);
+          await expect(screen.locator('[data-fantasy=compare]')).toContainText('1');
+          await screen.locator('[data-fantasy=compare]').click();
           const compare = screen.getByRole('region', { name: 'Compare players', exact: true });
           await compare.getByLabel('Add a player', { exact: true }).fill(second.name);
           await compare.getByRole('button', { name: new RegExp(`^Add to compare: ${second.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · `) }).click();
@@ -260,7 +289,7 @@ test.describe('fantasy rankings', () => {
           expect(compareAxe.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
           for (const player of [first, second]) await compare.getByRole('button', { name: `Remove ${player.name} from comparison`, exact: true }).click();
           await expect(compare.getByRole('table')).toHaveCount(0);
-          await list(screen).locator('summary').first().click();
+          await backToFantasy(screen);
         }
       }
       expect(world.errors).toEqual([]);

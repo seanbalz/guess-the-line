@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, sendBallot, storeBookLines } from './community-world.mjs';
+import { ALL } from '../migrations.mjs';
 
 // The new Bets tab on the schema players have today, using the existing social and virtual routes.
 // All accounts, tickets, prices and writes are local fixtures. No hosted account or provider is contacted.
@@ -93,7 +94,7 @@ test('Community tracked bets work without private membership; create, own week a
     await expect(page.getByRole('dialog', { name: 'About tracked bets' })).toContainText('Tracked bets are shared with all signed-in players');
     await page.getByRole('dialog', { name: 'About tracked bets' }).getByRole('button', { name: 'Close', exact: true }).click();
     await view(page, 'Virtual Units').click();
-    await expect(page.getByRole('button', { name: 'Choose league', exact: true })).toBeVisible();
+    await expect(page.locator('[data-bets="place"]')).toBeVisible();
     expect(calls.filter(call => call.path.startsWith('virtual-'))).toEqual([]);
     await view(page, 'Tracked bets').click();
     const editor = await fillTicket(page, world.state.games[0].id);
@@ -112,7 +113,8 @@ test('Community tracked bets work without private membership; create, own week a
     expect(writes).toHaveLength(1);
     expect(writes[0].body).toMatchObject({ kind: 'single', odds: -110, stakeUnits: 1, source: 'DraftKings',
       legs: [{ gameId: world.state.games[0].id, market: 'spread', side: 'home', line: -3.5 }] });
-    expect(calls.some(call => call.path === 'state' || call.path.startsWith('bets/'))).toBe(false);
+    // Opening Virtual Units above reads /bets/read (D-67); a tracked ticket never calls another Bets route.
+    expect(calls.some(call => call.path === 'state' || (call.path.startsWith('bets/') && call.path !== 'bets/read'))).toBe(false);
     await page.getByLabel('Bet tracker view', { exact: true }).selectOption('mybets');
     await page.getByLabel('Competition week').selectOption(`${world.state.league.season}:${world.state.league.week}`);
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
@@ -226,46 +228,84 @@ test('custom ticket terms stay exact when switching back to buttons and changing
   } finally { await world.db.close(); }
 });
 
-test('Virtual Units uses the selected league, confirms a lost save by readback and protects a remaining draft', async ({ page, baseURL }) => {
-  const world = await communityWorld(page, baseURL, { groupScreens: true, virtualUnits: true, optionalRpc: true });
+// Stages 43 and 44 (Sean, October 28, 2026): Your picks is the account-level placing screen, writing through M-11.
+test('Your picks places two bets, confirms a lost reply without a duplicate, edits, and refuses a bet changed elsewhere', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { optionalRpc: true, migrations: ALL });
   try {
-    const games = world.state.games;
+    const games = world.state.games, [g0, g1] = games;
     await storeBookLines(world, { spread: Object.fromEntries(games.map(game => [game.id, -3.5])), total: Object.fromEntries(games.map(game => [game.id, 44.5])) });
     await sendBallot(world, 'luke', 'guess_spread', Object.fromEntries(games.map(game => [game.id, -3])));
     const calls = callsFrom(page);
+    const saved = async () => (await world.db.query('select game_id,selection,audit from public.gtl_virtual_units_picks where user_id=$1 order by game_id', [ACCOUNTS.luke.id])).rows;
     await openBets(page);
     await view(page, 'Virtual Units').click();
+    const place = page.locator('[data-bets="place"]');
+    await expect(place).toBeVisible();
     expect(calls.filter(call => call.path.startsWith('virtual-'))).toEqual([]);
-    await page.getByRole('button', { name: 'Choose league', exact: true }).click();
-    await page.getByRole('dialog', { name: 'Your leagues' }).getByRole('button', { name: /^Triple Threat/ }).click();
-    await expect(page.locator('.virtual-game-card')).toHaveCount(games.length);
-    expect(calls.filter(call => call.path === 'virtual-units').every(call => call.query === '?league=sean-troy-luke')).toBe(true);
-    // Spread is open, Total remains server locked. The bridge never creates a way around that gate.
-    await expect(page.locator('.virtual-market-locked')).toHaveCount(games.length);
-    for (let i = 0; i < games.length; i++) await page.locator('.virtual-game-card').nth(i).locator('.virtual-side-buttons').getByRole('button').first().click();
-    await loseReplyAfterCommit(page, world, 'virtual-pick');
-    await page.locator('.virtual-game-card').first().getByRole('button', { name: 'Place virtual pick' }).click();
-    await expect(page.getByRole('alert')).toContainText('could not confirm whether your save completed');
-    expect(calls.filter(call => call.path === 'virtual-pick')).toHaveLength(1);
-    await page.getByRole('button', { name: 'Check saved picks' }).click();
-    await expect(page.locator('.auth-notice')).toHaveText('Your saved Virtual Units pick is confirmed.');
-    await expect(page.locator('.virtual-save')).toHaveCount(1);
-    expect(calls.filter(call => call.path === 'virtual-pick')).toHaveLength(1);
+    // Spread is locked in, so its prices show; Total is not, so every game's Total is a lock sentence with no line.
+    await expect(place.locator('[data-market="total"]').getByText('Lock in your Total guess', { exact: false })).toHaveCount(games.length);
+    expect((await place.locator('[data-market="total"]').allTextContents()).join(' ')).not.toContain('44.5');
+    const chip = (game, side) => place.locator(`[data-game="${game.id}"] [data-market="spread"] .gx-chip`).nth(side === 'away' ? 0 : 1);
+    await chip(g0, 'home').click();
+    await chip(g1, 'home').click();
+    await expect(chip(g0, 'home')).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Review slip', exact: true }).click();
+    const sheet = page.getByRole('dialog', { name: 'Your slip' });
+    await sheet.locator(`[data-slip="${g0.id}:spread"]`).getByRole('button', { name: '2 units', exact: true }).click();
+    await loseReplyAfterCommit(page, world, 'bets/place');
+    await sheet.getByRole('button', { name: /^Place 2 bets/ }).click();
+    await expect(sheet.getByRole('alert')).toContainText('could not confirm');
+    await sheet.getByRole('button', { name: 'Retry the same save', exact: true }).click();
+    await expect(sheet).toHaveCount(0);
+    let writes = calls.filter(call => call.path === 'bets/place');
+    expect(writes).toHaveLength(2);
+    expect(writes[1].body).toEqual(writes[0].body);
+    expect(writes[0].body.bets.map(bet => [bet.gameId, bet.units, bet.expected])).toEqual([[g0.id, 2, null], [g1.id, 1, null]]);
+    expect((await saved()).map(row => row.audit.length)).toEqual([1, 1]);
+    await expect(place.locator(`[data-game="${g0.id}"] [data-market="spread"] .gx-tag`)).toContainText('2U');
+
+    // Another device edits the second bet. This screen still holds the old terms, so its edit is refused and nothing is overwritten.
+    const other = (await saved()).find(row => row.game_id === g1.id).selection;
+    const expected = { side: other.side, line: other.line, odds: other.odds, units: other.units, source: other.source, quotedAt: other.quotedAt };
+    const elsewhere = await world.api('luke', 'bets/place', { season: world.state.league.season, week: world.state.league.week, requestId: crypto.randomUUID(),
+      bets: [{ gameId: g1.id, market: 'spread', side: other.side, line: other.line, odds: other.odds, units: 3, source: other.source, quotedAt: other.quotedAt, expected }] });
+    expect(elsewhere.status, JSON.stringify(elsewhere.body)).toBe(200);
+    await chip(g1, 'away').click();
+    await page.getByRole('button', { name: 'Review slip', exact: true }).click();
+    await sheet.getByRole('button', { name: /^Place 1 bet/ }).click();
+    await expect(sheet.getByRole('alert')).toContainText('A bet changed since you opened it');
+    expect((await saved()).find(row => row.game_id === g1.id).selection.units).toBe(3);
+    // The refreshed read carries the new terms; placing again edits on top of them with a full audit.
+    await sheet.getByRole('button', { name: /^Place 1 bet/ }).click();
+    await expect(sheet).toHaveCount(0);
+    const edited = (await saved()).find(row => row.game_id === g1.id);
+    expect(edited.selection.side).toBe('away');
+    expect(edited.audit.map(event => event.type)).toEqual(['placed', 'edited', 'edited']);
+    expect(calls.some(call => call.path === 'virtual-pick')).toBe(false);
+
+    // A slip holds the leave guard; dismissing the confirmation keeps it.
+    await chip(g0, 'away').click();
+    // The board, the dock and the open slip fit a phone in both themes.
+    for (const width of [390, 320]) for (const theme of ['dark', 'light']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px board fits`).toBe(true);
+      await page.screenshot({ path: `.local/previews/next-bets-place-${theme}-${width}.png` });
+      await page.getByRole('button', { name: 'Review slip', exact: true }).click();
+      await expect(sheet).toBeVisible();
+      await page.waitForTimeout(400); // the sheet's entrance animation, for the screenshot only
+      expect(await sheet.evaluate(el => el.scrollWidth <= el.clientWidth + 1), `${theme} ${width}px slip fits`).toBe(true);
+      await page.screenshot({ path: `.local/previews/next-bets-slip-${theme}-${width}.png` });
+      await sheet.getByRole('button', { name: 'Close', exact: true }).click();
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     page.once('dialog', dialog => dialog.dismiss());
     await tab(page, 'Home').click();
     await expect(page.getByRole('heading', { name: 'Virtual Units', level: 1, exact: true })).toBeVisible();
-    await expect(page.locator('.virtual-save')).toHaveCount(1);
-    page.once('dialog', dialog => dialog.accept());
-    await tab(page, 'Home').click();
-    await expect(page.getByRole('heading', { name: 'Tracked bets', level: 1, exact: true })).toHaveCount(0);
-    await tab(page, 'Bets').click();
-    await page.getByRole('button', { name: 'Virtual Units', exact: true }).click();
-    await expect(view(page, 'Virtual Units')).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('.virtual-game-card')).toHaveCount(games.length);
+    await expect(chip(g0, 'away')).toHaveAttribute('aria-pressed', 'true');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
-
 
 test('an expired sign-in opens recovery above the tracked-bet editor and preserves its entered values', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL);

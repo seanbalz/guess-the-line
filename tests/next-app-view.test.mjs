@@ -150,8 +150,9 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // use, so both apps share one cache and one request per week.
   // Weekly/player Trends reuses trendsAvailability.js as a pure formatter and only useTrendWeek from the shared React hook.
   // Stage 25 retains the classic recovery copies using the same pure account/week draft helpers.
+  // RETIRE-01 (D-65): Play also reads the removed group screens' tab copies through the pure predictionDraft.js helpers.
   // The account-keyed read sharing (sharedReads.js) is forgotten by AuthGate on every account change, like nextDrafts.js.
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'trendsAvailability.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js', 'sharedReads.js']);
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'trendsAvailability.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js', 'predictionDraft.js', 'sharedReads.js']);
   for (const shared of allowed) {
     assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
   }
@@ -165,7 +166,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
-    'web/src/next/fantasy/FantasyScreen.jsx': ['FantasyFootball.jsx'],
+    // D-66: the Fantasy nesting cards reuse the snapshot and game-context reads and the report card, not the old screen.
+    'web/src/next/fantasy/FantasyNest.jsx': ['fantasyData.js', 'fantasyContext.js', 'FantasyAccuracy.jsx'],
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
     'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
     // D-65 follow-up: Menu › Commissioner tools reuses the old Final scores and Odds connection editors, and the pure

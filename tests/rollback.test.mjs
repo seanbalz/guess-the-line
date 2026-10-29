@@ -156,7 +156,12 @@ test('the old-app SQL suites take HOSTED and migrationSql from tests/migrations.
   }
 });
 
-for (const file of ROLLBACKS) {
+// A hosted migration's rollback was proven before its apply (Gate M step 9), and its files are frozen. Rebuilding each
+// one on PGlite took about 12 of CI's 17 critical-path minutes, so a push or PR run checks only rollbacks whose migration
+// is not hosted yet. The nightly scheduled run, or GTL_ROLLBACK_ALL=1, checks every file. The convention test above still
+// reviews every rollback on every run.
+const CHECKED = process.env.GTL_ROLLBACK_ALL === '1' ? ROLLBACKS : ROLLBACKS.filter(file => NOT_HOSTED.includes(version(file)));
+for (const file of CHECKED) {
   test(`${file}: HOSTED, the migration, then its rollback restores every replaced body; the old-app SQL suites pass with the migration and after its rollback`, { skip }, async () => {
     const migration = path.join(MIGRATIONS_DIR, file), rollback = path.join(ROLLBACK_DIR, file);
     const { replaced, added } = review(migration, fs.readFileSync(rollback, 'utf8'));
