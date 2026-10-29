@@ -9,6 +9,17 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## October 29 — Balanced logo and favicon
+
+Sean selected 01 Balanced from five visual directions. Both app logo components,
+the design lab, browser favicon, home-screen and notification icons now use the
+refined geometry in this task branch. Five color variants plus the light-surface
+green are exported. [Asset record and selected preview](../design/logo-redraft-2026-10-29/README.md).
+Local verification: five brand asset tests (including PNG alpha, color, margins,
+centering and favicon theme behavior), 52 shared UI tests, Brand QA and production
+build passed. The small browser favicon omits side hashes. No deployment or
+physical-device acceptance is established by these checks.
+
 ## What the evidence establishes
 
 GitHub main was `7d0a48f116ae5b607bab0f92b103ebf447e20188` at this audit.

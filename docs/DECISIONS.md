@@ -1,5 +1,15 @@
 # Decision log
 
+## Logo refinement — October 29, 2026
+
+Sean requested a more symmetrical logo, different color variations and favicon
+edits. After reviewing five visual options, he selected **01 Balanced (recommended)**.
+The [brand guide](BRAND_GUIDE.md#balanced-logo-refinement--october-29-2026)
+records the new geometry, simplified favicon and existing theme-color pairing.
+The [asset record](../design/logo-redraft-2026-10-29/README.md) separates exact
+vector implementation from generated exploration. This authorizes the selected
+identity refinement; deployment is a separate release step.
+
 ## Release timing policy - October 19, 2026
 
 Sean explicitly instructed: "permanently remove the gated window". Deployments
