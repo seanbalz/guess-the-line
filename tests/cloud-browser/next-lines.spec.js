@@ -1392,6 +1392,9 @@ test('a direct game open checks results on demand, ignores a late reply after pa
   try {
     now = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 3600000;
     await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    // D-66: the board names its quotes' update once; no card repeats a source or update line.
+    await expect(page.locator('[data-board-quotes]')).toContainText(/Quotes (updated|from \d+ updates)/);
+    await expect(card(page, 'SEA-DEN')).not.toContainText('Updated');
     await page.goto('/#trends'); await expect(title(page, 'Trends')).toBeVisible();
     await expect(page.locator('[data-trend-availability]')).toBeVisible();
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
