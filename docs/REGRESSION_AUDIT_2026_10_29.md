@@ -1,6 +1,6 @@
 # Production regression and iPhone audit — October 29, 2026
 
-Owner: Sean Balsiger · Version 2
+Owner: Sean Balsiger · Version 3
 
 Sean requested a fresh formatting/functionality sweep and real iPhone logo/favicon
 checks. He identified Research and the NFL/EPL transition: changing sports feels
@@ -17,18 +17,22 @@ Fresh signed-in desktop readback verifies full Research names at 390px, the same
 read-only profile in both sports, and all four primary tabs retained in both
 directions. The original source-pending wording in the table below describes
 the initial audit; this checkpoint supersedes those source/merge/release gates.
-Post-deploy physical Research/switch acceptance is pending iPhone reconnection.
+Post-deploy physical Safari verifies loaded Research, matching read-only
+profiles, both Home/Play/Research switch directions and EPL→NFL Bets. The
+reverse Bets switch remains unverified after intermittent mirroring input and
+ambiguous Home observations; the release record preserves the precise limits.
 AUD-03 and the exact adaptive/cached-icon uncertainty remain open.
 
 | ID | Finding and evidence | State / exit criterion |
 | --- | --- | --- |
-| AUD-01 | On signed-in production at 390px, loading quotes squeezes the Lines board's team names to “Pa…”. Provenance, the quote and saved-pick tags compete for three columns. The broad phone test permits deliberate ellipsis and did not flag this loss of useful names. | Fixed in this branch: phone cards put the spread quote and provenance on their own full-width row. A new loaded-quote regression fails against the original implementation and passes after repair at 320/390 in both themes. Source/CI, merge, release and physical readback of the repair remain required. |
-| AUD-02 | Production EPL removes the league/account header controls, moves the sport selector into the header, and always enters Home from NFL Research. Source mounts a separate EPL frame. | Shared-shell ownership is [PR #379](https://github.com/seanbalz/guess-the-line/pull/379), following Sean’s confirmed persistent profile/navigation/current-section instruction. This audit branch’s partial EPL header/menu repair was removed before merge to avoid conflicting implementations. Validate the combined Research repair and full shared Shell/MenuSheet/account provider before release; existing NBA and unsaved-draft guards remain required. |
+| AUD-01 | On signed-in production at 390px, loading quotes squeezes the Lines board's team names to “Pa…”. Provenance, the quote and saved-pick tags compete for three columns. The broad phone test permits deliberate ellipsis and did not flag this loss of useful names. | Deployed through #376 and the pinned combined release. Phone cards put spread/provenance on their own row. The regression fails against the original and passes at 320/390 in both themes; loaded physical iPhone Safari confirms full team names. |
+| AUD-02 | Production EPL removes the league/account header controls, moves the sport selector into the header, and always enters Home from NFL Research. Source mounts a separate EPL frame. | Shared-shell ownership is [PR #379](https://github.com/seanbalz/guess-the-line/pull/379), following Sean’s confirmed persistent profile/navigation/current-section instruction. This audit branch’s partial EPL header/menu repair was removed before merge to avoid conflicting implementations. Combined CI/release and desktop acceptance passed. Physical profiles and both Home/Play/Research directions passed; the final reverse Bets direction remains AUD-06. Existing NBA/unsaved-draft guards passed local compatibility checks. |
 | AUD-03 | The existing physical Safari tab showed NBA navigation and a Trends error. A fresh Safari tab showed current NFL/EPL navigation; fresh desktop Trends loaded successfully with no captured warnings/errors. | Open: retained older running UI is observed; the exact old source and cause of its Trends failure were not established. Add a safe update/reload affordance and test background/resume, preserving drafts and uncertain writes. Do not solve this by clearing storage or forcing an automatic reload. |
 | AUD-04 | Safari displayed a readable deep-green G on a white favicon badge in both system appearances. Its expected automatic lime rendering in Dark was not established. The installed app icon rendered after an initially blank Spotlight result. | Versioned favicon and apple-touch-icon references added in this branch for new document loads. Recheck after deployment on this existing installation. Changing HTML does not prove replacement of an already-cached iOS launcher icon. |
-| AUD-05 | Production EPL has different available account tools and sport content. Profile/History/Export/admin tools are absent from its initial mini-app frame. EPL Bets and moneyline/leaderboard placeholders are separate delivery gaps. | Full account-tool/shared-frame integration is owned by #379, including retained account/profile state and commissioner access. It requires combined CI/release/readback. Sport-specific unfinished modes remain open; shared chrome must not fabricate their data or claim they are delivered. |
+| AUD-05 | Production EPL has different available account tools and sport content. Profile/History/Export/admin tools are absent from its initial mini-app frame. EPL Bets and moneyline/leaderboard placeholders are separate delivery gaps. | Full account-tool/shared-frame integration is owned by #379, including retained account/profile state and commissioner access. Combined CI/release and desktop readback passed; both physical Safari menus/profiles were observed. Export/admin operations and other unfinished sport modes are not claimed tested or delivered. |
+| AUD-06 | Physical NFL Bets → EPL Bets could not be reliably accepted: intermittent mirroring input failures and ambiguous Home observations crossed automated/manual attempts. The opposite Bets direction and all other primary-section directions were directly observed. | Open acceptance item, not a confirmed product defect. Re-establish controlled device input, capture loaded NFL Bets, activate only EPL and confirm EPL/Bets/profile/navigation after content settles. If reproducible, repair and rerun before closing. |
 
-Owner for source repairs and AUD-03/AUD-05 follow-through: Codex. Physical
+Owner for source repairs and AUD-03/AUD-05/AUD-06 follow-through: Codex. Physical
 acceptance: Sean with Codex. This report is persisted backlog evidence, not a
 claim that the remaining items are implemented or released.
 

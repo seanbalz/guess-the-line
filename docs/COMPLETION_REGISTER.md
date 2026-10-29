@@ -19,7 +19,10 @@ PR #379 merged after all twelve checks passed; the frontend release from
 `a41f68362acb5165b17ef6f20673d23d1a2c9ec8` verified all 125 served assets.
 [Release and desktop acceptance](RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md)
 cover the same read-only profile and all four primary sections in both directions.
-Physical Research/switch acceptance remains pending the iPhone mirroring unlock.
+Physical Safari checks now verify loaded Research, the same read-only profile,
+Home/Play/Research in both sport directions and EPL→NFL Bets. Only the final
+NFL→EPL Bets switch remains unverified after intermittent mirroring input and
+ambiguous Home observations; a controlled physical recheck is required.
 Existing EPL moneyline work retains its own owner and gates.
 The skip-link CI correction includes focused regression and both-sport keyboard
 evidence in that record; exact-main CI and protected release gates have passed.
@@ -78,7 +81,8 @@ passed from `a41f68362acb5165b17ef6f20673d23d1a2c9ec8`, with 125 served assets
 verified. Fresh desktop checks pass loaded Research at 390px and the same
 profile/navigation/current primary section across both sports in all four tabs.
 [Release/readback evidence](RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md)
-keeps post-deploy iPhone acceptance pending reconnection. Physical iPhone
+records the partial physical Safari matrix and the one remaining reverse Bets
+check. Physical iPhone
 logo observations cover installed app and Safari in Light/Dark; exact favicon
 Dark adaptation/cache freshness remains open. Sean confirmed restoring test
 appearance settings. Older running-client recovery and exact cached-favicon

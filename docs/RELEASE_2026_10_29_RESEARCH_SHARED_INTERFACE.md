@@ -85,16 +85,52 @@ no player information is copied into this public record.
 
 ## Physical acceptance and remaining work
 
-Post-deploy physical Research/switch acceptance remains pending. Mirroring first
-reported “iPhone in Use”; reconnecting later showed Safari. A new Safari tab at
-`https://guess-the-line.pages.dev/?release=a41f683` loaded the signed-in Home with
-the expected logo/navigation. Research taps were rejected by the Mac automation
-surface (`noWindowsAvailable`), so no physical Research/switch pass is claimed.
-Restarting only the Mac mirroring app reached “Unlock Your iPhone”; Sean was
-asked to complete that OS prompt and lock again. Existing tabs, installation,
-storage, drafts and original appearance settings were preserved. Desktop
-responsive checks and earlier physical logo/theme observations remain separate
-evidence, not substitutes for this release's physical Research/switch readback.
+Post-deploy physical Safari checks were performed on the paired iPhone 17 on
+October 29 after Sean allowed mirroring. A read-only document reload used current
+production; separate public readback still showed `index-CT-LnSLy.js` and the
+successful pinned deployment at the time of acceptance. No simulator is counted
+as physical evidence.
+
+| Physical Safari check | Observed result |
+| --- | --- |
+| Loaded NFL Research Lines | Full Panthers/Packers names, separate spread/provenance row, permitted saved-reference labels and Research selected |
+| NFL Research → EPL Research → NFL Research | Research remained selected, shared avatar/header/four-tab navigation remained visible, both Fantasy views finished loading |
+| Profile in both sports | Same existing signed-in account and display name; opened read-only without editing or saving |
+| NFL Home → EPL Home → NFL Home | Home stayed selected; sport-specific Home content loaded, shared profile/navigation retained |
+| EPL Play → NFL Play → EPL Play | Play stayed selected; sport-specific content retained and shared profile/navigation visible |
+| EPL Bets → NFL Bets | Bets stayed selected; existing NFL ticket counts loaded and shared profile/navigation retained |
+| NFL Bets → EPL Bets | Unverified after intermittent automated/manual input attempts; controlled physical recheck still required |
+
+Pointer input intermittently returned `noWindowsAvailable` despite a visible
+mirror. Native window focus actions sometimes restored taps; Safari keyboard
+Option-Tab with a visibly focused sport selector and Return completed additional
+switches. After a read-only reload, keyboard focus could be established at the
+skip link. A phone-in-use disconnection was observed and reconnected. An
+ambiguous Home observation across that interruption was excluded; controlled
+Play transitions were subsequently verified in both directions. Failed inputs
+are not classified as product failures or successful interactions.
+
+The final reverse Bets switch was prepared on loaded NFL Bets. Sean was asked
+for one manual EPL click in the Mac mirror, reported done through the coordinated
+chat, and directly asked this chat to retry. Fresh observations around these
+interrupted attempts showed Home instead of a reliable EPL Bets endpoint; a
+later snapshot showed EPL Home. Those ambiguous observations are not accepted
+as a successful Bets transition or a reproducible application defect. Additional
+controlled retries still encountered input failures. The final phone state was
+Safari on loaded NFL Bets; no final reverse-Bets pass is claimed. Re-establish a
+reliable input surface and reproduce this specific transition before closing it.
+
+Private screenshots and the ordered local log record only actually observed
+results. The ambiguous Home capture is named accordingly rather than labelled
+as an EPL Bets pass. They remain ignored local evidence because they contain
+account/game information, not public repository assets.
+
+Existing tabs, installation, storage, drafts and original phone/app appearance
+settings were preserved. No player data, profile, bet, league selection or account
+link was saved or changed by these checks. This follow-up checks physical
+Safari in its existing Light theme; the installed Home Screen app and a fresh
+full Light/Dark matrix are not re-tested by these functional checks. Earlier
+physical logo/theme observations remain separate.
 
 [The regression audit](REGRESSION_AUDIT_2026_10_29.md) retains AUD-03 (safe recovery
 for older running clients), the cached adaptive-favicon uncertainty, and separate

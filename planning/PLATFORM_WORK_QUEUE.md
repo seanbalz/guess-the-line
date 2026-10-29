@@ -20,7 +20,10 @@ open. #376/#379 are merged and the combined frontend is
 [deployed from a41f683](../docs/RELEASE_2026_10_29_RESEARCH_SHARED_INTERFACE.md):
 125 served assets matched. Loaded Research at 390px and same profile/navigation/
 current section in all four tabs pass fresh authenticated desktop readback.
-Post-deploy physical Research/switch acceptance awaits iPhone reconnection;
+Physical Safari verifies loaded Research, matching profiles, Home/Play/Research
+in both directions and EPL→NFL Bets. Only NFL→EPL Bets remains pending one
+controlled physical recheck after intermittent mirroring input and ambiguous
+Home observations (AUD-06, not a confirmed application defect);
 AUD-03 safe older-client recovery and exact adaptive/cached-icon readback remain
 open. These refine DESIGN-01 and broader Q19 acceptance; the prior resolved Q03
 scrolling report is preserved.
