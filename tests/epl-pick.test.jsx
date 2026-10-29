@@ -7,15 +7,19 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { decode, markupProblems, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
 
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn() }));
-const { PickATeamView, PrimaryAction } = await import('../web/src/next/epl/PickATeam.jsx');
+const { PickATeamView, PrimaryAction, StandingsSource } = await import('../web/src/next/epl/PickATeam.jsx');
 const { DraftBoard, CrestGrid } = await import('../web/src/next/epl/DraftBoard.jsx');
 const { MarginChart } = await import('../web/src/next/epl/MarginChart.jsx');
 const { QueueSheetView } = await import('../web/src/next/epl/QueueSheet.jsx');
 const { EplHomeView } = await import('../web/src/next/epl/EplHome.jsx');
 const { boardModel, draftReducer, runPick, saveQueue, moveClub, PICK_COPY } = await import('../web/src/next/epl/draftModel.js');
-const { Button } = await import('../web/src/next/ui/index.js');
+const { Button, InfoButton } = await import('../web/src/next/ui/index.js');
 const { ApiError } = await import('../web/src/apiResponse.js');
 const { ClaimCardView, CLAIM_COPY, runClaim, claimManagers, justWatching, setJustWatching } = await import('../web/src/next/epl/ClaimCard.jsx');
+
+const TABLE_SOURCE = { kind: 'wikimedia-community', official: false, dataAsOf: '2026-10-25',
+  source: { url: 'https://en.wikipedia.org/w/index.php?title=2026%E2%80%9327%20Premier%20League&oldid=1382589055' },
+  license: { url: 'https://creativecommons.org/licenses/by-sa/4.0/' } };
 
 const ID = { Nemo: '865667912365666304', Cullen: '1259267898757611520', Adam: '719745569895018496', Sean: '473955676301815808',
   Evan: '719658248843632640', Mark: '1257180071064510465', Steven: '702644837370929152', Darin: '1395236217460633600' };
@@ -67,6 +71,33 @@ function buttons(node, found = []) {
   return found;
 }
 const tree = props => expand(<PickATeamView {...props}/>);
+
+describe('saved table provenance', () => {
+  it('shows the source date and uses the existing About treatment for attribution, changes and share-alike links', () => {
+    const model = boardModel({ ...read({ status: 'resolved' }), standingsSource: TABLE_SOURCE }, BEFORE);
+    const page = html({ model, state: { status: 'loaded' } });
+    expect(text(page)).toContain('Table used · Oct 25, 2026');
+    expect(page).toContain('aria-label="About table fallback"');
+    expect(text(page)).not.toContain('Wikipedia contributors');
+    const element = StandingsSource({ source: model.standingsSource });
+    const info = element.props.children.find(child => isValidElement(child) && child.type === InfoButton);
+    expect(info.props.body.join(' ')).toContain('Wikipedia contributors');
+    expect(info.props.body.join(' ')).toContain('Not independently verified official');
+    expect(info.props.body.join(' ')).toContain('Changes:');
+    expect(info.props.links).toEqual([{ text: 'Source and contributors', url: TABLE_SOURCE.source.url },
+      { text: 'CC BY-SA 4.0', url: TABLE_SOURCE.license.url }]);
+    expect(markupProblems(page)).toEqual([]);
+  });
+
+  it('does not invent a source for an old read or accept malformed dates and unrelated links', () => {
+    expect(boardModel(read(), BEFORE).standingsSource).toBeNull();
+    for (const source of [{ ...TABLE_SOURCE, dataAsOf: '2026-99-99' }, { ...TABLE_SOURCE, dataAsOf: '2026-02-30' },
+      { ...TABLE_SOURCE, source: { url: 'javascript:alert(1)' } }, { ...TABLE_SOURCE, official: true }]) {
+      expect(boardModel({ ...read(), standingsSource: source }, BEFORE).standingsSource).toBeNull();
+    }
+    expect(StandingsSource({ source: null })).toBeNull();
+  });
+});
 
 describe('the draft board', () => {
   it('draws the 8 managers in pick order, each with their number, crest and name', () => {

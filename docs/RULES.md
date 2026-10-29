@@ -64,6 +64,52 @@ references for old submitted records.
 
 Owner: Sean Balsiger; reconciliation: Codex, GOV-03, October 8, 2026.
 
+## EPL Guess the Line — D-68 (October 29, 2026)
+
+EPL moneyline guessing is a separate competition from NFL Guess the Spread,
+Guess the Total, Betting Challenge and FEPL fantasy points. Linked FEPL managers
+guess one club and its two-way **draw-no-bet** American price per EPL match.
+A draw is a push in this market; the game measures price accuracy, not a wager's
+profit or the match result. Three-way moneylines, spreads and totals are not
+offered in this EPL game. Every signed-in account may read the leaderboard and
+the guesses permitted by the per-match reveal rule; only linked managers write.
+
+- **Entry and finality:** prices are whole American prices with magnitude at
+  least 100, subject to the shared integer-storage safety limit. An unlocked
+  guess is a draft, excluded from scoring and the leaderboard. Each match closes
+  at its own kickoff; a locked guess is final. There is no NFL weekly ballot,
+  opt-out or late-entry rule applied to this EPL game.
+- **Visibility (D-31):** another manager's locked guess for a match is hidden
+  until the viewer locks that same match or the match kicks off. Another
+  manager's draft is never revealed. Your own saved guesses remain readable.
+- **Reference:** score the club the player chose against the newest qualifying
+  stored draw-no-bet median at lock-in, using the available approved books:
+  DraftKings, FanDuel and BetMGM. Choosing the other club as favorite adds no
+  separate penalty. The accepted lock is saved before any best-effort shared
+  refresh; cooldown, quota, reserve or provider failure never refuses it. With
+  no reference, the lock is **pending** and the first qualifying price observed
+  after lock-in and before kickoff becomes its immutable reference. With no
+  qualifying price before kickoff, label it **unscored — No line before kickoff**
+  and exclude it from the average. Preserve saved source/observation times and
+  history; a later quote never rewrites a reference already established.
+- **Distance:** −100 and +100 are the same point. Map a price to
+  `x(p) = p >= 100 ? p - 100 : p + 100`; distance is
+  `abs(x(guess) - x(reference))`. Thus −110 versus +120 is 30 points off,
+  −150 versus −120 is 30, and +100 versus −100 is 0.
+- **Leaderboard:** locked matches enter the season leaderboard at kickoff.
+  Lowest average distance across scored matches wins; a tie favors more matches
+  guessed. Show that count alongside the average and show unscored counts
+  separately. Missed matches are not counted or assigned zero distance. EPL
+  moneyline standings do not add to NFL scores or fantasy totals.
+
+These are the approved [D-68 item 9 rules](DECISIONS.md#d-68--premier-league-sleeper-fepl-pick-a-team-and-epl-moneyline-october-28-2026)
+and [moneyline specification](superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md#7-play--guess-the-line-epl-moneyline).
+M-32 and the live MW9 availability check have separate verified release records.
+M-36's named apply/readback, collector setup/activation, protected deployment and
+signed-in live acceptance remain open; source completion does not authorize or
+establish those effects. The [moneyline acceptance record](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md)
+distinguishes local source/fixture evidence from hosted release gates.
+
 ## Historical common-reference Total analysis — D-13 (superseded for scoring by D-16)
 After a player's Total ballot is submitted, the dashboard can show that market's
 guesses, provisional accuracy points and closest-pick records against one complete

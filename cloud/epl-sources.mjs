@@ -20,6 +20,7 @@
 // Errors carry a fixed code and the quota the provider reported, never the key, the URL or the provider's text.
 import { ODDS_API_ORIGIN, readQuota } from './odds-provider.mjs';
 import { EPL_CLUBS, clubFromOddsName } from '../shared/epl-clubs.mjs';
+import { MAX_DNB_PRICE } from '../shared/epl-moneyline.mjs';
 import { priceStrength } from '../shared/epl-draft.mjs';
 import { trimSleeperSnapshot } from '../shared/epl-sleeper.mjs';
 import { enrichPlayerDisplay } from '../shared/epl-player-directory.mjs';
@@ -56,7 +57,7 @@ export class EplSourceError extends Error {
 }
 const fail = (code, quota) => { throw new EplSourceError(code, quota); };
 const record = v => !!v && typeof v === 'object' && !Array.isArray(v);
-const american = v => Number.isInteger(v) && Math.abs(v) >= 100 && Math.abs(v) <= 100000;
+const american = v => Number.isInteger(v) && Math.abs(v) >= 100 && Math.abs(v) <= MAX_DNB_PRICE;
 const isoTime = v => (typeof v === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d{1,3})?)?(?:Z|[+-]\d\d:\d\d)$/.test(v) ? Date.parse(v) : NaN);
 
 /** Reads at most maxBytes of a response body (refusing a larger declared length before reading). */
@@ -209,7 +210,7 @@ function dnbBook(b, homeName, awayName, home, away) {
  * `{events: [{eventId, available, home, away, commenceTime, books: {book: {club: price}}, rejected}], quota}`. An event the
  * provider cannot price (not found, unavailable, an invalid reply or one for another event) is `{eventId, available: false}`;
  * `rejected` counts the books whose market was not a valid 2-way price. `quota` is the newest the provider reported. */
-export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds } = {}) {
+export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds, observations = false, clock = Date.now } = {}) {
   const key = oddsKey(apiKey);
   if (!Array.isArray(eventIds) || !eventIds.length || eventIds.length > DNB_MAX_EVENTS || new Set(eventIds).size !== eventIds.length
     || !eventIds.every(id => typeof id === 'string' && EVENT_ID.test(id))) fail('EPL_SOURCE_CONFIG');
@@ -223,6 +224,7 @@ export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds } 
     try {
       const reply = await getJson(url, ODDS_LIMIT, fetchImpl);
       quota = reply.quota ?? quota; data = reply.data;
+      if (observations) none.observation = { observedAt: new Date(clock()).toISOString(), responseSha256: reply.sha256 };
     } catch (error) {
       if (error?.quota) quota = error.quota;
       if (STOPPING.has(error?.code)) throw error;
@@ -231,12 +233,17 @@ export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds } 
     const commence = record(data) ? isoTime(data.commence_time) : NaN;
     const home = record(data) ? clubFromOddsName(data.home_team) : null, away = record(data) ? clubFromOddsName(data.away_team) : null;
     if (!record(data) || data.id !== eventId || !Number.isFinite(commence) || !home || !away || home === away) { events.push(none); continue; }
-    const books = {}; let rejected = 0;
+    const books = {}, bookObservedAt = {}; let rejected = 0;
     for (const b of (Array.isArray(data.bookmakers) ? data.bookmakers : []).filter(x => record(x) && ODDS_BOOKS.includes(x.key))) {
       const prices = Object.hasOwn(books, b.key) ? null : dnbBook(b, data.home_team, data.away_team, home, away);
-      if (prices) books[b.key] = prices; else rejected++;
+      if (prices) {
+        books[b.key] = prices;
+        const m = b.markets.find(x => x.key === 'draw_no_bet');
+        const observed = isoTime(m.last_update ?? b.last_update);
+        if (Number.isFinite(observed)) bookObservedAt[b.key] = new Date(observed).toISOString();
+      } else rejected++;
     }
-    events.push({ eventId, available: true, home, away, commenceTime: new Date(commence).toISOString(), books, rejected });
+    events.push({ eventId, available: true, home, away, commenceTime: new Date(commence).toISOString(), books, rejected, ...(observations ? { ...none.observation, bookObservedAt } : {}) });
   }
   return { events, quota };
 }
