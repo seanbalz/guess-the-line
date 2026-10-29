@@ -14,9 +14,9 @@ const MIGRATION = '20261028181000_gtl_bets_place.sql';
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed.';
 const FUNCTIONS = ['gtl_place_bets(uuid,integer,integer,uuid,jsonb)', 'gtl_bets_newest_quote(integer,integer,jsonb,text,text,text,timestamptz)', 'gtl_bets_terms(jsonb)'];
 
-test('M-11 is written and not hosted until Sean says "apply M-11"', () => {
+test('M-11 is hosted (October 29 apply record, hosted version 20261029041843)', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)), 'removed from NOT_HOSTED by its apply record (Gate M step 8)');
 });
 
 async function placeWorld(t) {
