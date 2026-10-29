@@ -40,6 +40,16 @@ nine new Home tests include the stale-context and read-only cases above. The
 existing large-chunk build advisory remains. These checks do not establish the
 independent tenth real-service Home flow or full combined CI.
 
+The same follow-on completes Task 5's two saved-result value bubbles using the
+existing glass background/shadow, spacing and radius tokens. Both columns keep
+`min-width: 0` and wrap long prices; numeric text and SVG chart geometry/labels
+are unchanged. An isolated loopback preview of the actual result component was
+visually reviewed at 320px in Light and Dark for normal, even, long valid and
+pending prices. Both theme Axe analyses and overflow checks passed, including
+the complete long-price accessible label. The relevant 33 Home/moneyline UI
+tests, 14 token tests and Brand QA passed. Ignored captures/driver are under
+`.local/epl-result-bubbles/`; no provider requests or new CSS-mirroring tests.
+
 The branch is source work only. No standalone PR/CI is dispatched from this
 lane. Root folds the named source head into the final combined acceptance and
 CI run. M-36 named apply/readback, collector setup/activation, protected API/
