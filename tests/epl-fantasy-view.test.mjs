@@ -200,6 +200,17 @@ test('a missing week is null in the weekly series (never 0), and its beat-projec
   assert.deepEqual(view.matchup.recent.map(r => [r.week, r.projected, r.actual]), [[9, 18, 100], [10, null, null], [11, null, 60.5]]);
 });
 
+test('a recheck replaces the weekly totals used by Fantasy without removing its original final snapshot', () => {
+  const original = season().slice(0, 3);
+  const correctedTotals = { ...AFTER9, [SEAN]: [901.5, 870, 6, 3] };
+  const corrected = snap('after-mw9-recheck', '2026-11-04T01:05:00Z', 10, correctedTotals);
+  const view = buildFantasyView({ snapshots: [...original, corrected], bonus: [], viewerOwnerId: SEAN });
+  assert.equal(view.insights.weekly.find(w => w.week === 9 && w.ownerId === SEAN).points, 101.5);
+  assert.equal(view.standings.find(s => s.ownerId === SEAN).sleeperTotal, 901.5);
+  assert.ok(detailLabels([...original, corrected]).includes('after-mw9-recheck'));
+  assert.equal(original[2].payload.rosters.find(r => r.owner_id === SEAN).settings.fpts, 900);
+});
+
 test('top scorer per team sums the saved-lineup starters across weeks with detail', () => {
   const view = buildFantasyView({ snapshots: season(), bonus: [], viewerOwnerId: SEAN });
   const sean = view.insights.topScorerPerTeam.find(t => t.ownerId === SEAN);
