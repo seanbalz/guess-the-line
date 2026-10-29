@@ -154,6 +154,19 @@ item 14's "linked managers and the commissioner only" for `epl/fantasy/read`. No
     not theirs, before the real manager does. Sean accepts this because FEPL is 8 friends. Every link is audited and the
     commissioner can unlink, which the account cannot undo itself, and relink.
 
+**Addendum — Tuesday stat corrections after drafting starts (October 29, 2026).**
+Asked whether to preserve picks and flag a changed next-draft order for review,
+Sean selected: **"Preserve picks; flag for review (recommended)"**.
+
+23. **Preserve and flag.** If Tuesday stat corrections would change the next EPL
+    draft order after someone has picked, keep the existing picks and order and
+    flag the affected order for commissioner review. Corrected score evidence
+    remains separate and append-only; retain the original snapshot and show the
+    corrected totals without silently reordering, deleting or replaying entered
+    picks. This confirms the correction conflict policy; the commissioner review
+    flag must be visible, not merely an unseen job/audit status. It is not a
+    migration apply or production-deployment approval.
+
 ## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
 
 Sean chose Q06 next, then, asked where the new placing screen (redesign stages 43 and 44) should live: "Replace Your
