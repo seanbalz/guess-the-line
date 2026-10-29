@@ -60,7 +60,7 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
     },
     async latestWeek() { calls.push(['latestWeek']); return latest; },
     async readQueue(season, week, ownerId) { calls.push(['readQueue', season, week, ownerId]); return queue; },
-    async unclaimedManagers() { calls.push(['unclaimedManagers']); return unclaimed.map(([ownerId, name]) => ({ ownerId, name })); },
+    async unclaimedManagers(userId) { calls.push(['unclaimedManagers', userId]); return unclaimed.map(([ownerId, name]) => ({ ownerId, name })); },
   };
 }
 const call = (route, body, service, user = USER) => handleEpl({ route, body, user, service, clock: () => NOW });
@@ -154,6 +154,8 @@ test('draft/read opens the board to any account: a non-member sees it read-only 
   assert.equal(view.picks.length, 2);
   // Sorted by name; the names come from shared/epl-sleeper.mjs, never the stored row.
   assert.deepEqual(view.claim, { managers: [{ ownerId: ADAM, name: 'Adam' }, { ownerId: DARIN, name: 'Darin' }] });
+  // The list is the caller's own: a manager the commissioner unlinked this account from is left out (M-31 audit).
+  assert.deepEqual(service.calls.filter(c => c[0] === 'unclaimedManagers'), [['unclaimedManagers', USER.id]]);
   // Queues stay private: a non-member never reads one.
   assert.ok(!service.calls.some(c => c[0] === 'readQueue'));
   // The automatic link is tried exactly once, with the caller's own id, before the view is built.
@@ -474,6 +476,21 @@ test('createEplService lists the unclaimed managers by owner id and name only', 
   } });
   assert.deepEqual(await service.unclaimedManagers(), [{ ownerId: DARIN, name: 'Darin' }, { ownerId: ADAM, name: 'Adam' }]);
   assert.deepEqual(reads, [['gtl_epl_managers', { select: 'owner_id,name', user_id: 'is.null', order: 'owner_id.asc', limit: '8' }, 8]]);
+});
+
+test('createEplService leaves out a manager the commissioner unlinked this account from', async () => {
+  const reads = [];
+  const user = '00000000-0000-4000-8000-000000000001';
+  const service = createEplService({ rpc: async () => null, rest: async () => null, rows: async (table, query, max) => {
+    reads.push([table, query, max]);
+    return table === 'gtl_epl_link_audit' ? [{ owner_id: DARIN }, { owner_id: null }, 'x']
+      : [{ owner_id: DARIN, name: 'Darin' }, { owner_id: ADAM, name: 'Adam' }];
+  } });
+  assert.deepEqual(await service.unclaimedManagers(user), [{ ownerId: ADAM, name: 'Adam' }]);
+  assert.deepEqual(reads[1], ['gtl_epl_link_audit', { select: 'owner_id', user_id: `eq.${user}`, action: 'eq.unlink', limit: '100' }, 100]);
+  reads.length = 0;
+  assert.deepEqual(await service.unclaimedManagers('not-a-uuid'), [{ ownerId: DARIN, name: 'Darin' }, { ownerId: ADAM, name: 'Adam' }]);
+  assert.deepEqual(reads.map(r => r[0]), ['gtl_epl_managers'], 'a malformed id never reaches a filter');
 });
 
 test('the gtl-api adapter gives EPL a caller limited to its own functions, and the handler sends the public code', async () => {

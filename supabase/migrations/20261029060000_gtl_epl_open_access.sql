@@ -10,15 +10,20 @@
 --   unclaimed manager matches the caller's gtl_profiles.display_name (case-insensitive, after btrim: the first word
 --   equals the manager's first name, or the whole name equals the Sleeper username or one of the manager's aliases), and
 --   no other profile matches that manager by the same rules. Anything ambiguous links nothing and writes nothing.
+--   A manager the commissioner unlinked this account from (an 'unlink' audit row for that pair) is never a candidate,
+--   so an unlink is not undone on the account's next read.
 -- * gtl_epl_manager_aliases: extra whole-name matches, seeded from a live read of gtl_profiles that Sean approved on
 --   October 29, 2026 ("my user should be fistathon and seanbalz"): Sean is "Fistathon", Steven is "Sthomas".
 -- * gtl_epl_name_owners(p_name): the managers a display name names by those rules (the one matcher both checks use).
 -- * gtl_epl_claim_manager(p_user,p_owner_id) -> jsonb. GTL_EPL_INVALID for an unknown owner or a missing argument,
---   GTL_EPL_ALREADY_LINKED when the caller already has a link, GTL_EPL_CLAIMED when the manager is linked. The manager
---   row is locked (for update), so the first claim wins.
+--   GTL_EPL_ALREADY_LINKED when the caller already has a link, GTL_EPL_CLAIMED when the manager is linked,
+--   GTL_EPL_FORBIDDEN when the commissioner unlinked the caller from that manager (only the commissioner relinks it).
+--   The manager row is locked (for update), so the first claim wins.
 -- * gtl_epl_link_manager is re-created with the same argument list and body, plus its audit row.
 -- Known risk (accepted, D-68 addendum): an account could rename itself to an unclaimed manager's name and be linked.
--- Every link is audited and the commissioner can unlink through epl/admin/link with userId null.
+-- Every link is audited and the commissioner can unlink through epl/admin/link with userId null. The unlink sticks:
+-- neither gtl_epl_auto_link nor gtl_epl_claim_manager gives that account that manager again; only the commissioner's
+-- epl/admin/link can relink the pair.
 --
 -- Apply order is the M-ledger in docs/REDESIGN_BUILD_PLAN.md section 6: M-31 after M-30 (it reads M-30's tables).
 -- Rerunnable: the tables and index are created only if missing, the alias seed rows are inserted with
@@ -100,7 +105,9 @@ begin
   if v_name is null then return null; end if;
   select count(*)::integer,min(m.owner_id) into v_count,v_owner
     from public.gtl_epl_name_owners(v_name) o join public.gtl_epl_managers m on m.owner_id=o
-    where m.user_id is null;
+    where m.user_id is null
+      -- A commissioner unlink of this pair sticks; only the commissioner relinks it.
+      and not exists(select 1 from public.gtl_epl_link_audit a where a.owner_id=m.owner_id and a.user_id=p_user and a.action='unlink');
   if v_count<>1 then return null; end if;
   -- Ambiguous when any other profile names the same manager by the same rules.
   if exists(select 1 from public.gtl_profiles p where p.user_id<>p_user
@@ -128,6 +135,10 @@ begin
   if not found then raise exception 'GTL_EPL_INVALID' using errcode='P0001'; end if;
   if exists(select 1 from public.gtl_epl_managers m where m.user_id=p_user) then raise exception 'GTL_EPL_ALREADY_LINKED' using errcode='P0001'; end if;
   if v_manager.user_id is not null then raise exception 'GTL_EPL_CLAIMED' using errcode='P0001'; end if;
+  -- The commissioner unlinked this account from this manager: only the commissioner relinks the pair.
+  if exists(select 1 from public.gtl_epl_link_audit a where a.owner_id=p_owner_id and a.user_id=p_user and a.action='unlink') then
+    raise exception 'GTL_EPL_FORBIDDEN' using errcode='P0001';
+  end if;
   begin
     update public.gtl_epl_managers set user_id=p_user,linked_by=p_user,linked_at=clock_timestamp() where owner_id=p_owner_id;
   exception

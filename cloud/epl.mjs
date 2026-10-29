@@ -22,7 +22,8 @@
 //                        stored Sleeper snapshots and the season's bonus rows (cloud/epl-fantasy-view.mjs), never from a
 //                        live Sleeper call; a non-member's view has no viewer, so no matchup of its own
 //   /epl/claim           any signed-in account claims an unclaimed manager, { ownerId } (gtl_epl_claim_manager: the first
-//                        claim wins; GTL_EPL_CLAIMED and GTL_EPL_ALREADY_LINKED are 409)
+//                        claim wins; GTL_EPL_CLAIMED and GTL_EPL_ALREADY_LINKED are 409, and a manager the
+//                        commissioner unlinked this account from is GTL_EPL_FORBIDDEN, 403)
 // The write routes (pick, queue/save) check membership before the body, so a non-member always gets 403 there.
 // The rules in shared/epl-draft.mjs refuse an out-of-turn, taken, closed or not-playing pick before any write, so the
 // common refusals cost no write; the SQL is still the authority (it locks the week row and checks again).
@@ -93,6 +94,7 @@ export function providerEplError(code) {
 
 const SNAPSHOT_LABEL = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const OWNER_ID = /^[0-9]{1,30}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SNAPSHOT_META = new Set(['label', 'week', 'captured_at', 'id']);
 /** A stored snapshot row as the view reads it: `payload` (whole) or the aliased payload parts, a missing part left out. */
 const snapshotRow = row => ({ label: row.label, week: Number.isInteger(row.week) ? row.week : null, capturedAt: row.captured_at,
@@ -159,10 +161,18 @@ export function createEplService({ rpc, rest, rows }) {
       }
       return [...byLabel.values()].sort((a, b) => Date.parse(a.capturedAt) - Date.parse(b.capturedAt));
     },
-    /** The managers no account holds yet, for the claim card (owner id and name only; never an account id). */
-    async unclaimedManagers() {
+    /**
+     * The managers no account holds yet, for the claim card (owner id and name only; never an account id). With the
+     * caller's id, a manager the commissioner unlinked that account from (an M-31 'unlink' audit row) is left out:
+     * gtl_epl_claim_manager refuses that pair, so the card never offers it.
+     */
+    async unclaimedManagers(userId) {
       const list = await rows('gtl_epl_managers', { select: 'owner_id,name', user_id: 'is.null', order: 'owner_id.asc', limit: '8' }, 8);
-      return list.filter(r => record(r) && isManager(r.owner_id)).map(r => ({ ownerId: r.owner_id, name: nameOf(r.owner_id) }));
+      const free = list.filter(r => record(r) && isManager(r.owner_id));
+      if (typeof userId !== 'string' || !UUID.test(userId) || !free.length) return free.map(r => ({ ownerId: r.owner_id, name: nameOf(r.owner_id) }));
+      const unlinked = new Set((await rows('gtl_epl_link_audit', { select: 'owner_id', user_id: `eq.${userId}`, action: 'eq.unlink', limit: '100' }, 100))
+        .filter(r => record(r) && typeof r.owner_id === 'string').map(r => r.owner_id));
+      return free.filter(r => !unlinked.has(r.owner_id)).map(r => ({ ownerId: r.owner_id, name: nameOf(r.owner_id) }));
     },
     async readBonus(season) {
       const list = await rows('gtl_epl_bonus', { select: 'owner_id,week,points', season: `eq.${season}`, limit: '400' }, 400);
@@ -279,7 +289,7 @@ async function draftRead({ body, user, service, now }) {
   const manager = owner !== null && owner !== 'commissioner';
   // Queues are private: only a linked manager's own is read. A non-member's is empty; the commissioner keeps none.
   const myQueue = manager ? await service.readQueue(view.season, view.week, owner) : owner === 'commissioner' ? null : [];
-  const claim = claimable ? { managers: [...await service.unclaimedManagers()].sort(byName).map(m => ({ ownerId: m.ownerId, name: m.name })) } : null;
+  const claim = claimable ? { managers: [...await service.unclaimedManagers(user.id)].sort(byName).map(m => ({ ownerId: m.ownerId, name: m.name })) } : null;
   return {
     season: view.season, week: view.week, status: view.status, deadline: view.deadline,
     // The caller's own manager id (null when unlinked): the board's "Pick <club>" turn hint. Not private.

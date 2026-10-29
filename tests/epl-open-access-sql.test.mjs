@@ -139,6 +139,28 @@ test('the commissioner link and unlink are audited too, with the same argument l
   assert.equal(overloads, 1, 'replaced in place, not overloaded');
 });
 
+test('a commissioner unlink sticks: neither the automatic link nor a claim takes that manager back', async t => {
+  const { db, call, profile, autoLink, claim, linkedTo, audit } = await setup(t);
+  await db.exec('alter table public.gtl_memberships drop constraint gtl_memberships_league_id_fkey');
+  await db.exec(`insert into public.gtl_memberships(league_id,user_id,player_id,role,active) values('sean-troy-luke','${U(9)}','sean','commissioner',true)`);
+  const link = (owner, user) => call('select public.gtl_epl_link_manager($1,$2,$3) r', [owner, user, U(9)]);
+  await profile(U(1), 'Evan');
+  assert.equal(await autoLink(U(1)), EVAN);
+  await link(EVAN, null);
+  assert.equal(await autoLink(U(1)), null, 'the unlinked account is not linked back on its next read');
+  assert.equal(await linkedTo(EVAN), null);
+  await assert.rejects(claim(U(1), EVAN), /GTL_EPL_FORBIDDEN/, 'nor can it claim that manager back');
+  assert.equal(await linkedTo(EVAN), null);
+  assert.deepEqual(await claim(U(1), MARK), { ownerId: MARK, userId: U(1), name: 'Mark' }, 'it can still claim another manager');
+  await link(MARK, null);
+  await profile(U(2), 'Evan Two');
+  assert.equal(await autoLink(U(2)), null, 'another account named Evan is still ambiguous with the unlinked one');
+  assert.deepEqual(await claim(U(2), EVAN), { ownerId: EVAN, userId: U(2), name: 'Evan' }, 'another account can claim Evan');
+  await link(EVAN, null);
+  assert.deepEqual(await link(EVAN, U(1)), { ownerId: EVAN, userId: U(1) }, 'the commissioner can still relink it');
+  assert.deepEqual((await audit()).map(r => r.action), ['auto_link', 'unlink', 'claim', 'unlink', 'claim', 'unlink', 'link']);
+});
+
 test('applying M-31 twice is idempotent and keeps the audit', async t => {
   const { db, profile, autoLink, audit } = await setup(t);
   await profile(U(1), 'Evan');

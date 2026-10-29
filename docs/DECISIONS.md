@@ -125,13 +125,16 @@ item 14's "linked managers and the commissioner only" for `epl/fantasy/read`. No
     "Just watching" (hides the card for the browser session). A claim (`epl/claim {ownerId}`,
     `gtl_epl_claim_manager`) links it to that manager. The first claim wins (the manager row is locked); a later claim
     gets `GTL_EPL_CLAIMED` (409, "Someone already claimed that manager."), an account that is already linked gets
-    `GTL_EPL_ALREADY_LINKED` (409), and an unknown manager `GTL_EPL_INVALID` (400).
+    `GTL_EPL_ALREADY_LINKED` (409), and an unknown manager `GTL_EPL_INVALID` (400). A manager the commissioner
+    unlinked this account from is left off its card and its claim gets `GTL_EPL_FORBIDDEN` (403).
 21. **Audit.** Every link, unlink, claim and automatic link writes a `gtl_epl_link_audit` row (manager, account, action,
     by whom, when). The table is append-only and nothing is deleted (D-23). The commissioner can still link or unlink
-    through `epl/admin/link` (`userId: null` unlinks).
+    through `epl/admin/link` (`userId: null` unlinks). An unlink sticks: neither the automatic link nor a claim gives
+    that account that manager again (both read the account's `unlink` audit rows); only the commissioner relinks the
+    pair through `epl/admin/link`.
 22. **Known risk (accepted).** An account could rename itself to an unclaimed manager's name, or claim a manager that is
     not theirs, before the real manager does. Sean accepts this because FEPL is 8 friends. Every link is audited and the
-    commissioner can unlink and relink.
+    commissioner can unlink, which the account cannot undo itself, and relink.
 
 ## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
 
