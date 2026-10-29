@@ -668,7 +668,7 @@ dark and forced colors, with axe. No release or real-phone check yet.
   trend and its address.
 - **Not done:** the real-phone check.
 
-**Released October 28** with Teams and Players: frontend from , Pages , verified at 01:03:10 UTC
+**Released October 28** with Teams and Players: frontend from `4564fff`, Pages `a78d867c`, verified at 01:03:10 UTC
 on October 29. The [release card](RELEASE_2026_10_28_RESEARCH_NESTING.md) holds the evidence and the signed-in readback.
 
 ## Recommended bets stay on Recommended (player feedback, October 28)
