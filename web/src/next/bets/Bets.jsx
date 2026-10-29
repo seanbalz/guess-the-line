@@ -1,14 +1,14 @@
 import { lazy, useCallback, useEffect, useMemo, useState } from 'react';
-import { Coins, ListFilter, NotebookPen, Users } from 'lucide-react';
+import { Coins, Users } from 'lucide-react';
 import DeferredScreen from '../../DeferredScreen.jsx';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Button } from '../ui/Button.jsx';
-import { Icon } from '../ui/Icon.jsx';
 import { InfoButton } from '../ui/InfoButton.jsx';
 import { INFO } from '../info.js';
 import { NetUnits } from './NetUnits.jsx';
 import { EveryoneBets } from './EveryoneBets.jsx';
+import { PlaceBets } from './PlaceBets.jsx';
 import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
@@ -26,7 +26,7 @@ const RECOMMENDED_MARKETS = [{ value: 'all', label: 'All' }, { value: 'spread', 
 // M-10: inside Virtual Units, your own card or everyone's picks this week (read only).
 const VIRTUAL_VIEWS = [{ value: 'virtual', label: 'Your picks' }, { value: 'everyone', label: 'Everyone' }];
 
-// Recommendations follow the published account week. The existing All games Virtual Units editor keeps its league scope.
+// Recommendations and Virtual Units placement follow the published account week.
 export function Bets() {
   const shell = useShell();
   return ['active', 'settled', 'tracked', 'add', 'virtual', 'everyone', 'recommended'].includes(shell.state.views.bets.view) ? <BetsDetail/> : <BetsLanding/>;
@@ -76,8 +76,6 @@ function BetsDetail() {
   const reviewDirty = useCallback(value => drafts.mark('review', value), [drafts]);
   useEffect(() => clearDirty, [clearDirty]);
   const saved = () => app.refresh({ only: ['community', 'personal'] });
-  const league = app.league;
-  const privateLeague = !league.community && !league.pending && app.leagues.some(item => item.id === league.id && !item.community);
   function choose(next) {
     if (next === view || !shell.confirmLeave()) return;
     clearDirty();
@@ -105,7 +103,7 @@ function BetsDetail() {
   const introduction = {
     tracked: 'Tickets you placed elsewhere, with results and history.',
     recommended: 'Review gaps between your locked guesses and current lines.',
-    virtual: 'Choose a league and place play-money picks.',
+    virtual: 'Place play-money picks on this week’s games.',
     everyone: 'Everyone’s play-money picks this week.',
   };
   const topic = destination === 'everyone' ? 'everyone' : TOPIC[view];
@@ -127,10 +125,8 @@ function BetsDetail() {
       {ticketRequest?.accountId === app.accountId && <DeferredScreen resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>}
     </> : <>
       <Segmented label="Virtual Units view" value={destination === 'everyone' ? 'everyone' : 'virtual'} onChange={chooseVirtual} options={VIRTUAL_VIEWS}/>
-      {destination === 'everyone' ? <EveryoneBets onPlace={() => chooseVirtual('virtual')}/> : privateLeague ? <>
-      <p className="gx-bets-context gx-t-meta gx-c-2"><Icon icon={Users} size={18}/><span>Showing {league.name}</span></p>
-      <DeferredScreen resetKey={league.id} label="Virtual Units"><VirtualUnits key={`${app.accountId}:${league.id}`} accountId={app.accountId} leagueId={league.id} embedded showViewTabs={false} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
-    </> : <section className="gx-bets-choose"><span className="gx-bets-choose-icon"><Icon icon={Coins} size={28}/></span><h2 className="gx-t-section">Your league’s virtual picks</h2><p className="gx-t-body gx-c-2">Choose one of your private leagues to place Virtual Units picks.</p><Button icon={Users} onClick={() => shell.openSheet('sh.switcher')}>Choose league</Button></section>}
+      {/* Stages 43 and 44 (Sean, October 28, 2026): Your picks is the account-level placing screen for every league. */}
+      {destination === 'everyone' ? <EveryoneBets onPlace={() => chooseVirtual('virtual')}/> : <PlaceBets key={app.accountId} onDirty={dirty}/>}
     </>}
   </section>;
 }

@@ -12,6 +12,21 @@ const root = path.resolve(import.meta.dirname, '..');
 // The probe lists live in one file per area (redesign build plan, stage 4), so parallel server stages
 // each edit only their own: scripts/boundary/{guess,lines,bets,league,me}.mjs. They are joined here in
 // that order; tests/boundary-areas.test.mjs keeps every probe from before the split, exactly once.
+/**
+ * One probe request. A timeout is retried up to twice, each with a fresh 15-second budget: an Edge function's first
+ * request after a deploy or a quiet spell can cold-start past 15 seconds (release runs 40804536700 and 40812649921,
+ * October 29, 2026). Any answer, however unexpected, is returned and judged as before; only timeouts are retried.
+ */
+export async function probe(fetchImpl, target, options, attempts = 3) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await fetchImpl(target, options());
+    } catch (error) {
+      if (error?.name !== 'TimeoutError' || attempt >= attempts) throw error;
+    }
+  }
+}
+
 export const BOUNDARY_AREAS = Object.freeze({ guess, lines, bets, league, me });
 const areas = Object.values(BOUNDARY_AREAS);
 const tables = areas.flatMap(area => area.tables);
@@ -90,11 +105,11 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
   const awaiting = [];
   for (const { name, route, body, statuses, database, invalidSession, invalidMachineToken, schema, pending } of requests) {
     const headers = { apikey: key, ...(invalidSession ? { Authorization: 'Bearer invalid-test-token' } : {}), ...(invalidMachineToken ? { Authorization: `Bearer ${'0'.repeat(64)}` } : {}), ...(schema ? { 'Accept-Profile': schema } : {}) };
-    const response = await fetchImpl(url + route, {
+    const response = await probe(fetchImpl, url + route, () => ({
       headers: { ...headers, ...(body ? { 'Content-Type': 'application/json' } : {}) },
       ...(body ? { method: 'POST', body: JSON.stringify(body) } : {}),
       signal: AbortSignal.timeout(15000), redirect: 'error',
-    });
+    }));
     const text = await response.text();
     if (!strict && !statuses.includes(response.status) && pending && Object.hasOwn(pendingDeploy, pending)) {
       let missing = null;

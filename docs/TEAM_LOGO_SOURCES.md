@@ -1,6 +1,6 @@
-# NFL team marks — source register
+# NFL team marks and Premier League crests — source register
 
-Updated: October 14, 2026 (D-46: official logos for all 32 teams) · Owner: team-logo workflow agent
+Updated: October 28, 2026 (Premier League crests for all 20 clubs; D-46 official NFL logos for all 32 teams, October 14, 2026) · Owner: team-logo workflow agent
 
 ## Official logos (D-46)
 
@@ -158,6 +158,51 @@ Every other logo keeps the default rule.
 | TB | default | 9% / 21% | 9% / 21% | 9% / 21% | 9% / 21% |
 | TEN | dark chip | 0% / 0% | 0% / 0% | 0% / 0% | 0% / 0% |
 | WAS | default | 0% / 37% | 0% / 37% | 6% / 37% | 6% / 37% |
+
+## Premier League crests
+
+**All 20 Premier League clubs of the 2026-27 season show their crest** (plan `docs/superpowers/plans/2026-10-28-epl-pick-a-team.md`, Task 6; spec `docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md` section 8). The [D-46 rule](#official-logos-d-46) is extended unchanged to EPL clubs. Promoted and relegated clubs change each season: update `shared/epl-clubs.mjs`, rerun the script and this register.
+
+### Basis
+
+- **Identification only.** Each crest appears only beside, or in place of, the club's name in Pick a Team and EPL data displays. No club crest becomes Guess The Line branding, the app icon, advertising or merchandise.
+- **Trademark notice.** "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement." It is on the Terms page (`web/public/terms.html`, "Team names and logos") and in `EPL_TRADEMARK_NOTICE` in `web/src/teamLogoRegistry.js`.
+- **Not licensed.** No Premier League or club license, permission or endorsement is claimed. `sources.json` records `rightsBasis: "trademark-identification"` and `licensed: false`.
+- **Lookup.** `resolveClubCrest(code)` in `web/src/teamLogoRegistry.js` returns `{src, alt}` (alt is "<club name> crest") or `null`. EPL codes are kept out of `teamMarks`, so `resolveTeamMark` never returns a crest.
+- **Dark mode.** The spec puts a light chip behind crests in dark mode (several crests, such as TOT, NFO and FUL, are dark or monochrome); that is a UI task, not part of the files.
+
+### Source
+
+- **Club list:** `shared/epl-clubs.mjs` (`EPL_CLUBS`: code, name, ESPN team id). Manchester United's ESPN abbreviation is `MAN`; the app code is `MUN`.
+- **Images:** `https://a.espncdn.com/i/teamlogos/soccer/500/<espnId>.png`, fetched 2026-10-28T21:50:14Z to 2026-10-28T21:50:18Z by `scripts/fetch-epl-crests.py`.
+- **Checks on every original:** PNG, RGBA with an alpha channel, all four corners fully transparent. All 20 passed; no artwork was edited. A contact sheet of the 20 shipped files was checked by eye against the club names.
+- **Self-hosted, never hotlinked.** Each original was downscaled once (Pillow, LANCZOS) to 128 px on its longer side. No recolor, no crop; aspect ratio and alpha kept. Files: `web/public/team-logos/epl/<CODE>.png`.
+- `web/public/team-logos/epl/sources.json` records, for each club, the source URL, the club-list row (`code`, `name`, `espnId`), the fetch time (UTC), the original's SHA-256, size and pixel dimensions, and the shipped file's name, size and SHA-256. `tests/epl-crests.test.mjs` checks every shipped file against it.
+
+### Register
+
+| Club | Name | File | ESPN path (`/i/teamlogos/soccer/500/`) | Original | Original SHA-256 | Shipped | Shipped SHA-256 |
+|---|---|---|---|---|---|---|---|
+| BOU | Bournemouth | `BOU.png` | `349.png` | 500×500, 61,133 B | `0383002b303b31fd4672b7823672c472660be4f2175d84ac480a26e1a06e61bb` | 128×128, 20,722 B | `ef9f309aede6539ce7b76e2c86349fc5db12a4528d983912ad7dff5e1e8e98f0` |
+| ARS | Arsenal | `ARS.png` | `359.png` | 500×500, 36,280 B | `92f1bb35662ff56dde09e1f8084221a458357a6df390bc97b2ed6495f6e39f53` | 128×128, 21,090 B | `edd82a851425dd4fa3af2a6210f6968fcaec3f01bb09c54901d507aff9c0d8bf` |
+| AVL | Aston Villa | `AVL.png` | `362.png` | 500×500, 78,018 B | `aad2e636ade60b485855deacfe74f831c8dcae46de72079c7f521b06c1b5865b` | 128×128, 16,056 B | `e80b0b00b56a9d93ce81bbf5425f41e7248ec4714c27a410a6cd766cb563cbab` |
+| BRE | Brentford | `BRE.png` | `337.png` | 500×500, 121,058 B | `7104e162e0e5158336ac94dd895435c66f9c4cbf1a66719b6d1948eb11c2fbb3` | 128×128, 24,687 B | `e109d1430d6b81a49c0c28580bac4bd521c2c27410daa1ea13a61da382c33408` |
+| BHA | Brighton | `BHA.png` | `331.png` | 500×500, 77,720 B | `b1a7041908644caca2c328a329aa8494d6c531cc32f4b11b7fceba43bc93e484` | 128×128, 17,856 B | `974ea758f2983c3b546db4ff5d7ffa650a27675c45b6fdbdc8d9f1c5be7cb433` |
+| CHE | Chelsea | `CHE.png` | `363.png` | 500×500, 59,969 B | `6f14d86b5e35074e91462c7ede6e822f6a6c9f6cb723cd04ea6b8d36f2fa5392` | 128×128, 27,993 B | `d14dc9cc1c61674ef900b94fa0c907b2b8509cc98455d1901d8a9d51cd5a04a5` |
+| COV | Coventry City | `COV.png` | `388.png` | 500×500, 147,977 B | `6959102823b1b8e3bad688a23bc24efed5cc02c606ff65a66a10c6ec15aa9b57` | 128×128, 26,871 B | `29d5e77eeaaa9444efd772b2f7fbccc2715632abee0d037f7c2d8259f8a9daaf` |
+| CRY | Crystal Palace | `CRY.png` | `384.png` | 500×500, 80,572 B | `bc829f12cbd54aa1116888d68fda2cfe8bf4c16adea80033af748ca54a153920` | 128×128, 23,759 B | `006613315d33c6610573b7ecd25e6ea077720bf976802f09c0ddc5c0322870fe` |
+| EVE | Everton | `EVE.png` | `368.png` | 500×500, 146,091 B | `eaedbe5e3b18ddef08c09d07fdca62bcac65165b7bb9af4780acce36841aee20` | 128×128, 23,473 B | `c6ab0b3c03f575f0ccc5d1ad75a018f5e9b76472a4d7bebee5f41c07289b88a6` |
+| FUL | Fulham | `FUL.png` | `370.png` | 500×500, 16,696 B | `b9148eac6e2150c0498eca2924e755ae710d04d3fce66993050cf45942ca4a19` | 128×128, 10,431 B | `8d43c1e42b88f9947e601e7a5d3f64e40cee4c50fdc023095e6257cd11522765` |
+| HUL | Hull City | `HUL.png` | `306.png` | 500×500, 75,616 B | `8147c0d4c418e56f133dcc79e38120cd742aab84e7ce72fa3c873f872100ab65` | 128×128, 21,654 B | `a7b85fb9b6f8b044c5106393d0161ee99872908064f9aac91e9cc96c3dd9ecd6` |
+| IPS | Ipswich Town | `IPS.png` | `373.png` | 500×500, 22,565 B | `e253aeaf39ff7c9d19f91ce78464de947b275fdbea4bf595e602d42367cea1b7` | 128×128, 16,329 B | `ac534881443a59e71ce8d590569befa3972d0907dad3ac69bcaacaaad4af9ef0` |
+| LEE | Leeds United | `LEE.png` | `357.png` | 500×500, 237,616 B | `69d5d4251e740fc8d525c3c967e817575b0ac2e2af7be03f23e40d494c383790` | 128×128, 24,512 B | `4b775c99d3be183c7e266af974aa0e704ea8c914eda9a250b864da7bc30f1190` |
+| LIV | Liverpool | `LIV.png` | `364.png` | 500×500, 35,827 B | `9f2c56faf3631eb32fb5cccd84d31827ba38fcd9dd3280f597b221711a8797de` | 128×128, 11,607 B | `84ba508f4ec5c3d27ed9f9ede0f92450a70c4ca8f1704b3df1725d0fbd8df5cf` |
+| MNC | Manchester City | `MNC.png` | `382.png` | 500×500, 130,387 B | `70e005bdab0ada41a153760398b4a2ef99f956bf9e72954686caa70da8c30c0b` | 128×128, 29,318 B | `23afacc746dd3719e91df6920e96cbed3bade9838e74ed4bab770ebd5fe300a1` |
+| MUN | Manchester United | `MUN.png` | `360.png` | 500×500, 73,159 B | `03486cf5cf90d580d6132ab115cc747be7b2e3519fd6e08be56675cf5897f0b7` | 128×128, 25,689 B | `99a1d5bfe03e4bb3db7e10de8102261464bde70c11e8ea22ee307048c0f345fa` |
+| NEW | Newcastle United | `NEW.png` | `361.png` | 500×500, 189,751 B | `5e926d9f8c18b1b20e2e86a830ad56d4a9094673f172c0f8fabf617917e1910d` | 128×128, 26,305 B | `41ff78caca80dc63cb811f01f01eb4a474eea689586d1ffc6423ceacdbf2acf0` |
+| NFO | Nottingham Forest | `NFO.png` | `393.png` | 500×500, 20,645 B | `766868d667069609a8904ba1ec6a66f09fccfe9fbad21300791bf778dd9ddaae` | 128×128, 10,132 B | `8a364d3fed5027db795b6ec8f8897c48d4101282391c54eb79567f6f72d61007` |
+| SUN | Sunderland | `SUN.png` | `366.png` | 500×500, 53,898 B | `aee718a79be592a8bb36ab68b0960a1dbb5763692f4d91c3f4249f95edbf19af` | 128×128, 19,576 B | `53110fcc65094c9a7753e45137ff90c8dd1169698df4b748db79e7e811c0d19b` |
+| TOT | Tottenham Hotspur | `TOT.png` | `367.png` | 500×500, 26,224 B | `f66f956414b0fd99df6a7e29bed0bd8a849f11d41bd749a1e08ff8d032570d35` | 128×128, 8,298 B | `b826d2742886aa97470d797ef73dac704f26f8910404374afd9449dcbc587639` |
 
 ## Original badges
 

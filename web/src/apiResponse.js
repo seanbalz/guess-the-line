@@ -4,8 +4,9 @@ export class ApiError extends Error {
     this.name = 'ApiError';
     this.status = status;
     // Codes a screen acts on: the submission refusals, M-02's GTL_BALLOT_LOCKED (a locked-in pick is final; reload) and
-    // Guess the Points' refusals (GTL_POINTS_OFF: coming soon; LOCKED / CLOSED / NOT_OPEN: reload the week).
-    this.code = typeof code === 'string' && (/^GTL_SUBMISSION_[A-Z_]+$/.test(code) || ['GTL_BALLOT_LOCKED', 'GTL_GAME_CLOSED', 'GTL_POINTS_OFF', 'GTL_POINTS_LOCKED', 'GTL_POINTS_CLOSED', 'GTL_POINTS_NOT_OPEN'].includes(code)) ? code : null;
+    // Guess the Points' refusals (GTL_POINTS_OFF: coming soon; LOCKED / CLOSED / NOT_OPEN: reload the week) and the EPL
+    // routes' GTL_EPL_* refusals (cloud/epl.mjs: GTL_EPL_OFF hides EPL; CLUB_TAKEN / NOT_YOUR_TURN reload the draft).
+    this.code = typeof code === 'string' && (/^GTL_(?:SUBMISSION|EPL)_[A-Z_]+$/.test(code) || ['GTL_BALLOT_LOCKED', 'GTL_GAME_CLOSED', 'GTL_POINTS_OFF', 'GTL_POINTS_LOCKED', 'GTL_POINTS_CLOSED', 'GTL_POINTS_NOT_OPEN'].includes(code)) ? code : null;
   }
 }
 

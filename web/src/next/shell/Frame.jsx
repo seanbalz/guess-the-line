@@ -1,12 +1,13 @@
 // The new app's fixed frame pieces (prototype shell, CONTRACT section 2; spec 1.2 and 1.3): the top bar, the tab bar,
 // the offline banner, the dock host and the "coming next" card each tab shows until its own stage replaces it.
 import { createPortal } from 'react-dom';
-import { useId } from 'react';
+import { useContext, useId } from 'react';
 import { Avatar, Button, FieldMark, Icon, Segmented } from '../ui/index.js';
 import { cx } from '../ui/cx.js';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { navigateSport } from '../nba/route.js';
+import { EplAccessContext, SPORT_HOME, sportOptions } from '../epl/route.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
 // Four primary destinations, using the shared original icon language.
@@ -35,11 +36,12 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
 }
 
 /**
- * The NFL/NBA selector, a plain row right after the top bar. It stays out of the sticky bar so the bar keeps its
- * --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
+ * The NFL/NBA (and, for FEPL members, EPL) selector, a plain row right after the top bar. It stays out of the sticky
+ * bar so the bar keeps its --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
  */
 export function SportControls() {
-  return <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={[{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]} onChange={() => navigateSport('#nba/games')}/></div>;
+  const epl = useContext(EplAccessContext);
+  return <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={value => navigateSport(SPORT_HOME[value])}/></div>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */

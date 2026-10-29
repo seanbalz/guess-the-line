@@ -1,0 +1,286 @@
+{
+  "users": [
+    {
+      "user_id": "473955676301815808",
+      "display_name": "seanbalz"
+    },
+    {
+      "user_id": "702644837370929152",
+      "display_name": "sthomas111"
+    },
+    {
+      "user_id": "719658248843632640",
+      "display_name": "NLGooner"
+    },
+    {
+      "user_id": "719745569895018496",
+      "display_name": "aharrison2"
+    },
+    {
+      "user_id": "865667912365666304",
+      "display_name": "nemoheye"
+    },
+    {
+      "user_id": "1257180071064510465",
+      "display_name": "LFCRed"
+    },
+    {
+      "user_id": "1259267898757611520",
+      "display_name": "steezyc9"
+    },
+    {
+      "user_id": "1395236217460633600",
+      "display_name": "Freudian"
+    }
+  ],
+  "rosters": [
+    {
+      "roster_id": 1,
+      "owner_id": "473955676301815808",
+      "starters": [
+        "4382",
+        "1571",
+        "7571",
+        "7590",
+        "2164",
+        "6168",
+        "4884",
+        "1873",
+        "6940",
+        "1830",
+        "1786"
+      ],
+      "settings": {
+        "fpts": 824,
+        "fpts_against": 778,
+        "fpts_against_decimal": 75,
+        "fpts_decimal": 50,
+        "losses": 3,
+        "ppts": 1051,
+        "ppts_decimal": 25,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 40,
+        "waiver_position": 6,
+        "wins": 5
+      }
+    },
+    {
+      "roster_id": 2,
+      "owner_id": "1257180071064510465",
+      "starters": [
+        "10130",
+        "1940",
+        "1766",
+        "4864",
+        "10755",
+        "2408",
+        "1789",
+        "12055",
+        "1118",
+        "9599",
+        "4870"
+      ],
+      "settings": {
+        "fpts": 763,
+        "fpts_against": 738,
+        "fpts_against_decimal": 25,
+        "fpts_decimal": 0,
+        "losses": 3,
+        "ppts": 918,
+        "ppts_decimal": 25,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 50,
+        "waiver_position": 8,
+        "wins": 5
+      }
+    },
+    {
+      "roster_id": 3,
+      "owner_id": "702644837370929152",
+      "starters": [
+        "13386",
+        "1114",
+        "1922",
+        "1930",
+        "1060",
+        "3512",
+        "1663",
+        "2053",
+        "1721",
+        "10495",
+        "3667"
+      ],
+      "settings": {
+        "fpts": 777,
+        "fpts_against": 620,
+        "fpts_against_decimal": 50,
+        "fpts_decimal": 75,
+        "losses": 2,
+        "ppts": 961,
+        "ppts_decimal": 25,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 0,
+        "waiver_position": 3,
+        "wins": 6
+      }
+    },
+    {
+      "roster_id": 4,
+      "owner_id": "865667912365666304",
+      "starters": [
+        "2526",
+        "10540",
+        "1886",
+        "1654",
+        "1008",
+        "8738",
+        "2183",
+        "4374",
+        "2075",
+        "1235",
+        "1994"
+      ],
+      "settings": {
+        "fpts": 723,
+        "fpts_against": 819,
+        "fpts_against_decimal": 50,
+        "fpts_decimal": 75,
+        "losses": 4,
+        "ppts": 928,
+        "ppts_decimal": 0,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 30,
+        "waiver_position": 2,
+        "wins": 4
+      }
+    },
+    {
+      "roster_id": 5,
+      "owner_id": "719658248843632640",
+      "starters": [
+        "14935",
+        "1716",
+        "2165",
+        "1781",
+        "4270",
+        "3516",
+        "2674",
+        "2399",
+        "1862",
+        "5207",
+        "1923"
+      ],
+      "settings": {
+        "fpts": 918,
+        "fpts_against": 787,
+        "fpts_against_decimal": 25,
+        "fpts_decimal": 75,
+        "losses": 2,
+        "ppts": 951,
+        "ppts_decimal": 50,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 0,
+        "waiver_position": 4,
+        "wins": 6
+      }
+    },
+    {
+      "roster_id": 6,
+      "owner_id": "1259267898757611520",
+      "starters": [
+        "1963",
+        "3213",
+        "1863",
+        "1712",
+        "3950",
+        "1009",
+        "1993",
+        "9697",
+        "1274",
+        "3041",
+        "13503"
+      ],
+      "settings": {
+        "fpts": 772,
+        "fpts_against": 776,
+        "fpts_against_decimal": 25,
+        "fpts_decimal": 75,
+        "losses": 6,
+        "ppts": 814,
+        "ppts_decimal": 50,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 0,
+        "waiver_position": 7,
+        "wins": 2
+      }
+    },
+    {
+      "roster_id": 7,
+      "owner_id": "719745569895018496",
+      "starters": [
+        "4049",
+        "1806",
+        "2415",
+        "1091",
+        "1874",
+        "2173",
+        "10494",
+        "1097",
+        "1957",
+        "4867",
+        "1823"
+      ],
+      "settings": {
+        "fpts": 621,
+        "fpts_against": 875,
+        "fpts_against_decimal": 50,
+        "fpts_decimal": 50,
+        "losses": 7,
+        "ppts": 685,
+        "ppts_decimal": 50,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 0,
+        "waiver_position": 1,
+        "wins": 1
+      }
+    },
+    {
+      "roster_id": 8,
+      "owner_id": "1395236217460633600",
+      "starters": [
+        "3778",
+        "1258",
+        "2520",
+        "1882",
+        "3224",
+        "5242",
+        "1827",
+        "7993",
+        "5354",
+        "14900",
+        "1909"
+      ],
+      "settings": {
+        "fpts": 765,
+        "fpts_against": 771,
+        "fpts_against_decimal": 0,
+        "fpts_decimal": 0,
+        "losses": 5,
+        "ppts": 925,
+        "ppts_decimal": 75,
+        "ties": 0,
+        "total_moves": 0,
+        "waiver_budget_used": 47,
+        "waiver_position": 5,
+        "wins": 3
+      }
+    }
+  ]
+}

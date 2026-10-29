@@ -9,9 +9,9 @@ const inviteId = '00000000-0000-4000-8000-000000000002';
 const requestId = '00000000-0000-4000-8000-000000000003';
 const leagueId = 'g_00000000000040008000000000000001';
 const verified = { id: uid, email: 'owner@example.invalid', emailConfirmed: true, is_anonymous: false };
-function app({ user = verified, rpc, storage, weekly } = {}) {
+function app({ user = verified, rpc, storage, weekly, epl } = {}) {
   const calls = [];
-  const handler = createCloudHandler({ authenticate: async () => user, storage, weekly,
+  const handler = createCloudHandler({ authenticate: async () => user, storage, weekly, epl,
     lobby: { async rpc(name, args) { calls.push({ name, args }); return rpc ? rpc(name, args) : { ok: true }; } },
   });
   return { calls, async request(path, body, options = {}) {
@@ -27,6 +27,26 @@ test('any confirmed account can open lobby without an existing league membership
   const result = await server.request('/lobby');
   assert.equal(result.status, 200); assert.deepEqual(result.data.leagues, []);
   assert.deepEqual(server.calls, [{ name: 'gtl_lobby', args: { p_user_id: uid, p_email: 'owner@example.invalid' } }]);
+});
+
+test('the lobby reply says whether this account sees EPL, and an EPL failure never fails the lobby', async () => {
+  const reply = () => ({ profile: { id: uid, displayName: 'Player' }, leagues: [], pendingInvites: [] });
+  const epl = answer => ({ calls: [], async rpc(name, args) { this.calls.push({ name, args }); return answer(); } });
+  for (const [answer, expected] of [[() => '473955676301815808', true], [() => 'commissioner', true], [() => null, false], [() => 'not-a-manager', false],
+    [() => { throw Object.assign(new Error('Pick a Team is coming soon.'), { status: 404, code: 'GTL_EPL_OFF' }); }, false],
+    [() => { throw new Error('token=SECRET outage'); }, false]]) {
+    const service = epl(answer), server = app({ rpc: reply, epl: service });
+    const result = await server.request('/lobby');
+    assert.equal(result.status, 200); assert.equal(result.data.epl, expected); assert.equal(result.data.profile.displayName, 'Player');
+    assert.equal(JSON.stringify(result.data).includes('SECRET'), false);
+    assert.deepEqual(service.calls, [{ name: 'gtl_epl_member', args: { p_user: uid } }]);
+  }
+  // No EPL service configured: false, and the lobby still answers.
+  const plain = await app({ rpc: reply }).request('/lobby');
+  assert.equal(plain.status, 200); assert.equal(plain.data.epl, false);
+  // The lobby's own failure still fails it.
+  const failed = await app({ rpc: () => { throw new Error('down'); }, epl: epl(() => '473955676301815808') }).request('/lobby');
+  assert.equal(failed.status, 503);
 });
 
 test('lobby operations require Auth-confirmed email and ignore editable metadata', async () => {

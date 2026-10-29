@@ -1,0 +1,121 @@
+/* The EPL mini-app (EplApp.jsx). It reuses the new app's frame (shell.css: top bar, main, tab bar); these rules only
+   place the sport switch in the top bar and show the skip link on focus. */
+.gx.gx-epl { min-height: 100vh; min-height: 100dvh; background: var(--gx-canvas); }
+.gx .gx-epl-top .gx-seg { flex: 0 1 240px; min-width: 0; }
+.gx .gx-epl-skip:focus { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; display: block; padding: var(--gx-space-3); }
+
+/* ===== Pick a Team and EPL Home (Task 8; mockups v3 "Home" and "Play · Pick a Team") ===== */
+.gx .gx-epl-pick { display: flex; flex-direction: column; gap: var(--gx-space-4); }
+.gx .gx-epl-hero { display: flex; flex-direction: column; gap: var(--gx-space-3); }
+.gx .gx-epl-kicker { margin: 0; color: var(--gx-hero-text-2); }
+.gx .gx-epl-hero-meta { margin: 0; color: var(--gx-hero-text-2); }
+.gx .gx-epl-center { text-align: center; }
+.gx .gx-epl-headline { margin: 0; font: 800 22px/26px var(--gx-font-display); letter-spacing: 0.01em; color: var(--gx-text-1); }
+.gx .gx-epl-action { display: flex; flex-direction: column; gap: var(--gx-space-2); }
+
+/* Crests (D-46): the self-hosted files on a light chip in Dark (text-1 is the near-white ink there), none in Light. */
+.gx .gx-epl-crest {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 3px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-text-1);
+}
+.gx .gx-epl-crest--sm { width: 22px; height: 22px; padding: 2px; }
+.gx .gx-epl-crest--ball { width: 40px; height: 40px; padding: 4px; }
+.gx .gx-epl-crest--code { font: 700 13px/1 var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-canvas); }
+.gx .gx-epl-crest-img { display: block; width: 100%; height: 100%; object-fit: contain; }
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-epl-crest,
+.gx[data-theme="light"] .gx-epl-crest { background: none; }
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-epl-crest--code,
+.gx[data-theme="light"] .gx-epl-crest--code { color: var(--gx-text-1); }
+
+/* The draft board: 4 × 2 glass bubbles, the one on the clock lime-glowed with a "?". */
+.gx .gx-epl-nodes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gx-space-3) var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-epl-node { display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-epl-ball {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  backdrop-filter: var(--gx-glass-blur);
+}
+.gx .gx-epl-node--now .gx-epl-ball { background: var(--gx-accent-tint); box-shadow: var(--gx-glow-accent); }
+.gx .gx-epl-slot {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-surface-3);
+  color: var(--gx-text-1);
+  font: 700 13px/20px var(--gx-font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.gx .gx-epl-node--now .gx-epl-slot { background: var(--gx-accent); color: var(--gx-accent-text); }
+.gx .gx-epl-q { font: 800 22px/1 var(--gx-font-display); color: var(--gx-accent-ink); }
+.gx .gx-epl-node-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 13px/18px var(--gx-font-body); color: var(--gx-hero-text-2); }
+.gx .gx-epl-node--me .gx-epl-node-name { color: var(--gx-accent-ink); }
+/* Someone else on the clock: a glass line, not a button (the one lime button is yours). */
+.gx .gx-epl-clock {
+  margin: 0;
+  padding: var(--gx-space-3);
+  border-radius: var(--gx-radius-pill);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  text-align: center;
+  font: 700 16px/24px var(--gx-font-body);
+  color: var(--gx-text-1);
+}
+
+/* The clubs still available: six crests to a row; the chosen one carries the lime ring. */
+.gx .gx-epl-avail { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--gx-space-2) var(--gx-space-1); margin: var(--gx-space-2) 0 0; padding: 0; list-style: none; }
+.gx .gx-epl-club {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: var(--gx-size-touch);
+  padding: var(--gx-space-1) 0;
+  border: 0;
+  border-radius: var(--gx-radius-sm);
+  background: none;
+  color: var(--gx-text-2);
+}
+.gx .gx-epl-club--on { background: var(--gx-accent-tint); box-shadow: var(--gx-glow-accent); color: var(--gx-text-1); }
+.gx .gx-epl-club-code { font: 700 13px/16px var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+/* Last matchweek's margin bars. */
+.gx .gx-epl-margins { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: var(--gx-space-2) 0 0; padding: 0; list-style: none; }
+.gx .gx-epl-margin { display: flex; align-items: center; gap: var(--gx-space-3); }
+.gx .gx-epl-margin-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.gx .gx-epl-margin-head { display: flex; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-epl-margin-name { min-width: 0; font: 700 16px/24px var(--gx-font-body); }
+.gx .gx-epl-margin-pts { flex: none; font: 700 16px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-win); }
+.gx .gx-epl-margin-empty { display: flex; flex-direction: column; gap: var(--gx-space-1); margin-top: var(--gx-space-2); }
+
+/* The backup ranking sheet. */
+.gx .gx-epl-queue-head { margin: var(--gx-space-4) 0 var(--gx-space-2); }
+.gx .gx-epl-queue { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.gx .gx-epl-queue-row { display: flex; align-items: center; gap: var(--gx-space-2); min-height: var(--gx-size-touch); border-bottom: 1px solid var(--gx-border); }
+.gx .gx-epl-queue-row:last-child { border-bottom: 0; }
+.gx .gx-epl-queue-rank { flex: none; width: 24px; text-align: center; font: 700 16px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-2); }
+.gx .gx-epl-queue-name { overflow-wrap: anywhere; font: 600 16px/24px var(--gx-font-body); }
+
+/* EPL Home: the countdown tiles sit on the hero's glass; two tiles under it. */
+.gx .gx-epl-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-epl-tile { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-epl-tile-club { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-epl-tile-num { font: 700 30px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; }

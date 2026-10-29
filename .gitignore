@@ -15,3 +15,6 @@ playwright-report/
 .dev.vars.*
 supabase/.temp/
 .local-*
+
+# Brainstorming visual companion scratch
+.superpowers/
