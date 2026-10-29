@@ -14,6 +14,14 @@ remain required. Player pick deadlines and locks are unchanged.
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
+**Deployment status update — October 29, 2026:** M-30 and M-31 are applied;
+API v42 and EPL jobs v1 are active. See the dated [M-30](RELEASE_2026_10_29_M30.md)
+and [M-31](RELEASE_2026_10_29_M31.md) release records and the fresh
+[workflow verification](EPL_WORKFLOW_CONTROL_2026_10_29.md). The original
+"not deployed/not applied" wording below describes the decision's initial state;
+it is not an instruction to reapply these migrations. Moneyline M-32 and its
+live DNB verdict remain pending. Product rules and later addenda still govern.
+
 **Status: approved by Sean on October 28, 2026.** It adopts the design in
 [docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md](superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md)
 (mockups v3), including the twelve "calls I made" in its section 10. Plan 1
