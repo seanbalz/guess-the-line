@@ -41,12 +41,13 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
 /**
  * Probes for hosted pieces that are written but not yet applied or deployed. Each still has to deny
  * like any other probe once it exists. Until then only the exact "does not exist yet" answer passes
- * (PostgREST's PGRST202 for a missing function, gtl-api's own "Not found." for a missing route), and it
+ * (PostgREST's PGRST202 for a missing function, PGRST205 for a missing table, or gtl-api's own "Not found." for a missing route), and it
  * is reported as awaiting deploy, never as denied. `--strict` turns that answer into a failure: run it
  * after the deploy, then remove the entries from their area file in the change that records the hosted version.
  *
  * Each area file lists its own pieces: the pieces of the migrations in NOT_HOSTED (tests/migrations.mjs) and the routes that
- * need them. Since October 23, 2026 no area lists any: P-01's Guess the Points functions and the /points/* routes were
+ * need them. A pending table uses table/<name> (without gtl_); a pending RPC uses rpc/<name>. Applied entries are removed
+ * only by their verified apply record. P-01's Guess the Points functions and the /points/* routes were
  * listed in scripts/boundary/guess.mjs until P-01 was applied and gtl-api v36 shipped the routes. The notes below record
  * why earlier pieces were listed while they rolled out; each is hosted now and no longer listed.
  * scripts/boundary/lines.mjs listed the situational-trends referee pieces, the D-34 kickoff wind pieces, M-05's carryover
@@ -80,9 +81,10 @@ const workerChecks = areas.flatMap(area => area.workerChecks);
  */
 export const awaitingDeploy = Object.freeze(Object.assign({}, ...areas.map(area => area.awaitingDeploy)));
 
-export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|leaseToken|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess|sportsbooks|guidanceCollapsed|tickets|source_record|source_payload|before_terms|guesses)"\s*:/;
+export const privateResponse = /TB-DAL|"(?:ballots|originalPick|token_hash|vault_secret_id|decrypted_secret|claim_token|accepted_by|providerEventId|conservative_remaining|lease_token|leaseToken|approved_by|favorites|notes|journal|forecasts|stakeMinor|returnedMinor|previous_result|reviewed_at|reviewedAt|resultReview|intent|picks|scoringReferences|quotes|changedGameIds|books|movement|kickoffLine|lineAtGuess|sportsbooks|guidanceCollapsed|tickets|source_record|source_payload|before_terms|guesses|reviews|rosters|rosterHash|nextPickCount|original_snapshot_id|recheck_snapshot_id|fpts|fpts_against|pointsChange|againstChange)"\s*:|"changes"\s*:\s*[\[{]/;
 const notDeployed = (pendingDeploy, key, status, result) => Object.hasOwn(pendingDeploy, key) && status === 404
-  && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : result?.error === 'Not found.' && Object.keys(result).length === 1);
+  && (key.startsWith('rpc/') ? result?.code === 'PGRST202' : key.startsWith('table/') ? result?.code === 'PGRST205'
+    : result?.error === 'Not found.' && Object.keys(result).length === 1);
 
 /** `pendingDeploy` defaults to the area files' awaitingDeploy; tests pass their own to exercise the awaiting path. */
 export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = console.log, strict = false, pendingDeploy = awaitingDeploy }) {
@@ -90,7 +92,7 @@ export async function checkCloudBoundary({ url, key, fetchImpl = fetch, log = co
   assert.ok(/^sb_publishable_/.test(key || ''), 'A publishable key is required.');
   const requests = [
     ...tables.map(table => ({
-      name: `anonymous ${table} table`, route: `/rest/v1/gtl_${table}?select=*&limit=1`, statuses: [401, 403], database: true,
+      name: `anonymous ${table} table`, route: `/rest/v1/gtl_${table}?select=*&limit=1`, statuses: [401, 403], database: true, pending: `table/${table}`,
     })),
     ...rpcChecks.map(([rpc, body]) => ({
       name: `anonymous ${rpc} RPC`, route: `/rest/v1/rpc/${rpc}`, body, statuses: [401, 403], database: true, pending: `rpc/${rpc}`,

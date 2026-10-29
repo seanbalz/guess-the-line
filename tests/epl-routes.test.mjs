@@ -33,7 +33,7 @@ function weekState(overrides = {}) {
 
 /** A fake EPL service: `member` is what gtl_epl_member answers, `admin` what gtl_community_admin answers. */
 function fakeService({ member = ADAM, admin = false, state = weekState(), queue = ['ARS', 'LIV'], latest = { season: 2026, week: 9 }, errors = {},
-  autoLink = null, unclaimed = [[DARIN, 'Darin'], [ADAM, 'Adam']] } = {}) {
+  autoLink = null, unclaimed = [[DARIN, 'Darin'], [ADAM, 'Adam']], standingsSource = null } = {}) {
   const calls = [];
   return {
     calls,
@@ -54,6 +54,7 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
         return { season: args.p_season, week: args.p_week, windowStart: args.p_window_start, windowEnd: args.p_window_end, firstKickoff: args.p_first_kickoff ?? state.weekRow.firstKickoff };
       }
       if (name === 'gtl_epl_save_snapshot') return true;
+      if (name === 'gtl_epl_standings_provenance') return standingsSource;
       if (name === 'gtl_epl_set_fixture_status') return { eventId: args.p_event_id, season: 2026, week: 9, status: args.p_status };
       if (name === 'gtl_epl_set_fixture_result') return { eventId: args.p_event_id, season: 2026, week: 9, status: 'final', homeGoals: args.p_home_goals, awayGoals: args.p_away_goals };
       throw new Error(`unexpected rpc ${name}`);
@@ -71,10 +72,11 @@ const rejectsWith = (promise, status, code) => assert.rejects(promise, error => 
   return true;
 });
 
-test('EPL_METHODS is the nine POST routes, frozen, and registered in gtl-api', () => {
+test('EPL_METHODS is the ten POST routes, frozen, and registered in gtl-api', () => {
   assert.deepEqual({ ...EPL_METHODS }, {
     '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
     '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
+    '/epl/admin/corrections/read': ['POST'],
     '/epl/fantasy/read': ['POST'], '/epl/claim': ['POST'],
   });
   assert.ok(Object.isFrozen(EPL_METHODS));
@@ -499,7 +501,7 @@ test('the gtl-api adapter gives EPL a caller limited to its own functions, and t
     requests.push(new URL(url).pathname);
     return Response.json({ message: 'GTL_EPL_CLUB_TAKEN' }, { status: 400 });
   } });
-  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_result', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_week_state']);
+  assert.deepEqual([...EPL_RPCS].sort(), ['gtl_community_admin', 'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_link_manager', 'gtl_epl_member', 'gtl_epl_recheck_due_at', 'gtl_epl_save_pick', 'gtl_epl_save_queue', 'gtl_epl_save_snapshot', 'gtl_epl_seed_week', 'gtl_epl_set_fixture_result', 'gtl_epl_set_fixture_status', 'gtl_epl_set_week_window', 'gtl_epl_standings_provenance', 'gtl_epl_week_state']);
   await assert.rejects(adapter.epl.rpc('gtl_epl_save_pick', {}), error => error instanceof EplError && error.status === 409);
   await assert.rejects(adapter.epl.rpc('gtl_epl_resolve_week', {}), /Invalid operation/);
   assert.deepEqual(requests, ['/rest/v1/rpc/gtl_epl_save_pick']);
@@ -557,4 +559,21 @@ test('the raised snapshot cap is checked against the commissioner before the bod
     assert.equal(response.status, 413, why);
     assert.ok(!service.calls.some(([name]) => name === 'gtl_epl_save_snapshot'), why);
   }
+});
+
+test('resolved drafts carry only their immutable source attribution; an absent M34 reader preserves the old board', async () => {
+  const base = weekState(), resolved = weekState({ weekRow: { ...base.weekRow, status: 'resolved' } });
+  const provenance = { kind: 'wikimedia-community', official: false, dataAsOf: '2026-10-25', capturedAt: '2026-10-29T15:38:59Z',
+    source: { url: 'https://en.wikipedia.org/w/index.php?title=2026%E2%80%9327%20Premier%20League&oldid=1382589055', revision: 1382589055 },
+    license: { id: 'CC-BY-SA-4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' } };
+  const service = fakeService({ state: resolved, standingsSource: provenance });
+  const result = await call('/epl/draft/read', {}, service);
+  assert.deepEqual(result.standingsSource, provenance);
+  assert.equal(result.standingsSource.rows, undefined);
+  const legacy = await call('/epl/draft/read', {}, fakeService({ state: resolved, errors: { gtl_epl_standings_provenance: 'GTL_FEATURE_OFF' } }));
+  assert.equal(legacy.standingsSource, undefined); assert.deepEqual(legacy.picks, result.picks);
+  const open = fakeService({ errors: { gtl_epl_standings_provenance: 'unknown_error' } });
+  await call('/epl/draft/read', {}, open);
+  assert.ok(!open.calls.some(([name]) => name === 'gtl_epl_standings_provenance'));
+  await assert.rejects(call('/epl/draft/read', {}, fakeService({ state: resolved, errors: { gtl_epl_standings_provenance: 'unknown_error' } })), /unavailable/);
 });
