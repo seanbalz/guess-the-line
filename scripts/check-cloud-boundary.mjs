@@ -13,17 +13,22 @@ const root = path.resolve(import.meta.dirname, '..');
 // each edit only their own: scripts/boundary/{guess,lines,bets,league,me}.mjs. They are joined here in
 // that order; tests/boundary-areas.test.mjs keeps every probe from before the split, exactly once.
 /**
- * One probe request. A timeout is retried up to twice, each with a fresh 15-second budget: an Edge function's first
- * request after a deploy or a quiet spell can cold-start past 15 seconds (release runs 40804536700 and 40812649921,
- * October 29, 2026). Any answer, however unexpected, is returned and judged as before; only timeouts are retried.
+ * One probe request. A timeout or a 503 is retried up to twice, each with a fresh 15-second budget: an Edge function's
+ * first request after a deploy or a quiet spell can cold-start past 15 seconds (release runs 40804536700 and 40812649921)
+ * or answer 503 while it boots (run 40828942387, October 29, 2026). Every other answer, however unexpected, is returned
+ * and judged as before, and a 503 that persists through the last attempt is returned and fails the probe.
  */
 export async function probe(fetchImpl, target, options, attempts = 3) {
   for (let attempt = 1; ; attempt += 1) {
+    let response;
     try {
-      return await fetchImpl(target, options());
+      response = await fetchImpl(target, options());
     } catch (error) {
       if (error?.name !== 'TimeoutError' || attempt >= attempts) throw error;
+      continue;
     }
+    if (response.status !== 503 || attempt >= attempts) return response;
+    await response.text?.().catch(() => {});
   }
 }
 

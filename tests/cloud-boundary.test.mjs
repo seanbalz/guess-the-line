@@ -567,3 +567,18 @@ test('a probe that times out is retried with a fresh timeout; other errors and t
   await assert.rejects(probe(async () => { calls += 1; throw new TypeError('fetch failed'); }, 'https://x.test/a', () => ({})), /fetch failed/);
   assert.equal(calls, 1, 'a network error is not retried');
 });
+
+test('a 503 is retried like a timeout; one that persists is returned for the probe to fail', async () => {
+  const { probe } = await import('../scripts/check-cloud-boundary.mjs');
+  let calls = 0;
+  const booting = async () => { calls += 1; return calls < 2 ? { status: 503, text: async () => '' } : { status: 401 }; };
+  assert.equal((await probe(booting, 'https://x.test/a', () => ({}))).status, 401);
+  assert.equal(calls, 2);
+  calls = 0;
+  const down = async () => { calls += 1; return { status: 503, text: async () => '' }; };
+  assert.equal((await probe(down, 'https://x.test/a', () => ({}))).status, 503);
+  assert.equal(calls, 3);
+  calls = 0;
+  assert.equal((await probe(async () => { calls += 1; return { status: 500 }; }, 'https://x.test/a', () => ({}))).status, 500);
+  assert.equal(calls, 1, 'other statuses are not retried');
+});
