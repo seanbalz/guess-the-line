@@ -35,6 +35,10 @@ M-33's private stat-recheck table, three service-only RPCs and commissioner read
 
 Generic pending-table handling comes from `7f8900eda5fd02944726f953650322d93ae1f068`; generic area/ledger assertions are isolated in `31d58dea8be6206705277eb6ef697995d9867b36` for reuse by later standings work. Only exact 404/PGRST205 table, 404/PGRST202 RPC or exact route-not-found replies can be reported awaiting in ordinary mode; strict mode still rejects them. Granted access, business-rule errors and malformed missing replies fail. Commissioner requests are tested both without a session and with an invalid session, with no raw roster or review evidence allowed in denial/missing replies. Apply-record owners must remove absence exceptions once real strict denials are established.
 
+## CI follow-up
+
+The first CI run found the new generic `changes` privacy marker also rejected Open-Meteo's public attribution string. The marker now rejects structured correction changes (arrays/objects) while allowing the provider's license/change notice. Existing private correction keys remain protected. A regression covers both shapes, and all 107 targeted weather/boundary cases passed with zero skips. Fresh CI is required for this repair.
+
 ## Verification
 
 | Check | Result |
