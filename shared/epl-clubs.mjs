@@ -38,3 +38,15 @@ export function clubFromOddsName(name) {
   if (typeof name !== 'string') return null;
   return BY_ODDS_NAME[name.trim().toLowerCase()] ?? null;
 }
+
+// Sleeper's club abbreviations (players' team_abbr) equal the app's club codes except Manchester City (Sleeper MCI, app MNC).
+const SLEEPER_ABBR = Object.freeze(Object.assign(Object.create(null), { MCI: 'MNC' }));
+const CODES = new Set(EPL_CLUB_CODES);
+
+/** The club code for a Sleeper team_abbr, or null for an abbreviation that is not one of the 20 clubs (shown as text). */
+export function clubFromSleeperAbbr(abbr) {
+  if (typeof abbr !== 'string') return null;
+  const key = abbr.trim().toUpperCase();
+  const code = SLEEPER_ABBR[key] ?? key;
+  return CODES.has(code) ? code : null;
+}

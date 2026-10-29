@@ -1,5 +1,5 @@
-// EPL "Pick a Team" routes on gtl-api (docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md section 6;
-// plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Seven POST routes over the M-30 service-only functions
+// EPL "Pick a Team" and Research -> Fantasy routes on gtl-api (docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md section 6;
+// plan docs/superpowers/plans/2026-10-28-epl-pick-a-team.md, Task 4). Eight POST routes over the M-30 service-only functions and tables
 // (supabase/migrations/20261028180000_gtl_epl_pick_a_team.sql):
 //   /epl/draft/read      a linked FEPL manager or the commissioner: the week's board, the clubs playing, the caller's own queue
 //                        and own manager id (`me`)
@@ -14,6 +14,9 @@
 //                        worker never postpones a match only because a feed stopped listing it (pre-T8 fix wave); or, with
 //                        status 'final' and whole homeGoals/awayGoals, records a played match's score once the draft is
 //                        resolved (gtl_epl_set_fixture_result; final review), so a needs_review week is never zeroed
+//   /epl/fantasy/read    a linked FEPL manager or the commissioner: Research -> Fantasy (plan 2026-10-28-epl-fantasy.md, Task 2),
+//                        built from stored Sleeper snapshots and the season's bonus rows (cloud/epl-fantasy-view.mjs), never
+//                        from a live Sleeper call
 // The member routes check membership before the body, so a non-member always gets 403.
 // The rules in shared/epl-draft.mjs refuse an out-of-turn, taken, closed or not-playing pick before any write, so the
 // common refusals cost no write; the SQL is still the authority (it locks the week row and checks again).
@@ -27,10 +30,12 @@ import { UUID_PATTERN } from './lobby.mjs';
 import { canPick, onTheClock } from '../shared/epl-draft.mjs';
 import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
 import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
+import { buildFantasyView, detailLabels, fantasySeason } from './epl-fantasy-view.mjs';
 
 export const EPL_METHODS = Object.freeze({
   '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
   '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
+  '/epl/fantasy/read': ['POST'],
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
@@ -56,6 +61,7 @@ const ERRORS = Object.freeze({
   GTL_EPL_FORBIDDEN: [403, 'Only the commissioner can manage Pick a Team.'],
   GTL_EPL_NOT_MEMBER: [403, 'Only a linked FEPL manager can save a queue.'],
   GTL_EPL_NO_WEEK: [404, 'No Pick a Team matchweek is open.'],
+  GTL_EPL_NO_FANTASY: [404, 'No Sleeper data is saved yet.'],
   GTL_EPL_DRAFT_CLOSED: [409, 'The draft for this matchweek has closed.'],
   GTL_EPL_NOT_YOUR_TURN: [409, 'It is not your turn to pick.'],
   GTL_EPL_CLUB_NOT_PLAYING: [409, 'That club has no match this matchweek.'],
@@ -75,11 +81,17 @@ export function providerEplError(code) {
   return new EplError(status, message, publicCode);
 }
 
+const SNAPSHOT_LABEL = /^[a-z0-9][a-z0-9-]{0,63}$/;
+const OWNER_ID = /^[0-9]{1,30}$/;
+const snapshotRow = row => ({ label: row.label, week: Number.isInteger(row.week) ? row.week : null, capturedAt: row.captured_at,
+  payload: row.payload !== undefined ? row.payload : { users: row.users ?? null, rosters: row.rosters ?? null, state: row.state ?? null } });
+
 /**
- * gtl-api's EPL service: the group RPC caller plus two service-role table reads that no M-30 function covers (the latest
- * week, and the caller's own queue). `rest(table, query)` answers one row or null (cloud/handler.mjs createSupabaseAdapter).
+ * gtl-api's EPL service: the group RPC caller plus the service-role table reads that no M-30 function covers (the latest
+ * week, the caller's own queue, and the fantasy view's snapshots and bonus rows). `rest(table, query)` answers one row or
+ * null; `rows(table, query, max)` answers at most `max` rows (cloud/handler.mjs createSupabaseAdapter).
  */
-export function createEplService({ rpc, rest }) {
+export function createEplService({ rpc, rest, rows }) {
   return {
     rpc: (name, args) => rpc(name, args),
     async latestWeek() {
@@ -89,6 +101,25 @@ export function createEplService({ rpc, rest }) {
     async readQueue(season, week, ownerId) {
       const row = await rest('gtl_epl_queues', { select: 'clubs', season: `eq.${season}`, week: `eq.${week}`, owner_id: `eq.${ownerId}`, limit: '1' });
       return Array.isArray(row?.clubs) ? row.clubs.filter(club => typeof club === 'string') : [];
+    },
+    /**
+     * Every non-daily snapshot's totals and lineups (users, rosters and state only: light), the newest snapshot of any kind in
+     * full, and in full only the last weeks with a saved lineup (detailLabels). Three bounded reads; no Sleeper call.
+     */
+    async readSnapshots() {
+      const light = await rows('gtl_epl_snapshots', { select: 'label,week,captured_at,users:payload->users,rosters:payload->rosters,state:payload->state',
+        label: 'not.like.daily-*', order: 'captured_at.asc', limit: '200' }, 200);
+      const newest = await rows('gtl_epl_snapshots', { select: 'label,week,captured_at,payload', order: 'captured_at.desc,id.desc', limit: '1' }, 1);
+      const byLabel = new Map(light.map(row => [row.label, snapshotRow(row)]));
+      const wanted = detailLabels([...byLabel.values()]).filter(label => SNAPSHOT_LABEL.test(label) && label !== newest[0]?.label);
+      const full = wanted.length ? await rows('gtl_epl_snapshots', { select: 'label,week,captured_at,payload', label: `in.(${wanted.join(',')})`, limit: String(wanted.length) }, wanted.length) : [];
+      for (const row of [...full, ...newest]) byLabel.set(row.label, snapshotRow(row));
+      return [...byLabel.values()];
+    },
+    async readBonus(season) {
+      const list = await rows('gtl_epl_bonus', { select: 'owner_id,week,points', season: `eq.${season}`, limit: '400' }, 400);
+      return list.filter(r => record(r) && typeof r.owner_id === 'string' && OWNER_ID.test(r.owner_id) && Number.isInteger(r.week) && Number.isInteger(r.points))
+        .map(r => ({ ownerId: r.owner_id, week: r.week, points: r.points }));
     },
   };
 }
@@ -297,9 +328,21 @@ async function adminFixture({ body, user, service }) {
   return { eventId: text(saved.eventId), season: isSeason(saved.season) ? saved.season : null, week: isWeek(saved.week) ? saved.week : null, status: saved.status };
 }
 
+async function fantasyRead({ body, user, service }) {
+  const owner = await member(service, user);
+  keys(body, []);
+  const snapshots = await service.readSnapshots();
+  const season = fantasySeason(snapshots);
+  if (!Array.isArray(snapshots) || !snapshots.length) refuse('GTL_EPL_NO_FANTASY');
+  const bonus = season === null ? [] : await service.readBonus(season);
+  const view = buildFantasyView({ snapshots, bonus, viewerOwnerId: owner === 'commissioner' ? null : owner });
+  return view ?? refuse('GTL_EPL_NO_FANTASY');
+}
+
 const HANDLERS = Object.freeze({
   '/epl/draft/read': draftRead, '/epl/draft/pick': draftPick, '/epl/queue/save': queueSave,
   '/epl/admin/link': adminLink, '/epl/admin/week': adminWeek, '/epl/admin/snapshot': adminSnapshot, '/epl/admin/fixture': adminFixture,
+  '/epl/fantasy/read': fantasyRead,
 });
 
 export async function handleEpl({ route, body, user, service, clock = Date.now }) {

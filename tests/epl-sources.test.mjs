@@ -61,15 +61,16 @@ test('medianAmerican takes the median implied probability across books', () => {
 });
 
 const STATE = { week: 9, season: '2026' };
-const ROSTERS = [{ roster_id: 1, owner_id: '865667912365666304', settings: { fpts: 500, fpts_decimal: 25 }, starters: [] }];
+const ROSTERS = [{ roster_id: 1, owner_id: '865667912365666304', settings: { fpts: 500, fpts_decimal: 25 }, starters: ['1'], players: ['1'] }];
+const HAALAND = { first_name: 'Erling', last_name: 'Haaland', metadata: { full_name: 'Erling Haaland', channel_id: 'z'.repeat(40) }, position: 'F', fantasy_positions: ['F'], team: '1', team_abbr: 'MCI', injury_status: null };
 function sleeperRoutes() {
   const bodies = {
     '/v1/state/clubsoccer:epl': STATE,
-    [`/v1/league/${SLEEPER_LEAGUE}`]: { league_id: SLEEPER_LEAGUE },
-    [`/v1/league/${SLEEPER_LEAGUE}/users`]: [{ user_id: '865667912365666304', display_name: 'nemoheye' }],
+    [`/v1/league/${SLEEPER_LEAGUE}`]: { league_id: SLEEPER_LEAGUE, name: 'FEPL', scoring_settings: { pos_f_g: 9 } },
+    [`/v1/league/${SLEEPER_LEAGUE}/users`]: [{ user_id: '865667912365666304', display_name: 'nemoheye', avatar: 'a'.repeat(32) }],
     [`/v1/league/${SLEEPER_LEAGUE}/rosters`]: ROSTERS,
-    '/stats/clubsoccer:epl/2026/9': [{ player_id: '1', stats: { pts: 3 } }],
-    '/projections/clubsoccer:epl/2026/10': [{ player_id: '1', stats: { pts: 4 } }],
+    '/stats/clubsoccer:epl/2026/9': [{ player_id: '1', stats: { pts: 3 }, player: HAALAND }, { player_id: '2', stats: { pts: 1 }, player: { ...HAALAND, last_name: 'Other' } }],
+    '/projections/clubsoccer:epl/2026/10': [{ player_id: '1', stats: { pts: 4 }, player: HAALAND }],
   };
   return Object.entries(bodies).map(([path, body]) => ({ match: u => u.origin === 'https://api.sleeper.app' && u.pathname === path, body }));
 }
@@ -86,10 +87,17 @@ test('fetchSleeperSnapshot saves the same six Sleeper responses as snapshot.py, 
   assert.deepEqual(Object.keys(snap.sha256), ['state', 'league', 'users', 'rosters', 'stats_mw9', 'projections_mw10']);
   assert.equal(snap.sha256.rosters, sha(JSON.stringify(ROSTERS)));
   const p = snap.payload;
-  assert.deepEqual(Object.keys(p), ['capturedAt', 'label', 'source', 'leagueId', 'sources', 'state', 'league', 'users', 'rosters', 'stats_mw9', 'projections_mw10']);
+  // Stored trimmed (plan 2026-10-28-epl-fantasy.md, Task 2): rostered players only, plus their directory under Sleeper's
+  // key names (position, fantasy_positions); the hashes stay those of the raw Sleeper bodies.
+  assert.deepEqual(Object.keys(p).sort(), ['capturedAt', 'label', 'league', 'leagueId', 'players', 'projections_mw10', 'rosters', 'source', 'sources', 'state', 'stats_mw9', 'trimmed', 'users']);
   assert.equal(p.source, 'https://api.sleeper.app'); assert.equal(p.leagueId, SLEEPER_LEAGUE);
   assert.deepEqual(p.sources.stats_mw9, { path: '/stats/clubsoccer:epl/2026/9?season_type=regular', sha256: snap.sha256.stats_mw9 });
   assert.deepEqual(p.rosters, ROSTERS); assert.deepEqual(p.state, STATE);
+  assert.deepEqual(p.league, { scoring_settings: { pos_f_g: 9 } });
+  assert.deepEqual(p.users, [{ user_id: '865667912365666304', display_name: 'nemoheye' }]);
+  assert.deepEqual(p.stats_mw9, [{ player_id: '1', stats: { pts: 3 } }], 'an unrostered player is dropped');
+  assert.deepEqual(p.projections_mw10, [{ player_id: '1', stats: { pts: 4 } }]);
+  assert.deepEqual(p.players, { 1: { name: 'Erling Haaland', position: 'F', fantasy_positions: ['F'], team: '1', team_abbr: 'MCI', injury_status: null } });
 });
 
 test('fetchSleeperSnapshot refuses a bad label or week, and a failed or malformed response', async () => {

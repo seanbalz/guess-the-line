@@ -176,7 +176,10 @@ test('the import trims a snapshot to what settle and the fantasy math read, and 
   fs.writeFileSync(file, JSON.stringify(snap, null, 1));
   const { body, bytes } = buildSnapshotImport(file);
   const p = body.payload;
-  assert.deepEqual(Object.keys(p).sort(), ['capturedAt', 'league', 'leagueId', 'projections_mw9', 'purpose', 'rosters', 'source', 'sources', 'state', 'stats_mw8', 'trimmed', 'users']);
+  assert.deepEqual(Object.keys(p).sort(), ['capturedAt', 'league', 'leagueId', 'players', 'projections_mw9', 'purpose', 'rosters', 'source', 'sources', 'state', 'stats_mw8', 'trimmed', 'users']);
+  // The rostered players' directory (plan 2026-10-28-epl-fantasy.md, Task 2), from the player objects Sleeper embeds.
+  assert.equal(Object.keys(p.players).length, new Set(snap.rosters.flatMap(r => r.players)).size);
+  assert.deepEqual(p.players[snap.rosters[0].players[0]], { name: 'A B', position: null, fantasy_positions: [], team: null, team_abbr: null, injury_status: null });
   assert.deepEqual(p.league, { scoring_settings: { goal: 6, assist: 3 } });
   assert.deepEqual(p.state, snap.state);
   assert.deepEqual(p.users[0], { user_id: snap.users[0].user_id, display_name: snap.users[0].display_name });

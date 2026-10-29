@@ -4,7 +4,8 @@
 // pattern. Each run does one job against the latest week (gtl_epl_weeks, newest season and week):
 //   snapshot  saves Sleeper's season totals and lineups as before-mw<N>-kickoff in the half hour before the first kickoff and
 //             as after-mw<N> once the week's window has ended (stats week N, projections week N+1), and only while Sleeper's
-//             state is on week N+1 (still on N: wait; past N+1: scores_incomplete, nothing saved).
+//             state is on week N+1 (still on N: wait; past N+1: scores_incomplete, nothing saved); and, when neither is due,
+//             daily-<YYYY-MM-DD> once a UTC day (stats and projections week N) for Research -> Fantasy.
 //   fixtures  before the first kickoff, one 1-credit EPL h2h odds read: the events with commence_time in
 //             [window_start, window_end) become the week's fixtures, their median prices are stored, and the first kickoff is
 //             moved earlier (never later) to the earliest one. A gap of more than 36 hours between kickoffs ends the round:
@@ -113,6 +114,8 @@ export function snapshotLabels(kind, week) {
   const names = kind === 'after' ? [`after-mw${week}`, `after-mw${String(week).padStart(2, '0')}`] : [`before-mw${week}-kickoff`, `before-mw${String(week).padStart(2, '0')}-kickoff`];
   return [...new Set(names)];
 }
+/** The daily snapshot label for a time: daily-<YYYY-MM-DD> (UTC). */
+export const dailyLabel = ms => `daily-${new Date(ms).toISOString().slice(0, 10)}`;
 const savedLabel = (state, kind, week) => snapshotLabels(kind, week).find(label => list(state.snapshots).includes(label)) ?? null;
 
 /** The turn notification: the matchweek and its lock time only, never a club or another manager. */
@@ -184,6 +187,10 @@ async function snapshotJob(ctx) {
     due.push({ label: snapshotLabels('before', n)[0], statsWeek: Math.max(1, n - 1), projectionsWeek: n });
   if (ctx.now >= Date.parse(week.windowEnd) && !savedLabel(ctx.state, 'after', n))
     due.push({ label: snapshotLabels('after', n)[0], statsWeek: n, projectionsWeek: Math.min(38, n + 1) });
+  // The fantasy view's daily capture (plan 2026-10-28-epl-fantasy.md, Task 2): the latest totals, lineups and this week's
+  // projections, once a UTC day, only when no other capture is due (that one is the day's capture).
+  const daily = dailyLabel(ctx.now);
+  if (!due.length && !list(ctx.state.snapshots).includes(daily)) due.push({ label: daily, statsWeek: n, projectionsWeek: n });
   if (!due.length) stop('nothing_due');
   const saved = [];
   let pending = false;
