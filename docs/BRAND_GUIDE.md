@@ -422,3 +422,10 @@ Guidance and sources.
   exceed the available width, with the shared focus ring and native caption.
   Scrolling preserves chart selection; year controls retain their 44px targets,
   selected check and chart relationship. Keep the page within the viewport.
+
+- **Historical Research tables:** use the 16px numeric reading style with tabular
+  figures for records, games and cumulative units; keep column headers in meta.
+  Keep the sample description outside the native scroll area and retain the
+  caption, period records and cumulative endpoint meanings. Name the table region
+  and period controls with their visible research title; scrolling keeps chart
+  selection, while period controls keep focus and their matching chart link.

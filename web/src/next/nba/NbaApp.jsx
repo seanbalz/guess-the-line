@@ -17,7 +17,8 @@ import { addNextFontLinks } from '../styles/fonts.js';
 import { confirmSportLeave, nbaHash, nbaRoute, today } from './route.js';
 import EplApp from '../epl/EplApp.jsx';
 import { useEplAccess } from '../epl/api.js';
-import { EplAccessContext, eplGate, SPORT_HOME, sportOptions } from '../epl/route.js';
+import { EplAccessContext, eplGate, primeLobby, SPORT_HOME, sportOptions } from '../epl/route.js';
+import { cloudApi } from '../../api.js';
 import { sportAt } from '../sportAt.js';
 
 export { sportAt, NbaHeader };
@@ -70,10 +71,13 @@ export function SportEntry({ session, onSignOut, children }) {
   const state = useRef(sport); state.current = sport;
   const previousNfl = useRef(sport !== 'nfl' ? '#home' : window.location.hash || '#home');
   const accepted = useRef(window.location.hash);
-  // One epl/draft/read per signed-in account (cached for the page): the EPL option shows only for FEPL members (and the
-  // commissioner). null while the read is out.
+  // EPL access is the lobby reply's `epl` (no request of its own): the EPL option shows only for FEPL members (and the
+  // commissioner). null until a lobby reply says; a cold #epl link reads the lobby once, which the NFL app then reuses.
   const access = useEplAccess(session.user.id), epl = access === true;
   const gate = eplGate(sport, access);
+  useEffect(() => {
+    if (gate === 'wait') primeLobby(session.user.id, () => cloudApi('lobby')).catch(() => { /* Read as no EPL: leaves for NFL. */ });
+  }, [gate, session.user.id]);
   // A cold #epl/... link for an account without EPL: leave for NFL in place (replace, so Back does not return to it).
   useEffect(() => {
     if (gate !== 'leave') return;
@@ -108,7 +112,7 @@ export function SportEntry({ session, onSignOut, children }) {
   const selector = <div className="gx gx-nba-sport-entry"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={change}/></div>;
   if (sport === 'nba') return <NbaApp session={session} onSignOut={onSignOut} epl={epl} onSportChange={change}/>;
   if (gate === 'show') return <EplApp key={session.user.id} onSportChange={change}/>;
-  // While access is unknown, or until the effect above leaves for NFL, nothing EPL-specific (and no NFL read) renders.
+  // While the lobby has not answered, or until the effect above leaves for NFL, nothing EPL-specific (and no NFL read) renders.
   if (gate !== 'other') return null;
   return <EplAccessContext.Provider value={epl}><SportSlotContext.Provider value={selector}>{children}</SportSlotContext.Provider></EplAccessContext.Provider>;
 }

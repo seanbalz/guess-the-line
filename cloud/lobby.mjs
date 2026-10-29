@@ -1,3 +1,5 @@
+import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
+
 export const LOBBY_METHODS = {
   '/lobby': ['GET'], '/profile': ['POST'], '/leagues': ['POST'],
   '/invites': ['GET', 'POST'], '/invite/accept': ['POST'], '/invite/revoke': ['POST'],
@@ -45,13 +47,29 @@ export async function hashInviteToken(token) {
 }
 const randomToken = () => [...crypto.getRandomValues(new Uint8Array(32))].map(byte => byte.toString(16).padStart(2, '0')).join('');
 
+/**
+ * Whether this account sees EPL (Pick a Team): gtl_epl_member answers a linked FEPL manager's owner id or 'commissioner'.
+ * The lobby reply carries it so the app's EPL access costs no request of its own. Any failure, including M-30 not
+ * applied (GTL_EPL_OFF), reads as false and never fails the lobby; every EPL route still checks membership itself.
+ */
+export async function eplMember(epl, userId) {
+  if (!epl?.rpc) return false;
+  try {
+    const owner = await epl.rpc('gtl_epl_member', { p_user: userId });
+    return owner === 'commissioner' || (typeof owner === 'string' && Object.hasOwn(MANAGER_NAMES, owner));
+  } catch { return false; }
+}
+
 // User and confirmed email are supplied only by the verified Auth adapter.
-export async function handleLobby({ route, method, body = {}, user, leagueId, service, siteUrl = 'https://guess-the-line.pages.dev' }) {
+export async function handleLobby({ route, method, body = {}, user, leagueId, service, epl, siteUrl = 'https://guess-the-line.pages.dev' }) {
   const email = normalizeEmail(user.email);
   if (!user.emailConfirmed || !email) reject(403, 'Confirm your email address before using private games.');
   if (!service) throw new Error('Private game service not configured.');
   const actor = { p_user_id: user.id };
-  if (route === '/lobby') return service.rpc('gtl_lobby', { ...actor, p_email: email });
+  if (route === '/lobby') {
+    const [reply, member] = await Promise.all([service.rpc('gtl_lobby', { ...actor, p_email: email }), eplMember(epl, user.id)]);
+    return reply !== null && typeof reply === 'object' && !Array.isArray(reply) ? { ...reply, epl: member } : reply;
+  }
   if (route === '/profile') {
     fields(body, ['displayName']);
     if (!validName(body.displayName, 60)) throw providerLobbyError('GTL_INVALID_NAME');

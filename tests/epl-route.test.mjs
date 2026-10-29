@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cachedEplAccess, EPL_TABS, eplFragment, eplGate, eplHash, eplRoute, readEplAccess, resetEplAccessCache, SPORT_HOME, sportOptions } from '../web/src/next/epl/route.js';
+import { EPL_TABS, eplAccessFromLobby, eplFragment, eplGate, eplHash, eplRoute, knownEplAccess, noteLobbyEpl, primeLobby, resetEplAccessCache, SPORT_HOME, sportOptions, subscribeEplAccess, takePrimedLobby } from '../web/src/next/epl/route.js';
 import { sportAt } from '../web/src/next/sportAt.js';
 import { nbaFragment, nbaRoute } from '../web/src/next/nba/route.js';
 
@@ -41,19 +41,9 @@ test('sport switch offers EPL only with access; each sport has a home address', 
   assert.equal(SPORT_HOME.epl, '#epl/home');
 });
 
-test('EPL access reads draft/read once: refused (401, 403, feature off) hides EPL; anything else shows it', async () => {
-  const calls = [];
-  const answer = result => async (action, body) => { calls.push([action, body]); if (result instanceof Error) throw result; return result; };
-  const failure = (status, code = null) => Object.assign(new Error('x'), { status, code });
-  assert.equal(await readEplAccess(answer({ season: 2026, week: 9 })), true);
-  assert.deepEqual(calls, [['draft/read', {}]]);
-  assert.equal(await readEplAccess(answer(failure(403, 'GTL_EPL_FORBIDDEN'))), false);
-  assert.equal(await readEplAccess(answer(failure(403))), false);
-  assert.equal(await readEplAccess(answer(failure(401))), false);
-  assert.equal(await readEplAccess(answer(failure(404, 'GTL_EPL_OFF'))), false);
-  // A member before any week is stored, or a passing outage, keeps the option.
-  assert.equal(await readEplAccess(answer(failure(404, 'GTL_EPL_NO_WEEK'))), true);
-  assert.equal(await readEplAccess(answer(failure(503))), true);
+test('EPL access is the lobby reply\'s epl field: only epl true shows EPL, a missing field hides it', () => {
+  assert.equal(eplAccessFromLobby({ profile: {}, epl: true }), true);
+  for (const data of [{ epl: false }, { profile: {} }, { epl: 'true' }, null, undefined, []]) assert.equal(eplAccessFromLobby(data), false);
 });
 
 test('sportAt resolves NFL, NBA and EPL addresses, and in-page anchors keep the sport showing (pre-T8 fix wave)', () => {
@@ -79,19 +69,29 @@ test('eplGate: EPL renders only once access is true; false leaves for NFL; loadi
   for (const sport of ['nfl', 'nba']) for (const access of [true, false, null]) assert.equal(eplGate(sport, access), 'other');
 });
 
-test('EPL access is read once per signed-in account and read again when the account changes (pre-T8 fix wave)', async () => {
+test('EPL access comes from noted lobby replies per account, and a cold #epl link primes one lobby read the NFL app reuses', async () => {
+  resetEplAccessCache();
+  let changes = 0;
+  const stop = subscribeEplAccess(() => { changes += 1; });
+  assert.equal(knownEplAccess('user-1'), null, 'unknown until a lobby reply says');
+  noteLobbyEpl('user-1', { epl: true });
+  assert.equal(knownEplAccess('user-1'), true); assert.equal(knownEplAccess('user-2'), null, 'another account is unknown');
+  noteLobbyEpl('user-1', { epl: true }); assert.equal(changes, 1, 'the same answer notifies once');
+  noteLobbyEpl('user-1', {}); assert.equal(knownEplAccess('user-1'), false); assert.equal(changes, 2);
+  stop();
   resetEplAccessCache();
   const calls = [];
-  const api = async (action, body, options) => { calls.push([action, body, options]); return { season: 2026 }; };
-  const [a, b] = await Promise.all([cachedEplAccess('user-1', api), cachedEplAccess('user-1', api)]);
-  assert.deepEqual([a, b, await cachedEplAccess('user-1', api)], [true, true, true]);
-  assert.equal(calls.length, 1, 'one draft/read for the session');
-  assert.deepEqual(calls[0].slice(0, 2), ['draft/read', {}]);
-  const refused = async () => { calls.push(['refused']); throw Object.assign(new Error('x'), { status: 403 }); };
-  assert.equal(await cachedEplAccess('user-2', refused), false, 'a new sign-in reads again');
-  assert.equal(await cachedEplAccess('user-2', api), false, 'and keeps that answer');
-  assert.equal(calls.length, 2);
-  assert.equal(await cachedEplAccess('user-1', api), true);
-  assert.equal(calls.length, 3, 'switching back is a sign-in change too');
+  const read = data => async () => { calls.push('lobby'); return data; };
+  const [a, b] = await Promise.all([primeLobby('user-1', read({ epl: true })), primeLobby('user-1', read({ epl: true }))]);
+  assert.deepEqual([a, b], [{ epl: true }, { epl: true }]); assert.equal(calls.length, 1, 'one lobby read');
+  assert.equal(knownEplAccess('user-1'), true);
+  assert.deepEqual(await takePrimedLobby('user-1'), { epl: true }, 'the NFL app takes the same answer');
+  assert.equal(takePrimedLobby('user-1'), null, 'only once');
+  await primeLobby('user-2', read({ epl: true }), () => 0);
+  assert.equal(takePrimedLobby('user-2', () => 120_000), null, 'a stale primed answer is read again');
+  assert.equal(takePrimedLobby('user-3'), null);
+  await assert.rejects(primeLobby('user-4', async () => { throw new Error('down'); }));
+  assert.equal(knownEplAccess('user-4'), false, 'a failed lobby read hides EPL (a cold #epl link leaves for NFL)');
+  assert.equal(takePrimedLobby('user-4'), null, 'and the NFL app reads the lobby itself');
   resetEplAccessCache();
 });

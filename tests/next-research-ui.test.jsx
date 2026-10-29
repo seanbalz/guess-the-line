@@ -170,6 +170,24 @@ it('links evidence dates to cumulative endpoints and leaves the starting baselin
   expect(unlinked).not.toContain('data-selected');
 });
 
+it('names evidence tables and identical-date controls by their candidate while preserving native captions and chart links', () => {
+  const html = render(<>{candidates.slice(0, 2).map(candidate => <div key={candidate.id}>
+    <div id={`chart-${candidate.id}`}/>
+    <ResearchChart candidate={candidate} selection={{ index: 1, chartId: `chart-${candidate.id}`, onSelect() {} }}/>
+  </div>)}</>);
+  const nodes = [...walk(parseMarkup(html))].filter(n => n.tag);
+  expect(nodes.filter(n => n.attrs.role === 'region').map(n => n.attrs['aria-label'])).toEqual([
+    'Historical results table · Synthetic a', 'Historical results table · Synthetic b',
+  ]);
+  expect(nodes.filter(n => n.tag === 'button').map(n => [n.attrs['aria-label'], n.attrs['aria-controls']])).toEqual([
+    ['Show period 1 ending 2026-10-20 on chart · Synthetic a', 'chart-a'],
+    ['Show period 1 ending 2026-10-20 on chart · Synthetic b', 'chart-b'],
+  ]);
+  expect(nodes.filter(n => n.tag === 'caption')).toHaveLength(2);
+  expect(markupProblems(html)).toEqual([]);
+  expect(render(<ResearchChart candidate={{ ...candidates[0], title: undefined }}/>)).toContain('aria-label="Historical results table"');
+});
+
 
 it('gives same-day periods distinct chart-control names', () => {
   const candidate = { ...candidates[0], series: { ...candidates[0].series, points: [candidates[0].series.points[0], candidates[0].series.points[0]] } };
