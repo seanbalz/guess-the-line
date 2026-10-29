@@ -86,9 +86,14 @@ export function createEplGuessService({rpc,rest,rows,refreshForLock}){
 async function weeksView(service,ready){
   const list=await service.guessWeeks();
   if(!Array.isArray(list)||list.length>38||list.some(w=>!seasonOk(w.season)||!weekOk(w.week)))throw invalidReply();
-  const out=[];
-  // Sequential bounded reads avoid a burst of 38 service requests from one catalog read.
-  for(const w of list)out.push({...w,available:ready&&await service.guessGate(w.season,w.week)===true});
+  if(!ready)return list.map(w=>({...w,available:false}));
+  const out=new Array(list.length);let next=0;
+  // At most four service-only boolean reads in flight. Keep stored-week order and await all workers even on failure.
+  const workers=Array.from({length:Math.min(4,list.length)},async()=>{
+    for(;;){const index=next++;if(index>=list.length)return;const w=list[index];out[index]={...w,available:await service.guessGate(w.season,w.week)===true};}
+  });
+  const results=await Promise.allSettled(workers),failure=results.find(result=>result.status==='rejected');
+  if(failure)throw failure.reason;
   return out;
 }
 async function guessRead({body,user,service}){
