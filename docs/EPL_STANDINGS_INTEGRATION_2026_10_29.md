@@ -84,10 +84,10 @@ set and remove only the actually applied M-34 pending descriptors with its autho
 
 Local checks at this source stage:
 
-- 401 targeted Node tests passed, zero skips: EPL, real PGlite schema/worker/persistence/resolver flows, migration/rollback
+- 424 targeted Node tests passed, zero skips: EPL, real PGlite schema/worker/persistence/resolver flows, migration/rollback
   and boundary suites. The worker tests cover old M-30/M-31 five-job and M-32/M-33 six-job capability paths before/after
   M-34, disabled/cache-hit/no-provider paths, preserved budget, exact missing-entry handling and stale-at-use rejection.
-- 25 Pick a Team UI tests passed, including source/date/About credit, valid links and malformed-provenance rejection.
+- 62 combined EPL/commissioner UI tests passed, including 25 Pick a Team tests covering source/date/About credit, valid links and malformed-provenance rejection.
 - Typecheck, 14 token checks, Brand QA, cloud build and bundle-only privacy verification passed. The existing large-chunk
   build warning remains. Full live verification and M-34 CI remain separate from these local results.
 
