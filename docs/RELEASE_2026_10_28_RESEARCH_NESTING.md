@@ -59,3 +59,18 @@ before #318 merged.
   - After a reload, there were no console errors, and `/lobby`, `/community/read`, `/personal` and `/trends/week` all
     answered 200.
 - **Not verified:** real phones.
+
+## Superseded and restored (October 29)
+
+- **Overlap:** [run 40798085087](https://github.com/seanbalz/guess-the-line/actions/runs/40798085087) deployed the older
+  `6b5386b` at 01:06 UTC, after this release. That replaced `a78d867c`, and production served `6b5386b` (without
+  #322 and #324) until the restore below.
+- **Restore:** [run 40799911078](https://github.com/seanbalz/guess-the-line/actions/runs/40799911078) redeployed
+  `4564fff`, approved by Sean. It was verified at 01:48:24 UTC.
+  - Pages **`bb293cc1-a6c5-4742-98aa-9f3f38d96e75`**. Its frontend SHA-256 is the same
+    `55eac549…e712`, and all 114 assets were checked on `https://guess-the-line.pages.dev`. The deployment URL is
+    `protected`.
+  - `gtl-api` v39 and the migration history `1c376874…` (65 rows) are unchanged.
+  - **380 signed-out probes, 380 denied, none awaiting.**
+- **Rule going forward:** before dispatching a deploy, read the latest release run. Never deploy a source that is
+  older than the one already live.

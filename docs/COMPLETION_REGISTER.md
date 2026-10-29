@@ -682,6 +682,19 @@ A player asked to keep loading recommended bets without being sent to My bets. D
 editor; the review and the Virtual Units card keep separate draft guards. Unit test `tests/next-bets-review.test.jsx`;
 browser test in `tests/cloud-browser/recommended-bets.spec.js` saves two in a row at 390 and 320 px. Not deployed.
 
+**Fourth rollout: Explore games**, on branch `claude/research-nesting-games`. The board said the same source and
+update line under every card, 28 lines and about 390 of its 800 words on the live board. It now says them once: the
+update time in the header’s one meta line and the source behind its ⓘ. Each game sheet keeps its sources, books and
+times. The “Current line” and “Latest recorded line” labels and final-score provenance stay on the cards, and so
+does the card’s screen-reader sentence. Not released.
+
+**Fifth rollout: Trends › Build**, on branch `claude/research-nesting-build`. The result card leads with the
+record as one big W-L-P and a cover meter. Cover rate, Wilson 95% interval, sample and “Illustrative units at -110”
+become tiles, and “By season” moves into a disclosure. The paragraphs that repeated the card’s ⓘ (the label’s
+explanation, the period-split note, the reference note, the line source and the history credit) move behind it. D-63’s
+visible labels and the period table stay. Nesting cards now enter with a short slide only, with no fade or scale,
+because checks caught text mid-fade below its contrast. Not released.
+
 ## What needs Sean
 
 - Complete the named phone, notification, second-device and live-week acceptance
