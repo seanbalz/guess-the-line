@@ -52,9 +52,11 @@ async function setup(t) {
   return { db, call, save, price, resolve, board, leaderboard, guess, kickoffPassed };
 }
 
-test('M-32 is listed in NOT_HOSTED, builds on the hosted M-30 and calls no unapplied function', () => {
-  assert.ok(NOT_HOSTED.includes(VERSION));
+test('M-32 is applied, builds on hosted M-30/M-31 and calls no unapplied function', () => {
+  assert.ok(APPLIED.includes(VERSION));
+  assert.ok(!NOT_HOSTED.includes(VERSION));
   assert.ok(APPLIED.includes(20261028190000));
+  assert.ok(APPLIED.includes(20261029060000));
   assert.equal(REQUIRES[VERSION], undefined);
 });
 
