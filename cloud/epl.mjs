@@ -44,9 +44,10 @@ export const EPL_RPCS = Object.freeze(['gtl_epl_member', 'gtl_epl_week_state', '
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
  * the 900 KB after-MW8 file), still above the 32 KB cap the other routes keep, so this route keeps its own cap and the
- * body is posted whole, not in parts. The body is read only after sign-in.
+ * body is posted whole, not in parts. The raised cap applies only after sign-in and only to the commissioner
+ * (cloud/handler.mjs checks gtl_community_admin before reading the body); anyone else keeps the 32 KB cap.
  */
-export const EPL_SNAPSHOT_MAX_BYTES = 4 * 1024 * 1024;
+export const EPL_SNAPSHOT_MAX_BYTES = 512 * 1024;
 export const EPL_BODY_LIMITS = Object.freeze({ '/epl/admin/snapshot': EPL_SNAPSHOT_MAX_BYTES });
 
 export class EplError extends Error {

@@ -397,17 +397,27 @@ test('gtl-api reads a full-size Sleeper snapshot on /epl/admin/snapshot and keep
   const service = fakeService({ admin: true });
   const handler = createCloudHandler({ authenticate: async () => ({ ...USER, email: 'sean@example.com', emailConfirmed: true }), epl: service });
   const post = (route, body) => handler(new Request(`https://fixture.invalid/functions/v1/gtl-api${route}`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer token' }, body }));
-  // About the size of the after-MW8 snapshot (900 KB): season-total stats for every player.
-  const stats = Object.fromEntries(Array.from({ length: 6000 }, (_, i) => [`p${i}`, { pts_half_ppr: i / 10, gp: 8, min: 600, goal: 1, ast: 2, padding: 'x'.repeat(100) }]));
+  // Well above a trimmed import (about 110 KB for the after-MW8 file) and the 32 KB cap: stats for 2000 players.
+  const stats = Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [`p${i}`, { pts_half_ppr: i / 10, gp: 8, min: 600, goal: 1, ast: 2, padding: 'x'.repeat(100) }]));
   const snapshot = JSON.stringify({ label: 'after-mw8', capturedAt: '2026-10-28T17:32:00Z', week: 8, payload: { rosters: [], stats_mw8: stats } });
-  assert.ok(snapshot.length > 900_000 && snapshot.length < EPL_SNAPSHOT_MAX_BYTES, `${snapshot.length}`);
+  assert.ok(snapshot.length > 250_000 && snapshot.length < EPL_SNAPSHOT_MAX_BYTES, `${snapshot.length}`);
   const saved = await post('/epl/admin/snapshot', snapshot);
   assert.equal(saved.status, 200, JSON.stringify(await saved.clone().json()));
   assert.deepEqual(await saved.json(), { label: 'after-mw8', saved: true });
   assert.equal(service.calls.at(-1)[0], 'gtl_epl_save_snapshot');
-  assert.equal(Object.keys(service.calls.at(-1)[1].p_payload.stats_mw8).length, 6000);
+  assert.equal(Object.keys(service.calls.at(-1)[1].p_payload.stats_mw8).length, 2000);
   // Over the snapshot cap is still refused, and the other EPL routes keep the 32 KB cap.
   assert.equal((await post('/epl/admin/snapshot', JSON.stringify({ label: 'x', padding: 'x'.repeat(EPL_SNAPSHOT_MAX_BYTES) }))).status, 413);
   assert.equal((await post('/epl/admin/week', JSON.stringify({ padding: 'x'.repeat(32769) }))).status, 413);
   assert.equal((await post('/epl/queue/save', JSON.stringify({ padding: 'x'.repeat(32769) }))).status, 413);
+});
+
+test('the raised snapshot cap is checked against the commissioner before the body is read', async () => {
+  const big = JSON.stringify({ label: 'after-mw8', padding: 'x'.repeat(40_000) });
+  for (const [service, why] of [[fakeService({ admin: false }), 'a member'], [fakeService({ errors: { gtl_community_admin: new Error('down') } }), 'a failed check']]) {
+    const handler = createCloudHandler({ authenticate: async () => ({ ...USER, email: 'adam@example.com', emailConfirmed: true }), epl: service });
+    const response = await handler(new Request('https://fixture.invalid/functions/v1/gtl-api/epl/admin/snapshot', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer token' }, body: big }));
+    assert.equal(response.status, 413, why);
+    assert.ok(!service.calls.some(([name]) => name === 'gtl_epl_save_snapshot'), why);
+  }
 });

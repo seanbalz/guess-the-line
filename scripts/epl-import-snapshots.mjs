@@ -13,7 +13,7 @@
 //
 // The snapshot folder is only read: nothing is written, moved or deleted there. A label already stored is kept as it is
 // (gtl_epl_save_snapshot inserts on conflict do nothing, reported as saved:false). Needs M-30 and gtl-api with the EPL
-// routes; the route accepts bodies up to EPL_SNAPSHOT_MAX_BYTES (4 MB), so the trimmed body is posted whole.
+// routes; the route accepts bodies up to EPL_SNAPSHOT_MAX_BYTES (512 KiB, commissioner only), so the trimmed body is posted whole.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
