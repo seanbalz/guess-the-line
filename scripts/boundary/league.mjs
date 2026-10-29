@@ -1,8 +1,10 @@
 // Boundary probes for leagues: the lobby, profiles, private groups and invites, memberships and the
 // community feed. Joined by scripts/check-cloud-boundary.mjs (see guess.mjs).
+import * as moneyline from './epl-moneyline.mjs';
 import { actor, fixtureEmail, missingId, missingLeague } from './fixtures.mjs';
 
 export const tables = Object.freeze([
+  ...moneyline.tables,
   'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals',
   // M-21 (hosted since October 27, 2026, RELEASE_2026_10_27_FEED_MIGRATIONS.md): the append-only reaction events.
   'feed_reaction_events',
@@ -13,6 +15,7 @@ export const tables = Object.freeze([
 ]);
 
 export const rpcChecks = Object.freeze([
+  ...moneyline.rpcChecks,
   // M-34: inert claim IDs/null source only; no real run, snapshot or pick can be written.
   ['gtl_epl_standings_valid', { p_record: null, p_season: 2026, p_round: 8, p_now: null }],
   ['gtl_epl_standings_state', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_now: null }],
@@ -96,6 +99,7 @@ export const workerChecks = Object.freeze([
 // /league/* feed routes in gtl-api v38 (RELEASE_2026_10_27_FEED_MIGRATIONS.md), so none of its pieces awaits deploy. So are
 // M-25 and M-26 (redesign stages 69 and 70) with /league/features and /league/features/run (the same record).
 export const awaitingDeploy = Object.freeze({
+  ...moneyline.awaitingDeploy,
   'table/epl_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'table/epl_standings_usage': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_standings_valid': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',

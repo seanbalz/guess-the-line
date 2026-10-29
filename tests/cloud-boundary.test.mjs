@@ -16,15 +16,16 @@ test('hosted M-32 tables and all six RPCs must deny access, not disappear or gra
       .map(name => `/rest/v1/rpc/gtl_epl_${name}`),
   ];
   for (const target of paths) {
+    const matches = url => new URL(url).pathname === target.replace(/\?$/, '');
     await t.test(target, async () => {
       let seen = 0;
       await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => {
-        if (url.includes(target)) { seen++; assert.equal(request.headers.Authorization, undefined); }
+        if (matches(url)) { seen++; assert.equal(request.headers.Authorization, undefined); }
         return denied(url, request);
       } });
       assert.equal(seen, 1, 'each newly hosted boundary is actually probed');
       for (const status of [200, 404]) await assert.rejects(() => checkCloudBoundary({ ...options, strict: true,
-        fetchImpl: async (url, request) => url.includes(target)
+        fetchImpl: async (url, request) => matches(url)
           ? new Response(JSON.stringify({ code: 'PGRST202' }), { status }) : denied(url, request),
       }), new RegExp(`unexpected ${status}`));
     });

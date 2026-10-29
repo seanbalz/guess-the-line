@@ -41,23 +41,26 @@ import { fetchEplDrawNoBet, fetchEplOdds, fetchEplScores, fetchSleeperSnapshot }
 import { onTheClock, pickOrder, resolveDeadline, settleBonus } from '../shared/epl-draft.mjs';
 import { managersFromSnapshot, weeklyScores } from '../shared/epl-sleeper.mjs';
 import { completeEplTotals, eplFinalCaptureDueAt, eplRecheckDueAt, verifiedEplResults } from '../shared/epl-corrections.mjs';
+import { MAX_DNB_PRICE } from '../shared/epl-moneyline.mjs';
+import { createEplMoneylineCollector, EPL_MONEYLINE_RPCS } from './epl-moneyline-collector.mjs';
 import { eplStandingsPositions } from '../shared/epl-standings.mjs';
 import { fetchWikimediaEplStandings } from './epl-standings.mjs';
 
 const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers });
 
-export const EPL_JOBS = Object.freeze(['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check', 'standings']);
+export const EPL_JOBS = Object.freeze(['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check', 'standings', 'moneyline']);
 /** The admitted job RPCs. No ordinary player/commissioner pick, linking or seed writer is admitted. */
 export const EPL_JOBS_RPCS = Object.freeze(['gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_read_snapshots',
   'gtl_epl_reserve_credits', 'gtl_epl_record_quota', 'gtl_epl_mark_nudge', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices',
   'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_set_week_window', 'gtl_epl_flag_week_review',
   'gtl_epl_recheck_state', 'gtl_epl_record_recheck', 'gtl_epl_apply_recheck_orders', 'gtl_epl_reserve_result_read', 'gtl_epl_capture_interval', 'gtl_epl_order_correction_state',
-  'gtl_epl_standings_state', 'gtl_epl_save_standings', 'gtl_epl_resolve_with_standings']);
+  'gtl_epl_standings_state', 'gtl_epl_save_standings', 'gtl_epl_resolve_with_standings', ...EPL_MONEYLINE_RPCS]);
 const OPTIONAL_EPL_RPCS = Object.freeze({ gtl_epl_recheck_state: 'GTL_EPL_RECHECK_OFF',
   gtl_epl_apply_recheck_orders: 'GTL_EPL_ORDER_UPDATE_OFF', gtl_epl_reserve_result_read: 'GTL_EPL_RESULT_READ_OFF',
   gtl_epl_capture_interval: 'GTL_EPL_CAPTURE_INTERVAL_OFF', gtl_epl_order_correction_state: 'GTL_EPL_ORDER_STATE_OFF',
-  gtl_epl_standings_state: 'GTL_EPL_STANDINGS_OFF' });
+  gtl_epl_standings_state: 'GTL_EPL_STANDINGS_OFF', gtl_epl_moneyline_due: 'GTL_EPL_MONEYLINE_OFF',
+  gtl_epl_begin_moneyline_read: 'GTL_EPL_MONEYLINE_OFF' });
 /** Kept in step with gtl_epl_complete_job (tests/epl-jobs-sql.test.mjs checks the SQL names every one). */
 export const EPL_SKIP_REASONS = Object.freeze(['no_week', 'not_open', 'not_due', 'no_fixtures', 'already_resolved', 'not_resolved', 'nothing_due',
   'budget_guard', 'budget_unknown', 'results_pending', 'snapshot_pending', 'no_subscription', 'already_nudged', 'needs_review']);
@@ -124,10 +127,11 @@ export function createEplJobsAdapter({ url, serviceRoleKey, fetchImpl = fetch })
 /** The worker's public sources. A missing Odds API key fails only the jobs that need it. */
 export function createEplSources({ apiKey, fetchImpl = fetch, clock = Date.now } = {}) {
   return {
+    moneylineReady: typeof apiKey === 'string' && apiKey.length >= 8 && apiKey.length <= 256 && !/\s/.test(apiKey),
     sleeper: ({ label, statsWeek, projectionsWeek }) => fetchSleeperSnapshot({ fetchImpl, label, statsWeek, projectionsWeek, clock, enrichDirectory: /^daily-\d{4}-\d{2}-\d{2}$/.test(label) }),
     odds: () => fetchEplOdds({ apiKey, fetchImpl }),
     scores: ({ onQuota } = {}) => fetchEplScores({ apiKey, fetchImpl, daysFrom: 3, onQuota }),
-    drawNoBet: ({ eventIds }) => fetchEplDrawNoBet({ apiKey, fetchImpl, eventIds }),
+    drawNoBet: ({ eventIds, observations = false }) => fetchEplDrawNoBet({ apiKey, fetchImpl, eventIds, observations, clock }),
     standings: ({ season, completedRound }) => fetchWikimediaEplStandings({ season, completedRound, fetchImpl, clock }),
   };
 }
@@ -560,7 +564,7 @@ async function nudgeJob(ctx) {
 const pricedBooks = books => DNB_BOOKS.filter(key => {
   const prices = books && typeof books === 'object' ? books[key] : null;
   const values = prices && typeof prices === 'object' ? Object.values(prices) : [];
-  return values.length === 2 && values.every(p => Number.isInteger(p) && Math.abs(p) >= 100);
+  return !Array.isArray(prices) && values.length === 2 && values.every(p => Number.isInteger(p) && Math.abs(p) >= 100 && Math.abs(p) <= MAX_DNB_PRICE);
 });
 const dnbPriced = events => new Set(list(events).filter(e => typeof e?.eventId === 'string' && e.eventId.length > 0
   && pricedBooks(e.books).length >= DNB_MIN_BOOKS).map(e => e.eventId)).size;
@@ -610,7 +614,23 @@ function dnbRunOpens(run, season, week) {
   return dnbPriced(detail.events) >= DNB_MIN_EVENTS;
 }
 
-const JOBS = Object.freeze({ snapshot: snapshotJob, fixtures: fixturesJob, resolve: resolveJob, settle: settleJob, nudge: nudgeJob, 'dnb-check': dnbCheckJob, standings: standingsJob });
+async function moneylineJob(ctx) {
+  if (ctx.sources.moneylineReady === false) stop('source_unavailable');
+  let due;
+  try { due = await ctx.service.rpc('gtl_epl_moneyline_due', { ...ctx.run, p_now: iso(ctx.clock()) }); }
+  catch (e) { if (e?.code === 'GTL_EPL_MONEYLINE_OFF') stop('not_open'); throw e; }
+  if (!Array.isArray(due) || due.length === 0) stop('nothing_due');
+  const collector = createEplMoneylineCollector({ rpc: ctx.service.rpc.bind(ctx.service), drawNoBet: ctx.sources.drawNoBet, clock: ctx.clock });
+  let refreshed = 0, cached = 0, unavailable = 0;
+  for (const eventId of due.slice(0, 10)) {
+    const result = await collector.collectForJob({ eventId, run: ctx.run });
+    if (result.status === 'unavailable') { unavailable++; break; } // no following paid event after a provider/key/budget failure
+    if (result.status === 'refreshed') refreshed++; else cached++;
+  }
+  return { refreshed, cached, unavailable };
+}
+
+const JOBS = Object.freeze({ snapshot: snapshotJob, fixtures: fixturesJob, resolve: resolveJob, settle: settleJob, nudge: nudgeJob, 'dnb-check': dnbCheckJob, standings: standingsJob, moneyline: moneylineJob });
 
 /** Runs one claimed job: `{reason, detail}`, where a null reason means the job did its work. Never throws. */
 export async function runEplJob({ job, service, sources, push, now, clock = () => now, run }) {
