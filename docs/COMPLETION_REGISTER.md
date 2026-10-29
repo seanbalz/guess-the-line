@@ -17,24 +17,11 @@ MW9 gate evaluates true. Budget is 404 after three credits, player/scoring hashe
 checking is enabled. [Live evidence and remaining implementation](RELEASE_2026_10_29_DNB.md). This supersedes
 older “no live DNB verdict” statements for MW9; it does not complete the moneyline API, collector or screens.
 
-Sean requested parallel EPL workflow agents before returning to the remaining
-approved backlog. The [EPL work and verification record](EPL_WORKFLOW_CONTROL_2026_10_29.md)
-supersedes older EPL "not deployed" summaries below: fresh hosted checks confirm
-M-30/M-31, all 26 function hashes, five enabled jobs and seven linked managers.
-Implementation gaps remain in Tuesday corrections, the league-position tiebreak
-and moneyline, alongside a full live matchweek and physical-phone acceptance.
-No live DNB verdict exists. The [operations fix PR #366](https://github.com/seanbalz/guess-the-line/pull/366)
-is merged after all 12 checks; [moneyline readiness #367](https://github.com/seanbalz/guess-the-line/pull/367)
-also merged after all 12 checks. Repaired access #369 and tracker #368 merged;
-the first batch is now deployed from `5c1b775f05a69306f20f911f4b0455c207c65ffc`.
-Frontend run `40907820747` and EPL worker run `40909688078` passed; worker v2 is
-active, NBA navigation is hidden and EPL Research → Play works in signed-in
-desktop readback. [Release evidence](RELEASE_2026_10_29_NBA_EPL.md) records
-124 matching assets, 385/385 denied probes and unchanged saved-player hashes.
-M-32 is now [applied and verified](RELEASE_2026_10_29_M32.md); M-33 and DNB enablement remain separate gates; correction and player metadata
-follow next. This release does not complete moneyline or physical-phone acceptance.
+Sean requested parallel EPL work before returning to the remaining approved backlog. The first frontend/worker batch from `5c1b775` is deployed; API v42 and EPL jobs v2 are recorded in [release evidence](RELEASE_2026_10_29_NBA_EPL.md). M-32 is [applied and verified](RELEASE_2026_10_29_M32.md), and the live MW9 DNB check passed as recorded above.
 
-The [next EPL batch](EPL_NEXT_BATCH_2026_10_29.md) tracks the confirmed midweek ruling, source owners and remaining live gates. Its [combined local acceptance record](EPL_NEXT_BATCH_INTEGRATION_2026_10_29.md) covers correction review, roster metadata and standings readiness.
+[PR #377](https://github.com/seanbalz/guess-the-line/pull/377) merged as `e220b8d8f7663f55156e019de1d80c44493c440a` after all 12 checks. It atomically includes #370/#371, commissioner correction review, roster display enrichment and standings readiness. This establishes source completion, not new hosted operation or metadata coverage. M-33 remains unapplied; correction operation needs the M-35 cutoff guard and operator prerequisites.
+
+Current follow-ons: #378 standings persistence/resolver input (migration-order repair pushed; fresh CI pending); #380 finalization/order corrections (two review findings repaired, fresh CI pending); #381 moneyline UI (published, CI/combined acceptance pending). Actual API, collector and shared-shell integration are in local source/acceptance work. [Current ownership, heads and remaining gates](EPL_NEXT_BATCH_2026_10_29.md) distinguish those states. Full MW9 → MW10 operation and physical-phone acceptance remain open. The release owner retains hosted writes/deployments; the frozen v62 tracker is unchanged.
 
 ## October 29 — Balanced logo and favicon
 
