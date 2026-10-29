@@ -253,8 +253,31 @@ the league showing. It was deployed on October 24 UTC (API v36, Pages `3d274d87`
   lock sentence, under one banner.
 - A weekly list shows picks, units and who qualified.
 
-Placing from this screen (M-11) and the settlement scheduler remain later
-stages.
+Placing from this screen (M-11, below) has no screen yet, and the settlement
+scheduler is a later stage.
+
+## Virtual Units placement (M-11, written)
+
+M-11 (`20261028181000_gtl_bets_place.sql`, build plan stage 41) adds
+`POST /bets/place` for the published community week. It is written and not
+applied; it waits for Sean's "apply M-11" and a `gtl-api` deploy.
+
+- One request places or edits one or more bets (at most 64). If any bet is
+  refused, nothing in the request is saved.
+- Each bet needs community membership, a game that has not kicked off, that
+  game's market locked in (the line lock, D-36 as amended by D-39), half units
+  and the exact terms of that book's newest saved named-book quote.
+- A bet can be edited until its game kicks off. Every placement and edit adds
+  an audit event with the terms before and after. Nothing is deleted (D-23).
+- An edit names the terms the player last read. If the bet changed since (on
+  another device or through the group Virtual Units screen), the request is
+  refused with "This bet changed" and nothing is saved.
+- Saving a Guess draft never makes a placement fail: placement uses its own
+  Bets version, not the weekly Guess version.
+- Each request has an id. Sending the same request again returns the first
+  reply and saves nothing twice; the same id with different bets is refused.
+- `GTL_FEATURE_OFF=bets-place` turns placement off and keeps the Bets readers;
+  `bets` turns off both.
 
 ## Virtual Units boards (M-12, written)
 
