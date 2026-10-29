@@ -285,3 +285,10 @@ test('the cron file adds the dnb-check row disabled and dispatches it once a day
   assert.match(schedule ?? '', /^\d{1,2} \d{1,2} \* \* \*$/, 'one fixed minute and hour: once a day');
   assert.doesNotMatch(code, /enabled\s*=\s*true/i);
 });
+
+test('recorded successful gate uses the same bounded prices as the source and M36 SQL gate',()=>{
+  const check=price=>({status:'succeeded',reason:null,detail:{season:2026,week:9,dnbAvailable:true,events:['e1','e2'].map(eventId=>({eventId,
+    books:{draftkings:{ARS:price,CHE:120},fanduel:{ARS:price,CHE:120}}}))}});
+  assert.equal(dnbGateOpen(check(-100000),{season:2026,week:9}),true);
+  assert.equal(dnbGateOpen(check(-100001),{season:2026,week:9}),false);
+});
