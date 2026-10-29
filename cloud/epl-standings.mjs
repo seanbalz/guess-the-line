@@ -1,4 +1,5 @@
-// Read-only readiness adapter. Not connected to gtl-epl-jobs, routes, cron, secrets or persistence.
+// Guarded public source adapter. Only the separate M-34 standings job calls it after an enabled private schedule check.
+// No route or deadline resolution fetches a table; collection is absent/disabled until separately authorized.
 // Wikimedia community content; it is not an independently verified official Premier League feed.
 import { EPL_CLUB_CODES, clubFromOddsName } from '../shared/epl-clubs.mjs';
 import { EPL_STANDINGS_LICENSE, eplStandingsPositions } from '../shared/epl-standings.mjs';
@@ -104,7 +105,7 @@ async function bounded(response) {
 }
 
 /** Exactly one optional, read-only public request. No retry, alternate source, cache write or provider credit use.
- * A caller must request a season/round explicitly. This is deliberately not wired into the scheduled worker. */
+ * A caller must request a season/round explicitly. The worker gates this behind the separate optional collection job. */
 export async function fetchWikimediaEplStandings({ season, completedRound, fetchImpl = fetch, clock = Date.now } = {}) {
   try {
     if (!Number.isInteger(season) || season < 2000 || season > 2200 || !Number.isInteger(completedRound) || completedRound < 1 || completedRound > 38) stop('context_required');

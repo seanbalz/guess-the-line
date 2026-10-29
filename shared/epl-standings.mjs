@@ -1,4 +1,4 @@
-// EPL standings readiness only. No collector, database, route or worker imports this module yet.
+// Strict dated EPL standings validation for captured evidence and the guarded M-34 job/resolver path.
 // The data record is CC BY-SA 4.0; this validation code retains the repository's code licensing.
 import { EPL_CLUB_CODES } from './epl-clubs.mjs';
 

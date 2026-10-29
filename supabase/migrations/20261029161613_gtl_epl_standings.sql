@@ -96,7 +96,7 @@ begin
   select * into w from public.gtl_epl_weeks where season=p_season and week=p_week;
   if not found then raise exception 'GTL_EPL_NO_WEEK' using errcode='P0001'; end if;
   select * into snap from public.gtl_epl_standings s where s.season=p_season and s.completed_round=p_week-1
-    and s.captured_at<=w.first_kickoff and public.gtl_epl_standings_valid(s.record,p_season,p_week-1,stamp)
+    and s.captured_at<w.first_kickoff and public.gtl_epl_standings_valid(s.record,p_season,p_week-1,stamp)
     order by s.captured_at desc,s.created_at desc,s.id limit 1;
   return jsonb_build_object('enabled',coalesce((select enabled from public.gtl_epl_jobs_schedule where job='standings'),false),
     'snapshot',case when snap.id is null then null else jsonb_build_object('id',snap.id,'record',snap.record) end);
@@ -140,7 +140,7 @@ begin
   end if;
   if w.status<>'open' or stamp<w.first_kickoff then raise exception 'GTL_EPL_DRAFT_CLOSED' using errcode='P0001'; end if;
   select * into snap from public.gtl_epl_standings s where s.season=p_season and s.completed_round=p_week-1
-    and s.captured_at<=w.first_kickoff and public.gtl_epl_standings_valid(s.record,p_season,p_week-1,stamp)
+    and s.captured_at<w.first_kickoff and public.gtl_epl_standings_valid(s.record,p_season,p_week-1,stamp)
     order by s.captured_at desc,s.created_at desc,s.id limit 1;
   if not found then raise exception 'GTL_EPL_STANDINGS_INVALID' using errcode='P0001'; end if;
   if snap.id is distinct from p_standings then raise exception 'GTL_EPL_STANDINGS_CONFLICT' using errcode='P0001'; end if;
