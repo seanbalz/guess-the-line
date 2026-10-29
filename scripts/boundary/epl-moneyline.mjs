@@ -1,4 +1,4 @@
-// M-36 pending private collection boundary. Inert fixtures only; no live run/user/lease/market is supplied.
+// M-36 applied private collection boundary. Inert fixtures only; no live run/user/lease/market is supplied.
 import { missingId } from './fixtures.mjs';
 export const tables=Object.freeze(['epl_moneyline_attempts','epl_moneyline_collections']);
 export const rpcChecks=Object.freeze([
@@ -9,7 +9,4 @@ export const rpcChecks=Object.freeze([
   ['gtl_epl_moneyline_due',{p_run:missingId,p_claim:missingId,p_now:null}],
   ['gtl_epl_finish_moneyline_read',{p_lease:missingId,p_token:missingId,p_event:null,p_quota:null,p_error:null,p_now:null}],
 ]);
-const pending='20261029165947 (M-36 moneyline collector apply / compatible API and worker release)';
-export const awaitingDeploy=Object.freeze(Object.fromEntries([
-  ...tables.map(name=>[`table/${name}`,pending]),...rpcChecks.map(([name])=>[`rpc/${name}`,pending]),
-]));
+export const awaitingDeploy=Object.freeze({});

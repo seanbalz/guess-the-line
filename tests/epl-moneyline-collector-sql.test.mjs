@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { PRELUDE, NOT_HOSTED, FIX_FORWARD } from './migrations.mjs';
+import { PRELUDE, NOT_HOSTED, APPLIED, FIX_FORWARD } from './migrations.mjs';
 import { createEplMoneylineCollector } from '../cloud/epl-moneyline-collector.mjs';
 const { PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js');
 const FILE='supabase/migrations/20261029165947_gtl_epl_moneyline_collector.sql';
@@ -39,8 +39,8 @@ async function setup(t) {
   return {db,call,gate,enable,save,begin,finish,remaining,guess};
 }
 
-test('M36 is source-only/fix-forward; private tables and six invoker RPCs, no pending schema dependency or implicit schedule', async t=>{
-  assert.ok(NOT_HOSTED.includes(20261029165947)); assert.ok(FIX_FORWARD.includes(20261029165947));
+test('M36 is applied/fix-forward; private tables and six invoker RPCs, no pending schema dependency or implicit schedule', async t=>{
+  assert.ok(!NOT_HOSTED.includes(20261029165947)); assert.ok(APPLIED.includes(20261029165947)); assert.ok(FIX_FORWARD.includes(20261029165947));
   const f=await setup(t);
   assert.equal((await f.db.query('select count(*)::int n from public.gtl_epl_jobs_schedule')).rows[0].n,0);
   for(const role of ['anon','authenticated']) {
