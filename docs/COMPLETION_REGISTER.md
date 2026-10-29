@@ -19,7 +19,7 @@ Implementation gaps remain in Tuesday corrections, the league-position tiebreak
 and moneyline, alongside a full live matchweek and physical-phone acceptance.
 No live DNB verdict exists. The [operations fix PR #366](https://github.com/seanbalz/guess-the-line/pull/366)
 is merged after all 12 checks; [moneyline readiness #367](https://github.com/seanbalz/guess-the-line/pull/367)
-and access #369 are in review/CI. The coordinated first release includes
+also merged after all 12 checks. Repaired access #369 is in fresh CI. The coordinated first release includes
 #364/#366/#367/repaired #369 and tracker #368; correction and player metadata
 follow next. Deployment stays in the existing release chat. None of these source
 states is a new hosted release.
@@ -90,7 +90,7 @@ establishes deployment. This task has not deployed the app or applied SQL.
 
 EPL moneyline readiness is separately published in [PR #367](https://github.com/seanbalz/guess-the-line/pull/367):
 pure rules, service-only pending M-32 and a disabled `dnb-check` path. These are
-source changes under review. The real DNB gate has never run; routes, ongoing
+merged source changes, with M-32 still NOT_HOSTED. The real DNB gate has never run; routes, ongoing
 collection and player screens remain gated and are not completed by this PR.
 
 The independent [NBA/EPL release-verification record](RELEASE_2026_10_29_NBA_EPL.md)
