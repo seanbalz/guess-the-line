@@ -55,3 +55,13 @@ scopes against a database built from `HOSTED`, proving that the missing moneylin
 This changes source expectations only; neither mode executes SQL or connects to a provider.
 Combined verification: 264 EPL/migration/rollback tests passed with zero skips; the focused rollover/DNB/preflight
 suite passed 55 tests, and typecheck, Brand QA and diff checks passed.
+
+## Hosted apply addendum — October 29, 16:24 UTC
+
+This supersedes the pending M-32 and worker-release statuses in the preparation evidence above. The
+[frontend/worker release](RELEASE_2026_10_29_NBA_EPL.md) is verified, including `gtl-epl-jobs` v2. Sean then
+explicitly approved “Apply M-32”; the [apply record](RELEASE_2026_10_29_M32.md) verifies hosted version
+`20261029162422`, six exact private functions, two empty private tables, all prior EPL bodies and protected
+record/scoring hashes preserved. The canonical migration ledger now marks M-32 applied. Strict live boundary
+verification denied all 393 probes. No DNB schedule, cron, provider run or market verdict was created.
+Tasks 3–5 and the separate DNB enablement gate remain open.
