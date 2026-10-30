@@ -24,6 +24,14 @@ The additive migration, source review PR and local verification are separate
 from hosted apply/deployment and actual-phone acceptance; none of those hosted
 milestones is claimed complete here. Verification is recorded in the scope record.
 
+Sean then requested “Merge and deploy”; feature PR #393 merged. Exact-main CI
+caught another quota-fixture clock assumption: the test mixed a moving clock
+with a fixed October 30 attempt date and could cross UTC midnight. The fixture
+now uses a future UTC midday and consistently timestamps its synthetic attempts;
+all 16 collector SQL checks pass locally. Production quota/scoring logic is
+unchanged. [Release card #394](https://github.com/seanbalz/guess-the-line/issues/394)
+tracks the required source checks, schema/app release order and preservation proof.
+
 ## Research formatting follow-up — October 29, 2026
 
 [#388](https://github.com/seanbalz/guess-the-line/issues/388) remains open under
