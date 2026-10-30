@@ -65,7 +65,7 @@ export async function windApi(action, body = {}, signal) {
 export const GROUP_ACTIONS = Object.freeze({
   // Stage 23 (M-06): the gated lines readers, POST /lines/read (a week's board) and /lines/game (one game in full).
   // D-62: /lines/teams, every team's regular-season record and game log from nflverse finals (no market data).
-  lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research', 'teams']), writes: Object.freeze([]) }),
+  lines: Object.freeze({ reads: Object.freeze(['read', 'game', 'research', 'teams', 'assessments', 'research-links']), writes: Object.freeze(['research-submit']) }),
   // M-11 (stage 41): 'place' places or edits a slip of Virtual Units bets for the published week.
   bets: Object.freeze({ reads: Object.freeze(['read', 'board', 'season']), writes: Object.freeze(['place']) }),
   // The league feed (cloud/feed.mjs, redesign stages 61 to 65): 'react' sets or takes back an emoji reaction (M-21);

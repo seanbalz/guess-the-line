@@ -9,6 +9,21 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## Independent research assessments — October 30, 2026
+
+Sean approved the first research/recommendation stage after the source-review
+and alignment discussion. [Scope, the three reference analyses, operating
+contract and release boundaries](RESEARCH_ASSESSMENTS_STAGE_ONE.md) record the
+implementation. Research recommendations have their own filtered nested list;
+the existing gap list is labelled Your guess vs. market. Guess/scoring/reveal
+rules are preserved. Stage one supports qualitative yellow/red/gray assessments,
+attributed checked evidence, observed statistics, private submitted links and
+budget-reserved selective odds collection. Green requires a later tested model.
+Automatic X monitoring and arbitrary graphic extraction are not connected.
+The additive migration, source review PR and local verification are separate
+from hosted apply/deployment and actual-phone acceptance; none of those hosted
+milestones is claimed complete here. Verification is recorded in the scope record.
+
 ## Research formatting follow-up — October 29, 2026
 
 [#388](https://github.com/seanbalz/guess-the-line/issues/388) remains open under

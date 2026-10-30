@@ -83,7 +83,9 @@ test('no reader lists a kickoff post before its kickoff, and no comment lands on
   // The old reader never lists them (M-21 keeps the old app's kinds), at any time.
   f.at(Date.parse('2026-11-03T00:00:00Z'));
   assert.equal((await f.api('luke', 'community/read', {})).body.posts.some(p => p.kind === 'kickoff'), false);
-  // Comments use the database clock (real time, before these kickoffs): every post is still in the future, so none lands.
+  // Comments use the real database clock. Move only this disposable world's
+  // posts ahead of that clock: the fixed Thursday has already passed on later runs.
+  await f.db.query("update public.gtl_feed_posts set created_at=clock_timestamp()+interval '7 days',payload=jsonb_set(payload,'{kickoff}',to_jsonb(clock_timestamp()+interval '7 days')) where kind='kickoff'");
   for (const { id } of ids) assert.equal((await f.api('luke', 'community/comment', { requestId: randomUUID(), postId: id, body: 'Early' })).status, 400);
   assert.equal((await f.db.query('select count(*)::int n from public.gtl_feed_comments')).rows[0].n, 0);
 });

@@ -12,6 +12,15 @@ const run = (state, ...actions) => actions.reduce(reduce, state);
 const start = () => initialState();
 const sheet = (id, args) => ({ type: 'open', layer: layer(id, args) });
 
+test('assessment detail back and browser restore return to the research list', () => {
+  const list = initialState({ tab: 'bets', view: { view: 'research' } });
+  const detail = reduce(list, { type: 'go', tab: 'bets', view: { view: 'research', assessment: 'fixture-over' } });
+  assert.equal(reduce(detail, { type: 'back' }).views.bets.assessment, undefined);
+  const restored = reduce(detail, { type: 'restore', place: { tab: 'bets', view: { view: 'research' } } });
+  assert.equal(restored.views.bets.assessment, undefined);
+  assert.equal(restored.views.bets.view, 'research');
+});
+
 test('a visit starts on Home with every tab\'s view empty and nothing open', () => {
   const state = start();
   assert.equal(state.tab, 'home');

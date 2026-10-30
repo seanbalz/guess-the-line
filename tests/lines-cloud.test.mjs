@@ -4,6 +4,7 @@ import { LINES_METHODS, LinesError, handleLines, projectGameLines, projectLines,
 import { BetsError } from '../cloud/bets.mjs';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { leakScan, lineSecrets } from './helpers/leak-scan.mjs';
+import { parseFeatureOff } from '../cloud/feature-off.mjs';
 
 // Redesign build plan stage 23 (M-06): POST /lines/read and /lines/game in cloud/lines.mjs, without a database. The SQL gate
 // (tests/lines-sql.test.mjs) decides what is open; this module rebuilds every reply from a fixed list of keys and drops every
@@ -34,9 +35,10 @@ function forgedBoard() {
   };
 }
 
-test('the routes: four POST readers, each refused before any database call when signed out, unknown or switched off', async () => {
+test('the seven Lines routes refuse calls before any database access when signed out, unknown or switched off', async () => {
   // D-62 adds /lines/teams (tests/team-season-cloud.test.mjs); `lines` switches it off with the rest of the group.
-  assert.deepEqual(LINES_METHODS, { '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'], '/lines/teams': ['POST'] });
+  assert.deepEqual(LINES_METHODS, { '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'], '/lines/teams': ['POST'],
+    '/lines/assessments': ['POST'], '/lines/research-submit': ['POST'], '/lines/research-links': ['POST'] });
   assert.ok(Object.isFrozen(LINES_METHODS));
   const service = { rpc: async () => assert.fail('no database call') };
   for (const user of [null, {}, { id: 'not-a-uuid' }, { ...USER, is_anonymous: true }]) {
@@ -47,6 +49,9 @@ test('the routes: four POST readers, each refused before any database call when 
   for (const route of Object.keys(LINES_METHODS)) {
     await assert.rejects(handleLines({ route, body: { gameId: 'SEA-DEN' }, user: USER, service, featureOff: new Set(['lines']) }),
       e => e instanceof LinesError && e.status === 503 && e.message === 'Lines are not available right now.', route);
+  }
+  for (const route of ['/lines/assessments', '/lines/research-submit', '/lines/research-links']) {
+    await assert.rejects(handleLines({ route, body: {}, user: USER, service, featureOff: parseFeatureOff('research-assessments') }), e => e.status === 503);
   }
 });
 

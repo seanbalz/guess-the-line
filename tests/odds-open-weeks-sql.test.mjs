@@ -459,6 +459,9 @@ test('static: only the existing collector modules call the provider or the colle
   const PATTERN = /createOddsProvider|odds-provider\.mjs|api\.the-odds-api\.com|THE_ODDS_API_KEY|gtl_(?:begin|finish)_(?:submission_)?odds_collection|gtl_(?:claim|complete|dispatch)_odds_refresh/;
   const ALLOWED = [
     'cloud/odds-collection.mjs', 'cloud/odds-provider.mjs', 'cloud/odds-refresh.mjs', 'cloud/submission-collection.mjs',
+    // Research-first props: explicit job-only reservations on the same free budget
+    // and lease. No page read or guess/scoring route invokes this collector.
+    'cloud/research-provider.mjs',
     // Anonymous boundary probes with inert bodies: they must be denied.
     'scripts/boundary/guess.mjs', 'scripts/boundary/lines.mjs',
     // The two Edge functions that hand the adapter its key.
@@ -484,7 +487,7 @@ test('static: only the existing collector modules call the provider or the colle
   const callers = [...latest.values()].filter(fn => /gtl_(?:begin|finish)_(?:submission_)?odds_collection\s*\(/.test(fn.body)).map(fn => fn.name);
   assert.deepEqual(callers, []);
   // Only the adapter names the provider host.
-  assert.deepEqual(found.filter(file => /api\.the-odds-api\.com/.test(fs.readFileSync(file, 'utf8'))), ['cloud/odds-provider.mjs']);
+  assert.deepEqual(found.filter(file => /api\.the-odds-api\.com/.test(fs.readFileSync(file, 'utf8'))), ['cloud/odds-provider.mjs', 'cloud/research-provider.mjs']);
 });
 
 test('M-05 is idempotent, adds one function, and every function it writes is service-only and security invoker', { skip }, async t => {
