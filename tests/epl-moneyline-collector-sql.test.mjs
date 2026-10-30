@@ -9,9 +9,10 @@ const FILE='supabase/migrations/20261029165947_gtl_epl_moneyline_collector.sql';
 const U=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const OWNERS=['719658248843632640','473955676301815808','702644837370929152'];
 // begin_moneyline_read deliberately takes greatest(database clock, service clock).
-// Keep the fixture's logical clock ahead of setup, rather than aging every lock
-// beyond its 30-second eligibility window once a fixed calendar date passes.
-const T=Date.now()+300000, K=T+86400000, at=n=>new Date(n).toISOString();
+// Keep logical time ahead of setup and away from midnight: the six-attempt
+// test advances an hour while intentionally keeping all six on one UTC day.
+const fixtureDate=new Date();
+const T=Date.UTC(fixtureDate.getUTCFullYear(),fixtureDate.getUTCMonth(),fixtureDate.getUTCDate()+1,12), K=T+86400000, at=n=>new Date(n).toISOString();
 const gateBooks={draftkings:{ARS:-150,CHE:130},fanduel:{ARS:-140,CHE:120}};
 const verdict=(week=9)=>({season:2026,week,dnbAvailable:true,events:[{eventId:'e1',books:gateBooks},{eventId:'e2',books:gateBooks}]});
 const evidence=(observed=T+1000, changes={})=>({eventId:'e1',available:true,home:'ARS',away:'CHE',commenceTime:at(K),observedAt:at(observed),
@@ -140,7 +141,7 @@ test('timed checkpoints are separate at most once per kickoff; lock refresh cann
   assert.equal((await f.begin(K-2*3600000,null,args)).status,'cached','pre-kickoff checkpoint is spent');
   assert.equal(await f.remaining(),98);
   await assert.rejects(f.call('gtl_epl_moneyline_due',{p_run:run,p_claim:U(99)}),/GTL_SCHEDULE_RUN/);
-  await f.db.query("update public.gtl_epl_moneyline_attempts set kickoff_at=kickoff_at+interval '1 day',requested_at='2026-10-30T12:00:00Z'");
+  await f.db.query("update public.gtl_epl_moneyline_attempts set kickoff_at=kickoff_at+interval '1 day',requested_at=$1",[at(T)]);
   const allOwners=(await f.db.query('select owner_id from public.gtl_epl_managers order by owner_id limit 4')).rows;
   for(const owner of allOwners) await f.db.query("insert into public.gtl_epl_moneyline_attempts(event_id,kickoff_at,kind,owner_id,requested_at,expires_at,status) values('e1',$1,'lock',$2,$3,$4,'unavailable')",[at(K),owner.owner_id,at(T),at(T+60000)]);
   assert.equal((await f.begin(T+3600000,null,args)).status,'unavailable'); assert.equal(await f.remaining(),98);
