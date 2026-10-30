@@ -99,6 +99,13 @@ test('the rollback convention: each file names a migration, restores exactly the
       const addedFunctions = parseFunctions(migration);
       if (addedFunctions.length) {
         const reviewedOffSwitches = {
+          // New service-only research functions. These statements revoke only
+          // this stage's entry points and preserve submissions/captures/snapshots.
+          '20261030204548_gtl_research_assessments.sql': [
+            'revokeexecuteonfunctionpublic.gtl_submit_research_link(uuid,uuid,text),public.gtl_read_research_submissions(uuid),public.gtl_publish_research_snapshot(uuid,jsonb),public.gtl_read_research_snapshot(integer,integer)fromservice_role',
+            'revokeexecuteonfunctionpublic.gtl_begin_research_quotes(uuid,integer,integer,text,text[]),public.gtl_finish_research_quotes(uuid,uuid,jsonb,text,jsonb)fromservice_role',
+            'revokeexecuteonfunctionpublic.gtl_read_research_quotes(integer,integer,jsonb)fromservice_role',
+          ],
           '20261021223000_gtl_nba_app_bets.sql': [
             'revokeallonfunctionpublic.gtl_nba_read_bets(uuid,jsonb,jsonb,uuid)frompublic,anon,authenticated,service_role',
             'revokeallonfunctionpublic.gtl_nba_save_bet(uuid,uuid,jsonb,integer,text)frompublic,anon,authenticated,service_role',

@@ -17,5 +17,6 @@ export function MatchupResearch({ lines, gameId, trends }) {
     {researchSelection(read.data).length ? <div className="gx-vstack gx-gap-8"><p className="gx-t-label gx-c-2">Matchup research</p>
       <ResearchCards data={read.data} limit={3} request={request} gameId={gameId} openFirst={false}/></div> : null}
     <Button variant="secondary" onClick={() => shell.openSheet('sh.research', { game: gameId })}>Open matchup research</Button>
+    <Button variant="secondary" onClick={() => shell.go('bets', { view: 'research', matchup: gameId, assessment: null })}>Bet assessments and statistics</Button>
   </div>;
 }

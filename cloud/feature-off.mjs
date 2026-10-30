@@ -18,6 +18,7 @@ export const FEATURES = Object.freeze({
   notes: 'POST /personal/note: private game notes (M-09, redesign stage 27)',
   lines: 'POST /lines/read and /lines/game: the gated lines readers (M-06, redesign stage 23); also POST /lines/research and /lines/teams (D-62 team records), which share the Lines route group',
   research: 'POST /lines/research: descriptive historical research and reviewed-source reads',
+  'research-assessments': 'POST /lines/assessments, /lines/research-submit and /lines/research-links: independent research reads and private link intake',
   picks: 'POST /community/picks: everyone\'s Guess picks, game by game (M-08, redesign stage 26)',
   'lock-in': 'POST /personal/ballot with lockIn: the per-game lock-in on a draft (M-02, redesign stage 18); a whole-market send keeps working',
   forfeit: 'POST /community/forfeit: "Skip this week\'s Guess the Line" and "See picks now" (M-03, redesign stage 19)',

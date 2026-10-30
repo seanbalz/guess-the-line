@@ -3,9 +3,16 @@
 // scripts/check-cloud-boundary.mjs (see guess.mjs).
 import { missingId, missingLeague } from './fixtures.mjs';
 
-export const tables = Object.freeze(['odds_budget', 'odds_collections', 'market_snapshots', 'odds_schedule', 'odds_refresh_runs']);
+export const tables = Object.freeze(['odds_budget', 'odds_collections', 'market_snapshots', 'odds_schedule', 'odds_refresh_runs', 'research_submissions', 'research_snapshots', 'research_quote_fetches']);
 
 export const rpcChecks = Object.freeze([
+  ['gtl_submit_research_link', { p_user: missingId, p_request: missingId, p_url: 'https://x.com/rotobot_ai/status/1' }],
+  ['gtl_read_research_submissions', { p_user: missingId }],
+  ['gtl_publish_research_snapshot', { p_id: missingId, p_payload: {} }],
+  ['gtl_read_research_snapshot', { p_season: 2026, p_week: 8 }],
+  ['gtl_read_research_quotes', { p_season: 2026, p_week: 8 }],
+  ['gtl_begin_research_quotes', { p_request: missingId, p_season: 2026, p_week: 8, p_game: 'SEA-DEN', p_markets: ['player_reception_yds'] }],
+  ['gtl_finish_research_quotes', { p_request: missingId, p_lease: missingId, p_quota: {}, p_error: null }],
   // D-27 (20261012230000): the slate the scheduled collector reads; service-only.
   ['gtl_odds_schedule_slate', { p_season: 2026, p_week: 5, p_signature: {} }],
   // M-05 (stage 22, 20261014221500, hosted as 20261019234718): the previous week's unstarted games the collector keeps; service-only.
@@ -35,6 +42,9 @@ export const rpcChecks = Object.freeze([
 ]);
 
 export const apiChecks = Object.freeze([
+  ['lines/assessments', {}],
+  ['lines/research-submit', { requestId: missingId, url: 'https://x.com/rotobot_ai/status/1' }],
+  ['lines/research-links', {}],
   ['odds/preflight', { requestId: missingId }],
   ['odds/collect', { requestId: missingId }],
   // Referee routes, deployed since gtl-api v18 (October 14, 2026). gtl-api runs behind verify_jwt, so the
@@ -61,4 +71,8 @@ export const workerChecks = Object.freeze([
 ]);
 
 /** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze(Object.fromEntries([
+  'table/research_submissions', 'table/research_snapshots', 'table/research_quote_fetches',
+  'rpc/gtl_submit_research_link', 'rpc/gtl_read_research_submissions', 'rpc/gtl_publish_research_snapshot', 'rpc/gtl_read_research_snapshot',
+  'rpc/gtl_begin_research_quotes', 'rpc/gtl_finish_research_quotes', 'rpc/gtl_read_research_quotes', 'gtl-api/lines/assessments', 'gtl-api/lines/research-submit', 'gtl-api/lines/research-links',
+].map(key => [key, '20261030204548 research assessments: named apply and compatible API release pending'])));

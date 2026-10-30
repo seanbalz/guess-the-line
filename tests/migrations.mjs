@@ -34,6 +34,7 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
+  20261030204548, // Research assessments/intake: written and checked locally; named apply remains separate.
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.

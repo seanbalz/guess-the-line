@@ -17,15 +17,21 @@
 // markets stay with the per-game gate above, so its reply is rebuilt from fixed keys like every other one here.
 import { UUID_PATTERN } from './lobby.mjs';
 import { validateResearchRequest } from './trends-research.mjs';
+import { readAssessments } from './research-assessments.mjs';
+import { submittedResearchLink, RESEARCH_MARKETS, ASSESSMENT_LABELS } from '../shared/research-assessments.mjs';
 import { NFLVERSE_SCHEDULE_URL, TEAM_NAMES } from '../shared/nfl-schedule.mjs';
 
 export class LinesError extends Error {
   constructor(status, message) { super(message); this.name = 'LinesError'; this.status = status; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
-export const LINES_METHODS = Object.freeze({ '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'], '/lines/teams': ['POST'] });
+export const LINES_METHODS = Object.freeze({ '/lines/read': ['POST'], '/lines/game': ['POST'], '/lines/research': ['POST'], '/lines/teams': ['POST'],
+  '/lines/assessments': ['POST'], '/lines/research-submit': ['POST'], '/lines/research-links': ['POST'] });
 /** Database refusal code → [status, sentence]. A code is mapped here, and deployed, before the SQL can raise it. */
 const ERRORS = Object.freeze({
+  GTL_RESEARCH_INVALID: [400, 'Use a post from a selected research source.'],
+  GTL_RESEARCH_REPLAY: [409, 'This request belongs to a different research link.'],
+  GTL_RESEARCH_LIMIT: [429, 'Today’s research link limit has been reached.'],
   GTL_LINES_INVALID: [400, 'Check the week and game, then try again.'],
   GTL_COMMUNITY_MEMBER: [403, 'Open My games and save your display name to join the community.'],
   // The off switch (GTL_FEATURE_OFF=lines), and the answer while gtl-api is deployed and M-06 is not applied yet
@@ -167,6 +173,29 @@ export async function handleLines({ route, body = {}, user, service, clock = Dat
   if (!service?.rpc) throw new Error('Lines are not configured.');
   if (featureOff.has('lines')) throw providerLinesError('GTL_FEATURE_OFF');
   if (!record(body)) invalid();
+  if (['/lines/assessments', '/lines/research-submit', '/lines/research-links'].includes(route)) {
+    if (featureOff.has('research-assessments')) throw providerLinesError('GTL_FEATURE_OFF');
+    if (route === '/lines/research-submit') {
+      if (Object.keys(body).some(k => !['url', 'requestId'].includes(k)) || !UUID_PATTERN.test(body.requestId ?? '')) invalid();
+      let link; try { link = submittedResearchLink(body.url); } catch { throw providerLinesError('GTL_RESEARCH_INVALID'); }
+      const reply = await service.rpc('gtl_submit_research_link', { p_user: user.id, p_request: body.requestId, p_url: link.url });
+      return { id: text(reply?.id), url: link.url, createdAt: time(reply?.createdAt), status: 'pending' };
+    }
+    if (route === '/lines/research-links') {
+      if (Object.keys(body).length) invalid();
+      const rows = await service.rpc('gtl_read_research_submissions', { p_user: user.id });
+      if (!Array.isArray(rows) || rows.length > 50) throw new Error('Invalid research links.');
+      return { links: rows.flatMap(r => {
+        try { const link = submittedResearchLink(r.url); return [{ id: text(r.id), url: link.url, createdAt: time(r.createdAt), status: 'pending' }]; } catch { return []; }
+      }) };
+    }
+    const target = readWeek(body, ['season', 'week', 'gameId', 'market', 'color']);
+    if (body.gameId !== undefined && !GAME_ID.test(body.gameId) || body.market !== undefined && !RESEARCH_MARKETS.includes(body.market)
+      || body.color !== undefined && !Object.hasOwn(ASSESSMENT_LABELS, body.color)) invalid();
+    const nowMs = clock(), now = new Date(nowMs).toISOString();
+    const board = projectLines(await service.rpc('gtl_read_lines', { p_user: user.id, ...target, p_now: now }), user.id);
+    return readAssessments({ service, board, userId: user.id, now: nowMs, gameId: body.gameId, market: body.market, color: body.color, clock });
+  }
   if (route === '/lines/teams') {
     if (Object.keys(body).some(key => key !== 'season')) throw new LinesError(400, 'Unexpected request field. Player identity comes from sign-in.');
     if (body.season !== undefined && body.season !== null && !season(body.season)) throw new LinesError(400, 'Check the season, then try again.');

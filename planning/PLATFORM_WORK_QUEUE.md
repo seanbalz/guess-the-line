@@ -67,6 +67,15 @@ cutover, external invitations or deletion of existing player records.
 | Q07–Q10/Q19: actual-device acceptance | Sean with Codex | Open: verify settings, comparisons/privacy, onboarding, push and a live full week. Q03 navigation movement is no longer reported by Sean. | Actual iPhone Safari/Home Screen and second-device evidence, named account/launch mode without public private data. |
 | Q20: transition | Sean with Codex | Blocked by preservation/destinations and acceptance above. | RETIRE-01–04 fulfilled, operator recovery verified, explicit cutover and release evidence. |
 
+### Research assessment stage — October 30, 2026
+
+Sean separately approved the research/recommendation stage following one-at-a-time
+alignment. [Implementation and release record](../docs/RESEARCH_ASSESSMENTS_STAGE_ONE.md)
+preserves guess/scoring rules, separates the gap list from research assessments,
+and records partial free-source coverage, pending links and the later model stage.
+This task has its own branch/PR, additive unapplied migration and release/phone
+gates. It does not close the EPL, formatting or device work owned above.
+
 ### Research/chart checkpoints
 
 | Item | Owner | Current evidence / next step |

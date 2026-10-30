@@ -5,6 +5,7 @@ import { RESEARCH_VERSION, RESEARCH_PERIODS, applyAccessibleLines, applyResearch
 import { researchLean, researchShortlist } from '../shared/trends-research.mjs';
 import { projectReviewedSources, validateReviewedFeed } from '../shared/trends-research-sources.mjs';
 import { easternToUtc } from '../shared/nfl-schedule.mjs';
+import { matchupStatistics } from '../shared/matchup-statistics.mjs';
 
 const FIVE_MINUTES = 300000, BACKOFF = 60000;
 const observationBoundary = time => Math.floor((time - 43200000) / 86400000);
@@ -152,6 +153,7 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
         ...(chart ? { series: { ...sample.series, points: sample.series.points.map(p => ({ ...p, from: new Date(p.from).toISOString(), to: new Date(p.to).toISOString() })) } } : {}) };
     }).sort((a, b) => a.id.localeCompare(b.id));
     return { version: RESEARCH_VERSION, season: board.season, week: board.week, now, history, ...publicSources, shortlist, candidates, games, explore,
+      statistics: data ? matchupStatistics(board, data.rows, decisionAt, finalAvailableAt) : [],
       filters: { period: options.period, market: options.market ?? null, family: options.family ?? null, team: options.team ?? null, periods: RESEARCH_PERIODS, families: [...new Set(candidates.map(c => c.family))].sort() } };
   } };
 }

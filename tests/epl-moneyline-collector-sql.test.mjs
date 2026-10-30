@@ -8,7 +8,10 @@ const { PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/
 const FILE='supabase/migrations/20261029165947_gtl_epl_moneyline_collector.sql';
 const U=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const OWNERS=['719658248843632640','473955676301815808','702644837370929152'];
-const T=Date.parse('2026-10-30T12:00:00Z'), K=T+86400000, at=n=>new Date(n).toISOString();
+// begin_moneyline_read deliberately takes greatest(database clock, service clock).
+// Keep the fixture's logical clock ahead of setup, rather than aging every lock
+// beyond its 30-second eligibility window once a fixed calendar date passes.
+const T=Date.now()+300000, K=T+86400000, at=n=>new Date(n).toISOString();
 const gateBooks={draftkings:{ARS:-150,CHE:130},fanduel:{ARS:-140,CHE:120}};
 const verdict=(week=9)=>({season:2026,week,dnbAvailable:true,events:[{eventId:'e1',books:gateBooks},{eventId:'e2',books:gateBooks}]});
 const evidence=(observed=T+1000, changes={})=>({eventId:'e1',available:true,home:'ARS',away:'CHE',commenceTime:at(K),observedAt:at(observed),
