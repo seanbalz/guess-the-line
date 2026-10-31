@@ -20,9 +20,13 @@ rules are preserved. Stage one supports qualitative yellow/red/gray assessments,
 attributed checked evidence, observed statistics, private submitted links and
 budget-reserved selective odds collection. Green requires a later tested model.
 Automatic X monitoring and arbitrary graphic extraction are not connected.
-The additive migration, source review PR and local verification are separate
-from hosted apply/deployment and actual-phone acceptance; none of those hosted
-milestones is claimed complete here. Verification is recorded in the scope record.
+Production API v44, the additive migration and frontend are deployed from
+`89acd94cfd1f5e0ab837b0150dd28e12807ff5e8`. [The October 31 release record](RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md)
+documents all six protected workflows, seven matching function bodies, private
+RLS/grants, unchanged scoring fingerprints and 127 matching production assets.
+The applied ledger and research boundary probes now reflect that hosted state.
+Real signed-in/physical-phone acceptance and source-feed configuration remain
+separate; no green model or complete X automation is claimed.
 
 Sean then requested “Merge and deploy”; feature PR #393 merged. Exact-main CI
 caught another quota-fixture clock assumption: the test mixed a moving clock

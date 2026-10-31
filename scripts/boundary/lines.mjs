@@ -70,9 +70,7 @@ export const workerChecks = Object.freeze([
   ['scheduled refresh', 'gtl-odds-refresh', { runId: missingId }],
 ]);
 
-/** Probes for pieces written here but not hosted yet; see awaitingDeploy in scripts/check-cloud-boundary.mjs. */
-export const awaitingDeploy = Object.freeze(Object.fromEntries([
-  'table/research_submissions', 'table/research_snapshots', 'table/research_quote_fetches',
-  'rpc/gtl_submit_research_link', 'rpc/gtl_read_research_submissions', 'rpc/gtl_publish_research_snapshot', 'rpc/gtl_read_research_snapshot',
-  'rpc/gtl_begin_research_quotes', 'rpc/gtl_finish_research_quotes', 'rpc/gtl_read_research_quotes', 'gtl-api/lines/assessments', 'gtl-api/lines/research-submit', 'gtl-api/lines/research-links',
-].map(key => [key, '20261030204548 research assessments: named apply and compatible API release pending'])));
+/** No Lines resources currently need a not-hosted exception. */
+// Research schema 20261031131929 and API v44 verified October 31, 2026.
+// These probes must now return real denials; absence is no longer accepted.
+export const awaitingDeploy = Object.freeze({});

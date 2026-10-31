@@ -8,7 +8,7 @@ import { fixture } from './fixtures/research-assessments.mjs';
 
 const migration = '20261030204548_gtl_research_assessments.sql';
 test('research intake, snapshot publication and viewer projection preserve scoring and access boundaries', { skip: !pgliteAvailable }, async t => {
-  const world = await createCommunityWorld({ games: 2, troyBallots: false, migrations: [...HOSTED, migration] });
+  const world = await createCommunityWorld({ games: 2, troyBallots: false, migrations: [...new Set([...HOSTED, migration])] });
   const { db, state } = world; t.after(() => db.close()); const rpc = serviceSql(db);
   const { season, week } = state.league, g = state.games[0], now = new Date(Date.now() - 5000).toISOString();
   const f = fixture(), snap = f.snapshot; snap.season = season; snap.week = week; snap.generatedAt = now;
@@ -70,7 +70,7 @@ test('research intake, snapshot publication and viewer projection preserve scori
 });
 
 test('selective game/prop fetches share the existing budget/lease and keep retries and failures conservative', { skip: !pgliteAvailable }, async t => {
-  const world = await createCommunityWorld({ games: 2, troyBallots: false, migrations: [...HOSTED, migration] });
+  const world = await createCommunityWorld({ games: 2, troyBallots: false, migrations: [...new Set([...HOSTED, migration])] });
   const { db, state } = world; t.after(() => db.close()); const rpc = serviceSql(db);
   await db.query("update public.gtl_odds_budget set conservative_remaining=60,paused=false,last_successful_preflight_at=clock_timestamp(),lease_token=null");
   const args = { p_request: randomUUID(), p_season: state.league.season, p_week: state.league.week, p_game: state.games[0].id, p_markets: ['player_reception_yds', 'player_receptions'] };
