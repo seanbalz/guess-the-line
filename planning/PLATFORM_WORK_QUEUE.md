@@ -73,8 +73,10 @@ Sean separately approved the research/recommendation stage following one-at-a-ti
 alignment. [Implementation and release record](../docs/RESEARCH_ASSESSMENTS_STAGE_ONE.md)
 preserves guess/scoring rules, separates the gap list from research assessments,
 and records partial free-source coverage, pending links and the later model stage.
-This task has its own branch/PR, additive unapplied migration and release/phone
-gates. It does not close the EPL, formatting or device work owned above.
+[API/schema/frontend release and preservation verification](../docs/RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md)
+are complete from `89acd94cfd1f5e0ab837b0150dd28e12807ff5e8`. Real signed-in/phone
+acceptance, full X coverage and the later model stage remain open. This does not
+close the EPL, formatting or device work owned above.
 
 ### Research/chart checkpoints
 

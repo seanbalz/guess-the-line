@@ -1,6 +1,6 @@
 # Research assessments, stage one
 
-Owner: Sean Balsiger · October 30, 2026 · Source implementation; not deployed
+Owner: Sean Balsiger · October 30, 2026 · Deployed October 31, 2026
 
 Sean approved this stage after the research/alignment discussion. It adds betting
 research and recommendations alongside Guess the Line. It does not change guess
@@ -148,19 +148,17 @@ No production credentials or schedule were configured by this PR.
 
 ## Release state
 
-Source, hosted schema, API/frontend release, source-feed configuration and actual
-phone acceptance are separate milestones. The migration is **not applied** and
-the feature is **not deployed**. On an older API/schema the new screen handles an
-unavailable response; source access is never fabricated.
+The [October 31 production release](RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md)
+deployed API v44, applied only this migration as hosted version 20261031131929,
+then published the frontend from `89acd94cfd1f5e0ab837b0150dd28e12807ff5e8`.
+All 127 production assets matched; private grants/RLS, seven function bodies,
+strict research boundaries and scoring preservation were verified. Sean approved
+the protected production gates under the [shared deployment rules](SHARED_DEPLOYMENT.md).
+Schema application was performed separately through Supabase MCP.
 
-Before release: successful exact-source CI; approved compatible API release with
-the new error mappings (keep `research-assessments` off during staging); the named
-migration approval and fresh migration/dependency/preservation review; apply only
-this migration through the existing operator process; approved frontend release
-and feature enablement after readback; fresh hosted
-privacy/permissions and signed-in readback; phone acceptance. The
-[shared deployment rules](SHARED_DEPLOYMENT.md) require Sean's production
-environment approval separately. Applying schema is not automated by that workflow.
+Source-feed configuration, real signed-in/phone acceptance and the later model
+stage remain separate milestones. Partial source access and pending submitted
+links retain their explicit states; deployment does not establish full X coverage.
 The offline trend scanner [PR #363](https://github.com/seanbalz/guess-the-line/pull/363)
 is separate work and was not merged or duplicated here.
 

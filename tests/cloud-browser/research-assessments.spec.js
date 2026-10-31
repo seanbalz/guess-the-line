@@ -7,7 +7,7 @@ import { fixture as assessmentFixture } from '../fixtures/research-assessments.m
 
 test('independent research filters, nested evidence and durable source intake at phone widths', async ({ page, baseURL }, info) => {
   test.skip(!pgliteAvailable, 'Local PGlite is required.'); test.setTimeout(180000);
-  const world = await communityWorld(page, baseURL, { games: 2, migrations: [...HOSTED, '20261030204548_gtl_research_assessments.sql'] });
+  const world = await communityWorld(page, baseURL, { games: 2, migrations: [...new Set([...HOSTED, '20261030204548_gtl_research_assessments.sql'])] });
   try {
     const lines = Object.fromEntries(world.state.games.map(g => [g.id, -3]));
     await storeBookLines(world, { spread: lines, total: Object.fromEntries(world.state.games.map(g => [g.id, 45])) });
