@@ -76,6 +76,13 @@ test('existing reproduced trends can qualify at the evaluated consensus line, pr
   const run = () => readAssessments({ board, userId: 'fixture', now: NOW, service });
   assert.equal((await run()).assessments.find(a => a.selection.side === 'home').color, 'yellow');
   assert.equal((await run()).assessments[0].evidence[0].sample.count, 20);
+  existing.candidates[0].record.coverage = { from: '2025-10-05T20:05:00.000Z', to: '2026-10-25T20:25:00.000Z' };
+  const canonical = await run();
+  assert.equal(canonical.assessments.find(a => a.selection.side === 'home').color, 'yellow', 'actual prepared-record timestamps qualify');
+  assert.deepEqual(canonical.assessments[0].evidence[0].period, existing.candidates[0].record.coverage);
+  existing.candidates[0].record.coverage.to = '2026-02-30T20:25:00.000Z';
+  assert.ok((await run()).assessments.every(a => a.color === 'gray'), 'invalid dates cannot become evidence');
+  existing.candidates[0].record.coverage.to = '2026-10-25T20:25:00.000Z';
   lines.spread.books[0].line = -4;
   assert.ok((await run()).assessments.every(a => a.color === 'gray'));
 });

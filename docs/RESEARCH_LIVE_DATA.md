@@ -23,6 +23,9 @@ sportsbook offers are published. Exact downloaded source bytes remain ignored.
 
 The builder refuses an absent season, overdue missing finals, missing completed
 games in play-by-play, invalid publication shapes and oversized artifacts.
+The assessment adapter accepts the engine's actual ISO event timestamps as well
+as legacy date-only coverage, preserving chronology and rejecting invalid dates.
+The prior date-only check discarded otherwise qualifying prepared findings.
 Pass attempts include observed incompletions/interceptions with zero passing
 yards. The importer accepts actual nflverse quoted CSV and uses its `play_type`
 field when the optional `no_play` column is absent. No-play penalties are excluded;

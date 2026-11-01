@@ -2,6 +2,20 @@ import { ASSESSMENT_SOURCES, buildResearchAssessments, validateAssessmentSnapsho
 import { projectPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { finalAvailableAt, sha256 } from '../shared/trends-research-candidates.mjs';
 
+// Prepared records use canonical event timestamps; older reviewed records used
+// date-only coverage. Both describe the sampled games. Final observability is
+// independently enforced by the prepared snapshot and live source fingerprints.
+function historicalPeriod(coverage) {
+  const parse = (value, end) => {
+    if (typeof value !== 'string' || !/^\d{4}-\d\d-\d\d(?:T\d\d:\d\d:\d\d(?:\.\d{1,3})?Z)?$/.test(value)) return null;
+    const time = Date.parse(value);
+    if (!Number.isFinite(time) || new Date(time).toISOString().slice(0, 10) !== value.slice(0, 10)) return null;
+    return value.length === 10 && end ? finalAvailableAt(value) : new Date(time).toISOString();
+  };
+  const from = parse(coverage?.from, false), to = parse(coverage?.to, true);
+  return from && to && Date.parse(from) <= Date.parse(to) ? { from, to } : null;
+}
+
 /** Named-book quotes and gated trend applications already in GTL remain usable
  * without adding a provider request. A missing new snapshot is partial coverage. */
 export async function readAssessments({ service, board, userId, now, gameId, market, color, clock = () => now }) {
@@ -42,13 +56,14 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
         const evidence = (existing?.history?.status === 'fresh' && cell?.visible ? cell.candidateIds ?? [] : []).flatMap(id => {
           const c = existing.candidates?.find(c => c.id === id);
           const applied = c?.applications?.find(a => a.gameId === g.id);
+          const period = historicalPeriod(c?.record?.coverage);
           if (!c?.qualification?.qualifies || !applied || !['home', 'away', 'over', 'under'].includes(applied.direction) || !c.record?.decisive
-            || book.line !== cell.currentReference?.value || !/^\d{4}-\d\d-\d\d$/.test(c.record.coverage?.from ?? '') || !/^\d{4}-\d\d-\d\d$/.test(c.record.coverage?.to ?? '')) return [];
+            || book.line !== cell.currentReference?.value || !period) return [];
           // These are historical consistency records, never model probabilities.
           return [{ id: `registry-${id.replace(/[^a-zA-Z0-9_.:-]/g, '_')}`.slice(0, 100), origin: 'computed', family: 'historical',
             statement: c.title, stance: applied.direction === side ? 'support' : 'oppose', datasetId: 'nflverse-schedules', groupKey: `historical-${m}`,
             sourceUrl: existing.history.source?.url, publishedAt: existing.history.snapshotAsOf, observedAt: at, asOf: existing.history.snapshotAsOf,
-            period: { from: `${c.record.coverage.from}T00:00:00Z`, to: finalAvailableAt(c.record.coverage.to) }, sample: { count: c.record.decisive, unit: 'decided qualifying games' },
+            period, sample: { count: c.record.decisive, unit: 'decided qualifying games' },
             metric: { name: 'Historical hit rate', value: c.record.hitRate, unit: 'share', denominator: 'decided qualifying games; pushes excluded' },
             conditionsKnown: true, rights: 'permitted', reproduced: true, inputHash: existing.history.snapshotSha256,
             assumptions: ['Historical consistency is descriptive; it is not a calculated betting edge.', ...(c.conditionDescriptions ?? []).slice(0, 10).filter(s => typeof s === 'string').map(s => s.slice(0, 240))] }];
