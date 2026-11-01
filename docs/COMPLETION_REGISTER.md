@@ -9,7 +9,7 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
-## My bets layout exploration — November 1, 2026
+## My bets selection grid — November 1, 2026
 
 Sean requested easier manual player-bet tracking, more sportsbook choices and a
 better-looking My bets section. He confirmed all parlay legs should remain
@@ -21,8 +21,12 @@ artifacts change no production interface, records, sportsbook connections or
 frozen tracker. Sean then selected **04 — Selection grid**. The design PR #400
 is merged; [the actual implementation](MY_BETS_GRID_2026_11_01.md) adds the grid,
 guided player props, exact cash/unit entry and eight more manual book choices.
-Implementation verification, exact-source CI and protected frontend release are
-tracked separately; the mockup merge is not an app deployment.
+[PR #401](https://github.com/seanbalz/guess-the-line/pull/401) is merged as
+`43768a44b3cbbef2bc104b5e16f1512ab526eaaf`; all twelve PR and exact-main checks
+passed. The [protected frontend release](RELEASE_2026_11_01_MY_BETS.md) succeeded
+in run 41344546549. Pages `83caec6d` serves all 127 verified files. API v45,
+migration history, checked scoring records and the bounded saved-ticket records
+are unchanged. Real signed-in production/physical-phone acceptance remains open.
 
 ## Research data population repair — November 1, 2026
 

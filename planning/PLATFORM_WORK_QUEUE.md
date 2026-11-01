@@ -50,9 +50,11 @@ Every parlay leg must be visible immediately. Review
 selection before implementing that layout. Sean selected **04 — Selection grid**.
 The design PR #400 is merged. Follow [the actual implementation and release
 record](../docs/MY_BETS_GRID_2026_11_01.md) for guided manual props, expanded
-tracking book choices and the grid. Exact-source CI and protected frontend
-deployment remain separate from the mockup merge. Research acceptance below
-remains open and is not closed by this design work.
+tracking book choices and the grid. PR #401, all twelve PR/exact-main checks and
+the [protected frontend deployment](../docs/RELEASE_2026_11_01_MY_BETS.md) are
+complete. Pages `83caec6d` serves 127 verified files; API/history and checked
+account/scoring records are unchanged. Signed-in production/physical-phone
+acceptance remains open. Research acceptance below also remains open.
 
 Sean's November 1 priority is the empty research-data repair. Follow
 [the current implementation and validation record](../docs/RESEARCH_LIVE_DATA.md)

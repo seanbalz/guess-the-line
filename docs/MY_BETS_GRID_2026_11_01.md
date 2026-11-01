@@ -1,6 +1,6 @@
 # My bets — selected grid and manual player entry
 
-Owner: Sean Balsiger · November 1, 2026 · Implementation; release pending
+Owner: Sean Balsiger · November 1, 2026 · Deployed; signed-in phone acceptance pending
 
 Sean selected **04 — Selection grid** from the
 [six visual mockups](../design/my-bets-2026-11-01/README.md): “I like the 4th one.”
@@ -68,8 +68,11 @@ markup. Browser fixtures exercise real existing save/correct routes, reload,
 six-player parlays, a four-decimal milestone stake, themes, narrow widths,
 accessibility, ownership, uncertain retries and recommendation review.
 
-No API, migration, collector, player guess or production record is changed by
-this frontend implementation. Exact committed CI, merge, protected frontend
-deployment and production asset verification remain separate release gates.
-Actual signed-in production and physical-phone acceptance are not inferred from
-local fixture checks. The frozen v62 tracker is unchanged.
+PR #401 merged as `43768a44b3cbbef2bc104b5e16f1512ab526eaaf` after all twelve
+PR checks passed. All twelve exact-main checks and the protected frontend release
+passed. [The production release record](RELEASE_2026_11_01_MY_BETS.md) verifies
+Pages `83caec6d-2da5-4f20-a53a-902a5cd7512a`, all 127 served files and preserved
+saved-ticket/scoring records. No API, migration, collector, player guess or
+production record was changed by this frontend release. Actual signed-in
+production and physical-phone acceptance remain pending. The frozen v62 tracker
+is unchanged.
