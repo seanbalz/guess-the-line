@@ -375,12 +375,15 @@ test('Community recommendations use the current published week when the private 
     const { season, week } = world.state.league;
     const next = week + 1;
     const signature = (await world.db.query('select signature from public.gtl_weekly_slates where season=$1 and week=$2', [season, week])).rows[0].signature;
-    const nextSignature = { ...signature, week: next, deadline: signature.deadline + 3600,
-      games: signature.games.map(game => ({ ...game, kickoff: game.kickoff + 3600 })) };
+    // These fictional week identities share an open scheduling window. Adding
+    // an hour can move Sunday's deadline into Monday, making the newer fixture
+    // legitimately unavailable before its week opens.
+    const nextSignature = { ...signature, week: next,
+      games: signature.games.map(game => ({ ...game })) };
     await world.db.query('insert into public.gtl_weekly_slates(season,week,signature) values($1,$2,$3)', [season, next, nextSignature]);
     const current = { ...world, state: { ...world.state,
       league: { ...world.state.league, week: next, deadline: new Date(nextSignature.deadline * 1000).toISOString() },
-      games: world.state.games.map(game => ({ ...game, kickoff: new Date(Date.parse(game.kickoff) + 3600000).toISOString() })),
+      games: world.state.games.map(game => ({ ...game })),
     } };
     await world.db.query('insert into public.gtl_schedule_templates(id,season,week,games,deadline,schedule_source) values($1,$2,$3,$4,$5,$6)',
       [`fixture-next-${next}`, season, next, current.state.games, current.state.league.deadline, 'Synthetic recommendation schedule fixture']);

@@ -105,6 +105,12 @@ and 320/390px Light/Dark accessibility. Exact committed CI, data publication,
 app release, real signed-in populated readback and physical-phone acceptance
 must be recorded separately before this repair is called live and accepted.
 
+The broader CI run exposed an existing recommendation fixture that moved an
+open Sunday deadline into Monday by adding an hour. The same failure reproduced
+on untouched main `d297482224f78b0fe5dcd805bbfb5be92e1e7576` after the Pacific
+late-evening boundary. Its fictional week identities now share the same open
+schedule window; production week-opening rules are unchanged.
+
 ## Remaining source limitations
 
 The eight selected X accounts still have no verified free automatic extraction
