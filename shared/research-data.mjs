@@ -5,6 +5,13 @@ export const RESEARCH_REPOSITORY = 'seanbalz/guess-the-line';
 export const researchDataBase = season => `https://github.com/${RESEARCH_REPOSITORY}/releases/download/research-data-${season}`;
 export const MAX_RESEARCH_FILE_BYTES = 3_500_000;
 export const MAX_RESEARCH_DECODED_BYTES = 24_000_000;
+// Keep two days of immutable versions for cached readers without filling a release forever.
+export function researchRetentionPlan(assets, index, now) {
+  const current = new Set(index.files.map(f => f.file));
+  const file = /^(recent30|recent25|season|previousSeason|rolling12|all)-[a-f0-9]{64}\.json\.gz$/;
+  return assets.filter(a => file.test(a.name) && !current.has(a.name) && Number.isFinite(Date.parse(a.createdAt))
+    && Date.parse(a.createdAt) < now - 48 * 60 * 60_000).map(a => a.name);
+}
 const hash = value => /^[a-f0-9]{64}$/.test(value ?? '');
 export function validateResearchIndex(index, season, now) {
   if (index?.version !== 1 || index.season !== season || !Number.isFinite(Date.parse(index.generatedAt)) || Date.parse(index.generatedAt) > now

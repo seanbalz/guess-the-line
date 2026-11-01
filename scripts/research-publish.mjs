@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { RESEARCH_REPOSITORY, researchDataBase, validateResearchIndex } from '../shared/research-data.mjs';
+import { RESEARCH_REPOSITORY, researchDataBase, validateResearchIndex, researchRetentionPlan } from '../shared/research-data.mjs';
 import { readBack } from './fantasy-publish.mjs';
 
 async function main() {
@@ -26,11 +26,14 @@ async function main() {
     gh('release', 'create', tag, '--repo', RESEARCH_REPOSITORY, '--prerelease', '--title', `Research data ${index.season}`, '--notes', 'Public completed-game research from nflverse (CC BY 4.0). No player guesses, current sportsbook offers or app deployment. index.json identifies verified data files.');
     assets = [];
   }
-  // Previous immutable files stay available to readers holding an older index.
+  // Recent immutable files stay available to readers holding an older index.
   for (const f of index.files) if (!assets.some(a => a.name === f.file)) gh('release', 'upload', tag, path.join(dir, f.file), '--repo', RESEARCH_REPOSITORY);
   await readBack({ base: researchDataBase(index.season), names: index.files.map(f => f.file), readLocal: file => readFile(path.join(dir, file)) });
   gh('release', 'upload', tag, path.join(dir, 'index.json'), '--repo', RESEARCH_REPOSITORY, '--clobber');
   await readBack({ base: researchDataBase(index.season), names: ['index.json'], readLocal: file => readFile(path.join(dir, file)) });
-  console.log(JSON.stringify({ season: index.season, generatedAt: index.generatedAt, published: index.files.length, readback: true }));
+  // Only superseded generated assets, after readback. Never current files or unrelated assets.
+  const expired = researchRetentionPlan(assets, index, Date.now());
+  for (const file of expired) gh('release', 'delete-asset', tag, file, '--repo', RESEARCH_REPOSITORY, '--yes');
+  console.log(JSON.stringify({ season: index.season, generatedAt: index.generatedAt, published: index.files.length, readback: true, expiredFilesRemoved: expired.length }));
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(() => { console.error('Research publication failed; inspect the workflow receipt.'); process.exitCode = 1; });

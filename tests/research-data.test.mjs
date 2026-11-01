@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { createResearchDataLoader } from '../cloud/research-data.mjs';
-import { validateResearchIndex, validatePublicResearchSnapshot } from '../shared/research-data.mjs';
+import { validateResearchIndex, validatePublicResearchSnapshot, researchRetentionPlan } from '../shared/research-data.mjs';
 import { RESEARCH_PERIODS, RESEARCH_VERSION } from '../shared/trends-research-candidates.mjs';
 import { buildPlayResearch, buildResearchRelease } from '../scripts/research-refresh.mjs';
 import { observedPlayStatistics } from '../shared/research-play-statistics.mjs';
@@ -50,6 +50,11 @@ test('unpublished or failing data uses fallback with backoff and refuses cross-o
   await loader('all', 2026); assert.equal(count, 1);
   time += 60001; await loader('all', 2026); assert.equal(count, 2);
   await assert.rejects(loader('private', 2026));
+});
+test('retention bounds recurring publications and preserves current, recent, unrelated and undated assets', () => {
+  const { index } = publication(), old = '2026-10-20T00:00:00Z';
+  const expired = `all-${'b'.repeat(64)}.json.gz`, recent = `all-${'c'.repeat(64)}.json.gz`, undated = `all-${'d'.repeat(64)}.json.gz`;
+  assert.deepEqual(researchRetentionPlan([{ name: expired, createdAt: old }, { name: recent, createdAt: AT }, { name: index.files[0].file, createdAt: old }, { name: 'index.json', createdAt: old }, { name: 'unrelated-file.json', createdAt: old }, { name: undated }], index, NOW), [expired]);
 });
 const final = row({ season: 2026, week: 1, gameday: '2026-10-20', home_team: 'LA', away_team: 'SEA', home_score: 24, away_score: 0, spread_line: 3, total_line: 40 });
 const upcoming = row({ season: 2026, week: 2, gameday: '2026-11-01', home_team: 'LA', away_team: 'SEA', spread_line: 9876, total_line: 9876 });

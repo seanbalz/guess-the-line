@@ -32,8 +32,9 @@ Every matchup's sample excludes its own game and all later observations.
 The Research data refresh workflow runs every four hours on main, with a manual
 dry-run option. It needs only GitHub's repository token, and never receives
 Supabase or odds-provider credentials. Immutable files upload and pass public
-byte readback before `research-data-<season>/index.json` changes. Previous files
-remain available to readers holding an older index. Workflow failure retains the
+byte readback before `research-data-<season>/index.json` changes. Superseded files
+remain for 48 hours for cached readers, then only generated, noncurrent assets
+are pruned after successful readback. This bounds release growth. Workflow failure retains the
 previous publication; a green build alone does not prove upload/readback.
 
 `cloud/research-data.mjs` reads that release with bounded, allowlisted GitHub
