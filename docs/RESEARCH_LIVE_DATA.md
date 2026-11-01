@@ -1,6 +1,6 @@
 # Research data flow repair
 
-Owner: Sean Balsiger · November 1, 2026 · Implementation and local validation
+Owner: Sean Balsiger · November 1, 2026 · Deployed; signed-in acceptance pending
 
 Sean reported an empty research view after the October 31 release and requested
 further development. That release delivered the interface and private storage,
@@ -11,6 +11,11 @@ Deployment and access-denial checks did not establish populated research.
 This repair connects free nflverse results and play-by-play to a separate data
 release. It preserves Guess the Line guesses, scoring, references, locks and
 reveal rules. It introduces no migration, paid feed, odds quota or quote request.
+
+[The production release record](RELEASE_2026_11_01_RESEARCH_DATA.md) verifies
+publication, exact-main CI, protected API v45/frontend deployment, all 127 served
+assets, nine critical remote source files, access denials and preserved records.
+The actual signed-in production view and physical-phone acceptance remain open.
 
 ## Data production and delivery
 
@@ -103,7 +108,8 @@ and both research browser flows. The flows cover source intake, filters,
 opaque detail navigation, empty-with-statistics behavior, current-week requests,
 and 320/390px Light/Dark accessibility. Exact committed CI, data publication,
 app release, real signed-in populated readback and physical-phone acceptance
-must be recorded separately before this repair is called live and accepted.
+are separate evidence. Publication and application deployment are now verified
+in the linked release record; signed-in and phone acceptance are still pending.
 
 The broader CI run exposed an existing recommendation fixture that moved an
 open Sunday deadline into Monday by adding an hour. The same failure reproduced
