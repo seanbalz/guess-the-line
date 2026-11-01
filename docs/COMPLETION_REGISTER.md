@@ -9,6 +9,17 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## My bets preview and spacing mockups — November 1, 2026
+
+Sean requested more spacing and compact previews that open the current full bet
+details on tap. [Five new preview mockups](../design/my-bets-previews-2026-11-01/README.md)
+include a clickable gallery, Dark/Light boards and before/after examples. All
+five reuse the full selection grid after opening. Twenty local theme/width
+cases passed, including six-leg expansion, exact straight terms, history and
+collapse focus. Preview selection and detail destination remain open. No app
+code, production interface, saved record, sportsbook integration or frozen
+tracker changed in this mockup task. The deployed grid below remains current.
+
 ## My bets selection grid — November 1, 2026
 
 Sean requested easier manual player-bet tracking, more sportsbook choices and a
