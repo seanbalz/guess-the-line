@@ -2,6 +2,12 @@
 
 Owner: Sean Balsiger · Version 1
 
+The [November 1 data repair release](RELEASE_2026_11_01_RESEARCH_DATA.md)
+supersedes this runtime. This October 31 release delivered the interface and
+private storage without populated research; it did not complete content readiness.
+The follow-up publishes free historical/play data and deploys its loader/UI,
+while retaining separate signed-in acceptance and automatic-X-feed limits.
+
 The first independent research/recommendation stage is deployed at
 [Guess The Line → Bets → Research recommendations](https://guess-the-line.pages.dev/#bets/research).
 The API, additive research schema and frontend were released in that order from

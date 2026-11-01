@@ -14,14 +14,20 @@ as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 Sean reported the deployed view had no research data and requested further
 development. The previous release's operational content readiness was incomplete:
 zero imported research snapshots and an obsolete bundled trend snapshot.
-[The data-flow repair](RESEARCH_LIVE_DATA.md), on `codex/research-live-data`, adds
+[The data-flow repair](RESEARCH_LIVE_DATA.md), merged in PR #397, adds
 a scheduled free-data publication, checksum-verified server loading, current
 published-week selection, reachable observed matchup statistics and explicit
 coverage/empty states. A real-source build covers 108 completed games through
 October 29, 750 registered trends (eight historically qualified), and all 14
 Week 8 matchups. Source feeds and current betting quotes remain separate.
-Local focused tests/browser checks pass; committed CI, merge, data publication,
-protected app release and real-user acceptance are not yet claimed complete.
+All twelve PR and exact-main checks passed. The [November 1 production record](RELEASE_2026_11_01_RESEARCH_DATA.md)
+verifies the public data publication, protected API v45 and frontend release,
+127 matching production assets, nine matching critical API source files, strict
+research access denials and unchanged score/ballot/settlement fingerprints.
+The real public loader plus captured production read inputs return 14 scoring/
+play-statistics matchups, 68 assessments and eight evidence entries; this is a
+local projection. Real signed-in production/physical-phone acceptance and the
+first observed scheduled refresh remain open. No automatic X feed is connected.
 
 ## Independent research assessments — October 30, 2026
 

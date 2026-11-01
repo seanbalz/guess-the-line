@@ -44,11 +44,15 @@ Follow the [next EPL batch](../docs/EPL_NEXT_BATCH_2026_10_29.md) for current co
 ## Active order and exit criteria
 
 Sean's November 1 priority is the empty research-data repair. Follow
-[the current implementation and validation record](../docs/RESEARCH_LIVE_DATA.md).
-The October 31 interface/schema release did not complete operational content
-readiness. Close this repair only after populated data publication, protected
-API/frontend release and signed-in readback; retain separate source-access and
-physical-phone limits.
+[the current implementation and validation record](../docs/RESEARCH_LIVE_DATA.md)
+and [November 1 release evidence](../docs/RELEASE_2026_11_01_RESEARCH_DATA.md).
+PR #397, all twelve exact-main checks, populated public data publication and
+protected API v45/frontend deployment are complete. Production assets, critical
+API source files, strict research denials and preserved records are verified.
+Signed-in populated production readback remains the repair's acceptance gate;
+the public-loader projection uses captured production inputs locally. Verify
+the first automatic scheduled refresh separately. Retain source-access and
+physical-phone limits; automatic X extraction is still unconnected.
 
 Sean selected **Research and charts** as the next player-facing design batch on
 October 26, ahead of the next commissioner page. Continue one implementation lane at a time. The approved four-tab “One thing first”
