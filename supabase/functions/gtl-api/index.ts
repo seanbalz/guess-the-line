@@ -2,6 +2,7 @@ import { createEplMoneylineRefreshForLock } from '../../../cloud/epl-moneyline-c
 import { createOddsProvider } from '../../../cloud/odds-provider.mjs';
 import { createCloudHandler, createSupabaseAdapter } from '../../../cloud/handler.mjs';
 import loadResearchSnapshot from '../../../cloud/trends-research-snapshot.mjs';
+import { createResearchDataLoader } from '../../../cloud/research-data.mjs';
 import { createNbaGamesService } from '../../../cloud/nba-games.mjs';
 
 // Supabase provides these server-only variables. Never place the service key in Vite config.
@@ -15,7 +16,7 @@ const adapter = createSupabaseAdapter({
   anonKey: Deno.env.get('SUPABASE_ANON_KEY'),
   serviceRoleKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
   reviewedResearchFeed: Deno.env.get('GTL_RESEARCH_REVIEWED_FEED'),
-  researchSnapshotLoader: loadResearchSnapshot,
+  researchSnapshotLoader: createResearchDataLoader({ fallback: loadResearchSnapshot }),
   eplMoneylineRefreshForLock,
 });
 

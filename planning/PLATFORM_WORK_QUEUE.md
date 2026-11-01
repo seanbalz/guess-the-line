@@ -43,6 +43,13 @@ Follow the [next EPL batch](../docs/EPL_NEXT_BATCH_2026_10_29.md) for current co
 
 ## Active order and exit criteria
 
+Sean's November 1 priority is the empty research-data repair. Follow
+[the current implementation and validation record](../docs/RESEARCH_LIVE_DATA.md).
+The October 31 interface/schema release did not complete operational content
+readiness. Close this repair only after populated data publication, protected
+API/frontend release and signed-in readback; retain separate source-access and
+physical-phone limits.
+
 Sean selected **Research and charts** as the next player-facing design batch on
 October 26, ahead of the next commissioner page. Continue one implementation lane at a time. The approved four-tab “One thing first”
 direction and D-55 charts stay in place. Sean corrected the October 26 phone report: the app does not have the scroll

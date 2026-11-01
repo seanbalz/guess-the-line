@@ -23,6 +23,9 @@ test('independent research filters, nested evidence and durable source intake at
     await world.db.query('insert into public.gtl_research_snapshots(id,season,week,payload) values($1,$2,$3,$4)', [randomUUID(), snapshot.season, snapshot.week, snapshot]);
     await page.goto('/#bets/research'); await signIn(page, 'luke', { navigate: false });
     await expect(page.getByRole('heading', { name: 'Research recommendations', exact: true })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Game research', exact: true })).toBeVisible();
+    await page.getByText(/Data coverage ·/).click();
+    await expect(page.getByText('No reviewed snapshot published for this week', { exact: false })).toHaveCount(0);
     const tile = page.getByRole('button', { name: /Synthetic Receiver over 65.5 yards Research lean/ });
     await expect(tile).toBeVisible();
     await page.getByLabel('Market', { exact: true }).selectOption('prop');
@@ -58,5 +61,30 @@ test('independent research filters, nested evidence and durable source intake at
     await expect(page.getByRole('link', { name: 'actionnetworkhq · submitted post', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Your guess vs. market', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Your guess vs. market', exact: true })).toBeVisible();
+  } finally { await world.db.close(); }
+});
+
+test('empty research still shows game facts, current published week and honest coverage', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite is required.'); test.setTimeout(180000);
+  let stats = [];
+  const requests = [];
+  page.on('request', request => { if (request.url().endsWith('/lines/assessments')) requests.push(request.postDataJSON()); });
+  const world = await communityWorld(page, baseURL, { games: 2, research: { read: async () => ({ statistics: stats, history: { status: 'unavailable', reasons: ['snapshot_unavailable'] } }) } });
+  try {
+    // Exercise the real handler with no imported evidence or synthetic provider quotes.
+    // A separate public history provider supplies completed-game facts only.
+    stats = world.state.games.map(g => ({ gameId: g.id, teams: g.id.split('-').map(team => ({ team, sample: 1, from: '2026-09-01', to: '2026-09-01', pointsPerGame: 0, pointsAllowedPerGame: 21, recent: { sample: 1, pointsPerGame: 0, pointsAllowedPerGame: 21 }, games: [{ gameId: 'completed-fixture', date: '2026-09-01', scored: 0, allowed: 21 }], definition: 'Completed synthetic fixture game; no current market data.' })) }));
+    await page.goto('/#bets/research'); await signIn(page, 'luke', { navigate: false });
+    await expect(page.getByRole('heading', { name: 'Research recommendations', exact: true })).toBeVisible();
+    await expect(page.getByText(/Lock in a game’s guess in Play/)).toBeVisible();
+    const gameButton = page.getByRole('button', { name: `${world.state.games[0].id.replace('-', ' at ')} · Team statistics`, exact: true });
+    await expect(gameButton).toBeVisible(); await gameButton.click();
+    expect(requests.length).toBeGreaterThan(0);
+    expect(requests.every(r => r.season === undefined && r.week === undefined)).toBe(true);
+    await page.getByText(/Observed team statistics ·/).click();
+    await expect(page.getByText('0.0', { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'All games research', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'All games research', exact: true }).click();
+    await expect(gameButton).toBeVisible();
   } finally { await world.db.close(); }
 });

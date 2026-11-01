@@ -35,7 +35,7 @@ test('provider reservations precede a charged request; replay makes no request a
   const result = await collectResearchQuotes({ rpc, apiKey: 'fixture-secret', requestId: 'fixture', season: 2026, week: 8, game, eventId: 'event1', markets: ['player_reception_yds'], roster, clock: () => NOW,
     fetchImpl: async () => { assert.deepEqual(calls, ['gtl_begin_research_quotes']); return new Response(JSON.stringify(event()), { headers: { 'x-requests-last': '1', 'x-requests-remaining': '100' } }); } });
   assert.equal(result.status, 'collected'); assert.equal(result.quotes.length, 2); assert.equal(calls.at(-1), 'gtl_finish_research_quotes');
-  const replay = await collectResearchQuotes({ rpc: async () => ({ replay: true }), apiKey: 'fixture-secret', game, eventId: 'event1', markets: ['player_reception_yds'], roster, fetchImpl: () => assert.fail('no replay request') });
+  const replay = await collectResearchQuotes({ rpc: async () => ({ replay: true }), apiKey: 'fixture-secret', game, eventId: 'event1', markets: ['player_reception_yds'], roster, clock: () => NOW, fetchImpl: () => assert.fail('no replay request') });
   assert.equal(replay.status, 'already-attempted');
 });
 test('discovery reports unavailable honestly; only verified free feed origins can be fetched', async () => {
@@ -76,6 +76,14 @@ test('existing reproduced trends can qualify at the evaluated consensus line, pr
   const run = () => readAssessments({ board, userId: 'fixture', now: NOW, service });
   assert.equal((await run()).assessments.find(a => a.selection.side === 'home').color, 'yellow');
   assert.equal((await run()).assessments[0].evidence[0].sample.count, 20);
+  existing.candidates[0].record.coverage = { from: '2025-10-05T20:05:00.000Z', to: '2026-10-25T20:25:00.000Z' };
+  const canonical = await run();
+  assert.equal(canonical.assessments.find(a => a.selection.side === 'home').color, 'yellow', 'actual prepared-record timestamps qualify');
+  assert.match(canonical.assessments.find(a => a.selection.side === 'home').title, /DEN −3$/);
+  assert.deepEqual(canonical.assessments[0].evidence[0].period, existing.candidates[0].record.coverage);
+  existing.candidates[0].record.coverage.to = '2026-02-30T20:25:00.000Z';
+  assert.ok((await run()).assessments.every(a => a.color === 'gray'), 'invalid dates cannot become evidence');
+  existing.candidates[0].record.coverage.to = '2026-10-25T20:25:00.000Z';
   lines.spread.books[0].line = -4;
   assert.ok((await run()).assessments.every(a => a.color === 'gray'));
 });

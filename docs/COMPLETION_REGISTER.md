@@ -9,6 +9,20 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## Research data population repair — November 1, 2026
+
+Sean reported the deployed view had no research data and requested further
+development. The previous release's operational content readiness was incomplete:
+zero imported research snapshots and an obsolete bundled trend snapshot.
+[The data-flow repair](RESEARCH_LIVE_DATA.md), on `codex/research-live-data`, adds
+a scheduled free-data publication, checksum-verified server loading, current
+published-week selection, reachable observed matchup statistics and explicit
+coverage/empty states. A real-source build covers 108 completed games through
+October 29, 750 registered trends (eight historically qualified), and all 14
+Week 8 matchups. Source feeds and current betting quotes remain separate.
+Local focused tests/browser checks pass; committed CI, merge, data publication,
+protected app release and real-user acceptance are not yet claimed complete.
+
 ## Independent research assessments — October 30, 2026
 
 Sean approved the first research/recommendation stage after the source-review
