@@ -1,5 +1,16 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 1, 2026 — My bets preview and spacing refinement
+
+After the option 04 deployment, Sean requested better spacing and a preview that
+opens the full ticket currently shown on the page when tapped.
+[Five new visual studies](../design/my-bets-previews-2026-11-01/README.md)
+compare spacious previews with the same full selection grid after opening.
+Both themes and a before/after interaction are provided. The studies currently
+expand inline; the final detail destination and preview selection remain open.
+This updates the requested preview behavior while retaining every full selection
+on tap. These are mockups, with fictional tickets and no production change.
+
 ## November 1, 2026 — My bets option 04 selected
 
 Sean requested easier manual player-bet entry, additional sportsbook choices
