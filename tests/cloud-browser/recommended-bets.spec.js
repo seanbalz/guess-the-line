@@ -11,6 +11,12 @@ test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
 
 const view = (page, name) => page.getByRole('group', { name: 'Bets view' }).getByRole('button', { name, exact: true });
+async function selectTracker(page,label,value){
+ const control=page.getByLabel(label,{exact:true});
+ if(!await control.isVisible())await page.locator('.social-filters > summary').click();
+ await control.selectOption(value);
+}
+
 const cards = page => page.locator('.recommended-bet-card');
 // BETS-NEXT-01: the All / Spreads / Totals choice and what each card shows.
 const marketFilter = page => page.getByRole('group', { name: 'Recommendation market', exact: true });
@@ -104,7 +110,7 @@ test('a reviewed recommendation becomes one actual tracked ticket and survives r
     await openRecommended(page);
     // Returning from a remembered All weeks list must still open the exact recommendation week.
     await view(page, 'Tracked bets').click();
-    await page.getByLabel('Competition week').selectOption('all');
+    await selectTracker(page,'Competition week','all');
     await expect(page.getByLabel('Competition week')).toHaveValue('all');
     await view(page, 'Your guess vs. market').click();
     const gameId = world.state.games[0].id, card = await openTotal(page, gameId);
@@ -133,10 +139,10 @@ test('a reviewed recommendation becomes one actual tracked ticket and survives r
     await expect(card).toHaveAttribute('open', '');
     await viewSavedTicket(page);
     await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
-    await expect(page.locator('.gx-tracked-row > summary')).toContainText('Over 44.5');
+    await expect(page.locator('.gx-tracked-row')).toContainText('Over 44.5');
     await page.reload();
     await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
-    await page.locator('.gx-tracked-row > summary').click();
+    await page.locator('.gx-tracked-menu').click();
     await expect(page.locator('.social-bet-card')).toContainText(writes[0].body.source);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -231,7 +237,7 @@ test('recommendation ticket recovery keeps its original week and does not duplic
     expect(writes[1].body).toEqual(writes[0].body);
     await viewSavedTicket(page);
     await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
-    await expect(page.locator('.gx-tracked-row > summary')).toContainText(`Week ${week}`);
+    await expect(page.locator('.gx-tracked-row')).toContainText(`Week ${week}`);
     await expect(page.getByLabel('Competition week')).toHaveValue(`${world.state.league.season}:${week}`);
     expect(await picksCount(world)).toBe(0);
     expect(world.errors).toEqual([]);

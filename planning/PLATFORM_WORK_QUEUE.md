@@ -47,9 +47,12 @@ Sean's latest November 1 request adds easier manual player-bet entry, additional
 tracking sportsbook choices and a less cluttered, more visual My bets layout.
 Every parlay leg must be visible immediately. Review
 [the six layout mockups](../design/my-bets-2026-11-01/README.md) and obtain his
-selection before implementing that layout. These are fictional design previews,
-with no production UI or data changes. Research acceptance below remains open
-and is not closed by this design exploration.
+selection before implementing that layout. Sean selected **04 — Selection grid**.
+The design PR #400 is merged. Follow [the actual implementation and release
+record](../docs/MY_BETS_GRID_2026_11_01.md) for guided manual props, expanded
+tracking book choices and the grid. Exact-source CI and protected frontend
+deployment remain separate from the mockup merge. Research acceptance below
+remains open and is not closed by this design work.
 
 Sean's November 1 priority is the empty research-data repair. Follow
 [the current implementation and validation record](../docs/RESEARCH_LIVE_DATA.md)

@@ -10,11 +10,17 @@ test.setTimeout(60000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
 const tab = (page, name) => page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name, exact: true });
 const view = (page, name) => page.getByRole('group', { name: 'Bets view' }).getByRole('button', { name, exact: true });
+async function selectTracker(page,label,value){
+ const control=page.getByLabel(label,{exact:true});
+ if(!await control.isVisible())await page.locator('.social-filters > summary').click();
+ await control.selectOption(value);
+}
+
 async function openBets(page) {
   await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
   await page.goto('/#bets/tracked');
   await signIn(page, 'luke', { navigate: false });
-  await expect(page.getByRole('heading', { name: 'Tracked bets', level: 1, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'My bets', level: 1, exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add bet', exact: true })).toBeEnabled();
 }
 async function fillTicket(page, gameId) {
@@ -70,7 +76,7 @@ test('Bets roots open creation from fresh all-week lists and remembered Add scop
     const editor = page.getByRole('dialog', { name: 'Add a tracked bet' });
     await expect(editor).toBeVisible();
     await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
-    await page.getByLabel('Competition week').selectOption('all');
+    await selectTracker(page,'Competition week','all');
     await tab(page, 'Bets').click();
     await page.getByRole('button', { name: 'Add a bet', exact: true }).click();
     await expect(editor).toBeVisible();
@@ -103,10 +109,10 @@ test('Community tracked bets work without private membership; create, own week a
     await editor.getByRole('button', { name: 'Save tracked bet', exact: true }).click();
     await expect(editor).toHaveCount(0);
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
-    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('myweek');
+    await selectTracker(page,'Bet tracker view','myweek');
     await expect(page.getByRole('heading', { name: 'Your weekly bet card' })).toBeVisible();
     await expect.poll(() => calls.filter(call => call.path === 'social/read').at(-1)?.body.filters.playerId).toBe(ACCOUNTS.luke.id);
-    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('history');
+    await selectTracker(page,'Bet tracker view','history');
     await expect(page.getByRole('heading', { name: 'Bet history', exact: true })).toBeVisible();
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
     const writes = calls.filter(call => call.path === 'social/create');
@@ -115,8 +121,8 @@ test('Community tracked bets work without private membership; create, own week a
       legs: [{ gameId: world.state.games[0].id, market: 'spread', side: 'home', line: -3.5 }] });
     // Opening Virtual Units above reads /bets/read (D-67); a tracked ticket never calls another Bets route.
     expect(calls.some(call => call.path === 'state' || (call.path.startsWith('bets/') && call.path !== 'bets/read'))).toBe(false);
-    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('mybets');
-    await page.getByLabel('Competition week').selectOption(`${world.state.league.season}:${world.state.league.week}`);
+    await selectTracker(page,'Bet tracker view','mybets');
+    await selectTracker(page,'Competition week',`${world.state.league.season}:${world.state.league.week}`);
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
     for (const theme of ['dark', 'light']) {
       await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
@@ -190,7 +196,7 @@ test('a total ticket uses only buttons, keeps unknown odds and fits the phone ed
     expect(writes).toHaveLength(1);
     expect(writes[0].body).toMatchObject({ kind: 'single', odds: null, stakeUnits: 2, source: 'Novig', quotedAt: null, placedAt: null,
       legs: [{ gameId, market: 'total', side: 'over', line: 45 }] });
-    await expect(page.locator('.social-bet-card')).toContainText('Odds unknown');
+    await expect(page.locator('.gx-tracked-row')).toContainText('Odds unknown');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -364,9 +370,9 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
       }
     }
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('.gx-tracked-row > summary').first().focus();
+    await page.locator('.gx-tracked-menu').first().focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('.gx-tracked-row').first()).toHaveAttribute('open', '');
+    await expect(page.locator('.gx-tracked-menu').first()).toHaveAttribute('aria-expanded', 'true');
     const scan = await new AxeBuilder({ page }).include('.gx-bets').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     expect(scan.violations.map(issue => issue.id)).toEqual([]);
     await page.locator('.gx-tracked-row').first().screenshot({ path: '.local/previews/tracked-row-expanded.png' });
@@ -382,7 +388,7 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await page.locator('.social-filters > summary').click();
     await page.getByRole('group', { name: 'Market filter', exact: true }).getByRole('button', { name: 'Spreads', exact: true }).click();
     await expect(page.locator('.social-bet-card')).toHaveCount(3);
-    await expect(page.locator('.social-content')).toContainText('Filtered summary');
+    await expect(page.locator('.social-filter-body')).toContainText('Filtered summary');
     await page.getByRole('group', { name: 'Market filter', exact: true }).getByRole('button', { name: 'Props', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Clear filters', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
@@ -391,10 +397,10 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await expect(page.getByRole('alert')).toContainText('Fixture read unavailable');
     await expect(page.locator('.social-bet-card')).toHaveCount(0);
     await page.getByRole('group', { name: 'Result filter', exact: true }).getByRole('button', { name: 'All', exact: true }).click();
-    await page.getByLabel('Competition week').selectOption('all');
+    await selectTracker(page,'Competition week','all');
     await expect(page.locator('.social-bet-card')).toHaveCount(6);
     expect(calls.at(-1).filters.playerId).toBe(ACCOUNTS.luke.id);
-    await page.getByLabel('Competition week').selectOption(season + ':' + (week - 1));
+    await selectTracker(page,'Competition week',season + ':' + (week - 1));
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
     await expect(page.locator('.social-feed')).toContainText('PREVIOUS OWNER');
     expect(calls.at(-1).filters.playerId).toBe(ACCOUNTS.luke.id);
@@ -408,8 +414,8 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await page.goBack();
     await expect(page.getByLabel('Competition week')).toHaveValue(season + ':' + (week - 1));
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
-    await page.getByLabel('Competition week').selectOption('all');
-    await page.getByLabel('Bet tracker view', { exact: true }).selectOption('feed');
+    await selectTracker(page,'Competition week','all');
+    await selectTracker(page,'Bet tracker view','feed');
     await expect(page.locator('.social-bet-card')).toHaveCount(8);
     await expect(page.locator('.social-feed')).toContainText('LEGACY VIRTUAL');
     await expect(page.locator('.social-feed')).toContainText('RIVAL SENTINEL');
@@ -438,7 +444,7 @@ test('an inclusion save finishing after a filter change does not invalidate the 
       await new Promise(resolve => releaseSave = resolve);
       await route.fulfill({ status: response.status, contentType: 'application/json', body });
     });
-    await page.locator('.gx-tracked-row > summary').click();
+    await page.locator('.gx-tracked-menu').click();
     await page.locator('.social-bet-card').getByText('Details & history', { exact: true }).click();
     await page.getByRole('button', { name: /Exclude from records/ }).click();
     await expect.poll(() => saveHeld).toBe(true);
@@ -480,7 +486,7 @@ test('the tracked-bet toolbar fits a phone in every view: Following, Player and 
       for (const width of [320, 390]) {
         await page.setViewportSize({ width, height: 844 });
         for (const value of ['mybets', 'feed', 'myweek', 'compare', 'history']) {
-          await page.getByLabel('Bet tracker view').selectOption(value);
+          await selectTracker(page,'Bet tracker view',value);
           const toolbar = page.locator('.social-toolbar');
           await expect(toolbar.getByRole('button', { name: 'Refresh bet tracker', exact: true })).toBeVisible();
           if (value !== 'mybets') await expect(toolbar.getByRole('button', { name: 'Following', exact: true })).toBeVisible();
@@ -509,4 +515,62 @@ test('the tracked-bet toolbar fits a phone in every view: Following, Player and 
   } finally {
     await world.db.close();
   }
+});
+
+test('guided six-player parlay saves exact existing leg terms and all six grid tiles stay visible',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL);
+ try{
+  const calls=callsFrom(page),gameId=world.state.games[0].id;
+  await openBets(page);await page.getByRole('button',{name:'Add bet',exact:true}).click();
+  const editor=page.getByRole('dialog',{name:'Add a tracked bet'});
+  await editor.getByRole('group',{name:'Bet type',exact:true}).getByRole('button',{name:'Parlay',exact:true}).click();
+  for(let i=0;i<6;i++){
+   if(i>=2)await editor.getByRole('button',{name:'Add parlay leg',exact:true}).click();
+   const leg=editor.locator('.social-leg-editor').nth(i);
+   await leg.getByRole('group',{name:'Matchup',exact:true}).getByRole('button',{name:gameId.replace('-',' @ '),exact:true}).click();
+   await leg.getByRole('group',{name:'Market',exact:true}).getByRole('button',{name:'Player prop',exact:true}).click();
+   await leg.getByLabel('Prop market',{exact:true}).selectOption('anytime touchdown');
+   await leg.getByLabel('Player name',{exact:true}).fill(`Fixture Scorer ${i+1}`);
+  }
+  await editor.getByRole('group',{name:'Combined American odds',exact:true}).getByRole('button',{name:'+1400',exact:true}).click();
+  await editor.getByRole('group',{name:'Stake entry',exact:true}).getByRole('button',{name:'Cash ($)',exact:true}).click();
+  await editor.getByLabel('Cash value of 1U ($)',{exact:true}).fill('100');
+  await editor.getByLabel('Cash stake ($)',{exact:true}).fill('25');
+  await editor.getByText('More sportsbooks',{exact:true}).click();
+  await editor.getByRole('button',{name:'Fanatics',exact:true}).click();
+  await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();
+  await expect(editor).toHaveCount(0);
+  const row=page.locator('.gx-tracked-row');await expect(row).toHaveCount(1);
+  await expect(row.locator('.gx-tracked-legs > li')).toHaveCount(6);
+  for(let i=1;i<=6;i++)await expect(row.getByText(`Fixture Scorer ${i}`,{exact:true})).toBeVisible();
+  await expect(row).toContainText('$25.00');await expect(row).toContainText('$375.00');
+  const write=calls.find(c=>c.path==='social/create');expect(write.body.stakeUnits).toBe(.25);
+  for(const leg of write.body.legs){expect(Object.keys(leg).sort()).toEqual(['gameId','line','market','selection','side']);expect(leg.line).toBe(null);expect(leg.selection).toContain('anytime touchdown (1+)');}
+  for(const theme of ['light','dark']){await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);for(const width of [320,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await row.screenshot({path:`.local/my-bets/grid-${theme}-${width}.png`});}}
+  const scan=await new AxeBuilder({page}).include('.gx-bets').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);
+  await page.reload();await expect(page.locator('.gx-tracked-legs > li')).toHaveCount(6);await expect(page.locator('.gx-tracked-row')).toContainText('$25.00');
+  expect(calls.filter(c=>c.path==='social/create')).toHaveLength(1);expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
+test('guided milestone keeps 70+ and four-decimal units after save and correction',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL);
+ try{
+  const calls=callsFrom(page),gameId=world.state.games[0].id;
+  await openBets(page);await page.getByRole('button',{name:'Add bet',exact:true}).click();
+  const editor=page.getByRole('dialog',{name:'Add a tracked bet'});
+  await editor.getByRole('group',{name:'Matchup',exact:true}).getByRole('button',{name:gameId.replace('-',' @ '),exact:true}).click();
+  await editor.getByRole('group',{name:'Market',exact:true}).getByRole('button',{name:'Player prop',exact:true}).click();
+  await editor.getByLabel('Player name',{exact:true}).fill('Fixture Runner');
+  await editor.getByRole('group',{name:'Prop direction',exact:true}).getByRole('button',{name:'At least (+)',exact:true}).click();
+  await editor.getByLabel('Prop line',{exact:true}).fill('70');
+  await editor.getByRole('group',{name:'Stake entry',exact:true}).getByRole('button',{name:'Cash ($)',exact:true}).click();
+  await editor.getByLabel('Cash value of 1U ($)',{exact:true}).fill('100');await editor.getByLabel('Cash stake ($)',{exact:true}).fill('7.47');
+  await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();await expect(editor).toHaveCount(0);
+  const row=page.locator('.gx-tracked-row');await expect(row).toContainText('70+');await expect(row).toContainText('0.0747U');await expect(row).toContainText('$7.47');
+  expect(calls.find(c=>c.path==='social/create').body.legs[0]).toMatchObject({line:70,selection:'Fixture Runner 70+ rushing yards'});
+  await row.getByRole('button',{name:'Ticket details',exact:true}).click();await row.getByText('Details & history',{exact:true}).click();await row.getByRole('button',{name:'Correct ticket',exact:true}).click();
+  const correction=page.getByRole('dialog',{name:'Correct saved bet'});await correction.getByLabel('Reason for correction',{exact:true}).fill('Reviewed exact recorded milestone');await correction.getByRole('button',{name:'Save correction',exact:true}).click();await expect(correction).toHaveCount(0);
+  const fixed=calls.find(c=>c.path==='social/correct');expect(fixed.body.stakeUnits).toBe(.0747);expect(fixed.body.legs[0].selection).toBe('Fixture Runner 70+ rushing yards');expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
 });

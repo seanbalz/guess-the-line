@@ -109,7 +109,7 @@ describe('a tracked bet row (D-62)', () => {
   it('a parlay draws one matchup per leg in leg order; a leg outside the week keeps its id as text', () => {
     const html = row({ kind: 'parlay', legs: [{ gameId: 'KC-LV' }, { gameId: 'SEA-DEN' }] });
     expect(matchups(html).map(m => m.srcs)).toEqual([[teamMarks.KC.src, teamMarks.LV.src], [teamMarks.SEA.src, teamMarks.DEN.src]]);
-    expect(nameFrom(parseMarkup(html))).toContain('Kansas City Chiefs at Las Vegas Raiders · Seattle Seahawks at Denver Broncos');
+    expect(matchups(html).map(m=>m.name)).toEqual(['Kansas City Chiefs at Las Vegas Raiders','Seattle Seahawks at Denver Broncos']);
     const lost = row({ kind: 'single', legs: [{ gameId: 'NYJ-BUF', selection: 'Over 40' }] });
     expect(matchups(lost)).toEqual([]);
     expect(lost).toContain('NYJ-BUF');

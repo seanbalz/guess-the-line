@@ -63,14 +63,16 @@ export function MatchupChoices({ games, value, onChange, disabled }) {
 }
 
 const books = ['DraftKings', 'FanDuel', 'BetMGM', 'Caesars', 'BetRivers', 'Novig'];
+const moreBooks = ['Fanatics', 'Hard Rock Bet', 'bet365', 'Circa Sports', 'Pinnacle', 'Sporttrade', 'BetOnline', 'Bovada'];
 export function BookChoices({ value, onChange, disabled, required }) {
   const [custom, setCustom] = useState(false), id = useId();
-  const showCustom = custom || (Boolean(value) && !books.includes(value));
+  const showCustom = custom || (Boolean(value) && ![...books,...moreBooks].includes(value));
   return <fieldset className="social-entry-field" disabled={disabled}><legend>Sportsbook / quote source</legend>
     <div className="social-entry-options">{books.map(book => <button className="social-entry-option" key={book} type="button" aria-pressed={value === book} disabled={disabled} onClick={() => { onChange(book); setCustom(false); }}>{value === book && <Check size={16} aria-hidden="true"/>}{book}</button>)}
       {!required && <button className="social-entry-option" type="button" aria-pressed={!value} disabled={disabled} onClick={() => { onChange(''); setCustom(false); }}>{!value && <Check size={16} aria-hidden="true"/>}Unknown</button>}
       <button className="social-entry-option" type="button" aria-expanded={showCustom} aria-controls={id} disabled={disabled} onClick={() => setCustom(open => !open)}>Custom</button>
     </div>
+    <details className="social-more-books" open={moreBooks.includes(value)||undefined}><summary>More sportsbooks</summary><div className="social-entry-options">{moreBooks.map(book=><button className="social-entry-option" key={book} type="button" aria-pressed={value===book} disabled={disabled} onClick={()=>{onChange(book);setCustom(false);}}>{value===book&&<Check size={16} aria-hidden="true"/>}{book}</button>)}</div></details>
     <div id={id} hidden={!showCustom}>{showCustom && <label className="social-entry-custom">Sportsbook / quote source<input required={required} minLength={required ? 2 : undefined} maxLength={120} value={value} disabled={disabled} onChange={event => onChange(event.target.value)} placeholder="Book shown on your ticket"/></label>}</div>
   </fieldset>;
 }
