@@ -43,9 +43,16 @@ Follow the [next EPL batch](../docs/EPL_NEXT_BATCH_2026_10_29.md) for current co
 
 ## Active order and exit criteria
 
-Sean's latest November 1 request adds easier manual player-bet entry, additional
+Sean's latest My bets refinement selects **01 — Roomy cards** and **Expand in
+place, as shown**. Follow [the implementation contract](../docs/MY_BETS_ROOMY_2026_11_01.md)
+for compact previews, 20px padding, 24px ticket gaps and the full selection grid
+after tapping. Design PR #404 is merged; local component and bet-browser checks
+passed. The implementation PR and protected frontend release remain pending.
+This supersedes the earlier requirement to show every full leg before tapping.
+
+Sean's earlier November 1 request added easier manual player-bet entry, additional
 tracking sportsbook choices and a less cluttered, more visual My bets layout.
-Every parlay leg must be visible immediately. Review
+Every parlay leg was to be visible immediately. Review
 [the six layout mockups](../design/my-bets-2026-11-01/README.md) and obtain his
 selection before implementing that layout. Sean selected **04 — Selection grid**.
 The design PR #400 is merged. Follow [the actual implementation and release

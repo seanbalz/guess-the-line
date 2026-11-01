@@ -2,6 +2,11 @@
 
 Owner: Sean Balsiger · November 1, 2026 · Deployed; signed-in phone acceptance pending
 
+Later the same day, Sean selected [Roomy cards with inline expansion](MY_BETS_ROOMY_2026_11_01.md).
+That follow-up starts with a compact preview and reveals this full grid on tap;
+its implementation and protected release are tracked separately. The behavior
+below describes the earlier deployed grid release.
+
 Sean selected **04 — Selection grid** from the
 [six visual mockups](../design/my-bets-2026-11-01/README.md): “I like the 4th one.”
 The subsequent status check found only mockups in draft PR #400, with no app

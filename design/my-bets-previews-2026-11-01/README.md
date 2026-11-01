@@ -1,6 +1,6 @@
 # My bets — preview, then full ticket
 
-Owner: Sean Balsiger · November 1, 2026 · Five mockups; selection pending
+Owner: Sean Balsiger · November 1, 2026 · Option 01 selected; inline expansion confirmed
 
 After the selection-grid release, Sean requested better spacing and a compact
 bet preview that opens the detail currently shown on the page when tapped. These
@@ -15,13 +15,14 @@ to collapse it. Ticket details opens the sample notes/history. Light/Dark and
 320/390/430px controls support comparison. Track bet, Settled and Filters are
 labelled non-saving preview controls; no account connection is used.
 
-These initial studies use **inline expansion**. The detail destination (inline,
-bottom sheet or separate screen) is still an open preference. A preview style
-does not decide that navigation behavior. No option is marked approved.
+Sean selected **01 — Roomy cards**: “1 is the best.” He separately confirmed
+**“Expand in place, as shown.”** The selected preview therefore opens its full
+ticket inline. [Implementation and release state](../../docs/MY_BETS_ROOMY_2026_11_01.md)
+are recorded separately; these visual artifacts do not establish app deployment.
 
 | Option | Preview | Difference |
 | --- | --- | --- |
-| 01 | Roomy cards | Spacious card, selection first, team marks and a short amount row |
+| **01 selected** | **Roomy cards** | Spacious card, selection first, team marks and a short amount row |
 | 02 | Open rows | Wide gaps and rules replace enclosing card boxes |
 | 03 | Team strip | Team marks lead above the selection |
 | 04 | Split summary | Selection left; risk and total return right |

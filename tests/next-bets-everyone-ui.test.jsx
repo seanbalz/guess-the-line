@@ -100,16 +100,18 @@ describe('quiet weeks', () => {
 describe('a tracked bet row (D-62)', () => {
   const games = [{ id: 'SEA-DEN', away: 'SEA', home: 'DEN' }, { id: 'KC-LV', away: 'KC', home: 'LV' }];
   const row = entry => renderToStaticMarkup(<div className="gx"><TrackedBetRow entry={{ week: 7, outcome: 'pending', stakeUnits: 1, source: 'BetMGM', ...entry }} games={games}/></div>);
-  it('a single draws its game as marks, away first, read as one sentence', () => {
+  // Preview marks are decorative; the expanded ticket retains the complete spoken matchups.
+  const spokenMatchups = html => matchups(html).filter(matchup => matchup.name);
+  it('a full single draws its game as marks, away first, read as one sentence', () => {
     const html = row({ kind: 'single', legs: [{ gameId: 'SEA-DEN', selection: 'DEN −3' }] });
     expect(markupProblems(html)).toEqual([]);
-    expect(matchups(html)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' }]);
+    expect(spokenMatchups(html)).toEqual([{ srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' }]);
     expect(html).not.toContain('SEA @ DEN');
   });
   it('a parlay draws one matchup per leg in leg order; a leg outside the week keeps its id as text', () => {
     const html = row({ kind: 'parlay', legs: [{ gameId: 'KC-LV' }, { gameId: 'SEA-DEN' }] });
-    expect(matchups(html).map(m => m.srcs)).toEqual([[teamMarks.KC.src, teamMarks.LV.src], [teamMarks.SEA.src, teamMarks.DEN.src]]);
-    expect(matchups(html).map(m=>m.name)).toEqual(['Kansas City Chiefs at Las Vegas Raiders','Seattle Seahawks at Denver Broncos']);
+    expect(spokenMatchups(html).map(m => m.srcs)).toEqual([[teamMarks.KC.src, teamMarks.LV.src], [teamMarks.SEA.src, teamMarks.DEN.src]]);
+    expect(spokenMatchups(html).map(m=>m.name)).toEqual(['Kansas City Chiefs at Las Vegas Raiders','Seattle Seahawks at Denver Broncos']);
     const lost = row({ kind: 'single', legs: [{ gameId: 'NYJ-BUF', selection: 'Over 40' }] });
     expect(matchups(lost)).toEqual([]);
     expect(lost).toContain('NYJ-BUF');

@@ -142,6 +142,7 @@ test('a reviewed recommendation becomes one actual tracked ticket and survives r
     await expect(page.locator('.gx-tracked-row')).toContainText('Over 44.5');
     await page.reload();
     await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
+    await page.locator('.gx-tracked-preview').click();
     await page.locator('.gx-tracked-menu').click();
     await expect(page.locator('.social-bet-card')).toContainText(writes[0].body.source);
     expect(world.errors).toEqual([]);
