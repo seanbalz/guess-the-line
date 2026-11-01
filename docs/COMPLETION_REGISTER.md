@@ -9,16 +9,21 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
-## My bets preview and spacing mockups — November 1, 2026
+## My bets Roomy cards and inline expansion — November 1, 2026
 
 Sean requested more spacing and compact previews that open the current full bet
 details on tap. [Five new preview mockups](../design/my-bets-previews-2026-11-01/README.md)
 include a clickable gallery, Dark/Light boards and before/after examples. All
 five reuse the full selection grid after opening. Twenty local theme/width
 cases passed, including six-leg expansion, exact straight terms, history and
-collapse focus. Preview selection and detail destination remain open. No app
-code, production interface, saved record, sportsbook integration or frozen
-tracker changed in this mockup task. The deployed grid below remains current.
+collapse focus. Sean selected **01 — Roomy cards**, then confirmed inline
+expansion. Design PR #404 merged after all twelve checks passed.
+[The implementation](MY_BETS_ROOMY_2026_11_01.md) adds spacious previews that
+open the full grid in place, retains existing ticket details and restores focus
+on collapse. All 620 component tests and 30 bet/recommendation browser flows
+passed locally. Implementation PR, exact-source CI and protected frontend release
+are still pending; the deployed grid below remains current. No hosted record,
+provider connection or frozen tracker was changed.
 
 ## My bets selection grid — November 1, 2026
 

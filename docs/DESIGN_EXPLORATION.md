@@ -6,10 +6,12 @@ After the option 04 deployment, Sean requested better spacing and a preview that
 opens the full ticket currently shown on the page when tapped.
 [Five new visual studies](../design/my-bets-previews-2026-11-01/README.md)
 compare spacious previews with the same full selection grid after opening.
-Both themes and a before/after interaction are provided. The studies currently
-expand inline; the final detail destination and preview selection remain open.
+Both themes and a before/after interaction are provided. Sean selected
+**01 — Roomy cards** (“1 is the best”) and confirmed **“Expand in place, as shown.”**
+The [implementation contract](MY_BETS_ROOMY_2026_11_01.md) records the selected
+spacing, compact preview and full inline ticket; its app release is separate.
 This updates the requested preview behavior while retaining every full selection
-on tap. These are mockups, with fictional tickets and no production change.
+on tap. The visual studies use fictional tickets and change no production data.
 
 ## November 1, 2026 — My bets option 04 selected
 

@@ -196,7 +196,8 @@ test('a total ticket uses only buttons, keeps unknown odds and fits the phone ed
     expect(writes).toHaveLength(1);
     expect(writes[0].body).toMatchObject({ kind: 'single', odds: null, stakeUnits: 2, source: 'Novig', quotedAt: null, placedAt: null,
       legs: [{ gameId, market: 'total', side: 'over', line: 45 }] });
-    await expect(page.locator('.gx-tracked-row')).toContainText('Odds unknown');
+    await page.locator('.gx-tracked-preview').click();
+    await expect(page.locator('.gx-tracked-price')).toHaveText('Odds unknown');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -370,6 +371,9 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
       }
     }
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('.gx-tracked-preview').first().focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.gx-tracked-collapse').first()).toBeFocused();
     await page.locator('.gx-tracked-menu').first().focus();
     await page.keyboard.press('Enter');
     await expect(page.locator('.gx-tracked-menu').first()).toHaveAttribute('aria-expanded', 'true');
@@ -444,6 +448,7 @@ test('an inclusion save finishing after a filter change does not invalidate the 
       await new Promise(resolve => releaseSave = resolve);
       await route.fulfill({ status: response.status, contentType: 'application/json', body });
     });
+    await page.locator('.gx-tracked-preview').click();
     await page.locator('.gx-tracked-menu').click();
     await page.locator('.social-bet-card').getByText('Details & history', { exact: true }).click();
     await page.getByRole('button', { name: /Exclude from records/ }).click();
@@ -517,7 +522,7 @@ test('the tracked-bet toolbar fits a phone in every view: Following, Player and 
   }
 });
 
-test('guided six-player parlay saves exact existing leg terms and all six grid tiles stay visible',async({page,baseURL})=>{
+test('roomy parlay preview expands all six exact saved selections in place and collapses with focus restored',async({page,baseURL})=>{
  const world=await communityWorld(page,baseURL);
  try{
   const calls=callsFrom(page),gameId=world.state.games[0].id;
@@ -541,14 +546,33 @@ test('guided six-player parlay saves exact existing leg terms and all six grid t
   await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();
   await expect(editor).toHaveCount(0);
   const row=page.locator('.gx-tracked-row');await expect(row).toHaveCount(1);
-  await expect(row.locator('.gx-tracked-legs > li')).toHaveCount(6);
+  const preview=row.getByRole('button',{name:'Expand 6-leg parlay',exact:true});
+  await expect(preview).toHaveAttribute('aria-expanded','false');
+  await expect(row.locator('.gx-tracked-legs > li:visible')).toHaveCount(0);
+  await expect(preview).toContainText('$25.00');await expect(preview).toContainText('$375.00');
+  const readsBeforeExpand=calls.length;
+  await preview.focus();await page.keyboard.press('Enter');
+  await expect(row.getByRole('button',{name:'Collapse 6-leg parlay',exact:true})).toBeFocused();
+  await expect(row.locator('.gx-tracked-legs > li:visible')).toHaveCount(6);
+  expect(calls.length).toBe(readsBeforeExpand);
   for(let i=1;i<=6;i++)await expect(row.getByText(`Fixture Scorer ${i}`,{exact:true})).toBeVisible();
   await expect(row).toContainText('$25.00');await expect(row).toContainText('$375.00');
   const write=calls.find(c=>c.path==='social/create');expect(write.body.stakeUnits).toBe(.25);
   for(const leg of write.body.legs){expect(Object.keys(leg).sort()).toEqual(['gameId','line','market','selection','side']);expect(leg.line).toBe(null);expect(leg.selection).toContain('anytime touchdown (1+)');}
-  for(const theme of ['light','dark']){await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);for(const width of [320,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await row.screenshot({path:`.local/my-bets/grid-${theme}-${width}.png`});}}
+  for(const theme of ['light','dark']){await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);for(const width of [320,390]){
+   await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await row.screenshot({path:`.local/my-bets-roomy/expanded-${theme}-${width}.png`});
+   await row.getByRole('button',{name:'Collapse 6-leg parlay',exact:true}).focus();await page.keyboard.press('Space');
+   await expect(preview).toBeFocused();await expect(row.locator('.gx-tracked-legs > li:visible')).toHaveCount(0);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await row.screenshot({path:`.local/my-bets-roomy/preview-${theme}-${width}.png`});
+   await preview.press('Enter');await expect(row.locator('.gx-tracked-legs > li:visible')).toHaveCount(6);
+  }}
   const scan=await new AxeBuilder({page}).include('.gx-bets').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);
-  await page.reload();await expect(page.locator('.gx-tracked-legs > li')).toHaveCount(6);await expect(page.locator('.gx-tracked-row')).toContainText('$25.00');
+  await row.getByRole('button',{name:'Collapse 6-leg parlay',exact:true}).click();
+  const previewScan=await new AxeBuilder({page}).include('.gx-bets').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(previewScan.violations.map(v=>v.id)).toEqual([]);
+  await page.reload();await expect(page.locator('.gx-tracked-legs > li:visible')).toHaveCount(0);await expect(page.locator('.gx-tracked-preview')).toContainText('$25.00');
+  await page.getByRole('button',{name:'Expand 6-leg parlay',exact:true}).click();await expect(page.locator('.gx-tracked-legs > li:visible')).toHaveCount(6);
   expect(calls.filter(c=>c.path==='social/create')).toHaveLength(1);expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
@@ -567,7 +591,8 @@ test('guided milestone keeps 70+ and four-decimal units after save and correctio
   await editor.getByRole('group',{name:'Stake entry',exact:true}).getByRole('button',{name:'Cash ($)',exact:true}).click();
   await editor.getByLabel('Cash value of 1U ($)',{exact:true}).fill('100');await editor.getByLabel('Cash stake ($)',{exact:true}).fill('7.47');
   await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();await expect(editor).toHaveCount(0);
-  const row=page.locator('.gx-tracked-row');await expect(row).toContainText('70+');await expect(row).toContainText('0.0747U');await expect(row).toContainText('$7.47');
+  const row=page.locator('.gx-tracked-row');await expect(row.locator('.gx-tracked-preview')).toContainText('70+');await expect(row.locator('.gx-tracked-preview')).toContainText('$7.47');
+  await row.getByRole('button',{name:'Expand Fixture Runner',exact:true}).click();await expect(row.locator('.gx-tracked-money')).toContainText('0.0747U');
   expect(calls.find(c=>c.path==='social/create').body.legs[0]).toMatchObject({line:70,selection:'Fixture Runner 70+ rushing yards'});
   await row.getByRole('button',{name:'Ticket details',exact:true}).click();await row.getByText('Details & history',{exact:true}).click();await row.getByRole('button',{name:'Correct ticket',exact:true}).click();
   const correction=page.getByRole('dialog',{name:'Correct saved bet'});await correction.getByLabel('Reason for correction',{exact:true}).fill('Reviewed exact recorded milestone');await correction.getByRole('button',{name:'Save correction',exact:true}).click();await expect(correction).toHaveCount(0);
