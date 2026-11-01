@@ -9,6 +9,17 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## My bets layout exploration — November 1, 2026
+
+Sean requested easier manual player-bet tracking, more sportsbook choices and a
+better-looking My bets section. He confirmed all parlay legs should remain
+visible, then requested five to ten examples with less text and clutter.
+[Six visual mockups](../design/my-bets-2026-11-01/README.md) provide an interactive
+gallery, individual previews and Dark/Light comparison boards with fictional
+tickets. They retain GTL's selected brand. Layout selection is pending; these
+artifacts change no production interface, records, sportsbook connections or
+frozen tracker. Entry and book-picker implementation follows the selected layout.
+
 ## Research data population repair — November 1, 2026
 
 Sean reported the deployed view had no research data and requested further

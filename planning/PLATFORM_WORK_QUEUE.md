@@ -43,6 +43,14 @@ Follow the [next EPL batch](../docs/EPL_NEXT_BATCH_2026_10_29.md) for current co
 
 ## Active order and exit criteria
 
+Sean's latest November 1 request adds easier manual player-bet entry, additional
+tracking sportsbook choices and a less cluttered, more visual My bets layout.
+Every parlay leg must be visible immediately. Review
+[the six layout mockups](../design/my-bets-2026-11-01/README.md) and obtain his
+selection before implementing that layout. These are fictional design previews,
+with no production UI or data changes. Research acceptance below remains open
+and is not closed by this design exploration.
+
 Sean's November 1 priority is the empty research-data repair. Follow
 [the current implementation and validation record](../docs/RESEARCH_LIVE_DATA.md)
 and [November 1 release evidence](../docs/RELEASE_2026_11_01_RESEARCH_DATA.md).

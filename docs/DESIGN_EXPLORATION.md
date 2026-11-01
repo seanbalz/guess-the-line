@@ -1,5 +1,16 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 1, 2026 — My bets layout studies, awaiting selection
+
+Sean requested easier manual player-bet entry, additional sportsbook choices
+and a cleaner, more visual My bets section. He confirmed every parlay leg
+should be visible immediately and requested five to ten mockups before choosing.
+[Six original layout studies](../design/my-bets-2026-11-01/README.md) retain
+the selected GTL brand and use fictional tickets. The interactive gallery and
+Dark/Light comparison boards are review artifacts, not a production change or
+an approved layout. Manual entry and sportsbook implementation remain follow-up
+work after selection; no account data is published in these mockups.
+
 ## October 29, 2026 — logo and favicon refinement selected
 
 Sean asked for a more symmetrical logo, color variations and favicon edits,
