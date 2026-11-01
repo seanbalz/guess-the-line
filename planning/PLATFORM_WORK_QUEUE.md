@@ -46,8 +46,12 @@ Follow the [next EPL batch](../docs/EPL_NEXT_BATCH_2026_10_29.md) for current co
 Sean's latest My bets refinement selects **01 — Roomy cards** and **Expand in
 place, as shown**. Follow [the implementation contract](../docs/MY_BETS_ROOMY_2026_11_01.md)
 for compact previews, 20px padding, 24px ticket gaps and the full selection grid
-after tapping. Design PR #404 is merged; local component and bet-browser checks
-passed. The implementation PR and protected frontend release remain pending.
+after tapping. Design PR #404 and implementation PR #405 are merged; all twelve
+PR and exact-main checks passed. The [protected frontend release](../docs/RELEASE_2026_11_01_MY_BETS_ROOMY.md)
+deployed Pages `90a7bf99`, verified all 127 served files and preserved the checked
+saved tickets/units, historical scoring rows and API/history. Legitimate scheduled
+settlement appends were retained. Signed-in production/physical-phone acceptance
+remains open.
 This supersedes the earlier requirement to show every full leg before tapping.
 
 Sean's earlier November 1 request added easier manual player-bet entry, additional
@@ -59,7 +63,7 @@ The design PR #400 is merged. Follow [the actual implementation and release
 record](../docs/MY_BETS_GRID_2026_11_01.md) for guided manual props, expanded
 tracking book choices and the grid. PR #401, all twelve PR/exact-main checks and
 the [protected frontend deployment](../docs/RELEASE_2026_11_01_MY_BETS.md) are
-complete. Pages `83caec6d` serves 127 verified files; API/history and checked
+complete. The first release verified 127 files on Pages `83caec6d`; API/history and checked
 account/scoring records are unchanged. Signed-in production/physical-phone
 acceptance remains open. Research acceptance below also remains open.
 
