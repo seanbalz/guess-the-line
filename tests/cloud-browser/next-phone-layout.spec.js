@@ -70,7 +70,9 @@ test('every new-app screen, sheet and menu fits a phone: no clipped text, stray 
         }
         if (address === '#bets/active') {
           for (const value of BET_VIEWS) {
-            await page.getByLabel('Bet tracker view').selectOption(value);
+            const trackerView=page.getByLabel('Bet tracker view',{exact:true});
+            if(!await trackerView.isVisible())await page.locator('.social-filters > summary').click();
+            await trackerView.selectOption(value);
             await page.waitForLoadState('networkidle');
             await check(`${pass} ${address} view ${value}`);
           }
