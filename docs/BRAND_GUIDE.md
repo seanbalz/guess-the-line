@@ -337,6 +337,12 @@ This follows the user’s contrast palette without changing ordinary Light/Dark.
   full names for screen readers. Each view's fine print sits behind the title's ⓘ, and
   your tracked bets lead with a net-units line you can drag and Record / ROI / Win rate
   tiles.
+- **My bets, November 1, 2026:** Sean selected mockup 04, Selection grid, and
+  requested less text/clutter with every parlay leg visible. Use two columns of
+  leg tiles, the existing team marks, exact selection and a short risk/total-return
+  footer. Notes and history open from the ticket menu; comparison controls and
+  record/performance content sit inside Filters. This supersedes the always-open
+  performance lead for My bets only. Retain the selected tokens and both themes.
 - **Bets › Virtual › Everyone (M-10):** a Your picks / Everyone switch under the pill row.
   - Everyone starts with this week's players: face, name, picks and units, and a
     Qualified pill.

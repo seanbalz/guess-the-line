@@ -16,9 +16,13 @@ better-looking My bets section. He confirmed all parlay legs should remain
 visible, then requested five to ten examples with less text and clutter.
 [Six visual mockups](../design/my-bets-2026-11-01/README.md) provide an interactive
 gallery, individual previews and Dark/Light comparison boards with fictional
-tickets. They retain GTL's selected brand. Layout selection is pending; these
+tickets. They retain GTL's selected brand. These
 artifacts change no production interface, records, sportsbook connections or
-frozen tracker. Entry and book-picker implementation follows the selected layout.
+frozen tracker. Sean then selected **04 — Selection grid**. The design PR #400
+is merged; [the actual implementation](MY_BETS_GRID_2026_11_01.md) adds the grid,
+guided player props, exact cash/unit entry and eight more manual book choices.
+Implementation verification, exact-source CI and protected frontend release are
+tracked separately; the mockup merge is not an app deployment.
 
 ## Research data population repair — November 1, 2026
 

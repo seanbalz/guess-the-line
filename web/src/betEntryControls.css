@@ -123,3 +123,5 @@
 @media (prefers-reduced-motion: reduce) {
   .social-entry-field *, .social-matchup-current *, .social-ticket-details * { animation: none !important; transition: none !important; }
 }
+.social-prop-entry{display:grid;gap:16px;min-width:0}.social-prop-preview{display:block;padding:12px;border:1px solid var(--border);border-radius:var(--radius-control,8px);color:var(--text);overflow-wrap:anywhere}.social-cash-entry{display:grid;grid-template-columns:1fr 1fr;gap:16px}.social-cash-entry output{grid-column:1/-1;color:var(--muted)}.social-more-books>summary,.social-unit-setting>summary{min-height:44px;cursor:pointer;font-size:16px}.social-more-books .social-entry-options{margin-top:12px}.social-unit-setting{padding:12px;border:1px solid var(--border);border-radius:var(--radius-control,8px)}
+@media(max-width:359px){.social-cash-entry{grid-template-columns:1fr}}

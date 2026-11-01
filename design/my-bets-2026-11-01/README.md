@@ -1,12 +1,15 @@
 # My bets — six layout mockups
 
-Owner: Sean Balsiger · November 1, 2026 · Awaiting layout selection
+Owner: Sean Balsiger · November 1, 2026 · Option 04 selected
 
 Sean requested easier manual player-bet entry, more sportsbook choices and a
 better-looking My bets section. He confirmed every parlay leg should be visible
 immediately, then requested five to ten mockups with less clutter, less text and
 more visual content. These six studies respond to that layout request. No
-production layout, player record or sportsbook integration changes here.
+production layout, player record or sportsbook integration changes in these
+mockup artifacts. Sean selected **04 — Selection grid**: “I like the 4th one.”
+The [implementation record](../../docs/MY_BETS_GRID_2026_11_01.md) tracks the
+actual frontend change and its separate release gates.
 
 Open [the self-contained interactive gallery](index.html) in a browser. Compare
 all six, select one layout, switch Light/Dark, and select a 320/390/430px card

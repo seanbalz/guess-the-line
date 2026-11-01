@@ -1,42 +1,26 @@
-import { Fragment } from 'react';
-import { Icon } from '../ui/Icon.jsx';
-import { Matchup } from '../ui/Matchup.jsx';
-import { Pill } from '../ui/Pill.jsx';
+import {useId,useState} from 'react';
+import {Matchup} from '../ui/Matchup.jsx';
+import {Pill} from '../ui/Pill.jsx';
+import {cashText,trackedLeg,unitText,validUnitCash} from '../../trackedBetTerms.js';
 import './tracked-bets.css';
-
-const amount = (value, net) => Number.isFinite(value)
-  ? `${net && value > 0 ? '+' : ''}${Number(value.toFixed(3)).toLocaleString('en-US').replace('-', '−')}u`
-  : 'Unknown';
-
-// The owner's compact list discloses the existing audited card. Other players'
-// gated cards still use the server-controlled full presentation.
-export function TrackedBetRow({ entry, games, children }) {
-  const leg = entry.legs[0], game = games.find(item => item.id === leg?.gameId);
-  const source = typeof entry.source === 'string' ? entry.source : entry.source?.name;
-  const pending = entry.outcome === 'pending';
-  const status = { pending: 'Pending', win: 'Won', loss: 'Lost', push: 'Push', void: 'Void' }[entry.outcome] || 'Pending';
-  const tone = ['win', 'loss', 'pending'].includes(entry.outcome) ? entry.outcome : 'neutral';
-  const title = entry.kind === 'parlay' ? `${entry.legs.length}-leg parlay` : leg?.selection || 'Tracked selection';
-  // D-62: each game as marks (away, "@", home); a leg whose game is not in this week's list keeps its id as text.
-  const legGames = entry.kind === 'parlay' ? entry.legs.map(item => games.find(match => match.id === item.gameId)).filter(Boolean) : game ? [game] : [];
-  const matchup = legGames.length
-    ? legGames.map((item, index) => <Fragment key={`${item.id}:${index}`}>{index ? ' · ' : null}<Matchup away={item.away} home={item.home}/></Fragment>)
-    : entry.kind === 'parlay' ? null : leg?.gameId;
-  return <details className="gx-tracked-row">
-    <summary>
-      <span className="gx-tracked-mark"><Icon icon="ticket" size={20}/></span>
-      <span className="gx-tracked-selection">
-        <strong>{title}</strong>
-        <span>{matchup}</span>
-        <small>{source || 'Book unknown'} · Week {entry.week}{entry.countsForRecord === false ? ' · Excluded' : ''}</small>
-      </span>
-      <span className="gx-tracked-result">
-        <Pill tone={tone}>{status}</Pill>
-        <strong className={!pending && entry.netUnits > 0 ? 'gx-c-win' : !pending && entry.netUnits < 0 ? 'gx-c-loss' : undefined}>{amount(pending ? entry.stakeUnits : entry.netUnits, !pending)}</strong>
-        <small>{pending ? 'Risked' : 'Net units'}</small>
-      </span>
-      <Icon icon="chevronDown" size={16} className="gx-tracked-chevron"/>
-    </summary>
-    <div className="gx-tracked-detail">{children}</div>
-  </details>;
+export function TrackedBetRow({entry,games,unitCash,children}) {
+  const [open,setOpen]=useState(false),id=useId();
+  const source=typeof entry.source==='string'?entry.source:entry.source?.name,pending=entry.outcome==='pending',parlay=entry.kind==='parlay';
+  const status={pending:'Open',win:'Won',loss:'Lost',push:'Push',void:'Void'}[entry.outcome]||'Pending';
+  const tone=['win','loss','pending'].includes(entry.outcome)?entry.outcome:'neutral';
+  const odds=Number.isFinite(entry.odds)?`${entry.odds>0?'+':'−'}${Math.abs(entry.odds)}`:'Odds unknown';
+  const cash=value=>validUnitCash(unitCash)&&Number.isFinite(value)?cashText(value*Number(unitCash)):null;
+  const result=pending?entry.potentialReturnUnits:entry.netUnits;
+  const allTouchdowns=parlay&&entry.legs.every(leg=>trackedLeg(leg).stat==='Anytime touchdown');
+  return <article className="gx-tracked-row" aria-label={`${parlay?`${entry.legs.length}-leg parlay`:entry.legs[0]?.selection||'Tracked bet'} · ${status}`}>
+    <header className="gx-tracked-head"><span>{source||'Book unknown'}</span><Pill tone={tone}>{status}</Pill><button className="gx-tracked-menu" aria-label="Ticket details" aria-expanded={open} aria-controls={id} onClick={()=>setOpen(v=>!v)}><span aria-hidden="true">⋯</span></button></header>
+    <div className="gx-tracked-title"><h2>{parlay?`${entry.legs.length}-leg parlay`:trackedLeg(entry.legs[0]).name}{allTouchdowns&&<small>Anytime touchdowns</small>}</h2><span className={Number.isFinite(entry.odds)?'gx-tracked-price':'gx-tracked-price gx-tracked-price--unknown'}>{odds}</span></div>
+    <ol className={parlay?'gx-tracked-legs':'gx-tracked-legs gx-tracked-single'} aria-label="Ticket selections">{entry.legs.map((leg,index)=>{
+      const game=games.find(item=>item.id===leg.gameId),words=trackedLeg(leg);
+      return <li key={index}><span className="gx-tracked-matchup">{game?<Matchup away={game.awayCode||game.away} home={game.homeCode||game.home}/>:leg.gameId}</span>{parlay&&<strong className="gx-tracked-player">{words.name}</strong>}{words.pick&&<strong className="gx-tracked-pick">{words.pick}</strong>}{!allTouchdowns&&<span className="gx-tracked-market">{words.stat}</span>}</li>;
+    })}</ol>
+    <dl className="gx-tracked-money"><div><dt>Risk</dt><dd>{cash(entry.stakeUnits)||unitText(entry.stakeUnits)}{cash(entry.stakeUnits)&&<small>{unitText(entry.stakeUnits)}</small>}</dd></div><div><dt>{pending?'To return':'Net units'}</dt><dd className={!pending&&result>0?'gx-c-win':!pending&&result<0?'gx-c-loss':undefined}>{pending?(cash(result)||unitText(result)):unitText(result)}<small>{pending?'Includes stake':'Player reported'}</small></dd></div></dl>
+    <footer className="gx-tracked-context"><span>Week {entry.week}</span>{entry.countsForRecord===false&&<span>Excluded</span>}{entry.lateEntry&&<span>Recorded after kickoff</span>}</footer>
+    <div id={id} hidden={!open} className="gx-tracked-detail">{children}</div>
+  </article>;
 }
