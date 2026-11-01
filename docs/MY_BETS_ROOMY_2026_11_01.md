@@ -1,6 +1,6 @@
 # My bets — Roomy cards with inline ticket details
 
-Owner: Sean Balsiger · November 1, 2026 · Implemented locally; release pending
+Owner: Sean Balsiger · November 1, 2026 · Deployed; signed-in phone acceptance pending
 
 Sean selected **01 — Roomy cards** from the
 [five preview studies](../design/my-bets-previews-2026-11-01/README.md):
@@ -66,8 +66,11 @@ configuration; it is not a production deployment artifact.
 Local screenshots and detailed receipts remain ignored under `.local`.
 
 Design PR #404 merged as `d13f4142974924679db81cbc21ab9625ee861f3f` after all
-twelve checks passed. The implementation still requires its own PR, exact-source
-CI, merge and protected frontend release. Production remains the
-[previous grid release](RELEASE_2026_11_01_MY_BETS.md) until that release succeeds.
-Actual signed-in production and physical-phone acceptance remain separate.
+twelve checks passed. Implementation PR #405 merged as
+`46097802899472cdfb1bdb00c7c50248e2f24dab` after all twelve PR checks passed.
+All twelve exact-main checks and the protected frontend release succeeded.
+[The production record](RELEASE_2026_11_01_MY_BETS_ROOMY.md) verifies Pages
+`90a7bf99-10b2-4390-abf2-4140c7b95d80`, all 127 served files and preserved
+saved tickets, units and historical scoring records. Actual signed-in production
+and physical-phone acceptance remain separate.
 The frozen v62 tracker and private account records are unchanged.

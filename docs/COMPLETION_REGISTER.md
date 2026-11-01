@@ -21,11 +21,15 @@ expansion. Design PR #404 merged after all twelve checks passed.
 [The implementation](MY_BETS_ROOMY_2026_11_01.md) adds spacious previews that
 open the full grid in place, retains existing ticket details and restores focus
 on collapse. All 620 component tests and 30 bet/recommendation browser flows
-passed locally. Implementation PR, exact-source CI and protected frontend release
-are still pending; the deployed grid below remains current. No hosted record,
-provider connection or frozen tracker was changed.
+passed locally. PR #405 merged as `46097802899472cdfb1bdb00c7c50248e2f24dab`;
+all twelve PR and exact-main checks passed. The [protected frontend release](RELEASE_2026_11_01_MY_BETS_ROOMY.md)
+succeeded in run 41354776316. Pages `90a7bf99` serves all 127 verified files;
+API v45/history and the checked saved tickets, units and historical scoring rows
+are unchanged. Legitimate scheduled current-week settlement appends were retained.
+Actual signed-in production/physical-phone acceptance remains open. No provider
+connection or frozen tracker changed.
 
-## My bets selection grid — November 1, 2026
+## Earlier My bets selection grid release — November 1, 2026
 
 Sean requested easier manual player-bet tracking, more sportsbook choices and a
 better-looking My bets section. He confirmed all parlay legs should remain
