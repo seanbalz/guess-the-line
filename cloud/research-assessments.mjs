@@ -7,9 +7,10 @@ import { finalAvailableAt, sha256 } from '../shared/trends-research-candidates.m
 export async function readAssessments({ service, board, userId, now, gameId, market, color, clock = () => now }) {
   const at = new Date(now).toISOString();
   const target = { p_season: board.season, p_week: board.week };
-  let snapshot = null, snapshotStatus = 'available';
+  let snapshot = null, snapshotStatus = 'empty';
   try { snapshot = await service.rpc('gtl_read_research_snapshot', target); }
   catch (error) { if (error.status !== 503) throw error; snapshotStatus = 'not-configured'; }
+  if (snapshot) snapshotStatus = 'available';
   let data;
   try { data = snapshot ? validateAssessmentSnapshot(snapshot) : { version: 1, season: board.season, week: board.week, generatedAt: at, sources: [], candidates: [], quotes: [] }; }
   catch { return buildResearchAssessments({ board, snapshot, now, gameId, market, color }); }
@@ -62,6 +63,18 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
   const routes = new Map(await Promise.all(data.candidates.filter(c => accessibleResearchCandidate(board, c, gameId))
     .map(async c => [c.id, `r-${(await sha256(JSON.stringify([board.season, board.week, c.id]))).slice(0, 24)}`])));
   const reply = buildResearchAssessments({ board, snapshot: data, now: clock(), gameId, market, color });
-  return { ...reply, assessments: reply.assessments.map(a => ({ ...a, routeId: routes.get(a.id) })), statistics: existing?.statistics ?? [], playStatistics: projectPlayStatistics(data.playStatistics, board, clock()), sourceCoverage: snapshotStatus,
+  const games = board.games.filter(g => !gameId || g.id === gameId);
+  const history = existing?.history;
+  const publicPlays = projectPlayStatistics(existing?.playStatistics, board, clock());
+  const importedPlays = projectPlayStatistics(data.playStatistics, board, clock());
+  const playStatistics = [...publicPlays, ...importedPlays.filter(s => !publicPlays.some(p => p.gameId === s.gameId))];
+  return { ...reply, assessments: reply.assessments.map(a => ({ ...a, routeId: routes.get(a.id) })), statistics: existing?.statistics ?? [], playStatistics, sourceCoverage: snapshotStatus,
+    coverage: {
+      history: { status: history?.status ?? 'unavailable', generatedAt: history?.snapshotAsOf ?? null, fetchedAt: history?.fetchedAt ?? null, latestCompleted: history?.latestCompleted ?? null, reasons: history?.reasons ?? ['source_unavailable'] },
+      games: games.map(g => ({ id: g.id, kickoff: g.kickoff, spreadAccessible: g.spread.visible, totalAccessible: g.total.visible, closed: g.started || Date.parse(g.kickoff) <= clock() })),
+      currentQuotes: reply.assessments.some(a => a.quote !== null),
+      externalEvidence: snapshotStatus,
+      playStatistics: playStatistics.some(s => s.teams.some(t => t.metrics.some(m => m.value !== null))) ? 'available' : 'unavailable',
+    },
     sources: reply.sources ?? ASSESSMENT_SOURCES.map(s => ({ ...s, status: 'unavailable', checkedAt: null })) };
 }

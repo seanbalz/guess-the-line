@@ -6,10 +6,23 @@ vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: vi.fn() }))
 import { buildResearchAssessments } from '../shared/research-assessments.mjs';
 import { fixture, NOW } from './fixtures/research-assessments.mjs';
 import { expireAssessments } from '../web/src/next/research/useAssessments.js';
-import { AssessmentDetail } from '../web/src/next/research/Assessments.jsx';
+import { AssessmentDetail, ObservedGameStatistics, ResearchCoverage, assessmentEmptyMessage } from '../web/src/next/research/Assessments.jsx';
 import { fragmentFor, placeFromFragment } from '../web/src/next/shell/router.js';
 
 describe('research assessments remain distinct from guess gaps', () => {
+  it('explains missing data and closed gates separately from a filter without claiming coverage', () => {
+    const data = { coverage: { history: { status: 'stale' }, externalEvidence: 'empty', playStatistics: 'unavailable', currentQuotes: false, games: [{ closed: false, spreadAccessible: false, totalAccessible: false }] } };
+    expect(assessmentEmptyMessage(data)).toContain('Lock in');
+    data.coverage.games[0].closed = true;
+    expect(assessmentEmptyMessage(data)).toContain('closed');
+    const html = renderToStaticMarkup(<ResearchCoverage data={data}/>);
+    for (const text of ['history needs updating', 'trend recommendations are paused', 'No reviewed snapshot', 'No current retained quotes']) expect(html).toContain(text);
+  });
+  it('shows actual zero scoring observations and exposes their samples, recent form and source', () => {
+    const scoring = { gameId: 'SEA-DEN', teams: [{ team: 'SEA', pointsPerGame: 0, pointsAllowedPerGame: 7, sample: 1, from: '2026-10-20', to: '2026-10-20', recent: { sample: 1, pointsPerGame: 0, pointsAllowedPerGame: 7 }, games: [{ gameId: 'completed', date: '2026-10-20', scored: 0, allowed: 7 }], definition: 'Completed games only.' }] };
+    const html = renderToStaticMarkup(<ObservedGameStatistics scoring={scoring}/>);
+    for (const text of ['0.0', '1 games', '2026-10-20', 'CC BY 4.0', 'Recent games', 'Both game markets must be open']) expect(html).toContain(text);
+  });
   it('shows source provenance, exact odds, assumptions and sample with no invented edge percentage', () => {
     const f = fixture(), assessment = buildResearchAssessments({ ...f, now: NOW }).assessments[0];
     const html = renderToStaticMarkup(<AssessmentDetail assessment={assessment} onTrack={vi.fn()}/>);

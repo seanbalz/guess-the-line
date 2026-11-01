@@ -11,6 +11,7 @@ import { discoverResearchLinks, collectResearchQuotes } from '../cloud/research-
 import { parseCsvRows } from '../shared/trends.mjs';
 import { finalAvailableAt } from '../shared/trends-research-candidates.mjs';
 import { observedPlayStatistics } from '../shared/research-play-statistics.mjs';
+import { parseFantasyCsv } from '../shared/fantasy-build.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 async function ignoredFile(name, { exists = true } = {}) {
@@ -53,7 +54,7 @@ export async function run(args = process.argv.slice(2)) {
     const decoded = input.playByPlay.file.endsWith('.gz') ? gunzipSync(source, { maxOutputLength: 150000000 }).toString('utf8') : source.toString('utf8');
     const sourceHash = createHash('sha256').update(source).digest('hex');
     if (input.playByPlay.sha256 !== sourceHash) throw new Error('Play-by-play receipt does not match source bytes.');
-    const plays = parseCsvRows(decoded).rows;
+    const plays = parseFantasyCsv(decoded, ['game_id', 'posteam', 'play_type', 'qb_dropback', 'rush_attempt', 'pass_attempt', 'sack']);
     const completedGames = parseCsvRows(schedule).rows.filter(r => Number(r.season) === prepared.snapshot.season && r.home_score !== '' && r.away_score !== '')
       .map(r => ({ id: r.game_id, date: r.gameday, availableAt: finalAvailableAt(r.gameday) }));
     const targets = new Map(prepared.snapshot.candidates.map(c => [c.gameId, c]));

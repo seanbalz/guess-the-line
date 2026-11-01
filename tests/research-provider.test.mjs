@@ -35,7 +35,7 @@ test('provider reservations precede a charged request; replay makes no request a
   const result = await collectResearchQuotes({ rpc, apiKey: 'fixture-secret', requestId: 'fixture', season: 2026, week: 8, game, eventId: 'event1', markets: ['player_reception_yds'], roster, clock: () => NOW,
     fetchImpl: async () => { assert.deepEqual(calls, ['gtl_begin_research_quotes']); return new Response(JSON.stringify(event()), { headers: { 'x-requests-last': '1', 'x-requests-remaining': '100' } }); } });
   assert.equal(result.status, 'collected'); assert.equal(result.quotes.length, 2); assert.equal(calls.at(-1), 'gtl_finish_research_quotes');
-  const replay = await collectResearchQuotes({ rpc: async () => ({ replay: true }), apiKey: 'fixture-secret', game, eventId: 'event1', markets: ['player_reception_yds'], roster, fetchImpl: () => assert.fail('no replay request') });
+  const replay = await collectResearchQuotes({ rpc: async () => ({ replay: true }), apiKey: 'fixture-secret', game, eventId: 'event1', markets: ['player_reception_yds'], roster, clock: () => NOW, fetchImpl: () => assert.fail('no replay request') });
   assert.equal(replay.status, 'already-attempted');
 });
 test('discovery reports unavailable honestly; only verified free feed origins can be fetched', async () => {

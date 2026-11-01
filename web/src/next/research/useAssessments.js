@@ -16,7 +16,7 @@ export function useAssessments({ app, personal, shown, gameId, market, color }) 
   const [reply, setReply] = useState(null), [version, setVersion] = useState(0);
   const reload = useCallback(() => { setReply(null); setVersion(v => v + 1); }, []);
   useEffect(() => {
-    if (!app.accountId || !shown) return;
+    if (!app.accountId) return;
     const controller = new AbortController(), started = performance.now(); let timer;
     linesApi('assessments', JSON.parse(body), controller.signal).then(data => {
       if (controller.signal.aborted || current.current !== scope) return;

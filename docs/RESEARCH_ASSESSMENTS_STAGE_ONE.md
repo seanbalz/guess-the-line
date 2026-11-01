@@ -2,6 +2,12 @@
 
 Owner: Sean Balsiger · October 30, 2026 · Deployed October 31, 2026
 
+**November 1 correction:** the deployment below verified code and storage, but
+did not establish populated research. No imported snapshots were published and
+the bundled trend snapshot had become stale. Sean requested further development;
+the [live-data repair](RESEARCH_LIVE_DATA.md) records the current implementation
+and separates local evidence, publication, app release and acceptance.
+
 Sean approved this stage after the research/alignment discussion. It adds betting
 research and recommendations alongside Guess the Line. It does not change guess
 entry, locking, reveal rules, scoring references, points or competition settlement.

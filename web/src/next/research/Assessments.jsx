@@ -29,6 +29,47 @@ function Select({ label, value, options, onChange }) {
   const id = useId();
   return <div className="gx-ra-select gx-t-body"><label htmlFor={id}>{label}</label><select id={id} value={value} onChange={e => onChange(e.target.value)}>{options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>;
 }
+export function ResearchCoverage({ data }) {
+  const c = data.coverage;
+  if (!c) return null;
+  return <details className="gx-ra-evidence"><summary>Data coverage · {c.history.status === 'fresh' ? 'current history' : c.history.status === 'stale' ? 'history needs updating' : 'history unavailable'}</summary>
+    <p className="gx-t-body">Historical trends: {c.history.status === 'fresh' ? 'Checked against current source data' : c.history.status === 'stale' ? 'Source changed; trend recommendations are paused' : 'Source unavailable; trend recommendations are paused'}.</p>
+    <p className="gx-t-meta">Research built {readableTime(c.history.generatedAt)} · latest completed game {c.history.latestCompleted ?? 'unavailable'}</p>
+    <p className="gx-t-body">Play statistics: {c.playStatistics === 'available' ? 'Observed completed plays available for open matchups' : 'Unavailable for this view; both game markets must be open'}.</p>
+    <p className="gx-t-body">Betting quotes: {c.currentQuotes ? 'Current retained quotes available' : 'No current retained quotes; assessments cannot qualify'}.</p>
+    <p className="gx-t-body">External post evidence: {c.externalEvidence === 'available' ? 'Reviewed snapshot available' : 'No reviewed snapshot published for this week'}.</p>
+    <p className="gx-t-meta">Refresh reads the latest published research and retained prices. It does not request sportsbook quotes.</p>
+  </details>;
+}
+export function ObservedGameStatistics({ scoring, plays }) {
+  return <div className="gx-vstack gx-gap-12">
+    {scoring ? <details className="gx-ra-evidence"><summary>Observed team statistics · {scoring.gameId.replace('-', ' at ')}</summary>{scoring.teams.map(t => <div className="gx-vstack gx-gap-8" key={t.team}>
+      <strong className="gx-t-body">{t.team}</strong>
+      <p className="gx-t-body">Scored: <span className="gx-n-s">{t.pointsPerGame === null ? '—' : t.pointsPerGame.toFixed(1)}</span> per game</p>
+      <p className="gx-t-body">Allowed: <span className="gx-n-s">{t.pointsAllowedPerGame === null ? '—' : t.pointsAllowedPerGame.toFixed(1)}</span> per game</p>
+      <p className="gx-t-meta">{t.sample} games · {t.from ?? '—'} to {t.to ?? '—'}</p>
+      <details className="gx-ra-evidence"><summary>Recent games and source</summary><p className="gx-t-body">Last {t.recent.sample}: {t.recent.pointsPerGame === null ? '—' : t.recent.pointsPerGame.toFixed(1)} scored · {t.recent.pointsAllowedPerGame === null ? '—' : t.recent.pointsAllowedPerGame.toFixed(1)} allowed per game.</p>
+        {t.games.map(g => <p className="gx-t-body" key={g.gameId}>{g.date}: {g.scored} scored · {g.allowed} allowed</p>)}
+        <p className="gx-t-meta">{t.definition}</p><a className="gx-ra-link" href="https://github.com/nflverse/nflverse-data/releases/tag/schedules" target="_blank" rel="noreferrer">Data: nflverse schedules · CC BY 4.0</a>
+      </details>
+    </div>)}</details> : <p className="gx-t-body">Team scoring statistics are unavailable for this matchup.</p>}
+    {plays ? <details className="gx-ra-evidence"><summary>Observed play statistics · {plays.gameId.replace('-', ' at ')}</summary>{plays.teams.map(t => <div className="gx-vstack gx-gap-8" key={t.team}>
+      <strong className="gx-t-body">{t.team}</strong>
+      <p className="gx-t-meta">{t.sampleGames ?? '—'} observed games · {t.from ?? '—'} to {t.to ?? '—'}</p>
+      {t.metrics.map(m => <details className="gx-ra-evidence" key={m.id}><summary>{m.title}</summary><p className="gx-t-body"><span className="gx-n-s">{m.value === null ? '—' : m.unit === 'share' ? `${(m.value * 100).toFixed(1)}%` : m.value.toFixed(2)}</span> {m.unit === 'share' ? '' : m.unit}</p><p className="gx-t-meta">Sample {m.sample} · excluded {m.excluded}</p><p className="gx-t-body">{m.definition}</p></details>)}
+      <p className="gx-t-meta">Data through {readableTime(t.asOf)}</p><a className="gx-ra-link" href={t.sourceUrl} target="_blank" rel="noreferrer">Data: nflverse · CC BY 4.0</a>
+    </div>)}</details> : <p className="gx-t-body">Play statistics are unavailable here. Both game markets must be open.</p>}
+  </div>;
+}
+export function assessmentEmptyMessage(data, { market, color } = {}) {
+  const games = data.coverage?.games ?? [];
+  if (games.length && games.every(g => g.closed)) return 'Pregame assessments are closed for this week. Completed-game research remains available below.';
+  if (games.length && games.every(g => !g.spreadAccessible && !g.totalAccessible)) return 'Lock in a game’s guess in Play to open that market’s assessments. Team scoring statistics are available below.';
+  if (market === 'prop') return 'No checked player-prop assessments are available in this view.';
+  if (market === 'moneyline') return 'No checked moneyline assessments are available in this view.';
+  if (color) return 'No assessed bets match this assessment filter.';
+  return 'No assessed bets are available yet. Check data coverage and explore game statistics below.';
+}
 export function AssessmentDetail({ assessment: a, onTrack }) {
   return <div className="gx-vstack gx-gap-12" data-assessment={a.color}>
     <strong className="gx-t-body">{a.label}</strong>
@@ -84,9 +125,11 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
   const lines = useLinesData(), shell = useShell(), route = shell.state.views.bets;
   const [market, setMarket] = useState(''), [color, setColor] = useState(''), [limit, setLimit] = useState(20);
   const gameId = route.matchup || undefined;
-  const read = useAssessments({ ...lines, gameId, market: market || undefined, color: color || undefined });
+  // The server chooses the latest published account week, independently of a private league's week.
+  const read = useAssessments({ ...lines, shown: undefined, gameId, market: market || undefined, color: color || undefined });
   const data = read.data, a = data?.assessments.find(a => a.routeId === route.assessment);
   const select = id => shell.go('bets', { view: 'research', ...(gameId ? { matchup: gameId } : {}), assessment: id ?? null });
+  const chooseGame = id => { setLimit(20); shell.go('bets', { view: 'research', matchup: id || null, assessment: null }); };
   const rows = (data?.assessments ?? []).filter(a => !color || a.color === color);
   const track = a => {
     const s = a.selection, leg = { gameId: a.gameId, market: s.market, side: s.side, line: s.line,
@@ -96,6 +139,8 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
   return <section className="gx-screen gx-ra" aria-labelledby="gx-ra-title">
     <header className="gx-ra-heading"><h1 id="gx-ra-title" className="gx-t-title">Research recommendations</h1><InfoButton {...INFO}/></header>
     <Button variant="secondary" onClick={() => shell.go('bets', { view: 'recommended' })}>Your guess vs. market</Button>
+    {data ? <p className="gx-t-meta">{data.season} · Week {data.week}</p> : null}
+    {gameId ? <Button variant="secondary" onClick={() => chooseGame('')}>All games research</Button> : null}
     {!a ? <div className="gx-ra-filters"><Select label="Market" value={market} onChange={v => { setMarket(v); setLimit(20); }} options={[[ '', 'All markets'], ['spread', 'Spreads'], ['total', 'Totals'], ['moneyline', 'Moneylines'], ['prop', 'Player props']]}/>
       <Select label="Assessment" value={color} onChange={v => { setColor(v); setLimit(20); }} options={[[ '', 'All assessments'], ...Object.entries(ASSESSMENT_LABELS)]}/></div> : null}
     {read.status === 'loading' ? <p role="status" className="gx-t-body">Loading research assessments…</p> : read.status === 'error' ? <div><p role="status" className="gx-t-body">Research is unavailable right now.</p><Button variant="secondary" onClick={read.reload}>Retry research</Button></div> : null}
@@ -103,13 +148,18 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
       lips={a ? [{ key: 'list', label: 'Assessed bets', onOpen: () => select(null) }] : []}>
       {a ? <AssessmentDetail assessment={a} onTrack={onTrack ? track : null}/> : <>
         <p className="gx-t-meta">Schedule order · qualitative assessments</p>
-        {!rows.length ? <p className="gx-t-body">No assessed bets match this view.</p> : rows.slice(0, limit).map(a => <button className="gx-ra-tile" key={a.id} type="button" data-assessment={a.color} onClick={() => select(a.routeId)}><span className="gx-t-strong">{a.title}</span><span className="gx-t-body">{a.label}</span>{a.hasConflicts ? <span className="gx-t-meta">Opposing evidence present</span> : null}</button>)}
+        {!rows.length ? <p className="gx-t-body" role="status">{assessmentEmptyMessage(data, { market, color })}</p> : rows.slice(0, limit).map(a => <button className="gx-ra-tile" key={a.id} type="button" data-assessment={a.color} onClick={() => select(a.routeId)}><span className="gx-t-strong">{a.title}</span><span className="gx-t-body">{a.label}</span>{a.hasConflicts ? <span className="gx-t-meta">Opposing evidence present</span> : null}</button>)}
         {rows.length > limit ? <Button variant="secondary" onClick={() => setLimit(n => n + 20)}>Show more assessments</Button> : null}
         <Button variant="secondary" onClick={read.reload}>Refresh research</Button>
+        <ResearchCoverage data={data}/>
+        <div className="gx-vstack gx-gap-12" role="group" aria-label="Game research">
+          <h2 className="gx-t-section">Game research</h2>
+          {gameId ? <ObservedGameStatistics scoring={data.statistics?.find(s => s.gameId === gameId)} plays={data.playStatistics?.find(s => s.gameId === gameId)}/> : (data.statistics ?? []).map(s => <Button key={s.gameId} variant="secondary" onClick={() => chooseGame(s.gameId)}>{s.gameId.replace('-', ' at ')} · Team statistics</Button>)}
+          {!gameId && !data.statistics?.length ? <p className="gx-t-body">Game statistics are unavailable right now. Refresh research to retry.</p> : null}
+        </div>
         <details className="gx-ra-evidence"><summary>Source availability</summary>{data.sources.map(s => <p className="gx-t-body" key={s.id}>{s.name}{s.id === 'bookitwithtrent' ? ' · separate feed' : ''}: {s.status === 'available' ? 'Source available' : 'Automatic access unavailable'}</p>)}</details>
         <ResearchLinkIntake key={lines.app.accountId} accountId={lines.app.accountId} onDirty={onDirty}/>
-        {gameId ? (data.statistics ?? []).filter(s => s.gameId === gameId).map(stat => <details className="gx-ra-evidence" key={stat.gameId}><summary>Observed team statistics</summary>{stat.teams.map(t => <div className="gx-vstack gx-gap-8" key={t.team}><strong className="gx-t-body">{t.team}</strong><p className="gx-t-body">Scored: {t.pointsPerGame === null ? '—' : t.pointsPerGame.toFixed(1)} per game</p><p className="gx-t-body">Allowed: {t.pointsAllowedPerGame === null ? '—' : t.pointsAllowedPerGame.toFixed(1)} per game</p><p className="gx-t-meta">{t.sample} games · {t.from ?? '—'} to {t.to ?? '—'}</p><p className="gx-t-body">{t.definition}</p><a className="gx-ra-link" href="https://github.com/nflverse/nflverse-data/releases/tag/schedules" target="_blank" rel="noreferrer">Data: nflverse schedules · CC BY 4.0</a></div>)}</details>) : null}
-        {gameId ? (data.playStatistics ?? []).filter(s => s.gameId === gameId).map(stat => <details className="gx-ra-evidence" key={`plays-${stat.gameId}`}><summary>Observed play statistics</summary>{stat.teams.map(t => <div className="gx-vstack gx-gap-8" key={t.team}><strong className="gx-t-body">{t.team}</strong>{t.metrics.map(m => <details className="gx-ra-evidence" key={m.id}><summary>{m.title}</summary><p className="gx-t-body">{m.value === null ? '—' : m.unit === 'share' ? `${(m.value * 100).toFixed(1)}%` : m.value.toFixed(2)} {m.unit === 'share' ? '' : m.unit}</p><p className="gx-t-meta">Sample {m.sample} · excluded {m.excluded}</p><p className="gx-t-body">{m.definition}</p></details>)}<p className="gx-t-meta">Data through {readableTime(t.asOf)}</p><a className="gx-ra-link" href={t.sourceUrl} target="_blank" rel="noreferrer">Data: nflverse · CC BY 4.0</a></div>)}</details>) : null}
+
       </>}
     </Nest> : null}
   </section>;
