@@ -69,7 +69,8 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
             assumptions: ['Historical consistency is descriptive; it is not a calculated betting edge.', ...(c.conditionDescriptions ?? []).slice(0, 10).filter(s => typeof s === 'string').map(s => s.slice(0, 240))] }];
         }).slice(0, 20);
         const id = `stored-${g.id}-${m}-${side}-${String(selection.line).replace('.', '_')}`;
-        if (data.candidates.length < 500 && !data.candidates.some(c => c.id === id)) data.candidates.push({ id, gameId: g.id, kickoff: g.kickoff, title: `${g.id.replace('-', ' at ')} · ${side} ${selection.line}`,
+        const title = m === 'spread' ? `${side === 'home' ? g.homeCode : g.awayCode} ${selection.line > 0 ? '+' : selection.line < 0 ? '−' : ''}${Math.abs(selection.line)}` : `${side === 'over' ? 'Over' : 'Under'} ${selection.line}`;
+        if (data.candidates.length < 500 && !data.candidates.some(c => c.id === id)) data.candidates.push({ id, gameId: g.id, kickoff: g.kickoff, title: `${g.id.replace('-', ' at ')} · ${title}`,
           selection, dependenciesComplete: true, dependencies: [{ gameId: g.id, market: m }], evidence });
       }
     }

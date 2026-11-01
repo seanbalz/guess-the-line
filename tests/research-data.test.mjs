@@ -89,4 +89,6 @@ test('offline build produces populated reproducible artifacts, redacts future qu
   assert.equal(open.playStatistics.length, 1); assert.equal(open.playStatistics[0].teams[1].metrics[2].value, 8);
   assert.equal(open.playStatistics[0].teams[1].sampleGames, 1);
   await assert.rejects(buildResearchRelease({ ...args, plays: [] }), /missing completed games/);
+  await assert.rejects(buildResearchRelease({ ...args, registry: { ...registry, presets: [] } }), /output is empty/);
+  await assert.rejects(buildResearchRelease({ ...args, plays: [{ ...play, posteam: 'UNKNOWN' }] }), /output is empty/);
 });

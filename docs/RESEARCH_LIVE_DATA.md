@@ -22,7 +22,8 @@ statistics. No account data, user guesses, external post payloads or current
 sportsbook offers are published. Exact downloaded source bytes remain ignored.
 
 The builder refuses an absent season, overdue missing finals, missing completed
-games in play-by-play, invalid publication shapes and oversized artifacts.
+games in play-by-play, empty registered evidence or play-statistics output,
+invalid publication shapes and oversized artifacts.
 The assessment adapter accepts the engine's actual ISO event timestamps as well
 as legacy date-only coverage, preserving chronology and rejecting invalid dates.
 The prior date-only check discarded otherwise qualifying prepared findings.
@@ -87,6 +88,15 @@ An independent Python calculation matched Baltimore's 201 attempts, 1,694
 passing yards (8.42786 yards/attempt), and 125 successful pass plays out of 237
 known eligible dropbacks. Original source files and detailed receipts remain
 under ignored `.local/research*` paths.
+
+A read-only projection using the account's actual production permissions and
+retained game lines returned all 14 scoring/play-statistics matchups and 68
+assessed selections. Fixing the ISO-date adapter restored eight evidence entries
+from two applicable historical patterns. At 03:58 UTC the retained prices were
+outside the six-hour limit, so every assessment correctly stayed gray. This was
+a local run of the new pipeline against production read inputs, not a deployed
+API or signed-in production UI acceptance. A local browser also displayed the
+real matchup data and reproduced historical evidence under synthetic sign-in.
 
 Local checks passed the 79 focused research tests, 28 focused component tests,
 and both research browser flows. The flows cover source intake, filters,

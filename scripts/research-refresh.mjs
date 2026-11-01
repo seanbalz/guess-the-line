@@ -41,6 +41,7 @@ export async function buildResearchRelease({ csv, plays, pbpHash, season, now, r
   const completed = rows.filter(r => Number(r.season) === season && rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= Date.parse(now));
   const playedIds = new Set(plays.map(p => p.game_id));
   if (!completed.length || completed.some(r => !playedIds.has(r.game_id))) throw new Error('Play-by-play is missing completed games.');
+  if (!snapshot.candidates.length || !playStatistics.some(g => g.teams.some(t => t.metrics.some(m => m.sample > 0 && m.value !== null)))) throw new Error('Research output is empty; publication refused.');
   const index = { version: 1, season, generatedAt: now, source: snapshot.source, pbpSha256: pbpHash, files: [] };
   const files = new Map();
   for (const period of RESEARCH_PERIODS) {

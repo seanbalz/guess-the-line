@@ -79,7 +79,7 @@ export function AssessmentDetail({ assessment: a, onTrack }) {
     <p className="gx-t-meta">{a.evidenceGroups} underlying evidence {a.evidenceGroups === 1 ? 'group' : 'groups'}</p>
     {a.evidence.map(e => <details className="gx-ra-evidence" key={e.id}><summary>{e.eligible ? e.stance === 'oppose' ? 'Opposing evidence' : e.stance === 'support' ? 'Supporting evidence' : 'Context' : 'Pending evidence'} · {e.label}</summary>
       {e.statement ? <p className="gx-t-body">{e.statement}</p> : null}
-      {e.metric ? <p className="gx-t-body">{e.metric.name}: <span className="gx-n-s">{e.metric.value}</span> {e.metric.unit} · {e.metric.denominator}</p> : null}
+      {e.metric ? <p className="gx-t-body">{e.metric.name}: <span className="gx-n-s">{e.metric.unit === 'share' && typeof e.metric.value === 'number' ? `${(e.metric.value * 100).toFixed(1)}%` : e.metric.value}</span> {e.metric.unit === 'share' ? '' : e.metric.unit} · {e.metric.denominator}</p> : null}
       {e.sample ? <p className="gx-t-body">Sample: <span className="gx-n-s">{e.sample.count}</span> {e.sample.unit}</p> : null}
       {e.period ? <p className="gx-t-meta">{readableTime(e.period.from)} – {readableTime(e.period.to)}</p> : null}
       {e.asOf ? <p className="gx-t-meta">Data through {readableTime(e.asOf)}</p> : null}

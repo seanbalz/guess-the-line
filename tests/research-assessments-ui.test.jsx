@@ -28,6 +28,9 @@ describe('research assessments remain distinct from guess gaps', () => {
     const html = renderToStaticMarkup(<AssessmentDetail assessment={assessment} onTrack={vi.fn()}/>);
     for (const text of ['Research lean', 'Source-reported', 'routes run against zone', 'Synthetic starter plays.', '40', 'DraftKings', 'Track this bet']) expect(html).toContain(text);
     expect(html).not.toContain('Estimated value'); expect(html).not.toContain('confidence');
+    assessment.evidence[0].metric = { name: 'Historical hit rate', value: 19 / 30, unit: 'share', denominator: 'Decided historical games' };
+    const historical = renderToStaticMarkup(<AssessmentDetail assessment={assessment}/>);
+    expect(historical).toContain('63.3%'); expect(historical).not.toContain('0.633333');
   });
   it('expires quotes against elapsed server time, never the device clock', () => {
     const data = buildResearchAssessments({ ...fixture(), now: NOW });
