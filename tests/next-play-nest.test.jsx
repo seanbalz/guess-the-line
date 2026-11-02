@@ -138,6 +138,7 @@ describe('the pieces', () => {
   it('the tag is Next, the kickoff day in Pacific time for another open game, or the state word', () => {
     const row = (state, game = games[3]) => ({ id: game.id, game, state });
     expect(gameTag(row('open'), 'BUF-MIN')).toBe('Next');
+    expect(gameTag(row('draft'), 'BUF-MIN')).toBe('Draft'); // its ring and name say it is next
     expect(gameTag(row('open'), 'DEN-CAR')).toBe('Mon');
     expect(['locked', 'draft', 'kicked', 'skipped', 'notopen'].map(state => gameTag(row(state), null))).toEqual(['Locked', 'Draft', 'Closed', 'Skipped', 'Not open']);
   });

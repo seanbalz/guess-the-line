@@ -10,10 +10,13 @@ import './picksNest.css';
 const DAY = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'America/Los_Angeles' });
 const WORDS = Object.freeze({ locked: 'Locked', draft: 'Draft', kicked: 'Closed', skipped: 'Skipped', notopen: 'Not open' });
 
-/** A tile's tag: Next for the next game to lock, the kickoff day (Pacific) for another open game, else its state word. */
+/**
+ * A tile's tag says its state: an open game shows Next when it is the next to lock, else its kickoff day (Pacific);
+ * every other game shows its state word (a draft that is next stays Draft; its ring and name say next).
+ */
 export function gameTag(row, nextId) {
-  if (row.id === nextId) return 'Next';
   if (row.state !== 'open') return WORDS[row.state];
+  if (row.id === nextId) return 'Next';
   const kickoff = Date.parse(row.game.kickoff);
   return Number.isFinite(kickoff) ? DAY.format(kickoff) : 'Open';
 }
@@ -32,13 +35,13 @@ export function WeekTiles({ progress, mode, guessOf, onOpen, label }) {
   const nextId = progress.next?.id ?? null;
   return <ul className="gx-nest-grid gx-nest-grid--3 gx-picks-grid" aria-label={label}>
     {progress.games.map(row => {
-      const { game } = row, tag = gameTag(row, nextId), guess = tileGuess(mode, game, guessOf(row.id));
+      const { game } = row, tag = gameTag(row, nextId), guess = tileGuess(mode, game, guessOf(row.id)), next = row.id === nextId;
       const said = guess.num === '—' ? 'no guess' : [guess.lead, guess.num].filter(Boolean).join(' ');
       return <li key={row.id}>
-        <button type="button" className={cx('gx-nest-tile', 'gx-picks-tile', row.id === nextId && 'gx-picks-tile--next')} data-tile={row.id} data-state={row.state}
-          aria-label={`${team(game.awayCode)} at ${team(game.homeCode)}, ${tag}, ${said}`} onClick={() => onOpen(row.id)}>
+        <button type="button" className={cx('gx-nest-tile', 'gx-picks-tile', next && 'gx-picks-tile--next')} data-tile={row.id} data-state={row.state}
+          aria-label={`${team(game.awayCode)} at ${team(game.homeCode)}, ${tag}${next && tag !== 'Next' ? ', next to lock' : ''}, ${said}`} onClick={() => onOpen(row.id)}>
           <span className="gx-nest-tile-top">
-            <span className={cx('gx-t-micro', 'gx-picks-tag', `gx-picks-tag--${row.id === nextId ? 'next' : row.state}`)}>{tag}</span>
+            <span className={cx('gx-t-micro', 'gx-picks-tag', `gx-picks-tag--${tag === 'Next' ? 'next' : row.state}`)}>{tag}</span>
             <Icon icon={STATE_ICONS[row.state]} size={16}/>
           </span>
           <span className="gx-nest-marks"><TeamMark code={game.awayCode} size={24} decorative/><TeamMark code={game.homeCode} size={24} decorative/></span>

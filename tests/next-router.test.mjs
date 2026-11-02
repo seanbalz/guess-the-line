@@ -192,6 +192,22 @@ test('D-69: opening a game in Your guesses is a step; the lip and Next keep the 
   assert.equal(reduce(score, { type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } }).trail.length, 0);
 });
 
+test('D-69: Next replaces the game in browser history too, so the browser Back button lands on the week', async () => {
+  const win = fakeWindow('https://gtl.test/#play/picks?market=spread&season=2026&week=9');
+  const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } });
+  await settle();
+  assert.equal(win.history.length, 2);
+  shell.dispatch({ type: 'view', tab: 'play', patch: { pickGame: 'DET-MIA' } });
+  await settle();
+  assert.equal(shell.state.navMode, 'replace');
+  assert.deepEqual(win.stack(), ['#play/picks?market=spread&season=2026&week=9', '[#play/picks?market=spread&season=2026&week=9&pickGame=DET-MIA]']);
+  win.history.back();
+  await settle();
+  assert.equal(shell.state.views.play.pickGame, undefined);
+  assert.deepEqual(shell.state.trail, []);
+});
+
 test('D-69: a deep link opens the game layer and Back returns to where it came from', () => {
   let state = initialState({ tab: 'research', view: { section: 'games' } });
   state = reduce(state, { type: 'go', tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 9, pickGame: 'HOU-JAX' } });

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, id, pgliteAvailable, signIn } from './community-world.mjs';
+import { openGame, openWeek } from './play-nest.mjs';
 
 // Play's game feel (design upgrade): the lock-in moment, the week progress strip, the reveal moment, the native guess
 // control and Play's quiet states, at 390 × 844. Fictional reads and writes over the local account fixture (the
@@ -86,8 +87,10 @@ async function fixture(page, baseURL, { open = true, beforeOpen } = {}) {
 }
 
 const card = (page, gameId) => page.locator(`.gx-per-game [data-game="${gameId}"]`);
+/** D-69: the week card's "N of M locked" line (the week's game tiles are one tap back from a game). */
+const count = page => page.locator('[data-play="count"]');
 async function choose(page, gameId, value = 3) {
-  const game = card(page, gameId);
+  const game = await openGame(page, gameId);
   await game.locator('[data-side="home"]').click();
   await game.locator(`.gx-guess-num[data-value="${value}"]`).click();
   return game;
@@ -150,8 +153,7 @@ test('lock-in moment: the stamp, the "Locked in" line and a 20ms buzz come only 
   const world = await fixture(page, baseURL);
   try {
     const [, target] = world.personal.games;
-    const progress = page.locator('[data-play="progress"]');
-    await expect(progress).toContainText('1 of 4 locked');
+    await expect(count(page)).toHaveText('1 of 4 locked');
     const game = await choose(page, target.id);
     await expect(game).toHaveAttribute('data-state', 'draft');
     await game.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
@@ -170,7 +172,6 @@ test('lock-in moment: the stamp, the "Locked in" line and a 20ms buzz come only 
     expect(await page.evaluate(() => window.__vibrations)).toEqual([20]);
     await expect(game).toHaveAttribute('data-state', 'locked');
     await expect(game.locator('.gx-play-card-pill')).toHaveText('Locked in');
-    await expect(progress).toContainText('2 of 4 locked');
     // Tokens only: the card settles in base with the pop easing, its edge flashes once over "big", the pill stamps in.
     const motion = await game.evaluate(el => {
       const pick = style => ({ name: style.animationName, duration: style.animationDuration, easing: style.animationTimingFunction, count: style.animationIterationCount });
@@ -198,15 +199,21 @@ test('lock-in moment: the stamp, the "Locked in" line and a 20ms buzz come only 
     expect(ancestors).toEqual([]);
     await matrix(page, 'lock-in', theme => shot(game, info, `lockin-390-${theme}.png`));
     expect(world.writes).toHaveLength(1);
+    await openWeek(page);
+    await expect(count(page)).toHaveText('2 of 4 locked');
+    await expect(page.locator(`[data-tile="${target.id}"]`)).toHaveAttribute('data-state', 'locked');
+    // Reopening a locked game shows its receipt without stamping it again.
+    await expect(await openGame(page, target.id)).not.toHaveClass(/gx-play-stamp/);
     // The same moment in Light, on the next game (its stamp plays once, on its own card only).
     await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
     const third = await choose(page, world.personal.games[2].id, 6);
     await third.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
     await page.getByRole('button', { name: 'Confirm lock-in' }).click();
     await expect(third).toHaveClass(/gx-play-stamp/);
-    await expect(game).not.toHaveClass(/gx-play-stamp/);
+    await expect(page.locator('.gx-play-stamp')).toHaveCount(1);
     await still(page, third, info, 'lockin-moment-390-light.png');
-    await expect(progress).toContainText('3 of 4 locked');
+    await openWeek(page);
+    await expect(count(page)).toHaveText('3 of 4 locked');
     expect(await page.evaluate(() => window.__vibrations)).toEqual([20, 20]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -245,23 +252,33 @@ test('week progress: one tile per game shows locked, draft, open and kicked off 
   try {
     const [kicked, draft, open, late] = world.personal.games;
     await choose(page, draft.id, 4);
+    await openWeek(page);
+    // D-69: the week's game tiles are the strip now: one per game, each with its state tag and icon.
+    const tiles = page.locator('.gx-per-game [data-tile]');
+    expect(await tiles.evaluateAll(nodes => nodes.map(node => node.dataset.state))).toEqual(['locked', 'draft', 'open', 'kicked']);
+    await expect(tiles.locator('.gx-picks-tag')).toHaveText(['Locked', 'Draft', /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/, 'Closed']);
+    await expect(tiles.nth(1)).toHaveAccessibleName(/, Draft, next to lock, /);
     const progress = page.locator('[data-play="progress"]');
-    await expect(progress.locator('[data-state]')).toHaveCount(4);
-    expect(await progress.locator('[data-state]').evaluateAll(tiles => tiles.map(tile => tile.dataset.state))).toEqual(['locked', 'draft', 'open', 'kicked']);
+    await expect(progress.locator('.gx-play-states')).toHaveCount(0);
     await expect(progress.getByRole('list', { name: 'Games by state' }).getByRole('listitem')).toHaveText(['1Locked', '1Draft', '1Open', '1Kicked off']);
-    await expect(progress).toContainText('1 of 4 locked');
-    // Each card says its own state in words, so the strip is never the only place a state is told.
-    for (const [game, word] of [[kicked, 'Locked in'], [draft, 'Draft'], [open, 'To pick'], [late, 'Closed at kickoff']]) await expect(card(page, game.id).locator('.gx-play-card-pill')).toHaveText(word);
+    await expect(count(page)).toHaveText('1 of 4 locked');
+    await matrix(page, 'week tiles', async theme => {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await shot(page.locator('.gx-per-game .gx-nest'), info, `week-390-${theme}.png`);
+    });
+    // Each card says its own state in words, so a tile is never the only place a state is told.
+    for (const [game, word] of [[kicked, 'Locked in'], [draft, 'Draft'], [open, 'To pick'], [late, 'Closed at kickoff']]) await expect((await openGame(page, game.id)).locator('.gx-play-card-pill')).toHaveText(word);
+    await openWeek(page);
     await progress.getByRole('button', { name: /^Next to lock · / }).click(); // D-62: the game as marks, named by full team names
-    await expect(card(page, draft.id)).toBeFocused();
-    await expect(card(page, draft.id)).toBeInViewport();
+    await expect(card(page, draft.id)).toBeVisible();
+    await expect(page.getByRole('heading', { name: `${draft.awayCode} @ ${draft.homeCode}` })).toBeFocused();
     await page.evaluate(() => window.scrollTo(0, 0));
     await matrix(page, 'progress', async theme => {
       await page.evaluate(() => window.scrollTo(0, 0));
-      await shot(progress, info, `progress-390-${theme}.png`);
       await shot(card(page, draft.id), info, `picker-390-${theme}.png`);
     });
     // Saving a draft is unchanged: no lockIn, "Draft saved.", and no stamp.
+    await openWeek(page);
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
     expect(world.writes.at(-1).lockIn).toBeUndefined();
@@ -276,6 +293,9 @@ test('reveal moment: opened guesses rise in once per device, never before the se
     const { kicked } = world, [, next] = world.personal.games;
     const reveal = card(page, kicked.id).locator('[data-play="reveal"]');
     await expect.poll(() => world.reads.picks.length).toBeGreaterThan(0);
+    // The week's tiles never show anyone else's guess; the reveal is on the game's own card.
+    await expect(page.locator('.gx-per-game')).not.toContainText('Troy Fixture');
+    await openGame(page, kicked.id);
     // The read is out and unanswered: no guess, no list, nothing that could only come from the reply.
     await expect(reveal).toHaveCount(0);
     await expect(page.locator('.gx-per-game')).not.toContainText('Troy Fixture');
@@ -300,8 +320,10 @@ test('reveal moment: opened guesses rise in once per device, never before the se
     await expect(game.locator('[data-play="reveal"]')).toBeVisible();
     expect(world.reads.picks.length).toBeGreaterThan(before);
     await expect(game.locator('[data-play="reveal"] .gx-play-reveal-in')).toHaveCount(3);
-    // Seen once on this device: after a reload the same rows are simply there.
+    // Seen once on this device: after a reload the same rows are simply there. The reload reopens the open game.
     await page.reload();
+    await expect(game.locator('[data-play="reveal"]')).toBeVisible();
+    await openGame(page, kicked.id);
     await expect(reveal).toBeVisible();
     await expect(reveal.getByRole('listitem')).toHaveCount(2);
     await expect(page.locator('.gx-play-reveal-in')).toHaveCount(0);
@@ -313,7 +335,7 @@ test('reveal under reduced motion shows every opened row at once, with no moveme
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const world = await fixture(page, baseURL);
   try {
-    const reveal = card(page, world.kicked.id).locator('[data-play="reveal"]');
+    const reveal = (await openGame(page, world.kicked.id)).locator('[data-play="reveal"]');
     await expect(reveal.getByRole('listitem')).toHaveCount(2);
     expect(await reveal.locator('.gx-play-reveal-in').evaluateAll(nodes => nodes.map(node => [getComputedStyle(node).animationName, getComputedStyle(node).opacity]))).toEqual([['none', '1'], ['none', '1'], ['none', '1']]);
     expect(world.errors).toEqual([]);
@@ -324,8 +346,8 @@ test('a game the server keeps closed draws no reveal, whatever the device clock 
   const world = await fixture(page, baseURL, { open: false });
   try {
     await expect.poll(() => world.reads.picks.length).toBeGreaterThan(0);
-    await expect(page.locator('[data-play="progress"]')).toContainText('1 of 4 locked');
-    await expect(card(page, world.kicked.id).getByRole('region', { name: /Spread receipt/ })).toBeVisible();
+    await expect(count(page)).toHaveText('1 of 4 locked');
+    await expect((await openGame(page, world.kicked.id)).getByRole('region', { name: /Spread receipt/ })).toBeVisible();
     await expect(page.locator('[data-play="reveal"]')).toHaveCount(0);
     await expect(page.locator('.gx-per-game')).not.toContainText('Troy Fixture');
     expect(world.errors).toEqual([]);
@@ -335,7 +357,7 @@ test('a game the server keeps closed draws no reveal, whatever the device clock 
 test('the native guess control keeps the classic keyboard model: one Tab stop a row, arrows, type-ahead and "="', async ({ page, baseURL }) => {
   const world = await fixture(page, baseURL);
   try {
-    const [, game] = world.personal.games, entry = card(page, game.id);
+    const [, game] = world.personal.games, entry = await openGame(page, game.id);
     const summary = entry.locator('.gx-guess-summary');
     await entry.locator('[data-side="away"]').focus();
     await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
@@ -358,6 +380,7 @@ test('the native guess control keeps the classic keyboard model: one Tab stop a 
     await entry.getByRole('button', { name: 'Raise by half a point' }).click();
     await expect(summary).toHaveText(/ −13$/);
     // The guess the editor keeps is the classic value: home favored by 13 is −13, and Save draft sends exactly that.
+    await openWeek(page);
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Draft saved.' })).toBeVisible();
     expect(world.writes.at(-1).picks[game.id]).toBe(-13);
@@ -380,7 +403,7 @@ test('quiet states: loading is one line, a failed read is one line with Try agai
     await matrix(page, 'error', theme => shot(failed, info, `state-error-390-${theme}.png`));
     await failed.getByRole('button', { name: 'Try again', exact: true }).click();
     await expect(page.locator('.gx-per-game')).toBeVisible();
-    await expect(page.locator('[data-play="progress"]')).toContainText('1 of 4 locked');
+    await expect(count(page)).toHaveText('1 of 4 locked');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

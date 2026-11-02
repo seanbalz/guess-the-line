@@ -59,9 +59,16 @@ shell reducer, Playwright cloud-browser specs against the real handler and PGlit
 **Interfaces:**
 - Consumes: `weekProgress()` rows `{ id, game, state }`; `STATE_ICONS`; `pickText`; `Nest`, `InfoButton`, `TeamMark`.
 - Produces: `PerGameEditor({ …, nest })`, where
-  `nest = { game: string|undefined, onOpen(id), onWeek(), onNext(id) }`. Tiles are `button.gx-nest-tile` with
-  `data-game` and `data-state`. The game layer keeps `article.gx-play-game[data-game]` so existing selectors still match
-  inside it.
+  `nest = { game: string|undefined, onOpen(id), onWeek(), keeps(next) }`. Next calls `onOpen`; the reducer's swap
+  makes it a replace (Task 1). Tiles are `button.gx-nest-tile` with `data-tile` and `data-state`. The game layer keeps
+  `article.gx-play-game[data-game]` so existing selectors still match inside it.
+
+Built as planned, plus five findings from running the cloud-browser specs:
+- the shell's leave guard learned `keeps(next)`, so moving between the week and a game never asks;
+- Next replaces the browser history entry (`navMode: 'replace'`);
+- recovery sits above either card while a save is unconfirmed;
+- the stamp ends when another card opens;
+- the nested game body drops its second frame, so chips stay 44px wide.
 
 - [ ] Write failing Vitest cases:
   - The week shows one tile per game, in order.

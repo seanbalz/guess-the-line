@@ -153,7 +153,8 @@ export function reduce(state, action) {
         // next Back leaves the section instead of reopening the layer just closed.
         if (returnsToPrior(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
         // D-69: Next swaps one game's card for another, so the trail keeps the week under it, never the previous game.
-        if (swapsGame(state, action.tab, action.patch)) return reduce(reduce(state, { type: 'back' }), action);
+        // `replace` tells the router to rewrite the current entry instead of adding one.
+        if (swapsGame(state, action.tab, action.patch)) return { ...reduce(reduce(state, { type: 'back' }), action), navMode: 'replace' };
         return reduce(state, { type: 'go', tab: action.tab, view: action.patch });
       }
       return { ...state, views: withView(state.views, action.tab, action.patch) };

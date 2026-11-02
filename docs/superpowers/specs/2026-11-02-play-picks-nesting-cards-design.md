@@ -59,19 +59,22 @@ Shell Back returns to Play.
 - **Controls.** The Spread / Total control, the progress meter with its legend, and "Next to lock · <matchup>", which
   opens that game's layer. The strip of small state tiles is removed; the game tiles replace it.
 - **Game tiles.** One tile per game, in the server's kickoff order (`gx-nest-grid` / `gx-nest-tile`).
-  - **Top row:** a state tag with its icon (`STATE_ICONS`). An open game shows its kickoff day (THU, SUN, MON); every
-    other game shows its state word: Next, Draft, Locked, Closed, Skipped or Not open.
+  - **Top row:** a state tag with its icon (`STATE_ICONS`). An open game shows its kickoff day (THU, SUN, MON), or
+    Next when it is the next to lock. Every other game shows its state word: Draft, Locked, Closed, Skipped or Not open.
+    A draft that is next keeps Draft; its ring and its name ("…, Draft, next to lock, …") say next.
   - **Picture:** the matchup as two team marks.
   - **Big number:** your guess (`pickText`), or "—" with no guess. That is "45" for a Total, "JAX −3" for a Spread and
     "Even" for a pick'em.
   - **Next to lock:** that tile gets the `data` ring and the Next tag. Lime stays for your selection and the one
     primary action.
-  - **Accessible name:** the button reads "Denver Broncos at Carolina Panthers, draft, 45".
+  - **Accessible name:** the button reads "Detroit Lions at Miami Dolphins, Draft, 50.5". Tiles carry `data-tile`,
+    so `data-game` still names only the game card.
   - **Hidden data:** a tile never shows the line, points or anyone else's guess.
 - **Below the grid.** Check saved picks / Save draft, "Sit out remaining <market> games", the pending-retry cards, the
   older-draft recovery and the storage notes. These are unchanged and still appear only when they apply.
 - **Above the card.** The status and alert lines (notice, error, reveal failure) sit above the card, always mounted, so
-  they are announced on either layer.
+  they are announced on either layer. While a save or sit-out is unconfirmed, "Check saved picks" and the retry card
+  move up there too, so recovery is beside the alert on a game's card as well as the week.
 
 ### 2. One game (`pickGame` = the game id)
 
@@ -79,10 +82,12 @@ Shell Back returns to Play.
   D-62 marks with this weekend's records sit under it and open each team's sheet.
 - **ⓘ and meta line.** The ⓘ holds the market's guess help and keyboard help. The one meta line holds the kickoff and
   the state pill, with the same words as today.
-- **An open game.** `GuessPicker`, then "Lock in <market>" as the layer's one primary (lime) button. Under them sit the
-  same closed-draft and not-open notes as today.
+- **An open game.** `GuessPicker`, then "Lock in <market>" as the layer's one primary (lime) button. Like "Confirm
+  lock-in", it skips the kit's press buzz: a lock-in buzzes only once a fresh read confirms it. Under them sit the
+  same closed-draft and not-open notes as today. The game's body has no second card frame, so the picker keeps 44px
+  number chips at 320px.
 - **A locked game.** `ScoreReceipt`, then `RevealPicks` once the game is open to you. The lock-in stamp plays on this
-  card.
+  card once; opening another card ends the moment, so a locked game never stamps again when reopened.
 - **Next.** "Next to lock · <matchup>" opens the next draft or open game and replaces this layer, so the lip and Back
   both still return to the week. After a confirmed lock-in it becomes the primary button. With nothing left, the
   layer says "Every game is locked in." or "Nothing left to lock this week."
@@ -92,13 +97,20 @@ Shell Back returns to Play.
 - **Existing keys.** `pickGame` is already a Play route key and is in the router allowlist.
 - **Opening a game is a step.** `navigationPatch` counts a change to `pickGame` under `section: 'picks'` as a step. The
   lip lands on the prior place, so it goes back (`returnsToPrior`).
-- **Next replaces the game.** It goes back to the week, then opens the next game. The trail never holds the previous
-  game.
+- **Next replaces the game.** When the week is the place under the open game, the reducer goes back to the week, then
+  opens the next game (`navMode: 'replace'`). The router rewrites the current history entry instead of adding one, so
+  neither the trail nor the browser history holds the previous game. From a deep-linked game, Next is a plain step.
+- **Unsaved guesses.** The shell's unsaved-work guard asks "Leave without saving your changes?" before navigation. The
+  editor registers `keeps(next)`: a destination in Your guesses with the same market, season and week keeps the editor
+  and its drafts on screen, so moving between the week and its games never asks. Leaving Your guesses still asks.
+  Entries without `keeps` (Bets, notes, comments, preferences) ask as before.
 - **Deep links.** Lines › Your pick, Bets › game sheet and the game actions already pass `pickGame`, so they open the
   game layer directly. Back returns to where the player came from; the lip opens the week as a new step.
 - **Fallbacks.** If `pickGame` is not in this week's games, the week layer shows. A reload on a game address reopens
   that game.
-- **Focus.** `Nest` moves focus to the layer heading. It replaces the editor's scroll-to-card focus.
+- **Focus.** `Nest` moves focus to the layer heading when the layer changes. A game address that mounts the editor (a
+  deep link or a reload) focuses that game's heading once the week's read arrives. This replaces the editor's
+  scroll-to-card focus.
 
 ## Tests
 
