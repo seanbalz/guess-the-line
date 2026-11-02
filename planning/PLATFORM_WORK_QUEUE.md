@@ -75,8 +75,13 @@ protected API v45/frontend deployment are complete. Production assets, critical
 API source files, strict research denials and preserved records are verified.
 Signed-in populated production readback remains the repair's acceptance gate;
 the public-loader projection uses captured production inputs locally. Verify
-the first automatic scheduled refresh separately. Retain source-access and
-physical-phone limits; automatic X extraction is still unconnected.
+the first automatic scheduled refresh separately. [November 2 evidence](../docs/RESEARCH_ACCEPTANCE_2026_11_02.md)
+now verifies successful scheduled publication and six current public files, but
+live schedule-dependency drift leaves current freshness blocked. Keep #398 open
+and the bounded Research estimate at 85–95%; final populated authenticated
+current-build acceptance follows stable #408 release, with phone operation owned
+separately. Retain source-access and physical-phone limits; automatic X extraction
+is still unconnected.
 
 Sean selected **Research and charts** as the next player-facing design batch on
 October 26, ahead of the next commissioner page. Continue one implementation lane at a time. The approved four-tab “One thing first”

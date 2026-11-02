@@ -65,8 +65,13 @@ verifies the public data publication, protected API v45 and frontend release,
 research access denials and unchanged score/ballot/settlement fingerprints.
 The real public loader plus captured production read inputs return 14 scoring/
 play-statistics matchups, 68 assessments and eight evidence entries; this is a
-local projection. Real signed-in production/physical-phone acceptance and the
-first observed scheduled refresh remain open. No automatic X feed is connected.
+local projection. [November 2 acceptance preparation](RESEARCH_ACCEPTANCE_2026_11_02.md)
+now verifies the first successful automatic publication and all six current public
+asset hashes. A fresh public-source check finds a changed schedule dependency,
+so current source freshness remains an open readiness blocker. Populated real
+signed-in current-build and physical-phone acceptance remain pending, ordered
+after stable #408 deployment; the bounded Research estimate remains 85–95%.
+No automatic X feed is connected.
 
 ## Independent research assessments — October 30, 2026
 
