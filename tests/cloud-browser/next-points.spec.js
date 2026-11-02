@@ -193,3 +193,120 @@ test('keyboard only, with reduced motion: open a slot, use the stepper, and Esca
   expect(await world.db.query("select count(*)::int n from public.gtl_points_guesses where user_id=$1", [ACCOUNTS.luke.id]).then(r => r.rows[0].n)).toBe(0);
   expect(world.errors).toEqual([]);
 });
+
+// Board i39, Pick reminders: the one-time prompt under the Points card and Menu › Pick reminders, with the server able to
+// send pushes (a fixture VAPID public key, so /community/read says pushConfigured). The browser's permission question is
+// stubbed to count asks and answer "not now", so nothing subscribes and no push service is contacted.
+const VAPID = `B${'A'.repeat(86)}`;
+const AXE = ['wcag2a', 'wcag2aa', 'wcag21aa'];
+async function stubPermission(page) {
+  await page.addInitScript(() => {
+    window.__permissionAsks = 0;
+    Object.defineProperty(Notification, 'permission', { configurable: true, get: () => 'default' });
+    Notification.requestPermission = () => { window.__permissionAsks += 1; return Promise.resolve('default'); };
+  });
+}
+/**
+ * Console errors from now on. The world aborts web font requests (no external request in a spec), which Chromium logs as
+ * "Failed to load resource"; those are left out only while every failed request was a font.
+ */
+function consoleErrors(page) {
+  const errors = [], failed = [];
+  // Only ERR_FAILED (a route abort) logs that line; a read cut short by the reload is ERR_ABORTED and logs nothing.
+  page.on('requestfailed', request => { if (request.failure()?.errorText === 'net::ERR_FAILED') failed.push(new URL(request.url()).hostname); });
+  page.on('console', message => { if (message.type() === 'error' && message.text() !== 'Failed to load resource: net::ERR_FAILED') errors.push(message.text()); });
+  return { errors, check: () => { expect(failed.filter(host => !/^fonts\.(googleapis|gstatic)\.com$/.test(host))).toEqual([]); expect(errors).toEqual([]); } };
+}
+async function pushCalls(page) {
+  const calls = [];
+  page.on('request', request => { const path = new URL(request.url()).pathname; if (path.includes('/push/')) calls.push(path.slice(path.indexOf('/push/'))); });
+  return calls;
+}
+/** Phone layout, axe and a screenshot in Dark and Light at 390 and 320. */
+async function themesAndWidths(page, info, name) {
+  for (const theme of ['dark', 'light']) {
+    await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      expect(await page.evaluate(layoutProblems), `${name} ${theme} ${width}`).toEqual([]);
+      expect((await new AxeBuilder({ page }).withTags(AXE).analyze()).violations.map(v => v.id), `${name} ${theme} ${width}`).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`${name}-${width}-${theme}.png`), fullPage: true });
+    }
+  }
+  await page.evaluate(() => { delete document.documentElement.dataset.theme; });
+  await page.setViewportSize({ width: 390, height: 844 });
+}
+
+test('Pick reminders: the Points prompt and the Menu switch ask permission only on a tap, and "Not now" is remembered', async ({ page, baseURL }, info) => {
+  await stubPermission(page);
+  const logs = consoleErrors(page), calls = await pushCalls(page);
+  const world = await communityWorld(page, baseURL, { migrations: ALL, pushPublicKey: VAPID });
+  await seedWeek(world);
+  await openNewApp(page);
+  const prompt = page.getByRole('region', { name: 'Get a nudge before picks are due' });
+  await expect(prompt).toBeVisible();
+  // The prompt follows the Points card and offers no lime button (one primary action per screen stays the hero's).
+  await expect(page.locator('[data-points-landing] + [data-reminder-prompt]')).toHaveCount(1);
+  await expect(prompt.locator('.gx-btn--primary')).toHaveCount(0);
+  expect(await page.evaluate(() => window.__permissionAsks), 'never asked on load').toBe(0);
+  await themesAndWidths(page, info, 'reminders-prompt');
+
+  // Menu › Pick reminders: the switch, off and switchable, 56 tall.
+  await page.getByRole('button', { name: 'Your menu' }).click();
+  await page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: 'Pick reminders', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Pick reminders' });
+  const toggle = sheet.getByRole('switch', { name: 'Pick reminders' });
+  await expect(toggle).not.toBeChecked();
+  await expect(toggle).toBeEnabled();
+  await expect(sheet).toContainText('One push 2 hours before picks are due');
+  expect((await sheet.locator('.gx-switch-row').boundingBox()).height).toBeGreaterThanOrEqual(44);
+  expect(await page.evaluate(() => window.__permissionAsks), 'opening the switch asks nothing').toBe(0);
+  await themesAndWidths(page, info, 'reminders-switch');
+  // A tap asks once; "not now" keeps reminders off, says so, and nothing reaches the subscribe route.
+  await sheet.locator('.gx-switch-row').click();
+  await expect(sheet.getByRole('alert')).toHaveText('Reminders stay off. You can turn them on any time.');
+  await expect(toggle).not.toBeChecked();
+  await expect(toggle, 'the answer keeps focus on the switch').toBeFocused();
+  expect(await page.evaluate(() => window.__permissionAsks)).toBe(1);
+  expect(calls).toEqual([]);
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+
+  // "Not now" retires the prompt for this account on this device, focus returns to the Points card, and a reload keeps it away.
+  await prompt.getByRole('button', { name: 'Not now', exact: true }).click();
+  await expect(prompt).toHaveCount(0);
+  await expect(page.locator('[data-points-landing]')).toBeFocused();
+  await page.reload();
+  await expect(page.locator('[data-landing="play"]')).toBeVisible();
+  await expect(page.locator('[data-points-landing]')).toBeVisible();
+  await expect(page.locator('[data-reminder-prompt]')).toHaveCount(0);
+  expect(await page.evaluate(() => window.__permissionAsks)).toBe(0);
+  logs.check();
+  expect(world.errors).toEqual([]);
+});
+
+test('Pick reminders on an iPhone Safari tab: one line to add the app to the Home Screen; the switch is off and disabled', async ({ browser, baseURL }, info) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 },
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1' });
+  const page = await context.newPage();
+  // A Safari tab has no PushManager; push works only from the Home Screen app (iOS 16.4+).
+  await page.addInitScript(() => { delete window.PushManager; });
+  const logs = consoleErrors(page);
+  try {
+    const world = await communityWorld(page, baseURL, { migrations: ALL, pushPublicKey: VAPID });
+    await seedWeek(world);
+    await openNewApp(page);
+    const prompt = page.getByRole('region', { name: 'Get a nudge before picks are due' });
+    await expect(prompt).toContainText('add the app to your Home Screen first');
+    await expect(prompt.getByRole('button', { name: 'Turn on reminders' })).toHaveCount(0);
+    await themesAndWidths(page, info, 'reminders-iphone-prompt');
+    await page.getByRole('button', { name: 'Your menu' }).click();
+    await page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: 'Pick reminders', exact: true }).click();
+    const sheet = page.getByRole('dialog', { name: 'Pick reminders' });
+    await expect(sheet.getByRole('switch', { name: 'Pick reminders' })).toBeDisabled();
+    await expect(sheet).toContainText('Share › Add to Home Screen');
+    await themesAndWidths(page, info, 'reminders-iphone-switch');
+    logs.check();
+    expect(world.errors).toEqual([]);
+  } finally { await context.close(); }
+});

@@ -53,9 +53,9 @@ export function usePointsRead(app, groupId = null) {
 }
 
 /** Decision 1C: the Play landing's Points row, a glow card with a glass pill, a big "2/5" (locked of five) and one meta line. */
-export function PointsLandingCard({ read, onOpen }) {
+export function PointsLandingCard({ ref, read, onOpen }) {
   const card = landingCard(read.data, read.error);
-  return <CardButton variant="hero" className="gx-pt-landing gx-vstack gx-gap-8" aria-label={card.label} data-points-landing onClick={onOpen}>
+  return <CardButton ref={ref} variant="hero" className="gx-pt-landing gx-vstack gx-gap-8" aria-label={card.label} data-points-landing onClick={onOpen}>
     <span className="gx-pt-landing-top"><span className="gx-pt-pill gx-t-strong">Guess the Points</span>{card.progress && <span className="gx-n-l gx-t-strong">{card.progress}</span>}</span>
     <span className="gx-t-meta gx-pt-sub">{card.meta}</span>
   </CardButton>;
