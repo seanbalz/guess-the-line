@@ -86,6 +86,24 @@ async function fixture(page, baseURL, { open = true, beforeOpen } = {}) {
 }
 
 const card = (page, gameId) => page.locator(`.gx-per-game [data-game="${gameId}"]`);
+
+test('Monday pending answers refresh from saved references without changing drafts or revealing unlocked games',async({page,baseURL})=>{
+ const world=await fixture(page,baseURL,{beforeOpen:({personal})=>{
+  const row=personal.scoring.guess_spread.games[0];row.points=null;row.reference={value:null,status:'pending',rule:'first_line_after_submission'};
+ }});
+ try{
+  await expect(page.getByText(/Monday guesses show answers as soon as the first qualifying line arrives/)).toBeVisible();
+  const open=world.personal.games[1];await choose(page,open.id,3);
+  const receipt=world.personal.scoring.guess_spread.games[0];receipt.points=10;receipt.reference={value:-3,status:'available',rule:'first_line_after_submission',source:'Synthetic three-book median',observedAt:world.personal.now};
+  const writes=world.writes.length;
+  await page.getByRole('button',{name:'Check for answers',exact:true}).click();
+  await expect(card(page,world.kicked.id).locator('.gx-lock-receipt')).toContainText('10 / 10');
+  await expect(card(page,world.kicked.id).locator('.gx-receipt-pair')).toContainText('Line');
+  await expect(card(page,open.id).locator('.gx-guess-num[data-value="3"]')).toHaveAttribute('aria-checked','true');
+  await expect(card(page,open.id).locator('.gx-lock-receipt')).toHaveCount(0);
+  expect(world.writes).toHaveLength(writes);expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
 async function choose(page, gameId, value = 3) {
   const game = card(page, gameId);
   await game.locator('[data-side="home"]').click();

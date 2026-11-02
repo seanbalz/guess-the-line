@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## My bets spacing and entry follow-up — November 2, 2026
+
+Sean's screenshot reproduced a legacy CSS override that removed the card gap.
+The [follow-up record](RELEASE_2026_11_02_MY_BETS.md) covers the actual 32px
+separation, searchable manual sources/matchups, same-week player suggestions and
+clearer Monday pending-answer refresh. Local checks pass: 31 focused Node, 621
+component and 27 browser scenarios, typecheck, build, privacy scan and brand QA.
+Merge and deployment are not yet claimed. Authorized profile reconciliation was verified
+privately through the existing audited writer. Fantasy opens Tuesday under
+D-61; existing locked guesses remain intact.
+
 Owner: Sean Balsiger · Reconciled October 29, 2026
 
 The current task list is [the sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md).

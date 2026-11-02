@@ -4,7 +4,7 @@ import { socialApi, date, signed } from './api';
 import { lockSentence } from './lineLock';
 import { BookChoices, ChoiceButtons, MatchupChoices, NumberChoices, SpreadChoices } from './BetEntryControls';
 import './socialBetTracker.css';
-import {PlayerPropEntry} from './PlayerPropEntry.jsx';
+import {PlayerPropPicker as PlayerPropEntry} from './PlayerPropPicker.jsx';
 import {cashToUnits,cashText,ownUnitHint,readUnitCash,saveUnitCash,validUnitCash} from './trackedBetTerms.js';
 
 const units = value => Number.isFinite(value) ? `${Number(value.toFixed(4))}u` : 'Unknown';
@@ -80,11 +80,11 @@ function BetEditor({ unitCash, onUnitCash, entry, action, fromRecommendation, ga
         {draft.legs.map((leg, index) => {
           const game = games.find(item => item.id === leg.gameId);
           return <fieldset className="social-leg-editor" key={index}><legend>{draft.kind === 'parlay' ? `Leg ${index + 1}` : 'Selection'}</legend><div className="social-ticket-detail-fields">
-            <MatchupChoices games={games} value={leg.gameId} disabled={busy} onChange={gameId => legChange(index, { gameId, side: '', line: '', selection: '' })}/>
+            <MatchupChoices games={games} value={leg.gameId} disabled={busy} onChange={gameId => legChange(index, { gameId, side: '', line: '', selection: '', propFields: undefined, customProp: false })}/>
             {game && <>
-              <ChoiceButtons label="Market" options={[{ value: 'spread', label: 'Spread' }, { value: 'total', label: 'Total' }, { value: 'prop', label: 'Player prop' }]} value={leg.market} disabled={busy} onChange={market => legChange(index, { market, side: '', selection: '', line: '' })}/>
+              <ChoiceButtons label="Market" options={[{ value: 'spread', label: 'Spread' }, { value: 'total', label: 'Total' }, { value: 'prop', label: 'Player prop' }]} value={leg.market} disabled={busy} onChange={market => legChange(index, { market, side: '', selection: '', line: '', propFields: undefined, customProp: false })}/>
               {leg.market !== 'prop' && <ChoiceButtons label={leg.market === 'spread' ? 'Team' : 'Direction'} options={leg.market === 'spread' ? [{ value: 'away', label: game.away }, { value: 'home', label: game.home }] : [{ value: 'over', label: 'Over' }, { value: 'under', label: 'Under' }]} value={leg.side} disabled={busy} onChange={side => legChange(index, { side })}/>}
-              {leg.market === 'spread' ? <SpreadChoices value={leg.line} disabled={busy} onChange={line => legChange(index, { line })}/> : leg.market === 'total' ? <NumberChoices label="Exact total" value={leg.line} onChange={line => legChange(index, { line })} presets={[37.5, 40.5, 42.5, 44.5, 47.5, 49.5, 51.5, 54.5]} disabled={busy} required step="0.5" min={0} max={200} adjust="total"/> : <PlayerPropEntry leg={leg} disabled={busy} onChange={next=>legChange(index,next)}/>}
+              {leg.market === 'spread' ? <SpreadChoices value={leg.line} disabled={busy} onChange={line => legChange(index, { line })}/> : leg.market === 'total' ? <NumberChoices label="Exact total" value={leg.line} onChange={line => legChange(index, { line })} presets={[37.5, 40.5, 42.5, 44.5, 47.5, 49.5, 51.5, 54.5]} disabled={busy} required step="0.5" min={0} max={200} adjust="total"/> : <PlayerPropEntry leg={leg} game={game} season={season} week={week} disabled={busy} onChange={next=>legChange(index,next)}/>}
             </>}
           </div>{draft.kind === 'parlay' && draft.legs.length > 2 && <button type="button" className="text-button" disabled={busy} onClick={() => change({ legs: draft.legs.filter((_, i) => i !== index) })}><Trash2 size={16}/>Remove leg {index + 1}</button>}</fieldset>;
         })}
