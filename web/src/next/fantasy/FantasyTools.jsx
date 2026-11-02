@@ -1,11 +1,13 @@
 // Fantasy player tools (queue Q12–Q14) in the new app: a player profile sheet (usage, actual points, averages with
 // samples, GTL's separate pace estimate and opponent context) and a 2–3 player comparison in one scoring format and
 // one period. Everything is derived from the loaded public snapshot by shared/fantasy-tools.mjs; missing shows "—".
+// Each table scrolls sideways inside its own wrapper on a phone, so every wrapper is a named region that takes focus
+// (keyboard scrolling; axe scrollable-region-focusable at 320 px once a snapshot carries opponent games).
 import { useId, useState } from 'react';
 import { Minus, Plus, X } from 'lucide-react';
 import { SCORING_OPTIONS, formatFantasyNumber as number } from '../../../../shared/fantasy-rankings.mjs';
 import { COMPARE_PERIODS, MAX_COMPARE, USAGE_METRICS, comparePlayers, playerProfile, searchPlayers } from '../../../../shared/fantasy-tools.mjs';
-import { Button, Card, IconButton, Segmented, Sheet } from '../ui/index.js';
+import { Button, Card, IconButton, LockLine, Segmented, Sheet } from '../ui/index.js';
 
 const label = (options, value) => options.find(option => option.value === value)?.label ?? value;
 const games = n => `${n} ${n === 1 ? 'game' : 'games'}`;
@@ -47,7 +49,7 @@ function WeeklyChart({ weeks }) {
 function Averages({ summary }) {
   const recentLabel = weeksText([summary.recentFrom, summary.through]);
   const rows = [{ key: 'points', label: 'Fantasy points', read: part => part.points }, ...USAGE_METRICS.map(metric => ({ key: metric.key, label: metric.label, read: part => part.usage[metric.key] }))];
-  return <div className="gx-fantasy-table-wrap"><table className="gx-fantasy-table">
+  return <div className="gx-fantasy-table-wrap" role="region" aria-label="Per-game averages" tabIndex={0}><table className="gx-fantasy-table">
     <caption className="gx-sr-only">Per-game averages from recorded games, season and last three weeks</caption>
     <thead><tr><th scope="col">Per game</th><th scope="col">Season<span className="gx-fantasy-th-sub">{games(summary.season.games)}</span></th><th scope="col">Last 3 weeks<span className="gx-fantasy-th-sub">{recentLabel} · {games(summary.recent.games)}</span></th></tr></thead>
     <tbody>{rows.map(row => <tr key={row.key}><th scope="row">{row.label}</th>
@@ -68,7 +70,7 @@ function Opponent({ profile, scoringLabel }) {
       <div><dt>Last 3 games</dt><dd><Value value={matchup.recent.value} missing="no games"/></dd><dd className="gx-fantasy-n">{games(matchup.recent.games)}</dd></div>
       <div><dt>All defenses</dt><dd><Value value={matchup.league.value} missing="no games"/></dd><dd className="gx-fantasy-n">{matchup.league.games} team games</dd></div>
     </dl>
-    {matchup.games.length > 0 && <div className="gx-fantasy-table-wrap"><table className="gx-fantasy-table">
+    {matchup.games.length > 0 && <div className="gx-fantasy-table-wrap" role="region" aria-label={`What ${matchup.defense} allowed by week`} tabIndex={0}><table className="gx-fantasy-table">
       <caption className="gx-sr-only">Fantasy points {matchup.defense} allowed to {plural[matchup.position]} by week</caption>
       <thead><tr><th scope="col">Week</th><th scope="col">Offense</th><th scope="col">Pts allowed</th></tr></thead>
       <tbody>{matchup.games.map(game => <tr key={game.week}><th scope="row">{game.week}</th><td>{game.offense}</td><td><Value value={game.points}/></td></tr>)}</tbody>
@@ -80,9 +82,21 @@ function Opponent({ profile, scoringLabel }) {
 export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, compare }) {
   const profile = playerProfile(snapshot, playerId, settings);
   if (!profile) return null;
+  return <Sheet title={profile.player.name} onClose={onClose} tall className="gx-fantasy-profile">
+    <PlayerProfileBody profile={profile} snapshot={snapshot} settings={settings} compare={compare}/>
+  </Sheet>;
+}
+
+/**
+ * The profile's content, for the sheet above and for a sheet that shows it as a sub-view (Play › Points, Board i63).
+ * `estimateLocked`, a sentence, replaces GTL's pace estimate with a lock line: on the Points ballot that estimate is the
+ * House (D-56), which stays hidden until the viewer locks in the player or he kicks off. The rest-of-season estimate
+ * goes with it, since it is the same pace times the games left.
+ */
+export function PlayerProfileBody({ profile, snapshot, settings, compare, estimateLocked = null }) {
   const { player, weeks, summary, estimate } = profile, scoringLabel = label(SCORING_OPTIONS, settings.scoring);
   const usageCell = (row, key) => <Value value={row.usage[key]} whole/>;
-  return <Sheet title={player.name} onClose={onClose} tall className="gx-fantasy-profile">
+  return <>
     <p className="gx-t-meta">{player.team} · {player.position}{player.status ? ` · ${player.status}` : ''}</p>
     <p className="gx-t-meta">{scoringLabel} · {settings.passingTds}-point passing TDs · Stats through Week {snapshot.statsThroughWeek}</p>
     {compare && <div className="gx-fantasy-tool-actions"><CompareToggle player={player} {...compare}/></div>}
@@ -90,7 +104,7 @@ export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, comp
       <h3 className="gx-t-section" id={`${player.id}-observed`}>Observed production</h3>
       <p className="gx-t-meta">Completed games only. {games(summary.season.games)} recorded{profile.byeKnown ? '' : '; byes are not marked in this snapshot'}.</p>
       {weeks.length ? <WeeklyChart weeks={weeks}/> : <p className="gx-t-body">No completed weeks yet.</p>}
-      {weeks.length > 0 && <div className="gx-fantasy-table-wrap"><table className="gx-fantasy-table">
+      {weeks.length > 0 && <div className="gx-fantasy-table-wrap" role="region" aria-label="Usage and points by week" tabIndex={0}><table className="gx-fantasy-table">
         <caption className="gx-sr-only">Usage and actual fantasy points by week</caption>
         <thead><tr><th scope="col">Wk</th>{USAGE_METRICS.map(metric => <th scope="col" key={metric.key}><abbr title={metric.label}>{metric.short}</abbr></th>)}<th scope="col">Pts</th></tr></thead>
         <tbody>{weeks.map(row => <tr key={row.week}><th scope="row">{row.week}</th>
@@ -102,6 +116,7 @@ export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, comp
     </section>
     <Card variant="s2" as="section" className="gx-vstack gx-gap-8" aria-labelledby={`${player.id}-estimate`}>
       <h3 className="gx-t-section" id={`${player.id}-estimate`}>GTL pace estimate</h3>
+      {estimateLocked ? <LockLine>{estimateLocked}</LockLine> : <>
       <p className="gx-t-meta">An estimate from {games(estimate.sampleGames)} of recorded pace, not an observed result or expert projection.</p>
       {estimate.status === 'bye' ? <p className="gx-t-body">Bye in Week {snapshot.week}.</p>
         : estimate.week ? <dl className="gx-fantasy-facts">
@@ -109,12 +124,13 @@ export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, comp
           {USAGE_METRICS.map(metric => <div key={metric.key}><dt>{metric.label}</dt><dd><Value value={estimate.week.usage[metric.key]} missing="unavailable"/></dd></div>)}
         </dl> : <p className="gx-t-body">No Week {snapshot.week} estimate (fewer than two recorded games, an unconfirmed kickoff, or reported Out or Doubtful).</p>}
       {estimate.restOfSeason && <p className="gx-t-body">Rest of season: <strong><Value value={estimate.restOfSeason.points} missing="unavailable"/></strong> est. points over {games(estimate.restOfSeason.games)} scheduled.</p>}
+      </>}
     </Card>
     <section className="gx-vstack gx-gap-8" aria-labelledby={`${player.id}-opponent`}>
       <h3 className="gx-t-section" id={`${player.id}-opponent`}>Opponent context</h3>
       <Opponent profile={profile} scoringLabel={scoringLabel}/>
     </section>
-  </Sheet>;
+  </>;
 }
 
 function ComparePicker({ snapshot, ids, onChange }) {

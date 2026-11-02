@@ -9,8 +9,15 @@
 // of glow cards be on screen, replacing D-55's two-card limit. The open sheet repeats the slot as a glow card too.
 // The server decides every gate (cloud/points.mjs): this screen only draws what /points/read returned. Until P-01 is
 // applied the read answers 404 and the screen says "Points is coming soon".
+// Board i63: the slot's sheet adds the player's context from the week's public Fantasy snapshot (SlotContext.jsx) and
+// opens his Fantasy profile in place; GTL's weekly estimate there is the House, so it stays locked until the read
+// carries the House (D-56). The ballot is keyed by account, so an account switch starts it, and the context, empty.
 import { useEffect, useRef, useState } from 'react';
 import { pointsApi } from '../../../api.js';
+import { fantasyWeekKey, useFantasySnapshot } from '../../../fantasyData.js';
+import { playerProfile } from '../../../../../shared/fantasy-tools.mjs';
+import { PlayerProfileBody } from '../../fantasy/FantasyTools.jsx';
+import '../../fantasy/fantasy.css';
 import { useAppData } from '../../data/AppData.jsx';
 import { useShell } from '../../shell/context.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
@@ -18,6 +25,8 @@ import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton
 import { INFO } from '../../info.js';
 import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
 import { PointsPublish } from './PointsPublish.jsx';
+import { SlotContext } from './SlotContext.jsx';
+import { CONTEXT_COPY, contextSettings, estimateOpen } from './pointsContext.js';
 import './points.css';
 
 /** The slot's game as marks (D-62), or the player's team as text when the game key has another form. */
@@ -67,7 +76,7 @@ export function PointsComingSoon() {
 
 export function PointsBallot() {
   const app = useAppData(), shell = useShell();
-  return <PointsBallotView app={app} shell={shell} read={usePointsRead(app)}/>;
+  return <PointsBallotView key={app.accountId} app={app} shell={shell} read={usePointsRead(app)}/>;
 }
 
 /** The ballot for one read state; `initialSlot` opens that slot's sheet (tests render it statically). */
@@ -209,8 +218,15 @@ function Stepper({ value, onChange, disabled }) {
   </div>;
 }
 
-/** The slot's sheet: the stepper while it is open, and the number line or the locked-in faces after lock-in or kickoff. */
-export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, onSaved, onSignInAgain }) {
+/**
+ * The slot's sheet: the stepper while it is open, and the number line or the locked-in faces after lock-in or kickoff;
+ * under it the player's context, whose "Open profile" shows his Fantasy profile as this sheet's sub-view (the guess
+ * being edited stays as it is). `initialView` 'profile' opens on the profile (tests render it statically).
+ */
+export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, onSaved, onSignInAgain, initialView = 'slot' }) {
+  const fantasy = useFantasySnapshot(fantasyWeekKey(data.season, data.week));
+  const [view, setView] = useState(initialView);
+  const settings = contextSettings(data);
   const [value, setValue] = useState(Number.isInteger(slot.own?.guess) ? slot.own.guess : null);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [confirm, setConfirm] = useState(false);
   const [pending, setPending] = useState(null);
@@ -241,6 +257,12 @@ export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, o
   }
   const choose = update => { setValue(update); setNotice(''); };
   const title = `${slot.slot} · ${slot.name}`;
+  const profile = view === 'profile' && fantasy.status === 'ready' ? playerProfile(fantasy.snapshot, slot.playerId, settings) : null;
+  if (profile) {
+    return <Sheet title={profile.player.name} back={{ label: title, onBack: () => setView('slot') }} onClose={() => { if (!busy) onClose(); }} tall className="gx-pt-sheet gx-fantasy-profile">
+      <PlayerProfileBody profile={profile} snapshot={fantasy.snapshot} settings={settings} estimateLocked={estimateOpen(slot) ? null : CONTEXT_COPY.estimateLocked}/>
+    </Sheet>;
+  }
   const footer = can ? <Button variant="primary" block disabled={busy || value === null || Boolean(pending)} onClick={() => setConfirm(true)}>{value === null ? 'Choose a guess to lock in' : `Lock in ${value}`}</Button> : null;
   return <Sheet title={title} onClose={() => { if (!busy) onClose(); }} footer={footer} className="gx-pt-sheet">
     <Card variant="hero" className="gx-vstack gx-gap-12 gx-pt-card">
@@ -253,6 +275,7 @@ export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, o
         <Button disabled={busy || !dirty || Boolean(pending)} onClick={() => send('draft')}>{busy ? 'Saving…' : 'Save draft'}</Button>
       </section> : <Revealed slot={slot} viewer={viewer}/>}
     </Card>
+    <SlotContext week={data.week} slot={slot} snapshot={fantasy} settings={settings} onProfile={() => setView('profile')}/>
     {can && <p className="gx-t-body gx-c-2">Guess his Full PPR fantasy points, a whole number from 0 to 60. A locked guess is final.</p>}
     {can && slot.own && !slot.own.locked && <p className="gx-t-meta gx-c-2">Saved draft: {slot.own.guess}. A draft does not score unless you lock it in before kickoff.</p>}
     {can && <LockedInFaces slot={slot}/>}
