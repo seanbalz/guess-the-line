@@ -31,6 +31,8 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
   || (tab === 'bets' && Object.hasOwn(patch, 'assessment') && (patch.assessment ?? null) !== (state.views.bets.assessment ?? null))
   || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
+  // D-69: opening or closing one game's card in Your guesses is a step, so back returns to the week.
+  || (tab === 'play' && state.views.play.section === 'picks' && Object.hasOwn(patch, 'pickGame') && (patch.pickGame ?? null) !== (state.views.play.pickGame ?? null))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
   || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))

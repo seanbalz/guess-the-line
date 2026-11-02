@@ -169,6 +169,38 @@ test('a game focus follows Back but is cleared for a fresh general Play destinat
   assert.equal(reduce(state, { type: 'restore', place: { tab: 'play', view: { section: 'picks' } } }).views.play.pickGame, undefined);
 });
 
+test('D-69: opening a game in Your guesses is a step; the lip and Next keep the week underneath', () => {
+  const start = initialState({ tab: 'play', view: { section: 'picks', market: 'total', season: 2026, week: 9 } });
+  const game = reduce(start, { type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } });
+  assert.equal(game.views.play.pickGame, 'DEN-CAR');
+  assert.equal(game.trail.length, 1);
+  assert.equal(placeFromFragment(fragmentFor('play', game.views.play)).view.pickGame, 'DEN-CAR'); // a reload reopens it
+  for (const week of [reduce(game, { type: 'back' }), reduce(game, { type: 'view', tab: 'play', patch: { pickGame: undefined } })]) {
+    assert.equal(week.views.play.section, 'picks');
+    assert.equal(week.views.play.pickGame, undefined);
+    assert.equal(week.views.play.market, 'total');
+    assert.deepEqual(week.trail, []); // the lip back to the week is Back, so the next Back leaves Your guesses
+  }
+  // Next replaces the open game: back to the week, then the next game, so the trail never holds the previous game.
+  const next = reduce(reduce(game, { type: 'back' }), { type: 'view', tab: 'play', patch: { pickGame: 'DET-MIA' } });
+  assert.equal(next.views.play.pickGame, 'DET-MIA');
+  assert.equal(next.trail.length, 1);
+  assert.equal(next.trail[0].view.pickGame, undefined);
+  // Outside Your guesses a game id is not a step.
+  const score = initialState({ tab: 'play', view: { section: 'score' } });
+  assert.equal(reduce(score, { type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } }).trail.length, 0);
+});
+
+test('D-69: a deep link opens the game layer and Back returns to where it came from', () => {
+  let state = initialState({ tab: 'research', view: { section: 'games' } });
+  state = reduce(state, { type: 'go', tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 9, pickGame: 'HOU-JAX' } });
+  assert.equal(state.views.play.pickGame, 'HOU-JAX');
+  assert.equal(reduce(state, { type: 'back' }).tab, 'research');
+  const week = reduce(state, { type: 'view', tab: 'play', patch: { pickGame: undefined } });
+  assert.equal(week.views.play.pickGame, undefined);
+  assert.equal(week.trail.length, 2); // the lip opens the week as a new step; Back returns to the game, then Research
+});
+
 test('EPL uses the shared sheet/history loop and restores only its own route state', async () => {
   const win = fakeWindow('https://gtl.test/#epl/play/guess');
   // An unrelated NFL history entry must not supply a hidden trail or private selection.

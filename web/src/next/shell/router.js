@@ -161,7 +161,7 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
     }
     const saved = readEntry(history.state, route);
     const place = saved ?? address ?? { tab: DEFAULT_TAB };
-    if (!confirmLeave()) { rejectTraversal(); return; }
+    if (!confirmLeave({ type: 'restore', place })) { rejectTraversal(); return; }
     index = targetIndex;
     beforeNavigate();
     dispatch({ type: 'restore', place });
