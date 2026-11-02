@@ -89,6 +89,27 @@ async function fixture(page, baseURL, { open = true, beforeOpen } = {}) {
 const card = (page, gameId) => page.locator(`.gx-per-game [data-game="${gameId}"]`);
 /** D-69: the week card's "N of M locked" line (the week's game tiles are one tap back from a game). */
 const count = page => page.locator('[data-play="count"]');
+
+test('Monday pending answers refresh from saved references without changing drafts or revealing unlocked games',async({page,baseURL})=>{
+ const world=await fixture(page,baseURL,{beforeOpen:({personal})=>{
+  const row=personal.scoring.guess_spread.games[0];row.points=null;row.reference={value:null,status:'pending',rule:'first_line_after_submission'};
+ }});
+ try{
+  await expect(page.getByText(/Monday guesses show answers as soon as the first qualifying line arrives/)).toBeVisible();
+  const open=world.personal.games[1];await choose(page,open.id,3);
+  const receipt=world.personal.scoring.guess_spread.games[0];receipt.points=10;receipt.reference={value:-3,status:'available',rule:'first_line_after_submission',source:'Synthetic three-book median',observedAt:world.personal.now};
+  const writes=world.writes.length;
+  await openWeek(page); // D-69: the check sits on the week card, under the waiting line
+  await page.getByRole('button',{name:'Check for answers',exact:true}).click();
+  const kicked=await openGame(page,world.kicked.id);
+  await expect(kicked.locator('.gx-lock-receipt')).toContainText('10 / 10');
+  await expect(kicked.locator('.gx-receipt-pair')).toContainText('Line');
+  const draft=await openGame(page,open.id);
+  await expect(draft.locator('.gx-guess-num[data-value="3"]')).toHaveAttribute('aria-checked','true');
+  await expect(draft.locator('.gx-lock-receipt')).toHaveCount(0);
+  expect(world.writes).toHaveLength(writes);expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
 async function choose(page, gameId, value = 3) {
   const game = await openGame(page, gameId);
   await game.locator('[data-side="home"]').click();

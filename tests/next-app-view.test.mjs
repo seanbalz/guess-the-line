@@ -153,7 +153,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // RETIRE-01 (D-65): Play also reads the removed group screens' tab copies through the pure predictionDraft.js helpers.
   // The account-keyed read sharing (sharedReads.js) is forgotten by AuthGate on every account change, like nextDrafts.js.
   // Stage 78: the native Odds connection and the old ManualOddsControls share the quota rule and failure words (oddsConnection.js).
-  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'trendsAvailability.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js', 'predictionDraft.js', 'sharedReads.js', 'oddsConnection.js', 'trackedBetTerms.js']);
+  // Board i39: Menu › Pick reminders reuses the D-28 web push helper (webPush.js: the device check and the existing /push/* routes).
+  const allowed = new Set(['appView.js', 'teamLogoRegistry.js', 'api.js', 'auth.js', 'invitations.js', 'oauth.js', 'nextDrafts.js', 'trendsLoaders.js', 'trendsAvailability.js', 'windTimer.js', 'communityFormat.js', 'communityBoard.js', 'communityDraft.js', 'soloDraft.js', 'predictionDraft.js', 'sharedReads.js', 'oddsConnection.js', 'trackedBetTerms.js', 'webPush.js']);
   for (const shared of allowed) {
     assert.doesNotMatch(read(`web/src/${shared}`), /from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"]/, `${shared} stays free of React and CSS`);
   }

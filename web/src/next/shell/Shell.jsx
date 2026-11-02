@@ -262,8 +262,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const leagueLabelName = shown?.name ?? leagueName;
   const league = useMemo(() => ({ id: leagueId, name: leagueLabelName }), [leagueId, leagueLabelName]);
   const communityAdmin = data?.community?.admin === true;
-  const value = useMemo(() => ({ ...actions, communityAdmin, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
-    [actions, state, dockHost, member, league, online, communityAdmin]);
+  // The Community read's push guard (stage 2): the Menu offers Pick reminders only while the server can send pushes.
+  const pushConfigured = data?.community?.pushConfigured === true;
+  const value = useMemo(() => ({ ...actions, communityAdmin, pushConfigured, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
+    [actions, state, dockHost, member, league, online, communityAdmin, pushConfigured]);
 
   // A notice from outside the frame (the name just saved), once per key.
   const noticeKey = notice?.key;

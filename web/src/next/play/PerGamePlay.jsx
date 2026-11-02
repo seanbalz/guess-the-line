@@ -76,6 +76,10 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   ].filter(([, copy]) => copy));
   const pending = draft?.pending, ballot = data.ballots?.[mode], picks = mergeDraft(data, mode, draft), base = savedPicks({ ...data, mode });
   const sitOutPending = draft?.sitOutPending === true, uncertain = Boolean(pending || sitOutPending);
+  const waitingAnswers = data.games.filter(game => {
+    const row=data.scoring?.[mode]?.games?.find(item=>item.gameId===game.id);
+    return lockedAt(ballot,game.id)&&row?.eligible!==false&&number(row?.points)===null&&number(row?.reference?.value)===null;
+  }).length;
   // The legacy Community surface has no Shell registry; its drafts still guard sport navigation.
   const now = Date.parse(data.now) + elapsed, openAt = Date.parse(weekOpenAt(data.deadline));
   const dirty = (data.games || []).some(game => now < Date.parse(game.kickoff) && String(picks[game.id]) !== String(base[game.id]));
@@ -209,8 +213,10 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     {storageFailed && dirty && <p className="gx-t-meta gx-c-2">This browser cannot keep a recovery copy. Keep this page open until saved.</p>}
     {draft && dirty && !uncertain && !satOut && <p className="gx-t-meta gx-c-2">Unsaved guesses stay in this tab. Save draft to use another device.</p>}
   </>;
+  // Monday answers: it says "Check below", so it sits right above the check button (on the week card, D-69).
+  const waitingLine = waitingAnswers>0&&<p className="gx-t-body gx-c-2" role="status">{waitingAnswers} locked {waitingAnswers===1?'guess is':'guesses are'} waiting for a sportsbook line. Monday guesses show answers as soon as the first qualifying line arrives. Check below to refresh.</p>;
   const checkAndSave = <>
-    <div className="gx-score-navigation"><Button disabled={busy} onClick={check}>{busy ? 'Checking…' : 'Check saved picks'}</Button><Button disabled={busy || !dirty || uncertain || !active || satOut} onClick={() => save()}>Save draft</Button></div>
+    <div className="gx-score-navigation"><Button disabled={busy} onClick={check}>{busy ? 'Checking…' : waitingAnswers>0&&!uncertain ? 'Check for answers' : 'Check saved picks'}</Button><Button disabled={busy || !dirty || uncertain || !active || satOut} onClick={() => save()}>Save draft</Button></div>
     {pending && <Card className="gx-vstack gx-gap-12"><p className="gx-t-body">Check saved picks first. If the save is still unconfirmed, retry uses the same request and cannot count twice.</p><Button disabled={!checked || busy} onClick={() => save(null, true)}>Retry same save</Button></Card>}
     {sitOutPending && <Card className="gx-vstack gx-gap-12"><p className="gx-t-body">Check saved picks first to confirm whether you sat out. Your entered guesses and locked scores are kept.</p><Button disabled={!checked || busy || !canSitOut} onClick={sitOut}>Retry sit-out</Button></Card>}
   </>;
@@ -277,6 +283,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
           {marketControl}
           <WeekProgress progress={progress} market={market} week={data.week} onNext={nest.onOpen} nested/>
           <WeekTiles progress={progress} mode={mode} guessOf={guessOf} onOpen={nest.onOpen} label={`Week ${data.week} ${market} games`}/>
+          {waitingLine}
           {uncertain ? null : checkAndSave}
           {olderDraftTools}
           {sitOutButton}
@@ -290,6 +297,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     <WeekProgress progress={progress} market={market} week={data.week} onNext={goTo}/>
     <details className="gx-score-detail"><summary className="gx-t-strong">How to make a {market} guess</summary><p className="gx-t-body">{GUESS_HELP[mode]}</p></details>
     {status}
+    {waitingLine}
     {checkAndSave}
     {olderDraftTools}
     {data.games.map(game => gameCard(game))}

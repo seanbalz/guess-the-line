@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 vi.mock('../web/src/api.js', () => ({ socialApi: vi.fn(() => new Promise(() => {})), date: value => value, signed: value => String(value) }));
+vi.mock('../web/src/fantasyData.js', () => ({ useFantasySnapshot: () => ({ status: 'missing' }), fantasyWeekKey: (season,week) => `${season}-${week}` }));
 
 const { default: SocialBetTracker } = await import('../web/src/SocialBetTracker.jsx');
 const { REVIEW_COPY, draftParts, savedTicketToast } = await import('../web/src/next/bets/recommendationReview.js');

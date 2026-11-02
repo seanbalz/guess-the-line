@@ -9,6 +9,8 @@ import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn(), pointsApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => null, useSharedRead: () => ({ data: null }) }));
+// Board i63: a Points slot sheet reads the week's Fantasy snapshot; these renders leave it loading.
+vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));
 const { PointsBallotView } = await import('../web/src/next/play/points/PointsBallot.jsx');
 const { PointsPublishView } = await import('../web/src/next/play/points/PointsPublish.jsx');
 const { Button } = await import('../web/src/next/ui/index.js');

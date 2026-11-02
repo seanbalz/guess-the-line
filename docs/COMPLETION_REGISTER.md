@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## My bets spacing and entry follow-up — November 2, 2026
+
+Sean's screenshot reproduced a legacy CSS override that removed the card gap.
+The [follow-up record](RELEASE_2026_11_02_MY_BETS.md) covers the actual 32px
+separation, searchable manual sources/matchups, same-week player suggestions and
+clearer Monday pending-answer refresh. Local checks pass: 31 focused Node, 621
+component and 27 browser scenarios, typecheck, build, privacy scan and brand QA.
+Merge and deployment are not yet claimed. Authorized profile reconciliation was verified
+privately through the existing audited writer. Fantasy opens Tuesday under
+D-61; existing locked guesses remain intact.
+
 Owner: Sean Balsiger · Reconciled October 29, 2026
 
 The current task list is [the sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md).
@@ -31,6 +42,38 @@ and 252 buttons on the open Total ballot. From five options on the
     the real handler on PGlite. They cover 390px and 320px, Dark and Light, axe, 44px targets and no sideways scroll.
 - **Not done:** no release or real-phone check yet. The other Play screens (League, Your weekly score, Badges, Guess
   the Points) are not in this pass.
+
+## Player context on the Points ballot (Board i63) — November 2, 2026
+
+Each Points slot showed only the player, matchup and kickoff. A slot's sheet
+now has a player context card from the week's public Fantasy Track 1 snapshot
+(signed-in `/fantasy/week`, committed copy as fallback): last-3 and season Full
+PPR averages with game counts, the opponent and what it allows to the position,
+and the game or practice report with the snapshot time; missing values are "—".
+"Open profile" shows the existing Fantasy profile as the sheet's sub-view, its
+code loaded on that tap (the player tools' styles now have their own
+`fantasyTools.css`, so `FantasyScreen` keeps its own lazy chunk). GTL's
+weekly estimate is the House, so the strip never shows it and the profile keeps
+it (and the rest-of-season estimate) behind a lock line until the read carries
+the House (lock-in or kickoff, D-56). No implied team totals (D-57). The ballot
+is keyed by account. Also fixed: the slot sheet's glow card shrank under later
+cards once the sheet overflowed, and the profile's sideways-scrolling tables are
+now focusable regions. Frontend only; ships with the next Pages release.
+
+## Pick reminders opt-in in the new app (Board i39) — November 2, 2026
+
+Verified November 2: 0 push subscriptions and 0 reminders ever sent, although
+`gtl-push-reminders` v5 (Spread/Total and Points) runs every 15 minutes; the
+opt-in lived only in the retired old app. The new app now has Menu › Pick
+reminders (one switch per device: on, off, blocked, unsupported, or an iPhone
+Safari tab's one-line "add to Home Screen first") and a one-time prompt under
+Play's Points card, remembered per account on the device. Both reuse
+`web/src/webPush.js` and the existing `/push/*` routes, ask for permission only
+on a tap and show only while `pushConfigured` is true. Frontend only; no route,
+migration or Edge Function changed. Released November 2 in Pages `6c458d6d` from
+`e7a38c6` ([release record](RELEASE_2026_11_02_REMINDERS.md), card #414); the prompt
+and Menu row were seen live, signed in. Delivery to a real iPhone from the Home
+Screen app is not verified, and push subscriptions are still 0 until someone opts in.
 
 ## My bets Roomy cards and inline expansion — November 1, 2026
 
