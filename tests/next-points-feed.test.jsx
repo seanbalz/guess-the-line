@@ -11,6 +11,8 @@ vi.mock('../web/src/next/shell/context.js', () => ({ useShell: () => ({ state: {
 vi.mock('../web/src/next/league/LeagueHistory.jsx', () => ({ LeagueHistory: () => null }));
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => ({ loading: true }), LeagueFailure: () => null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), date: value => String(value) }));
+// Board i63: a Points slot sheet reads the week's Fantasy snapshot; these renders leave it loading.
+vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));
 const { LeagueScreen } = await import('../web/src/next/league/LeagueScreen.jsx');
 
 const post = (id, patch) => ({ id, actorId: A, season: 2026, week: 8, mode: null, createdAt: '2026-11-01T18:00:00Z', likes: 0, likedByMe: false, comments: [], payload: {}, ...patch });
