@@ -181,11 +181,12 @@ test('D-69: opening a game in Your guesses is a step; the lip and Next keep the 
     assert.equal(week.views.play.market, 'total');
     assert.deepEqual(week.trail, []); // the lip back to the week is Back, so the next Back leaves Your guesses
   }
-  // Next replaces the open game: back to the week, then the next game, so the trail never holds the previous game.
-  const next = reduce(reduce(game, { type: 'back' }), { type: 'view', tab: 'play', patch: { pickGame: 'DET-MIA' } });
+  // Next replaces the open game, so the trail never holds the previous game.
+  const next = reduce(game, { type: 'view', tab: 'play', patch: { pickGame: 'DET-MIA' } });
   assert.equal(next.views.play.pickGame, 'DET-MIA');
   assert.equal(next.trail.length, 1);
   assert.equal(next.trail[0].view.pickGame, undefined);
+  assert.deepEqual(reduce(next, { type: 'back' }).trail, []);
   // Outside Your guesses a game id is not a step.
   const score = initialState({ tab: 'play', view: { section: 'score' } });
   assert.equal(reduce(score, { type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } }).trail.length, 0);
@@ -196,6 +197,11 @@ test('D-69: a deep link opens the game layer and Back returns to where it came f
   state = reduce(state, { type: 'go', tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 9, pickGame: 'HOU-JAX' } });
   assert.equal(state.views.play.pickGame, 'HOU-JAX');
   assert.equal(reduce(state, { type: 'back' }).tab, 'research');
+  // Next from a deep-linked game is a plain step: it never goes back to Research first.
+  const next = reduce(state, { type: 'view', tab: 'play', patch: { pickGame: 'SEA-DEN' } });
+  assert.equal(next.tab, 'play');
+  assert.equal(next.views.play.pickGame, 'SEA-DEN');
+  assert.equal(next.trail.length, 2);
   const week = reduce(state, { type: 'view', tab: 'play', patch: { pickGame: undefined } });
   assert.equal(week.views.play.pickGame, undefined);
   assert.equal(week.trail.length, 2); // the lip opens the week as a new step; Back returns to the game, then Research
