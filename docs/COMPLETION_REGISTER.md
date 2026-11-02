@@ -3,6 +3,21 @@
 ## EPL Week 9 results and weekly automation — November 2, 2026
 
 Owner: Sean Balsiger · Verified hosted data maintenance; no source deployment.
+Sean subsequently confirmed that the supplied Sleeper scores already include
+the bonuses. The initial settlement added them a second time; the live correction
+at `2026-11-02T23:48:45Z` is authoritative. MW10 was still open with zero picks
+and queues. Under the week-row lock, its order was recomputed from the saved
+weekly deltas alone, with raw Sleeper season totals breaking ties. The three
+duplicate GTL additions are now zero; the bonus rows/margins remain, and their
+previous values and both orders are retained in the original settlement run's
+private `detail.commissionerBonusCorrection` audit. All picks and snapshots were
+hash-verified unchanged. The first-kickoff deadline is unchanged.
+
+The existing automation assumes bonuses are absent from Sleeper and adds them
+in GTL. That assumption is wrong for MW9; automatic bonus-accounting support
+needs its own source fix and release before it can be claimed correct for
+future commissioner-adjusted weeks. No bonus-inclusion detection is connected.
+
 The supplied FEPL screenshot agrees with all eight weekly points-for and
 points-against deltas from the stored `after-mw08` baseline to a fresh public
 Sleeper capture at `2026-11-02T23:28:21Z` (season 2026, state week 10). The six
@@ -27,10 +42,12 @@ This maintenance does not apply migrations, change cron, or establish future
 Tuesday correction/full-cycle acceptance.
 
 Settlement run `8b87b1b7-0ff9-4700-8427-fd3e08d432ed` succeeded after the import:
-three tied winning-margin awards were written and MW10 opened automatically
-using the existing scoring/order functions. MW9 is settled; its eight picks
-retain the same digest. The next draft order includes the bonus and season-total
-tie-break. Individual scores/picks were verified privately, not committed here.
+three tied winning-margin additions were initially written and MW10 opened
+using the existing scoring/order functions. Those additions duplicated points
+already in Sleeper and were corrected as described above. MW9 is settled; its
+eight picks retain the same digest. The final draft order uses the supplied
+scores as shown and the season-total tie-break. Individual scores/picks were
+verified privately, not committed here.
 
 Fixture run `36d05e98-a65c-42eb-a07c-2b004d270a7d` then succeeded: ten MW10
 fixtures and twenty median h2h prices were stored, no unknown clubs, 485 free
