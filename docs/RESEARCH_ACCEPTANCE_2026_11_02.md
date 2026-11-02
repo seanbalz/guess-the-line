@@ -43,7 +43,8 @@ Two later scheduled runs also succeeded:
 [41399796775](https://github.com/seanbalz/guess-the-line/actions/runs/41399796775)
 and [41501407645](https://github.com/seanbalz/guess-the-line/actions/runs/41501407645).
 The latest has source `1f392fe14559d7d9767e2be0b2462582aab881e6`, successful
-build and publish/verify steps, and a downloaded receipt matching the current index.
+build and publish/verify steps, and a downloaded receipt that matched the
+then-current index at the 22:28 UTC readback.
 The workflow's UTC cron is `23 */4 * * *`. Actual observed delivery is irregular;
 the last run's creation time does not establish the next delivery time.
 
