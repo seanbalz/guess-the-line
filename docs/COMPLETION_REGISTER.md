@@ -8,15 +8,20 @@ separation, searchable manual sources/matchups, same-week player suggestions and
 clearer Monday pending-answer refresh. Local checks pass: 31 focused Node, 621
 component and 27 browser scenarios, typecheck, build, privacy scan and brand QA.
 PR #408 is merged as `e02fed3b2e3cd9acf5bc63b4ecda1d0c3bcf5356` after all twelve PR checks.
-Approximate completion is 75–85%: exact-main browser recovery, protected release
-and live/physical acceptance remain. A concurrent unrelated merge cancelled
-three browser jobs; those jobs are rerunning on the exact source without changing
-tests. A separate actor restarted the deferred newer CI and cancelled the retry
-again; operator reconciliation is now required before another retry. #409 is not
-bundled and no protected gate is bypassed. Deployment is not
-yet claimed. Authorized profile reconciliation was verified
-privately through the existing audited writer. Fantasy opens Tuesday under
-D-61; existing locked guesses remain intact.
+Its interrupted exact-main browser checks recovered in attempt 3, then source
+check 41543354162 passed. An external controller deployed the newer combined
+`e7a38c6e9017a9c49cdf2a526482c05f8219f29f` in protected run 41542487945; this
+lane did not deploy or approve it and did not overwrite it with e02. All seven
+#408 runtime files are identical. Independent readback matched all 127 served
+files, and protected-data aggregates stayed unchanged before/after deployment
+and browser QA. Actual signed-in checks verify 32px gaps across populated tickets
+at 320/390px in Light/Dark, expansion/reload, search/Enter, roster/manual entry,
+prop resets and a read refresh of 15 already-available locked receipts. Only the
+unsaved QA draft was discarded; original settings/filter/viewport were restored.
+Approximate completion is **90–95%**: physical iPhone acceptance is pending the
+OS-required phone lock. Research acceptance follows the verified stable release;
+#388 remains open for its physical matrix. Points retains D-61's Tuesday opening
+and fresh-snapshot prerequisites; no existing locked guess was reset.
 
 Owner: Sean Balsiger · Reconciled October 29, 2026
 
@@ -54,8 +59,10 @@ Safari tab's one-line "add to Home Screen first") and a one-time prompt under
 Play's Points card, remembered per account on the device. Both reuse
 `web/src/webPush.js` and the existing `/push/*` routes, ask for permission only
 on a tap and show only while `pushConfigured` is true. Frontend only; no route,
-migration or Edge Function changed; it ships with the next Pages release.
-Delivery to a real iPhone from the Home Screen app is not verified.
+migration or Edge Function changed. It is included in the verified e7a frontend
+release documented in the [My bets release follow-through](RELEASE_2026_11_02_MY_BETS.md).
+This lane did not opt in, change notification permission or verify delivery to a
+real iPhone from the Home Screen app.
 
 ## My bets Roomy cards and inline expansion — November 1, 2026
 

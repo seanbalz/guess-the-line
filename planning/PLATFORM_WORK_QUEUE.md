@@ -4,13 +4,16 @@
 
 The [spacing and entry follow-up](../docs/RELEASE_2026_11_02_MY_BETS.md) fixes the
 reproduced zero-gap override and adds source/matchup search, roster-backed player
-suggestions and explicit Monday pending-answer refresh. Source merged in #408 after twelve passing PR checks; approximate completion
-is 75–85%, with exact-main browser recovery, protected release and live/physical
-acceptance remaining. The named frontend release stays pinned to e02fed3b;
-unrelated #409 is excluded. A conflicting newer CI retry cancelled exact-source
-recovery again; coordinate its operator before further retries. Production/device
-evidence is recorded separately. No existing guesses are reset. The frozen tracker remains
-unchanged.
+suggestions and explicit Monday pending-answer refresh. PR #408 and its original
+exact-main checks/source pin passed. Actual production is the external combined
+e7a frontend, including identical #408 runtime files; no older source was deployed
+by this lane. All 127 production files and protected aggregates were independently
+verified. Signed-in browser checks pass at 320/390px in Light/Dark, including
+spacing/expansion/reload, unsaved search/prop entry and available receipt refresh.
+Approximate completion is **90–95%**; physical Safari/applicable Home Screen
+acceptance still needs the OS-required phone lock. Research population/freshness
+and #388's Fantasy/Trends physical matrix follow the stable release with one phone
+operator. No guess or ticket was saved/reset; the frozen tracker is unchanged.
 
 Owner: Sean Balsiger · Current reconciliation October 28, 2026
 
