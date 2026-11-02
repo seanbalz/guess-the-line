@@ -645,6 +645,8 @@ test('matchup and sportsbook searches plus roster suggestions keep exact manuall
   await editor.getByLabel('Prop market',{exact:true}).selectOption('receiving yards');
   await editor.getByRole('group',{name:'Prop direction',exact:true}).getByRole('button',{name:'At least (+)',exact:true}).click();await editor.getByLabel('Prop line',{exact:true}).fill('40');
   await editor.getByText('More sportsbooks',{exact:true}).click();await editor.getByLabel('Find sportsbook',{exact:true}).fill('Prophet');
+  await editor.getByLabel('Find sportsbook',{exact:true}).press('Enter');await expect(editor).toBeVisible();
+  expect(calls.filter(c=>c.path==='social/create')).toHaveLength(0);
   await editor.getByRole('button',{name:'ProphetX',exact:true}).click();
   expect(calls.filter(c=>c.path==='social/create')).toHaveLength(0);
   await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();await expect(editor).toHaveCount(0);

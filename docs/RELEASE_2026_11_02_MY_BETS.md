@@ -12,7 +12,8 @@ Light and Dark at 320px and 390px, collapsed and expanded, and after reload.
 
 The existing ticket editor now searches matchups by team/name and offers 33
 named manual tracking sources, including exchanges and pick'em apps, with a
-search field and the existing custom/unknown choices. Names support recording
+search field and the existing custom/unknown choices. Enter in search keeps the
+draft open; saving remains an explicit action. Names support recording
 current or historical tickets; they establish no quote connection or regional
 availability. Player entry suggests matching names/team/position from the
 existing public Fantasy snapshot for the exact ticket season/week and selected
