@@ -12,8 +12,8 @@ verified. Signed-in browser checks pass at 320/390px in Light/Dark, including
 spacing/expansion/reload, unsaved search/prop entry and available receipt refresh.
 Approximate completion is **90–95%**; physical Safari/applicable Home Screen
 acceptance still needs the OS-required phone lock. Research population/freshness
-and #388's Fantasy/Trends physical matrix follow the stable release with one phone
-operator. No guess or ticket was saved/reset; the frozen tracker is unchanged.
+now pass the [current browser/publication checks](../docs/RESEARCH_ACCEPTANCE_2026_11_02.md);
+its physical check and #388's Fantasy/Trends matrix retain one phone operator. No guess or ticket was saved/reset; the frozen tracker is unchanged.
 
 Owner: Sean Balsiger · Current reconciliation October 28, 2026
 

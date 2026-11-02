@@ -187,8 +187,9 @@ account and Community NFL context:
 
 These browser overrides are not physical iPhone evidence. Reminder opt-in/
 delivery and the later Points context feature retain their own acceptance scope.
-Research population/publication is handled by its designated acceptance owner
-on this stable frontend before the final phone sweep.
+The designated Research owner completed [publication and current-build browser
+acceptance](RESEARCH_ACCEPTANCE_2026_11_02.md) on this stable frontend. The final
+phone sweep remains separate.
 
 ## Remaining physical acceptance and recovery limits
 
