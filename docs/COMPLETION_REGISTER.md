@@ -30,8 +30,10 @@ Tapping a Points reminder (tag `gtl-points-…`) opens Play › Points
 maps only the fixed tag prefix to one of these two addresses, so the payload
 still cannot choose a URL. Node tests run the worker itself (points, other,
 missing and look-alike tags; payload `url`/`data` ignored; focus an open
-window, else open one); a 390 px browser check covers the EPL Menu row. Frontend
-only; it ships with the next Pages release. A tap on a real phone is not verified.
+window, else open one); a 390 px browser check covers the EPL Menu row. Phone
+captures of the Menu in EPL and NFL, Light and Dark, are in
+[design/qa/reminder-followups-2026-11-02](../design/qa/reminder-followups-2026-11-02/).
+Frontend only; it ships with the next Pages release. A tap on a real phone is not verified.
 
 ## Player context on the Points ballot (Board i63) — November 2, 2026
 
