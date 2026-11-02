@@ -1,9 +1,9 @@
 # Design overhaul: game feel, nesting cards and a page-by-page pass
 
-Owner: Sean Balsiger · Designed with Sean in chat October 26 and November 2, 2026 · Status: **proposed (D-69),
-awaiting Sean's review of this written spec.** Sean answered five questions one at a time on a mockup canvas and
-approved the three design parts in chat ("Looks right", "Looks right", "Looks right, write spec"). Nothing is built.
-No implementation plan exists yet; writing one needs Sean's go.
+Owner: Sean Balsiger · Designed with Sean in chat October 26 and November 2, 2026 · Status: **approved as written
+(D-69).** Sean answered five questions one at a time on a mockup canvas, approved the three design parts in chat
+("Looks right", "Looks right", "Looks right, write spec"), then reviewed this written spec: "Spec approved". Nothing
+is built. The step 0 plan is `docs/superpowers/plans/2026-11-02-design-overhaul-step0-kit.md`.
 
 Mockups: [GTL Design Overhaul Mockups](https://claude.ai/artifact/YBJmR5XUV59juyGKPGphJ7), a private canvas with
 rows Q1 to Q5. The mockups use sample numbers and colored circles in place of team marks.
@@ -323,6 +323,8 @@ Every page below gets the shared kit. Only the changes are listed.
 - **NBA** (hidden from the sport switch).
 
 ## 12. Decision entry
+
+Recorded in `docs/DECISIONS.md` as approved on November 2, 2026. The proposed text was:
 
 > ## D-69 — Design overhaul: Moments, nesting cards on every tab, next move first (proposed November 2, 2026)
 >

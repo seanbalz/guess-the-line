@@ -31,6 +31,29 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-69 — Design overhaul: Moments, nesting cards on every tab, next move first (November 2, 2026)
+
+Sean asked on October 26 for "a page by page node by node overhaul" because the app "doesn't have interactive and
+motion and game type features". On November 2 he answered five questions, one at a time, on a mockup canvas
+([GTL Design Overhaul Mockups](https://claude.ai/artifact/YBJmR5XUV59juyGKPGphJ7), private):
+- **Game feel:** "B · Moments", within the D-58 motion rules. One big moment, never on page load; small moments for
+  saves; losses quiet.
+- **Navigation:** "2A · Nesting cards", D-66's nesting cards on every tab, not only Research.
+- **Moments:** "Use PICK column":
+  - Big: Bullseye, Week final, Guess the Points exact, a badge or award, and reaching 1st.
+  - Small: lock-in, whole week locked, rank up, Pick streak, and a tracked bet win.
+  - Quiet: losses.
+- **Order:** "Use this order": the shared kit, then Play, Home, Research, Bets, and Menu with EPL.
+- **First card:** "5A · Next move + tiles", one next-move card with the one lime button, then two columns of tiles with
+  one picture and one big number each.
+
+He approved the three design parts ("Looks right" twice, then "Looks right, write spec") and the written spec ("Spec
+approved"). Results from while a player was away are shown as NEW and play when their card is opened, never on
+launch. The overhaul is frontend only, ships as six PRs with an iPhone check after each, and adds no migration. Type,
+palette, icons and motion tokens are unchanged (D-58). New game types (friend challenges, Showdown, Gauntlet and
+Decathlon) are a separate spec. Spec: [2026-11-02-design-overhaul-design.md](superpowers/specs/2026-11-02-design-overhaul-design.md).
+This decision does not authorize a production release; each step releases through the existing workflow.
+
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
 **Deployment status update — October 29, 2026:** M-30 and M-31 are applied;
