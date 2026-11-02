@@ -9,8 +9,9 @@ import { EPL_ROUTER } from './shellRoute.js';
 import { EplScreen } from './EplApp.jsx';
 
 function EplMenu(props) {
-  // Account-wide commissioner access is checked only when the menu is opened. EPL entry does
-  // not need an NFL week, roster or pick read, and NFL tab counters never appear on EPL.
+  // Account-wide commissioner access and the push guard (Pick reminders) are checked only when the menu
+  // is opened (AppGate's eplCommunity). EPL entry does not need an NFL week, roster or pick read, and NFL
+  // tab counters never appear on EPL.
   useSharedRead('community');
   return <MenuSheet {...props}/>;
 }
